@@ -1,0 +1,4 @@
+Simple ruby script to help practice scales (e.g. the major pentatonic)
+on a diatonic harmonica.  It runs in the linux console and requires
+several external programs for its operation: aubiopitch, arecord and
+figlet.
