@@ -1,7 +1,9 @@
 #!/usr/bin/ruby
 
 require 'set'
-
+require 'json'
+require 'fileutils'
+require 'byebug'
 
 #
 # Argument processing
@@ -43,25 +45,21 @@ Usage:
           
         this will ask you to play notes on your harp. The samples will
         be stored in folder samples (will be reused for quiz) and
-        frequencies will be extracted to file frequencies.yaml.
+        frequencies will be extracted to file frequencies.json .
         This command does not need a scale-argument.
 
 Hint: Maybe you need to scroll up to read this USAGE INFORMATION full.
       
 EOU
 
-def err_u text
-  exit 1
-end
-
 def err_h text
-  puts "\nERROR: #{text} !"
+  puts "ERROR: #{text} !"
   puts "(Hint: Invoke without arguments for usage information)"
   exit 1
 end
 
 def err_b text
-  puts "\nERROR: #{text} !"
+  puts "ERROR: #{text} !"
   exit 1
 end
 
@@ -107,7 +105,7 @@ if $mode == :calibrate
     arg_for_key = ARGV[1]
     arg_for_scale = nil
   else
-    err_h "Need exactly one additional argument for mode 'calibrate'"
+    err_h "Need exactly one additional argument (the key) for mode 'calibrate'"
   end
 end
   
@@ -126,9 +124,7 @@ if arg_for_scale
   end.first.to_sym
 end
 
-puts $scale,$key
-exit
-  
+
 #
 # Needed functions
 #
@@ -181,16 +177,27 @@ def get_two_peaks data, width
   sum_r = data_r[idx_r .. idx_r + cnt_r - 1].sum
 
   # maximum peak and higher of left or right peak
-  return [[(sum_m.to_f/cnt_m).to_i, cnt_m],
-          if cnt_l > cnt_r
-            [(sum_l.to_f/cnt_l).to_i, cnt_l]
-          else
-            if cnt_r == 0
-              [0, 0]
-            else
-              [(sum_r.to_f/cnt_r).to_i, cnt_r]
-            end
-          end]
+  pks = [divide(sum_m, cnt_m),
+         if cnt_l > cnt_r
+           divide(sum_l, cnt_l)
+         else
+           divide(sum_r, cnt_r)
+         end]
+
+  # use second peak if frequency of first is too low
+  if pks[0][0] < 200 && pks[1][0] > 200 && pks[1][1] > 4
+    pks = [pks[1],pks[0]]
+  end
+
+  return pks
+end
+
+def divide sum, cnt
+  if cnt == 0
+    [0, 0]
+  else
+    [(sum.to_f/cnt).to_i, cnt]
+  end
 end
 
 
@@ -209,10 +216,8 @@ def describe_freq freq
 end
   
 
-def get_note issue
+def get_hole issue
 
-  sfile = 'samples.wav'
-  arc = "arecord -D pulse -s 4096 #{sfile}"
   samples = Array.new
   if issue
     puts
@@ -224,9 +229,9 @@ def get_note issue
     tn = Time.now.to_i
 
     # get and filter new samples
-    system("#{arc} >/dev/null 2>&1") or fail 'arecord failed'
+    system("arecord -D pulse -s 4096 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     # when changing argument to '--pitch' below, $freq needs to be adjusted
-    new_samples = %x(aubiopitch --pitch mcomb samples.wav).lines.
+    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file}).lines.
                     map {|l| f = l.split; [f[0].to_f + tn, f[1].to_i]}.
                     select {|f| f[1]>0}
 
@@ -240,11 +245,7 @@ def get_note issue
     if samples.length > 8
       # each peak has structure [frequency in hertz, count]
       pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
-      if pks[0][0] < 200 && pks[1][0] > 200 && pks[1][1] > 4
-        pk = pks[1]
-      else
-        pk = pks[0]
-      end
+      pk = pks[0]
 
       good = done = false
       
@@ -259,7 +260,7 @@ def get_note issue
       extra += "\nPeaks: #{pks.inspect}"
     end
     puts "\033[#{good ? 32 : 31}m"
-    system("figlet -f mono12 -c \" #{hole}\"")
+    system("figlet -f mono12 -c \" #{hole}\"") or fail 'figlet failed'
     puts "\033[0m"
     puts "Samples total: #{samples.length}, new: #{new_samples.length}"
     puts extra if extra
@@ -274,16 +275,90 @@ end
 
 def do_quiz
   wanted = $scale.sample
-  get_note("Please play #{wanted}") {|played| [played == wanted, played == wanted]}
+  get_hole("Please play #{wanted}") {|played| [played == wanted, played == wanted]}
 end
 
 
 def do_listen
-  get_note("Please play any note from the scale !\nctrl-c to stop") {|played| [$scale.include?(played), false]}
+  get_hole("Please play any note from the scale !\nctrl-c to stop") {|played| [$scale.include?(played), false]}
 end
 
 
 def do_calibrate
+  holes = $harp.keys.reject {|x| %w(low high).include?(x)}
+  puts "\nThis is an interactive assistant, that will ask you to play these"
+  puts "holes of your harmonica one after the other, each for 2 seconds:"
+  puts "  #{holes.join(' ')}"
+  puts "\nAfter each whole the recorded sound will be replayed for confirmation."
+  puts "\nEach recording is preceded by a countdown (3 downto 1) and starts when"
+  puts "the word 'recording to ...' appears; when done, the word 'done' is printed."
+  puts "To avoid silence in the recording, you should start playing"
+  puts "early in the countdown already."
+  puts "\nPress RETURN to start:"
+  puts "(first hole will be #{holes[0]})"
+  STDIN.gets
+
+  hole2freq = Hash.new
+  freq = 0
+  (holes + ['end']).each_cons(2) do |hole, next_hole|
+    freq = record_hole(hole, freq, next_hole)
+    hole2freq[hole] = freq
+  end
+  File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
+  puts "All recordings done:"
+  system("ls -lrt #{$sample_dir}")
+end
+
+
+def record_hole hole, prev_freq, next_hole
+
+  begin
+    system("figlet -f mono12 -c \" #{hole}\"")  or fail 'figlet failed'
+    puts "\nRecording hole #{hole} after countdown reaches 1"
+    [3,2,1].each do |c|
+      puts c
+      sleep 1
+    end
+
+    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+
+    puts "recording to #{file} ..."
+    system("arecord -D pulse -d 2 #{file} >/dev/null 2>&1") or fail 'arecord failed'
+    puts "done"
+
+    samples = %x(aubiopitch --pitch mcomb #{file}).lines.
+                map {|l| l.split[1].to_i}.
+                select {|f| f>0}.
+                sort
+    pks = get_two_peaks samples, 10
+    puts "Peaks: #{pks.inspect}"
+    freq = pks[0][0]
+    
+    sleep 1
+    puts "replay ..."
+    system("aplay #{file} >/dev/null 2>&1") or fail 'aplay failed'
+    puts "done"
+
+    if freq < prev_freq
+      puts "The frequency just recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
+      puts "Therefore this recording cannot be accepted and you need to redo;"
+      puts "if however you feel, that the error is in the PREVIOUS recording already,"
+      puts "you need to redo it all, and should bail out by pressing ctrl-C to start over."
+      puts "\nPress RETURN to redo or ctrl-c to abort"
+      STDIN.gets
+    else
+      puts "Okay ? Empty input for Okay, everything else for redo:"
+      puts "(next hole will be #{next_hole})"
+      okay = ( STDIN.gets.chomp.length == 0 )
+      if okay
+        puts "Recording Okay, continue."
+      else
+        puts "Recording NOT Okay, please redo !"
+      end
+    end
+  end while !okay
+
+  return freq
 end
 
 
@@ -292,7 +367,11 @@ end
 #
 
 $key = :c
-$sample_dir = "samples/key_of_#{key}"
+$sample_dir = "samples/key_of_#{$key}"
+$sample_file = "#{$sample_dir}/sample.wav"
+
+# we never invoke it directly, so check
+system('which toilet') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
 
 
 #
@@ -302,8 +381,8 @@ $sample_dir = "samples/key_of_#{key}"
 if !File.exist?(File.basename($0))
   err_b "Please invoke this program from within its directory (cannot find #{File.basename($0)} in current dir)"
 end
-Dir.mkdir('samples') unless File.dir('samples')
-Dir.mkdir($sample_dir) unless File.dir($sample_dir)
+Dir.mkdir('samples') unless File.directory?('samples')
+Dir.mkdir($sample_dir) unless File.directory?($sample_dir)
 
   
 #
@@ -311,34 +390,68 @@ Dir.mkdir($sample_dir) unless File.dir($sample_dir)
 #
   
 # The frequencies are sensitive to argument '--pitch' for aubioptch below
-# Frequency calues will later be overwritten from frequencies.yaml in sample_dir
-$nota = { 'low' => {freq: 100, hole: 'low'},
-          'c4' => {freq: 248, hole: '+1'},
-          'd4' => {freq: 279, hole: '-1'},
-          'e4' => {freq: 311, hole: '+2'},
-          'g4' => {freq: 373, hole: '-2 +3'},
-          'gb4' => {freq: 408, hole: '-3//'},
-          'b4' => {freq: 468, hole: '-3'},
-          'c5' => {freq: 500, hole: '+4'},
-          'd5' => {freq: 561, hole: '-4'},
-          'e5' => {freq: 628, hole: '+5'},
-          'f5' => {freq: 663, hole: '-5'},
-          'g5' => {freq: 753, hole: '+6'},
-          'a5' => {freq: 844, hole: '-6'},
-          'b5' => {freq: 944, hole: '-7'},
-          'c6' => {freq: 1003, hole: '+7'},
-          'd6' => {freq: 1124, hole: '-8'},
-          'e6' => {freq: 1260, hole: '+8'},
-          'f6' => {freq: 1330, hole: '-9'},
-          'g6' => {freq: 1505, hole: '+9'},
-          'a6' => {freq: 1694, hole: '-10'},
-          'c7' => {freq: 2019, hole: '+10'},
-        'high' => {freq: 10000, hole: 'high'}}
+# Frequency calues will later be overwritten from frequencies.json in sample_dir
+$harp = case $key
+        when :c
+          { 'low' => {note: 'low'},
+            '+1' => {note: 'c4'},
+            '-1' => {note: 'd4'},
+            '+2' => {note: 'e4'},
+            '-2+3' => {note: 'g4'},
+            '-3//' => {note: 'a4'},
+            '-3' => {note: 'b4'},
+            '+4' => {note: 'c5'},
+            '-4' => {note: 'd5'},
+            '+5' => {note: 'e5'},
+            '-5' => {note: 'f5'},
+            '+6' => {note: 'g5'},
+            '-6' => {note: 'a5'},
+            '-7' => {note: 'b5'},
+            '+7' => {note: 'c6'},
+            '-8' => {note: 'd6'},
+            '+8' => {note: 'e6'},
+            '-9' => {note: 'f6'},
+            '+9' => {note: 'g6'},
+            '-10' => {note: 'a6'},
+            '+10' => {note: 'c7'},
+            'high' => {note: 'high'}}
+        when :a
+          { 'low' => {note: 'low'},
+            '+1' => {note: 'a3'},
+            '-1' => {note: 'b3'},
+            '+2' => {note: 'db4'},
+            '-2+3' => {note: 'e4'},
+            '-3//' => {note: 'gf4'},
+            '-3' => {note: 'af4'},
+            '+4' => {note: 'a4'},
+            '-4' => {note: 'b4'},
+            '+5' => {note: 'df5'},
+            '-5' => {note: 'd5'},
+            '+6' => {note: 'e5'},
+            '-6' => {note: 'gf5'},
+            '-7' => {note: 'af5'},
+            '+7' => {note: 'a5'},
+            '-8' => {note: 'b5'},
+            '+8' => {note: 'df6'},
+            '-9' => {note: 'd6'},
+            '+9' => {note: 'e6'},
+            '-10' => {note: 'gf6'},
+            '+10' => {note: 'a6'},
+            'high' => {note: 'high'}}
+        end
+$scale_holes = case $scale
+               when :major_pentatonic
+                 %w( -2 -3// -3 -4 5 6 -6 -7 -8 8 9 )
+               when :blues
+                 %w( -2 -3/ 4 -4/ -4 -5 6 )
+               end
+fail 'Internal error' unless Set.new($scale_holes).subset?(Set.new($harp.map {|k,v| v[:note]}))
 
-$freqs = ($nota.values.map {|v| v[:freq]}).sort
-$scale = %w( g4 gb4 b4 d5 e5 g5 a5 b5 d6 e6 g6 )
-fail 'Internal error' unless Set.new($scale).subset?(Set.new($nota.keys))
-$fr2ho = $nota.values.map {|v| [v[:freq], v[:hole]]}.to_h
+unless $mode == :calibrate
+  JSON.parse(File.read("#{$sample_dir}/frequencies.json")).map {|k,v| $harp[k][:freq] = v}
+  $fr2ho = $nota.values.map {|v| [v[:freq], v[:hole]]}.to_h
+  $freqs = ($harp.values.map {|v| v[:freq]}).sort
+end
 
 case $mode
 when :quiz

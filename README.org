@@ -3,7 +3,7 @@ on a blues harp on various keys.
 
 harp_scale_trainer.rb runs in the linux console and requires
 several external programs for its operation: aubiopitch, arecord,
-aplay, pulseaudio and figlet.
+aplay, pulseaudio, figlet and toilet (for additional fonts).
 
 Special thanx to aubiopitch for doing all the heavylifting of
 tone recognition !
