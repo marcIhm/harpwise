@@ -3,13 +3,13 @@ on a blues harp on various keys.
 
 harp_scale_trainer.rb runs in the linux console and requires
 several external programs for its operation: aubiopitch, arecord,
-aplay, figlet and ffmpeg.
+aplay, pulseaudio and figlet.
 
 Special thanx to aubiopitch for doing all the heavylifting of
 tone recognition !
 
-Currently this program needs to run as root (!) to allow access to
-alsa devices.
+For MS Windows you may use the latest windows-Subsystem for Linux
+wslg, which supports sound via pulseaudio.
 
 The set of frequencies used for recognition is kept in the file
 frequencies.yaml samples for each note are stored in folder samples.

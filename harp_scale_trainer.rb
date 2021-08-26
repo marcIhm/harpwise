@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
 
-require 'byebug'
 require 'set'
 
 
@@ -8,7 +7,7 @@ require 'set'
 # Argument processing
 #
 
-usage = <<EOU
+$usage = <<EOU
 
 Hint: Before first regular use you need to calibrate this program 
       with your own harp.
@@ -47,11 +46,11 @@ Usage:
         frequencies will be extracted to file frequencies.yaml.
         This command does not need a scale-argument.
 
+Hint: Maybe you need to scroll up to read this USAGE INFORMATION full.
+      
 EOU
 
 def err_u text
-  puts "\nERROR: #{text} !"
-  puts usage
   exit 1
 end
 
@@ -65,8 +64,13 @@ def err_b text
   puts "\nERROR: #{text} !"
   exit 1
 end
-  
-err_u "At least one argument (mode) required" if ARGV.length == 0
+
+
+if ARGV.length == 0
+  puts $usage
+  exit 1
+end
+
 
 $mode = :listen if 'listen'.start_with?(ARGV[0])
 $mode = :quiz if 'quiz'.start_with?(ARGV[0])
@@ -208,7 +212,7 @@ end
 def get_note issue
 
   sfile = 'samples.wav'
-  arc = "arecord -s 4096 #{sfile}"
+  arc = "arecord -D pulse -s 4096 #{sfile}"
   samples = Array.new
   if issue
     puts
