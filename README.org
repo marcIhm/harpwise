@@ -1,4 +1,18 @@
 Simple ruby script to help practice scales (e.g. the major pentatonic)
-on a diatonic harmonica.  It runs in the linux console and requires
-several external programs for its operation: aubiopitch, arecord and
-figlet.
+on a blues harp on various keys.
+
+harp_scale_trainer.rb runs in the linux console and requires
+several external programs for its operation: aubiopitch, arecord,
+aplay, figlet and ffmpeg.
+
+Special thanx to aubiopitch for doing all the heavylifting of
+tone recognition !
+
+Currently this program needs to run as root (!) to allow access to
+alsa devices.
+
+The set of frequencies used for recognition is kept in the file
+frequencies.yaml samples for each note are stored in folder samples.
+Before using this program, you need to pupulate both with the special
+mode 'calibrate'. This needs to be done only once.
+

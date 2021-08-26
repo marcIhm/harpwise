@@ -1,56 +1,133 @@
 #!/usr/bin/ruby
 
 require 'byebug'
+require 'set'
+
+
+#
+# Argument processing
+#
 
 usage = <<EOU
 
-Usage:
+Hint: Before first regular use you need to calibrate this program 
+      with your own harp.
 
-        Listen (i.e. l) to your playing and show the note
+Usage: 
+
+        Remark: The last one or two arguments in all examples below
+          are the key of the harp (e.g. c or a) and the scale,
+          e.g. blues or major_pentatonic, respectively.
+
+        Remark: Most arguments can be abreviated, e.g 'l' for 'listen'
+          or 'ma' for 'major_pentatonic'.
+
+
+        Example to listen to your playing and show the note
         you played; green if it was from the scale:
 
-          ./harp_scale_trainer.rb l
+          ./harp_scale_trainer.rb listen c ma
 
-        Play 3 (e.g.) notes from the scale and ask (i.e. a) you to
-        play them back:
 
-          ./harp_scale_trainer.rb a 3
+
+        Example to play 3 (e.g.) notes from the scale and quiz you to
+        play them back (then repeat):
+
+          ./harp_scale_trainer.rb quiz 3 a blues
+
+
+
+        Once in a lifetime of your c-harp you may want to calibrate
+        this prgoram to the frequencies of your harp:
+
+          ./harp_scale_trainer.rb calibrate c
+          
+        this will ask you to play notes on your harp. The samples will
+        be stored in folder samples (will be reused for quiz) and
+        frequencies will be extracted to file frequencies.yaml.
+        This command does not need a scale-argument.
 
 EOU
 
-if ARGV.length == 0
-  puts 'ERROR: At least one argument required'
+def err_u text
+  puts "\nERROR: #{text} !"
   puts usage
   exit 1
 end
 
-$mode = ARGV[0].to_sym
-if $mode != :a && $mode != :l
-  puts "ERROR: First argument can be either 'l' or 'a', not '#{$mode}'"
-  puts usage
+def err_h text
+  puts "\nERROR: #{text} !"
+  puts "(Hint: Invoke without arguments for usage information)"
   exit 1
 end
 
-if $mode == :l && ARGV.length > 1
-  puts "ERROR: No further argument allowed for mode 'l'"
-  puts usage
+def err_b text
+  puts "\nERROR: #{text} !"
   exit 1
 end
   
-if $mode == :a
-  if ARGV.length != 2
-    puts "ERROR: Need exactly one additional argument after mode 'a'"
-    puts usage
-    exit 1
+err_u "At least one argument (mode) required" if ARGV.length == 0
+
+$mode = :listen if 'listen'.start_with?(ARGV[0])
+$mode = :quiz if 'quiz'.start_with?(ARGV[0])
+$mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
+
+if ![:listen, :quiz, :calibrate].include?($mode)
+  err_h "First argument can be either 'listen', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
+end
+
+if $mode == :listen
+  if ARGV.length == 3
+    arg_for_key = ARGV[1]
+    arg_for_scale = ARGV[2]
+  else
+    err_h "Need exactly two additional arguments for mode listen"
   end
-  $num_ask = ARGV[1].to_i
-  if $num_ask.to_s != ARGV[1] || $num_ask < 1
-    puts "ERROR: Argument after mode 'a' mus be a number starting at 1, not '#{ARGV[1]}'"
-    puts usage
-    exit 1
+end
+  
+if $mode == :quiz
+  if ARGV.length == 4
+    arg_for_key = ARGV[2]
+    arg_for_scale = ARGV[3]
+  else
+    err_h "Need exactly three additional argument for mode 'quiz'"
+  end
+  $num_quiz = ARGV[1].to_i
+  if $num_quiz.to_s != ARGV[1] || $num_quiz < 1
+    err_h "Argument after mode 'q' must be a number starting at 1, not '#{ARGV[1]}'"
   end
 end
 
+if $mode == :calibrate
+  if ARGV.length == 2
+    arg_for_key = ARGV[1]
+    arg_for_scale = nil
+  else
+    err_h "Need exactly one additional argument for mode 'calibrate'"
+  end
+end
+  
+if arg_for_key
+  allowed_keys = %w(a c)
+  err "Key can only be one on #{allowed_keys.inspect}, not '#{arg_for_key}'" if !allowed_keys.include?(arg_for_key)
+  $key = arg_for_key.to_sym
+end
+
+if arg_for_scale
+  allowed_scales = %w(blues major_pentatonic)
+  $scale = allowed_scales.select do |scale|
+    scale.start_with?(arg_for_scale)
+  end.tap do |matches|
+    err "Given scale '#{arg_for_scale}' matches none or multiple of #{allowed_scales.inspect}" if matches.length != 1
+  end.first.to_sym
+end
+
+puts $scale,$key
+exit
+  
+#
+# Needed functions
+#
 
 def find_best_bin data, width
   len = data.length - 1
@@ -112,6 +189,7 @@ def get_two_peaks data, width
           end]
 end
 
+
 def describe_freq freq
   fr_prev = -1
   for i in (1 .. $freqs.length - 2) do
@@ -132,7 +210,11 @@ def get_note issue
   sfile = 'samples.wav'
   arc = "arecord -s 4096 #{sfile}"
   samples = Array.new
-  puts issue if issue
+  if issue
+    puts
+    puts issue
+    sleep 1
+  end
 
   while true do
     tn = Time.now.to_i
@@ -178,25 +260,56 @@ def get_note issue
     puts "Samples total: #{samples.length}, new: #{new_samples.length}"
     puts extra if extra
     return hole if done
-    puts issue if issue
+    if issue
+      puts
+      puts issue
+    end
   end
 end
 
 
-def do_ask
+def do_quiz
   wanted = $scale.sample
   get_note("Please play #{wanted}") {|played| [played == wanted, played == wanted]}
 end
 
 
 def do_listen
-  get_note('Please play any note from the scale') {|played| [$scale.include?(played), false]}
+  get_note("Please play any note from the scale !\nctrl-c to stop") {|played| [$scale.include?(played), false]}
 end
 
 
+def do_calibrate
+end
+
+
+#
+# Early initialization
+#
+
+$key = :c
+$sample_dir = "samples/key_of_#{key}"
+
+
+#
+# Some sanity checks
+#
+
+if !File.exist?(File.basename($0))
+  err_b "Please invoke this program from within its directory (cannot find #{File.basename($0)} in current dir)"
+end
+Dir.mkdir('samples') unless File.dir('samples')
+Dir.mkdir($sample_dir) unless File.dir($sample_dir)
+
+  
+#
+# Initialization from files
+#
+  
 # The frequencies are sensitive to argument '--pitch' for aubioptch below
+# Frequency calues will later be overwritten from frequencies.yaml in sample_dir
 $nota = { 'low' => {freq: 100, hole: 'low'},
-          'c4' => {frq: 248, hole: '+1'},
+          'c4' => {freq: 248, hole: '+1'},
           'd4' => {freq: 279, hole: '-1'},
           'e4' => {freq: 311, hole: '+2'},
           'g4' => {freq: 373, hole: '-2 +3'},
@@ -223,5 +336,11 @@ $scale = %w( g4 gb4 b4 d5 e5 g5 a5 b5 d6 e6 g6 )
 fail 'Internal error' unless Set.new($scale).subset?(Set.new($nota.keys))
 $fr2ho = $nota.values.map {|v| [v[:freq], v[:hole]]}.to_h
 
-
-switch $mode:
+case $mode
+when :quiz
+  do_quiz
+when :listen
+  do_listen
+when :calibrate
+  do_calibrate
+end
