@@ -63,17 +63,6 @@ def err_b text
   exit 1
 end
 
-# for asynchronous commands parecord and paplay
-def sys_tio command, timeout
-  before = Time.now.to_f
-  pid = spawn("#{command} >/dev/null 2>&1 &")
-  after = Time.now.to_f
-  fail "#{command} failed" unless pid > 1
-  remaining = timeout - after + before
-  sleep remaining if remaining > 0
-  system("kill #{pid} >/dev/null 2>&1")
-end
-
 if ARGV.length == 0
   puts $usage
   exit 1
@@ -196,11 +185,12 @@ def get_two_peaks data, width
 
   # use second peak if frequency of first is too low
   if pks[0][0] < 200 && pks[1][0] > 200 && pks[1][1] > 4
-    pks = [pks[1],pks[0]]
+    pks.reverse!
   end
 
   return pks
 end
+
 
 def divide sum, cnt
   if cnt == 0
@@ -239,9 +229,10 @@ def get_hole issue
     tn = Time.now.to_i
 
     # get and filter new samples
-    sys_tio("parecord #{$sample_file}", 0.2)
+    FileUtils.rm $sample_file if File.exist?($sample_file)
+    system("arecord -D pulse -s 4096 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     # when changing argument to '--pitch' below, $freq needs to be adjusted
-    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} >/dev/null 2>&1).lines.
+    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tn, f[1].to_i]}.
                     select {|f| f[1]>0}
 
@@ -335,10 +326,11 @@ def record_hole hole, prev_freq, next_hole
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
 
     puts "\033[31mrecording\033[0m to #{file} ..."
-    sys_tio("parecord #{file}", 1)
+    FileUtils.rm file if File.exist?(file)
+    system("arecord -D pulse -d 2 #{file} >/dev/null 2>&1")
     puts "\033[32mdone\033[0m"
 
-    samples = %x(aubiopitch --pitch mcomb #{file} >/dev/null 2>&1).lines.
+    samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
                 map {|l| l.split[1].to_i}.
                 select {|f| f>0}.
                 sort
@@ -348,7 +340,7 @@ def record_hole hole, prev_freq, next_hole
     
     sleep 1
     puts "\nreplay ..."
-    sys_tio("paplay #{file}", 1) or fail 'aplay failed'
+    system("aplay #{file} >/dev/null 2>&1") or fail 'aplay failed'
     puts "done"
 
     if freq < prev_freq
@@ -383,7 +375,7 @@ $sample_dir = "samples/key_of_#{$key}"
 $sample_file = "#{$sample_dir}/sample.wav"
 
 # we never invoke it directly, so check
-system('which toilet') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
+system('which toilet >/dev/null 2>&1') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
 
 
 #
@@ -403,65 +395,71 @@ Dir.mkdir($sample_dir) unless File.directory?($sample_dir)
   
 # The frequencies are sensitive to argument '--pitch' for aubioptch below
 # Frequency calues will later be overwritten from frequencies.json in sample_dir
-$harp = case $key
-        when :c
-          { 'low' => {note: 'low'},
-            '+1' => {note: 'c4'},
-            '-1' => {note: 'd4'},
-            '+2' => {note: 'e4'},
-            '-2+3' => {note: 'g4'},
-            '-3//' => {note: 'a4'},
-            '-3' => {note: 'b4'},
-            '+4' => {note: 'c5'},
-            '-4' => {note: 'd5'},
-            '+5' => {note: 'e5'},
-            '-5' => {note: 'f5'},
-            '+6' => {note: 'g5'},
-            '-6' => {note: 'a5'},
-            '-7' => {note: 'b5'},
-            '+7' => {note: 'c6'},
-            '-8' => {note: 'd6'},
-            '+8' => {note: 'e6'},
-            '-9' => {note: 'f6'},
-            '+9' => {note: 'g6'},
-            '-10' => {note: 'a6'},
-            '+10' => {note: 'c7'},
-            'high' => {note: 'high'}}
-        when :a
-          { 'low' => {note: 'low'},
-            '+1' => {note: 'a3'},
-            '-1' => {note: 'b3'},
-            '+2' => {note: 'db4'},
-            '-2+3' => {note: 'e4'},
-            '-3//' => {note: 'gf4'},
-            '-3' => {note: 'af4'},
-            '+4' => {note: 'a4'},
-            '-4' => {note: 'b4'},
-            '+5' => {note: 'df5'},
-            '-5' => {note: 'd5'},
-            '+6' => {note: 'e5'},
-            '-6' => {note: 'gf5'},
-            '-7' => {note: 'af5'},
-            '+7' => {note: 'a5'},
-            '-8' => {note: 'b5'},
-            '+8' => {note: 'df6'},
-            '-9' => {note: 'd6'},
-            '+9' => {note: 'e6'},
-            '-10' => {note: 'gf6'},
-            '+10' => {note: 'a6'},
-            'high' => {note: 'high'}}
-        end
-$scale_holes = case $scale
-               when :mape
-                 %w( -2 -3// -3 -4 5 6 -6 -7 -8 8 9 )
-               when :blues
-                 %w( -2 -3/ 4 -4/ -4 -5 6 )
-               end
-fail 'Internal error' unless Set.new($scale_holes).subset?(Set.new($harp.map {|k,v| v[:note]}))
+harps = {a: { 'low' => {note: 'low'},
+              '+1' => {note: 'a3'},
+              '-1' => {note: 'b3'},
+              '+2' => {note: 'cs4'},
+              '-2+3' => {note: 'e4'},
+              '-3' => {note: 'gs4'},
+              '-3/' => {note: 'g4'},
+              '-3//' => {note: 'gf4'},
+              '+4' => {note: 'a4'},
+              '-4' => {note: 'b4'},
+              '-4/' => {note: 'bf4'},
+              '+5' => {note: 'cs5'},
+              '-5' => {note: 'd5'},
+              '+6' => {note: 'e5'},
+              '-6' => {note: 'fs5'},
+              '+7' => {note: 'a5'},
+              '-7' => {note: 'gs6'},
+              '+8' => {note: 'cs6'},
+              '-8' => {note: 'b5'},
+              '+9' => {note: 'e6'},
+              '-9' => {note: 'd6'},
+              '+10' => {note: 'a6'},
+              '-10' => {note: 'fs6'},
+              'high' => {note: 'high'}},
+         c: { 'low' => {note: 'low'},
+              '+1' => {note: 'c4'},
+              '-1' => {note: 'd4'},
+              '+2' => {note: 'e4'},
+              '-2+3' => {note: 'g4'},
+              '-3' => {note: 'b4'},
+              '-3/' => {note: 'bf4'},
+              '-3//' => {note: 'a4'},
+              '+4' => {note: 'c5'},
+              '-4' => {note: 'd5'},
+              '-4/' => {note: 'df5'},
+              '+5' => {note: 'e5'},
+              '-5' => {note: 'f5'},
+              '+6' => {note: 'g5'},
+              '-6' => {note: 'a5'},
+              '+7' => {note: 'c6'},
+              '-7' => {note: 'b5'},
+              '+8' => {note: 'e6'},
+              '-8' => {note: 'd6'},
+              '+9' => {note: 'g6'},
+              '-9' => {note: 'f6'},
+              '+10' => {note: 'c7'},
+              '-10' => {note: 'a6'},
+              'high' => {note: 'high'}}}
+
+fail "Internal error, not all harps have the same set of holes" unless Set.new(harps.values.map {|v| Set.new(v.keys)}).length == 1
+$harp = harps[$key] or fail "Internal error, key #{$key} has no harp"
+scales_holes = {mape: %w( -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9 ),
+                blues: %w( -2+3 -3/ +4 -4/ -4 -5 +6 )}
+scales_holes.each {|scale,holes| fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{$harp.keys.inspect}" unless Set.new(holes).subset?(Set.new($harp.keys))}
+$scale_holes = scales_holes[$scale]
 
 unless $mode == :calibrate
-  JSON.parse(File.read("#{$sample_dir}/frequencies.json")).map {|k,v| $harp[k][:freq] = v}
-  $fr2ho = $nota.values.map {|v| [v[:freq], v[:hole]]}.to_h
+  ffile = "#{$sample_dir}/frequencies.json"
+  err_b "Frequency file #{ffile} does not exist, you need to calibrate" unless File.exist?(ffile)
+  freqs = JSON.parse(File.read(ffile))
+  err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration" unless Set.new(freqs.keys) == Set.new($harp.keys)
+  freqs.map {|k,v| $harp[k][:freq] = v}
+  $harp.keys.reject {|x| %w(low high).include?(x)}.each {|h| file = "#{$sample_dir}/#{$harp[h][:note]}.wav"; err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)}
+
+  $fr2ho = $harp.values.map {|v| [v[:freq], v[:hole]]}.to_h
   $freqs = ($harp.values.map {|v| v[:freq]}).sort
 end
 

@@ -1,3 +1,6 @@
+
+WARNING: This program is not working yet; check back in September 2021 ...
+
 Simple ruby script to help practice scales (e.g. the major pentatonic)
 on a blues harp on various keys.
 
