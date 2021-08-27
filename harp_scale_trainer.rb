@@ -18,10 +18,10 @@ Usage:
 
         Remark: The last one or two arguments in all examples below
           are the key of the harp (e.g. c or a) and the scale,
-          e.g. blues or major_pentatonic, respectively.
+          e.g. blues or mape (for major pentatonic), respectively.
 
         Remark: Most arguments can be abreviated, e.g 'l' for 'listen'
-          or 'ma' for 'major_pentatonic'.
+          or 'cal' for 'calibrate'.
 
 
         Example to listen to your playing and show the note
@@ -63,6 +63,16 @@ def err_b text
   exit 1
 end
 
+# for asynchronous commands parecord and paplay
+def sys_tio command, timeout
+  before = Time.now.to_f
+  pid = spawn("#{command} >/dev/null 2>&1 &")
+  after = Time.now.to_f
+  fail "#{command} failed" unless pid > 1
+  remaining = timeout - after + before
+  sleep remaining if remaining > 0
+  system("kill #{pid} >/dev/null 2>&1")
+end
 
 if ARGV.length == 0
   puts $usage
@@ -116,7 +126,7 @@ if arg_for_key
 end
 
 if arg_for_scale
-  allowed_scales = %w(blues major_pentatonic)
+  allowed_scales = %w(blues mape)
   $scale = allowed_scales.select do |scale|
     scale.start_with?(arg_for_scale)
   end.tap do |matches|
@@ -229,9 +239,9 @@ def get_hole issue
     tn = Time.now.to_i
 
     # get and filter new samples
-    system("arecord -D pulse -s 4096 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+    sys_tio("parecord #{$sample_file}", 0.2)
     # when changing argument to '--pitch' below, $freq needs to be adjusted
-    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file}).lines.
+    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} >/dev/null 2>&1).lines.
                     map {|l| f = l.split; [f[0].to_f + tn, f[1].to_i]}.
                     select {|f| f[1]>0}
 
@@ -287,15 +297,18 @@ end
 def do_calibrate
   holes = $harp.keys.reject {|x| %w(low high).include?(x)}
   puts "\nThis is an interactive assistant, that will ask you to play these"
-  puts "holes of your harmonica one after the other, each for 2 seconds:"
-  puts "  #{holes.join(' ')}"
+  puts "holes of your harmonica one after the other, each for one second:"
+  puts "\n  #{holes.join(' ')}"
   puts "\nAfter each whole the recorded sound will be replayed for confirmation."
-  puts "\nEach recording is preceded by a countdown (3 downto 1) and starts when"
-  puts "the word 'recording to ...' appears; when done, the word 'done' is printed."
+  puts "\nEach recording is preceded by a short countdown (2,1); the recording starts,"
+  puts "when the word 'recording to ...' is printed; when done, the word 'done'."
   puts "To avoid silence in the recording, you should start playing"
-  puts "early in the countdown already."
+  puts "within the countdown already."
+  puts "\nBackground: Those samples will be used to determine the frequencies of your"
+  puts "particular harp; so this should be the one, you will use for practice later."
+  puts "Moreover those samples will be played in mode 'quiz'."
   puts "\nPress RETURN to start:"
-  puts "(first hole will be #{holes[0]})"
+  puts "(first hole will be  \033[32m#{holes[0]}\033[0m)"
   STDIN.gets
 
   hole2freq = Hash.new
@@ -313,20 +326,19 @@ end
 def record_hole hole, prev_freq, next_hole
 
   begin
-    system("figlet -f mono12 -c \" #{hole}\"")  or fail 'figlet failed'
-    puts "\nRecording hole #{hole} after countdown reaches 1"
-    [3,2,1].each do |c|
+    puts "\nRecording hole  \033[32m#{hole}\033[0m  after countdown reaches 1"
+    [2,1].each do |c|
       puts c
       sleep 1
     end
 
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
 
-    puts "recording to #{file} ..."
-    system("arecord -D pulse -d 2 #{file} >/dev/null 2>&1") or fail 'arecord failed'
-    puts "done"
+    puts "\033[31mrecording\033[0m to #{file} ..."
+    sys_tio("parecord #{file}", 1)
+    puts "\033[32mdone\033[0m"
 
-    samples = %x(aubiopitch --pitch mcomb #{file}).lines.
+    samples = %x(aubiopitch --pitch mcomb #{file} >/dev/null 2>&1).lines.
                 map {|l| l.split[1].to_i}.
                 select {|f| f>0}.
                 sort
@@ -335,8 +347,8 @@ def record_hole hole, prev_freq, next_hole
     freq = pks[0][0]
     
     sleep 1
-    puts "replay ..."
-    system("aplay #{file} >/dev/null 2>&1") or fail 'aplay failed'
+    puts "\nreplay ..."
+    sys_tio("paplay #{file}", 1) or fail 'aplay failed'
     puts "done"
 
     if freq < prev_freq
@@ -348,7 +360,7 @@ def record_hole hole, prev_freq, next_hole
       STDIN.gets
     else
       puts "Okay ? Empty input for Okay, everything else for redo:"
-      puts "(next hole will be #{next_hole})"
+      puts "(next hole will be  \033[32m#{next_hole}\033[0m)"
       okay = ( STDIN.gets.chomp.length == 0 )
       if okay
         puts "Recording Okay, continue."
@@ -440,7 +452,7 @@ $harp = case $key
             'high' => {note: 'high'}}
         end
 $scale_holes = case $scale
-               when :major_pentatonic
+               when :mape
                  %w( -2 -3// -3 -4 5 6 -6 -7 -8 8 9 )
                when :blues
                  %w( -2 -3/ 4 -4/ -4 -5 6 )

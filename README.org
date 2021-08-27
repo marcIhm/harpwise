@@ -1,9 +1,9 @@
 Simple ruby script to help practice scales (e.g. the major pentatonic)
 on a blues harp on various keys.
 
-harp_scale_trainer.rb runs in the linux console and requires
-several external programs for its operation: aubiopitch, arecord,
-aplay, pulseaudio, figlet and toilet (for additional fonts).
+harp_scale_trainer.rb runs in the linux console and requires several
+external programs for its operation: aubiopitch, pulseaudio, figlet
+and toilet (for additional figlet-fonts).
 
 Special thanx to aubiopitch for doing all the heavylifting of
 tone recognition !
