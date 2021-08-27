@@ -110,7 +110,7 @@ end
   
 if arg_for_key
   allowed_keys = %w(a c)
-  err "Key can only be one on #{allowed_keys.inspect}, not '#{arg_for_key}'" if !allowed_keys.include?(arg_for_key)
+  err_b "Key can only be one on #{allowed_keys.inspect}, not '#{arg_for_key}'" if !allowed_keys.include?(arg_for_key)
   $key = arg_for_key.to_sym
 end
 
@@ -119,7 +119,7 @@ if arg_for_scale
   $scale = allowed_scales.select do |scale|
     scale.start_with?(arg_for_scale)
   end.tap do |matches|
-    err "Given scale '#{arg_for_scale}' matches none or multiple of #{allowed_scales.inspect}" if matches.length != 1
+    err_b "Given scale '#{arg_for_scale}' matches none or multiple of #{allowed_scales.inspect}" if matches.length != 1
   end.first.to_sym
 end
 
@@ -203,10 +203,9 @@ end
 
 def describe_freq freq
   fr_prev = -1
-  for i in (1 .. $freqs.length - 2) do
-    fr = $freqs[i]
-    lbor = ($freqs[i-1]+fr)/2
-    ubor = (fr+$freqs[i+1])/2
+  $freqs.each_cons(3) do |pfr, fr, nfr|
+    lbor = (pfr+fr)/2
+    ubor = (fr+nfr)/2
     higher_than_prev = (freq >= lbor)
     lower_than_next = (freq < ubor)
     return $fr2ho[fr],lbor,ubor if higher_than_prev and lower_than_next
@@ -216,7 +215,7 @@ def describe_freq freq
 end
   
 
-def get_hole issue
+def get_hole issue, hint = nil, hint_count = 0
 
   samples = Array.new
   if issue
@@ -225,12 +224,13 @@ def get_hole issue
     sleep 1
   end
 
+  count = 0
   while true do
     tn = Time.now.to_i
 
     # get and filter new samples
     FileUtils.rm $sample_file if File.exist?($sample_file)
-    system("arecord -D pulse -s 4096 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+    system("arecord -D pulse -s 4000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     # when changing argument to '--pitch' below, $freq needs to be adjusted
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tn, f[1].to_i]}.
@@ -238,7 +238,7 @@ def get_hole issue
 
     # curate our pool of samples
     samples += new_samples
-    samples = samples[-32 .. -1] if samples.length > 32
+    samples = samples[-16 .. -1] if samples.length > 16
     samples.shift while samples.length > 0 && tn - samples[0][0] > 5
 
     hole = '-'
@@ -265,31 +265,52 @@ def get_hole issue
     puts "\033[0m"
     puts "Samples total: #{samples.length}, new: #{new_samples.length}"
     puts extra if extra
+    count += 1
     return hole if done
-    if issue
-      puts
-      puts issue
-    end
+    puts
+    puts issue
+    puts hint if hint && count > hint_count
   end
 end
 
 
 def do_quiz
-  wanted = $scale.sample
-  get_hole("Please play #{wanted}") {|played| [played == wanted, played == wanted]}
+  loop do
+    wanted = $scale_holes.sample($num_quiz)
+    puts "Playing #{$num_quiz} note(s) from the scale; listen carefully ..."
+    sleep 0.3
+    wanted.each do |hole|
+      file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+      system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
+      sleep 0.1
+    end
+
+    puts "Now please play them back ..."
+    sleep 1
+    wanted.each_with_index do |want,idx|
+      get_hole($num_quiz == 1 ?
+                 "Play note number \033[31m#{idx+1}\033[0m from sequence you heard" :
+                 "Play the note you heard",
+               "Hint: play \033[32m#{want}\033[0m or hit ctrl-c to stop", 4) {|played| [played == want, played == want]}
+    end
+    puts "\n\n\033[32mGreat, that worked out !\033[0m"
+    puts "\nAgain"
+    sleep 0.2
+  end
 end
 
 
 def do_listen
-  get_hole("Please play any note from the scale !\nctrl-c to stop") {|played| [$scale.include?(played), false]}
+  puts "Just go ahead and play notes from the scale ..."
+  sleep 0.3
+  get_hole("Please play any note from the scale !\nctrl-c to stop") {|played, count| [$scale_holes.include?(played), false, nil]}
 end
 
 
 def do_calibrate
-  holes = $harp.keys.reject {|x| %w(low high).include?(x)}
   puts "\nThis is an interactive assistant, that will ask you to play these"
   puts "holes of your harmonica one after the other, each for one second:"
-  puts "\n  #{holes.join(' ')}"
+  puts "\n  #{$holes.join(' ')}"
   puts "\nAfter each whole the recorded sound will be replayed for confirmation."
   puts "\nEach recording is preceded by a short countdown (2,1); the recording starts,"
   puts "when the word 'recording to ...' is printed; when done, the word 'done'."
@@ -299,12 +320,12 @@ def do_calibrate
   puts "particular harp; so this should be the one, you will use for practice later."
   puts "Moreover those samples will be played in mode 'quiz'."
   puts "\nPress RETURN to start:"
-  puts "(first hole will be  \033[32m#{holes[0]}\033[0m)"
+  puts "(first hole will be  \033[32m#{$holes[0]}\033[0m)"
   STDIN.gets
 
   hole2freq = Hash.new
   freq = 0
-  (holes + ['end']).each_cons(2) do |hole, next_hole|
+  ($holes + ['end']).each_cons(2) do |hole, next_hole|
     freq = record_hole(hole, freq, next_hole)
     hole2freq[hole] = freq
   end
@@ -327,7 +348,7 @@ def record_hole hole, prev_freq, next_hole
 
     puts "\033[31mrecording\033[0m to #{file} ..."
     FileUtils.rm file if File.exist?(file)
-    system("arecord -D pulse -d 2 #{file} >/dev/null 2>&1")
+    system("arecord -D pulse -d 1 #{file} >/dev/null 2>&1")
     puts "\033[32mdone\033[0m"
 
     samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
@@ -340,7 +361,7 @@ def record_hole hole, prev_freq, next_hole
     
     sleep 1
     puts "\nreplay ..."
-    system("aplay #{file} >/dev/null 2>&1") or fail 'aplay failed'
+    system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
     puts "done"
 
     if freq < prev_freq
@@ -400,67 +421,68 @@ harps = {a: { 'low' => {note: 'low'},
               '-1' => {note: 'b3'},
               '+2' => {note: 'cs4'},
               '-2+3' => {note: 'e4'},
-              '-3' => {note: 'gs4'},
-              '-3/' => {note: 'g4'},
               '-3//' => {note: 'gf4'},
+              '-3/' => {note: 'g4'},
+              '-3' => {note: 'gs4'},
               '+4' => {note: 'a4'},
-              '-4' => {note: 'b4'},
               '-4/' => {note: 'bf4'},
+              '-4' => {note: 'b4'},
               '+5' => {note: 'cs5'},
               '-5' => {note: 'd5'},
               '+6' => {note: 'e5'},
               '-6' => {note: 'fs5'},
-              '+7' => {note: 'a5'},
               '-7' => {note: 'gs6'},
-              '+8' => {note: 'cs6'},
+              '+7' => {note: 'a5'},
               '-8' => {note: 'b5'},
-              '+9' => {note: 'e6'},
+              '+8' => {note: 'cs6'},
               '-9' => {note: 'd6'},
-              '+10' => {note: 'a6'},
+              '+9' => {note: 'e6'},
               '-10' => {note: 'fs6'},
+              '+10' => {note: 'a6'},
               'high' => {note: 'high'}},
          c: { 'low' => {note: 'low'},
               '+1' => {note: 'c4'},
               '-1' => {note: 'd4'},
               '+2' => {note: 'e4'},
               '-2+3' => {note: 'g4'},
-              '-3' => {note: 'b4'},
-              '-3/' => {note: 'bf4'},
               '-3//' => {note: 'a4'},
+              '-3/' => {note: 'bf4'},
+              '-3' => {note: 'b4'},
               '+4' => {note: 'c5'},
-              '-4' => {note: 'd5'},
               '-4/' => {note: 'df5'},
+              '-4' => {note: 'd5'},
               '+5' => {note: 'e5'},
               '-5' => {note: 'f5'},
               '+6' => {note: 'g5'},
               '-6' => {note: 'a5'},
-              '+7' => {note: 'c6'},
               '-7' => {note: 'b5'},
-              '+8' => {note: 'e6'},
+              '+7' => {note: 'c6'},
               '-8' => {note: 'd6'},
-              '+9' => {note: 'g6'},
+              '+8' => {note: 'e6'},
               '-9' => {note: 'f6'},
-              '+10' => {note: 'c7'},
+              '+9' => {note: 'g6'},
               '-10' => {note: 'a6'},
+              '+10' => {note: 'c7'},
               'high' => {note: 'high'}}}
 
-fail "Internal error, not all harps have the same set of holes" unless Set.new(harps.values.map {|v| Set.new(v.keys)}).length == 1
+fail "Internal error, not all harps have the same list of holes" unless Set.new(harps.values.map {|v| v.keys}).length == 1
 $harp = harps[$key] or fail "Internal error, key #{$key} has no harp"
 scales_holes = {mape: %w( -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9 ),
                 blues: %w( -2+3 -3/ +4 -4/ -4 -5 +6 )}
 scales_holes.each {|scale,holes| fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{$harp.keys.inspect}" unless Set.new(holes).subset?(Set.new($harp.keys))}
 $scale_holes = scales_holes[$scale]
+$holes = $harp.keys.reject {|x| %w(low high).include?(x)}
 
 unless $mode == :calibrate
   ffile = "#{$sample_dir}/frequencies.json"
   err_b "Frequency file #{ffile} does not exist, you need to calibrate" unless File.exist?(ffile)
   freqs = JSON.parse(File.read(ffile))
-  err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration" unless Set.new(freqs.keys) == Set.new($harp.keys)
+  err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration" unless Set.new(freqs.keys) == Set.new($holes)
   freqs.map {|k,v| $harp[k][:freq] = v}
-  $harp.keys.reject {|x| %w(low high).include?(x)}.each {|h| file = "#{$sample_dir}/#{$harp[h][:note]}.wav"; err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)}
+  $holes.each {|h| file = "#{$sample_dir}/#{$harp[h][:note]}.wav"; err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)}
 
-  $fr2ho = $harp.values.map {|v| [v[:freq], v[:hole]]}.to_h
-  $freqs = ($harp.values.map {|v| v[:freq]}).sort
+  $fr2ho = $holes.map {|h| [$harp[h][:freq], h]}.to_h
+  $freqs = $holes.map {|h| $harp[h][:freq]}.sort
 end
 
 case $mode
