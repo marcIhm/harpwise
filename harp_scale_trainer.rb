@@ -230,7 +230,7 @@ def get_hole issue, hint = nil, hint_count = 0
 
     # get and filter new samples
     FileUtils.rm $sample_file if File.exist?($sample_file)
-    system("arecord -D pulse -s 4000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+    system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     # when changing argument to '--pitch' below, $freq needs to be adjusted
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tn, f[1].to_i]}.
@@ -260,9 +260,9 @@ def get_hole issue, hint = nil, hint_count = 0
       end
       extra += "\nPeaks: #{pks.inspect}"
     end
-    puts "\033[#{good ? 32 : 31}m"
+    puts "\033[#{good ? 32 : 31}m" unless hole == '-'
     system("figlet -f mono12 -c \" #{hole}\"") or fail 'figlet failed'
-    puts "\033[0m"
+    puts "\033[0m" unless hole == '-'
     puts "Samples total: #{samples.length}, new: #{new_samples.length}"
     puts extra if extra
     count += 1
@@ -335,6 +335,47 @@ def do_calibrate
 end
 
 
+def read_answer answer2keys_desc
+  puts 'A single key answer is expected:'
+  klists = Hash.new
+  default = nil
+  answer2keys_desc.each do |an, ks_d|
+    klists[an] = ks_d[0].reject {|k| k == :default}.join(', ')
+  end
+  maxlen = klists.map {|k,v| v.length}.max
+  answer2keys_desc.each do |an, ks_d|
+    puts "  %*s :  %s" % [maxlen, klists[an], ks_d[1]]
+  end
+
+  begin
+    print "Your choice: "
+    system("stty raw -echo")
+    char = STDIN.getc
+    system("stty -raw echo")
+    char = case char
+           when "\r"
+             'RETURN'
+           when ' '
+             'SPACE'
+           else
+             char
+           end
+    if char.ord == 3
+      puts "ctrl-c; aborting ..."
+      exit 1
+    end
+    puts char
+    answer = default = nil
+    answer2keys_desc.each do |an, ks_d|
+      answer = an if ks_d[0].include?(char)
+    end
+    answer ||= default
+    puts "Invalid key: '#{char}' (#{char.ord})" unless answer
+  end while !answer
+  answer
+end
+
+
 def record_hole hole, prev_freq, next_hole
 
   begin
@@ -348,7 +389,7 @@ def record_hole hole, prev_freq, next_hole
 
     puts "\033[31mrecording\033[0m to #{file} ..."
     FileUtils.rm file if File.exist?(file)
-    system("arecord -D pulse -d 1 #{file} >/dev/null 2>&1")
+    system("arecord -D pulse -r 48000 -d 1 #{file} >/dev/null 2>&1")
     puts "\033[32mdone\033[0m"
 
     samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
@@ -366,23 +407,33 @@ def record_hole hole, prev_freq, next_hole
 
     if freq < prev_freq
       puts "The frequency just recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
-      puts "Therefore this recording cannot be accepted and you need to redo;"
-      puts "if however you feel, that the error is in the PREVIOUS recording already,"
-      puts "you need to redo it all, and should bail out by pressing ctrl-C to start over."
-      puts "\nPress RETURN to redo or ctrl-c to abort"
-      STDIN.gets
+      puts "Therefore this recording cannot be accepted and you need to redo !"
+      puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
+      puts "you need to REDO IT ALL, and should bail out by pressing ctrl-C to start over ..."
     else
-      puts "Okay ? Empty input for Okay, everything else for redo:"
       puts "(next hole will be  \033[32m#{next_hole}\033[0m)"
-      okay = ( STDIN.gets.chomp.length == 0 )
-      if okay
-        puts "Recording Okay, continue."
-      else
-        puts "Recording NOT Okay, please redo !"
-      end
     end
-  end while !okay
-
+    begin
+      puts "Whats next ?"
+      if freq < prev_freq
+        answer = read_answer({:play => [['p', 'SPACE'], 'play recorded sound'],
+                              :redo => [['r', :default], 'redo recording (default)'],
+                              :exit => [['x'], 'exit so you may to start over']})
+      else
+        answer = read_answer({:play => [['p', 'SPACE'], 'play recorded sound'],
+                             :okay => [['RETURN'], 'Okay and continue'],
+                             :redo => [['r', :default], 'redo recording (default)']})
+      end
+      case answer
+      when :play
+        puts "\nplay ..."
+        system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
+        puts "done"
+      when :exit
+        exit 1
+      end
+    end while answer == :play
+  end while answer != :okay
   return freq
 end
 

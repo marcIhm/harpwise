@@ -1,19 +1,27 @@
 
-Simple ruby script to help practice scales (e.g. the major pentatonic)
-on a blues harp on various keys.
+Simple ruby script to help practice scales (e.g. blues or major
+pentatonic) on a diatonic richter harp for various keys.
 
-harp_scale_trainer.rb runs in the linux console and requires several
-external programs for its operation: aubiopitch, pulseaudio, figlet
-and toilet (for additional figlet-fonts).
+Its operation modes are 'listen' and 'quiz'
 
-Special thanx to aubiopitch for doing all the heavylifting of
-tone recognition !
+* Installation
 
-For MS Windows you may use the latest windows-Subsystem for Linux
-wslg, which supports sound via pulseaudio.
+  harp_scale_trainer.rb runs in the linux console and requires several
+  external programs for its operation: aubiopitch, pulseaudio, figlet
+  and toilet (for additional figlet-fonts).
+  
+  Special thanx to aubiopitch for doing all the heavylifting of
+  tone recognition !
 
-The set of frequencies used for recognition is kept in the file
-frequencies.yaml samples for each note are stored in folder samples.
-Before using this program, you need to pupulate both with the special
-mode 'calibrate'. This needs to be done only once.
+  For MS Windows you may use the latest windows-Subsystem for Linux
+  wslg, which supports sound via pulseaudio.
+
+* Usage
+
+  Get usage information by invoking without arguments:
+  
+    ./harp_scale_trainer.rb
+
+  First you will need to calibrate the program by playing your own harp.
+  This needs to be done only once (but for every key you want to use).
 
