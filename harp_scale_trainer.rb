@@ -226,7 +226,7 @@ def get_hole issue, hint = nil, hint_count = 0
   count = 0
   system('clear')
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
-  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,32]" if $term_width < 100 || $term_height < 32
+  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
     
   pad = '           '
   while true do

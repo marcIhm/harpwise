@@ -4,6 +4,8 @@ pentatonic) on a diatonic richter harp for various keys.
 
 Its operation modes are 'listen' and 'quiz'
 
+[[images/screenshot.png]]
+
 * Installation
 
   harp_scale_trainer.rb runs in the linux console and requires several
