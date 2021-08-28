@@ -2,7 +2,10 @@
 Simple ruby script to help practice scales (e.g. blues or major
 pentatonic) on a diatonic richter harp for various keys.
 
-Its operation modes are 'listen' and 'quiz'
+Its operation modes are 'listen' and 'quiz'. The screenshot below is
+from mode 'listen': I played one blow, and the program has recognized
+this, but renders it in red, because it does not belong to the chosen
+scale.
 
 [[images/screenshot.png]]
 

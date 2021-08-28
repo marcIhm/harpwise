@@ -225,6 +225,7 @@ def get_hole issue, hint = nil, hint_count = 0
 
   count = 0
   system('clear')
+  $move_down_on_exit = true
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
   err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
     
@@ -278,6 +279,7 @@ def get_hole issue, hint = nil, hint_count = 0
     count += 1
     if done
       print "\033[?25h"
+      $move_down_on_exit = false
       return hole
     end
     puts "\033[25H"
@@ -408,7 +410,7 @@ def record_hole hole, prev_freq, next_hole
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
 
     puts "\033[31mrecording\033[0m to #{file} ..."
-    system("arecord -D pulse -r 48000 -d 1 #{file} >/dev/null 2>&1")
+    system("arecord -D pulse -r 48000 -d 1 #{file}")
     puts "\033[32mdone\033[0m"
 
     samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
@@ -425,10 +427,10 @@ def record_hole hole, prev_freq, next_hole
     puts "done"
 
     if freq < prev_freq
-      puts "The frequency just recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
+      puts "\nThe frequency just recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
-      puts "you need to REDO IT ALL, and should bail out by pressing ctrl-C to start over ..."
+      puts "you need to REDO IT ALL, and should bail out by pressing ctrl-C to start over ...\n\n"
     else
       puts "(next hole will be  \033[32m#{next_hole}\033[0m)"
     end
@@ -468,7 +470,8 @@ $sample_file = "#{$sample_dir}/sample.wav"
 # we never invoke it directly, so check
 system('which toilet >/dev/null 2>&1') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
 # show cursor
-at_exit { print "\033[?25h\033[25H" }
+$move_down_on_exit = false
+at_exit { print "\033[?25h\033[25H" if $move_down_on_exit }
 
 
 #
