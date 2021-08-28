@@ -214,14 +214,9 @@ def describe_freq freq
 end
   
 
-def get_hole issue, hint = nil, hint_count = 0
+def get_hole issue, hint = nil, hint_count = 0, silent = false
 
   samples = Array.new
-  if issue
-    puts
-    puts issue
-    sleep 1
-  end
 
   count = 0
   system('clear')
@@ -230,11 +225,8 @@ def get_hole issue, hint = nil, hint_count = 0
   err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
     
   pad = '           '
-  while true do
-    # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-    # home, hide cursor, down
-    print "\033[H\033[?25l\033[5H"
-    
+  print issue
+  while true do   
     tn = Time.now.to_i
 
     # get and filter new samples
@@ -269,21 +261,24 @@ def get_hole issue, hint = nil, hint_count = 0
       extra += "\nPeaks: #{pks.inspect}"
     end
     fout = %x(figlet -f mono12 -c " #{hole}")
-    puts "\033[#{good ? 32 : 31}m" unless hole == '-'
+    # See  https://en.wikipedia.org/wiki/ANSI_escape_code
+    # home, clear line, hide cursor, down
+    print "\033[H\033[?25l\033[5H"
+    print "\033[#{good ? 32 : 31}m" unless hole == '-'
     puts_pad fout
     puts "\033[0m" unless hole == '-'
     # row 20
-    puts "\033[20H"
+    puts "\033[16H"
     puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}#{pad}"
-    puts_pad extra || ''
+    puts_pad extra || '' unless silent
     count += 1
     if done
       print "\033[?25h"
+      print "\033[20H"
       $move_down_on_exit = false
       return hole
     end
-    puts "\033[25H"
-    puts_pad issue
+    puts "\033[18H"
     puts_pad (hint && count > hint_count) ? hint : ''
   end
 end
@@ -297,35 +292,44 @@ end
 
 
 def do_quiz
+  puts "Looping: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
+  [2,1].each do |c|
+    puts c
+    sleep 1
+  end
   loop do
     wanted = $scale_holes.sample($num_quiz)
-    puts "Playing #{$num_quiz} note(s) from the scale; listen carefully ..."
     sleep 0.3
     wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-      system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
+      print "play ... "
+      system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
+      puts "done\n\n"
       sleep 0.1
     end
 
-    puts "Now please play them back ..."
-    sleep 1
     wanted.each_with_index do |want,idx|
       get_hole($num_quiz == 1 ?
-                 "Play note number \033[31m#{idx+1}\033[0m from sequence you heard" :
+                 "Playback: note number \033[31m#{idx+1}\033[0m from the sequence you heard" :
                  "Play the note you heard",
-               "Hint: play \033[32m#{want}\033[0m or hit ctrl-c to stop", 4) {|played| [played == want, played == want]}
+               "Hint: play \033[32m#{want}\033[0m or hit ctrl-c to stop", 4, true) {|played| [played == want, played == want]}
     end
-    puts "\n\n\033[32mGreat, that worked out !\033[0m"
-    puts "\nAgain"
-    sleep 0.2
+    puts "\n\n\033[32m"
+    system("figlet -f smblock Great !")
+    puts "\033[0m"
+    puts "\nAnd again !"
+    sleep 1
   end
 end
 
 
 def do_listen
   puts "Just go ahead and play notes from the scale ..."
-  sleep 0.3
-  get_hole("Please play any note from the scale !\nctrl-c to stop") {|played, count| [$scale_holes.include?(played), false, nil]}
+  [2,1].each do |c|
+    puts c
+    sleep 1
+  end
+  get_hole("Play any note from the scale (or hit ctrl-c to stop) !") {|played, count| [$scale_holes.include?(played), false, nil]}
 end
 
 
@@ -341,16 +345,32 @@ def do_calibrate
   puts "\nBackground: Those samples will be used to determine the frequencies of your"
   puts "particular harp; so this should be the one, you will use for practice later."
   puts "Moreover those samples will be played in mode 'quiz'."
-  puts "\nPress RETURN to start:"
-  puts "(first hole will be  \033[32m#{$holes[0]}\033[0m)"
+  puts "\nHint: If you plan to calibrate for more than one key of harp, you should"
+  puts "consider copying the whole directory below samples and record only those notes"
+  puts "that are missing. Note, that the recorded samples are named after the note,"
+  puts "not the hole, so that they can be used universally."
+  print "\nPress RETURN to start the step-by-step process ... "
   STDIN.gets
+  puts
 
   hole2freq = Hash.new
-  freq = 0
-  ($holes + ['end']).each_cons(2) do |hole, next_hole|
-    freq = record_hole(hole, freq, next_hole)
-    hole2freq[hole] = freq
-  end
+  freqs = Array.new
+  i = 0
+  begin
+    hole = $holes[i]
+    freqs[i] = record_hole(hole, freqs[i-1] || 0)
+    if freqs[i] < 0
+      if i >0 
+        puts "Skipping  \033[32mback\033[0m  !"
+        i -= 1
+      else
+        puts "Cannot skip, back already at first hole ..."
+      end
+    else
+      hole2freq[hole] = freqs[i]
+      i += 1
+    end
+  end while i <= $holes.length - 1
   File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
   puts "All recordings done:"
   system("ls -lrt #{$sample_dir}")
@@ -360,9 +380,8 @@ end
 def read_answer answer2keys_desc
   puts 'A single key answer is expected:'
   klists = Hash.new
-  default = nil
   answer2keys_desc.each do |an, ks_d|
-    klists[an] = ks_d[0].reject {|k| k == :default}.join(', ')
+    klists[an] = ks_d[0].join(', ')
   end
   maxlen = klists.map {|k,v| v.length}.max
   answer2keys_desc.each do |an, ks_d|
@@ -387,31 +406,39 @@ def read_answer answer2keys_desc
       exit 1
     end
     puts char
-    answer = default = nil
+    puts
+    answer = nil
     answer2keys_desc.each do |an, ks_d|
       answer = an if ks_d[0].include?(char)
     end
-    answer ||= default
     puts "Invalid key: '#{char}' (#{char.ord})" unless answer
   end while !answer
   answer
 end
 
 
-def record_hole hole, prev_freq, next_hole
+def record_hole hole, prev_freq
 
+  redo_recording = false
   begin
-    puts "\nRecording hole  \033[32m#{hole}\033[0m  after countdown reaches 1"
-    [2,1].each do |c|
-      puts c
-      sleep 1
-    end
-
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    if File.exists?(file) && !redo_recording
+      puts "\nHole  \033[32m#{hole}\033[0m  need not be recorded, because file #{file} already exists."
+      print "\nPress RETURN to see choices: "
+      STDIN.gets
+    else
+      puts "\nRecording hole  \033[32m#{hole}\033[0m  after countdown reaches 1,"
+      print "\nPress RETURN to start recording: "
+      STDIN.gets
+      [2,1].each do |c|
+        puts c
+        sleep 1
+      end
 
-    puts "\033[31mrecording\033[0m to #{file} ..."
-    system("arecord -D pulse -r 48000 -d 1 #{file}")
-    puts "\033[32mdone\033[0m"
+      puts "\033[31mrecording\033[0m to #{file} ..."
+      system("arecord -D pulse -r 48000 -d 1 #{file}")
+      puts "\033[32mdone\033[0m"
+    end
 
     samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
                 map {|l| l.split[1].to_i}.
@@ -421,35 +448,33 @@ def record_hole hole, prev_freq, next_hole
     puts "Peaks: #{pks.inspect}"
     freq = pks[0][0]
     
-    sleep 1
-    puts "\nreplay ..."
-    system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
-    puts "done"
-
     if freq < prev_freq
-      puts "\nThe frequency just recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
+      puts "\nThe frequency recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
-      puts "you need to REDO IT ALL, and should bail out by pressing ctrl-C to start over ...\n\n"
-    else
-      puts "(next hole will be  \033[32m#{next_hole}\033[0m)"
+      puts "you want to skip back to the previous hole ...\n\n"
     end
     begin
-      puts "Whats next ?"
+      puts "Whats next for hole #{hole} ?"
+      choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
+                 :redo => [['r'], 'redo recording'],
+                 :back => [['b'], 'skip back to previous hole']}
       if freq < prev_freq
-        answer = read_answer({:play => [['p', 'SPACE'], 'play recorded sound'],
-                              :redo => [['r', :default], 'redo recording (default)'],
-                              :exit => [['x'], 'exit so you may to start over']})
+        choices[:exit] = [['x'], 'exit so you may to start over']
+        answer = read_answer(choices)
       else
-        answer = read_answer({:play => [['p', 'SPACE'], 'play recorded sound'],
-                             :okay => [['RETURN'], 'Okay and continue'],
-                             :redo => [['r', :default], 'redo recording (default)']})
+        choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
+        answer = read_answer(choices)
       end
       case answer
       when :play
-        puts "\nplay ..."
-        system("paplay #{file} >/dev/null 2>&1") or fail 'paplay failed'
-        puts "done"
+        print "\nplay ... "
+        system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
+        puts "done\n\n"
+      when :redo
+        redo_recording = true
+      when :back
+        return -1
       when :exit
         exit 1
       end
