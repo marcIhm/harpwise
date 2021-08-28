@@ -2,8 +2,7 @@
 
 require 'set'
 require 'json'
-require 'fileutils'
-require 'byebug'
+#require 'byebug'
 
 #
 # Argument processing
@@ -225,11 +224,19 @@ def get_hole issue, hint = nil, hint_count = 0
   end
 
   count = 0
+  system('clear')
+  $term_height, $term_width = %x(stty size).split.map(&:to_i)
+  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,32]" if $term_width < 100 || $term_height < 32
+    
+  pad = '           '
   while true do
+    # See  https://en.wikipedia.org/wiki/ANSI_escape_code
+    # home, hide cursor, down
+    print "\033[H\033[?25l\033[5H"
+    
     tn = Time.now.to_i
 
     # get and filter new samples
-    FileUtils.rm $sample_file if File.exist?($sample_file)
     system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     # when changing argument to '--pitch' below, $freq needs to be adjusted
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
@@ -260,16 +267,29 @@ def get_hole issue, hint = nil, hint_count = 0
       end
       extra += "\nPeaks: #{pks.inspect}"
     end
+    fout = %x(figlet -f mono12 -c " #{hole}")
     puts "\033[#{good ? 32 : 31}m" unless hole == '-'
-    system("figlet -f mono12 -c \" #{hole}\"") or fail 'figlet failed'
+    puts_pad fout
     puts "\033[0m" unless hole == '-'
-    puts "Samples total: #{samples.length}, new: #{new_samples.length}"
-    puts extra if extra
+    # row 20
+    puts "\033[20H"
+    puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}#{pad}"
+    puts_pad extra || ''
     count += 1
-    return hole if done
-    puts
-    puts issue
-    puts hint if hint && count > hint_count
+    if done
+      print "\033[?25h"
+      return hole
+    end
+    puts "\033[25H"
+    puts_pad issue
+    puts_pad (hint && count > hint_count) ? hint : ''
+  end
+end
+
+
+def puts_pad text
+  text.lines.each do |line|
+    puts line.chomp.ljust($term_width - 2) + "\n"
   end
 end
 
@@ -388,7 +408,6 @@ def record_hole hole, prev_freq, next_hole
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
 
     puts "\033[31mrecording\033[0m to #{file} ..."
-    FileUtils.rm file if File.exist?(file)
     system("arecord -D pulse -r 48000 -d 1 #{file} >/dev/null 2>&1")
     puts "\033[32mdone\033[0m"
 
@@ -448,6 +467,8 @@ $sample_file = "#{$sample_dir}/sample.wav"
 
 # we never invoke it directly, so check
 system('which toilet >/dev/null 2>&1') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
+# show cursor
+at_exit { print "\033[?25h\033[25H" }
 
 
 #
