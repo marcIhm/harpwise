@@ -2,7 +2,9 @@
 
 require 'set'
 require 'json'
-require 'byebug' ##
+
+## some useful debug code in this program is commented out with two hashes
+## require 'byebug'
 
 #
 # Argument processing
@@ -214,7 +216,7 @@ def describe_freq freq
 end
   
 
-def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
+def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = nil
 
   samples = Array.new
 
@@ -224,7 +226,6 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
   print "\033[?25l"  # hide cursor
   $move_down_on_exit = true
-  $term_height, $term_width = %x(stty size).split.map(&:to_i)
   err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
     
   pad = '           '
@@ -235,7 +236,7 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
     tnow = Time.now.to_f
 
     print "\033[#{$line_comment}H"
-    lambda_comment.call
+    lambda_comment.call if lambda_comment
     print "\033[H\033[1H"
     # get and filter new samples
     system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
@@ -251,10 +252,10 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
 
     hole = '-'
     extra = nil
-    if Time.now.to_f - tstart > 0.5 ##
-      samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
-      new_samples = samples[0, 20]
-    end
+##    if Time.now.to_f - tstart > 0.5 ##
+##      samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
+##      new_samples = samples[0, 20]
+##    end
     if samples.length > 8
       # each peak has structure [frequency in hertz, count]
       pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
@@ -266,9 +267,10 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
       if pk[1] > 8
         hole, lbor, ubor = describe_freq pk[0]
         good, done = lambda_good_done.call(hole)
-        if Time.now.to_f - tstart > 2 ##
-          good = done = true
-        end
+##        good = true ##
+##        if Time.now.to_f - tstart > 2  ##
+##          good = done = true
+##        end
         extra += ", in range [#{lbor},#{ubor}]" if lbor
       else
         extra += ', count below threshold'
@@ -280,8 +282,8 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
     print "\033[H\033[#{$line_note}H"
     print "\033[#{good ? 32 : 31}m" unless hole == '-'
     puts_pad figlet_out
-    puts "\033[0m" unless hole == '-'
-    puts "\033[#{$line_samples}H"
+    print "\033[0m"
+    print "\033[#{$line_samples}H"
     puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}#{pad}"
     puts_pad extra || ''
     count += 1
@@ -291,8 +293,8 @@ def get_hole issue, lambda_good_done, lambda_comment, hint = nil, hint_count = 0
       $move_down_on_exit = false
       return hole
     end
-    puts "\033[#{$line_hint}H"
-    puts_pad hint && count > hint_count ? hint : ''
+    print "\033[#{$line_hint}H"
+    lambda_hint.call(tstart) if lambda_hint
   end
 end
 
@@ -313,40 +315,45 @@ def do_quiz
   loop do
     wanted = $scale_holes.sample($num_quiz)
     sleep 0.3
+    print ' '.ljust($term_width - 2)
+    print "\r"
     wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-      print "play ... "
+      print "listen ... "
       system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
       sleep 0.1
     end
-    puts "done"
+    print "\033[32mplay !\033[0m"
     sleep 0.5
 
     wanted.each_with_index do |want,idx|
       get_hole(
         if $num_quiz == 1 
-          "Play the note you heard"
+          "Play the note you have heard"
         else
-          "Playback: note number \033[31m#{idx+1}\033[0m from the sequence you heard"
+          "Playback: note number \033[31m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard"
         end,
         -> (played) {[played == want, played == want]},
         -> () do
-                if idx < wanted.length - 1
-                  text = 'Yes  ' + '*' * idx + '-' * (wanted.length - idx -1)
-                  system("figlet -f smblock \"#{text}\"")
-                  puts "\033[#{$line_hint}H"
-                  puts "\n... and on ..."
-                end
-              end,
-        "Hint: play \033[32m#{want}\033[0m or hit ctrl-c to stop",
-        4)
+          if idx < wanted.length
+            text = 'Yes  ' + '*' * idx + '-' * (wanted.length - idx)
+            system("figlet -f smblock \"#{text}\"")
+            print "\033[#{$line_comment2}H"
+            print "... and on ..."
+          end
+        end,
+        -> (tstart) do
+          if Time.now.to_f - tstart > 2
+            print "Hint: play \033[32m#{want}\033[0m (#{$harp[want][:note]}) or hit ctrl-c to stop"
+          end
+        end)
       print "\033[#{$line_comment}H"
       figlet_out = %x(figlet -f smblock Great !)
-      puts "\033[32m"
+      print "\033[32m"
       puts_pad figlet_out
-      puts "\033[0m"
-      puts "\033[#{$line_hint}H"
-      puts_pad "... and again !"
+      print "\033[0m"
+      print "\033[#{$line_comment2}H"
+      puts_pad "... and \033[32magain\033[0m !"
       puts
     end
     sleep 1
@@ -360,9 +367,8 @@ def do_listen
     puts c
     sleep 1
   end
-  get_hole("Play any note from the scale (or hit ctrl-c to stop) !",
-           -> (played) {[$scale_holes.include?(played), false]},
-           -> () {}) 
+  get_hole("Play any note from the scale to get \033[32mgreen\033[0m !",
+           -> (played) {[$scale_holes.include?(played), false]})
 end
 
 
@@ -533,8 +539,11 @@ at_exit { print "\033[?25h\033[25H" if $move_down_on_exit }
 $line_note = 5
 $line_samples = 16
 $line_comment = 22
+$line_comment2 = 28
 $line_hint = 30
-
+STDOUT.sync = true
+$term_height, $term_width = %x(stty size).split.map(&:to_i)
+  
 
 #
 # Some sanity checks
