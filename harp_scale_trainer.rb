@@ -280,7 +280,11 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
     figlet_out = %x(figlet -f mono12 -c " #{hole}")
     # See  https://en.wikipedia.org/wiki/ANSI_escape_code
     print "\033[H\033[#{$line_note}H"
-    print "\033[#{good ? 32 : 31}m" unless hole == '-'
+    if hole == '-'
+      print "\033[2m"
+    else
+      print "\033[#{good ? 32 : 31}m"
+    end
     puts_pad figlet_out
     print "\033[0m"
     print "\033[#{$line_samples}H"
@@ -329,15 +333,21 @@ def do_quiz
     wanted.each_with_index do |want,idx|
       get_hole(
         if $num_quiz == 1 
-          "Play the note you have heard"
+          "Play the note you have heard !"
         else
-          "Playback: note number \033[31m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard"
+          "Play note number \033[31m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
         end,
         -> (played) {[played == want, played == want]},
         -> () do
           if idx < wanted.length
-            text = 'Yes  ' + '*' * idx + '-' * (wanted.length - idx)
-            system("figlet -f smblock \"#{text}\"")
+            if wanted.length == 1
+              text = '.  .  .'
+            else
+              text = 'Yes  ' + '*' * idx + '-' * (wanted.length - idx)
+            end
+            print "\033[2m"
+            system("figlet -c -k -f smblock \"#{text}\"")
+            print "\033[0m"
             print "\033[#{$line_comment2}H"
             print "... and on ..."
           end
@@ -348,7 +358,7 @@ def do_quiz
           end
         end)
       print "\033[#{$line_comment}H"
-      figlet_out = %x(figlet -f smblock Great !)
+      figlet_out = %x(figlet -c -f smblock Great !)
       print "\033[32m"
       puts_pad figlet_out
       print "\033[0m"
@@ -367,7 +377,7 @@ def do_listen
     puts c
     sleep 1
   end
-  get_hole("Play any note from the scale to get \033[32mgreen\033[0m !",
+  get_hole("Play any note from the scale to get \033[32mgreen\033[0m ...",
            -> (played) {[$scale_holes.include?(played), false]})
 end
 
