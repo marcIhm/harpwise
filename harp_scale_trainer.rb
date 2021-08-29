@@ -4,7 +4,7 @@ require 'set'
 require 'json'
 
 ## some useful debug code in this program is commented out with two hashes
-## require 'byebug'
+require 'byebug'
 
 #
 # Argument processing
@@ -219,18 +219,14 @@ end
 def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = nil
 
   samples = Array.new
-
-  count = 0
-  
   system('clear')
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
   print "\033[?25l"  # hide cursor
   $move_down_on_exit = true
-  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
     
-  pad = '           '
   print issue
-  
+
+  first_recording = true
   tstart = Time.now.to_f
   while true do   
     tnow = Time.now.to_f
@@ -238,18 +234,19 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
     print "\033[#{$line_comment}H"
     lambda_comment.call if lambda_comment
     print "\033[H\033[1H"
-    # get and filter new samples
-    system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
-    # when changing argument to '--pitch' below, $freq needs to be adjusted
+    # Get and filter new samples
+    # On first recording drain previous samples
+    begin
+      tstart_record = Time.now.to_f
+      system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+    end while first_recording && Time.now.to_f - tstart_record < 0.45
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
-
     # curate our pool of samples
     samples += new_samples
     samples = samples[-16 .. -1] if samples.length > 16
-    samples.shift while samples.length > 0 && tnow - samples[0][0] > 5
-
+    samples.shift while samples.length > 0 && tnow - samples[0][0] > 2
     hole = '-'
     extra = nil
 ##    if Time.now.to_f - tstart > 0.5 ##
@@ -288,9 +285,8 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
     puts_pad figlet_out
     print "\033[0m"
     print "\033[#{$line_samples}H"
-    puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}#{pad}"
+    puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}"
     puts_pad extra || ''
-    count += 1
     if done
       print "\033[?25h"  # show cursor
       print "\033[#{$line_comment}H"
@@ -327,7 +323,7 @@ def do_quiz
       system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
       sleep 0.1
     end
-    print "\033[32mplay !\033[0m"
+    print "\033[32mand !\033[0m"
     sleep 0.5
 
     wanted.each_with_index do |want,idx|
@@ -483,13 +479,19 @@ def record_hole hole, prev_freq
         puts c
         sleep 1
       end
-
+      
       puts "\033[31mrecording\033[0m to #{file} ..."
+      # Drain any previous samples
+      begin
+        tstart_record = Time.now.to_f
+        system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+      end while Time.now.to_f - tstart_record < 0.2
+
       system("arecord -D pulse -r 48000 -d 1 #{file}")
       puts "\033[32mdone\033[0m"
     end
 
-    samples = %x(aubiopitch --pitch mcomb #{file} 2>/dev/null).lines.
+    samples = %x(aubiopitch --pitch mcomb #{file} 2>&1).lines.
                 map {|l| l.split[1].to_i}.
                 select {|f| f>0}.
                 sort
@@ -553,6 +555,7 @@ $line_comment2 = 28
 $line_hint = 30
 STDOUT.sync = true
 $term_height, $term_width = %x(stty size).split.map(&:to_i)
+err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
   
 
 #
