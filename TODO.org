@@ -1,4 +1,4 @@
-* Regarding wslq in [2021-09-30 Mon]
+* Regarding wslq in [2021-12-31 Fri]
 
   - Check if arecord still delivers samples from previous invocations; if not,
     remove workarounds.

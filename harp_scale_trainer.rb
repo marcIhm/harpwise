@@ -21,14 +21,14 @@ Usage:
           are the key of the harp (e.g. c or a) and the scale,
           e.g. blues or mape (for major pentatonic), respectively.
 
-        Remark: Most arguments can be abreviated, e.g 'l' for 'listen'
+        Remark: Most arguments can be abreviated, e.g 'p' for 'practice'
           or 'cal' for 'calibrate'.
 
 
         Example to listen to your playing and show the note
         you played; green if it was from the scale:
 
-          ./harp_scale_trainer.rb listen c ma
+          ./harp_scale_trainer.rb practice c ma
 
 
 
@@ -70,20 +70,20 @@ if ARGV.length == 0
 end
 
 
-$mode = :listen if 'listen'.start_with?(ARGV[0])
+$mode = :practice if 'practice'.start_with?(ARGV[0])
 $mode = :quiz if 'quiz'.start_with?(ARGV[0])
 $mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
 
-if ![:listen, :quiz, :calibrate].include?($mode)
-  err_h "First argument can be either 'listen', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
+if ![:practice, :quiz, :calibrate].include?($mode)
+  err_h "First argument can be either 'practice', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
 end
 
-if $mode == :listen
+if $mode == :practice
   if ARGV.length == 3
     arg_for_key = ARGV[1]
     arg_for_scale = ARGV[2]
   else
-    err_h "Need exactly two additional arguments for mode listen"
+    err_h "Need exactly two additional arguments for mode practice"
   end
 end
   
@@ -216,7 +216,7 @@ def describe_freq freq
 end
   
 
-def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = nil
+def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
 
   samples = Array.new
   system('clear')
@@ -368,14 +368,19 @@ def do_quiz
 end
 
 
-def do_listen
+def do_practice
   puts "Just go ahead and play notes from the scale ..."
   [2,1].each do |c|
     puts c
     sleep 1
   end
   get_hole("Play any note from the scale to get \033[32mgreen\033[0m ...",
-           -> (played) {[$scale_holes.include?(played), false]})
+           -> (played) {[$scale_holes.include?(played), false]},
+           nil,
+           -> (_) do
+             print "\033[2mHint: chosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\033[0m"
+          end
+)
 end
 
 
@@ -649,8 +654,8 @@ end
 case $mode
 when :quiz
   do_quiz
-when :listen
-  do_listen
+when :practice
+  do_practice
 when :calibrate
   do_calibrate
 end
