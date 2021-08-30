@@ -238,8 +238,8 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
     # On first recording drain previous samples (which would be delivered without delay)
     begin
       tstart_record = Time.now.to_f
-      system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
-    end while first_recording && Time.now.to_f - tstart_record < 0.45
+      system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+    end while first_recording && Time.now.to_f - tstart_record < 0.2
     first_recording = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
@@ -328,13 +328,15 @@ def do_quiz
     sleep 0.5
 
     wanted.each_with_index do |want,idx|
+      tstart = Time.now.to_f
       get_hole(
         if $num_quiz == 1 
           "Play the note you have heard !"
         else
           "Play note number \033[31m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
         end,
-        -> (played) {[played == want, played == want]},
+        -> (played) {[played == want,
+                      played == want && Time.now.to_f - tstart > 1]}, # do not return okay immediately
         -> () do
           if idx < wanted.length
             if wanted.length == 1
@@ -350,7 +352,7 @@ def do_quiz
           end
         end,
         -> (tstart) do
-          if Time.now.to_f - tstart > 2
+          if Time.now.to_f - tstart > 3
             print "Hint: play \033[32m#{want}\033[0m (#{$harp[want][:note]}) or hit ctrl-c to stop"
           end
         end)
@@ -378,28 +380,27 @@ def do_learn
            -> (played) {[$scale_holes.include?(played), false]},
            nil,
            -> (_) do
-             print "\033[2mHint: chosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\033[0m"
+             print "Hint: \033[2mchosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\033[0m"
           end
 )
 end
 
 
 def do_calibrate
-  puts "\nThis is an interactive assistant, that will ask you to play these"
+  puts "\n\n\nThis is an interactive assistant, that will ask you to play these"
   puts "holes of your harmonica one after the other, each for one second:"
-  puts "\n  #{$holes.join(' ')}"
-  puts "\nAfter each whole the recorded sound will be replayed for confirmation."
-  puts "\nEach recording is preceded by a short countdown (2,1); the recording starts,"
-  puts "when the word 'recording to ...' is printed; when done, the word 'done'."
-  puts "To avoid silence in the recording, you should start playing"
-  puts "within the countdown already."
+  puts "\n  \033[32m#{$holes.join(' ')}\033[0m"
+  puts "\nEach recording is preceded by a short countdown (2,1)."
+  puts "To avoid silence in the recording, you should start playing within the"
+  puts "countdown already and play a moment over the end of the recording."
+  puts "The harp you use now for calbration should be the one,"
+  puts "that you will use for your practice later."
   puts "\nBackground: Those samples will be used to determine the frequencies of your"
-  puts "particular harp; so this should be the one, you will use for practice later."
-  puts "Moreover those samples will be played in mode 'quiz'."
+  puts "particular harp and will be played directly in mode 'quiz'."
   puts "\nHint: If you plan to calibrate for more than one key of harp, you should"
-  puts "consider copying the whole directory below samples and record only those notes"
+  puts "consider copying the whole directory below 'samples' and record only those notes"
   puts "that are missing. Note, that the recorded samples are named after the note,"
-  puts "not the hole, so that they can be used universally."
+  puts "not the hole, so that they can be copied and used universally."
   print "\nPress RETURN to start the step-by-step process ... "
   STDIN.gets
   puts
@@ -507,18 +508,17 @@ def record_hole hole, prev_freq
     freq = pks[0][0]
     
     if freq < prev_freq
-      puts "\nThe frequency recorded #{freq} is LOWER than the frequency recorded before #{prev_freq} !"
+      puts "\nThe frequency just recorded (= #{freq}) is \033[32mLOWER\033[0m than the frequency recorded before (= #{prev_freq}) !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
-      puts "you want to skip back to the previous hole ...\n\n"
+      puts "you may want to skip back to the previous hole ...\n\n"
     end
     begin
-      puts "Whats next for hole \033[33m#{hole}\033[0m ?"
+      puts "\nWhats next for hole \033[33m#{hole}\033[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
                  :redo => [['r'], 'redo recording'],
                  :back => [['b'], 'skip back to previous hole']}
       if freq < prev_freq
-        choices[:exit] = [['x'], 'exit so you may to start over']
         answer = read_answer(choices)
       else
         choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
@@ -528,13 +528,11 @@ def record_hole hole, prev_freq
       when :play
         print "\nplay ... "
         system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
-        puts "done\n\n"
+        puts "done\n"
       when :redo
         redo_recording = true
       when :back
         return -1
-      when :exit
-        exit 1
       end
     end while answer == :play
   end while answer != :okay
@@ -562,7 +560,7 @@ $line_comment2 = 28
 $line_hint = 30
 STDOUT.sync = true
 $term_height, $term_width = %x(stty size).split.map(&:to_i)
-err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [94,28]" if $term_width < 94 || $term_height < 28
+err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [94,28]" if $term_width < 84 || $term_height < 32
   
 
 #
@@ -641,7 +639,7 @@ $holes = $harp.keys.reject {|x| %w(low high).include?(x)}
 
 unless $mode == :calibrate
   ffile = "#{$sample_dir}/frequencies.json"
-  err_b "Frequency file #{ffile} does not exist, you need to calibrate" unless File.exist?(ffile)
+  err_b "Frequency file #{ffile} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?(ffile)
   freqs = JSON.parse(File.read(ffile))
   err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration" unless Set.new(freqs.keys) == Set.new($holes)
   freqs.map {|k,v| $harp[k][:freq] = v}
