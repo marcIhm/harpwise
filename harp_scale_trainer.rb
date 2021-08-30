@@ -4,7 +4,7 @@ require 'set'
 require 'json'
 
 ## some useful debug code in this program is commented out with two hashes
-require 'byebug'
+## require 'byebug'
 
 #
 # Argument processing
@@ -249,7 +249,7 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
     samples = samples[-16 .. -1] if samples.length > 16
     samples.shift while samples.length > 0 && tnow - samples[0][0] > 2
     hole = '-'
-    extra = nil
+    extra = ''
 ## Input simulation for taking Screenshots
 ##    if Time.now.to_f - tstart > 0.5
 ##      samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
@@ -269,25 +269,25 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
 ## Override decision for taking Screenshots
 ##        good = true
 ##        done = true if Time.now.to_f - tstart > 2
-        extra += ", in range [#{lbor},#{ubor}]" if lbor
+        extra += " in range [#{lbor},#{ubor}], Note \033[0m#{$harp[hole][:note]}\033[2m" if lbor
       else
-        extra += ', count below threshold'
+        extra += ' but count below threshold'
       end
       extra += "\nPeaks: #{pks.inspect}"
     end
     figlet_out = %x(figlet -f mono12 -c " #{hole}")
     # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-    print "\033[H\033[#{$line_note}H"
+    print "\033[#{$line_note}H"
     if hole == '-'
       print "\033[2m"
     else
       print "\033[#{good ? 32 : 31}m"
     end
     puts_pad figlet_out
-    print "\033[0m"
     print "\033[#{$line_samples}H"
-    puts_pad "Samples total: #{samples.length}, new: #{new_samples.length}"
-    puts_pad extra || ''
+    puts_pad "\033[0m\033[2mSamples total: #{samples.length}, new: #{new_samples.length}"
+    puts_pad extra
+    print "\033[0m"
     if done
       print "\033[?25h"  # show cursor
       print "\033[#{$line_comment}H"
@@ -333,7 +333,7 @@ def do_quiz
         if $num_quiz == 1 
           "Play the note you have heard !"
         else
-          "Play note number \033[31m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
+          "Play note number \033[32m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
         end,
         -> (played) {[played == want,
                       played == want && Time.now.to_f - tstart > 1]}, # do not return okay immediately
@@ -643,10 +643,12 @@ unless $mode == :calibrate
   freqs = JSON.parse(File.read(ffile))
   err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration" unless Set.new(freqs.keys) == Set.new($holes)
   freqs.map {|k,v| $harp[k][:freq] = v}
+  $harp['low'][:freq] = $harp['+1'][:freq]/2
+  $harp['high'][:freq] = $harp['+10'][:freq]*2
   $holes.each {|h| file = "#{$sample_dir}/#{$harp[h][:note]}.wav"; err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)}
 
   $fr2ho = $holes.map {|h| [$harp[h][:freq], h]}.to_h
-  $freqs = $holes.map {|h| $harp[h][:freq]}.sort
+  $freqs = (%w(low high).map {|x| $harp[x][:freq]} + $holes.map {|h| $harp[h][:freq]}).sort
 end
 
 case $mode
