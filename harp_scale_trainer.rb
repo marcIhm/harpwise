@@ -21,14 +21,14 @@ Usage:
           are the key of the harp (e.g. c or a) and the scale,
           e.g. blues or mape (for major pentatonic), respectively.
 
-        Remark: Most arguments can be abreviated, e.g 'p' for 'practice'
+        Remark: Most arguments can be abreviated, e.g 'l' for 'learn'
           or 'cal' for 'calibrate'.
 
 
         Example to listen to your playing and show the note
         you played; green if it was from the scale:
 
-          ./harp_scale_trainer.rb practice c ma
+          ./harp_scale_trainer.rb learn c ma
 
 
 
@@ -70,20 +70,20 @@ if ARGV.length == 0
 end
 
 
-$mode = :practice if 'practice'.start_with?(ARGV[0])
+$mode = :learn if 'learn'.start_with?(ARGV[0])
 $mode = :quiz if 'quiz'.start_with?(ARGV[0])
 $mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
 
-if ![:practice, :quiz, :calibrate].include?($mode)
-  err_h "First argument can be either 'practice', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
+if ![:learn, :quiz, :calibrate].include?($mode)
+  err_h "First argument can be either 'learn', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
 end
 
-if $mode == :practice
+if $mode == :learn
   if ARGV.length == 3
     arg_for_key = ARGV[1]
     arg_for_scale = ARGV[2]
   else
-    err_h "Need exactly two additional arguments for mode practice"
+    err_h "Need exactly two additional arguments for mode learn"
   end
 end
   
@@ -368,7 +368,7 @@ def do_quiz
 end
 
 
-def do_practice
+def do_learn
   puts "Just go ahead and play notes from the scale ..."
   [2,1].each do |c|
     puts c
@@ -654,8 +654,8 @@ end
 case $mode
 when :quiz
   do_quiz
-when :practice
-  do_practice
+when :learn
+  do_learn
 when :calibrate
   do_calibrate
 end
