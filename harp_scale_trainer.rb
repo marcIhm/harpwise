@@ -228,6 +228,7 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
 
   first_recording = true
   tstart = Time.now.to_f
+  hole = '-'
   while true do   
     tnow = Time.now.to_f
 
@@ -235,7 +236,7 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
     lambda_comment.call if lambda_comment
     print "\033[H\033[1H"
     # Get and filter new samples
-    # On first recording drain previous samples (which would be delivered without delay)
+    # On first recording discard previous samples (which we recognize, because they are delivered without delay)
     begin
       tstart_record = Time.now.to_f
       system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
@@ -248,6 +249,7 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
     samples += new_samples
     samples = samples[-16 .. -1] if samples.length > 16
     samples.shift while samples.length > 0 && tnow - samples[0][0] > 2
+    hole_was = hole
     hole = '-'
     extra = ''
 ## Input simulation for taking Screenshots
@@ -265,7 +267,8 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
       extra = "Frequency: #{pk[0]}"
       if pk[1] > 8
         hole, lbor, ubor = describe_freq pk[0]
-        good, done = lambda_good_done.call(hole)
+        hole_since = Time.now.to_f if hole != hole_was
+        good, done = lambda_good_done.call(hole, hole_since)
 ## Override decision for taking Screenshots
 ##        good = true
 ##        done = true if Time.now.to_f - tstart > 2
@@ -314,11 +317,11 @@ def do_quiz
     sleep 1
   end
   loop do
-    wanted = $scale_holes.sample($num_quiz)
+    all_wanted = $scale_holes.sample($num_quiz)
     sleep 0.3
     print ' '.ljust($term_width - 2)
     print "\r"
-    wanted.each do |hole|
+    all_wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
       print "listen ... "
       system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
@@ -327,7 +330,7 @@ def do_quiz
     print "\033[32mand !\033[0m"
     sleep 0.5
 
-    wanted.each_with_index do |want,idx|
+    all_wanted.each_with_index do |wanted,idx|
       tstart = Time.now.to_f
       get_hole(
         if $num_quiz == 1 
@@ -335,14 +338,15 @@ def do_quiz
         else
           "Play note number \033[32m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
         end,
-        -> (played) {[played == want,
-                      played == want && Time.now.to_f - tstart > 1]}, # do not return okay immediately
+        -> (played, since) {[played == wanted,
+                             played == wanted &&
+                             Time.now.to_f - since > 0.5]}, # do not return okay immediately
         -> () do
-          if idx < wanted.length
-            if wanted.length == 1
+          if idx < all_wanted.length
+            if all_wanted.length == 1
               text = '.  .  .'
             else
-              text = 'Yes  ' + '*' * idx + '-' * (wanted.length - idx)
+              text = 'Yes  ' + '*' * idx + '-' * (all_wanted.length - idx)
             end
             print "\033[2m"
             system("figlet -c -k -f smblock \"#{text}\"")
@@ -353,7 +357,7 @@ def do_quiz
         end,
         -> (tstart) do
           if Time.now.to_f - tstart > 3
-            print "Hint: play \033[32m#{want}\033[0m (#{$harp[want][:note]}) or hit ctrl-c to stop"
+            print "Hint: play \033[32m#{wanted}\033[0m (#{$harp[wanted][:note]}) or hit ctrl-c to stop"
           end
         end)
       print "\033[#{$line_comment}H"
@@ -377,7 +381,8 @@ def do_learn
     sleep 1
   end
   get_hole("Play any note from the scale to get \033[32mgreen\033[0m ...",
-           -> (played) {[$scale_holes.include?(played), false]},
+           -> (played, _) {[$scale_holes.include?(played),
+                            false]},
            nil,
            -> (_) do
              print "Hint: \033[2mchosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\033[0m"
@@ -489,7 +494,7 @@ def record_hole hole, prev_freq
       end
       
       puts "\033[31mrecording\033[0m to #{file} ..."
-      # Drain any previous samples (which would be delivered without delay)
+      # Discard previous samples (which we recognize, because they are delivered without delay)
       begin
         tstart_record = Time.now.to_f
         system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
