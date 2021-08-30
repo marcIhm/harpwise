@@ -235,11 +235,12 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
     lambda_comment.call if lambda_comment
     print "\033[H\033[1H"
     # Get and filter new samples
-    # On first recording drain previous samples
+    # On first recording drain previous samples (which would be delivered without delay)
     begin
       tstart_record = Time.now.to_f
       system("arecord -D pulse -r 48000 -s 24000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
     end while first_recording && Time.now.to_f - tstart_record < 0.45
+    first_recording = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
@@ -249,7 +250,8 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
     samples.shift while samples.length > 0 && tnow - samples[0][0] > 2
     hole = '-'
     extra = nil
-##    if Time.now.to_f - tstart > 0.5 ##
+## Input simulation for taking Screenshots
+##    if Time.now.to_f - tstart > 0.5
 ##      samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
 ##      new_samples = samples[0, 20]
 ##    end
@@ -264,10 +266,9 @@ def get_hole issue, lambda_good_done = nil, lambda_comment = nil, lambda_hint = 
       if pk[1] > 8
         hole, lbor, ubor = describe_freq pk[0]
         good, done = lambda_good_done.call(hole)
-##        good = true ##
-##        if Time.now.to_f - tstart > 2  ##
-##          good = done = true
-##        end
+## Override decision for taking Screenshots
+##        good = true
+##        done = true if Time.now.to_f - tstart > 2
         extra += ", in range [#{lbor},#{ubor}]" if lbor
       else
         extra += ', count below threshold'
@@ -471,17 +472,18 @@ def record_hole hole, prev_freq
       puts "\nHole  \033[32m#{hole}\033[0m  need not be recorded, because file #{file} already exists."
       print "\nPress RETURN to see choices: "
       STDIN.gets
+      print "Analyzing this recording: "
     else
       puts "\nRecording hole  \033[32m#{hole}\033[0m  after countdown reaches 1,"
       print "\nPress RETURN to start recording: "
       STDIN.gets
       [2,1].each do |c|
         puts c
-        sleep 1
+        sleep 0.8
       end
       
       puts "\033[31mrecording\033[0m to #{file} ..."
-      # Drain any previous samples
+      # Drain any previous samples (which would be delivered without delay)
       begin
         tstart_record = Time.now.to_f
         system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
@@ -506,7 +508,7 @@ def record_hole hole, prev_freq
       puts "you want to skip back to the previous hole ...\n\n"
     end
     begin
-      puts "Whats next for hole #{hole} ?"
+      puts "Whats next for hole \033[33m#{hole}\033[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
                  :redo => [['r'], 'redo recording'],
                  :back => [['b'], 'skip back to previous hole']}
@@ -555,7 +557,7 @@ $line_comment2 = 28
 $line_hint = 30
 STDOUT.sync = true
 $term_height, $term_width = %x(stty size).split.map(&:to_i)
-err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [100,28]" if $term_width < 100 || $term_height < 30
+err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [94,28]" if $term_width < 94 || $term_height < 28
   
 
 #

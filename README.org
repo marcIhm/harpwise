@@ -4,7 +4,7 @@ pentatonic) on a diatonic richter harp for various keys.
 
 Its operation modes are 'listen' and 'quiz'. 
 
-The screenshot below is from mode 'quiz': The program has played 4
+The screenshot below is from mode 'quiz': The program has played five
 notes intially and now challenges me to play them back. I just played
 the third note, six blow, correctly and now I try to hit the fourth
 note.
@@ -14,8 +14,8 @@ note.
 * Installation
 
   harp_scale_trainer.rb runs in the linux console and requires several
-  external programs for its operation: aubiopitch, pulseaudio, figlet
-  and toilet (for additional figlet-fonts).
+  external programs for its operation: aubiopitch, pulseaudio, aplay,
+  arecord, figlet and toilet (for additional figlet-fonts).
   
   Special thanx to aubiopitch for doing all the heavylifting of
   tone recognition !
@@ -29,6 +29,9 @@ note.
   
     ./harp_scale_trainer.rb
 
-  First you will need to calibrate the program by playing your own harp.
-  This needs to be done only once (but for every key you want to use).
+  
+  Modes of operation are: quiz, calibrate and listen.
+
+  First you will need to calibrate the program for at least one key by
+  playing your own harp as requested; this needs to be done once only.
 
