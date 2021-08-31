@@ -4,7 +4,7 @@ require 'set'
 require 'json'
 
 ## some useful debug code in this program is commented out with two hashes
-## require 'byebug'
+require 'byebug'
 
 #
 # Argument processing
@@ -216,32 +216,32 @@ def describe_freq freq
 end
   
 
-def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
+def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
 
   samples = Array.new
   system('clear')
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-  print "\033[?25l"  # hide cursor
+  print "\e[?25l"  # hide cursor
   $move_down_on_exit = true
-    
+
   print issue
 
-  first_recording = true
   tstart = Time.now.to_f
   hole = '-'
   while true do   
     tnow = Time.now.to_f
 
-    print "\033[#{$line_comment}H"
+    print "\e[#{$line_comment}H"
     lambda_comment.call if lambda_comment
-    print "\033[H\033[1H"
+    print "\e[H\e[1H"
+    
     # Get and filter new samples
-    # On first recording discard previous samples (which we recognize, because they are delivered without delay)
+    # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
     begin
       tstart_record = Time.now.to_f
-      system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
-    end while first_recording && Time.now.to_f - tstart_record < 0.2
-    first_recording = false
+      system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or $ph_paused or fail 'arecord failed'
+    end while Time.now.to_f - tstart_record < 0.05
+    $ph_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
@@ -257,6 +257,7 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
 ##      samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
 ##      new_samples = samples[0, 20]
 ##    end
+    return if lambda_skip && lambda_skip.call()
     if samples.length > 8
       # each peak has structure [frequency in hertz, count]
       pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
@@ -271,8 +272,8 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
         good, done = lambda_good_done.call(hole, hole_since)
 ## Override decision for taking Screenshots
 ##        good = true
-##        done = true if Time.now.to_f - tstart > 2
-        extra += " in range [#{lbor},#{ubor}], Note \033[0m#{$harp[hole][:note]}\033[2m" if lbor
+##        done = true if Time.now.to_f - tstart > 2        
+        extra += " in range [#{lbor},#{ubor}], Note \e[0m#{$harp[hole][:note]}\e[2m" if lbor
       else
         extra += ' but count below threshold'
       end
@@ -280,24 +281,24 @@ def get_hole issue, lambda_good_done, lambda_comment = nil, lambda_hint = nil
     end
     figlet_out = %x(figlet -f mono12 -c " #{hole}")
     # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-    print "\033[#{$line_note}H"
+    print "\e[#{$line_note}H"
     if hole == '-'
-      print "\033[2m"
+      print "\e[2m"
     else
-      print "\033[#{good ? 32 : 31}m"
+      print "\e[#{good ? 32 : 31}m"
     end
     puts_pad figlet_out
-    print "\033[#{$line_samples}H"
-    puts_pad "\033[0m\033[2mSamples total: #{samples.length}, new: #{new_samples.length}"
+    print "\e[#{$line_samples}H"
+    puts_pad "\e[0m\e[2mSamples total: #{samples.length}, new: #{new_samples.length}"
     puts_pad extra
-    print "\033[0m"
+    print "\e[0m"
     if done
-      print "\033[?25h"  # show cursor
-      print "\033[#{$line_comment}H"
+      print "\e[?25h"  # show cursor
+      print "\e[#{$line_comment}H"
       $move_down_on_exit = false
       return hole
     end
-    print "\033[#{$line_hint}H"
+    print "\e[#{$line_hint}H"
     lambda_hint.call(tstart) if lambda_hint
   end
 end
@@ -311,11 +312,32 @@ end
 
 
 def do_quiz
-  puts "Looping: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
+  Signal.trap('SIGQUIT') do
+    system("stty quit '^\'")
+    print "\e[s"
+    text = "SPACE: continue, TAB: skip"
+    print "\e[1;#{$term_width-text.length-1}H#{text}"
+    system("stty raw -echo")
+    begin
+      key = STDIN.getc
+    end while key != " " && key != "\t"
+    $ph_skip = ( key == "\t" )
+    system("stty -raw")
+    system("stty quit ' '")
+    print "\e[1;#{$term_width-text.length-1}H#{' ' * text.length}"
+    print "\e[u"
+    $ph_paused = true
+  end
+  system("stty quit ' '")
+  system("stty -echo")
+  puts "\n\nLooping: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
+  pause_resume = "\e[2m[type SPACE to pause]\e[0m"
+  puts pause_resume
   [2,1].each do |c|
     puts c
     sleep 1
   end
+  
   loop do
     all_wanted = $scale_holes.sample($num_quiz)
     sleep 0.3
@@ -324,10 +346,11 @@ def do_quiz
     all_wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
       print "listen ... "
-      system("aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
+      system("aplay -D pulse #{file} >/dev/null 2>&1") or $ph_paused or fail 'aplay failed'
+      $aused = false
       sleep 0.1
     end
-    print "\033[32mand !\033[0m"
+    print "\e[32mand !\e[0m"
     sleep 0.5
 
     all_wanted.each_with_index do |wanted,idx|
@@ -336,11 +359,12 @@ def do_quiz
         if $num_quiz == 1 
           "Play the note you have heard !"
         else
-          "Play note number \033[32m#{idx+1}\033[0m from the sequence of #{$num_quiz} you have heard !"
-        end,
-        -> (played, since) {[played == wanted,
-                             played == wanted &&
-                             Time.now.to_f - since > 0.5]}, # do not return okay immediately
+          "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
+        end + '   ' + pause_resume,
+        -> (played, since ) {[played == wanted,
+                              played == wanted &&
+                              Time.now.to_f - since > 0.5]}, # do not return okay immediately
+        -> () {$ph_skip},
         -> () do
           if idx < all_wanted.length
             if all_wanted.length == 1
@@ -348,53 +372,61 @@ def do_quiz
             else
               text = 'Yes  ' + '*' * idx + '-' * (all_wanted.length - idx)
             end
-            print "\033[2m"
+            print "\e[2m"
             system("figlet -c -k -f smblock \"#{text}\"")
-            print "\033[0m"
-            print "\033[#{$line_comment2}H"
+            print "\e[0m"
+            print "\e[#{$line_comment2}H"
             print "... and on ..."
           end
         end,
         -> (tstart) do
           if Time.now.to_f - tstart > 3
-            print "Hint: play \033[32m#{wanted}\033[0m (#{$harp[wanted][:note]}) or hit ctrl-c to stop"
+            print "Hint: play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]}) \e[2mor type ctrl-c to stop or SPACE for options\e[0m"
           end
         end)
-      print "\033[#{$line_comment}H"
-      figlet_out = %x(figlet -c -f smblock Great !)
-      print "\033[32m"
-      puts_pad figlet_out
-      print "\033[0m"
-      print "\033[#{$line_comment2}H"
-      puts_pad "... and \033[32magain\033[0m !"
-      puts
     end
+    if $ph_skip
+      print "\e[#{$line_comment2}H"
+      puts_pad "... skipping ..."
+      $ph_skip = false
+      sleep 1
+      next
+    end
+    print "\e[#{$line_comment}H"
+    figlet_out = %x(figlet -c -f smblock Great !)
+    print "\e[32m"
+    puts_pad figlet_out
+    print "\e[0m"
+    print "\e[#{$line_comment2}H"
+    puts_pad "... and \e[32magain\e[0m !"
+    puts
     sleep 1
   end
 end
 
 
 def do_learn
-  puts "Just go ahead and play notes from the scale ..."
+  puts "\n\nJust go ahead and play notes from the scale ..."
   [2,1].each do |c|
     puts c
     sleep 1
   end
-  get_hole("Play any note from the scale to get \033[32mgreen\033[0m ...",
-           -> (played, _) {[$scale_holes.include?(played),
+  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
+           -> (played, _, _) {[$scale_holes.include?(played),
                             false]},
            nil,
+           nil,
            -> (_) do
-             print "Hint: \033[2mchosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\033[0m"
+             print "Hint: \e[2mchosen scale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\e[0m"
           end
 )
 end
 
 
 def do_calibrate
-  puts "\n\n\nThis is an interactive assistant, that will ask you to play these"
+  puts "\n\nThis is an interactive assistant, that will ask you to play these"
   puts "holes of your harmonica one after the other, each for one second:"
-  puts "\n  \033[32m#{$holes.join(' ')}\033[0m"
+  puts "\n  \e[32m#{$holes.join(' ')}\e[0m"
   puts "\nEach recording is preceded by a short countdown (2,1)."
   puts "To avoid silence in the recording, you should start playing within the"
   puts "countdown already and play a moment over the end of the recording."
@@ -406,7 +438,9 @@ def do_calibrate
   puts "consider copying the whole directory below 'samples' and record only those notes"
   puts "that are missing. Note, that the recorded samples are named after the note,"
   puts "not the hole, so that they can be copied and used universally."
-  print "\nPress RETURN to start the step-by-step process ... "
+  puts "\nTip: You may invoke this assistant again at any later time, just to review your"
+  puts "recorded notes and maybe correct some of them."
+  print "\n\nPress RETURN to start the step-by-step process ... "
   STDIN.gets
   puts
 
@@ -418,7 +452,7 @@ def do_calibrate
     freqs[i] = record_hole(hole, freqs[i-1] || 0)
     if freqs[i] < 0
       if i >0 
-        puts "Skipping  \033[32mback\033[0m  !"
+        puts "Skipping  \e[32mback\e[0m  !"
         i -= 1
       else
         puts "Cannot skip, back already at first hole ..."
@@ -435,7 +469,6 @@ end
 
 
 def read_answer answer2keys_desc
-  puts 'A single key answer is expected:'
   klists = Hash.new
   answer2keys_desc.each do |an, ks_d|
     klists[an] = ks_d[0].join(', ')
@@ -446,7 +479,7 @@ def read_answer answer2keys_desc
   end
 
   begin
-    print "Your choice: "
+    print "Your choice (press a single key): "
     system("stty raw -echo")
     char = STDIN.getc
     system("stty -raw echo")
@@ -480,28 +513,29 @@ def record_hole hole, prev_freq
   begin
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     if File.exists?(file) && !redo_recording
-      puts "\nHole  \033[32m#{hole}\033[0m  need not be recorded, because file #{file} already exists."
+      puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded, because file #{file} already exists."
       print "\nPress RETURN to see choices: "
       STDIN.gets
-      print "Analyzing this recording: "
+      print "Analysis of old: "
     else
-      puts "\nRecording hole  \033[32m#{hole}\033[0m  after countdown reaches 1,"
+      puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
       print "\nPress RETURN to start recording: "
       STDIN.gets
       [2,1].each do |c|
         puts c
-        sleep 0.8
+        sleep 1
       end
       
-      puts "\033[31mrecording\033[0m to #{file} ..."
-      # Discard previous samples (which we recognize, because they are delivered without delay)
+      puts "\e[31mrecording\e[0m to #{file} ..."
+      # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
       begin
         tstart_record = Time.now.to_f
-        system("arecord -D pulse -r 48000 -s 12000 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
-      end while Time.now.to_f - tstart_record < 0.2
+        system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or fail 'arecord failed'
+      end while Time.now.to_f - tstart_record < 0.05
 
       system("arecord -D pulse -r 48000 -d 1 #{file}")
-      puts "\033[32mdone\033[0m"
+      puts "\e[32mdone\e[0m"
+      print "Analysis: "
     end
 
     samples = %x(aubiopitch --pitch mcomb #{file} 2>&1).lines.
@@ -513,13 +547,13 @@ def record_hole hole, prev_freq
     freq = pks[0][0]
     
     if freq < prev_freq
-      puts "\nThe frequency just recorded (= #{freq}) is \033[32mLOWER\033[0m than the frequency recorded before (= #{prev_freq}) !"
+      puts "\nThe frequency just recorded (= #{freq}) is \e[32mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
       puts "you may want to skip back to the previous hole ...\n\n"
     end
     begin
-      puts "\nWhats next for hole \033[33m#{hole}\033[0m ?"
+      puts "\nWhats next for hole \e[33m#{hole}\e[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
                  :redo => [['r'], 'redo recording'],
                  :back => [['b'], 'skip back to previous hole']}
@@ -557,7 +591,10 @@ $sample_file = "#{$sample_dir}/sample.wav"
 system('which toilet >/dev/null 2>&1') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
 # show cursor
 $move_down_on_exit = false
-at_exit { print "\033[?25h\033[25H" if $move_down_on_exit }
+at_exit do
+  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  system("stty sane")
+end
 $line_note = 5
 $line_samples = 16
 $line_comment = 22
