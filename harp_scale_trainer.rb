@@ -239,9 +239,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
     begin
       tstart_record = Time.now.to_f
-      system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or $trap_paused or fail 'arecord failed'
+      system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or $ctl_paused or fail 'arecord failed'
     end while Time.now.to_f - tstart_record < 0.05
-    $trap_paused = false
+    $ctl_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
@@ -311,28 +311,33 @@ def puts_pad text
 end
 
 
-def do_quiz
+def install_ctl
   Signal.trap('SIGQUIT') do
     system("stty quit '^\'")
     print "\e[s"
-    text = "SPACE: continue, TAB: skip"
+    text = $ctl_can_skip ? "SPACE: continue, TAB: skip" : "SPACE: continue"
     print "\e[1;#{$term_width-text.length-1}H#{text}"
     system("stty raw -echo")
     begin
       key = STDIN.getc
-    end while key != " " && key != "\t"
-    $trap_skip = ( key == "\t" )
+    end until key == " " || ( key == "\t" && $ctl_can_skip )
     system("stty -raw")
     system("stty quit ' '")
     print "\e[1;#{$term_width-text.length-1}H#{' ' * text.length}"
     print "\e[u"
-    $trap_paused = true
+    $ctl_paused = true
+    $ctl_skip = ( key == "\t" )
   end
   system("stty quit ' '")
+  $ctl_pause_continue = "\e[2m[type SPACE to pause]\e[0m"
+end
+
+
+def do_quiz
   system("stty -echo")
+  install_ctl
   puts "\n\nLooping: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
-  pause_resume = "\e[2m[type SPACE to pause]\e[0m"
-  puts pause_resume
+  puts $ctl_pause_continue
   [2,1].each do |c|
     puts c
     sleep 1
@@ -346,13 +351,14 @@ def do_quiz
     all_wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
       print "listen ... "
-      system("aplay -D pulse #{file} >/dev/null 2>&1") or $trap_paused or fail 'aplay failed'
-      $aused = false
-      sleep 0.1
+      system("aplay -D pulse #{file} >/dev/null 2>&1") or $ctl_paused or fail 'aplay failed'
+      $ctl_paused = false
     end
+
     print "\e[32mand !\e[0m"
     sleep 0.5
 
+    $ctl_can_skip = true
     all_wanted.each_with_index do |wanted,idx|
       tstart = Time.now.to_f
       get_hole(
@@ -360,11 +366,11 @@ def do_quiz
           "Play the note you have heard !"
         else
           "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
-        end + '   ' + pause_resume,
+        end + '    ' + $ctl_pause_continue,
         -> (played, since ) {[played == wanted,
                               played == wanted &&
                               Time.now.to_f - since > 0.5]}, # do not return okay immediately
-        -> () {$trap_skip},
+        -> () {$ctl_skip},
         -> () do
           if idx < all_wanted.length
             if all_wanted.length == 1
@@ -385,10 +391,10 @@ def do_quiz
           end
         end)
     end
-    if $trap_skip
+    if $ctl_skip
       print "\e[#{$line_comment2}H"
       puts_pad "... skipping ..."
-      $trap_skip = false
+      $ctl_skip = false
       sleep 1
       next
     end
@@ -406,13 +412,17 @@ end
 
 
 def do_learn
+  system("stty -echo")
+  install_ctl
+  $ctl_can_skip = false
   puts "\n\nJust go ahead and play notes from the scale ..."
+  puts $ctl_pause_continue
   [2,1].each do |c|
     puts c
     sleep 1
   end
-  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
-           -> (played, _, _) {[$scale_holes.include?(played),
+  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...        #{$ctl_pause_continue}",
+           -> (played, _) {[$scale_holes.include?(played),
                             false]},
            nil,
            nil,
@@ -591,6 +601,11 @@ $sample_file = "#{$sample_dir}/sample.wav"
 system('which toilet >/dev/null 2>&1') or err_b "Program 'toilet' is needed (for its extra figlet-fonts) but not installed"
 # show cursor
 $move_down_on_exit = false
+Signal.trap('SIGINT') do
+  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  puts "\nexit on ctrl-c"
+  exit 1
+end
 at_exit do
   print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
   system("stty sane")
