@@ -239,9 +239,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
     begin
       tstart_record = Time.now.to_f
-      system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or $ph_paused or fail 'arecord failed'
+      system("arecord -D pulse -r 48000 -s 9600 #{$sample_file} >/dev/null 2>&1") or $trap_paused or fail 'arecord failed'
     end while Time.now.to_f - tstart_record < 0.05
-    $ph_paused = false
+    $trap_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
@@ -321,12 +321,12 @@ def do_quiz
     begin
       key = STDIN.getc
     end while key != " " && key != "\t"
-    $ph_skip = ( key == "\t" )
+    $trap_skip = ( key == "\t" )
     system("stty -raw")
     system("stty quit ' '")
     print "\e[1;#{$term_width-text.length-1}H#{' ' * text.length}"
     print "\e[u"
-    $ph_paused = true
+    $trap_paused = true
   end
   system("stty quit ' '")
   system("stty -echo")
@@ -346,7 +346,7 @@ def do_quiz
     all_wanted.each do |hole|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
       print "listen ... "
-      system("aplay -D pulse #{file} >/dev/null 2>&1") or $ph_paused or fail 'aplay failed'
+      system("aplay -D pulse #{file} >/dev/null 2>&1") or $trap_paused or fail 'aplay failed'
       $aused = false
       sleep 0.1
     end
@@ -364,7 +364,7 @@ def do_quiz
         -> (played, since ) {[played == wanted,
                               played == wanted &&
                               Time.now.to_f - since > 0.5]}, # do not return okay immediately
-        -> () {$ph_skip},
+        -> () {$trap_skip},
         -> () do
           if idx < all_wanted.length
             if all_wanted.length == 1
@@ -385,10 +385,10 @@ def do_quiz
           end
         end)
     end
-    if $ph_skip
+    if $trap_skip
       print "\e[#{$line_comment2}H"
       puts_pad "... skipping ..."
-      $ph_skip = false
+      $trap_skip = false
       sleep 1
       next
     end
