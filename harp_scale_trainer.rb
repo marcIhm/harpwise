@@ -2,6 +2,7 @@
 
 require 'set'
 require 'json'
+require 'fileutils'
 
 ## some useful debug code in this program is commented out with two hashes
 require 'byebug'
@@ -315,7 +316,7 @@ def install_ctl
   Signal.trap('SIGQUIT') do
     system("stty quit '^\'")
     print "\e[s"
-    text = $ctl_can_skip ? "SPACE: continue, TAB: skip" : "SPACE: continue"
+    text = $ctl_can_skip ? "SPACE to continue, TAB to skip" : "SPACE to continue"
     print "\e[1;#{$term_width-text.length-1}H#{text}"
     system("stty raw -echo")
     begin
@@ -594,7 +595,7 @@ end
 #
 
 $key = :c
-$sample_dir = "samples/key_of_#{$key}"
+$sample_dir = "samples/diatonic/key_of_#{$key}"
 $sample_file = "#{$sample_dir}/sample.wav"
 
 # we never invoke it directly, so check
@@ -627,8 +628,7 @@ err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].ins
 if !File.exist?(File.basename($0))
   err_b "Please invoke this program from within its directory (cannot find #{File.basename($0)} in current dir)"
 end
-Dir.mkdir('samples') unless File.directory?('samples')
-Dir.mkdir($sample_dir) unless File.directory?($sample_dir)
+FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
 
   
 #
