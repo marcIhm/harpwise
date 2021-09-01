@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 require 'set'
 require 'json'
@@ -13,44 +13,42 @@ require 'byebug'
 
 $usage = <<EOU
 
-Hint: Before first regular use you need to calibrate this program 
-      with your own harp.
-
 Usage: 
 
-        Remark: The last one or two arguments in all examples below
-          are the key of the harp (e.g. c or a) and the scale,
-          e.g. blues or mape (for major pentatonic), respectively.
-
-        Remark: Most arguments can be abreviated, e.g 'l' for 'learn'
-          or 'cal' for 'calibrate'.
+     Remark: The last one or two arguments in all examples below are
+       the key of the harp (e.g. c or a) and the scale, e.g. blues or
+       mape (for major pentatonic), respectively.
 
 
-        Example to listen to your playing and show the note
-        you played; green if it was from the scale:
-
-          ./harp_scale_trainer.rb learn c ma
+     Remark: Most arguments can be abreviated, e.g 'p' for 'listen' or
+       'cal' for 'calibrate'.
 
 
 
-        Example to play 3 (e.g.) notes from the scale and quiz you to
-        play them back (then repeat):
+     Example to listen to your playing and show the note you played;
+     green if it was from the scale:
 
-          ./harp_scale_trainer.rb quiz 3 a blues
+       ./harp_scale listen c ma
 
 
 
-        Once in a lifetime of your c-harp you may want to calibrate
-        this prgoram to the frequencies of your harp:
+     Example to play 3 (e.g.) notes from the scale and quiz you to
+     play them back (then repeat):
 
-          ./harp_scale_trainer.rb calibrate c
-          
-        this will ask you to play notes on your harp. The samples will
-        be stored in folder samples (will be reused for quiz) and
-        frequencies will be extracted to file frequencies.json .
-        This command does not need a scale-argument.
+       ./harp_scale quiz 3 a blues
 
-Hint: Maybe you need to scroll up to read this USAGE INFORMATION full.
+
+
+     Once in a lifetime of your c-harp you need to calibrate this
+     program to its frequencies:
+
+       ./harp_scale calibrate c
+       
+
+     this will ask you to play notes on your harp. The samples will be
+     stored in folder samples and frequencies will be extracted to
+     file frequencies.json.  This command does not need a
+     scale-argument.
       
 EOU
 
@@ -71,20 +69,20 @@ if ARGV.length == 0
 end
 
 
-$mode = :learn if 'learn'.start_with?(ARGV[0])
+$mode = :listen if 'listen'.start_with?(ARGV[0])
 $mode = :quiz if 'quiz'.start_with?(ARGV[0])
 $mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
 
-if ![:learn, :quiz, :calibrate].include?($mode)
-  err_h "First argument can be either 'learn', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
+if ![:listen, :quiz, :calibrate].include?($mode)
+  err_h "First argument can be either 'listen', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
 end
 
-if $mode == :learn
+if $mode == :listen
   if ARGV.length == 3
     arg_for_key = ARGV[1]
     arg_for_scale = ARGV[2]
   else
-    err_h "Need exactly two additional arguments for mode learn"
+    err_h "Need exactly two additional arguments for mode listen"
   end
 end
   
@@ -414,7 +412,7 @@ def do_quiz
 end
 
 
-def do_learn
+def do_listen
   system("stty -echo")
   install_ctl
   $ctl_can_skip = false
@@ -714,8 +712,8 @@ end
 case $mode
 when :quiz
   do_quiz
-when :learn
-  do_learn
+when :listen
+  do_listen
 when :calibrate
   do_calibrate
 end
