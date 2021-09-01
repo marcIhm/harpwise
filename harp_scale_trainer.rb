@@ -330,7 +330,7 @@ def install_ctl
     $ctl_skip = ( key == "\t" )
   end
   system("stty quit ' '")
-  $ctl_pause_continue = "\e[2m[type SPACE to pause]\e[0m"
+  $ctl_pause_continue = "\e[2m[SPACE to pause]\e[0m"
 end
 
 
@@ -387,8 +387,10 @@ def do_quiz
           end
         end,
         -> (tstart) do
-          if Time.now.to_f - tstart > 3
-            print "Hint: play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]}) \e[2mor type ctrl-c to stop or SPACE for options\e[0m"
+          passed = Time.now.to_f - tstart
+          if passed > 3
+            print "Hint: play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
+            print " \e[2m ... the hole sequence is: #{all_wanted.join(' ')}\e[0m" if passed > 8
           end
         end)
     end
@@ -405,7 +407,7 @@ def do_quiz
     puts_pad figlet_out
     print "\e[0m"
     print "\e[#{$line_comment2}H"
-    puts_pad "... and \e[32magain\e[0m !"
+    puts_pad "You are right: #{all_wanted.join(' ')} ... and \e[32magain\e[0m !"
     puts
     sleep 1
   end
@@ -417,6 +419,7 @@ def do_learn
   install_ctl
   $ctl_can_skip = false
   puts "\n\nJust go ahead and play notes from the scale ..."
+  puts "Hint: \e[2mPlaying a suitable backing track in parallel may be a good idea.\e[0m"
   puts $ctl_pause_continue
   [2,1].each do |c|
     puts c
