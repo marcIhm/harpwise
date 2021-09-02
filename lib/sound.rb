@@ -7,16 +7,12 @@
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
-  command = "arecord -D pulse #{duration_clause} #{file} #{output_clause}"
-  puts "DEBUG: #{command}" if $opts[:debug]
-  system(command) or $ctl_paused or fail 'arecord failed'
+  system(dbg "arecord -D pulse #{duration_clause} #{file} #{output_clause}") or fail 'arecord failed'
 end
 
 
 def play_sound file
-  command = "aplay -D pulse #{file} >/dev/null 2>&1"
-  puts "DEBUG: #{command}" if $opts[:debug]
-  system(command) or $ctl_paused or fail 'aplay failed'
+  system(dbg "aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
 end
 
 
@@ -115,9 +111,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   print "\e[?25l"  # hide cursor
   $move_down_on_exit = true
 
-  print issue
+  print issue + "      \e[2m(SPACE to pause#{$ctl_can_next ? ', n next, l loop' : ''})\e[0m"
 
-  tstart = Time.now.to_f
+  tstart = last_poll = Time.now.to_f
   hole = '-'
   while true do   
     tnow = Time.now.to_f
@@ -132,7 +128,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
       tstart_record = Time.now.to_f
       record_sound 0.1, $sample_file, silent: true
     end while Time.now.to_f - tstart_record < 0.05
-    $ctl_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
                     map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                     select {|f| f[1]>0}
@@ -141,6 +136,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     samples = samples[-32 .. -1] if samples.length > 32
     samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
 
+    poll_and_handle
+    
     hole_was = hole
     hole = '-'
     extra = ''

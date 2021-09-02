@@ -31,7 +31,10 @@ $harp, $holes, $scale_holes = read_musical_config
 $sample_dir = "samples/diatonic/key_of_#{$key}"
 $sample_file = "#{$sample_dir}/sample.wav"
 $freqs, $freq2hole = read_calibration unless $mode == :calibrate
-
+$ctl_last_poll = Time.now.to_f
+$ctl_last_text = ''
+$ctl_skip = $ctl_loop = nil
+$ctl_can_skip = false
 
 if $opts[:debug]
   require 'byebug'

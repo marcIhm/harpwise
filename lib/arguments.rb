@@ -8,6 +8,7 @@ def parse_arguments
   
   usage = <<EOU
 
+
 Help to practice scales (e.g. blues or major pentatonic) on a diatonic harmonica
 for various keys. Major modes of operation are 'listen' and 'quiz'.
 
@@ -25,6 +26,7 @@ Usage by examples:
 
     ./harp_scale_trainer quiz 3 a blues
 
+  Add option '--loop' to loop over sequence until you type 'n'.
 
 
   Once in a lifetime of your c-harp you need to calibrate this program to its
@@ -49,22 +51,27 @@ Notes:
   'calibrate'.
 
 
-Options:  (not needed for normal operations)
-
-   -d : require byebug and switch on some debug output
-   -s : activate simulated input for making a screenshot
+(more options: --debug, --screenshot, --help)
 
 EOU
 
-  if ARGV.length == 0
+  # extract options first
+  opts = Hash.new
+  { %w(-d --debug)=>:debug,
+    %w(-s --screenshot)=>:screenshot,
+    %w(-h --help)=>:help,
+    %w(-l --loop)=>:loop}.each do |txts,opt|
+    txts.each do |txt|
+      opts[opt] = true if ARGV.length !=
+                          ARGV.delete_if {|arg| txt.start_with?(arg) && arg.length >= [4, txt.length].min}.length
+    end
+  end
+  ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err_h "Unknown options: #{left.join(',')}" if left.length > 0}
+  
+  if ARGV.length == 0 || opts[:help]
     puts usage
     exit 1
   end
-
-  # extract options first
-  opts = Hash.new
-  opts[:debug] = ARGV.delete('-d')
-  opts[:screenshot] = ARGV.delete('-s')
 
   mode = :listen if 'listen'.start_with?(ARGV[0])
   mode = :quiz if 'quiz'.start_with?(ARGV[0])

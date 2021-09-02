@@ -6,9 +6,7 @@
 def prepare_screen
   h, w = %x(stty size).split.map(&:to_i)
   err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [94,28]" if w < 84 || h < 32
-
   STDOUT.sync = true
-
   [h, w]
 end
 
@@ -26,6 +24,12 @@ def err_b text
 end
 
 
+def dbg text
+  puts "DEBUG: #{text}" if $opts[:debug]
+  text
+end
+
+
 def puts_pad text
   text.lines.each do |line|
     puts line.chomp.ljust($term_width - 2) + "\n"
@@ -33,25 +37,39 @@ def puts_pad text
 end
 
 
-def install_ctl
-  Signal.trap('SIGQUIT') do
-    system("stty quit '^\'")
+def poll_and_handle
+  return unless Time.now.to_f - $ctl_last_poll > 1
+  $ctl_last_poll = Time.now.to_f 
+  system("stty raw -echo")
+  key = ''
+  begin
+      key = STDIN.read_nonblock(1)
+  rescue IO::EAGAINWaitReadable
+  end
+
+  if key == ' '
     print "\e[s"
-    text = $ctl_can_skip ? "SPACE to continue, TAB to skip" : "SPACE to continue"
+    text = "SPACE to continue"
     print "\e[1;#{$term_width-text.length-1}H#{text}"
-    system("stty raw -echo")
     begin
       key = STDIN.getc
-    end until key == " " || ( key == "\t" && $ctl_can_skip )
-    system("stty -raw")
-    system("stty quit ' '")
-    print "\e[1;#{$term_width-text.length-1}H#{' ' * text.length}"
-    print "\e[u"
-    $ctl_paused = true
-    $ctl_skip = ( key == "\t" )
+    end until key == " "
+    text = ' ' * text.length
+  elsif key == 'n' && $ctl_can_next
+    text = 'Skip to next'
+    $ctl_next = true
+  elsif key == 'l'  && $ctl_can_next
+    text = 'Looping'
+    $ctl_loop = true
+  elsif key.length > 0
+    text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
+  else
+    text = ' ' * $ctl_last_text.length
+    $ctl_last_text = nil
   end
-  system("stty quit ' '")
-  $ctl_pause_continue = "\e[2m[SPACE to pause]\e[0m"
+  print "\e[1;#{$term_width-text.length-1}H#{text}" if text
+  $ctl_last_text = text
+  system("stty -raw")
 end
 
 
