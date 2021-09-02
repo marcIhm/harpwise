@@ -1,1 +1,2 @@
 This directory contains the samples, you have recorded for calibration.
+Consider backing them up, if you dont feel like redo.

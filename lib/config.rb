@@ -8,14 +8,13 @@
 
 def check_installation
   # check for some required programs
-  %w( acrecord aplay aubiopitch ).each do |prog|
+  %w( arecord aplay aubiopitch ).each do |prog|
     system("which #{prog} >/dev/null 2>&1") or err_b "Program '#{prog}' is needed but cannot be found; you may need to install its package"
   end
   
   if !File.exist?(File.basename($0))
     err_b "Please invoke this program from within its own directory (cannot find #{File.basename($0)} in current dir)"
   end
-  FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
 end
 
 
@@ -39,7 +38,7 @@ def read_musical_config
 
   holes = harp.keys.reject {|x| %w(low high).include?(x)}
   scale_holes = scales_holes[$scale]
-  
+
   [ harp, holes, scale_holes ]
 end
 

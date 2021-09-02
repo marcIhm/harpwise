@@ -5,6 +5,7 @@
 #
 
 def do_calibrate
+  FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   puts <<EOINTRO
 
 This is an interactive assistant, that will ask you to play these

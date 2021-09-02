@@ -6,16 +6,16 @@
 
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
-  output_clause = opts[:silent] ? '>/dev/null 2>&1' : ''
+  output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
   command = "arecord -D pulse #{duration_clause} #{file} #{output_clause}"
-  puts command if $opts[:debug]
+  puts "DEBUG: #{command}" if $opts[:debug]
   system(command) or $ctl_paused or fail 'arecord failed'
 end
 
 
 def play_sound file
   command = "aplay -D pulse #{file} >/dev/null 2>&1"
-  puts command if $opts[:debug]
+  puts "DEBUG: #{command}" if $opts[:debug]
   system(command) or $ctl_paused or fail 'aplay failed'
 end
 

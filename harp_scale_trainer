@@ -15,6 +15,8 @@ require_relative 'lib/listen'
 require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
+check_installation
+
 $sample_rate = 48000
 $move_down_on_exit = false
 $line_note = 5
@@ -26,11 +28,10 @@ $line_hint = 30
 $term_height, $term_width = prepare_screen
 $mode, $key, $scale, $opts = parse_arguments
 $harp, $holes, $scale_holes = read_musical_config
-
 $sample_dir = "samples/diatonic/key_of_#{$key}"
 $sample_file = "#{$sample_dir}/sample.wav"
-
 $freqs, $freq2hole = read_calibration unless $mode == :calibrate
+
 
 if $opts[:debug]
   require 'byebug'
