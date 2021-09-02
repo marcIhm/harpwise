@@ -39,6 +39,7 @@ end
 
 Signal.trap('SIGINT') do
   print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  $move_down_on_exit = false
   puts "\nexit on ctrl-c"
   exit 1
 end

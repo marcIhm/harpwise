@@ -7,7 +7,7 @@ def do_listen
   install_ctl
   $ctl_can_skip = false
   puts "\n\nJust go ahead and play notes from the scale ..."
-  puts "Hint: \e[2mPlaying a suitable backing track in parallel may be a good idea.\e[0m"
+  puts "Tip: \e[2mPlaying a slow backing track in parallel may be a good idea ...\e[0m"
   puts $ctl_pause_continue
   [2,1].each do |c|
     puts c

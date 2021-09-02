@@ -130,7 +130,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
     begin
       tstart_record = Time.now.to_f
-      record_sound 0.2, $sample_file, silent: true
+      record_sound 0.1, $sample_file, silent: true
     end while Time.now.to_f - tstart_record < 0.05
     $ctl_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
@@ -138,8 +138,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
                     select {|f| f[1]>0}
     # curate our pool of samples
     samples += new_samples
-    samples = samples[-16 .. -1] if samples.length > 16
-    samples.shift while samples.length > 0 && tnow - samples[0][0] > 2
+    samples = samples[-32 .. -1] if samples.length > 32
+    samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
+
     hole_was = hole
     hole = '-'
     extra = ''
