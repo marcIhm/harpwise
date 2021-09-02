@@ -1,35 +1,35 @@
+# -*- fill-column: 80 -*-
 
-Simple ruby script to help practice scales (e.g. blues or major
-pentatonic) on a diatonic richter harp for various keys.
+Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
+diatonic harmonica for various keys.
 
-Its operation modes are 'learn' and 'quiz'. 
+Its operation modes are 'learn' and 'quiz'.
 
-The screenshot below is from mode 'quiz': The program has played five
-notes intially and now challenges me to play them back. I just played
-the third note, six blow, correctly and now I try to hit the fourth
-note.
+The screenshot below is from mode 'quiz': The program has played five notes
+intially and now challenges me to play them back. I just played the third note,
+six blow, correctly and now I try to hit the fourth note.
 
 [[images/screenshot.png]]
 
 * Installation
 
-  harp_scale_trainer.rb runs in the linux console and requires several
-  external programs for its operation: aubiopitch, pulseaudio, aplay,
-  arecord, figlet and toilet (for additional figlet-fonts).
+  harp_scale_trainer runs in the linux console and requires several external
+  programs for its operation: aubiopitch, pulseaudio, aplay, arecord, figlet and
+  toilet (for additional figlet-fonts).
   
-  Special thanx to aubiopitch for doing all the heavylifting of
-  tone recognition !
+  Special thanx to aubiopitch for doing all the heavylifting of tone recognition
+  !
 
-  For MS Windows you may use the latest windows-Subsystem for Linux
-  wslg, which supports sound via pulseaudio.
+  For MS Windows you may use the latest windows-Subsystem for Linux wslg, which
+  supports sound via pulseaudio.
 
 * Usage
 
   Get usage information by invoking without arguments:
   
-    ./harp_scale_trainer.rb
+    ./harp_scale_trainer
 
   
-  First you will need to calibrate the program for at least one key by
-  playing your own harp as requested; this needs to be done once only.
+  First you will need to calibrate the program for at least one key by playing
+  your own harp as requested; this needs to be done once only.
 

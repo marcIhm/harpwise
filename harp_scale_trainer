@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+
+#
+# Main entry point: Load and orchestrate functions, handle global vars
+#
+
+require 'set'
+require 'json'
+require 'fileutils'
+require_relative 'lib/arguments'
+require_relative 'lib/config'
+require_relative 'lib/interaction'
+require_relative 'lib/sound'
+require_relative 'lib/listen'
+require_relative 'lib/calibrate'
+require_relative 'lib/quiz'
+# copied this one, see http://github.com/ManageIQ/optimist/wiki
+require_relative 'lib/optimist'  
+
+$sample_rate = 48000
+$move_down_on_exit = false
+$line_note = 5
+$line_samples = 16
+$line_comment = 22
+$line_comment2 = 28
+$line_hint = 30
+
+$term_height, $term_width = prepare_screen
+$mode, $key, $scale, $opts = parse_arguments
+$harp, $holes, $scale_holes = read_musical_config
+
+$sample_dir = "samples/diatonic/key_of_#{$key}"
+$sample_file = "#{$sample_dir}/sample.wav"
+
+$freqs, $freq2hole = read_calibration unless $mode == :calibrate
+
+if $opts[:byebug]
+  require 'byebug'
+end
+
+Signal.trap('SIGINT') do
+  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  puts "\nexit on ctrl-c"
+  exit 1
+end
+
+at_exit do
+  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  system("stty sane")
+end
+
+case $mode
+when :quiz
+  do_quiz
+when :listen
+  do_listen
+when :calibrate
+  do_calibrate
+end
