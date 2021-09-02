@@ -8,6 +8,8 @@ def prepare_screen
   err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [94,28]" if w < 84 || h < 32
 
   STDOUT.sync = true
+
+  [h, w]
 end
 
 

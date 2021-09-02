@@ -49,6 +49,11 @@ Notes:
   'calibrate'.
 
 
+Options:  (not needed for normal operations)
+
+   -d : require byebug and switch on some debug output
+   -s : activate simulated input for making a screenshot
+
 EOU
 
   if ARGV.length == 0
@@ -57,11 +62,9 @@ EOU
   end
 
   # extract options first
-  opts = Optimist::options do
-    opt :screenshot, "activate simulated input for making a screenshot"
-    opt :byebug, "require byebug; for debugging only"
-  end
-
+  opts = Hash.new
+  opts[:debug] = ARGV.delete('-d')
+  opts[:screenshot] = ARGV.delete('-s')
 
   mode = :listen if 'listen'.start_with?(ARGV[0])
   mode = :quiz if 'quiz'.start_with?(ARGV[0])

@@ -5,14 +5,18 @@
 
 
 def record_sound secs, file, **opts
-  duration_clause = secs < 1 ? "-s #{(secs.to_f / $sample_rate).to_i}" : "-d #{secs}"
+  duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = opts[:silent] ? '>/dev/null 2>&1' : ''
-  system("arecord -D pulse #{duration_clause} #{file} #{output_clause}") or $ctl_paused or fail 'arecord failed'
+  command = "arecord -D pulse #{duration_clause} #{file} #{output_clause}"
+  puts command if $opts[:debug]
+  system(command) or $ctl_paused or fail 'arecord failed'
 end
 
 
 def play_sound file
-  system("aplay -D pulse #{file} >/dev/null 2>&1") or $ctl_paused or fail 'aplay failed'
+  command = "aplay -D pulse #{file} >/dev/null 2>&1"
+  puts command if $opts[:debug]
+  system(command) or $ctl_paused or fail 'aplay failed'
 end
 
 
@@ -126,7 +130,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
     begin
       tstart_record = Time.now.to_f
-      record_sound 0.2, $sample_file
+      record_sound 0.2, $sample_file, silent: true
     end while Time.now.to_f - tstart_record < 0.05
     $ctl_paused = false
     new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
