@@ -111,7 +111,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   print "\e[?25l"  # hide cursor
   $move_down_on_exit = true
 
-  print issue + "      \e[2m(SPACE to pause#{$ctl_can_next ? ', n next, l loop' : ''})\e[0m"
+  print issue
+  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? ', n next, l loop' : ''}"
+  ctl_issue
 
   tstart = last_poll = Time.now.to_f
   hole = '-'

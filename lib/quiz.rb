@@ -4,28 +4,31 @@
 
 def do_quiz
   system("stty -echo")
-  puts "\n\nForever: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
+  puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
     puts c
     sleep 1
   end
 
   all_wanted = nil
+  first_iteration = true
+  ctl_loop_was = false
   loop do
-    ctl_loop_was = false
     unless $ctl_loop
       all_wanted = $scale_holes.sample($num_quiz)
       sleep 0.3
+      print "\e[#{$line_comment2 + 1}H" unless first_iteration
+      first_iteration = false
       all_wanted.each do |hole|
         file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
         print "listen ... "
         play_sound file
       end
+      print "\e[32mand !\e[0m"
+      sleep 0.5
     end
-    print "\e[32mand !\e[0m"
-    sleep 0.5
 
-    $ctl_loop = $opts[:loop]
+    $ctl_loop ||= $opts[:loop]
     $ctl_can_next = true
     all_wanted.each_with_index do |wanted,idx|
       tstart = Time.now.to_f
@@ -53,8 +56,6 @@ def do_quiz
             print "\e[2m"
             system("figlet -c -k -f smblock \"#{text}\"")
             print "\e[0m"
-            print "\e[#{$line_comment2}H"
-            print "... and on ..."
           end
         end,
         -> (tstart) do
@@ -87,7 +88,7 @@ def do_quiz
     if $ctl_loop && !ctl_loop_was
       puts_pad "... infinite loop on these notes, choose next to continue as normal ..."
     else
-      puts_pad "You are right: #{all_wanted.join(' ')} ... and \e[32m#{$ctl_loop ? 'again' : 'next'}\e[0m !"
+      puts_pad "You are right: #{all_wanted.join(' ')}   ...   \e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !"
     end
     sleep 1
     ctl_loop_was = $ctl_loop

@@ -2,9 +2,27 @@
 # Set some global vars directly and read configuration for others
 #
 
-#
-# Global vars, which are not assigned in main program
-#
+def set_global_vars_early
+  $sample_rate = 48000
+  $move_down_on_exit = false
+  $line_note = 5
+  $line_samples = 16
+  $line_comment = 22
+  $line_comment2 = 28
+  $line_hint = 30
+
+  $ctl_last_poll = Time.now.to_f
+  $ctl_last_text = $ctl_default_issue = ''
+  $ctl_skip = $ctl_loop = nil
+  $ctl_can_skip = false
+end
+
+
+def set_global_vars_late
+  $sample_dir = "samples/diatonic/key_of_#{$key}"
+  $sample_file = "#{$sample_dir}/sample.wav"
+end
+
 
 def check_installation
   # check for some required programs

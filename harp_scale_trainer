@@ -15,30 +15,25 @@ require_relative 'lib/listen'
 require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
+
 check_installation
 
-$sample_rate = 48000
-$move_down_on_exit = false
-$line_note = 5
-$line_samples = 16
-$line_comment = 22
-$line_comment2 = 28
-$line_hint = 30
+
+set_global_vars_early
 
 $term_height, $term_width = prepare_screen
 $mode, $key, $scale, $opts = parse_arguments
 $harp, $holes, $scale_holes = read_musical_config
-$sample_dir = "samples/diatonic/key_of_#{$key}"
-$sample_file = "#{$sample_dir}/sample.wav"
+
+set_global_vars_late
+
 $freqs, $freq2hole = read_calibration unless $mode == :calibrate
-$ctl_last_poll = Time.now.to_f
-$ctl_last_text = ''
-$ctl_skip = $ctl_loop = nil
-$ctl_can_skip = false
+
 
 if $opts[:debug]
   require 'byebug'
 end
+
 
 Signal.trap('SIGINT') do
   print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
@@ -47,10 +42,12 @@ Signal.trap('SIGINT') do
   exit 1
 end
 
+
 at_exit do
   print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
   system("stty sane")
 end
+
 
 case $mode
 when :quiz

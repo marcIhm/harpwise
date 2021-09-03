@@ -38,7 +38,7 @@ end
 
 
 def poll_and_handle
-  return unless Time.now.to_f - $ctl_last_poll > 1
+  return unless Time.now.to_f - $ctl_last_poll > 0.5
   $ctl_last_poll = Time.now.to_f 
   system("stty raw -echo")
   key = ''
@@ -48,30 +48,31 @@ def poll_and_handle
   end
 
   if key == ' '
-    print "\e[s"
-    text = "SPACE to continue"
-    print "\e[1;#{$term_width-text.length-1}H#{text}"
+    ctl_issue "SPACE to continue"
     begin
       key = STDIN.getc
     end until key == " "
-    text = ' ' * text.length
   elsif key == 'n' && $ctl_can_next
-    text = 'Skip to next'
     $ctl_next = true
+    $ctl_loop = false
   elsif key == 'l'  && $ctl_can_next
-    text = 'Looping'
-    $ctl_loop = true
+    $ctl_loop = !$ctl_loop
   elsif key.length > 0
     text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
-  else
-    text = ' ' * $ctl_last_text.length
-    $ctl_last_text = nil
   end
-  print "\e[1;#{$term_width-text.length-1}H#{text}" if text
-  $ctl_last_text = text
+  ctl_issue text
   system("stty -raw")
 end
 
+
+def ctl_issue text = nil
+  text ||= $ctl_default_issue
+  $ctl_last_text ||= ''
+  padded_text = text.rjust($ctl_last_text.length)
+  print "\e[1;#{$term_width - padded_text.length - 1}H\e[2m#{padded_text}\e[0m"
+  $ctl_last_text = text
+end
+  
 
 def read_answer answer2keys_desc
   klists = Hash.new
