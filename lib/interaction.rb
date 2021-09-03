@@ -52,7 +52,7 @@ def poll_and_handle
     begin
       key = STDIN.getc
     end until key == " "
-  elsif ( key == 'n' || key == '\t' ) && $ctl_can_next
+  elsif ( key == 'n' || key == "\n" ) && $ctl_can_next
     $ctl_next = true
     $ctl_loop = false
   elsif key == 'l'  && $ctl_can_next

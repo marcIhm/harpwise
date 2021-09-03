@@ -112,7 +112,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   $move_down_on_exit = true
 
   print issue
-  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,TAB next; l loop' : ''}"
+  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,RET next; l loop' : ''}"
   ctl_issue
 
   tstart = last_poll = Time.now.to_f
