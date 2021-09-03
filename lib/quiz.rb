@@ -11,14 +11,15 @@ def do_quiz
   end
 
   all_wanted = nil
-  first_iteration = true
+  first_play = first_loop_iteration = true
   ctl_loop_was = false
   loop do
-    unless $ctl_loop
+    $ctl_loop ||= $opts[:loop]
+    if !$ctl_loop || first_loop_iteration
       all_wanted = $scale_holes.sample($num_quiz)
       sleep 0.3
-      print "\e[#{$line_comment2 + 1}H" unless first_iteration
-      first_iteration = false
+      print "\e[#{$line_comment2 + 1}H" unless first_play
+      first_play = false
       all_wanted.each do |hole|
         file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
         print "listen ... "
@@ -28,12 +29,11 @@ def do_quiz
       sleep 0.5
     end
 
-    $ctl_loop ||= $opts[:loop]
     $ctl_can_next = true
     all_wanted.each_with_index do |wanted,idx|
       tstart = Time.now.to_f
         get_hole(
-          if $ctl_loop
+          if $ctl_loop && !first_loop_iteration
             "Looping these notes silently: #{all_wanted.join(' ')}"
           else
             if $num_quiz == 1 
@@ -60,7 +60,7 @@ def do_quiz
         end,
         -> (tstart) do
             passed = Time.now.to_f - tstart
-            if $ctl_loop
+            if $ctl_loop && !first_loop_iteration
               puts_pad "Looping: the hole sequence is: #{all_wanted.join(' ')}"
             else
               if passed > 3
@@ -92,6 +92,7 @@ def do_quiz
     end
     sleep 1
     ctl_loop_was = $ctl_loop
+    first_loop_iteration = false
   end
 end
 

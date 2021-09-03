@@ -5,13 +5,18 @@
 #
 
 def do_calibrate
+
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
+  hole = $opts[:only]
+  if hole && !$holes.include?(hole)
+    err_h "Only hole given to calibrates (#{hole}) is none of these: #{$holes}"   
+  end
   puts <<EOINTRO
 
 This is an interactive assistant, that will ask you to play these
 holes of your harmonica one after the other, each for one second:"
 
-  \e[32m#{$holes.join(' ')}\e[0m
+  \e[32m#{$opts[:only] || $holes.join(' ')}\e[0m
 
 Each recording is preceded by a short countdown (2,1).
 
@@ -38,24 +43,37 @@ EOINTRO
   STDIN.gets
   puts
 
-  hole2freq = Hash.new
-  freqs = Array.new
-  i = 0
-  begin
-    hole = $holes[i]
-    freqs[i] = record_hole(hole, freqs[i-1] || 0)
+  if hole
+    ffile = "#{$sample_dir}/frequencies.json"
+    err_h "Frequence file #{file} does not exist yet; do a full calibration first" unless File.exist?(ffile)
+    hole2freq = JSON.parse(File.read(ffile))
+    freqs = hole2freq.values
+    i = $holes.find_index(hole)
+    hole2freq[hole] = freqs[i] = record_hole(hole, freqs[i-1] || 0)
     if freqs[i] < 0
-      if i >0 
-        puts "Skipping  \e[32mback\e[0m  !"
-        i -= 1
-      else
-        puts "Cannot skip, back already at first hole ..."
-      end
-    else
-      hole2freq[hole] = freqs[i]
-      i += 1
+      puts "Hole #{hole} has not been recorded; exiting ..."
+      exit 0
     end
-  end while i <= $holes.length - 1
+  else
+    hole2freq = Hash.new
+    freqs = Array.new
+    i = 0
+    begin
+      hole = $holes[i]
+      freqs[i] = record_hole(hole, freqs[i-1] || 0)
+      if freqs[i] < 0
+        if i > 0 
+          puts "Skipping  \e[32mback\e[0m  !"
+          i -= 1
+        else
+          puts "Cannot skip, back already at first hole ..."
+        end
+      else
+        hole2freq[hole] = freqs[i]
+        i += 1
+      end
+    end while i <= $holes.length - 1
+  end
   File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
   puts "All recordings done:"
   system("ls -lrt #{$sample_dir}")
@@ -110,8 +128,12 @@ def record_hole hole, prev_freq
     begin
       puts "\nWhats next for hole \e[33m#{hole}\e[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
-                 :redo => [['r'], 'redo recording'],
-                 :back => [['b'], 'skip back to previous hole']}
+                 :redo => [['r'], 'redo recording']}
+      if $opts[:only]
+        choices[:cancel] = [['c'], 'Cancel this calibration']
+      else
+        choices[:back] = [['b'], 'skip back to previous hole']
+      end
       if freq < prev_freq
         answer = read_answer(choices)
       else
@@ -125,7 +147,7 @@ def record_hole hole, prev_freq
         puts "done\n"
       when :redo
         redo_recording = true
-      when :back
+      when :back, :cancel
         return -1
       end
     end while answer == :play

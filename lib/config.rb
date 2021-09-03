@@ -68,6 +68,9 @@ def read_calibration
   unless Set.new(freqs.keys) == Set.new($holes)
     err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration"
   end
+  unless $holes.map {|hole| freqs[hole]}.each_cons(2).all? { |a, b| a < b }
+    err_b "Frequencies in #{ffile} are not strictly ascending in order of #{holes.inspect}: #{freqs.pretty_inspect}"
+  end
 
   freqs.map {|k,v| $harp[k][:freq] = v}
   $harp['low'][:freq] = $harp['+1'][:freq]/2
