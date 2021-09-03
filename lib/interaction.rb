@@ -5,7 +5,7 @@
 
 def prepare_screen
   h, w = %x(stty size).split.map(&:to_i)
-  err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [94,28]" if w < 84 || h < 32
+  err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [84,28]" if w < 84 || h < 28
   STDOUT.sync = true
   [h, w]
 end
