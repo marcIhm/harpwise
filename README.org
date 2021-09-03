@@ -1,9 +1,9 @@
-# -*- fill-column: 80 -*-
+# -*- fill-column: 78 -*-
 
 Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
 diatonic harmonica for various keys.
 
-Its operation modes are 'learn' and 'quiz'.
+Its operation modes are 'listen' and 'quiz'.
 
 The screenshot below is from mode 'quiz': The program has played five notes
 intially and now challenges me to play them back. I just played the third note,
@@ -15,13 +15,14 @@ six blow, correctly and now I try to hit the fourth note.
 
   harp_scale_trainer runs in the linux console and requires several external
   programs for its operation: aubiopitch, pulseaudio, aplay, arecord, figlet and
-  toilet (for additional figlet-fonts).
+  toilet (for additional figlet-fonts). Their existence is checked on program
+  start.
   
-  Special thanx to aubiopitch for doing all the heavylifting of tone recognition
-  !
+  Special thanx to aubiopitch for doing all the heavy-lifting of tone
+  recognition !
 
   For MS Windows you may use the latest windows-Subsystem for Linux wslg, which
-  supports sound via pulseaudio.
+  supports sound via pulseaudio + rdp.
 
 * Usage
 
@@ -32,4 +33,5 @@ six blow, correctly and now I try to hit the fourth note.
   
   First you will need to calibrate the program for at least one key by playing
   your own harp as requested; this needs to be done once only.
+  The wav-files will be kept in directory samples.
 
