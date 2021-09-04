@@ -9,24 +9,27 @@ def parse_arguments
   usage = <<EOU
 
 
-Help to practice scales (e.g. blues or major pentatonic) on a diatonic harmonica
-for various keys. Major modes of operation are 'listen' and 'quiz'.
+Help to practice scales (e.g. blues or major pentatonic) on a diatonic
+harmonica for various keys. Regular modes of operation are 'listen' and
+'quiz'.
 
 
 Usage by examples: 
 
 
-  Listen to your playing and show the note green from the scale:
+  Listen to your playing and show the note green from the scale; harp is of
+  key c, scale is major pentatonic:
 
     ./harp_scale_trainer listen c ma
 
 
 
-  Play 3 notes from the scale and quiz you to play them back (then repeat):
+  Play 3 notes from the scale and quiz you to play them back (then repeat);
+  scale is blues:
 
     ./harp_scale_trainer quiz 3 a blues
 
-  Add option '--loop' to loop over sequence until you type 'n'.
+  Add option '--loop' or '-l' to loop over sequence until you type 'RET'.
 
 
 
@@ -43,6 +46,7 @@ Usage by examples:
   You may add (e.g.) '--only -3' to calibrate only hole 3 draw.
 
 
+
 Notes:
 
 
@@ -50,11 +54,10 @@ Notes:
   (e.g. c or a) and the scale, e.g. blues or mape (for major pentatonic),
   respectively.
 
-  Most arguments can be abreviated, e.g 'l' for 'listen' or 'cal' for
-  'calibrate'.
+  Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
+  for 'calibrate' or '-o' for '--only'.
 
-
-(more options: --debug, --screenshot, --help)
+  Some more less used options: --debug, --screenshot, --help
 
 EOU
 
@@ -106,7 +109,7 @@ EOU
       arg_for_key = ARGV[1]
       arg_for_scale = ARGV[2]
     else
-      err_h "Need exactly two additional arguments for mode listen"
+      err_h "Need exactly two additional arguments (key and scale) for mode listen"
     end
   end
   
@@ -115,7 +118,7 @@ EOU
       arg_for_key = ARGV[2]
       arg_for_scale = ARGV[3]
     else
-      err_h "Need exactly three additional argument for mode 'quiz'"
+      err_h "Need exactly three additional arguments (count, key and scale) for mode 'quiz'"
     end
     $num_quiz = ARGV[1].to_i
     if $num_quiz.to_s != ARGV[1] || $num_quiz < 1

@@ -137,7 +137,11 @@ def record_hole hole, prev_freq
       if freq < prev_freq
         answer = read_answer(choices)
       else
-        choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
+        if $opts[:only]        
+          choices[:okay] = [['k', 'RETURN'], 'keep recording and finish']
+        else
+          choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
+        end
         answer = read_answer(choices)
       end
       case answer

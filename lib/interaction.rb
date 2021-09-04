@@ -30,7 +30,8 @@ def dbg text
 end
 
 
-def puts_pad text
+def puts_pad text = nil
+  text = ' ' unless text && text.length > 0
   text.lines.each do |line|
     puts line.chomp.ljust($term_width - 2) + "\n"
   end
@@ -38,15 +39,15 @@ end
 
 
 def poll_and_handle
-  return unless Time.now.to_f - $ctl_last_poll > 0.5
+  return unless Time.now.to_f - $ctl_last_poll > 2
   $ctl_last_poll = Time.now.to_f 
-  system("stty raw -echo")
   key = ''
+  system("stty raw")
   begin
       key = STDIN.read_nonblock(1)
   rescue IO::EAGAINWaitReadable
   end
-
+  
   if key == ' '
     ctl_issue "SPACE to continue"
     begin
@@ -60,8 +61,8 @@ def poll_and_handle
   elsif key.length > 0
     text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
   end
-  ctl_issue text
   system("stty -raw")
+  ctl_issue text
 end
 
 
@@ -86,9 +87,9 @@ def read_answer answer2keys_desc
 
   begin
     print "Your choice (press a single key): "
-    system("stty raw -echo")
+    system("stty raw")
     char = STDIN.getc
-    system("stty -raw echo")
+    system("stty -raw")
     char = case char
            when "\r"
              'RETURN'

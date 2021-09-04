@@ -48,6 +48,7 @@ at_exit do
   system("stty sane")
 end
 
+system("stty -echo")
 
 case $mode
 when :quiz

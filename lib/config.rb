@@ -5,8 +5,10 @@
 def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
-  $line_note = 5
+  $line_hole = 5
   $line_samples = 16
+  $line_analysis = 18
+  $line_analysis2 = 17
   $line_comment = 22
   $line_comment2 = 28
   $line_hint = 30
