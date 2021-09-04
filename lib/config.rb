@@ -5,13 +5,15 @@
 def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
+  $line_issue = 0
   $line_hole = 5
   $line_samples = 16
-  $line_analysis = 18
   $line_analysis2 = 17
+  $line_analysis = 18
   $line_comment = 22
   $line_comment2 = 28
-  $line_hint = 30
+  $line_hint = 29
+  $line_listen = 30
 
   $ctl_last_poll = Time.now.to_f
   $ctl_last_text = $ctl_default_issue = ''

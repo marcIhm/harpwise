@@ -1,4 +1,3 @@
-
 #
 # Handle recording of sounds and recognition of notes
 #
@@ -7,7 +6,7 @@
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
-  system(dbg "arecord -D pulse #{duration_clause} #{file} #{output_clause}") or fail 'arecord failed'
+  system(dbg "arecord -D pulse -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}") or fail 'arecord failed'
 end
 
 
@@ -102,102 +101,4 @@ def describe_freq freq
   return $freq2hole[$freqs[-1]]
 end
   
-
-def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
-
-  samples = Array.new
-  system('clear')
-  # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-  print "\e[?25l"  # hide cursor
-  $move_down_on_exit = true
-
-  print issue
-  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,RET next; l loop' : ''}"
-  ctl_issue
-
-  tstart = last_poll = Time.now.to_f
-  while true do   
-    tnow = Time.now.to_f
-
-    print "\e[#{$line_comment}H"
-    lambda_comment.call if lambda_comment
-    
-    # Get and filter new samples
-    # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
-    begin
-      tstart_record = Time.now.to_f
-      record_sound 0.1, $sample_file, silent: true
-    end while Time.now.to_f - tstart_record < 0.05
-    new_samples = %x(aubiopitch --pitch mcomb #{$sample_file} 2>/dev/null).lines.
-                    map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
-                    select {|f| f[1]>0}
-    # curate our pool of samples
-    samples += new_samples
-    samples = samples[-32 .. -1] if samples.length > 32
-    samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
-
-    poll_and_handle
-    
-    hole = '-'
-    if $opts[:screenshot]
-      if Time.now.to_f - tstart > 0.5
-        samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
-        new_samples = samples[0, 20]
-      end
-    end
-    print "\e[#{$line_samples}H"
-    puts_pad "\e[2mSamples total: #{samples.length}, new: #{new_samples.length}"
-
-    return if lambda_skip && lambda_skip.call()
-
-    print "\e[#{$line_analysis2}H"
-    if samples.length > 4
-      # each peak has structure [frequency in hertz, count]
-      pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
-      pk = pks[0]
-
-      print "\e[#{$line_analysis}H"
-      puts_pad "Peaks: #{pks.inspect}"
-      
-      good = done = false
-
-      print "\e[#{$line_analysis2}H"
-      text = "Frequency: #{pk[0]}"
-      if pk[1] > 4
-        hole_was = hole
-        hole, lbor, ubor = describe_freq pk[0]
-        hole_since = Time.now.to_f if hole != hole_was
-        good, done = lambda_good_done.call(hole, hole_since)
-        if $opts[:screenshot]
-          good = true
-          done = true if Time.now.to_f - tstart > 2
-        end
-        puts_pad text + " in range [#{lbor},#{ubor}], Note \e[0m#{$harp[hole][:note]}\e[2m"
-      else
-        puts_pad text + ' but count below threshold'
-      end
-    else
-      print "\e[#{$line_analysis}H"
-      puts_pad 'Not enough samples'
-      print "\e[#{$line_analysis2}H"
-      puts_pad
-    end
-    
-    figlet_out = %x(figlet -f mono12 -c " #{hole}")
-    # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-    print "\e[#{$line_hole}H\e[0m"
-    print "\e[#{hole == '-' ? 2 : ( good ? 32 : 31 )}m"
-    puts_pad figlet_out
-    print "\e[0m"
-    if done
-      print "\e[?25h"  # show cursor
-      print "\e[#{$line_comment}H"
-      $move_down_on_exit = false
-      return hole
-    end
-    print "\e[#{$line_hint}H"
-    lambda_hint.call(tstart) if lambda_hint
-  end
-end
-
 

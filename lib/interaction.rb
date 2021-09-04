@@ -5,7 +5,7 @@
 
 def prepare_screen
   h, w = %x(stty size).split.map(&:to_i)
-  err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [84,28]" if w < 84 || h < 28
+  err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [84,32]" if w < 84 || h < 32
   STDOUT.sync = true
   [h, w]
 end
@@ -30,16 +30,16 @@ def dbg text
 end
 
 
-def puts_pad text = nil
+def puts_pad text = nil, top = false
   text = ' ' unless text && text.length > 0
   text.lines.each do |line|
-    puts line.chomp.ljust($term_width - 2) + "\n"
+    puts line.chomp.ljust($term_width - ( top ? 36 : 1 )) + "\n"
   end
 end
 
 
-def poll_and_handle
-  return unless Time.now.to_f - $ctl_last_poll > 2
+def poll_and_handle_kb
+  return unless Time.now.to_f - $ctl_last_poll > 1
   $ctl_last_poll = Time.now.to_f 
   key = ''
   system("stty raw")
@@ -55,9 +55,10 @@ def poll_and_handle
     end until key == " "
   elsif ( key == 'n' || key == "\n" ) && $ctl_can_next
     $ctl_next = true
-    $ctl_loop = false
-  elsif key == 'l'  && $ctl_can_next
-    $ctl_loop = !$ctl_loop
+    text = "Skip"
+  elsif key == 'l'  && $ctl_can_next && !$opts[:loop]
+    $ctl_loop = true
+    text = "Loop started"
   elsif key.length > 0
     text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
   end
@@ -86,10 +87,10 @@ def read_answer answer2keys_desc
   end
 
   begin
-    print "Your choice (press a single key): "
-    system("stty raw")
+    print "\nYour choice (press a single key): "
+    system("stty raw -echo")
     char = STDIN.getc
-    system("stty -raw")
+    system("stty -raw echo")
     char = case char
            when "\r"
              'RETURN'

@@ -13,6 +13,7 @@ def do_calibrate
   end
   puts <<EOINTRO
 
+
 This is an interactive assistant, that will ask you to play these
 holes of your harmonica one after the other, each for one second:"
 
@@ -39,9 +40,6 @@ Tip: You may invoke this assistant again at any later time, just to
 
 
 EOINTRO
-  print "Press RETURN to start the step-by-step process ... "
-  STDIN.gets
-  puts
 
   if hole
     ffile = "#{$sample_dir}/frequencies.json"
@@ -75,8 +73,8 @@ EOINTRO
     end while i <= $holes.length - 1
   end
   File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
-  puts "All recordings done:"
   system("ls -lrt #{$sample_dir}")
+  puts "\nAll recordings done."
 end
 
 
@@ -84,7 +82,9 @@ def record_hole hole, prev_freq
 
   redo_recording = false
   begin
+
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+
     if File.exists?(file) && !redo_recording
       puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded, because file #{file} already exists."
       print "\nPress RETURN to see choices: "
@@ -104,7 +104,7 @@ def record_hole hole, prev_freq
       begin
         tstart_record = Time.now.to_f
         record_sound 0.2, $sample_file, silent: true
-      end while Time.now.to_f - tstart_record < 0.05
+      end while Time.now.to_f - tstart_record < 0.1
 
       record_sound 1, file
       puts "\e[32mdone\e[0m"
@@ -125,6 +125,7 @@ def record_hole hole, prev_freq
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
       puts "you may want to skip back to the previous hole ...\n\n"
     end
+
     begin
       puts "\nWhats next for hole \e[33m#{hole}\e[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
@@ -134,16 +135,17 @@ def record_hole hole, prev_freq
       else
         choices[:back] = [['b'], 'skip back to previous hole']
       end
-      if freq < prev_freq
-        answer = read_answer(choices)
-      else
+
+      if freq >= prev_freq
         if $opts[:only]        
           choices[:okay] = [['k', 'RETURN'], 'keep recording and finish']
         else
           choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
         end
-        answer = read_answer(choices)
       end
+
+      answer = read_answer(choices)
+
       case answer
       when :play
         print "\nplay ... "
@@ -154,8 +156,11 @@ def record_hole hole, prev_freq
       when :back, :cancel
         return -1
       end
+
     end while answer == :play
+
   end while answer != :okay
+
   return freq
 end
 

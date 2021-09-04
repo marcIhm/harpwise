@@ -11,6 +11,7 @@ require_relative 'lib/arguments'
 require_relative 'lib/config'
 require_relative 'lib/interaction'
 require_relative 'lib/analyse'
+require_relative 'lib/get_hole'
 require_relative 'lib/listen'
 require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
@@ -47,8 +48,6 @@ at_exit do
   print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
   system("stty sane")
 end
-
-system("stty -echo")
 
 case $mode
 when :quiz
