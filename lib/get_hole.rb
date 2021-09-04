@@ -25,7 +25,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     if lambda_comment
       comment_text = lambda_comment.call()
       if comment_text_was != comment_text
-        print "\e[#{$line_comment}H\e[2m" + %x(figlet -k -f smblock -c "#{comment_text}") + "\e[0m"
+        print "\e[#{$line_comment}H\e[2m"
+        do_figlet comment_text, 'smblock'
         comment_text_was = comment_text
       end
     end
@@ -54,10 +55,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     end
     
     print "\e[#{$line_hole}H\e[0m"
-    figlet_out = %x(figlet -f mono12 -c " #{hole}")
     print "\e[#{hole == '-' ? 2 : ( good ? 32 : 31 )}m"
-    puts_pad figlet_out
-    print "\e[0m"
+    do_figlet hole, 'mono12'
 
     if done
       print "\e[?25h"  # show cursor

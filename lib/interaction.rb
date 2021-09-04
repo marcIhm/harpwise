@@ -38,7 +38,14 @@ def puts_pad text = nil, top = false
 end
 
 
-def poll_and_handle_kb
+def do_figlet text, font
+  figlet_out = %x(figlet -f #{font} -c " #{text}")
+  puts_pad figlet_out
+  print"\e[0m"
+end
+
+
+def poll_and_handle_kb space_only = false
   return unless Time.now.to_f - $ctl_last_poll > 1
   $ctl_last_poll = Time.now.to_f 
   key = ''
@@ -49,10 +56,21 @@ def poll_and_handle_kb
   end
   
   if key == ' '
-    ctl_issue "SPACE to continue"
+    if space_only
+      print "SPACE to continue ... "
+    else
+      ctl_issue "SPACE to continue"
+    end
     begin
       key = STDIN.getc
     end until key == " "
+    if space_only
+      system("stty -raw")
+      return
+    end
+  elsif space_only
+    system("stty -raw")
+    return
   elsif ( key == 'n' || key == "\n" ) && $ctl_can_next
     $ctl_next = true
     text = "Skip"
