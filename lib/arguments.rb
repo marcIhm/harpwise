@@ -63,7 +63,7 @@ EOU
 
   # extract options first
   opts = Hash.new
-  opts_with_args = [:only]
+  opts_with_args = [:only, :debug]
   { %w(-d --debug)=>:debug,
     %w(-s --screenshot)=>:screenshot,
     %w(-h --help)=>:help,
@@ -80,8 +80,13 @@ EOU
     end
   end
   opts_with_args.each do |opt|
-    err_h "Option '--#{opt}' needs an argument" if opts[opt] && !opts[opt].is_a?(String)
+    err_h "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)
   end
+  if opts[:debug]
+    err_h "Option '--debug' needs an integer argument, not '#{opts[:debug]}" unless opts[:debug].match? /\A\d+\z/
+    opts[:debug] = opts[:debug].to_i
+  end
+    
   
   ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err_h "Unknown options: #{left.join(',')}" if left.length > 0}
 

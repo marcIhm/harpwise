@@ -79,7 +79,7 @@ def add_to_samples samples
     tstart_record = Time.now.to_f
     record_sound 0.1, $sample_file, silent: true
   end while Time.now.to_f - tstart_record < 0.05
-  new_samples = %x(aubiopitch #{$sample_file} --hopsize 1024 2>/dev/null).lines.
+  new_samples = run_aubiopitch($sample_file, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}
   # curate our pool of samples

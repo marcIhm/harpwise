@@ -41,14 +41,18 @@ def do_quiz
     puts_pad
 
     $ctl_loop = $opts[:loop]
-    begin   # while $ctl_loop
+    tstart = Time.now.to_f
+    begin   # while looping over one sequence
 
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence
         
-        tstart = Time.now.to_f
         get_hole(
           if $ctl_loop
-            "Looping these notes silently: #{all_wanted.join(' ')}"
+            if Time.now.to_f - tstart < 5
+              "Looping"
+            else
+              "Looping these notes: #{all_wanted.join(' ')}"
+            end
           else
             if $num_quiz == 1 
               "Play the note you have heard !"
@@ -73,40 +77,45 @@ def do_quiz
           -> (tstart) do
             passed = Time.now.to_f - tstart
             if $ctl_loop
-              puts_pad "Looping: the sequence is: #{all_wanted.join(' ')}"
+              puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" if passed > 4
             else
               if passed > 3
                 print "Hint: Play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
-                print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if passed > 6
+                print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if passed > 8
               else
                 puts_pad
               end
             end
           end)
-      end
+      end # notes in a sequence
         
       if $ctl_next
         print "\e[#{$line_issue}H"
         puts_pad '', true
-        print "\e[#{$line_comment2}H"
-        puts_pad "Skipping to next sequence ..."
-        $ctl_loop = $ctl_next = false
+        $ctl_loop = false
         first_lap_at_all = false
         next
       end
-    end while $ctl_loop
     
-    print "\e[#{$line_comment}H"
-    figlet_out = %x(figlet -c -f smblock Great !)
-    print "\e[32m"
-    puts_pad figlet_out
-    print "\e[0m"
+      print "\e[#{$line_comment}H"
+      text = $ctl_next ? 'skipped' : 'Great !'
+      figlet_out = %x(figlet -c -f smblock #{text})
+      print "\e[32m"
+      puts_pad figlet_out
+      print "\e[0m"
+      
+      print "\e[#{$line_comment2}H"
+      if $ctl_loop
+        puts_pad "... \e[0m\e[32mand again\e[0m !"
+      else
+        puts_pad "#{$ctl_next ? 'T' : 'Right, t'}he sequence was: #{all_wanted.join(' ')}   ...   \e[0m\e[32mand next\e[0m !"
+      end
     
-    print "\e[#{$line_comment2}H"
-    puts_pad "Right, the sequence was: #{all_wanted.join(' ')}   ...   \e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !"
-    sleep 1
+      sleep 1
+    end while $ctl_loop  # looping over one sequence
 
+    $ctl_next = false
     first_lap_at_all = false
-  end
+  end # sequence after sequence
 end
 

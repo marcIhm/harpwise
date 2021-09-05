@@ -43,7 +43,7 @@ EOINTRO
 
   if hole
     ffile = "#{$sample_dir}/frequencies.json"
-    err_h "Frequence file #{file} does not exist yet; do a full calibration first" unless File.exist?(ffile)
+    err_b "Frequence file #{ffile} does not exist yet; do a full calibration first" unless File.exist?(ffile)
     hole2freq = JSON.parse(File.read(ffile))
     freqs = hole2freq.values
     i = $holes.find_index(hole)
@@ -92,10 +92,10 @@ def record_hole hole, prev_freq
       print "Analysis of old: "
     else
       puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
-      print "\nPress RETURN to start recording: "
+      print "\nPress RETURN to start: "
       STDIN.gets
-      [2,1].each do |c|
-        puts c
+      [2, 1].each do |c|
+        puts "\e[31m#{c}\e[0m"
         sleep 1
       end
       
@@ -111,7 +111,7 @@ def record_hole hole, prev_freq
       print "Analysis: "
     end
 
-    samples = %x(aubiopitch --pitch mcomb #{file} 2>&1).lines.
+    samples = run_aubiopitch(file).lines.
                 map {|l| l.split[1].to_i}.
                 select {|f| f>0}.
                 sort
@@ -120,7 +120,8 @@ def record_hole hole, prev_freq
     freq = pks[0][0]
     
     if freq < prev_freq
-      puts "\nThe frequency just recorded (= #{freq}) is \e[32mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
+      puts "\n\nWAIT !"
+      puts "The frequency just recorded (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
       puts "you may want to skip back to the previous hole ...\n\n"

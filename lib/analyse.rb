@@ -3,18 +3,6 @@
 #
 
 
-def record_sound secs, file, **opts
-  duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
-  output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
-  system(dbg "arecord -D pulse -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}") or fail 'arecord failed'
-end
-
-
-def play_sound file
-  system(dbg "aplay -D pulse #{file} >/dev/null 2>&1") or fail 'aplay failed'
-end
-
-
 def find_best_bin data, width
   len = data.length - 1
   idx_for_max = 0
