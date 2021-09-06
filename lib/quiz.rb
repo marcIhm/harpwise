@@ -60,13 +60,13 @@ def do_quiz
               "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
             end
           end,
-          -> (played, since) {[played == wanted,
+          -> (played, since) {[played == wanted,  # lambda_good_done
                                played == wanted && 
                                Time.now.to_f - since > 0.5]}, # do not return okay immediately
           
-          -> () {$ctl_next},
+          -> () {$ctl_next},  # lambda_skip
           
-          -> () do
+          -> () do  # lambda_comment
             if $num_quiz == 1
               '.  .  .'
             else
@@ -74,7 +74,7 @@ def do_quiz
             end
           end,
           
-          -> (tstart) do
+          -> (tstart) do  # lambda_hint
             passed = Time.now.to_f - tstart
             if $ctl_loop
               puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" if passed > 4

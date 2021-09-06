@@ -16,8 +16,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   ctl_issue
 
   tstart = Time.now.to_f
-  hole_since = nil
-  hole = '-'
+  hole = hole_since = nil
   comment_text_was = nil
 
   loop do   
@@ -47,7 +46,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     if samples.length > 6
       hole, hole_since, good, done = do_analysis(samples, hole, hole_since, lambda_good_done)
     else
-      hole, hole_since, good, done = ['-', hole_since, false, false]
+      hole, good, done = ['-', false, false]
       print "\e[#{$line_analysis}H"
       puts_pad 'Not enough samples'
       print "\e[#{$line_analysis2}H"
@@ -112,9 +111,10 @@ def do_analysis samples, hole, hole_since, lambda_good_done
   print "\e[#{$line_analysis2}H"
   text = "Frequency: #{pk[0]}"
 
-  if pk[1] > 4
+  if pk[1] > 6
     hole_was = hole
     hole, lbor, ubor = describe_freq pk[0]
+    hole ||= '-'
     hole_since = Time.now.to_f if !hole_since || hole != hole_was
 
     good, done = lambda_good_done.call(hole, hole_since)
@@ -123,10 +123,13 @@ def do_analysis samples, hole, hole_since, lambda_good_done
       good = true
       done = true if Time.now.to_f - tstart > 2
     end
-    puts_pad text + " in range [#{lbor},#{ubor}]" + ", Note \e[0m#{$harp[hole][:note]}\e[2m" if ubor
+    if ubor
+      puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
+               (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
+    end
   else
     hole = '-'
-    puts_pad text + ' but count below threshold'
+    puts_pad text + ' but count below threshold of 6'
   end
 
   [hole, hole_since, good, done]

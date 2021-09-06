@@ -120,7 +120,7 @@ def read_answer answer2keys_desc
              char
            end
     if char.ord == 3
-      puts "ctrl-c; aborting ..."
+      puts "\nexit on ctrl-c"
       exit 1
     end
     puts char

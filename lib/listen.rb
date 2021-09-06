@@ -12,12 +12,13 @@ def do_listen
     sleep 1
   end
   system('clear')
+  #issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
-           -> (played, _) {[$scale_holes.include?(played),
+           -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},
-           nil,
-           ->() {".  .  ."},
-           -> (_) do
+           nil,  # lambda_skip
+           ->() {'.  .  .'},  # lambda_comment
+           -> (_) do  # lambda_hint
              print "Hint: \e[2mScale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\e[0m"
            end)
 end

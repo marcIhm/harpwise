@@ -47,8 +47,6 @@ def read_musical_config
   end
   harp = harps[$key] or fail "Internal error, key #{$key} has no harp"
 
-  harp['high'] = {'note': 'high'}
-  harp['low'] = {'note': 'low'}
   harp.each_value {|h| h.transform_keys!(&:to_sym)}
 
   scales_holes = JSON.parse(File.read('config/scales_holes.json')).transform_keys!(&:to_sym)
@@ -58,7 +56,7 @@ def read_musical_config
     end
   end
 
-  holes = harp.keys.reject {|x| %w(low high).include?(x)}
+  holes = harp.keys
   scale_holes = scales_holes[$scale]
 
   [ harp, holes, scale_holes ]
@@ -77,8 +75,6 @@ def read_calibration
   end
 
   freqs.map {|k,v| $harp[k][:freq] = v}
-  $harp['low'][:freq] = $harp['+1'][:freq]/2
-  $harp['high'][:freq] = $harp['+10'][:freq]*2
 
   $holes.each do |hole|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
@@ -86,7 +82,7 @@ def read_calibration
   end
 
   freq2hole = $holes.map {|h| [$harp[h][:freq], h]}.to_h
-  freqs = (%w(low high).map {|x| $harp[x][:freq]} + $holes.map {|h| $harp[h][:freq]}).sort
 
-  [ freqs, freq2hole ]
+  freq2hole
+
 end

@@ -29,7 +29,7 @@ $harp, $holes, $scale_holes = read_musical_config
 
 set_global_vars_late
 
-$freqs, $freq2hole = read_calibration unless $mode == :calibrate
+$freq2hole = read_calibration unless $mode == :calibrate
 
 
 if $opts[:debug]

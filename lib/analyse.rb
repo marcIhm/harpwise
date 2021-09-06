@@ -77,16 +77,18 @@ end
 
 
 def describe_freq freq
-  fr_prev = -1
-  $freqs.each_cons(3) do |pfr, fr, nfr|
-    lbor = (pfr+fr)/2
-    ubor = (fr+nfr)/2
-    higher_than_prev = (freq >= lbor)
-    lower_than_next = (freq < ubor)
-    return $freq2hole[fr],lbor,ubor if higher_than_prev and lower_than_next
-    return $freq2hole[$freqs[0]] if lower_than_next
+
+  # pseudo frequencies to aid analysis
+  freqs = ([$harp[$holes[0]][:freq] / 2,
+            $harp[$holes[0]][:freq] * 2] + $freq2hole.keys).sort
+  
+  freqs.each_cons(3) do |pfr, fr, nfr|
+    lb = (pfr + fr) / 2
+    ub = (fr + nfr) / 2
+    return $freq2hole[fr],lb,ub if (freq >= lb) and (freq < ub)
+    return $freq2hole[freqs[0]] if (freq < ub)
   end
-  return $freq2hole[$freqs[-1]]
+  return $freq2hole[freqs[-1]]
 end
   
 

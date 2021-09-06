@@ -13,10 +13,13 @@ six blow, correctly and now I try to hit the fourth note.
 
 * Installation
 
-  harp_scale_trainer runs in the linux console and requires several external
-  programs for its operation: aubiopitch, pulseaudio, aplay, arecord, figlet and
-  toilet (for additional figlet-fonts). Their existence is checked on program
-  start.
+  The program harp_scale_trainer runs in the linux console; it has no formal
+  installation, but rather runs from within the directory you need to clone
+  from github first.
+
+  harp_scale_trainer requires several external programs for its operation:
+  aubiopitch, pulseaudio, aplay, arecord, figlet and toilet (for additional
+  figlet-fonts). Their existence is checked on program start.
   
   Special thanx to aubiopitch for doing all the heavy-lifting of tone
   recognition !
