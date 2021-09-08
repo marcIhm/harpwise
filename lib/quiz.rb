@@ -41,14 +41,15 @@ def do_quiz
     puts_pad
 
     $ctl_loop = $opts[:loop]
-    tstart = Time.now.to_f
     begin   # while looping over one sequence
 
-      all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence
-        
+      lap_start = Time.now.to_f
+      all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one lap while looping
+
+        hole_start = Time.now.to_f
         get_hole(
           if $ctl_loop
-            if Time.now.to_f - tstart < 5
+            if Time.now.to_f - lap_start < 5
               "Looping"
             else
               "Looping these notes: #{all_wanted.join(' ')}"
@@ -74,14 +75,15 @@ def do_quiz
             end
           end,
           
-          -> (tstart) do  # lambda_hint
-            passed = Time.now.to_f - tstart
+          -> () do  # lambda_hint
+            hole_passed = Time.now.to_f - hole_start
+            lap_passed = Time.now.to_f - lap_start
             if $ctl_loop
-              puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" if passed > 4
+              puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" if hole_passed > 4
             else
-              if passed > 3
+              if hole_passed > 4
                 print "Hint: Play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
-                print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if passed > 8
+                print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if lap_passed > 8
               else
                 puts_pad
               end

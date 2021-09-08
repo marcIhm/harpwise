@@ -17,8 +17,8 @@ def do_listen
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},
            nil,  # lambda_skip
-           ->() {'.  .  .'},  # lambda_comment
-           -> (_) do  # lambda_hint
+           -> () {'.  .  .'},  # lambda_comment
+           -> () do  # lambda_hint
              print "Hint: \e[2mScale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\e[0m"
            end)
 end

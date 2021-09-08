@@ -15,7 +15,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,RET next' + ($opts[:loop] ? '' : '; l loop') : ''}"
   ctl_issue
 
-  tstart = Time.now.to_f
+  hole_start = Time.now.to_f
   hole = hole_since = nil
   comment_text_was = nil
 
@@ -31,7 +31,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     end
 
     samples, new_samples = if $opts[:screenshot]
-                             samples_for_screenshot 
+                             samples_for_screenshot(hole_start)
                            else
                              add_to_samples samples
                            end
@@ -65,7 +65,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     end
 
     print "\e[#{$line_hint}H"
-    lambda_hint.call(tstart) if lambda_hint
+    lambda_hint.call() if lambda_hint
   end
 end
 
@@ -75,9 +75,9 @@ def add_to_samples samples
   # Get and filter new samples
   # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
   begin
-    tstart_record = Time.now.to_f
+    start_record = Time.now.to_f
     record_sound 0.1, $sample_file, silent: true
-  end while Time.now.to_f - tstart_record < 0.05
+  end while Time.now.to_f - start_record < 0.05
   new_samples = run_aubiopitch($sample_file, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}
