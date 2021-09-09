@@ -25,7 +25,7 @@ set_global_vars_early
 
 $term_height, $term_width = prepare_screen
 $mode, $key, $scale, $opts = parse_arguments
-$harp, $holes, $scale_holes = read_musical_config
+$harp, $holes, $scale_holes, $intervals = read_musical_config
 
 set_global_vars_late
 

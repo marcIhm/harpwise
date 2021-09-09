@@ -37,7 +37,7 @@ def do_quiz
     puts_pad ''
   
     system('clear') if first_lap_at_all
-    print "\e[#{$line_comment2}H"
+    print "\e[#{$line_comment_big}H"
     puts_pad
 
     $ctl_loop = $opts[:loop]
@@ -106,7 +106,7 @@ def do_quiz
       puts_pad figlet_out
       print "\e[0m"
       
-      print "\e[#{$line_comment2}H"
+      print "\e[#{$line_comment_small}H"
       if $ctl_loop
         puts_pad "... \e[0m\e[32mand again\e[0m !"
       else

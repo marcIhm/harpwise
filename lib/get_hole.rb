@@ -3,7 +3,7 @@
 #
 
 
-def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
+def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_interval
 
   samples = Array.new
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -16,7 +16,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
   ctl_issue
 
   hole_start = Time.now.to_f
-  hole = hole_since = nil
+  hole = hole_held = hole_held_before = hole_since = nil
   comment_text_was = nil
 
   loop do   
@@ -24,7 +24,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     if lambda_comment
       comment_text = lambda_comment.call()
       if comment_text_was != comment_text
-        print "\e[#{$line_comment}H\e[2m"
+        print "\e[#{$line_comment_big}H\e[2m"
         do_figlet comment_text, 'smblock'
         comment_text_was = comment_text
       end
@@ -44,12 +44,47 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint
     puts_pad "\e[2mSamples total: #{samples.length}, new: #{new_samples.length}"
 
     if samples.length > 6
-      hole, hole_since, good, done = do_analysis(samples, hole, hole_since, lambda_good_done)
+      # do and print analysis
+      pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
+      pk = pks[0]
+      
+      print "\e[#{$line_analysis_initial}H"
+      puts_pad "Peaks: #{pks.inspect}"
+      
+      good = done = false
+      
+      print "\e[#{$line_analysis_final}H"
+      text = "Frequency: #{pk[0]}"
+      
+      if pk[1] > 6
+        hole_was = hole
+        hole, lbor, ubor = describe_freq pk[0]
+        hole ||= '-'
+        hole_since = Time.now.to_f if !hole_since || hole != hole_was
+        hole_held_before = hole_held
+        hole_held = hole if Time.now.to_f - hole_since > 0.5 
+        
+        good, done = lambda_good_done.call(hole, hole_since)
+        
+        if $opts[:screenshot]
+          good = true
+          done = true if Time.now.to_f - tstart > 2
+        end
+        if ubor
+          interval = lambda_interval.call(hole, hole_held_before)
+          puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
+                   (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m, #{interval}")
+        end
+      else
+        hole = '-'
+        puts_pad text + ' but count below threshold of 6'
+      end
     else
+      # Not enough samples, analysis not possible
       hole, good, done = ['-', false, false]
-      print "\e[#{$line_analysis}H"
+      print "\e[#{$line_analysis_initial}H"
       puts_pad 'Not enough samples'
-      print "\e[#{$line_analysis2}H"
+      print "\e[#{$line_analysis_final}H"
       puts_pad
     end
     
@@ -98,39 +133,7 @@ def samples_for_screenshot
 end
 
 
-def do_analysis samples, hole, hole_since, lambda_good_done
-  # each peak has structure [frequency in hertz, count]
-  pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
-  pk = pks[0]
-  
-  print "\e[#{$line_analysis}H"
-  puts_pad "Peaks: #{pks.inspect}"
-  
-  good = done = false
-  
-  print "\e[#{$line_analysis2}H"
-  text = "Frequency: #{pk[0]}"
-
-  if pk[1] > 6
-    hole_was = hole
-    hole, lbor, ubor = describe_freq pk[0]
-    hole ||= '-'
-    hole_since = Time.now.to_f if !hole_since || hole != hole_was
-
-    good, done = lambda_good_done.call(hole, hole_since)
-
-    if $opts[:screenshot]
-      good = true
-      done = true if Time.now.to_f - tstart > 2
-    end
-    if ubor
-      puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
-               (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
-    end
-  else
-    hole = '-'
-    puts_pad text + ' but count below threshold of 6'
-  end
+def do_and_print_analysis samples, hole, hole_since, lambda_good_done, lambda_interval
 
   [hole, hole_since, good, done]
 end

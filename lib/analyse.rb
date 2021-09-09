@@ -92,3 +92,8 @@ def describe_freq freq
 end
   
 
+def note2semitones note
+  note = note.lower
+  note_letters = %w(c d e f g a h c
+  if %note[0]
+end

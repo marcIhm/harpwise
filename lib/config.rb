@@ -7,11 +7,12 @@ def set_global_vars_early
   $move_down_on_exit = false
   $line_issue = 0
   $line_hole = 5
-  $line_samples = 16
-  $line_analysis2 = 17
-  $line_analysis = 18
-  $line_comment = 22
-  $line_comment2 = 28
+  $line_samples = 15
+  $line_peaks = 16
+  $line_frequency = 17
+  $line_interval = 18
+  $line_comment_big = 22
+  $line_comment_small = 28
   $line_hint = 29
   $line_listen = 30
 
@@ -41,6 +42,8 @@ end
 
 
 def read_musical_config
+
+  # read and compute from harps file
   harps = JSON.parse(File.read('config/diatonic_harps.json')).transform_keys!(&:to_sym)
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
     fail "Internal error, not all harps have the same list of holes"
@@ -59,7 +62,10 @@ def read_musical_config
   holes = harp.keys
   scale_holes = scales_holes[$scale]
 
-  [ harp, holes, scale_holes ]
+  # read from intervals file
+  intervals = JSON.parse(File.read('config/intervals.json')).transform_keys!(&:to_sym)
+  
+  [ harp, holes, scale_holes, intervals ]
 end
 
 
