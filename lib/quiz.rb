@@ -37,8 +37,6 @@ def do_quiz
     puts_pad ''
   
     system('clear') if first_lap_at_all
-    print "\e[#{$line_comment_big}H"
-    puts_pad
 
     $ctl_loop = $opts[:loop]
     begin   # while looping over one sequence
@@ -67,7 +65,7 @@ def do_quiz
           
           -> () {$ctl_next},  # lambda_skip
           
-          -> () do  # lambda_comment
+          -> (_, _, _) do  # lambda_comment_big
             if $num_quiz == 1
               '.  .  .'
             else
@@ -88,7 +86,14 @@ def do_quiz
                 puts_pad
               end
             end
+          end,
+
+          -> (st, _) do  # lambda_diff_semitones
+            if idx > 0
+              st - $harp[wanted[idx - 1]][:semitone]
+            end
           end)
+        
       end # notes in a sequence
         
       if $ctl_next

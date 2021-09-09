@@ -92,8 +92,20 @@ def describe_freq freq
 end
   
 
-def note2semitones note
-  note = note.lower
-  note_letters = %w(c d e f g a h c
-  if %note[0]
+def note2semitone note
+  notes_with_sharps = %w( -- a as b c cs d ds e f fs g gs)
+  notes_with_flats = %w( af a bf b c df d ef e f gf g)
+
+  note = note.downcase
+  raise ArgumentError.new('should end on a single digit') unless ('1'..'9').include?(note[-1])
+  idx = notes_with_sharps.index(note[0 .. -2]) ||
+        notes_with_flats.index(note[0 .. -2]) or
+    raise ArgumentError.new("non-digit part is none of #{notes_with_sharps.inspect} or #{notes_with_flats.inspect}")
+    return 12 * note[-1].to_i + idx - 1
+end
+
+
+def describe_interval diff_semitones
+  text = intervals[diff_semitones.abs] || 'other'
+  text += ( diff_semitones < 0 ? ' down' : ' up' )
 end

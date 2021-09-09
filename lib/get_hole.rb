@@ -3,7 +3,7 @@
 #
 
 
-def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_interval
+def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_diff_semitones
 
   samples = Array.new
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -20,15 +20,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, 
   comment_text_was = nil
 
   loop do   
-
-    if lambda_comment
-      comment_text = lambda_comment.call()
-      if comment_text_was != comment_text
-        print "\e[#{$line_comment_big}H\e[2m"
-        do_figlet comment_text, 'smblock'
-        comment_text_was = comment_text
-      end
-    end
 
     samples, new_samples = if $opts[:screenshot]
                              samples_for_screenshot(hole_start)
@@ -48,13 +39,15 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, 
       pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
       pk = pks[0]
       
-      print "\e[#{$line_analysis_initial}H"
+      print "\e[#{$line_peaks}H"
       puts_pad "Peaks: #{pks.inspect}"
       
       good = done = false
       
-      print "\e[#{$line_analysis_final}H"
+      print "\e[#{$line_frequency}H"
       text = "Frequency: #{pk[0]}"
+
+      semitones = nil
       
       if pk[1] > 6
         hole_was = hole
@@ -71,9 +64,10 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, 
           done = true if Time.now.to_f - tstart > 2
         end
         if ubor
-          interval = lambda_interval.call(hole, hole_held_before)
           puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
-                   (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m, #{interval}")
+                   (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
+          diff_semitones = lambda_diff_semitones.call($harp.dig(hole, :semitone),
+                                                      $harp.dig(hole_held_before, :semitone)) if lambda_diff_semitones
         end
       else
         hole = '-'
@@ -82,15 +76,28 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, 
     else
       # Not enough samples, analysis not possible
       hole, good, done = ['-', false, false]
-      print "\e[#{$line_analysis_initial}H"
+      print "\e[#{$line_peaks}H"
       puts_pad 'Not enough samples'
-      print "\e[#{$line_analysis_final}H"
+      print "\e[#{$line_frequency}H"
       puts_pad
     end
+
+    print "\e[#{$line_interval}HInterval: "
+    puts_pad( diff_semitones ? describe_interval(diff_semitones) : '--' )
     
     print "\e[#{$line_hole}H\e[0m"
     print "\e[#{hole == '-' ? 2 : ( good ? 32 : 31 )}m"
     do_figlet hole, 'mono12'
+
+    if lambda_comment_big
+      comment_text = lambda_comment_big.call($harp.dig(hole, :semitone),
+                                             $harp.dig(hole_held_before, :semitone))
+      if comment_text_was != comment_text
+        print "\e[#{$line_comment_big}H\e[2m"
+        do_figlet comment_text, 'smblock'
+        comment_text_was = comment_text
+      end
+    end
 
     if done
       print "\e[?25h"  # show cursor
@@ -133,7 +140,3 @@ def samples_for_screenshot
 end
 
 
-def do_and_print_analysis samples, hole, hole_since, lambda_good_done, lambda_interval
-
-  [hole, hole_since, good, done]
-end

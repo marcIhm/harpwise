@@ -44,13 +44,21 @@ end
 def read_musical_config
 
   # read and compute from harps file
-  harps = JSON.parse(File.read('config/diatonic_harps.json')).transform_keys!(&:to_sym)
+  file = 'config/diatonic_harps.json'
+  harps = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
-    fail "Internal error, not all harps have the same list of holes"
+    fail "Internal error with #{file}, not all harps have the same list of holes"
   end
   harp = harps[$key] or fail "Internal error, key #{$key} has no harp"
 
   harp.each_value {|h| h.transform_keys!(&:to_sym)}
+  harp.each_value do |h|
+    begin
+      h[:semitone] = note2semitone(h[:note])
+    rescue ArgumentError => e
+      err_b "From #{file}, key #{$key}, note #{h[:note]}: #{e.message}"
+    end
+  end
 
   scales_holes = JSON.parse(File.read('config/scales_holes.json')).transform_keys!(&:to_sym)
   scales_holes.each do |scale, holes|
@@ -63,7 +71,7 @@ def read_musical_config
   scale_holes = scales_holes[$scale]
 
   # read from intervals file
-  intervals = JSON.parse(File.read('config/intervals.json')).transform_keys!(&:to_sym)
+  intervals = JSON.parse(File.read('config/intervals.json')).transform_keys!(&:to_i)
   
   [ harp, holes, scale_holes, intervals ]
 end
