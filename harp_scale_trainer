@@ -40,7 +40,8 @@ end
 
 
 Signal.trap('SIGINT') do
-  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
+  print "\e[#{$line_listen}H" if $move_down_on_exit
+  print "\e[?25h"  # show cursor
   $move_down_on_exit = false
   puts "\nexit on ctrl-c"
   exit 1
@@ -48,7 +49,6 @@ end
 
 
 at_exit do
-  print "\e[?25h\e[#{$line_hint}H" if $move_down_on_exit
   system("stty sane")
 end
 

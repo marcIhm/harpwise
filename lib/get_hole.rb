@@ -21,7 +21,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   loop do   
 
     samples, new_samples = if $opts[:screenshot]
-                             samples_for_screenshot(hole_start)
+                             samples_for_screenshot(samples, hole_start)
                            else
                              add_to_samples samples
                            end
@@ -60,7 +60,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         
         if $opts[:screenshot]
           good = true
-          done = true if Time.now.to_f - tstart > 2
+          done = true if Time.now.to_f - hole_start > 2
         end
         if ubor
           puts_pad (text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
@@ -133,7 +133,7 @@ def add_to_samples samples
 end
 
 
-def samples_for_screenshot
+def samples_for_screenshot samples, tstart
   tnow = Time.now.to_f
   if Time.now.to_f - tstart > 0.5
     samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
