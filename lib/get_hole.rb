@@ -52,7 +52,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       if pk[1] > 6
         hole_was = hole
         hole, lbor, ubor = describe_freq pk[0]
-        hole ||= '-'
         hole_since = Time.now.to_f if !hole_since || hole != hole_was
         hole_held_before = hole_held
         hole_held = hole if Time.now.to_f - hole_since > 0.5 
@@ -65,17 +64,17 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         end
         if ubor
           puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
-                   (hole == '-' ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
+                   (hole ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
           diff_semitones = lambda_diff_semitones.call($harp.dig(hole, :semitone),
                                                       $harp.dig(hole_held_before, :semitone)) if lambda_diff_semitones
         end
       else
-        hole = '-'
+        hole = nil 
         puts_pad text + ' but count below threshold of 6'
       end
     else
       # Not enough samples, analysis not possible
-      hole, good, done = ['-', false, false]
+      hole, good, done = [nil, false, false]
       print "\e[#{$line_peaks}H"
       puts_pad 'Not enough samples'
       print "\e[#{$line_frequency}H"
@@ -86,7 +85,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     puts_pad( diff_semitones ? describe_interval(diff_semitones) : '--' )
     
     print "\e[#{$line_hole}H\e[0m"
-    print "\e[#{hole == '-' ? 2 : ( good ? 32 : 31 )}m"
+    print "\e[#{hole ? 2 : ( good ? 32 : 31 )}m"
     do_figlet hole, 'mono12'
 
     if lambda_comment_big
