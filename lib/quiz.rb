@@ -10,7 +10,6 @@ def do_quiz
     sleep 1
   end
 
-  all_wanted = nil
   first_lap_at_all = true
   $ctl_can_next = true
   loop do   # forever, sequence after sequence
@@ -25,9 +24,13 @@ def do_quiz
       print "\e[#{$line_listen}H"
     end
 
-    all_wanted.each do |hole|
+    all_wanted.each_with_index do |hole, idx|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
       poll_and_handle_kb true
+      if idx > 0
+        isemi, itext = describe_inter(hole, all_wanted[idx - 1])
+        print "\e[2m(" + ( itext || "#{isemi} st" ) + ")\e[0m "
+      end
       print "listen ... "
       play_sound file
     end
@@ -83,12 +86,18 @@ def do_quiz
                 print "Hint: Play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
                 print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if lap_passed > 8
               else
-                puts_pad
+                if idx > 0
+                  isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                  print "\e[2mHint: Play "
+                  puts_pad ( itext ? "a #{itext}" : "#{isemi} st" ) + " from #{all_wanted[idx - 1]}\e[0m"
+                else
+                  puts_pad
+                end
               end
             end
           end,
 
-          -> (_) { idx > 0 && wanted[idx - 1] })  # lambda_hole_for_inter
+          -> (_) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
         
       end # notes in a sequence
         
@@ -100,7 +109,7 @@ def do_quiz
         next
       end
     
-      print "\e[#{$line_comment}H"
+      print "\e[#{$line_comment_big}H"
       text = $ctl_next ? 'skipped' : 'Great !'
       figlet_out = %x(figlet -c -f smblock #{text})
       print "\e[32m"

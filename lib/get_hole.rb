@@ -84,7 +84,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     print "\e[#{$line_interval}H"
     inter_semi, inter_text = if hole_held && hole_for_inter
-                               desc_inter(hole_held, hole_for_inter)
+                               describe_inter(hole_held, hole_for_inter)
                              else
                                [nil, nil]
                              end

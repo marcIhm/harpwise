@@ -105,7 +105,7 @@ def note2semi note
 end
 
 
-def desc_inter hole1, hole2
+def describe_inter hole1, hole2
   semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
   diff_semi = semi1 - semi2
   return [diff_semi.abs, $intervals[diff_semi.abs]]
