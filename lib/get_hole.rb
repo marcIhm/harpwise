@@ -7,7 +7,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
   samples = Array.new
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
-  print "\e[?25l"  # hide cursor
   $move_down_on_exit = true
   
   print "\e[#{$line_issue}H\e[0m"
@@ -104,7 +103,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     end
 
     if done
-      print "\e[?25h"  # show cursor
       print "\e[#{$line_listen}H"
       $move_down_on_exit = false
       return hole

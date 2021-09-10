@@ -4,6 +4,7 @@
 
 def do_quiz
   system("stty -echo")
+  print "\e[?25l"  # hide cursor
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
     puts c
@@ -22,6 +23,7 @@ def do_quiz
       print "\e[#{$line_hint}H" 
       puts_pad
       print "\e[#{$line_listen}H"
+      puts_pad
     end
 
     all_wanted.each_with_index do |hole, idx|
@@ -37,12 +39,12 @@ def do_quiz
     print "\e[32mand !\e[0m"
     sleep 0.5
     print "\e[#{$line_listen}H" unless first_lap_at_all
-    puts_pad ''
+    puts_pad
   
     system('clear') if first_lap_at_all
+    full_hint_shown = false
 
     $ctl_loop = $opts[:loop]
-    full_hint_shown = false
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
@@ -51,12 +53,7 @@ def do_quiz
         hole_start = Time.now.to_f
         get_hole(
           if $ctl_loop
-            if Time.now.to_f - lap_start < 8
-              "Looping"
-            else
-              "Looping these notes: #{all_wanted.join(' ')}"
-              full_hint_shown = true
-            end
+            "Looping over #{all_wanted.length} notes; play them again and again ..."
           else
             if $num_quiz == 1 
               "Play the note you have heard !"
@@ -81,33 +78,29 @@ def do_quiz
           -> () do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
-            if $ctl_loop
-              if hole_passed > 4
-                puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" 
-                full_hint_shown = true
-              end
+            if hole_passed > 4 && lap_passed > 6 * all_wanted.length
+              print "The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
+              full_hint_shown = true
+              puts_pad
+            elsif hole_passed > 4
+              print "Hint: Play \e[32m#{wanted}\e[0m"
+              puts_pad
             else
-              if hole_passed > 4 && lap_passed > 6 * all_wanted.length
-                print "Help: The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
-                full_hint_shown = true
-                puts_pad
-              elsif hole_passed > 4
-                print "Hint: Play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
-                puts_pad
+              if idx > 0
+                isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                print "\e[2mHint: Move "
+                puts_pad ( itext ? "a #{itext}" : isemi )
               else
-                if idx > 0
-                  isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                  print "\e[2mHint: Play "
-                  puts_pad ( itext ? "a #{itext}" : isemi ) + " from #{all_wanted[idx - 1]}\e[0m"
-                else
-                  puts_pad
-                end
+                puts_pad
               end
             end
           end,
 
           -> (_) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
-        
+
+        print "\e[#{$line_comment_small}H"
+        puts_pad
+
       end # notes in a sequence
         
       if $ctl_next
@@ -125,11 +118,9 @@ def do_quiz
       print "\e[0m"
       
       print "\e[#{$line_comment_small}H"
-      if $ctl_loop
-        puts_pad "... \e[0m\e[32mand again\e[0m !"
-      else
-        puts_pad "#{$ctl_next ? 'T' : 'Right, t'}he sequence was: #{all_wanted.join(' ')}   ...   \e[0m\e[32mand next\e[0m !"
-      end
+      print "#{$ctl_next ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
+      puts_pad "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !"
+      full_hint_shown = true
     
       sleep 1
     end while $ctl_loop  # looping over one sequence
