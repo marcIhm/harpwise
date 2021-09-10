@@ -92,7 +92,7 @@ def describe_freq freq
 end
   
 
-def note2semitone note
+def note2semi note
   notes_with_sharps = %w( -- a as b c cs d ds e f fs g gs)
   notes_with_flats = %w( af a bf b c df d ef e f gf g)
 
@@ -105,7 +105,8 @@ def note2semitone note
 end
 
 
-def describe_interval diff_semitones
-  text = intervals[diff_semitones.abs] || 'other'
-  text += ( diff_semitones < 0 ? ' down' : ' up' )
+def desc_inter hole1, hole2
+  semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
+  diff_semi = semi1 - semi2
+  return $intervals[diff_semi.abs] || "#{diff_semi.abs} st"
 end

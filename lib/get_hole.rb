@@ -3,7 +3,7 @@
 #
 
 
-def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_diff_semitones
+def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
 
   samples = Array.new
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -16,7 +16,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   ctl_issue
 
   hole_start = Time.now.to_f
-  hole = hole_held = hole_held_before = hole_since = nil
+  hole = hole_since = nil
+  hole_held = hole_held_before = nil
   comment_text_was = nil
 
   loop do   
@@ -47,14 +48,15 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       print "\e[#{$line_frequency}H"
       text = "Frequency: #{pk[0]}"
 
-      semitones = nil
-      
       if pk[1] > 6
         hole_was = hole
         hole, lbor, ubor = describe_freq pk[0]
         hole_since = Time.now.to_f if !hole_since || hole != hole_was
-        hole_held_before = hole_held
-        hole_held = hole if Time.now.to_f - hole_since > 0.5 
+        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.5
+          hole_held_before = hole_held
+          hole_held = hole
+        end
+        hole_for_inter = nil
         
         good, done = lambda_good_done.call(hole, hole_since)
         
@@ -64,9 +66,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         end
         if ubor
           puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
-                   (hole ? '' : "Note \e[0m#{$harp[hole][:note]}\e[2m")
-          diff_semitones = lambda_diff_semitones.call($harp.dig(hole, :semitone),
-                                                      $harp.dig(hole_held_before, :semitone)) if lambda_diff_semitones
+                   (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '')
+          hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
       else
         hole = nil 
@@ -81,16 +82,16 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       puts_pad
     end
 
-    print "\e[#{$line_interval}HInterval: "
-    puts_pad( diff_semitones ? describe_interval(diff_semitones) : '--' )
+    print "\e[#{$line_interval}H"
+    inter_text = hole_held && hole_for_inter ? desc_inter(hole_held, hole_for_inter) : nil
+    puts_pad "Interval" + ( inter_text ? " #{hole_for_inter} to #{hole_held}: #{inter_text}" : ': --' )
     
     print "\e[#{$line_hole}H\e[0m"
-    print "\e[#{hole ? 2 : ( good ? 32 : 31 )}m"
-    do_figlet hole, 'mono12'
+    print "\e[#{hole ? ( good ? 32 : 31 ) : 2}m"
+    do_figlet hole || '-', 'mono12'
 
     if lambda_comment_big
-      comment_text = lambda_comment_big.call($harp.dig(hole, :semitone),
-                                             $harp.dig(hole_held_before, :semitone))
+      comment_text = lambda_comment_big.call(inter_text)
       if comment_text_was != comment_text
         print "\e[#{$line_comment_big}H\e[2m"
         do_figlet comment_text, 'smblock'

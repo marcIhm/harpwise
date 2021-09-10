@@ -54,7 +54,7 @@ def read_musical_config
   harp.each_value {|h| h.transform_keys!(&:to_sym)}
   harp.each_value do |h|
     begin
-      h[:semitone] = note2semitone(h[:note])
+      h[:semi] = note2semi(h[:note])
     rescue ArgumentError => e
       err_b "From #{file}, key #{$key}, note #{h[:note]}: #{e.message}"
     end

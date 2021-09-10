@@ -18,16 +18,16 @@ def do_listen
                             false]},
            nil,  # lambda_skip
 
-           -> (seto, seto_before) do  # lambda_comment_big
-             seto && seto_before ? describe_interval(seto - seto_before) : '.  .  .'
+           -> (inter_text) do  # lambda_comment_big
+             inter_text || '.  .  .'
            end,
 
            -> () do  # lambda_hint
              print "Hint: \e[2mScale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\e[0m"
            end,
 
-           -> (st, st_before) do  # lambda_diff_semitones
-             st - st_before
+           -> (hole_held_before) do  # lambda_hole_for_inter
+             hole_held_before
            end
           )
 end

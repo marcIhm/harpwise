@@ -65,7 +65,7 @@ def do_quiz
           
           -> () {$ctl_next},  # lambda_skip
           
-          -> (_, _, _) do  # lambda_comment_big
+          -> (_) do  # lambda_comment_big
             if $num_quiz == 1
               '.  .  .'
             else
@@ -88,11 +88,7 @@ def do_quiz
             end
           end,
 
-          -> (st, _) do  # lambda_diff_semitones
-            if idx > 0
-              st - $harp[wanted[idx - 1]][:semitone]
-            end
-          end)
+          -> (_) { idx > 0 && wanted[idx - 1] })  # lambda_hole_for_inter
         
       end # notes in a sequence
         
