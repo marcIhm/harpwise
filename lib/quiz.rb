@@ -42,6 +42,7 @@ def do_quiz
     system('clear') if first_lap_at_all
 
     $ctl_loop = $opts[:loop]
+    full_hint_shown = false
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
@@ -50,10 +51,11 @@ def do_quiz
         hole_start = Time.now.to_f
         get_hole(
           if $ctl_loop
-            if Time.now.to_f - lap_start < 5
+            if Time.now.to_f - lap_start < 8
               "Looping"
             else
               "Looping these notes: #{all_wanted.join(' ')}"
+              full_hint_shown = true
             end
           else
             if $num_quiz == 1 
@@ -80,16 +82,23 @@ def do_quiz
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
             if $ctl_loop
-              puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" if hole_passed > 4
-            else
               if hole_passed > 4
+                puts_pad "Looping: The sequence is: #{all_wanted.join(' ')}" 
+                full_hint_shown = true
+              end
+            else
+              if hole_passed > 4 && lap_passed > 6 * all_wanted.length
+                print "Help: The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
+                full_hint_shown = true
+                puts_pad
+              elsif hole_passed > 4
                 print "Hint: Play \e[32m#{wanted}\e[0m (#{$harp[wanted][:note]})"
-                print "  \e[2m...  the complete sequence is: #{all_wanted.join(' ')}\e[0m" if lap_passed > 8
+                puts_pad
               else
                 if idx > 0
                   isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
                   print "\e[2mHint: Play "
-                  puts_pad ( itext ? "a #{itext}" : "#{isemi} semi" ) + " from #{all_wanted[idx - 1]}\e[0m"
+                  puts_pad ( itext ? "a #{itext}" : isemi ) + " from #{all_wanted[idx - 1]}\e[0m"
                 else
                   puts_pad
                 end
@@ -110,7 +119,7 @@ def do_quiz
       end
     
       print "\e[#{$line_comment_big}H"
-      text = $ctl_next ? 'skipped' : 'Great !'
+      text = $ctl_next ? 'skipped' : ( full_hint_shown ? 'Yes' : 'Great !' )
       print "\e[32m"
       do_figlet text, 'smblock'
       print "\e[0m"
