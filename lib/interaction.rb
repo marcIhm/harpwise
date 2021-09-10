@@ -41,7 +41,7 @@ end
 
 
 def do_figlet text, font
-  figlet_out = %x(figlet -f #{font} -c " #{text}")
+  figlet_out = %x(figlet -d fonts -f #{font} -c " #{text}")
   puts_pad figlet_out
   print"\e[0m"
 end

@@ -29,7 +29,7 @@ def do_quiz
       poll_and_handle_kb true
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        print "\e[2m(" + ( itext || "#{isemi} st" ) + ")\e[0m "
+        print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
       end
       print "listen ... "
       play_sound file
@@ -70,9 +70,9 @@ def do_quiz
           
           -> (_, _) do  # lambda_comment_big
             if $num_quiz == 1
-              '.  .  .'
+              [ '.  .  .', 'smblock' ]
             else
-              'Yes  ' + '*' * idx + '-' * (all_wanted.length - idx)
+              [ 'Yes  ' + '*' * idx + '-' * (all_wanted.length - idx), 'smblock' ]
             end
           end,
           
@@ -89,7 +89,7 @@ def do_quiz
                 if idx > 0
                   isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
                   print "\e[2mHint: Play "
-                  puts_pad ( itext ? "a #{itext}" : "#{isemi} st" ) + " from #{all_wanted[idx - 1]}\e[0m"
+                  puts_pad ( itext ? "a #{itext}" : "#{isemi} semi" ) + " from #{all_wanted[idx - 1]}\e[0m"
                 else
                   puts_pad
                 end
@@ -111,9 +111,8 @@ def do_quiz
     
       print "\e[#{$line_comment_big}H"
       text = $ctl_next ? 'skipped' : 'Great !'
-      figlet_out = %x(figlet -c -f smblock #{text})
       print "\e[32m"
-      puts_pad figlet_out
+      do_figlet text, 'smblock'
       print "\e[0m"
       
       print "\e[#{$line_comment_small}H"

@@ -19,7 +19,7 @@ def do_listen
            nil,  # lambda_skip
 
            -> (isemi,itext) do  # lambda_comment_big
-             itext || ( isemi ? "#{isemi} st" : '.  .  .' ) 
+             [ itext || isemi || '.  .  .' , 'big' ]
            end,
 
            -> () do  # lambda_hint

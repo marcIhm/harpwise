@@ -11,7 +11,7 @@ def set_global_vars_early
   $line_peaks = 16
   $line_frequency = 17
   $line_interval = 18
-  $line_comment_big = 22
+  $line_comment_big = 20
   $line_comment_small = 28
   $line_hint = 29
   $line_listen = 30
@@ -31,7 +31,7 @@ end
 
 def check_installation
   # check for some required programs
-  %w( arecord aplay aubiopitch ).each do |prog|
+  %w( figlet arecord aplay aubiopitch ).each do |prog|
     system("which #{prog} >/dev/null 2>&1") or err_b "Program '#{prog}' is needed but cannot be found; you may need to install its package"
   end
   
