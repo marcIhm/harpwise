@@ -93,8 +93,8 @@ end
   
 
 def note2semi note
-  notes_with_sharps = %w( -- a as b c cs d ds e f fs g gs)
-  notes_with_flats = %w( af a bf b c df d ef e f gf g)
+  notes_with_sharps = %w( -- c cs d ds e f fs g gs a as b )
+  notes_with_flats = %w( c df d ef e f gf g af a bf b )
 
   note = note.downcase
   raise ArgumentError.new('should end on a single digit') unless ('1'..'9').include?(note[-1])
@@ -108,5 +108,5 @@ end
 def desc_inter hole1, hole2
   semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
   diff_semi = semi1 - semi2
-  return $intervals[diff_semi.abs] || "#{diff_semi.abs} st"
+  return [diff_semi.abs, $intervals[diff_semi.abs]]
 end

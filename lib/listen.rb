@@ -18,8 +18,8 @@ def do_listen
                             false]},
            nil,  # lambda_skip
 
-           -> (inter_text) do  # lambda_comment_big
-             inter_text || '.  .  .'
+           -> (isemi,itext) do  # lambda_comment_big
+             itext || ( isemi ? "#{isemi} st" : '.  .  .' ) 
            end,
 
            -> () do  # lambda_hint

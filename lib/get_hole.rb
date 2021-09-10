@@ -83,15 +83,23 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     end
 
     print "\e[#{$line_interval}H"
-    inter_text = hole_held && hole_for_inter ? desc_inter(hole_held, hole_for_inter) : nil
-    puts_pad "Interval" + ( inter_text ? " #{hole_for_inter} to #{hole_held}: #{inter_text}" : ': --' )
-    
+    inter_semi, inter_text = if hole_held && hole_for_inter
+                               desc_inter(hole_held, hole_for_inter)
+                             else
+                               [nil, nil]
+                             end
+    if inter_semi
+      puts_pad "Interval #{hole_for_inter} to #{hole_held}: #{inter_semi} st" + ( inter_text ? ", #{inter_text}" : '' )
+    else
+      puts_pad "Interval: --"
+    end
+      
     print "\e[#{$line_hole}H\e[0m"
     print "\e[#{hole ? ( good ? 32 : 31 ) : 2}m"
     do_figlet hole || '-', 'mono12'
 
     if lambda_comment_big
-      comment_text = lambda_comment_big.call(inter_text)
+      comment_text = lambda_comment_big.call(inter_semi, inter_text)
       if comment_text_was != comment_text
         print "\e[#{$line_comment_big}H\e[2m"
         do_figlet comment_text, 'smblock'

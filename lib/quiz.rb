@@ -65,7 +65,7 @@ def do_quiz
           
           -> () {$ctl_next},  # lambda_skip
           
-          -> (_) do  # lambda_comment_big
+          -> (_, _) do  # lambda_comment_big
             if $num_quiz == 1
               '.  .  .'
             else
