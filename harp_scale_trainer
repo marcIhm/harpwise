@@ -7,6 +7,7 @@
 require 'set'
 require 'json'
 require 'fileutils'
+require 'open3'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
 require_relative 'lib/interaction'

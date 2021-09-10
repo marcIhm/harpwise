@@ -39,10 +39,11 @@ def puts_pad text = nil, top = false
   end
 end
 
-
+$figlet_cache = Hash.new
 def do_figlet text, font
-  figlet_out = %x(figlet -d fonts -f #{font} -c " #{text}")
-  puts_pad figlet_out
+  cmd = "figlet -d fonts -f #{font} -c \" #{text}\""
+  $figlet_cache[cmd], _ = Open3.capture2e(cmd) unless $figlet_cache[cmd]
+  puts_pad $figlet_cache[cmd]
   print"\e[0m"
 end
 

@@ -18,7 +18,6 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   hole_start = Time.now.to_f
   hole = hole_since = nil
   hole_held = hole_held_before = nil
-  comment_text_was = nil
 
   loop do   
 
@@ -33,7 +32,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     poll_and_handle_kb
     
     print "\e[#{$line_samples}H"
-    puts_pad "\e[2mSamples total: #{samples.length}, new: #{new_samples.length}"
+    puts_pad "\e[2mSamples total: #{samples.length.to_s.rjust(2)}, new: #{new_samples.length.to_s.rjust(2)}"
 
     if samples.length > 6
       # do and print analysis
@@ -41,18 +40,18 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       pk = pks[0]
       
       print "\e[#{$line_peaks}H"
-      puts_pad "Peaks: #{pks.inspect}"
+      puts_pad "Peaks: [[%4d,%3d], [%4d,%3d]]" % pks.flatten
       
       good = done = false
       
       print "\e[#{$line_frequency}H"
-      text = "Frequency: #{pk[0]}"
+      text = "Frequency: #{pk[0].to_s.rjust(4)}"
 
       if pk[1] > 6
         hole_was = hole
         hole, lbor, ubor = describe_freq pk[0]
         hole_since = Time.now.to_f if !hole_since || hole != hole_was
-        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.5
+        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.3
           hole_held_before = hole_held
           hole_held = hole
         end
@@ -65,7 +64,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
           done = true if Time.now.to_f - tstart > 2
         end
         if ubor
-          puts_pad (text + " in range [#{lbor},#{ubor}]").ljust(40) + 
+          puts_pad (text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
                    (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '')
           hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
@@ -100,11 +99,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     if lambda_comment_big
       comment_text, font = lambda_comment_big.call(inter_semi, inter_text)
-      if comment_text_was != comment_text
-        print "\e[#{$line_comment_big}H\e[2m"
-        do_figlet comment_text, font
-        comment_text_was = comment_text
-      end
+      print "\e[#{$line_comment_big}H\e[2m"
+      do_figlet comment_text, font
     end
 
     if done
