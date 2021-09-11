@@ -41,16 +41,15 @@ end
 
 Signal.trap('SIGINT') do
   print "\e[#{$line_listen}H" if $move_down_on_exit
-  print "\e[?25h"  # show cursor
-  $move_down_on_exit = false
   puts "\nexit on ctrl-c"
   exit 1
 end
 
 
 at_exit do
-  system("stty sane")
+  dismiss_term
 end
+
 
 case $mode
 when :quiz

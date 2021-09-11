@@ -3,8 +3,8 @@
 #
 
 def do_quiz
-  system("stty -echo")
-  print "\e[?25l"  # hide cursor
+
+  prepare_term
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
     puts c

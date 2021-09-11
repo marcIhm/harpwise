@@ -5,7 +5,7 @@
 #
 
 def do_calibrate
-
+  
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   hole = $opts[:only]
   if hole && !$holes.include?(hole)

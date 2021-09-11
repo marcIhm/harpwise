@@ -48,11 +48,23 @@ def do_figlet text, font
 end
 
 
+def prepare_term
+  system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
+  print "\e[?25l"  # hide cursor
+end
+
+
+def dismiss_term
+  system("stty -raw")
+  system("stty sane")
+  print "\e[?25h"  # show cursor
+end
+
+
 def poll_and_handle_kb space_only = false
   return unless Time.now.to_f - $ctl_last_poll > 1
   $ctl_last_poll = Time.now.to_f 
   key = ''
-  system("stty raw")
   begin
       key = STDIN.read_nonblock(1)
   rescue IO::EAGAINWaitReadable
@@ -68,11 +80,9 @@ def poll_and_handle_kb space_only = false
       key = STDIN.getc
     end until key == " "
     if space_only
-      system("stty -raw")
       return
     end
   elsif space_only
-    system("stty -raw")
     return
   elsif ( key == 'n' || key == "\n" ) && $ctl_can_next
     $ctl_next = true
@@ -83,7 +93,6 @@ def poll_and_handle_kb space_only = false
   elsif key.length > 0
     text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
   end
-  system("stty -raw")
   ctl_issue text
 end
 
@@ -113,7 +122,7 @@ def read_answer answer2keys_desc
     char = STDIN.getc
     system("stty -raw echo")
     char = case char
-           when "\r"
+           when "\r", "\n"
              'RETURN'
            when ' '
              'SPACE'
