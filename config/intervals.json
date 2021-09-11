@@ -1,5 +1,10 @@
 {
     "4": "maj Third",
     "7": "per Fifth",
-    "12": "octave"
+    "12": "Octave",
+    "16": "Oct + Thrd",
+    "19": "Oct + Fift",
+    "24": "2 Octaves",
+    "36": "3 Octaves",
+    "48": "4 Octaves"
 }

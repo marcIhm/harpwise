@@ -87,9 +87,9 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
                                [nil, nil]
                              end
     if inter_semi
-      puts_pad "Interval #{hole_for_inter} to #{hole_held}: #{inter_semi}" + ( inter_text ? ", #{inter_text}" : '' )
+      puts_pad "Interval: #{hole_for_inter.rjust(5)} to #{hole_held.rjust(5)} is #{inter_semi.rjust(5)}" + ( inter_text ? ", #{inter_text}" : '' )
     else
-      puts_pad "Interval: --"
+      puts_pad "Interval:   ---  ---  ---"
     end
       
     print "\e[#{$line_hole}H\e[0m"

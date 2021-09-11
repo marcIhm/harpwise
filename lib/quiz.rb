@@ -78,7 +78,10 @@ def do_quiz
           -> () do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
-            if hole_passed > 4 && lap_passed > 6 * all_wanted.length
+
+            if all_wanted.length > 1 &&
+               hole_passed > 4 &&
+               lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
               print "The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
               full_hint_shown = true
               puts_pad
