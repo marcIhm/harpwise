@@ -20,10 +20,8 @@ def do_quiz
 
     unless first_lap_at_all
       ctl_issue "SPACE to pause"
-      print "\e[#{$line_hint}H" 
-      puts_pad
-      print "\e[#{$line_listen}H"
-      puts_pad
+      print "\e[#{$line_hint}H\e[K" 
+      print "\e[#{$line_listen}H\e[K"
     end
 
     all_wanted.each_with_index do |hole, idx|
@@ -38,8 +36,7 @@ def do_quiz
     end
     print "\e[32mand !\e[0m"
     sleep 0.5
-    print "\e[#{$line_listen}H" unless first_lap_at_all
-    puts_pad
+    print "\e[#{$line_listen}H\e[K" unless first_lap_at_all
   
     system('clear') if first_lap_at_all
     full_hint_shown = false
@@ -84,31 +81,28 @@ def do_quiz
                lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
               print "The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
               full_hint_shown = true
-              puts_pad
             elsif hole_passed > 4
               print "Hint: Play \e[32m#{wanted}\e[0m"
-              puts_pad
             else
               if idx > 0
                 isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                print "\e[2mHint: Move "
-                puts_pad ( itext ? "a #{itext}" : isemi )
-              else
-                puts_pad
+                if isemi
+                  print "\e[2mHint: Move "
+                  print ( itext ? "a #{itext}" : isemi )
+                end
               end
             end
+            print "\e[K"
           end,
 
           -> (_) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
 
-        print "\e[#{$line_comment_small}H"
-        puts_pad
+        print "\e[#{$line_comment_small}H\e[K"
 
       end # notes in a sequence
         
       if $ctl_next
-        print "\e[#{$line_issue}H"
-        puts_pad '', true
+        print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
         $ctl_loop = false
         first_lap_at_all = false
         next
@@ -122,7 +116,7 @@ def do_quiz
       
       print "\e[#{$line_comment_small}H"
       print "#{$ctl_next ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
-      puts_pad "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !"
+      print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
     
       sleep 1

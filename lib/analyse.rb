@@ -85,10 +85,10 @@ def describe_freq freq
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
+    return 'low' if (freq < lb)
     return $freq2hole[fr],lb,ub if (freq >= lb) and (freq < ub)
-    return $freq2hole[freqs[0]] if (freq < ub)
   end
-  return $freq2hole[freqs[-1]]
+  return 'high'
 end
   
 
@@ -107,6 +107,7 @@ end
 
 def describe_inter hole1, hole2
   semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
+  return [nil, nil] unless semi1 && semi2  # happens for pseudo holes low and high
   diff_semi = semi1 - semi2
   return ["#{diff_semi.abs} st", $intervals[diff_semi.abs]]
 end

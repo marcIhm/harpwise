@@ -32,18 +32,13 @@ def dbg text
 end
 
 
-def puts_pad text = nil, top = false
-  text = ' ' unless text && text.length > 0
-  text.lines.each do |line|
-    puts line.chomp.ljust($term_width - ( top ? 36 : 1 )) + "\n"
-  end
-end
-
 $figlet_cache = Hash.new
 def do_figlet text, font
   cmd = "figlet -d fonts -f #{font} -c \" #{text}\""
   $figlet_cache[cmd], _ = Open3.capture2e(cmd) unless $figlet_cache[cmd]
-  puts_pad $figlet_cache[cmd]
+  $figlet_cache[cmd].lines.each do |line, idx|
+    print "#{line}\e[K"
+  end
   print"\e[0m"
 end
 
@@ -99,10 +94,8 @@ end
 
 def ctl_issue text = nil
   text ||= $ctl_default_issue
-  $ctl_last_text ||= ''
-  padded_text = text.rjust($ctl_last_text.length)
-  print "\e[1;#{$term_width - padded_text.length - 1}H\e[2m#{padded_text}\e[0m"
-  $ctl_last_text = text
+  fail "Internal error text #{text} is longer than #{$ctl_issue_width}" if text.length > $ctl_issue_width
+  print "\e[1;#{$term_width - $ctl_issue_width}H\e[2m#{text.rjust($ctl_issue_width)}\e[0m"
 end
   
 

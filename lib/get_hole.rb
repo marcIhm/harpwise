@@ -9,8 +9,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   # See  https://en.wikipedia.org/wiki/ANSI_escape_code
   $move_down_on_exit = true
   
-  print "\e[#{$line_issue}H\e[0m"
-  puts_pad issue, true
+  print "\e[#{$line_issue}H#{issue.ljust($term_width - $ctl_issue_width)}\e[0m"
   $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,RET next' + ($opts[:loop] ? '' : '; l loop') : ''}"
   ctl_issue
 
@@ -31,7 +30,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     poll_and_handle_kb
     
     print "\e[#{$line_samples}H"
-    puts_pad "\e[2mSamples total: #{samples.length.to_s.rjust(2)}, new: #{new_samples.length.to_s.rjust(2)}"
+    print "\e[2mSamples total: #{samples.length.to_s.rjust(2)}, new: #{new_samples.length.to_s.rjust(2)}\e[K"
 
     if samples.length > 6
       # do and print analysis
@@ -39,7 +38,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       pk = pks[0]
       
       print "\e[#{$line_peaks}H"
-      puts_pad "Peaks: [[%4d,%3d], [%4d,%3d]]" % pks.flatten
+      print "Peaks: [[%4d,%3d], [%4d,%3d]]\e[K" % pks.flatten
       
       good = done = false
       
@@ -50,7 +49,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         hole_was = hole
         hole, lbor, ubor = describe_freq pk[0]
         hole_since = Time.now.to_f if !hole_since || hole != hole_was
-        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.3
+        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.2
           hole_held_before = hole_held
           hole_held = hole
         end
@@ -63,33 +62,28 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
           done = true if Time.now.to_f - hole_start > 2
         end
         if ubor
-          puts_pad (text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
-                   (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '')
+          print (text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
+                (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '') + "\e[K"
           hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
       else
         hole = nil 
-        puts_pad text + ' but count below threshold of 6'
+        print text + " but count below threshold of 6\e[K"
       end
     else
       # Not enough samples, analysis not possible
       hole, good, done = [nil, false, false]
       print "\e[#{$line_peaks}H"
-      puts_pad 'Not enough samples'
-      print "\e[#{$line_frequency}H"
-      puts_pad
+      print "Not enough samples\e[K"
+      print "\e[#{$line_frequency}H\e[K"
     end
 
     print "\e[#{$line_interval}H"
-    inter_semi, inter_text = if hole_held && hole_for_inter
-                               describe_inter(hole_held, hole_for_inter)
-                             else
-                               [nil, nil]
-                             end
+    inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
     if inter_semi
-      puts_pad "Interval: #{hole_for_inter.rjust(5)} to #{hole_held.rjust(5)} is #{inter_semi.rjust(5)}" + ( inter_text ? ", #{inter_text}" : '' )
+      print "Interval: #{hole_for_inter.rjust(5)} to #{hole_held.rjust(5)} is #{inter_semi.rjust(5)}" + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
-      puts_pad "Interval:  ---  ---  ---"
+      print "Interval:  ---\e[K"
     end
       
     print "\e[#{$line_hole}H\e[0m"
