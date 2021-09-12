@@ -32,6 +32,12 @@ def dbg text
 end
 
 
+def sys cmd
+  out = Open3.capture2e(dbg cmd)
+  $? == 0 || fail("Command '#{cmd}' failed with:\n#{out}")
+end
+  
+
 $figlet_cache = Hash.new
 def do_figlet text, font
   cmd = "figlet -d fonts -f #{font} -c \" #{text}\""

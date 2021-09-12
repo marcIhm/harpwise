@@ -8,6 +8,7 @@ require 'set'
 require 'json'
 require 'fileutils'
 require 'open3'
+require 'tempfile'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
 require_relative 'lib/interaction'
@@ -57,5 +58,7 @@ when :quiz
 when :listen
   do_listen
 when :calibrate
+  trim_audio 'g4.wav'
+  exit
   do_calibrate
 end

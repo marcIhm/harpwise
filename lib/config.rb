@@ -32,7 +32,7 @@ end
 
 def check_installation
   # check for some required programs
-  %w( figlet arecord aplay aubiopitch ).each do |prog|
+  %w( figlet arecord aplay aubiopitch sox ).each do |prog|
     system("which #{prog} >/dev/null 2>&1") or err_b "Program '#{prog}' is needed but cannot be found; you may need to install its package"
   end
   
