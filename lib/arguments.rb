@@ -45,8 +45,8 @@ Usage by examples:
 
   You may add (e.g.) '--only -3' to calibrate only hole 3 draw.
 
-  For quick (and possibly inaccurate) calibration you may add option '--auto'
-  to generate all samples automatically.
+  For quick (and possibly inaccurate) calibration you may use the option
+  '--auto' to generate and analyze all needed samples automatically.
 
 
 Notes:

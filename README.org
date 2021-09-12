@@ -18,14 +18,14 @@ six blow, correctly and now I try to hit the fourth note.
   from github first.
 
   harp_scale_trainer requires several external programs for its operation:
-  aubiopitch, pulseaudio, aplay, arecord, figlet and toilet (for additional
-  figlet-fonts). Their existence is checked on program start.
+  aubiopitch, pulseaudio, aplay, arecord, sox and figlet. Their existence is
+  checked on program start.
   
   Special thanx to aubiopitch for doing all the heavy-lifting of tone
   recognition !
 
   For MS Windows you may use the latest windows-Subsystem for Linux wslg, which
-  supports sound via pulseaudio + rdp.
+  supports sound via pulseaudio and rdp.
 
 * Usage
 
@@ -34,7 +34,6 @@ six blow, correctly and now I try to hit the fourth note.
     ./harp_scale_trainer
 
   
-  First you will need to calibrate the program for at least one key by playing
-  your own harp as requested; this needs to be done once only.
-  The wav-files will be kept in directory samples.
+  First you will need to calibrate the program; the resulting wav-files will
+  be kept in directory samples.
 

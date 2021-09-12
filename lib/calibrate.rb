@@ -19,13 +19,13 @@ frequencies may not match your own special harp very well.
 Moreover, any samples, that you have already recorded before, will be
 overwritten in this process !
 
-  So consider, saving these sample before !
+  So, in this case, consider, saving such samples before !
 
-To do so, you may bail out now, by pressing ctrl-c
+(to do so, you may bail out now, by pressing ctrl-c)
 
 EOINTRO
 
-  print "\nPress RETURN to generate all samples in a single run: "
+  print "\nPress RETURN to generate and play all samples in a single run: "
   STDIN.gets
 
   hole2freq = Hash.new
@@ -36,13 +36,14 @@ EOINTRO
     diff_semis = $harp[hole][:semi] - note2semi('a4')
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis}"
-    system cmd 
+    system cmd
+    play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end
-  File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
-  system("ls -lrt #{$sample_dir}")
-  puts "\nAll recordings done."
-  puts "\n\nTip: you may enter normal (manual) calibration to listen to the recorded samples.\n\n"
+  ffile = "#{$sample_dir}/frequencies.json"
+  File.write(ffile, JSON.pretty_generate(hole2freq))
+  puts "\nFrequencies in: #{ffile}"
+  puts "\nAll recordings done.\n\n"
 end
 
 
