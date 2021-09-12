@@ -1,10 +1,52 @@
 # -*- fill-column: 78 -*-
 
 #
-# Assistant for calibration
+# Assistant and automate for calibration
 #
 
-def do_calibrate
+def do_calibrate_auto
+  err_h "Option '--only' not allowed with version '--auto'" if $opts[:only]
+  puts <<EOINTRO
+
+
+This will generate all needed samples for holes:
+
+  \e[32m#{$holes.join(' ')}\e[0m
+
+Compared with playing them yourself this sure saves time; however, those
+frequencies may not match your own special harp very well.
+
+Moreover, any samples, that you have already recorded before, will be
+overwritten in this process !
+
+  So consider, saving these sample before !
+
+To do so, you may bail out now, by pressing ctrl-c
+
+EOINTRO
+
+  print "\nPress RETURN to generate all samples in a single run: "
+  STDIN.gets
+
+  hole2freq = Hash.new
+  freqs = Array.new
+  $holes.each do |hole|
+    puts "\nGenerating   hole \e[32m#{hole}\e[0m,   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
+    
+    diff_semis = $harp[hole][:semi] - note2semi('a4')
+    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis}"
+    system cmd 
+    hole2freq[hole] = analyze_with_aubio(file)
+  end
+  File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
+  system("ls -lrt #{$sample_dir}")
+  puts "\nAll recordings done."
+  puts "\n\nTip: you may enter normal (manual) calibration to listen to the recorded samples.\n\n"
+end
+
+
+def do_calibrate_assistant
   
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   hole = $opts[:only]
@@ -19,10 +61,12 @@ holes of your harmonica one after the other, each for one second:"
 
   \e[32m#{$opts[:only] || $holes.join(' ')}\e[0m
 
-Each recording is preceded by a short countdown (2,1).
+Each recording is preceded by a short countdown (3,2,1).
 
-To avoid silence in the recording, you should start playing within the
-countdown already and play a moment over the end of the recording.
+For each hole 3 seconds will be recorded and silence will be cut off;
+then the recording will be truncated to 1 second. So you may wait for
+the actual red \e[31mrecording\e[0m mark before starting to play.
+
 The harp you use now for calbration should be the one, that you will
 use for your practice later.
 
@@ -91,33 +135,35 @@ def record_hole hole, prev_freq
       STDIN.gets
       print "Analysis of old: "
     else
-      puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
-      print "\nPress RETURN to start: "
-      STDIN.gets
-      [2, 1].each do |c|
-        puts "\e[31m#{c}\e[0m"
-        sleep 1
-      end
-      
-      puts "\e[31mrecording\e[0m to #{file} ..."
-      # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
-      begin
-        tstart_record = Time.now.to_f
-        record_sound 0.2, $sample_file, silent: true
-      end while Time.now.to_f - tstart_record < 0.1
-
-      record_sound 1, file
+      begin 
+        puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
+        print "\nPress RETURN to start: "
+        STDIN.gets
+        [3, 2, 1].each do |c|
+          puts "\e[31m#{c}\e[0m"
+          sleep 1
+        end
+        
+        # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
+        begin
+          tstart_record = Time.now.to_f
+          record_sound 0.2, $sample_file, silent: true
+        end while Time.now.to_f - tstart_record < 0.1
+        
+        puts "\e[31mrecording\e[0m to #{file} ..."
+        record_sound 3, file
+        duration = autoedit file
+        if duration < 0.9
+          puts "\n\nThe trimmed sample is \e[31mtoo short\e[0m (#{duration} s) ! Please try again !\n(maybe start playing directly after red \e[31mrecording\e[0m mark or play louder)\n\n"
+          print "\nPress RETURN to start over: "
+          STDIN.gets
+        end
+      end while duration < 0.9
       puts "\e[32mdone\e[0m"
       print "Analysis: "
     end
 
-    samples = run_aubiopitch(file).lines.
-                map {|l| l.split[1].to_i}.
-                select {|f| f>0}.
-                sort
-    pks = get_two_peaks samples, 10
-    puts "Peaks: #{pks.inspect}"
-    freq = pks[0][0]
+    freq = analyze_with_aubio(file)
     
     if freq < prev_freq
       puts "\n\nWAIT !"
@@ -165,3 +211,13 @@ def record_hole hole, prev_freq
   return freq
 end
 
+
+def analyze_with_aubio file
+  samples = run_aubiopitch(file).lines.
+              map {|l| l.split[1].to_i}.
+              select {|f| f>0}.
+              sort
+  pks = get_two_peaks samples, 10
+  puts "Peaks: #{pks.inspect}"
+  pks[0][0]
+end

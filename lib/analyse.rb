@@ -93,7 +93,7 @@ end
   
 
 def note2semi note
-  notes_with_sharps = %w( -- c cs d ds e f fs g gs a as b )
+  notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   notes_with_flats = %w( c df d ef e f gf g af a bf b )
 
   note = note.downcase
@@ -101,7 +101,7 @@ def note2semi note
   idx = notes_with_sharps.index(note[0 .. -2]) ||
         notes_with_flats.index(note[0 .. -2]) or
     raise ArgumentError.new("non-digit part is none of #{notes_with_sharps.inspect} or #{notes_with_flats.inspect}")
-    return 12 * note[-1].to_i + idx - 1
+    return 12 * note[-1].to_i + idx
 end
 
 

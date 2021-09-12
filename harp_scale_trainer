@@ -8,7 +8,7 @@ require 'set'
 require 'json'
 require 'fileutils'
 require 'open3'
-require 'tempfile'
+require 'pp'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
 require_relative 'lib/interaction'
@@ -35,7 +35,7 @@ set_global_vars_late
 $freq2hole = read_calibration unless $mode == :calibrate
 
 
-if $opts[:debug]
+if $opts[:debug] > 0
   require 'byebug'
 end
 
@@ -58,7 +58,9 @@ when :quiz
 when :listen
   do_listen
 when :calibrate
-  trim_audio 'g4.wav'
-  exit
-  do_calibrate
+  if $opts[:auto]
+    do_calibrate_auto
+  else
+    do_calibrate_assistant
+  end
 end

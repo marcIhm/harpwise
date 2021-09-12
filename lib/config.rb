@@ -6,7 +6,7 @@ def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
   $line_issue = 0
-  $line_hole = 4
+  $line_hole = 5
   $line_samples = 15
   $line_peaks = 16
   $line_frequency = 17
@@ -50,9 +50,10 @@ def read_musical_config
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
     fail "Internal error with #{file}, not all harps have the same list of holes"
   end
-  harp = harps[$key] or fail "Internal error, key #{$key} has no harp"
+  harp = harps[$key] or fail "Internal error: Key #{$key} has no harp"
 
   harp.each_value {|h| h.transform_keys!(&:to_sym)}
+  semi_before = -1
   harp.each_value do |h|
     begin
       h[:semi] = note2semi(h[:note])
@@ -60,7 +61,7 @@ def read_musical_config
       err_b "From #{file}, key #{$key}, note #{h[:note]}: #{e.message}"
     end
   end
-
+  
   scales_holes = JSON.parse(File.read('config/scales_holes.json')).transform_keys!(&:to_sym)
   scales_holes.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
@@ -71,6 +72,10 @@ def read_musical_config
   holes = harp.keys
   scale_holes = scales_holes[$scale]
 
+  unless holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
+    err_b "Internal error: Computed semitones are not strictly ascending in order of holes:\n#{harp.pretty_inspect}"
+  end
+  
   # read from intervals file
   intervals = JSON.parse(File.read('config/intervals.json')).transform_keys!(&:to_i)
   
@@ -86,7 +91,7 @@ def read_calibration
     err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration"
   end
   unless $holes.map {|hole| freqs[hole]}.each_cons(2).all? { |a, b| a < b }
-    err_b "Frequencies in #{ffile} are not strictly ascending in order of #{holes.inspect}: #{freqs.pretty_inspect}"
+    err_b "Frequencies in #{ffile} are not strictly ascending in order of #{$holes.inspect}: #{freqs.pretty_inspect}"
   end
 
   freqs.map {|k,v| $harp[k][:freq] = v}

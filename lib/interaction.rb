@@ -27,7 +27,7 @@ end
 
 
 def dbg text
-  puts "DEBUG: #{text}" if $opts[:debug] && $opts[:debug] > 1
+  puts "DEBUG: #{text}" if $opts[:debug] > 1
   text
 end
 
@@ -43,7 +43,7 @@ def do_figlet text, font
   cmd = "figlet -d fonts -f #{font} -c \" #{text}\""
   $figlet_cache[cmd], _ = Open3.capture2e(cmd) unless $figlet_cache[cmd]
   $figlet_cache[cmd].lines.each do |line, idx|
-    print "#{line}\e[K"
+    print "#{line.chomp}\e[K\n"
   end
   print"\e[0m"
 end

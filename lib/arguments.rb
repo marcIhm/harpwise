@@ -45,6 +45,8 @@ Usage by examples:
 
   You may add (e.g.) '--only -3' to calibrate only hole 3 draw.
 
+  For quick (and possibly inaccurate) calibration you may add option '--auto'
+  to generate all samples automatically.
 
 
 Notes:
@@ -68,6 +70,7 @@ EOU
     %w(-s --screenshot)=>:screenshot,
     %w(-h --help)=>:help,
     %w(-o --only)=>:only,
+    %w(--auto)=>:auto,
     %w(-l --loop)=>:loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -86,7 +89,7 @@ EOU
     err_h "Option '--debug' needs an integer argument, not '#{opts[:debug]}" unless opts[:debug].match? /\A\d+\z/
     opts[:debug] = opts[:debug].to_i
   end
-    
+  opts[:debug] = 0 unless opts[:debug]
   
   ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err_h "Unknown options: #{left.join(',')}" if left.length > 0}
 
@@ -100,7 +103,7 @@ EOU
   mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
 
   # find some invalid combinations of argument and option
-  [[:loop, :quiz], [:only, :calibrate]].each do |o_m|
+  [[:loop, :quiz], [:only, :calibrate], [:auto, :calibrate]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for mode '--#{o_m[1]}' only" if opts[o_m[0]] && mode != o_m[1]
   end
     
