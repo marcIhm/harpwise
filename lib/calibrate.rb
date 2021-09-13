@@ -5,6 +5,8 @@
 #
 
 def do_calibrate_auto
+
+  FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   err_h "Option '--only' not allowed with version '--auto'" if $opts[:only]
   puts <<EOINTRO
 
