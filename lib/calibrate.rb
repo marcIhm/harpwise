@@ -15,13 +15,17 @@ This will generate all needed samples for holes:
 
   \e[32m#{$holes.join(' ')}\e[0m
 
-Compared with playing them yourself this sure saves time; however, those
-frequencies may not match your own special harp very well.
+Letting this program generate your samples is a good way to get started
+quickly.  However, the generated notes and their frequencies cannot match
+those of your own special harp or style of playing very well. Therefore,
+later, you may want to repeat the calibration by playing yourself
+(i.e. without option '--auto').
 
-Moreover, any samples, that you have already recorded before, will be
-overwritten in this process !
 
-  So, in this case, consider, saving such samples before !
+If, on the other hand you already have samples, recorded by yourself, they
+will be overwritten in this process !
+
+  So, in that case, consider, \e[32mSAVING\e[0m such samples before !
 
 (to do so, you may bail out now, by pressing ctrl-c)
 
@@ -60,31 +64,32 @@ def do_calibrate_assistant
 
 
 This is an interactive assistant, that will ask you to play these
-holes of your harmonica one after the other, each for one second:"
+holes of your harmonica one after the other, each for one second:
 
   \e[32m#{$opts[:only] || $holes.join(' ')}\e[0m
 
 Each recording is preceded by a short countdown (3,2,1).
 
-For each hole 3 seconds will be recorded and silence will be cut off;
-then the recording will be truncated to 1 second. So you may wait for
-the actual red \e[31mrecording\e[0m mark before starting to play.
+For each hole, 3 seconds will be recorded and silence will be cut off front
+and rear; then the recording will be truncated to 1 second. So you may well
+wait for the actual red \e[31mrecording\e[0m mark before starting to play.
 
-The harp you use now for calbration should be the one, that you will
+The harp, that you use now for calbration, should be the one, that you will
 use for your practice later.
 
-Background: Those samples will be used to determine the frequencies of
-your particular harp and will be played directly in mode 'quiz'.
 
-Hint: If you plan to calibrate for more than one key of harp, you
-  should consider copying the whole directory below 'samples' and
-  record only those notes that are missing. Note, that the recorded
-  samples are named after the note, not the hole, so that they can be
-  copied and used universally.
+Background: Those samples will be used to determine the frequencies of your
+  particular harp and will be played directly in mode 'quiz'.
 
-Tip: You may invoke this assistant again at any later time, just to
-  review your recorded notes and maybe correct some of them.
+Hint: If you want to calibrate for another key of harp, you might copy the
+  whole directory below 'samples' and record only those notes that are
+  missing.
 
+Tip: You may invoke this assistant again at any later time, just to review
+  your recorded notes and maybe correct some of them.
+
+
+Now, starting right away with the \e[32mfirst\e[0m note ...
 
 EOINTRO
 
