@@ -7,7 +7,6 @@
 def do_calibrate_auto
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  err_h "Option '--only' not allowed with version '--auto'" if $opts[:only]
   puts <<EOINTRO
 
 
@@ -51,7 +50,6 @@ end
 def do_calibrate_assistant
   
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  hole = $opts[:only]
   if hole && !$holes.include?(hole)
     err_h "Only hole given to calibrates (#{hole}) is none of these: #{$holes}"   
   end
@@ -61,9 +59,10 @@ def do_calibrate_assistant
 This is an interactive assistant, that will ask you to play these
 holes of your harmonica one after the other, each for one second:
 
-  \e[32m#{$opts[:only] || $holes.join(' ')}\e[0m
+  \e[32m#{$holes.join(' ')}\e[0m
 
 Each recording is preceded by a short countdown (2,1).
+If there already is a recording, it will be plotted first.
 
 For each hole, 3 seconds will be recorded and silence will be cut off front
 and rear; then the recording will be truncated to 1 second. So you may well
@@ -84,9 +83,10 @@ Tip: You may invoke this assistant again at any later time, just to review
   your recorded notes and maybe correct some of them.
 
 
-Now, starting right away with the \e[32mfirst\e[0m note ...
-
 EOINTRO
+
+  print "Press RETURN to start with the \e[32mfirst\e[0m hole: "
+  STDIN.gets
 
   if hole
     ffile = "#{$sample_dir}/frequencies.json"
@@ -94,7 +94,7 @@ EOINTRO
     hole2freq = JSON.parse(File.read(ffile))
     freqs = hole2freq.values
     i = $holes.find_index(hole)
-    hole2freq[hole] = freqs[i] = record_hole(hole, freqs[i-1] || 0)
+    hole2freq[hole] = freqs[i] = review_hole(hole, freqs[i-1] || 0)
     if freqs[i] < 0
       puts "Hole #{hole} has not been recorded; exiting ..."
       exit 0
@@ -105,7 +105,7 @@ EOINTRO
     i = 0
     begin
       hole = $holes[i]
-      freqs[i] = record_hole(hole, freqs[i-1] || 0)
+      freqs[i] = review_hole(hole, freqs[i-1] || 0)
       if freqs[i] < 0
         if i > 0 
           puts "Skipping  \e[32mback\e[0m  !"
@@ -125,22 +125,24 @@ EOINTRO
 end
 
 
-def record_hole hole, prev_freq
+def review_hole hole, prev_freq
 
-  redo_recording = false
+  file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+  do_draw = true
+  do_edit = false
+  if File.exists?(file)
+    initial_issue = "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
+    duration = wave2data(file)
+    do_record = false
+  else
+    do_record = true
+  end
+  issue_before_edit = initial_issue = false
+
   begin
-
-    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-
-    if File.exists?(file) && !redo_recording
-      puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
-      print "\nPress RETURN to see choices: "
-      STDIN.gets
-      print "Analysis of old: "
-    else
-      puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
-      print "\nPress RETURN to start: "
-      STDIN.gets
+      
+    if do_record
+      puts "\nRecording hole  \e[32m#{hole}\e[0m  when '\e[31mrecording\e[0m' appears."
       [2, 1].each do |c|
         puts "\e[31m#{c}\e[0m"
         sleep 1
@@ -154,60 +156,75 @@ def record_hole hole, prev_freq
       
       puts "\e[31mrecording\e[0m to #{file} ..."
       record_sound 3, file
+      duration = wave2data(file)
       
       puts "\e[32mdone\e[0m"
-      print "Analysis: "
+      do_draw = true
     end
 
+    if do_draw
+      draw_data($edit_data, 0, duration, 0)
+      print "Analysis: "
+      freq = analyze_with_aubio(file)
+    end
+    puts initial_issue if initial_issue
+    initial_issue = false
+
+    if do_edit
+      puts issue_before_edit if issue_before_edit
+      issue_before_edit = false
+      result = edit_sound(hole, file)
+      if  result == :redo
+        puts "Redo ..."
+        redo                         
+      elsif result == :next_hole
+        return analyze_with_aubio(file)
+      end
+    end
+
+    print "Analysis: "
     freq = analyze_with_aubio(file)
     
     if freq < prev_freq
       puts "\n\nWAIT !"
-      puts "The frequency just recorded (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
+      puts "The frequency recorded for \e[33m#{hole}\e[0m (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
       puts "Therefore this recording cannot be accepted and you need to redo !"
       puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
       puts "you may want to skip back to the previous hole ...\n\n"
     end
 
-    begin
-      puts "\nWhats next for hole \e[33m#{hole}\e[0m ?"
-      choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
-                 :edit => [['e'], 'edit recorded sound'],
-                 :redo => [['r'], 'record'],
-                 :generate=> [['g'], 'generate a sound for the holes nominal frequency']}
-      if $opts[:only]
-        choices[:cancel] = [['c'], 'Cancel this calibration']
-      else
-        choices[:back] = [['b'], 'skip back to previous hole']
-      end
+    puts "\n\e[33mWhat's next\e[0m for hole \e[33m#{hole}\e[0m ?"
+    choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
+               :edit => [['e'], 'edit recorded sound, i.e. set start for play'],
+               :draw => [['d'], 'redraw sound data'],
+               :record => [['r'], "record RIGHT AWAY (after countdown)"],
+               :generate=> [['g'], 'generate a sound for the holes nominal frequency'],
+               :back => [['b'], 'skip back to previous hole']}
+    
+    choices[:okay] = [['k', 'RETURN'], 'keep recording and continue'] if freq >= prev_freq
+    
+    answer = read_answer(choices)
 
-      if freq >= prev_freq
-        if $opts[:only]        
-          choices[:okay] = [['k', 'RETURN'], 'keep recording and finish']
-        else
-          choices[:okay] = [['k', 'RETURN'], 'keep recording and continue']
-        end
-      end
-
-      answer = read_answer(choices)
-
-      case answer
-      when :play
-        print "\nplay ... "
-        play_sound file
-        puts "done\n"
-      when :edit
-        edit_sound hole, file
-      when :generate
-        synth_sound hole
-      when :redo
-        redo_recording = true
-      when :back, :cancel
-        return -1
-      end
-
-    end while answer == :play
-
+    do_edit = do_draw = do_record = false
+    case answer
+    when :play
+      print "\nplay ... "
+      play_sound file
+      puts "done\n"
+    when :edit
+      do_edit = do_draw = true
+    when :draw
+      do_draw = true
+    when :generate
+      synth_sound hole
+      do_draw = true
+    when :record
+      do_draw = do_record = do_edit = true
+      issue_before_edit = 'Editing recorded sound right away ...'
+    when :back, :cancel
+      return -1
+    end
+    
   end while answer != :okay
 
   return freq

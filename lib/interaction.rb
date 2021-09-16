@@ -117,9 +117,7 @@ def read_answer answer2keys_desc
 
   begin
     print "\nYour choice (press a single key): "
-    system("stty raw -echo")
-    char = STDIN.getc
-    system("stty -raw echo")
+    char = one_char
     char = case char
            when "\r", "\n"
              'RETURN'
@@ -128,10 +126,6 @@ def read_answer answer2keys_desc
            else
              char
            end
-    if char.ord == 3
-      puts "\nexit on ctrl-c"
-      exit 1
-    end
     puts char
     puts
     answer = nil
@@ -144,7 +138,7 @@ def read_answer answer2keys_desc
 end
 
 
-def draw_wave file, from, to, marker
+def draw_data file, from, to, marker
   sys "sox #{file} tmp/sound-to-plot.dat"
   IO.write 'tmp/sound.gp', <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
@@ -152,9 +146,21 @@ set datafile commentschars ";"
 set xlabel "time (s)"
 set xrange [#{from}:#{to}]
 set ylabel "sample value"
+set nokey
 set arrow from #{marker}, graph 0 to #{marker}, graph 1 nohead
 plot "#{file}" using 1:2
 EOGPL
   system "gnuplot tmp/sound.gp"
 end
 
+
+def one_char
+  system("stty raw -echo")
+  char = STDIN.getc
+  system("stty -raw echo")
+  if char && char[0] && char[0].ord == 3
+    puts "\nexit on ctrl-c"
+    exit 1
+  end
+  char
+end  

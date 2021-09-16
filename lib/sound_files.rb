@@ -5,7 +5,7 @@
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && $opts[:debug] <= 2) ? '>/dev/null 2>&1' : ''
-  sys "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}"
+  system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
 end
 
 
@@ -21,48 +21,57 @@ end
 
 def edit_sound hole, file
 
-  sys "sox #{file} tmp/sound.dat"
-  workfile = 'tmp/workfile.wav'
   play_from = zoom_from = 0
-  zoom_to = duration = sox_query(file, 'Length')
-  do_draw = true
-  cut_sound file, workfile, play_from
+  zoom_to = duration = wave2data(file)
+  do_draw = false
+  craft_sound file, play_from, $edit_wave
   loop do
     if do_draw
-      draw_wave('tmp/sound.dat', zoom_from, zoom_to, play_from) if do_draw
+      draw_data($edit_data, zoom_from, zoom_to, play_from)
+      do_draw = false
     else
       puts
     end
-    puts "Editing #{File.basename(file)} for hole #{hole}, zoom from #{zoom_from} to #{zoom_to}, play from #{play_from}."
-    do_draw = false
-    puts "Choices: <zfrom> <zto> | <pfrom> | <empty> | d | y | n"
+    puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, zoom from #{zoom_from} to #{zoom_to}, play from #{play_from}."
+    puts "Choices: <zfrom> <zto> | <pfrom> | <empty> | d | y | n,q | r"
     print "Your input ('h' for help): "
-    choice = STDIN.gets.chomp.downcase.strip
+    choice = one_char
+
+    if ('0' .. '9').to_a.include?(choice) || choice == '.'
+      print "Finish with RETURN: #{choice}"
+      choice += STDIN.gets.chomp.downcase.strip
+    end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
 
-<zoom-from> <zoom-to> RET  :  Zoom plot to given range;  Example:  0.2 0.35 RET
-<start-from>          RET  :  Set position to play from (vertical line in plot);  Example:  0.4 RET
-                      RET  :  Play from current position;  Example:  RET
-                    d RET  :  Draw wave curve again
-                    y RET  :  Accept current play position and return
-                    n RET  :  Discard edit
+Enter any of these, finish with RETURN:
+
+  <zoom-from> <zoom-to> :  Zoom plot to given range;  Example:  0.2 0.35
+           <start-from> :  Set position to play from (vertical line in plot);  Example:  0.4
+                 RETURN :  Play from current position;  Example:  RETURN
+                      d :  Draw wave curve again
+                      y :  Accept current play position and skip to next hole
+                    n,q :  Discard edit
+                      r :  Redo this edit and recording before
 
 EOHELP
       print "Press RETURN to continue: "
       
-    elsif choice == '' || choice == 'p'
+    elsif ['', "\r", "\n" , 'p'].include?(choice)
       puts "Playing ..."
-      play_sound workfile
+      play_sound $edit_wave
     elsif choice == 'd'
       do_draw = true
     elsif choice == 'y'
-      FileUtils.cp workfile, file
-      puts "Edit accepted, updated #{File.basename(file)}"
-      return
-    elsif choice == 'n'
+      FileUtils.cp $edit_wave, file
+      wave2data(file)
+      puts "Edit accepted, updated #{File.basename(file)}, skipping to next hole."
+      return :next_hole
+    elsif choice == 'n' || choice == 'q'
       puts "Edit aborted, #{File.basename(file)} remains unchanged"
-      return
+      return nil
+    elsif choice == 'r' || choice == 'e'
+      return :redo
     else
       begin
         vals = choice.split.map {|x| Float(x)}
@@ -75,7 +84,7 @@ EOHELP
           do_draw = true
         elsif vals.length == 1
           play_from = vals[0]
-          cut_sound file, workfile, play_from
+          craft_sound file, play_from, $edit_wave
           do_draw = true
         else
         end
@@ -87,9 +96,9 @@ EOHELP
 end
 
 
-def cut_sound file, workfile, play_from
-  puts "Cutting original sound 1 second from #{play_from}"
-  sys "sox #{file} #{workfile} trim #{play_from} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
+def craft_sound file, play_from, crafted
+  puts "Taking 1 second of original sound, starting at #{play_from}"
+  sys "sox #{file} #{crafted} trim #{play_from} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
 end
 
 
@@ -106,4 +115,10 @@ def synth_sound hole
   puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis} gain -n -3"
   sys cmd
   file
+end
+
+
+def wave2data file
+  sys "sox #{file} #{$edit_data}"
+  sox_query(file, 'Length')
 end

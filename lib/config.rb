@@ -26,7 +26,9 @@ end
 
 def set_global_vars_late
   $sample_dir = "samples/diatonic/key_of_#{$key}"
-  $sample_file = "#{$sample_dir}/sample.wav"
+  $sample_file = 'tmp/sample.wav'
+  $edit_data = 'tmp/edit_workfile.dat'
+  $edit_wave = 'tmp/edit_workfile.wav'
 end
 
 

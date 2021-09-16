@@ -43,8 +43,6 @@ Usage by examples:
   folder samples and frequencies will be extracted to file frequencies.json.
   This command does not need a scale-argument.
 
-  You may add (e.g.) '--only -3' to calibrate only hole 3 draw.
-
   For quick (and possibly inaccurate) calibration you may use the option
   '--auto' to generate and analyze all needed samples automatically.
 
@@ -57,7 +55,7 @@ Notes:
   respectively.
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
-  for 'calibrate' or '-o' for '--only'.
+  for 'calibrate'.
 
   Some more less used options: --debug, --screenshot, --help
 
@@ -65,11 +63,10 @@ EOU
 
   # extract options first
   opts = Hash.new
-  opts_with_args = [:only, :debug]
+  opts_with_args = [:debug]
   { %w(-d --debug)=>:debug,
     %w(-s --screenshot)=>:screenshot,
     %w(-h --help)=>:help,
-    %w(-o --only)=>:only,
     %w(--auto)=>:auto,
     %w(-l --loop)=>:loop}.each do |txts,opt|
     txts.each do |txt|
@@ -102,8 +99,8 @@ EOU
   mode = :quiz if 'quiz'.start_with?(ARGV[0])
   mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
 
-  # find some invalid combinations of argument and option
-  [[:loop, :quiz], [:only, :calibrate], [:auto, :calibrate]].each do |o_m|
+  # the options below are only valid in one mode
+  [[:loop, :quiz], [:auto, :calibrate]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for mode '--#{o_m[1]}' only" if opts[o_m[0]] && mode != o_m[1]
   end
     
