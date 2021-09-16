@@ -37,19 +37,14 @@ EOINTRO
   hole2freq = Hash.new
   freqs = Array.new
   $holes.each do |hole|
-    puts "\nGenerating   hole \e[32m#{hole}\e[0m,   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
-    
-    diff_semis = $harp[hole][:semi] - note2semi('a4')
-    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-    puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis}"
-    system cmd
+    file = synth_sound hole
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end
   ffile = "#{$sample_dir}/frequencies.json"
   File.write(ffile, JSON.pretty_generate(hole2freq))
   puts "\nFrequencies in: #{ffile}"
-  puts "\nAll recordings done.\n\n"
+  puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
 
@@ -68,7 +63,7 @@ holes of your harmonica one after the other, each for one second:
 
   \e[32m#{$opts[:only] || $holes.join(' ')}\e[0m
 
-Each recording is preceded by a short countdown (3,2,1).
+Each recording is preceded by a short countdown (2,1).
 
 For each hole, 3 seconds will be recorded and silence will be cut off front
 and rear; then the recording will be truncated to 1 second. So you may well
@@ -126,7 +121,7 @@ EOINTRO
   end
   File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
   system("ls -lrt #{$sample_dir}")
-  puts "\nAll recordings done."
+  puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
 
@@ -138,35 +133,28 @@ def record_hole hole, prev_freq
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
 
     if File.exists?(file) && !redo_recording
-      puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded, because file #{file} already exists."
+      puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
       print "\nPress RETURN to see choices: "
       STDIN.gets
       print "Analysis of old: "
     else
-      begin 
-        puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
-        print "\nPress RETURN to start: "
-        STDIN.gets
-        [3, 2, 1].each do |c|
-          puts "\e[31m#{c}\e[0m"
-          sleep 1
-        end
-        
-        # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
-        begin
-          tstart_record = Time.now.to_f
-          record_sound 0.2, $sample_file, silent: true
-        end while Time.now.to_f - tstart_record < 0.1
-        
-        puts "\e[31mrecording\e[0m to #{file} ..."
-        record_sound 3, file
-        duration = autoedit file
-        if duration < 0.9
-          puts "\n\nThe trimmed sample is \e[31mtoo short\e[0m (#{duration} s) ! Please try again !\n(maybe start playing directly after red \e[31mrecording\e[0m mark or play louder)\n\n"
-          print "\nPress RETURN to start over: "
-          STDIN.gets
-        end
-      end while duration < 0.9
+      puts "\nRecording hole  \e[32m#{hole}\e[0m  after countdown reaches 1,"
+      print "\nPress RETURN to start: "
+      STDIN.gets
+      [2, 1].each do |c|
+        puts "\e[31m#{c}\e[0m"
+        sleep 1
+      end
+      
+      # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
+      begin
+        tstart_record = Time.now.to_f
+        record_sound 0.2, $sample_file, silent: true
+      end while Time.now.to_f - tstart_record < 0.1
+      
+      puts "\e[31mrecording\e[0m to #{file} ..."
+      record_sound 3, file
+      
       puts "\e[32mdone\e[0m"
       print "Analysis: "
     end
@@ -184,7 +172,9 @@ def record_hole hole, prev_freq
     begin
       puts "\nWhats next for hole \e[33m#{hole}\e[0m ?"
       choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
-                 :redo => [['r'], 'redo recording']}
+                 :edit => [['e'], 'edit recorded sound'],
+                 :redo => [['r'], 'record'],
+                 :generate=> [['g'], 'generate a sound for the holes nominal frequency']}
       if $opts[:only]
         choices[:cancel] = [['c'], 'Cancel this calibration']
       else
@@ -206,6 +196,10 @@ def record_hole hole, prev_freq
         print "\nplay ... "
         play_sound file
         puts "done\n"
+      when :edit
+        edit_sound hole, file
+      when :generate
+        synth_sound hole
       when :redo
         redo_recording = true
       when :back, :cancel
@@ -229,3 +223,5 @@ def analyze_with_aubio file
   puts "Peaks: #{pks.inspect}"
   pks[0][0]
 end
+
+

@@ -2,3 +2,4 @@
 .byebug_history
 samples/diatonic
 *Zone.Identifier
+tmp/*

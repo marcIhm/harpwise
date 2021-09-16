@@ -142,3 +142,19 @@ def read_answer answer2keys_desc
   end while !answer
   answer
 end
+
+
+def draw_wave file, from, to, marker
+  sys "sox #{file} tmp/sound-to-plot.dat"
+  IO.write 'tmp/sound.gp', <<EOGPL
+set term dumb #{$term_width - 2} #{$term_height - 2}
+set datafile commentschars ";"
+set xlabel "time (s)"
+set xrange [#{from}:#{to}]
+set ylabel "sample value"
+set arrow from #{marker}, graph 0 to #{marker}, graph 1 nohead
+plot "#{file}" using 1:2
+EOGPL
+  system "gnuplot tmp/sound.gp"
+end
+
