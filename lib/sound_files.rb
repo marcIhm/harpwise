@@ -33,13 +33,15 @@ def edit_sound hole, file
       puts
     end
     puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, zoom from #{zoom_from} to #{zoom_to}, play from #{play_from}."
-    puts "Choices: <zfrom> <zto> | <pfrom> | <empty> | d | y | n,q | r"
+    puts "Choices: <zfrom> <zto> | <pfrom> | <empty> | d | y | q | r"
     print "Your input ('h' for help): "
     choice = one_char
 
     if ('0' .. '9').to_a.include?(choice) || choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += STDIN.gets.chomp.downcase.strip
+    else
+      puts
     end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
@@ -67,7 +69,7 @@ EOHELP
       wave2data(file)
       puts "Edit accepted, updated #{File.basename(file)}, skipping to next hole."
       return :next_hole
-    elsif choice == 'n' || choice == 'q'
+    elsif choice == 'q'
       puts "Edit aborted, #{File.basename(file)} remains unchanged"
       return nil
     elsif choice == 'r' || choice == 'e'

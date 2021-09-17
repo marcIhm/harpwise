@@ -47,15 +47,20 @@ end
 
 
 def do_calibrate_assistant
-  
+
+  if $opts[:hole] && !$holes.include?($opts[:hole])
+    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$holes.inspect}"
+  end
+
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
+  hole_desc = $opts[:hole] ? "#{$opts[:hole]} and beyond" : $holes.join(' ')
   puts <<EOINTRO
 
 
 This is an interactive assistant, that will ask you to play these
 holes of your harmonica one after the other, each for one second:
 
-  \e[32m#{$holes.join(' ')}\e[0m
+  \e[32m#{hole_desc}\e[0m
 
 Each recording is preceded by a short countdown (2,1).
 If there already is a recording, it will be plotted first.
@@ -75,10 +80,11 @@ Hint: If you want to calibrate for another key of harp, you might copy the
   whole directory below 'samples' and record only those notes that are
   missing.
 
-Tip: You may invoke this assistant again at any later time, just to review
-  your recorded notes and maybe correct some of them. Results are written
-  to disk immediately, so you may interrupt the process with ctrl-c after
-  any hole. To start with a specific hole us option '--hole'.
+Tips: You may invoke this assistant again at any later time, just to review
+  your recorded notes and maybe correct some of them. 
+  Results are written to disk immediately, so you may interrupt the process
+  with ctrl-c after any hole. To start with a specific hole use option
+  '--hole'.
 
 
 EOINTRO
@@ -86,9 +92,6 @@ EOINTRO
   print "Press RETURN to start with the \e[32mfirst\e[0m hole: "
   STDIN.gets
 
-  if $opts[:hole] && !$holes.include?($opts[:hole])
-    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$holes.inspect}"
-  end
   if File.exist?($freq_file)
     hole2freq = JSON.parse(File.read($freq_file))
   else
@@ -157,7 +160,7 @@ def review_hole hole, prev_freq
 
     if do_draw
       draw_data($edit_data, 0, duration, 0)
-      print "Analysis: "
+      puts "Analysis of current recorded/generated sound: "
       freq = analyze_with_aubio(file)
       puts "Frequency: #{freq}"
     end
@@ -178,7 +181,7 @@ def review_hole hole, prev_freq
     end
 
     unless do_draw
-      print "Analysis: "
+      puts "Analysis of current recorded/generated sound: "
       freq = analyze_with_aubio(file)
       puts "Frequency: #{freq}"
     end
@@ -197,10 +200,10 @@ def review_hole hole, prev_freq
                :draw => [['d'], 'redraw sound data'],
                :record => [['r'], "record RIGHT AWAY (after countdown)"],
                :generate => [['g'], 'generate a sound for the holes nominal frequency'],
-               :frequency => [['f'], 'generate a sample sound and get its frequency; do not overwrite current recording'],
+               :frequency => [['f'], "show the holes nominal frequency by generating and analysing a\n              sample sound; does not overwrite current recording"],
                :back => [['b'], 'skip back to previous hole']}
     
-    choices[:okay] = [['k', 'RETURN'], 'keep recording and continue'] if freq >= prev_freq
+    choices[:okay] = [['RETURN'], 'keep recording and continue'] if freq >= prev_freq
     
     answer = read_answer(choices)
 
@@ -215,10 +218,10 @@ def review_hole hole, prev_freq
     when :draw
       do_draw = true
     when :frequency
-      puts "--- creating and analysing a sample sound"
+      print "--- Generate and analyse a sample sound:"
       synth_sound hole, $collect_wave
       puts "Frequency: #{analyze_with_aubio($collect_wave)}"
-      puts "--- done"
+      puts "--- done\n\n"
     when :generate
       synth_sound hole
       do_draw = true
