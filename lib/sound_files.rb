@@ -107,11 +107,11 @@ def sox_query file, property
 end
 
 
-def synth_sound hole
+def synth_sound hole, file = nil
   puts "\nGenerating   hole \e[32m#{hole}\e[0m,   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
     
   diff_semis = $harp[hole][:semi] - note2semi('a4')
-  file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+  file ||= "#{$sample_dir}/#{$harp[hole][:note]}.wav"
   puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis} gain -n -3"
   sys cmd
   file

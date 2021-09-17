@@ -46,6 +46,8 @@ Usage by examples:
   For quick (and possibly inaccurate) calibration you may use the option
   '--auto' to generate and analyze all needed samples automatically.
 
+  To calibrate only a single whole, add e.g. '--hole -2+3'.
+
 
 Notes:
 
@@ -63,12 +65,13 @@ EOU
 
   # extract options first
   opts = Hash.new
-  opts_with_args = [:debug]
-  { %w(-d --debug)=>:debug,
-    %w(-s --screenshot)=>:screenshot,
-    %w(-h --help)=>:help,
-    %w(--auto)=>:auto,
-    %w(-l --loop)=>:loop}.each do |txts,opt|
+  opts_with_args = [:debug, :hole]
+  { %w(-d --debug) => :debug,
+    %w(-s --screenshot) => :screenshot,
+    %w(-h --help) => :help,
+    %w(--auto) =>:auto,
+    %w(--hole) => :hole,
+    %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
         if txt.start_with?(ARGV[i]) && ARGV[i].length >= [4, txt.length].min
@@ -87,7 +90,7 @@ EOU
     opts[:debug] = opts[:debug].to_i
   end
   opts[:debug] = 0 unless opts[:debug]
-  
+
   ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err_h "Unknown options: #{left.join(',')}" if left.length > 0}
 
   if ARGV.length == 0 || opts[:help]

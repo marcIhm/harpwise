@@ -114,9 +114,9 @@ def add_to_samples samples
   # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
   begin
     start_record = Time.now.to_f
-    record_sound 0.1, $sample_file, silent: true
+    record_sound 0.1, $collect_wave, silent: true
   end while Time.now.to_f - start_record < 0.05
-  new_samples = run_aubiopitch($sample_file, "--hopsize 1024").lines.
+  new_samples = run_aubiopitch($collect_wave, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}
   # curate our pool of samples

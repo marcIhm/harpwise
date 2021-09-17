@@ -26,7 +26,8 @@ end
 
 def set_global_vars_late
   $sample_dir = "samples/diatonic/key_of_#{$key}"
-  $sample_file = 'tmp/sample.wav'
+  $freq_file = "#{$sample_dir}/frequencies.json"
+  $collect_wave = 'tmp/collect.wav'
   $edit_data = 'tmp/edit_workfile.dat'
   $edit_wave = 'tmp/edit_workfile.wav'
 end
@@ -86,17 +87,16 @@ end
 
 
 def read_calibration
-  ffile = "#{$sample_dir}/frequencies.json"
-  err_b "Frequency file #{ffile} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?(ffile)
-  freqs = JSON.parse(File.read(ffile))
-  unless Set.new(freqs.keys) == Set.new($holes)
-    err_b "Holes in #{ffile} #{freqs.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration"
+  err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
+  hole2freq = JSON.parse(File.read($freq_file))
+  unless Set.new(hole2freq.keys) == Set.new($holes)
+    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration"
   end
-  unless $holes.map {|hole| freqs[hole]}.each_cons(2).all? { |a, b| a < b }
-    err_b "Frequencies in #{ffile} are not strictly ascending in order of #{$holes.inspect}: #{freqs.pretty_inspect}"
+  unless $holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
+    err_b "Frequencies in #{$freq_file} are not strictly ascending in order of #{$holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
-  freqs.map {|k,v| $harp[k][:freq] = v}
+  hole2freq.map {|k,v| $harp[k][:freq] = v}
 
   $holes.each do |hole|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"

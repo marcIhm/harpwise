@@ -40,9 +40,8 @@ EOINTRO
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end
-  ffile = "#{$sample_dir}/frequencies.json"
-  File.write(ffile, JSON.pretty_generate(hole2freq))
-  puts "\nFrequencies in: #{ffile}"
+  File.write($freq_file, JSON.pretty_generate(hole2freq))
+  puts "\nFrequencies in: #{$freq_file}"
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
@@ -50,9 +49,6 @@ end
 def do_calibrate_assistant
   
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  if hole && !$holes.include?(hole)
-    err_h "Only hole given to calibrates (#{hole}) is none of these: #{$holes}"   
-  end
   puts <<EOINTRO
 
 
@@ -80,7 +76,9 @@ Hint: If you want to calibrate for another key of harp, you might copy the
   missing.
 
 Tip: You may invoke this assistant again at any later time, just to review
-  your recorded notes and maybe correct some of them.
+  your recorded notes and maybe correct some of them. Results are written
+  to disk immediately, so you may interrupt the process with ctrl-c after
+  any hole. To start with a specific hole us option '--hole'.
 
 
 EOINTRO
@@ -88,38 +86,33 @@ EOINTRO
   print "Press RETURN to start with the \e[32mfirst\e[0m hole: "
   STDIN.gets
 
-  if hole
-    ffile = "#{$sample_dir}/frequencies.json"
-    err_b "Frequence file #{ffile} does not exist yet; do a full calibration first" unless File.exist?(ffile)
-    hole2freq = JSON.parse(File.read(ffile))
-    freqs = hole2freq.values
-    i = $holes.find_index(hole)
-    hole2freq[hole] = freqs[i] = review_hole(hole, freqs[i-1] || 0)
-    if freqs[i] < 0
-      puts "Hole #{hole} has not been recorded; exiting ..."
-      exit 0
-    end
+  if $opts[:hole] && !$holes.include?($opts[:hole])
+    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$holes.inspect}"
+  end
+  if File.exist?($freq_file)
+    hole2freq = JSON.parse(File.read($freq_file))
   else
     hole2freq = Hash.new
-    freqs = Array.new
-    i = 0
-    begin
-      hole = $holes[i]
-      freqs[i] = review_hole(hole, freqs[i-1] || 0)
-      if freqs[i] < 0
-        if i > 0 
-          puts "Skipping  \e[32mback\e[0m  !"
-          i -= 1
-        else
-          puts "Cannot skip, back already at first hole ..."
-        end
-      else
-        hole2freq[hole] = freqs[i]
-        i += 1
-      end
-    end while i <= $holes.length - 1
   end
-  File.write("#{$sample_dir}/frequencies.json", JSON.pretty_generate(hole2freq))
+  freqs = Array.new
+  i = $opts[:hole] ? $holes.index($opts[:hole]) : 0
+
+  begin
+    hole = $holes[i]
+    freqs[i] = review_hole(hole, freqs[i-1] || 0)
+    if freqs[i] < 0
+      if i > 0 
+        puts "Skipping  \e[32mback\e[0m  !"
+        i -= 1
+      else
+        puts "Cannot skip, back already at first hole ..."
+        end
+    else
+      hole2freq[hole] = freqs[i]
+      i += 1
+    end
+    File.write($freq_file, JSON.pretty_generate(hole2freq))
+  end while i <= $holes.length - 1
   system("ls -lrt #{$sample_dir}")
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
@@ -151,7 +144,7 @@ def review_hole hole, prev_freq
       # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
       begin
         tstart_record = Time.now.to_f
-        record_sound 0.2, $sample_file, silent: true
+        record_sound 0.2, $collect_wave, silent: true
       end while Time.now.to_f - tstart_record < 0.1
       
       puts "\e[31mrecording\e[0m to #{file} ..."
@@ -166,7 +159,9 @@ def review_hole hole, prev_freq
       draw_data($edit_data, 0, duration, 0)
       print "Analysis: "
       freq = analyze_with_aubio(file)
+      puts "Frequency: #{freq}"
     end
+    
     puts initial_issue if initial_issue
     initial_issue = false
 
@@ -182,8 +177,11 @@ def review_hole hole, prev_freq
       end
     end
 
-    print "Analysis: "
-    freq = analyze_with_aubio(file)
+    unless do_draw
+      print "Analysis: "
+      freq = analyze_with_aubio(file)
+      puts "Frequency: #{freq}"
+    end
     
     if freq < prev_freq
       puts "\n\nWAIT !"
@@ -198,7 +196,8 @@ def review_hole hole, prev_freq
                :edit => [['e'], 'edit recorded sound, i.e. set start for play'],
                :draw => [['d'], 'redraw sound data'],
                :record => [['r'], "record RIGHT AWAY (after countdown)"],
-               :generate=> [['g'], 'generate a sound for the holes nominal frequency'],
+               :generate => [['g'], 'generate a sound for the holes nominal frequency'],
+               :frequency => [['f'], 'generate a sample sound and get its frequency; do not overwrite current recording'],
                :back => [['b'], 'skip back to previous hole']}
     
     choices[:okay] = [['k', 'RETURN'], 'keep recording and continue'] if freq >= prev_freq
@@ -215,6 +214,11 @@ def review_hole hole, prev_freq
       do_edit = do_draw = true
     when :draw
       do_draw = true
+    when :frequency
+      puts "--- creating and analysing a sample sound"
+      synth_sound hole, $collect_wave
+      puts "Frequency: #{analyze_with_aubio($collect_wave)}"
+      puts "--- done"
     when :generate
       synth_sound hole
       do_draw = true
