@@ -10,7 +10,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   $move_down_on_exit = true
   
   print "\e[#{$line_issue}H#{issue.ljust($term_width - $ctl_issue_width)}\e[0m"
-  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; n,RET next' + ($opts[:loop] ? '' : '; l loop') : ''}"
+  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; RET next; BS back' + ($opts[:loop] ? '' : '; l loop') : ''}"
   ctl_issue
 
   hole_start = Time.now.to_f
@@ -81,14 +81,14 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     print "\e[#{$line_interval}H"
     inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
     if inter_semi
-      print "Interval: #{hole_for_inter.rjust(5)} to #{hole_held.rjust(5)} is #{inter_semi.rjust(5)}" + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
+      print "Interval: #{hole_for_inter.rjust(5)}   to #{hole_held.rjust(5)}   is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
-      print "Interval:  ---\e[K"
+      # let old interval be visible
     end
       
     print "\e[#{$line_hole}H\e[0m"
-    print "\e[#{hole ? ( good ? 32 : 31 ) : 2}m"
-    do_figlet hole || '-', 'mono12'
+    print "\e[#{(hole && hole != :low && hole != :high) ? ( good ? 32 : 31 ) : 2}m"
+    do_figlet ({ low: '-', high: '-'}[hole] || hole || '-'), 'mono12'
 
     if lambda_comment_big
       comment_text, font = lambda_comment_big.call(inter_semi, inter_text)

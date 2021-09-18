@@ -62,56 +62,64 @@ def dismiss_term
 end
 
 
-def poll_and_handle_kb space_only = false
+def poll_and_handle_kb listen_mode = false
   return unless Time.now.to_f - $ctl_last_poll > 1
   $ctl_last_poll = Time.now.to_f 
-  key = ''
+  char = ''
   begin
-      key = STDIN.read_nonblock(1)
+      char = STDIN.read_nonblock(1)
   rescue IO::EAGAINWaitReadable
   end
-  
-  if key == ' '
-    if space_only
+
+  if listen_mode
+    if char == ' '
       print "SPACE to continue ... "
+      begin
+        char = STDIN.getc
+      end until char == " "
+      return ' '
+    elsif char && char.length > 0 && char.ord == 127
+      return :backspace
     else
-      ctl_issue "SPACE to continue"
+      return nil
     end
-    begin
-      key = STDIN.getc
-    end until key == " "
-    if space_only
-      return
+  else
+    if char == ' '
+      ctl_issue "SPACE to continue", hl: true
+      begin
+      char = STDIN.getc
+      end until char == " "
+    elsif char == "\n" && $ctl_can_next
+      $ctl_next = true
+      text = "Skip"
+    elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
+      $ctl_back = true
+      text = "Skip back"
+    elsif char == 'l'  && $ctl_can_next && !$opts[:loop]
+      $ctl_loop = true
+      text = "Loop started"
+    elsif char.length > 0
+      text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}'"
     end
-  elsif space_only
-    return
-  elsif ( key == 'n' || key == "\n" ) && $ctl_can_next
-    $ctl_next = true
-    text = "Skip"
-  elsif key == 'l'  && $ctl_can_next && !$opts[:loop]
-    $ctl_loop = true
-    text = "Loop started"
-  elsif key.length > 0
-    text = "Invalid key '#{key.match?(/[[:print:]]/) ? key : '?'}'"
+    ctl_issue text
   end
-  ctl_issue text
 end
 
 
-def ctl_issue text = nil
+def ctl_issue text = nil, **opts
   text ||= $ctl_default_issue
-  fail "Internal error text #{text} is longer than #{$ctl_issue_width}" if text.length > $ctl_issue_width
-  print "\e[1;#{$term_width - $ctl_issue_width}H\e[2m#{text.rjust($ctl_issue_width)}\e[0m"
+  fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_issue_width}" if text.length > $ctl_issue_width
+  print "\e[1;#{$term_width - $ctl_issue_width}H\e[#{opts[:hl] ? 33 : 2}m#{text.rjust($ctl_issue_width)}\e[0m"
 end
   
 
-def read_answer answer2keys_desc
+def read_answer answer2chars_desc
   klists = Hash.new
-  answer2keys_desc.each do |an, ks_d|
+  answer2chars_desc.each do |an, ks_d|
     klists[an] = ks_d[0].join(', ')
   end
   maxlen = klists.map {|k,v| v.length}.max
-  answer2keys_desc.each do |an, ks_d|
+  answer2chars_desc.each do |an, ks_d|
     puts "  %*s :  %s" % [maxlen, klists[an], ks_d[1]]
   end
 
@@ -129,10 +137,10 @@ def read_answer answer2keys_desc
     puts char
     puts
     answer = nil
-    answer2keys_desc.each do |an, ks_d|
+    answer2chars_desc.each do |an, ks_d|
       answer = an if ks_d[0].include?(char)
     end
-    puts "Invalid key: '#{char}' (#{char.ord})" unless answer
+    puts "Invalid key: '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})" unless answer
   end while !answer
   answer
 end

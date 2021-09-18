@@ -12,31 +12,59 @@ def do_quiz
   end
 
   first_lap_at_all = true
+  all_wanted_before = all_wanted = nil
   $ctl_can_next = true
-  loop do   # forever, sequence after sequence
-
-    all_wanted = $scale_holes.sample($num_quiz)
-    sleep 0.3
+  loop do   # forever until ctrl-c, sequence after sequence
 
     unless first_lap_at_all
-      ctl_issue "SPACE to pause"
+      ctl_issue "SPACE to pause" + (first_lap_at_all ? '' : ', BS to go back')
       print "\e[#{$line_hint}H\e[K" 
       print "\e[#{$line_listen}H\e[K"
+      print "\e[#{$line_listen2}H\e[K"
     end
 
-    all_wanted.each_with_index do |hole, idx|
-      file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-      poll_and_handle_kb true
-      if idx > 0
-        isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
+    if $ctl_back
+      if all_wanted_before == all_wanted
+        print "Cannot jump back any further ! "
+      else
+        all_wanted = all_wanted_before
+        print "Jumping back to #{all_wanted.join(' ')} ! "
       end
-      print "listen ... "
-      play_sound file
+    else
+      all_wanted_before = all_wanted
+      all_wanted = $scale_holes.sample($num_quiz)
     end
+    
+    sleep 0.3
+
+    $ctl_back = false
+    begin
+      redo_sequence = false
+      all_wanted.each_with_index do |hole, idx|
+        file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+        char = poll_and_handle_kb true
+        if char == :backspace
+          if !all_wanted_before || all_wanted == all_wanted_before 
+            print "Cannot jump back any further ! "
+          else
+            print "Jumping back to previous sequence ! "
+          end
+          sleep 1
+          all_wanted = all_wanted_before || all_wanted
+          redo_sequence = true
+          break
+        end
+        if idx > 0
+          isemi, itext = describe_inter(hole, all_wanted[idx - 1])
+          print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
+        end
+        print "listen ... "
+        play_sound file
+      end
+    end while redo_sequence
     print "\e[32mand !\e[0m"
     sleep 0.5
-    print "\e[#{$line_listen}H\e[K" unless first_lap_at_all
+    print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap_at_all
   
     system('clear') if first_lap_at_all
     full_hint_shown = false
@@ -62,13 +90,13 @@ def do_quiz
                                played == wanted && 
                                Time.now.to_f - since > 0.5]}, # do not return okay immediately
           
-          -> () {$ctl_next},  # lambda_skip
+          -> () {$ctl_next || $ctl_back},  # lambda_skip
           
           -> (_, _) do  # lambda_comment_big
             if $num_quiz == 1
               [ '.  .  .', 'smblock' ]
             else
-              [ 'Yes  ' + '*' * idx + '-' * (all_wanted.length - idx), 'smblock' ]
+              [ 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock' ]
             end
           end,
           
@@ -101,26 +129,32 @@ def do_quiz
 
       end # notes in a sequence
         
-      if $ctl_next
+      if $ctl_next || $ctl_back
         print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
-        $ctl_loop = false
+        $ctl_loop = $ctl_back
         first_lap_at_all = false
         next
       end
     
       print "\e[#{$line_comment_big}H"
-      text = $ctl_next ? 'skipped' : ( full_hint_shown ? 'Yes' : 'Great !' )
+      text = if $ctl_next
+               "skip"
+             elsif $ctl_back
+               "jump back"
+             else
+               ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
+             end
       print "\e[32m"
       do_figlet text, 'smblock'
       print "\e[0m"
       
       print "\e[#{$line_comment_small}H"
-      print "#{$ctl_next ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
+      print "#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
     
       sleep 1
-    end while $ctl_loop  # looping over one sequence
+    end while $ctl_loop && !$ctl_back # looping over one sequence
 
     $ctl_next = false
     first_lap_at_all = false

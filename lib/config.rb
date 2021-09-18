@@ -15,12 +15,13 @@ def set_global_vars_early
   $line_comment_small = 28
   $line_hint = 29
   $line_listen = 30
+  $line_listen2 = 31
 
   $ctl_last_poll = Time.now.to_f
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = nil
-  $ctl_can_skip = false
-  $ctl_issue_width = 36
+  $ctl_can_next = $ctl_can_back = false
+  $ctl_issue_width = 42
 end
 
 
