@@ -65,9 +65,10 @@ holes of your harmonica one after the other, each for one second:
 Each recording is preceded by a short countdown (2,1).
 If there already is a recording, it will be plotted first.
 
-For each hole, 3 seconds will be recorded and silence will be cut off front
-and rear; then the recording will be truncated to 1 second. So you may well
-wait for the actual red \e[31mrecording\e[0m mark before starting to play.
+For each hole, 3 seconds will be recorded and you will get a chance to
+manually cut off initial silence; then the recording will be truncated to 1
+second. So you may well wait for the actual red \e[31mrecording\e[0m mark
+before starting to play.
 
 The harp, that you use now for calbration, should be the one, that you will
 use for your practice later.
