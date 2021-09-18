@@ -17,51 +17,40 @@ def do_quiz
   loop do   # forever until ctrl-c, sequence after sequence
 
     unless first_lap_at_all
-      ctl_issue "SPACE to pause" + (first_lap_at_all ? '' : ', BS to go back')
+      ctl_issue
       print "\e[#{$line_hint}H\e[K" 
       print "\e[#{$line_listen}H\e[K"
       print "\e[#{$line_listen2}H\e[K"
     end
 
     if $ctl_back
-      if all_wanted_before == all_wanted
+      if !all_wanted_before || all_wanted_before == all_wanted
         print "Cannot jump back any further ! "
       else
         all_wanted = all_wanted_before
         print "Jumping back to #{all_wanted.join(' ')} ! "
       end
+      $ctl_loop = true
     else
       all_wanted_before = all_wanted
       all_wanted = $scale_holes.sample($num_quiz)
+      $ctl_loop = $opts[:loop]
     end
+    $ctl_back = $ctl_next = false
     
     sleep 0.3
 
-    $ctl_back = false
-    begin
-      redo_sequence = false
-      all_wanted.each_with_index do |hole, idx|
-        file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-        char = poll_and_handle_kb true
-        if char == :backspace
-          if !all_wanted_before || all_wanted == all_wanted_before 
-            print "Cannot jump back any further ! "
-          else
-            print "Jumping back to previous sequence ! "
-          end
-          sleep 1
-          all_wanted = all_wanted_before || all_wanted
-          redo_sequence = true
-          break
-        end
-        if idx > 0
-          isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-          print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
-        end
-        print "listen ... "
-        play_sound file
+    all_wanted.each_with_index do |hole, idx|
+      poll_and_handle_kb_listen
+      break if $ctl_back
+      if idx > 0
+        isemi, itext = describe_inter(hole, all_wanted[idx - 1])
+        print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
       end
-    end while redo_sequence
+      print "listen ... "
+      play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    end
+    redo if $ctl_back
     print "\e[32mand !\e[0m"
     sleep 0.5
     print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap_at_all
@@ -69,7 +58,6 @@ def do_quiz
     system('clear') if first_lap_at_all
     full_hint_shown = false
 
-    $ctl_loop = $opts[:loop]
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
@@ -78,7 +66,7 @@ def do_quiz
         hole_start = Time.now.to_f
         get_hole(
           if $ctl_loop
-            "Looping over #{all_wanted.length} notes; play them again and again ..."
+            "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."
           else
             if $num_quiz == 1 
               "Play the note you have heard !"
@@ -131,7 +119,6 @@ def do_quiz
         
       if $ctl_next || $ctl_back
         print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
-        $ctl_loop = $ctl_back
         first_lap_at_all = false
         next
       end
@@ -154,9 +141,8 @@ def do_quiz
       full_hint_shown = true
     
       sleep 1
-    end while $ctl_loop && !$ctl_back # looping over one sequence
+    end while $ctl_loop && !$ctl_back && !$ctl_next  # looping over one sequence
 
-    $ctl_next = false
     first_lap_at_all = false
   end # sequence after sequence
 end

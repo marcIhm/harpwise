@@ -62,7 +62,7 @@ def dismiss_term
 end
 
 
-def poll_and_handle_kb listen_mode = false
+def poll_and_handle_kb_listen
   return unless Time.now.to_f - $ctl_last_poll > 1
   $ctl_last_poll = Time.now.to_f 
   char = ''
@@ -71,42 +71,53 @@ def poll_and_handle_kb listen_mode = false
   rescue IO::EAGAINWaitReadable
   end
 
-  if listen_mode
-    if char == ' '
-      print "SPACE to continue ... "
-      begin
-        char = STDIN.getc
-      end until char == " "
-      return ' '
-    elsif char && char.length > 0 && char.ord == 127
-      return :backspace
-    else
-      return nil
-    end
-  else
-    if char == ' '
-      ctl_issue "SPACE to continue", hl: true
-      begin
+  if char == ' '
+    print "SPACE to continue ... "
+    begin
       char = STDIN.getc
-      end until char == " "
-    elsif char == "\n" && $ctl_can_next
-      $ctl_next = true
-      text = "Skip"
-    elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
-      $ctl_back = true
-      text = "Skip back"
-    elsif char == 'l'  && $ctl_can_next && !$opts[:loop]
-      $ctl_loop = true
-      text = "Loop started"
-    elsif char.length > 0
-      text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}'"
-    end
-    ctl_issue text
+    end until char == " "
+  elsif char && char.length > 0 && char.ord == 127
+    $ctl_back = true
   end
 end
 
 
+def poll_and_handle_kb_play
+  return unless Time.now.to_f - $ctl_last_poll > 1
+  $ctl_last_poll = Time.now.to_f 
+  char = ''
+  begin
+      char = STDIN.read_nonblock(1)
+  rescue IO::EAGAINWaitReadable
+  end
+
+  if char == ' '
+    ctl_issue "SPACE to continue", hl: true
+    begin
+      char = STDIN.getc
+    end until char == " "
+  elsif char == "\n" && $ctl_can_next
+    $ctl_next = true
+    text = "Skip"
+  elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
+    $ctl_back = true
+    text = "Skip back"
+  elsif char == 'l' && !$opts[:loop] && $ctl_can_next
+    $ctl_loop = true
+    text = "Loop started"
+  elsif char.length > 0
+    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}'"
+  end
+  ctl_issue text
+end
+
+
 def ctl_issue text = nil, **opts
+  if text
+    $ctl_non_def_issue_ts = Time.now.to_f
+  elsif $ctl_non_def_issue_ts
+    return if Time.now.to_f - $ctl_non_def_issue_ts < 3
+  end
   text ||= $ctl_default_issue
   fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_issue_width}" if text.length > $ctl_issue_width
   print "\e[1;#{$term_width - $ctl_issue_width}H\e[#{opts[:hl] ? 33 : 2}m#{text.rjust($ctl_issue_width)}\e[0m"

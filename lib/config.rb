@@ -22,6 +22,7 @@ def set_global_vars_early
   $ctl_skip = $ctl_loop = nil
   $ctl_can_next = $ctl_can_back = false
   $ctl_issue_width = 42
+  $ctl_non_def_issue_ts = nil
 end
 
 

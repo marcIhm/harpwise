@@ -53,7 +53,7 @@ Enter any of these, finish with RETURN:
                  RETURN :  Play from current position;  Example:  RETURN
                       d :  Draw wave curve again
                       y :  Accept current play position and skip to next hole
-                    n,q :  Discard edit
+                      q :  Discard edit
                       r :  Redo this edit and recording before
 
 EOHELP

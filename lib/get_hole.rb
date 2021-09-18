@@ -27,7 +27,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     return if lambda_skip && lambda_skip.call()
 
-    poll_and_handle_kb
+    poll_and_handle_kb_play
     
     print "\e[#{$line_samples}H"
     print "\e[2mSamples total: #{samples.length.to_s.rjust(2)}, new: #{new_samples.length.to_s.rjust(2)}\e[K"
