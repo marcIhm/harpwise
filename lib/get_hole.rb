@@ -43,7 +43,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       good = done = false
       
       print "\e[#{$line_frequency}H"
-      text = "Frequency: #{pk[0].to_s.rjust(4)}"
+      freq_text = "Frequency: #{pk[0].to_s.rjust(4)}"
 
       if pk[1] > 6
         hole_was = hole
@@ -61,14 +61,16 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
           good = true
           done = true if Time.now.to_f - hole_start > 2
         end
-        if ubor
-          print (text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
+        if hole == :low || hole == :high
+          print freq_text
+        else
+          print (freq_text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
                 (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '') + "\e[K"
           hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
       else
-        hole = nil 
-        print text + " but count below threshold of 6\e[K"
+        hole = nil
+        print freq_text + " but count of peak below 7\e[K"
       end
     else
       # Not enough samples, analysis not possible

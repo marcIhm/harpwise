@@ -36,7 +36,8 @@ EOINTRO
   hole2freq = Hash.new
   freqs = Array.new
   $holes.each do |hole|
-    file = synth_sound hole
+    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    synth_sound hole, file
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end
@@ -127,14 +128,14 @@ def review_hole hole, prev_freq
   file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
   do_draw = true
   do_edit = false
+  do_record = false
   if File.exists?(file)
-    initial_issue = "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
+    puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
     duration = wave2data(file)
-    do_record = false
   else
-    do_record = true
+    puts "\nFile  #{file}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
   end
-  issue_before_edit = initial_issue = false
+  issue_before_edit = false
 
   begin
       
@@ -159,40 +160,39 @@ def review_hole hole, prev_freq
       do_draw = true
     end
 
-    if do_draw
-      draw_data($edit_data, 0, duration, 0)
-      puts "Analysis of current recorded/generated sound: "
-      freq = analyze_with_aubio(file)
-      puts "Frequency: #{freq}"
-    end
-    
-    puts initial_issue if initial_issue
-    initial_issue = false
-
-    if do_edit
-      puts issue_before_edit if issue_before_edit
-      issue_before_edit = false
-      result = edit_sound(hole, file)
-      if  result == :redo
-        puts "Redo ..."
-        redo                         
-      elsif result == :next_hole
-        return analyze_with_aubio(file)
+    if File.exists?(file)
+      if do_draw
+        draw_data($edit_data, 0, duration, 0)
+        puts "Analysis of current recorded/generated sound: "
+        freq = analyze_with_aubio(file)
+        puts "Frequency: #{freq}"
       end
-    end
+      
+      if do_edit
+        puts issue_before_edit if issue_before_edit
+        issue_before_edit = false
+        result = edit_sound(hole, file)
+        if  result == :redo
+          puts "Redo ..."
+          redo                         
+        elsif result == :next_hole
+          return analyze_with_aubio(file)
+        end
+      end
 
-    unless do_draw
-      puts "Analysis of current recorded/generated sound: "
-      freq = analyze_with_aubio(file)
-      puts "Frequency: #{freq}"
-    end
+      if !do_draw
+        puts "Analysis of current recorded/generated sound: "
+        freq = analyze_with_aubio(file)
+        puts "Frequency: #{freq}"
+      end
     
-    if freq < prev_freq
-      puts "\n\nWAIT !"
-      puts "The frequency recorded for \e[33m#{hole}\e[0m (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
-      puts "Therefore this recording cannot be accepted and you need to redo !"
-      puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
-      puts "you may want to skip back to the previous hole ...\n\n"
+      if freq < prev_freq
+        puts "\n\nWAIT !"
+        puts "The frequency recorded for \e[33m#{hole}\e[0m (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
+        puts "Therefore this recording cannot be accepted and you need to redo !"
+        puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
+        puts "you may want to skip back to the previous hole ...\n\n"
+      end
     end
 
     puts "\n\e[33mWhat's next\e[0m for hole \e[33m#{hole}\e[0m ?"
@@ -204,7 +204,7 @@ def review_hole hole, prev_freq
                :frequency => [['f'], "show the holes nominal frequency by generating and analysing a\n              sample sound; does not overwrite current recording"],
                :back => [['b'], 'skip back to previous hole']}
     
-    choices[:okay] = [['RETURN'], 'keep recording and continue'] if freq >= prev_freq
+    choices[:okay] = [['RETURN'], 'keep sound and continue'] if File.exists?(file) && freq >= prev_freq
     
     answer = read_answer(choices)
 
@@ -224,7 +224,8 @@ def review_hole hole, prev_freq
       puts "Frequency: #{analyze_with_aubio($collect_wave)}"
       puts "--- done\n\n"
     when :generate
-      synth_sound hole
+      synth_sound hole, file
+      duration = wave2data(file)
       do_draw = true
     when :record
       do_draw = do_record = do_edit = true

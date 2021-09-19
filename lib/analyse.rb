@@ -80,7 +80,7 @@ def describe_freq freq
 
   # pseudo frequencies to aid analysis
   freqs = ([$harp[$holes[0]][:freq] / 2,
-            $harp[$holes[0]][:freq] * 2] + $freq2hole.keys).sort
+            $harp[$holes[-1]][:freq] * 2] + $freq2hole.keys).sort
   
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
@@ -97,7 +97,7 @@ def note2semi note
   notes_with_flats = %w( c df d ef e f gf g af a bf b )
 
   note = note.downcase
-  raise ArgumentError.new('should end on a single digit') unless ('1'..'9').include?(note[-1])
+  raise ArgumentError.new('should end with a single digit') unless ('1'..'9').include?(note[-1])
   idx = notes_with_sharps.index(note[0 .. -2]) ||
         notes_with_flats.index(note[0 .. -2]) or
     raise ArgumentError.new("non-digit part is none of #{notes_with_sharps.inspect} or #{notes_with_flats.inspect}")

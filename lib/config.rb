@@ -70,7 +70,7 @@ def read_musical_config
   scales_holes = JSON.parse(File.read('config/scales_holes.json')).transform_keys!(&:to_sym)
   scales_holes.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
-      fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}"
+      fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
     end
   end
 
@@ -91,8 +91,11 @@ end
 def read_calibration
   err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
   hole2freq = JSON.parse(File.read($freq_file))
-  unless Set.new(hole2freq.keys) == Set.new($holes)
-    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} do not match those expected for scale #{$scale} #{$harp.keys.join(' ')}; maybe you need to redo the calibration"
+  unless Set.new($holes).subset?(Set.new(hole2freq.keys))
+    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
+  end
+  unless Set.new(hole2freq.keys).subset?(Set.new($holes))
+    err_b "Holes for scale #{$scale} #{$harp.keys.join(' ')} is not a subset of holes in #{$freq_file} #{hole2freq.keys.join(' ')}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
   end
   unless $holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
     err_b "Frequencies in #{$freq_file} are not strictly ascending in order of #{$holes.inspect}: #{hole2freq.pretty_inspect}"
