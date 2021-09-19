@@ -5,7 +5,8 @@
 def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
-  $line_issue = 0
+  $line_issue = 1
+  $line_key = 2
   $line_hole = 5
   $line_samples = 15
   $line_peaks = 16

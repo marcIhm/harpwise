@@ -141,7 +141,7 @@ def review_hole hole, prev_freq
   begin
       
     if do_record
-      puts "\nRecording hole  \e[32m#{hole}\e[0m  (\e[2mkey of #{$key}\e[0m) when '\e[31mrecording\e[0m' appears."
+      puts "\nRecording hole  \e[32m#{hole}\e[0m  when '\e[31mrecording\e[0m' appears."
       [2, 1].each do |c|
         puts "\e[31m#{c}\e[0m"
         sleep 1
@@ -196,7 +196,7 @@ def review_hole hole, prev_freq
       end
     end
 
-    puts "\n\e[33mWhat's next\e[0m for hole \e[33m#{hole}\e[0m ?"
+    puts "\n\e[33mWhat's next\e[0m for hole   \e[33m#{hole}\e[0m   (key of #{$key}) ?"
     choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
                :edit => [['e'], 'edit recorded sound, i.e. set start for play'],
                :draw => [['d'], 'redraw sound data'],
