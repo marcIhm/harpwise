@@ -6,8 +6,9 @@ diatonic harmonica for various keys.
 Its operation modes are 'listen' and 'quiz'.
 
 The screenshot below is from mode 'quiz': The program has played five notes
-intially and now challenges me to play them back. I just played the third note,
-six blow, correctly and now I try to hit the fourth note.
+intially and now challenges me to play them back. I just played the fourth
+note, six blow, correctly. Now the program will acknowledge this and ask for
+the fifth note next.
 
 [[images/screenshot.png]]
 
