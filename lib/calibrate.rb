@@ -15,10 +15,11 @@ This will generate all needed samples for holes:
   \e[32m#{$holes.join(' ')}\e[0m
 
 Letting this program generate your samples is a good way to get started
-quickly.  However, the generated notes and their frequencies cannot match
-those of your own special harp or style of playing very well. Therefore,
-later, you may want to repeat the calibration by playing yourself
-(i.e. without option '--auto').
+quickly. The notes will be in "equal temperament" (rather than "just tuning").
+
+However, the generated notes and their frequencies cannot match those of your
+own special harp or style of playing very well. Therefore, later, you may want
+to repeat the calibration by playing yourself (i.e. without option '--auto').
 
 
 If, on the other hand you already have samples, recorded by yourself, they
@@ -41,7 +42,7 @@ EOINTRO
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end
-  File.write($freq_file, JSON.pretty_generate(hole2freq))
+  write_freq_file hole2freq
   puts "\nFrequencies in: #{$freq_file}"
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
@@ -116,7 +117,7 @@ EOINTRO
       hole2freq[hole] = freqs[i]
       i += 1
     end
-    File.write($freq_file, JSON.pretty_generate(hole2freq))
+    write_freq_file hole2freq
   end while i <= $holes.length - 1
   system("ls -lrt #{$sample_dir}")
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
@@ -201,7 +202,7 @@ def review_hole hole, prev_freq
                :draw => [['d'], 'redraw sound data'],
                :record => [['r'], "record RIGHT AWAY (after countdown)"],
                :generate => [['g'], 'generate a sound for the holes nominal frequency'],
-               :frequency => [['f'], "show the holes nominal frequency by generating and analysing a\n              sample sound; does not overwrite current recording"],
+               :frequency => [['f'], "show and play the nominal frequency of the hole by generating and\n              analysing a sample sound; does not overwrite current recording"],
                :back => [['b'], 'skip back to previous hole']}
     
     choices[:okay] = [['RETURN'], 'keep sound and continue'] if File.exists?(file) && freq >= prev_freq
@@ -221,6 +222,7 @@ def review_hole hole, prev_freq
     when :frequency
       print "--- Generate and analyse a sample sound:"
       synth_sound hole, $collect_wave
+      play_sound $collect_wave
       puts "Frequency: #{analyze_with_aubio($collect_wave)}"
       puts "--- done\n\n"
     when :generate
@@ -251,3 +253,11 @@ def analyze_with_aubio file
 end
 
 
+def write_freq_file hole2freq
+  # Recreate the hash in order of $holes
+  hole2freq_sorted = Hash.new
+  [$holes + hole2freq.keys].flatten.each do |hole|
+    hole2freq_sorted[hole] = hole2freq[hole]
+  end
+  File.write($freq_file, JSON.pretty_generate(hole2freq_sorted))
+end
