@@ -14,12 +14,13 @@ six blow, correctly and now I try to hit the fourth note.
 * Installation
 
   The program harp_scale_trainer runs in the linux console; it has no formal
-  installation, but rather runs from within the directory you need to clone
-  from github first.
+  installation, but rather runs directly from within the directory you need to
+  clone from github first. Vice versa it can be removed by removing the cloned
+  directory.
 
-  harp_scale_trainer requires several external programs for its operation:
-  aubiopitch, pulseaudio, aplay, arecord, sox and figlet. Their existence is
-  checked on program start.
+  harp_scale_trainer relies on several external programs for its operation,
+  e.g.: aubiopitch, pulseaudio, aplay, arecord, sox, figlet and gnuplot. Their
+  existence is checked on program start.
   
   Special thanx to aubiopitch for doing all the heavy-lifting of tone
   recognition !
