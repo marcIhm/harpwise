@@ -13,7 +13,7 @@ def do_listen
     sleep 1
   end
   system('clear')
-  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
+  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...  \e[2m(key of #{$key})\e[0m",
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},

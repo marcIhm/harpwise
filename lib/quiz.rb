@@ -66,12 +66,12 @@ def do_quiz
         hole_start = Time.now.to_f
         get_hole(
           if $ctl_loop
-            "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."
+            "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ... \e[2m(key of #{$key})\e[0m"
           else
             if $num_quiz == 1 
               "Play the note you have heard !"
             else
-              "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
+              "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard ! \e[2m(key of #{$key})\e[0m"
             end
           end,
           -> (played, since) {[played == wanted,  # lambda_good_done

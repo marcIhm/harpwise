@@ -31,7 +31,7 @@ will be overwritten in this process !
 
 EOINTRO
 
-  print "\nPress RETURN to generate and play all samples in a single run: "
+  print "\nPress RETURN to generate and play all samples for \e[32mkey of #{$key}\e[0m in a single run: "
   STDIN.gets
 
   hole2freq = Hash.new
@@ -59,8 +59,8 @@ def do_calibrate_assistant
   puts <<EOINTRO
 
 
-This is an interactive assistant, that will ask you to play these
-holes of your harmonica one after the other, each for one second:
+This is an interactive assistant, that will ask you to play these holes of
+your harmonica, \e[32mkey of #{$key}\e[0m, one after the other, each for one second:
 
   \e[32m#{hole_desc}\e[0m
 
@@ -141,7 +141,7 @@ def review_hole hole, prev_freq
   begin
       
     if do_record
-      puts "\nRecording hole  \e[32m#{hole}\e[0m  when '\e[31mrecording\e[0m' appears."
+      puts "\nRecording hole  \e[32m#{hole}\e[0m  (\e[2mkey of #{$key}\e[0m) when '\e[31mrecording\e[0m' appears."
       [2, 1].each do |c|
         puts "\e[31m#{c}\e[0m"
         sleep 1
