@@ -12,7 +12,7 @@ def do_calibrate_auto
 
 This will generate all needed samples for holes:
 
-  \e[32m#{$holes.join(' ')}\e[0m
+  \e[32m#{$holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
 Letting this program generate your samples is a good way to get started
 quickly. The notes will be in "equal temperament" (rather than "just tuning").
@@ -55,14 +55,21 @@ def do_calibrate_assistant
   end
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  hole_desc = $opts[:hole] ? "#{$opts[:hole]} and beyond" : $holes.join(' ')
+  if $opts[:hole]
+    holes_desc = 'these holes'
+    holes_desc2 = "#{$opts[:hole]} and beyond"
+  else
+    holes_desc = "these #{$holes.length} holes"
+    holes_desc2 = $holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")
+
+  end
   puts <<EOINTRO
 
 
-This is an interactive assistant, that will ask you to play these holes of
-your harmonica, \e[32mkey of #{$key}\e[0m, one after the other, each for one second:
+This is an interactive assistant, that will ask you to play #{holes_desc} of
+your harmonica, key of #{$key}, one after the other, each for one second:
 
-  \e[32m#{hole_desc}\e[0m
+  \e[32m#{holes_desc2}\e[0m
 
 Each recording is preceded by a short countdown (2,1).
 If there already is a recording, it will be plotted first.

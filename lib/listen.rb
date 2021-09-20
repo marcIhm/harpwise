@@ -24,7 +24,7 @@ def do_listen
            end,
 
            -> () do  # lambda_hint
-             print "Hint: \e[2mScale '#{$scale}' has these holes: #{$scale_holes.join(' ')}\e[0m"
+             print "Hint: \e[2mScale '#{$scale}' has these #{$scale_holes.length} holes: #{$scale_holes.join(' ')}\e[0m"
            end,
 
            -> (hole_held_before) do  # lambda_hole_for_inter

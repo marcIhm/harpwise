@@ -12,7 +12,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   print "\e[#{$line_issue}H#{issue.ljust($term_width - $ctl_issue_width)}\e[0m"
   $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; RET next; BS back' + ($opts[:loop] ? '' : '; l loop') : ''}"
   ctl_issue
-  print "\e[#{$line_key}H\e[2mKey of #{$key}\e[0m"
+  print "\e[#{$line_key}H\e[2mKey of #{$key}, scale #{$scale}\e[0m"
 
   hole_start = Time.now.to_f
   hole = hole_since = nil
