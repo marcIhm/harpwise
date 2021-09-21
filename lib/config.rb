@@ -5,18 +5,19 @@
 def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
+  stretch = $term_height >= 36 ? 1 : 0
   $line_issue = 1
   $line_key = 2
-  $line_hole = 5
-  $line_samples = 15
-  $line_peaks = 16
-  $line_frequency = 17
-  $line_interval = 18
-  $line_comment_big = 20
-  $line_comment_small = 28
-  $line_hint = 29
-  $line_listen = 30
-  $line_listen2 = 31
+  $line_hole = 5 + stretch
+  $line_samples = 15 + 2 * stretch
+  $line_peaks = 16 + 2 * stretch
+  $line_frequency = 17 + 2 * stretch
+  $line_interval = 18 + 2 * stretch
+  $line_comment_big = 20 + 3 * stretch
+  $line_comment_small = 28 + 4 * stretch
+  $line_hint = 29 + 4 * stretch
+  $line_listen = 30 + 4 * stretch
+  $line_listen2 = 31 + 4 * stretch
 
   $ctl_last_poll = Time.now.to_f
   $ctl_default_issue = ''
