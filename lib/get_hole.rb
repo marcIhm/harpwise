@@ -65,13 +65,13 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         if hole == :low || hole == :high
           print freq_text
         else
-          print (freq_text + " in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
-                (hole ? "Note \e[0m#{$harp[hole][:note]}\e[2m" : '') + "\e[K"
+          print (freq_text + "  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
+                (hole ? "Note #{$harp[hole][:note]}" : '') + "\e[K"
           hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
       else
         hole = nil
-        print freq_text + " but count of peak below 7\e[K"
+        print freq_text + "  but count of peak below 7\e[K"
       end
     else
       # Not enough samples, analysis not possible
@@ -84,7 +84,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     print "\e[#{$line_interval}H"
     inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
     if inter_semi
-      print "Interval: #{hole_for_inter.rjust(5)}   to #{hole_held.rjust(5)}   is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
+      print "Interval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
       # let old interval be visible
     end
@@ -94,7 +94,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     do_figlet ({ low: '-', high: '-'}[hole] || hole || '-'), 'mono12'
 
     if lambda_comment_big
-      comment_text, font = lambda_comment_big.call(inter_semi, inter_text)
+      comment_text, font = lambda_comment_big.call(inter_semi, inter_text, hole && $harp[hole]&.[](:note))
       print "\e[#{$line_comment_big}H\e[2m"
       do_figlet comment_text, font
     end

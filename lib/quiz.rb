@@ -45,9 +45,9 @@ def do_quiz
       break if $ctl_back
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        print "\e[2m(" + ( itext || "#{isemi}" ) + ")\e[0m "
+        print "\e[2m, " + ( itext || "#{isemi}" ) + "\e[0m "
       end
-      print "listen ... "
+      print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
       play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     end
     redo if $ctl_back
@@ -80,7 +80,7 @@ def do_quiz
           
           -> () {$ctl_next || $ctl_back},  # lambda_skip
           
-          -> (_, _) do  # lambda_comment_big
+          -> (_, _, _) do  # lambda_comment_big
             if $num_quiz == 1
               [ '.  .  .', 'smblock' ]
             else

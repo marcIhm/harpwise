@@ -19,8 +19,9 @@ def do_listen
                             false]},
            nil,  # lambda_skip
 
-           -> (isemi,itext) do  # lambda_comment_big
-             [ '    ' + ( itext || isemi || '.  .  .' ) , 'big' ]
+           -> (isemi, itext, note) do  # lambda_comment_big
+             [ '    ' + ( ( $opts[:comment] == :note ? note : ( itext || isemi ) ) || '.  .  .' ) ,
+               'big' ]
            end,
 
            -> () do  # lambda_hint
