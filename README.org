@@ -1,5 +1,7 @@
 # -*- fill-column: 78 -*-
 
+* harp_scale_trainer
+
 [[images/harmonica.png]]
 
 Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
