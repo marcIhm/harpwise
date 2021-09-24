@@ -1,6 +1,6 @@
 # -*- fill-column: 78 -*-
 
-* harp_scale_trainer
+* Harp Scale Trainer
 
 [[images/harmonica.png]]
 
