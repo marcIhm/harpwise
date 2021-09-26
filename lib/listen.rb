@@ -5,7 +5,9 @@
 def do_listen
 
   prepare_term
+  start_kb_handler
   $ctl_can_next = false
+  
   puts "\n\nJust go ahead and play notes from the scale ..."
   puts "Tip: \e[2mPlaying a slow backing track in parallel may be a good idea ...\e[0m"
   [2,1].each do |c|

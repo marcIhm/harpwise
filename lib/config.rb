@@ -19,7 +19,8 @@ def set_global_vars_early
   $line_listen = 30 + 4 * stretch
   $line_listen2 = 31 + 4 * stretch
 
-  $ctl_last_poll = Time.now.to_f
+  $ctl_kb_queue = Queue.new
+  $ctl_kb_queue_mutex = Mutex.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = nil
   $ctl_can_next = $ctl_can_back = false

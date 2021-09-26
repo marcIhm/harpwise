@@ -62,40 +62,41 @@ def dismiss_term
 end
 
 
-def poll_and_handle_kb_listen
-  return unless Time.now.to_f - $ctl_last_poll > 1
-  $ctl_last_poll = Time.now.to_f 
-  char = ''
-  begin
-      char = STDIN.read_nonblock(1)
-  rescue IO::EAGAINWaitReadable
+def start_kb_handler
+  Thread.new do
+    loop do
+      $ctl_kb_queue.enq STDIN.getc
+    end
   end
+end
+
+
+def handle_kb_listen
+  return unless $ctl_kb_queue.length > 0
+  char = $ctl_kb_queue.deq
 
   if char == ' '
-    print "SPACE to continue ... "
+    print "\e[32mSPACE to continue ... \e[0m"
     begin
-      char = STDIN.getc
-    end until char == " "
+      char = $ctl_kb_queue.deq
+    end until char == ' '
+    print "\e[32mcontinue \e[0m"
   elsif char && char.length > 0 && char.ord == 127
     $ctl_back = true
   end
 end
 
 
-def poll_and_handle_kb_play
-  return unless Time.now.to_f - $ctl_last_poll > 1
-  $ctl_last_poll = Time.now.to_f 
-  char = ''
-  begin
-      char = STDIN.read_nonblock(1)
-  rescue IO::EAGAINWaitReadable
-  end
-
+def handle_kb_play
+  return unless $ctl_kb_queue.length > 0
+  char = $ctl_kb_queue.deq
+  
   if char == ' '
-    ctl_issue "SPACE to continue", hl: true
+    ctl_issue 'SPACE to continue', hl: true
     begin
-      char = STDIN.getc
-    end until char == " "
+      char = $ctl_kb_queue.deq
+    end until char == ' '
+    ctl_issue 'continue', hl: true
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = "Skip"
@@ -106,7 +107,7 @@ def poll_and_handle_kb_play
     $ctl_loop = true
     text = "Loop started"
   elsif char.length > 0
-    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}'"
+    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})"
   end
   ctl_issue text
 end
@@ -114,11 +115,11 @@ end
 
 def ctl_issue text = nil, **opts
   if text
-    $ctl_non_def_issue_ts = Time.now.to_f
-  elsif $ctl_non_def_issue_ts
-    return if Time.now.to_f - $ctl_non_def_issue_ts < 3
+    $ctl_non_def_issue_ts = Time.now.to_f 
+  else
+    return if $ctl_non_def_issue_ts && Time.now.to_f - $ctl_non_def_issue_ts < 3
+    text = $ctl_default_issue
   end
-  text ||= $ctl_default_issue
   fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_issue_width}" if text.length > $ctl_issue_width
   print "\e[1;#{$term_width - $ctl_issue_width}H\e[#{opts[:hl] ? 33 : 2}m#{text.rjust($ctl_issue_width)}\e[0m"
 end

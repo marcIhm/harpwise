@@ -3,7 +3,10 @@
 #
 
 def do_quiz
+
   prepare_term
+  start_kb_handler
+  
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
     puts c
@@ -40,7 +43,7 @@ def do_quiz
     sleep 0.3
 
     all_wanted.each_with_index do |hole, idx|
-      poll_and_handle_kb_listen
+      handle_kb_listen
       break if $ctl_back
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
