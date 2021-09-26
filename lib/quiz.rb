@@ -3,7 +3,6 @@
 #
 
 def do_quiz
-
   prepare_term
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
@@ -28,12 +27,12 @@ def do_quiz
         print "Cannot jump back any further ! "
       else
         all_wanted = all_wanted_before
-        print "Jumping back to #{all_wanted.join(' ')} ! "
+        print "Jumping back to #{describ_sequence(all_wanted)} ! "
       end
       $ctl_loop = true
     else
       all_wanted_before = all_wanted
-      all_wanted = $scale_holes.sample($num_quiz)
+      all_wanted = get_sample($num_quiz)
       $ctl_loop = $opts[:loop]
     end
     $ctl_back = $ctl_next = false
@@ -45,7 +44,7 @@ def do_quiz
       break if $ctl_back
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        print "\e[2m, " + ( itext || "#{isemi}" ) + "\e[0m "
+        print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
       end
       print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
       play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav"
@@ -95,7 +94,7 @@ def do_quiz
             if all_wanted.length > 1 &&
                hole_passed > 4 &&
                lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
-              print "The complete sequence is: #{all_wanted.join(' ')}\e[0m" 
+              print "Solution: The complete sequence is: #{describe_sequence(all_wanted)}\e[0m" 
               full_hint_shown = true
             elsif hole_passed > 4
               print "Hint: Play \e[32m#{wanted}\e[0m"
@@ -136,7 +135,7 @@ def do_quiz
       print "\e[0m"
       
       print "\e[#{$line_comment_small}H"
-      print "#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
+      print "#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{describe_sequence(all_wanted)}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
     
@@ -147,3 +146,34 @@ def do_quiz
   end # sequence after sequence
 end
 
+
+def get_sample num
+  # construct chains of holes with named intervals; now and the start
+  # a new chain
+  holes = Array.new
+  holes[0] = $scale_holes.sample
+  semi2hole = $scale_holes.map {|hole| [$harp[hole][:semi], hole]}.to_h
+  for i in (1 .. num - 1)
+    if rand > 0.9
+      holes[i] = $scale_holes.sample
+    else
+      begin 
+        try_inter = $intervals.keys.sample * ( rand >= 0.5 ? 1 : -1 )
+        try_semi = $harp[holes[i-1]][:semi] + try_inter
+      end until semi2hole[try_semi]
+      holes[i] = semi2hole[try_semi]
+    end
+  end
+  holes
+end
+
+
+def describe_sequence holes
+  desc = holes[0]
+  holes.each_cons(2) do |h1, h2|
+    di = describe_inter(h1,h2)
+    desc += " \e[2m(#{di[1] || di[0]})\e[0m #{h2} "
+  end
+  desc.rstrip
+end
+  
