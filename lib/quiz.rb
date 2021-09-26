@@ -30,7 +30,7 @@ def do_quiz
         print "Cannot jump back any further ! "
       else
         all_wanted = all_wanted_before
-        print "Jumping back to #{describ_sequence(all_wanted)} ! "
+        print "Jumping back to #{describe_sequence(all_wanted)} ! "
       end
       $ctl_loop = true
     else
@@ -44,7 +44,10 @@ def do_quiz
 
     all_wanted.each_with_index do |hole, idx|
       handle_kb_listen
-      break if $ctl_back
+      if $ctl_back
+        print "\e[32mback\e[0m "
+        break
+      end
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
         print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
