@@ -72,16 +72,20 @@ end
 
 
 def handle_kb_listen
-  return unless $ctl_kb_queue.length > 0
-  char = $ctl_kb_queue.deq
-
-  if char == ' '
-    print "\e[32mSPACE to continue ... \e[0m"
+  if !$ctl_kb_listen_wait_for_space
+    return if $ctl_kb_queue.length == 0
+    char = $ctl_kb_queue.deq
+  end
+  if char == ' ' || $ctl_kb_listen_wait_for_space
+    print "\e[32mSPACE to continue ... \e[0m" unless $ctl_kb_listen_wait_for_space
+    $ctl_kb_listen_wait_for_space = true
     begin
       char = $ctl_kb_queue.deq
     end until char == ' '
     print "\e[32mcontinue \e[0m"
+    $ctl_kb_listen_wait_for_space = false
   elsif char && char.length > 0 && char.ord == 127
+    print "\e[32mback\e[0m "
     $ctl_back = true
   end
 end

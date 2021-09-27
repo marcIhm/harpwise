@@ -19,6 +19,7 @@ def do_quiz
   loop do   # forever until ctrl-c, sequence after sequence
 
     unless first_lap_at_all
+      print "\e[#{$line_issue}H\e[K" 
       ctl_issue
       print "\e[#{$line_hint}H\e[K" 
       print "\e[#{$line_listen}H\e[K"
@@ -28,9 +29,11 @@ def do_quiz
     if $ctl_back
       if !all_wanted_before || all_wanted_before == all_wanted
         print "Cannot jump back any further ! "
+        sleep 1
       else
         all_wanted = all_wanted_before
-        print "Jumping back to #{describe_sequence(all_wanted)} ! "
+        print "\e[32mBack\e[0m "
+        sleep 1
       end
       $ctl_loop = true
     else
@@ -43,17 +46,21 @@ def do_quiz
     sleep 0.3
 
     all_wanted.each_with_index do |hole, idx|
-      handle_kb_listen
-      if $ctl_back
-        print "\e[32mback\e[0m "
-        break
-      end
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
         print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
       end
       print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
+      poll_kb = Thread.new do
+        loop do
+          sleep 0.1
+          handle_kb_listen
+        end
+      end
       play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+      poll_kb.exit
+      handle_kb_listen
+      break if $ctl_back
     end
     redo if $ctl_back
     print "\e[32mand !\e[0m"
@@ -154,14 +161,22 @@ end
 
 
 def get_sample num
-  # construct chains of holes with named intervals; now and the start
-  # a new chain
+  # construct chains of holes within scale using one of these:
+  # - random holes from the scale
+  # - intervals within an octave
+  # - named intervals
   holes = Array.new
   holes[0] = $scale_holes.sample
   semi2hole = $scale_holes.map {|hole| [$harp[hole][:semi], hole]}.to_h
+  ran = rand
   for i in (1 .. num - 1)
-    if rand > 0.9
+    if ran > 0.8
       holes[i] = $scale_holes.sample
+      elsif ran > 0.4
+      begin
+        try_semi = $harp[holes[i-1]][:semi] + rand(12)
+      end until semi2hole[try_semi]
+      holes[i] = semi2hole[try_semi]
     else
       begin 
         try_inter = $intervals.keys.sample * ( rand >= 0.5 ? 1 : -1 )
