@@ -56,6 +56,7 @@ def do_quiz
         sleep 0.1
         handle_kb_listen
       end while play_thr.alive?
+      play_thr.join   # raises any errors from thread
       break if $ctl_back
     end
     redo if $ctl_back

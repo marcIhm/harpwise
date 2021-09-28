@@ -33,8 +33,8 @@ end
 
 
 def sys cmd
-  out = Open3.capture2e(dbg cmd)
-  $? == 0 || fail("Command '#{cmd}' failed with:\n#{out}")
+  out, stat = Open3.capture2e(dbg cmd)
+  stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
 end
   
 
