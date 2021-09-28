@@ -28,11 +28,11 @@ def do_quiz
 
     if $ctl_back
       if !all_wanted_before || all_wanted_before == all_wanted
-        print "Cannot jump back any further ! "
+        print "no previous sequence; restarting "
         sleep 1
       else
         all_wanted = all_wanted_before
-        print "\e[32mBack\e[0m "
+        print "\e[32mto previous sequence\e[0m "
         sleep 1
       end
       $ctl_loop = true
@@ -51,15 +51,11 @@ def do_quiz
         print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
       end
       print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
-      poll_kb = Thread.new do
-        loop do
-          sleep 0.1
-          handle_kb_listen
-        end
-      end
-      play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-      poll_kb.exit
-      handle_kb_listen
+      play_thr = Thread.new { play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav" }
+      begin
+        sleep 0.1
+        handle_kb_listen
+      end while play_thr.alive?
       break if $ctl_back
     end
     redo if $ctl_back

@@ -21,7 +21,6 @@ def set_global_vars_early
 
   $ctl_kb_queue = Queue.new
   $ctl_kb_queue_mutex = Mutex.new
-  $ctl_kb_listen_wait_for_space = false
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = nil
   $ctl_can_next = $ctl_can_back = false
