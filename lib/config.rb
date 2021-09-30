@@ -41,7 +41,7 @@ end
 def check_installation
   # check for some required programs
   not_found = %w( figlet arecord aplay aubiopitch sox gnuplot ).reject {|x| system("which #{x} >/dev/null 2>&1")}
-  err_b "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found
+  err_b "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
   
   if !File.exist?(File.basename($0))
     err_b "Please invoke this program from within its own directory (cannot find #{File.basename($0)} in current dir)"
