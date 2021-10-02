@@ -49,6 +49,31 @@ def check_installation
 end
 
 
+def read_technical_config
+  file = 'config/config.json'
+  merge_file = 'config/config_merge.json'
+  conf = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
+  all_keys = Set.new([:show_as_comment])
+  file_keys = Set.new(conf.keys)
+  fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{all_keys}" unless all_keys == file_keys
+  if File.exist?(merge_file)
+    begin
+      merge_conf = JSON.parse(File.read(merge_file))
+    rescue JSON::ParserError => e
+      err_b "Config from #{merge_file} does not contain valid json: #{e}"
+    end
+    err_b "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
+    merge_conf.transform_keys!(&:to_sym)
+    merge_conf.each do |k,v|
+      err_b "Key #{k} from #{merge_file} is none of the valid keys #{all_keys}" unless all_keys.include?(k)
+      conf[k] = v
+    end
+  end
+
+  conf
+end
+
+
 def read_musical_config
 
   # read and compute from harps file

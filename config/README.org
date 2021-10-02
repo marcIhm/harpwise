@@ -1,0 +1,30 @@
+# -*- fill-column: 78 -*-
+The configuration is distributed among various files and directories.
+
+- Technical config:
+
+  - config.json :: Main config file, e.g. with standard names of musical
+                   config-files; see comments within for some explanations.
+		   
+  - config_merge.json :: Optional, may contain any of the keys from
+       config.json and overrides the standard values if present; not checked
+       into git.
+
+
+- Musical config:
+
+  - intervals.json :: Intervals, that you want to displayed with a name; can
+                      be changed almost at will.
+
+  - E.g. in directory diatonic
+
+    - harps.json :: Notes for harps of different keys.
+
+    - scale_holes.jsoN :: Definition of scales		    
+
+
+To adjust configuration you may add config_merge.json to override settings.
+You may even change some of the filenames in config.json (by adding them to
+config_merge.json); this might helpful, if you want to name the holes of your
+harp differently.
+

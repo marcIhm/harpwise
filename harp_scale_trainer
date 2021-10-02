@@ -28,6 +28,7 @@ set_global_vars_early
 
 $mode, $key, $scale, $opts = parse_arguments
 $line_comment_big += 2 if $mode == :quiz
+$conf = read_technical_config
 $harp, $holes, $scale_holes, $intervals = read_musical_config
 
 set_global_vars_late
