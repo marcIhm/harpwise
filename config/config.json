@@ -1,3 +1,14 @@
 {
-  "show_as_comment": "note"
+    // can be diatonic or chromatic
+    "type": "diatonic",
+
+    // While listening, show comments as note or interval
+    "comment": "note",
+
+    // List of scales; they should appear as keys in scales_holes_file
+    // Note: 'mape' stands for 'major pentatonic'
+    "all_scales": ["blues", "mape"],
+
+    // List of keys (musical); they should appear as hash-keys in harps_file
+    "all_keys": ["c", "a"]
 }

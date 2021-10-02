@@ -22,7 +22,7 @@ def do_listen
            nil,  # lambda_skip
 
            -> (isemi, itext, note) do  # lambda_comment_big
-             [ '    ' + ( ( $opts[:comment] == :note ? note : ( itext || isemi ) ) || '.  .  .' ) ,
+             [ '    ' + ( ( $conf[:comment] == :note ? note : ( itext || isemi ) ) || '.  .  .' ) ,
                'big' ]
            end,
 

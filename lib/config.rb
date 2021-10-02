@@ -30,7 +30,7 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = "samples/diatonic/key_of_#{$key}"
+  $sample_dir = "samples/#{$conf[:type]}/key_of_#{$key}"
   $freq_file = "#{$sample_dir}/frequencies.json"
   $collect_wave = 'tmp/collect.wav'
   $edit_data = 'tmp/edit_workfile.dat'
@@ -53,7 +53,7 @@ def read_technical_config
   file = 'config/config.json'
   merge_file = 'config/config_merge.json'
   conf = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
-  all_keys = Set.new([:show_as_comment])
+  all_keys = Set.new([:comment, :all_scales, :all_keys, :type])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{all_keys}" unless all_keys == file_keys
   if File.exist?(merge_file)
@@ -69,15 +69,25 @@ def read_technical_config
       conf[k] = v
     end
   end
+  conf[:comment] = conf[:comment].to_sym
+  conf[:type] = conf[:type].to_sym
+  conf[:all_types] = Dir['config/*'].
+                       select {|f| File.directory?(f)}.
+                       map {|f| File.basename(f)}.
+                       reject {|f| f.start_with?('.')}
+  [:all_scales, :all_keys].each do |k|
+    fail "Internal error: Value for key #{k} is not an array" unless conf[k].is_a?(Array)
+  end
 
   conf
+
 end
 
 
 def read_musical_config
 
   # read and compute from harps file
-  file = 'config/diatonic_harps.json'
+  file = "config/#{$conf[:type]}/harps.json"
   harps = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
     fail "Internal error with #{file}, not all harps have the same list of holes"
@@ -94,7 +104,7 @@ def read_musical_config
     end
   end
   
-  scales_holes = JSON.parse(File.read('config/scales_holes.json')).transform_keys!(&:to_sym)
+  scales_holes = JSON.parse(File.read("config/#{$conf[:type]}/scales_holes.json")).transform_keys!(&:to_sym)
   scales_holes.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
       fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
@@ -109,7 +119,8 @@ def read_musical_config
   end
   
   # read from intervals file
-  intervals = JSON.parse(File.read('config/intervals.json')).transform_keys!(&:to_i)
+  ifile = ["config/#{$conf[:type]}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
+  intervals = JSON.parse(File.read(ifile)).transform_keys!(&:to_i)
   
   [ harp, holes, scale_holes, intervals ]
 end

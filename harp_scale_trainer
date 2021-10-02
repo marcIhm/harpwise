@@ -26,9 +26,12 @@ $term_height, $term_width = prepare_screen
 
 set_global_vars_early
 
-$mode, $key, $scale, $opts = parse_arguments
-$line_comment_big += 2 if $mode == :quiz
 $conf = read_technical_config
+$mode, $key, $scale, $opts = parse_arguments
+# adjust some data
+$conf[:comment] = $opts[:comment] if $opts[:comment]
+$line_comment_big += 2 if $mode == :quiz
+
 $harp, $holes, $scale_holes, $intervals = read_musical_config
 
 set_global_vars_late
@@ -36,9 +39,9 @@ set_global_vars_late
 $freq2hole = read_calibration unless $mode == :calibrate
 
 
-if $opts[:debug] > 0
-  require 'byebug'
-end
+require 'byebug' if $opts[:debug] > 0
+pp $conf, $opts if $opts[:debug] > 1
+
 
 
 Signal.trap('SIGINT') do

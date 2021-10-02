@@ -1,30 +1,33 @@
 # -*- fill-column: 78 -*-
 The configuration is distributed among various files and directories.
 
-- Technical config:
+Technical config:
 
-  - config.json :: Main config file, e.g. with standard names of musical
-                   config-files; see comments within for some explanations.
+  - config.json :: Main config file; see comments within for some
+                   explanations.
 		   
-  - config_merge.json :: Optional, may contain any of the keys from
-       config.json and overrides the standard values if present; not checked
-       into git.
+  - config_merge.json :: Optional, may contain any of the config-keys from
+       config.json and then overrides those; not included in git-versioning.
+
+  - intervals.json :: Names for selected intervals.
+
+Each type of harmonica (e.g. diatonic) has its own musical config in its own
+directory:
+
+  - intervals.json :: If this file is present within a subdirectory, it
+                      overrides the one directly below config.
+
+  - harps.json :: Notes for harps of different keys; the key-names used here
+                  must be a subset of the parameter all_keys given in
+                  config.json.
+
+  - scale_holes.json :: Definition of scales; the scale-names used here must
+       be a subset of the parameter all_scales given in config.json.
 
 
-- Musical config:
+To adjust configuration you may add config_merge.json to override selected
+settings.
 
-  - intervals.json :: Intervals, that you want to displayed with a name; can
-                      be changed almost at will.
-
-  - E.g. in directory diatonic
-
-    - harps.json :: Notes for harps of different keys.
-
-    - scale_holes.jsoN :: Definition of scales		    
-
-
-To adjust configuration you may add config_merge.json to override settings.
-You may even change some of the filenames in config.json (by adding them to
-config_merge.json); this might helpful, if you want to name the holes of your
-harp differently.
-
+You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
+the existing dirs (e.g. diatonic) to a new name (bagpipe) and modyfy the
+contained files accordingly.

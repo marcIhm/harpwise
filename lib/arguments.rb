@@ -5,40 +5,46 @@
 #
 
 def parse_arguments
-  
+
+  egkey = $conf[:all_keys][0]
+  egkey2 = $conf[:all_keys][1]
+  egscale = $conf[:all_scales][0]
+  egscale2 = $conf[:all_scales][1]
+  eghole = '-3//'
+  egtype = 'diatonic'
   usage = <<EOU
 
 
-Help to practice scales (e.g. blues or major pentatonic) on a diatonic
-harmonica for various keys. Regular modes of operation are 'listen' and
-'quiz'.
+Help to practice scales (e.g. #{egscale} or #{egscale2}) for harmonicas of 
+various types (e.g. #{egtype}) for various keys (e.g. #{egkey}). 
+Regular modes of operation are 'listen' and 'quiz'.
 
 
 Usage by examples: 
 
 
   Listen to your playing and show the note green from the scale; harp is of
-  key c, scale is major pentatonic:
+  key #{egkey}, scale is #{egscale}:
 
-    ./harp_scale_trainer listen c ma
+    ./harp_scale_trainer listen #{egkey} #{egscale}
 
   Add option '--comment interval' (or '-c i') to show intervals instead of
   notes.
 
 
   Play 3 notes from the scale and quiz you to play them back (then repeat);
-  scale is blues:
+  scale is #{egscale2}:
 
-    ./harp_scale_trainer quiz 3 a blues
+    ./harp_scale_trainer quiz 3 #{egkey2} #{egscale2}
 
   Add option '--loop' (or '-l') to loop over sequence until you type 'RET'.
 
 
 
-  Once in a lifetime of your c-harp you need to calibrate this program to its
-  frequencies:
+  Once in a lifetime of your c-harp you need to calibrate this program to the
+  frequencies of your harp:
 
-    ./harp_scale_trainer calibrate c
+    ./harp_scale_trainer calibrate #{egkey}
     
 
   this will ask you to play notes on your harp. The samples will be stored in
@@ -48,30 +54,35 @@ Usage by examples:
   For quick (and possibly inaccurate) calibration you may use the option
   '--auto' to generate and analyze all needed samples automatically.
 
-  To calibrate only a single whole, add e.g. '--hole -2+3'.
+  To calibrate only a single whole, add e.g. '--hole #{eghole}'.
 
 
 Notes:
 
 
-  The last one or two arguments in all examples above are the key of the harp
-  (e.g. c or a) and the scale, e.g. blues or mape (for major pentatonic),
+  The last one or two arguments in all examples above are the 
+  - key of the harp (one of #{$conf[:all_keys].join(', ')}) and the
+  - scale (one of #{$conf[:all_scales].join(', ')})
   respectively.
+
+  To choose a type of harmonica other than the default #{$conf[:type]},
+  add option '--type' with one of #{$conf[:all_types].join(', ')}.
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
 
-  Some more less used options: --debug, --screenshot, --help
+  Some less used options: --debug, --screenshot, --help
 
 EOU
 
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:debug, :hole, :comment]
+  opts_with_args = [:debug, :hole, :comment, :type]
   { %w(-d --debug) => :debug,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
+    %w(-t --type) => :type,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(-c --comment) => :comment,
@@ -99,6 +110,11 @@ EOU
   if opts[:comment]
     %w(note interval).each {|val| opts[:comment] = val.to_sym if val.start_with?(opts[:comment])}
     err_h "Option '--comment' needs either 'note' or 'interval' as an argument not #{opts[:comment]}" unless opts[:comment].is_a?(Symbol)
+  end
+  if opts[:type]
+    matches = $conf[:all_types].select {|t| t.start_with?(opts[:type])}
+    err_h "Option '--type' has an invalid or ambigous argument '#{opts[:type]}'; available choices are: #{$conf[:all_types].join(', ')}" if matches.length != 1
+    $conf[:type] = opts[:type] = matches[0]
   end
   # see end of function for final processing of options
 
@@ -153,17 +169,15 @@ EOU
 
   # process key and scale
   if arg_for_key
-    allowed_keys = %w(a c)
-    err_b "Key can only be one on #{allowed_keys.inspect}, not '#{arg_for_key}'" if !allowed_keys.include?(arg_for_key)
+     err_b "Key can only be one on #{$conf[:all_keys].inspect}, not '#{arg_for_key}'" if !$conf[:all_keys].include?(arg_for_key)
     key = arg_for_key.to_sym
   end
 
   if arg_for_scale
-    allowed_scales = %w(blues mape)
-    scale = allowed_scales.select do |scale|
+    scale = $conf[:all_scales].select do |scale|
       scale.start_with?(arg_for_scale)
     end.tap do |matches|
-      err_b "Given scale '#{arg_for_scale}' matches none or multiple of #{allowed_scales.inspect}" if matches.length != 1
+      err_b "Given scale '#{arg_for_scale}' matches none or multiple of #{$conf[:all_scales].inspect}" if matches.length != 1
     end.first.to_sym
   end
 
@@ -172,9 +186,6 @@ EOU
   [[:loop, :quiz], [:auto, :calibrate], [:comment, :listen]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for mode '#{o_m[1]}' only" if opts[o_m[0]] && mode != o_m[1]
   end
-
-  # set some defaults
-  opts[:comment] ||= :note
   
   
   [ mode, key, scale, opts]
