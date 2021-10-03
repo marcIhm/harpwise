@@ -6,17 +6,11 @@
 
 def parse_arguments
 
-  egkey = $conf[:all_keys][0]
-  egkey2 = $conf[:all_keys][1]
-  egscale = $conf[:all_scales][0]
-  egscale2 = $conf[:all_scales][1]
-  eghole = '-3//'
-  egtype = 'diatonic'
   usage = <<EOU
 
 
-Help to practice scales (e.g. #{egscale} or #{egscale2}) for harmonicas of 
-various types (e.g. #{egtype}) for various keys (e.g. #{egkey}). 
+Help to practice scales (e.g. blues or mape) for harmonicas of 
+various types (e.g. diatonic) for various keys (e.g. c). 
 Regular modes of operation are 'listen' and 'quiz'.
 
 
@@ -24,18 +18,18 @@ Usage by examples:
 
 
   Listen to your playing and show the note green from the scale; harp is of
-  key #{egkey}, scale is #{egscale}:
+  key c, scale is blues:
 
-    ./harp_scale_trainer listen #{egkey} #{egscale}
+    ./harp_scale_trainer listen c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead of
   notes.
 
 
   Play 3 notes from the scale and quiz you to play them back (then repeat);
-  scale is #{egscale2}:
+  scale is mape:
 
-    ./harp_scale_trainer quiz 3 #{egkey2} #{egscale2}
+    ./harp_scale_trainer quiz 3 a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type 'RET'.
 
@@ -44,7 +38,7 @@ Usage by examples:
   Once in a lifetime of your c-harp you need to calibrate this program to the
   frequencies of your harp:
 
-    ./harp_scale_trainer calibrate #{egkey}
+    ./harp_scale_trainer calibrate c
     
 
   this will ask you to play notes on your harp. The samples will be stored in
@@ -54,7 +48,7 @@ Usage by examples:
   For quick (and possibly inaccurate) calibration you may use the option
   '--auto' to generate and analyze all needed samples automatically.
 
-  To calibrate only a single whole, add e.g. '--hole #{eghole}'.
+  To calibrate only a single whole, add e.g. '--hole -3//'.
 
 
 Notes:
@@ -107,13 +101,16 @@ EOU
     opts[:debug] = opts[:debug].to_i
   end
   opts[:debug] = 0 unless opts[:debug]
+
   if opts[:comment]
-    %w(note interval).each {|val| opts[:comment] = val.to_sym if val.start_with?(opts[:comment])}
-    err_h "Option '--comment' needs either 'note' or 'interval' as an argument not #{opts[:comment]}" unless opts[:comment].is_a?(Symbol)
+    matches = %w(note interval).select {|t| t.start_with?(opts[:comment])}
+    err_h "Option '--comment' needs either 'note' or 'interval' (maybe abbreviated) as an argument not #{opts[:comment]}" unless matches.length == 1
+    opts[:comment] = matches[0].to_s
   end
+
   if opts[:type]
     matches = $conf[:all_types].select {|t| t.start_with?(opts[:type])}
-    err_h "Option '--type' has an invalid or ambigous argument '#{opts[:type]}'; available choices are: #{$conf[:all_types].join(', ')}" if matches.length != 1
+    err_h "Option '--type' has an invalid or ambigous argument '#{opts[:type]}'; available choices are: #{$conf[:all_types].join(', ')}" unless matches.length == 1
     $conf[:type] = opts[:type] = matches[0]
   end
   # see end of function for final processing of options

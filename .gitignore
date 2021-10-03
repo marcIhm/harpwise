@@ -4,3 +4,4 @@ samples/diatonic
 *Zone.Identifier
 tmp/*
 images/harmonica0.jpg
+config/config_merge.json

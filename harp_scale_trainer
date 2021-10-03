@@ -38,10 +38,8 @@ set_global_vars_late
 
 $freq2hole = read_calibration unless $mode == :calibrate
 
-
 require 'byebug' if $opts[:debug] > 0
 pp $conf, $opts if $opts[:debug] > 1
-
 
 
 Signal.trap('SIGINT') do
