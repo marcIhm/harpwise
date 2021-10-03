@@ -102,17 +102,14 @@ EOU
   end
   opts[:debug] = 0 unless opts[:debug]
 
-  if opts[:comment]
-    matches = %w(note interval).select {|t| t.start_with?(opts[:comment])}
-    err_h "Option '--comment' needs either 'note' or 'interval' (maybe abbreviated) as an argument not #{opts[:comment]}" unless matches.length == 1
-    opts[:comment] = matches[0].to_s
+  opts[:comment] = match_or(opts[:comment], %w(note interval)) do |none, choices|
+    err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument not #{none}"
   end
 
-  if opts[:type]
-    matches = $conf[:all_types].select {|t| t.start_with?(opts[:type])}
-    err_h "Option '--type' has an invalid or ambigous argument '#{opts[:type]}'; available choices are: #{$conf[:all_types].join(', ')}" unless matches.length == 1
-    $conf[:type] = opts[:type] = matches[0]
+  opts[:type] = match_or(opts[:type],$conf[:all_types]) do |none, choices|
+    err_h "Option '--type' has an invalid or ambigous argument #{none}; available choices are: #{choices}"
   end
+  $conf[:type] = opts[:type] if opts[:type]
   # see end of function for final processing of options
 
   # now ARGV does not contain any more options; process non-option arguments
@@ -171,11 +168,9 @@ EOU
   end
 
   if arg_for_scale
-    scale = $conf[:all_scales].select do |scale|
-      scale.start_with?(arg_for_scale)
-    end.tap do |matches|
-      err_b "Given scale '#{arg_for_scale}' matches none or multiple of #{$conf[:all_scales].inspect}" if matches.length != 1
-    end.first.to_sym
+    scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
+      err_b "Given scale '#{none}' matches none or multiple of #{choices}"
+    end.to_sym
   end
 
   # late option processing depending on mode
@@ -187,3 +182,12 @@ EOU
   
   [ mode, key, scale, opts]
 end
+
+
+def match_or cand, choices
+  return unless cand
+  matches = choices.select {|c| c.start_with?(cand)}
+  yield "'#{cand}'", choices.join(', ') unless matches.length == 1
+  matches[0]
+end
+          
