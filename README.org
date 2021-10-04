@@ -9,12 +9,15 @@ Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
 
 Its main operation modes are 'listen' and 'quiz'.
 
-The screenshot below is from mode 'quiz': The program has played five notes
-intially and now challenges to play them back. I just played the fourth
-note, six blow, correctly. Now the program will acknowledge this and ask for
-the fifth note next.
+The first screenshow is from mode 'listen': The program has recognized a note
+from the blues scale and marks it in the harmonica chart.
 
-[[images/screenshot.png]]
+[[images/screenshot_listen.png]]
+
+The second screenshot is from mode 'quiz': The program has played five notes
+intially and now challenges to play them back.
+
+[[images/screenshot_quiz.png]]
 
 * Installation
 
