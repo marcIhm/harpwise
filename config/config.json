@@ -1,6 +1,6 @@
 {
     // default value if not given on commandline
-    "type": "diatonic",
+    "type": "richter",
 
     // default value
     "key": "c",

@@ -12,7 +12,7 @@ Technical Config:
   - intervals.json :: Names for selected intervals.
 
 
-Each type of harmonica (e.g. diatonic) has a directory with its own 
+Each type of harmonica (e.g. richter) has a directory with its own 
 Musical Config:
 
   - intervals.json :: If this file is present within a subdirectory, it
@@ -27,5 +27,5 @@ To adjust configuration you may add config_merge.json to override selected
 settings (e.g. the default harmonica-type).
 
 You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
-the existing dirs (e.g. diatonic) to a new name (bagpipe) and modyfy the
+the existing dirs (e.g. richter) to a new name (bagpipe) and modyfy the
 contained files accordingly.

@@ -23,17 +23,17 @@ def parse_arguments
 
 
 Help to practice scales (e.g. blues or mape) for harmonicas of various types
-(e.g. diatonic or chromatic) for various keys (e.g. a or c).  Main modes of
+(e.g. richter or chromatic) for various keys (e.g. a or c).  Main modes of
 operation are 'listen' and 'quiz'.
 
 
 Usage by examples: 
 
 
-  Listen to you playing a diatonic harmonica of key c and show the notes
+  Listen to you playing a richter harmonica of key c and show the notes
   played; green if from the scale, red otherwise:
 
-    ./harp_scale_trainer listen dia c blues
+    ./harp_scale_trainer listen ri c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead of
   notes.
@@ -47,7 +47,7 @@ Usage by examples:
   Add option '--loop' (or '-l') to loop over sequence until you type 'RET'.
 
 
-  In the examples above, the type of harmonica (e.g. diatonic or chromatic)
+  In the examples above, the type of harmonica (e.g. richter or chromatic)
   and, in addition, the key (e.g. c or a) may be omitted and are then takne
   from the config; so
 
@@ -184,6 +184,7 @@ EOU
   end.to_sym
 
   if mode != :calibrate
+    err_b "Need value for scale as one more argument" unless arg_for_scale
     scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
       err_b "Given scale '#{none}' matches none or multiple of #{choices}"
     end.to_sym

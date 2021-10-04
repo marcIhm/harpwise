@@ -1,6 +1,6 @@
 *~
 .byebug_history
-samples/diatonic
+samples/*
 *Zone.Identifier
 tmp/*
 images/harmonica0.jpg

@@ -5,7 +5,7 @@
 [[images/harmonicas.jpg]]
 
 Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
-diatonic or chromatic harmonica for various keys.
+(datonic) richter or chromatic harmonica for various keys.
 
 Its main operation modes are 'listen' and 'quiz'.
 
