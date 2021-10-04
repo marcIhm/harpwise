@@ -89,11 +89,11 @@ def do_quiz
           
           -> () {$ctl_next || $ctl_back},  # lambda_skip
           
-          -> (_, _, _) do  # lambda_comment_big
+          -> (_, _, _, _, _) do  # lambda_comment_big
             if $num_quiz == 1
-              [ '.  .  .', 'smblock' ]
+              [ "\e[2m", '.  .  .', 'smblock' ]
             else
-              [ 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock' ]
+              [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock' ]
             end
           end,
           

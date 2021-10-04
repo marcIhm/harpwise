@@ -184,3 +184,45 @@ def one_char
   end
   char
 end  
+
+
+def print_chart
+  xoff, yoff, len = $conf[:chart_offset_xyl]
+  print "\e[#{$line_display + yoff}H"
+  $chart.each do |row|
+    print ' ' * ( xoff - 1)
+    row[0 .. -2].each do |cell|
+      dim = comment_in_chart?(cell) || !$scale_notes.include?(cell.strip)
+      print "\e[#{dim ? 2 : 0}m#{cell}"
+    end
+    puts "\e[2m#{row[-1]}\e[0m"
+  end
+end
+
+
+def update_chart hole, state
+  $hole2chart[hole].each do |xy|
+    x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
+    y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
+    cell = $chart[xy[1]][xy[0]]
+    pre = case state
+          when :good
+            "\e[32m\e[7m"
+          when :bad
+            "\e[31m\e[7m"
+          when :normal
+            $scale_notes.include?(cell.strip) ? "" : "\e[2m"
+          else
+            fail "Internal error"
+          end
+            
+    print "\e[#{y};#{x}H\e[0m#{pre}#{cell}\e[0m"
+  end
+end
+
+  
+def comment_in_chart? cell
+  return true if cell.count('-') > 1
+  return true if cell.match?(/^[- ]*$/)
+  return false
+end

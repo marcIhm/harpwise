@@ -48,12 +48,16 @@ Usage by examples:
 
 
   In the examples above, the type of harmonica (e.g. richter or chromatic)
-  and, in addition, the key (e.g. c or a) may be omitted and are then takne
+  and, in addition, the key (e.g. c or a) may be omitted and are then taken
   from the config; so
 
     ./harp_scale_trainer q 3 ma
 
   is valid as well.
+
+
+  Both modes listen and quiz allow an option '--display' with possible values
+  of 'hole' and 'chart' to change how a recognized will be displayed.
 
 
   Once in a lifetime of your c-harp you need to calibrate this program to the
@@ -88,12 +92,13 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:debug, :hole, :comment]
-  { %w(-d --debug) => :debug,
+  opts_with_args = [:debug, :hole, :comment, :display]
+  { %w(--debug) => :debug,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
+    %w(-d --display) => :display,
     %w(-c --comment) => :comment,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
@@ -117,8 +122,12 @@ EOU
   end
   opts[:debug] = 0 unless opts[:debug]
 
-  opts[:comment] = match_or(opts[:comment], %w(note interval)) do |none, choices|
-    err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument not #{none}"
+  opts[:comment] = match_or(opts[:comment], [:note, :interval, :hole]) do |none, choices|
+    err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+  end
+
+  opts[:display] = match_or(opts[:display], [:chart, :hole]) do |none, choices|
+    err_h "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
   # see end of function for final processing of options
 
@@ -193,9 +202,14 @@ EOU
 
   # late option processing depending on mode
   # check for invalid combinations of options and mode
-  [[:loop, :quiz], [:auto, :calibrate], [:comment, :listen]].each do |o_m|
-    err_h "Option '--#{o_m[0]}' is allowed for mode '#{o_m[1]}' only" if opts[o_m[0]] && mode != o_m[1]
+  [[:loop, [:quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+    err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
+
+  # carry some options over into $conf
+  $conf[:comment_listen] = opts[:comment] if opts[:comment]
+  $conf[:display] = $conf["display_#{mode}".to_sym]
+  $conf[:display] = opts[:display] if opts[:display]
   
   [ mode, type, key, scale, opts]
 end

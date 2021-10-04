@@ -8,7 +8,7 @@ def set_global_vars_early
   stretch = $term_height >= 36 ? 1 : 0
   $line_issue = 1
   $line_key = 2
-  $line_hole = 5 + stretch
+  $line_display = 5 + stretch
   $line_samples = 15 + 2 * stretch
   $line_peaks = 16 + 2 * stretch
   $line_frequency = 17 + 2 * stretch
@@ -53,7 +53,7 @@ def read_technical_config
   file = 'config/config.json'
   merge_file = 'config/config_merge.json'
   conf = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -69,7 +69,8 @@ def read_technical_config
       conf[k] = v
     end
   end
-  conf[:comment] = conf[:comment].to_sym
+  
+  [:comment_listen, :display_listen, :display_quiz].each {|key| conf[key] = conf[key].to_sym}
   conf[:type] = conf[:type]
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
@@ -83,10 +84,10 @@ end
 def read_musical_config
 
   # read and compute from harps file
-  file = "config/#{$conf[:type]}/keys.json"
-  harps = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
+  hfile = "config/#{$conf[:type]}/keys.json"
+  harps = JSON.parse(File.read(hfile)).transform_keys!(&:to_sym)
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
-    fail "Internal error with #{file}, not all harps have the same list of holes"
+    fail "Internal error with #{hfile}, not all harps have the same list of holes"
   end
   harp = harps[$key] or fail "Internal error: Key #{$key} has no harp"
 
@@ -96,29 +97,72 @@ def read_musical_config
     begin
       h[:semi] = note2semi(h[:note])
     rescue ArgumentError => e
-      err_b "From #{file}, key #{$key}, note #{h[:note]}: #{e.message}"
+      err_b "From #{hfile}, key #{$key}, note #{h[:note]}: #{e.message}"
     end
   end
-  
-  scales = JSON.parse(File.read("config/#{$conf[:type]}/scales.json")).transform_keys!(&:to_sym)
+
+  sfile = "config/#{$conf[:type]}/scales.json"
+  scales = JSON.parse(File.read(sfile)).transform_keys!(&:to_sym)
   scales.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
-      fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
+      fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
     end
   end
 
   harp_holes = harp.keys
   scale_holes = scales[$scale]
+  scale_notes = scale_holes.map {|h| harp[h][:note]}
 
   unless harp_holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
     err_b "Internal error: Computed semitones are not strictly ascending in order of holes:\n#{harp.pretty_inspect}"
   end
-  
-  # read from intervals file
+
+  # read from first available intervals file
   ifile = ["config/#{$conf[:type]}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
   intervals = JSON.parse(File.read(ifile)).transform_keys!(&:to_i)
+
+  [ harp, harp_holes, scale_holes, scale_notes, intervals ]
+end
+
+
+def read_chart
+  cfile = "config/#{$conf[:type]}/chart.json"
+  chart = JSON.parse(File.read(cfile))
+  hole2chart = Hash.new {|h,k| h[k] = Array.new}
+  len = chart.shift
+  begin
+    # check for completeness
+    hchart = Set.new(chart.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
+    hharp = Set.new($harp.keys)
+    raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{hharp - hchart}, extra in chart: #{hchart - hharp}") if hchart != hharp
+
+    # map from holes to notes for given key
+    (0 ... chart.length).each do |row|
+      (0 ... chart[row].length - 1).each do |col|
+        hole = chart[row][col]
+        chart[row][col] = if comment_in_chart?(hole)
+                            hole[0,len]
+                          else
+                            note = $harp[hole.strip][:note]
+                            raise ArgumentError.new("hole '#{hole}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
+                            hole2chart[hole.strip] << [col, row]
+                            note.center(len)
+                          end
+      end
+    end
+
+    # check for size
+    xroom = $term_width - chart.map {|r| r.join.length}.max - 2
+    raise ArgumentError.new("chart is too wide (by #{-xroom} chars) for this terminal") if xroom < 0
+    yroom = $line_samples - $line_display - chart.length
+    raise ArgumentError.new("chart is too high by #{-yroom} lines for this terminal") if yroom < 0
+    $conf[:chart_offset_xyl] = [ (xroom * 0.4).to_i, yroom / 2 - 1, len]
+  rescue ArgumentError => e
+    fail "Internal error with #{cfile}: #{e}"
+  end
+
+  [ chart, hole2chart ]
   
-  [ harp, harp_holes, scale_holes, intervals ]
 end
 
 

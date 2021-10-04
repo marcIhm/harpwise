@@ -32,7 +32,8 @@ $mode, $type, $key, $scale, $opts = parse_arguments
 $conf[:comment] = $opts[:comment] if $opts[:comment]
 $line_comment_big += 2 if $mode == :quiz
 
-$harp, $harp_holes, $scale_holes, $intervals = read_musical_config
+$harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
+$chart, $hole2chart = read_chart
 
 set_global_vars_late
 
@@ -40,7 +41,7 @@ $freq2hole = read_calibration unless $mode == :calibrate
 
 require 'byebug' if $opts[:debug] > 0
 if $opts[:debug] > 1
-  %w($conf $opts $harp $scale_holes).each do |var|
+  %w($conf $opts $harp $scale_holes $chart).each do |var|
     puts "\n#{var}:", eval("#{var}.pretty_inspect")
   end
   print 'press RETURN to continue: '

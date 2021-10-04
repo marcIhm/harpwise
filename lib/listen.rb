@@ -21,8 +21,18 @@ def do_listen
                             false]},
            nil,  # lambda_skip
 
-           -> (isemi, itext, note) do  # lambda_comment_big
-             [ '    ' + ( ( $conf[:comment] == :note ? note : ( itext || isemi ) ) || '.  .  .' ) ,
+           -> (hole_color, isemi, itext, note, hole) do  # lambda_comment_big
+             [ hole_color,
+               '    ' + ( ( case $conf[:comment_listen]
+                            when :note
+                              note
+                            when :interval
+                              itext || isemi
+                            when :hole
+                              hole.to_s
+                            else
+                              fail "Internal error: #{$conf[:comment_listen]}"
+                            end ) || '.  .  .' ) ,
                'big' ]
            end,
 

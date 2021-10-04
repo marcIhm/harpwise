@@ -6,5 +6,11 @@
     "key": "c",
 
     // While listening, show comments as note or interval
-    "comment": "note"
+    "comment_listen": "note",
+
+    // what to display for listen when a note has been recognized
+    "display_listen": "chart",
+
+    // what to display for listen when a note has been recognized
+    "display_quiz": "note"
 }
