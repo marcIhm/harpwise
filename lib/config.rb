@@ -110,8 +110,12 @@ def read_musical_config
   end
 
   harp_holes = harp.keys
-  scale_holes = scales[$scale]
-  scale_notes = scale_holes.map {|h| harp[h][:note]}
+  if $scale
+    scale_holes = scales[$scale]
+    scale_notes = scale_holes.map {|h| harp[h][:note]}
+  else
+    scale_holes = scale_notes = nil
+  end
 
   unless harp_holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
     err_b "Internal error: Computed semitones are not strictly ascending in order of holes:\n#{harp.pretty_inspect}"
