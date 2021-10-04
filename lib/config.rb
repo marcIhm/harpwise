@@ -53,41 +53,37 @@ def read_technical_config
   file = 'config/config.json'
   merge_file = 'config/config_merge.json'
   conf = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
-  all_keys = Set.new([:comment, :all_scales, :all_keys, :type])
+  req_keys = Set.new([:type, :key, :comment])
   file_keys = Set.new(conf.keys)
-  fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{all_keys}" unless all_keys == file_keys
+  fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
     begin
       merge_conf = JSON.parse(File.read(merge_file))
     rescue JSON::ParserError => e
-      err_b "Config from #{merge_file} does not contain valid json: #{e}"
+      err_b "Cannot parse #{merge_file}: #{e}"
     end
     err_b "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
     merge_conf.transform_keys!(&:to_sym)
     merge_conf.each do |k,v|
-      err_b "Key #{k} from #{merge_file} is none of the valid keys #{all_keys}" unless all_keys.include?(k)
+      err_b "Key #{k} from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
       conf[k] = v
     end
   end
   conf[:comment] = conf[:comment].to_sym
-  conf[:type] = conf[:type].to_sym
+  conf[:type] = conf[:type]
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
-  [:all_scales, :all_keys].each do |k|
-    fail "Internal error: Value for key #{k} is not an array" unless conf[k].is_a?(Array)
-  end
-
+  
   conf
-
 end
 
 
 def read_musical_config
 
   # read and compute from harps file
-  file = "config/#{$conf[:type]}/harps.json"
+  file = "config/#{$conf[:type]}/keys.json"
   harps = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
   unless Set.new(harps.values.map {|v| v.keys}).length == 1
     fail "Internal error with #{file}, not all harps have the same list of holes"
@@ -104,17 +100,17 @@ def read_musical_config
     end
   end
   
-  scales_holes = JSON.parse(File.read("config/#{$conf[:type]}/scales_holes.json")).transform_keys!(&:to_sym)
-  scales_holes.each do |scale, holes|
+  scales = JSON.parse(File.read("config/#{$conf[:type]}/scales.json")).transform_keys!(&:to_sym)
+  scales.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
       fail "Internal error: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
     end
   end
 
-  holes = harp.keys
-  scale_holes = scales_holes[$scale]
+  harp_holes = harp.keys
+  scale_holes = scales[$scale]
 
-  unless holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
+  unless harp_holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
     err_b "Internal error: Computed semitones are not strictly ascending in order of holes:\n#{harp.pretty_inspect}"
   end
   
@@ -122,31 +118,31 @@ def read_musical_config
   ifile = ["config/#{$conf[:type]}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
   intervals = JSON.parse(File.read(ifile)).transform_keys!(&:to_i)
   
-  [ harp, holes, scale_holes, intervals ]
+  [ harp, harp_holes, scale_holes, intervals ]
 end
 
 
 def read_calibration
   err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
   hole2freq = JSON.parse(File.read($freq_file))
-  unless Set.new($holes).subset?(Set.new(hole2freq.keys))
-    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
+  unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
+    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
   end
-  unless Set.new(hole2freq.keys).subset?(Set.new($holes))
-    err_b "Holes for scale #{$scale} #{$harp.keys.join(' ')} is not a subset of holes in #{$freq_file} #{hole2freq.keys.join(' ')}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
+  unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
+    err_b "Holes for scale #{$scale} #{$harp.keys.join(' ')} is not a subset of holes in #{$freq_file} #{hole2freq.keys.join(' ')}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
   end
-  unless $holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
-    err_b "Frequencies in #{$freq_file} are not strictly ascending in order of #{$holes.inspect}: #{hole2freq.pretty_inspect}"
+  unless $harp_holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
+    err_b "Frequencies in #{$freq_file} are not strictly ascending in order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
 
-  $holes.each do |hole|
+  $harp_holes.each do |hole|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
   end
 
-  freq2hole = $holes.map {|h| [$harp[h][:freq], h]}.to_h
+  freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.to_h
 
   freq2hole
 

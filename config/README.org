@@ -1,7 +1,7 @@
 # -*- fill-column: 78 -*-
 The configuration is distributed among various files and directories.
 
-Technical config:
+Technical Config:
 
   - config.json :: Main config file; see comments within for some
                    explanations.
@@ -11,22 +11,20 @@ Technical config:
 
   - intervals.json :: Names for selected intervals.
 
-Each type of harmonica (e.g. diatonic) has its own musical config in its own
-directory:
+
+Each type of harmonica (e.g. diatonic) has a directory with its own 
+Musical Config:
 
   - intervals.json :: If this file is present within a subdirectory, it
-                      overrides the one directly below config.
+                      overrides the one directly within config.
 
-  - harps.json :: Notes for harps of different keys; the key-names used here
-                  must be a subset of the parameter all_keys given in
-                  config.json.
+  - keys.json :: Maps keys to maps of holes to notes.
 
-  - scale_holes.json :: Definition of scales; the scale-names used here must
-       be a subset of the parameter all_scales given in config.json.
+  - scales.json :: Maps scales to list of holes.
 
 
 To adjust configuration you may add config_merge.json to override selected
-settings.
+settings (e.g. the default harmonica-type).
 
 You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
 the existing dirs (e.g. diatonic) to a new name (bagpipe) and modyfy the

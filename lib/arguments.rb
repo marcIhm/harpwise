@@ -6,33 +6,54 @@
 
 def parse_arguments
 
+  # get content of all harmonica-types
+  types_content = $conf[:all_types].map do |type|
+    "#{type}:   " + %w(keys.json scales.json).map do |file_base|
+      file_full = "config/#{type}/#{file_base}"
+      begin
+        "#{file_base[0..-6]} = " + JSON.parse(File.read(file_full)).keys.join(', ')
+      rescue JSON::ParserError => e
+        err_b "Cannot parse #{file_full}: #{e}"
+      end
+    end.join(';  ')
+  end.join("\n  ")
+
+  
   usage = <<EOU
 
 
-Help to practice scales (e.g. blues or mape) for harmonicas of 
-various types (e.g. diatonic) for various keys (e.g. c). 
-Regular modes of operation are 'listen' and 'quiz'.
+Help to practice scales (e.g. blues or mape) for harmonicas of various types
+(e.g. diatonic or chromatic) for various keys (e.g. a or c).  Main modes of
+operation are 'listen' and 'quiz'.
 
 
 Usage by examples: 
 
 
-  Listen to your playing and show the note green from the scale; harp is of
-  key c, scale is blues:
+  Listen to you playing a diatonic harmonica of key c and show the notes
+  played; green if from the scale, red otherwise:
 
-    ./harp_scale_trainer listen c blues
+    ./harp_scale_trainer listen dia c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead of
   notes.
 
 
-  Play 3 notes from the scale and quiz you to play them back (then repeat);
-  scale is mape:
+  Play 3 notes from scale mape for a chromatic harmonica of key a and quiz you
+  to play them back (then repeat):
 
-    ./harp_scale_trainer quiz 3 a mape
+    ./harp_scale_trainer quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type 'RET'.
 
+
+  In the examples above, the type of harmonica (e.g. diatonic or chromatic)
+  and, in addition, the key (e.g. c or a) may be omitted and are then takne
+  from the config; so
+
+    ./harp_scale_trainer q 3 ma
+
+  is valid as well.
 
 
   Once in a lifetime of your c-harp you need to calibrate this program to the
@@ -40,7 +61,6 @@ Usage by examples:
 
     ./harp_scale_trainer calibrate c
     
-
   this will ask you to play notes on your harp. The samples will be stored in
   folder samples and frequencies will be extracted to file frequencies.json.
   This command does not need a scale-argument.
@@ -54,29 +74,24 @@ Usage by examples:
 Notes:
 
 
-  The last one or two arguments in all examples above are the 
-  - key of the harp (one of #{$conf[:all_keys].join(', ')}) and the
-  - scale (one of #{$conf[:all_scales].join(', ')})
-  respectively.
-
-  To choose a type of harmonica other than the default #{$conf[:type]},
-  add option '--type' with one of #{$conf[:all_types].join(', ')}.
+  The possible value for the arguments for key and scale depend on the chosen
+  type of harmonica:
+  #{types_content}
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
 
-  Some less used options: --debug, --screenshot, --help
+  Finally there are some less used options: --debug, --screenshot, --help
 
 EOU
 
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:debug, :hole, :comment, :type]
+  opts_with_args = [:debug, :hole, :comment]
   { %w(-d --debug) => :debug,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
-    %w(-t --type) => :type,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(-c --comment) => :comment,
@@ -105,11 +120,6 @@ EOU
   opts[:comment] = match_or(opts[:comment], %w(note interval)) do |none, choices|
     err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument not #{none}"
   end
-
-  opts[:type] = match_or(opts[:type],$conf[:all_types]) do |none, choices|
-    err_h "Option '--type' has an invalid or ambigous argument #{none}; available choices are: #{choices}"
-  end
-  $conf[:type] = opts[:type] if opts[:type]
   # see end of function for final processing of options
 
   # now ARGV does not contain any more options; process non-option arguments
@@ -120,58 +130,65 @@ EOU
     exit 1
   end
 
-  mode = :listen if 'listen'.start_with?(ARGV[0])
-  mode = :quiz if 'quiz'.start_with?(ARGV[0])
-  mode = :calibrate if 'calibrate'.start_with?(ARGV[0])
-
-  if ![:listen, :quiz, :calibrate].include?(mode)
-    err_h "First argument can be either 'listen', 'quiz' or 'calibrate', not '#{ARGV[0]}'"
-  end
+  mode = match_or(ARGV[0], %w(listen quiz calibrate)) do |none, choices|
+    err_h "First argument can be one of #{choices}, not #{none}"
+  end.to_sym
+  ARGV.shift
 
   # process remaining arguments according to mode
   # first find out, where the remaining arguments are
   if mode == :listen
-    if ARGV.length == 3
-      arg_for_key = ARGV[1]
-      arg_for_scale = ARGV[2]
-    else
-      err_h "Need exactly two additional arguments (key and scale) for mode listen"
-    end
+    arg_for_type = ( ARGV.length >= 3 ) ? ARGV.shift : $conf[:type]
+    arg_for_key = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:key]
+    arg_for_scale = ARGV.shift
+    err_h "Need arguments type, key and scale for mode 'listen'; type and in addition key can be omitted" unless ARGV.length == 0
   end
   
   if mode == :quiz
-    if ARGV.length == 4
-      arg_for_key = ARGV[2]
-      arg_for_scale = ARGV[3]
-    else
-      err_h "Need exactly three additional arguments (count, key and scale) for mode 'quiz'"
-    end
-    $num_quiz = ARGV[1].to_i
-    if $num_quiz.to_s != ARGV[1] || $num_quiz < 1
-      err_h "Argument after mode 'q' must be a number starting at 1, not '#{ARGV[1]}'"
+    arg_for_count = ARGV.shift
+    arg_for_type = ( ARGV.length >= 3 ) ? ARGV.shift : $conf[:type]
+    arg_for_key = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:key]
+    arg_for_scale = ARGV.shift if ARGV.length >= 1
+    err_h "Need arguments count, type, key and scale for mode 'quiz'; type and in addition key can be omitted" unless ARGV.length == 0
+    $num_quiz = arg_for_count.to_i
+    if $num_quiz.to_s != arg_for_count || $num_quiz < 1
+      err_h "Argument after mode 'quiz' must be an integer starting at 1, not '#{arg_for_count}'"
     end
   end
 
   if mode == :calibrate
-    if ARGV.length == 2
-      arg_for_key = ARGV[1]
-      arg_for_scale = nil
-    else
-      err_h "Need exactly one additional argument (the key) for mode 'calibrate'"
+    arg_for_type = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:type]
+    arg_for_key = ( ARGV.length >= 1 ) ? ARGV.shift : $conf[:key]
+    arg_for_scale = nil
+    err_h "Need arguments type and key for mode 'calibrate'; type and in addition key can be omitted" unless ARGV.length == 0
+  end
+
+  # process type first
+  type = match_or(arg_for_type, $conf[:all_types]) do |none, choices|
+    err_h "Type can be one of #{choices} only, not #{none}"
+  end
+
+  # extract possible keys and scales from respective files
+  {'keys.json' => :all_keys, 'scales.json' => :all_scales}.each do |file_base, cfg_key|
+    file_full = "config/#{type}/#{file_base}"
+    begin
+      $conf[cfg_key] = JSON.parse(File.read(file_full)).keys
+    rescue JSON::ParserError => e
+      err_b "Cannot parse #{file_full}: #{e}"
     end
   end
 
-  # process key and scale
-  if arg_for_key
-     err_b "Key can only be one on #{$conf[:all_keys].inspect}, not '#{arg_for_key}'" if !$conf[:all_keys].include?(arg_for_key)
-    key = arg_for_key.to_sym
-  end
+  # now we have the information to process key and scale
+  key = match_or(arg_for_key, $conf[:all_keys]) do |none, choices|
+    err_b "Key can only be one on #{choices}, not '#{none}'"
+  end.to_sym
 
-  if arg_for_scale
+  if mode != :calibrate
     scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
       err_b "Given scale '#{none}' matches none or multiple of #{choices}"
     end.to_sym
   end
+
 
   # late option processing depending on mode
   # check for invalid combinations of options and mode
@@ -179,8 +196,7 @@ EOU
     err_h "Option '--#{o_m[0]}' is allowed for mode '#{o_m[1]}' only" if opts[o_m[0]] && mode != o_m[1]
   end
   
-  
-  [ mode, key, scale, opts]
+  [ mode, type, key, scale, opts]
 end
 
 

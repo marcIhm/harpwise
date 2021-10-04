@@ -5,12 +5,12 @@
 [[images/harmonicas.jpg]]
 
 Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
-diatonic harmonica for various keys.
+diatonic or chromatic harmonica for various keys.
 
-Its operation modes are 'listen' and 'quiz'.
+Its main operation modes are 'listen' and 'quiz'.
 
 The screenshot below is from mode 'quiz': The program has played five notes
-intially and now challenges me to play them back. I just played the fourth
+intially and now challenges to play them back. I just played the fourth
 note, six blow, correctly. Now the program will acknowledge this and ask for
 the fifth note next.
 
@@ -30,8 +30,8 @@ the fifth note next.
   Special thanx to aubiopitch for doing all the heavy-lifting of tone
   recognition !
 
-  For MS Windows you may use the latest windows-Subsystem for Linux wslg, which
-  supports sound via pulseaudio and rdp.
+  For MS Windows, version 11, you may use the latest windows-Subsystem for
+  Linux wslg, which supports sound via remote desktop protocol.
 
 * Usage
 
@@ -41,5 +41,5 @@ the fifth note next.
 
   
   First you will need to calibrate the program; the resulting wav-files will
-  be kept in directory samples.
+  be kept in directory samples (which is not checked into git).
 

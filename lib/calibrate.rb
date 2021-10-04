@@ -12,7 +12,7 @@ def do_calibrate_auto
 
 This will generate all needed samples for holes:
 
-  \e[32m#{$holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
+  \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
 Letting this program generate your samples is a good way to get started
 quickly. The notes will be in "equal temperament" (rather than "just tuning").
@@ -36,7 +36,7 @@ EOINTRO
 
   hole2freq = Hash.new
   freqs = Array.new
-  $holes.each do |hole|
+  $harp_holes.each do |hole|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     synth_sound hole, file
     play_sound file
@@ -50,8 +50,8 @@ end
 
 def do_calibrate_assistant
 
-  if $opts[:hole] && !$holes.include?($opts[:hole])
-    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$holes.inspect}"
+  if $opts[:hole] && !$harp_holes.include?($opts[:hole])
+    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$harp_holes.inspect}"
   end
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
@@ -59,8 +59,8 @@ def do_calibrate_assistant
     holes_desc = 'these holes'
     holes_desc2 = "#{$opts[:hole]} and beyond"
   else
-    holes_desc = "these #{$holes.length} holes"
-    holes_desc2 = $holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")
+    holes_desc = "these #{$harp_holes.length} holes"
+    holes_desc2 = $harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")
 
   end
   puts <<EOINTRO
@@ -108,10 +108,10 @@ EOINTRO
     hole2freq = Hash.new
   end
   freqs = Array.new
-  i = $opts[:hole] ? $holes.index($opts[:hole]) : 0
+  i = $opts[:hole] ? $harp_holes.index($opts[:hole]) : 0
 
   begin
-    hole = $holes[i]
+    hole = $harp_holes[i]
     freqs[i] = review_hole(hole, freqs[i-1] || 0)
     if freqs[i] < 0
       if i > 0 
@@ -125,7 +125,7 @@ EOINTRO
       i += 1
     end
     write_freq_file hole2freq
-  end while i <= $holes.length - 1
+  end while i <= $harp_holes.length - 1
   system("ls -lrt #{$sample_dir}")
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
@@ -261,9 +261,9 @@ end
 
 
 def write_freq_file hole2freq
-  # Recreate the hash in order of $holes
+  # Recreate the hash in order of $harp_holes
   hole2freq_sorted = Hash.new
-  [$holes + hole2freq.keys].flatten.each do |hole|
+  [$harp_holes + hole2freq.keys].flatten.each do |hole|
     hole2freq_sorted[hole] = hole2freq[hole]
   end
   File.write($freq_file, JSON.pretty_generate(hole2freq_sorted))

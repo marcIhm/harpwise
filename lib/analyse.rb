@@ -79,8 +79,8 @@ end
 def describe_freq freq
 
   # pseudo frequencies to aid analysis
-  freqs = ([$harp[$holes[0]][:freq] / 2,
-            $harp[$holes[-1]][:freq] * 2] + $freq2hole.keys).sort
+  freqs = ([$harp[$harp_holes[0]][:freq] / 2,
+            $harp[$harp_holes[-1]][:freq] * 2] + $freq2hole.keys).sort
   
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2

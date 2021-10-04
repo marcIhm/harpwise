@@ -1,14 +1,10 @@
 {
-    // can be diatonic or chromatic
+    // default value if not given on commandline
     "type": "diatonic",
 
+    // default value
+    "key": "c",
+
     // While listening, show comments as note or interval
-    "comment": "note",
-
-    // List of scales; they should appear as keys in scales_holes_file
-    // Note: 'mape' stands for 'major pentatonic'
-    "all_scales": ["blues", "mape"],
-
-    // List of keys (musical); they should appear as hash-keys in harps_file
-    "all_keys": ["c", "a"]
+    "comment": "note"
 }
