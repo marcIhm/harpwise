@@ -26,8 +26,12 @@ def do_listen
                'big' ]
            end,
 
-           -> () do  # lambda_hint
-             print "Hint: \e[2mScale '#{$scale}' has these #{$scale_holes.length} holes: #{$scale_holes.join(' ')}\e[0m"
+           -> (hole) do  # lambda_hint
+             holes = $scale_holes.dup
+             if hole && (hidx = $scale_holes.index(hole.to_s))
+               holes[hidx] = "\e[0m\e[32m" + holes[hidx] + "\e[0m\e[2m"
+             end
+             print "Hint: \e[2mScale has #{$scale_holes.length} holes: #{holes.join(', ')}\e[0m"
            end,
 
            -> (hole_held_before) do  # lambda_hole_for_inter

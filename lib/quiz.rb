@@ -97,7 +97,7 @@ def do_quiz
             end
           end,
           
-          -> () do  # lambda_hint
+          -> (_) do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
 

@@ -107,7 +107,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     end
 
     print "\e[#{$line_hint}H"
-    lambda_hint.call() if lambda_hint
+    lambda_hint.call(hole) if lambda_hint
   end
 end
 
