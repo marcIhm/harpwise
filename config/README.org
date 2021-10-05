@@ -1,8 +1,11 @@
 # -*- fill-column: 78 -*-
-The configuration is distributed among various files and directories.
 
-Technical Config:
+* Overview
 
+  The configuration is distributed among various files and directories.
+
+  Technical Config:
+  
   - config.json :: Main config file; see comments within for some
                    explanations.
 		   
@@ -12,8 +15,8 @@ Technical Config:
   - intervals.json :: Names for selected intervals.
 
 
-Each type of harmonica (e.g. richter) has a directory with its own 
-Musical Config:
+  Each type of harmonica (e.g. richter) has a directory with its own 
+  Musical Config:
 
   - intervals.json :: If this file is present within a subdirectory, it
                       overrides the one directly within config.
@@ -23,9 +26,22 @@ Musical Config:
   - scales.json :: Maps scales to list of holes.
 
 
-To adjust configuration you may add config_merge.json to override selected
-settings (e.g. the default harmonica-type).
+  To adjust configuration you may add config_merge.json to override selected
+  settings (e.g. the default harmonica-type).
 
-You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
-the existing dirs (e.g. richter) to a new name (bagpipe) and modyfy the
-contained files accordingly.
+* Creating a new type of harmonica
+
+  (Please also read the section "A word on holes" from the toplevel readme too)
+
+  You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
+  the existing dirs (e.g. richter) to a new name (bagpipe) and modyfy the
+  contained files accordingly.
+
+  Also note, that the hole-names (e.g. "-1") used throughout the configuration
+  files are more or less customary and can be chosen at will; they only need
+  to be used consistently for one type of harmonica (e.g richter). Another
+  type (e.g. chromatic) may totally or partially different names for holes
+  (e.g. "-1b").
+
+  The note-names (e.g. "a4" or gs5) on the other hand follow a strict schema,
+  from which you may not deviate.

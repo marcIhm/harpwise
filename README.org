@@ -19,6 +19,34 @@ intially and now challenges to play them back.
 
 [[images/screenshot_quiz.png]]
 
+* Usage
+
+  Get usage information by invoking without arguments:
+  
+    ./harp_scale_trainer
+
+  
+  First you will need to calibrate the program; the resulting wav-files will
+  be kept in directory samples (which is not checked into git).
+
+* A word on holes
+
+  The Program uses the term "holes" throughout to give you feedback or hints.
+  Examples would be "-1" or "+4"; these obviously name the holes of your
+  harmonica and distinguish between "draw" and "blow".
+
+  This works most of the time; however, there are some holes, which produce
+  the same note, e.g. "-2" and "+3" on a richter harp. In such a case, this
+  program gives a common name "-2+3" to both holes as they produce the same
+  note. And for the purpose of this program (i.e. practicing scales) only the
+  notes matter, and not so much the holes you draw or blow o produce the notes.
+
+  On the other hand, the program wants to stay in accord with the common
+  practice among players of the diatonic harmonica to speak of holes (tabs)
+  and not of notes.
+
+  So this program chooses to use hole-names like "-2+3" for notes.
+
 * Installation
 
   The program harp_scale_trainer runs in the linux console; it has no formal
@@ -35,14 +63,4 @@ intially and now challenges to play them back.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wslg, which supports sound via remote desktop protocol.
-
-* Usage
-
-  Get usage information by invoking without arguments:
-  
-    ./harp_scale_trainer
-
-  
-  First you will need to calibrate the program; the resulting wav-files will
-  be kept in directory samples (which is not checked into git).
 
