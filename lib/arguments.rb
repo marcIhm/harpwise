@@ -77,7 +77,6 @@ Usage by examples:
 
 Notes:
 
-
   The possible value for the arguments for key and scale depend on the chosen
   type of harmonica:
   #{types_content}
@@ -86,6 +85,9 @@ Notes:
   for 'calibrate'.
 
   Finally there are some less used options: --debug, --screenshot, --help
+
+
+Suggested reading: The section "A word on holes" from the toplevel README.org
 
 EOU
 

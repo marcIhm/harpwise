@@ -2,22 +2,22 @@
 
 * Harp Scale Trainer
 
-[[images/harmonicas.jpg]]
+  [[images/harmonicas.jpg]]
 
-Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
-(datonic) richter or chromatic harmonica for various keys.
+  Simple ruby script to help practice scales (e.g. blues or major pentatonic) on a
+  (datonic) richter or chromatic harmonica for various keys.
 
-Its main operation modes are 'listen' and 'quiz'.
+  Its main operation modes are 'listen' and 'quiz'.
+  
+  The first screenshow is from mode 'listen': The program has recognized a note
+  from the blues scale and marks it in the harmonica chart.
+  
+  [[images/screenshot_listen.png]]
 
-The first screenshow is from mode 'listen': The program has recognized a note
-from the blues scale and marks it in the harmonica chart.
-
-[[images/screenshot_listen.png]]
-
-The second screenshot is from mode 'quiz': The program has played five notes
-intially and now challenges to play them back.
-
-[[images/screenshot_quiz.png]]
+  The second screenshot is from mode 'quiz': The program has played five notes
+  intially and now challenges to play them back.
+  
+  [[images/screenshot_quiz.png]]
 
 * Usage
 
@@ -38,14 +38,16 @@ intially and now challenges to play them back.
   This works most of the time; however, there are some holes, which produce
   the same note, e.g. "-2" and "+3" on a richter harp. In such a case, this
   program gives a common name "-2+3" to both holes as they produce the same
-  note. And for the purpose of this program (i.e. practicing scales) only the
-  notes matter, and not so much the holes you draw or blow o produce the notes.
+  note. And for the purpose of this program (i.e. practicing scales) mostly
+  the notes matter, and not so much the holes, you draw or blow o produce the
+  notes.
 
   On the other hand, the program wants to stay in accord with the common
   practice among players of the diatonic harmonica to speak of holes (tabs)
   and not of notes.
 
-  So this program chooses to use hole-names like "-2+3" for notes.
+  So this program chooses to use hole-names like "-2+3", which you might
+  consider also as practical names for the respective notes.
 
 * Installation
 

@@ -31,7 +31,7 @@
 
 * Creating a new type of harmonica
 
-  (Please also read the section "A word on holes" from the toplevel readme too)
+  (Please also read the section "A word on holes" from the toplevel README.org too)
 
   You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
   the existing dirs (e.g. richter) to a new name (bagpipe) and modyfy the
@@ -39,8 +39,8 @@
 
   Also note, that the hole-names (e.g. "-1") used throughout the configuration
   files are more or less customary and can be chosen at will; they only need
-  to be used consistently for one type of harmonica (e.g richter). Another
-  type (e.g. chromatic) may totally or partially different names for holes
+  to be consistent within one type of harmonica (e.g richter). An different
+  type (e.g. chromatic) may use totally or partially different names for holes
   (e.g. "-1b").
 
   The note-names (e.g. "a4" or gs5) on the other hand follow a strict schema,
