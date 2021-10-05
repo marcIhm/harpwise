@@ -26,11 +26,14 @@ def set_global_vars_early
   $ctl_can_next = $ctl_can_back = false
   $ctl_issue_width = 42
   $ctl_non_def_issue_ts = nil
+
+  $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
+  $notes_with_flats = %w( c df d ef e f gf g af a bf b )
 end
 
 
 def set_global_vars_late
-  $sample_dir = "samples/#{$conf[:type]}/key_of_#{$key}"
+  $sample_dir = this_or_equiv("samples/#{$conf[:type]}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.json"
   $collect_wave = 'tmp/collect.wav'
   $edit_data = 'tmp/edit_workfile.dat'
@@ -84,21 +87,22 @@ end
 def read_musical_config
 
   # read and compute from harps file
-  hfile = "config/#{$conf[:type]}/keys.json"
-  harps = JSON.parse(File.read(hfile)).transform_keys!(&:to_sym)
-  unless Set.new(harps.values.map {|v| v.keys}).length == 1
-    fail "Internal error with #{hfile}, not all harps have the same list of holes"
+  hfile = "config/#{$conf[:type]}/holes.json"
+  begin
+    harp = JSON.parse(File.read(hfile))
+  rescue JSON::ParserError => e
+    err_b "Cannot parse #{hfile}: #{e}"
   end
-  harp = harps[$key] or fail "Internal error: Key #{$key} has no harp"
 
-  harp.each_value {|h| h.transform_keys!(&:to_sym)}
-  semi_before = -1
+  dsemi = note2semi($key.to_s + '0') - note2semi('c0')
   harp.each_value do |h|
+    h.transform_keys!(&:to_sym)
     begin
-      h[:semi] = note2semi(h[:note])
+      h[:semi] = note2semi(h[:note]) + dsemi
     rescue ArgumentError => e
       err_b "From #{hfile}, key #{$key}, note #{h[:note]}: #{e.message}"
     end
+    h[:note] = semi2note(h[:semi]) unless dsemi == 0
   end
 
   sfile = "config/#{$conf[:type]}/scales.json"
@@ -186,7 +190,7 @@ def read_calibration
   hole2freq.map {|k,v| $harp[k][:freq] = v}
 
   $harp_holes.each do |hole|
-    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
     err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
   end
 

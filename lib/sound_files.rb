@@ -122,3 +122,16 @@ def wave2data file
   sys "sox #{file} #{$edit_data}"
   sox_query(file, 'Length')
 end
+
+
+def this_or_equiv template, note
+  notes_equiv(note).each do |eq|
+    name = template % eq
+    return name if File.exist?(name)
+  end
+  return template % note
+end
+
+
+def name_write_note_wav note
+end

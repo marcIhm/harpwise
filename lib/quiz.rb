@@ -51,7 +51,7 @@ def do_quiz
         print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
       end
       print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
-      play_thr = Thread.new { play_sound "#{$sample_dir}/#{$harp[hole][:note]}.wav" }
+      play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
         sleep 0.1
         handle_kb_listen

@@ -8,16 +8,14 @@ def parse_arguments
 
   # get content of all harmonica-types
   types_content = $conf[:all_types].map do |type|
-    "#{type}:   " + %w(keys.json scales.json).map do |file_base|
-      file_full = "config/#{type}/#{file_base}"
+    sfile = "config/#{type}/scales.json"
+    "scales for #{type}: " +
       begin
-        "#{file_base[0..-6]} = " + JSON.parse(File.read(file_full)).keys.join(', ')
+        JSON.parse(File.read(sfile)).keys.join(', ')
       rescue JSON::ParserError => e
-        err_b "Cannot parse #{file_full}: #{e}"
+        err_b "Cannot parse #{sfile}: #{e}"
       end
-    end.join(';  ')
   end.join("\n  ")
-
   
   usage = <<EOU
 
@@ -77,8 +75,7 @@ Usage by examples:
 
 Notes:
 
-  The possible value for the arguments for key and scale depend on the chosen
-  type of harmonica:
+  The possible scales depend on the chosen type of harmonica:
   #{types_content}
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
@@ -179,20 +176,18 @@ EOU
     err_h "Type can be one of #{choices} only, not #{none}"
   end
 
-  # extract possible keys and scales from respective files
-  {'keys.json' => :all_keys, 'scales.json' => :all_scales}.each do |file_base, cfg_key|
-    file_full = "config/#{type}/#{file_base}"
-    begin
-      $conf[cfg_key] = JSON.parse(File.read(file_full)).keys
-    rescue JSON::ParserError => e
-      err_b "Cannot parse #{file_full}: #{e}"
-    end
+  # extract possible scales 
+  sfile = "config/#{type}/scales.json"
+  begin
+    $conf[:all_scales] = JSON.parse(File.read(sfile)).keys
+  rescue JSON::ParserError => e
+    err_b "Cannot parse #{sfile}: #{e}"
   end
+  $conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
 
   # now we have the information to process key and scale
-  key = match_or(arg_for_key, $conf[:all_keys]) do |none, choices|
-    err_b "Key can only be one on #{choices}, not '#{none}'"
-  end.to_sym
+  err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
+  key = arg_for_key.to_sym
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale

@@ -37,7 +37,7 @@ EOINTRO
   hole2freq = Hash.new
   freqs = Array.new
   $harp_holes.each do |hole|
-    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+    file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
     synth_sound hole, file
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
@@ -133,7 +133,7 @@ end
 
 def review_hole hole, prev_freq
 
-  file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+  file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
   do_draw = true
   do_edit = false
   do_record = false

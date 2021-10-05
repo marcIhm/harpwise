@@ -90,18 +90,44 @@ def describe_freq freq
   end
   return :high
 end
-  
+
 
 def note2semi note
-  notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
-  notes_with_flats = %w( c df d ef e f gf g af a bf b )
-
   note = note.downcase
-  raise ArgumentError.new('should end with a single digit') unless ('1'..'9').include?(note[-1])
-  idx = notes_with_sharps.index(note[0 .. -2]) ||
-        notes_with_flats.index(note[0 .. -2]) or
-    raise ArgumentError.new("non-digit part is none of #{notes_with_sharps.inspect} or #{notes_with_flats.inspect}")
+  raise ArgumentError.new("note '#{note}' should end with a single digit") unless ('0'..'9').include?(note[-1])
+  idx = $notes_with_sharps.index(note[0 .. -2]) ||
+        $notes_with_flats.index(note[0 .. -2]) or
+    raise ArgumentError.new("non-digit part is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
     return 12 * note[-1].to_i + idx
+end
+
+
+def semi2note semi, sharp_or_flat = :sharp
+  case sharp_or_flat
+  when :flat
+    $notes_with_flats[semi % 12] + (semi / 12).to_s
+  when :sharp
+    $notes_with_sharps[semi % 12] + (semi / 12).to_s
+  else
+    fail "Internal error: #{sharp_or_flat}"
+  end
+end
+
+
+def notes_equiv note
+  no_digit = !note[-1].match?(/[0-9]/)
+  note += '0' if no_digit
+  semi = note2semi(note)
+  ns = semi2note(semi, :sharp)
+  nf = semi2note(semi, :flat)
+  if no_digit
+    ns = ns[0 .. -2]
+    nf = nf[0 .. -2]
+  end
+  notes = [note]
+  notes << ns if ns != note
+  notes << nf if nf != note
+  notes
 end
 
 

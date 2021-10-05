@@ -21,7 +21,7 @@
   - intervals.json :: If this file is present within a subdirectory, it
                       overrides the one directly within config.
 
-  - keys.json :: Maps keys to maps of holes to notes.
+  - holes.json :: Maps holes to notes.
 
   - scales.json :: Maps scales to list of holes.
 

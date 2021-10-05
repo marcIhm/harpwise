@@ -4,7 +4,7 @@
 //
 // The last string of each row is a comment and will be printed unchanged.
 //
-// All the given holes need to appear in keys.json and vice versa.
+// All the given holes need to appear in holes.json and vice versa.
 // Strings with two two or more minus or space and minus are treated as comment.
 //
 // Strings below have equal length to help editing; actual length is
