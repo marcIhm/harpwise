@@ -33,7 +33,7 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = this_or_equiv("samples/#{$conf[:type]}/key_of_%s", $key.to_s)
+  $sample_dir = this_or_equiv("samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.json"
   $collect_wave = 'tmp/collect.wav'
   $edit_data = 'tmp/edit_workfile.dat'
@@ -55,16 +55,12 @@ end
 def read_technical_config
   file = 'config/config.json'
   merge_file = 'config/config_merge.json'
-  conf = JSON.parse(File.read(file)).transform_keys!(&:to_sym)
+  conf = json_parse(file).transform_keys!(&:to_sym)
   req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
-    begin
-      merge_conf = JSON.parse(File.read(merge_file))
-    rescue JSON::ParserError => e
-      err_b "Cannot parse #{merge_file}: #{e}"
-    end
+    merge_conf = json_parse(merge_file)
     err_b "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
     merge_conf.transform_keys!(&:to_sym)
     merge_conf.each do |k,v|
@@ -72,9 +68,10 @@ def read_technical_config
       conf[k] = v
     end
   end
-  
+
+  # working some individual configs
+  conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
   [:comment_listen, :display_listen, :display_quiz].each {|key| conf[key] = conf[key].to_sym}
-  conf[:type] = conf[:type]
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
@@ -87,16 +84,15 @@ end
 def read_musical_config
 
   # read and compute from harps file
-  hfile = "config/#{$conf[:type]}/holes.json"
-  begin
-    harp = JSON.parse(File.read(hfile))
-  rescue JSON::ParserError => e
-    err_b "Cannot parse #{hfile}: #{e}"
+  hfile = "config/#{$type}/holes.json"
+  holes2notes = json_parse(hfile)
+  harp = Hash.new
+  holes2notes.each do |h,n|
+    harp[h] = [[:note, n]].to_h
   end
-
+    
   dsemi = note2semi($key.to_s + '0') - note2semi('c0')
   harp.each_value do |h|
-    h.transform_keys!(&:to_sym)
     begin
       h[:semi] = note2semi(h[:note]) + dsemi
     rescue ArgumentError => e
@@ -105,14 +101,48 @@ def read_musical_config
     h[:note] = semi2note(h[:semi]) unless dsemi == 0
   end
 
-  sfile = "config/#{$conf[:type]}/scales.json"
-  scales = JSON.parse(File.read(sfile)).transform_keys!(&:to_sym)
+  sfile = "config/#{$type}/scales.json"
+
+  # One-time assistant when creating a new type of harp by creating the scale-file
+  snfile = "config/#{$type}/scales_derived_with_notes.json"
+  if !File.exist?(sfile)
+    if !File.exist?(snfile)
+      err_b "Neither:  #{sfile}\nnor:  #{snfile}\ndoes exist; however you may copy:  #{File.basename(snfile)}\nfrom another harmonica type to get started."
+    else
+      puts "Did not find:  #{sfile}  !\nHowever:  #{snfile}\nis present; should it be converted to:  #{sfile}   ?"
+      print "RETURN to continue or CTRL-C to abort: "
+      STDIN.gets
+      notes2holes = holes2notes.invert
+      scales = Hash.new {|h,k| h[k] = Array.new}
+      scales_notes = json_parse(snfile).transform_keys!(&:to_sym)
+      scales_notes.each do |scale, notes|
+        scales[scale] = notes.map {|n| notes2holes[n] or fail "#{hfile} has no note #{n} ! Maybe correcting some sharps and flats in #{snfile} will help."}
+      end
+      File.write(sfile, JSON.pretty_generate(scales))
+      puts "Please inspect:  #{sfile}\nand try again."
+      exit 0
+    end
+  end  
+
+  
+  # now we are sure to have a proper scale-file
+  scales = json_parse(sfile).transform_keys!(&:to_sym)
   scales.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
-      fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp of key #{$key}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}"
+      fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}; if you have created this type of harmonica, you may consult the README.org in directory config"
     end
   end
 
+  
+  # silently write snfile
+  nscales = Hash.new {|h,k| h[k] = Array.new}
+  scales.each do |scale, holes|
+    nscales[scale] = holes.map {|h| harp[h][:note]}
+  end
+  File.write(snfile, "// The sole purpose of this file is to transfer scales to other types of harps;\n// see the README.org in directory config for details.\n" + JSON.pretty_generate(nscales))
+
+  
+  # collect some info
   harp_holes = harp.keys
   if $scale
     scale_holes = scales[$scale]
@@ -126,16 +156,16 @@ def read_musical_config
   end
 
   # read from first available intervals file
-  ifile = ["config/#{$conf[:type]}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
-  intervals = JSON.parse(File.read(ifile)).transform_keys!(&:to_i)
+  ifile = ["config/#{$type}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
+  intervals = json_parse(ifile).transform_keys!(&:to_i)
 
   [ harp, harp_holes, scale_holes, scale_notes, intervals ]
 end
 
 
 def read_chart
-  cfile = "config/#{$conf[:type]}/chart.json"
-  chart = JSON.parse(File.read(cfile))
+  cfile = "config/#{$type}/chart.json"
+  chart = json_parse(cfile)
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   len = chart.shift
   begin
@@ -176,7 +206,7 @@ end
 
 def read_calibration
   err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
-  hole2freq = JSON.parse(File.read($freq_file))
+  hole2freq = json_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
   end

@@ -5,3 +5,4 @@ samples/*
 tmp/*
 images/harmonica0.jpg
 config/config_merge.json
+config/*/scales_derived_with_notes.json

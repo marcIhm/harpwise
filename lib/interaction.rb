@@ -27,7 +27,7 @@ end
 
 
 def dbg text
-  puts "DEBUG: #{text}" if $opts[:debug] > 1
+  puts "DEBUG: #{text}" if $opts[:debug]
   text
 end
 

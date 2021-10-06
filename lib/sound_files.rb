@@ -4,7 +4,7 @@
 
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
-  output_clause = (opts[:silent] && $opts[:debug] <= 2) ? '>/dev/null 2>&1' : ''
+  output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
   system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
 end
 

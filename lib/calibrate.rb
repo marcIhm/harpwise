@@ -103,7 +103,7 @@ EOINTRO
   STDIN.gets
 
   if File.exist?($freq_file)
-    hole2freq = JSON.parse(File.read($freq_file))
+    hole2freq = json_parse($freq_file)
   else
     hole2freq = Hash.new
   end

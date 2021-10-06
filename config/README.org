@@ -21,7 +21,8 @@
   - intervals.json :: If this file is present within a subdirectory, it
                       overrides the one directly within config.
 
-  - holes.json :: Maps holes to notes.
+  - holes.json :: Maps holes to notes for a harmonica of key c. All other keys
+		  will be automatically derived from this one
 
   - scales.json :: Maps scales to list of holes.
 
@@ -34,8 +35,12 @@
   (Please also read the section "A word on holes" from the toplevel README.org too)
 
   You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
-  the existing dirs (e.g. richter) to a new name (bagpipe) and modyfy the
+  the existing dirs (e.g. richter) to a new name (bagpipe) and modify the
   contained files accordingly.
+
+  In this process you may remove the copied file scales.json; you will then be
+  asked to recreate it from scales_derived_with_notes.json, which exists for
+  this purpose only.
 
   Also note, that the hole-names (e.g. "-1") used throughout the configuration
   files are more or less customary and can be chosen at will; they only need

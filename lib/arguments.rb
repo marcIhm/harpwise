@@ -10,11 +10,7 @@ def parse_arguments
   types_content = $conf[:all_types].map do |type|
     sfile = "config/#{type}/scales.json"
     "scales for #{type}: " +
-      begin
-        JSON.parse(File.read(sfile)).keys.join(', ')
-      rescue JSON::ParserError => e
-        err_b "Cannot parse #{sfile}: #{e}"
-      end
+      ( File.exist?(sfile)  ?  json_parse(sfile).keys.join(', ')  :  "#{sfile} cannot be found" )
   end.join("\n  ")
   
   usage = <<EOU
@@ -91,7 +87,7 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:debug, :hole, :comment, :display]
+  opts_with_args = [:hole, :comment, :display]
   { %w(--debug) => :debug,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
@@ -115,12 +111,6 @@ EOU
   end
 
   # special processing for some options
-  if opts[:debug]
-    err_h "Option '--debug' needs an integer argument, not '#{opts[:debug]}" unless opts[:debug].match? /\A\d+\z/
-    opts[:debug] = opts[:debug].to_i
-  end
-  opts[:debug] = 0 unless opts[:debug]
-
   opts[:comment] = match_or(opts[:comment], [:note, :interval, :hole]) do |none, choices|
     err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
@@ -138,53 +128,51 @@ EOU
     exit 1
   end
 
+  # General idea of argument processing: We take the mode, than other
+  # arguments, we now for certain (knowing the mode) then key, by recognicing
+  # it among other args by its content and then the rest.
+  
   mode = match_or(ARGV[0], %w(listen quiz calibrate)) do |none, choices|
     err_h "First argument can be one of #{choices}, not #{none}"
   end.to_sym
   ARGV.shift
 
-  # process remaining arguments according to mode
-  # first find out, where the remaining arguments are
-  if mode == :listen
-    arg_for_type = ( ARGV.length >= 3 ) ? ARGV.shift : $conf[:type]
-    arg_for_key = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:key]
-    arg_for_scale = ARGV.shift
-    err_h "Need arguments type, key and scale for mode 'listen'; type and in addition key can be omitted" unless ARGV.length == 0
-  end
-  
   if mode == :quiz
-    arg_for_count = ARGV.shift
-    arg_for_type = ( ARGV.length >= 3 ) ? ARGV.shift : $conf[:type]
-    arg_for_key = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:key]
-    arg_for_scale = ARGV.shift if ARGV.length >= 1
-    err_h "Need arguments count, type, key and scale for mode 'quiz'; type and in addition key can be omitted" unless ARGV.length == 0
-    $num_quiz = arg_for_count.to_i
+    $num_quiz = ARGV.shift.to_i
     if $num_quiz.to_s != arg_for_count || $num_quiz < 1
       err_h "Argument after mode 'quiz' must be an integer starting at 1, not '#{arg_for_count}'"
     end
   end
 
   if mode == :calibrate
-    arg_for_type = ( ARGV.length >= 2 ) ? ARGV.shift : $conf[:type]
-    arg_for_key = ( ARGV.length >= 1 ) ? ARGV.shift : $conf[:key]
     arg_for_scale = nil
-    err_h "Need arguments type and key for mode 'calibrate'; type and in addition key can be omitted" unless ARGV.length == 0
+  else
+    arg_for_scale = ARGV.pop
+    err_h "Need at least one argument for scale" unless arg_for_scale
   end
-
+  if ARGV.length == 2
+    arg_for_key == ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
+    arg_for_key == ARGV.shift if $conf[:all_keys].include?(ARGV[0])
+    arg_for_type = ARGV.shift
+  else
+    arg_for_key =  ARGV.length > 0 &&  $conf[:all_keys].include?(ARGV[-1])  ?  ARGV.pop : $conf[:key]
+    arg_for_type =  ARGV.length > 0  ?  ARGV.shift  :  $conf[:type] 
+  end
+    
   # process type first
   type = match_or(arg_for_type, $conf[:all_types]) do |none, choices|
     err_h "Type can be one of #{choices} only, not #{none}"
   end
 
   # extract possible scales 
-  sfile = "config/#{type}/scales.json"
-  begin
-    $conf[:all_scales] = JSON.parse(File.read(sfile)).keys
-  rescue JSON::ParserError => e
-    err_b "Cannot parse #{sfile}: #{e}"
+  files = ["config/#{type}/scales.json",
+           "config/#{type}/scales_derived_with_notes.json"]
+  files.each do |file|
+    next unless File.exist?(file)
+    $conf[:all_scales] = json_parse(file).keys
   end
-  $conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-
+  err_b "Cannot continue, none of these files exists: #{files}" unless $conf[:all_scales]
+  
   # now we have the information to process key and scale
   err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
   key = arg_for_key.to_sym
@@ -192,10 +180,12 @@ EOU
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
     scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
-      err_b "Given scale '#{none}' matches none or multiple of #{choices}"
+      err_b "Given scale #{none} matches none or multiple of #{choices}"
     end.to_sym
   end
 
+  # do this check late, because we have more specific error messages before
+  err_h "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0
 
   # late option processing depending on mode
   # check for invalid combinations of options and mode
@@ -210,12 +200,3 @@ EOU
   
   [ mode, type, key, scale, opts]
 end
-
-
-def match_or cand, choices
-  return unless cand
-  matches = choices.select {|c| c.start_with?(cand)}
-  yield "'#{cand}'", choices.join(', ') unless matches.length == 1
-  matches[0]
-end
-          
