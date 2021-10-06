@@ -22,3 +22,10 @@ def json_parse file
     fail "File #{file} does not exist !"
   end
 end
+
+
+def comment_in_chart? cell
+  return true if cell.count('-') > 1 || cell.count('=') > 1
+  return true if cell.match?(/^[- ]*$/)
+  return false
+end

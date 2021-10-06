@@ -9,6 +9,8 @@ def do_calibrate_auto
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   puts <<EOINTRO
 
+(type #{$type}, key of #{$key})
+
 
 This will generate all needed samples for holes:
 

@@ -106,11 +106,13 @@ def read_musical_config
   # One-time assistant when creating a new type of harp by creating the scale-file
   snfile = "config/#{$type}/scales_derived_with_notes.json"
   if !File.exist?(sfile)
+    puts "\n\nThis is the assistant for creating the scales of a newly created harp type.\n\n"
     if !File.exist?(snfile)
-      err_b "Neither:  #{sfile}\nnor:  #{snfile}\ndoes exist; however you may copy:  #{File.basename(snfile)}\nfrom another harmonica type to get started."
+      puts "\nNeither:  #{sfile}\nnor:  #{snfile}\ndoes exist; however you may copy:  #{File.basename(snfile)}\nfrom another harmonica type to get started. Then try again.\n\n"
+      exit 1
     else
-      puts "Did not find:  #{sfile}  !\nHowever:  #{snfile}\nis present; should it be converted to:  #{sfile}   ?"
-      print "RETURN to continue or CTRL-C to abort: "
+      puts "\nDid not find:  #{sfile}  !\nHowever:  #{snfile}\nis present; should it be converted to:  #{sfile}   ?"
+      print "\nPress RETURN to continue or CTRL-C to abort: "
       STDIN.gets
       notes2holes = holes2notes.invert
       scales = Hash.new {|h,k| h[k] = Array.new}
@@ -119,8 +121,8 @@ def read_musical_config
         scales[scale] = notes.map {|n| notes2holes[n] or fail "#{hfile} has no note #{n} ! Maybe correcting some sharps and flats in #{snfile} will help."}
       end
       File.write(sfile, JSON.pretty_generate(scales))
-      puts "Please inspect:  #{sfile}\nand try again."
-      exit 0
+      puts "Please inspect:  #{sfile}\nand try again.\n\n"
+      exit 1
     end
   end  
 
@@ -129,7 +131,7 @@ def read_musical_config
   scales = json_parse(sfile).transform_keys!(&:to_sym)
   scales.each do |scale, holes|
     unless Set.new(holes).subset?(Set.new(harp.keys))
-      fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in harp: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}; if you have created this type of harmonica, you may consult the README.org in directory config"
+      fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in #{hfile}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}; if you have created this type of harmonica, you may consult the README.org in directory config"
     end
   end
 
