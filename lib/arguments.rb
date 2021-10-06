@@ -138,10 +138,11 @@ EOU
   ARGV.shift
 
   if mode == :quiz
-    $num_quiz = ARGV.shift.to_i
-    if $num_quiz.to_s != arg_for_count || $num_quiz < 1
-      err_h "Argument after mode 'quiz' must be an integer starting at 1, not '#{arg_for_count}'"
+    $num_quiz = ARGV[0].to_i
+    if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
+      err_h "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
     end
+    ARGV.shift
   end
 
   if mode == :calibrate

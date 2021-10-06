@@ -196,7 +196,7 @@ def read_chart
     raise ArgumentError.new("chart is too wide (by #{-xroom} chars) for this terminal") if xroom < 0
     yroom = $line_samples - $line_display - chart.length
     raise ArgumentError.new("chart is too high by #{-yroom} lines for this terminal") if yroom < 0
-    $conf[:chart_offset_xyl] = [ (xroom * 0.4).to_i, yroom / 2 - 1, len]
+    $conf[:chart_offset_xyl] = [ (xroom * 0.4).to_i, ( yroom - 1 ) / 2 - 1, len]
   rescue ArgumentError => e
     fail "Internal error with #{cfile}: #{e}"
   end
