@@ -34,8 +34,8 @@
 
   (Please also read the section "A word on holes" from the toplevel README.org too)
 
-  You may create a new type of harmonica (e.g. bagpipe-tuning) by copying one of
-  the existing dirs (e.g. richter) to a new name (bagpipe) and modify the
+  You may create a new type of harmonica (e.g. country-tuning) by copying one of
+  the existing dirs (e.g. richter) to a new name (country) and modify the
   contained files accordingly.
 
   In this process you may remove the copied file scales.json; you will then be
