@@ -4,8 +4,9 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
+$count = 0
 def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
-
+  $count += 1
   samples = Array.new
   $move_down_on_exit = true
   
@@ -50,7 +51,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
       if pk[1] > 6
         hole_was_ts = hole
-        hole, lbor, ubor = describe_freq pk[0]
+        hole = nil
+        hole, lbor, ubor = describe_freq(pk[0])
         hole_since = Time.now.to_f if !hole_since || hole != hole_was_ts
         if hole  &&  hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
           hole_held_before = hole_held
@@ -106,7 +108,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       comment_color, comment_text, font = lambda_comment_big.call(hole_color,
                                                                   inter_semi,
                                                                   inter_text,
-                                                                  hole && $harp[hole]&.[](:note),
+                                                                  hole && $harp[hole] && $harp[hole][:note],
                                                                   hole_disp)
       print "\e[#{$line_comment_big}H#{comment_color}"
       do_figlet comment_text, font
@@ -128,10 +130,12 @@ def add_to_samples samples
   tnow = Time.now.to_f
   # Get and filter new samples
   # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
+  # Unfortunately the values below are sensitive to timing issues; which caused the program to listen
+  # to itself once.
   begin
     start_record = Time.now.to_f
     record_sound 0.1, $collect_wave, silent: true
-  end while Time.now.to_f - start_record < 0.05
+  end while Time.now.to_f - start_record < 0.08
   new_samples = run_aubiopitch($collect_wave, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}
