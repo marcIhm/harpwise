@@ -131,7 +131,7 @@ def add_to_samples samples
   # Get and filter new samples
   # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
   # Unfortunately the values below are sensitive to timing issues; which caused the program to listen
-  # to itself once.
+  # to itself in mode quiz.
   begin
     start_record = Time.now.to_f
     record_sound 0.1, $collect_wave, silent: true

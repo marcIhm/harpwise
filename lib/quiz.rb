@@ -61,7 +61,12 @@ def do_quiz
     end
     redo if $ctl_back
     print "\e[32mand !\e[0m"
-    sleep 0.5
+    # do some recording to drain samples, that only recorded what we have just played
+    start = Time.now.to_f
+    begin
+      record_sound 0.1, $collect_wave, silent: true
+    end while Time.now.to_f - start < 0.5
+
     print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap_at_all
   
     system('clear') if first_lap_at_all
