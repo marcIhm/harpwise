@@ -10,7 +10,7 @@ def parse_arguments
   types_content = $conf[:all_types].map do |type|
     sfile = "config/#{type}/scales.json"
     "scales for #{type}: " +
-      ( File.exist?(sfile)  ?  json_parse(sfile).keys.join(', ')  :  "#{sfile} cannot be found" )
+      ( File.exist?(sfile)  ?  (json_parse(sfile).keys << 'all').join(', ')  :  "#{sfile} cannot be found" )
   end.join("\n  ")
   
   usage = <<EOU
@@ -161,26 +161,25 @@ EOU
   end
     
   # process type first
-  type = match_or(arg_for_type, $conf[:all_types]) do |none, choices|
+  # set global vars here already for error messages
+  $type = type = match_or(arg_for_type, $conf[:all_types]) do |none, choices|
     err_h "Type can be one of #{choices} only, not #{none}"
   end
 
-  # extract possible scales 
-  files = ["config/#{type}/scales.json",
-           "config/#{type}/scales_derived_with_notes.json"]
-  files.each do |file|
-    next unless File.exist?(file)
-    $conf[:all_scales] = json_parse(file).keys
-  end
-  err_b "Cannot continue, none of these files exists: #{files}" unless $conf[:all_scales]
+  # extract possible scales here, because we need to check arguments against scales
+  sfile = "config/#{type}/scales.json"
+  err_b "Cannot continue as #{sfile} does not exist" unless File.exist?(sfile)
+  $conf[:all_scales] = json_parse(sfile).keys
+  err_b "#{sfile} already contains scale 'all', but is overwritten with default scale 'all' (maybe choose another name ?)" if $conf[:all_scales].include?('all')
+  $conf[:all_scales] << 'all'
   
   # now we have the information to process key and scale
   err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
-  key = arg_for_key.to_sym
+  $key = key = arg_for_key.to_sym
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
-    scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
+    $scale = scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
       err_b "Given scale #{none} matches none or multiple of #{choices}"
     end.to_sym
   end
@@ -198,6 +197,8 @@ EOU
   $conf[:comment_listen] = opts[:comment] if opts[:comment]
   $conf[:display] = $conf["display_#{mode}".to_sym]
   $conf[:display] = opts[:display] if opts[:display]
-  
+
+  # some of these have already been set as global vars, but return them anyway
+  # to make their origin transparent
   [ mode, type, key, scale, opts]
 end

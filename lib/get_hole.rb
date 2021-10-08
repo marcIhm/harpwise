@@ -19,7 +19,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   hole = hole_since = hole_was_disp = nil
   hole_held = hole_held_before = nil
 
-  loop do   
+  loop do   # until var done or skip
 
     samples, new_samples = if $opts[:screenshot]
                              samples_for_screenshot(samples, hole_start)
@@ -52,14 +52,13 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
         hole_was_ts = hole
         hole, lbor, ubor = describe_freq pk[0]
         hole_since = Time.now.to_f if !hole_since || hole != hole_was_ts
-        if hole && hole != hole_held && Time.now.to_f - hole_since > 0.2
+        if hole  &&  hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
           hole_held_before = hole_held
           hole_held = hole
         end
         hole_for_inter = nil
         
         good, done = lambda_good_done.call(hole, hole_since)
-        
         if $opts[:screenshot]
           good = true
           done = true if Time.now.to_f - hole_start > 2
@@ -68,7 +67,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
           print freq_text
         else
           print (freq_text + "  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
-                (hole ? "Note #{$harp[hole][:note]}" : '') + "\e[K"
+                (hole  ?  "Note #{$harp[hole][:note]}"  :  '') + "\e[K"
           hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
         end
       else
@@ -92,11 +91,11 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[#{(hole && hole != :low && hole != :high) ? ( good ? 32 : 31 ) : 2}m"
+    hole_color = "\e[#{(hole  &&  hole != :low  &&  hole != :high)  ?  ( good ? 32 : 31 )  :  2}m"
     if $conf[:display] == :chart
       update_chart(hole_was_disp, :normal) if hole_was_disp && hole_was_disp != hole
       hole_was_disp = hole if hole
-      update_chart(hole, good ? :good : :bad) 
+      update_chart(hole, good  ?  :good  :  :bad) 
     else
       print "\e[#{$line_display}H\e[0m"
       print hole_color
@@ -116,12 +115,12 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     if done
       print "\e[#{$line_listen}H"
       $move_down_on_exit = false
-      return hole
+      return
     end
 
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
-  end
+  end  # loop until var done or skip
 end
 
 

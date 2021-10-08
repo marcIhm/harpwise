@@ -11,27 +11,6 @@ def prepare_screen
 end
 
 
-def err_h text
-  puts "ERROR: #{text} !"
-  puts "(Hint: Invoke without arguments for usage information)"
-  puts
-  exit 1
-end
-
-
-def err_b text
-  puts "ERROR: #{text} !"
-  puts
-  exit 1
-end
-
-
-def dbg text
-  puts "DEBUG: #{text}" if $opts[:debug]
-  text
-end
-
-
 def sys cmd
   out, stat = Open3.capture2e(dbg cmd)
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")

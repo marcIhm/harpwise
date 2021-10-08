@@ -29,3 +29,38 @@ def comment_in_chart? cell
   return true if cell.match?(/^[- ]*$/)
   return false
 end
+
+
+def err_h text
+  puts
+  puts "ERROR: #{text} !"
+  puts "(Hint: Invoke without arguments for usage information)"
+  puts_err_context
+  puts
+  exit 1
+end
+
+
+def err_b text
+  puts
+  puts "ERROR: #{text} !"
+  puts_err_context
+  puts
+  exit 1
+end
+
+def puts_err_context
+  clauses = %w(type key scale).
+              map {|var| eval("defined?($#{var})")  ?  ("#{var}=" + eval("$#{var}"))  :  nil}.
+              select {|c| c}
+  puts "(#{clauses.join(', ')})" if clauses.length > 0
+  pp caller[1 .. -1]
+end
+
+
+def dbg text
+  puts "DEBUG: #{text}" if $opts[:debug]
+  text
+end
+
+

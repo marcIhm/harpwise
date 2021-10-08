@@ -103,7 +103,9 @@ def read_musical_config
 
   sfile = "config/#{$type}/scales.json"
 
-  # One-time assistant when creating a new type of harp by creating the scale-file
+  # One-time assistant when creating a new type of harp; this will create scale.json if not present
+  # by using scales_derived_with_notes.json it is effectively possible to copy scales from one type
+  # of harp to another.
   snfile = "config/#{$type}/scales_derived_with_notes.json"
   if !File.exist?(sfile)
     puts "\n\nThis is the assistant for creating the scales of a newly created harp type.\n\n"
@@ -121,7 +123,7 @@ def read_musical_config
         scales[scale] = notes.map {|n| notes2holes[n] or fail "#{hfile} has no note #{n} ! Maybe correcting some sharps and flats in #{snfile} will help."}
       end
       File.write(sfile, JSON.pretty_generate(scales))
-      puts "Please inspect:  #{sfile}\nand try again.\n\n"
+      puts "\nConversion done !\nPlease inspect:  #{sfile}\nand try again.\n\n"
       exit 1
     end
   end  
@@ -134,7 +136,6 @@ def read_musical_config
       fail "Internal error with #{sfile}: Holes of scale #{scale} #{holes.inspect} is not a subset of holes of harp #{harp.keys.inspect}. Scale #{scale} has these extra holes not appearing in #{hfile}: #{(Set.new(holes) - Set.new(harp.keys)).to_a.inspect}; if you have created this type of harmonica, you may consult the README.org in directory config"
     end
   end
-
   
   # silently write snfile
   nscales = Hash.new {|h,k| h[k] = Array.new}
@@ -142,10 +143,11 @@ def read_musical_config
     nscales[scale] = holes.map {|h| harp[h][:note]}
   end
   File.write(snfile, "// The sole purpose of this file is to transfer scales to other types of harps;\n// see the README.org in directory config for details.\n" + JSON.pretty_generate(nscales))
-
   
-  # collect some info
+  # distribute some info to get consistent
   harp_holes = harp.keys
+  # Add standard scale 'all' but not to derived file
+  scales[:all] = harp_holes
   if $scale
     scale_holes = scales[$scale]
     scale_notes = scale_holes.map {|h| harp[h][:note]}

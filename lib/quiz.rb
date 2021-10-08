@@ -70,6 +70,7 @@ def do_quiz
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
+
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one lap while looping
 
         hole_start = Time.now.to_f
@@ -125,7 +126,7 @@ def do_quiz
         print "\e[#{$line_comment_small}H\e[K"
 
       end # notes in a sequence
-        
+
       if $ctl_next || $ctl_back
         print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
         first_lap_at_all = false
