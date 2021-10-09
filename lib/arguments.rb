@@ -8,11 +8,8 @@ def parse_arguments
 
   # get content of all harmonica-types
   types_content = $conf[:all_types].map do |type|
-    scales = $scales_templates.map do |tpl|
-      sfile = tpl % type
-      File.exist?(sfile)  ?  json_parse(sfile).keys  :  []
-    end.flatten
-    "scales for #{type}: " + scales.join(', ')
+    "scales for #{type}: " +
+      Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file)}.join(', ')
   end.join("\n  ")
   
   usage = <<EOU
@@ -62,7 +59,7 @@ Usage by examples:
     ./harp_scale_trainer calibrate c
     
   this will ask you to play notes on your harp. The samples will be stored in
-  folder samples and frequencies will be extracted to file frequencies.json.
+  folder samples and frequencies will be extracted to file frequencies.yaml.
   This command does not need a scale-argument.
 
   For quick (and possibly inaccurate) calibration you may use the option
@@ -175,21 +172,17 @@ EOU
     err_h "Type can be one of #{choices} only, not #{none}"
   end
 
-  # extract possible scales here, because we need to check arguments against scales
-  all_sfiles = $scales_templates.map {|t| t % $type}
-  sfiles = all_sfiles.select {|f| File.exist?(f)}
-  err_b "Cannot continue as none of these exist:\n#{sfiles.pretty_inspect}" if sfiles.length == 0
-  all_scales = Set.new(sfiles.map {|sfile| json_parse(sfile).keys}.flatten).to_a
-  
   # now we have the information to process key and scale
   err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
   $key = key = arg_for_key.to_sym
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
-    $scale = scale = match_or(arg_for_scale, all_scales) do |none, choices|
-      err_b "Given scale #{none} matches none or multiple of #{choices}"
-    end.to_sym
+    glob = $scale_files_template % [type, arg_for_scale, '{holes,notes}']
+    globbed = Dir[glob]
+    # check for multiple files is in config.rb
+    err_b "Unknown scale #{arg_for_scale} as there is no file matching #{glob}" unless globbed.length > 0
+    $scale = scale = file2scale(globbed[0])
   end
 
   # do this check late, because we have more specific error messages before

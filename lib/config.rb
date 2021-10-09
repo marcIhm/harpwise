@@ -29,14 +29,13 @@ def set_global_vars_early
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
-  $scales_templates = ['config/%s/scales_with_holes.json',
-                       'config/%s/scales_with_notes.json']
+  $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 end
 
 
 def set_global_vars_late
   $sample_dir = this_or_equiv("samples/#{$type}/key_of_%s", $key.to_s)
-  $freq_file = "#{$sample_dir}/frequencies.json"
+  $freq_file = "#{$sample_dir}/frequencies.yaml"
   $collect_wave = 'tmp/collect.wav'
   $edit_data = 'tmp/edit_workfile.dat'
   $edit_wave = 'tmp/edit_workfile.wav'
@@ -55,14 +54,14 @@ end
 
 
 def read_technical_config
-  file = 'config/config.json'
-  merge_file = 'config/config_merge.json'
-  conf = json_parse(file).transform_keys!(&:to_sym)
+  file = 'config/config.yaml'
+  merge_file = 'config/config_merge.yaml'
+  conf = yaml_parse(file).transform_keys!(&:to_sym)
   req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
-    merge_conf = json_parse(merge_file)
+    merge_conf = yaml_parse(merge_file)
     err_b "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
     merge_conf.transform_keys!(&:to_sym)
     merge_conf.each do |k,v|
@@ -86,12 +85,13 @@ end
 def read_musical_config
 
   # read and compute from harps file
-  hfile = "config/#{$type}/holes.json"
-  h2n = json_parse(hfile)
-  n2h = h2n.invert
+  hfile = "config/#{$type}/holes.yaml"
+  
+  hole2note_orig = yaml_parse(hfile)
+  note2hile_orig = hole2note_orig.invert
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
   harp = Hash.new
-  h2n.each do |hole,note|
+  hole2note_orig.each do |hole,note|
     semi = note2semi(note) + dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
                [:semi, semi]].to_h
@@ -99,78 +99,55 @@ def read_musical_config
   semis = harp.map {|hole, hash| hash[:semi]}
   min_semi = semis.min
   max_semi = semis.max
+  harp_holes = harp.keys
+
   # for convenience
   hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
   note2hole = hole2note.invert
     
-  # We accept both: Scales with holes and scales with notes and we combine them to a single set;
-  # and we allways write them all into two derived files (e.g. each scale is written twice).
-
-  scales = Hash.new
-  dsemi_scales = note2semi($opts[:transpose_scale_to] || 'c' + '0') - note2semi('c0')
+  dsemi_scales = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
   
-  all_sfiles = $scales_templates.map {|t| t % $type}
-  sfiles = all_sfiles.select {|f| File.exist?(f)}
-  all_dfiles = all_sfiles.map {|f| x=f.clone; x['scales_with'] = 'derived_all_scales_with'; x}
-  dfiles = all_dfiles.select {|f| File.exist?(f)}
-  
-  if sfiles.length == 0
-    puts "\nDid not find any of:\n#{all_sfiles.pretty_inspect}"
-    if dfiles.length == 0
-      puts "\nAnd none of\n#{all_dfiles.pretty_inspect}, which could eventually be renamed either."
-      puts "\nYou need to do one of:\n  - copy from another type of harp\n  - create with an editor and your musical knowledge\n  - restore from backup or the original installation source"
-    else
-      puts "However, there are some derived files, exactly one of them should be renamed:\n#{dfiles.pretty_inspect}"
-    end
-    err_b "No scale file found, but exactly one is needed; please fix and try again"
-  end
-  sfiles.each do |sfile|
+  sfiles = Dir[$scale_files_template % [$type, $scale, '{holes,notes}']]
+  # check for zero files is in arguments.rb
+  err_b "Multiple files for scale $scale:\n#{sfiles.inspect}" if sfiles.length > 1
+  sfile = sfiles[0]
 
-    scales_read = json_parse(sfile).transform_keys!(&:to_sym)
-    scales_read.each do |scale, members|
-      err_b "Scale #{scale} appears twice in #{sfiles}" if scales[scale]
-      scales[scale] = if sfile['holes']
-                        members.each do |hole|
-                          hole2note[hole] or err_b "#{sfile} has hole #{hole}, which is not present in #{hfile}. Please correct these files."
-                        end
-                        members
-                      else
-                        holes = Array.new
-                        members.each do |note|
-                          semi = note2semi(note)
-                          if semi >= min_semi && semi <= max_semi
-                            note = semi2note(semi + dsemi_scales)
-                            holes << note2hole[note] or err_b "#{sfile} has note #{note}, which is not present in #{hfile}. Please correct these files."
-                          end
-                        end
-                        holes
-                      end
-    end
-  end
-
-  all_dfiles.each do |dfile|
-    comment = <<EOC
-//
-// derived scale-file with %s, created with these parameters:
-// key = #{$key}, --transpose_scale_to = #{$opts[:transpose_scale_to] || "''"},
-// dsemi_harp = #{dsemi_harp}, dsemi_scales = #{dsemi_scales}
-//
-EOC
-    if dfile['holes']
-      File.write(dfile, (comment % 'holes') + JSON.pretty_generate(scales))
-    else
-      scales_notes = scales.map do |scale, holes|
-        [scale, holes.map {|hole| hole2note[hole]}]
-      end.to_h
-      File.write(dfile, (comment % 'notes') + JSON.pretty_generate(scales_notes))      
-    end
-  end
-  # distribute some info to become consistent
-  harp_holes = harp.keys
   if $scale
-    scale_holes = scales[$scale]
-    scale_notes = scale_holes.map {|hole| harp[hole][:note]}
-  else
+    scale_read = yaml_parse(sfile)
+    scale = Array.new
+    dscale = Array.new
+
+    if sfile['holes']  # sfile with holes
+      scale_read.each do |hole|
+        err_b "#{sfile} has hole #{hole}, which is not present in #{hfile}. Please correct these files." unless hole2note[hole]
+        dscale << hole2note_orig[hole]
+        semi = note2semi(hole2note_orig[hole]) + dsemi_scales
+        if semi >= min_semi && semi <= max_semi
+          h = note2hole[semi2note(semi)]
+          err_b "Transposing hole #{hole} from c to #{$opts[:transpose_scale_to]} (by #{dsemi_scales} results in a note (#{semi2note(semi)}), that has no holes; please use another value for --transpose_scale_to or leave it out altogether" unless h
+          scale << h
+        end
+      end
+    else  # sfile with notes
+      scale_read.each do |note|
+        err_b "#{sfile} has note #{note}, which is not present in #{hfile}. Please correct these files." unless note2hole_orig[note]
+        dscale << note2hole_orig[note] 
+        semi = note2semi(note) + dsemi_scales
+        if semi >= min_semi && semi <= max_semi
+          note = semi2note(semi)
+          h = note2hole[note]
+          scale << h
+        end
+      end
+    end
+
+    scale_holes = scale
+    scale_notes = scale_holes.map {|hole| hole2note[hole]}
+
+    dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
+    comment = "#\n# derived scale-file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
+    File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes : scale_notes))
+  else              
     scale_holes = scale_notes = nil
   end
 
@@ -179,16 +156,16 @@ EOC
   end
 
   # read from first available intervals file
-  ifile = ["config/#{$type}/intervals.json", "config/intervals.json"].find {|f| File.exists?(f)}
-  intervals = json_parse(ifile).transform_keys!(&:to_i)
+  ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
+  intervals = yaml_parse(ifile).transform_keys!(&:to_i)
 
   [ harp, harp_holes, scale_holes, scale_notes, intervals ]
 end
 
 
 def read_chart
-  cfile = "config/#{$type}/chart.json"
-  chart = json_parse(cfile)
+  cfile = "config/#{$type}/chart.yaml"
+  chart = yaml_parse(cfile)
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   len = chart.shift
   begin
@@ -229,7 +206,7 @@ end
 
 def read_calibration
   err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
-  hole2freq = json_parse($freq_file)
+  hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
   end

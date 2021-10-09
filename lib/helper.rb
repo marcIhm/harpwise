@@ -13,10 +13,10 @@ def match_or cand, choices
 end
 
 
-def json_parse file
+def yaml_parse file
   begin
-    JSON.parse(File.read(file))
-  rescue JSON::ParserError => e
+    YAML.load_file(file)
+  rescue Psych::SyntaxError => e
     fail "Cannot parse #{file}: #{e} !"
   rescue Errno::ENOENT => e
     fail "File #{file} does not exist !"
@@ -64,3 +64,9 @@ def dbg text
 end
 
 
+def file2scale file, type = $type
+  %w(holes notes).each do |what|
+    parts = ($scale_files_template % [type, '|', what]).split('|')
+    return file[parts[0].length .. - parts[1].length - 1] if file[parts[1]]
+  end
+end

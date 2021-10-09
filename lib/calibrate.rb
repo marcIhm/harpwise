@@ -105,7 +105,7 @@ EOINTRO
   STDIN.gets
 
   if File.exist?($freq_file)
-    hole2freq = json_parse($freq_file)
+    hole2freq = yaml_parse($freq_file)
   else
     hole2freq = Hash.new
   end
@@ -268,5 +268,5 @@ def write_freq_file hole2freq
   [$harp_holes + hole2freq.keys].flatten.each do |hole|
     hole2freq_sorted[hole] = hole2freq[hole]
   end
-  File.write($freq_file, JSON.pretty_generate(hole2freq_sorted))
+  File.write($freq_file, YAML.dump(hole2freq_sorted))
 end
