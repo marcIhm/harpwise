@@ -19,13 +19,14 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_disp = nil
   hole_held = hole_held_before = nil
+  first_lap = true
 
   loop do   # until var done or skip
 
     samples, new_samples = if $opts[:screenshot]
                              samples_for_screenshot(samples, hole_start)
                            else
-                             add_to_samples samples
+                             add_to_samples samples, drain_more: first_lap
                            end
 
     return if lambda_skip && lambda_skip.call()
@@ -122,11 +123,13 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
+
+    first_lap = false
   end  # loop until var done or skip
 end
 
 
-def add_to_samples samples
+def add_to_samples samples, drain_more: false
   tnow = Time.now.to_f
   # Get and filter new samples
   # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
@@ -134,8 +137,8 @@ def add_to_samples samples
   # to itself in mode quiz.
   begin
     start_record = Time.now.to_f
-    record_sound 0.1, $collect_wave, silent: true
-  end while Time.now.to_f - start_record < 0.08
+    record_sound ( drain_more ? 0.16 : 0.1 ), $collect_wave, silent: true
+  end while Time.now.to_f - start_record < ( drain_more ? 0.15 : 0.05 )
   new_samples = run_aubiopitch($collect_wave, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}

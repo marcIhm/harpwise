@@ -8,9 +8,11 @@ def parse_arguments
 
   # get content of all harmonica-types
   types_content = $conf[:all_types].map do |type|
-    sfile = "config/#{type}/scales.json"
-    "scales for #{type}: " +
-      ( File.exist?(sfile)  ?  (json_parse(sfile).keys << 'all').join(', ')  :  "#{sfile} cannot be found" )
+    scales = $scales_templates.map do |tpl|
+      sfile = tpl % type
+      File.exist?(sfile)  ?  json_parse(sfile).keys  :  []
+    end.flatten
+    "scales for #{type}: " + scales.join(', ')
   end.join("\n  ")
   
   usage = <<EOU
@@ -74,6 +76,9 @@ Notes:
   The possible scales depend on the chosen type of harmonica:
   #{types_content}
 
+  For modes listen and quiz, which need a scale, you may choose to transpose
+  the scale from the key of the harp to another key: '--transpose_scale_to d'
+
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
 
@@ -87,12 +92,13 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to]
   { %w(--debug) => :debug,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
+    %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-d --display) => :display,
     %w(-c --comment) => :comment,
     %w(-l --loop) => :loop}.each do |txts,opt|
@@ -118,6 +124,9 @@ EOU
   opts[:display] = match_or(opts[:display], [:chart, :hole]) do |none, choices|
     err_h "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
+
+  err_b "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
+
   # see end of function for final processing of options
 
   # now ARGV does not contain any more options; process non-option arguments
@@ -167,11 +176,10 @@ EOU
   end
 
   # extract possible scales here, because we need to check arguments against scales
-  sfile = "config/#{type}/scales.json"
-  err_b "Cannot continue as #{sfile} does not exist" unless File.exist?(sfile)
-  $conf[:all_scales] = json_parse(sfile).keys
-  err_b "#{sfile} already contains scale 'all', but is overwritten with default scale 'all' (maybe choose another name ?)" if $conf[:all_scales].include?('all')
-  $conf[:all_scales] << 'all'
+  all_sfiles = $scales_templates.map {|t| t % $type}
+  sfiles = all_sfiles.select {|f| File.exist?(f)}
+  err_b "Cannot continue as none of these exist:\n#{sfiles.pretty_inspect}" if sfiles.length == 0
+  all_scales = Set.new(sfiles.map {|sfile| json_parse(sfile).keys}.flatten).to_a
   
   # now we have the information to process key and scale
   err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
@@ -179,7 +187,7 @@ EOU
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
-    $scale = scale = match_or(arg_for_scale, $conf[:all_scales]) do |none, choices|
+    $scale = scale = match_or(arg_for_scale, all_scales) do |none, choices|
       err_b "Given scale #{none} matches none or multiple of #{choices}"
     end.to_sym
   end

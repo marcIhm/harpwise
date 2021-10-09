@@ -13,12 +13,12 @@ def do_quiz
     sleep 1
   end
 
-  first_lap_at_all = true
+  first_lap = true
   all_wanted_before = all_wanted = nil
   $ctl_can_next = true
   loop do   # forever until ctrl-c, sequence after sequence
 
-    unless first_lap_at_all
+    unless first_lap
       print "\e[#{$line_issue}H\e[K" 
       ctl_issue
       print "\e[#{$line_hint}H\e[K" 
@@ -67,9 +67,9 @@ def do_quiz
       record_sound 0.1, $collect_wave, silent: true
     end while Time.now.to_f - start < 0.5
 
-    print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap_at_all
+    print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap
   
-    system('clear') if first_lap_at_all
+    system('clear') if first_lap
     full_hint_shown = false
 
     begin   # while looping over one sequence
@@ -134,7 +134,7 @@ def do_quiz
 
       if $ctl_next || $ctl_back
         print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
-        first_lap_at_all = false
+        first_lap = false
         next
       end
     
@@ -158,7 +158,7 @@ def do_quiz
       sleep 1
     end while $ctl_loop && !$ctl_back && !$ctl_next  # looping over one sequence
 
-    first_lap_at_all = false
+    first_lap = false
   end # sequence after sequence
 end
 
