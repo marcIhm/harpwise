@@ -116,26 +116,27 @@ def read_musical_config
     scale_read = yaml_parse(sfile)
     scale = Array.new
     dscale = Array.new
-
+    
+    err_msg = "#{sfile} has %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files."
     if sfile['holes']  # sfile with holes
       scale_read.each do |hole|
-        err_b "#{sfile} has hole #{hole}, which is not present in #{hfile}. Please correct these files." unless hole2note[hole]
-        dscale << hole2note_orig[hole]
         semi = note2semi(hole2note_orig[hole]) + dsemi_scales
         if semi >= min_semi && semi <= max_semi
+          dscale << hole2note_orig[hole]
           h = note2hole[semi2note(semi)]
-          err_b "Transposing hole #{hole} from c to #{$opts[:transpose_scale_to]} (by #{dsemi_scales} results in a note (#{semi2note(semi)}), that has no holes; please use another value for --transpose_scale_to or leave it out altogether" unless h
+          err_b(err_msg % ["hole #{h}", semi]) unless hole2note[h]
+          err_b "Transposing hole #{hole} from c to #{$opts[:transpose_scale_to]} (by #{dsemi_scales} results in a note (#{semi2note(semi)}), that has no hole in harp; please use another value for --transpose_scale_to or leave it out altogether" unless h
           scale << h
         end
       end
     else  # sfile with notes
       scale_read.each do |note|
-        err_b "#{sfile} has note #{note}, which is not present in #{hfile}. Please correct these files." unless note2hole_orig[note]
-        dscale << note2hole_orig[note] 
         semi = note2semi(note) + dsemi_scales
         if semi >= min_semi && semi <= max_semi
-          note = semi2note(semi)
-          h = note2hole[note]
+          dscale << note2hole_orig[note] 
+          n = semi2note(semi)
+          err_b(err_msg % ["note #{n}", semi]) unless note2hole[n]
+          h = note2hole[n]
           scale << h
         end
       end
