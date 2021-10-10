@@ -19,9 +19,9 @@ end
 
 $figlet_cache = Hash.new
 def do_figlet text, font
-  cmd = "figlet -d fonts -f #{font} -c \" #{text}\""
+  cmd = "figlet -d fonts -f #{font} -c -w #{($term_width * 0.8).to_i} \" #{text}\""
   $figlet_cache[cmd], _ = Open3.capture2e(cmd) unless $figlet_cache[cmd]
-  $figlet_cache[cmd].lines.each do |line, idx|
+  $figlet_cache[cmd].lines.each do |line|
     print "#{line.chomp}\e[K\n"
   end
   print"\e[0m"
