@@ -181,7 +181,7 @@ EOU
     glob = $scale_files_template % [type, arg_for_scale, '{holes,notes}']
     globbed = Dir[glob]
     # check for multiple files is in config.rb
-    err_b "Unknown scale #{arg_for_scale} as there is no file matching #{glob}" unless globbed.length > 0
+    err_b "Unknown scale '#{arg_for_scale}' as there is no file matching #{glob}" unless globbed.length > 0
     $scale = scale = file2scale(globbed[0])
   end
 

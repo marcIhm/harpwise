@@ -166,6 +166,7 @@ end
 def read_chart
   cfile = "config/#{$type}/chart.yaml"
   chart = yaml_parse(cfile)
+  chart.map! {|r| r.is_a?(String)  ?  r.split('|')  :  r}
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   len = chart.shift
   begin

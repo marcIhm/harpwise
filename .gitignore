@@ -4,6 +4,6 @@ samples/*
 *Zone.Identifier
 tmp/*
 images/harmonica0.jpg
-config/config_merge.json
-config/*/scales_derived_with_notes.json
-config/*/derived_*.json
+config/config_merge.yaml
+config/*/scales_derived_with_notes.yaml
+config/*/derived_*.yaml

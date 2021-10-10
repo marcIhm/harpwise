@@ -2,84 +2,25 @@
 # Universal harp chart for ALL keys; for display, the hole-numbers
 # will be REPLACED with the correct note-names (e.g. a4).
 #
-# The last string of each row is a comment and will be printed unchanged.
+# The last field of each row is a comment and will be printed unchanged.
 #
-# All the given holes need to appear in holes.json and vice versa.
-# Strings with two two or more minus or space and minus are treated as comment.
+# All the given holes need to appear in keys.json and vice versa.
+# Fields with some special combinations of equal-sign, minus or space
+# are treated as comment.
 #
-# Strings below have equal length to help editing; actual length is
-# given by first element, the single number.
+# The fields below have equal length to help editing; actual length
+# is given by first element, the single number.
 # 
 # The number of columns below should correspond to the harp; the
 # number of rows however can be chosen as needed.
 #
 ---
 - 5
-- - " +1  "
-  - " +2  "
-  - " -2+3"
-  - " +4  "
-  - " +5  "
-  - " +6  "
-  - " +7  "
-  - " +8  "
-  - " +9  "
-  - " +10 "
-  - "   blow"
-- - ''
-- - "--1--"
-  - "--2--"
-  - "--3--"
-  - "--4--"
-  - "--5--"
-  - "--6--"
-  - "--7--"
-  - "--8--"
-  - "--9--"
-  - "-10--"
-  - "-------"
-- - ''
-- - " -1  "
-  - " -2+3"
-  - " -3  "
-  - " -4  "
-  - " -5  "
-  - " -6  "
-  - " -7  "
-  - " -8  "
-  - " -9  "
-  - " -10 "
-  - "   draw"
-- - " -1/ "
-  - " -2/ "
-  - " -3/ "
-  - " -4/ "
-  - "     "
-  - " -6/ "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "   half bend"
-- - "     "
-  - " -2#"
-  - " -3#"
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "   full bend"
-- - "     "
-  - "     "
-  - "-3#/"
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "     "
-  - "    3/2 bend"
+- " +1  | +2  | -2+3| +4  | +5  | +6  | +7  | +8  | +9  | +10 |   blow"
+- ""
+- "--1--|--2--|--3--|--4--|--5--|--6--|--7--|--8--|--9--|-10--|-------"
+- ""
+- " -1  | -2+3| -3  | -4  | -5  | -6  | -7  | -8  | -9  | -10 |   draw"
+- " -1/ | -2/ | -3/ | -4/ |     | -6/ |     |     |     |     |   half bend"
+- "     | -2//| -3//|     |     |     |     |     |     |     |   full bend"
+- "     |     |-3///|     |     |     |     |     |     |     |    3/2 bend"
