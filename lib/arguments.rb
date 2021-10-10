@@ -73,8 +73,11 @@ Notes:
   The possible scales depend on the chosen type of harmonica:
   #{types_content}
 
-  For modes listen and quiz, which need a scale, you may choose to transpose
-  the scale to another key: '--transpose_scale_to d'
+  For modes 'listen' and 'quiz' you may choose to transpose the scale to
+  another key: '--transpose_scale_to d'. This would be helpful, if you want to
+  practice e.g. the d-major scale on a chromatic harmonica of key c. For a
+  diatonic harmonica, however, your milage may vary, as not all notes are
+  available.
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
@@ -158,8 +161,8 @@ EOU
     err_h "Need at least one argument for scale" unless arg_for_scale
   end
   if ARGV.length == 2
-    arg_for_key == ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
-    arg_for_key == ARGV.shift if $conf[:all_keys].include?(ARGV[0])
+    arg_for_key = ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
+    arg_for_key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
     arg_for_type = ARGV.shift
   else
     arg_for_key =  ARGV.length > 0 &&  $conf[:all_keys].include?(ARGV[-1])  ?  ARGV.pop : $conf[:key]
