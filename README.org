@@ -46,8 +46,8 @@
   practice among players of the diatonic harmonica to speak of holes (tabs)
   and not of notes.
 
-  So this program chooses to use hole-names like "-2+3", which you might
-  consider also as practical names for the respective notes.
+  So this program chooses to use hole-names like "-2+3"; you may consider
+  these as practical names for the respective notes, once a key is given.
 
 * Installation
 

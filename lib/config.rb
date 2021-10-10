@@ -88,7 +88,7 @@ def read_musical_config
   hfile = "config/#{$type}/holes.yaml"
   
   hole2note_orig = yaml_parse(hfile)
-  note2hile_orig = hole2note_orig.invert
+  note2hole_orig = hole2note_orig.invert
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
   harp = Hash.new
   hole2note_orig.each do |hole,note|

@@ -9,7 +9,7 @@ def parse_arguments
   # get content of all harmonica-types
   types_content = $conf[:all_types].map do |type|
     "scales for #{type}: " +
-      Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file)}.join(', ')
+      Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort.join(', ')
   end.join("\n  ")
   
   usage = <<EOU
@@ -74,7 +74,7 @@ Notes:
   #{types_content}
 
   For modes listen and quiz, which need a scale, you may choose to transpose
-  the scale from the key of the harp to another key: '--transpose_scale_to d'
+  the scale to another key: '--transpose_scale_to d'
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.

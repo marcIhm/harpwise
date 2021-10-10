@@ -6,28 +6,36 @@
 
   Technical Config:
   
-  - config.json :: Main config file; see comments within for some
+  - config.yaml :: Main config file; see comments within for some
                    explanations.
 		   
-  - config_merge.json :: Optional, may contain any of the config-keys from
-       config.json and then overrides those; not included in git-versioning.
+  - config_merge.yaml :: Optional, may contain any of the config-keys from
+       config.yaml and then overrides those; not included in git-versioning.
 
-  - intervals.json :: Names for selected intervals.
+  - intervals.yaml :: Names for selected intervals.
 
 
   Each type of harmonica (e.g. richter) has a directory with its own 
   Musical Config:
 
-  - intervals.json :: If this file is present within a subdirectory, it
+  - intervals.yaml :: If this file is present within a subdirectory, it
                       overrides the one directly within config.
 
-  - holes.json :: Maps holes to notes for a harmonica of key c. All other keys
+  - holes.yaml :: Maps holes to notes for a harmonica of key c. All other keys
 		  will be automatically derived from this one
 
-  - scales.json :: Maps scales to list of holes.
+  - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE
 
+  - scales_SCALE_with_notes.yaml :: List of notes for scale SCALE
 
-  To adjust configuration you may add config_merge.json to override selected
+  
+  Each scale (e.g. blues or mape) has its own file and can be either notated
+  with holes or notes, but NOT both. However, if a scale with notes is parsed,
+  the same scale is written out (prefixed with the word 'derived') with holes
+  and vice versa. So for example using scale_blues_with_holes.yaml will
+  trigger the creation of derived_scale_blues_with_notes.yaml.
+
+  To adjust configuration you may add config_merge.yaml to override selected
   settings (e.g. the default harmonica-type).
 
 * Creating a new type of harmonica
@@ -38,13 +46,16 @@
   the existing dirs (e.g. richter) to a new name (country) and modify the
   contained files accordingly.
 
-  In this process you may remove the copied file scales.json; you will then be
-  asked to recreate it from scales_derived_with_notes.json, which exists for
-  this purpose only.
+  In this process you may remove some of the copied scale-files and rename
+  some of the derived scale-files to remove the prefix 'derved_'; this way you
+  can choose which scales you want to have for your new type of harmonica, and
+  how you want to notate these scales (with holes or with notes).
+
+  Let error messages be your guide in this process.
 
   Also note, that the hole-names (e.g. "-1") used throughout the configuration
   files are more or less customary and can be chosen at will; they only need
-  to be consistent within one type of harmonica (e.g richter). An different
+  to be consistent within one type of harmonica (e.g richter). A different
   type (e.g. chromatic) may use totally or partially different names for holes
   (e.g. "-1b").
 

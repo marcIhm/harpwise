@@ -4,7 +4,7 @@
 #
 # The last field of each row is a comment and will be printed unchanged.
 #
-# All the given holes need to appear in keys.json and vice versa.
+# All the given holes need to appear in keys.yaml and vice versa.
 # Fields with some special combinations of equal-sign, minus or space
 # are treated as comment.
 #
