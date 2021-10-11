@@ -107,7 +107,7 @@ def read_musical_config
       
   sfiles = Dir[$scale_files_template % [$type, $scale, '{holes,notes}']]
   # check for zero files is in arguments.rb
-  err_b "Multiple files for scale $scale:\n#{sfiles.inspect}" if sfiles.length > 1
+  err_b "Multiple files for scale #{$scale}:\n#{sfiles.inspect}" if sfiles.length > 1
   sfile = sfiles[0]
 
   if $scale
