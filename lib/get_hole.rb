@@ -4,9 +4,10 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-$count = 0
 def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
-  $count += 1
+  $time_of_get_hole_start = Time.now.to_f
+  $total_time_recorded = 0
+  Thread.new {collect_samples_in_bg}
   samples = Array.new
   $move_down_on_exit = true
   
@@ -19,14 +20,14 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_disp = nil
   hole_held = hole_held_before = nil
-  first_lap = true
 
   loop do   # until var done or skip
 
+    $total_iterations_in_get_hole += 1
     samples, new_samples = if $opts[:screenshot]
                              samples_for_screenshot(samples, hole_start)
                            else
-                             add_to_samples samples, drain_more: first_lap
+                             add_to_samples samples
                            end
 
     return if lambda_skip && lambda_skip.call()
@@ -124,27 +125,53 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
 
-    first_lap = false
   end  # loop until var done or skip
 end
 
 
-def add_to_samples samples, drain_more: false
+def collect_samples_in_bg
+  max_aup_threads = 8
+  slice = 0.1
+  aup_threads = Array.new
+  first = true
+  loop do
+    if aup_threads.length > 0 && ( !aup_threads[0][1].alive? || aup_threads.length >= max_aup_threads )
+      aup_threads[0].join
+      aup_threads.shift
+    end
+    file_num = ((1 .. max_aup_threads).to_a - aup_threads.map {|nt| nt[0]}).min
+    file_name = $collect_wave_template % file_num
+    if first
+      begin
+        start_record = Time.now.to_f
+        record_sound slice, file_name, silent: true
+      end while Time.now.to_f - start_record < slice * 0.8
+    else
+      record_sound slice, file_name, silent: true
+    end
+    aup_threads << [file_num, Thread.new {aubiopitch_to_queue(file_name)}]
+    first = false
+  end
+end
+
+
+def aubiopitch_to_queue fname
   tnow = Time.now.to_f
-  # Get and filter new samples
-  # Discard if too many stale samples (which we recognize, because they are delivered faster than expected)
-  # Unfortunately the values below are sensitive to timing issues; which caused the program to listen
-  # to itself in mode quiz.
-  begin
-    start_record = Time.now.to_f
-    record_sound ( drain_more ? 0.16 : 0.1 ), $collect_wave, silent: true
-  end while Time.now.to_f - start_record < ( drain_more ? 0.15 : 0.05 )
-  new_samples = run_aubiopitch($collect_wave, "--hopsize 1024").lines.
+  new_samples = run_aubiopitch(fname, "--hopsize 1024").lines.
                   map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
                   select {|f| f[1]>0}
+  $new_samples_queue.enq new_samples
+end
+
+
+def add_to_samples samples
+  tnow = Time.now.to_f
+  max_samples = 16
+  # Get and filter new samples
+  new_samples = $new_samples_queue.deq
   # curate our pool of samples
   samples += new_samples
-  samples = samples[-32 .. -1] if samples.length > 32
+  samples = samples[- max_samples .. -1] if samples.length > max_samples
   samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
   [samples, new_samples]
 end

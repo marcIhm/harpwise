@@ -6,13 +6,13 @@ def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
   system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
+  $total_time_recorded += secs
 end
 
 
 def play_sound file
   sys "aplay #{file}"
 end
-
 
 def run_aubiopitch file, extra = nil
   %x(aubiopitch --pitch mcomb #{file} 2>&1)
@@ -133,5 +133,9 @@ def this_or_equiv template, note
 end
 
 
-def name_write_note_wav note
+def drain_sound duration
+  start = Time.now.to_f
+  begin
+    record_sound 0.1, '/dev/null', silent: true
+  end while Time.now.to_f - start < duration
 end

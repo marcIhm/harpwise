@@ -20,7 +20,6 @@ def set_global_vars_early
   $line_listen2 = 31 + 4 * stretch
 
   $ctl_kb_queue = Queue.new
-  $ctl_kb_queue_mutex = Mutex.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = nil
   $ctl_can_next = $ctl_can_back = false
@@ -30,6 +29,9 @@ def set_global_vars_early
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
+
+  $total_time_recorded = $time_of_get_hole_start = $total_iterations_in_get_hole = 0
+  $new_samples_queue = Queue.new
 end
 
 
@@ -37,6 +39,7 @@ def set_global_vars_late
   $sample_dir = this_or_equiv("samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $collect_wave = 'tmp/collect.wav'
+  $collect_wave_template = 'tmp/collect_%d.wav'
   $edit_data = 'tmp/edit_workfile.dat'
   $edit_wave = 'tmp/edit_workfile.wav'
 end
