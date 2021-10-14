@@ -60,10 +60,6 @@ at_exit do
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
-  puts "\n\nAverage seconds for #{$total_iterations_in_get_hole} iterations in get_hole: recorded / elapsed / ratio = %.2f / %.2f / %.2f" %
-       [$total_time_recorded / $total_iterations_in_get_hole,
-        ( Time.now.to_f - $time_of_get_hole_start ) / $total_iterations_in_get_hole,
-        $total_time_recorded / (Time.now.to_f - $time_of_get_hole_start)] if $opts[:debug]
 end
 
 

@@ -1,12 +1,11 @@
 #
-# Manipulation of sound-files
+# Recording and manipulation of sound-files
 #
 
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
   system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
-  $total_time_recorded += secs
 end
 
 
@@ -133,9 +132,51 @@ def this_or_equiv template, note
 end
 
 
-def drain_sound duration
-  start = Time.now.to_f
+def collect_wave_samples_in_bg
+  slice = 0.1
+  num_samples = ($sample_rate * slice).to_i
+
+  aup_threads = Array.new
+  first = true
+  cmd = "arecord -r #{$sample_rate} 2>/dev/null"
+  arec_in, arec_out = Open3.popen2(cmd)
+  arec_out.binmode
+  arec_in.close
+  wave_header = arec_out.read(44)
+  err_b "Could not start: #{cmd}" unless wave_header && wave_header[0,4] == 'RIFF'
+
+  # drain stale samples
   begin
-    record_sound 0.1, '/dev/null', silent: true
-  end while Time.now.to_f - start < duration
+    start_record = Time.now.to_f
+    arec_out.read(2 * num_samples)
+  end while Time.now.to_f - start_record < slice * 0.8
+
+  loop do
+    nums = aup_threads.map {|nt| nt[0]}
+    file_num = ((1 .. (nums.max || 0) + 1).to_a - nums).min
+    file_name = $collect_wave_template % file_num
+
+    samples = arec_out.read(2 * num_samples) || ''
+    err_b "Could not read #{2 * num_samples} bytes arecord" unless samples.length == 2 * num_samples
+    File.open(file_name,'w') do |f|
+      f.write(wave_header)
+      f.write(samples)
+    end
+    aup_threads << [file_num, Thread.new {aubiopitch_to_queue(file_name)}]
+
+    if !aup_threads[0][1].status
+      aup_threads[0].join
+      aup_threads.shift
+    end
+    $latency = aup_threads.length * slice
+  end
+end
+
+
+def aubiopitch_to_queue fname
+  tnow = Time.now.to_f
+  new_samples = run_aubiopitch(fname, "--hopsize 1024").lines.
+                  map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
+                  select {|f| f[1]>0}
+  $new_samples_queue.enq new_samples
 end

@@ -30,7 +30,7 @@ def set_global_vars_early
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 
-  $total_time_recorded = $time_of_get_hole_start = $total_iterations_in_get_hole = 0
+  $latency = 0
   $new_samples_queue = Queue.new
 end
 
