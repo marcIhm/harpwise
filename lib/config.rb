@@ -9,8 +9,7 @@ def set_global_vars_early
   $line_issue = 1
   $line_key = 2
   $line_display = 5 + stretch
-  $line_samples = 15 + 2 * stretch
-  $line_peaks = 16 + 2 * stretch
+  $line_driver = 16 + 2 * stretch
   $line_frequency = 17 + 2 * stretch
   $line_interval = 18 + 2 * stretch
   $line_comment_big = 20 + 3 * stretch
@@ -30,8 +29,9 @@ def set_global_vars_early
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 
-  $latency = 0
-  $new_samples_queue = Queue.new
+  $freqs_rate_ratio = 0
+  $freqs_per_sec = 0
+  $freqs_queue = Queue.new
 end
 
 
@@ -39,7 +39,6 @@ def set_global_vars_late
   $sample_dir = this_or_equiv("samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $collect_wave = 'tmp/collect.wav'
-  $collect_wave_template = 'tmp/collect_%d.wav'
   $edit_data = 'tmp/edit_workfile.dat'
   $edit_wave = 'tmp/edit_workfile.wav'
 end
@@ -60,7 +59,7 @@ def read_technical_config
   file = 'config/config.yaml'
   merge_file = 'config/config_merge.yaml'
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -207,7 +206,7 @@ def read_chart
     # check for size
     xroom = $term_width - chart.map {|r| r.join.length}.max - 2
     raise ArgumentError.new("chart is too wide (by #{-xroom} chars) for this terminal") if xroom < 0
-    yroom = $line_samples - $line_display - chart.length
+    yroom = $line_driver - $line_display - chart.length
     raise ArgumentError.new("chart is too high by #{-yroom} lines for this terminal") if yroom < 0
     $conf[:chart_offset_xyl] = [ (xroom * 0.4).to_i, ( yroom - 1 ) / 2 - 1, len]
   rescue ArgumentError => e

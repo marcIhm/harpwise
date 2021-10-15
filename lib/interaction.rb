@@ -69,6 +69,7 @@ end
 def handle_kb_play
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
+  waited = false
   
   if char == ' '
     ctl_issue 'SPACE to continue', hl: true
@@ -76,6 +77,7 @@ def handle_kb_play
       char = $ctl_kb_queue.deq
     end until char == ' '
     ctl_issue 'continue', hl: true
+    waited = true
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = "Skip"
@@ -89,6 +91,7 @@ def handle_kb_play
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})"
   end
   ctl_issue text
+  waited
 end
 
 

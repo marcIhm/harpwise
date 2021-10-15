@@ -6,6 +6,7 @@ def do_quiz
 
   prepare_term
   start_kb_handler
+  start_collect_freqs
   
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
@@ -76,6 +77,7 @@ def do_quiz
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one lap while looping
 
         hole_start = Time.now.to_f
+        $freqs_queue.clear
         get_hole(
           if $ctl_loop
             "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."

@@ -7,6 +7,7 @@ def do_listen
   prepare_term
   start_kb_handler
   $ctl_can_next = false
+  start_collect_freqs 
   
   puts "\n\nJust go ahead and play notes from the scale ..."
   puts "Tip: \e[2mPlaying a slow backing track in parallel may be a good idea ...\e[0m"
@@ -15,6 +16,7 @@ def do_listen
     sleep 1
   end
   system('clear')
+  $freqs_queue.clear
   get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done

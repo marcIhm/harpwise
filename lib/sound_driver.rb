@@ -19,7 +19,6 @@ end
 
 
 def edit_sound hole, file
-
   play_from = zoom_from = 0
   zoom_to = duration = wave2data(file)
   do_draw = false
@@ -132,51 +131,46 @@ def this_or_equiv template, note
 end
 
 
-def collect_wave_samples_in_bg
-  slice = 0.1
-  num_samples = ($sample_rate * slice).to_i
+def start_collect_freqs
+  num_samples = ($sample_rate * $conf[:time_slice]).to_i
+  fifo = 'tmp/fifo_arecord_aubiopitch'
+  File.mkfifo(fifo) unless File.exist?(fifo)
+  err_h "File #{fifo} already exists but is noot a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
 
-  aup_threads = Array.new
-  first = true
-  cmd = "arecord -r #{$sample_rate} 2>/dev/null"
-  arec_in, arec_out = Open3.popen2(cmd)
-  arec_out.binmode
-  arec_in.close
-  wave_header = arec_out.read(44)
-  err_b "Could not start: #{cmd}" unless wave_header && wave_header[0,4] == 'RIFF'
-
-  # drain stale samples
-  begin
-    start_record = Time.now.to_f
-    arec_out.read(2 * num_samples)
-  end while Time.now.to_f - start_record < slice * 0.8
-
-  loop do
-    nums = aup_threads.map {|nt| nt[0]}
-    file_num = ((1 .. (nums.max || 0) + 1).to_a - nums).min
-    file_name = $collect_wave_template % file_num
-
-    samples = arec_out.read(2 * num_samples) || ''
-    err_b "Could not read #{2 * num_samples} bytes arecord" unless samples.length == 2 * num_samples
-    File.open(file_name,'w') do |f|
-      f.write(wave_header)
-      f.write(samples)
-    end
-    aup_threads << [file_num, Thread.new {aubiopitch_to_queue(file_name)}]
-
-    if !aup_threads[0][1].status
-      aup_threads[0].join
-      aup_threads.shift
-    end
-    $latency = aup_threads.length * slice
-  end
+  Thread.new {arecord_to_fifo(fifo)}
+  Thread.new {aubiopitch_to_queue(fifo, num_samples)}
 end
 
 
-def aubiopitch_to_queue fname
-  tnow = Time.now.to_f
-  new_samples = run_aubiopitch(fname, "--hopsize 1024").lines.
-                  map {|l| f = l.split; [f[0].to_f + tnow, f[1].to_i]}.
-                  select {|f| f[1]>0}
-  $new_samples_queue.enq new_samples
+def arecord_to_fifo fifo
+  arec_cmd = "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
+  _, _, wait_thread  = Open3.popen2(arec_cmd)
+  wait_thread.join
+  err_b "command '#{arec_cmd}' terminated unexpectedly"
+  exit
+end
+
+
+def aubiopitch_to_queue fifo, num_samples
+  aubio_cmd = "stdbuf -oL aubiopitch --bufsize #{num_samples * 8} --hopsize #{num_samples} --pitch mcomb -i #{fifo}"
+  aubio_in, aubio_out = Open3.popen2(aubio_cmd)
+  aubio_in.close
+
+  tp_ctr = 0
+  tp_ts = Time.now.to_f
+  tp_ts_aubp = 0.0
+  calculate_after = 10
+  
+  loop do
+    fields = aubio_out.gets.split.map {|f| f.to_f}
+    tp_ctr += 1
+    if tp_ctr == calculate_after
+      tp_ctr = 0
+      $freqs_rate_ratio = ( fields[0] - tp_ts_aubp ) / ( Time.now.to_f - tp_ts )
+      $freqs_per_sec = calculate_after / ( Time.now.to_f - tp_ts )
+      tp_ts = Time.now.to_f
+      tp_ts_aubp = fields[0]
+    end
+    $freqs_queue.enq fields[1]
+  end
 end

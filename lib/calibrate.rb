@@ -252,13 +252,16 @@ end
 
 
 def analyze_with_aubio file
-  samples = run_aubiopitch(file).lines.
-              map {|l| l.split[1].to_i}.
-              select {|f| f>0}.
-              sort
-  pks = get_two_peaks samples, 10
-  puts "Peaks: #{pks.inspect}"
-  pks[0][0]
+  freqs = run_aubiopitch(file).lines.
+            map {|line| line.split[1].to_i}.
+            select {|freq| freq > 50 && freq < 8000}
+  # take only second half to avoid transients
+  freqs = freqs[freqs.length/2 .. -1]
+  minf, maxf = freqs.minmax
+  aver = freqs.length > 0  ?  freqs.sum / freqs.length  :  0
+  puts "(2nd half of #{freqs.length * 2} freqs, %5.2f .. %5.2f Hz, average %5.2f" % [minf, maxf, aver]
+  puts "WARNING: min and max of recorded samples are two far apart; maybe repeat recording more steadily." if ( maxf - minf ) > 0.1 * aver
+  aver
 end
 
 

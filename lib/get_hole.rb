@@ -5,7 +5,6 @@
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
 def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
-  Thread.new {collect_wave_samples_in_bg}
   samples = Array.new
   $move_down_on_exit = true
   
@@ -21,66 +20,42 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
   loop do   # until var done or skip
 
-    samples, new_samples = if $opts[:screenshot]
-                             samples_for_screenshot(samples, hole_start)
-                           else
-                             add_to_freq_samples samples
-                           end
+    freq = $opts[:screenshot]  ?  797  :  $freqs_queue.deq
 
     return if lambda_skip && lambda_skip.call()
 
-    handle_kb_play
+    $freqs_queue.clear if handle_kb_play
     ctl_issue
     
-    print "\e[#{$line_samples}H"
-    print "\e[2mFreq samples total: #{samples.length.to_s.rjust(2)}, new: #{new_samples.length.to_s.rjust(2)}, latency: #{'%4.2f' % $latency}\e[K"
+    print "\e[#{$line_driver}H"
+    print "\e[2mProcessing: analysed/measured: %3.02f, cycles per sec: %3.1f, queued: %d\e[K" %
+          [$freqs_rate_ratio, $freqs_per_sec, $freqs_queue.length]
+    
+    good = done = false
+      
+    hole_was_ts = hole
+    hole = nil
+    hole, lbor, ubor = describe_freq(freq)
+    hole_since = Time.now.to_f if !hole_since || hole != hole_was_ts
+    if hole  &&  hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
+      hole_held_before = hole_held
+      hole_held = hole
+    end
+    hole_for_inter = nil
+    
+    good, done = lambda_good_done.call(hole, hole_since)
+    if $opts[:screenshot]
+      good = true
+      done = true if Time.now.to_f - hole_start > 2
+    end
 
-    if samples.length > 6
-      # do and print analysis
-      pks = get_two_peaks samples.map {|x| x[1]}.sort, 10
-      pk = pks[0]
-      
-      print "\e[#{$line_peaks}H"
-      print "Peaks: [[%4d,%3d], [%4d,%3d]]\e[K" % pks.flatten
-      
-      good = done = false
-      
-      print "\e[#{$line_frequency}H"
-      freq_text = "Frequency: #{pk[0].to_s.rjust(4)}"
-
-      if pk[1] > 6
-        hole_was_ts = hole
-        hole = nil
-        hole, lbor, ubor = describe_freq(pk[0])
-        hole_since = Time.now.to_f if !hole_since || hole != hole_was_ts
-        if hole  &&  hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
-          hole_held_before = hole_held
-          hole_held = hole
-        end
-        hole_for_inter = nil
-        
-        good, done = lambda_good_done.call(hole, hole_since)
-        if $opts[:screenshot]
-          good = true
-          done = true if Time.now.to_f - hole_start > 2
-        end
-        if hole == :low || hole == :high
-          print freq_text
-        else
-          print (freq_text + "  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]").ljust(40) + 
-                (hole  ?  "Note #{$harp[hole][:note]}"  :  '') + "\e[K"
-          hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
-        end
-      else
-        hole = nil
-        print freq_text + "  but count of peak below 7\e[K"
-      end
+    freq_text = "\e[#{$line_frequency}HFrequency:  %5.1f Hz" % freq
+    if hole == :low || hole == :high
+      print freq_text
     else
-      # Not enough samples, analysis not possible
-      hole, good, done = [nil, false, false]
-      print "\e[#{$line_peaks}H"
-      print "Not enough samples\e[K"
-      print "\e[#{$line_frequency}H\e[K"
+      print freq_text + "  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]" + 
+            (hole  ?  "  Note #{$harp[hole][:note]}"  :  '') + "\e[K"
+      hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
     end
 
     print "\e[#{$line_interval}H"
@@ -128,23 +103,12 @@ end
 
 def add_to_freq_samples samples
   tnow = Time.now.to_f
-  max_samples = 16
+  max_samples = 1
   # Get and filter new samples
-  new_samples = $new_samples_queue.deq
+  new_samples = $freqs_queue.deq
   # curate our pool of samples
   samples += new_samples
   samples = samples[- max_samples .. -1] if samples.length > max_samples
-  samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
+#  samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
   [samples, new_samples]
 end
-
-
-def samples_for_screenshot samples, tstart
-  tnow = Time.now.to_f
-  if Time.now.to_f - tstart > 0.5
-    samples = (1..78).to_a.map {|x| [tnow + x/100.0, 797]}
-  end
-  [samples, samples[0, 20]]
-end
-
-
