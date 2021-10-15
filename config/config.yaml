@@ -16,3 +16,6 @@ display_quiz: note
 
 # measure frequency over slices of this duration (in secs)
 time_slice: 0.1
+
+# pitch-detection algorithm used for aubiopitch; see its man-page
+pitch_detection: yinfast

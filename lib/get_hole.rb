@@ -28,7 +28,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     ctl_issue
     
     print "\e[#{$line_driver}H"
-    print "\e[2mProcessing: analysed/measured: %3.02f, cycles per sec: %3.1f, queued: %d\e[K" %
+    print "\e[2mProcessing: analysed/measured: %3.02f, cycles per sec: %4.1f, queued: %d\e[K" %
           [$freqs_rate_ratio, $freqs_per_sec, $freqs_queue.length]
     
     good = done = false
@@ -49,7 +49,7 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       done = true if Time.now.to_f - hole_start > 2
     end
 
-    freq_text = "\e[#{$line_frequency}HFrequency:  %5.1f Hz" % freq
+    freq_text = "\e[#{$line_frequency}HFrequency:  %6.1f Hz" % freq
     if hole == :low || hole == :high
       print freq_text
     else

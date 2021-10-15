@@ -14,7 +14,7 @@ def play_sound file
 end
 
 def run_aubiopitch file, extra = nil
-  %x(aubiopitch --pitch mcomb #{file} 2>&1)
+  %x(aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1)
 end
 
 
@@ -152,7 +152,7 @@ end
 
 
 def aubiopitch_to_queue fifo, num_samples
-  aubio_cmd = "stdbuf -oL aubiopitch --bufsize #{num_samples * 8} --hopsize #{num_samples} --pitch mcomb -i #{fifo}"
+  aubio_cmd = "stdbuf -oL aubiopitch --bufsize #{num_samples * 8} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   aubio_in, aubio_out = Open3.popen2(aubio_cmd)
   aubio_in.close
 
