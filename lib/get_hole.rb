@@ -28,8 +28,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     ctl_issue
     
     print "\e[#{$line_driver}H"
-    print "\e[2mProcessing: analysed/measured: %3.02f, cycles per sec: %4.1f, queued: %d\e[K" %
-          [$freqs_rate_ratio, $freqs_per_sec, $freqs_queue.length]
+    print "\e[2mPipeline: analysed/measured: %5.02f, queued: %d, cycles: %4.1f\e[K" %
+          [$freqs_rate_ratio, $freqs_queue.length, $freqs_per_sec]
     
     good = done = false
       
@@ -49,13 +49,13 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       done = true if Time.now.to_f - hole_start > 2
     end
 
-    freq_text = "\e[#{$line_frequency}HFrequency:  %6.1f Hz" % freq
-    if hole == :low || hole == :high
-      print freq_text
-    else
-      print freq_text + "  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]" + 
+    print "\e[#{$line_frequency}HFrequency:  "
+    if hole != :low && hole != :high
+      print "#{'%6.1f Hz' % freq}  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]" + 
             (hole  ?  "  Note #{$harp[hole][:note]}"  :  '') + "\e[K"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
+    else
+      print "    -  Hz  in range [  - ,  - ]\e[K"
     end
 
     print "\e[#{$line_interval}H"
