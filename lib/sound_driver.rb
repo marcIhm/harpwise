@@ -155,22 +155,22 @@ def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -oL aubiopitch --bufsize #{num_samples * 8} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   aubio_in, aubio_out = Open3.popen2(aubio_cmd)
   aubio_in.close
-
-  tp_ctr = 0
-  tp_ts = Time.now.to_f
-  tp_ts_aubp = 0.0
-  calculate_after = 10
+  tstart = Time.now.to_f
+  i = 0
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
-    tp_ctr += 1
-    if tp_ctr == calculate_after
-      tp_ctr = 0
-      $freqs_rate_ratio = ( fields[0] - tp_ts_aubp ) / ( Time.now.to_f - tp_ts )
-      $freqs_per_sec = calculate_after / ( Time.now.to_f - tp_ts )
-      tp_ts = Time.now.to_f
-      tp_ts_aubp = fields[0]
+    if Time.now.to_f - tstart > 4  #  wait until slack has been drained from pipeline (?)
+      $analysis_offset = Time.now.to_f - fields[0] unless $analysis_offset
+      $analysis_delay = $analysis_offset - Time.now.to_f + fields[0] if i % 20 == 0
+      i += 1
     end
     $freqs_queue.enq fields[1]
   end
+end
+
+
+def pipeline_catch_up
+  $freqs_queue.clear
+  $analysis_offset = nil
 end

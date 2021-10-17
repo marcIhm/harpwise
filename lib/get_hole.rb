@@ -24,12 +24,12 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     return if lambda_skip && lambda_skip.call()
 
-    $freqs_queue.clear if handle_kb_play
+    pipeline_catch_up if handle_kb_play
     ctl_issue
     
     print "\e[#{$line_driver}H"
-    print "\e[2mPipeline: analysed/measured: %5.02f, queued: %d, cycles: %4.1f\e[K" %
-          [$freqs_rate_ratio, $freqs_queue.length, $freqs_per_sec]
+    print "\e[2mPipeline: analysis delay: %5.02f (slice %.2f), queued: %d#{$debug_info}\e[K" %
+          [$analysis_delay, $conf[:time_slice], $freqs_queue.length]
     
     good = done = false
       

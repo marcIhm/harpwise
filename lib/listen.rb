@@ -16,7 +16,8 @@ def do_listen
     sleep 1
   end
   system('clear')
-  $freqs_queue.clear
+  pipeline_catch_up
+
   get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done

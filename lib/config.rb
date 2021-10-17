@@ -29,9 +29,10 @@ def set_global_vars_early
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 
-  $freqs_rate_ratio = 0
-  $freqs_per_sec = 0
+  $analysis_delay = 0.0
+  $analysis_offset = nil
   $freqs_queue = Queue.new
+  $debug_info = ''
 end
 
 
