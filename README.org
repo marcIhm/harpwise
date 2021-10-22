@@ -33,36 +33,32 @@
 
   The Program uses the term "holes" throughout to give you feedback or hints.
   Examples would be "-1" or "+4"; these obviously name the holes of your
-  harmonica and distinguish between "draw" and "blow".
+  harmonica and distinguish between "draw" and "blow"; a special name like
+  "-2+3" is used as a common name, if two holes ("-2" and "+3") produce the
+  same note.
 
-  This works most of the time; however, there are some holes, which produce
-  the same note, e.g. "-2" and "+3" on a richter harp. In such a case, this
-  program gives a common name "-2+3" to both holes as they produce the same
-  note. And for the purpose of this program (i.e. practicing scales) mostly
-  the notes matter, and not so much the holes, you draw or blow o produce the
-  notes.
+  So, if such a hole-name is given, you always know the note that sounds, when
+  the hole is played (at least for a given key of harmonica).
 
-  On the other hand, the program wants to stay in accord with the common
-  practice among players of the diatonic harmonica to speak of holes (tabs)
-  and not of notes.
-
-  So this program chooses to use hole-names like "-2+3"; you may consider
-  these as practical names for the respective notes, once a key is given.
+  In effect, you may consider hole-names like "-2+3" as practical names for the
+  notes played on a harmonica of a given key.
 
 * Installation
 
-  The program harp_scale_trainer runs in the linux console; it has no formal
-  installation, but rather runs directly from within the directory you need to
-  clone from github first. Vice versa it can be removed by removing the cloned
-  directory.
+  The program harp_scale_trainer runs in the linux console (no graphical
+  environment needed); it has no formal installation, but rather runs directly
+  from within the directory, which you need to clone from github first. Vice
+  versa it can be completely removed by removing the cloned directory.
 
-  harp_scale_trainer relies on several external programs for its operation,
-  e.g.: aubiopitch, pulseaudio, aplay, arecord, sox, figlet and gnuplot. Their
+  harp_scale_trainer is written in ruby, so you need ruby installed.
+
+  Moreover it relies on several external programs for its operation, e.g.:
+  aubiopitch, pulseaudio, aplay, arecord, sox, figlet and gnuplot. Their
   existence is checked on program start.
   
   Special thanx to aubiopitch for doing all the heavy-lifting of tone
   recognition !
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
-  Linux wslg, which supports sound via remote desktop protocol.
+  Linux wslg, which supports sound through the remote desktop protocol.
 
