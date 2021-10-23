@@ -10,8 +10,9 @@ end
 
 
 def play_sound file
-  sys "aplay #{file}"
+  sys "aplay #{file}" unless $opts[:testing]
 end
+
 
 def run_aubiopitch file, extra = nil
   %x(aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1)

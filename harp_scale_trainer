@@ -28,6 +28,8 @@ $term_height, $term_width = prepare_screen
 set_global_vars_early
 
 $conf = read_technical_config
+check_screen
+
 $mode, $type, $key, $scale, $opts = parse_arguments
 
 $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config

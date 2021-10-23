@@ -4,10 +4,13 @@
 
 
 def prepare_screen
-  h, w = %x(stty size).split.map(&:to_i)
-  err_b "Terminal is too small: [width, height] = #{[w,h].inspect} < [84,32]" if w < 84 || h < 32
   STDOUT.sync = true
-  [h, w]
+  %x(stty size).split.map(&:to_i)
+end
+
+
+def check_screen
+  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [#{$conf[:term_min_width]},#{$conf[:term_min_heigth]}]" if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
 end
 
 

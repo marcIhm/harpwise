@@ -56,11 +56,11 @@ def check_installation
 end
 
 
-def read_technical_config
+def load_technical_config
   file = 'config/config.yaml'
   merge_file = 'config/config_merge.yaml'
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq, :term_min_width, :term_min_height])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -72,7 +72,12 @@ def read_technical_config
       conf[k] = v
     end
   end
+  conf
+end
 
+
+def read_technical_config
+  conf = load_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
   [:comment_listen, :display_listen, :display_quiz].each {|key| conf[key] = conf[key].to_sym}
@@ -80,13 +85,11 @@ def read_technical_config
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
-  
   conf
 end
 
 
 def read_musical_config
-
   # read and compute from harps file
   hfile = "config/#{$type}/holes.yaml"
   

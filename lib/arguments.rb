@@ -82,7 +82,7 @@ Notes:
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
 
-  Finally there are some less used options: --debug, --screenshot, --help
+  Finally there are some less used options: --debug, --screenshot, --help, --testing
 
 
 Suggested reading: The section "A word on holes" from the toplevel README.org
@@ -94,6 +94,7 @@ EOU
   opts = Hash.new
   opts_with_args = [:hole, :comment, :display, :transpose_scale_to]
   { %w(--debug) => :debug,
+     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
