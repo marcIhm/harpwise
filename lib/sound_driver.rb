@@ -5,7 +5,12 @@
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
-  system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
+  if $opts[:testing]
+    FileUtils.cp 'tmp/testing.wav', file
+    sleep secs
+  else
+    system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
+  end
 end
 
 
@@ -39,8 +44,10 @@ def edit_sound hole, file
     if ('0' .. '9').to_a.include?(choice) || choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += STDIN.gets.chomp.downcase.strip
+      numeric = true
     else
       puts
+      numeric = false
     end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
@@ -73,7 +80,7 @@ EOHELP
       return nil
     elsif choice == 'r' || choice == 'e'
       return :redo
-    else
+    elsif numeric
       begin
         vals = choice.split.map {|x| Float(x)}
         vals.each do |x|
@@ -92,6 +99,8 @@ EOHELP
       rescue ArgumentError => e
         puts "Invalid Input '#{choice}': #{e.message}"
       end
+    else
+      puts "Invalid Input '#{choice}'"
     end
   end 
 end

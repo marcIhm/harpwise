@@ -54,7 +54,6 @@ def do_quiz
       print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
-        # do some recording to drain samples, that only recorded, what we have just played.
         sleep 0.1
         handle_kb_listen
       end while play_thr.alive?
@@ -63,7 +62,7 @@ def do_quiz
     end
     redo if $ctl_back
     print "\e[32mand !\e[0m"
-    sleep 0.5
+    sleep 1
 
     print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap
   
