@@ -144,7 +144,11 @@ end
 
 
 def arecord_to_fifo fifo
-  arec_cmd = "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
+  arec_cmd = if $opts[:testing]
+               "cat tmp/testing.wav /dev/zero >#{fifo}"
+             else
+               "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
+             end
   _, _, wait_thread  = Open3.popen2(arec_cmd)
   wait_thread.join
   err_b "command '#{arec_cmd}' terminated unexpectedly"
@@ -161,6 +165,7 @@ def aubiopitch_to_queue fifo, num_samples
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
+    sleep 0.1 if $opts[:testing]
     if Time.now.to_f - tstart > 4  #  wait until slack has been drained from pipeline (?)
       $analysis_offset = Time.now.to_f - fields[0] unless $analysis_offset
       $analysis_delay = $analysis_offset - Time.now.to_f + fields[0] if i % 20 == 0
