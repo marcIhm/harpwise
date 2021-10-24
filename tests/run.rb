@@ -29,7 +29,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   tms './harp_scale_trainer'
   tms :ENTER
   sleep 1
-  expect { it[-3].start_with? 'Suggested reading' }
+  expect { screen[-5].start_with? 'Suggested reading' }
 
 
   puts "\nTesting auto-calibration"
@@ -39,7 +39,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   tms :ENTER
   tms :ENTER
   sleep 4
-  expect { it[-4] == 'All recordings done.' }
+  expect { screen[-4] == 'All recordings done.' }
 
 
   puts "\nTesting manual calibration"
@@ -52,7 +52,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   sleep 2
   tms 'r'
   sleep 6
-  expect { it[-7] == 'Frequency: 494' }
+  expect { screen[-7] == 'Frequency: 494' }
 
 
   puts "\nTesting listen"
@@ -61,7 +61,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   tms './harp_scale_trainer listen testing all --testing'
   tms :ENTER
   sleep 4
-  expect { it[-16].end_with? 'b4' }
+  expect { screen[-16].end_with? 'b4' }
   
 
   puts "\nTesting quiz"
@@ -70,7 +70,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   tms './harp_scale_trainer quiz 2 testing all --testing'
   tms :ENTER
   sleep 4
-  expect { it[-16].end_with? 'c5' }
+  expect { screen[-16].end_with? 'c5' }
 
   
 end

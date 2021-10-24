@@ -54,7 +54,7 @@ def puts_err_context
               map {|var| eval("defined?($#{var})")  ?  ("#{var}=" + eval("$#{var}").to_s)  :  nil}.
               select {|c| c}
   puts "(#{clauses.join(', ')})" if clauses.length > 0
-  puts caller[1 .. -1].map {|l| l + "\n"}.reverse
+  puts caller[1 .. -1].map {|l| l + "\n"}.reverse if $opts && $opts[:debug]
 end
 
 

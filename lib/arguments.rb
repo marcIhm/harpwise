@@ -87,6 +87,8 @@ Notes:
 
 Suggested reading: The section "A word on holes" from the toplevel README.org
 
+Copyright (c) 2021 by Marc Ihm. This program is subject to the MIT License.
+
 EOU
 
   # extract options from ARGV

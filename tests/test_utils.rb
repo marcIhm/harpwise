@@ -30,7 +30,7 @@ def tms cmd
 end
 
 
-def it
+def screen
   %x(tmux capture-pane -t hst -p).lines.map!(&:chomp)
 end
 
@@ -40,7 +40,7 @@ def expect &block
     puts "\e[32mOkay\e[0m"
     kill_session
   else
-    pp it
+    pp screen
     puts "\e[31mNOT Okay\e[0m"
     puts block.to_source
     kill_session

@@ -52,7 +52,9 @@ end
 
 Signal.trap('SIGINT') do
   print "\e[#{$line_listen}H" if $move_down_on_exit
-  fail "\nexit on ctrl-c"
+  fail "\nexit on ctrl-c" if $opts[:debug]
+  puts "\nexit on ctrl-c"
+  exit 1
 end
 
 
