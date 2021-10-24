@@ -93,14 +93,14 @@ def read_musical_config
   # read and compute from harps file
   hfile = "config/#{$type}/holes.yaml"
   
-  hole2note_orig = yaml_parse(hfile)
-  note2hole_orig = hole2note_orig.invert
+  hole2note_read = yaml_parse(hfile)
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
+  dsemi_harp -= 12 if dsemi_harp > 6
   harp = Hash.new
-  hole2note_orig.each do |hole,note|
+  hole2note_read.each do |hole,note|
     semi = note2semi(note) + dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
-               [:semi, semi]].to_h
+                  [:semi, semi]].to_h
   end
   semis = harp.map {|hole, hash| hash[:semi]}
   min_semi = semis.min
@@ -119,42 +119,26 @@ def read_musical_config
   if $scale
     scale_read = yaml_parse(sfile)
     scale = Array.new
-    dscale = Array.new
 
     err_msg = if $opts[:transpose_scale_to]
                 "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to"
               else
                 "#{sfile} has %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
               end
-    # For convenience we have both note2hole and note2hole_orig and their respective inverse;
-    # they only differ, if key does not equal c, and the following relation always holds true:
-    # note2semi(hole2note[h]) - note2semi(hole2note_orig[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
-    # Note, that below we transpose the scale, regardless if they are written as notes or as holes.
+    # For convenience we have both hole2note and hole2note_read; they only differ,
+    # if key does not equal c, and the following relation always holds true:
+    # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
+    # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
     dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
-    if sfile['holes']  # sfile with holes
-      scale_read.each do |hole|
-        semi = note2semi(hole2note_orig[hole]) + dsemi_scale
-        if semi >= min_semi && semi <= max_semi
-          dscale << hole2note_orig[hole]
-          # transposing happens by using note2hole below, while we had hole2note_orig above
-          n = semi2note(semi)
-          h = note2hole[n]
-          err_b(err_msg % ["note #{n}", semi]) unless hole2note[h]
-          err_b "Transposing hole #{hole} from c to #{$opts[:transpose_scale_to]} (by #{dsemi_scale} results in a note (#{semi2note(semi)}), that has no hole in harp; please use another value for --transpose_scale_to or leave it out altogether" unless h
-          scale << h
-        end
-      end
-    else  # sfile with notes
-      scale_read.each do |note|
-        semi = note2semi(note) + dsemi_scale
-        if semi + dsemi_harp >= min_semi && semi + dsemi_harp <= max_semi
-          dscale << note2hole_orig[note]
-          # transposing happens by adding dsemi_harp explicitly
-          n = semi2note(semi + dsemi_harp)
-          err_b(err_msg % ["note #{n}", semi]) unless note2hole[n]
-          h = note2hole[n]
-          scale << h
-        end
+    scale_read.each do |hole_or_note_read|
+      semi = dsemi_harp + dsemi_scale +
+             ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note_read])  :  note2semi(hole_or_note_read) )
+      if semi >= min_semi && semi <= max_semi
+        note = semi2note(semi)
+        hole = note2hole[note]
+        err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note_read}, note #{note}"  :  "note #{hole_or_note_read}",
+                          semi]) unless hole
+        scale << hole
       end
     end
 
