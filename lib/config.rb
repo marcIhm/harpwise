@@ -121,7 +121,7 @@ def read_musical_config
     scale = Array.new
 
     err_msg = if $opts[:transpose_scale_to]
-                "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to"
+                "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
               else
                 "#{sfile} has %s (semitone = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
               end
