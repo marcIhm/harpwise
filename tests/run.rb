@@ -24,7 +24,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   FileUtils.cp_r 'config/richter', 'config/testing'
   
   puts "Testing"
-  timer 'usage screen' do
+  memorize 'usage screen' do
     new_session
     tms './harp_scale_trainer'
     tms :ENTER
@@ -34,7 +34,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   
   %w(a c).each do |key|
-    timer "auto-calibration key of #{key}" do
+    memorize "auto-calibration key of #{key}" do
       sound 8, 2
       new_session
       tms "./harp_scale_trainer calib testing #{key} --auto --testing"
@@ -46,7 +46,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
 
-  timer 'manual calibration' do
+  memorize 'manual calibration' do
     sound 1, 2
     new_session
     tms './harp_scale_trainer calib testing c --testing'
@@ -60,7 +60,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 
-  timer 'listen' do
+  memorize 'listen' do
     sound 8, 2
     new_session
     tms './harp_scale_trainer listen testing a all --testing'
@@ -70,7 +70,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 
-  timer 'quiz' do
+  memorize 'quiz' do
     sound 8, 3
     new_session
     tms './harp_scale_trainer quiz 2 testing c all --testing'
@@ -80,7 +80,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
     
   
-  timer 'Testing transpose_scale_not_working' do
+  memorize 'Testing transpose_scale_not_working' do
     new_session
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
     tms :ENTER

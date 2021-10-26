@@ -55,22 +55,27 @@ def sound secs, semi
 end
 
 
-$tfile = 'tmp/test_memo.json'
-$tcount = 0
-$tmemo = File.exist?($tfile)  ?  JSON.parse(File.read($tfile))  :  {count: '?', times: {}}
-$tmemo.transform_keys!(&:to_sym)
+$memo_file = 'tmp/test_memo.json'
+$memo_count = 0
+$memo_seen = Set.new
+$memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', times: {}}
+$memo.transform_keys!(&:to_sym)
 
-def timer text
-  $tcount += 1
-  maxlen = $tmemo[:times].keys.map {|k| k.length}.max
-  time = $tmemo[:times][text]
-  print "  #{text.ljust(maxlen)}    #{$tcount} of #{$tmemo[:count]}    expected #{time ? ('%5.1f' % time) : '?'} secs ... "
+def memorize text
+  $memo_count += 1
+  $memo_seen << text
+  maxlen = $memo[:times].keys.map {|k| k.length}.max || 0
+  time = $memo[:times][text]
+  print "  #{text.ljust(maxlen)}    #{$memo_count} of #{$memo[:count]}    #{time ? ('%5.1f' % time) : '?'} secs ... "
   start = Time.now.to_f
   yield
-  $tmemo[:times][text] = Time.now.to_f - start
+  $memo[:times][text] = Time.now.to_f - start
 end
 
 at_exit {
-  $tmemo[:count] = $tcount if !$! || $!.success?
-  File.write($tfile, JSON.pretty_generate($tmemo))
+  if $!.nil? || $!.success?
+    $memo[:count] = $memo_count
+    $memo[:times].each_key {|k| $memo[:times].delete(k) unless $memo_seen === k}
+  end
+  File.write($memo_file, JSON.pretty_generate($memo))
 }
