@@ -28,7 +28,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harp_scale_trainer'
     tms :ENTER
-    sleep 1
+    sleep 2
     expect { screen[-5].start_with? 'Suggested reading' }
   end
 
@@ -40,7 +40,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       tms "./harp_scale_trainer calib testing #{key} --auto --testing"
       tms :ENTER
       tms :ENTER
-      sleep 4
+      sleep 6
       expect { screen[-4] == 'All recordings done.' }
     end
   end
