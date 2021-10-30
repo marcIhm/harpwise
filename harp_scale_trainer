@@ -55,13 +55,15 @@ if $opts[:debug]
   end
   print 'press RETURN to continue: '
   STDIN.gets
+else
+  Thread.report_on_exception = false
 end
 
 Signal.trap('SIGINT') do
   print "\e[#{$line_listen}H" if $move_down_on_exit
   fail "\nexit on ctrl-c" if $opts[:debug]
   puts "\nexit on ctrl-c"
-  exit 1
+  exit 0
 end
 
 
