@@ -12,18 +12,20 @@ def set_global_vars_early
   $line_driver = 16 + 2 * stretch
   $line_frequency = 17 + 2 * stretch
   $line_interval = 18 + 2 * stretch
+  $line_remark = 19 + 2 * stretch
   $line_comment_big = 20 + 3 * stretch
   $line_comment_small = 28 + 4 * stretch
   $line_hint = 29 + 4 * stretch
   $line_listen = 30 + 4 * stretch
   $line_listen2 = 31 + 4 * stretch
-
+  
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = nil
-  $ctl_can_next = $ctl_can_back = false
+  $ctl_can_next = $ctl_can_back = $ctl_toggle_journal = $ctl_show_help = false
   $ctl_issue_width = 42
   $ctl_non_def_issue_ts = nil
+  $write_journal = false
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
@@ -60,7 +62,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = 'config/config_merge.yaml'
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq, :term_min_width, :term_min_height])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq, :term_min_width, :term_min_height, :journal_file])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)

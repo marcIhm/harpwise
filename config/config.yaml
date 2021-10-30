@@ -29,3 +29,6 @@ max_freq: 8000
 # minimum terminal screen size
 term_min_width: 84
 term_min_height: 32
+
+# file for journal of played notes
+journal_file: journal.txt

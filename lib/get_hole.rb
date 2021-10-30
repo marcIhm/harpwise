@@ -9,14 +9,15 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
   $move_down_on_exit = true
   
   print "\e[#{$line_issue}H#{issue.ljust($term_width - $ctl_issue_width)}\e[0m"
-  $ctl_default_issue = "SPACE to pause#{$ctl_can_next ? '; RET next; BS back' + ($opts[:loop] ? '' : '; l loop') : ''}"
+  $ctl_default_issue = "SPACE to pause; h for help"
   ctl_issue
   print "\e[#{$line_key}H\e[2mType #{$type}, key of #{$key}, scale #{$scale}\e[0m"
 
   print_chart if $conf[:display] == :chart
   hole_start = Time.now.to_f
-  hole = hole_since = hole_was_disp = nil
-  hole_held = hole_held_before = nil
+  hole = hole_since = hole_was_for_disp = nil
+  hole_held = hole_held_before = hole_held_since = nil
+  remark_shown = nil
 
   loop do   # until var done or skip
 
@@ -33,13 +34,17 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     
     good = done = false
       
-    hole_was_ts = hole
+    hole_was_for_since = hole
     hole = nil
     hole, lbor, ubor = describe_freq(freq)
-    hole_since = Time.now.to_f if !hole_since || hole != hole_was_ts
-    if hole  &&  hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
+    hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
+    if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
-      hole_held = hole
+      write_journal(hole_held, hole_held_since) if $write_journal
+      if hole
+        hole_held = hole
+        hole_held_since = Time.now.to_f
+      end
     end
     hole_for_inter = nil
     
@@ -69,8 +74,8 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[#{(hole  &&  hole != :low  &&  hole != :high)  ?  ( good ? 32 : 31 )  :  2}m"
     if $conf[:display] == :chart
-      update_chart(hole_was_disp, :normal) if hole_was_disp && hole_was_disp != hole
-      hole_was_disp = hole if hole
+      update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
+      hole_was_for_disp = hole if hole
       update_chart(hole, good  ?  :good  :  :bad) 
     else
       print "\e[#{$line_display}H\e[0m"
@@ -97,18 +102,44 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
 
+    if $ctl_show_help
+      $ctl_show_help = false
+      print "\e[#{$line_remark}HShort help: SPACE to pause; TAB for journal"
+      print '; RET next sequence; BACKSPACE previous; l loop' if $ctl_can_next
+      print "\e[K"
+      remark_shown = Time.now.to_f
+    end
+    
+    if $ctl_toggle_journal
+      if $write_journal
+        write_journal hole_held, hole_held_since
+        IO.write($conf[:journal_file], "Stop writing journal at #{Time.now}\n", mode: 'a')
+      else
+        IO.write($conf[:journal_file], "\nStart writing journal at #{Time.now}\nColumns: Secs since prog start, duration, hole, note\n", mode: 'a')
+      end
+      $write_journal = !$write_journal
+      ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
+      $ctl_toggle_journal = false
+      print "\e[#{$line_remark}H\e[0m"      
+      print ( $write_journal  ?  "Appending to"  :  "Done with" ) + " journal.txt"
+      print "\e[K"
+      remark_shown = Time.now.to_f
+    end
+
+    if remark_shown &&  Time.now.to_f - remark_shown > 8
+      print "\e[#{$line_remark}H\e[K"
+      remark_shown = false
+    end
   end  # loop until var done or skip
 end
 
 
-def add_to_freq_samples samples
-  tnow = Time.now.to_f
-  max_samples = 1
-  # Get and filter new samples
-  new_samples = $freqs_queue.deq
-  # curate our pool of samples
-  samples += new_samples
-  samples = samples[- max_samples .. -1] if samples.length > max_samples
-#  samples.shift while samples.length > 0 && tnow - samples[0][0] > 1
-  [samples, new_samples]
+def write_journal hole_held, hole_held_since
+  return if !hole_held || hole_held == :low || hole_held == :high
+  IO.write($conf[:journal_file],
+           "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
+                                        Time.now.to_f - hole_held_since,
+                                        hole_held,
+                                        $harp[hole_held][:note]],
+           mode: 'a')
 end

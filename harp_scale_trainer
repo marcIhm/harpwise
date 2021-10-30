@@ -9,6 +9,7 @@ require 'yaml'
 require 'fileutils'
 require 'open3'
 require 'pp'
+require 'sys/proctable'
 require_relative 'lib/helper'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
@@ -20,6 +21,12 @@ require_relative 'lib/listen'
 require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
+$program_start = Time.now.to_f
+
+myself = File.basename($0)
+Sys::ProcTable.ps{ |p|
+  err_b "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[myself] && p.cmdline['ruby']
+}
 
 check_installation
 

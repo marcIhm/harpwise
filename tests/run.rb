@@ -23,13 +23,14 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   FileUtils.rm_r 'config/testing'
   FileUtils.cp_r 'config/richter', 'config/testing'
   
-  puts "Testing"
+  print "Testing"
   memorize 'usage screen' do
     new_session
     tms './harp_scale_trainer'
     tms :ENTER
     sleep 2
     expect { screen[-5].start_with? 'Suggested reading' }
+    kill_session
   end
 
   
@@ -40,8 +41,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       tms "./harp_scale_trainer calib testing #{key} --auto --testing"
       tms :ENTER
       tms :ENTER
-      sleep 6
+      sleep 10
       expect { screen[-4] == 'All recordings done.' }
+      kill_session
     end
   end
 
@@ -55,18 +57,24 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     tms 'r'
-    sleep 6
+    sleep 10
     expect { screen[-7] == 'Frequency: 494' }
+    kill_session
   end
   
 
   memorize 'listen' do
     sound 8, 2
+    FileUtils.rm $sut[:journal_file] if File.exist?($sut[:journal_file])
     new_session
     tms './harp_scale_trainer listen testing a all --testing'
     tms :ENTER
     sleep 4
+    tms :TAB
+    sleep 1
+    expect { File.exist?($sut[:journal_file]) }
     expect { screen[-16].end_with? 'b4' }
+    kill_session
   end
   
 
@@ -75,7 +83,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harp_scale_trainer quiz 2 testing c all --testing'
     tms :ENTER
-    sleep 4
+    sleep 8
     expect { screen[-16].end_with? 'c5' }
   end
     
@@ -86,7 +94,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 1
     expect { screen[8]['Maybe choose another value for --transpose_scale_to'] }
+    kill_session
   end
   
 end
-puts "done.\n\n"
+puts "\ndone.\n\n"

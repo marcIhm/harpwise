@@ -37,13 +37,13 @@ end
 
 def expect &block
   if yield
-    puts "\e[32mOkay\e[0m"
-    kill_session
+    print "\e[32mOkay \e[0m"
   else
     puts
-    pp screen
+    source = block.to_source
+    pp screen if source['screen']
     puts "\e[31mNOT Okay\e[0m"
-    puts block.to_source
+    puts source
     kill_session
     exit 1
   end
@@ -62,6 +62,7 @@ $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count
 $memo.transform_keys!(&:to_sym)
 
 def memorize text
+  puts
   $memo_count += 1
   $memo_seen << text
   maxlen = $memo[:times].keys.map {|k| k.length}.max || 0

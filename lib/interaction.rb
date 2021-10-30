@@ -11,6 +11,15 @@ end
 
 def check_screen
   err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [#{$conf[:term_min_width]},#{$conf[:term_min_heigth]}]" if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
+
+  bottom_line = bottom_line_var = 0
+  global_variables.each do |var|
+    if var.to_s.start_with?('$line_') && eval(var.to_s) > bottom_line
+      bottom_line = eval(var.to_s)
+      bottom_line_var = var
+    end
+  end
+  fail "Internal error: Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}" if bottom_line > $term_height
 end
 
 
@@ -83,7 +92,13 @@ def handle_kb_play
     waited = true
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
-    text = "Skip"
+    text = 'Skip'
+  elsif char == "\t"
+    $ctl_toggle_journal = true
+    text = nil
+  elsif char == '?' or char == 'h'
+    $ctl_show_help = true
+    text = 'See below for one line of help'
   elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = "Skip back"
@@ -93,7 +108,7 @@ def handle_kb_play
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})"
   end
-  ctl_issue text
+  ctl_issue text if text && !waited
   waited
 end
 
