@@ -85,6 +85,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 8
     expect { screen[-16].end_with? 'c5' }
+    kill_session
   end
     
   
