@@ -98,7 +98,7 @@ def handle_kb_play
     text = nil
   elsif char == '?' or char == 'h'
     $ctl_show_help = true
-    text = 'See below for one line of help'
+    text = 'See below for short help'
   elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = "Skip back"
@@ -106,7 +106,7 @@ def handle_kb_play
     $ctl_start_loop = true
     text = "Loop started"
   elsif char.length > 0
-    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})"
+    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
   end
   ctl_issue text if text && !waited
   waited

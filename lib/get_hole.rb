@@ -11,7 +11,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
   print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
   $ctl_default_issue = "SPACE to pause; h for help"
   ctl_issue
-  print "\e[#{$line_key}H\e[2mMode #{$mode}, type #{$type}, key of #{$key}, scale #{$scale}\e[0m"
+  print "\e[#{$line_key}H\e[2m" + text_for_key
 
   print_chart if $conf[:display] == :chart
   hole_start = Time.now.to_f
@@ -130,6 +130,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       print "\e[#{$line_message}H\e[0m"      
       print ( $write_journal  ?  "Appending to"  :  "Done with" ) + " journal.txt"
       print "\e[K"
+      print "\e[#{$line_key}H\e[2m" + text_for_key      
       message_shown = Time.now.to_f
     end
 
@@ -149,4 +150,11 @@ def write_journal hole_held, hole_held_since
                                         hole_held,
                                         $harp[hole_held][:note]],
            mode: 'a')
+end
+
+
+def text_for_key
+  text_for_key = "Mode: #{$mode} #{$type} #{$key} #{$scale}"
+  text_for_key += ', journal: ' + ( $write_journal  ?  ' on' : 'off' ) if $ctl_can_journal
+  text_for_key += "\e[K"
 end
