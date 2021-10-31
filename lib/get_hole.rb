@@ -18,6 +18,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   message_shown = nil
+  journal = Array.new
 
   loop do   # until var done or skip
 
@@ -40,7 +41,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
-      write_journal(hole_held, hole_held_since) if $write_journal
+      $write_journal && write_journal(hole_held, hole_held_since) && journal << hole_held
       if hole
         hole_held = hole
         hole_held_since = Time.now.to_f
@@ -120,6 +121,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     if $ctl_can_journal && $ctl_toggle_journal
       if $write_journal
         write_journal hole_held, hole_held_since
+        if journal.length > 0
+          IO.write($conf[:journal_file], "All holes: #{journal.join(' ')}\n", mode: 'a')
+          journal = Array.new
+        end
         IO.write($conf[:journal_file], "Stop writing journal at #{Time.now}\n", mode: 'a')
       else
         IO.write($conf[:journal_file], "\nStart writing journal at #{Time.now}\nColumns: Secs since prog start, duration, hole, note\n", mode: 'a')
@@ -143,13 +148,14 @@ end
 
 
 def write_journal hole_held, hole_held_since
-  return if !hole_held || hole_held == :low || hole_held == :high
+  return false if !hole_held || hole_held == :low || hole_held == :high
   IO.write($conf[:journal_file],
            "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
                                         Time.now.to_f - hole_held_since,
                                         hole_held,
                                         $harp[hole_held][:note]],
            mode: 'a')
+  return true
 end
 
 

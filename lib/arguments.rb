@@ -31,6 +31,8 @@ Usage by examples:
   Add option '--comment interval' (or '-c i') to show intervals instead of
   notes.
 
+  Switch on journal to get a simple transcription of the holes played.
+
 
   Play 3 notes from scale mape for a chromatic harmonica of key a and quiz you
   to play them back (then repeat):
