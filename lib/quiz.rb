@@ -7,6 +7,9 @@ def do_quiz
   prepare_term
   start_kb_handler
   start_collect_freqs
+  $ctl_can_next = true
+  $ctl_can_journal = false
+  $ctl_can_loop = true
   
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|
@@ -16,7 +19,7 @@ def do_quiz
 
   first_lap = true
   all_wanted_before = all_wanted = nil
-  $ctl_can_next = true
+
   loop do   # forever until ctrl-c, sequence after sequence
 
     unless first_lap
@@ -78,16 +81,17 @@ def do_quiz
         hole_start = Time.now.to_f
         pipeline_catch_up
 
-        get_hole(
-          if $ctl_loop
-            "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."
-          else
-            if $num_quiz == 1 
-              "Play the note you have heard !"
-            else
-              "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
-            end
-          end,
+        get_hole( -> () do
+                    if $ctl_loop
+                      "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."
+                    else
+                      if $num_quiz == 1 
+                        "Play the note you have heard !"
+                      else
+                        "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
+                      end
+                    end
+                  end,
           -> (played, since) {[played == wanted,  # lambda_good_done
                                played == wanted && 
                                Time.now.to_f - since > 0.5]}, # do not return okay immediately

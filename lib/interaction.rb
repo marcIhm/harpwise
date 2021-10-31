@@ -93,7 +93,7 @@ def handle_kb_play
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = 'Skip'
-  elsif char == "\t"
+  elsif char == "\t" && $ctl_can_journal
     $ctl_toggle_journal = true
     text = nil
   elsif char == '?' or char == 'h'
@@ -102,8 +102,8 @@ def handle_kb_play
   elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = "Skip back"
-  elsif char == 'l' && !$opts[:loop] && $ctl_can_next
-    $ctl_loop = true
+  elsif char == 'l' && $ctl_can_loop && $ctl_can_next
+    $ctl_start_loop = true
     text = "Loop started"
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})"

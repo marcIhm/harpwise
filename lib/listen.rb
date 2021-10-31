@@ -6,8 +6,10 @@ def do_listen
 
   prepare_term
   start_kb_handler
-  $ctl_can_next = false
   start_collect_freqs 
+  $ctl_can_next = false
+  $ctl_can_journal = true
+  $ctl_can_loop = false
   
   puts "\n\nJust go ahead and play notes from the scale ..."
   puts "Tip: \e[2mPlaying a slow backing track in parallel may be a good idea ...\e[0m"
@@ -18,7 +20,7 @@ def do_listen
   system('clear')
   pipeline_catch_up
 
-  get_hole("Play any note from the scale to get \e[32mgreen\e[0m ...",
+  get_hole(-> () {"Play any note from the scale to get \e[32mgreen\e[0m ..."},   # lambda_issue
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},

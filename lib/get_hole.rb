@@ -4,20 +4,20 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
+def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
   
-  print "\e[#{$line_issue}H#{issue.ljust($term_width - $ctl_issue_width)}\e[0m"
+  print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
   $ctl_default_issue = "SPACE to pause; h for help"
   ctl_issue
-  print "\e[#{$line_key}H\e[2mType #{$type}, key of #{$key}, scale #{$scale}\e[0m"
+  print "\e[#{$line_key}H\e[2mMode #{$mode}, type #{$type}, key of #{$key}, scale #{$scale}\e[0m"
 
   print_chart if $conf[:display] == :chart
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
-  remark_shown = nil
+  message_shown = nil
 
   loop do   # until var done or skip
 
@@ -104,13 +104,20 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
 
     if $ctl_show_help
       $ctl_show_help = false
-      print "\e[#{$line_remark}HShort help: SPACE to pause; TAB for journal"
-      print '; RET next sequence; BACKSPACE previous; l loop' if $ctl_can_next
+      print "\e[#{$line_message}HShort help: SPACE to pause"
+      print "; TAB for journal" if $ctl_can_journal
+      print '; RET next sequence; BACKSPACE previous; l loop over sequence' if $ctl_can_next
       print "\e[K"
-      remark_shown = Time.now.to_f
+      message_shown = Time.now.to_f
+    end
+
+    if $ctl_can_loop && $ctl_start_loop
+      $ctl_loop = true
+      $ctl_start_loop = false
+      print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
     end
     
-    if $ctl_toggle_journal
+    if $ctl_can_journal && $ctl_toggle_journal
       if $write_journal
         write_journal hole_held, hole_held_since
         IO.write($conf[:journal_file], "Stop writing journal at #{Time.now}\n", mode: 'a')
@@ -120,15 +127,15 @@ def get_hole issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hi
       $write_journal = !$write_journal
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
       $ctl_toggle_journal = false
-      print "\e[#{$line_remark}H\e[0m"      
+      print "\e[#{$line_message}H\e[0m"      
       print ( $write_journal  ?  "Appending to"  :  "Done with" ) + " journal.txt"
       print "\e[K"
-      remark_shown = Time.now.to_f
+      message_shown = Time.now.to_f
     end
 
-    if remark_shown &&  Time.now.to_f - remark_shown > 8
-      print "\e[#{$line_remark}H\e[K"
-      remark_shown = false
+    if message_shown &&  Time.now.to_f - message_shown > 8
+      print "\e[#{$line_message}H\e[K"
+      message_shown = false
     end
   end  # loop until var done or skip
 end
