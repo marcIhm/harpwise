@@ -18,7 +18,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   message_shown = nil
-  journal = Array.new
+  journal_holes = Array.new
 
   loop do   # until var done or skip
 
@@ -41,10 +41,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
-      $write_journal && write_journal(hole_held, hole_held_since) && journal << hole_held
+      write_to_journal(hole_held, hole_held_since, journal_holes) if $write_journal && regular_hole?(hole_held)
       if hole
         hole_held = hole
-        hole_held_since = Time.now.to_f
+        hole_held_since = hole_since
       end
     end
     hole_for_inter = nil
@@ -56,9 +56,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     end
 
     print "\e[#{$line_frequency}HFrequency:  "
-    if hole != :low && hole != :high
-      print "#{'%6.1f Hz' % freq}  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]" + 
-            (hole  ?  "  Note #{$harp[hole][:note]}"  :  '') + "\e[K"
+    if regular_hole?(hole)
+      print "#{'%6.1f Hz' % freq}  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]"
+      print "  Note #{$harp[hole][:note]}\e[K"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
     else
       print "    -  Hz  in range [  - ,  - ]\e[K"
@@ -73,7 +73,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[#{(hole  &&  hole != :low  &&  hole != :high)  ?  ( good ? 32 : 31 )  :  2}m"
+    hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 32 : 31 )  :  2}m"
     if $conf[:display] == :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
@@ -120,10 +120,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     
     if $ctl_can_journal && $ctl_toggle_journal
       if $write_journal
-        write_journal hole_held, hole_held_since
-        if journal.length > 0
-          IO.write($conf[:journal_file], "All holes: #{journal.join(' ')}\n", mode: 'a')
-          journal = Array.new
+        write_to_journal(hole_held, hole_held_since, journal_holes)  if regular_hole?(hole_held)
+        if journal_holes.length > 0
+          IO.write($conf[:journal_file], "All holes: #{journal_holes.join(' ')}\n", mode: 'a')
+          journal_holes = Array.new
         end
         IO.write($conf[:journal_file], "Stop writing journal at #{Time.now}\n", mode: 'a')
       else
@@ -147,15 +147,14 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
 end
 
 
-def write_journal hole_held, hole_held_since
-  return false if !hole_held || hole_held == :low || hole_held == :high
+def write_to_journal hole, since, journal_holes
   IO.write($conf[:journal_file],
            "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
-                                        Time.now.to_f - hole_held_since,
-                                        hole_held,
-                                        $harp[hole_held][:note]],
+                                        Time.now.to_f - since,
+                                        hole,
+                                        $harp[hole][:note]],
            mode: 'a')
-  return true
+  journal_holes << hole
 end
 
 
@@ -163,4 +162,9 @@ def text_for_key
   text_for_key = "Mode: #{$mode} #{$type} #{$key} #{$scale}"
   text_for_key += ', journal: ' + ( $write_journal  ?  ' on' : 'off' ) if $ctl_can_journal
   text_for_key += "\e[K"
+end
+
+
+def regular_hole? hole
+  hole && hole != :low && hole != :high
 end
