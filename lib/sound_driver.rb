@@ -145,7 +145,7 @@ def start_collect_freqs
   num_samples = ($sample_rate * $conf[:time_slice]).to_i
   fifo = 'tmp/fifo_arecord_aubiopitch'
   File.mkfifo(fifo) unless File.exist?(fifo)
-  err_h "File #{fifo} already exists but is noot a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
+  err_h "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
 
   Thread.new {arecord_to_fifo(fifo)}
   Thread.new {aubiopitch_to_queue(fifo, num_samples)}
@@ -166,7 +166,7 @@ end
 
 
 def aubiopitch_to_queue fifo, num_samples
-  aubio_cmd = "stdbuf -oL aubiopitch --bufsize #{num_samples * 8} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples * 4} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   aubio_in, aubio_out = Open3.popen2(aubio_cmd)
   aubio_in.close
   tstart = Time.now.to_f
