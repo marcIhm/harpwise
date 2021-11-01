@@ -30,14 +30,14 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     ctl_issue
     
     print "\e[#{$line_driver}H"
-    print "\e[2mPipeline: analysis delay: %5.02f (slice %.2f), queued: %d#{$debug_info}\e[K" %
-          [$analysis_delay, $conf[:time_slice], $freqs_queue.length]
+    print "\e[2mPipeline: slice: %.2f, jitter: %5.02f, queued: %d#{$debug_info}\e[K" %
+          [$conf[:time_slice], $analysis_delay, $freqs_queue.length]
     
     good = done = false
       
     hole_was_for_since = hole
     hole = nil
-    hole, lbor, ubor = describe_freq(freq)
+    hole, lfr, cfr, ufr = describe_freq(freq)
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
@@ -56,12 +56,12 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     end
 
     print "\e[#{$line_frequency}HFrequency:  "
-    if regular_hole?(hole)
-      print "#{'%6.1f Hz' % freq}  in range [#{lbor.to_s.rjust(4)},#{ubor.to_s.rjust(4)}]"
-      print "  Note #{$harp[hole][:note]}\e[K"
+    if hole != :low && hole != :high
+      print "#{'%6.1f Hz' % freq}  in range [#{lfr.to_s.rjust(4)},#{cfr.to_s.rjust(4)},#{ufr.to_s.rjust(4)}]"
+      print "  Note \e[0m#{$harp[hole][:note]}\e[K\e[2m"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
     else
-      print "    -  Hz  in range [  - ,  - ]\e[K"
+      print "    -  Hz  in range [  - ,  - ,  - ]\e[K"
     end
 
     print "\e[#{$line_interval}H"
