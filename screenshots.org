@@ -1,0 +1,9 @@
+* Making the screenshots
+
+  With these commandlines:
+
+  ./harp_scale_trainer listen richter c blues --screenshot
+
+  ./harp_scale_trainer quiz 5 richter c blues --screenshot
+
+  

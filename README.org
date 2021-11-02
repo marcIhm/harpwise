@@ -30,6 +30,9 @@
   First you will need to calibrate the program; the resulting wav-files will
   be kept in directory samples (which is not checked into git).
 
+  To get started quickly you may use auto-calibration for machine-generated
+  tones and frequencies.
+
 * A word on holes
 
   The Program uses the term "holes" throughout to give you feedback or hints.
@@ -63,12 +66,3 @@
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wslg, which supports sound through the remote desktop protocol.
 
-* Making the screenshots
-
-  With these commandlines:
-
-  ./harp_scale_trainer listen richter c blues --screenshot
-
-  ./harp_scale_trainer quiz 5 richter c blues --screenshot
-
-  
