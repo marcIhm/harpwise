@@ -10,6 +10,7 @@ def do_quiz
   $ctl_can_next = true
   $ctl_can_journal = false
   $ctl_can_loop = true
+  $ctl_can_change_comment = false
   
   puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
   [2,1].each do |c|

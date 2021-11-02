@@ -29,7 +29,7 @@ Usage by examples:
     ./harp_scale_trainer listen ri c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead of
-  notes.
+  notes; other possible values are 'note' and 'hole'.
 
   Switch on journal to get a simple transcription of the holes played.
 
@@ -122,7 +122,7 @@ EOU
   end
 
   # special processing for some options
-  opts[:comment] = match_or(opts[:comment], [:note, :interval, :hole]) do |none, choices|
+  opts[:comment] = match_or(opts[:comment], $comment_choices) do |none, choices|
     err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 

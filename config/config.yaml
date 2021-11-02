@@ -5,8 +5,8 @@ type: richter
 # default value
 key: c
 
-# While listening, show comments as note or interval
 comment_listen: note
+# While listening, show comments as note or interval
 
 # what to display for listen when a note has been recognized
 display_listen: chart

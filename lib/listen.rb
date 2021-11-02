@@ -10,6 +10,7 @@ def do_listen
   $ctl_can_next = false
   $ctl_can_journal = true
   $ctl_can_loop = false
+  $ctl_can_change_comment = true
   
   puts "\n\nJust go ahead and play notes from the scale ..."
   puts "Tip: \e[2mPlaying a slow backing track in parallel may be a good idea ...\e[0m"

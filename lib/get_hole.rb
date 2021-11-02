@@ -103,9 +103,29 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
 
+    if $ctl_change_display
+      $conf[:display] = ( $conf[:display] == :chart  ?  :hole  :  :chart )
+      clear_area_display
+      print_chart if $conf[:display] == :chart
+      print "\e[#{$line_message}H\e[2mDisplay is now #{$conf[:display]}\e[0m\e[K"
+      message_shown = Time.now.to_f
+      $ctl_change_display = false
+    end
+
+    if $ctl_can_change_comment && $ctl_change_comment
+      choices = [ $comment_choices, $comment_choices ].flatten
+      $conf[:comment_listen] = choices[choices.index($conf[:comment_listen]) + 1]
+      clear_area_comment
+      print "\e[#{$line_message}H\e[2mComment is now #{$conf[:comment_listen]}\e[0m\e[K"
+      message_shown = Time.now.to_f
+      $ctl_change_comment = false
+    end
+
     if $ctl_show_help
       $ctl_show_help = false
       print "\e[#{$line_message}HShort help: SPACE to pause"
+      print "; d to change display"
+      print "; c to change comment" if $ctl_can_change_comment
       print "; TAB for journal" if $ctl_can_journal
       print '; RET next sequence; BACKSPACE previous; l loop over sequence' if $ctl_can_next
       print "\e[K"

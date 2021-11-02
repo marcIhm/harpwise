@@ -99,6 +99,12 @@ def handle_kb_play
   elsif char == '?' or char == 'h'
     $ctl_show_help = true
     text = 'See below for short help'
+  elsif char == 'd'
+    $ctl_change_display = true
+    text = 'Change display'
+  elsif char == 'c' && $ctl_can_change_comment
+    $ctl_change_comment = true
+    text = 'Change comment'
   elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = "Skip back"
@@ -197,6 +203,18 @@ def print_chart
     end
     puts "\e[2m#{row[-1]}\e[0m"
   end
+end
+
+
+def clear_area_display
+  ($line_display .. $line_driver - 1).each {|l| print "\e[#{l}H\e[K"}
+  print "\e[#{$line_display}H"
+end
+
+
+def clear_area_comment
+  [$line_comment_big, $line_comment_small - 1].each {|l| print "\e[#{l}H\e[K"}
+  print "\e[#{$line_display}H"
 end
 
 
