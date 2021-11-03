@@ -28,11 +28,21 @@ def sys cmd
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
 end
   
-
 $figlet_cache = Hash.new
 def do_figlet text, font
-  cmd = "figlet -d fonts -f #{font} -c -w #{($term_width * 0.8).to_i} \" #{text}\""
-  $figlet_cache[cmd], _ = Open3.capture2e(cmd) unless $figlet_cache[cmd]
+  cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
+  unless $figlet_cache[cmd]
+    out, _ = Open3.capture2e(cmd)
+    maxline = out.lines.map {|l| l.length}.max
+    offset = if maxline > 0.8 * $term_width
+               0
+             elsif maxline > 0.6 * $term_width
+               0.1 * $term_width
+             else
+               0.2 * $term_width
+             end
+    $figlet_cache[cmd] = out.lines.map {|l| ' ' * offset + l.chomp}.join("\n")
+  end
   $figlet_cache[cmd].lines.each do |line|
     print "#{line.chomp}\e[K\n"
   end

@@ -91,7 +91,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
                                                                   hole && $harp[hole] && $harp[hole][:note],
                                                                   hole_disp)
       print "\e[#{$line_comment_big}H#{comment_color}"
-      do_figlet comment_text, font
+      do_figlet '   ' + comment_text, font
     end
 
     if done
