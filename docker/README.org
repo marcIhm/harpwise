@@ -1,0 +1,11 @@
+* Building a docker image 
+
+  This is a two step process:
+
+  - docker build -f base -t harp_scale_trainer_base:latest . 
+  - docker build -f app -t harp_scale_trainer:latest . 
+
+* Starting containers
+
+  - docker run -it harp_scale_trainer_base:latest
+  
