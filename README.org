@@ -54,7 +54,8 @@
   from within the directory, which you need to clone from github first. Vice
   versa it can be completely removed by removing the cloned directory.
 
-  harp_scale_trainer is written in ruby, so you need ruby installed.
+  harp_scale_trainer is written in ruby, so you need ruby installed and 
+  the non-standard Gem: sys-proctable
 
   Moreover it relies on several external programs for its operation, e.g.:
   aubiopitch, pulseaudio, aplay, arecord, sox, figlet and gnuplot. Their

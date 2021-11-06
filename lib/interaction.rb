@@ -175,8 +175,8 @@ end
 
 
 def draw_data file, from, to, marker
-  sys "sox #{file} tmp/sound-to-plot.dat"
-  IO.write 'tmp/sound.gp', <<EOGPL
+  sys "sox #{file} #{$tmp_dir}/sound-to-plot.dat"
+  IO.write "#{$tmp_dir}/sound.gp", <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
 set datafile commentschars ";"
 set xlabel "time (s)"
@@ -186,7 +186,7 @@ set nokey
 set arrow from #{marker}, graph 0 to #{marker}, graph 1 nohead
 plot "#{file}" using 1:2
 EOGPL
-  system "gnuplot tmp/sound.gp"
+  system "gnuplot #{$tmp_dir}/sound.gp"
 end
 
 

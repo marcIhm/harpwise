@@ -142,12 +142,12 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       if $write_journal
         write_to_journal(hole_held, hole_held_since, journal_holes)  if regular_hole?(hole_held)
         if journal_holes.length > 0
-          IO.write($conf[:journal_file], "All holes: #{journal_holes.join(' ')}\n", mode: 'a')
+          IO.write($journal_file, "All holes: #{journal_holes.join(' ')}\n", mode: 'a')
           journal_holes = Array.new
         end
-        IO.write($conf[:journal_file], "Stop writing journal at #{Time.now}\n", mode: 'a')
+        IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
       else
-        IO.write($conf[:journal_file], "\nStart writing journal at #{Time.now}\nColumns: Secs since prog start, duration, hole, note\n", mode: 'a')
+        IO.write($journal_file, "\nStart writing journal at #{Time.now}\nColumns: Secs since prog start, duration, hole, note\n", mode: 'a')
       end
       $write_journal = !$write_journal
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
@@ -168,7 +168,7 @@ end
 
 
 def write_to_journal hole, since, journal_holes
-  IO.write($conf[:journal_file],
+  IO.write($journal_file,
            "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
                                         Time.now.to_f - since,
                                         hole,

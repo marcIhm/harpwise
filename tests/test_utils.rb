@@ -51,11 +51,11 @@ end
 
 
 def sound secs, semi
-    sys "sox -n tmp/testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
+    sys "sox -n /tmp/harp_scale_trainer_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
 end
 
 
-$memo_file = 'tmp/test_memo.json'
+$memo_file = "#{Dir.home}/harp_scale_trainer_test_memo.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', times: {}}

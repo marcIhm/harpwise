@@ -6,7 +6,7 @@ def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = (opts[:silent] && !$opts[:debug]) ? '>/dev/null 2>&1' : ''
   if $opts[:testing]
-    FileUtils.cp 'tmp/testing.wav', file
+    FileUtils.cp "/tmp/#{File.basename($0)}_testing.wav", file
     sleep secs
   else
     system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
@@ -143,7 +143,7 @@ end
 
 def start_collect_freqs
   num_samples = ($sample_rate * $conf[:time_slice]).to_i
-  fifo = 'tmp/fifo_arecord_aubiopitch'
+  fifo = "#{$tmp_dir}/fifo_arecord_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
   err_h "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
 
@@ -154,7 +154,7 @@ end
 
 def arecord_to_fifo fifo
   arec_cmd = if $opts[:testing]
-               "cat tmp/testing.wav /dev/zero >#{fifo}"
+               "cat /tmp/#{File.basename($0)}_testing.wav /dev/zero >#{fifo}"
              else
                "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
              end

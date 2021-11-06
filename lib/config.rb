@@ -28,6 +28,11 @@ def set_global_vars_early
   $ctl_issue_width = 42
   $ctl_non_def_issue_ts = nil
 
+  $tmp_dir = Dir.mktmpdir(File.basename($0))
+  at_exit {FileUtils.remove_entry $tmp_dir unless $opts && $opts[:debug]}
+  $data_dir = "#{Dir.home}/#{File.basename($0)}_data"
+  FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
+  $journal_file = "#{$data_dir}/journal.txt"
   $write_journal = false
   $comment_choices = [:note, :interval, :hole]
 
@@ -43,11 +48,11 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = this_or_equiv("samples/#{$type}/key_of_%s", $key.to_s)
+  $sample_dir = this_or_equiv("#{$data_dir}/samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.yaml"
-  $collect_wave = 'tmp/collect.wav'
-  $edit_data = 'tmp/edit_workfile.dat'
-  $edit_wave = 'tmp/edit_workfile.wav'
+  $collect_wave = "#{$tmp_dir}/collect.wav"
+  $edit_data = "#{$tmp_dir}/edit_workfile.dat"
+  $edit_wave = "#{$tmp_dir}/edit_workfile.wav"
 end
 
 
@@ -66,7 +71,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = 'config/config_merge.yaml'
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq, :term_min_width, :term_min_height, :journal_file])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :min_freq, :max_freq, :term_min_width, :term_min_height])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)

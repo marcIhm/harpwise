@@ -65,14 +65,15 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'listen' do
     sound 8, 2
-    FileUtils.rm $sut[:journal_file] if File.exist?($sut[:journal_file])
+    journal_file = "#{Dir.home}/harp_scale_trainer_data/journal.txt"
+    FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harp_scale_trainer listen testing a all --testing'
     tms :ENTER
     sleep 4
     tms :TAB
     sleep 1
-    expect { File.exist?($sut[:journal_file]) }
+    expect { File.exist?(journal_file) }
     expect { screen[-16].end_with? 'b4' }
     kill_session
   end
