@@ -8,11 +8,13 @@ set -v
 
 
 # install packages one after the other to what they install as dependencies
-echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
 sudo apt-get install -y wget
 sudo apt-get install -y ruby
 sudo apt-get install -y figlet
 sudo apt-get install -y alsa-utils
+sudo apt-get install dialog apt-utils
+echo "tzdata    tzdata/Areas    select  Europe" | sudo debconf-set-selections
+echo "tzdata    tzdata/Zones/Europe select  Berlin" | sudo debconf-set-selections
 sudo apt-get install --no-install-recommends -y aubio-tools
 sudo apt-get install -y sox
 sudo apt-get install -y gnuplot-nox
