@@ -1,6 +1,6 @@
 Build a docker image with
 
-  docker build -f build-with-script -t --progress=plain harp_scale_trainer:latest .
+  docker build -f build-with-script -t --progress=plain --no-cache harp_scale_trainer:latest .
 
 if successful, this will show the usage message of the program
 

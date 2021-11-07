@@ -1,6 +1,8 @@
 FROM ubuntu:latest
 MAINTAINER Marc Ihm (marc@ihm.name)
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y
+RUN apt-get install -y sudo
 RUN apt-get install ca-certificates -y
 RUN apt-get install -y git
 RUN git clone https://github.com/marcIhm/harp_scale_trainer.git
