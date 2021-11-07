@@ -1,19 +1,19 @@
 #!/usr/bin/bash
 
 # Install dependencies for harp_scale_trainer; the trainer itself needs not installation
-# vut can rather be started from its directory
+# but can rather be started from its directory.
+# See tests/installer for a way to test this script in a container
 
 set -v
 
-# this script may be tested in a container
-docker run -it -v $HOME/harp_scale_trainer:/root/harp_scale_trainer ubuntu bash
 
 # install packages one after the other to what they install as dependencies
 sudo apt-get install -y wget
 sudo apt-get install -y ruby
 sudo apt-get install -y figlet
 sudo apt-get install -y alsa-utils
-sudo apt-get install -y aubio-tools
+echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+sudo apt-get install --no-install-recommends -y aubio-tools
 sudo apt-get install -y sox
 sudo apt-get install -y gnuplot-nox
 sudo apt-get install -y gcc

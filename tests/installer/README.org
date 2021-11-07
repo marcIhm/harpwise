@@ -1,5 +1,8 @@
 Build a docker image with
 
-  docker build -f build-with-script -t harp_scale_trainer:latest .
+  docker build -f build-with-script -t --progress=plain harp_scale_trainer:latest .
 
 if successful, this will show the usage message of the program
+
+This process clones the repository from github, so any local changes
+need to be committed first.
