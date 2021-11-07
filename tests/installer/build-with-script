@@ -1,0 +1,9 @@
+FROM ubuntu:latest
+MAINTAINER Marc Ihm (marc@ihm.name)
+RUN apt-get update -y
+RUN apt-get install ca-certificates -y
+RUN apt-get install -y git
+RUN git clone https://github.com/marcIhm/harp_scale_trainer.git
+WORKDIR /harp_scale_trainer
+RUN bash ./install-dependencies-on-ubuntu.sh
+ENTRYPOINT ["./harp_scale_trainer"]

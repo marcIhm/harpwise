@@ -1,0 +1,5 @@
+Build a docker image with
+
+  docker build -f build-with-script -t harp_scale_trainer:latest .
+
+if successful, this will show the usage message of the program
