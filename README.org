@@ -28,7 +28,7 @@
 
   
   First you will need to calibrate the program; the resulting wav-files will
-  be kept in directory samples (which is not checked into git).
+  be kept in directory ~/.harp_scale_trainer
 
   To get started quickly you may use auto-calibration for machine-generated
   tones and frequencies.

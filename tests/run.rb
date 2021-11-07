@@ -65,7 +65,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'listen' do
     sound 8, 2
-    journal_file = "#{Dir.home}/harp_scale_trainer_data/journal.txt"
+    journal_file = "#{Dir.home}/.harp_scale_trainer/journal.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harp_scale_trainer listen testing a all --testing'

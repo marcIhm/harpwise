@@ -5,7 +5,7 @@
   - docker build -f base -t harp_scale_trainer_base:latest . 
   - docker build -f app -t harp_scale_trainer:latest . 
 
-* Starting containers
+* Starting the final container
 
-  - docker run -it harp_scale_trainer_base:latest
+  - docker run -it harp_scale_trainer_base:latest --mount type=bind,source=$HOME/harp_scale_trainer_data,target=/harp_scale_trainer_data
   

@@ -153,7 +153,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
       $ctl_toggle_journal = false
       print "\e[#{$line_message}H\e[0m"      
-      print ( $write_journal  ?  "Appending to"  :  "Done with" ) + " journal.txt"
+      print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
       print "\e[#{$line_key}H\e[2m" + text_for_key      
       message_shown = Time.now.to_f

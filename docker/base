@@ -1,16 +1,16 @@
 FROM ubuntu:latest
 MAINTAINER Marc Ihm (marc@ihm.name)
 RUN apt-get update -y
-RUN apt-get install -y wget
-RUN apt-get install -y ruby
-RUN apt-get install -y figlet
-RUN apt-get install -y alsa-utils
-RUN apt-get install -y aubio-tools
-RUN apt-get install -y sox
-RUN apt-get install -y gnuplot-nox
-RUN apt-get install -y gcc
-RUN apt-get install -y make
-RUN apt-get install -y less
-RUN apt-get install -y ruby-dev
-RUN apt-get install -y libffi-dev
+RUN apt-get install --no-install-recommends -y wget
+RUN apt-get install --no-install-recommends -y ruby
+RUN apt-get install --no-install-recommends -y figlet
+RUN apt-get install --no-install-recommends -y alsa-utils
+RUN apt-get install --no-install-recommends -y aubio-tools
+RUN apt-get install --no-install-recommends -y sox
+RUN apt-get install --no-install-recommends -y gnuplot-nox
+RUN apt-get install --no-install-recommends -y gcc
+RUN apt-get install --no-install-recommends -y make
+RUN apt-get install --no-install-recommends -y less
+RUN apt-get install --no-install-recommends -y ruby-dev
+RUN apt-get install --no-install-recommends -y libffi-dev
 RUN gem install sys-proctable
