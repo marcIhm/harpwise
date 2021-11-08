@@ -61,7 +61,9 @@ Usage by examples:
     ./harp_scale_trainer calibrate c
     
   this will ask you to play notes on your harp. The samples will be stored in
-  folder samples and frequencies will be extracted to file frequencies.yaml.
+  the hidden folder .#{File.basename($0)} within your home directory;
+  frequencies will be extracted to the file frequencies.yaml.
+
   This command does not need a scale-argument.
 
   For quick (and possibly inaccurate) calibration you may use the option
