@@ -54,9 +54,10 @@
   from within the directory, which you need to clone from github first. Vice
   versa it can be completely removed by removing the cloned directory.
 
-  harp_scale_trainer has a bunch of dependencies and the script
-  install-dependencies-on-ubuntu.sh may be used to install them in a single
-  run.
+  harp_scale_trainer has a bunch of dependencies and the script in directory
+  install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wslg, which supports sound through the remote desktop protocol.
+
+  See README.org in directory install for more details.

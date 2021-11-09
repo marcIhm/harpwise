@@ -1,8 +1,0 @@
-FROM harp_scale_trainer_base:latest
-MAINTAINER Marc Ihm (marc@ihm.name)
-ARG version=2.4
-RUN wget https://github.com/marcIhm/harp_scale_trainer/archive/refs/tags/${version}.tar.gz
-RUN gunzip $version.tar.gz
-RUN tar xvf $version.tar
-WORKDIR /harp_scale_trainer-$version
-ENTRYPOINT ["./harp_scale_trainer"]
