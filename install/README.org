@@ -1,4 +1,5 @@
-Install dependencies for harp_scale_trainer for different linux-distributions.
+Install dependencies for harp_scale_trainer for different
+linux-distributions.
 
 The trainer itself needs no installation but should rather be started
 directly from its toplevel directory.
@@ -6,11 +7,24 @@ directly from its toplevel directory.
 
 The scripts to install dependencies are:
 
-  - install-dependencies-on-ubuntu.sh  :  may be suitable for other debian-based systems too
+  - install-dependencies-on-ubuntu.sh : may be suitable for other
+    debian-based systems too
 
-  - install-dependencies-on-fedora.sh  :  might also work on systems derived from fedora
+  - install-dependencies-on-fedora.sh : might also work on systems
+    derived from fedora
 
-Both scripts are fairly simple and you are invited to inspect them before running them.
+Both scripts are fairly simple and you are invited to inspect them
+before running them.
+
+
+Please note, that after this installation you should be able to record
+and play sound via alsa, e.g.:
+
+  - arecord -d 1 foo.wav
+  - aplay foo.wav
+
+however, any configuration issues which might arise are beyond the
+scope of this readme.
 
 
 As a maintainer, see tests/installer for a way to test these scripts
