@@ -1,8 +1,7 @@
 FROM fedora:34
 MAINTAINER Marc Ihm (marc@ihm.name)
 ENV DEBIAN_FRONTEND noninteractive
-RUN yum install -y sudo
-RUN yum install -y ca-certificates
+RUN yum install -y sudo which ca-certificates
 COPY harp_scale_trainer /harp_scale_trainer
 WORKDIR /harp_scale_trainer
 RUN bash ./install/install-dependencies-on-fedora.sh

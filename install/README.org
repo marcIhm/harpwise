@@ -1,31 +1,76 @@
-Install dependencies for harp_scale_trainer for different
+Scripts to install dependencies for harp_scale_trainer for different
 linux-distributions.
 
 The trainer itself needs no installation but should rather be started
 directly from its toplevel directory.
 
+* Downloading harp_scale_trainer
 
-The scripts to install dependencies are:
+  From https://github.com/marcIhm/harp_scale_trainer
+  
+  You may download and unpack a release into your home; this will give
+  you a directory ~/harp_scale_trainer
 
-  - install-dependencies-on-ubuntu.sh : may be suitable for other
-    debian-based systems too
+  If you want to contribute patches you may just as well clone the
+  repo.
 
-  - install-dependencies-on-fedora.sh : might also work on systems
-    derived from fedora
+* Installing dependencies
 
-Both scripts are fairly simple and you are invited to inspect them
-before running them.
+  The scripts to install dependencies are:
 
+    install-dependencies-on-ubuntu.sh | tee ~/harp_scale_trainer/install.log
 
-Please note, that after this installation you should be able to record
-and play sound via alsa, e.g.:
+  may be suitable for other debian-based systems too (which use apt to
+  install software).
 
-  - arecord -d 1 foo.wav
-  - aplay foo.wav
+    install-dependencies-on-fedora.sh | tee ~/harp_scale_trainer/install.log
 
-however, any configuration issues which might arise are beyond the
-scope of this readme.
+  might also work on systems derived from fedora (which use yum to
+  install software).
 
+  Both scripts are fairly simple and you are invited to inspect them
+  before running.
 
-As a maintainer, see tests/installer for a way to test these scripts
-in a container.
+  As suggested, you may capture the output of the script to see which
+  packages were installed and which are already present on your
+  system; this ist helpful, if you would like to remove them later.
+
+* Configuration of your sound system (not covered)
+
+  Please note, that after this installation you should be able to record
+  and play sound via alsa, e.g.:
+
+    arecord -d 1 foo.wav
+    aplay foo.wav
+
+  however, any configuration issues which might arise are beyond the
+  scope of this readme.
+
+* Uninstalling (only half covered)
+
+** Uninstalling harp_scale_trainer itself
+
+   Just remove the directory ~/harp_scale_trainer which you downloaded
+   initially.
+
+   The data of harp_scale_trainer (samples for calibration and
+   journal.txt) is kept in the hidden directory ~/.harp_scale_trainer,
+   which you want to remove too.
+
+** Uninstalling dependencies 
+
+   There is no uninstaller for the dependencies.
+
+   To uninstall manually, you need to review the logfile from the
+   installation and remove those packages that have not been present
+   on your system already.
+
+   In general, the number of packages installed as dependencies and
+   their disk-usage is fairly low, so there is not much pressure to
+   remove those dependencie if you do not want to use
+   harp_scale_trainer any more.
+
+* Testing the installer
+
+  As a maintainer, see tests/installer for a way to test these scripts
+  in a container.

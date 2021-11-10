@@ -3,7 +3,7 @@ MAINTAINER Marc Ihm (marc@ihm.name)
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y
 RUN apt-get install -y sudo
-RUN apt-get install ca-certificates -y
+RUN apt-get install -y ca-certificates
 COPY harp_scale_trainer /harp_scale_trainer
 WORKDIR /harp_scale_trainer
 RUN bash ./install/install-dependencies-on-ubuntu.sh

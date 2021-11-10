@@ -51,8 +51,9 @@
 
   The program harp_scale_trainer runs in the linux console (no graphical
   environment needed); it has no formal installation, but rather runs directly
-  from within the directory, which you need to clone from github first. Vice
-  versa it can be completely removed by removing the cloned directory.
+  from within the directory, which you need to download as a release or clone
+  from github first. Vice versa it can simply be removed by deleting the
+  cloned directory.
 
   harp_scale_trainer has a bunch of dependencies and the script in directory
   install may be used to install them.
