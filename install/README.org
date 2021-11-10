@@ -41,6 +41,7 @@ directly from its toplevel directory.
   and play sound via alsa, e.g.:
 
     arecord -d 1 foo.wav
+
     aplay foo.wav
 
   however, any configuration issues which might arise are beyond the
@@ -55,20 +56,20 @@ directly from its toplevel directory.
 
    The data of harp_scale_trainer (samples for calibration and
    journal.txt) is kept in the hidden directory ~/.harp_scale_trainer,
-   which you want to remove too.
+   which you may want to remove too.
 
 ** Uninstalling dependencies 
 
    There is no uninstaller for the dependencies.
 
    To uninstall manually, you need to review the logfile from the
-   installation and remove those packages that have not been present
-   on your system already.
+   installation and remove those packages, that have not been present
+   on your system initially.
 
-   In general, the number of packages installed as dependencies and
-   their disk-usage is fairly low, so there is not much pressure to
-   remove those dependencie if you do not want to use
-   harp_scale_trainer any more.
+   However, in general, the number of packages installed as
+   dependencies and their disk-usage is fairly low, so there is not
+   much pressure to remove those dependencies, even if you do not want
+   to use harp_scale_trainer any more.
 
 * Testing the installer
 
