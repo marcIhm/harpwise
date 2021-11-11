@@ -124,9 +124,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     if $ctl_show_help
       $ctl_show_help = false
       print "\e[#{$line_message}HShort help: SPACE to pause"
-      print "; d to change display"
+      print "; TAB to change display"
       print "; c to change comment" if $ctl_can_change_comment
-      print "; TAB for journal" if $ctl_can_journal
+      print "; j for journal" if $ctl_can_journal
       print '; RET next sequence; BACKSPACE previous; l loop over sequence' if $ctl_can_next
       print "\e[K"
       message_shown = Time.now.to_f

@@ -103,13 +103,13 @@ def handle_kb_play
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = 'Skip'
-  elsif char == "\t" && $ctl_can_journal
+  elsif char == 'j' && $ctl_can_journal
     $ctl_toggle_journal = true
     text = nil
   elsif char == '?' or char == 'h'
     $ctl_show_help = true
     text = 'See below for short help'
-  elsif char == 'd'
+  elsif char == "\t"
     $ctl_change_display = true
     text = 'Change display'
   elsif char == 'c' && $ctl_can_change_comment
