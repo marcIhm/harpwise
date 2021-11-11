@@ -2,8 +2,5 @@
 .byebug_history
 samples/*
 *Zone.Identifier
-images/harmonica0.jpg
-config/config_merge.yaml
-config/*/scales_derived_with_notes.yaml
 config/*/derived_*.yaml
 config/testing

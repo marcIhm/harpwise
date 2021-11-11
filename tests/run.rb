@@ -71,7 +71,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer listen testing a all --testing'
     tms :ENTER
     sleep 4
-    tms :TAB
+    tms 'j'
     sleep 1
     expect { File.exist?(journal_file) }
     expect { screen[-16].end_with? 'b4' }
