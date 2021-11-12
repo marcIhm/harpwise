@@ -37,7 +37,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       
     hole_was_for_since = hole
     hole = nil
-    hole, lfr, cfr, ufr = describe_freq(freq)
+    hole, lbor, ubor = describe_freq(freq)
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
@@ -56,12 +56,14 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     end
 
     print "\e[#{$line_frequency}HFrequency:  "
+    dots = '....................'
     if hole != :low && hole != :high
-      print "#{'%6.1f Hz' % freq}  in range [#{lfr.to_s.rjust(4)},#{cfr.to_s.rjust(4)},#{ufr.to_s.rjust(4)}]"
+      dots[ dots.length * (freq - lbor) / (ubor - lbor) ] = '|'
+      print "#{'%6.1f Hz' % freq}  [#{dots}]"
       print "  Note \e[0m#{$harp[hole][:note]}\e[K\e[2m"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
     else
-      print "    -  Hz  in range [  - ,  - ,  - ]\e[K"
+      print "   --  Hz  [#{dots}]  Note --\e[K"
     end
 
     print "\e[#{$line_interval}H"
