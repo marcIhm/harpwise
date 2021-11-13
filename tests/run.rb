@@ -42,7 +42,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       tms :ENTER
       tms :ENTER
       sleep 10
-      expect { screen[-4] == 'All recordings done.' }
+      expect { screen[-4] == 'Recordings done.' }
       kill_session
     end
   end
@@ -58,7 +58,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-7] == 'Frequency: 494' }
+    expect { screen[-7] == 'Frequency: 494     (calculation for ET tuning is 261.63)' }
     kill_session
   end
   

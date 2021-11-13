@@ -37,7 +37,7 @@ def edit_sound hole, file
       puts
     end
     puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, zoom from #{zoom_from} to #{zoom_to}, play from #{play_from}."
-    puts "Choices: <zfrom> <zto> | <pfrom> | <empty> | d | y | q | r"
+    puts "Choices: <zoom_from> <zoom_to> | <play_from> | <empty> | d | y | q | r"
     print "Your input ('h' for help): "
     choice = one_char
 
@@ -52,11 +52,11 @@ def edit_sound hole, file
     if choice == '?' || choice == 'h'
       puts <<EOHELP
 
-Enter any of these, finish with RETURN:
+Type any of these:
 
-  <zoom-from> <zoom-to> :  Zoom plot to given range;  Example:  0.2 0.35
+  <zoom-from> <zoom-to> :  Zoom plot to given range;  Example:  0.2  0.35
            <start-from> :  Set position to play from (vertical line in plot);  Example:  0.4
-                 RETURN :  Play from current position;  Example:  RETURN
+                 RETURN :  Play from current position
                       d :  Draw wave curve again
                       y :  Accept current play position and skip to next hole
                       q :  Discard edit

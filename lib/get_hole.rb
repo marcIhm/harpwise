@@ -64,7 +64,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
         dots[ 10 - 11 * (cntr - freq) / (cntr - lbor) ] = '|'        
       end
       print "#{'%6.1f Hz' % freq}  [#{dots}]"
-      print "  Note \e[0m#{$harp[hole][:note]},#{lbor},#{cntr},#{ubor}\e[K\e[2m"
+      print "  Note \e[0m#{$harp[hole][:note]}\e[K\e[2m"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
     else
       print "   --  Hz  [#{dots}]  Note --\e[K"
