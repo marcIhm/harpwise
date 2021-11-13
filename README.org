@@ -33,7 +33,7 @@
   To get started quickly you may use auto-calibration for machine-generated
   tones and frequencies.
 
-* A word on holes
+* A word on the term holes
 
   The Program uses the term "holes" throughout to give you feedback or hints.
   Examples would be "-1" or "+4"; these obviously name the holes of your
@@ -46,6 +46,23 @@
 
   In effect, you may consider hole-names like "-2+3" as practical names for the
   notes played on a harmonica of a given key.
+
+* A closer look at the display
+** The frequency scale
+
+   Currently it looks like this:
+
+   [..........:..........]
+
+   The middle position (marked by ":") represents the frequency, that was found
+   during calibration. If you have done an automatic calibration, this
+   frequency might not match what you are actually playing; consider a manual
+   calibration with your actual harp in such a case.
+
+   The left and right position (marked by "[." and ".]") represent the point,
+   where the displayed note would change; typically this is half way to the
+   next note. After reaching which, the displayed cursor ("|") will jump to the
+   other side to approach the central position again.
 
 * Installation
 

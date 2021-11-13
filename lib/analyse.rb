@@ -14,10 +14,10 @@ def describe_freq freq
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
-    return :low, nil, nil if (freq < lb)
-    return $freq2hole[fr], lb, ub if (freq >= lb) and (freq < ub)
+    return :low, nil, nil, nil if (freq < lb)
+    return $freq2hole[fr], lb, fr, ub if (freq >= lb) and (freq < ub)
   end
-  return :high, nil, nil
+  return :high, nil, nil, nil
 end
 
 
