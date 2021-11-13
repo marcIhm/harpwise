@@ -59,7 +59,7 @@ def do_calibrate_assistant
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
   if $opts[:hole]
     holes_desc = 'these holes'
-    holes_desc2 = "#{$opts[:hole]} and beyond"
+    holes_desc2 = "#{$opts[:hole]}"
   else
     holes_desc = "these #{$harp_holes.length} holes"
     holes_desc2 = $harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")
@@ -95,7 +95,7 @@ Hint: If you want to calibrate for another key of harp, you might copy the
 Tips: You may invoke this assistant again at any later time, just to review
   your recorded notes and maybe correct some of them. 
   Results are written to disk immediately, so you may interrupt the process
-  with ctrl-c after any hole. To start with a specific hole use option
+  with ctrl-c after any hole. To record a specific hole only, use option
   '--hole'.
 
 

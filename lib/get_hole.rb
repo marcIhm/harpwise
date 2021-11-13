@@ -59,9 +59,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     dots = '..........:..........'
     if hole != :low && hole != :high
       if freq > cntr
-        dots[ 10 + 11 * (freq - cntr) / (ubor - cntr) ] = '|'        
+        pos = 10 + 11 * (freq - cntr) / (ubor - cntr)
+        dots[pos] = ( 10 .. 13) === pos  ?  "\e[0m|\e[2m"  :  '|'        
       else
-        dots[ 10 - 11 * (cntr - freq) / (cntr - lbor) ] = '|'        
+        pos = 10 - 11 * (cntr - freq) / (cntr - lbor)
+        dots[pos] = ( 7 .. 10) === pos  ?  "\e[0m|\e[2m"  :  '|'        
       end
       print "#{'%6.1f Hz' % freq}  [#{dots}]"
       print "  Note \e[0m#{$harp[hole][:note]}\e[K\e[2m"
