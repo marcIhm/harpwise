@@ -52,17 +52,17 @@
 
    Currently it looks like this:
 
-   [..........:..........]
+   [..........:..|.......]
 
-   The middle position (marked by ":") represents the frequency, that was found
-   during calibration. If you have done an automatic calibration, this
-   frequency might not match what you are actually playing; consider a manual
-   calibration with your actual harp in such a case.
+   The middle position (marked by ":") represents the frequency, that was
+   found during calibration. If you have done an automatic calibration, this
+   frequency might not match what you are actually playing (marked by "|");
+   consider a manual calibration with your actual harp in such a case.
 
    The left and right position (marked by "[." and ".]") represent the point,
    where the displayed note would change; typically this is half way to the
-   next note. After reaching which, the displayed cursor ("|") will jump to the
-   other side to approach the central position again.
+   next note. After reaching which (e.g. while bending), the displayed cursor
+   ("|") will jump to the other side to approach the central position again.
 
 * Installation
 
@@ -72,8 +72,8 @@
   from github first. Vice versa it can simply be removed by deleting the
   cloned directory.
 
-  harp_scale_trainer has a bunch of dependencies and the script in directory
-  install may be used to install them.
+  harp_scale_trainer has a bunch of dependencies and one of the scripts in
+  directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wslg, which supports sound through the remote desktop protocol.
