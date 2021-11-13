@@ -20,7 +20,7 @@ $sut = load_technical_config
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   puts "\nPreparing data"
-  FileUtils.rm_r 'config/testing'
+  FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
   FileUtils.cp_r 'config/richter', 'config/testing'
   
   print "Testing"
@@ -100,4 +100,5 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 end
+FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"
