@@ -22,13 +22,16 @@
 
 * Usage
 
-  Get usage information by invoking without arguments:
+  Get a short usage information by invoking without arguments:
   
     ./harp_scale_trainer
 
-  
-  First you will need to calibrate the program; the resulting wav-files will
-  be kept in directory ~/.harp_scale_trainer
+
+  This will show examples for the three main operations of the trainer:
+  listen, quiz and calibrate.
+
+  As an initial step you will need to calibrate the program; the resulting
+  wav-files will be kept in directory ~/.harp_scale_trainer
 
   To get started quickly you may use auto-calibration for machine-generated
   tones and frequencies.
@@ -47,7 +50,22 @@
   In effect, you may consider hole-names like "-2+3" as practical names for the
   notes played on a harmonica of a given key.
 
+  By the way, if you prefer other names, you may create your own type of
+  harmonica, which ist faily easy (see the paragraph on configuration).
+
 * A closer look at the display
+** The upper half of the screen
+
+   This displays either the hole name or a harmonica chart with notes; you may
+   switch between them with the TAB-key.
+
+   The color changes depending, if you hit a note from the chosen scale or not.
+
+** The lower half of the screen
+
+   This shows whatever comment is appropriate for listen or quiz. For listen
+   this may be changed interactively.
+
 ** The frequency scale
 
    Currently it looks like this:
@@ -63,6 +81,10 @@
    where the displayed note would change; typically this is half way to the
    next note. After reaching which (e.g. while bending), the displayed cursor
    ("|") will jump to the other side to approach the central position again.
+
+* Configuration
+
+  See the README within directory config.
 
 * Installation
 

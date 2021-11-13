@@ -7,10 +7,10 @@
   Technical Config:
   
   - config.yaml :: Main config file; see comments within for some
-                   explanations.
+    explanations.
 		   
-  - config_merge.yaml :: Optional, may contain any of the config-keys from
-       config.yaml and then overrides those; not included in git-versioning.
+  - ~/.harp_scale_trainer/config_merge.yaml :: Optional, may contain any of the config-keys from
+    config.yaml and then overrides those; not included in git-versioning.
 
   - intervals.yaml :: Names for selected intervals.
 
@@ -19,10 +19,10 @@
   Musical Config:
 
   - intervals.yaml :: If this file is present within a subdirectory, it
-                      overrides the one directly within config.
+    overrides the one directly within config.
 
   - holes.yaml :: Maps holes to notes for a harmonica of key c. All other keys
-		  will be automatically derived from this one
+    will be automatically derived from this one
 
   - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE
 
