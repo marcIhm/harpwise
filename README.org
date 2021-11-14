@@ -94,8 +94,10 @@
   (whatever its tuning might be), to generate samples; and it then computes
   frequency values from these.
   
-  However, in some cases (like auto calibration), when it has to choose one
-  tuning, it generally uses "equal temperament" (ET for short).
+  However, sometimes harp_scale_trainer has to choose one tuning, e.g. when
+  doing auto calibration, or when your samples need to be judged against some
+  standard. In such cases it generally uses "equal temperament" (ET for
+  short).
   
 * Installation
 
