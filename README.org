@@ -86,6 +86,17 @@
 
   See the README within directory config.
 
+* Tuning
+
+  The harp_scale_trainer does not make assumptions about the tuning of your
+  harmonica; e.g. it works equally well with "equal temperament" (ET) or "just
+  intonation" tuning.  Simply because, it asks you to play your own harp
+  (whatever its tuning might be), to generate samples; and it then computes
+  frequency values from these.
+  
+  However, in some cases (like auto calibration), when it has to choose one
+  tuning, it generally uses "equal temperament" (ET for short).
+  
 * Installation
 
   The program harp_scale_trainer runs in the linux console (no graphical

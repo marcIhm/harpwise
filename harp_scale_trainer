@@ -16,7 +16,7 @@ require_relative 'lib/arguments'
 require_relative 'lib/config'
 require_relative 'lib/interaction'
 require_relative 'lib/sound_driver'
-require_relative 'lib/analyse'
+require_relative 'lib/analyze'
 require_relative 'lib/get_hole'
 require_relative 'lib/listen'
 require_relative 'lib/calibrate'
@@ -74,6 +74,11 @@ at_exit do
     thread.exit unless thread == Thread.current
   end
 end
+
+
+# some regression tests
+note2semi('a4') == 0 or fail 'Internal error'
+semi2note(0) == 'a4' or fail 'Internal error'
 
 
 case $mode

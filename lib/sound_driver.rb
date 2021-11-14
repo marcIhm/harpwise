@@ -120,8 +120,7 @@ end
 def synth_sound hole, file
   puts "\nGenerating   hole \e[32m#{hole}\e[0m,   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
     
-  diff_semis = $harp[hole][:semi] - note2semi('a4')
-  puts cmd = "sox -n #{file} synth 1 sawtooth %#{diff_semis} gain -n -3"
+  puts cmd = "sox -n #{file} synth 1 sawtooth %#{$harp[hole][:semi]} gain -n -3"
   sys cmd
 end
 

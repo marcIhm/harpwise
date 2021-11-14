@@ -49,16 +49,31 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
 
   memorize 'manual calibration' do
-    sound 1, 2
+    sound 1, -14
     new_session
-    tms './harp_scale_trainer calib testing c --testing'
+    tms './harp_scale_trainer calib testing g --testing'
     tms :ENTER
     sleep 2
     tms :ENTER
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-7] == 'Frequency: 494     (calculation for ET tuning is 261.63)' }
+    expect { screen[-7] == 'Frequency: 195     (ET tuning would be: 196.0,  -1st: 185.0,  +1st: 207.7)' }
+    kill_session
+  end
+  
+
+  memorize 'check against et' do
+    sound 1, 10
+    new_session
+    tms './harp_scale_trainer calib testing c --hole +4 --testing'
+    tms :ENTER
+    sleep 2
+    tms :ENTER
+    sleep 2
+    tms 'r'
+    sleep 10
+    expect { screen[-22] == 'The frequency recorded for +4 (note c5, semi 3) is too different from ET tuning:' }
     kill_session
   end
   
@@ -95,7 +110,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
     tms :ENTER
     sleep 1
-    expect { screen[8]['Maybe choose another value for --transpose_scale_to'] }
+    expect { screen[6]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15), which is'] }
     kill_session
   end
   

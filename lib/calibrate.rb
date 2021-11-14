@@ -110,45 +110,28 @@ EOINTRO
     hole2freq = Hash.new
   end
   freqs = Array.new
-  i = ( $opts[:hole]  ?  $harp_holes.index($opts[:hole])  :  0 )
-
-  begin
-    hole = $harp_holes[i]
-    what, freq = record_and_review_hole(hole, ( i > 0  ?  freqs[i-1]  :  0))
+  holes = $opts[:hole]  ?  [$opts[:hole]]  :  $harp_holes
+  holes.each do |hole|
+    what, freq = record_and_review_hole(hole)
     if freq
-      hole2freq[hole] = freqs[i] = freq
+      hole2freq[hole] = freq
+      freqs << freq
       write_freq_file hole2freq
     end
 
-    break if $opts[:hole]
-
-    case what
-    when :back
-      if i > 0 
-        puts "Skipping  \e[32mback\e[0m  !"
-        i -= 1
-      else
-        puts "Cannot skip, back already at first hole ..."
-      end
-    when :quit
-      break
-    when :next
-      i += 1
-    else
-      fail "Internal error unexpected what: #{what}"
-    end
-  end while i <= $harp_holes.length - 1
+    break if what == :quit
+  end
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
   $harp_holes.each do |hole|
-    puts "  Hole %-8s, Frequency: %6.2d   (et: %6.2d)" % [hole, hole2freq[hole], hole2et_freq(hole)]
+    puts "  Hole %-8s, Frequency: %6.2d   (ET: %6.2d)" % [hole, hole2freq[hole], semi2freq_et(note2semi($harp[hole][:note]))]
   end
   puts "\n(you may compare recorded frequencies with those calculated from equal temperament tuning)"
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
 
-def record_and_review_hole hole, prev_freq
+def record_and_review_hole hole
 
   file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
   if File.exists?(file)
@@ -194,7 +177,8 @@ def record_and_review_hole hole, prev_freq
       
       if do_draw  # true on first iteration
         draw_data($edit_data, 0, duration, 0)
-        freq = analyze_recording(hole, file, prev_freq)
+        rec_ok, freq = inspect_recording(hole, file)
+        do_edit = false unless rec_ok
       end
       
       
@@ -212,7 +196,7 @@ def record_and_review_hole hole, prev_freq
 
       
       if !do_draw  # false on first iteration
-        freq = analyze_recording(hole, file, prev_freq)
+        _, freq = inspect_recording(hole, file)
       end
       
     end
@@ -223,12 +207,11 @@ def record_and_review_hole hole, prev_freq
                :edit => [['e'], 'edit recorded sound, i.e. set start for play'],
                :draw => [['d'], 'redraw sound data'],
                :record => [['r'], "record RIGHT AWAY (after countdown)"],
-               :generate => [['g'], 'generate a sound for the holes nominal frequency'],
-               :frequency => [['f'], "show and play the nominal frequency of the hole by generating and\n              analysing a sample sound; does not overwrite current recording"],
-               :back => [['b'], 'skip back to previous hole'],
-               :quit => [['q', 'x'], 'exit from calibration with current hole']}
+               :generate => [['g'], 'generate a sound for the holes ET frequency'],
+               :frequency => [['f'], "show and play the ET frequency of the hole by generating and\n              analysing a sample sound; does not overwrite current recording"],
+               :quit => [['q', 'x'], 'exit from calibration but still save frequency of current hole']}
     
-    choices[:okay] = [['RETURN'], 'keep sound and continue'] if File.exists?(file) && (!prev_freq || freq >= prev_freq)
+    choices[:okay] = [['RETURN'], 'keep sound and continue'] if File.exists?(file)
     
     answer = read_answer(choices)
 
@@ -258,27 +241,11 @@ def record_and_review_hole hole, prev_freq
     when :record
       do_record = do_draw = do_edit = true
       issue_before_edit = 'Editing recorded sound right away ...'
-    when :back, :cancel
-      return :back, freq
     end
     
   end while answer != :okay
 
   return :next, freq
-end
-
-
-def analyze_with_aubio file
-  freqs = run_aubiopitch(file).lines.
-            map {|line| line.split[1].to_i}.
-            select {|freq| freq > $conf[:min_freq] && freq < $conf[:max_freq]}
-  # take only second half to avoid transients
-  freqs = freqs[freqs.length/2 .. -1]
-  minf, maxf = freqs.minmax
-  aver = freqs.length > 0  ?  freqs.sum / freqs.length  :  0
-  puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
-  puts "\e[31mWARNING\e[0m: min and max of recorded samples are two far apart !\nmaybe repeat recording more steadily." if ( maxf - minf ) > 0.1 * aver
-  aver
 end
 
 
@@ -289,26 +256,4 @@ def write_freq_file hole2freq
     hole2freq_sorted[hole] = hole2freq[hole]
   end
   File.write($freq_file, YAML.dump(hole2freq_sorted))
-end
-
-
-def analyze_recording hole, file, prev_freq
-
-  puts "Analysis of current recorded/generated sound (Hole: #{hole}, Note: #{$harp[hole][:note]}):"
-  freq = analyze_with_aubio(file)
-  fcalc = hole2et_freq(hole)
-  puts "Frequency: #{freq}     (calculation for ET tuning is #{fcalc.round(2)})"
-  if prev_freq && freq < prev_freq
-    puts "\n\n\e[31mWAIT !\e[0m"
-    puts "The frequency recorded for \e[33m#{hole}\e[0m (= #{freq}) is \e[31mLOWER\e[0m than the frequency recorded before (= #{prev_freq}) !"
-    puts "Therefore this recording cannot be accepted and you need to redo !"
-    puts "\nIf however you feel, that the error is in the PREVIOUS recording already,"
-    puts "you may want to skip back to the previous hole ...\n\n"
-  end
-  return freq
-end
-
-
-def hole2et_freq hole
-  440 * 2**(( note2semi($harp[hole][:note]) - note2semi('a4'))/12.0 )
 end
