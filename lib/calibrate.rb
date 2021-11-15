@@ -57,21 +57,20 @@ def do_calibrate_assistant
   end
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  if $opts[:hole]
-    holes_desc = 'these holes'
-    holes_desc2 = "#{$opts[:hole]}"
-  else
-    holes_desc = "these #{$harp_holes.length} holes"
-    holes_desc2 = $harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")
 
-  end
+  holes = if $opts[:hole]
+            $harp_holes[$harp_holes.find_index($opts[:hole]) .. -1]
+          else
+            $harp_holes
+          end
+
   puts <<EOINTRO
 
 
-This is an interactive assistant, that will ask you to play #{holes_desc} of
+This is an interactive assistant, that will ask you to play these holes of
 your harmonica, key of #{$key}, one after the other, each for one second:
 
-  \e[32m#{holes_desc2}\e[0m
+  \e[32m#{holes.join(' ')}\e[0m
 
 Each recording is preceded by a short countdown (2,1).
 If there already is a recording, it will be plotted first.
@@ -110,7 +109,7 @@ EOINTRO
     hole2freq = Hash.new
   end
   freqs = Array.new
-  holes = $opts[:hole]  ?  [$opts[:hole]]  :  $harp_holes
+
   holes.each do |hole|
     what, freq = record_and_review_hole(hole)
     if freq
