@@ -7,6 +7,8 @@
 def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
+  max_hole = $harp_holes.map(&:length).max
+  holes_holes = [$harp_holes + $harp_holes].flatten
   
   print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
   $ctl_default_issue = "SPACE to pause; h for help"
@@ -17,7 +19,6 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
-  message_shown = nil
   journal_holes = Array.new
 
   loop do   # until var done or skip
@@ -28,10 +29,6 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
 
     pipeline_catch_up if handle_kb_play
     ctl_issue
-    
-    print "\e[#{$line_driver}H"
-    print "\e[2mPipeline: slice: %.2f, jitter: %5.02f, queued: %d#{$debug_info}\e[K" %
-          [$conf[:time_slice], $analysis_delay, $freqs_queue.length]
     
     good = done = false
       
@@ -55,20 +52,14 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       done = true if Time.now.to_f - hole_start > 2
     end
 
-    print "\e[#{$line_frequency}HFrequency:  "
-    dots = '..........:..........'
+    print "\e[2m\e[#{$line_frequency}HFrequency:  "
+    dots = '........:........'
     if hole != :low && hole != :high
-      if freq > cntr
-        pos = 10 + 11 * (freq - cntr) / (ubor - cntr)
-      else
-        pos = 10 - 11 * (cntr - freq) / (cntr - lbor)
-      end
-      dots[pos] = (( 7 .. 13) === pos  ?  "\e[0mI\e[2m"  :  'I' )
-      print "#{'%6.1f Hz' % freq}  [#{dots}]"
-      print "  Note \e[0m#{$harp[hole][:note]}\e[K\e[2m"
-      hole_for_inter = lambda_hole_for_inter.call(hole_held_before) if lambda_hole_for_inter
+      dots, _ = get_dots(dots, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
+      print "#{'%6.1f Hz' % freq}  [#{dots}]\e[2m\e[K"
+      hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     else
-      print "   --  Hz  [#{dots}]  Note --\e[K"
+      print "   --  Hz  [#{dots}]\e[K"
     end
 
     print "\e[#{$line_interval}H"
@@ -81,16 +72,42 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 32 : 31 )  :  2}m"
-    if $conf[:display] == :chart
+    case $conf[:display]
+    when :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
       update_chart(hole, good  ?  :good  :  :bad) 
-    else
+    when :hole
       print "\e[#{$line_display}H\e[0m"
       print hole_color
       do_figlet hole_disp, 'mono12'
+    when :bend
+      print "\e[#{$line_display + 2}H"
+      if $hole_ref
+        semi_ref = $harp[$hole_ref][:semi]
+        dots, hit = get_dots('......:......:......:......', 3, freq,
+                             semi2freq_et(semi_ref - 2),
+                             semi2freq_et(semi_ref),
+                             semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
+        print "\e[#{hit ? 32 : 31}m"
+        do_figlet dots, 'smblock'
+      else
+        print "\e[2m"
+        do_figlet 'n o   r e f', 'smblock'
+      end
+    else
+      fail "Internal error: #{$conf[:comment_display]}"
     end
-      
+
+    print "\e[#{$line_hole}H\e[2m"
+    if regular_hole?(hole)
+      print "Hole: \e[0m%#{max_hole}s\e[2m, Note: \e[0m%4s\e[2m\e[K" % [hole, $harp[hole][:note]]
+    else
+      print "Hole: %#{max_hole}s, Note: %4s" % ['-- ', '-- ']
+    end
+    print ", Hole Ref: %#{max_hole}s\e[K" % [$hole_ref || '- ']
+    print ", jitter: %5.02f, queued: %d" % [$analysis_jitter,  $freqs_queue.length] if $opts[:debug]
+
     if lambda_comment_big
       comment_color, comment_text, font = lambda_comment_big.call(hole_color,
                                                                   inter_semi,
@@ -110,12 +127,20 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     print "\e[#{$line_hint}H"
     lambda_hint.call(hole) if lambda_hint
 
+    if $ctl_set_ref
+      $hole_ref = regular_hole?(hole_held) ? hole_held : nil
+      print "\e[#{$line_message}H\e[2mStored reference for intervals and display of bends\e[0m\e[K"
+      $message_shown = Time.now.to_f
+      $ctl_set_ref = false
+    end
+
     if $ctl_change_display
-      $conf[:display] = ( $conf[:display] == :chart  ?  :hole  :  :chart )
+      choices = [ $display_choices, $display_choices ].flatten
+      $conf[:display] = choices[choices.index($conf[:display]) + 1]
       clear_area_display
       print_chart if $conf[:display] == :chart
-      print "\e[#{$line_message}H\e[2mDisplay is now #{$conf[:display]}\e[0m\e[K"
-      message_shown = Time.now.to_f
+      print "\e[#{$line_message}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
+      $message_shown = Time.now.to_f
       $ctl_change_display = false
     end
 
@@ -123,20 +148,29 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       choices = [ $comment_choices, $comment_choices ].flatten
       $conf[:comment_listen] = choices[choices.index($conf[:comment_listen]) + 1]
       clear_area_comment
-      print "\e[#{$line_message}H\e[2mComment is now #{$conf[:comment_listen]}\e[0m\e[K"
-      message_shown = Time.now.to_f
+      print "\e[#{$line_message}H\e[2mComment is now #{$conf[:comment_listen].upcase}\e[0m\e[K"
+      $message_shown = Time.now.to_f
       $ctl_change_comment = false
     end
 
     if $ctl_show_help
+      clear_area_comment
+      fail 'internal error 1 for help' if $can_journal != $can_change_comment
+      fail 'internal error 2 for help' if $can_next != $can_loop
+      # we have room from $line_comment_big to $line_comment_small (included)
+      print "\e[#{$line_comment_big}H\e[0mShort help:\n"
+      print "  SPACE: pause                     TAB: cycle display\n"
+      print "      j: toggle journal          S-TAB: cycle comment\n" if $ctl_can_change_comment
+      print "      r: set reference               h: this help\n"
+      print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
+      print "      l: loop over sequence\n" if $ctl_can_next
+      print "Type SPACE to continue ..."
+      begin
+        char = $ctl_kb_queue.deq
+      end until char == ' '
+      ctl_issue 'continue', hl: true
+      clear_area_comment
       $ctl_show_help = false
-      print "\e[#{$line_message}HShort help: SPACE to pause"
-      print "; TAB to change display"
-      print "; c to change comment" if $ctl_can_change_comment
-      print "; j for journal" if $ctl_can_journal
-      print '; RET next sequence; BACKSPACE previous; l loop over sequence' if $ctl_can_next
-      print "\e[K"
-      message_shown = Time.now.to_f
     end
 
     if $ctl_can_loop && $ctl_start_loop
@@ -147,7 +181,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     
     if $ctl_can_journal && $ctl_toggle_journal
       if $write_journal
-        write_to_journal(hole_held, hole_held_since, journal_holes)  if regular_hole?(hole_held)
+        write_to_journal(hole_held, hole_held_since, journal_holes) if regular_hole?(hole_held)
         if journal_holes.length > 0
           IO.write($journal_file, "All holes: #{journal_holes.join(' ')}\n", mode: 'a')
           journal_holes = Array.new
@@ -163,12 +197,13 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
       print "\e[#{$line_key}H\e[2m" + text_for_key      
-      message_shown = Time.now.to_f
+      $message_shown = Time.now.to_f
     end
 
-    if message_shown &&  Time.now.to_f - message_shown > 8
+    if done || ( $message_shown && Time.now.to_f - $message_shown > 8 )
       print "\e[#{$line_message}H\e[K"
-      message_shown = false
+      print "\e[#{$line_message + 1}H\e[K"
+      $message_shown = false
     end
   end  # loop until var done or skip
 end
@@ -194,4 +229,18 @@ end
 
 def regular_hole? hole
   hole && hole != :low && hole != :high
+end
+
+
+def get_dots dots, delta, freq, low, middle, high
+  ndots = (dots.length - 1)/2
+  if freq > middle
+    pos = ndots + ( ndots + 1 ) * (freq - middle) / (high - middle)
+  else
+    pos = ndots - ( ndots + 1 ) * (middle - freq) / (middle - low)
+  end
+
+  hit = ((ndots - delta  .. ndots + delta) === pos )
+  dots[pos] = yield( hit, 'I') if pos > 0 && pos < dots.length
+  return dots, hit
 end

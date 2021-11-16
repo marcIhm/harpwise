@@ -112,7 +112,10 @@ def handle_kb_play
   elsif char == "\t"
     $ctl_change_display = true
     text = 'Change display'
-  elsif char == 'c' && $ctl_can_change_comment
+  elsif char == "r"
+    $ctl_set_ref = true
+    text = 'Set reference'
+  elsif char.ord == 90 && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
   elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
@@ -217,13 +220,13 @@ end
 
 
 def clear_area_display
-  ($line_display .. $line_driver - 1).each {|l| print "\e[#{l}H\e[K"}
+  ($line_display .. $line_hole - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 
 
 def clear_area_comment
-  [$line_comment_big, $line_comment_small - 1].each {|l| print "\e[#{l}H\e[K"}
+  ($line_comment_big .. $line_comment_small).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 

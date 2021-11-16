@@ -127,7 +127,7 @@ def do_quiz
             print "\e[K"
           end,
 
-          -> (_) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
+          -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
 
         print "\e[#{$line_comment_small}H\e[K"
 

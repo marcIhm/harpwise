@@ -50,8 +50,8 @@ def do_listen
              print "Hint: \e[2mScale has #{$scale_holes.length} holes: #{holes.join(', ')}\e[0m"
            end,
 
-           -> (hole_held_before) do  # lambda_hole_for_inter
-             hole_held_before
+           -> (hole_held_before, hole_ref) do  # lambda_hole_for_inter
+             hole_ref || hole_held_before
            end
           )
 end

@@ -9,7 +9,7 @@ def set_global_vars_early
   $line_issue = 1
   $line_key = 2
   $line_display = 5 + stretch
-  $line_driver = 16 + 2 * stretch
+  $line_hole = 16 + 2 * stretch
   $line_frequency = 17 + 2 * stretch
   $line_interval = 18 + 2 * stretch
   $line_message = 19 + 2 * stretch
@@ -22,7 +22,7 @@ def set_global_vars_early
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
   $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_journal = $ctl_toggle_journal = $ctl_show_help = false
-  $ctl_change_display = $ctl_change_comment = false
+  $ctl_change_display = $ctl_change_comment = $ctl_set_ref = false
   $ctl_can_change_comment = false
   $ctl_issue_width = 42
   $ctl_non_def_issue_ts = nil
@@ -33,16 +33,19 @@ def set_global_vars_early
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
   $journal_file = "#{$data_dir}/journal.txt"
   $write_journal = false
+  $message_shown = false
+  $hole_ref = nil
+  $display_choices = [:chart, :hole, :bend]
   $comment_choices = [:note, :interval, :hole]
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 
-  $analysis_delay = 0.0
+  $analysis_jitter = 0.0
   $analysis_offset = nil
   $freqs_queue = Queue.new
-  $debug_info = ''
+
 end
 
 
@@ -204,7 +207,7 @@ def read_chart
     # check for size
     xroom = $term_width - chart.map {|r| r.join.length}.max - 2
     raise ArgumentError.new("chart is too wide (by #{-xroom} chars) for this terminal") if xroom < 0
-    yroom = $line_driver - $line_display - chart.length
+    yroom = $line_hole - $line_display - chart.length
     raise ArgumentError.new("chart is too high by #{-yroom} lines for this terminal") if yroom < 0
     $conf[:chart_offset_xyl] = [ (xroom * 0.4).to_i, ( yroom - 1 ) / 2 - 1, len]
   rescue ArgumentError => e

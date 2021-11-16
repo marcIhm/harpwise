@@ -128,7 +128,7 @@ EOU
     err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
-  opts[:display] = match_or(opts[:display], [:chart, :hole]) do |none, choices|
+  opts[:display] = match_or(opts[:display], $display_choices) do |none, choices|
     err_h "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 

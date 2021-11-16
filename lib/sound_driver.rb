@@ -176,7 +176,7 @@ def aubiopitch_to_queue fifo, num_samples
     sleep 0.1 if $opts[:testing]
     if Time.now.to_f - tstart > 4  #  wait until slack has been drained from pipeline (?)
       $analysis_offset = Time.now.to_f - fields[0] unless $analysis_offset
-      $analysis_delay = $analysis_offset - Time.now.to_f + fields[0] if i % 20 == 0
+      $analysis_jitter = $analysis_offset - Time.now.to_f + fields[0] if i % 20 == 0
       i += 1
     end
     $freqs_queue.enq fields[1]
