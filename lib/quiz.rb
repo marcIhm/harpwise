@@ -28,7 +28,6 @@ def do_quiz
       ctl_issue
       print "\e[#{$line_hint}H\e[K" 
       print "\e[#{$line_listen}H\e[K"
-      print "\e[#{$line_listen2}H\e[K"
     end
 
     if $ctl_back
@@ -68,8 +67,6 @@ def do_quiz
     print "\e[32mand !\e[0m"
     sleep 1
 
-    print "\e[#{$line_listen}H\e[K\e[#{$line_listen2}H\e[K" unless first_lap
-  
     system('clear') if first_lap
     full_hint_shown = false
 

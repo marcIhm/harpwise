@@ -10,7 +10,7 @@ end
 
 
 def check_screen
-  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [#{$conf[:term_min_width]},#{$conf[:term_min_heigth]}]" if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
+  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [#{$conf[:term_min_width]},#{$conf[:term_min_height]}]" if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
 
   bottom_line = bottom_line_var = 0
   global_variables.each do |var|
@@ -19,7 +19,7 @@ def check_screen
       bottom_line_var = var
     end
   end
-  fail "Internal error: Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}" if bottom_line > $term_height
+  fail "Internal error: Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}" if bottom_line > $term_height + 1
 end
 
 

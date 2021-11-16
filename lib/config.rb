@@ -17,7 +17,6 @@ def set_global_vars_early
   $line_comment_small = 28 + 4 * stretch
   $line_hint = 29 + 4 * stretch
   $line_listen = 30 + 4 * stretch
-  $line_listen2 = 31 + 4 * stretch
   
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''

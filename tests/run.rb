@@ -89,7 +89,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms 'j'
     sleep 1
     expect { File.exist?(journal_file) }
-    expect { screen[-16].end_with? 'b4' }
+    expect { screen[-14].end_with? 'b4' }
     kill_session
   end
   
@@ -100,7 +100,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer quiz 2 testing c all --testing'
     tms :ENTER
     sleep 8
-    expect { screen[-16].end_with? 'c5' }
+    expect { screen[-14].end_with? 'c5' }
     kill_session
   end
     
