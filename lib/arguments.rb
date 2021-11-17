@@ -86,7 +86,8 @@ Notes:
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
   for 'calibrate'.
 
-  Finally there are some less used options: --debug, --screenshot, --help, --testing
+  Finally there are some less used options: --ref, --debug, --screenshot, 
+    --help, --testing
 
 
 Suggested reading: The section "A word on holes" from the toplevel README.org
@@ -98,7 +99,7 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref]
   { %w(--debug) => :debug,
      %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -106,6 +107,7 @@ EOU
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(--transpose_scale_to) => :transpose_scale_to,
+    %w(-r --ref) => :ref,
     %w(-d --display) => :display,
     %w(-c --comment) => :comment,
     %w(-l --loop) => :loop}.each do |txts,opt|

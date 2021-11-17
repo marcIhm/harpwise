@@ -34,9 +34,8 @@ def set_global_vars_early
   $journal_file = "#{$data_dir}/journal.txt"
   $write_journal = false
   $message_shown = false
-  $hole_ref = nil
   $display_choices = [:chart, :hole, :bend]
-  $comment_choices = [:note, :interval, :hole]
+  $comment_choices = [:note, :interval, :hole, :cents]
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )

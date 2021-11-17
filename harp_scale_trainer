@@ -42,6 +42,8 @@ $mode, $type, $key, $scale, $opts = parse_arguments
 
 $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
 $chart, $hole2chart = read_chart
+err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
+$hole_ref = $opts[:ref]
 
 # adjust some data
 $line_comment_big += 2 if $mode == :quiz

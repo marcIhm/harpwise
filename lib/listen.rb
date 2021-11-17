@@ -27,19 +27,32 @@ def do_listen
                             false]},
            nil,  # lambda_skip
 
-           -> (hole_color, isemi, itext, note, hole) do  # lambda_comment_big
-             [ hole_color,
-               '    ' + ( ( case $conf[:comment_listen]
-                            when :note
-                              note
-                            when :interval
-                              itext || isemi
-                            when :hole
-                              hole.to_s
-                            else
-                              fail "Internal error: #{$conf[:comment_listen]}"
-                            end ) || '.  .  .' ) ,
-               'big' ]
+           -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do  # lambda_comment_big
+             color = hole_color
+             text = ( case $conf[:comment_listen]
+                      when :note
+                        note
+                      when :interval
+                        itext || isemi
+                      when :hole
+                        hole_disp
+                      when :cents
+                        if $hole_ref
+                          if f1 > 0 && f2 > 0 && (cnts = cents_diff(f1, f2).to_i).abs <= 200
+                            color = "\e[#{cnts.abs <= 25 ? 32 : 31}m"
+                            'c %+d' % cnts
+                          else
+                            color = "\e0m\e[31m"
+                            'c  . . .'
+                          end
+                        else
+                          color = "\e[2m"
+                          'set ref'
+                        end
+                      else
+                        fail "Internal error: #{$conf[:comment_listen]}"
+                      end ) || '.  .  .'
+             [color, text, 'big']
            end,
 
            -> (hole) do  # lambda_hint

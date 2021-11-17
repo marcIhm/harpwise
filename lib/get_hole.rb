@@ -93,10 +93,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
         do_figlet dots, 'smblock'
       else
         print "\e[2m"
-        do_figlet 'n o   r e f', 'smblock'
+        do_figlet 'set ref first', 'smblock'
       end
     else
-      fail "Internal error: #{$conf[:comment_display]}"
+      fail "Internal error: #{$conf[:display]}"
     end
 
     print "\e[#{$line_hole}H\e[2m"
@@ -113,7 +113,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
                                                                   inter_semi,
                                                                   inter_text,
                                                                   hole && $harp[hole] && $harp[hole][:note],
-                                                                  hole_disp)
+                                                                  hole_disp,
+                                                                  freq,
+                                                                  $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
       print "\e[#{$line_comment_big}H#{comment_color}"
       do_figlet '   ' + comment_text, font
     end
@@ -158,13 +160,13 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       fail 'internal error 1 for help' if $can_journal != $can_change_comment
       fail 'internal error 2 for help' if $can_next != $can_loop
       # we have room from $line_comment_big to $line_comment_small (included)
-      print "\e[#{$line_comment_big}H\e[0mShort help:\n"
-      print "  SPACE: pause                     TAB: cycle display\n"
-      print "      j: toggle journal          S-TAB: cycle comment\n" if $ctl_can_change_comment
+      print "\e[#{$line_comment_big}H\e[2mShort help:\e[0m\e[32m\n"
+      print "  SPACE: pause                TAB or c: cycle display\n"
+      print "      j: toggle journal     S-TAB or d: cycle comment\n" if $ctl_can_change_comment
       print "      r: set reference               h: this help\n"
       print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
       print "      l: loop over sequence\n" if $ctl_can_next
-      print "Type SPACE to continue ..."
+      print "\e[0m\e[2mType SPACE to continue ...\e[0m"
       begin
         char = $ctl_kb_queue.deq
       end until char == ' '

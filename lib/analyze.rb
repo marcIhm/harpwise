@@ -49,6 +49,12 @@ def semi2freq_et semi
 end
 
 
+def cents_diff f1, f2
+  # see https://ohw.se/hca/tuning-theory/#3.2
+  1200 * Math.log(f1.to_f/f2)/Math.log(2)
+end
+
+
 def notes_equiv note
   no_digit = !note[-1].match?(/[0-9]/)
   note += '0' if no_digit

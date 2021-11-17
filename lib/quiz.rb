@@ -96,7 +96,7 @@ def do_quiz
           
           -> () {$ctl_next || $ctl_back},  # lambda_skip
           
-          -> (_, _, _, _, _) do  # lambda_comment_big
+          -> (_, _, _, _, _, _, _) do  # lambda_comment_big
             if $num_quiz == 1
               [ "\e[2m", '.  .  .', 'smblock' ]
             else
