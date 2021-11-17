@@ -40,7 +40,7 @@ def do_listen
                         if $hole_ref
                           if f1 > 0 && f2 > 0 && (cnts = cents_diff(f1, f2).to_i).abs <= 200
                             color = "\e[0m\e[#{cnts.abs <= 25 ? 92 : 31}m"
-                            'c %+d' % cnts
+                            'c %+d' % ((cnts/5.0).round(0)*5)
                           else
                             color = "\e[0m\e[31m"
                             'c  . . .'
