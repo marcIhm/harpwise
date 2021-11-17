@@ -89,7 +89,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
                              semi2freq_et(semi_ref - 2),
                              semi2freq_et(semi_ref),
                              semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
-        print "\e[#{hit ? 32 : 31}m"
+        print "\e[#{hit ? 92 : 31}m"
         do_figlet dots, 'smblock'
       else
         print "\e[2m"
