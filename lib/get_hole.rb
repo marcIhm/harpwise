@@ -161,8 +161,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       fail 'internal error 2 for help' if $can_next != $can_loop
       # we have room from $line_comment_big to $line_comment_small (included)
       print "\e[#{$line_comment_big}H\e[2mShort help:\e[0m\e[32m\n"
-      print "  SPACE: pause                TAB or c: cycle display\n"
-      print "      j: toggle journal     S-TAB or d: cycle comment\n" if $ctl_can_change_comment
+      print "  SPACE: pause                TAB or d: change display\n"
+      print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
       print "      r: set reference               h: this help\n"
       print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
       print "      l: loop over sequence\n" if $ctl_can_next
