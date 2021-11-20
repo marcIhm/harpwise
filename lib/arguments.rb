@@ -1,4 +1,4 @@
-# -*- fill-column: 78 -*-
+# -*- fill-column: 74 -*-
 
 #
 # Parse arguments from commandline
@@ -15,9 +15,9 @@ def parse_arguments
   usage = <<EOU
 
 
-Help to practice scales (e.g. blues or mape) for harmonicas of various types
-(e.g. richter or chromatic) for various keys (e.g. a or c).  Main modes of
-operation are 'listen' and 'quiz'.
+Help to practice scales (e.g. blues or mape) for harmonicas of various
+types (e.g. richter or chromatic) for various keys (e.g. a or c).  Main
+modes of operation are 'listen' and 'quiz'.
 
 
 Usage by examples: 
@@ -28,41 +28,43 @@ Usage by examples:
 
     ./harp_scale_trainer listen ri c blues
 
-  Add option '--comment interval' (or '-c i') to show intervals instead of
-  notes; other possible values are 'note' and 'hole'.
+  Add option '--comment interval' (or '-c i') to show intervals instead
+  of notes; other possible values are 'note' and 'hole'.
 
   Switch on journal to get a simple transcription of the holes played.
 
 
-  Play 3 notes from scale mape for a chromatic harmonica of key a and quiz you
-  to play them back (then repeat):
+  Play 3 notes from scale mape for a chromatic harmonica of key a and
+  quiz you to play them back (then repeat):
 
     ./harp_scale_trainer quiz 3 chrom a mape
 
-  Add option '--loop' (or '-l') to loop over sequence until you type 'RET'.
+  Add option '--loop' (or '-l') to loop over sequence until you type
+  'RET'.
 
 
-  In the examples above, the type of harmonica (e.g. richter or chromatic)
-  and, in addition, the key (e.g. c or a) may be omitted and are then taken
-  from the config; so
+  In the examples above, the type of harmonica (e.g. richter or
+  chromatic) and, in addition, the key (e.g. c or a) may be omitted and
+  are then taken from the config; so
 
     ./harp_scale_trainer q 3 ma
 
   is valid as well.
 
 
-  Both modes listen and quiz allow an option '--display' with possible values
-  of 'hole' and 'chart' to change how a recognized will be displayed.
+  Both modes listen and quiz allow an option '--display' with possible
+  values of 'hole' and 'chart' to change how a recognized will be
+  displayed.
 
 
-  Once in a lifetime of your c-harp you need to calibrate this program to the
-  frequencies of your harp:
+  Once in a lifetime of your c-harp you need to calibrate this program
+  to the frequencies of your harp:
 
     ./harp_scale_trainer calibrate c
     
-  this will ask you to play notes on your harp. The samples will be stored in
-  the hidden folder .#{File.basename($0)} within your home directory;
-  frequencies will be extracted to the file frequencies.yaml.
+  this will ask you to play notes on your harp. The samples will be
+  stored in the hidden folder .#{File.basename($0)} within your home
+  directory; frequencies will be extracted to the file frequencies.yaml.
 
   This command does not need a scale-argument.
 
@@ -78,21 +80,23 @@ Notes:
   #{types_content}
 
   For modes 'listen' and 'quiz' you may choose to transpose the scale to
-  another key: '--transpose_scale_to d'. This would be helpful, if you want to
-  practice e.g. the d-major scale on a chromatic harmonica of key c. For a
-  diatonic harmonica, however, your milage may vary, as not all notes are
-  available.
+  another key: '--transpose_scale_to d'. This would be helpful, if you
+  want to practice e.g. the d-major scale on a chromatic harmonica of
+  key c. For a diatonic harmonica, however, your milage may vary, as not
+  all notes are available.
 
-  Most arguments and options can be abreviated, e.g 'l' for 'listen' or 'cal'
-  for 'calibrate'.
+  Most arguments and options can be abreviated, e.g 'l' for 'listen' or
+  'cal' for 'calibrate'.
 
-  Finally there are some less used options: --ref, --debug, --screenshot, 
-    --help, --testing
+  Finally there are some less used options: --ref, --debug,
+  --screenshot, --help, --testing
 
 
-Suggested reading: The section "A word on holes" from the toplevel README.org
+Suggested reading: The section "A word on holes" from the toplevel
+README.org
 
-Copyright (c) 2021 by Marc Ihm. This program is subject to the MIT License.
+Copyright (c) 2021 by Marc Ihm.
+This program is subject to the MIT License.
 
 EOU
 

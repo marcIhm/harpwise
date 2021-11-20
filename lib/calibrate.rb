@@ -1,4 +1,4 @@
-# -*- fill-column: 78 -*-
+# -*- fill-column: 74 -*-
 
 #
 # Assistant and automate for calibration
@@ -17,11 +17,13 @@ This will generate all needed samples for holes:
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
 Letting this program generate your samples is a good way to get started
-quickly. The notes will be in "equal temperament" (rather than "just tuning").
+quickly. The notes will be in "equal temperament" (rather than "just
+tuning").
 
-However, the generated notes and their frequencies cannot match those of your
-own special harp or style of playing very well. Therefore, later, you may want
-to repeat the calibration by playing yourself (i.e. without option '--auto').
+However, the generated notes and their frequencies cannot match those of
+your own special harp or style of playing very well. Therefore, later, you
+may want to repeat the calibration by playing yourself (i.e. without
+option '--auto').
 
 
 If, on the other hand you already have samples, recorded by yourself, they

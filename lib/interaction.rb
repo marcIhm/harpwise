@@ -72,8 +72,7 @@ end
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
 require 'byebug'
-def do_figlet text, font, maxtext = text
-  maxtext ||= text
+def do_figlet text, font, maxtext = nil
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
   unless $figlet_cache[cmd]
@@ -84,7 +83,7 @@ def do_figlet text, font, maxtext = text
                map {|l| l.length - l.lstrip.length}.min
     lines.map! {|l| l[common .. -1] || ''}
     maxline = lines.map {|l| l.length}.max
-    offset = 0.3 * ( $term_width - figlet_text_width(maxtext, font) )
+    offset = 0.3 * ( $term_width - ( maxtext  ?  figlet_text_width(maxtext, font)  :  maxline ))
     if offset + maxline > $term_width * 0.9
       offset = 0.3 * ( $term_width - maxline )
     end
@@ -105,10 +104,13 @@ def figlet_char_height font
 end
 
 
+$figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
-  # 4 underscores
-  out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l text")
-  out.lines.map {|l| l.strip.length}.max / 4.0
+  unless $figlet_text_width_cache[text + font]
+    out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l text")
+    $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max / 4.0
+  end
+  $figlet_text_width_cache[text + font]
 end
 
 
