@@ -10,19 +10,25 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
   max_hole = $harp_holes.map(&:length).max
   holes_holes = [$harp_holes + $harp_holes].flatten
   
-  print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
-  $ctl_default_issue = "SPACE to pause; h for help"
-  ctl_issue
-  print "\e[#{$line_key}H\e[2m" + text_for_key
-
-  print_chart if $conf[:display] == :chart
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   journal_holes = Array.new
+  first = true
 
   loop do   # until var done or skip
 
+    if first || $ctl_redraw
+      print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
+      $ctl_default_issue = "SPACE to pause; h for help"
+      ctl_issue
+      print "\e[#{$line_key}H\e[2m" + text_for_key
+      
+      print_chart if $conf[:display] == :chart
+      $ctl_redraw = false
+    end
+    first = false
+    
     freq = $opts[:screenshot]  ?  797  :  $freqs_queue.deq
 
     return if lambda_skip && lambda_skip.call()
@@ -71,7 +77,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 32 : 31 )  :  2}m"
+    hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 92 : 31 )  :  2}m"
     case $conf[:display]
     when :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
@@ -105,7 +111,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
     else
       print "Hole: %#{max_hole}s, Note: %4s" % ['-- ', '-- ']
     end
-    print ", Hole Ref: %#{max_hole}s\e[K" % [$hole_ref || '- ']
+    print ", Ref: %#{max_hole}s\e[K" % [$hole_ref || '- ']
     print ", jitter: %5.02f, queued: %d" % [$analysis_jitter,  $freqs_queue.length] if $opts[:debug]
 
     if lambda_comment_big
@@ -163,7 +169,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment_big, la
       print "\e[#{$line_comment_big}H\e[2mShort help:\e[0m\e[32m\n"
       print "  SPACE: pause                TAB or d: change display\n"
       print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
-      print "      r: set reference               h: this help\n"
+      print "      r: set reference          ctrl-l: redraw\n"
+      print "      h: this help\n"
       print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
       print "      l: loop over sequence\n" if $ctl_can_next
       print "\e[0m\e[2mType SPACE to continue ...\e[0m"

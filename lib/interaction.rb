@@ -9,17 +9,42 @@ def prepare_screen
 end
 
 
-def check_screen
-  err_b "Terminal is too small: [width, height] = #{[$term_width,$term_height].inspect} < [#{$conf[:term_min_width]},#{$conf[:term_min_height]}]" if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
+def check_screen graceful: false
 
-  bottom_line = bottom_line_var = 0
-  global_variables.each do |var|
-    if var.to_s.start_with?('$line_') && eval(var.to_s) > bottom_line
-      bottom_line = eval(var.to_s)
-      bottom_line_var = var
+  begin
+    # check screen-size
+    if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
+      raise ArgumentError.new("Error: Terminal is too small: [width, height] = #{[$term_width, $term_height].inspect} < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
     end
+
+    # check for size of chart
+    xroom = $term_width - $chart.map {|r| r.join.length}.max - 2
+    raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
+    yroom = $line_hole - $line_display - $chart.length
+    raise ArgumentError.new("Terminal has not enought lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
+
+    yoff = ( yroom - 1 ) / 2
+    yoff -= 1 if yoff > 0
+    $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.4).to_i, yoff ]
+
+    # check for maximum value of $line_xx_ variables
+    bottom_line = bottom_line_var = 0
+    global_variables.each do |var|
+      if var.to_s.start_with?('$line_') && eval(var.to_s) > bottom_line
+        bottom_line = eval(var.to_s)
+        bottom_line_var = var
+      end
+    end
+    if bottom_line > $term_height + 1
+      raise ArgumentError.new("Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}")
+    end
+
+  rescue ArgumentError => e
+    err_b "Error: #{e}" unless graceful
+    puts e
+    return false
   end
-  fail "Internal error: Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}" if bottom_line > $term_height + 1
+  return true
 end
 
 
@@ -34,9 +59,9 @@ def do_figlet text, font
   unless $figlet_cache[cmd]
     out, _ = Open3.capture2e(cmd)
     maxline = out.lines.map {|l| l.length}.max
-    offset = if maxline > 0.8 * $term_width
+    offset = if maxline > 0.6 * $term_width
                0
-             elsif maxline > 0.6 * $term_width
+             elsif maxline > 0.4 * $term_width
                0.1 * $term_width
              else
                0.2 * $term_width
@@ -56,8 +81,8 @@ def prepare_term
 end
 
 
-def dismiss_term
-  system("stty -raw")
+def sane_term
+  system("stty cooked")
   system("stty sane")
   print "\e[?25h"  # show cursor
 end
@@ -118,12 +143,15 @@ def handle_kb_play
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif char && char.length > 0 && char.ord == 127 && $ctl_can_next
+  elsif char.ord == 127 && $ctl_can_next
     $ctl_back = true
-    text = "Skip back"
+    text = 'Skip back'
+  elsif char.ord == 12
+    $ctl_redraw = true
+    text = 'redraw'
   elsif char == 'l' && $ctl_can_loop && $ctl_can_next
     $ctl_start_loop = true
-    text = "Loop started"
+    text = 'Loop started'
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
   end
@@ -238,7 +266,7 @@ def update_chart hole, state
     cell = $chart[xy[1]][xy[0]]
     pre = case state
           when :good
-            "\e[32m\e[7m"
+            "\e[92m\e[7m"
           when :bad
             "\e[31m\e[7m"
           when :normal
@@ -249,4 +277,28 @@ def update_chart hole, state
             
     print "\e[#{y};#{x}H\e[0m#{pre}#{cell}\e[0m"
   end
+end
+
+
+def handle_win_change
+  $term_height, $term_width = %x(stty size).split.map(&:to_i)
+  calculate_screen_layout
+  system('clear')
+  puts
+  while !check_screen(graceful: true)
+    $ctl_kb_queue.clear
+    puts "\n\n\e[0mScreensize is NOT acceptable, see above !"
+    puts "\nPlease resize screen NOW (if possible); to exit"
+    puts "this checking loop."
+    puts "\nAfter resize, type any key to continue ..."
+    $ctl_kb_queue.deq
+    puts "checking again ..."
+    $term_height, $term_width = %x(stty size).split.map(&:to_i)
+    calculate_screen_layout
+    sleep 1
+    puts
+  end
+  ctl_issue 'redraw'
+  $figlet_cache = Hash.new
+  $ctl_redraw = true
 end

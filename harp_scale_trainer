@@ -36,7 +36,6 @@ $term_height, $term_width = prepare_screen
 set_global_vars_early
 
 $conf = read_technical_config
-check_screen
 
 $mode, $type, $key, $scale, $opts = parse_arguments
 
@@ -45,7 +44,7 @@ $chart, $hole2chart = read_chart
 err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
-# adjust some data
+check_screen
 $line_comment_big += 2 if $mode == :quiz
 
 set_global_vars_late
@@ -69,9 +68,14 @@ Signal.trap('SIGINT') do
   exit 0
 end
 
+if $mode == :listen || $mode == :quiz
+  Signal.trap('WINCH') do
+    handle_win_change
+  end
+end
 
 at_exit do
-  dismiss_term
+  sane_term
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
@@ -82,7 +86,7 @@ end
 note2semi('a4') == 0 or fail 'Internal error'
 semi2note(0) == 'a4' or fail 'Internal error'
 
-
+puts "(screen size: #{%x(stty size).chomp})"
 case $mode
 when :quiz
   do_quiz
