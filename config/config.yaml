@@ -28,5 +28,5 @@ max_freq: 8000
 
 # minimum terminal screen size
 term_min_width: 80
-term_min_height: 28
+term_min_height: 24
 

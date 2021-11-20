@@ -21,13 +21,13 @@ def do_listen
   system('clear')
   pipeline_catch_up
 
-  get_hole(-> () {"Play any note from the scale to get \e[32mgreen\e[0m ..."},   # lambda_issue
+  get_hole(-> () {"Play any note from the scale to get \e[32mgreen\e[0m"},   # lambda_issue
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},
            nil,  # lambda_skip
 
-           -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do  # lambda_comment_big
+           -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do  # lambda_comment
              color = hole_color
              text = ( case $conf[:comment_listen]
                       when :note
@@ -56,11 +56,7 @@ def do_listen
            end,
 
            -> (hole) do  # lambda_hint
-             holes = $scale_holes.dup
-             if hole && (hidx = $scale_holes.index(hole.to_s))
-               holes[hidx] = "\e[0m\e[32m" + holes[hidx] + "\e[0m\e[2m"
-             end
-             print "Hint: \e[2mScale has #{$scale_holes.length} holes: #{holes.join(', ')}\e[0m"
+             "Hint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(', ')}"
            end,
 
            -> (hole_held_before, hole_ref) do  # lambda_hole_for_inter

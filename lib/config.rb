@@ -6,15 +6,13 @@ def set_global_vars_early
   $sample_rate = 48000
   $move_down_on_exit = false
 
-  calculate_screen_layout
-  
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
   $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_journal = $ctl_toggle_journal = $ctl_show_help = false
   $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_redraw = false
   $ctl_can_change_comment = false
-  $ctl_issue_width = 42
+  $ctl_issue_width = 36
   $ctl_non_def_issue_ts = nil
 
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
@@ -39,20 +37,29 @@ end
 
 
 def calculate_screen_layout
-  stretch = 0
+  squeeze = stretch = 0
   stretch += 1 if $term_height > 30
   stretch += 1 if $term_height > 36
+  squeeze = 1 if $term_height < 26
   $line_issue = 1
   $line_key = 2
-  $line_display = 5 + stretch
-  $line_hole = 15 + 2 * stretch
-  $line_frequency = 16 + 2 * stretch
-  $line_interval = 17 + 2 * stretch
-  $line_message = 18 + 2 * stretch
-  $line_comment_big = 19 + 3 * stretch
-  $line_comment_small = 27 + 4 * stretch
-  $line_hint = 28 + 4 * stretch
-  $line_listen = 29 + 4 * stretch
+  $line_display = 4 + stretch - squeeze
+  $line_hole = 15 + 2 * stretch - 2 * squeeze
+  $line_frequency = 16 + 2 * stretch - 2 * squeeze
+  $line_interval = 17 + 2 * stretch - 2 * squeeze
+  $line_comment = 18 + 3 * stretch - 2 * squeeze
+  $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
+  $line_call = 27 + 4 * stretch - 2 * squeeze
+  if $mode == :listen
+    # we dont use calls for mode listen
+    $line_call = -1
+  else
+    # font for quiz is fairly small
+    $line_comment += 1
+    $line_hint_or_message -= 1 
+    $line_call -= 1
+  end
+
 end
 
 

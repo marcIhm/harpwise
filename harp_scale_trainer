@@ -39,15 +39,16 @@ $conf = read_technical_config
 
 $mode, $type, $key, $scale, $opts = parse_arguments
 
+# we need to have mode for this
+calculate_screen_layout
+  
 $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
 $chart, $hole2chart = read_chart
 err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
-check_screen
-$line_comment_big += 2 if $mode == :quiz
-
 set_global_vars_late
+check_screen
 
 $freq2hole = read_calibration unless $mode == :calibrate
 
@@ -62,7 +63,7 @@ else
 end
 
 Signal.trap('SIGINT') do
-  print "\e[#{$line_listen}H" if $move_down_on_exit
+  print "\e[#{$line_call}H" if $move_down_on_exit
   fail "\nexit on ctrl-c" if $opts[:debug]
   puts "\nexit on ctrl-c"
   exit 0

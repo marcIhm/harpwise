@@ -10,13 +10,23 @@ end
 
 
 def check_screen graceful: false
-
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
-      raise ArgumentError.new("Error: Terminal is too small: [width, height] = #{[$term_width, $term_height].inspect} < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
+      raise ArgumentError.new("Error: Terminal is too small: [width, height] = [#{$term_width}, #{$term_height}] < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
     end
 
+    # check if enough room for fonts
+    space = $line_hole - $line_display
+    if figlet_char_height('mono12') > space
+      raise ArgumentError.new("Space of #{space} lines between $line_hole and $line_display is too small")
+    end
+
+    space = $line_hint_or_message - $line_comment
+    if figlet_char_height($mode == :listen  ?  'big'  : 'smblock') > space
+      raise ArgumentError.new("Space of #{space} lines between $line_hint_or_message and $line_comment is too small")
+    end
+    
     # check for size of chart
     xroom = $term_width - $chart.map {|r| r.join.length}.max - 2
     raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
@@ -24,18 +34,24 @@ def check_screen graceful: false
     raise ArgumentError.new("Terminal has not enought lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
 
     yoff = ( yroom - 1 ) / 2
-    yoff -= 1 if yoff > 0
+    yoff += 1 if yroom > 1
     $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.4).to_i, yoff ]
 
     # check for maximum value of $line_xx_ variables
+    all_vars = Hash.new
     bottom_line = bottom_line_var = 0
     global_variables.each do |var|
-      if var.to_s.start_with?('$line_') && eval(var.to_s) > bottom_line
-        bottom_line = eval(var.to_s)
-        bottom_line_var = var
+      if var.to_s.start_with?('$line_')
+        val = eval(var.to_s)
+        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}")if all_vars[val]
+        all_vars[val] = var
+        if val > bottom_line
+          bottom_line = eval(var.to_s)
+          bottom_line_var = var
+        end
       end
     end
-    if bottom_line > $term_height + 1
+    if bottom_line > $term_height
       raise ArgumentError.new("Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}")
     end
 
@@ -52,26 +68,47 @@ def sys cmd
   out, stat = Open3.capture2e(dbg cmd)
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
 end
-  
+
 $figlet_cache = Hash.new
-def do_figlet text, font
+$figlet_all_fonts = %w(smblock mono12 big)
+require 'byebug'
+def do_figlet text, font, maxtext = text
+  maxtext ||= text
+  fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
   unless $figlet_cache[cmd]
     out, _ = Open3.capture2e(cmd)
-    maxline = out.lines.map {|l| l.length}.max
-    offset = if maxline > 0.6 * $term_width
-               0
-             elsif maxline > 0.4 * $term_width
-               0.1 * $term_width
-             else
-               0.2 * $term_width
-             end
-    $figlet_cache[cmd] = out.lines.map {|l| ' ' * offset + l.chomp}.join("\n")
+    lines = out.lines.map {|l| l.rstrip}
+    # strip common spaces at front
+    common = lines.select {|l| l.lstrip.length > 0}.
+               map {|l| l.length - l.lstrip.length}.min
+    lines.map! {|l| l[common .. -1] || ''}
+    maxline = lines.map {|l| l.length}.max
+    offset = 0.3 * ( $term_width - figlet_text_width(maxtext, font) )
+    if offset + maxline > $term_width * 0.9
+      offset = 0.3 * ( $term_width - maxline )
+    end
+    $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
   end
-  $figlet_cache[cmd].lines.each do |line|
+  $figlet_cache[cmd].each do |line|
     print "#{line.chomp}\e[K\n"
   end
   print"\e[0m"
+end
+
+
+def figlet_char_height font
+  fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
+  # high and low chars
+  out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l Igq")
+  out.lines.length
+end
+
+
+def figlet_text_width text, font
+  # 4 underscores
+  out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l text")
+  out.lines.map {|l| l.strip.length}.max / 4.0
 end
 
 
@@ -254,7 +291,7 @@ end
 
 
 def clear_area_comment
-  ($line_comment_big .. $line_comment_small).each {|l| print "\e[#{l}H\e[K"}
+  ($line_comment .. $line_hint_or_message).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 
@@ -284,21 +321,24 @@ def handle_win_change
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
   calculate_screen_layout
   system('clear')
-  puts
+  puts "\e[2m"
   while !check_screen(graceful: true)
     $ctl_kb_queue.clear
     puts "\n\n\e[0mScreensize is NOT acceptable, see above !"
-    puts "\nPlease resize screen NOW (if possible); to exit"
-    puts "this checking loop."
-    puts "\nAfter resize, type any key to continue ..."
+    puts "\nPlease resize screen NOW (if possible) to get out"
+    puts "of this checking loop."
+    puts "\nAfter resize, type any key to check again ..."
     $ctl_kb_queue.deq
-    puts "checking again ..."
+    puts "checking again ...\e[2m"
+    sleep 1
     $term_height, $term_width = %x(stty size).split.map(&:to_i)
     calculate_screen_layout
-    sleep 1
     puts
   end
+  puts "\e[0m"
   ctl_issue 'redraw'
   $figlet_cache = Hash.new
   $ctl_redraw = true
 end
+
+

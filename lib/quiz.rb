@@ -26,8 +26,8 @@ def do_quiz
     unless first_lap
       print "\e[#{$line_issue}H\e[K" 
       ctl_issue
-      print "\e[#{$line_hint}H\e[K" 
-      print "\e[#{$line_listen}H\e[K"
+      print "\e[#{$line_hint_or_message}H\e[K" 
+      print "\e[#{$line_call}H\e[K"
     end
 
     if $ctl_back
@@ -49,12 +49,17 @@ def do_quiz
     
     sleep 0.3
 
+    ltext = ''
+    print "\e[0m"
     all_wanted.each_with_index do |hole, idx|
+      print "\e[#{$line_call}H" unless first_lap
+      ltext = '' if ltext.length > $term_width * 0.7
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        print "\e[2m" + ( itext || "#{isemi}" ) + "\e[0m "
+        ltext += "(" + ( itext || "#{isemi}" ) + ") "
       end
-      print "\e[2m#{$harp[hole][:note]}\e[0m listen ... "
+      ltext += "#{$harp[hole][:note]} "
+      print "\e[G#{ltext}\e[K"
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
         sleep 0.1
@@ -67,7 +72,11 @@ def do_quiz
     print "\e[32mand !\e[0m"
     sleep 1
 
-    system('clear') if first_lap
+    if first_lap
+      system('clear')
+    else
+      print "\e[#{$line_call}H\e[K"
+    end
     full_hint_shown = false
 
     begin   # while looping over one sequence
@@ -81,12 +90,12 @@ def do_quiz
 
         get_hole( -> () do
                     if $ctl_loop
-                      "\e[32mLooping\e[0m over #{all_wanted.length} notes; play them again and again ..."
+                      "\e[32mLooping\e[0m over #{all_wanted.length} notes"
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
                       else
-                        "Play note number \e[32m#{idx+1}\e[0m from the sequence of #{$num_quiz} you have heard !"
+                        "Play note \e[32m#{idx+1}\e[0m of #{$num_quiz} you have heard !"
                       end
                     end
                   end,
@@ -96,7 +105,7 @@ def do_quiz
           
           -> () {$ctl_next || $ctl_back},  # lambda_skip
           
-          -> (_, _, _, _, _, _, _) do  # lambda_comment_big
+          -> (_, _, _, _, _, _, _) do  # lambda_comment
             if $num_quiz == 1
               [ "\e[2m", '.  .  .', 'smblock' ]
             else
@@ -107,29 +116,26 @@ def do_quiz
           -> (_) do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
-
+            
             if all_wanted.length > 1 &&
                hole_passed > 4 &&
                lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
-              print "Solution: The complete sequence is: #{describe_sequence(all_wanted)}\e[0m" 
               full_hint_shown = true
+              "Solution: The complete sequence is: #{describe_sequence(all_wanted)}" 
             elsif hole_passed > 4
-              print "Hint: Play \e[32m#{wanted}\e[0m"
+              "Hint: Play \e[32m#{wanted}\e[0m"
             else
               if idx > 0
                 isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
                 if isemi
-                  print "\e[2mHint: Move "
-                  print ( itext ? "a #{itext}" : isemi )
+                  "Hint: Move " + ( itext ? "a #{itext}" : isemi )
                 end
               end
             end
-            print "\e[K"
           end,
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
 
-        print "\e[#{$line_comment_small}H\e[K"
 
       end # notes in a sequence
 
@@ -139,7 +145,7 @@ def do_quiz
         next
       end
     
-      print "\e[#{$line_comment_big}H"
+      print "\e[#{$line_comment}H"
       text = if $ctl_next
                "skip"
              elsif $ctl_back
@@ -151,7 +157,7 @@ def do_quiz
       do_figlet text, 'smblock'
       print "\e[0m"
       
-      print "\e[#{$line_comment_small}H"
+      print "\e[#{$line_hint_or_message}H\e[K"
       print "#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{describe_sequence(all_wanted)}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
