@@ -166,9 +166,7 @@ end
 
 def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples * 1} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
-  aubio_in, aubio_out = Open3.popen2(aubio_cmd)
-  aubio_in.close
-  tstart = Time.now.to_f
+  _, aubio_out = Open3.popen2(aubio_cmd)
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}

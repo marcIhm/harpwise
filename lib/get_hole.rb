@@ -30,10 +30,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       end
       $ctl_redraw = false
     end
-    first = false
-    
-    freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
+    print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if first
 
+    freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
+    
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_play
@@ -221,6 +221,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[#{$line_hint_or_message}H\e[K"
       $message_shown = false
     end
+    first = false
   end  # loop until var done or skip
 end
 

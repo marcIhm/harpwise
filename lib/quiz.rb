@@ -12,15 +12,10 @@ def do_quiz
   $ctl_can_loop = true
   $ctl_can_change_comment = false
   
-  puts "\n\nAgain and again: Hear #{$num_quiz} note(s) from the scale and then try to replay ..."
-  [2,1].each do |c|
-    puts c
-    sleep 1
-  end
-
   first_lap = true
   all_wanted_before = all_wanted = nil
-
+  puts
+  
   loop do   # forever until ctrl-c, sequence after sequence
 
     unless first_lap
