@@ -39,20 +39,20 @@ def check_screen graceful: false
 
     # check for maximum value of $line_xx_ variables
     all_vars = Hash.new
-    bottom_line = bottom_line_var = 0
+    $bottom_line = bottom_line_var = 0
     global_variables.each do |var|
       if var.to_s.start_with?('$line_')
         val = eval(var.to_s)
         raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}")if all_vars[val]
         all_vars[val] = var
-        if val > bottom_line
-          bottom_line = eval(var.to_s)
+        if val > $bottom_line
+          $bottom_line = eval(var.to_s)
           bottom_line_var = var
         end
       end
     end
-    if bottom_line > $term_height
-      raise ArgumentError.new("Variable #{bottom_line_var} = #{bottom_line} is larger than terminal height = #{$term_height}")
+    if $bottom_line > $term_height
+      raise ArgumentError.new("Variable #{bottom_line_var} = #{$bottom_line} is larger than terminal height = #{$term_height}")
     end
 
   rescue ArgumentError => e

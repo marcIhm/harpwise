@@ -16,6 +16,8 @@ require_relative '../lib/helper.rb'
 require_relative 'test_utils.rb'
 
 $sut = load_technical_config
+$fromon = ARGV[0]
+$within = !$fromon
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
@@ -29,7 +31,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer'
     tms :ENTER
     sleep 2
-    expect { screen[-5].start_with? 'Suggested reading' }
+    expect { screen[-7].start_with? 'Suggested reading' }
     kill_session
   end
 
@@ -73,7 +75,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-22] == 'The frequency recorded for +4 (note c5, semi 3) is too different from ET tuning:' }
+    expect { screen[1,2] == ['  You played:             784',
+                             '  ET expects:             523.3']}
     kill_session
   end
   
@@ -89,7 +92,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms 'j'
     sleep 1
     expect { File.exist?(journal_file) }
-    expect { screen[-15]['b4'] }
+    expect { screen[12]['b4'] }
     kill_session
   end
   
@@ -100,7 +103,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer quiz 2 testing c all --testing'
     tms :ENTER
     sleep 8
-    expect { screen[-15]['c5'] }
+    expect { screen[12]['c5'] }
     kill_session
   end
     
@@ -110,7 +113,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
     tms :ENTER
     sleep 1
-    expect { screen[6]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15), which is'] }
+    expect { screen[6]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15'] }
     kill_session
   end
   

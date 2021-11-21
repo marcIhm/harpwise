@@ -62,6 +62,8 @@ $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count
 $memo.transform_keys!(&:to_sym)
 
 def memorize text
+  $within = true if $fromon && text[$fromon]
+  return unless $within
   puts
   $memo_count += 1
   $memo_seen << text
@@ -78,5 +80,5 @@ at_exit {
     $memo[:count] = $memo_count
     $memo[:times].each_key {|k| $memo[:times].delete(k) unless $memo_seen === k}
   end
-  File.write($memo_file, JSON.pretty_generate($memo))
+  File.write($memo_file, JSON.pretty_generate($memo)) unless $fromon
 }
