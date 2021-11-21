@@ -32,6 +32,7 @@ end
 
 
 def err_h text
+  sane_term
   puts
   puts "ERROR: #{text} !"
   puts "(Hint: Invoke without arguments for usage information)"
@@ -42,6 +43,7 @@ end
 
 
 def err_b text
+  sane_term
   puts
   puts "ERROR: #{text} !"
   puts_err_context

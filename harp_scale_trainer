@@ -62,18 +62,21 @@ else
   Thread.report_on_exception = false
 end
 
+
 Signal.trap('SIGINT') do
   print "\e[#{$line_call}H" if $move_down_on_exit
   fail "\nexit on ctrl-c" if $opts[:debug]
   puts "\nexit on ctrl-c"
-  exit 0
+  exit 1
 end
+
 
 if $mode == :listen || $mode == :quiz
   Signal.trap('WINCH') do
     handle_win_change
   end
 end
+
 
 at_exit do
   sane_term

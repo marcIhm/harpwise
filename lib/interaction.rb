@@ -89,10 +89,12 @@ def do_figlet text, font, maxtext = nil
     end
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
   end
-  $figlet_cache[cmd].each do |line|
-    print "#{line.chomp}\e[K\n"
+  if $figlet_cache[cmd] # might help after resize
+    $figlet_cache[cmd].each do |line|
+      print "#{line.chomp}\e[K\n"
+    end
+    print"\e[0m"
   end
-  print"\e[0m"
 end
 
 

@@ -160,7 +160,7 @@ def arecord_to_fifo fifo
   _, _, wait_thread  = Open3.popen2(arec_cmd)
   wait_thread.join
   err_b "command '#{arec_cmd}' terminated unexpectedly"
-  exit
+  exit 1
 end
 
 

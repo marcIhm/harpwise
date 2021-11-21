@@ -54,6 +54,11 @@
   harmonica, which ist faily easy (see the paragraph on configuration).
 
 * A closer look at the display
+
+  Please note, that the trainer tries to adapt itself to different screen
+  sizes by inserting blank lines in its display; you do not need to restart it
+  for this.
+
 ** The upper half of the screen
 
    This displays either the hole name or a harmonica chart with notes; you may

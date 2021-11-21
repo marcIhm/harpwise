@@ -25,14 +25,14 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       
       print_chart if $conf[:display] == :chart
       if $ctl_redraw
-        print "\e[#{$line_hint_or_message}HTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  'ON THE EDGE of'  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]"
+        print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  'ON THE EDGE of'  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
       end
       $ctl_redraw = false
     end
     first = false
     
-    freq = $opts[:screenshot]  ?  797  :  $freqs_queue.deq
+    freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
 
     return if lambda_skip && lambda_skip.call()
 
@@ -58,7 +58,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     good, done = lambda_good_done.call(hole, hole_since)
     if $opts[:screenshot]
       good = true
-      done = true if Time.now.to_f - hole_start > 2
+      done = true if $ctl_can_next && Time.now.to_f - hole_start > 2
     end
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
@@ -139,7 +139,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     if lambda_hint && !$message_shown
       hint = lambda_hint.call(hole) || ''
       print "\e[#{$line_hint_or_message}H"
-      hint = hint[0 .. $term_width - 8] + ' (...)' if hint.length >= $term_width - 4 
+      hint = hint[0 .. $term_width - 8] + '(...)' if hint.length >= $term_width - 4 
       print "\e[2m#{hint}\e[0m\e[K"
     end      
 
@@ -209,7 +209,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $write_journal = !$write_journal
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
       $ctl_toggle_journal = false
-      print "\e[#{$line_hint_or_message}H\e[0m"      
+      print "\e[#{$line_hint_or_message}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
       print "\e[#{$line_key}H\e[2m" + text_for_key      
