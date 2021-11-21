@@ -36,22 +36,34 @@
   To get started quickly you may use auto-calibration for machine-generated
   tones and frequencies.
 
-* A word on the term holes
+* Some general concepts
+** The reference hole
 
-  The Program uses the term "holes" throughout to give you feedback or hints.
-  Examples would be "-1" or "+4"; these obviously name the holes of your
-  harmonica and distinguish between "draw" and "blow"; a special name like
-  "-2+3" is used as a common name, if two holes ("-2" and "+3") produce the
-  same note.
+   The trainer can remember a hole you have played to refer to it; this is
+   useful e.g. to show the interval between the currently played hole and the
+   reference, or to show the deviation from the current played frequency to
+   the nominal frequency of the hole, especially when practicing bends.
 
-  So, if such a hole-name is given, you always know the note that sounds, when
-  the hole is played (at least for a given key of harmonica).
+   To set the reference, you simply play the desired note and hit the key r at
+   the same time. To clear the reference you simply need to hit r when not
+   playing anything.
 
-  In effect, you may consider hole-names like "-2+3" as practical names for the
-  notes played on a harmonica of a given key.
+** A word on the term holes
 
-  By the way, if you prefer other names, you may create your own type of
-  harmonica, which ist faily easy (see the paragraph on configuration).
+   The Program uses the term "holes" throughout to give you feedback or hints.
+   Examples would be "-1" or "+4"; these obviously name the holes of your
+   harmonica and distinguish between "draw" and "blow"; a special name like
+   "-2+3" is used as a common name, if two holes ("-2" and "+3") produce the
+   same note.
+
+   So, if such a hole-name is given, you always know the note that sounds, when
+   the hole is played (at least for a given key of harmonica).
+
+   In effect, you may consider hole-names like "-2+3" as practical names for the
+   notes played on a harmonica of a given key.
+
+   By the way, if you prefer other names, you may create your own type of
+   harmonica, which ist faily easy (see the paragraph on configuration).
 
 * A closer look at the display
 
@@ -61,15 +73,24 @@
 
 ** The upper half of the screen
 
-   This displays either the hole name or a harmonica chart with notes; you may
-   switch between them with the TAB-key.
+   This part can display different things:
+
+   - The hole you played
+   - A Chart showing the layout of your harmonica
+   - A frequency scale, centered around the currently referenced note
 
    The color changes depending, if you hit a note from the chosen scale or not.
 
 ** The lower half of the screen
 
-   This shows whatever comment is appropriate for listen or quiz. For listen
-   this may be changed interactively.
+   This shows whatever comment is appropriate for listen or quiz. 
+
+   For listen this may be changed interactively between:
+
+   - The hole you played
+   - The respective note
+   - The interval to the previous note or the stored reference
+   - Cents deviation of the current frequency to the reference
 
 ** The frequency scale
 

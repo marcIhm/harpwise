@@ -145,7 +145,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     if $ctl_set_ref
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
-      print "\e[#{$line_hint_or_message}H\e[2mStored reference for intervals and display of bends\e[0m\e[K"
+      print "\e[#{$line_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference for intervals and display of bends\e[0m\e[K"
       $message_shown = Time.now.to_f
       $ctl_set_ref = false
     end
