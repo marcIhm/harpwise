@@ -29,10 +29,12 @@ def do_listen
 
            -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do  # lambda_comment
              color = hole_color
+             stext = nil
              text = ( case $conf[:comment_listen]
                       when :note
                         note
                       when :interval
+                        stext = '------'
                         itext || isemi
                       when :hole
                         hole_disp
@@ -40,6 +42,7 @@ def do_listen
                         if $hole_ref
                           if f1 > 0 && f2 > 0 && (cnts = cents_diff(f1, f2).to_i).abs <= 200
                             color = "\e[0m\e[#{cnts.abs <= 25 ? 92 : 31}m"
+                            stext = 'c +100'
                             'c %+d' % ((cnts/5.0).round(0)*5)
                           else
                             color = "\e[0m\e[31m"
@@ -52,7 +55,7 @@ def do_listen
                       else
                         fail "Internal error: #{$conf[:comment_listen]}"
                       end ) || '.  .  .'
-             [color, text, 'big']
+             [color, text, 'big', stext]
            end,
 
            -> (hole) do  # lambda_hint

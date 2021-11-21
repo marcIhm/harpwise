@@ -106,12 +106,12 @@ def do_quiz
           -> () {$ctl_next || $ctl_back},  # lambda_skip
           
           -> (_, _, _, _, _, _, _) do  # lambda_comment
-            if $num_quiz == 1
-              [ "\e[2m", '.  .  .', 'smblock' ]
-            else
-              [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock' ]
-            end
-          end,
+                    if $num_quiz == 1
+                      [ "\e[2m", '.  .  .', 'smblock', nil ]
+                    else
+                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes' + ' -' * all_wanted.length ]
+                    end
+                  end,
           
           -> (_) do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
