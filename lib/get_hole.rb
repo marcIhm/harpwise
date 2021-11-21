@@ -115,8 +115,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     else
       print "Hole: %#{max_hole.length}s, Note: %4s" % ['-- ', '-- ']
     end
-    print ", Ref: %#{max_hole.length}s\e[K" % [$hole_ref || '- ']
-    print ", jitter: %5.02f, queued: %d" % [$analysis_jitter,  $freqs_queue.length] if $opts[:debug]
+    print ", Ref: %#{max_hole.length}s" % [$hole_ref || '- ']
+    print ", jitter: %5.02f, queued: %d, figlet: %d" % [$jitter, $freqs_queue.length, $figlet_count] if $opts[:debug]
+    print "\e[K"
 
     if lambda_comment
       comment_color, comment_text, font, sample_text = lambda_comment.call(hole_color,

@@ -77,6 +77,7 @@ def do_figlet text, font, maxtext = nil
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
   unless $figlet_cache[cmd]
     out, _ = Open3.capture2e(cmd)
+    $figlet_count += 1
     lines = out.lines.map {|l| l.rstrip}
     # strip common spaces at front
     common = lines.select {|l| l.lstrip.length > 0}.
@@ -102,6 +103,7 @@ def figlet_char_height font
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   # high and low chars
   out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l Igq")
+  $figlet_count += 1
   out.lines.length
 end
 
@@ -110,6 +112,7 @@ $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
     out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l text")
+    $figlet_count += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max / 4.0
   end
   $figlet_text_width_cache[text + font]

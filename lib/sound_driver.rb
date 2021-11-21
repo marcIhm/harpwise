@@ -169,16 +169,11 @@ def aubiopitch_to_queue fifo, num_samples
   aubio_in, aubio_out = Open3.popen2(aubio_cmd)
   aubio_in.close
   tstart = Time.now.to_f
-  i = 0
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
     sleep 0.1 if $opts[:testing]
-    if Time.now.to_f - tstart > 4  #  wait until slack has been drained from pipeline (?)
-      $analysis_offset = Time.now.to_f - fields[0] unless $analysis_offset
-      $analysis_jitter = $analysis_offset - Time.now.to_f + fields[0] if i % 20 == 0
-      i += 1
-    end
+    $jitter = Time.now.to_f - $program_start - fields[0]
     $freqs_queue.enq fields[1]
   end
 end
@@ -186,5 +181,4 @@ end
 
 def pipeline_catch_up
   $freqs_queue.clear
-  $analysis_offset = nil
 end
