@@ -86,14 +86,24 @@ def do_figlet text, font, template = nil
     lines.map! {|l| l[common .. -1] || ''}
 
     # overall length from figlet
-    maxline = lines.map {|l| l.length}.max
+    maxlen = lines.map {|l| l.length}.max
+    err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
 
-    # caclculate offset from template (if available) or from actual output of figlet
-    offset = 0.4 * ( $term_width - figlet_text_width(template, font)) if template
-    # if no template, or offset from template wider than terminal
-    if !template || offset + maxline > $term_width * 0.9
-      offset = 0.4 * ( $term_width - maxline )
+    # calculate offset from template (if available) or from actual output of figlet
+    offset_template = 0.4 * ( $term_width - figlet_text_width(template, font))
+    offset_specific = 0.4 * ( $term_width - maxlen )
+    offset = template  ?  offset_template  :  offset_specific
+    # check for cases too far left or right
+    if offset + maxlen < $term_width * 0.3
+      offset = 0.3 * $term_width
     end
+    if offset + maxlen > 0.9 * $term_width
+      offset = offset_specific
+    end
+    if offset + maxlen > 0.9 * $term_width
+      offset = 0 
+    end
+
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
   end
   if $figlet_cache[cmd] # might help after resize

@@ -7,8 +7,7 @@
 def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
-  max_hole = $harp_holes.max_by(&:length)
-  holes_holes = [$harp_holes + $harp_holes].flatten
+  longest_hole_name = $harp_holes.max_by(&:length)
   
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
@@ -89,7 +88,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     when :hole
       print "\e[#{$line_display}H\e[0m"
       print hole_color
-      do_figlet hole_disp, 'mono12', max_hole
+      do_figlet hole_disp, 'mono12', longest_hole_name
     when :bend
       print "\e[#{$line_display + 2}H"
       if $hole_ref
@@ -111,11 +110,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     print "\e[#{$line_hole}H\e[2m"
     if regular_hole?(hole)
-      print "Hole: \e[0m%#{max_hole.length}s\e[2m, Note: \e[0m%4s\e[2m" % [hole, $harp[hole][:note]]
+      print "Hole: \e[0m%#{longest_hole_name.length}s\e[2m, Note: \e[0m%4s\e[2m" % [hole, $harp[hole][:note]]
     else
-      print "Hole: %#{max_hole.length}s, Note: %4s" % ['-- ', '-- ']
+      print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
-    print ", Ref: %#{max_hole.length}s" % [$hole_ref || '- ']
+    print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '- ']
     print ", jitter: %5.02f, queued: %d, figlet: %d" % [$jitter, $freqs_queue.length, $figlet_count] if $opts[:debug]
     print "\e[K"
 
