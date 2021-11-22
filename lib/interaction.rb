@@ -71,22 +71,28 @@ end
 
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
-require 'byebug'
-def do_figlet text, font, maxtext = nil
+
+def do_figlet text, font, template = nil
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
   unless $figlet_cache[cmd]
     out, _ = Open3.capture2e(cmd)
     $figlet_count += 1
     lines = out.lines.map {|l| l.rstrip}
+
     # strip common spaces at front
     common = lines.select {|l| l.lstrip.length > 0}.
                map {|l| l.length - l.lstrip.length}.min
     lines.map! {|l| l[common .. -1] || ''}
+
+    # overall length from figlet
     maxline = lines.map {|l| l.length}.max
-    offset = 0.3 * ( $term_width - ( maxtext  ?  figlet_text_width(maxtext, font)  :  maxline ))
-    if offset + maxline > $term_width * 0.9
-      offset = 0.3 * ( $term_width - maxline )
+
+    # caclculate offset from template (if available) or from actual output of figlet
+    offset = 0.4 * ( $term_width - figlet_text_width(template, font)) if template
+    # if no template, or offset from template wider than terminal
+    if !template || offset + maxline > $term_width * 0.9
+      offset = 0.4 * ( $term_width - maxline )
     end
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
   end
@@ -111,9 +117,9 @@ end
 $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
-    out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l text")
+    out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l #{text}")
     $figlet_count += 1
-    $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max / 4.0
+    $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end
   $figlet_text_width_cache[text + font]
 end

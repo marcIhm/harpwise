@@ -62,9 +62,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
-    dots = '........:........'
+    just_dots_short = '........:........'
     if hole != :low && hole != :high
-      dots, _ = get_dots(dots, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
+      dots, _ = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
       print "#{'%6.1f Hz' % freq}  [#{dots}]\e[2m\e[K"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     else
@@ -94,13 +94,13 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[#{$line_display + 2}H"
       if $hole_ref
         semi_ref = $harp[$hole_ref][:semi]
-        just_dots = '......:......:......:......'
-        dots, hit = get_dots(just_dots.dup, 3, freq,
+        just_dots_long = '......:......:......:......'
+        dots, hit = get_dots(just_dots_long.dup, 3, freq,
                              semi2freq_et(semi_ref - 2),
                              semi2freq_et(semi_ref),
                              semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
         print "\e[#{hit ? 92 : 31}m"
-        do_figlet dots, 'smblock', just_dots
+        do_figlet dots, 'smblock', just_dots_long
       else
         print "\e[2m"
         do_figlet 'set ref first', 'smblock'
