@@ -119,13 +119,17 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     print "\e[K"
 
     if lambda_comment
-      comment_color, comment_text, font, sample_text = lambda_comment.call(hole_color,
-                                                                           inter_semi,
-                                                                           inter_text,
-                                                                           hole && $harp[hole] && $harp[hole][:note],
-                                                                           hole_disp,
-                                                                           freq,
-                                                                           $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
+      comment_color,
+      comment_text,
+      font,
+      sample_text =
+      lambda_comment.call(hole_color,
+                          inter_semi,
+                          inter_text,
+                          hole && $harp[hole] && $harp[hole][:note],
+                          hole_disp,
+                          freq,
+                          $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
       print "\e[#{$line_comment}H#{comment_color}"
       do_figlet comment_text, font, sample_text
     end
