@@ -67,7 +67,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "#{'%6.1f Hz' % freq}  [#{dots}]\e[2m\e[K"
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     else
-      print "   --  Hz  [#{dots}]\e[K"
+      print "   --  Hz  [#{just_dots_short}]\e[K"
     end
 
     print "\e[#{$line_interval}H"

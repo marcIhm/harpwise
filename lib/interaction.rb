@@ -71,7 +71,6 @@ end
 
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
-
 def do_figlet text, font, template = nil
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
@@ -97,7 +96,7 @@ def do_figlet text, font, template = nil
     else
       offset = offset_specific
     end
-    if offset + maxlen < $term_width * 0.3
+    if offset + maxlen < $term_width * 0.4
       offset = 0.3 * $term_width
     end
     if offset + maxlen > 0.9 * $term_width
@@ -107,10 +106,9 @@ def do_figlet text, font, template = nil
       offset = 0 
     end
     err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
-
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
   end
-  if $figlet_cache[cmd] # might help after resize
+  if $figlet_cache[cmd] # maybe needed after resize
     $figlet_cache[cmd].each do |line|
       print "#{line.chomp}\e[K\n"
     end
