@@ -28,14 +28,14 @@ def check_screen graceful: false
     end
     
     # check for size of chart
-    xroom = $term_width - $chart.map {|r| r.join.length}.max - 2
+    xroom = $term_width - $chart.map {|r| r.join.length}.max
     raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
     yroom = $line_hole - $line_display - $chart.length
     raise ArgumentError.new("Terminal has not enought lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
 
     yoff = ( yroom - 1 ) / 2
     yoff += 1 if yroom > 1
-    $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.4).to_i, yoff ]
+    $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.5).to_i, yoff ]
 
     # check for maximum value of $line_xx_ variables
     all_vars = Hash.new
@@ -71,6 +71,7 @@ end
 
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
+
 def do_figlet text, font, template = nil
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
@@ -87,8 +88,6 @@ def do_figlet text, font, template = nil
     # overall length from figlet
     maxlen = lines.map {|l| l.length}.max
 
-    # strategy: take first offset, that is not too far left or right
-
     # calculate offset from template (if available) or from actual output of figlet
     offset_specific = 0.4 * ( $term_width - maxlen )
     if template
@@ -99,7 +98,7 @@ def do_figlet text, font, template = nil
         twidth = figlet_text_width(template, font)
         offset = if twidth.to_f / $term_width < 0.6
                    why = 'narrow template'
-                   0.5
+                   0.4
                  else
                    why = 'wide template'
                    0.8
