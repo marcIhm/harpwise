@@ -99,7 +99,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
                              semi2freq_et(semi_ref),
                              semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
         print "\e[#{hit ? 92 : 31}m"
-        do_figlet dots, 'smblock', just_dots_long
+        do_figlet dots, 'smblock', 'fixed:' + just_dots_long
       else
         print "\e[2m"
         do_figlet 'set ref first', 'smblock'
@@ -178,7 +178,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       fail 'internal error 1 for help' if $can_journal != $can_change_comment
       fail 'internal error 2 for help' if $can_next != $can_loop
       # we have room from $line_comment to $line_hint_or_message (included)
-      print "\e[#{$line_comment}H\e[2mShort help:\e[0m\e[32m\n"
+      print "\e[#{$line_comment + 1}H\e[2mShort help:\e[0m\e[32m\n"
       print "  SPACE: pause                TAB or d: change display\n"
       print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
       print "      r: set reference          ctrl-l: redraw\n"

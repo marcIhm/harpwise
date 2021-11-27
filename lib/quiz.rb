@@ -104,7 +104,7 @@ def do_quiz
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     else
-                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes' + ' -' * all_wanted.length ]
+                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes' + '--' * all_wanted.length ]
                     end
                   end,
           

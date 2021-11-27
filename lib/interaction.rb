@@ -92,23 +92,40 @@ def do_figlet text, font, template = nil
     # calculate offset from template (if available) or from actual output of figlet
     offset_specific = 0.4 * ( $term_width - maxlen )
     if template
-      offset = 0.4 * ( $term_width - figlet_text_width(template, font))
+      if template.start_with?('fixed:')
+        offset = ( $term_width - figlet_text_width(template[6 .. -1], font) ) * 0.5
+        why = 'fixed template'
+      else
+        twidth = figlet_text_width(template, font)
+        offset = if twidth.to_f / $term_width < 0.6
+                   why = 'narrow template'
+                   0.5
+                 else
+                   why = 'wide template'
+                   0.8
+                 end * ( $term_width - twidth )
+      end
     else
       offset = offset_specific
+      why = 'specific'
     end
-    if offset + maxlen < $term_width * 0.4
+    if offset + maxlen < $term_width * 0.3
       offset = 0.3 * $term_width
+      why += ' too narrow'
     end
     if offset + maxlen > 0.9 * $term_width
       offset = offset_specific
+      why += ' too wide'
     end
     if offset + maxlen > 0.9 * $term_width
-      offset = 0 
+      offset = 0
+      why += ' still too wide'
     end
     err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
+    $figlet_cache[cmd][0] += why if $opts[:debug]
   end
-  if $figlet_cache[cmd] # maybe needed after resize
+  if $figlet_cache[cmd] # could save us after resize
     $figlet_cache[cmd].each do |line|
       print "#{line.chomp}\e[K\n"
     end
@@ -199,7 +216,7 @@ def handle_kb_play
   elsif char == 'd' || char == "\t"
     $ctl_change_display = true
     text = 'Change display'
-  elsif char == "r"
+  elsif char == 'r'
     $ctl_set_ref = true
     text = 'Set reference'
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
