@@ -14,7 +14,8 @@ def set_global_vars_early
   $ctl_can_change_comment = false
   $ctl_issue_width = 36
   $ctl_non_def_issue_ts = nil
-
+  $ctl_sig_winch = false
+  
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
   at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"

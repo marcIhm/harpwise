@@ -65,7 +65,7 @@ end
 
 if $mode == :listen || $mode == :quiz
   Signal.trap('WINCH') do
-    handle_win_change
+    $ctl_sig_winch = true
   end
 end
 

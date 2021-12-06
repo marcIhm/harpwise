@@ -31,6 +31,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
     print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if first
 
+    handle_win_change if $ctl_sig_winch
+
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     
     return if lambda_skip && lambda_skip.call()

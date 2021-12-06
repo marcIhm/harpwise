@@ -350,24 +350,25 @@ def handle_win_change
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
   calculate_screen_layout
   system('clear')
-  puts "\e[2m"
+  puts
   while !check_screen(graceful: true)
-    $ctl_kb_queue.clear
+    puts "\e[2m"
     puts "\n\n\e[0mScreensize is NOT acceptable, see above !"
     puts "\nPlease resize screen NOW (if possible) to get out"
-    puts "of this checking loop."
-    puts "\nAfter resize, type any key to check again ..."
-    $ctl_kb_queue.deq
-    puts "checking again ...\e[2m"
-    sleep 1
+    puts "of this checking loop ..."
+    $ctl_sig_winch = false
+    while !$ctl_sig_winch
+      sleep 0.1
+    end
     $term_height, $term_width = %x(stty size).split.map(&:to_i)
     calculate_screen_layout
+    system('clear')
     puts
-  end
-  puts "\e[0m"
+  end 
   ctl_issue 'redraw'
   $figlet_cache = Hash.new
   $ctl_redraw = true
+  $ctl_sig_winch = false
 end
 
 
