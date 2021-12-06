@@ -52,15 +52,7 @@ check_screen
 
 $freq2hole = read_calibration unless $mode == :calibrate
 
-if $opts[:debug]
-  %w($chart $harp $conf $opts $scale_notes $scale_holes $type $scale $key).each do |var|
-    puts "\n#{var}:", eval("#{var}.pretty_inspect")
-  end
-  print 'press RETURN to continue: '
-  STDIN.gets
-else
-  Thread.report_on_exception = false
-end
+Thread.report_on_exception = false
 
 
 Signal.trap('SIGINT') do

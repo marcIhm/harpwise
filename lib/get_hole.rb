@@ -24,7 +24,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       
       print_chart if $conf[:display] == :chart
       if $ctl_redraw
-        print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  'ON THE EDGE of'  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
+        print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE of\e[0;2m"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
       end
       $ctl_redraw = false
@@ -115,7 +115,6 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '- ']
-    print ", jitter: %5.02f, queued: %d, figlet: %d" % [$jitter, $freqs_queue.length, $figlet_count] if $opts[:debug]
     print "\e[K"
 
     if lambda_comment

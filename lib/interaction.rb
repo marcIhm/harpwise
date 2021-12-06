@@ -65,7 +65,7 @@ end
 
 
 def sys cmd
-  out, stat = Open3.capture2e(dbg cmd)
+  out, stat = Open3.capture2e(cmd)
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
 end
 
@@ -93,36 +93,24 @@ def do_figlet text, font, template = nil
     if template
       if template.start_with?('fixed:')
         offset = ( $term_width - figlet_text_width(template[6 .. -1], font) ) * 0.5
-        why = 'fixed template'
       else
         twidth = figlet_text_width(template, font)
-        offset = if twidth.to_f / $term_width < 0.6
-                   why = 'narrow template'
-                   0.4
-                 else
-                   why = 'wide template'
-                   0.8
-                 end * ( $term_width - twidth )
+        offset = ( twidth.to_f / $term_width < 0.6  ?  0.4  :  0.8 ) * ( $term_width - twidth )
       end
     else
       offset = offset_specific
-      why = 'specific'
     end
     if offset + maxlen < $term_width * 0.3
       offset = 0.3 * $term_width
-      why += ' too narrow'
     end
     if offset + maxlen > 0.9 * $term_width
       offset = offset_specific
-      why += ' too wide'
     end
     if offset + maxlen > 0.9 * $term_width
       offset = 0
-      why += ' still too wide'
     end
     err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
     $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
-    $figlet_cache[cmd][0] += why if $opts[:debug]
   end
   if $figlet_cache[cmd] # could save us after resize
     $figlet_cache[cmd].each do |line|
