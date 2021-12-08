@@ -31,7 +31,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer'
     tms :ENTER
     sleep 2
-    expect { screen[-7].start_with? 'Suggested reading' }
+    expect { screen[-6].start_with? 'Suggested reading' }
     kill_session
   end
 

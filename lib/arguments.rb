@@ -15,16 +15,18 @@ def parse_arguments
   usage = <<EOU
 
 
-Help to practice scales (e.g. blues or mape) for harmonicas of various
-types (e.g. richter or chromatic) for various keys (e.g. a or c).  Main
-modes of operation are 'listen' and 'quiz'.
+harp_scale_trainer ('trainer', for short) helps to practice scales
+(e.g. blues or mape) for harmonicas of various types (e.g. richter or
+chromatic) for various keys (e.g. a or c).  Main modes of operation are
+'listen' and 'quiz'.
 
 
 Usage by examples: 
 
 
-  Listen to you playing a richter harmonica of key c and show the notes
-  played; green if from the scale, red otherwise:
+  The trainer listens, while your are playing a richter harmonica of key c
+  and it shows the holes, that you played; green if from the scale, red
+  otherwise:
 
     ./harp_scale_trainer listen ri c blues
 
@@ -34,14 +36,13 @@ Usage by examples:
   Switch on journal to get a simple transcription of the holes played.
 
 
-  Play 3 notes from scale mape for a chromatic harmonica of key a and
-  quiz you to play them back (then repeat):
+  Trainer plays 3 notes from the scale "mape" for a chromatic harmonica of
+  key a and then quizes you to play them back (then repeat):
 
     ./harp_scale_trainer quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type
   'RET'.
-
 
   In the examples above, the type of harmonica (e.g. richter or
   chromatic) and, in addition, the key (e.g. c or a) may be omitted and
@@ -56,9 +57,12 @@ Usage by examples:
   values of 'hole' and 'chart' to change how a recognized will be
   displayed.
 
+  Some (display-)settings can also be changed while the program is
+  running; type 'h' for details.
 
-  Once in a lifetime of your c-harp you need to calibrate this program
-  to the frequencies of your harp:
+
+  Once in the lifetime of your c-harp you need to calibrate the trainer
+  for the frequencies of the harp you are using:
 
     ./harp_scale_trainer calibrate c
     
@@ -68,7 +72,7 @@ Usage by examples:
 
   This command does not need a scale-argument.
 
-  For quick (and possibly inaccurate) calibration you may use the option
+  For quick (but possibly inaccurate) calibration you may use the option
   '--auto' to generate and analyze all needed samples automatically.
 
   To calibrate only a single whole, add e.g. '--hole -3//'.
@@ -81,9 +85,9 @@ Notes:
 
   For modes 'listen' and 'quiz' you may choose to transpose the scale to
   another key: '--transpose_scale_to d'. This would be helpful, if you
-  want to practice e.g. the d-major scale on a chromatic harmonica of
-  key c. For a diatonic harmonica, however, your milage may vary, as not
-  all notes are available.
+  want to practice e.g. the d-major scale on a chromatic harmonica of key
+  c. For a diatonic harmonica, however, your milage may vary, as not all
+  notes are available.
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or
   'cal' for 'calibrate'.
@@ -92,8 +96,7 @@ Notes:
   --screenshot, --help, --testing
 
 
-Suggested reading: The section "A word on holes" from the toplevel
-README.org
+Suggested reading: The toplevel file README.org
 
 Copyright (c) 2021 by Marc Ihm.
 This program is subject to the MIT License.

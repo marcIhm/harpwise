@@ -1,22 +1,22 @@
-# -*- fill-column: 78 -*-
+# -*- fill-column: 74 -*-
 
 * Harp Scale Trainer
 
   [[images/harmonicas.jpg]]
 
-  Ruby script to help practice scales (e.g. blues or major pentatonic) on a
-  (diatonic) richter or chromatic harmonica for various keys. Also has a
+  Ruby script to help practice scales (e.g. blues or major pentatonic) on
+  a (diatonic) richter or chromatic harmonica for various keys. Also has a
   journal to help in writing down tabs.
 
   Its main operation modes are 'listen' and 'quiz'.
   
-  The first screenshow is from mode 'listen': The program has recognized a note
-  from the blues scale and marks it in the harmonica chart.
+  The first screenshow is from mode 'listen': The program has recognized a
+  note from the blues scale and marks it in the harmonica chart.
   
   [[images/screenshot_listen.png]]
 
-  The second screenshot is from mode 'quiz': The program has played five notes
-  intially and now challenges to play them back.
+  The second screenshot is from mode 'quiz': The program has played five
+  notes intially and now challenges to play them back.
   
   [[images/screenshot_quiz.png]]
 
@@ -33,34 +33,35 @@
   As an initial step you will need to calibrate the program; the resulting
   wav-files will be kept in directory ~/.harp_scale_trainer
 
-  To get started quickly you may use auto-calibration for machine-generated
-  tones and frequencies.
+  To get started quickly you may use auto-calibration for
+  machine-generated tones and frequencies.
 
 * Some general concepts
 ** The reference hole
 
    The trainer can remember a hole you have played to refer to it; this is
-   useful e.g. to show the interval between the currently played hole and the
-   reference, or to show the deviation from the current played frequency to
-   the nominal frequency of the hole, especially when practicing bends.
+   useful e.g. to show the interval between the currently played hole and
+   the reference, or to show the deviation from the current played
+   frequency to the nominal frequency of the hole, especially when
+   practicing bends.
 
-   To set the reference, you simply play the desired note and hit the key r at
-   the same time. To clear the reference you simply need to hit r when not
-   playing anything.
+   To set the reference, you simply play the desired note and hit the key
+   r at the same time. To clear the reference you simply need to hit r
+   when not playing anything.
 
 ** A word on the term holes
 
-   The Program uses the term "holes" throughout to give you feedback or hints.
-   Examples would be "-1" or "+4"; these obviously name the holes of your
-   harmonica and distinguish between "draw" and "blow"; a special name like
-   "-2+3" is used as a common name, if two holes ("-2" and "+3") produce the
-   same note.
+   The Program uses the term "holes" throughout to give you feedback or
+   hints.  Examples would be "-1" or "+4"; these obviously name the holes
+   of your harmonica and distinguish between "draw" and "blow"; a special
+   name like "-2+3" is used as a common name, if two holes ("-2" and "+3")
+   produce the same note.
 
-   So, if such a hole-name is given, you always know the note that sounds, when
-   the hole is played (at least for a given key of harmonica).
+   So, if such a hole-name is given, you always know the note that sounds,
+   when the hole is played (at least for a given key of harmonica).
 
-   In effect, you may consider hole-names like "-2+3" as practical names for the
-   notes played on a harmonica of a given key.
+   In effect, you may consider hole-names like "-2+3" as practical names
+   for the notes played on a harmonica of a given key.
 
    By the way, if you prefer other names, you may create your own type of
    harmonica, which ist faily easy (see the paragraph on configuration).
@@ -68,8 +69,8 @@
 * A closer look at the display
 
   Please note, that the trainer tries to adapt itself to different screen
-  sizes by inserting blank lines in its display; you do not need to restart it
-  for this.
+  sizes by inserting blank lines in its display; you do not need to
+  restart it for this.
 
 ** The upper half of the screen
 
@@ -79,7 +80,8 @@
    - A Chart showing the layout of your harmonica
    - A frequency scale, centered around the currently referenced note
 
-   The color changes depending, if you hit a note from the chosen scale or not.
+   The color changes depending, if you hit a note from the chosen scale or
+   not.
 
 ** The lower half of the screen
 
@@ -99,14 +101,16 @@
    [..........:..|.......]
 
    The middle position (marked by ":") represents the frequency, that was
-   found during calibration. If you have done an automatic calibration, this
-   frequency might not match what you are actually playing (marked by "|");
-   consider a manual calibration with your actual harp in such a case.
+   found during calibration. If you have done an automatic calibration,
+   this frequency might not match what you are actually playing (marked by
+   "|"); consider a manual calibration with your actual harp in such a
+   case.
 
-   The left and right position (marked by "[." and ".]") represent the point,
-   where the displayed note would change; typically this is half way to the
-   next note. After reaching which (e.g. while bending), the displayed cursor
-   ("|") will jump to the other side to approach the central position again.
+   The left and right position (marked by "[." and ".]") represent the
+   point, where the displayed note would change; typically this is half
+   way to the next note. After reaching which (e.g. while bending), the
+   displayed cursor ("|") will jump to the other side to approach the
+   central position again.
 
 * Configuration
 
@@ -114,24 +118,24 @@
 
 * Tuning
 
-  The harp_scale_trainer does not make assumptions about the tuning of your
-  harmonica; e.g. it works equally well with "equal temperament" (ET) or "just
-  intonation" tuning.  Simply because, it asks you to play your own harp
-  (whatever its tuning might be), to generate samples; and it then computes
-  frequency values from these.
+  The harp_scale_trainer does not make assumptions about the tuning of
+  your harmonica; e.g. it works equally well with "equal temperament" (ET)
+  or "just intonation" tuning.  Simply because, it asks you to play your
+  own harp (whatever its tuning might be), to generate samples; and it
+  then computes frequency values from these.
   
-  However, sometimes harp_scale_trainer has to choose one tuning, e.g. when
-  doing auto calibration, or when your samples need to be judged against some
-  standard. In such cases it generally uses "equal temperament" (ET for
-  short).
+  However, sometimes harp_scale_trainer has to choose one tuning,
+  e.g. when doing auto calibration, or when your samples need to be judged
+  against some standard. In such cases it generally uses "equal
+  temperament" (ET for short).
   
 * Installation
 
   The program harp_scale_trainer runs in the linux console (no graphical
-  environment needed); it has no formal installation, but rather runs directly
-  from within the directory, which you need to download as a release or clone
-  from github first. Vice versa it can simply be removed by deleting the
-  cloned directory.
+  environment needed); it has no formal installation, but rather runs
+  directly from within the directory, which you need to download as a
+  release or clone from github first. Vice versa it can simply be removed
+  by deleting the cloned directory.
 
   harp_scale_trainer has a bunch of dependencies and one of the scripts in
   directory install may be used to install them.
