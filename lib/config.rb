@@ -9,7 +9,7 @@ def set_global_vars_early
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
-  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_journal = $ctl_toggle_journal = $ctl_show_help = false
+  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_journal = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
   $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_redraw = false
   $ctl_can_change_comment = false
   $ctl_issue_width = 36

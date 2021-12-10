@@ -65,3 +65,8 @@ def file2scale file, type = $type
     return file[parts[0].length .. - parts[1].length - 1] if file[parts[1]]
   end
 end
+
+
+def scales_for_type type
+  Dir[$scale_files_template % [$type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
+end

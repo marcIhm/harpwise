@@ -9,7 +9,7 @@ def parse_arguments
   # get content of all harmonica-types
   types_content = $conf[:all_types].map do |type|
     "scales for #{type}: " +
-      Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort.join(', ')
+      scales_for_type(type).join(', ')
   end.join("\n  ")
   
   usage = <<EOU
@@ -192,15 +192,17 @@ EOU
   end
 
   # now we have the information to process key and scale
-  err_b "Key can only be one on #{$conf[:all_keys].join(', ')}, not #{arg_for_key}" unless $conf[:all_keys].include?(arg_for_key)
+  er = check_key(arg_for_key)
+  err_b er if er
   $key = key = arg_for_key.to_sym
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
     glob = $scale_files_template % [type, arg_for_scale, '{holes,notes}']
     globbed = Dir[glob]
+    scales = scales_for_type(type)
     # check for multiple files is in config.rb
-    err_b "Unknown scale '#{arg_for_scale}' as there is no file matching #{glob}" unless globbed.length > 0
+    err_b "Unknown scale '#{arg_for_scale}' (none of #{scales.join(', ')}) as there is no file matching #{glob}" unless globbed.length > 0
     $scale = scale = file2scale(globbed[0])
   end
 
@@ -221,4 +223,13 @@ EOU
   # some of these have already been set as global vars, but return them anyway
   # to make their origin transparent
   [ mode, type, key, scale, opts]
+end
+
+
+def check_key key
+  if $conf[:all_keys].include?(key)
+    nil
+  else
+    "Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'"
+  end
 end

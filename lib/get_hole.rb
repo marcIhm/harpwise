@@ -23,8 +23,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[#{$line_key}H\e[2m" + text_for_key
       
       print_chart if $conf[:display] == :chart
-      if $ctl_redraw
-        print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE of\e[0;2m"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
+      if $ctl_redraw && $ctl_redraw != :silent
+        print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
       end
       $ctl_redraw = false
@@ -183,7 +183,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "  SPACE: pause                TAB or d: change display\n"
       print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
       print "      r: set reference          ctrl-l: redraw\n"
-      print "      h: this help\n"
+      print "      k: change key of harp          s: change scale\n"
+      print "      q: quit trainer                h: this help\n"
       print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
       print "      l: loop over sequence\n" if $ctl_can_next
       print "\e[0m\e[2mType any key to continue ...\e[0m"
@@ -219,6 +220,57 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[K"
       print "\e[#{$line_key}H\e[2m" + text_for_key      
       $message_shown = Time.now.to_f
+    end
+
+    if $ctl_change_key || $ctl_change_scale
+      print "\e[#{$line_hint_or_message}H\e[J\e[0m\e[K"
+      stop_kb_handler
+      sane_term
+      er = inp = nil
+      begin
+        if $ctl_change_key
+          print "\e[2mPlease enter \e[0mnew key\e[2m (current is #{$key}):\e[0m "
+          inp = STDIN.gets.chomp
+          inp = $key if inp == ''
+          er = check_key(inp)
+        else
+          scales = scales_for_type($type)
+          print "\e[2mPlease enter \e[0mnew scale\e[2m (one of #{scales.join(', ')}; current is #{$scale}):\e[0m "
+          inp = STDIN.gets.chomp
+          inp = $scale if inp == ''
+          scale = match_or(inp, scales) do |none, choices|
+            er = "Given scale '#{none}' is none of #{choices}"
+          end            
+        end
+        if er
+          puts "\e[91m#{er}"
+        else
+          if $ctl_change_key
+            $key = inp.to_sym
+          else
+            $scale = inp
+          end
+        end
+      end while er
+      $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
+      set_global_vars_late
+      $freq2hole = read_calibration
+      start_kb_handler
+      prepare_term
+      $ctl_redraw = :silent
+      print "\e[2J\e[#{$line_key}H\e[2m" + text_for_key
+      if $ctl_change_key
+        print "\e[#{$line_hint_or_message}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
+      else
+        print "\e[#{$line_hint_or_message}H\e[2mChanged scale in use to \e[0m#{$scale}\e[K"
+      end
+      $message_shown = Time.now.to_f
+      $ctl_change_key = $ctl_change_scale = false
+    end
+
+    if $ctl_quit
+      print "\e[#{$line_hint_or_message}H\e[K\e[0mTerminating on user request (quit) ...\n"
+      exit 0
     end
 
     if done || ( $message_shown && Time.now.to_f - $message_shown > 8 )

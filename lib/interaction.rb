@@ -155,11 +155,16 @@ end
 
 
 def start_kb_handler
-  Thread.new do
+  @kb_handler = Thread.new do
     loop do
       $ctl_kb_queue.enq STDIN.getc
     end
   end
+end
+
+
+def stop_kb_handler
+  @kb_handler.exit
 end
 
 
@@ -196,6 +201,15 @@ def handle_kb_play
     text = 'Skip'
   elsif char == 'j' && $ctl_can_journal
     $ctl_toggle_journal = true
+    text = nil
+  elsif char == 'k'
+    $ctl_change_key = true
+    text = nil
+  elsif char == 's'
+    $ctl_change_scale = true
+    text = nil
+  elsif char == 'q'
+    $ctl_quit = true
     text = nil
   elsif char == '?' or char == 'h'
     $ctl_show_help = true

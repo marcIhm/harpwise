@@ -15,7 +15,7 @@ def do_listen
   system('clear')
   pipeline_catch_up
 
-  get_hole(-> () {"Play notes from the scale to get \e[32mgreen\e[0m"},   # lambda_issue
+  get_hole(-> () {"\e[0mPlay notes from the scale to get \e[32mgreen\e[0m"},   # lambda_issue
 
            -> (played, _) {[$scale_holes.include?(played),  # lambda_good_done
                             false]},
