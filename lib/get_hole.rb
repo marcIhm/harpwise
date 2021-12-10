@@ -34,11 +34,12 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     handle_win_change if $ctl_sig_winch
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
-    
+
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_play
     ctl_issue
+    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first
     
     good = done = false
       
@@ -72,10 +73,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "   --  Hz  [#{just_dots_short}]\e[K"
     end
 
-    print "\e[#{$line_interval}H"
     inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
     if inter_semi
-      print "Interval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
+      print "\e[#{$line_interval}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
       # let old interval be visible
     end
@@ -229,13 +229,13 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       er = inp = nil
       begin
         if $ctl_change_key
-          print "\e[2mPlease enter \e[0mnew key\e[2m (current is #{$key}):\e[0m "
+          print "\e[0m\e[2mPlease enter \e[0mnew key\e[2m (current is #{$key}):\e[0m "
           inp = STDIN.gets.chomp
-          inp = $key if inp == ''
+          inp = $key.to_s if inp == ''
           er = check_key(inp)
         else
           scales = scales_for_type($type)
-          print "\e[2mPlease enter \e[0mnew scale\e[2m (one of #{scales.join(', ')}; current is #{$scale}):\e[0m "
+          print "\e[0m\e[2mPlease enter \e[0mnew scale\e[2m (one of #{scales.join(', ')}; current is #{$scale}):\e[0m "
           inp = STDIN.gets.chomp
           inp = $scale if inp == ''
           scale = match_or(inp, scales) do |none, choices|
@@ -258,7 +258,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       start_kb_handler
       prepare_term
       $ctl_redraw = :silent
-      print "\e[2J\e[#{$line_key}H\e[2m" + text_for_key
+      system('clear')
+      print "\e[3J\e[#{$line_key}H\e[2m" + text_for_key
       if $ctl_change_key
         print "\e[#{$line_hint_or_message}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
       else
