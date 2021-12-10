@@ -199,7 +199,7 @@ def read_chart
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   len = chart.shift
   # first two elements will be set when checking for terminal size
-  $conf[:chart_offset_xyl] = [0, 0, len]
+  $conf[:chart_offset_xyl] = [0, 0, len] unless $conf[:chart_offset_xyl]
   begin
     # check for completeness
     hchart = Set.new(chart.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})

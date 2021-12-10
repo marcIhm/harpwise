@@ -239,7 +239,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
           inp = STDIN.gets.chomp
           inp = $scale if inp == ''
           scale = match_or(inp, scales) do |none, choices|
-            er = "Given scale '#{none}' is none of #{choices}"
+            er = "Given scale #{none} is none of #{choices}"
           end            
         end
         if er
@@ -253,6 +253,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         end
       end while er
       $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
+      $chart, $hole2chart = read_chart
       set_global_vars_late
       $freq2hole = read_calibration
       start_kb_handler
