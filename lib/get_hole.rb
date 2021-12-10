@@ -270,7 +270,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     if $ctl_quit
-      print "\e[#{$line_hint_or_message}H\e[K\e[0mTerminating on user request (quit) ...\n"
+      print "\e[#{$line_hint_or_message}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
       exit 0
     end
 
