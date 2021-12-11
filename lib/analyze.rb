@@ -31,8 +31,8 @@ def note2semi note
 end
 
 
-def semi2note semi, sharp_or_flat = :sharp
-  semi += 57
+def semi2note semi, sharp_or_flat = $conf[:pref_sig]
+  semi += 57  # value for a4
   case sharp_or_flat
   when :flat
     $notes_with_flats[semi % 12] + (semi / 12).to_s

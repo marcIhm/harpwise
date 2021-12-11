@@ -192,7 +192,7 @@ EOU
   end
 
   # now we have the information to process key and scale
-  er = check_key(arg_for_key)
+  er = check_key_and_set_pref_sig(arg_for_key)
   err_b er if er
   $key = key = arg_for_key.to_sym
 
@@ -226,7 +226,16 @@ EOU
 end
 
 
-def check_key key
+def check_key_and_set_pref_sig key
+  $conf[:pref_sig] = if key.length == 2
+                       if key[-1] == 'f'
+                         :flat
+                       else
+                         :sharp
+                       end
+                     else
+                       $conf[:pref_sig_def]
+                     end
   if $conf[:all_keys].include?(key)
     nil
   else
