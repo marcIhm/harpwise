@@ -27,11 +27,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
       end
-      $ctl_redraw = false
     end
     print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if first
-
-    handle_win_change if $ctl_sig_winch
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
 
@@ -39,7 +36,10 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     pipeline_catch_up if handle_kb_play
     ctl_issue
-    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first
+    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first || $ctl_redraw
+
+    $ctl_redraw = false
+    handle_win_change if $ctl_sig_winch
     
     good = done = false
       

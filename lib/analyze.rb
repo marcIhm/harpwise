@@ -89,33 +89,34 @@ def analyze_with_aubio file
   minf, maxf = freqs.minmax
   aver = freqs.length > 0  ?  freqs.sum / freqs.length  :  0
   puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
-  puts "\e[31mWARNING\e[0m: min and max of recorded samples are two far apart !\nmaybe repeat recording more steadily." if ( maxf - minf ) > 0.1 * aver
+  puts "\e[31mWARNING\e[0m: min and max of recorded samples are two far apart !\nMaybe repeat recording more steadily ?" if ( maxf - minf ) > 0.1 * aver
   aver
 end
 
 
 def inspect_recording hole, file
-  rec_ok = true
   note = $harp[hole][:note]
   semi = note2semi(note)
   freq_et = semi2freq_et(semi)
   freq_et_p1 = semi2freq_et(semi + 1)
   freq_et_m1 = semi2freq_et(semi - 1)
-  puts "Analysis of current recorded/generated sound (hole: #{hole}, note: #{note}):"
+  puts "\e[33mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
   freq = analyze_with_aubio(file)
   note2semi($harp[hole][:note])
-  puts "Frequency: #{freq}     (ET tuning would be: #{freq_et.round(2)},  -1st: #{freq_et_m1.round(1)},  +1st: #{freq_et_p1.round(1)})"
+  puts "Frequency: #{freq}     (ET would be: #{freq_et.round(2)},  -1 st: #{freq_et_m1.round(1)},  +1 st: #{freq_et_p1.round(1)})"
+  dots, _ = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}
+  puts "           [#{dots}]"
   too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
-  too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs 
-  if  too_low || too_high
-    puts "\n\n\e[31mWARNING:\e[0m\nThe frequency recorded for \e[33m#{hole}\e[0m (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
+  too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs
+  if too_low || too_high
+    puts "\n\e[31mWARNING:\e[0m\nThe frequency recorded for \e[33m#{hole}\e[0m (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
     puts "  You played:             #{freq}"
     puts "  ET expects:             #{freq_et.round(1)}"
     puts "  ET one semitone lower:  #{freq_et_m1.round(1)}"
     puts "  ET one semitone higher: #{freq_et_p1.round(1)}"
-    puts "You played \e[31mmuch #{too_low ? 'LOWER' : 'HIGHER'}\e[0m than expected for hole #{hole}."
-    puts "\nMaybe you hit the wrong hole ? Please redo your recording !\n\n"
-    rec_ok = false
+    puts "You played much \e[31m#{too_low ? 'LOWER' : 'HIGHER'}\e[0m than expected for hole #{hole}."
+    puts "(i.e. much closer to neighboring semitones than to target note)"
+    puts "\nMaybe repeat recording with the right hole and pitch ?\n\n"
   end
-  return rec_ok, freq
+  return freq
 end

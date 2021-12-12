@@ -285,13 +285,12 @@ def read_answer answer2chars_desc
 end
 
 
-def draw_data file, from, to, marker
+def draw_data file, marker
   sys "sox #{file} #{$tmp_dir}/sound-to-plot.dat"
   IO.write "#{$tmp_dir}/sound.gp", <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
 set datafile commentschars ";"
 set xlabel "time (s)"
-set xrange [#{from}:#{to}]
 set ylabel "sample value"
 set nokey
 set arrow from #{marker}, graph 0 to #{marker}, graph 1 nohead

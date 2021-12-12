@@ -25,19 +25,20 @@ end
 
 
 def edit_sound hole, file
-  play_from = zoom_from = 0
-  zoom_to = duration = wave2data(file)
-  do_draw = false
-  craft_sound file, play_from, $edit_wave
+  duration = wave2data(file)
+  do_draw = true
+  play_from = find_onset($edit_data)
+  trim_sound file, play_from, $edit_wave
   loop do
     if do_draw
-      draw_data($edit_data, zoom_from, zoom_to, play_from)
+      draw_data($edit_data, play_from)
+      inspect_recording(hole, file)
       do_draw = false
     else
       puts
     end
-    puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, zoom from #{zoom_from} to #{zoom_to}, play from #{play_from}."
-    puts "Choices: <zoom_from> <zoom_to> | <play_from> | <empty> | d | y | q | r"
+    puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
+    puts "Choices: <play_from> | <empty> | d | y | q | r"
     print "Your input ('h' for help): "
     choice = one_char
 
@@ -54,13 +55,12 @@ def edit_sound hole, file
 
 Type any of these:
 
-  <zoom-from> <zoom-to> :  Zoom plot to given range;  Example:  0.2  0.35
            <start-from> :  Set position to play from (vertical line in plot);  Example:  0.4
                  RETURN :  Play from current position
-                      d :  Draw wave curve again
+                      d :  Draw current wave form
                       y :  Accept current play position and skip to next hole
                       q :  Discard edit
-                      r :  Redo this edit and recording before
+                      r :  Record and edit again
 
 EOHELP
       print "Press RETURN to continue: "
@@ -82,20 +82,12 @@ EOHELP
       return :redo
     elsif numeric
       begin
-        vals = choice.split.map {|x| Float(x)}
-        vals.each do |x|
-          raise ArgumentError.new('must be > 0') if x < 0
-          raise ArgumentError.new("must be < duration #{duration}") if x >= duration
-        end
-        if vals.length == 2
-          zoom_from, zoom_to = vals
-          do_draw = true
-        elsif vals.length == 1
-          play_from = vals[0]
-          craft_sound file, play_from, $edit_wave
-          do_draw = true
-        else
-        end
+        val = choice.to_f
+        raise ArgumentError.new('must be > 0') if val < 0
+        raise ArgumentError.new("must be < duration #{duration}") if val >= duration
+        play_from = val
+        trim_sound file, play_from, $edit_wave
+        do_draw = true
       rescue ArgumentError => e
         puts "Invalid Input '#{choice}': #{e.message}"
       end
@@ -106,9 +98,9 @@ EOHELP
 end
 
 
-def craft_sound file, play_from, crafted
-  puts "Taking 1 second of original sound, starting at #{play_from}"
-  sys "sox #{file} #{crafted} trim #{play_from} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
+def trim_sound file, play_from, trimmed
+  puts "Using 1 second of original sound, starting at %.2f" % play_from
+  sys "sox #{file} #{trimmed} trim #{play_from} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
 end
 
 
@@ -128,6 +120,28 @@ end
 def wave2data file
   sys "sox #{file} #{$edit_data}"
   sox_query(file, 'Length')
+end
+
+
+def find_onset data_file
+  max = 0
+  File.foreach(data_file) do |line|
+    next if line[0] == ';'
+    max = [max, line.split[1].to_f].max
+  end
+  
+  max13 = max * 1.0/3
+  max23 = max13 * 2
+  t13 = t23 = nil
+  File.foreach(data_file) do |line|
+    next if line[0] == ';'
+    t, v = line.split.map(&:to_f)
+    t13 = t if !t13 && v >= max13
+    t23 = t if !t23 && v >= max23
+  end
+  ts = t13 - 2 * ( t23 - t13 ) - 0.1
+  ts = 0 if ts < 0
+  ts
 end
 
 

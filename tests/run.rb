@@ -60,7 +60,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-7] == 'Frequency: 195     (ET tuning would be: 196.0,  -1st: 185.0,  +1st: 207.7)' }
+    expect { screen[-5] == 'Frequency: 195     (ET would be: 196.0,  -1 st: 185.0,  +1 st: 207.7)' }
     kill_session
   end
   
@@ -75,7 +75,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[1,2] == ['  You played:             784',
+    expect { screen[-12,2] == ['  You played:             784',
                              '  ET expects:             523.3']}
     kill_session
   end
