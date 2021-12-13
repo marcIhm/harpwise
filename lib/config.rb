@@ -67,9 +67,9 @@ end
 def set_global_vars_late
   $sample_dir = this_or_equiv("#{$data_dir}/samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.yaml"
-  $collect_wave = "#{$tmp_dir}/collect.wav"
-  $edit_data = "#{$tmp_dir}/edit_workfile.dat"
-  $edit_wave = "#{$tmp_dir}/edit_workfile.wav"
+  $helper_wave = "#{$tmp_dir}/helper.wav"
+  $recorded_data = "#{$tmp_dir}/recorded.dat"
+  $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
 end
 
 

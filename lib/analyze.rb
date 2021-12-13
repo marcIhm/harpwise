@@ -103,9 +103,8 @@ def inspect_recording hole, file
   puts "\e[33mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
   freq = analyze_with_aubio(file)
   note2semi($harp[hole][:note])
-  puts "Frequency: #{freq}     (ET would be: #{freq_et.round(2)},  -1 st: #{freq_et_m1.round(1)},  +1 st: #{freq_et_p1.round(1)})"
   dots, _ = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}
-  puts "           [#{dots}]"
+  puts "Frequency: #{freq}, ET: #{freq_et.round(0)}, -1st:#{freq_et_m1.round(0)} [#{dots}] +1st:#{freq_et_p1.round(0)}"
   too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
   too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs
   if too_low || too_high

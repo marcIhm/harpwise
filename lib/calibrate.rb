@@ -131,29 +131,34 @@ EOINTRO
   end
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
-  $harp_holes.each do |hole|
-    puts "  Hole %-8s, Frequency: %6.2d   (ET: %6.2d)" % [hole, hole2freq[hole], semi2freq_et(note2semi($harp[hole][:note]))]
+  [nil, *$harp_holes, nil].each_cons(3) do |phole, hole, nhole|
+    pfreq, hfreq, nfreq = [phole, hole, nhole].map {|h| h && semi2freq_et(note2semi($harp[h][:note]))}
+    freq = hole2freq[hole]
+    print "  Hole %-8s, Frequency: %6.2d   (ET: %6.2d,  diff: %4d)" % [hole, freq, hfreq, freq - hfreq]
+    print '  TOO LOW !' if pfreq && (pfreq - freq).abs < (hfreq - freq).abs
+    print '  TOO HIGH !' if nfreq && (nfreq - freq).abs < (hfreq - freq).abs
+    puts
   end
-  puts "\n(you may compare recorded frequencies with those calculated from equal temperament tuning)"
+  puts "\nYou may compare recorded frequencies with those calculated from equal temperament tuning."
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
 
 def record_and_review_hole hole
 
-  file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
-  if File.exists?(file)
-    puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{file} already exists."
-    wave2data(file)
+  recorded = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+  if File.exists?(recorded)
+    puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{recorded} already exists."
+    wave2data(recorded)
   else
-    puts "\nFile  #{file}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
+    puts "\nFile  #{recorded}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
   end
-  issue_before_edit = false
+  issue_before_trim = false
 
-  # This loop contains all the operations record, edit and draw as well as some checks and user input
+  # This loop contains all the operations record, trim and draw as well as some checks and user input
   # the sequence of these actions is fixed; if they are executed at all is determined by do_xxx
   # For the first loop iteration this is set below, for later iterations according to user input
-  do_record, do_draw, do_edit = [false, true, false]
+  do_record, do_draw, do_trim = [false, true, false]
   freq = nil
   
   begin  # while answer != :okay
@@ -168,64 +173,64 @@ def record_and_review_hole hole
       # Discard stale samples (which we recognize, because they are delivered too fast)
       begin
         tstart_record = Time.now.to_f
-        record_sound 0.2, $collect_wave, silent: true
+        record_sound 0.2, $helper_wave, silent: true
       end while Time.now.to_f - tstart_record < 0.1
       
-      puts "\e[31mRECORDING\e[0m to #{file} ..."
-      record_sound 3, file
-      wave2data(file)
+      puts "\e[31mRECORDING\e[0m to #{recorded} ..."
+      record_sound 3, recorded
+      wave2data(recorded)
       
       puts "\e[32mdone\e[0m"
     end
 
     
-    if File.exists?(file)  # normally true, can only be false on first iteration
+    if File.exists?(recorded)  # normally true, can only be false on first iteration
       
-      if do_draw && !do_edit  # true on first iteration
-        draw_data($edit_data, 0)
+      if do_draw && !do_trim  # true on first iteration
+        draw_data($recorded_data, 0)
       end
             
-      if do_edit  # false on first iteration
-        puts issue_before_edit if issue_before_edit
-        issue_before_edit = false
-        result = edit_sound(hole, file)
+      if do_trim  # false on first iteration
+        puts issue_before_trim if issue_before_trim
+        issue_before_trim = false
+        result = trim_recording(hole, recorded)
         if result == :redo
-          puts "Redo recording and edit..."
-          do_record, do_draw, do_edit = [true, false, true]
+          puts "Redo recording and trim ..."
+          do_record, do_draw, do_trim = [true, false, true]
           redo                         
         elsif result == :next_hole
-          return :next, analyze_with_aubio(file)
+          return :next, analyze_with_aubio(recorded)
         end
       end
       
-      freq = inspect_recording(hole, file)
+      freq = inspect_recording(hole, recorded)
       
     end
 
     # get user input
-    puts "\n\e[33mWhat's next\e[0m for hole   \e[33m#{hole}\e[0m   (key of #{$key}) ?"
+    puts "\n\e[33mReview and record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key}) ?"
     choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
-               :edit => [['e'], 'edit recorded sound, i.e. set start for play'],
-               :draw => [['d'], 'redraw sound data'],
-               :record => [['r'], 'record RIGHT AWAY (after countdown)'],
+               :trim => [['t'], 'trim recorded sound, i.e. set start for play'],
+               :draw => [['d'], 'draw sound data (again)'],
+               :record => [['r'], 'record and trim RIGHT AWAY (after countdown)'],
                :generate => [['g'], 'generate a sound for the ET frequency of the hole'],
-               :frequency => [['f'], "show and play the ET frequency of the hole by generating and\n              analysing a sample sound; does not overwrite current recording"],
+               :frequency => [['f'], "show and play the ET frequency of the hole by generating and\nanalysing a sample sound; does not overwrite current recording"],
                :back => [['b'], 'go back to previous hole'],
                :quit => [['q', 'x'], 'exit from calibration but still save frequency of current hole']}
     
-    choices[:okay] = [['RETURN'], 'keep sound and continue'] if File.exists?(file)
+    choices[:okay] = [['y'], 'keep sound and continue'] if File.exists?(recorded)
     
     answer = read_answer(choices)
 
     # operations will be in this sequence if set below according to user input
-    do_record, do_draw, do_edit = [false, false, false]
+    do_record, do_draw, do_trim = [false, false, false]
     case answer
     when :play
-      print "play ... "
-      play_sound file
-      puts "done\n"
-    when :edit
-      do_edit = true
+      print 'Play ... '
+      play_sound recorded
+      puts 'done'
+    when :trim
+      do_trim = true
     when :draw
       do_draw = true
     when :back
@@ -233,18 +238,18 @@ def record_and_review_hole hole
     when :quit
       return :quit, freq
     when :frequency
-      print "--- Generate and analyse a sample sound:"
-      synth_sound hole, $collect_wave
-      play_sound $collect_wave
-      puts "Frequency: #{analyze_with_aubio($collect_wave)}"
-      puts "--- done\n\n"
+      print 'Generate and analyse a sample sound:'
+      synth_sound hole, $helper_wave
+      play_sound $helper_wave
+      puts "Frequency: #{analyze_with_aubio($helper_wave)}"
+      puts "done\n\n"
     when :generate
-      synth_sound hole, file
-      wave2data(file)
+      synth_sound hole, recorded
+      wave2data(recorded)
       do_draw = true
     when :record
-      do_record, do_draw, do_edit = [true, false, true]
-      issue_before_edit = 'Editing recorded sound right away ...'
+      do_record, do_draw, do_trim = [true, false, true]
+      issue_before_trim = "\nTrimming recorded sound right away ...\n\n"
     end
     
   end while answer != :okay

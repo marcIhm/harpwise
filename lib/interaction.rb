@@ -259,7 +259,9 @@ def read_answer answer2chars_desc
   end
   maxlen = klists.map {|k,v| v.length}.max
   answer2chars_desc.each do |an, ks_d|
-    puts "  %*s :  %s" % [maxlen, klists[an], ks_d[1]]
+    lines = ks_d[1].lines
+    ind = lines[0] + lines[1 .. -1].map {|l| ' ' * (maxlen + 6) + l}.join
+    puts "  %*s :  %s" % [maxlen, klists[an], ind]
   end
 
   begin

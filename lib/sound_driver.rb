@@ -24,21 +24,21 @@ def run_aubiopitch file, extra = nil
 end
 
 
-def edit_sound hole, file
-  duration = wave2data(file)
+def trim_recording hole, recorded
+  duration = wave2data(recorded)
   do_draw = true
-  play_from = find_onset($edit_data)
-  trim_sound file, play_from, $edit_wave
+  play_from = find_onset($recorded_data)
+  trim_sound recorded, play_from, $trimmed_wave
   loop do
     if do_draw
-      draw_data($edit_data, play_from)
-      inspect_recording(hole, file)
+      draw_data($recorded_data, play_from)
+      inspect_recording(hole, recorded)
       do_draw = false
     else
       puts
     end
-    puts "\e[33mEditing\e[0m #{File.basename(file)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
-    puts "Choices: <play_from> | <empty> | d | y | q | r"
+    puts "\e[33mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
+    puts 'Choices: <play_from> | d | y | q | r'
     print "Your input ('h' for help): "
     choice = one_char
 
@@ -56,7 +56,7 @@ def edit_sound hole, file
 Type any of these:
 
            <start-from> :  Set position to play from (vertical line in plot);  Example:  0.4
-                 RETURN :  Play from current position
+               p, SPACE :  Play from current position
                       d :  Draw current wave form
                       y :  Accept current play position and skip to next hole
                       q :  Discard edit
@@ -65,18 +65,18 @@ Type any of these:
 EOHELP
       print "Press RETURN to continue: "
       
-    elsif ['', "\r", "\n" , 'p'].include?(choice)
-      puts "Playing ..."
-      play_sound $edit_wave
+    elsif ['', ' ', "\r", "\n" , 'p'].include?(choice)
+      puts "Play from %.2f ..." % play_from
+      play_sound $trimmed_wave
     elsif choice == 'd'
       do_draw = true
     elsif choice == 'y'
-      FileUtils.cp $edit_wave, file
-      wave2data(file)
-      puts "Edit accepted, updated #{File.basename(file)}, skipping to next hole."
+      FileUtils.cp $trimmed_wave, recorded
+      wave2data(recorded)
+      puts "\nEdit accepted, trimmed #{File.basename(recorded)}, skipping to next hole.\n\n"
       return :next_hole
     elsif choice == 'q'
-      puts "Edit aborted, #{File.basename(file)} remains unchanged"
+      puts "\nEdit aborted, #{File.basename(recorded)} remains untrimmed.\n\n"
       return nil
     elsif choice == 'r' || choice == 'e'
       return :redo
@@ -86,7 +86,7 @@ EOHELP
         raise ArgumentError.new('must be > 0') if val < 0
         raise ArgumentError.new("must be < duration #{duration}") if val >= duration
         play_from = val
-        trim_sound file, play_from, $edit_wave
+        trim_sound recorded, play_from, $trimmed_wave
         do_draw = true
       rescue ArgumentError => e
         puts "Invalid Input '#{choice}': #{e.message}"
@@ -100,7 +100,7 @@ end
 
 def trim_sound file, play_from, trimmed
   puts "Using 1 second of original sound, starting at %.2f" % play_from
-  sys "sox #{file} #{trimmed} trim #{play_from} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
+  sys "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
 end
 
 
@@ -118,7 +118,7 @@ end
 
 
 def wave2data file
-  sys "sox #{file} #{$edit_data}"
+  sys "sox #{file} #{$recorded_data}"
   sox_query(file, 'Length')
 end
 
