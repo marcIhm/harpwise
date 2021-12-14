@@ -108,13 +108,13 @@ def inspect_recording hole, file
   too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
   too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs
   if too_low || too_high
-    puts "\n\e[31mWARNING:\e[0m\nThe frequency recorded for \e[33m#{hole}\e[0m (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
+    puts "\n\e[91mWARNING:\e[0m\nThe frequency recorded for \e[33m#{hole}\e[0m (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
     puts "  You played:             #{freq}"
     puts "  ET expects:             #{freq_et.round(1)}"
     puts "  Difference:             #{(freq - freq_et).round(1)}"
     puts "  ET one semitone lower:  #{freq_et_m1.round(1)}"
     puts "  ET one semitone higher: #{freq_et_p1.round(1)}"
-    puts "You played much \e[31m#{too_low ? 'LOWER' : 'HIGHER'}\e[0m than expected for hole #{hole}."
+    puts "You played much \e[91m#{too_low ? 'LOWER' : 'HIGHER'}\e[0m than expected for hole #{hole}."
     puts "(i.e. much closer to neighboring semitones than to target note)"
     puts "\nMaybe repeat recording with the right hole and pitch ?\n\n"
   end
