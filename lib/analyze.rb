@@ -88,8 +88,10 @@ def analyze_with_aubio file
   freqs = freqs[freqs.length/2 .. -1]
   minf, maxf = freqs.minmax
   aver = freqs.length > 0  ?  freqs.sum / freqs.length  :  0
-  puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
-  puts "\e[31mWARNING\e[0m: min and max of recorded samples are two far apart !\nMaybe repeat recording more steadily ?" if ( maxf - minf ) > 0.1 * aver
+  if ( maxf - minf ) > 0.1 * aver
+    puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
+    puts "\e[31mWARNING\e[0m: min and max of recorded samples are two far apart !\nMaybe repeat recording more steadily ?"
+  end
   aver
 end
 

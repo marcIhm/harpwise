@@ -38,32 +38,31 @@ def trim_recording hole, recorded
       puts
     end
     puts "\e[33mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
-    puts 'Choices: <play_from> | d | y | q | r'
-    print "Your input ('h' for help): "
+    puts 'Choices: <play_from> | d:raw | y:es | q:uit | r:ecord'
+    print "Your choice ('h' for help): "
     choice = one_char
 
     if ('0' .. '9').to_a.include?(choice) || choice == '.'
+      choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += STDIN.gets.chomp.downcase.strip
       numeric = true
     else
-      puts
+      puts choice
       numeric = false
     end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
 
-Type any of these:
+Full Help:
 
-           <start-from> :  Set position to play from (vertical line in plot);  Example:  0.4
-               p, SPACE :  Play from current position
-                      d :  Draw current wave form
-                      y :  Accept current play position and skip to next hole
-                      q :  Discard edit
-                      r :  Record and edit again
-
+   <start-from> :  set position to play from (vertical line in plot);  Example:  0.4
+       p, SPACE :  play from current position
+              d :  draw current wave form
+              y :  accept current play position and skip to next hole
+              q :  discard edit
+              r :  record and edit again
 EOHELP
-      print "Press RETURN to continue: "
       
     elsif ['', ' ', "\r", "\n" , 'p'].include?(choice)
       puts "Play from %.2f ..." % play_from

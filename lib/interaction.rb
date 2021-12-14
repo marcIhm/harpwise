@@ -252,37 +252,37 @@ def ctl_issue text = nil, **opts
 end
   
 
-def read_answer answer2chars_desc
+def read_answer ans2chs_dsc
   klists = Hash.new
-  answer2chars_desc.each do |an, ks_d|
-    klists[an] = ks_d[0].join(', ')
+  ans2chs_dsc.each do |ans, chs_dsc|
+    klists[ans] = chs_dsc[0].join(',')
   end
   maxlen = klists.map {|k,v| v.length}.max
-  answer2chars_desc.each do |an, ks_d|
-    lines = ks_d[1].lines
-    ind = lines[0] + lines[1 .. -1].map {|l| ' ' * (maxlen + 6) + l}.join
-    puts "  %*s :  %s" % [maxlen, klists[an], ind]
+  i = 0
+  ans2chs_dsc.each do |ans, chs_dsc|
+    print "  %*s :  %-18s" % [maxlen, klists[ans], chs_dsc[1]]
+    puts if (i += 1) % 2 == 0
   end
 
   begin
-    print "\nYour choice (press a single key): "
+    print "\nYour choice ('h' for help): "
     char = one_char
-    char = case char
-           when "\r", "\n"
-             'RETURN'
-           when ' '
-             'SPACE'
-           else
-             char
-           end
+    char = {' ' => 'SPACE', "\n" => 'RETURN'}[char] || char
     puts char
     puts
     answer = nil
-    answer2chars_desc.each do |an, ks_d|
-      answer = an if ks_d[0].include?(char)
+    ans2chs_dsc.each do |ans, chs_dsc|
+      answer = ans if chs_dsc[0].include?(char)
     end
+    answer = :help if char == 'h'
     puts "Invalid key: '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})" unless answer
-  end while !answer
+    if answer == :help
+      puts "Full Help:\n\n"
+      ans2chs_dsc.each do |ans, chs_dsc|
+        puts '  %*s :  %s' % [maxlen, klists[ans], chs_dsc[2]]
+      end
+    end
+  end while !answer || answer == :help
   answer
 end
 

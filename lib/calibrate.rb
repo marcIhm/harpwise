@@ -103,9 +103,10 @@ Tips: You may invoke this assistant again at any later time, just to review
 
 EOINTRO
 
-  print "Press RETURN to start with the first hole\n"
-  print "   or SPACE  to skip directly to summary: "
+  print "Press any key to start with the first hole\n"
+  print "   or type 's' to skip directly to summary: "
   char = one_char
+  print "\n\n"
 
   if File.exist?($freq_file)
     hole2freq = yaml_parse($freq_file)
@@ -113,7 +114,7 @@ EOINTRO
     hole2freq = Hash.new
   end
 
-  unless char == ' '
+  unless char == 's'
     (0 .. holes.length - 1).each do |i|
       hole = holes[i]
       what, freq = record_and_review_hole(hole)
@@ -224,17 +225,17 @@ def record_and_review_hole hole
     end
 
     # get user input
-    puts "\n\e[33mReview and record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key}) ?"
-    choices = {:play => [['p', 'SPACE'], 'play recorded sound'],
-               :trim => [['t'], 'trim recorded sound, i.e. set start for play'],
-               :draw => [['d'], 'draw sound data (again)'],
-               :record => [['r'], 'record and trim RIGHT AWAY (after countdown)'],
-               :generate => [['g'], 'generate a sound for the ET frequency of the hole'],
-               :frequency => [['f'], "show and play the ET frequency of the hole by generating and\nanalysing a sample sound; does not overwrite current recording"],
-               :back => [['b'], 'go back to previous hole'],
-               :quit => [['q', 'x'], 'exit from calibration but still save frequency of current hole']}
+    puts "\n\e[33mReview and/or record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key})"
+    choices = {:play => [['p', 'SPACE'], 'play recorded', 'play recorded sound'],
+               :draw => [['d'], 'draw sound', 'draw sound data (again)'],
+               :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
+               :record => [['r'], 'record and trim', 'record and trim RIGHT AWAY (after countdown)'],
+               :trim => [['t'], 'trim', 'trim recorded sound, i.e. set start for play'],
+               :generate => [['g'], 'generate', 'generate a sound for the ET frequency of the hole'],
+               :back => [['b'], 'back', 'go back to previous hole'],
+               :quit => [['q', 'x'], 'exit', 'exit from calibration but still save frequency of current hole']}
     
-    choices[:okay] = [['y'], 'keep recording and continue'] if File.exists?(recorded)
+    choices[:okay] = [['y', 'RETURN'], 'keep recording and on', 'keep recording and continue'] if File.exists?(recorded)
     
     answer = read_answer(choices)
 
