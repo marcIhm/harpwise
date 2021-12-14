@@ -94,10 +94,12 @@ Hint: If you want to calibrate for another key of harp, you might copy the
 
 Tips: You may invoke this assistant again at any later time, just to review
   your recorded notes and maybe correct some of them. 
-  Results are written to disk immediately, so you may interrupt the process
-  with ctrl-c after any hole. To record a specific hole only, use option
+  Results are written to disk immediately, so you may end the process
+  after any hole. To record a specific hole only, use option
   '--hole'.
 
+  After all holes have been recorded, a summary of all frequencies will be
+  written, so that you may do an overall check of your recordings.
 
 EOINTRO
 
@@ -131,15 +133,26 @@ EOINTRO
   end
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
-  [nil, *$harp_holes, nil].each_cons(3) do |phole, hole, nhole|
-    pfreq, hfreq, nfreq = [phole, hole, nhole].map {|h| h && semi2freq_et(note2semi($harp[h][:note]))}
+  puts '       Hole  |  Freq  |    ET  | Diff |   Remark'
+  puts '  ------------------------------------------------'
+  maxhl = $harp_holes.map(&:length).max
+  $harp_holes.each do |hole|
+    semi = note2semi($harp[hole][:note])
     freq = hole2freq[hole]
-    print "  Hole %-8s, Frequency: %6.2d   (ET: %6.2d,  diff: %4d)" % [hole, freq, hfreq, freq - hfreq]
-    print '  TOO LOW !' if pfreq && (pfreq - freq).abs < (hfreq - freq).abs
-    print '  TOO HIGH !' if nfreq && (nfreq - freq).abs < (hfreq - freq).abs
+    freq_et = semi2freq_et(semi)
+    freq_et_p1 = semi2freq_et(semi + 1)
+    freq_et_m1 = semi2freq_et(semi - 1)
+    remark = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
+               'too  low' 
+             elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
+               'too high' 
+             else
+               ''
+             end
+    print '    %*s%*s | %6.2d | %6.2d | %4d | %s ' % [8 - maxhl, '', -maxhl, hole, freq, freq_et, freq - freq_et, remark]
     puts
   end
-  puts "\nYou may compare recorded frequencies with those calculated from equal temperament tuning."
+  puts "\nYou may compare recorded frequencies with those calculated from equal temperament tuning. Remarks indicate, if the frequency of any recording is nearer to a neighboring semitone than to the target one."
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
@@ -218,7 +231,7 @@ def record_and_review_hole hole
                :back => [['b'], 'go back to previous hole'],
                :quit => [['q', 'x'], 'exit from calibration but still save frequency of current hole']}
     
-    choices[:okay] = [['y'], 'keep sound and continue'] if File.exists?(recorded)
+    choices[:okay] = [['y'], 'keep recording and continue'] if File.exists?(recorded)
     
     answer = read_answer(choices)
 
