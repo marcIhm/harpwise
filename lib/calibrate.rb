@@ -99,12 +99,13 @@ Tips: You may invoke this assistant again at any later time, just to review
   '--hole'.
 
   After all holes have been recorded, a summary of all frequencies will be
-  written, so that you may do an overall check of your recordings.
+  shown, so that you may do an overall check of your recordings.
 
 EOINTRO
 
-  print "Press RETURN to start with the \e[32mfirst\e[0m hole: "
-  STDIN.gets
+  print "Press RETURN to start with the first hole\n"
+  print "   or SPACE  to skip directly to summary: "
+  char = one_char
 
   if File.exist?($freq_file)
     hole2freq = yaml_parse($freq_file)
@@ -112,24 +113,26 @@ EOINTRO
     hole2freq = Hash.new
   end
 
-  (0 .. holes.length - 1).each do |i|
-    hole = holes[i]
-    what, freq = record_and_review_hole(hole)
-    if freq
-      hole2freq[hole] = freq
-      write_freq_file hole2freq
-    end
-
-    if what == :back
-      if i == 0
-        puts "\n\n\e[31mCANNOT GO BACK !\e[0m  Already at first hole.\n\n\n"
-        sleep 0.5
-      else
-        i -= 1
+  unless char == ' '
+    (0 .. holes.length - 1).each do |i|
+      hole = holes[i]
+      what, freq = record_and_review_hole(hole)
+      if freq
+        hole2freq[hole] = freq
+        write_freq_file hole2freq
       end
-      redo
+      
+      if what == :back
+        if i == 0
+          puts "\n\n\e[31mCANNOT GO BACK !\e[0m  Already at first hole.\n\n\n"
+          sleep 0.5
+        else
+          i -= 1
+        end
+        redo
+      end
+      break if what == :quit
     end
-    break if what == :quit
   end
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
