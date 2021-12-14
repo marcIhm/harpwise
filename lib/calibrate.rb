@@ -143,13 +143,13 @@ EOINTRO
     freq_et_p1 = semi2freq_et(semi + 1)
     freq_et_m1 = semi2freq_et(semi - 1)
     remark = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
-               'too  low' 
+               ' too low' 
              elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
                'too high' 
              else
                ''
              end
-    print '    %*s%*s | %6.2d | %6.2d | %4d | %s ' % [8 - maxhl, '', -maxhl, hole, freq, freq_et, freq - freq_et, remark]
+    print '    %8s | %6.2d | %6.2d | %4d | %s ' % [hole.ljust(maxhl), freq, freq_et, freq - freq_et, remark]
     puts
   end
   puts "\nYou may compare recorded frequencies with those calculated from equal temperament tuning. Remarks indicate, if the frequency of any recording is nearer to a neighboring semitone than to the target one."
