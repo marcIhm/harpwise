@@ -219,8 +219,7 @@ def record_and_review_hole hole
     choices = {:play => [['p', 'SPACE'], 'play recording', 'play recorded sound'],
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
                :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
-               :record => [['r'], 'record and trim', 'record and trim RIGHT AWAY (after countdown)'],
-               :trim => [['t'], 'trim recording', 'trim recorded sound, i.e. set start for play'],
+               :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown), then trim recording and remove initial silence and surplus length'],
                :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
                :back => [['b'], 'back to prev hole', 'jump back to previous hole'],
                :quit => [['q'], 'quit calibration', 'exit from calibration']}
@@ -236,8 +235,6 @@ def record_and_review_hole hole
       print "\e[33mPlay\e[0m ... "
       play_sound recorded
       puts 'done'
-    when :trim
-      do_trim = true
     when :draw
       do_draw = true
     when :back

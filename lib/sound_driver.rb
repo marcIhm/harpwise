@@ -38,7 +38,7 @@ def trim_recording hole, recorded
       puts
     end
     puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
-    puts 'Choices: <num-of-secs-start> | d:raw | y:es | c:cancel | f:requency | r:ecord'
+    puts 'Choices: <num-of-secs-start> | d:raw | y:es | f:requency | r:ecord'
     print "Your choice ('h' for help): "
     choice = one_char
 
@@ -62,7 +62,6 @@ Full Help:
               d :  draw current wave form
               y :  accept current play position, trim file
                    and skip to next hole
-              c :  cancel and discard trimming
               r :  record and trim again
 EOHELP
       
@@ -76,9 +75,6 @@ EOHELP
       wave2data(recorded)
       puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"
       return :next_hole
-    elsif choice == 'c'
-      puts "\nCanceled, #{File.basename(recorded)} remains untrimmed.\n\n"
-      return nil
     elsif choice == 'f'
       print "\e[33mSample\e[0m sound ..."
       synth_sound hole, $helper_wave
