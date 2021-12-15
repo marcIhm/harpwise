@@ -230,12 +230,12 @@ def record_and_review_hole hole
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
                :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
                :record => [['r'], 'record and trim', 'record and trim RIGHT AWAY (after countdown)'],
-               :trim => [['t'], 'trim', 'trim recorded sound, i.e. set start for play'],
-               :generate => [['g'], 'generate', 'generate a sound for the ET frequency of the hole'],
-               :back => [['b'], 'back', 'go back to previous hole'],
-               :quit => [['q', 'x'], 'exit', 'exit from calibration but still save frequency of current hole']}
+               :trim => [['t'], 'trim recorded', 'trim recorded sound, i.e. set start for play'],
+               :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
+               :back => [['b'], 'back to prev hole', 'go back to previous hole'],
+               :quit => [['q'], 'quit calibration', 'exit from calibration but still keep current recording and save frequency of current hole']}
     
-    choices[:okay] = [['y', 'RETURN'], 'keep recording and on', 'keep recording and continue'] if File.exists?(recorded)
+    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'keep recording and continue'] if File.exists?(recorded)
     
     answer = read_answer(choices)
 

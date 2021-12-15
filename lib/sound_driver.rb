@@ -38,7 +38,7 @@ def trim_recording hole, recorded
       puts
     end
     puts "\e[33mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
-    puts 'Choices: <play_from> | d:raw | y:es | q:uit | r:ecord'
+    puts 'Choices: <num-of-secs-start> | d:raw | y:es | c:cancel | r:ecord'
     print "Your choice ('h' for help): "
     choice = one_char
 
@@ -56,12 +56,14 @@ def trim_recording hole, recorded
 
 Full Help:
 
-   <start-from> :  set position to play from (vertical line in plot);  Example:  0.4
+   <num-of-secs-start> :  set position to start from (marked by vertical
+                   line in plot); just start to type, e.g.:  0.4
        p, SPACE :  play from current position
               d :  draw current wave form
-              y :  accept current play position and skip to next hole
-              q :  discard edit
-              r :  record and edit again
+              y :  accept current play position, trim file
+                   and skip to next hole
+              c :  cancel and discard trimming
+              r :  record and trim again
 EOHELP
       
     elsif ['', ' ', "\r", "\n" , 'p'].include?(choice)
@@ -74,10 +76,10 @@ EOHELP
       wave2data(recorded)
       puts "\nEdit accepted, trimmed #{File.basename(recorded)}, skipping to next hole.\n\n"
       return :next_hole
-    elsif choice == 'q'
-      puts "\nEdit aborted, #{File.basename(recorded)} remains untrimmed.\n\n"
+    elsif choice == 'c'
+      puts "\nCanceled, #{File.basename(recorded)} remains untrimmed.\n\n"
       return nil
-    elsif choice == 'r' || choice == 'e'
+    elsif choice == 'r'
       return :redo
     elsif numeric
       begin
