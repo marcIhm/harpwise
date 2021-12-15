@@ -16,11 +16,10 @@ This will generate all needed samples for holes:
 
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
-Letting this program generate your samples is a good way to get started
-quickly. The notes will be in "equal temperament" (rather than "just
-tuning").
+Letting this trainer generate your samples is a good way to get started
+quickly. The notes will be in "equal temperament" tuning.
 
-However, the generated notes and their frequencies cannot match those of
+However, any generated notes and their frequencies cannot match those of
 your own special harp or style of playing very well. Therefore, later, you
 may want to repeat the calibration by playing yourself (i.e. without
 option '--auto').
@@ -29,7 +28,7 @@ option '--auto').
 If, on the other hand you already have samples, recorded by yourself, they
 will be overwritten in this process !
 
-  So, in that case, consider, \e[32mSAVING\e[0m such samples before !
+  So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
 
 (to do so, you may bail out now, by pressing ctrl-c)
 
@@ -69,42 +68,32 @@ def do_calibrate_assistant
 
 
 This is an interactive assistant, that will ask you to play these holes of
-your harmonica, key of #{$key}, one after the other, each for one second:
+your harmonica, key of #{$key}, one after the other:
 
   \e[32m#{holes.join(' ')}\e[0m
 
-Each recording is preceded by a short countdown (2,1).
-If there already is a recording, it will be plotted first.
+Any existing recording will be presented first for review. Then you may
+start a new recording and trim it (cut of initial silence). This will be
+repeated for all holes.
 
-For each hole, 3 seconds will be recorded and you will get a chance to
-manually cut off initial silence; then the recording will be truncated to 1
-second. So you may well wait for the actual red \e[31mrecording\e[0m mark
-before starting to play.
+After all holes have been recorded, a table of all frequencies will be
+printed, so that you may do a final check of your recordings.
 
-The harp, that you use now for calbration, should be the one, that you will
-use for your practice later.
+You may invoke this assistant again at any later time, just to review your
+recorded notes and maybe correct some of them.  Results are written to
+disk immediately, so you may end the process after any hole. To start from
+a specific hole, use option '--hole'.
 
+The harp, that you are going to use for calbration, should be the one,
+that you will use for your practice later.
 
-Background: Those samples will be used to determine the frequencies of your
-  particular harp and will be played directly in mode 'quiz'.
-
-Hint: If you want to calibrate for another key of harp, you might copy the
-  whole directory below 'samples' and record only those notes that are
-  missing.
-
-Tips: You may invoke this assistant again at any later time, just to review
-  your recorded notes and maybe correct some of them. 
-  Results are written to disk immediately, so you may end the process
-  after any hole. To record a specific hole only, use option
-  '--hole'.
-
-  After all holes have been recorded, a summary of all frequencies will be
-  shown, so that you may do an overall check of your recordings.
+The recorded samples will be used to determine the frequencies of your
+particular instrument and will be played back in mode 'quiz'.
 
 EOINTRO
 
   print "Press any key to start with the first hole\n"
-  print "   or type 's' to skip directly to summary: "
+  print "  or type 's' to skip directly to summary: "
   char = one_char
   print "\n\n"
 
@@ -156,7 +145,9 @@ EOINTRO
     print '    %8s | %6.2d | %6.2d | %4d | %s ' % [hole.ljust(maxhl), freq, freq_et, freq - freq_et, remark]
     puts
   end
-  puts "\nYou may compare recorded frequencies with those calculated from equal temperament tuning. Remarks indicate, if the frequency of any recording is nearer to a neighboring semitone than to the target one."
+  puts "\nYou may compare recorded frequencies with those calculated from"
+  puts "equal temperament tuning. Remarks indicate, if the frequency of any"
+  puts "recording is nearer to a neighboring semitone than to the target one."
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
@@ -212,7 +203,6 @@ def record_and_review_hole hole
         issue_before_trim = false
         result = trim_recording(hole, recorded)
         if result == :redo
-          puts "Redo recording and trim ..."
           do_record, do_draw, do_trim = [true, false, true]
           redo                         
         elsif result == :next_hole
@@ -225,17 +215,17 @@ def record_and_review_hole hole
     end
 
     # get user input
-    puts "\n\e[33mReview and/or record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key})"
-    choices = {:play => [['p', 'SPACE'], 'play recorded', 'play recorded sound'],
+    puts "\e[93mReview and/or record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key})"
+    choices = {:play => [['p', 'SPACE'], 'play recording', 'play recorded sound'],
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
                :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
                :record => [['r'], 'record and trim', 'record and trim RIGHT AWAY (after countdown)'],
-               :trim => [['t'], 'trim recorded', 'trim recorded sound, i.e. set start for play'],
+               :trim => [['t'], 'trim recording', 'trim recorded sound, i.e. set start for play'],
                :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
-               :back => [['b'], 'back to prev hole', 'go back to previous hole'],
-               :quit => [['q'], 'quit calibration', 'exit from calibration but still keep current recording and save frequency of current hole']}
+               :back => [['b'], 'back to prev hole', 'jump back to previous hole'],
+               :quit => [['q'], 'quit calibration', 'exit from calibration']}
     
-    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'keep recording and continue'] if File.exists?(recorded)
+    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exists?(recorded)
     
     answer = read_answer(choices)
 
@@ -243,7 +233,7 @@ def record_and_review_hole hole
     do_record, do_draw, do_trim = [false, false, false]
     case answer
     when :play
-      print 'Play ... '
+      print "\e[33mPlay\e[0m ... "
       play_sound recorded
       puts 'done'
     when :trim
@@ -255,18 +245,17 @@ def record_and_review_hole hole
     when :quit
       return :quit, freq
     when :frequency
-      print 'Generate and analyse a sample sound:'
+      print "\e[33mGenerate\e[0m and analyse a sample sound:"
       synth_sound hole, $helper_wave
       play_sound $helper_wave
       puts "Frequency: #{analyze_with_aubio($helper_wave)}"
-      puts "done\n\n"
     when :generate
       synth_sound hole, recorded
       wave2data(recorded)
       do_draw = true
     when :record
       do_record, do_draw, do_trim = [true, false, true]
-      issue_before_trim = "\nTrimming recorded sound right away ...\n\n"
+      issue_before_trim = "\e[33mTrimming\e[0m recorded sound right away ...\n"
     end
     
   end while answer != :okay

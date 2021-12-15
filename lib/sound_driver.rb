@@ -37,8 +37,8 @@ def trim_recording hole, recorded
     else
       puts
     end
-    puts "\e[33mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
-    puts 'Choices: <num-of-secs-start> | d:raw | y:es | c:cancel | r:ecord'
+    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
+    puts 'Choices: <num-of-secs-start> | d:raw | y:es | c:cancel | f:requency | r:ecord'
     print "Your choice ('h' for help): "
     choice = one_char
 
@@ -46,10 +46,10 @@ def trim_recording hole, recorded
       choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += STDIN.gets.chomp.downcase.strip
-      numeric = true
+      number = true
     else
       puts choice
-      numeric = false
+      number = false
     end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
@@ -66,22 +66,27 @@ Full Help:
               r :  record and trim again
 EOHELP
       
-    elsif ['', ' ', "\r", "\n" , 'p'].include?(choice)
-      puts "Play from %.2f ..." % play_from
+    elsif ['', ' ', 'p'].include?(choice)
+      puts "\e[33mPlay\e[0m from %.2f ..." % play_from
       play_sound $trimmed_wave
     elsif choice == 'd'
       do_draw = true
     elsif choice == 'y'
       FileUtils.cp $trimmed_wave, recorded
       wave2data(recorded)
-      puts "\nEdit accepted, trimmed #{File.basename(recorded)}, skipping to next hole.\n\n"
+      puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"
       return :next_hole
     elsif choice == 'c'
       puts "\nCanceled, #{File.basename(recorded)} remains untrimmed.\n\n"
       return nil
+    elsif choice == 'f'
+      print "\e[33mSample\e[0m sound ..."
+      synth_sound hole, $helper_wave
+      play_sound $helper_wave
     elsif choice == 'r'
+      puts "Redo recording and trim ..."
       return :redo
-    elsif numeric
+    elsif number
       begin
         val = choice.to_f
         raise ArgumentError.new('must be > 0') if val < 0

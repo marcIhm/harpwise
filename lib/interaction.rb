@@ -269,7 +269,6 @@ def read_answer ans2chs_dsc
     char = one_char
     char = {' ' => 'SPACE', "\n" => 'RETURN'}[char] || char
     puts char
-    puts
     answer = nil
     ans2chs_dsc.each do |ans, chs_dsc|
       answer = ans if chs_dsc[0].include?(char)
