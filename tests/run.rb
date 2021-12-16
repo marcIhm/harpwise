@@ -60,7 +60,38 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-5] == 'Frequency: 195     (ET would be: 196.0,  -1 st: 185.0,  +1 st: 207.7)' }
+    expect { screen[-4] == 'Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208' }
+    kill_session
+  end
+  
+
+  memorize 'manual calibration summary' do
+    sound 1, -14
+    new_session
+    tms './harp_scale_trainer calib testing a --testing'
+    tms :ENTER
+    sleep 2
+    tms 's'
+    sleep 4
+    expect { screen[-12] == '       -10   |   1482 |   1479 |    2 |' }
+    kill_session
+  end
+  
+
+  memorize 'manual calibration starting at hole' do
+    sound 1, -14
+    new_session
+    tms './harp_scale_trainer calib testing a --hole +4 --testing'
+    tms :ENTER
+    sleep 2
+    tms 'y'
+    sleep 2
+    tms 'y'
+    sleep 2
+    tms 'r'
+    sleep 8
+    expect { screen[-15] == 'The frequency recorded for -4/ (note bf4, semi 1) is too different from ET' }
+    expect { screen[-11] == '  Difference:             -271.2' }
     kill_session
   end
   
@@ -75,7 +106,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-12,2] == ['  You played:             784',
+    expect { screen[-13,2] == ['  You played:             784',
                              '  ET expects:             523.3']}
     kill_session
   end

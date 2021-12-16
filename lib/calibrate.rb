@@ -104,7 +104,8 @@ EOINTRO
   end
 
   unless char == 's'
-    (0 .. holes.length - 1).each do |i|
+    i = 0
+    begin
       hole = holes[i]
       what, freq = record_and_review_hole(hole)
       if freq
@@ -119,10 +120,11 @@ EOINTRO
         else
           i -= 1
         end
-        redo
+      else
+        i += 1
       end
       break if what == :quit
-    end
+    end while what != :quit && i < holes.length
   end
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
@@ -156,7 +158,7 @@ def record_and_review_hole hole
 
   recorded = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
   if File.exists?(recorded)
-    puts "\nHole  \e[32m#{hole}\e[0m  need not be recorded or generated, because #{recorded} already exists."
+    puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     wave2data(recorded)
   else
     puts "\nFile  #{recorded}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
@@ -219,12 +221,12 @@ def record_and_review_hole hole
     choices = {:play => [['p', 'SPACE'], 'play recording', 'play recorded sound'],
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
                :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
-               :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown), then trim recording and remove initial silence and surplus length'],
+               :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown); then trim recording and remove initial silence and surplus length'],
                :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
-               :back => [['b'], 'back to prev hole', 'jump back to previous hole'],
-               :quit => [['q'], 'quit calibration', 'exit from calibration']}
+               :back => [['b'], 'back to prev hole', 'jump back to previous hole']}
     
     choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exists?(recorded)
+    choices[:quit] = [['q'], 'quit calibration', 'exit from calibration']
     
     answer = read_answer(choices)
 

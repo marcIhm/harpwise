@@ -255,19 +255,19 @@ end
 def read_answer ans2chs_dsc
   klists = Hash.new
   ans2chs_dsc.each do |ans, chs_dsc|
-    klists[ans] = chs_dsc[0].join(',')
+    klists[ans] = chs_dsc[0].join(', ')
   end
   maxlen = klists.map {|k,v| v.length}.max
   i = 0
   ans2chs_dsc.each do |ans, chs_dsc|
-    print "  %*s :  %-18s" % [maxlen, klists[ans], chs_dsc[1]]
+    print "  %*s :  %-20s" % [maxlen, klists[ans], chs_dsc[1]]
     puts if (i += 1) % 2 == 0
   end
 
   begin
     print "\nYour choice ('h' for help): "
     char = one_char
-    char = {' ' => 'SPACE', "\n" => 'RETURN'}[char] || char
+    char = {' ' => 'SPACE', "\r" => 'RETURN'}[char] || char
     puts char
     answer = nil
     ans2chs_dsc.each do |ans, chs_dsc|
