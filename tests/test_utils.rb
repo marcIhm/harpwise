@@ -69,7 +69,7 @@ def memorize text
   $memo_seen << text
   maxlen = $memo[:times].keys.map {|k| k.length}.max || 0
   time = $memo[:times][text]
-  print "  #{text.ljust(maxlen)}    #{$memo_count.rjust(2)} of #{$memo[:count].rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
+  print "  #{text.ljust(maxlen)}    #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
   start = Time.now.to_f
   yield
   $memo[:times][text] = Time.now.to_f - start
