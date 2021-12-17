@@ -26,18 +26,19 @@ end
 
 def trim_recording hole, recorded
   duration = wave2data(recorded)
+  duration_trimmed = 1.0
   do_draw = true
   play_from = find_onset($recorded_data)
-  trim_sound recorded, play_from, $trimmed_wave
+  trim_sound recorded, play_from, duration_trimmed, $trimmed_wave
   loop do
     if do_draw
-      draw_data($recorded_data, play_from)
+      draw_data($recorded_data, play_from, play_from + duration_trimmed)
       inspect_recording(hole, recorded)
       do_draw = false
     else
       puts
     end
-    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f." % play_from
+    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f" % play_from
     puts 'Choices: <num-of-secs-start> | d:raw | p:play | y:es | f:requency | r:ecord'
     print "Your choice ('h' for help): "
     choice = one_char
@@ -88,7 +89,7 @@ EOHELP
         raise ArgumentError.new('must be > 0') if val < 0
         raise ArgumentError.new("must be < duration #{duration}") if val >= duration
         play_from = val
-        trim_sound recorded, play_from, $trimmed_wave
+        trim_sound recorded, play_from, duration_trimmed, $trimmed_wave
         do_draw = true
       rescue ArgumentError => e
         puts "Invalid Input '#{choice}': #{e.message}"
@@ -100,9 +101,9 @@ EOHELP
 end
 
 
-def trim_sound file, play_from, trimmed
-  puts "Using 1 second of original sound, starting at %.2f" % play_from
-  sys "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from + 1.2} gain -n -3 fade 0 -0 0.2"
+def trim_sound file, play_from, duration, trimmed
+  puts "Taking #{duration} seconds of original sound plus 0.2 fade out, starting at %.2f" % play_from
+  sys "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + 0.2} gain -n -3 fade 0 -0 0.2"
 end
 
 

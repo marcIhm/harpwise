@@ -30,13 +30,16 @@ will be overwritten in this process !
 
   So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
 
-(to do so, you may bail out now, by pressing ctrl-c)
-
 EOINTRO
 
-  print "\nPress RETURN to generate and play all samples for \e[32mkey of #{$key}\e[0m in a single run: "
-  STDIN.gets
+  print "\nType 'y' to generate and play all samples for \e[32mkey of #{$key}\e[0m in a single run: "
+  char = one_char
+  print "\n\n"
 
+  if char != 'y'
+    puts 'Calibration aborted on user request.'
+    exit 0
+  end
   hole2freq = Hash.new
   $harp_holes.each do |hole|
     file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
@@ -126,14 +129,19 @@ EOINTRO
       break if what == :quit
     end while what != :quit && i < holes.length
   end
+  template = '    %8s | %8s | %8s | %6s | %s '
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
-  puts '       Hole  |  Freq  |    ET  | Diff |   Remark'
-  puts '  ------------------------------------------------'
+  puts template % %w(Hole Freq ET Diff Remark)
+  puts '  -------------------------------------------------------'
   maxhl = $harp_holes.map(&:length).max
   $harp_holes.each do |hole|
     semi = note2semi($harp[hole][:note])
     freq = hole2freq[hole]
+    unless freq
+      puts template % [hole.ljust(maxhl), '', '', '', 'not yet recorded']
+      next
+    end
     freq_et = semi2freq_et(semi)
     freq_et_p1 = semi2freq_et(semi + 1)
     freq_et_m1 = semi2freq_et(semi - 1)
@@ -144,8 +152,7 @@ EOINTRO
              else
                ''
              end
-    print '    %8s | %6.2d | %6.2d | %4d | %s ' % [hole.ljust(maxhl), freq, freq_et, freq - freq_et, remark]
-    puts
+    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), remark]
   end
   puts "\nYou may compare recorded frequencies with those calculated from"
   puts "equal temperament tuning. Remarks indicate, if the frequency of any"
@@ -197,7 +204,7 @@ def record_and_review_hole hole
     if File.exists?(recorded)  # normally true, can only be false on first iteration
       
       if do_draw && !do_trim  # true on first iteration
-        draw_data($recorded_data, 0)
+        draw_data($recorded_data, 0, 0)
       end
             
       if do_trim  # false on first iteration

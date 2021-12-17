@@ -286,17 +286,20 @@ def read_answer ans2chs_dsc
 end
 
 
-def draw_data file, marker
+def draw_data file, marker1, marker2
   sys "sox #{file} #{$tmp_dir}/sound-to-plot.dat"
-  IO.write "#{$tmp_dir}/sound.gp", <<EOGPL
+  cmds = <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
 set datafile commentschars ";"
 set xlabel "time (s)"
 set ylabel "sample value"
 set nokey
-set arrow from #{marker}, graph 0 to #{marker}, graph 1 nohead
+%s
+%s
 plot "#{file}" using 1:2
 EOGPL
+  IO.write "#{$tmp_dir}/sound.gp", cmds % [marker1 > 0  ?  "set arrow from #{marker1}, graph 0 to #{marker1}, graph 1 nohead"  :  '',
+                                           marker2 > 0  ?  "set arrow from #{marker2}, graph 0 to #{marker2}, graph 1 nohead"  :  '']
   system "gnuplot #{$tmp_dir}/sound.gp"
 end
 
