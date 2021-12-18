@@ -73,7 +73,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 's'
     sleep 4
-    expect { screen[-12] == '       -10   |     1482 |     1480 |      2 |' }
+    expect { screen[-13] == '       -10   |     1482 |     1480 |      2 |      2 | ........I........' }
     kill_session
   end
   

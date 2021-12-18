@@ -64,13 +64,15 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
-    just_dots_short = '........:........'
+    just_dots_short = '.........:.........'
+    format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
     if hole != :low && hole != :high
       dots, _ = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
-      print "#{'%6.1f Hz' % freq}  [#{dots}]\e[2m\e[K"
+      cents = cents_diff(freq, cntr).to_i
+      print format % [freq.round(1), cents, dots]
       hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     else
-      print "   --  Hz  [#{just_dots_short}]\e[K"
+      print format % ['--', '--', just_dots_short]
     end
 
     inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
@@ -315,14 +317,14 @@ end
 
 
 def get_dots dots, delta, freq, low, middle, high
-  ndots = (dots.length - 1)/2
+  hdots = (dots.length - 1)/2
   if freq > middle
-    pos = ndots + ( ndots + 1 ) * (freq - middle) / (high - middle)
+    pos = hdots + ( hdots + 1 ) * (freq - middle) / (high - middle)
   else
-    pos = ndots - ( ndots + 1 ) * (middle - freq) / (middle - low)
+    pos = hdots - ( hdots + 1 ) * (middle - freq) / (middle - low)
   end
 
-  hit = ((ndots - delta  .. ndots + delta) === pos )
+  hit = ((hdots - delta  .. hdots + delta) === pos )
   dots[pos] = yield( hit, 'I') if pos > 0 && pos < dots.length
   return dots, hit
 end

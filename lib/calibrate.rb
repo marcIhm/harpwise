@@ -129,11 +129,11 @@ EOINTRO
       break if what == :quit
     end while what != :quit && i < holes.length
   end
-  template = '    %8s | %8s | %8s | %6s | %s '
+  template = '    %8s | %8s | %8s | %6s | %6s | %s '
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of recorded frequencies:\n\n"
-  puts template % %w(Hole Freq ET Diff Remark)
-  puts '  -------------------------------------------------------'
+  puts template % %w(Hole Freq ET Diff Cents Gauge)
+  puts '  ------------' + '-' * (template % ['','','','','','']).length
   maxhl = $harp_holes.map(&:length).max
   $harp_holes.each do |hole|
     semi = note2semi($harp[hole][:note])
@@ -145,18 +145,19 @@ EOINTRO
     freq_et = semi2freq_et(semi)
     freq_et_p1 = semi2freq_et(semi + 1)
     freq_et_m1 = semi2freq_et(semi - 1)
-    remark = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
-               ' too low' 
-             elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
-               'too high' 
-             else
-               ''
-             end
-    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), remark]
+    gauge = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
+              ' too low' 
+            elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
+              'too high' 
+            else
+              get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}[0]
+            end
+    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
   end
   puts "\nYou may compare recorded frequencies with those calculated from"
-  puts "equal temperament tuning. Remarks indicate, if the frequency of any"
-  puts "recording is nearer to a neighboring semitone than to the target one."
+  puts "equal temperament tuning. The gauge shows the frequency of your"
+  puts "recording with respect to the target frequency (:) and those of"
+  puts "neighbouring semitones (left and right border)"
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
