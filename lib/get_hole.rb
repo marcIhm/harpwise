@@ -118,7 +118,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     else
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
-    print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '- ']
+    print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     print "\e[K"
 
     if lambda_comment
@@ -188,7 +188,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       fail 'internal error 1 for help' if $can_journal != $can_change_comment
       fail 'internal error 2 for help' if $can_next != $can_loop
       # we have room from $line_comment to $line_hint_or_message (included)
-      print "\e[#{$line_comment + 1}H\e[2mShort help:\e[0m\e[32m\n"
+      print "\e[#{$line_comment + 1}H\e[2mShort help on keys (see README.org for details on the display):\e[0m\e[32m\n"
       print "  SPACE: pause                TAB or d: change display\n"
       print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
       print "      r: set reference          ctrl-l: redraw\n"
