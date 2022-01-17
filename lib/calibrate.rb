@@ -49,6 +49,12 @@ EOINTRO
   end
   write_freq_file hole2freq
   puts "\nFrequencies in: #{$freq_file}"
+  print_summary hole2freq, 'generated'
+  puts "\nREMARK: You may wonder, why the generated frequencies do not follow equal"
+  puts "temperament \e[32mexactly\e[0m and why there can be a deviation in frequency \e[32mat all\e[0m;"
+  puts "this is simply because two programs are used for generation and analysis:"
+  puts "sox and aubiopitch; both do a great job on their field, however sometimes"
+  puts "they differ by a few Hertz."
   puts "\n\nRecordings \e[32mdone.\e[0m\n\n\n"
 end
 
@@ -129,35 +135,7 @@ EOINTRO
       break if what == :quit
     end while what != :quit && i < holes.length
   end
-  template = '    %8s | %8s | %8s | %6s | %6s | %s '
-  puts "Recordings in #{$sample_dir}"
-  puts "\nSummary of recorded frequencies:\n\n"
-  puts template % %w(Hole Freq ET Diff Cents Gauge)
-  puts '  ------------' + '-' * (template % ['','','','','','']).length
-  maxhl = $harp_holes.map(&:length).max
-  $harp_holes.each do |hole|
-    semi = note2semi($harp[hole][:note])
-    freq = hole2freq[hole]
-    unless freq
-      puts template % [hole.ljust(maxhl), '', '', '', 'not yet recorded']
-      next
-    end
-    freq_et = semi2freq_et(semi)
-    freq_et_p1 = semi2freq_et(semi + 1)
-    freq_et_m1 = semi2freq_et(semi - 1)
-    gauge = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
-              ' too low' 
-            elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
-              'too high' 
-            else
-              get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}[0]
-            end
-    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
-  end
-  puts "\nYou may compare recorded frequencies with those calculated from"
-  puts "equal temperament tuning. The gauge shows the frequency of your"
-  puts "recording with respect to the target frequency (:) and those of"
-  puts "neighbouring semitones (left and right border)"
+  print_summary hole2freq, 'recorded'
   puts "\n\nAll recordings \e[32mdone.\e[0m\n\n\n"
 end
 
@@ -278,4 +256,37 @@ def write_freq_file hole2freq
     hole2freq_sorted[hole] = hole2freq[hole]
   end
   File.write($freq_file, YAML.dump(hole2freq_sorted))
+end
+
+
+def print_summary hole2freq, rec_or_gen
+  template = '    %8s | %8s | %8s | %6s | %6s | %s '
+  puts "Recordings in #{$sample_dir}"
+  puts "\nSummary of #{rec_or_gen} frequencies:\n\n"
+  puts template % %w(Hole Freq ET Diff Cents Gauge)
+  puts '  ------------' + '-' * (template % ['','','','','','']).length
+  maxhl = $harp_holes.map(&:length).max
+  $harp_holes.each do |hole|
+    semi = note2semi($harp[hole][:note])
+    freq = hole2freq[hole]
+    unless freq
+      puts template % [hole.ljust(maxhl), '', '', '', 'not yet #{rec_or_gen}']
+      next
+    end
+    freq_et = semi2freq_et(semi)
+    freq_et_p1 = semi2freq_et(semi + 1)
+    freq_et_m1 = semi2freq_et(semi - 1)
+    gauge = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
+              ' too low' 
+            elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
+              'too high' 
+            else
+              get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}[0]
+            end
+    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
+  end
+  puts "\nYou may compare #{rec_or_gen} frequencies with those calculated from equal"
+  puts "temperament tuning. The gauge shows the difference in frequency between"
+  puts "#{rec_or_gen} and target frequency (:); left and right border are the"
+  puts "neighbouring semitones."
 end

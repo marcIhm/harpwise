@@ -98,7 +98,7 @@ Notes:
 
 Suggested reading: The toplevel file README.org
 
-Copyright (c) 2021 by Marc Ihm.
+Copyright (c) 2021-2022 by Marc Ihm.
 This program is subject to the MIT License.
 
 EOU
