@@ -189,8 +189,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       fail 'internal error 2 for help' if $can_next != $can_loop
       # we have room from $line_comment to $line_hint_or_message (included)
       print "\e[#{$line_comment + 1}H\e[2mShort help on keys (see README.org for details on the display):\e[0m\e[32m\n"
-      print "  SPACE: pause                TAB or d: change display\n"
-      print "      j: toggle journal     S-TAB or c: change comment\n" if $ctl_can_change_comment
+      print "  SPACE: pause                TAB or d: change display (upper screen area)\n"
+      print "      j: toggle journal     S-TAB or c: change comment (lower screen area)\n" if $ctl_can_change_comment
       print "      r: set reference          ctrl-l: redraw\n"
       print "      k: change key of harp          s: change scale\n"
       print "      q: quit trainer                h: this help\n"
