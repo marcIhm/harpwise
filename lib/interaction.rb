@@ -13,7 +13,7 @@ def check_screen graceful: false
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
-      raise ArgumentError.new("Error: Terminal is too small: [width, height] = [#{$term_width}, #{$term_height}] < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
+      raise ArgumentError.new("Terminal is too small:\n[width, height] = [#{$term_width}, #{$term_height}] < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
     end
 
     # check if enough room for fonts
@@ -43,7 +43,7 @@ def check_screen graceful: false
     global_variables.each do |var|
       if var.to_s.start_with?('$line_')
         val = eval(var.to_s)
-        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}")if all_vars[val]
+        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment])
         all_vars[val] = var
         if val > $bottom_line
           $bottom_line = eval(var.to_s)
@@ -56,8 +56,8 @@ def check_screen graceful: false
     end
 
   rescue ArgumentError => e
-    err_b "Error: #{e}" unless graceful
-    puts e
+    err_b e.to_s unless graceful
+    puts "\e[0m#{e}"
     return false
   end
   return true
@@ -342,6 +342,12 @@ def clear_area_comment
 end
 
 
+def clear_area_help
+  ($line_help .. $line_hint_or_message + 1).each {|l| print "\e[#{l}H\e[K"}
+  print "\e[#{$line_display}H"
+end
+
+
 def update_chart hole, state
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
@@ -370,9 +376,10 @@ def handle_win_change
   puts
   while !check_screen(graceful: true)
     puts "\e[2m"
-    puts "\n\n\e[0mScreensize is NOT acceptable, see above !"
-    puts "\nPlease resize screen NOW (if possible) to get out"
-    puts "of this checking loop ..."
+    puts "\n\n\e[0mScreensize is not acceptable, see above !"
+    puts "\nIf, please resize screen right now to continue."
+    puts
+    puts "(Or press ctrl-c to break out of this checking loop.)"
     $ctl_sig_winch = false
     while !$ctl_sig_winch
       sleep 0.1

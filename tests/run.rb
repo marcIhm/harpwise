@@ -144,7 +144,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
     tms :ENTER
     sleep 1
-    expect { screen[6]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15'] }
+    expect { screen[7]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15'] }
     kill_session
   end
   

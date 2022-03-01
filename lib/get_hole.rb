@@ -184,23 +184,24 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     if $ctl_show_help
-      clear_area_comment
-      fail 'internal error 1 for help' if $can_journal != $can_change_comment
-      fail 'internal error 2 for help' if $can_next != $can_loop
-      # we have room from $line_comment to $line_hint_or_message (included)
-      print "\e[#{$line_comment + 1}H\e[2mShort help on keys (see README.org for details on the display):\e[0m\e[32m\n"
-      print "  SPACE: pause                TAB or d: change display (upper screen area)\n"
-      print "      j: toggle journal     S-TAB or c: change comment (lower screen area)\n" if $ctl_can_change_comment
-      print "      r: set reference          ctrl-l: redraw\n"
-      print "      k: change key of harp          s: change scale\n"
-      print "      q: quit trainer                h: this help\n"
-      print "    RET: next sequence       BACKSPACE: previous sequence\n" if $ctl_can_next
-      print "      l: loop over sequence\n" if $ctl_can_next
-      print "\e[0m\e[2mType any key to continue ...\e[0m"
+      clear_area_help
+      puts "\e[#{$line_help}H\e[0mShort help on keys (see README.org for more details):\e[0m\e[32m\n"
+      puts "      SPACE: pause               ctrl-l: redraw screen"
+      puts "   TAB or d: change display (upper part of screen)"
+      puts " S-TAB or c: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
+      print "          r: set reference hole"
+      puts $ctl_can_journal  ?  "       j: toggle writing of journal file"  :  ''
+      puts "          k: change key of harp       s: change scale"
+      if  $ctl_can_next
+        puts "          l: loop over current sequence of holes"
+        puts "        RET: next sequence    BACKSPACE: previous sequence"
+      end
+      puts "          q: quit                     h: this help"
+      puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true
-      clear_area_comment
+      clear_area_help
       $ctl_show_help = false
     end
 

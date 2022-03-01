@@ -45,17 +45,19 @@ end
 def err_b text
   sane_term
   puts
-  puts "ERROR: #{text} !"
+  puts "\e[0mERROR: #{text} !"
   puts_err_context
   puts
   exit 1
 end
 
+
 def puts_err_context
   clauses = %w(type key scale).
               map {|var| eval("defined?($#{var})")  ?  ("#{var}=" + eval("$#{var}").to_s)  :  nil}.
               select {|c| c}
-  puts "(#{clauses.join(', ')})" if clauses.length > 0
+  puts
+  puts "(invoked with: #{clauses.join(', ')})" if clauses.length > 0
 end
 
 

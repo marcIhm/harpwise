@@ -49,6 +49,7 @@ def calculate_screen_layout
   $line_frequency = 16 + 2 * stretch - 2 * squeeze
   $line_interval = 17 + 2 * stretch - 2 * squeeze
   $line_comment = 18 + 3 * stretch - 2 * squeeze
+  $line_help = $line_comment
   $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
   $line_call = 27 + 4 * stretch - 2 * squeeze
   if $mode == :listen
