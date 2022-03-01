@@ -84,6 +84,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 92 : 31 )  :  2}m"
+    hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
     when :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
@@ -98,7 +99,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       if $hole_ref
         semi_ref = $harp[$hole_ref][:semi]
         just_dots_long = '......:......:......:......'
-        dots, hit = get_dots(just_dots_long.dup, 3, freq,
+        dots, hit = get_dots(just_dots_long.dup, 4, freq,
                              semi2freq_et(semi_ref - 2),
                              semi2freq_et(semi_ref),
                              semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
@@ -126,7 +127,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       comment_text,
       font,
       sample_text =
-      lambda_comment.call(hole_color,
+      lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
                           inter_semi,
                           inter_text,
                           hole && $harp[hole] && $harp[hole][:note],
