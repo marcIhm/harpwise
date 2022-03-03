@@ -22,7 +22,7 @@ def do_listen
            nil,  # lambda_skip
 
            -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do  # lambda_comment
-             color = hole_color
+             color = "\e[0m" + hole_color
              stext = nil
              text = ( case $conf[:comment_listen]
                       when :note
