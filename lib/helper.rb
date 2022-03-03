@@ -70,5 +70,5 @@ end
 
 
 def scales_for_type type
-  Dir[$scale_files_template % [$type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
+  Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
 end

@@ -126,6 +126,7 @@ def read_musical_config
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
   dsemi_harp -= 12 if dsemi_harp > 6
   harp = Hash.new
+  hole2rem = Hash.new
   hole2note_read.each do |hole,note|
     semi = note2semi(note) + dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
@@ -159,24 +160,28 @@ def read_musical_config
     # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
     # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
     dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
-    scale_read.each do |hole_or_note_read|
+    scale_read.each do |fields|
+      hole_or_note, remark = fields.split(nil,2)
       semi = dsemi_harp + dsemi_scale +
-             ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note_read])  :  note2semi(hole_or_note_read) )
+             ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
       if semi >= min_semi && semi <= max_semi
         note = semi2note(semi)
         hole = note2hole[note]
-        err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note_read}, note #{note}"  :  "note #{hole_or_note_read}",
+        err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}",
                           semi]) unless hole
         scale << hole
+        hole2rem[hole] = remark
       end
     end
 
     scale_holes = scale
-    scale_notes = scale_holes.map {|hole| hole2note[hole]}
+    scale_holes_with_rem = scale.map {|h| "#{h} #{hole2rem[h]}".strip}
+    scale_notes = scale_holes.map {|h| hole2note[h]}
+    scale_notes_with_rem = scale_holes.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
 
     dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
     comment = "#\n# derived scale-file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
-    File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes : scale_notes))
+    File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
   else              
     scale_holes = scale_notes = nil
   end
@@ -189,7 +194,12 @@ def read_musical_config
   ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
 
-  [ harp, harp_holes, scale_holes, scale_notes, intervals ]
+  [ harp,
+    harp_holes,
+    scale_holes,
+    scale_notes,
+    hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
+    intervals ]
 end
 
 

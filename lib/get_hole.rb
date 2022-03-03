@@ -4,10 +4,11 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
+def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter, show_rem = false
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
+  longest_rem = $hole2rem  ?  $hole2rem.values.max_by(&:length)  :  0
   
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
@@ -120,6 +121,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
+    print ",  Rem: %#{longest_rem.length}s" % ( $hole2rem[hole] || '--' ) if show_rem && $hole2rem
     print "\e[K"
 
     if lambda_comment

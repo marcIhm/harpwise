@@ -24,9 +24,11 @@
   - holes.yaml :: Maps holes to notes for a harmonica of key c. All other keys
     will be automatically derived from this one
 
-  - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE
+  - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE. On each
+    line any text after the note (and a space) will be displayed as a remark.
 
-  - scales_SCALE_with_notes.yaml :: List of notes for scale SCALE
+  - scales_SCALE_with_notes.yaml :: List of notes for scale SCALE. Accepts a
+    remark too.
 
   
   Each scale (e.g. blues or mape) has its own file and can be either notated
