@@ -36,7 +36,7 @@ Usage by examples:
   Switch on journal to get a simple transcription of the holes played.
 
 
-  Trainer plays 3 notes from the scale "mape" for a chromatic harmonica of
+  Trainer plays 3 notes from the scale 'mape' for a chromatic harmonica of
   key a and then quizes you to play them back (then repeat):
 
     ./harp_scale_trainer quiz 3 chrom a mape
@@ -53,9 +53,12 @@ Usage by examples:
   is valid as well.
 
 
-  Both modes listen and quiz allow an option '--display' with possible
-  values of 'hole' and 'chart' to change how a recognized will be
-  displayed.
+  Both modes listen and quiz accept the option '--prefer' with another
+  scale to be mixed in; for quiz, these holes will be somewhat preferred
+  over the main scale.
+
+  Both modes allow an option '--display' with possible values of 'hole'
+  and 'chart' to change how a recognized will be displayed.
 
   Some (display-)settings can also be changed while the program is
   running; type 'h' for details.
@@ -106,13 +109,14 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :prefer]
   { %w(--debug) => :debug,
      %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
+    %w(--prefer) => :prefer,
     %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-r --ref) => :ref,
     %w(-d --display) => :display,
@@ -210,8 +214,8 @@ EOU
   err_h "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0
 
   # late option processing depending on mode
-  # check for invalid combinations of options and mode
-  [[:loop, [:quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+  # check for invalid combinations of mode and options
+  [[:loop, [:quiz]], [:prefer, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 

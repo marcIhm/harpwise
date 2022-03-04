@@ -44,16 +44,16 @@ def do_quiz
     
     sleep 0.3
 
-    ltext = ''
-    print "\e[0m"
+    ltext = "\e[2m"
     all_wanted.each_with_index do |hole, idx|
       print "\e[#{$line_call}H" unless first_lap
-      ltext = '' if ltext.length > $term_width * 0.7
+      ltext = '' if ltext.length - 4 * ltext.count("\e") > $term_width * 0.7
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        ltext += "(" + ( itext || "#{isemi}" ) + ") "
+        ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
       end
-      ltext += "#{$harp[hole][:note]} "
+      ltext += "\e[0m#{$harp[hole][:note]}\e[2m"
+      ltext += "(#{$hole2rem[hole]})" if $opts[:prefer] && $hole2rem[hole]
       print "\e[G#{ltext}\e[K"
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
@@ -64,7 +64,7 @@ def do_quiz
       break if $ctl_back
     end
     redo if $ctl_back
-    print "\e[32mand !\e[0m"
+    print "\e[0m\e[32m and !\e[0m"
     sleep 1
 
     if first_lap
@@ -164,6 +164,8 @@ def do_quiz
   end # sequence after sequence
 end
 
+      
+$sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
   # construct chains of holes within scale using one of these:
@@ -173,24 +175,73 @@ def get_sample num
   holes = Array.new
   holes[0] = $scale_holes.sample
   semi2hole = $scale_holes.map {|hole| [$harp[hole][:semi], hole]}.to_h
-  ran = rand
+
+  what = Array.new(num)
   for i in (1 .. num - 1)
-    if ran > 0.8
-      holes[i] = $scale_holes.sample
-      elsif ran > 0.4
+    ran = rand
+    tries = 0
+    if ran > 0.7
+      what[i] = :nearby
       begin
-        try_semi = $harp[holes[i-1]][:semi] + rand(12)
+        try_semi = $harp[holes[i-1]][:semi] + rand(12) - 6
+        tries += 1
+        break if tries > 100
       end until semi2hole[try_semi]
       holes[i] = semi2hole[try_semi]
     else
+      what[i] = :interval
       begin 
-        try_inter = $intervals.keys.sample * ( rand >= 0.5 ? 1 : -1 )
-        try_semi = $harp[holes[i-1]][:semi] + try_inter
+        try_semi = $harp[holes[i-1]][:semi] + [4,7,12].sample * ( 2 * rand(2) - 1 )
+        tries += 1
+        break if tries > 100
       end until semi2hole[try_semi]
       holes[i] = semi2hole[try_semi]
     end
   end
+
+  if $opts[:prefer]
+    for i in (1 .. num - 1)
+      if rand >= 0.5
+        holes[i] = nearest_hole_with_remark(holes[i], 'pref', semi2hole)
+        what[i] = :nearest_pref
+      end
+    end
+    if rand >= 0.5
+      holes[-1] = nearest_hole_with_remark(holes[-1], 'root', semi2hole)
+      what[-1] = :nearest_root
+    end
+  end
+
+  for i in (1 .. num - 1)
+    unless holes[i]
+      holes[i] = $scale_holes.sample
+      what[i] = :fallback
+    end
+    $sample_stats[what[i]] += 1
+  end
+
+  File.write('sample_stats', "\n#{Time.now}:\n#{$sample_stats.inspect}\n", mode: 'a') if $opts[:debug]
   holes
+end
+
+
+def nearest_hole_with_remark hole, remark, semi2hole
+  delta_semi = 0
+  found = nil
+  begin
+    [delta_semi, -delta_semi].each do |ds|
+      try_semi = $harp[hole][:semi] + ds
+      try_hole = semi2hole[try_semi]
+      if try_hole
+        try_rem = $hole2rem[try_hole]
+        found = try_hole if try_rem && try_rem[remark]
+      end
+      break if found
+    end
+    return nil if delta_semi > 8
+    delta_semi += 1
+  end until found
+  found
 end
 
 

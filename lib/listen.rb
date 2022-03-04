@@ -59,9 +59,7 @@ def do_listen
 
            -> (hole_held_before, hole_ref) do  # lambda_hole_for_inter
              hole_ref || hole_held_before
-           end,
-           true
-          )
+           end)
 end
 
 

@@ -34,6 +34,7 @@ def set_global_vars_early
   $freqs_queue = Queue.new
 
   $figlet_count = 0
+  $first_lap_get_hole = true
 end
 
 
@@ -141,53 +142,24 @@ def read_musical_config
   hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
   note2hole = hole2note.invert
       
-  sfiles = Dir[$scale_files_template % [$type, $scale, '{holes,notes}']]
-  # check for zero files is in arguments.rb
-  err_b "Multiple files for scale #{$scale}:\n#{sfiles.inspect}" if sfiles.length > 1
-  sfile = sfiles[0]
-
   if $scale
-    scale_read = yaml_parse(sfile)
-    scale = Array.new
-
-    err_msg = if $opts[:transpose_scale_to]
-                "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
-              else
-                "#{sfile} has %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
-              end
-    # For convenience we have both hole2note and hole2note_read; they only differ,
-    # if key does not equal c, and the following relation always holds true:
-    # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
-    # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
-    dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
-    scale_read.each do |fields|
-      hole_or_note, remark = fields.split(nil,2)
-      semi = dsemi_harp + dsemi_scale +
-             ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
-      if semi >= min_semi && semi <= max_semi
-        note = semi2note(semi)
-        hole = note2hole[note]
-        err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}",
-                          semi]) unless hole
-        scale << hole
-        hole2rem[hole] = remark
+    snames = [$scale]
+    snames << $opts[:prefer] if $opts[:prefer]
+    scale = []
+    snames.each_with_index do |sname, i|
+      sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
+      # merge results
+      scale.concat(sc)
+      pclause = ( i == 0  ?  '' : 'pref ' )
+      h2r.each do |k,v|
+        txt = "#{hole2rem[k]} #{pclause}#{h2r[k]}".strip
+        hole2rem[k] = ( txt.length > 0  ?  txt  :  nil )
       end
     end
-
-    scale_holes = scale
-    scale_holes_with_rem = scale.map {|h| "#{h} #{hole2rem[h]}".strip}
+    scale_holes = scale.sort_by {|h| harp[h][:semi]}
     scale_notes = scale_holes.map {|h| hole2note[h]}
-    scale_notes_with_rem = scale_holes.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
-
-    dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
-    comment = "#\n# derived scale-file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
-    File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
   else              
     scale_holes = scale_notes = nil
-  end
-
-  unless harp_holes.map {|hole| harp[hole][:semi]}.each_cons(2).all? { |a, b| a < b }
-    err_b "Internal error: Computed semitones are not strictly ascending in order of holes:\n#{harp.pretty_inspect}"
   end
 
   # read from first available intervals file
@@ -200,6 +172,52 @@ def read_musical_config
     scale_notes,
     hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
     intervals ]
+end
+
+
+def read_and_parse_scale sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi
+  sfiles = Dir[$scale_files_template % [$type, sname, '{holes,notes}']]
+  # check for zero files is in arguments.rb
+  err_b "Multiple files for scale #{sname}:\n#{sfiles.inspect}" if sfiles.length > 1
+  sfile = sfiles[0]
+
+  scale_read = yaml_parse(sfile)
+  scale = Array.new
+  hole2rem = Hash.new
+
+  err_msg = if $opts[:transpose_scale_to]
+              "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+            else
+              "#{sfile} has %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
+            end
+  # For convenience we have both hole2note and hole2note_read; they only differ,
+  # if key does not equal c, and the following relation always holds true:
+  # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
+  # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
+  dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
+  scale_read.each do |fields|
+    hole_or_note, remark = fields.split(nil,2)
+    semi = dsemi_harp + dsemi_scale +
+           ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
+    if semi >= min_semi && semi <= max_semi
+      note = semi2note(semi)
+      hole = note2hole[note]
+      err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}",
+                        semi]) unless hole
+      scale << hole
+      hole2rem[hole] = remark
+    end
+  end
+  
+  scale_holes_with_rem = scale.map {|h| "#{h} #{hole2rem[h]}".strip}
+  scale_notes_with_rem = scale.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
+  
+  # write derived scale file
+  dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
+  comment = "#\n# derived scale-file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
+  File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
+  
+  [scale, hole2rem]
 end
 
 
