@@ -223,6 +223,9 @@ def handle_kb_play
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
+  elsif char == '.' && $ctl_can_next
+    $ctl_replay = true
+    text = 'Replay'
   elsif char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = 'Skip back'

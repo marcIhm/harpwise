@@ -195,7 +195,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       puts $ctl_can_journal  ?  "       j: toggle writing of journal file"  :  ''
       puts "          k: change key of harp       s: change scale"
       if  $ctl_can_next
-        puts "          l: loop over current sequence of holes"
+        puts "          l: loop current sequence    .: replay current"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
       end
       puts "          q: quit                     h: this help"

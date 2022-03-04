@@ -35,12 +35,15 @@ def do_quiz
         sleep 1
       end
       $ctl_loop = true
+    elsif $ctl_replay 
+      print "\e[32mreplaying current sequence\e[0m "
+      sleep 1
     else
       all_wanted_before = all_wanted
       all_wanted = get_sample($num_quiz)
       $ctl_loop = $opts[:loop]
     end
-    $ctl_back = $ctl_next = false
+    $ctl_back = $ctl_next = $ctl_replay = false
     
     sleep 0.3
 
@@ -98,7 +101,7 @@ def do_quiz
                                played == wanted && 
                                Time.now.to_f - since > 0.5]}, # do not return okay immediately
           
-          -> () {$ctl_next || $ctl_back},  # lambda_skip
+          -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
           
           -> (_, _, _, _, _, _, _) do  # lambda_comment
                     if $num_quiz == 1
@@ -134,7 +137,7 @@ def do_quiz
 
       end # notes in a sequence
 
-      if $ctl_next || $ctl_back
+      if $ctl_next || $ctl_back || $ctl_replay
         print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
         first_lap = false
         next
@@ -145,6 +148,8 @@ def do_quiz
                "skip"
              elsif $ctl_back
                "jump back"
+             elsif $ctl_replay
+               "replay"
              else
                ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
              end
@@ -158,7 +163,7 @@ def do_quiz
       full_hint_shown = true
     
       sleep 1
-    end while $ctl_loop && !$ctl_back && !$ctl_next  # looping over one sequence
+    end while $ctl_loop && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
     first_lap = false
   end # sequence after sequence
