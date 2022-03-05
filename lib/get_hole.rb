@@ -309,6 +309,7 @@ end
 
 def text_for_key
   text_for_key = "Mode: #{$mode} #{$type} #{$key} #{$scale}"
+  text_for_key += ", pref: #{$opts[:prefer]}" if $opts[:prefer]
   text_for_key += ', journal: ' + ( $write_journal  ?  ' on' : 'off' ) if $ctl_can_journal
   text_for_key += "\e[K"
 end
