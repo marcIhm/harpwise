@@ -42,7 +42,8 @@ Usage by examples:
     ./harp_scale_trainer quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type
-  'RET'.
+  'RETURN'. Option '--immediate' shows the full hole-sequence during quiz
+  right from the start (rather than after some delay only).
 
   In the examples above, the type of harmonica (e.g. richter or
   chromatic) and, in addition, the key (e.g. c or a) may be omitted and
@@ -126,6 +127,7 @@ EOU
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(--prefer) => :prefer,
+    %w(--immediate) => :immediate,
     %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-r --ref) => :ref,
     %w(-d --display) => :display,
@@ -224,7 +226,7 @@ EOU
 
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz]], [:prefer, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+  [[:loop, [:quiz]], [:immediate, [:quiz]], [:prefer, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 

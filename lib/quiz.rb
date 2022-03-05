@@ -14,15 +14,20 @@ def do_quiz
   
   first_lap = true
   all_wanted_before = all_wanted = nil
+  jtext_prev = Set.new
   puts
   
   loop do   # forever until ctrl-c, sequence after sequence
 
-    unless first_lap
-      print "\e[#{$line_issue}H\e[K" 
-      ctl_issue
-      print "\e[#{$line_hint_or_message}H\e[K" 
+    if first_lap
+      print "\n"
+      print "\e[#{$term_height}H\e[K"
+      print "\e[#{$term_height-1}H\e[K"
+    else
+      print "\e[#{$line_hint_or_message}H\e[K"
       print "\e[#{$line_call}H\e[K"
+      print "\e[#{$line_issue}H\e[K"
+      ctl_issue
     end
 
     if $ctl_back
@@ -44,17 +49,37 @@ def do_quiz
     
     sleep 0.3
 
+    jtext = ''
     ltext = "\e[2m"
     all_wanted.each_with_index do |hole, idx|
-      print "\e[#{$line_call}H" unless first_lap
-      ltext = '' if ltext.length - 4 * ltext.count("\e") > $term_width * 0.7
+      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
+        ltext = "\e[2m"
+        if first_lap
+          print "\e[#{$term_height}H\e[K"
+          print "\e[#{$term_height-1}H\e[K"
+        else
+          print "\e[#{$line_hint_or_message}H\e[K"
+          print "\e[#{$line_call}H\e[K"
+        end
+      end
       if idx > 0
         isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
+        part = ' ' + ( itext || isemi ).tr(' ','') + ' '
+        ltext += part
+        jtext += " #{part} "
       end
-      ltext += "\e[0m#{$harp[hole][:note]}\e[2m"
-      ltext += "(#{$hole2rem[hole]})" if $opts[:prefer] && $hole2rem[hole]
-      print "\e[G#{ltext}\e[K"
+      ltext += if $opts[:immediate]
+                 "\e[0m#{$harp[hole][:note]},#{hole}\e[2m"
+               else
+                 "\e[0m#{$harp[hole][:note]}\e[2m"
+               end
+      jtext += "#{$harp[hole][:note]},#{hole}"
+      if $opts[:prefer] && $hole2rem[hole]
+        part = "(#{$hole2rem[hole]})" 
+        ltext += part
+        jtext += part
+      end
+      print "\e[#{first_lap ? $term_height-1 : $line_hint_or_message }H#{ltext.strip}\e[K"
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
         sleep 0.1
@@ -66,6 +91,8 @@ def do_quiz
         break
       end
     end
+    File.write('quiz_journal', "\n#{Time.now}:\n#{jtext}\n", mode: 'a') unless jtext_prev.include?(jtext)
+    jtext_prev << jtext
     redo if $ctl_back || $ctl_next || $ctl_replay
     print "\e[0m\e[32m and !\e[0m"
     sleep 1
@@ -73,6 +100,7 @@ def do_quiz
     if first_lap
       system('clear')
     else
+      print "\e[#{$line_hint_or_message}H\e[K"
       print "\e[#{$line_call}H\e[K"
     end
     full_hint_shown = false
@@ -114,14 +142,16 @@ def do_quiz
           -> (_) do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
-            
-            if all_wanted.length > 1 &&
+
+            if $opts[:immediate] 
+              "\e[2mPlay: " + all_wanted.join(', ')
+            elsif all_wanted.length > 1 &&
                hole_passed > 4 &&
                lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
               full_hint_shown = true
-              "Solution: The complete sequence is: #{describe_sequence(all_wanted)}" 
+              "\e[0mSolution: The complete sequence is: #{all_wanted.join(', ')}" 
             elsif hole_passed > 4
-              "Hint: Play \e[32m#{wanted}\e[0m"
+              "\e[2mHint: Play \e0m\e[32m#{wanted}\e[0m"
             else
               if idx > 0
                 isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
@@ -158,7 +188,7 @@ def do_quiz
       print "\e[0m"
       
       print "\e[#{$line_hint_or_message}H\e[K"
-      print "#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{describe_sequence(all_wanted)}   ...   "
+      print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
     
@@ -255,14 +285,3 @@ def nearest_hole_with_remark hole, remark, semi2hole
     delta_semi += 1
   end while true
 end
-
-
-def describe_sequence holes
-  desc = holes[0]
-  holes.each_cons(2) do |h1, h2|
-    di = describe_inter(h1,h2)
-    desc += " \e[2m(#{di[1] || di[0]})\e[0m #{h2} "
-  end
-  desc.rstrip
-end
-  

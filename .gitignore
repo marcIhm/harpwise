@@ -5,3 +5,4 @@ samples/*
 config/*/derived_*.yaml
 config/testing
 sample_stats
+quiz_journal

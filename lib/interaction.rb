@@ -106,7 +106,7 @@ def do_figlet text, font, template = nil
     if offset + maxlen > 0.9 * $term_width
       offset = offset_specific
     end
-    if offset + maxlen > 0.9 * $term_width
+    if offset < 0 || offset + maxlen > 0.9 * $term_width
       offset = 0
     end
     err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
