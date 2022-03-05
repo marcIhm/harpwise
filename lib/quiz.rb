@@ -25,7 +25,7 @@ def do_quiz
       print "\e[#{$term_height-1}H\e[K"
     else
       print "\e[#{$line_hint_or_message}H\e[K"
-      print "\e[#{$line_call}H\e[K"
+      print "\e[#{$line_call2}H\e[K"
       print "\e[#{$line_issue}H\e[K"
       ctl_issue
     end
@@ -59,7 +59,7 @@ def do_quiz
           print "\e[#{$term_height-1}H\e[K"
         else
           print "\e[#{$line_hint_or_message}H\e[K"
-          print "\e[#{$line_call}H\e[K"
+          print "\e[#{$line_call2}H\e[K"
         end
       end
       if idx > 0
@@ -101,7 +101,7 @@ def do_quiz
       system('clear')
     else
       print "\e[#{$line_hint_or_message}H\e[K"
-      print "\e[#{$line_call}H\e[K"
+      print "\e[#{$line_call2}H\e[K"
     end
     full_hint_shown = false
 

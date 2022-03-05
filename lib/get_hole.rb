@@ -140,7 +140,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     if done
-      print "\e[#{$line_call}H"
+      print "\e[#{$line_call2}H"
       $move_down_on_exit = false
       return
     end

@@ -52,16 +52,14 @@ def calculate_screen_layout
   $line_comment = 18 + 3 * stretch - 2 * squeeze
   $line_help = $line_comment
   $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
-  $line_call = 27 + 4 * stretch - 2 * squeeze
-  if $mode == :listen
-    # we dont use calls for mode listen
-    $line_call = -1
-  else
+  if $mode == :quiz
     # font for quiz is fairly small
     $line_comment += 1
     $line_hint_or_message -= 1 
-    $line_call -= 1
   end
+  # call starts on $line_hint_or_message, so $line_call2 is actually
+  # its second line
+  $line_call2 = $line_hint_or_message + 1
 
 end
 
