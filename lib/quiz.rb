@@ -27,18 +27,15 @@ def do_quiz
 
     if $ctl_back
       if !all_wanted_before || all_wanted_before == all_wanted
-        print "no previous sequence; restarting "
+        print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
         sleep 1
       else
         all_wanted = all_wanted_before
-        print "\e[32mto previous sequence\e[0m "
-        sleep 1
       end
       $ctl_loop = true
-    elsif $ctl_replay 
-      print "\e[32mreplaying current sequence\e[0m "
-      sleep 1
-    else
+    elsif $ctl_replay
+      # nothing to do
+    else # also good for $ctl_next
       all_wanted_before = all_wanted
       all_wanted = get_sample($num_quiz)
       $ctl_loop = $opts[:loop]
@@ -64,9 +61,12 @@ def do_quiz
         handle_kb_listen
       end while play_thr.alive?
       play_thr.join   # raises any errors from thread
-      break if $ctl_back
+      if $ctl_back || $ctl_next || $ctl_replay
+        sleep 1
+        break
+      end
     end
-    redo if $ctl_back
+    redo if $ctl_back || $ctl_next || $ctl_replay
     print "\e[0m\e[32m and !\e[0m"
     sleep 1
 
@@ -173,12 +173,14 @@ end
 $sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
-  # construct chains of holes within scale using one of these:
-  # - random holes from the scale
-  # - intervals within an octave
-  # - named intervals
+  # construct chains of holes within scale and preferred scale
   holes = Array.new
-  holes[0] = $scale_holes.sample
+  # favor lower starting notes
+  if rand > 0.5
+    holes[0] = $scale_holes[0 .. $scale_holes.length/2].sample
+  else
+    holes[0] = $scale_holes.sample
+  end
   semi2hole = $scale_holes.map {|hole| [$harp[hole][:semi], hole]}.to_h
 
   what = Array.new(num)
@@ -188,15 +190,17 @@ def get_sample num
     if ran > 0.7
       what[i] = :nearby
       begin
-        try_semi = $harp[holes[i-1]][:semi] + rand(12) - 6
+        try_semi = $harp[holes[i-1]][:semi] + rand(-6 .. 6)
         tries += 1
         break if tries > 100
       end until semi2hole[try_semi]
       holes[i] = semi2hole[try_semi]
     else
       what[i] = :interval
-      begin 
-        try_semi = $harp[holes[i-1]][:semi] + [4,7,12].sample * ( 2 * rand(2) - 1 )
+      begin
+        # semitone distances 4,7 and 12 are major third, perfect fifth
+        # and octave respectively
+        try_semi = $harp[holes[i-1]][:semi] + [4,7,12].sample * [-1,1].sample
         tries += 1
         break if tries > 100
       end until semi2hole[try_semi]
@@ -205,12 +209,14 @@ def get_sample num
   end
 
   if $opts[:prefer]
+    # (randomly) replace notes with preferred ones
     for i in (1 .. num - 1)
       if rand >= 0.5
         holes[i] = nearest_hole_with_remark(holes[i], 'pref', semi2hole)
         what[i] = :nearest_pref
       end
     end
+    # (randomly) make last note a root note
     if rand >= 0.5
       holes[-1] = nearest_hole_with_remark(holes[-1], 'root', semi2hole)
       what[-1] = :nearest_root
@@ -218,6 +224,7 @@ def get_sample num
   end
 
   for i in (1 .. num - 1)
+    # make sure, there is a note in every slot
     unless holes[i]
       holes[i] = $scale_holes.sample
       what[i] = :fallback
@@ -234,19 +241,19 @@ def nearest_hole_with_remark hole, remark, semi2hole
   delta_semi = 0
   found = nil
   begin
-    [delta_semi, -delta_semi].each do |ds|
+    [delta_semi, -delta_semi].shuffle.each do |ds|
       try_semi = $harp[hole][:semi] + ds
       try_hole = semi2hole[try_semi]
       if try_hole
         try_rem = $hole2rem[try_hole]
         found = try_hole if try_rem && try_rem[remark]
       end
-      break if found
+      return found if found
     end
+    # no near hole found
     return nil if delta_semi > 8
     delta_semi += 1
-  end until found
-  found
+  end while true
 end
 
 

@@ -94,23 +94,38 @@
    - The interval to the previous note or the stored reference
    - Cents deviation of the current frequency to the reference
 
-** The frequency gauge
+** The middle part of the display
+*** The Hole-line
+    
+    The first line in the middle of the display currently looks like this:
 
-   Currently it looks like this:
+    Hole:   -- , Note:  -- , Ref:   -- ,  Rem: --
 
-   [..........:..|.......]
+    After the obvious fields Hole and Note there are:
+    
+    - Ref :: (if set) a chosen reference note, against which, e.g. your
+      bends will be judged when displaying them.
 
-   The middle position (marked by ":") represents the frequency, that was
-   found during calibration. If you have done an automatic calibration,
-   this frequency might not match what you are actually playing (marked by
-   "I"); consider a manual calibration with your actual harp in such a
-   case.
+    - Rem :: A remark, that can be defined for a scale (i.e. within the
+      file scales_SCALE_with_holes.yaml)
 
-   The left and right position (marked by "[." and ".]") represent the
-   point, where the displayed note would change: half way to the next
-   hole. After reaching which (e.g. while bending), the gauge will change,
-   the ":" will represent the next hole and the displayed cursor ("I")
-   will jump to the other side to approach the central position again.
+*** The frequency gauge
+
+    Currently it looks like this:
+
+    [..........:..|.......]
+
+    The middle position (marked by ":") represents the frequency, that was
+    found during calibration. If you have done an automatic calibration,
+    this frequency might not match what you are actually playing (marked by
+    "I"); consider a manual calibration with your actual harp in such a
+    case.
+
+    The left and right position (marked by "[." and ".]") represent the
+    point, where the displayed note would change: half way to the next
+    hole. After reaching which (e.g. while bending), the gauge will change,
+    the ":" will represent the next hole and the displayed cursor ("I")
+    will jump to the other side to approach the central position again.
 
 * Configuration
 

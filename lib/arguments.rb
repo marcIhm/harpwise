@@ -54,14 +54,23 @@ Usage by examples:
 
 
   Both modes listen and quiz accept the option '--prefer' with another
-  scale to be mixed in; for quiz, these holes will be somewhat preferred
-  over the main scale.
+  scale to be mixed in. E.g, when trying licks for the v-chord, you might
+  use the blues scale and add the scale chord-v:
+
+    ./harp_scale_trainer l blues --pref chord-v
+
+  For quiz, the holes from the preferred scale (chord-v in the example
+  above) will be chosen more frequent than the holes from the main scale
+  (blues); the last note of a sequence will likely be a root note
+  (i.e. one with the remark root).      
+  
 
   Both modes allow an option '--display' with possible values of 'hole'
   and 'chart' to change how a recognized will be displayed.
 
   Some (display-)settings can also be changed while the program is
   running; type 'h' for details.
+
 
 
   Once in the lifetime of your c-harp you need to calibrate the trainer

@@ -8,9 +8,13 @@
   
   - config.yaml :: Main config file; see comments within for some
     explanations.
+
+    To adjust configuration you may add config_merge.yaml to override selected
+    settings (e.g. the default harmonica-type).
 		   
-  - ~/.harp_scale_trainer/config_merge.yaml :: Optional, may contain any of the config-keys from
-    config.yaml and then overrides those; not included in git-versioning.
+  - ~/.harp_scale_trainer/config_merge.yaml :: Optional, may contain any of
+    the config-keys from config.yaml and then overrides those; not included in
+    git-versioning.
 
   - intervals.yaml :: Names for selected intervals.
 
@@ -21,11 +25,16 @@
   - intervals.yaml :: If this file is present within a subdirectory, it
     overrides the one directly within config.
 
-  - holes.yaml :: Maps holes to notes for a harmonica of key c. All other keys
-    will be automatically derived from this one
+  - holes.yaml :: Maps holes to notes for a harmonica of key c. Any other key
+    (chosen when starting the trainer) will be automatically derived from this
+    one
 
-  - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE. On each
-    line any text after the note (and a space) will be displayed as a remark.
+  - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE; each line
+    should contain a hole name, as given in holes.yaml.
+  
+    On each line, after the note (and a space), you may add arbitrary text,
+    that will be displayed as a remark (see the section on display); the
+    special word 'root' marks a root note, which will be favored in quiz.
 
   - scales_SCALE_with_notes.yaml :: List of notes for scale SCALE. Accepts a
     remark too.
@@ -33,12 +42,16 @@
   
   Each scale (e.g. blues or mape) has its own file and can be either notated
   with holes or notes, but NOT both. However, if a scale with notes is parsed,
-  the same scale is written out (prefixed with the word 'derived') with holes
+  the same scale is written out with holes (prefixed with the word 'derived')
   and vice versa. So for example using scale_blues_with_holes.yaml will
   trigger the creation of derived_scale_blues_with_notes.yaml.
 
-  To adjust configuration you may add config_merge.yaml to override selected
-  settings (e.g. the default harmonica-type).
+* Creating new scales for a given type
+
+  E.g. for a new scale chord-iii (notes from the iii-chord), you would just
+  copy the file scales_all_with_holes.yaml (see above) to
+  scales_chord-iii_with_holes.yaml and edit it appropriately. The next time,
+  the trainer is started, it would recognize the new scale.
 
 * Creating a new type of harmonica
 

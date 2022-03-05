@@ -172,14 +172,24 @@ def handle_kb_listen
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   if char == ' '
-    print "\e[32mSPACE to continue ... \e[0m"
+    print "\e[0m\e[32m SPACE to continue ... "
     begin
       char = $ctl_kb_queue.deq
     end until char == ' '
-    print "\e[32mcontinue \e[0m"
+    print "go"
+    sleep 0.5
   elsif char && char.length > 0 && char.ord == 127
-    print "\e[32mback\e[0m "
+    print "\e[0m\e[32m back \e[0m "
     $ctl_back = true
+    sleep 0.5
+  elsif char == '.'
+    print "\e[0m\e[32m replay \e[0m "
+    $ctl_replay = true
+    sleep 0.5
+  elsif char == "\n"
+    print "\e[0m\e[32m next \e[0m "
+    $ctl_next = true
+    sleep 0.5
   end
 end
 
