@@ -4,8 +4,6 @@
 
 def do_quiz
 
-  do_figlet 'Great ! -2+3 -3// -2/ -5 -3/ -2/ -1 -3//', 'smblock'
-  exit
   prepare_term
   start_kb_handler
   start_collect_freqs
