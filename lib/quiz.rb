@@ -137,6 +137,8 @@ def do_quiz
           -> (_, _, _, _, _, _, _) do  # lambda_comment
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
+                    elsif $opts[:immediate]
+                      [ "\e[2m", 'Play  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' * ' + all_wanted[idx .. -1].join(' '), 'smblock', 'yes' + '--' * all_wanted.length ]
                     else
                       [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes' + '--' * all_wanted.length ]
                     end
