@@ -8,7 +8,6 @@ def do_listen
   start_kb_handler
   start_collect_freqs 
   $ctl_can_next = false
-  $ctl_can_journal = true
   $ctl_can_loop = false
   $ctl_can_change_comment = true
   

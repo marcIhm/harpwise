@@ -4,21 +4,20 @@
 
 def do_quiz
 
+  do_figlet 'Great ! -2+3 -3// -2/ -5 -3/ -2/ -1 -3//', 'smblock'
+  exit
   prepare_term
   start_kb_handler
   start_collect_freqs
   $ctl_can_next = true
-  $ctl_can_journal = false
   $ctl_can_loop = true
   $ctl_can_change_comment = false
   
   first_lap = true
   all_wanted_before = all_wanted = nil
-  jtext_prev = Set.new
   puts
   
   loop do   # forever until ctrl-c, sequence after sequence
-
     if first_lap
       print "\n"
       print "\e[#{$term_height}H\e[K"
@@ -26,7 +25,7 @@ def do_quiz
     else
       print "\e[#{$line_hint_or_message}H\e[K"
       print "\e[#{$line_call2}H\e[K"
-      print "\e[#{$line_issue}H\e[K"
+      print "\e[#{$line_issue}H\e[0mListen ...\e[K"
       ctl_issue
     end
 
@@ -69,16 +68,19 @@ def do_quiz
         jtext += " #{part} "
       end
       ltext += if $opts[:immediate]
-                 "\e[0m#{$harp[hole][:note]},#{hole}\e[2m"
+                 "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
                else
                  "\e[0m#{$harp[hole][:note]}\e[2m"
                end
       jtext += "#{$harp[hole][:note]},#{hole}"
-      if $opts[:prefer] && $hole2rem[hole]
-        part = "(#{$hole2rem[hole]})" 
+      if $opts[:merge] && $hole2flags[hole].length > 0
+        part = '(' +
+               $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.join(',') +
+               ')'
         ltext += part
         jtext += part
       end
+
       print "\e[#{first_lap ? $term_height-1 : $line_hint_or_message }H#{ltext.strip}\e[K"
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
@@ -91,8 +93,11 @@ def do_quiz
         break
       end
     end
-    File.write('quiz_journal', "\n#{Time.now}:\n#{jtext}\n", mode: 'a') unless jtext_prev.include?(jtext)
-    jtext_prev << jtext
+
+    if $write_journal && !$journal_quiz.include?(jtext)
+      IO.write($journal_file, "#{jtext}\n", mode: 'a') 
+      $journal_quiz << jtext
+    end
     redo if $ctl_back || $ctl_next || $ctl_replay
     print "\e[0m\e[32m and !\e[0m"
     sleep 1
@@ -114,7 +119,7 @@ def do_quiz
         hole_start = Time.now.to_f
         pipeline_catch_up
 
-        get_hole( -> () do
+        get_hole( -> () do      # lambda_issue
                     if $ctl_loop
                       "\e[32mLooping\e[0m over #{all_wanted.length} notes"
                     else
@@ -164,16 +169,10 @@ def do_quiz
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
 
+        break if $ctl_next || $ctl_back || $ctl_replay
 
       end # notes in a sequence
 
-      if $ctl_next || $ctl_back || $ctl_replay
-        print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
-        first_lap = false
-        next
-      end
-    
-      print "\e[#{$line_comment}H"
       text = if $ctl_next
                "skip"
              elsif $ctl_back
@@ -183,7 +182,7 @@ def do_quiz
              else
                ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
              end
-      print "\e[32m"
+      print "\e[#{$line_comment}H\e[2m\e[32m"
       do_figlet text, 'smblock'
       print "\e[0m"
       
@@ -191,19 +190,20 @@ def do_quiz
       print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
-    
+        
       sleep 1
     end while $ctl_loop && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
+  print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_lap = false
-  end # sequence after sequence
+  end # forever sequence after sequence
 end
 
       
 $sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
-  # construct chains of holes within scale and preferred scale
+  # construct chains of holes within scale and merged scale
   holes = Array.new
   # favor lower starting notes
   if rand > 0.5
@@ -211,7 +211,6 @@ def get_sample num
   else
     holes[0] = $scale_holes.sample
   end
-  semi2hole = $scale_holes.map {|hole| [$harp[hole][:semi], hole]}.to_h
 
   what = Array.new(num)
   for i in (1 .. num - 1)
@@ -223,8 +222,8 @@ def get_sample num
         try_semi = $harp[holes[i-1]][:semi] + rand(-6 .. 6)
         tries += 1
         break if tries > 100
-      end until semi2hole[try_semi]
-      holes[i] = semi2hole[try_semi]
+      end until $semi2hole[try_semi]
+      holes[i] = $semi2hole[try_semi]
     else
       what[i] = :interval
       begin
@@ -233,22 +232,22 @@ def get_sample num
         try_semi = $harp[holes[i-1]][:semi] + [4,7,12].sample * [-1,1].sample
         tries += 1
         break if tries > 100
-      end until semi2hole[try_semi]
-      holes[i] = semi2hole[try_semi]
+      end until $semi2hole[try_semi]
+      holes[i] = $semi2hole[try_semi]
     end
   end
 
-  if $opts[:prefer]
-    # (randomly) replace notes with preferred ones
+  if $opts[:merge]
+    # (randomly) replace notes with merged ones and so prefer them 
     for i in (1 .. num - 1)
-      if rand >= 0.5
-        holes[i] = nearest_hole_with_remark(holes[i], 'pref', semi2hole)
-        what[i] = :nearest_pref
+      if rand >= 0.6
+        holes[i] = nearest_hole_with_flag(holes[i], :merged)
+        what[i] = :nearest_merged
       end
     end
     # (randomly) make last note a root note
-    if rand >= 0.5
-      holes[-1] = nearest_hole_with_remark(holes[-1], 'root', semi2hole)
+    if rand >= 0.6
+      holes[-1] = nearest_hole_with_flag(holes[-1], :root)
       what[-1] = :nearest_root
     end
   end
@@ -262,21 +261,21 @@ def get_sample num
     $sample_stats[what[i]] += 1
   end
 
-  File.write('sample_stats', "\n#{Time.now}:\n#{$sample_stats.inspect}\n", mode: 'a') if $opts[:debug]
+  IO.write($debug_log, "\n#{Time.now}:\n#{$sample_stats.inspect}\n", mode: 'a') if $opts[:debug]
   holes
 end
 
 
-def nearest_hole_with_remark hole, remark, semi2hole
+def nearest_hole_with_flag hole, flag
   delta_semi = 0
   found = nil
   begin
     [delta_semi, -delta_semi].shuffle.each do |ds|
       try_semi = $harp[hole][:semi] + ds
-      try_hole = semi2hole[try_semi]
+      try_hole = $semi2hole[try_semi]
       if try_hole
-        try_rem = $hole2rem[try_hole]
-        found = try_hole if try_rem && try_rem[remark]
+        try_flags = $hole2flags[try_hole]
+        found = try_hole if try_flags && try_flags.include?(flag)
       end
       return found if found
     end

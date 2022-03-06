@@ -71,10 +71,9 @@ end
 
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
-
 def do_figlet text, font, template = nil
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
-  cmd = "figlet -d fonts -f #{font} -l \" #{text}\""
+  cmd = "figlet -d fonts -w 200 -f #{font} -l \" #{text}\""
   unless $figlet_cache[cmd]
     out, _ = Open3.capture2e(cmd)
     $figlet_count += 1
@@ -109,8 +108,13 @@ def do_figlet text, font, template = nil
     if offset < 0 || offset + maxlen > 0.9 * $term_width
       offset = 0
     end
-    err_b "Error: This terminal (#{$term_width} columns) is too narrow for text '#{text}' which has #{maxlen} chars after figlet" if maxlen >= $term_width 
-    $figlet_cache[cmd] = lines.map {|l| ' ' * offset + l.chomp}
+    $figlet_cache[cmd] = lines.each_with_index.map do |l,i|
+      if maxlen + 2 < $term_width 
+        ' ' * offset + l.chomp
+      else
+        ( ' ' * offset + l.chomp + ' ' * $term_width )[0 .. $term_width-6] + '   ' + '/\\'[i%2]
+      end
+    end
   end
   if $figlet_cache[cmd] # could save us after resize
     $figlet_cache[cmd].each do |line|
@@ -209,7 +213,7 @@ def handle_kb_play
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = 'Skip'
-  elsif char == 'j' && $ctl_can_journal
+  elsif char == 'j'
     $ctl_toggle_journal = true
     text = nil
   elsif char == 'k'

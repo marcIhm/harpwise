@@ -54,17 +54,16 @@ Usage by examples:
   is valid as well.
 
 
-  Both modes listen and quiz accept the option '--prefer' with another
-  scale to be mixed in. E.g, when trying licks for the v-chord, you might
+  Both modes listen and quiz accept the option '--merge' with another
+  scale to be merged. E.g, when trying licks for the v-chord, you might
   use the blues scale and add the scale chord-v:
 
-    ./harp_scale_trainer l blues --pref chord-v
+    ./harp_scale_trainer l blues --merge chord-v
 
-  For quiz, the holes from the preferred scale (chord-v in the example
-  above) will be chosen more frequent than the holes from the main scale
-  (blues); the last note of a sequence will likely be a root note
-  (i.e. one with the remark root).      
-  
+  For quiz, the holes from the merged scale (chord-v in the example above)
+  will be chosen more frequent than the holes from the main scale (blues);
+  the last note of a sequence will likely be a root note (i.e. one with
+  the remark root).
 
   Both modes allow an option '--display' with possible values of 'hole'
   and 'chart' to change how a recognized will be displayed.
@@ -119,14 +118,14 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :prefer]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge]
   { %w(--debug) => :debug,
      %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
-    %w(--prefer) => :prefer,
+    %w(-m --merge) => :merge,
     %w(--immediate) => :immediate,
     %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-r --ref) => :ref,
@@ -226,7 +225,7 @@ EOU
 
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz]], [:immediate, [:quiz]], [:prefer, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+  [[:loop, [:quiz]], [:immediate, [:quiz]], [:merge, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 

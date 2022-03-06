@@ -9,7 +9,7 @@ def set_global_vars_early
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
-  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_journal = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
+  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
   $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_redraw = false
   $ctl_can_change_comment = false
   $ctl_issue_width = 36
@@ -20,7 +20,9 @@ def set_global_vars_early
   at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
-  $journal_file = "#{$data_dir}/journal.txt"
+  $journal_quiz = Array.new
+  $journal_listen = Array.new
+  $debug_log = "debug.log"
   $write_journal = false
   $message_shown = false
   $display_choices = [:chart, :hole, :bend]
@@ -70,6 +72,7 @@ def set_global_vars_late
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
+  $journal_file = "#{Dir.home}/journal_#{$mode.to_sym}.txt"
 end
 
 
@@ -126,6 +129,7 @@ def read_musical_config
   dsemi_harp -= 12 if dsemi_harp > 6
   harp = Hash.new
   hole2rem = Hash.new
+  hole2flags = Hash.new {|h,k| h[k] = Set.new}
   hole2note_read.each do |hole,note|
     semi = note2semi(note) + dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
@@ -142,33 +146,51 @@ def read_musical_config
       
   if $scale
     snames = [$scale]
-    snames << $opts[:prefer] if $opts[:prefer]
+    snames << $opts[:merge] if $opts[:merge]
     scale = []
     snames.each_with_index do |sname, i|
+      # read scale
       sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
       # merge results
       scale.concat(sc)
-      pclause = ( i == 0  ?  '' : 'pref ' )
-      h2r.each do |k,v|
-        txt = "#{hole2rem[k]} #{pclause}#{h2r[k]}".strip
-        hole2rem[k] = ( txt.length > 0  ?  txt  :  nil )
+      if i > 0
+        h2r.each do |k,v|
+          hole2flags[k] << :merged
+          hole2flags[k] << :root if v && v.match(/\broot\b/)
+          hole2rem[k] = if !hole2rem[k] && !h2r[k]
+                          nil
+                        elsif !!hole2rem[k] != !!h2r[k]
+                          # only one remark
+                          "#{hole2rem[k]}#{h2r[k]}"
+                        elsif hole2rem[k][h2r[k]]
+                          # one within the other
+                          hole2rem[k]
+                        elsif h2r[k][hole2rem[k]]
+                          h2r[k]
+                        else
+                          "#{hole2rem[k]}; #{h2r[k]}"
+                        end
+        end
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}
     scale_notes = scale_holes.map {|h| hole2note[h]}
-  else              
+  else            
     scale_holes = scale_notes = nil
   end
-
+  
   # read from first available intervals file
   ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
+  semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
 
   [ harp,
     harp_holes,
     scale_holes,
     scale_notes,
-    hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
+    !hole2rem.values.all?(&:nil?) && hole2rem,
+    !hole2flags.values.all?(&:nil?) && hole2flags,
+    semi2hole,
     intervals ]
 end
 
@@ -194,16 +216,15 @@ def read_and_parse_scale sname, dsemi_harp, hole2note_read, hole2note, note2hole
   # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
   dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
   scale_read.each do |fields|
-    hole_or_note, remark = fields.split(nil,2)
-    semi = dsemi_harp + dsemi_scale +
-           ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
+    hole_or_note, rem = fields.split(nil,2)
+    semi = dsemi_harp + dsemi_scale + ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
     if semi >= min_semi && semi <= max_semi
       note = semi2note(semi)
       hole = note2hole[note]
+      hole2rem[hole] = rem
       err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}",
                         semi]) unless hole
       scale << hole
-      hole2rem[hole] = remark
     end
   end
   

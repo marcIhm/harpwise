@@ -53,6 +53,9 @@
   scales_chord-iii_with_holes.yaml and edit it appropriately. The next time,
   the trainer is started, it would recognize the new scale.
 
+  Creating new scales is easy and should be used freely to support your
+  training.
+
 * Creating a new type of harmonica
 
   (Please also read the section "A word on holes" from the toplevel README.org too)

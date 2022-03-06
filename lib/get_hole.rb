@@ -12,7 +12,6 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
-  journal_holes = Array.new
   first = true
 
   loop do   # until var done or skip
@@ -49,7 +48,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
       hole_held_before = hole_held
-      write_to_journal(hole_held, hole_held_since, journal_holes) if $write_journal && regular_hole?(hole_held)
+      write_to_journal(hole_held, hole_held_since) if $write_journal && $mode == :listen && regular_hole?(hole_held)
       if hole
         hole_held = hole
         hole_held_since = hole_since
@@ -165,7 +164,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $message_shown = Time.now.to_f
       $ctl_set_ref = false
     end
-
+    
     if $ctl_change_display
       choices = [ $display_choices, $display_choices ].flatten
       $conf[:display] = choices[choices.index($conf[:display]) + 1]
@@ -175,7 +174,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $message_shown = Time.now.to_f
       $ctl_change_display = false
     end
-
+    
     if $ctl_can_change_comment && $ctl_change_comment
       choices = [ $comment_choices, $comment_choices ].flatten
       $conf[:comment_listen] = choices[choices.index($conf[:comment_listen]) + 1]
@@ -191,8 +190,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       puts "      SPACE: pause               ctrl-l: redraw screen"
       puts "   TAB or d: change display (upper part of screen)"
       puts " S-TAB or c: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
-      print "          r: set reference hole"
-      puts $ctl_can_journal  ?  "       j: toggle writing of journal file"  :  ''
+      puts "          r: set reference hole       j: toggle writing of journal file"
       puts "          k: change key of harp       s: change scale"
       if  $ctl_can_next
         puts "          l: loop current sequence    .: replay current"
@@ -213,18 +211,25 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
     end
     
-    if $ctl_can_journal && $ctl_toggle_journal
-      if $write_journal
-        write_to_journal(hole_held, hole_held_since, journal_holes) if regular_hole?(hole_held)
-        if journal_holes.length > 0
-          IO.write($journal_file, "All holes: #{journal_holes.join(' ')}\n", mode: 'a')
-          journal_holes = Array.new
-        end
-        IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
-      else
-        IO.write($journal_file, "\nStart writing journal at #{Time.now}\nColumns: Secs since prog start, duration, hole, note\n", mode: 'a')
-      end
+    if $ctl_toggle_journal
       $write_journal = !$write_journal
+      if $write_journal
+        IO.write($journal_file,
+                 "\nStart writing journal at #{Time.now}\n" +
+                 if $mode == :listen
+                   "Columns: Secs since prog start, duration, hole, note\n" +
+                     "Notes played by you only.\n\n"
+                 else
+                   "Notes played by trainer only.\n\n" +
+                   $journal_quiz.join("\n") + "\n"
+                 end, mode: 'a')
+        $journal_quiz = Array.new
+        $journal_listen = Array.new
+      else
+        write_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
+        IO.write($journal_file, "All holes: #{$journal_listen.join(' ')}\n", mode: 'a') if $mode == :listen && $journal_listen.length > 0
+        IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
+      end
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
       $ctl_toggle_journal = false
       print "\e[#{$line_hint_or_message}H\e[2m"      
@@ -292,26 +297,27 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $message_shown = false
     end
     first = $first_lap_get_hole = false
-  end  # loop until var done or skip
+end  # loop until var done or skip
 end
 
 
-def write_to_journal hole, since, journal_holes
+def write_to_journal hole, since
   IO.write($journal_file,
            "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
                                         Time.now.to_f - since,
                                         hole,
                                         $harp[hole][:note]],
            mode: 'a')
-  journal_holes << hole
+  $journal_listen << hole
 end
 
 
 def text_for_key
-  text_for_key = "Mode: #{$mode} #{$type} #{$key} #{$scale}"
-  text_for_key += ", pref: #{$opts[:prefer]}" if $opts[:prefer]
-  text_for_key += ', journal: ' + ( $write_journal  ?  ' on' : 'off' ) if $ctl_can_journal
-  text_for_key += "\e[K"
+  text = "Mode: #{$mode} #{$type} #{$key}"
+  text += " #{$scale}"
+  text += ",#{$opts[:merge]}" if $opts[:merge]
+  text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
+  text += "\e[K"
 end
 
 
