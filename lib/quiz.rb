@@ -92,8 +92,8 @@ def do_quiz
       end
     end
 
-    if $write_journal && !$journal_quiz.include?(jtext)
-      IO.write($journal_file, "#{jtext}\n", mode: 'a') 
+    if !$journal_quiz.include?(jtext)
+      IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
       $journal_quiz << jtext
     end
     redo if $ctl_back || $ctl_next || $ctl_replay

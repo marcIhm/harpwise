@@ -222,7 +222,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
                      "Notes played by you only.\n\n"
                  else
                    "Notes played by trainer only.\n\n" +
-                   $journal_quiz.join("\n") + "\n"
+                   $journal_quiz.join("\n\n") + "\n\n"
                  end, mode: 'a')
         $journal_quiz = Array.new
         $journal_listen = Array.new
