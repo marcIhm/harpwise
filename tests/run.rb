@@ -114,7 +114,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'listen' do
     sound 8, 2
-    journal_file = "#{Dir.home}/.harp_scale_trainer/journal.txt"
+    journal_file = "#{Dir.home}/journal_listen.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harp_scale_trainer listen testing a all --testing'
@@ -143,7 +143,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
     tms :ENTER
-    sleep 1
+    sleep 2
     expect { screen[7]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15'] }
     kill_session
   end

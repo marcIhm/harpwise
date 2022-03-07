@@ -177,14 +177,14 @@ def read_musical_config
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}
     scale_notes = scale_holes.map {|h| hole2note[h]}
+    semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            
-    scale_holes = scale_notes = nil
+    semi2hole = scale_holes = scale_notes = nil
   end
   
   # read from first available intervals file
   ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
-  semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
 
   [ harp,
     harp_holes,

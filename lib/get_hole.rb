@@ -235,6 +235,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $ctl_toggle_journal = false
       print "\e[#{$line_hint_or_message}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
+      print "  (all sequences since program start)" if $mode == :quiz
       print "\e[K"
       print "\e[#{$line_key}H\e[2m" + text_for_key      
       $message_shown = Time.now.to_f
