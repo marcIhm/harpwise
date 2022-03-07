@@ -69,12 +69,15 @@ def sys cmd
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
 end
 
+
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
-def do_figlet text, font, template = nil
+
+def do_figlet text, font, template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -w 200 -f #{font} -l \" #{text}\""
-  unless $figlet_cache[cmd]
+  cmdt = cmd + truncate.to_s
+  unless $figlet_cache[cmdt]
     out, _ = Open3.capture2e(cmd)
     $figlet_count += 1
     lines = out.lines.map {|l| l.rstrip}
@@ -108,16 +111,20 @@ def do_figlet text, font, template = nil
     if offset < 0 || offset + maxlen > 0.9 * $term_width
       offset = 0
     end
-    $figlet_cache[cmd] = lines.each_with_index.map do |l,i|
+    $figlet_cache[cmdt] = lines.each_with_index.map do |l,i|
       if maxlen + 2 < $term_width 
         ' ' * offset + l.chomp
       else
-        ( ' ' * offset + l.chomp + ' ' * $term_width )[0 .. $term_width-6] + '   ' + '/\\'[i%2]
+        if truncate == :left
+          '/\\'[i%2] + '   ' +  sprintf("%-#{maxlen}s", l.chomp)[-$term_width + 6 .. -1]
+        else
+          l.chomp[0 .. $term_width - 6] + '   ' + '/\\'[i%2]
+        end
       end
     end
   end
-  if $figlet_cache[cmd] # could save us after resize
-    $figlet_cache[cmd].each do |line|
+  if $figlet_cache[cmdt] # could save us after resize
+    $figlet_cache[cmdt].each do |line|
       print "#{line.chomp}\e[K\n"
     end
     print"\e[0m"

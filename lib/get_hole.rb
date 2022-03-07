@@ -126,7 +126,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       comment_color,
       comment_text,
       font,
-      sample_text =
+      sample_text,
+      truncate =
       lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
                           inter_semi,
                           inter_text,
@@ -135,7 +136,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
                           freq,
                           $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
       print "\e[#{$line_comment}H#{comment_color}"
-      do_figlet comment_text, font, sample_text
+      do_figlet comment_text, font, sample_text, truncate
     end
 
     if done

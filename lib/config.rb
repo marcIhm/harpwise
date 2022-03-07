@@ -58,10 +58,12 @@ def calculate_screen_layout
     # font for quiz is fairly small
     $line_comment += 1
     $line_hint_or_message -= 1 
+    $line_call2 = $line_hint_or_message + 1
+  else
+    $line_call2 = -1
   end
   # call starts on $line_hint_or_message, so $line_call2 is actually
   # its second line
-  $line_call2 = $line_hint_or_message + 1
 
 end
 

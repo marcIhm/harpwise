@@ -138,9 +138,9 @@ def do_quiz
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     elsif $opts[:immediate]
-                      [ "\e[2m", 'Play  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' * ' + all_wanted[idx .. -1].join(' '), 'smblock', 'yes' + '--' * all_wanted.length ]
+                      [ "\e[2m", 'Play  ' + ' .' * idx + all_wanted[idx .. -1].join(' '), 'smblock', 'play  ' + '--' * all_wanted.length, :right ]
                     else
-                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes' + '--' * all_wanted.length ]
+                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes  ' + '--' * all_wanted.length ]
                     end
                   end,
           
@@ -149,14 +149,14 @@ def do_quiz
             lap_passed = Time.now.to_f - lap_start
 
             if $opts[:immediate] 
-              "\e[2mPlay: " + all_wanted.join(', ')
+              "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(', ')) + ' * ' + all_wanted[idx .. -1].join(', ')
             elsif all_wanted.length > 1 &&
                hole_passed > 4 &&
                lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
               full_hint_shown = true
               "\e[0mSolution: The complete sequence is: #{all_wanted.join(', ')}" 
             elsif hole_passed > 4
-              "\e[2mHint: Play \e0m\e[32m#{wanted}\e[0m"
+              "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
             else
               if idx > 0
                 isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
