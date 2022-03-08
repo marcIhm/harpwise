@@ -347,10 +347,20 @@ def print_chart
     print ' ' * ( xoff - 1)
     row[0 .. -2].each do |cell|
       dim = comment_in_chart?(cell) || !$scale_notes.include?(cell.strip)
-      col = $hole2flags && $hole2flags[$note2hole[cell.strip]].include?(:merged)
+      hole = $note2hole[cell.strip]
       print "\e[0m"
-      print "\e[2m" if dim
-      print "\e[34m" if col
+      if dim
+        print "\e[2m"
+      else
+        if $hole2flags[hole].include?(:all)
+          print "\e[0m"
+        elsif $hole2flags[hole].include?(:main)
+          print "\e[32m"
+        else
+          print "\e[34m"
+        end
+      end
+    
       print cell
     end
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
@@ -381,25 +391,28 @@ def update_chart hole, state
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
     cell = $chart[xy[1]][xy[0]]
-    merged = $hole2flags && $hole2flags[hole]&.include?(:merged)
     pre = case state
           when :good
-            if merged
-              "\e[94m\e[7m"
-            else
+            if $hole2flags[hole].include?(:both)
+              "\e[0m\e[7m"
+            elsif $hole2flags[hole].include?(:main)
               "\e[92m\e[7m"
+            else
+              "\e[94m\e[7m"
             end
           when :bad
             "\e[31m\e[7m"
           when :normal
             if $scale_notes.include?(cell.strip)
-              if merged
-                "\e[34m"
+              if $hole2flags[hole].include?(:all)
+                "\e[0m"
+              elsif $hole2flags[hole].include?(:main)
+                "\e[32m"
               else
-                ""
+                "\e[34m"
               end
             else
-              "\e[2m"
+              "\e[0m\e[2m"
             end
           else
             fail "Internal error"

@@ -85,10 +85,12 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     hole_color = "\e[0m\e[%dm" %
                  if regular_hole?(hole)
                    if good
-                     if $hole2flags && $hole2flags[hole].include?(:merged)
-                       94
+                     if $hole2flags[hole].include?(:both)
+                       0
+                     elsif $hole2flags[hole].include?(:main)
+                       32
                      else
-                       92
+                       34
                      end
                    else
                      31
@@ -132,7 +134,22 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
-    print ",  Rem: %s" % ( $hole2rem[hole] || '--' ) if $hole2rem
+    if $hole2rem || $opts[:merge]
+      print ",  Rem: "
+      if $opts[:merge] && $scale_holes.include?(hole)
+        print "(\e[0m"
+        if $hole2flags[hole].include?(:both)
+          print "#{$scale}\e[2m,\e[0m#{$opts[:merge]}"
+        elsif $hole2flags[hole].include?(:main)
+          print "\e[32m#{$scale}"
+        else
+          print "\e[34m#{$opts[:merge]}"
+        end
+        print "\e[0m\e[2m) #{$hole2rem[hole]}".strip
+      else
+        print $hole2rem[hole] || '--'
+      end
+    end
     print "\e[K"
 
     if lambda_comment
@@ -284,7 +301,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
           end
         end
       end while er
-      $harp, $harp_holes, $scale_holes, $scale_notes, $intervals = read_musical_config
+      $harp, $harp_holes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
       $chart, $hole2chart = read_chart
       set_global_vars_late
       $freq2hole = read_calibration

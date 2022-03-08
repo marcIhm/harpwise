@@ -157,31 +157,32 @@ def read_musical_config
       # merge results
       scale.concat(sc)
       h2r.each_key do |h|
-          hole2flags[h] << :merged if i > 0
-          hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
-          h2sn[h] << sname
-          if i == 0
-            hole2rem[h] = h2r[h]
-          else
-            hole2rem[h] = if !hole2rem[h] && !h2r[h]
-                            nil
-                          elsif !!hole2rem[h] != !!h2r[h]
-                            # only one remark
-                            "#{hole2rem[h]}#{h2r[h]}"
-                          elsif hole2rem[h][h2r[h]]
-                            # one within the other
-                            hole2rem[h]
-                          elsif h2r[h][hole2rem[h]]
-                            h2r[h]
-                          else
-                            "#{hole2rem[h]}; #{h2r[h]}"
-                          end
-          end
-      end
-    end
-    if $opts[:merge]
-      h2sn.each_key do |h|
-        hole2rem[h] = "(#{h2sn[h].join(',')}) #{hole2rem[h]}".strip
+        if i == 0
+          hole2flags[h] << :main
+        else
+          hole2flags[h] << :merged
+        end
+        hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:merged)
+        hole2flags[h] << :all if !$opts[:merge] || hole2flags[h].include?(:both)
+        hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
+        h2sn[h] << sname
+        if i == 0
+          hole2rem[h] = h2r[h]
+        else
+          hole2rem[h] = if !hole2rem[h] && !h2r[h]
+                          nil
+                        elsif !!hole2rem[h] != !!h2r[h]
+                          # only one remark
+                          "#{hole2rem[h]}#{h2r[h]}"
+                        elsif hole2rem[h][h2r[h]]
+                          # one within the other
+                          hole2rem[h]
+                        elsif h2r[h][hole2rem[h]]
+                          h2r[h]
+                        else
+                          "#{hole2rem[h]}; #{h2r[h]}"
+                        end
+        end
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}
