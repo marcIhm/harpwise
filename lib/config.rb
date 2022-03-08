@@ -155,9 +155,9 @@ def read_musical_config
       sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
       # merge results
       scale.concat(sc)
-      if i > 0
+      if i > 0 || !$opts[:merge]
         h2r.each do |k,v|
-          hole2flags[k] << :merged
+          hole2flags[k] << :merged if i > 0
           hole2flags[k] << :root if v && v.match(/\broot\b/)
           hole2rem[k] = if !hole2rem[k] && !h2r[k]
                           nil
@@ -181,7 +181,6 @@ def read_musical_config
   else            
     semi2hole = scale_holes = scale_notes = nil
   end
-  
   # read from first available intervals file
   ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
@@ -193,6 +192,7 @@ def read_musical_config
     !hole2rem.values.all?(&:nil?) && hole2rem,
     !hole2flags.values.all?(&:nil?) && hole2flags,
     semi2hole,
+    note2hole,
     intervals ]
 end
 

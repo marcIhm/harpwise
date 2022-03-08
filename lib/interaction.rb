@@ -347,9 +347,13 @@ def print_chart
     print ' ' * ( xoff - 1)
     row[0 .. -2].each do |cell|
       dim = comment_in_chart?(cell) || !$scale_notes.include?(cell.strip)
-      print "\e[#{dim ? 2 : 0}m#{cell}"
+      col = $hole2flags && $hole2flags[$note2hole[cell.strip]].include?(:merged)
+      print "\e[0m"
+      print "\e[2m" if dim
+      print "\e[35m" if col
+      print cell
     end
-    puts "\e[2m#{row[-1]}\e[0m"
+    puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
 end
 
@@ -379,7 +383,11 @@ def update_chart hole, state
     cell = $chart[xy[1]][xy[0]]
     pre = case state
           when :good
-            "\e[92m\e[7m"
+            if $hole2flags && $hole2flags[hole]&.include?(:merged)
+              "\e[95m\e[7m"
+            else
+              "\e[92m\e[7m"
+            end
           when :bad
             "\e[31m\e[7m"
           when :normal
