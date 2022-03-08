@@ -150,29 +150,38 @@ def read_musical_config
     snames = [$scale]
     snames << $opts[:merge] if $opts[:merge]
     scale = []
+    h2sn = Hash.new {|h,k| h[k] = Array.new}
     snames.each_with_index do |sname, i|
       # read scale
       sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
       # merge results
       scale.concat(sc)
-      if i > 0 || !$opts[:merge]
-        h2r.each do |k,v|
-          hole2flags[k] << :merged if i > 0
-          hole2flags[k] << :root if v && v.match(/\broot\b/)
-          hole2rem[k] = if !hole2rem[k] && !h2r[k]
-                          nil
-                        elsif !!hole2rem[k] != !!h2r[k]
-                          # only one remark
-                          "#{hole2rem[k]}#{h2r[k]}"
-                        elsif hole2rem[k][h2r[k]]
-                          # one within the other
-                          hole2rem[k]
-                        elsif h2r[k][hole2rem[k]]
-                          h2r[k]
-                        else
-                          "#{hole2rem[k]}; #{h2r[k]}"
-                        end
-        end
+      h2r.each_key do |h|
+          hole2flags[h] << :merged if i > 0
+          hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
+          h2sn[h] << sname
+          if i == 0
+            hole2rem[h] = h2r[h]
+          else
+            hole2rem[h] = if !hole2rem[h] && !h2r[h]
+                            nil
+                          elsif !!hole2rem[h] != !!h2r[h]
+                            # only one remark
+                            "#{hole2rem[h]}#{h2r[h]}"
+                          elsif hole2rem[h][h2r[h]]
+                            # one within the other
+                            hole2rem[h]
+                          elsif h2r[h][hole2rem[h]]
+                            h2r[h]
+                          else
+                            "#{hole2rem[h]}; #{h2r[h]}"
+                          end
+          end
+      end
+    end
+    if $opts[:merge]
+      h2sn.each_key do |h|
+        hole2rem[h] = "(#{h2sn[h].join(',')}) #{hole2rem[h]}".strip
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}

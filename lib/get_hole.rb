@@ -82,7 +82,20 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[#{regular_hole?(hole)  ?  ( good ? 92 : 31 )  :  2}m"
+    hole_color = "\e[%dm" %
+                 if regular_hole?(hole)
+                   if good
+                     if $hole2flags && $hole2flags[hole].include?(:merged)
+                       95
+                     else
+                       92
+                     end
+                   else
+                     31
+                   end
+                 else
+                   2
+                 end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
     when :chart

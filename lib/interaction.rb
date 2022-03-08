@@ -381,9 +381,10 @@ def update_chart hole, state
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
     cell = $chart[xy[1]][xy[0]]
+    merged = $hole2flags && $hole2flags[hole]&.include?(:merged)
     pre = case state
           when :good
-            if $hole2flags && $hole2flags[hole]&.include?(:merged)
+            if merged
               "\e[95m\e[7m"
             else
               "\e[92m\e[7m"
@@ -391,7 +392,15 @@ def update_chart hole, state
           when :bad
             "\e[31m\e[7m"
           when :normal
-            $scale_notes.include?(cell.strip) ? "" : "\e[2m"
+            if $scale_notes.include?(cell.strip)
+              if merged
+                "\e[35m"
+              else
+                ""
+              end
+            else
+              "\e[2m"
+            end
           else
             fail "Internal error"
           end
