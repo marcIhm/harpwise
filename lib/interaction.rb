@@ -350,7 +350,7 @@ def print_chart
       col = $hole2flags && $hole2flags[$note2hole[cell.strip]].include?(:merged)
       print "\e[0m"
       print "\e[2m" if dim
-      print "\e[35m" if col
+      print "\e[34m" if col
       print cell
     end
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
@@ -385,7 +385,7 @@ def update_chart hole, state
     pre = case state
           when :good
             if merged
-              "\e[95m\e[7m"
+              "\e[94m\e[7m"
             else
               "\e[92m\e[7m"
             end
@@ -394,7 +394,7 @@ def update_chart hole, state
           when :normal
             if $scale_notes.include?(cell.strip)
               if merged
-                "\e[35m"
+                "\e[34m"
               else
                 ""
               end

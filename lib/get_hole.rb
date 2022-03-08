@@ -82,11 +82,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[%dm" %
+    hole_color = "\e[0m\e[%dm" %
                  if regular_hole?(hole)
                    if good
                      if $hole2flags && $hole2flags[hole].include?(:merged)
-                       95
+                       94
                      else
                        92
                      end
