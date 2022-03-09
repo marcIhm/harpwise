@@ -188,36 +188,28 @@ EOU
   end
 
   if mode == :calibrate
-    arg_for_scale = nil
+    scale = nil
   else
-    arg_for_scale = ARGV.pop
-    err_h "Need at least one argument for scale" unless arg_for_scale
+    scale = ARGV.pop
+    err_h "Need at least one argument for scale" unless scale
   end
   if ARGV.length == 2
-    arg_for_key = ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
-    arg_for_key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-    arg_for_type = ARGV.shift
+    key = ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
+    key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
+    type = ARGV.shift
   else
-    arg_for_key =  ARGV.length > 0 &&  $conf[:all_keys].include?(ARGV[-1])  ?  ARGV.pop : $conf[:key]
-    arg_for_type =  ARGV.length > 0  ?  ARGV.shift  :  $conf[:type] 
+    key =  ARGV.length > 0 &&  $conf[:all_keys].include?(ARGV[-1])  ?  ARGV.pop : $conf[:key]
+    type =  ARGV.length > 0  ?  ARGV.shift  :  $conf[:type] 
   end
     
   # process type first
   # set global vars here already for error messages
-  $type = type = match_or(arg_for_type, $conf[:all_types]) do |none, choices|
+  $type = type = match_or(type, $conf[:all_types]) do |none, choices|
     err_h "Type can be one of #{choices} only, not #{none}"
   end
 
-  # now we have the information to process key and scale
-  er = check_key_and_set_pref_sig(arg_for_key)
-  err_b er if er
-  $key = key = arg_for_key.to_sym
-
-  if mode != :calibrate
-    err_b "Need value for scale as one more argument" unless arg_for_scale
-    # checks are in config.rb
-    scale = arg_for_scale
-  end
+  (er = check_key_and_set_pref_sig(key)) && err_b(er)
+  scale || err_b("Need value for scale as one more argument") unless mode == :calibrate
 
   # do this check late, because we have more specific error messages before
   err_h "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0
