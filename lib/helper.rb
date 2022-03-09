@@ -13,15 +13,6 @@ def match_or cand, choices
 end
 
 
-def glob_scales type, scale
-  glob = $scale_files_template % [type, scale, '{holes,notes}']
-  globbed = Dir[glob]
-  scales = scales_for_type(type)
-  err_b "Unknown scale '#{scale}' (none of #{scales.join(', ')}) as there is no file matching #{glob}" unless globbed.length > 0
-  globbed
-end
-
-
 def yaml_parse file
   begin
     YAML.load_file(file)

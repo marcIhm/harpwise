@@ -215,9 +215,8 @@ EOU
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
-    # check for multiple files is in config.rb
-    globbed = glob_scales(type, arg_for_scale)
-    $scale = scale = file2scale(globbed[0])
+    # checks are in config.rb
+    scale = arg_for_scale
   end
 
   # do this check late, because we have more specific error messages before
@@ -228,8 +227,6 @@ EOU
   [[:loop, [:quiz]], [:immediate, [:quiz]], [:merge, [:listen, :quiz]], [:no_add, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
-
-  glob_scales(type, opts[:merge]) if opts[:merge]
 
   # carry some options over into $conf
   $conf[:comment_listen] = opts[:comment] if opts[:comment]

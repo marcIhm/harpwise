@@ -209,9 +209,13 @@ end
 
 
 def read_and_parse_scale sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi
-  sfiles = Dir[$scale_files_template % [$type, sname, '{holes,notes}']]
-  # check for zero files is in arguments.rb
-  err_b "Multiple files for scale #{sname}:\n#{sfiles.inspect}" if sfiles.length > 1
+  glob = $scale_files_template % [$type, sname, '{holes,notes}']
+  sfiles = Dir[glob]
+  if sfiles.length != 1
+    snames = scales_for_type($type)
+    err_b "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
+    err_b "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
+  end
   sfile = sfiles[0]
 
   scale_read = yaml_parse(sfile)
