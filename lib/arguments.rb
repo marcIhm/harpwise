@@ -215,11 +215,8 @@ EOU
 
   if mode != :calibrate
     err_b "Need value for scale as one more argument" unless arg_for_scale
-    glob = $scale_files_template % [type, arg_for_scale, '{holes,notes}']
-    globbed = Dir[glob]
-    scales = scales_for_type(type)
     # check for multiple files is in config.rb
-    err_b "Unknown scale '#{arg_for_scale}' (none of #{scales.join(', ')}) as there is no file matching #{glob}" unless globbed.length > 0
+    globbed = glob_scales(type, arg_for_scale)
     $scale = scale = file2scale(globbed[0])
   end
 
@@ -232,13 +229,15 @@ EOU
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 
+  glob_scales(type, opts[:merge]) if opts[:merge]
+
   # carry some options over into $conf
   $conf[:comment_listen] = opts[:comment] if opts[:comment]
   $conf[:display] = $conf["display_#{mode}".to_sym]
   $conf[:display] = opts[:display] if opts[:display]
 
-  # some of these have already been set as global vars, but return them anyway
-  # to make their origin transparent
+  # some of these have already been set as global vars, but return them
+  # anyway to make their origin transparent
   [ mode, type, key, scale, opts]
 end
 
