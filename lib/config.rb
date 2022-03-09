@@ -155,11 +155,12 @@ def read_musical_config
       # read scale
       sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
       # merge results
-      scale.concat(sc)
+      scale.concat(sc) unless i > 0 && $opts[:no_add]
       h2r.each_key do |h|
         if i == 0
           hole2flags[h] << :main
         else
+          next if $opts[:no_add] && !hole2flags[h]
           hole2flags[h] << :merged
         end
         hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:merged)
@@ -185,7 +186,7 @@ def read_musical_config
         end
       end
     end
-    scale_holes = scale.sort_by {|h| harp[h][:semi]}
+    scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
     scale_notes = scale_holes.map {|h| hole2note[h]}
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            

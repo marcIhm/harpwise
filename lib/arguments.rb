@@ -63,7 +63,9 @@ Usage by examples:
   For quiz, the holes from the merged scale (chord-v in the example above)
   will be chosen more frequent than the holes from the main scale (blues);
   the last note of a sequence will likely be a root note (i.e. one with
-  the remark root).
+  the remark root). If you do not want to add new holes during the merge,
+  so that you only use remarks, colors and scale-name from the merged
+  scale, add option '--no-add'.
 
   Both modes allow an option '--display' with possible values of 'hole'
   and 'chart' to change how a recognized will be displayed.
@@ -126,6 +128,7 @@ EOU
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(-m --merge) => :merge,
+    %w(--no-add) => :no_add,
     %w(--immediate) => :immediate,
     %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-r --ref) => :ref,
@@ -225,7 +228,7 @@ EOU
 
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz]], [:immediate, [:quiz]], [:merge, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+  [[:loop, [:quiz]], [:immediate, [:quiz]], [:merge, [:listen, :quiz]], [:no_add, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
     err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 
