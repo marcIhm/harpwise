@@ -153,7 +153,7 @@ def read_musical_config
     h2sn = Hash.new {|h,k| h[k] = Array.new}
     snames.each_with_index do |sname, i|
       # read scale
-      sc, h2r = read_and_parse_scale(sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi)
+      sc, h2r = read_and_parse_scale(sname, hfile, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
       # merge results
       scale.concat(sc) unless i > 0 && $opts[:no_add]
       h2r.each_key do |h|
@@ -208,7 +208,8 @@ def read_musical_config
 end
 
 
-def read_and_parse_scale sname, dsemi_harp, hole2note_read, hole2note, note2hole, hfile, min_semi, max_semi
+def read_and_parse_scale sname, hfile, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi
+  err_b "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
   glob = $scale_files_template % [$type, sname, '{holes,notes}']
   sfiles = Dir[glob]
   if sfiles.length != 1

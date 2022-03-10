@@ -71,10 +71,11 @@ def do_quiz
                  "\e[0m#{$harp[hole][:note]}\e[2m"
                end
       jtext += "#{$harp[hole][:note]},#{hole}"
-      if $opts[:merge] && $hole2flags[hole].length > 0
+      if $opts[:merge]
         part = '(' +
-               $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.join(',') +
+               $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
                ')'
+        part = '' if part == '()'
         ltext += part
         jtext += part
       end
