@@ -26,6 +26,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   FileUtils.cp_r 'config/richter', 'config/testing'
   
   print "Testing"
+
   memorize 'usage screen' do
     new_session
     tms './harp_scale_trainer'
@@ -124,6 +125,17 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 1
     expect { File.exist?(journal_file) }
     expect { screen[12]['b4'] }
+    kill_session
+  end
+  
+
+  memorize 'listen with comment and merged scale' do
+    sound 8, 2
+    new_session
+    tms './harp_scale_trainer listen testing a blues --merge chord-v --testing'
+    tms :ENTER
+    sleep 4
+    expect { screen[12]['(blues,chord-v) root'] }
     kill_session
   end
   
