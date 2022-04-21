@@ -59,7 +59,7 @@ def calculate_screen_layout
   $line_comment = 18 + 3 * stretch - 2 * squeeze
   $line_help = $line_comment
   $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
-  if $mode == :quiz
+  if $mode == :quiz || $mode == :memorize
     # font for quiz is fairly small
     $line_comment += 1
     $line_hint_or_message -= 1 

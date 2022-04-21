@@ -251,7 +251,7 @@ EOU
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz]], [:immediate, [:quiz]], [:remove, [:listen, :quiz]], [:merge, [:listen, :quiz]], [:no_add, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]]].each do |o_m|
     err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 
