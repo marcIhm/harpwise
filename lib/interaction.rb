@@ -31,9 +31,10 @@ def check_screen graceful: false
     xroom = $term_width - $chart.map {|r| r.join.length}.max
     raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
     yroom = $line_hole - $line_display - $chart.length
-    raise ArgumentError.new("Terminal has not enought lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
+    raise ArgumentError.new("Terminal has not enough lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
 
     yoff = ( yroom - 1 ) / 2
+    yoff = 0 if yoff < 0
     yoff += 1 if yroom > 1
     $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.5).to_i, yoff ]
 
@@ -56,7 +57,7 @@ def check_screen graceful: false
     end
 
   rescue ArgumentError => e
-    err_b e.to_s unless graceful
+    err e.to_s unless graceful
     puts "\e[0m#{e}"
     return false
   end

@@ -9,7 +9,7 @@ def record_sound secs, file, **opts
     FileUtils.cp "/tmp/#{File.basename($0)}_testing.wav", file
     sleep secs
   else
-    system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err_b "arecord failed"
+    system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err "arecord failed"
   end
 end
 
@@ -161,7 +161,7 @@ def start_collect_freqs
   num_samples = ($sample_rate * $conf[:time_slice]).to_i
   fifo = "#{$tmp_dir}/fifo_arecord_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
-  err_h "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
+  err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
 
   Thread.new {arecord_to_fifo(fifo)}
   Thread.new {aubiopitch_to_queue(fifo, num_samples)}
@@ -176,7 +176,7 @@ def arecord_to_fifo fifo
              end
   _, _, wait_thread  = Open3.popen2(arec_cmd)
   wait_thread.join
-  err_b "command '#{arec_cmd}' terminated unexpectedly"
+  err "command '#{arec_cmd}' terminated unexpectedly"
   exit 1
 end
 

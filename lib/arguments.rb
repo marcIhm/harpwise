@@ -54,9 +54,9 @@ Usage by examples:
   is valid as well.
 
 
-  Both modes listen and quiz accept the option '--merge' with another
-  scale to be merged. E.g, when trying licks for the v-chord, you might
-  use the blues scale and add the scale chord-v:
+  Both modes listen and quiz accept the option '--merge' with one or more
+  scales (separated by comma) to be merged. E.g. when trying licks for the
+  v-chord, you might use the blues scale and add the scale chord-v:
 
     ./harp_scale_trainer l blues --merge chord-v
 
@@ -67,12 +67,37 @@ Usage by examples:
   so that you only use remarks, colors and scale-name from the merged
   scale, add option '--no-add'.
 
-  Both modes allow an option '--display' with possible values of 'hole'
-  and 'chart' to change how a recognized will be displayed.
+  Both modes accept the option '--remove' with one or more scales to be
+  removed from the original scale. E.g. you might want to remove bends
+  from all notes:
+
+    ./harp_scale_trainer q all --remove blowbends,drawbends
+
+  Both modes listen and quiz allow an option '--display' with possible
+  values of 'hole' and 'chart' to change how a recognized hole will be
+  displayed.
 
   Some (display-)settings can also be changed while the program is
   running; type 'h' for details.
 
+
+  The mode memo is a variation of quiz, which helps to memorize licks
+  from a given set:
+
+    ./harp_scale_trainer memo c
+
+  for this to be useful, you need to create a file with your own licks;
+  for more info see the initial error message.  (This mode will set the
+  scale to all unconditionally.)
+
+
+  Mostly for testing new scales, there is also a mode play:
+
+    ./harp_scale_trainer play c blues
+
+    ./harp_scale_trainer play c 1 -2 +4/
+
+  which can play either a complete scale or the holes given on the commandline.
 
 
   Once in the lifetime of your c-harp you need to calibrate the trainer
@@ -120,7 +145,7 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove]
   { %w(--debug) => :debug,
      %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -128,6 +153,7 @@ EOU
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
     %w(-m --merge) => :merge,
+    %w(-r --remove) => :remove,
     %w(--no-add) => :no_add,
     %w(--immediate) => :immediate,
     %w(--transpose_scale_to) => :transpose_scale_to,
@@ -146,78 +172,87 @@ EOU
     end
   end
   opts_with_args.each do |opt|
-    err_h "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)
+    err "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)
   end
 
   # special processing for some options
   opts[:comment] = match_or(opts[:comment], $comment_choices) do |none, choices|
-    err_h "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+    err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
   opts[:display] = match_or(opts[:display], $display_choices) do |none, choices|
-    err_h "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+    err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
-  err_b "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
+  err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
   # see end of function for final processing of options
-
-  # now ARGV does not contain any more options; process non-option arguments
-  ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err_h "Unknown options: #{left.join(',')}" if left.length > 0}
 
   if ARGV.length == 0 || opts[:help]
     puts usage
     exit 1
   end
 
-  # General idea of argument processing: We take the mode, than other
-  # arguments, we now for certain (knowing the mode) then key, by recognicing
-  # it among other args by its content and then the rest.
+  # now ARGV does not contain any more options; process non-option arguments
+
+  # General idea of argument processing: We take the mode, then key and
+  # type, by recognising it among other args by its content and then the
+  # rest.
   
-  mode = match_or(ARGV[0], %w(listen quiz calibrate)) do |none, choices|
-    err_h "First argument can be one of #{choices}, not #{none}"
+  mode = match_or(ARGV[0], %w(listen quiz memorize play calibrate)) do |none, choices|
+    err "First argument can be one of #{choices}, not #{none}"
   end.to_sym
   ARGV.shift
+
+  ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err "Unknown options: #{left.join(',')}" if left.length > 0} unless mode == :play
 
   if mode == :quiz
     $num_quiz = ARGV[0].to_i
     if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err_h "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
+      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
     end
     ARGV.shift
   end
 
-  if mode == :calibrate
+  if [:calibrate, :play, :memorize].include?(mode)
     scale = nil
   else
     scale = ARGV.pop
-    err_h "Need at least one argument for scale" unless scale
-  end
-  if ARGV.length == 2
-    key = ARGV.pop if $conf[:all_keys].include?(ARGV[-1])
-    key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-    type = ARGV.shift
-  else
-    key =  ARGV.length > 0 &&  $conf[:all_keys].include?(ARGV[-1])  ?  ARGV.pop : $conf[:key]
-    type =  ARGV.length > 0  ?  ARGV.shift  :  $conf[:type] 
-  end
-    
-  # process type first
-  # set global vars here already for error messages
-  $type = type = match_or(type, $conf[:all_types]) do |none, choices|
-    err_h "Type can be one of #{choices} only, not #{none}"
+    err "Need at least one argument for scale" unless scale
   end
 
-  (er = check_key_and_set_pref_sig(key)) && err_b(er)
-  scale || err_b("Need value for scale as one more argument") unless mode == :calibrate
+  # type and key are taken from front of args only if they match the
+  # predefined set of coices; otherwise they come from config
+  type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
+  if type_matches.length == 1 && ARGV[0].length > 1
+    type =  type_matches[0]
+    ARGV.shift
+  end
+  type ||= $conf[:type]     
+  $type = type
+  key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
+  key ||= $conf[:key]
+
+  (er = check_key_and_set_pref_sig(key)) && err(er)
+  $err_binding = binding
+  if mode == :calibrate || mode == :memorize
+    err("Do not need a scale argument for mode #{mode}: #{ARGV}") if ARGV.length == 1
+    scale = 'all' if mode == :memorize
+  elsif mode == :play
+    err("Need a scale or some holes as arguments") if ARGV.length == 0
+    scale = scales_for_type(type).select {|s| s==ARGV[0]}[0] if ARGV.length == 1
+  else
+    err("Need value for scale as one more argument") unless scale
+  end
 
   # do this check late, because we have more specific error messages before
-  err_h "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0
-
+  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play
+  $err_binding = nil
+  
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz]], [:immediate, [:quiz]], [:merge, [:listen, :quiz]], [:no_add, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
-    err_h "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
+  [[:loop, [:quiz]], [:immediate, [:quiz]], [:remove, [:listen, :quiz]], [:merge, [:listen, :quiz]], [:no_add, [:listen, :quiz]], [:auto, [:calibrate]], [:comment, [:listen, :quiz]]].each do |o_m|
+    err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 
   # carry some options over into $conf

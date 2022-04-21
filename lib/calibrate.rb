@@ -25,8 +25,9 @@ may want to repeat the calibration by playing yourself (i.e. without
 option '--auto').
 
 
-If, on the other hand you already have samples, recorded by yourself, they
-will be overwritten in this process !
+If, on the other hand, you already have samples, recorded by yourself, in
+#{$sample_dir}
+, they will be overwritten in this process !
 
   So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
 
@@ -62,7 +63,7 @@ end
 def do_calibrate_assistant
 
   if $opts[:hole] && !$harp_holes.include?($opts[:hole])
-    err_b "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$harp_holes.inspect}"
+    err "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$harp_holes.inspect}"
   end
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)

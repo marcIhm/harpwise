@@ -145,9 +145,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         else
           print "\e[34m#{$opts[:merge]}"
         end
-        print "\e[0m\e[2m) #{$hole2rem[hole]}".strip
+        print "\e[0m\e[2m) #{$hole2rem && $hole2rem[hole]}".strip
       else
-        print $hole2rem[hole] || '--'
+        print ($hole2rem && $hole2rem[hole]) || '--'
       end
     end
     print "\e[K"

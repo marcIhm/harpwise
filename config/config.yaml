@@ -11,8 +11,9 @@ comment_listen: note
 # what to display for listen when a note has been recognized
 display_listen: chart
 
-# what to display for quiz when a note has been recognized
+# what to display for quiz and memorize when a note has been recognized
 display_quiz: hole
+display_memorize: hole
 
 # measure frequency over slices of this duration (in secs)
 time_slice: 0.1

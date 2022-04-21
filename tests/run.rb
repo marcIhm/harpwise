@@ -18,6 +18,7 @@ require_relative 'test_utils.rb'
 $sut = load_technical_config
 $fromon = ARGV[0]
 $within = !$fromon
+$testing_dump_file = '/tmp/harp_scale_trainer_dumped_for_testing.json'
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
@@ -74,7 +75,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 's'
     sleep 4
-    expect { screen[-13] == '       -10   |     1482 |     1480 |      2 |      2 | ........I........' }
+    expect { screen[9] == '       -10   |     1482 |     1480 |      2 |      2 | ........I........' }
     kill_session
   end
   
@@ -129,13 +130,25 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 
-  memorize 'listen with comment and merged scale' do
+  memorize 'listen with merged scale' do
     sound 8, 2
     new_session
-    tms './harp_scale_trainer listen testing a blues --merge chord-v --testing'
+    tms './harp_scale_trainer listen testing a blues --merge chord-v,chord-i --testing'
     tms :ENTER
     sleep 4
-    expect { screen[12]['(blues,chord-v) root'] }
+    expect { screen[12]['(blues,chord-v,chord-i) root'] }
+    kill_session
+  end
+  
+
+  memorize 'listen with removed scale' do
+    sound 8, 2
+    new_session
+    tms './harp_scale_trainer listen testing a all --remove drawbends --testing'
+    tms :ENTER
+    sleep 4
+    tst_out = read_testing_output
+    expect { tst_out[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8','-9','+9','-10','+10'] }
     kill_session
   end
   
@@ -151,12 +164,51 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
     
   
-  memorize 'Testing transpose_scale_not_working' do
+  memorize 'Testing transpose scale does work on zero shift' do
     new_session
-    tms './harp_scale_trainer listen testing a blues --transpose_scale_to g'
+    tms './harp_scale_trainer listen testing a blues --transpose_scale_to c'
     tms :ENTER
     sleep 2
-    expect { screen[7]['ERROR: Transposing scale blues to g results in hole -6/, note c6 (semi = 15'] }
+    expect { screen[0]['Play notes from the scale to get green'] }
+    kill_session
+  end
+
+  
+  memorize 'Testing transpose scale works on non-zero shift' do
+    new_session
+    tms './harp_scale_trainer listen testing a blues --transpose_scale_to g --testing'
+    tms :ENTER
+    sleep 2
+    tst_out = read_testing_output
+    expect { tst_out[:scale_holes] == ['-2+3','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+    kill_session
+  end
+
+  
+  memorize 'Testing transpose scale not working in some cases' do
+    new_session
+    tms './harp_scale_trainer listen testing a blues --transpose_scale_to b'
+    tms :ENTER
+    sleep 2
+    expect { screen[7]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
+    kill_session
+  end
+  
+  memorize 'Testing play for a scale' do
+    new_session
+    tms './harp_scale_trainer play testing a blues'
+    tms :ENTER
+    sleep 2
+    expect { screen[7]['-1'] }
+    kill_session
+  end
+  
+  memorize 'Testing play for some holes' do
+    new_session
+    tms './harp_scale_trainer play testing a +1 -1'
+    tms :ENTER
+    sleep 2
+    expect { screen[7]['-1'] }
     kill_session
   end
   

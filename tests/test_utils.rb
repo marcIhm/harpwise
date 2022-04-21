@@ -62,10 +62,11 @@ $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count
 $memo.transform_keys!(&:to_sym)
 
 def memorize text
+  $memo_count += 1
   $within = true if $fromon && text[$fromon]
   return unless $within
   puts
-  $memo_count += 1
+  File.delete($testing_dump_file) if File.exists?($testing_dump_file)
   $memo_seen << text
   maxlen = $memo[:times].keys.map {|k| k.length}.max || 0
   time = $memo[:times][text]
@@ -73,6 +74,11 @@ def memorize text
   start = Time.now.to_f
   yield
   $memo[:times][text] = Time.now.to_f - start
+end
+
+def read_testing_output
+  fail "Dump with data to test does not exist: #{$testing_dump_file}" unless File.exists?($testing_dump_file)
+  JSON.parse(File.read($testing_dump_file), symbolize_names: true)
 end
 
 at_exit {

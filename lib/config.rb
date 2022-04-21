@@ -3,8 +3,11 @@
 #
 
 def set_global_vars_early
-  $sample_rate = 48000
+
   $move_down_on_exit = false
+  $err_binding = nil
+  
+  $sample_rate = 48000
 
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
@@ -20,6 +23,8 @@ def set_global_vars_early
   at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
+  $all_licks = Array.new
+  $lick_file = "#{$data_dir}/licks_to_memorize.txt"
   $journal_quiz = Array.new
   $journal_listen = Array.new
   $debug_log = "debug.log"
@@ -71,20 +76,21 @@ end
 def set_global_vars_late
   $sample_dir = this_or_equiv("#{$data_dir}/samples/#{$type}/key_of_%s", $key.to_s)
   $freq_file = "#{$sample_dir}/frequencies.yaml"
+  $holes_file = "config/#{$type}/holes.yaml"
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
-  $journal_file = "#{Dir.home}/journal_#{$mode.to_sym}.txt"
+  $journal_file = "#{$data_dir}/journal_#{$mode.to_sym}.txt"
 end
 
 
 def check_installation
   # check for some required programs
   not_found = %w( figlet arecord aplay aubiopitch sox gnuplot ).reject {|x| system("which #{x} >/dev/null 2>&1")}
-  err_b "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
+  err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
   
   if !File.exist?(File.basename($0))
-    err_b "Please invoke this program from within its own directory (cannot find #{File.basename($0)} in current dir)"
+    err "Please invoke this program from within its own directory (cannot find #{File.basename($0)} in current dir)"
   end
 end
 
@@ -93,15 +99,15 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = "#{$data_dir}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
     merge_conf = yaml_parse(merge_file)
-    err_b "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
+    err "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
     merge_conf.transform_keys!(&:to_sym)
     merge_conf.each do |k,v|
-      err_b "Key #{k} from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
+      err "Key #{k} from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
       conf[k] = v
     end
   end
@@ -113,7 +119,7 @@ def read_technical_config
   conf = load_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-  [:comment_listen, :display_listen, :display_quiz, :pref_sig_def].each {|key| conf[key] = conf[key].to_sym}
+  [:comment_listen, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].to_sym}
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
@@ -123,10 +129,7 @@ end
 
 
 def read_musical_config
-  # read and compute from harps file
-  hfile = "config/#{$type}/holes.yaml"
-  
-  hole2note_read = yaml_parse(hfile)
+  hole2note_read = yaml_parse($holes_file)
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
   dsemi_harp -= 12 if dsemi_harp > 6
   harp = Hash.new
@@ -145,18 +148,27 @@ def read_musical_config
   # for convenience
   hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
   note2hole = hole2note.invert
-      
+
+  holes2remove = []
+  if $opts[:remove]
+    $opts[:remove].split(',').each do |sn|
+      sc, _ = read_and_parse_scale(sn, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+      holes2remove.concat(sc)
+    end
+  end
   if $scale
     snames = [$scale]
-    snames << $opts[:merge] if $opts[:merge]
+    snames.concat($opts[:merge].split(',')) if $opts[:merge]
     scale = []
     h2sn = Hash.new {|h,k| h[k] = Array.new}
     snames.each_with_index do |sname, i|
       # read scale
-      sc, h2r = read_and_parse_scale(sname, hfile, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+      sc, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
       # merge results
+      holes2remove.each {|h| sc.delete(h)}
       scale.concat(sc) unless i > 0 && $opts[:no_add]
       h2r.each_key do |h|
+        next if holes2remove.include?(h)
         if i == 0
           hole2flags[h] << :main
         else
@@ -200,22 +212,22 @@ def read_musical_config
     harp_holes,
     scale_holes,
     scale_notes,
-    !hole2rem.values.all?(&:nil?) && hole2rem,
-    !hole2flags.values.all?(&:nil?) && hole2flags,
+    hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
+    hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     semi2hole,
     note2hole,
     intervals ]
 end
 
 
-def read_and_parse_scale sname, hfile, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi
-  err_b "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
+def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi
+  err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
   glob = $scale_files_template % [$type, sname, '{holes,notes}']
   sfiles = Dir[glob]
   if sfiles.length != 1
     snames = scales_for_type($type)
-    err_b "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
-    err_b "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
+    err "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
+    err "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
   end
   sfile = sfiles[0]
 
@@ -224,9 +236,9 @@ def read_and_parse_scale sname, hfile, hole2note_read, hole2note, note2hole, dse
   hole2rem = Hash.new
 
   err_msg = if $opts[:transpose_scale_to]
-              "Transposing scale #{$scale} to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+              "Transposing scale #{$scale} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
             else
-              "#{sfile} has %s (semi = %d), which is not present in #{hfile} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
+              "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
             end
   # For convenience we have both hole2note and hole2note_read; they only differ,
   # if key does not equal c, and the following relation always holds true:
@@ -240,8 +252,7 @@ def read_and_parse_scale sname, hfile, hole2note_read, hole2note, note2hole, dse
       note = semi2note(semi)
       hole = note2hole[note]
       hole2rem[hole] = rem
-      err_b(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}",
-                        semi]) unless hole
+      err(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]) unless hole
       scale << hole
     end
   end
@@ -297,23 +308,23 @@ end
 
 
 def read_calibration
-  err_b "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
+  err "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
-    err_b "Holes in #{$freq_file} #{hole2freq.keys.join(' ')} is not a subset of holes for scale #{$scale} #{$harp.keys.join(' ')}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a.join(' ')}. Probably you need to redo the calibration and play the missing holes"
+    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes"
   end
   unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
-    err_b "Holes for scale #{$scale} #{$harp.keys.join(' ')} is not a subset of holes in #{$freq_file} #{hole2freq.keys.join(' ')}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
+    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
   end
   unless $harp_holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
-    err_b "Frequencies in #{$freq_file} are not strictly ascending in order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
+    err "Frequencies in #{$freq_file} are not strictly ascending in order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
 
   $harp_holes.each do |hole|
     file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
-    err_b "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
+    err "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
   end
 
   freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.to_h

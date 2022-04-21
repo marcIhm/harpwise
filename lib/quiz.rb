@@ -4,6 +4,8 @@
 
 def do_quiz
 
+  read_licks if $mode == :memorize
+
   prepare_term
   start_kb_handler
   start_collect_freqs
@@ -39,7 +41,7 @@ def do_quiz
       # nothing to do
     else # also good for $ctl_next
       all_wanted_before = all_wanted
-      all_wanted = get_sample($num_quiz)
+      all_wanted = $mode == :quiz  ?  get_sample($num_quiz)  :  get_lick
       $ctl_loop = $opts[:loop]
     end
     $ctl_back = $ctl_next = $ctl_replay = false
@@ -264,6 +266,54 @@ def get_sample num
 
   IO.write($debug_log, "\n#{Time.now}:\n#{$sample_stats.inspect}\n", mode: 'a') if $opts[:debug]
   holes
+end
+
+
+def get_lick
+  $all_licks.sample(1)[0]
+end
+
+
+def read_licks
+  unless File.exists?($lick_file)
+    puts "\nLick file\n\n  #{$lick_file}\n\ndoes not exist !"
+    puts "\nCreating it with a single sample lick (and comments);"
+    puts "however, you need to add more licks of your own,"
+    puts "to make this mode (memorize) useful."
+    puts
+    File.open($lick_file, 'w') do |f|
+      f.write <<~end_of_content
+        #
+        # Library of licks used in mode memorize
+        # Each link on its own line, empty lines and comments are ignored
+        #
+
+        # Intro lick from Juke
+        -2+3 -3 -4 +5 +6 +6
+
+      end_of_content
+    end
+    puts "Now you may try again with a single predefined lick ..."
+    puts "...and then add some of your own !\n\n"
+    exit
+  end
+
+  File.foreach($lick_file) do |line|
+    line.gsub!(/#.*/,'')
+    line.chomp!
+    line.strip!
+    next if line.length == 0
+    holes = line.split
+    holes.each {|h| err("Hole #{h} from #{$lick_file} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(h)}
+    $all_licks << holes
+  end
+  err("No licks found in #{$lick_file}") unless $all_licks.length > 0
+  if $all_licks.length < 4
+    puts "\nThere are only #{$all_licks.length} licks in #{$lick_file};"
+    puts "memorizing them may become boring soon !"
+    puts "\nBut continue anyway ...\n\n"
+    sleep 2
+  end
 end
 
 

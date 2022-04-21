@@ -6,6 +6,7 @@
 
 require 'set'
 require 'yaml'
+require 'json'
 require 'fileutils'
 require 'open3'
 require 'pp'
@@ -19,6 +20,7 @@ require_relative 'lib/sound_driver'
 require_relative 'lib/analyze'
 require_relative 'lib/get_hole'
 require_relative 'lib/listen'
+require_relative 'lib/play'
 require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
@@ -42,15 +44,22 @@ $mode, $type, $key, $scale, $opts = parse_arguments
 # we need to have mode for this
 calculate_screen_layout
   
+set_global_vars_late
 $harp, $harp_holes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
 $chart, $hole2chart = read_chart
 err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
-set_global_vars_late
 check_screen
 
 $freq2hole = read_calibration unless $mode == :calibrate
+
+if $opts[:testing]
+  dumpfile = '/tmp/' + File.basename($0) + '_dumped_for_testing.json'
+  File.delete(dumpfile) if File.exists?(dumpfile)
+  structure = {scale: $scale, scale_holes: $scale_holes}
+  File.write(dumpfile, JSON.pretty_generate(structure))
+end
 
 Thread.report_on_exception = false
 
@@ -63,7 +72,7 @@ Signal.trap('SIGINT') do
 end
 
 
-if $mode == :listen || $mode == :quiz
+if [:listen, :quiz, :memorize].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true
   end
@@ -85,8 +94,12 @@ semi2note(0) == 'a4' or fail 'Internal error'
 case $mode
 when :quiz
   do_quiz
+when :memorize
+  do_quiz
 when :listen
   do_listen
+when :play
+  do_play
 when :calibrate
   if $opts[:auto]
     do_calibrate_auto
