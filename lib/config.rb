@@ -79,7 +79,7 @@ def set_global_vars_late
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
   $journal_file = "#{$data_dir}/journal_#{$mode.to_sym}.txt"
-  $all_licks = Array.new
+  $all_licks = Hash.new
   $lick_file_template = "#{$data_dir}/licks_to_memorize_#{$type}_with_%s.txt"
 end
 

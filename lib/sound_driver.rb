@@ -15,7 +15,8 @@ end
 
 
 def play_sound file
-  sys "aplay #{file}" unless $opts[:testing]
+  samples = $opts[:fast] ? 24000 : 0
+  sys "aplay #{file} -s #{samples}" unless $opts[:testing]
 end
 
 

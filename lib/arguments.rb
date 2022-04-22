@@ -129,6 +129,9 @@ Notes:
   c. For a diatonic harmonica, however, your milage may vary, as not all
   notes are available.
 
+  Modes, that play notes (usually one second) accept the option '--fast'
+  to play them for half a second only.
+
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or
   'cal' for 'calibrate'.
 
@@ -161,6 +164,7 @@ EOU
     %w(-r --ref) => :ref,
     %w(-d --display) => :display,
     %w(-c --comment) => :comment,
+    %w(-f --fast) => :fast,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -254,7 +258,7 @@ EOU
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]]].each do |o_m|
+  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]]].each do |o_m|
     err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
 

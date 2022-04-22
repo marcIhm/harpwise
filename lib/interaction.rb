@@ -119,7 +119,7 @@ def do_figlet text, font, template = nil, truncate = :left
         if truncate == :left
           '/\\'[i%2] + '   ' +  sprintf("%-#{maxlen}s", l.chomp)[-$term_width + 6 .. -1]
         else
-          l.chomp[0 .. $term_width - 6] + '   ' + '/\\'[i%2]
+          (l.chomp + ' ' * maxlen)[0 .. $term_width - 6] + '   ' + '/\\'[i%2]
         end
       end
     end

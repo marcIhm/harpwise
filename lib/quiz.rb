@@ -151,23 +151,29 @@ def do_quiz
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
 
-            if $opts[:immediate] 
-              "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(', ')) + ' * ' + all_wanted[idx .. -1].join(', ')
-            elsif all_wanted.length > 1 &&
-               hole_passed > 4 &&
-               lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
-              full_hint_shown = true
-              "\e[0mSolution: The complete sequence is: #{all_wanted.join(', ')}" 
-            elsif hole_passed > 4
-              "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
-            else
-              if idx > 0
-                isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                if isemi
-                  "Hint: Move " + ( itext ? "a #{itext}" : isemi )
-                end
-              end
-            end
+            memo_comment = if $mode == :memorize && $all_licks[all_wanted].length > 0
+                             '  # ' + $all_licks[all_wanted]
+                           else
+                             ''
+                           end
+            hint = if $opts[:immediate] 
+                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(', ')) + ' * ' + all_wanted[idx .. -1].join(', ')
+                   elsif all_wanted.length > 1 &&
+                         hole_passed > 4 &&
+                         lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
+                     full_hint_shown = true
+                     "\e[0mSolution: The complete sequence is: #{all_wanted.join(', ')}" 
+                   elsif hole_passed > 4
+                     "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+                   else
+                     if idx > 0
+                       isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                       if isemi
+                         "Hint: Move " + ( itext ? "a #{itext}" : isemi )
+                       end
+                     end
+                   end
+            ( hint || '' ) + memo_comment
           end,
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -270,7 +276,7 @@ end
 
 
 def get_lick
-  $all_licks.sample(1)[0]
+  $all_licks.keys.sample(1)[0]
 end
 
 
@@ -294,6 +300,8 @@ def read_licks
         #
         # Each lick on its own line; empty lines
         # and comments are ignored
+        # Only a comment following the lick on the
+        # same line will be displayed
         #
 
         # Intro lick from Juke#{holes.length == notes.length ? '' : ' (truncated)'}
@@ -309,25 +317,32 @@ def read_licks
   end
   
   File.foreach(lfile) do |line|
-    line.gsub!(/#.*/,'')
+    next if line.match?(/^ *#/)
     line.chomp!
-    line.strip!
-    next if line.length == 0
+    md = line.match(/^(.*)#(.*)$/)
+    if md
+      lick, comment = md[1 .. 2]
+    else
+      lick = line
+      comment = ''
+    end
+    lick.strip!
+    comment.strip!
+    next if lick.length == 0
     if lfile['holes']
-      holes = line.split
+      holes = lick.split
       holes.each do |h|
         err("Hole #{h} from #{lfile} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(h)
       end
-      $all_licks << holes
     else
-      notes = line.split
+      notes = lick.split
       holes = []
       notes.each do |n|
         err("Note #{n} from #{lfile} is not among notes of harp #{$harp_notes}") unless $harp_notes.include?(n)
         holes << $note2hole[n]
       end
-      $all_licks << holes
     end
+    $all_licks[holes] = comment
   end
 
   err("No licks found in #{lfile}") unless $all_licks.length > 0
@@ -337,7 +352,7 @@ def read_licks
   comment = "#\n# derived lick file with %s,\n# created from #{lfile}\n#\n\n"
   File.open(dfile,'w') do |df|
     df.write comment % [ dfile['holes'] ? 'holes' : 'notes' ]
-    $all_licks.each do |lick|
+    $all_licks.keys.each do |lick|
       transformed = lick.map {|hon| dfile['holes']  ?  hon  :  $harp[hon][:note]}
       df.write("# next lick has been truncated as some holes or notes are missing\n") if transformed.length != lick.length
       df.write transformed.join(' ')
