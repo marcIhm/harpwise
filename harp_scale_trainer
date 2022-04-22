@@ -45,7 +45,7 @@ $mode, $type, $key, $scale, $opts = parse_arguments
 calculate_screen_layout
   
 set_global_vars_late
-$harp, $harp_holes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
+$harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
 $chart, $hole2chart = read_chart
 err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]

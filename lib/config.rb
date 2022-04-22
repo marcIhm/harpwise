@@ -23,8 +23,6 @@ def set_global_vars_early
   at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
-  $all_licks = Array.new
-  $lick_file = "#{$data_dir}/licks_to_memorize.txt"
   $journal_quiz = Array.new
   $journal_listen = Array.new
   $debug_log = "debug.log"
@@ -81,6 +79,8 @@ def set_global_vars_late
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
   $journal_file = "#{$data_dir}/journal_#{$mode.to_sym}.txt"
+  $all_licks = Array.new
+  $lick_file_template = "#{$data_dir}/licks_to_memorize_#{$type}_with_%s.txt"
 end
 
 
@@ -148,6 +148,8 @@ def read_musical_config
   # for convenience
   hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
   note2hole = hole2note.invert
+  harp_notes = harp.keys.map {|h| hole2note[h]}
+
 
   holes2remove = []
   if $opts[:remove]
@@ -210,6 +212,7 @@ def read_musical_config
 
   [ harp,
     harp_holes,
+    harp_notes,
     scale_holes,
     scale_notes,
     hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
@@ -262,7 +265,7 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
   
   # write derived scale file
   dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
-  comment = "#\n# derived scale-file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
+  comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
   File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
   
   [scale, hole2rem]

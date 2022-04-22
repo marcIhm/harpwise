@@ -95,9 +95,10 @@ Usage by examples:
 
     ./harp_scale_trainer play c blues
 
-    ./harp_scale_trainer play c 1 -2 +4/
+    ./harp_scale_trainer play c 1 -2 c4
 
-  which can play either a complete scale or the holes given on the commandline.
+  which can play either a complete scale or the holes or notes given on
+  the commandline.
 
 
   Once in the lifetime of your c-harp you need to calibrate the trainer
@@ -223,10 +224,12 @@ EOU
 
   # type and key are taken from front of args only if they match the
   # predefined set of coices; otherwise they come from config
-  type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
-  if type_matches.length == 1 && ARGV[0].length > 1
-    type =  type_matches[0]
-    ARGV.shift
+  if ARGV.length > 0
+    type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
+    if type_matches.length == 1 && ARGV[0].length > 1
+      type =  type_matches[0]
+      ARGV.shift
+    end
   end
   type ||= $conf[:type]     
   $type = type

@@ -19,6 +19,7 @@ $sut = load_technical_config
 $fromon = ARGV[0]
 $within = !$fromon
 $testing_dump_file = '/tmp/harp_scale_trainer_dumped_for_testing.json'
+$data_dir = "#{Dir.home}/.harp_scale_trainer"
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
@@ -116,7 +117,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'listen' do
     sound 8, 2
-    journal_file = "#{Dir.home}/journal_listen.txt"
+    journal_file = "#{$data_dir}/journal_listen.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harp_scale_trainer listen testing a all --testing'
@@ -148,7 +149,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 4
     tst_out = read_testing_output
-    expect { tst_out[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8','-9','+9','-10','+10'] }
+    expect { tst_out[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
     kill_session
   end
   
@@ -164,7 +165,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
     
   
-  memorize 'Testing transpose scale does work on zero shift' do
+  memorize 'transpose scale does work on zero shift' do
     new_session
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to c'
     tms :ENTER
@@ -174,7 +175,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
   
-  memorize 'Testing transpose scale works on non-zero shift' do
+  memorize 'transpose scale works on non-zero shift' do
     new_session
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to g --testing'
     tms :ENTER
@@ -185,7 +186,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
   
-  memorize 'Testing transpose scale not working in some cases' do
+  memorize 'transpose scale not working in some cases' do
     new_session
     tms './harp_scale_trainer listen testing a blues --transpose_scale_to b'
     tms :ENTER
@@ -194,24 +195,45 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  memorize 'Testing play for a scale' do
+  memorize 'play a scale' do
     new_session
-    tms './harp_scale_trainer play testing a blues'
+    tms './harp_scale_trainer play testing a middle --testing'
     tms :ENTER
     sleep 2
-    expect { screen[7]['-1'] }
+    expect { screen[6]['+4   a4'] }
     kill_session
   end
   
-  memorize 'Testing play for some holes' do
+  memorize 'play some holes and notes' do
     new_session
-    tms './harp_scale_trainer play testing a +1 -1'
+    tms './harp_scale_trainer play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
-    expect { screen[7]['-1'] }
+    expect { screen[6]['-1   b3'] }
     kill_session
   end
   
+  memorize 'memorize to create simple lick file' do
+    lick_file = "#{$data_dir}/licks_to_memorize_testing_with_holes.txt"
+    FileUtils.rm lick_file if File.exist?(lick_file)
+    new_session
+    tms './harp_scale_trainer memo testing a'
+    tms :ENTER
+    sleep 2
+    expect { File.exist?(lick_file) }
+    expect { screen[11]['does not exist'] }
+    kill_session
+  end
+
+  memorize 'memorize with lick file from previous test' do
+    new_session
+    tms './harp_scale_trainer memo testing a --testing'
+    tms :ENTER
+    sleep 12
+    expect { screen[1]['Mode: memorize testing a all'] }
+    kill_session
+  end
+
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"

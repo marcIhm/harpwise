@@ -275,41 +275,77 @@ end
 
 
 def read_licks
-  unless File.exists?($lick_file)
-    puts "\nLick file\n\n  #{$lick_file}\n\ndoes not exist !"
+  glob = $lick_file_template % '{holes,notes}'
+  lfiles = Dir[glob]
+  err "There are two files matching #{glob}; please check and remove one" if lfiles.length > 1
+  if lfiles.length == 0
+    lfile = $lick_file_template % 'holes'
+    puts "\nLick file\n\n  #{lfile}\n\ndoes not exist !"
     puts "\nCreating it with a single sample lick (and comments);"
-    puts "however, you need to add more licks of your own,"
-    puts "to make this mode (memorize) useful."
+    puts "however, you need to add more licks yourself,"
+    puts "to make this mode (memorize) really useful."
     puts
-    File.open($lick_file, 'w') do |f|
+    notes = %w(g4 b4 d5 e5 g5 g5)
+    holes = notes.map {|n| $note2hole[n]}.select(&:itself)
+    File.open(lfile, 'w') do |f|
       f.write <<~end_of_content
         #
         # Library of licks used in mode memorize
-        # Each link on its own line, empty lines and comments are ignored
+        #
+        # Each lick on its own line; empty lines
+        # and comments are ignored
         #
 
-        # Intro lick from Juke
-        -2+3 -3 -4 +5 +6 +6
+        # Intro lick from Juke#{holes.length == notes.length ? '' : ' (truncated)'}
+        #{holes.join(' ')}
 
       end_of_content
     end
     puts "Now you may try again with a single predefined lick ..."
     puts "...and then add some of your own !\n\n"
     exit
+  else
+    lfile = lfiles[0]
   end
-
-  File.foreach($lick_file) do |line|
+  
+  File.foreach(lfile) do |line|
     line.gsub!(/#.*/,'')
     line.chomp!
     line.strip!
     next if line.length == 0
-    holes = line.split
-    holes.each {|h| err("Hole #{h} from #{$lick_file} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(h)}
-    $all_licks << holes
+    if lfile['holes']
+      holes = line.split
+      holes.each do |h|
+        err("Hole #{h} from #{lfile} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(h)
+      end
+      $all_licks << holes
+    else
+      notes = line.split
+      holes = []
+      notes.each do |n|
+        err("Note #{n} from #{lfile} is not among notes of harp #{$harp_notes}") unless $harp_notes.include?(n)
+        holes << $note2hole[n]
+      end
+      $all_licks << holes
+    end
   end
-  err("No licks found in #{$lick_file}") unless $all_licks.length > 0
-  if $all_licks.length < 4
-    puts "\nThere are only #{$all_licks.length} licks in #{$lick_file};"
+
+  err("No licks found in #{lfile}") unless $all_licks.length > 0
+
+  # write derived lick file
+  dfile = File.dirname(lfile) + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
+  comment = "#\n# derived lick file with %s,\n# created from #{lfile}\n#\n\n"
+  File.open(dfile,'w') do |df|
+    df.write comment % [ dfile['holes'] ? 'holes' : 'notes' ]
+    $all_licks.each do |lick|
+      transformed = lick.map {|hon| dfile['holes']  ?  hon  :  $harp[hon][:note]}
+      df.write("# next lick has been truncated as some holes or notes are missing\n") if transformed.length != lick.length
+      df.write transformed.join(' ')
+      df.write "\n"
+    end
+  end 
+  if $all_licks.length <= 2
+    puts "\nThere are only #{$all_licks.length} licks in\n\n  #{lfile}\n\n"
     puts "memorizing them may become boring soon !"
     puts "\nBut continue anyway ...\n\n"
     sleep 2
