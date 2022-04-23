@@ -73,14 +73,15 @@ end
 
 def set_global_vars_late
   $sample_dir = this_or_equiv("#{$data_dir}/samples/#{$type}/key_of_%s", $key.to_s)
+  $lick_dir = "#{$data_dir}/licks/#{$type}"
+  $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $holes_file = "config/#{$type}/holes.yaml"
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
   $journal_file = "#{$data_dir}/journal_#{$mode.to_sym}.txt"
-  $all_licks = Hash.new
-  $lick_file_template = "#{$data_dir}/licks_to_memorize_#{$type}_with_%s.txt"
+  $licks = nil
 end
 
 

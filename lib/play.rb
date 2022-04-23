@@ -3,19 +3,19 @@
 #
 
 def do_play
-  holes = if $scale_holes
-            $scale_holes
-          else
-            ARGV.map do |hon|
-              if $harp_holes.include?(hon)
-                hon
-              elsif $harp_notes.include?(hon)
-                $note2hole[hon]
-              else
-                err "Argument '#{hon}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes}" unless $harp_holes.include?(hon)
-              end
-            end
-          end
+  $licks = read_licks
+  holes = ARGV.map do |hnl|
+    if $harp_holes.include?(hnl)
+      hnl
+    elsif $harp_notes.include?(hnl)
+      $note2hole[hnl]
+    else
+      lick = $licks.find {|l| l[:remark] == hnl}
+      err "Argument '#{hnl}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:remark]}.select {|r| r.length > 0}.uniq}" unless lick
+      lick[:holes]
+    end
+  end.flatten
+
   lhn = holes.max_by(&:length)
   holes.each_with_index do |hole, i|
     if i > 0

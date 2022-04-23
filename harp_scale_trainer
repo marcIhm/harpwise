@@ -18,6 +18,7 @@ require_relative 'lib/config'
 require_relative 'lib/interaction'
 require_relative 'lib/sound_driver'
 require_relative 'lib/analyze'
+require_relative 'lib/licks'
 require_relative 'lib/get_hole'
 require_relative 'lib/listen'
 require_relative 'lib/play'
@@ -46,8 +47,11 @@ calculate_screen_layout
   
 set_global_vars_late
 $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
+
 $chart, $hole2chart = read_chart
-err_b "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
+$licks = read_licks if $mode == :play || $mode == :memorize
+
+err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
 check_screen
@@ -57,7 +61,7 @@ $freq2hole = read_calibration unless $mode == :calibrate
 if $opts[:testing]
   dumpfile = '/tmp/' + File.basename($0) + '_dumped_for_testing.json'
   File.delete(dumpfile) if File.exists?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks}
   File.write(dumpfile, JSON.pretty_generate(structure))
 end
 

@@ -195,12 +195,12 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  memorize 'play a scale' do
+  memorize 'play a lick' do
     new_session
-    tms './harp_scale_trainer play testing a middle --testing'
+    tms './harp_scale_trainer play testing a mape --testing'
     tms :ENTER
-    sleep 2
-    expect { screen[6]['+4   a4'] }
+    sleep 4
+    expect { screen[6]['-3     af4'] }
     kill_session
   end
   
@@ -214,10 +214,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
   memorize 'memorize to create simple lick file' do
-    lick_file = "#{$data_dir}/licks_to_memorize_testing_with_holes.txt"
+    lick_file = "#{$data_dir}/licks/testing/licks_with_holes.txt"
     FileUtils.rm lick_file if File.exist?(lick_file)
     new_session
-    tms './harp_scale_trainer memo testing a'
+    tms './harp_scale_trainer memo testing a --testing'
     tms :ENTER
     sleep 2
     expect { File.exist?(lick_file) }
@@ -230,7 +230,40 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_scale_trainer memo testing a --testing'
     tms :ENTER
     sleep 12
+    tst_out = read_testing_output
+    expect { tst_out[:licks].length == 5 }
     expect { screen[1]['Mode: memorize testing a all'] }
+    kill_session
+  end
+
+  memorize 'memorize with licks from one section' do
+    new_session
+    tms './harp_scale_trainer memo testing --section favorites,testing a --testing'
+    tms :ENTER
+    sleep 2
+    tst_out = read_testing_output
+    # Six licks in file, four in those two sections, but two of them are identical
+    expect { tst_out[:licks].length == 3 }
+    kill_session
+  end
+
+  memorize 'memorize with licks but from one section' do
+    new_session
+    tms './harp_scale_trainer memo testing --section no-scales a --testing'
+    tms :ENTER
+    sleep 2
+    tst_out = read_testing_output
+    # Six licks in file minus one scale with two licks minus one double
+    expect { tst_out[:licks].length == 3 }
+    kill_session
+  end
+
+  memorize 'error on unknown --sections' do
+    new_session
+    tms './harp_scale_trainer memo testing --section unknown a --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[7]['ERROR: There are some sections'] }
     kill_session
   end
 

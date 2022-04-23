@@ -4,7 +4,7 @@
 
 def do_quiz
 
-  read_licks if $mode == :memorize
+  puts "#{$licks.length} licks." if $mode == :memorize
 
   prepare_term
   start_kb_handler
@@ -41,7 +41,12 @@ def do_quiz
       # nothing to do
     else # also good for $ctl_next
       all_wanted_before = all_wanted
-      all_wanted = $mode == :quiz  ?  get_sample($num_quiz)  :  get_lick
+      if $mode == :quiz
+        all_wanted = get_sample($num_quiz)
+      else
+        lick = $licks.sample(1)[0]
+        all_wanted = lick[:holes]
+      end
       $ctl_loop = $opts[:loop]
     end
     $ctl_back = $ctl_next = $ctl_replay = false
@@ -50,6 +55,7 @@ def do_quiz
 
     jtext = ''
     ltext = "\e[2m"
+    ltext += get_memo_remark(lick, '%s: ') if $mode == :memorize
     all_wanted.each_with_index do |hole, idx|
       if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
         ltext = "\e[2m"
@@ -82,7 +88,12 @@ def do_quiz
         jtext += part
       end
 
-      print "\e[#{first_lap ? $term_height-1 : $line_hint_or_message }H#{ltext.strip}\e[K"
+      if first_lap
+        print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
+      else
+        print "\e[#{$line_call2}H\e[K"
+        print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
+      end
       play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
       begin
         sleep 0.1
@@ -150,12 +161,7 @@ def do_quiz
           -> (_) do  # lambda_hint
             hole_passed = Time.now.to_f - hole_start
             lap_passed = Time.now.to_f - lap_start
-
-            memo_comment = if $mode == :memorize && $all_licks[all_wanted].length > 0
-                             '  # ' + $all_licks[all_wanted]
-                           else
-                             ''
-                           end
+            
             hint = if $opts[:immediate] 
                      "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(', ')) + ' * ' + all_wanted[idx .. -1].join(', ')
                    elsif all_wanted.length > 1 &&
@@ -173,7 +179,7 @@ def do_quiz
                        end
                      end
                    end
-            ( hint || '' ) + memo_comment
+            ( hint || '' ) + get_memo_remark(lick, ' (%s)')
           end,
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -275,99 +281,6 @@ def get_sample num
 end
 
 
-def get_lick
-  $all_licks.keys.sample(1)[0]
-end
-
-
-def read_licks
-  glob = $lick_file_template % '{holes,notes}'
-  lfiles = Dir[glob]
-  err "There are two files matching #{glob}; please check and remove one" if lfiles.length > 1
-  if lfiles.length == 0
-    lfile = $lick_file_template % 'holes'
-    puts "\nLick file\n\n  #{lfile}\n\ndoes not exist !"
-    puts "\nCreating it with a single sample lick (and comments);"
-    puts "however, you need to add more licks yourself,"
-    puts "to make this mode (memorize) really useful."
-    puts
-    notes = %w(g4 b4 d5 e5 g5 g5)
-    holes = notes.map {|n| $note2hole[n]}.select(&:itself)
-    File.open(lfile, 'w') do |f|
-      f.write <<~end_of_content
-        #
-        # Library of licks used in mode memorize
-        #
-        # Each lick on its own line; empty lines
-        # and comments are ignored
-        # Only a comment following the lick on the
-        # same line will be displayed
-        #
-
-        # Intro lick from Juke#{holes.length == notes.length ? '' : ' (truncated)'}
-        #{holes.join(' ')}
-
-      end_of_content
-    end
-    puts "Now you may try again with a single predefined lick ..."
-    puts "...and then add some of your own !\n\n"
-    exit
-  else
-    lfile = lfiles[0]
-  end
-  
-  File.foreach(lfile) do |line|
-    next if line.match?(/^ *#/)
-    line.chomp!
-    md = line.match(/^(.*)#(.*)$/)
-    if md
-      lick, comment = md[1 .. 2]
-    else
-      lick = line
-      comment = ''
-    end
-    lick.strip!
-    comment.strip!
-    next if lick.length == 0
-    if lfile['holes']
-      holes = lick.split
-      holes.each do |h|
-        err("Hole #{h} from #{lfile} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(h)
-      end
-    else
-      notes = lick.split
-      holes = []
-      notes.each do |n|
-        err("Note #{n} from #{lfile} is not among notes of harp #{$harp_notes}") unless $harp_notes.include?(n)
-        holes << $note2hole[n]
-      end
-    end
-    $all_licks[holes] = comment
-  end
-
-  err("No licks found in #{lfile}") unless $all_licks.length > 0
-
-  # write derived lick file
-  dfile = File.dirname(lfile) + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
-  comment = "#\n# derived lick file with %s,\n# created from #{lfile}\n#\n\n"
-  File.open(dfile,'w') do |df|
-    df.write comment % [ dfile['holes'] ? 'holes' : 'notes' ]
-    $all_licks.keys.each do |lick|
-      transformed = lick.map {|hon| dfile['holes']  ?  hon  :  $harp[hon][:note]}
-      df.write("# next lick has been truncated as some holes or notes are missing\n") if transformed.length != lick.length
-      df.write transformed.join(' ')
-      df.write "\n"
-    end
-  end 
-  if $all_licks.length <= 2
-    puts "\nThere are only #{$all_licks.length} licks in\n\n  #{lfile}\n\n"
-    puts "memorizing them may become boring soon !"
-    puts "\nBut continue anyway ...\n\n"
-    sleep 2
-  end
-end
-
-
 def nearest_hole_with_flag hole, flag
   delta_semi = 0
   found = nil
@@ -385,4 +298,14 @@ def nearest_hole_with_flag hole, flag
     return nil if delta_semi > 8
     delta_semi += 1
   end while true
+end
+
+def get_memo_remark lick, template
+  if $mode == :memorize
+    rem = [lick[:section], lick[:remark]].select {|s| s.length > 0}.join(',')
+    rem = sprintf(template, rem) if rem.length > 0
+  else
+    rem = ''
+  end
+  rem
 end

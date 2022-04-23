@@ -177,6 +177,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     if lambda_hint && !$message_shown
       hint = lambda_hint.call(hole) || ''
+      print "\e[#{$line_call2}H\e[K"
       print "\e[#{$line_hint_or_message}H"
       if hint.length >= $term_width - 2 
         pspc = hint[$term_width - 12 .. $term_width - 6].index(' ')

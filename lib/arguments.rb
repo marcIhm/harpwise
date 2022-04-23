@@ -86,18 +86,25 @@ Usage by examples:
 
     ./harp_scale_trainer memo c
 
+    ./harp_scale_trainer memo c --sections favorites,scales
+
+  As shown in the second example, you may restrict the set of licks to
+  certain sections within the lick file; sections (e.g. 'scales') may also
+  be excluded like '--sections no-scales'.
+
   for this to be useful, you need to create a file with your own licks;
-  for more info see the initial error message.  (This mode will set the
-  scale to all unconditionally.)
+  for more info see the initial error message and the starter file
+  created.  Please note, that this mode will set the scale to all
+  implicitly.
 
 
-  Mostly for testing new scales, there is also a mode play:
+  Mostly for testing new licks or scales, there is also a mode play:
 
     ./harp_scale_trainer play c blues
 
     ./harp_scale_trainer play c 1 -2 c4
 
-  which can play either a complete scale or the holes or notes given on
+  which can play either a complete lick or the holes or notes given on
   the commandline.
 
 
@@ -149,7 +156,7 @@ EOU
   # extract options from ARGV
   # first process all options commonly
   opts = Hash.new
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections]
   { %w(--debug) => :debug,
      %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -165,6 +172,7 @@ EOU
     %w(-d --display) => :display,
     %w(-c --comment) => :comment,
     %w(-f --fast) => :fast,
+    %w(--sections) => :sections,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -239,7 +247,7 @@ EOU
   $type = type
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   key ||= $conf[:key]
-
+   
   (er = check_key_and_set_pref_sig(key)) && err(er)
   $err_binding = binding
   if mode == :calibrate || mode == :memorize
@@ -251,17 +259,19 @@ EOU
   else
     err("Need value for scale as one more argument") unless scale
   end
-
+  err "Need at least one argument for mode play" if ARGV.length == 0 && mode == :play
+  
   # do this check late, because we have more specific error messages before
   err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play
   $err_binding = nil
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]]].each do |o_m|
+  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]]].each do |o_m|
     err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
-
+  
+  
   # carry some options over into $conf
   $conf[:comment_listen] = opts[:comment] if opts[:comment]
   $conf[:display] = $conf["display_#{mode}".to_sym]
