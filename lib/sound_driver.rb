@@ -204,7 +204,7 @@ def play_hole_and_handle_kb hole
   play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
   begin
     sleep 0.1
-    handle_kb_listen
+    handle_kb_play
   end while play_thr.alive?
   play_thr.join   # raises any errors from thread
 end
@@ -221,7 +221,5 @@ def play_recording_and_handle_kb recording, start
   Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
   wait_thr.join unless $ctl_skip # raises any errors from thread
   err('See above') unless $ctl_skip || wait_thr.value.success? 
-  skipped = $ctl_skip
-  $ctl_skip = false
-  skipped
+  $ctl_skip
 end

@@ -76,7 +76,7 @@ $figlet_all_fonts = %w(smblock mono12 big)
 
 def do_figlet text, font, template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
-  cmd = "figlet -d fonts -w 200 -f #{font} -l \" #{text}\""
+  cmd = "figlet -d fonts -w 400 -f #{font} -l \" #{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
     out, _ = Open3.capture2e(cmd)
@@ -180,7 +180,7 @@ def stop_kb_handler
 end
 
 
-def handle_kb_listen
+def handle_kb_play
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   if char == ' '
@@ -197,7 +197,8 @@ def handle_kb_listen
   elsif char == '.' || char == ','
     print "\e[0m\e[32m replay \e[0m "
     $ctl_replay = true
-    $ctl_ignore_recording = true if char == ','
+    $ctl_skip = true
+    $ctl_ignore_recording = char == ','
     sleep 0.5
   elsif char == "\n"
     print "\e[0m\e[32m next \e[0m "
@@ -209,12 +210,16 @@ end
 
 def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
-  $ctl_kb_queue.deq
+  char = $ctl_kb_queue.deq
+  if char == '.' || char == ','
+    $ctl_replay = true
+    $ctl_ignore_recording =  char == ','
+  end
   $ctl_skip = true
 end
 
 
-def handle_kb_play
+def handle_kb_listen
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
   waited = false
@@ -255,7 +260,7 @@ def handle_kb_play
     text = 'Change comment'
   elsif (char == '.' || char == ',') && $ctl_can_next
     $ctl_replay = true
-    $ctl_ignore_recording = true if char == ','
+    $ctl_ignore_recording = char == ','
     text = 'Replay'
   elsif char.ord == 127 && $ctl_can_next
     $ctl_back = true

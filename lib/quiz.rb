@@ -32,7 +32,7 @@ def do_quiz
     end
 
     #
-    #  First play the sequence that is expected expected
+    #  First play the sequence that is expected
     #
     
     # handle $ctl-commands from keyboard-thread
@@ -72,11 +72,12 @@ def do_quiz
     if $mode == :quiz || lick[:recording].length == 0 || $ctl_ignore_recording
       play_holes all_wanted, lick, first_lap
     else
-      play_recording lick[:recording], lick[:start], first_lap
+      play_recording lick, first_lap
     end
-    $ctl_ignore_recording = false
         
     redo if $ctl_back || $ctl_next || $ctl_replay
+    $ctl_ignore_recording = false
+
     print "\e[0m\e[32m and !\e[0m"
     sleep 1
 
@@ -109,7 +110,7 @@ def do_quiz
                         "Play the note you have heard !"
                       else
                         "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
-                          ($mode == $memorize ? get_memo_remark(lick, ' (%s)') : '')
+                          ($mode == $memorize ? get_lick_remark(lick, ' (%s)') : '')
                       end
                     end
                   end,
@@ -123,7 +124,7 @@ def do_quiz
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     elsif $opts[:immediate]
-                      [ "\e[2m", 'Play  ' + ' .' * idx + all_wanted[idx .. -1].join(' '), 'smblock', 'play  ' + '--' * all_wanted.length, :right ]
+                      [ "\e[2m", 'Play  ' + ' .' * [6,idx].min + all_wanted[idx .. -1].join(' '), 'smblock', 'play  ' + '--' * all_wanted.length, :right ]
                     else
                       [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes  ' + '--' * all_wanted.length ]
                     end
@@ -150,7 +151,7 @@ def do_quiz
                        end
                      end
                    end
-            ( hint || '' ) + get_memo_remark(lick, ' (%s)')
+            ( hint || '' ) + get_lick_remark(lick, ' (%s)')
           end,
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -275,9 +276,9 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def get_memo_remark lick, template
+def get_lick_remark lick, template, long_short = :long
   if $mode == :memorize
-    rem = [lick[:section], lick[:remark], lick[:recording] ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
+    rem = [lick[:section], lick[:remark], lick[:recording] && long_short == :long ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
     rem = sprintf(template, rem) if rem.length >= 2
   else
     rem = ''
@@ -289,7 +290,7 @@ end
 def play_holes holes, lick, first_lap
   jtext = ''
   ltext = "\e[2m"
-  ltext += get_memo_remark(lick, '%s: ') if $mode == :memorize
+  ltext += get_lick_remark(lick, '%s: ') if $mode == :memorize
 
   holes.each_with_index do |hole, idx|
 
@@ -346,13 +347,13 @@ def play_holes holes, lick, first_lap
 end
 
 
-def play_recording recording, start, first_lap
-  issue = "Playing recording (press any key to skip) ... "
+def play_recording lick, first_lap
+  issue = get_lick_remark lick, "Lick \e[0m\e[32m%s\e[0m (press any key to skip) ... ", :short
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
-  skipped = play_recording_and_handle_kb recording, start
+  skipped = play_recording_and_handle_kb lick[:recording], lick[:start]
   print skipped ? "skipped." : "done."
 end

@@ -33,7 +33,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     return if lambda_skip && lambda_skip.call()
 
-    pipeline_catch_up if handle_kb_play
+    pipeline_catch_up if handle_kb_listen
     ctl_issue
     print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first || $ctl_redraw
 
