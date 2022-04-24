@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y
 RUN apt-get install -y sudo
 RUN apt-get install -y ca-certificates
-COPY harp_scale_trainer /harp_scale_trainer
-WORKDIR /harp_scale_trainer
+COPY harp_trainer /harp_trainer
+WORKDIR /harp_trainer
 RUN bash ./install/install-dependencies-on-ubuntu.sh
-ENTRYPOINT ["./harp_scale_trainer"]
+ENTRYPOINT ["./harp_trainer"]

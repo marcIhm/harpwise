@@ -5,7 +5,7 @@
 def new_session
   kill_session
   sys "tmux -u new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s hst"
-  tms 'cd harp_scale_trainer'
+  tms 'cd harp_trainer'
   tms :ENTER
 end
 
@@ -51,11 +51,11 @@ end
 
 
 def sound secs, semi
-    sys "sox -n /tmp/harp_scale_trainer_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
+    sys "sox -n /tmp/harp_trainer_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
 end
 
 
-$memo_file = "#{Dir.home}/.harp_scale_trainer_test_memo.json"
+$memo_file = "#{Dir.home}/.harp_trainer_test_memo.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', times: {}}

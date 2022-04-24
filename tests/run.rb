@@ -18,8 +18,8 @@ require_relative 'test_utils.rb'
 $sut = load_technical_config
 $fromon = ARGV[0]
 $within = !$fromon
-$testing_dump_file = '/tmp/harp_scale_trainer_dumped_for_testing.json'
-$data_dir = "#{Dir.home}/.harp_scale_trainer"
+$testing_dump_file = '/tmp/harp_trainer_dumped_for_testing.json'
+$data_dir = "#{Dir.home}/.harp_trainer"
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
@@ -31,7 +31,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'usage screen' do
     new_session
-    tms './harp_scale_trainer'
+    tms './harp_trainer'
     tms :ENTER
     sleep 2
     expect { screen[-6].start_with? 'Suggested reading' }
@@ -43,7 +43,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     memorize "auto-calibration key of #{key}" do
       sound 8, 2
       new_session
-      tms "./harp_scale_trainer calib testing #{key} --auto --testing"
+      tms "./harp_trainer calib testing #{key} --auto --testing"
       tms :ENTER
       tms 'y'
       sleep 10
@@ -56,7 +56,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'manual calibration' do
     sound 1, -14
     new_session
-    tms './harp_scale_trainer calib testing g --testing'
+    tms './harp_trainer calib testing g --testing'
     tms :ENTER
     sleep 2
     tms :ENTER
@@ -71,7 +71,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'manual calibration summary' do
     sound 1, -14
     new_session
-    tms './harp_scale_trainer calib testing a --testing'
+    tms './harp_trainer calib testing a --testing'
     tms :ENTER
     sleep 2
     tms 's'
@@ -84,7 +84,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'manual calibration starting at hole' do
     sound 1, -14
     new_session
-    tms './harp_scale_trainer calib testing a --hole +4 --testing'
+    tms './harp_trainer calib testing a --hole +4 --testing'
     tms :ENTER
     sleep 2
     tms 'y'
@@ -102,7 +102,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'check against et' do
     sound 1, 10
     new_session
-    tms './harp_scale_trainer calib testing c --hole +4 --testing'
+    tms './harp_trainer calib testing c --hole +4 --testing'
     tms :ENTER
     sleep 2
     tms :ENTER
@@ -120,7 +120,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     journal_file = "#{$data_dir}/journal_listen.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
-    tms './harp_scale_trainer listen testing a all --testing'
+    tms './harp_trainer listen testing a all --testing'
     tms :ENTER
     sleep 4
     tms 'j'
@@ -134,7 +134,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'listen with merged scale' do
     sound 8, 2
     new_session
-    tms './harp_scale_trainer listen testing a blues --merge chord-v,chord-i --testing'
+    tms './harp_trainer listen testing a blues --merge chord-v,chord-i --testing'
     tms :ENTER
     sleep 4
     expect { screen[12]['(blues,chord-v,chord-i) root'] }
@@ -145,7 +145,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'listen with removed scale' do
     sound 8, 2
     new_session
-    tms './harp_scale_trainer listen testing a all --remove drawbends --testing'
+    tms './harp_trainer listen testing a all --remove drawbends --testing'
     tms :ENTER
     sleep 4
     tst_out = read_testing_output
@@ -157,7 +157,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   memorize 'quiz' do
     sound 8, 3
     new_session
-    tms './harp_scale_trainer quiz 2 testing c all --testing'
+    tms './harp_trainer quiz 2 testing c all --testing'
     tms :ENTER
     sleep 8
     expect { screen[12]['c5'] }
@@ -167,7 +167,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   memorize 'transpose scale does work on zero shift' do
     new_session
-    tms './harp_scale_trainer listen testing a blues --transpose_scale_to c'
+    tms './harp_trainer listen testing a blues --transpose_scale_to c'
     tms :ENTER
     sleep 2
     expect { screen[0]['Play notes from the scale to get green'] }
@@ -177,7 +177,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   memorize 'transpose scale works on non-zero shift' do
     new_session
-    tms './harp_scale_trainer listen testing a blues --transpose_scale_to g --testing'
+    tms './harp_trainer listen testing a blues --transpose_scale_to g --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -188,7 +188,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   memorize 'transpose scale not working in some cases' do
     new_session
-    tms './harp_scale_trainer listen testing a blues --transpose_scale_to b'
+    tms './harp_trainer listen testing a blues --transpose_scale_to b'
     tms :ENTER
     sleep 2
     expect { screen[7]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
@@ -197,7 +197,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   memorize 'play a lick' do
     new_session
-    tms './harp_scale_trainer play testing a mape --testing'
+    tms './harp_trainer play testing a mape --testing'
     tms :ENTER
     sleep 4
     expect { screen[6]['-3     af4'] }
@@ -206,7 +206,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   memorize 'play some holes and notes' do
     new_session
-    tms './harp_scale_trainer play testing a -1 a5 +4 --testing'
+    tms './harp_trainer play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
     expect { screen[6]['-1   b3'] }
@@ -217,17 +217,17 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     lick_file = "#{$data_dir}/licks/testing/licks_with_holes.txt"
     FileUtils.rm lick_file if File.exist?(lick_file)
     new_session
-    tms './harp_scale_trainer memo testing a --testing'
+    tms './harp_trainer memo testing a --testing'
     tms :ENTER
     sleep 2
     expect { File.exist?(lick_file) }
-    expect { screen[11]['does not exist'] }
+    expect { screen[10]['does not exist'] }
     kill_session
   end
 
   memorize 'memorize with lick file from previous test' do
     new_session
-    tms './harp_scale_trainer memo testing a --testing'
+    tms './harp_trainer memo testing a --testing'
     tms :ENTER
     sleep 12
     tst_out = read_testing_output
@@ -238,7 +238,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'memorize with licks from one section' do
     new_session
-    tms './harp_scale_trainer memo testing --section favorites,testing a --testing'
+    tms './harp_trainer memo testing --section favorites,testing a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -249,7 +249,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'memorize with licks but from one section' do
     new_session
-    tms './harp_scale_trainer memo testing --section no-scales a --testing'
+    tms './harp_trainer memo testing --section no-scales a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -260,7 +260,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'error on unknown --sections' do
     new_session
-    tms './harp_scale_trainer memo testing --section unknown a --testing'
+    tms './harp_trainer memo testing --section unknown a --testing'
     tms :ENTER
     sleep 2
     expect { screen[7]['ERROR: There are some sections'] }

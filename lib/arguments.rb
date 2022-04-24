@@ -15,7 +15,7 @@ def parse_arguments
   usage = <<EOU
 
 
-harp_scale_trainer ('trainer', for short) helps to practice scales
+harp_trainer ('trainer', for short) helps to practice scales
 (e.g. blues or mape) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation are
 'listen' and 'quiz'.
@@ -28,7 +28,7 @@ Usage by examples:
   and it shows the holes, that you played; green if from the scale, red
   otherwise:
 
-    ./harp_scale_trainer listen ri c blues
+    ./harp_trainer listen ri c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead
   of notes; other possible values are 'note' and 'hole'.
@@ -39,7 +39,7 @@ Usage by examples:
   Trainer plays 3 notes from the scale 'mape' for a chromatic harmonica of
   key a and then quizes you to play them back (then repeat):
 
-    ./harp_scale_trainer quiz 3 chrom a mape
+    ./harp_trainer quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type
   'RETURN'. Option '--immediate' shows the full hole-sequence during quiz
@@ -49,7 +49,7 @@ Usage by examples:
   chromatic) and, in addition, the key (e.g. c or a) may be omitted and
   are then taken from the config; so
 
-    ./harp_scale_trainer q 3 ma
+    ./harp_trainer q 3 ma
 
   is valid as well.
 
@@ -58,7 +58,7 @@ Usage by examples:
   scales (separated by comma) to be merged. E.g. when trying licks for the
   v-chord, you might use the blues scale and add the scale chord-v:
 
-    ./harp_scale_trainer l blues --merge chord-v
+    ./harp_trainer l blues --merge chord-v
 
   For quiz, the holes from the merged scale (chord-v in the example above)
   will be chosen more frequent than the holes from the main scale (blues);
@@ -71,7 +71,7 @@ Usage by examples:
   removed from the original scale. E.g. you might want to remove bends
   from all notes:
 
-    ./harp_scale_trainer q all --remove blowbends,drawbends
+    ./harp_trainer q all --remove blowbends,drawbends
 
   Both modes listen and quiz allow an option '--display' with possible
   values of 'hole' and 'chart' to change how a recognized hole will be
@@ -84,9 +84,9 @@ Usage by examples:
   The mode memo is a variation of quiz, which helps to memorize licks
   from a given set:
 
-    ./harp_scale_trainer memo c
+    ./harp_trainer memo c
 
-    ./harp_scale_trainer memo c --sections favorites,scales
+    ./harp_trainer memo c --sections favorites,scales
 
   As shown in the second example, you may restrict the set of licks to
   certain sections within the lick file; sections (e.g. 'scales') may also
@@ -100,9 +100,9 @@ Usage by examples:
 
   Mostly for testing new licks or scales, there is also a mode play:
 
-    ./harp_scale_trainer play c blues
+    ./harp_trainer play c blues
 
-    ./harp_scale_trainer play c 1 -2 c4
+    ./harp_trainer play c 1 -2 c4
 
   which can play either a complete lick or the holes or notes given on
   the commandline.
@@ -111,7 +111,7 @@ Usage by examples:
   Once in the lifetime of your c-harp you need to calibrate the trainer
   for the frequencies of the harp you are using:
 
-    ./harp_scale_trainer calibrate c
+    ./harp_trainer calibrate c
     
   this will ask you to play notes on your harp. The samples will be
   stored in the hidden folder .#{File.basename($0)} within your home

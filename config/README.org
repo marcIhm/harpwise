@@ -12,7 +12,7 @@
     To adjust configuration you may add config_merge.yaml to override selected
     settings (e.g. the default harmonica-type).
 		   
-  - ~/.harp_scale_trainer/config_merge.yaml :: Optional, may contain any of
+  - ~/.harp_trainer/config_merge.yaml :: Optional, may contain any of
     the config-keys from config.yaml and then overrides those; not included in
     git-versioning.
 

@@ -1,15 +1,15 @@
-Scripts to install dependencies for harp_scale_trainer for different
+Scripts to install dependencies for harp_trainer for different
 linux-distributions.
 
 The trainer itself needs no installation but should rather be started
 directly from its toplevel directory.
 
-* Downloading harp_scale_trainer
+* Downloading harp_trainer
 
-  From https://github.com/marcIhm/harp_scale_trainer
+  From https://github.com/marcIhm/harp_trainer
   
   You may download and unpack a release into your home; this will give
-  you a directory ~/harp_scale_trainer
+  you a directory ~/harp_trainer
 
   If you want to contribute patches you may just as well clone the
   repo.
@@ -18,12 +18,12 @@ directly from its toplevel directory.
 
   The scripts to install dependencies are:
 
-    install-dependencies-on-ubuntu.sh | tee ~/harp_scale_trainer/install.log
+    install-dependencies-on-ubuntu.sh | tee ~/harp_trainer/install.log
 
   may be suitable for other debian-based systems too (which use apt to
   install software).
 
-    install-dependencies-on-fedora.sh | tee ~/harp_scale_trainer/install.log
+    install-dependencies-on-fedora.sh | tee ~/harp_trainer/install.log
 
   might also work on systems derived from fedora (which use yum to
   install software).
@@ -49,13 +49,13 @@ directly from its toplevel directory.
 
 * Uninstalling (only half covered)
 
-** Uninstalling harp_scale_trainer itself
+** Uninstalling harp_trainer itself
 
-   Just remove the directory ~/harp_scale_trainer which you downloaded
+   Just remove the directory ~/harp_trainer which you downloaded
    initially.
 
-   The data of harp_scale_trainer (samples for calibration and
-   journal.txt) is kept in the hidden directory ~/.harp_scale_trainer,
+   The data of harp_trainer (samples for calibration and
+   journal.txt) is kept in the hidden directory ~/.harp_trainer,
    which you may want to remove too.
 
 ** Uninstalling dependencies 
@@ -69,7 +69,7 @@ directly from its toplevel directory.
    However, in general, the number of packages installed as
    dependencies and their disk-usage is fairly low, so there is not
    much pressure to remove those dependencies, even if you do not want
-   to use harp_scale_trainer any more.
+   to use harp_trainer any more.
 
 * Testing the installer
 

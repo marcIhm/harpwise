@@ -24,14 +24,14 @@
 
   Get a short usage information by invoking without arguments:
   
-    ./harp_scale_trainer
+    ./harp_trainer
 
 
   This will show examples for the three main operations of the trainer:
   listen, quiz and calibrate.
 
   As an initial step you will need to calibrate the program; the resulting
-  wav-files will be kept in directory ~/.harp_scale_trainer
+  wav-files will be kept in directory ~/.harp_trainer
 
   To get started quickly you may use auto-calibration for
   machine-generated tones and frequencies.
@@ -133,26 +133,26 @@
 
 * Tuning
 
-  The harp_scale_trainer does not make assumptions about the tuning of
+  The harp_trainer does not make assumptions about the tuning of
   your harmonica; e.g. it works equally well with "equal temperament" (ET)
   or "just intonation" tuning.  Simply because, it asks you to play your
   own harp (whatever its tuning might be), to generate samples; and it
   then computes frequency values from these.
   
-  However, sometimes harp_scale_trainer has to choose one tuning,
+  However, sometimes harp_trainer has to choose one tuning,
   e.g. when doing auto calibration, or when your samples need to be judged
   against some standard. In such cases it generally uses "equal
   temperament" (ET for short).
   
 * Installation
 
-  The program harp_scale_trainer runs in the linux console (no graphical
+  The program harp_trainer runs in the linux console (no graphical
   environment needed); it has no formal installation, but rather runs
   directly from within the directory, which you need to download as a
   release or clone from github first. Vice versa it can simply be removed
   by deleting the cloned directory.
 
-  harp_scale_trainer has a bunch of dependencies and one of the scripts in
+  harp_trainer has a bunch of dependencies and one of the scripts in
   directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for

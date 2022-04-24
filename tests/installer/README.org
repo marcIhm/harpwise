@@ -2,22 +2,22 @@ Testing the scripts from directory install is done via docker.
 
 * Build a docker image
 
-    docker build -f dockerfile.ubuntu --progress=plain --no-cache -t harp_scale_trainer_ubuntu:latest $HOME
+    docker build -f dockerfile.ubuntu --progress=plain --no-cache -t harp_trainer_ubuntu:latest $HOME
 
   or 
 
-    docker build -f dockerfile.fedora --progress=plain --no-cache -t harp_scale_trainer_fedora:latest $HOME
+    docker build -f dockerfile.fedora --progress=plain --no-cache -t harp_trainer_fedora:latest $HOME
 
 
 * Run the image 
 
   and verify the usage information:
 
-    docker run -it harp_scale_trainer_ubuntu:latest
+    docker run -it harp_trainer_ubuntu:latest
 
   or
 
-    docker run -it harp_scale_trainer_fedora:latest
+    docker run -it harp_trainer_fedora:latest
 
 
   this proves, that the scripts for installing dependencies from
@@ -27,5 +27,5 @@ Testing the scripts from directory install is done via docker.
 
 * However
 
-  harp_scale_trainer itself however, cannot run from within a container
+  harp_trainer itself however, cannot run from within a container
   without setting up the sound-system manually.
