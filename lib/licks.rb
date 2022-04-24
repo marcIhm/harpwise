@@ -6,6 +6,7 @@
 def read_licks
 
   FileUtils.mkdir_p($lick_dir) unless File.directory?($lick_dir)
+  FileUtils.mkdir_p($lick_dir + '/recordings') unless File.directory?($lick_dir + '/recordings')
 
   glob = $lick_file_template % '{holes,notes}'
   lfiles = Dir[glob]
@@ -32,14 +33,20 @@ def read_licks
     end
 
     i += 1
-    lick, remark = if md = line.match(/^(.*):(.*)$/)
-                   md[1 .. 2]
-                 else
-                   [line, "Nr.#{i}"]
-                 end
+    lick, remark, recording, start = if md = line.match(/^(.*):(.*),(.*),(.*)$/)
+                                       md[1..4]
+                                     elsif  md = line.match(/^(.*):(.*),(.*)$/)
+                                       [md[1],md[2],md[3],'']
+                                     elsif md = line.match(/^(.*):(.*)$/)
+                                       [md[1],md[2],'','']
+                                     else
+                                       [line,"Nr.#{i}",'','']
+                                     end
 
     lick.strip!
     remark.strip!
+    recording.strip!
+    start = start.strip.to_i
     next if lick.length == 0
     holes = lick.split.map do |hon|
       if lfile['holes']
@@ -51,7 +58,9 @@ def read_licks
         $note2hole[hon]
       end
     end
-    all_licks << {section: section, remark: remark, holes: holes}
+    rfile = $lick_dir + '/recordings/' + recording
+    err("Recording  #{rfile} not found") unless File.exists?(rfile)
+    all_licks << {section: section, remark: remark, holes: holes, recording: recording, start: start}
   end
 
   err("No licks found in #{lfile}") unless all_licks.length > 0
@@ -100,9 +109,14 @@ def create_initial_lick_file lfile
         # One lick per line; empty lines and comments are ignored.
         # A lick can optionally be followed by a single colon (':')
         # and a remark, that the program will show, while playing this
-        # lick; this helps to the lick within the file.
+        # lick; this helps to find the lick within the file.
         # You are free to keep duplicates of a lick in multiple
         # sections.
+        #
+        # After colon and remark you may opionally add a comma and the
+        # name of an mp3-file, that can be played on request; it will
+        # be searched in subdir 'samples'; with another comma and a number
+        # you may specify the start to play from.
         #
         # Sections (e.g. '[scales]' below) help to select groups of
         # licks with the option '--sections'. 
@@ -110,7 +124,7 @@ def create_initial_lick_file lfile
         # Initially ths file is populated with sample licks for
         # richter harp; they may not work for other harps however.
         #
-        # You will need to add your own licks before this file and
+        # You will need to add your own licks before this file before
         # the feature memorize can be useful.
         #
         #
@@ -163,16 +177,19 @@ def write_derived_lick_file licks, lfile
       current_section = ''
 
       licks.each do |lick|
+
         if lick[:section].length > 0 && lick[:section] != current_section
           current_section = lick[:section]
           df.puts "\n[#{lick[:section]}]"
         end
+
         if dfile['holes']
           df.write lick[:holes].join(' ')
         else
           df.write lick[:holes].map {|h| $harp[h][:note]}.select(&:itself).join(' ')
         end
-        df.puts "   : " + lick[:remark]
+
+        df.puts '   : ' + lick[:remark] + ( lick[:recording].length > 0  ?  ",#{lick[:recording]},#{lick[:start]}"  :  '' )
       end
     end
   end 

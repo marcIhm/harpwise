@@ -92,10 +92,10 @@ Usage by examples:
   certain sections within the lick file; sections (e.g. 'scales') may also
   be excluded like '--sections no-scales'.
 
-  for this to be useful, you need to create a file with your own licks;
-  for more info see the initial error message and the starter file
-  created.  Please note, that this mode will set the scale to all
-  implicitly.
+  for this to be useful, you need to create a file with your own licks
+  (optionally you may also add your own recorded mp3 files); for more info
+  see the initial error message and the starter file created.  Please
+  note, that this mode will set the scale to 'all' implicitly.
 
 
   Mostly for testing new licks or scales, there is also a mode play:

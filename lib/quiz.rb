@@ -12,9 +12,11 @@ def do_quiz
   $ctl_can_next = true
   $ctl_can_loop = true
   $ctl_can_change_comment = false
+  $ctl_ignore_recording = false
   
   first_lap = true
   all_wanted_before = all_wanted = nil
+  lick = nil
   puts
   
   loop do   # forever until ctrl-c, sequence after sequence
@@ -29,6 +31,11 @@ def do_quiz
       ctl_issue
     end
 
+    #
+    #  First play the sequence that is expected expected
+    #
+    
+    # handle $ctl-commands from keyboard-thread
     if $ctl_back
       if !all_wanted_before || all_wanted_before == all_wanted
         print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
@@ -37,79 +44,38 @@ def do_quiz
         all_wanted = all_wanted_before
       end
       $ctl_loop = true
+
     elsif $ctl_replay
       # nothing to do
-    else # also good for $ctl_next
+
+    else # e.g. $ctl_next
       all_wanted_before = all_wanted
+
+      # figure out holes to play
       if $mode == :quiz
+
         all_wanted = get_sample($num_quiz)
-      else
+
+      else # memorize
+
         lick = $licks.sample(1)[0]
         all_wanted = lick[:holes]
+
       end
       $ctl_loop = $opts[:loop]
+
     end
     $ctl_back = $ctl_next = $ctl_replay = false
     
     sleep 0.3
 
-    jtext = ''
-    ltext = "\e[2m"
-    ltext += get_memo_remark(lick, '%s: ') if $mode == :memorize
-    all_wanted.each_with_index do |hole, idx|
-      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-        ltext = "\e[2m"
-        if first_lap
-          print "\e[#{$term_height}H\e[K"
-          print "\e[#{$term_height-1}H\e[K"
-        else
-          print "\e[#{$line_hint_or_message}H\e[K"
-          print "\e[#{$line_call2}H\e[K"
-        end
-      end
-      if idx > 0
-        isemi, itext = describe_inter(hole, all_wanted[idx - 1])
-        part = ' ' + ( itext || isemi ).tr(' ','') + ' '
-        ltext += part
-        jtext += " #{part} "
-      end
-      ltext += if $opts[:immediate]
-                 "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
-               else
-                 "\e[0m#{$harp[hole][:note]}\e[2m"
-               end
-      jtext += "#{$harp[hole][:note]},#{hole}"
-      if $opts[:merge]
-        part = '(' +
-               $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
-               ')'
-        part = '' if part == '()'
-        ltext += part
-        jtext += part
-      end
-
-      if first_lap
-        print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
-      else
-        print "\e[#{$line_call2}H\e[K"
-        print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
-      end
-      play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
-      begin
-        sleep 0.1
-        handle_kb_listen
-      end while play_thr.alive?
-      play_thr.join   # raises any errors from thread
-      if $ctl_back || $ctl_next || $ctl_replay
-        sleep 1
-        break
-      end
+    if $mode == :quiz || lick[:recording].length == 0 || $ctl_ignore_recording
+      play_holes all_wanted, lick, first_lap
+    else
+      play_recording lick[:recording], lick[:start], first_lap
     end
-
-    if !$journal_quiz.include?(jtext)
-      IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
-      $journal_quiz << jtext
-    end
+    $ctl_ignore_recording = false
+        
     redo if $ctl_back || $ctl_next || $ctl_replay
     print "\e[0m\e[32m and !\e[0m"
     sleep 1
@@ -122,6 +88,10 @@ def do_quiz
     end
     full_hint_shown = false
 
+    #
+    #  Now listen for user to play the sequence back correctly
+    #
+    
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
@@ -138,7 +108,8 @@ def do_quiz
                       if $num_quiz == 1 
                         "Play the note you have heard !"
                       else
-                        "Play note \e[32m#{idx+1}\e[0m of #{$num_quiz} you have heard !"
+                        "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
+                          ($mode == $memorize ? get_memo_remark(lick, ' (%s)') : '')
                       end
                     end
                   end,
@@ -188,6 +159,10 @@ def do_quiz
 
       end # notes in a sequence
 
+      #
+      #  Finally judge result
+      #
+      
       text = if $ctl_next
                "skip"
              elsif $ctl_back
@@ -205,7 +180,6 @@ def do_quiz
       print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
       print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
       full_hint_shown = true
-        
       sleep 1
     end while $ctl_loop && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
@@ -300,12 +274,85 @@ def nearest_hole_with_flag hole, flag
   end while true
 end
 
+
 def get_memo_remark lick, template
   if $mode == :memorize
-    rem = [lick[:section], lick[:remark]].select {|s| s.length > 0}.join(',')
-    rem = sprintf(template, rem) if rem.length > 0
+    rem = [lick[:section], lick[:remark], lick[:recording] ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
+    rem = sprintf(template, rem) if rem.length >= 2
   else
     rem = ''
   end
   rem
+end
+
+
+def play_holes holes, lick, first_lap
+  jtext = ''
+  ltext = "\e[2m"
+  ltext += get_memo_remark(lick, '%s: ') if $mode == :memorize
+
+  holes.each_with_index do |hole, idx|
+
+    if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
+      ltext = "\e[2m"
+      if first_lap
+        print "\e[#{$term_height}H\e[K"
+        print "\e[#{$term_height-1}H\e[K"
+      else
+        print "\e[#{$line_hint_or_message}H\e[K"
+        print "\e[#{$line_call2}H\e[K"
+      end
+    end
+    if idx > 0
+      isemi, itext = describe_inter(hole, holes[idx - 1])
+      part = ' ' + ( itext || isemi ).tr(' ','') + ' '
+      ltext += part
+      jtext += " #{part} "
+    end
+    ltext += if $opts[:immediate]
+               "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
+             else
+               "\e[0m#{$harp[hole][:note]}\e[2m"
+             end
+    jtext += "#{$harp[hole][:note]},#{hole}"
+    if $opts[:merge]
+      part = '(' +
+             $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
+             ')'
+      part = '' if part == '()'
+      ltext += part
+      jtext += part
+    end
+
+    if first_lap
+      print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
+    else
+      print "\e[#{$line_call2}H\e[K"
+      print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
+    end
+
+    play_hole_and_handle_kb hole
+    
+    if $ctl_back || $ctl_next || $ctl_replay
+      sleep 1
+      break
+    end
+  end
+
+  if !$journal_quiz.include?(jtext)
+    IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
+    $journal_quiz << jtext
+  end
+end
+
+
+def play_recording recording, start, first_lap
+  issue = "Playing recording (press any key to skip) ... "
+  if first_lap
+    print "\e[#{$term_height}H#{issue}\e[K"
+  else
+    print "\e[#{$line_hint_or_message}H#{issue}\e[K"
+  end
+  skipped = play_recording_and_handle_kb recording, start
+  print skipped ? "skipped." : "done."
 end

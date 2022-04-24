@@ -194,15 +194,23 @@ def handle_kb_listen
     print "\e[0m\e[32m back \e[0m "
     $ctl_back = true
     sleep 0.5
-  elsif char == '.'
+  elsif char == '.' || char == ','
     print "\e[0m\e[32m replay \e[0m "
     $ctl_replay = true
+    $ctl_ignore_recording = true if char == ','
     sleep 0.5
   elsif char == "\n"
     print "\e[0m\e[32m next \e[0m "
     $ctl_next = true
     sleep 0.5
   end
+end
+
+
+def handle_kb_play_recording
+  return if $ctl_kb_queue.length == 0
+  $ctl_kb_queue.deq
+  $ctl_skip = true
 end
 
 
@@ -245,8 +253,9 @@ def handle_kb_play
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif char == '.' && $ctl_can_next
+  elsif (char == '.' || char == ',') && $ctl_can_next
     $ctl_replay = true
+    $ctl_ignore_recording = true if char == ','
     text = 'Replay'
   elsif char.ord == 127 && $ctl_can_next
     $ctl_back = true

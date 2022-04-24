@@ -198,3 +198,30 @@ end
 def pipeline_catch_up
   $freqs_queue.clear
 end
+
+
+def play_hole_and_handle_kb hole
+  play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
+  begin
+    sleep 0.1
+    handle_kb_listen
+  end while play_thr.alive?
+  play_thr.join   # raises any errors from thread
+end
+
+
+def play_recording_and_handle_kb recording, start
+  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start}"
+  _, _, wait_thr  = Open3.popen2(cmd)
+  $ctl_skip = false
+  begin
+    sleep 0.1
+    handle_kb_play_recording
+  end while wait_thr.alive? && !$ctl_skip
+  Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
+  wait_thr.join unless $ctl_skip # raises any errors from thread
+  err('See above') unless $ctl_skip || wait_thr.value.success? 
+  skipped = $ctl_skip
+  $ctl_skip = false
+  skipped
+end
