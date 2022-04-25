@@ -4,8 +4,6 @@
 
 def do_quiz
 
-  puts "#{$licks.length} licks." if $mode == :memorize
-
   prepare_term
   start_kb_handler
   start_collect_freqs
@@ -18,6 +16,7 @@ def do_quiz
   all_wanted_before = all_wanted = nil
   lick = nil
   puts
+  puts "#{$licks.length} licks." if $mode == :memorize
   
   loop do   # forever until ctrl-c, sequence after sequence
     if first_lap
