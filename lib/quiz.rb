@@ -124,9 +124,19 @@ def do_quiz
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     elsif $opts[:immediate]
-                      [ "\e[2m", 'Play  ' + ' .' * [6,idx].min + all_wanted[idx .. -1].join(' '), 'smblock', 'play  ' + '--' * all_wanted.length, :right ]
+                      empty = idx > 8 ? ". . [#{idx}] . ." : ' .' * idx
+                      [ "\e[2m",
+                        'Play  ' + empty + all_wanted[idx .. -1].join(' '),
+                        'smblock',
+                        'play  ' + '--' * all_wanted.length,
+                        :right ]
                     else
-                      [ "\e[2m", 'Yes  ' + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + ' _' * (all_wanted.length - idx), 'smblock', 'yes  ' + '--' * all_wanted.length ]
+                      empty = all_wanted.length - idx > 8  ? "_ _ [#{all_wanted.length - idx}] _ _" : ' _' * (all_wanted.length - idx)
+                      [ "\e[2m",
+                        'Yes  ' + all_wanted.slice(0,idx).join(' ') + empty,
+                        'smblock',
+                        'yes  ' + '--' * [6,all_wanted.length].min,
+                        :left ]
                     end
                   end,
           

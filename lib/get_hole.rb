@@ -225,9 +225,9 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       puts "          r: set reference hole       j: toggle writing of journal file"
       puts "          k: change key of harp       s: change scale"
       if  $ctl_can_next
-        puts "          l: loop current sequence   .,: replay current (skip recording)"
+        puts "          .: replay current sequence  ,: replay, ignore recording"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
-        puts "          i: toggle --immediate"
+        puts "          i: toggle '--immediate'     l: loop current sequence"
       end
       puts "          q: quit                     h: this help"
       puts "\e[0mType any key to continue ..."
