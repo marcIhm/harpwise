@@ -104,7 +104,7 @@ def do_quiz
 
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m over #{all_wanted.length} notes"
+                      "\e[32mLooping\e[0m over #{all_wanted.length} notes" + ( $mode == :memorize ? get_lick_remark(lick, ', %s', :short) : '' )
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
@@ -135,7 +135,7 @@ def do_quiz
             lap_passed = Time.now.to_f - lap_start
             
             hint = if $opts[:immediate] 
-                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(', ')) + ' * ' + all_wanted[idx .. -1].join(', ')
+                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + '*' + all_wanted[idx .. -1].join(',')
                    elsif all_wanted.length > 1 &&
                          hole_passed > 4 &&
                          lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
@@ -178,10 +178,12 @@ def do_quiz
       print "\e[0m"
       
       print "\e[#{$line_hint_or_message}H\e[K"
-      print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
-      print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
-      full_hint_shown = true
-      sleep 1
+      unless $ctl_replay
+        print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
+        print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
+        full_hint_shown = true
+        sleep 1
+      end
     end while $ctl_loop && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
   print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
@@ -354,6 +356,6 @@ def play_recording lick, first_lap
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
-  skipped = play_recording_and_handle_kb lick[:recording], lick[:start]
+  skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
   print skipped ? "skipped." : "done."
 end

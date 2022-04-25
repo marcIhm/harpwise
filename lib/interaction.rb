@@ -214,6 +214,10 @@ def handle_kb_play_recording
   if char == '.' || char == ','
     $ctl_replay = true
     $ctl_ignore_recording =  char == ','
+  elsif char == "\n"
+    print "\e[0m\e[32mnext \e[0m "
+    $ctl_next = true
+    sleep 0.5
   end
   $ctl_skip = true
 end
@@ -268,6 +272,9 @@ def handle_kb_listen
   elsif char.ord == 12
     $ctl_redraw = true
     text = 'redraw'
+  elsif char == 'i'
+    $opts[:immediate] = !$opts[:immediate]
+    text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
   elsif char == 'l' && $ctl_can_loop && $ctl_can_next
     $ctl_start_loop = true
     text = 'Loop started'
@@ -396,7 +403,7 @@ end
 
 
 def clear_area_help
-  ($line_help .. $line_hint_or_message + 1).each {|l| print "\e[#{l}H\e[K"}
+  ($line_help .. $line_call2).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 

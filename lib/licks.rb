@@ -33,20 +33,23 @@ def read_licks
     end
 
     i += 1
-    lick, remark, recording, start = if md = line.match(/^(.*):(.*),(.*),(.*)$/)
-                                       md[1..4]
-                                     elsif  md = line.match(/^(.*):(.*),(.*)$/)
-                                       [md[1],md[2],md[3],'']
-                                     elsif md = line.match(/^(.*):(.*)$/)
-                                       [md[1],md[2],'','']
-                                     else
-                                       [line,"Nr.#{i}",'','']
-                                     end
+    lick, remark, recording, start, duration = if md = line.match(/^(.*):(.*),(.*),(.*),(.*)$/)
+                                                 md[1..5]
+                                               elsif md = line.match(/^(.*):(.*),(.*),(.*)$/)
+                                                 [*md[1..4],nil]
+                                               elsif  md = line.match(/^(.*):(.*),(.*)$/)
+                                                 [*md[1..3],'',nil]
+                                               elsif md = line.match(/^(.*):(.*)$/)
+                                                 [*md[1..2],'','',nil]
+                                               else
+                                                 [line,"Nr.#{i}",'','',nil]
+                                               end
 
     lick.strip!
     remark.strip!
     recording.strip!
     start = start.strip.to_i
+    duration = duration ? duration.strip.to_i : -1
     next if lick.length == 0
     holes = lick.split.map do |hon|
       if lfile['holes']
@@ -60,7 +63,7 @@ def read_licks
     end
     rfile = $lick_dir + '/recordings/' + recording
     err("Recording  #{rfile} not found") unless File.exists?(rfile)
-    all_licks << {section: section, remark: remark, holes: holes, recording: recording, start: start}
+    all_licks << {section: section, remark: remark, holes: holes, recording: recording, start: start, duration: duration}
   end
 
   err("No licks found in #{lfile}") unless all_licks.length > 0
@@ -115,8 +118,9 @@ def create_initial_lick_file lfile
         #
         # After colon and remark you may opionally add a comma and the
         # name of an mp3-file, that can be played on request; it will
-        # be searched in subdir 'samples'; with another comma and a number
-        # you may specify the start to play from.
+        # be searched in subdir 'samples'; with more commas and numbers
+        # you may optionally specify start to play from and duration.
+        # Note: You might need to install libsox-fmt-mp3 to play mp3s.
         #
         # Sections (e.g. '[scales]' below) help to select groups of
         # licks with the option '--sections'. 

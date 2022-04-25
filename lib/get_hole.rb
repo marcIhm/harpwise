@@ -46,7 +46,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     hole = nil
     hole, lbor, cntr, ubor = describe_freq(freq)
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
-    if hole != hole_held  &&  Time.now.to_f - hole_since > 0.2
+    if hole != hole_held  &&  Time.now.to_f - hole_since > 0.1
       hole_held_before = hole_held
       write_to_journal(hole_held, hole_held_since) if $write_journal && $mode == :listen && regular_hole?(hole_held)
       if hole
@@ -227,6 +227,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       if  $ctl_can_next
         puts "          l: loop current sequence   .,: replay current (skip recording)"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
+        puts "          i: toggle --immediate"
       end
       puts "          q: quit                     h: this help"
       puts "\e[0mType any key to continue ..."
