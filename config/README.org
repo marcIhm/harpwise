@@ -9,10 +9,7 @@
   - config.yaml :: Main config file; see comments within for some
     explanations.
 
-    To adjust configuration you may add config_merge.yaml to override selected
-    settings (e.g. the default harmonica-type).
-		   
-  - ~/.harp_trainer/config_merge.yaml :: Optional, may contain any of
+  - ~/.harp_trainer/config.yaml :: Optional, may contain any of
     the config-keys from config.yaml and then overrides those; not included in
     git-versioning.
 

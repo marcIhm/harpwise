@@ -211,7 +211,7 @@ end
 
 
 def play_recording_and_handle_kb recording, start, duration
-  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration > 0 ? start : start + duration}"
+  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? start + duration : ''}"
   _, _, wait_thr  = Open3.popen2(cmd)
   $ctl_skip = false
   begin

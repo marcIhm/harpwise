@@ -104,8 +104,9 @@ Usage by examples:
 
     ./harp_trainer play c 1 -2 c4
 
-  which can play either a complete lick or the holes or notes given on
-  the commandline.
+  which can play either a complete lick or the holes or notes given on the
+  commandline. If you want to play the holes of the lick (rather than the
+  recording), add option '--holes'.
 
 
   Once in the lifetime of your c-harp you need to calibrate the trainer
@@ -137,7 +138,8 @@ Notes:
   notes are available.
 
   Modes, that play notes (usually one second) accept the option '--fast'
-  to play them for half a second only.
+  to play them for half a second only; use '--no-fast' to override on the
+  commandline, if config.yaml sets this to true.
 
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or
   'cal' for 'calibrate'.
@@ -154,11 +156,14 @@ This program is subject to the MIT License.
 EOU
 
   # extract options from ARGV
-  # first process all options commonly
   opts = Hash.new
+
+  # defaults from config
+  opts[:fast] = $conf[:fast]
+
   opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections]
   { %w(--debug) => :debug,
-     %w(--testing) => :testing,
+    %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
@@ -172,7 +177,9 @@ EOU
     %w(-d --display) => :display,
     %w(-c --comment) => :comment,
     %w(-f --fast) => :fast,
+    %w(--no-fast) => :no_fast,
     %w(--sections) => :sections,
+    %w(--holes) => :holes,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -196,6 +203,8 @@ EOU
   opts[:display] = match_or(opts[:display], $display_choices) do |none, choices|
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
+
+  opts[:fast] = false if opts[:no_fast]
 
   err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
@@ -267,10 +276,9 @@ EOU
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]]].each do |o_m|
+  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]],[:holes, [:play]]].each do |o_m|
     err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
-  
   
   # carry some options over into $conf
   $conf[:comment_listen] = opts[:comment] if opts[:comment]

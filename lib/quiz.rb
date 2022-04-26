@@ -103,7 +103,7 @@ def do_quiz
 
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m over #{all_wanted.length} notes" + ( $mode == :memorize ? get_lick_remark(lick, ', %s', :short) : '' )
+                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? get_lick_remark(lick, ', %s', :short) : '' )
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
@@ -111,11 +111,11 @@ def do_quiz
                         "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
                           ($mode == $memorize ? get_lick_remark(lick, ' (%s)') : '')
                       end
-                    end
+                    end 
                   end,
           -> (played, since) {[played == wanted,  # lambda_good_done
                                played == wanted && 
-                               Time.now.to_f - since > 0.5]}, # do not return okay immediately
+                               Time.now.to_f - since > 0.2]}, # do not return okay immediately
           
           -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
           
@@ -123,14 +123,14 @@ def do_quiz
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     elsif $opts[:immediate]
-                      empty = idx > 8 ? ". . [#{idx}] . ." : ' .' * idx
+                      empty = idx > 8 ? ". . # . ." : ' .' * idx
                       [ "\e[2m",
                         'Play  ' + empty + all_wanted[idx .. -1].join(' '),
                         'smblock',
                         'play  ' + '--' * all_wanted.length,
                         :right ]
                     else
-                      empty = all_wanted.length - idx > 8  ? "_ _ [#{all_wanted.length - idx}] _ _" : ' _' * (all_wanted.length - idx)
+                      empty = all_wanted.length - idx > 8  ? "_ _ # _ _" : ' _' * (all_wanted.length - idx)
                       [ "\e[2m",
                         'Yes  ' + all_wanted.slice(0,idx).join(' ') + empty,
                         'smblock',
@@ -144,12 +144,12 @@ def do_quiz
             lap_passed = Time.now.to_f - lap_start
             
             hint = if $opts[:immediate] 
-                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + '*' + all_wanted[idx .. -1].join(',')
+                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(',')
                    elsif all_wanted.length > 1 &&
                          hole_passed > 4 &&
                          lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
                      full_hint_shown = true
-                     "\e[0mSolution: The complete sequence is: #{all_wanted.join(', ')}" 
+                     "\e[0mSolution: The complete sequence is: #{all_wanted.join(' ')}" 
                    elsif hole_passed > 4
                      "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
                    else
@@ -160,7 +160,7 @@ def do_quiz
                        end
                      end
                    end
-            ( hint || '' ) + get_lick_remark(lick, ' (%s)')
+            ( hint || '' ) + ( $mode == :memorize ? get_lick_remark(lick, ' (%s)') : '' )
           end,
 
           -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -288,13 +288,12 @@ end
 
 
 def get_lick_remark lick, template, long_short = :long
-  if $mode == :memorize
-    rem = [lick[:section], lick[:remark], lick[:recording] && long_short == :long ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
-    rem = sprintf(template, rem) if rem.length >= 2
+  joined = [lick[:section], lick[:remark], lick[:recording] && long_short == :long ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
+  if joined.length >= 2
+    sprintf(template, joined)
   else
-    rem = ''
+    ''
   end
-  rem
 end
 
 
@@ -359,12 +358,12 @@ end
 
 
 def play_recording lick, first_lap
-  issue = get_lick_remark lick, "Lick \e[0m\e[32m%s\e[0m (press any key to skip) ... ", :short
+  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (press any key to skip) ... #{lick[:holes].join(' ')}", :short)
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
   skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
-  print skipped ? "skipped." : "done."
+  print skipped ? " skipped." : " done."
 end

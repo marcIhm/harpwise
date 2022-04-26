@@ -4,6 +4,7 @@
 
 def do_play
   $licks = read_licks
+  lick = nil
   holes = ARGV.map do |hnl|
     if $harp_holes.include?(hnl)
       hnl
@@ -15,15 +16,22 @@ def do_play
       lick[:holes]
     end
   end.flatten
-
-  lhn = holes.max_by(&:length)
-  holes.each_with_index do |hole, i|
-    if i > 0
-      semi, text = describe_inter(holes[i-1], hole)
-      puts "  " + ( text || semi)
+  
+  if lick[:recording].length == 0 || $opts[:holes]
+    puts
+    holes.each_with_index do |hole, i|
+      print ' ' if i > 0
+      print hole
+      play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
     end
-    puts "%-#{lhn.length}s   %s" % [hole, $harp[hole][:note]]
-    play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+    print "\n\n"
+  else
+    prepare_term
+    start_kb_handler
+    puts
+    puts get_lick_remark(lick, "Lick %s (press any key to skip)\n#{lick[:holes].join(' ')}", :short)
+    play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
+    puts
   end
 end
 

@@ -215,7 +215,7 @@ def handle_kb_play_recording
     $ctl_replay = true
     $ctl_ignore_recording =  char == ','
   elsif char == "\n"
-    print "\e[0m\e[32mnext \e[0m "
+    print "\e[0m\e[32m next \e[0m "
     $ctl_next = true
     sleep 0.5
   end

@@ -100,7 +100,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = "#{$data_dir}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :fast])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -108,7 +108,7 @@ def load_technical_config
     err "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
     merge_conf.transform_keys!(&:to_sym)
     merge_conf.each do |k,v|
-      err "Key #{k} from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
+      err "Key '#{k}' from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
       conf[k] = v
     end
   end
