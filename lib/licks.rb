@@ -88,6 +88,7 @@ def read_licks
   licks = all_licks.
             select {|lick| keep.length == 0 || keep.include?(lick[:section])}.
             select {|lick| !discard.include?(lick[:section])}.
+            select {|lick| lick[:holes].length <= $opts[:max_holes]}.
             uniq {|lick| lick[:holes]}
 
   

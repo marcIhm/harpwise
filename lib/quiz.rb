@@ -19,6 +19,7 @@ def do_quiz
   puts "#{$licks.length} licks." if $mode == :memorize
   
   loop do   # forever until ctrl-c, sequence after sequence
+
     if first_lap
       print "\n"
       print "\e[#{$term_height}H\e[K"
@@ -31,7 +32,7 @@ def do_quiz
     end
 
     #
-    #  First play the sequence that is expected
+    #  First compute and play the sequence that is expected
     #
     
     # handle $ctl-commands from keyboard-thread
@@ -45,7 +46,7 @@ def do_quiz
       $ctl_loop = true
 
     elsif $ctl_replay
-      # nothing to do
+    # nothing to do
 
     else # e.g. $ctl_next
       all_wanted_before = all_wanted
@@ -73,7 +74,7 @@ def do_quiz
     else
       play_recording lick, first_lap
     end
-        
+    
     redo if $ctl_back || $ctl_next || $ctl_replay
     $ctl_ignore_recording = false
 
@@ -91,16 +92,17 @@ def do_quiz
     #
     #  Now listen for user to play the sequence back correctly
     #
-    
+
     begin   # while looping over one sequence
 
       lap_start = Time.now.to_f
-
+      $ctl_forget = false
+      
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one lap while looping
 
         hole_start = Time.now.to_f
         pipeline_catch_up
-
+        
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
                       "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? get_lick_remark(lick, ', %s', :short) : '' )
@@ -113,13 +115,14 @@ def do_quiz
                       end
                     end 
                   end,
-          -> (played, since) {[played == wanted,  # lambda_good_done
-                               played == wanted && 
-                               Time.now.to_f - since > 0.2]}, # do not return okay immediately
-          
-          -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
-          
-          -> (_, _, _, _, _, _, _) do  # lambda_comment
+                  -> (played, since) {[played == wanted,  # lambda_good_done
+                                       $ctl_forget ||
+                                       ( played == wanted && 
+                                         Time.now.to_f - since > 0.2)]}, # do not return okay immediately
+                  
+                  -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
+                  
+                  -> (_, _, _, _, _, _, _) do  # lambda_comment
                     if $num_quiz == 1
                       [ "\e[2m", '.  .  .', 'smblock', nil ]
                     elsif $opts[:immediate]
@@ -130,7 +133,7 @@ def do_quiz
                         'play  ' + '--' * all_wanted.length,
                         :right ]
                     else
-                      empty = all_wanted.length - idx > 8  ? "_ _ # _ _" : ' _' * (all_wanted.length - idx)
+                      empty = all_wanted.length - idx > 8  ? " _ _ # _ _" : ' _' * (all_wanted.length - idx)
                       [ "\e[2m",
                         'Yes  ' + all_wanted.slice(0,idx).join(' ') + empty,
                         'smblock',
@@ -138,64 +141,71 @@ def do_quiz
                         :left ]
                     end
                   end,
-          
-          -> (_) do  # lambda_hint
-            hole_passed = Time.now.to_f - hole_start
-            lap_passed = Time.now.to_f - lap_start
-            
-            hint = if $opts[:immediate] 
-                     "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(',')
-                   elsif all_wanted.length > 1 &&
-                         hole_passed > 4 &&
-                         lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
-                     full_hint_shown = true
-                     "\e[0mSolution: The complete sequence is: #{all_wanted.join(' ')}" 
-                   elsif hole_passed > 4
-                     "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
-                   else
-                     if idx > 0
-                       isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                       if isemi
-                         "Hint: Move " + ( itext ? "a #{itext}" : isemi )
-                       end
-                     end
-                   end
-            ( hint || '' ) + ( $mode == :memorize ? get_lick_remark(lick, ' (%s)') : '' )
-          end,
+                  
+                  -> (_) do  # lambda_hint
+                    hole_passed = Time.now.to_f - hole_start
+                    lap_passed = Time.now.to_f - lap_start
+                    
+                    hint = if $opts[:immediate] 
+                             "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(',')
+                           elsif all_wanted.length > 1 &&
+                                 hole_passed > 4 &&
+                                 lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
+                             full_hint_shown = true
+                             "\e[0mSolution: The complete sequence is: #{all_wanted.join(' ')}" 
+                           elsif hole_passed > 4
+                             "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+                           else
+                             if idx > 0
+                               isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                               if isemi
+                                 "Hint: Move " + ( itext ? "a #{itext}" : isemi )
+                               end
+                             end
+                           end
+                    ( hint || '' ) + ( $mode == :memorize ? get_lick_remark(lick, "\e[2m (%s)") : '' )
+                  end,
 
-          -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
+                  -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
 
-        break if $ctl_next || $ctl_back || $ctl_replay
+        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget
 
       end # notes in a sequence
 
       #
       #  Finally judge result
       #
-      
-      text = if $ctl_next
-               "skip"
-             elsif $ctl_back
-               "jump back"
-             elsif $ctl_replay
-               "replay"
-             else
-               ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
-             end
-      print "\e[#{$line_comment}H\e[2m\e[32m"
-      do_figlet text, 'smblock'
-      print "\e[0m"
-      
-      print "\e[#{$line_hint_or_message}H\e[K"
-      unless $ctl_replay
-        print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
-        print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
-        full_hint_shown = true
-        sleep 1
-      end
-    end while $ctl_loop && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
-  print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
+      if $ctl_forget
+        print "\e[#{$line_comment}H\e[2m\e[32m"
+        do_figlet 'same again', 'smblock'
+        sleep 0.5
+      else
+        text = if $ctl_next
+                 "skip"
+               elsif $ctl_back
+                 "jump back"
+               elsif $ctl_replay
+                 "replay"
+               else
+                 ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
+               end
+        print "\e[#{$line_comment}H\e[2m\e[32m"
+        do_figlet text, 'smblock'
+        print "\e[0m"
+        
+        print "\e[#{$line_hint_or_message}H\e[K"
+        unless $ctl_replay || $ctl_forget
+          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
+          print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
+          full_hint_shown = true
+          sleep 1
+        end
+      end
+      
+    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
+
+    print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_lap = false
   end # forever sequence after sequence
 end

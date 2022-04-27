@@ -92,6 +92,8 @@ Usage by examples:
   certain sections within the lick file; sections (e.g. 'scales') may also
   be excluded like '--sections no-scales'.
 
+  To play only shorter licks use e.g. '--max-holes 8'.
+
   for this to be useful, you need to create a file with your own licks
   (optionally you may also add your own recorded mp3 files); for more info
   see the initial error message and the starter file created.  Please
@@ -105,8 +107,9 @@ Usage by examples:
     ./harp_trainer play c 1 -2 c4
 
   which can play either a complete lick or the holes or notes given on the
-  commandline. If you want to play the holes of the lick (rather than the
-  recording), add option '--holes'.
+  commandline. The special argument 'random' just plays a random lick. If
+  you want to play the holes of the lick (rather than the recording), add
+  option '--holes'.
 
 
   Once in the lifetime of your c-harp you need to calibrate the trainer
@@ -144,7 +147,7 @@ Notes:
   Most arguments and options can be abreviated, e.g 'l' for 'listen' or
   'cal' for 'calibrate'.
 
-  Finally there are some less used options: --ref, --debug,
+  Finally there are some less used options: --ref, --no-progress, --debug,
   --screenshot, --help, --testing
 
 
@@ -159,9 +162,9 @@ EOU
   opts = Hash.new
 
   # defaults from config
-  opts[:fast] = $conf[:fast]
+  opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections, :max_holes]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -179,7 +182,9 @@ EOU
     %w(-f --fast) => :fast,
     %w(--no-fast) => :no_fast,
     %w(--sections) => :sections,
+    %w(--max-holes) =>:max_holes,
     %w(--holes) => :holes,
+    %w(--no-progress) => :no_progress,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -204,6 +209,14 @@ EOU
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
+  if opts[:max_holes]
+    err "Option '--max_holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
+    opts[:max_holes] = opts[:max_holes].to_i
+  else
+    opts[:max_holes] = 1000
+  end
+    
+  
   opts[:fast] = false if opts[:no_fast]
 
   err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
@@ -276,7 +289,7 @@ EOU
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]],[:holes, [:play]]].each do |o_m|
+  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]],[:max_holes, [:memorize, :play]],[:holes, [:play]]].each do |o_m|
     err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
   end
   

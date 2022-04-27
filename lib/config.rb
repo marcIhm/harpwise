@@ -100,7 +100,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = "#{$data_dir}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :fast])
+  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)

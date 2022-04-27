@@ -35,5 +35,5 @@ max_freq: 8000
 term_min_width: 75
 term_min_height: 24
 
-# play holes for one second
-fast: false
+# play holes for one second or half ?
+play_holes_fast: false

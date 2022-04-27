@@ -10,6 +10,9 @@ def do_play
       hnl
     elsif $harp_notes.include?(hnl)
       $note2hole[hnl]
+    elsif hnl == 'random'
+      lick = $licks.sample(1)[0]
+      lick[:holes]
     else
       lick = $licks.find {|l| l[:remark] == hnl}
       err "Argument '#{hnl}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:remark]}.select {|r| r.length > 0}.uniq}" unless lick

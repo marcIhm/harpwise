@@ -57,6 +57,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     hole_for_inter = nil
     
     good, done = lambda_good_done.call(hole, hole_since)
+    good, done = [false, false] if $opts[:no_progress]
     if $opts[:screenshot]
       good = true
       done = true if $ctl_can_next && Time.now.to_f - hole_start > 2
@@ -83,20 +84,24 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[0m\e[%dm" %
-                 if regular_hole?(hole)
-                   if good
-                     if $hole2flags[hole].include?(:both)
-                       0
-                     elsif $hole2flags[hole].include?(:main)
-                       32
+                 if $opts[:no_progress]
+                   2
+                 else
+                   if regular_hole?(hole)
+                     if good
+                       if $hole2flags[hole].include?(:both)
+                         0
+                       elsif $hole2flags[hole].include?(:main)
+                         32
+                       else
+                         34
+                       end
                      else
-                       34
+                       31
                      end
                    else
-                     31
+                     2
                    end
-                 else
-                   2
                  end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
@@ -224,12 +229,18 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       puts " S-TAB or c: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
       puts "          r: set reference hole       j: toggle writing of journal file"
       puts "          k: change key of harp       s: change scale"
-      if  $ctl_can_next
+      puts "          q: quit                     h: this help"
+      if $ctl_can_next
+        puts "\e[0mType any key to show more help ..."
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        clear_area_help
+        puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
         puts "          .: replay current sequence  ,: replay, ignore recording"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
         puts "          i: toggle '--immediate'     l: loop current sequence"
+        puts "          0: forget holes played      #: toggle progress in seq"
       end
-      puts "          q: quit                     h: this help"
       puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq

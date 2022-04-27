@@ -266,6 +266,12 @@ def handle_kb_listen
     $ctl_replay = true
     $ctl_ignore_recording = char == ','
     text = 'Replay'
+  elsif char == '0' && $ctl_can_next
+    $ctl_forget = true
+    text = 'Forget'
+  elsif char == '#'
+    $opts[:no_progress] = !$opts[:no_progress]
+    text = $opts[:no_progress] ? 'Do not track progress' : 'Track progress'
   elsif char.ord == 127 && $ctl_can_next
     $ctl_back = true
     text = 'Skip back'
