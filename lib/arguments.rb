@@ -212,8 +212,6 @@ EOU
   if opts[:max_holes]
     err "Option '--max_holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
     opts[:max_holes] = opts[:max_holes].to_i
-  else
-    opts[:max_holes] = 1000
   end
     
   

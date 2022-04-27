@@ -142,15 +142,15 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     if $hole2rem || $opts[:merge]
       print ",  Rem: "
       if $opts[:merge] && $scale_holes.include?(hole)
-        print "(\e[0m"
+        print "\e[0m"
         if $hole2flags[hole].include?(:both)
-          print "#{$scale}\e[2m,\e[0m#{$opts[:merge]}"
+          print "#{$scale},#{$opts[:merge]}"
         elsif $hole2flags[hole].include?(:main)
           print "\e[32m#{$scale}"
         else
           print "\e[34m#{$opts[:merge]}"
         end
-        print "\e[0m\e[2m) #{$hole2rem && $hole2rem[hole]}".strip
+        print "\e[0m\e[2m;#{$hole2rem && $hole2rem[hole]}".strip
       else
         print ($hole2rem && $hole2rem[hole]) || '--'
       end
@@ -182,14 +182,15 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     if lambda_hint && !$message_shown
       hint = lambda_hint.call(hole) || ''
-      print "\e[#{$line_call2}H\e[K"
+      print "\e[#{$line_call2}H\e[K" if $line_call2 > 0
       print "\e[#{$line_hint_or_message}H"
-      if hint.length >= 2 * $term_width - 4
-        pspc = hint[$term_width - 12 .. 2 * $term_width - 6].index(' ')
+      maxlen = ( $mode == :listen  ?  $term_width - 4  :  2 * $term_width - 4 )
+      if hint.length >= maxlen
+        pspc = hint[maxlen - 8 .. maxlen - 2].index(' ')
         if pspc
-          hint = hint[0 .. 2 * $term_width - 12 + pspc] + '...'
+          hint = hint[0 .. maxlen - 4 + pspc] + '...'
         else
-          hint = hint[0 .. 2 * $term_width - 6] + '...'
+          hint = hint[0 .. maxlen - 2] + '...'
         end
       end
       print "\e[2m#{hint}\e[0m\e[K"

@@ -409,7 +409,7 @@ end
 
 
 def clear_area_help
-  ($line_help .. $line_call2).each {|l| print "\e[#{l}H\e[K"}
+  ($line_help .. $line_hint_or_message).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 

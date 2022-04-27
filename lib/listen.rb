@@ -53,7 +53,7 @@ def do_listen
            end,
 
            -> (hole) do  # lambda_hint
-             "Hint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(', ')}"
+             "Hint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"
            end,
 
            -> (hole_held_before, hole_ref) do  # lambda_hole_for_inter

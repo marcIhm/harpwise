@@ -19,8 +19,8 @@ def do_play
       lick[:holes]
     end
   end.flatten
-  
-  if lick[:recording].length == 0 || $opts[:holes]
+
+  if !lick || lick[:recording].length == 0 || $opts[:holes]
     puts
     holes.each_with_index do |hole, i|
       print ' ' if i > 0

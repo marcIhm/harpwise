@@ -4,14 +4,14 @@
 
 def new_session
   kill_session
-  sys "tmux -u new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s hst"
+  sys "tmux -u new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht"
   tms 'cd harp_trainer'
   tms :ENTER
 end
 
 
 def kill_session
-  system "tmux kill-session -t hst >/dev/null 2>&1"
+  system "tmux kill-session -t ht >/dev/null 2>&1"
 end
 
 
@@ -23,15 +23,15 @@ end
 
 def tms cmd
   if cmd.is_a?(Symbol)
-    sys "tmux send -t hst #{cmd.to_s.tr('_','-')}"
+    sys "tmux send -t ht #{cmd.to_s.tr('_','-')}"
   else
-    sys "tmux send -l -t hst \"#{cmd}\""
+    sys "tmux send -l -t ht \"#{cmd}\""
   end
 end
 
 
 def screen
-  %x(tmux capture-pane -t hst -p).lines.map!(&:chomp)
+  %x(tmux capture-pane -t ht -p).lines.map!(&:chomp)
 end
 
 

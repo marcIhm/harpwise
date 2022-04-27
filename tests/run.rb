@@ -137,7 +137,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer listen testing a blues --merge chord-v,chord-i --testing'
     tms :ENTER
     sleep 4
-    expect { screen[12]['(blues,chord-v,chord-i) root'] }
+    expect { screen[12]['blues,chord-v,chord-i;root'] }
     kill_session
   end
   
@@ -200,7 +200,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer play testing a mape --testing'
     tms :ENTER
     sleep 4
-    expect { screen[6]['-3     af4'] }
+    expect { screen[7]['-1 +2 -2+3'] }
     kill_session
   end
   
@@ -209,7 +209,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
-    expect { screen[6]['-1   b3'] }
+    expect { screen[7]['-1 +7 +4'] }
     kill_session
   end
   
