@@ -29,7 +29,7 @@ $program_start = Time.now.to_f
 
 myself = File.basename($0)
 Sys::ProcTable.ps{ |p|
-  err_b "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[myself] && p.cmdline['ruby']
+  err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[myself] && p.cmdline['ruby']
 }
 
 check_installation
