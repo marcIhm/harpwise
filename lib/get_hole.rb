@@ -315,7 +315,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
           end
         end
       end while er
-      $harp, $harp_holes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals = read_musical_config
+      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
       $chart, $hole2chart = read_chart
       set_global_vars_late
       $freq2hole = read_calibration
