@@ -231,7 +231,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 12
     tst_out = read_testing_output
-    expect { tst_out[:licks].length == 5 }
+    expect { tst_out[:licks].length == 6 }
     expect { screen[1]['Mode: memorize testing a all'] }
     kill_session
   end
@@ -253,8 +253,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
-    # Six licks in file minus one scale with two licks minus one double
-    expect { tst_out[:licks].length == 3 }
+    # Seven licks in file minus one scale with two licks minus one double
+    expect { tst_out[:licks].length == 4 }
     kill_session
   end
 

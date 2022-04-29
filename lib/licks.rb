@@ -51,14 +51,16 @@ def read_licks
     start = start.strip.to_i
     duration = duration ? duration.strip.to_i : -1
     next if lick.length == 0
-    holes = lick.split.map do |hon|
-      if lfile['holes']
-        err("Hole #{hon} from #{lfile} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(hon)
-        hon
+    holes = lick.split.map do |hone|  # hole or note or event
+      if event_not_hole?(hone)
+        hone
+      elsif lfile['holes']
+        err("Hole #{hone} from #{lfile} is not among holes of harp #{$harp_holes}") unless $harp_holes.include?(hone)
+        hone
       else
         # lick with notes
-        err("Note #{hon} from #{lfile} is not among notes of harp #{$harp_notes}") unless $harp_notes.include?(hon)
-        $note2hole[hon]
+        err("Note #{hone} from #{lfile} is not among notes of harp #{$harp_notes}") unless $harp_notes.include?(hone)
+        $note2hole[hone]
       end
     end
     rfile = $lick_dir + '/recordings/' + recording
@@ -111,6 +113,11 @@ def create_initial_lick_file lfile
         #
         #
         # One lick per line; empty lines and comments are ignored.
+        # A lick is a series of holes to be played but may also contain
+        # special accustic events (e.g. '[pull]') that are recognized by
+        # the surrounding brackets('[]') and will not be played; they
+        # just serve as a kind of reminder.
+        #
         # A lick can optionally be followed by a single colon (':')
         # and a remark, that the program will show, while playing this
         # lick; this helps to find the lick within the file.
@@ -144,6 +151,9 @@ def create_initial_lick_file lfile
         # Intro lick from Juke
         -1 -2/ -3// -3 -4  +4 -3 -3// -3 -2// -2/ -1 -1   : juke
         
+        [special]
+        -1 +1 -2+3 [pull] -1
+
         [scales]
         +1 -1/ -1 -2// -2+3 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10   : blues
         -1 +2 -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9   : mape
@@ -169,33 +179,36 @@ def write_derived_lick_file licks, lfile
   dfile = File.dirname(lfile) + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
 
   File.open(dfile,'w') do |df|
-    licks.each do
-      df.write <<~end_of_content
-
-           #
-           # derived lick file with #{dfile['holes'] ? 'holes' : 'notes'}
-           # created from #{lfile}
-           #
+    df.write <<~end_of_content
+    
+         #
+         # derived lick file with #{dfile['holes'] ? 'holes' : 'notes'}
+         # created from #{lfile}
+         #
            
-           end_of_content
+         end_of_content
 
-      current_section = ''
+    current_section = ''
+    
+    licks.each do |lick|
 
-      licks.each do |lick|
-
-        if lick[:section].length > 0 && lick[:section] != current_section
-          current_section = lick[:section]
-          df.puts "\n[#{lick[:section]}]"
-        end
-
-        if dfile['holes']
-          df.write lick[:holes].join(' ')
-        else
-          df.write lick[:holes].map {|h| $harp[h][:note]}.select(&:itself).join(' ')
-        end
-
-        df.puts '   : ' + lick[:remark] + ( lick[:recording].length > 0  ?  ",#{lick[:recording]},#{lick[:start]}"  :  '' )
+      if lick[:section].length > 0 && lick[:section] != current_section
+        current_section = lick[:section]
+        df.puts "\n[#{lick[:section]}]"
       end
+      
+      if dfile['holes']
+        df.write lick[:holes].join(' ')
+      else
+        df.write lick[:holes].map {|h| $harp.dig(h,:note)}.select(&:itself).join(' ')
+      end
+      
+      df.puts '   : ' + lick[:remark] + ( lick[:recording].length > 0  ?  ",#{lick[:recording]},#{lick[:start]}"  :  '' )
     end
   end 
+end
+
+
+def event_not_hole? hoe
+  return hoe.match(/^\[\S*\]/)
 end

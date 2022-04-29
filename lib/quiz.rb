@@ -115,9 +115,9 @@ def do_quiz
                       end
                     end 
                   end,
-                  -> (played, since) {[played == wanted,  # lambda_good_done
+                  -> (played, since) {[played == wanted || event_not_hole?(wanted),  # lambda_good_done
                                        $ctl_forget ||
-                                       ( played == wanted && 
+                                       ( ( played == wanted || event_not_hole?(wanted) ) && 
                                          Time.now.to_f - since > 0.2)]}, # do not return okay immediately
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
@@ -196,7 +196,7 @@ def do_quiz
         
         print "\e[#{$line_hint_or_message}H\e[K"
         unless $ctl_replay || $ctl_forget
-          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(', ')}   ...   "
+          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_hint_shown = true
           sleep 1
@@ -325,17 +325,23 @@ def play_holes holes, lick, first_lap
       end
     end
     if idx > 0
-      isemi, itext = describe_inter(hole, holes[idx - 1])
-      part = ' ' + ( itext || isemi ).tr(' ','') + ' '
+      if !event_not_hole?(hole) && !event_not_hole?(holes[idx - 1])
+        isemi, itext = describe_inter(hole, holes[idx - 1])
+        part = ' ' + ( itext || isemi ).tr(' ','') + ' '
+      else
+        part = ' '
+      end
       ltext += part
       jtext += " #{part} "
     end
-    ltext += if $opts[:immediate]
+    ltext += if event_not_hole?(hole)
+               "\e[0m#{hole}\e[2m"
+             elsif $opts[:immediate]
                "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
              else
                "\e[0m#{$harp[hole][:note]}\e[2m"
              end
-    jtext += "#{$harp[hole][:note]},#{hole}"
+    jtext += event_not_hole?(hole)  ?  hole  :  "#{$harp[hole][:note]},#{hole}"
     if $opts[:merge]
       part = '(' +
              $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
@@ -352,7 +358,11 @@ def play_holes holes, lick, first_lap
       print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
     end
 
-    play_hole_and_handle_kb hole
+    if event_not_hole?(hole)
+      sleep $opts[:fast]  ?  0.25  :  0.5
+    else
+      play_hole_and_handle_kb hole
+    end
     
     if $ctl_back || $ctl_next || $ctl_replay
       sleep 1

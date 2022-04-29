@@ -5,17 +5,19 @@
 def do_play
   $licks = read_licks
   lick = nil
-  holes = ARGV.map do |hnl|
-    if $harp_holes.include?(hnl)
-      hnl
-    elsif $harp_notes.include?(hnl)
-      $note2hole[hnl]
-    elsif hnl == 'random'
+  holes = ARGV.map do |hnle|  # hole, note, lick, event
+    if event_not_hole?(hnle)
+      hnle
+    elsif $harp_holes.include?(hnle)
+      hnle
+    elsif $harp_notes.include?(hnle)
+      $note2hole[hnle]
+    elsif hnle == 'random'
       lick = $licks.sample(1)[0]
       lick[:holes]
     else
-      lick = $licks.find {|l| l[:remark] == hnl}
-      err "Argument '#{hnl}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:remark]}.select {|r| r.length > 0}.uniq}" unless lick
+      lick = $licks.find {|l| l[:remark] == hnle}
+      err "Argument '#{hnle}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:remark]}.select {|r| r.length > 0}.uniq}" unless lick
       lick[:holes]
     end
   end.flatten
@@ -25,7 +27,11 @@ def do_play
     holes.each_with_index do |hole, i|
       print ' ' if i > 0
       print hole
-      play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+      if event_not_hole?(hole)
+        sleep $opts[:fast]  ?  0.25  :  0.5
+      else
+        play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+      end
     end
     print "\n\n"
   else
