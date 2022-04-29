@@ -38,7 +38,7 @@ def do_play
     prepare_term
     start_kb_handler
     puts
-    puts get_lick_remark(lick, "Lick %s (SPACE to pause, RET to skip)\n#{lick[:holes].join(' ')}", :short)
+    puts get_lick_remark(lick, "Lick %s (SPACE is pause, TAB skips to end)\n#{lick[:holes].join(' ')}", :short)
     play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
     puts
   end

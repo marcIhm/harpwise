@@ -200,9 +200,9 @@ def handle_kb_play
     $ctl_skip = true
     $ctl_ignore_recording = char == ','
     sleep 0.5
-  elsif char == "\n"
-    print "\e[0m\e[32m next \e[0m "
-    $ctl_next = true
+  elsif char == "\t"
+    print "\e[0m\e[32m skip to end \e[0m "
+    $ctl_skip = true
     sleep 0.5
   end
 end
@@ -216,8 +216,7 @@ def handle_kb_play_recording
     $ctl_ignore_recording =  char == ','
   elsif char == ' '
     $ctl_pause_continue = true
-  elsif char == "\n"
-    print "\e[0m\e[32m next \e[0m "
+  elsif char == "\t"
     $ctl_skip = true
   end
 end

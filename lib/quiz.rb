@@ -118,7 +118,7 @@ def do_quiz
                   -> (played, since) {[played == wanted || event_not_hole?(wanted),  # lambda_good_done
                                        $ctl_forget ||
                                        ( ( played == wanted || event_not_hole?(wanted) ) && 
-                                         ( $mode == :memorize || Time.now.to_f - since > 0.2 ))]}, # return okay immediately only for memorize
+                                         ( Time.now.to_f - since > ( $mode == :memorize ? 0.1 : 0.2 ) ))]}, # return okay immediately only for memorize
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
                   
@@ -178,11 +178,11 @@ def do_quiz
 
       if $ctl_forget
         print "\e[#{$line_comment}H\e[2m\e[32m"
-        do_figlet 'same again', 'smblock'
+        do_figlet 'again', 'smblock'
         sleep 0.5
       else
         text = if $ctl_next
-                 "skip"
+                 "next"
                elsif $ctl_back
                  "jump back"
                elsif $ctl_replay
@@ -378,12 +378,12 @@ end
 
 
 def play_recording lick, first_lap
-  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE to pause, RET to skip) ... #{lick[:holes].join(' ')}", :short)
+  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE is pause, TAB skips to end) ... #{lick[:holes].join(' ')}", :short)
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
   skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
-  print skipped ? " skip rest." : " done."
+  print skipped ? " skip rest" : " done"
 end

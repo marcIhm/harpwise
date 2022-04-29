@@ -220,7 +220,8 @@ def read_musical_config
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     semi2hole,
     note2hole,
-    intervals ]
+    intervals,
+    dsemi_harp]
 end
 
 
