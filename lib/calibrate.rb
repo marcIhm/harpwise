@@ -26,10 +26,12 @@ option '--auto').
 
 
 If, on the other hand, you already have samples, recorded by yourself, in
-#{$sample_dir}
-, they will be overwritten in this process !
 
-  So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
+  #{$sample_dir}
+
+they will be overwritten in this process !
+
+So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
 
 EOINTRO
 

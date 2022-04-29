@@ -211,7 +211,9 @@ end
 
 
 def play_recording_and_handle_kb recording, start, duration
-  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? start + duration : ''}"
+
+  dsemi = note2semi('c0') - note2semi($key + '0')
+  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? start + duration : ''} pitch #{dsemi * 100}"
   _, _, wait_thr  = Open3.popen2(cmd)
   $ctl_skip = $ctl_pause_continue = false
   paused = false

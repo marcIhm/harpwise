@@ -48,8 +48,8 @@ def read_licks
     lick.strip!
     remark.strip!
     recording.strip!
-    start = start.strip.to_i
-    duration = duration ? duration.strip.to_i : -1
+    start = start.strip.to_f
+    duration = duration ? duration.strip.to_f : -1
     next if lick.length == 0
     holes = lick.split.map do |hone|  # hole or note or event
       if event_not_hole?(hone)
@@ -124,11 +124,12 @@ def create_initial_lick_file lfile
         # You are free to keep duplicates of a lick in multiple
         # sections.
         #
-        # After colon and remark you may opionally add a comma and the
-        # name of an mp3-file, that can be played on request; it will
-        # be searched in subdir 'samples'; with more commas and numbers
-        # you may optionally specify start to play from and duration.
-        # Note: You might need to install libsox-fmt-mp3 to play mp3s.
+        # After colon and remark you may opionally add a comma and the name of
+        # an mp3-file, that can be played on request; it will be searched in
+        # subdir 'recordings' and needs to be in the key of 'c', which will be
+        # transposed as required. with more commas and numbers you may
+        # optionally specify start to play from and duration.  Note: You might
+        # need to install libsox-fmt-mp3 to play mp3s.
         #
         # Sections (e.g. '[scales]' below) help to select groups of
         # licks with the option '--sections'. 

@@ -118,7 +118,7 @@ def do_quiz
                   -> (played, since) {[played == wanted || event_not_hole?(wanted),  # lambda_good_done
                                        $ctl_forget ||
                                        ( ( played == wanted || event_not_hole?(wanted) ) && 
-                                         Time.now.to_f - since > 0.2)]}, # do not return okay immediately
+                                         ( $mode == :memorize || Time.now.to_f - since > 0.2 ))]}, # return okay immediately only for memorize
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
                   
@@ -385,5 +385,5 @@ def play_recording lick, first_lap
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
   skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
-  print skipped ? " skipped." : " done."
+  print skipped ? " skip rest." : " done."
 end
