@@ -131,6 +131,21 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 
+  memorize 'change key of harp' do
+    new_session
+    tms './harp_trainer listen testing a all --testing'
+    tms :ENTER
+    sleep 2
+    tms 'k'
+    sleep 1
+    tms 'c'
+    tms :ENTER
+    sleep 1
+    expect { screen[1]['listen testing c all'] }
+    kill_session
+  end
+
+
   memorize 'listen with merged scale' do
     sound 8, 2
     new_session
