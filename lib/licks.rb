@@ -94,7 +94,7 @@ def read_licks
             uniq {|lick| lick[:holes]}
 
   
-  err("None of the #{all_licks}.length from #{lfile} has been passed when applying option '--sections #{$opts[:sections]}") if licks.length == 0
+  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying option '--sections #{$opts[:sections]}") if licks.length == 0
 
   licks
 end

@@ -214,12 +214,12 @@ def handle_kb_play_recording
   if char == '.' || char == ','
     $ctl_replay = true
     $ctl_ignore_recording =  char == ','
+  elsif char == ' '
+    $ctl_pause_continue = true
   elsif char == "\n"
     print "\e[0m\e[32m next \e[0m "
-    $ctl_next = true
-    sleep 0.5
+    $ctl_skip = true
   end
-  $ctl_skip = true
 end
 
 

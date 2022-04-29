@@ -378,7 +378,7 @@ end
 
 
 def play_recording lick, first_lap
-  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (press any key to skip) ... #{lick[:holes].join(' ')}", :short)
+  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE to pause, RET to skip) ... #{lick[:holes].join(' ')}", :short)
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else

@@ -213,10 +213,23 @@ end
 def play_recording_and_handle_kb recording, start, duration
   cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? start + duration : ''}"
   _, _, wait_thr  = Open3.popen2(cmd)
-  $ctl_skip = false
+  $ctl_skip = $ctl_pause_continue = false
+  paused = false
   begin
     sleep 0.1
     handle_kb_play_recording
+    if $ctl_pause_continue
+      $ctl_pause_continue = false
+      if paused
+        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+        paused = false
+        print "\e[0m\e[32mgo \e[0m"
+      else
+        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+        paused = true
+        print "\e[0m\e[32m SPACE to continue ... \e[0m"
+      end
+    end
   end while wait_thr.alive? && !$ctl_skip
   Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
   wait_thr.join unless $ctl_skip # raises any errors from thread
