@@ -3,21 +3,15 @@
 #
 
 
+$lick_file_mod_time = nil
+$lick_file = nil
+
 def read_licks
 
-  FileUtils.mkdir_p($lick_dir) unless File.directory?($lick_dir)
-  FileUtils.mkdir_p($lick_dir + '/recordings') unless File.directory?($lick_dir + '/recordings')
-
-  glob = $lick_file_template % '{holes,notes}'
-  lfiles = Dir[glob]
-  err "There are two files matching #{glob}; please check and remove one" if lfiles.length > 1
-  if lfiles.length == 0
-    lfile = $lick_file_template % 'holes'
-    create_initial_lick_file lfile
-  else
-    lfile = lfiles[0]
-  end
-
+  lfile = get_lick_file
+  $lick_file_mod_time = File.mtime(lfile)
+  $lick_file = lfile
+  
   section = ''
   i = 0
   all_licks = []
@@ -210,6 +204,32 @@ def write_derived_lick_file licks, lfile
       df.puts '   : ' + lick[:remark] + ( lick[:recording].length > 0  ?  ",#{lick[:recording]},#{lick[:start]}"  :  '' )
     end
   end 
+end
+
+
+def get_lick_file
+  FileUtils.mkdir_p($lick_dir) unless File.directory?($lick_dir)
+  FileUtils.mkdir_p($lick_dir + '/recordings') unless File.directory?($lick_dir + '/recordings')
+
+  glob = $lick_file_template % '{holes,notes}'
+  lfiles = Dir[glob]
+  err "There are two files matching #{glob}; please check and remove one" if lfiles.length > 1
+  if lfiles.length == 0
+    lfile = $lick_file_template % 'holes'
+    create_initial_lick_file lfile
+  else
+    lfile = lfiles[0]
+  end
+end
+
+
+def refresh_licks
+  if File.mtime($lick_file) > $lick_file_mod_time
+    $licks = read_licks
+    true
+  else
+    false
+  end
 end
 
 

@@ -14,7 +14,8 @@ def do_quiz
   
   first_lap = true
   all_wanted_before = all_wanted = nil
-  lick = nil
+  $licks = read_licks
+  lick = lick_idx = nil
   puts
   puts "#{$licks.length} licks." if $mode == :memorize
   
@@ -46,7 +47,12 @@ def do_quiz
       $ctl_loop = true
 
     elsif $ctl_replay
-    # nothing to do
+    # just check, if lick has changed
+
+      if lick_idx && refresh_licks
+        lick = $licks[lick_idx]
+        ctl_issue 'Refreshed licks'
+      end
 
     else # e.g. $ctl_next
       all_wanted_before = all_wanted
@@ -58,7 +64,8 @@ def do_quiz
 
       else # memorize
 
-        lick = $licks.sample(1)[0]
+        lick_idx = rand($licks.length)
+        lick = $licks[lick_idx]
         all_wanted = lick[:holes]
 
       end
