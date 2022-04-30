@@ -21,7 +21,7 @@ chromatic) for various keys (e.g. a or c).  Main modes of operation are
 'listen' and 'quiz'.
 
 
-Usage by examples: 
+Usage by examples for the modes listen, quiz, memorize and calibrate: 
 
 
   The trainer listens, while your are playing a richter harmonica of key c
@@ -36,8 +36,8 @@ Usage by examples:
   Switch on journal to get a simple transcription of the holes played.
 
 
-  Trainer plays 3 notes from the scale 'mape' for a chromatic harmonica of
-  key a and then quizes you to play them back (then repeat):
+  The Trainer plays 3 notes from the scale 'mape' for a chromatic
+  harmonica of key a and then quizes you to play them back (then repeat):
 
     ./harp_trainer quiz 3 chrom a mape
 

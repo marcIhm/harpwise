@@ -4,11 +4,11 @@
 
   [[images/harmonicas.jpg]]
 
-  Ruby script to help practice scales (e.g. blues or major pentatonic) on
-  a (diatonic) richter or chromatic harmonica for various keys. Also has a
-  journal to help in writing down tabs.
+  Ruby script to support the daily practice for bends, scales or licks on
+  a (diatonic) richter or chromatic harmonica for various keys. May also
+  be useful when writing tabs.
 
-  Its main operation modes are 'listen' and 'quiz'.
+  Its main operation modes are 'listen', 'quiz' and 'memorize'.
   
   The first screenshow is from mode 'listen': The program has recognized a
   note from the blues scale and marks it in the harmonica chart.
@@ -20,15 +20,20 @@
   
   [[images/screenshot_quiz.png]]
 
-* Usage
+* Usage and Overview
 
   Get a short usage information by invoking without arguments:
   
     ./harp_trainer
 
 
-  This will show examples for the three main operations of the trainer:
-  listen, quiz and calibrate.
+  This will show examples and options for the four main operations of the
+  trainer: 
+  
+  - listen: Listen to your playing, e.g. to monitor bends or scales
+  - quiz: Train your ear and musical memory
+  - memorize: Learn licks (batteries not included, but some pointers)
+  - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
   wav-files will be kept in directory ~/.harp_trainer

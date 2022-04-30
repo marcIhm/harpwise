@@ -137,15 +137,18 @@ def create_initial_lick_file lfile
         # Initially ths file is populated with sample licks for
         # richter harp; they may not work for other harps however.
         #
-        # You will need to add your own licks before this file before
+        # You will need to add licks and recordings, before this file before
         # the feature memorize can be useful.
         #
+        # To fill this file you may of course search the web; make sure, 
+        # to grep some audio samples too or record them yourself.
         #
-        # A great source of licks is the book:
+        # A great one-stop source of licks complete with audio samples 
+        # is the book:
         #
         #    100 Authentic Blues Harmonica Licks
         #
-        # by Steve Cohen.
+        # by Steve Cohen
         #
 
         [favorites]
