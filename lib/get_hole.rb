@@ -15,6 +15,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
   first = true
 
   loop do   # until var done or skip
+    system('clear') if $ctl_redraw
     if first || $ctl_redraw
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
@@ -33,11 +34,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     return if lambda_skip && lambda_skip.call()
 
+    $ctl_redraw = false
     pipeline_catch_up if handle_kb_listen
     ctl_issue
     print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first || $ctl_redraw
 
-    $ctl_redraw = false
     handle_win_change if $ctl_sig_winch
     
     good = done = false
@@ -150,7 +151,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         else
           print "\e[34m#{$opts[:merge]}"
         end
-        print "\e[0m\e[2m;#{$hole2rem && $hole2rem[hole]}".strip
+        print "\e[0m\e[2m#{$hole2rem && (';' + $hole2rem[hole])}".strip
       else
         print ($hole2rem && $hole2rem[hole]) || '--'
       end
@@ -240,7 +241,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         puts "          .: replay current sequence  ,: replay, ignore recording"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
         puts "          i: toggle '--immediate'     l: loop current sequence"
-        puts "          0: forget holes played      #: toggle progress in seq"
+        puts "        0,-: forget holes played      #: toggle progress in seq"
       end
       puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
@@ -343,7 +344,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       $message_shown = false
     end
     first = $first_lap_get_hole = false
-end  # loop until var done or skip
+  end  # loop until var done or skip
 end
 
 

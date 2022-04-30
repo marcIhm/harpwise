@@ -200,7 +200,7 @@ def handle_kb_play
     $ctl_skip = true
     $ctl_ignore_recording = char == ','
     sleep 0.5
-  elsif char == "\t"
+  elsif char == "\t" || char == '+'
     print "\e[0m\e[32m skip to end \e[0m "
     $ctl_skip = true
     sleep 0.5
@@ -216,7 +216,7 @@ def handle_kb_play_recording
     $ctl_ignore_recording =  char == ','
   elsif char == ' '
     $ctl_pause_continue = true
-  elsif char == "\t"
+  elsif char == "\t" || char == '+'
     $ctl_skip = true
   end
 end
@@ -265,7 +265,7 @@ def handle_kb_listen
     $ctl_replay = true
     $ctl_ignore_recording = char == ','
     text = 'Replay'
-  elsif char == '0' && $ctl_can_next
+  elsif (char == '0' || char == '-') && $ctl_can_next
     $ctl_forget = true
     text = 'Forget'
   elsif char == '#'

@@ -80,6 +80,11 @@ if [:listen, :quiz, :memorize].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true
   end
+  Signal.trap('CONT') do
+    system('clear')
+    prepare_term
+    $ctl_redraw = true
+  end
 end
 
 

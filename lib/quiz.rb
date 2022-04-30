@@ -154,7 +154,7 @@ def do_quiz
                     lap_passed = Time.now.to_f - lap_start
                     
                     hint = if $opts[:immediate] 
-                             "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(',')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(',')
+                             "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ')
                            elsif all_wanted.length > 1 &&
                                  hole_passed > 4 &&
                                  lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
@@ -385,7 +385,7 @@ end
 
 
 def play_recording lick, first_lap
-  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE is pause, TAB skips to end) ... #{lick[:holes].join(' ')}", :short)
+  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE: pause, TAB,+: skip to end) ... #{lick[:holes].join(' ')}", :short)
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else

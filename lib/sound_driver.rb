@@ -214,6 +214,8 @@ def play_recording_and_handle_kb recording, start, duration
   cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? start + duration : ''} pitch #{$dsemi_harp * 100}"
   _, _, wait_thr  = Open3.popen2(cmd)
   $ctl_skip = $ctl_pause_continue = false
+  started = Time.now.to_f
+  duration = 0.0
   paused = false
   begin
     sleep 0.1
@@ -227,7 +229,9 @@ def play_recording_and_handle_kb recording, start, duration
       else
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         paused = true
-        print "\e[0m\e[32m SPACE to continue ... \e[0m"
+        duration += Time.now.to_f - started
+        started = Time.now.to_f
+        printf "\e[0m\e[32m (t=%.1f) SPACE to continue ... \e[0m", duration
       end
     end
   end while wait_thr.alive? && !$ctl_skip
