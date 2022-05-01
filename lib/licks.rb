@@ -13,7 +13,7 @@ def read_licks
   $lick_file = lfile
   
   section = ''
-  i = 0
+  no_name = 0
   all_licks = []
   File.foreach(lfile) do |line|
     line.chomp!
@@ -26,7 +26,6 @@ def read_licks
       next
     end
 
-    i += 1
     lick, remark, recording, start, duration = if md = line.match(/^(.*):(.*),(.*),(.*),(.*)$/)
                                                  md[1..5]
                                                elsif md = line.match(/^(.*):(.*),(.*),(.*)$/)
@@ -36,7 +35,8 @@ def read_licks
                                                elsif md = line.match(/^(.*):(.*)$/)
                                                  [*md[1..2],'','',nil]
                                                else
-                                                 [line,"Nr.#{i}",'','',nil]
+                                                 no_name += 1
+                                                 [line,"no_name_#{no_name}",'','',nil]
                                                end
 
     lick.strip!
@@ -228,6 +228,7 @@ def get_lick_file
   if lfiles.length == 0
     lfile = $lick_file_template % 'holes'
     create_initial_lick_file lfile
+    exit
   else
     lfile = lfiles[0]
   end

@@ -93,6 +93,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   be excluded like '--sections no-scales'.
 
   To play only shorter licks use e.g. '--max-holes 8'.
+  '--start-with' specifies the first lick.
 
   for this to be useful, you need to create a file with your own licks
   (optionally you may also add your own recorded mp3 files); for more info
@@ -164,7 +165,7 @@ EOU
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections, :max_holes]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections, :max_holes, :start_with]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -185,6 +186,7 @@ EOU
     %w(--max-holes) =>:max_holes,
     %w(--holes) => :holes,
     %w(--no-progress) => :no_progress,
+    %w(--start-with) => :start_with,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -287,8 +289,21 @@ EOU
   
   # late option processing depending on mode
   # check for invalid combinations of mode and options
-  [[:loop, [:quiz, :memorize]], [:immediate, [:quiz, :memorize]], [:remove, [:listen, :quiz, :memorize]], [:merge, [:listen, :quiz, :memorize]], [:no_add, [:listen, :quiz, :memorize]], [:auto, [:calibrate]], [:comment, [:listen, :quiz, :memorize]], [:comment, [:play, :quiz, :memorize]], [:sections, [:memorize, :play]],[:max_holes, [:memorize, :play]],[:holes, [:play]]].each do |o_m|
-    err "Option '--#{o_m[0]}' is allowed for modes '#{o_m[1]}' only" if opts[o_m[0]] && !o_m[1].include?(mode)
+  [[[:quiz, :memorize],
+    [:loop, :immediate]],
+   [[:listen, :quiz, :memorize],
+    [:remove, :merge, :no_add, :comment]],
+   [[:calibrate],
+    [:auto]],
+   [[:memorize, :play],
+    [:sections, :max_holes]],
+   [[:memorize],
+    [:start_with]],
+   [[:play],
+    [:holes]]].each do |modes_opts|
+    modes_opts[1].each do |opt|
+      err "Option '--#{opt}' is allowed for modes '#{modes_opts[0]}' only" if opts[opt] && !modes_opts[0].include?(mode)
+    end
   end
   
   # carry some options over into $conf

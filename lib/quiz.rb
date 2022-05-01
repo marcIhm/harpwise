@@ -66,7 +66,17 @@ def do_quiz
 
       else # memorize
 
-        lick_idx = rand($licks.length)
+        if $opts[:start_with]
+          lick_idx = 0
+          $licks.each do |l|
+            break if l[:remark] == $opts[:start_with]
+            lick_idx += 1
+          end
+          err "Unknown lick: '#{$opts[:start_with]}'" if lick_idx > $licks.length
+          $opts[:start_with] = nil
+        else
+          lick_idx = rand($licks.length)
+        end
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
 
