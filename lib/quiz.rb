@@ -1,5 +1,5 @@
 #
-# Perform quiz
+# Perform quiz and memorize
 #
 
 def do_quiz
@@ -11,6 +11,8 @@ def do_quiz
   $ctl_can_loop = true
   $ctl_can_change_comment = false
   $ctl_ignore_recording = false
+  $write_journal = true
+  journal_start
   
   first_lap = true
   all_wanted_before = all_wanted = nil
@@ -112,13 +114,13 @@ def do_quiz
         
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? get_lick_remark(lick, ', %s', :short) : '' )
+                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? lick[:desc] : '' )
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
                       else
                         "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
-                          ($mode == $memorize ? get_lick_remark(lick, ' (%s)') : '')
+                          ($mode == $memorize ? sprintf(' (%s)', lick[:desc]) : '')
                       end
                     end 
                   end,
@@ -170,7 +172,7 @@ def do_quiz
                                end
                              end
                            end
-                    ( hint || '' ) + ( $mode == :memorize ? get_lick_remark(lick, "\e[2m (%s)") : '' )
+                    ( hint || '' ) + ( $mode == :memorize ? sprintf("\e[2m (%s)", lick[:desc]) : '' )
                   end,
 
                   -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -304,21 +306,17 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def get_lick_remark lick, template, long_short = :long
-  joined = [lick[:section], lick[:remark], lick[:recording] && long_short == :long ? 'rec avail' : ''].select {|s| s.length > 0}.join(',')
-  if joined.length >= 2
-    sprintf(template, joined)
-  else
-    ''
-  end
-end
-
-
 def play_holes holes, lick, first_lap
-  jtext = ''
   ltext = "\e[2m"
-  ltext += get_lick_remark(lick, '%s: ') if $mode == :memorize
-
+  if $mode == :memorize
+    ltext += sprintf('%s: ', lick[:desc])
+    jtext = sprintf('%s: ', lick[:desc]) + holes.join(' ')
+  else
+    jtext = holes.join(' ')
+  end
+  IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
+  pp $write_journal
+  
   holes.each_with_index do |hole, idx|
 
     if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
@@ -334,12 +332,10 @@ def play_holes holes, lick, first_lap
     if idx > 0
       if !event_not_hole?(hole) && !event_not_hole?(holes[idx - 1])
         isemi, itext = describe_inter(hole, holes[idx - 1])
-        part = ' ' + ( itext || isemi ).tr(' ','') + ' '
+        ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
       else
-        part = ' '
+        ltext += ' '
       end
-      ltext += part
-      jtext += " #{part} "
     end
     ltext += if event_not_hole?(hole)
                "\e[0m#{hole}\e[2m"
@@ -348,14 +344,11 @@ def play_holes holes, lick, first_lap
              else
                "\e[0m#{$harp[hole][:note]}\e[2m"
              end
-    jtext += event_not_hole?(hole)  ?  hole  :  "#{$harp[hole][:note]},#{hole}"
     if $opts[:merge]
       part = '(' +
              $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
              ')'
-      part = '' if part == '()'
-      ltext += part
-      jtext += part
+      ltext += part unles part == '()'
     end
 
     if first_lap
@@ -376,21 +369,20 @@ def play_holes holes, lick, first_lap
       break
     end
   end
-
-  if !$journal_quiz.include?(jtext)
-    IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
-    $journal_quiz << jtext
-  end
 end
 
 
 def play_recording lick, first_lap
-  issue = get_lick_remark(lick, "Lick \e[0m\e[32m%s\e[0m (SPACE: pause, TAB,+: skip to end) ... #{lick[:holes].join(' ')}", :short)
+  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (SPACE: pause, TAB,+: skip to end) ... " + lick[:holes].join(' ')
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
+
+  jtext = sprintf('%s: ', lick[:desc]) + lick[:holes].join(' ')
+  IO.write($journal_file, jtext + "\n\n", mode: 'a') if $write_journal
+
   skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
   print skipped ? " skip rest" : " done"
 end

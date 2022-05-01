@@ -260,16 +260,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     if $ctl_toggle_journal
       $write_journal = !$write_journal
       if $write_journal
-        IO.write($journal_file,
-                 "\nStart writing journal at #{Time.now}\n" +
-                 if $mode == :listen
-                   "Columns: Secs since prog start, duration, hole, note\n" +
-                     "Notes played by you only.\n\n"
-                 else
-                   "Notes played by trainer only.\n\n" +
-                   $journal_quiz.join("\n\n") + "\n\n"
-                 end, mode: 'a')
-        $journal_quiz = Array.new
+        journal_start
         $journal_listen = Array.new
       else
         write_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
@@ -277,11 +268,12 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
       end
       ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
-      $ctl_toggle_journal = false
       print "\e[#{$line_hint_or_message}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
-      print "  (all sequences since program start)" if $mode == :quiz
       print "\e[K"
+
+      $ctl_toggle_journal = false
+
       print "\e[#{$line_key}H\e[2m" + text_for_key      
       $message_shown = Time.now.to_f
     end
@@ -356,6 +348,18 @@ def write_to_journal hole, since
                                         $harp[hole][:note]],
            mode: 'a')
   $journal_listen << hole
+end
+
+
+def journal_start
+  IO.write($journal_file,
+           "\nStart writing journal at #{Time.now}\n" +
+           if $mode == :listen
+             "Columns: Secs since prog start, duration, hole, note\n" +
+               "Notes played by you only.\n\n"
+           else
+             "Notes played by trainer only.\n\n"
+           end, mode: 'a')
 end
 
 

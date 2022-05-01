@@ -59,7 +59,18 @@ def read_licks
     end
     rfile = $lick_dir + '/recordings/' + recording
     err("Recording  #{rfile} not found") unless File.exists?(rfile)
-    all_licks << {section: section, remark: remark, holes: holes, recording: recording, start: start, duration: duration}
+
+    desc = if section.length > 0 && remark.length > 0
+             section + ',' + remark
+           elsif section.length > 0
+             section
+           elsif remark.length > 0
+             remark
+           else
+             ''
+           end
+
+    all_licks << {section: section, remark: remark, desc: desc, holes: holes, recording: recording, start: start, duration: duration}
   end
 
   err("No licks found in #{lfile}") unless all_licks.length > 0
@@ -220,6 +231,7 @@ def get_lick_file
   else
     lfile = lfiles[0]
   end
+  lfile
 end
 
 

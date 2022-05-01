@@ -23,7 +23,6 @@ def set_global_vars_early
   at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
-  $journal_quiz = Array.new
   $journal_listen = Array.new
   $debug_log = "debug.log"
   $write_journal = false
