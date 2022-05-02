@@ -38,7 +38,7 @@ def do_play
     prepare_term
     start_kb_handler
     puts
-    puts "Lick " + lick[:desc] + " (SPACE: pause, TAB,+: skip to end)\n" + lick[:holes].join(' ')
+    puts "Lick " + lick[:desc] + " (SPACE: pause, TAB,+: skip to end, -:to start)\n" + lick[:holes].join(' ')
     play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
     puts
   end

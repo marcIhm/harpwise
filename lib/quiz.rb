@@ -53,6 +53,7 @@ def do_quiz
 
       if lick_idx && refresh_licks
         lick = $licks[lick_idx]
+        all_wanted = lick[:holes]
         ctl_issue 'Refreshed licks'
       end
 
@@ -72,7 +73,7 @@ def do_quiz
             break if l[:remark] == $opts[:start_with]
             lick_idx += 1
           end
-          err "Unknown lick: '#{$opts[:start_with]}'" if lick_idx > $licks.length
+          err "Unknown lick: '#{$opts[:start_with]}'" if lick_idx >= $licks.length
           $opts[:start_with] = nil
         else
           lick_idx = rand($licks.length)
@@ -124,7 +125,7 @@ def do_quiz
         
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? lick[:desc] : '' )
+                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:desc] : '' )
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
@@ -166,7 +167,7 @@ def do_quiz
                     lap_passed = Time.now.to_f - lap_start
                     
                     hint = if $opts[:immediate] 
-                             "\e[2mPlay: " + (idx == 0 ? '' : all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ')
+                             "\e[2mPlay:" + (idx == 0 ? '' : ' ' + all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ')
                            elsif all_wanted.length > 1 &&
                                  hole_passed > 4 &&
                                  lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
@@ -383,7 +384,7 @@ end
 
 
 def play_recording lick, first_lap
-  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (SPACE: pause, TAB,+: skip to end) ... " + lick[:holes].join(' ')
+  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (SPACE: pause, TAB,+: skip to end, -: to start) ... " + lick[:holes].join(' ')
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else

@@ -218,6 +218,8 @@ def handle_kb_play_recording
     $ctl_pause_continue = true
   elsif char == "\t" || char == '+'
     $ctl_skip = true
+  elsif char == '-'
+    $ctl_replay = true
   end
 end
 

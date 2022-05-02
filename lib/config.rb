@@ -20,7 +20,6 @@ def set_global_vars_early
   $ctl_sig_winch = false
   
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
-  at_exit {FileUtils.remove_entry $tmp_dir}
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
   $journal_listen = Array.new

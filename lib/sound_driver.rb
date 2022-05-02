@@ -212,31 +212,35 @@ end
 
 def play_recording_and_handle_kb recording, start, duration
   cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? duration : ''} pitch #{$dsemi_harp * 100}"
-  _, _, wait_thr  = Open3.popen2(cmd)
-  $ctl_skip = $ctl_pause_continue = false
-  started = Time.now.to_f
-  duration = 0.0
-  paused = false
   begin
-    sleep 0.1
-    handle_kb_play_recording
-    if $ctl_pause_continue
-      $ctl_pause_continue = false
-      if paused
-        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
-        paused = false
-        print "\e[0m\e[32mgo \e[0m"
-      else
-        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        paused = true
-        duration += Time.now.to_f - started
-        started = Time.now.to_f
-        printf "\e[0m\e[32m (t=%.1f) SPACE to continue ... \e[0m", duration
+    _, _, wait_thr  = Open3.popen2(cmd)
+    $ctl_skip = $ctl_replay = $ctl_pause_continue = false
+    started = Time.now.to_f
+    duration = 0.0
+    paused = false
+    begin
+      sleep 0.1
+      handle_kb_play_recording
+      if $ctl_pause_continue
+        $ctl_pause_continue = false
+        if paused
+          Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+          paused = false
+          print "\e[0m\e[32mgo \e[0m"
+        else
+          Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+          paused = true
+          duration += Time.now.to_f - started
+          started = Time.now.to_f
+          printf "\e[0m\e[32m (t=%.1f) SPACE to continue ... \e[0m", duration
+        end
+      elsif $ctl_replay
+        print "\e[0m\e[32m replay \e[0m"
       end
-    end
-  end while wait_thr.alive? && !$ctl_skip
-  Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
-  wait_thr.join unless $ctl_skip # raises any errors from thread
-  err('See above') unless $ctl_skip || wait_thr.value.success? 
+    end while wait_thr.alive? && !$ctl_skip && !$ctl_replay
+    Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
+    wait_thr.join unless $ctl_skip # raises any errors from thread
+    err('See above') unless $ctl_skip || $ctl_replay || wait_thr.value.success?
+  end while $ctl_replay
   $ctl_skip
 end

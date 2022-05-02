@@ -93,6 +93,8 @@ at_exit do
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
+  # give processes started by threads some time to terminate
+  sleep 0.1 
 end
 
 
