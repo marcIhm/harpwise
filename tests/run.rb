@@ -169,6 +169,19 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
 
+  memorize 'memorize to create simple lick file' do
+    lick_dir = "#{$data_dir}/licks/testing"
+    lick_file = "#{lick_dir}/licks_with_holes.txt"
+    FileUtils.rm_r lick_dir if File.exist?(lick_dir)
+    new_session
+    tms './harp_trainer memo testing a --testing'
+    tms :ENTER
+    sleep 2
+    expect { File.exist?(lick_file) }
+    expect { screen[10]['does not exist'] }
+    kill_session
+  end
+
   memorize 'quiz' do
     sound 8, 3
     new_session
@@ -219,6 +232,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
+  memorize 'play a lick with recording' do
+    new_session
+    tms './harp_trainer play testing a juke --testing'
+    tms :ENTER
+    sleep 4
+    expect { screen[7]['Lick juke,samples,favorites'] }
+    expect { screen[8]['-1 -2/ -3// -3 -4'] }
+    kill_session
+  end
+  
   memorize 'play some holes and notes' do
     new_session
     tms './harp_trainer play testing a -1 a5 +4 --testing'
@@ -228,18 +251,6 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  memorize 'memorize to create simple lick file' do
-    lick_file = "#{$data_dir}/licks/testing/licks_with_holes.txt"
-    FileUtils.rm lick_file if File.exist?(lick_file)
-    new_session
-    tms './harp_trainer memo testing a --testing'
-    tms :ENTER
-    sleep 2
-    expect { File.exist?(lick_file) }
-    expect { screen[10]['does not exist'] }
-    kill_session
-  end
-
   memorize 'memorize with lick file from previous test' do
     new_session
     tms './harp_trainer memo testing a --testing'
@@ -251,9 +262,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  memorize 'memorize with licks from one section' do
+  memorize 'memorize with licks with tags' do
     new_session
-    tms './harp_trainer memo testing --section favorites,testing a --testing'
+    tms './harp_trainer memo testing --tags favorites,testing a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -262,9 +273,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  memorize 'memorize with licks but from one section' do
+  memorize 'memorize with licks excluding one tag' do
     new_session
-    tms './harp_trainer memo testing --section no-scales a --testing'
+    tms './harp_trainer memo testing --no-tags scales a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -273,12 +284,32 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  memorize 'error on unknown --sections' do
+  memorize 'error on unknown --tags' do
     new_session
-    tms './harp_trainer memo testing --section unknown a --testing'
+    tms './harp_trainer memo testing --tags unknown a --testing'
     tms :ENTER
     sleep 2
-    expect { screen[7]['ERROR: There are some sections'] }
+    expect { screen[7]['ERROR: There are some tags'] }
+    kill_session
+  end
+
+  memorize 'memorize with --start-with' do
+    new_session
+    tms './harp_trainer memo testing --start-with juke a --testing'
+    tms :ENTER
+    sleep 2
+    # Six licks in file, four in those two sections, but two of them are identical
+    expect { screen[-2]['(juke,samples,favorites)'] }
+    kill_session
+  end
+
+  memorize 'print list of tests' do
+    new_session
+    tms './harp_trainer memo testing --tags print'
+    tms :ENTER
+    sleep 2
+    # Six licks in file, four in those two sections, but two of them are identical
+    expect { screen[7]['["favorites", "samples", "scales", "testing", "theory"]'] }
     kill_session
   end
 

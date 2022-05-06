@@ -17,7 +17,7 @@ def do_quiz
   first_lap = true
   all_wanted_before = all_wanted = nil
   $licks = read_licks
-  lick = lick_idx = nil
+  lick = lick_idx = lick_idx_before = nil
   puts
   puts "#{$licks.length} licks." if $mode == :memorize
   
@@ -40,11 +40,22 @@ def do_quiz
     
     # handle $ctl-commands from keyboard-thread
     if $ctl_back
-      if !all_wanted_before || all_wanted_before == all_wanted
-        print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
-        sleep 1
+      if lick
+        if !lick_idx_before || lick_idx_before == lick_idx
+          print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
+          sleep 1
+        else
+          lick_idx = lick_idx_before
+          lick = $licks[lick_idx]
+          all_wanted = lick[:holes]
+        end
       else
-        all_wanted = all_wanted_before
+        if !all_wanted_before || all_wanted_before == all_wanted
+          print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
+          sleep 1
+        else
+          all_wanted = all_wanted_before
+        end
       end
       $ctl_loop = true
 
@@ -52,6 +63,7 @@ def do_quiz
     # just check, if lick has changed
 
       if lick_idx && refresh_licks
+        lick_idx_before = lick_idx
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
         ctl_issue 'Refreshed licks'
@@ -70,10 +82,10 @@ def do_quiz
         if $opts[:start_with]
           lick_idx = 0
           $licks.each do |l|
-            break if l[:remark] == $opts[:start_with]
+            break if l[:name] == $opts[:start_with]
             lick_idx += 1
           end
-          err "Unknown lick: '#{$opts[:start_with]}'" if lick_idx >= $licks.length
+          err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" if lick_idx >= $licks.length
           $opts[:start_with] = nil
         else
           lick_idx = rand($licks.length)
@@ -89,7 +101,7 @@ def do_quiz
     
     sleep 0.3
 
-    if $mode == :quiz || lick[:recording].length == 0 || $ctl_ignore_recording
+    if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording
       play_holes all_wanted, lick, first_lap
     else
       play_recording lick, first_lap
@@ -135,9 +147,9 @@ def do_quiz
                       end
                     end 
                   end,
-                  -> (played, since) {[played == wanted || event_not_hole?(wanted),  # lambda_good_done
+                  -> (played, since) {[played == wanted || musical_event?(wanted),  # lambda_good_done
                                        $ctl_forget ||
-                                       ( ( played == wanted || event_not_hole?(wanted) ) && 
+                                       ( ( played == wanted || musical_event?(wanted) ) && 
                                          ( Time.now.to_f - since > ( $mode == :memorize ? 0.1 : 0.2 ) ))]}, # return okay immediately only for memorize
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
@@ -341,14 +353,14 @@ def play_holes holes, lick, first_lap
       end
     end
     if idx > 0
-      if !event_not_hole?(hole) && !event_not_hole?(holes[idx - 1])
+      if !musical_event?(hole) && !musical_event?(holes[idx - 1])
         isemi, itext = describe_inter(hole, holes[idx - 1])
         ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
       else
         ltext += ' '
       end
     end
-    ltext += if event_not_hole?(hole)
+    ltext += if musical_event?(hole)
                "\e[0m#{hole}\e[2m"
              elsif $opts[:immediate]
                "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
@@ -369,7 +381,7 @@ def play_holes holes, lick, first_lap
       print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
     end
 
-    if event_not_hole?(hole)
+    if musical_event?(hole)
       sleep $opts[:fast]  ?  0.25  :  0.5
     else
       play_hole_and_handle_kb hole
@@ -394,6 +406,6 @@ def play_recording lick, first_lap
   jtext = sprintf('%s: ', lick[:desc]) + lick[:holes].join(' ')
   IO.write($journal_file, jtext + "\n\n", mode: 'a') if $write_journal
 
-  skipped = play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
+  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length]
   print skipped ? " skip rest" : " done"
 end

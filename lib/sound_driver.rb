@@ -210,8 +210,19 @@ def play_hole_and_handle_kb hole
 end
 
 
-def play_recording_and_handle_kb recording, start, duration
-  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa trim #{start} #{duration >= 0 ? duration : ''} pitch #{$dsemi_harp * 100}"
+def play_recording_and_handle_kb recording, start, length
+  trim_clause = if start && length
+                  "trim #{start} #{length}"
+                elsif start
+                  "trim #{start}"
+                elsif length
+                  "trim 0.0 #{start}"
+                else
+                  ""
+                end
+  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} pitch #{$dsemi_harp * 100}"
+
+  return false if $opts[:testing]
   begin
     _, _, wait_thr  = Open3.popen2(cmd)
     $ctl_skip = $ctl_replay = $ctl_pause_continue = false

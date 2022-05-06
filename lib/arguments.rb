@@ -86,22 +86,24 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
     ./harp_trainer memo c
 
-    ./harp_trainer memo c --sections favorites,scales
+    ./harp_trainer memo c --tags fav,scales
 
   As shown in the second example, you may restrict the set of licks to
-  certain sections within the lick file; sections (e.g. 'scales') may also
-  be excluded like '--sections no-scales'.
+  those with certain tags; tags (e.g. 'scales') may also
+  be excluded like '--no-tags scales'.
+
+  Use '--tags print' to see all defined tags in lick-file (or see there).
 
   To play only shorter licks use e.g. '--max-holes 8'.
-  '--start-with' specifies the first lick.
+  '--start-with' specifies the first lick to play.
 
   for this to be useful, you need to create a file with your own licks
-  (optionally you may also add your own recorded mp3 files); for more info
-  see the initial error message and the starter file created.  Please
+  for more info see the starter file created initally.  Please
   note, that this mode will set the scale to 'all' implicitly.
 
 
-  Mostly for testing new licks or scales, there is also a mode play:
+  If you just want to play a single lick without beeing challenged to play
+  it back:
 
     ./harp_trainer play c blues
 
@@ -165,7 +167,7 @@ EOU
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :sections, :max_holes, :start_with]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :tags, :no_tags, :max_holes, :start_with]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -182,7 +184,8 @@ EOU
     %w(-c --comment) => :comment,
     %w(-f --fast) => :fast,
     %w(--no-fast) => :no_fast,
-    %w(--sections) => :sections,
+    %w(--tags) => :tags,
+    %w(--no-tags) => :no_tags,
     %w(--max-holes) =>:max_holes,
     %w(--holes) => :holes,
     %w(--no-progress) => :no_progress,

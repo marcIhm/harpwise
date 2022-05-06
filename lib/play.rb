@@ -6,7 +6,7 @@ def do_play
   $licks = read_licks
   lick = nil
   holes = ARGV.map do |hnle|  # hole, note, lick, event
-    if event_not_hole?(hnle)
+    if musical_event?(hnle)
       hnle
     elsif $harp_holes.include?(hnle)
       hnle
@@ -16,18 +16,18 @@ def do_play
       lick = $licks.sample(1)[0]
       lick[:holes]
     else
-      lick = $licks.find {|l| l[:remark] == hnle}
-      err "Argument '#{hnle}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:remark]}.select {|r| r.length > 0}.uniq}" unless lick
+      lick = $licks.find {|l| l[:name] == hnle}
+      err "Argument '#{hnle}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:name]}.uniq}" unless lick
       lick[:holes]
     end
   end.flatten
 
-  if !lick || lick[:recording].length == 0 || $opts[:holes]
+  if !lick || !lick[:rec] || $opts[:holes]
     puts
     holes.each_with_index do |hole, i|
       print ' ' if i > 0
       print hole
-      if event_not_hole?(hole)
+      if musical_event?(hole)
         sleep $opts[:fast]  ?  0.25  :  0.5
       else
         play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
@@ -39,7 +39,7 @@ def do_play
     start_kb_handler
     puts
     puts "Lick " + lick[:desc] + " (SPACE: pause, TAB,+: skip to end, -:to start)\n" + lick[:holes].join(' ')
-    play_recording_and_handle_kb lick[:recording], lick[:start], lick[:duration]
+    play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length]
     puts
   end
 end
