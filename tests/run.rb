@@ -303,7 +303,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  memorize 'print list of tests' do
+  memorize 'print list of tags' do
     new_session
     tms './harp_trainer memo testing --tags print'
     tms :ENTER

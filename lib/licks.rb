@@ -8,7 +8,8 @@ $lick_file = nil
 
 def read_licks
 
-  lfile = get_lick_file
+  $lick_file = lfile = get_lick_file
+  $lick_file_mod_time = File.mtime($lick_file)
 
   word_re ='[[:alnum:]][-_\.[:alnum:]]*'
   all_keys = %w(holes notes rec rec.start rec.length tags)
@@ -156,7 +157,18 @@ def read_licks
 
   if $opts[:tags] == 'print'
     puts "All Tags from #{lfile}:"
-    puts tags_in_licks.to_a.sort.pretty_inspect
+    counts = Hash.new {|h,k| h[k] = 0}
+    all_licks.each do |lick|
+      lick[:tags].each {|tag| counts[tag] += 1}
+    end
+    maxlen = counts.keys.max_by(&:length).length
+    format = "  %-#{maxlen}s %6s\n"
+    bar = ' ' + '-' * (maxlen + 10)
+    printf format,'Tag','Count'
+    puts bar
+    counts.keys.sort.each {|k| printf format,k,counts[k]}
+    puts bar
+    puts "  Total number of licks: #{all_licks.length}"
     exit
   end
   
