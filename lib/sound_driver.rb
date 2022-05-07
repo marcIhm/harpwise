@@ -229,7 +229,7 @@ def play_recording_and_handle_kb recording, start, length, first_lap = true, do_
 
   return false if $opts[:testing]
   tempo = 1.0
-  $ctl_loop = do_loop
+  $ctl_rec_loop = do_loop
   ctl_not_loop = true
   begin
     tempo_clause = if tempo == 1.0
@@ -262,7 +262,7 @@ def play_recording_and_handle_kb recording, start, length, first_lap = true, do_
       elsif $ctl_slower
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32m x%.1f \e[0m" % tempo
-      elsif $ctl_loop
+      elsif $ctl_rec_loop
         print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
         ctl_not_loop = false
       elsif $ctl_show_help
@@ -292,10 +292,10 @@ def play_recording_and_handle_kb recording, start, length, first_lap = true, do_
         print "\e[0m\e[32m replay\e[0m"
       end
     end while wait_thr.alive? && !$ctl_skip && !$ctl_replay && !$ctl_slower
-    $ctl_loop = false if $ctl_skip
+    $ctl_rec_loop = false if $ctl_skip
     Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
     wait_thr.join unless $ctl_skip # raises any errors from thread
-    err('See above') unless $ctl_skip || $ctl_replay || $ctl_slower || $ctl_loop || wait_thr.value.success?
-  end while $ctl_replay || $ctl_slower || $ctl_loop
+    err('See above') unless $ctl_skip || $ctl_replay || $ctl_slower || $ctl_rec_loop || wait_thr.value.success?
+  end while $ctl_replay || $ctl_slower || $ctl_rec_loop
   $ctl_skip
 end

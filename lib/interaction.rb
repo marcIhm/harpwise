@@ -219,7 +219,7 @@ def handle_kb_play_recording
   elsif char == '<'
     $ctl_slower = true
   elsif char == 'l'
-    $ctl_loop = true
+    $ctl_rec_loop = true
   elsif char == 'h'
     $ctl_show_help = true
   elsif char == "\t" || char == '+'
