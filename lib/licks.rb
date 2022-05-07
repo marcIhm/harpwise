@@ -11,7 +11,7 @@ def read_licks
   $lick_file = lfile = get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
 
-  word_re ='[[:alnum:]][-_\.[:alnum:]]*'
+  word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   all_keys = %w(holes notes rec rec.start rec.length tags)
 
   all_licks = []
@@ -126,6 +126,10 @@ def read_licks
           lick[key.gsub('.','_').to_sym] = value
         else
           err "Unknown key '#{key}', none of #{all_keys}"
+        end
+        if key == 'rec'
+          file = $lick_dir + '/recordings/' + value
+          err "File #{file} does not exist" unless File.exist?(file)
         end
       end
     else

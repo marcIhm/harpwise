@@ -216,6 +216,12 @@ def handle_kb_play_recording
     $ctl_ignore_recording =  char == ','
   elsif char == ' '
     $ctl_pause_continue = true
+  elsif char == '<'
+    $ctl_slower = true
+  elsif char == 'l'
+    $ctl_loop = true
+  elsif char == 'h'
+    $ctl_show_help = true
   elsif char == "\t" || char == '+'
     $ctl_skip = true
   elsif char == '-'

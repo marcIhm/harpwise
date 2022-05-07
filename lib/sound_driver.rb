@@ -210,7 +210,8 @@ def play_hole_and_handle_kb hole
 end
 
 
-def play_recording_and_handle_kb recording, start, length
+def play_recording_and_handle_kb recording, start, length, first_lap = true, do_loop = false
+
   trim_clause = if start && length
                   "trim #{start} #{length}"
                 elsif start
@@ -220,12 +221,25 @@ def play_recording_and_handle_kb recording, start, length
                 else
                   ""
                 end
-  cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} pitch #{$dsemi_harp * 100}"
+  pitch_clause = if $dsemi_harp == 0
+                   ""
+                 else
+                   "pitch #{$dsemi_harp * 100}"
+                 end
 
   return false if $opts[:testing]
+  tempo = 1.0
+  $ctl_loop = do_loop
+  ctl_not_loop = true
   begin
+    tempo_clause = if tempo == 1.0
+                     ""
+                   else
+                     "tempo %.1f" % tempo
+                   end                  
+    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
     _, _, wait_thr  = Open3.popen2(cmd)
-    $ctl_skip = $ctl_replay = $ctl_pause_continue = false
+    $ctl_skip = $ctl_replay = $ctl_pause_continue = $ctl_slower = $ctl_help = $ctl_show_help = false
     started = Time.now.to_f
     duration = 0.0
     paused = false
@@ -243,15 +257,45 @@ def play_recording_and_handle_kb recording, start, length
           paused = true
           duration += Time.now.to_f - started
           started = Time.now.to_f
-          printf "\e[0m\e[32m (t=%.1f) SPACE to continue ... \e[0m", duration
+          printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", duration
         end
+      elsif $ctl_slower
+        tempo -= 0.1 if tempo > 0.4
+        print "\e[0m\e[32m x%.1f \e[0m" % tempo
+      elsif $ctl_loop
+        print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
+        ctl_not_loop = false
+      elsif $ctl_show_help
+        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+        if first_lap
+          puts "\n\n\e[0m"
+        else
+          clear_area_help
+          puts "\e[#{$line_help}H\e[0m"
+        end
+        puts "Keys available when playing a recording:\e[0m\e[32m\n"
+        puts "      SPACE: pause/continue"
+        puts "      TAB,+: skip to end         -: skip to start"
+        puts "          <: decrease speed      l: loop over recording "
+        print "\e[0mType any key to continue ..."
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        unless first_lap
+          clear_area_help 
+          print "\e[#{$line_hint_or_message}H\e[K"
+          print "\e[#{$line_call2}H\e[K"
+        end
+        print " continue "
+        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+        $ctl_show_help = false
       elsif $ctl_replay
-        print "\e[0m\e[32m replay \e[0m"
+        print "\e[0m\e[32m replay\e[0m"
       end
-    end while wait_thr.alive? && !$ctl_skip && !$ctl_replay
+    end while wait_thr.alive? && !$ctl_skip && !$ctl_replay && !$ctl_slower
+    $ctl_loop = false if $ctl_skip
     Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
     wait_thr.join unless $ctl_skip # raises any errors from thread
-    err('See above') unless $ctl_skip || $ctl_replay || wait_thr.value.success?
-  end while $ctl_replay
+    err('See above') unless $ctl_skip || $ctl_replay || $ctl_slower || $ctl_loop || wait_thr.value.success?
+  end while $ctl_replay || $ctl_slower || $ctl_loop
   $ctl_skip
 end

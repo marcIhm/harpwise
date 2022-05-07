@@ -396,7 +396,7 @@ end
 
 
 def play_recording lick, first_lap
-  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (SPACE: pause, TAB,+: skip to end, -: to start) ... " + lick[:holes].join(' ')
+  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
@@ -406,6 +406,6 @@ def play_recording lick, first_lap
   jtext = sprintf('%s: ', lick[:desc]) + lick[:holes].join(' ')
   IO.write($journal_file, jtext + "\n\n", mode: 'a') if $write_journal
 
-  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length]
+  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], first_lap
   print skipped ? " skip rest" : " done"
 end
