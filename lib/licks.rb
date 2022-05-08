@@ -17,11 +17,11 @@ def read_licks
   all_licks = []
   derived = []
   all_lick_names = Set.new
-  include = Hash.new
+  default = Hash.new
   vars = Hash.new
   lick = name = nil
 
-  (File.readlines(lfile) << '[include]').each do |line|  # trigger checks for new lick even at end of file
+  (File.readlines(lfile) << '[default]').each do |line|  # trigger checks for new lick even at end of file
     line.chomp!
     line.gsub!(/#.*/,'')
     line.strip!
@@ -33,15 +33,15 @@ def read_licks
       derived.insert(-2,'')
       nname = md[1]
 
-      # Do final processing of previous lick: merging with include and replacement of vars
+      # Do final processing of previous lick: merging with default and replacement of vars
       if lick
-        if name == 'include'
-          include = lick
+        if name == 'default'
+          default = lick
         elsif name == 'vars'
           # vars have already been assigned; nothing to do here
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
-          lick[:tags] = ([lick[:tags] || include[:tags]] + [lick[:tags_add]]).flatten.select(&:itself)
+          lick[:tags] = ([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself)
           lick[:desc] = [name, lick[:tags]].flatten.join(',')
           all_licks << lick
         end
@@ -49,7 +49,7 @@ def read_licks
       name = nname
 
       # start with new lick
-      unless %w(include vars).include?(nname)
+      unless %w(default vars).include?(nname)
         err "Lick '#{nname}' has already appeared before (#{lfile})" if all_lick_names.include?(name)
         all_lick_names << nname
       end
@@ -76,7 +76,7 @@ def read_licks
          md = line.match(/^ *(tags) *= *(.*?) *$/)
       var, tags = md[1 .. 2]
       var = var.gsub('.','_').to_sym
-      err "Section [include] does only allow 'tags', but not 'tags.add'" if name == 'include' && var == :tags_add
+      err "Section [default] does only allow 'tags', but not 'tags.add'" if name == 'default' && var == :tags_add
       tags.split.each do |tag|
         err "Tags must consist of word characters; '#{tag}' does not" unless tag.match?(/^#{word_re}$/) || tag.match?(/^\$#{word_re}$/) 
       end
@@ -117,9 +117,9 @@ def read_licks
       key, value = md[1..2]
       lick = Hash.new unless lick
 
-      if name == 'include'
+      if name == 'default'
         # correct assignment has been handled before
-        err "Include section only allows key 'tags', not '#{key}'" 
+        err "Default section only allows key 'tags', not '#{key}'" 
       elsif name == 'vars'
         # correct assignments have been handled before
         err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile})"
@@ -223,9 +223,9 @@ def create_initial_lick_file lfile
         # Special sections are:
         #   [vars]     defining global variables to be used in tags;
         #              may help to save some typing
-        #   [include]  define values, that will be included in any lick
-        #              currently works only for tags; in an individual
-        #              lick you may override or add to this.
+        #   [default]  define values, that will be included in any lick;
+        #              works only for tags; in an individual lick you
+        #              may override or add to this.
         # both sections are optional.
         #
         # Normal sections each define one lick by starting 
@@ -246,9 +246,9 @@ def create_initial_lick_file lfile
         # to select licks on the commandline with options '--tags' and
         # '--no-tags'. To this end, licks may contain: 
         #
-        #  'tags.add =' to add to the licks from the last [include], or 
+        #  'tags.add =' to add to the licks from the last [default], or 
         #  'tags ='     to specify the list of tags disregarding any 
-        #               includes
+        #               defaults
         #
         # Initially this file is populated with sample licks for a
         # richter harp; they may not work for other harps however.
@@ -267,8 +267,8 @@ def create_initial_lick_file lfile
         # by Steve Cohen
         #
 
-        [include]
-          # this applies for all licks until overwritten by another [include];
+        [default]
+          # this applies for all licks until overwritten by another [default];
           # tags specified in the individual lick will be added
           tags = samples
 
@@ -290,8 +290,8 @@ def create_initial_lick_file lfile
           # may help to save typing 
           $source = theory
 
-        [include]
-          # section [include] may appear multiple times
+        [default]
+          # section [default] may appear multiple times
           tags = scales $source
 
         [blues]
@@ -308,7 +308,7 @@ def create_initial_lick_file lfile
     if $opts[:testing]
       f.write <<~end_of_content
 
-        [include]
+        [default]
           tags = testing
 
         [one]

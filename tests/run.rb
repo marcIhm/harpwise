@@ -299,7 +299,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[-2]['(juke,samples,favorites)'] }
+    expect { screen[-2]['juke,samples,favorites'] }
     kill_session
   end
 
@@ -309,7 +309,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[7]['["favorites", "samples", "scales", "testing", "theory"]'] }
+    expect { screen[-6]['Total number of licks:               7'] }
     kill_session
   end
 
