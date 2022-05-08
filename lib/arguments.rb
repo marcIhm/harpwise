@@ -93,6 +93,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   be excluded like '--no-tags scales'.
 
   Use '--tags print' to see all defined tags in lick-file (or see there).
+  Use '--tags dump' to see the parsed set of licks for debugging.
 
   To play only shorter licks use e.g. '--max-holes 8'.
   '--start-with' specifies the first lick to play.
