@@ -131,6 +131,7 @@ def read_musical_config
   hole2note_read = yaml_parse($holes_file)
   dsemi_harp = note2semi($key.to_s + '0') - note2semi('c0')
   dsemi_harp -= 12 if dsemi_harp > 6
+  dsemi_harp += 12 if dsemi_harp < -6
   harp = Hash.new
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}

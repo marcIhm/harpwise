@@ -39,7 +39,7 @@ def do_play
     start_kb_handler
     puts
     puts "Lick " + lick[:desc] + " (h for help)\n" + lick[:holes].join(' ')
-    play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], true, true
+    play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true, true
     puts
   end
 end

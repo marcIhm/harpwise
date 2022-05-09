@@ -12,7 +12,7 @@ def read_licks
   $lick_file_mod_time = File.mtime($lick_file)
 
   word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
-  all_keys = %w(holes notes rec rec.start rec.length tags tags.add)
+  all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add)
 
   all_licks = []
   derived = []
@@ -43,6 +43,7 @@ def read_licks
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = ([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself)
           lick[:desc] = [name, lick[:tags]].flatten.join(',')
+          lick[:rec_key] ||= 'c'
           all_licks << lick
         end
       end
@@ -134,6 +135,8 @@ def read_licks
         if key == 'rec'
           file = $lick_dir + '/recordings/' + value
           err "File #{file} does not exist" unless File.exist?(file)
+        elsif key == 'rec.key'
+          err "Unknown key '#{value}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(value)
         end
       end
     else
@@ -237,10 +240,11 @@ def create_initial_lick_file lfile
         # not be played; they just serve as a kind of reminder.
         #
         # A lick may contain a recording ('rec ='), that can be played
-        # on request; it will be searched in subdir 'recordings'
-        # and needs to be in the key of 'c', which will be
-        # transposed as required. You may also specify 'rec.start =' and
-        # 'rec.duration ='
+        # on request; it will be searched in subdir 'recordings'.
+        # If it is not in the key of 'c', you should specify 'rec.key ='.
+        # In any case the recoording which will be transposed to the key
+        # of your harp. To play only a clip from the recording, you may 
+        # specify 'rec.start =' and 'rec.duration ='.
         #
         # It is recommended to assign tags to a lick, that can later be used
         # to select licks on the commandline with options '--tags' and

@@ -406,6 +406,6 @@ def play_recording lick, first_lap
   jtext = sprintf('%s: ', lick[:desc]) + lick[:holes].join(' ')
   IO.write($journal_file, jtext + "\n\n", mode: 'a') if $write_journal
 
-  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], first_lap
+  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], first_lap
   print skipped ? " skip rest" : " done"
 end

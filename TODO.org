@@ -1,6 +1,13 @@
-* Regarding wslq in [2021-12-31 Fri]
+* CANCELED Regarding wslq in [2021-12-31 Fri]
 
   - Check if arecord still delivers samples from previous invocations; if not,
     remove workarounds.
   - Check if aplay still has problem with stuttering; check if paplay
     does better returns only after playing the whole sample.
+
+* New Features
+
+  [2022-05-09 Mon] Anzeige der Länge eines mp3 in "play_recording";
+  allerdings bekommt man die Länge nur aus sox und das braucht eine
+  Weile dafür; also muss man das Ergebnis cachen (vermutlich in
+  sox_query).

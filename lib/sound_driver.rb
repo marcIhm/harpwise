@@ -109,7 +109,7 @@ end
 
 
 def sox_query file, property
-  %x(sox #{file} -n stat 2>&1).lines.select {|line| line[property]}[0].split.last.to_f
+  sys("sox #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
 end
 
 
@@ -210,7 +210,7 @@ def play_hole_and_handle_kb hole
 end
 
 
-def play_recording_and_handle_kb recording, start, length, first_lap = true, do_loop = false
+def play_recording_and_handle_kb recording, start, length, key, first_lap = true, do_loop = false
 
   trim_clause = if start && length
                   "trim #{start} #{length}"
@@ -221,10 +221,13 @@ def play_recording_and_handle_kb recording, start, length, first_lap = true, do_
                 else
                   ""
                 end
-  pitch_clause = if $dsemi_harp == 0
+  dsemi = note2semi($key.to_s + '0') - note2semi(key + '0')
+  dsemi -= 12 if dsemi > 6
+  dsemi += 12 if dsemi < -6
+  pitch_clause = if dsemi == 0
                    ""
                  else
-                   "pitch #{$dsemi_harp * 100}"
+                   "pitch #{dsemi * 100}"
                  end
 
   return false if $opts[:testing]
