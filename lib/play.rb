@@ -5,6 +5,8 @@
 def do_play
   $licks = read_licks
   lick = nil
+  jtext = nil
+  do_write_journal = true
   holes = ARGV.map do |hnle|  # hole, note, lick, event
     if musical_event?(hnle)
       hnle
@@ -13,7 +15,15 @@ def do_play
     elsif $harp_notes.include?(hnle)
       $note2hole[hnle]
     elsif hnle == 'random'
+      err "Argument 'random' must be single on command line" if ARGV.length > 1
       lick = $licks.sample(1)[0]
+      jtext = sprintf('Lick %s: ', lick[:desc]) + lick[:holes].join(' ')
+      lick[:holes]
+    elsif hnle == 'last'
+      err "Argument 'last' must be single on command line" if ARGV.length > 1
+      do_write_journal = false
+      lick = $licks[get_last_lick_from_journal]
+      puts "Playing last lick #{lick[:desc]} from #{$journal_file}"
       lick[:holes]
     else
       lick = $licks.find {|l| l[:name] == hnle}
@@ -21,7 +31,12 @@ def do_play
       lick[:holes]
     end
   end.flatten
-
+  if do_write_journal
+    journal_start
+    jtext = holes.join(' ') unless jtext
+    IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
+  end
+  
   if !lick || !lick[:rec] || $opts[:holes]
     puts
     holes.each_with_index do |hole, i|

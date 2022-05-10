@@ -238,10 +238,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         $ctl_kb_queue.deq
         clear_area_help
         puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
-        puts "          .: replay current sequence  ,: replay, ignore recording"
+        puts "          .: replay current sequence  ,: replay, holes only"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
         puts "          i: toggle '--immediate'     l: loop current sequence"
-        puts "        0,-: forget holes played      #: toggle progress in seq"
+        puts "        0,-: forget holes played  TAB,+: skip rest of sequence"
+        puts "          #: toggle track progress in seq"
       end
       puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
@@ -353,13 +354,30 @@ end
 
 def journal_start
   IO.write($journal_file,
-           "\nStart writing journal at #{Time.now}\n" +
+           "\nStart writing journal at #{Time.now}, mode #{$mode}\n" +
            if $mode == :listen
              "Columns: Secs since prog start, duration, hole, note\n" +
                "Notes played by you only.\n\n"
            else
              "Notes played by trainer only.\n\n"
            end, mode: 'a')
+end
+
+
+def get_last_lick_from_journal
+  llname = nil
+  File.readlines($journal_file).each do |line|
+    md = line.match(/^Lick +([^, ]+)/)
+    llname = md[1] if md
+  end
+  err "Did not find last Lick in #{$journal_file}" unless llname
+  lick_idx = 0
+  $licks.each do |l|
+    break if l[:name] == llname
+    lick_idx += 1
+  end
+  err "Unknown last lick #{llname} in #{$journal_file}" if lick_idx >= $licks.length
+  lick_idx
 end
 
 

@@ -96,7 +96,8 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   Use '--tags dump' to see the parsed set of licks for debugging.
 
   To play only shorter licks use e.g. '--max-holes 8'.
-  '--start-with' specifies the first lick to play.
+  '--start-with' specifies the first lick to play and accepts the special 
+  value 'last' to repeat the last lick.
 
   for this to be useful, you need to create a file with your own licks
   for more info see the starter file created initally.  Please
@@ -111,8 +112,9 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
     ./harp_trainer play c 1 -2 c4
 
   which can play either a complete lick or the holes or notes given on the
-  commandline. The special argument 'random' just plays a random lick. If
-  you want to play the holes of the lick (rather than the recording), add
+  commandline. The special argument 'random' just plays a random lick, 
+  'last' repeats the last lick played (even from memorize). 
+  If you want to play the holes of the lick (rather than the recording), add
   option '--holes'.
 
 

@@ -78,7 +78,11 @@ def set_global_vars_late
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
-  $journal_file = "#{$data_dir}/journal_#{$mode.to_sym}.txt"
+  if $mode == :memorize || $mode == :play
+    $journal_file = "#{$data_dir}/journal_memorize_play.txt"
+  else
+    $journal_file = "#{$data_dir}/journal_#{$mode}.txt"
+  end
   $licks = nil
 end
 

@@ -81,11 +81,15 @@ def do_quiz
 
         if $opts[:start_with]
           lick_idx = 0
-          $licks.each do |l|
-            break if l[:name] == $opts[:start_with]
-            lick_idx += 1
+          if $opts[:start_with] == 'last'
+            lick_idx = get_last_lick_from_journal
+          else
+            $licks.each do |l|
+              break if l[:name] == $opts[:start_with]
+              lick_idx += 1
+            end
+            err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" if lick_idx >= $licks.length
           end
-          err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" if lick_idx >= $licks.length
           $opts[:start_with] = nil
         else
           lick_idx = rand($licks.length)
@@ -333,7 +337,7 @@ def play_holes holes, lick, first_lap
   ltext = "\e[2m"
   if $mode == :memorize
     ltext += sprintf('%s: ', lick[:desc])
-    jtext = sprintf('%s: ', lick[:desc]) + holes.join(' ')
+    jtext = sprintf('Lick %s: ', lick[:desc]) + holes.join(' ')
   else
     jtext = holes.join(' ')
   end
