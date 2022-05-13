@@ -28,6 +28,7 @@ def do_play
     else
       lick = $licks.find {|l| l[:name] == hnle}
       err "Argument '#{hnle}' is not part of harp holes #{$harp_holes} or notes #{$harp_notes} or licks #{$licks.map {|l| l[:name]}.uniq}" unless lick
+      jtext = sprintf('Lick %s: ', lick[:desc]) + lick[:holes].join(' ')
       lick[:holes]
     end
   end.flatten
@@ -54,7 +55,7 @@ def do_play
     start_kb_handler
     puts
     puts "Lick " + lick[:desc] + " (h for help)\n" + lick[:holes].join(' ')
-    play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true, true
+    play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
     puts
   end
 end

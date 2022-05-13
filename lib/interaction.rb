@@ -185,26 +185,16 @@ def handle_kb_play
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   if char == ' '
-    print "\e[0m\e[32m SPACE to continue ... "
+    print "\e[0m\e[32m SPACE to continue ..."
     begin
       char = $ctl_kb_queue.deq
     end until char == ' '
     print "go"
     sleep 0.5
-  elsif char && char.length > 0 && char.ord == 127
-    print "\e[0m\e[32m back \e[0m "
-    $ctl_back = true
-    sleep 0.5
-  elsif char == '.' || char == ','
-    print "\e[0m\e[32m replay \e[0m "
-    $ctl_replay = true
-    $ctl_skip = true
-    $ctl_ignore_recording = char == ','
-    sleep 0.5
   elsif char == "\t" || char == '+'
-    print "\e[0m\e[32m skip to end \e[0m "
     $ctl_skip = true
-    sleep 0.5
+  elsif char == 'h'
+    $ctl_show_help = true
   end
 end
 

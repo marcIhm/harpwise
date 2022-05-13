@@ -201,16 +201,16 @@ end
 
 
 def play_hole_and_handle_kb hole
-  play_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
+  wait_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
   begin
     sleep 0.1
     handle_kb_play
-  end while play_thr.alive?
-  play_thr.join   # raises any errors from thread
+  end while wait_thr.alive?
+  wait_thr.join   # raises any errors from thread
 end
 
 
-def play_recording_and_handle_kb recording, start, length, key, first_lap = true, do_loop = false
+def play_recording_and_handle_kb recording, start, length, key, first_lap = true
 
   trim_clause = if start && length
                   "trim #{start} #{length}"
@@ -232,7 +232,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
 
   return false if $opts[:testing]
   tempo = 1.0
-  $ctl_rec_loop = do_loop
+  $ctl_rec_loop = false
   ctl_not_loop = true
   begin
     tempo_clause = if tempo == 1.0

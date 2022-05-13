@@ -1,3 +1,4 @@
+
 * CANCELED Regarding wslq in [2021-12-31 Fri]
 
   - Check if arecord still delivers samples from previous invocations; if not,
@@ -5,9 +6,15 @@
   - Check if aplay still has problem with stuttering; check if paplay
     does better returns only after playing the whole sample.
 
-* New Features
+* Ideen für neue Feature
 
   [2022-05-09 Mon] Anzeige der Länge eines mp3 in "play_recording";
   allerdings bekommt man die Länge nur aus sox und das braucht eine
   Weile dafür; also muss man das Ergebnis cachen (vermutlich in
   sox_query).
+
+  [2022-05-11 Wed] In der Zusammenfassung der licks (per '--tags print')
+  auch eine Gruppierung/Histogramm nach Länge anzeigen.
+
+  [2022-05-11 Wed] Prüfen und präzisieren: Ist mir rec.length nicht
+  eher rec.end gemeint ?

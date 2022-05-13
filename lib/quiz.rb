@@ -106,7 +106,7 @@ def do_quiz
     sleep 0.3
 
     if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording
-      play_holes all_wanted, lick, first_lap
+      play_holes all_wanted, first_lap
     else
       play_recording lick, first_lap
     end
@@ -115,7 +115,7 @@ def do_quiz
     $ctl_ignore_recording = false
 
     print "\e[0m\e[32m and !\e[0m"
-    sleep 1
+    sleep 0.5
 
     if first_lap
       system('clear')
@@ -154,7 +154,7 @@ def do_quiz
                   -> (played, since) {[played == wanted || musical_event?(wanted),  # lambda_good_done
                                        $ctl_forget ||
                                        ( ( played == wanted || musical_event?(wanted) ) && 
-                                         ( Time.now.to_f - since > ( $mode == :memorize ? 0.1 : 0.2 ) ))]}, # return okay immediately only for memorize
+                                         ( Time.now.to_f - since > ( $mode == :memorize ? 0.05 : 0.2 ) ))]}, # return okay immediately only for memorize
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
                   
@@ -333,21 +333,14 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes holes, lick, first_lap
-  ltext = "\e[2m"
-  if $mode == :memorize
-    ltext += sprintf('%s: ', lick[:desc])
-    jtext = sprintf('Lick %s: ', lick[:desc]) + holes.join(' ')
-  else
-    jtext = holes.join(' ')
-  end
-  IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal
-  pp $write_journal
-  
+def play_holes holes, first_lap
+  ltext = "\e[2m(h for help) "
+
+  $ctl_skip = false
   holes.each_with_index do |hole, idx|
 
     if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-      ltext = "\e[2m"
+      ltext = "\e[2m" + htext
       if first_lap
         print "\e[#{$term_height}H\e[K"
         print "\e[#{$term_height-1}H\e[K"
@@ -390,9 +383,31 @@ def play_holes holes, lick, first_lap
     else
       play_hole_and_handle_kb hole
     end
-    
-    if $ctl_back || $ctl_next || $ctl_replay
-      sleep 1
+
+    if $ctl_show_help
+      if first_lap
+        puts "\n\n\e[0m"
+      else
+        clear_area_help
+        puts "\e[#{$line_help}H\e[0m"
+      end
+      puts "Keys available when playing a series of holes:\e[0m\e[32m\n"
+      puts "      SPACE: pause/continue"
+      puts "      TAB,+: skip to end"
+      print "\e[0mType any key to continue ..."
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      unless first_lap
+        clear_area_help 
+        print "\e[#{$line_hint_or_message}H\e[K"
+        print "\e[#{$line_call2}H\e[K"
+      end
+      print " continue "
+      $ctl_show_help = false
+    end
+    if $ctl_skip
+      print "\e[0m\e[32m skip to end\e[0m"
+      sleep 0.5
       break
     end
   end
@@ -406,9 +421,6 @@ def play_recording lick, first_lap
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
-
-  jtext = sprintf('%s: ', lick[:desc]) + lick[:holes].join(' ')
-  IO.write($journal_file, jtext + "\n\n", mode: 'a') if $write_journal
 
   skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], first_lap
   print skipped ? " skip rest" : " done"
