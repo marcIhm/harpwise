@@ -270,25 +270,11 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         ctl_not_loop = false
       elsif $ctl_show_help
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        if first_lap
-          puts "\n\n\e[0m"
-        else
-          clear_area_help
-          puts "\e[#{$line_help}H\e[0m"
-        end
-        puts "Keys available when playing a recording:\e[0m\e[32m\n"
-        puts "      SPACE: pause/continue"
-        puts "      TAB,+: skip to end         -: skip to start"
-        puts "          <: decrease speed      l: loop over recording "
-        print "\e[0mType any key to continue ..."
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-        unless first_lap
-          clear_area_help 
-          print "\e[#{$line_hint_or_message}H\e[K"
-          print "\e[#{$line_call2}H\e[K"
-        end
-        print " continue "
+        display_kb_help 'recording',first_lap, <<~end_of_content
+          SPACE: pause/continue
+          TAB,+: skip to end         -: skip to start
+              <: decrease speed      l: loop over recording
+        end_of_content
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
         $ctl_show_help = false
       elsif $ctl_replay

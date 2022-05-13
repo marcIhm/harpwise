@@ -232,7 +232,7 @@ def do_quiz
         
         print "\e[#{$line_hint_or_message}H\e[K"
         unless $ctl_replay || $ctl_forget
-          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')}   ...   "
+          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_hint_shown = true
           sleep 1
@@ -385,24 +385,10 @@ def play_holes holes, first_lap
     end
 
     if $ctl_show_help
-      if first_lap
-        puts "\n\n\e[0m"
-      else
-        clear_area_help
-        puts "\e[#{$line_help}H\e[0m"
-      end
-      puts "Keys available when playing a series of holes:\e[0m\e[32m\n"
-      puts "      SPACE: pause/continue"
-      puts "      TAB,+: skip to end"
-      print "\e[0mType any key to continue ..."
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      unless first_lap
-        clear_area_help 
-        print "\e[#{$line_hint_or_message}H\e[K"
-        print "\e[#{$line_call2}H\e[K"
-      end
-      print " continue "
+      display_kb_help 'series of holes',first_lap, <<~end_of_content
+        SPACE: pause/continue 
+        TAB,+: skip to end
+      end_of_content
       $ctl_show_help = false
     end
     if $ctl_skip

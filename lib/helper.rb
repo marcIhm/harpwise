@@ -68,3 +68,24 @@ end
 def scales_for_type type
   Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
 end
+
+
+def display_kb_help what, first_lap, body
+  if first_lap
+    puts "\n\n\e[0m"
+  else
+    clear_area_help
+    puts "\e[#{$line_help}H\e[0m"
+  end
+  puts "Keys available when playing a #{what}:\e[0m\e[32m\n"
+  body.lines.each {|l| puts '      ' + l.chomp + "\n"}
+  print "\e[0mType any key to continue ..."
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+  unless first_lap
+    clear_area_help 
+    print "\e[#{$line_hint_or_message}H\e[K"
+    print "\e[#{$line_call2}H\e[K"
+  end
+  print " continue "
+end

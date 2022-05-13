@@ -474,5 +474,3 @@ def handle_win_change
   $ctl_redraw = true
   $ctl_sig_winch = false
 end
-
-
