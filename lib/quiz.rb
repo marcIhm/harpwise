@@ -351,7 +351,7 @@ def play_holes holes, first_lap
   holes.each_with_index do |hole, idx|
 
     if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-      ltext = "\e[2m" + htext
+      ltext = "\e[2m(h for help) "
       if first_lap
         print "\e[#{$term_height}H\e[K"
         print "\e[#{$term_height-1}H\e[K"

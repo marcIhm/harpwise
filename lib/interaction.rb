@@ -401,13 +401,13 @@ end
 
 
 def clear_area_comment
-  ($line_comment .. $line_hint_or_message).each {|l| print "\e[#{l}H\e[K"}
+  ($line_comment .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 
 
 def clear_area_help
-  ($line_help .. $line_hint_or_message).each {|l| print "\e[#{l}H\e[K"}
+  ($line_help .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 
