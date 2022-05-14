@@ -85,7 +85,11 @@ def display_kb_help what, first_lap, body
   unless first_lap
     clear_area_help 
   end
-  ctl_issue 'continue'
+  if first_lap
+    puts "\ncontinue"
+  else
+    ctl_issue 'continue'
+  end
 end
 
 
@@ -133,7 +137,7 @@ def print_last_licks_from_journal
   puts "  - abbrev (e.g. '2l') for '--start-with'"
   puts "  - name,tag1,tag2, ... of lick"
   puts
-  puts "Latest lick comes first:"
+  puts "Last lick comes first:"
   puts
   cnt = 1
   get_last_lick_idxs_from_journal.each do |idx|
@@ -150,7 +154,7 @@ def print_last_licks_from_journal
     
   end
   puts
-  puts "(taken from #{$journal_file})"
+  puts "(extracted from #{$journal_file})"
   puts
 end
 

@@ -86,8 +86,8 @@ def do_quiz
           if $opts[:start_with] == 'print'
             print_last_licks_from_journal
             exit
-          elsif $opts[:start_with] == 'last' || $opts[:start_with] == 'l'
-            lick_idx = get_last_lick_idxs_from_journal[0]
+          elsif (md = $opts[:start_with].match(/^(\dlast|\dl)$/)) || $opts[:start_with] == 'last' || $opts[:start_with] == 'l'
+            lick_idx = get_last_lick_idxs_from_journal[md ? md[1].to_i-1 : 0]
             do_write_journal = false
           elsif md = $opts[:start_with].match(/^(\dlast|\dl)$/)
             lick_idx = get_last_lick_idxs_from_journal[md[1].to_i - 1]
@@ -165,7 +165,7 @@ def do_quiz
                   -> (played, since) {[played == wanted || musical_event?(wanted),  # lambda_good_done
                                        $ctl_forget ||
                                        ( ( played == wanted || musical_event?(wanted) ) && 
-                                         ( Time.now.to_f - since > ( $mode == :memorize ? 0.05 : 0.2 ) ))]}, # return okay immediately only for memorize
+                                         ( Time.now.to_f - since >= ( $mode == :memorize ? 0.0 : 0.1 ) ))]}, # return okay immediately only for memorize
                   
                   -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
                   

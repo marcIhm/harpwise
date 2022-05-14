@@ -19,10 +19,13 @@ def do_play
       lick = $licks.sample(1)[0]
       jtext = sprintf('Lick %s: ', lick[:desc]) + lick[:holes].join(' ')
       lick[:holes]
-    elsif hnle == 'last'
+    elsif hnle == 'print'
+      print_last_licks_from_journal
+      exit
+    elsif (md = hnle.match(/^(\dlast|\dl)$/)) || hnle == 'last' || hnle == 'l'
       err "Argument 'last' must be single on command line" if ARGV.length > 1
       do_write_journal = false
-      lick = $licks[get_last_lick_from_journal]
+      lick = $licks[get_last_lick_idxs_from_journal[md ? md[1].to_i-1 : 0]]
       puts "Playing last lick #{lick[:desc]} from #{$journal_file}"
       lick[:holes]
     else
