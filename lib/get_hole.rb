@@ -364,20 +364,44 @@ def journal_start
 end
 
 
-def get_last_lick_from_journal
-  llname = nil
+def get_last_lick_idxs_from_journal
+  lnames = []
   File.readlines($journal_file).each do |line|
     md = line.match(/^Lick +([^, ]+)/)
-    llname = md[1] if md
+    lnames << md[1] if md
+    lnames.shift if lnames.length > 20
   end
-  err "Did not find last Lick in #{$journal_file}" unless llname
-  lick_idx = 0
-  $licks.each do |l|
-    break if l[:name] == llname
-    lick_idx += 1
+  err "Did not find any licks in #{$journal_file}" unless lnames.length > 0
+  idxs = lnames.map do |ln|
+    $licks.index {|l| l[:name] == ln }
+  end.select(&:itself)
+  err "Could not find any lick names #{lnames} from #{$journal_file} among current set of licks #{$licks.map {|l| l[:name]}}" if idxs.length == 0
+  idxs.reverse
+end
+
+
+def print_last_licks_from_journal
+  puts "\nList of most recent licks played (preceeded by journal-avoiding abbreviation for '--start-with')"
+  puts
+  puts "Latest lick comes first:"
+  puts
+  cnt = 1
+  get_last_lick_idxs_from_journal.each do |idx|
+    print '  '
+    if cnt == 1
+      print ' l: '
+    elsif cnt <= 9
+      print cnt.to_s + 'l: '
+    else
+      print '    '
+    end
+    cnt += 1
+    puts $licks[idx][:desc]
+    
   end
-  err "Unknown last lick #{llname} in #{$journal_file}" if lick_idx >= $licks.length
-  lick_idx
+  puts
+  puts "(taken from #{$journal_file})"
+  puts
 end
 
 

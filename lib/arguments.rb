@@ -97,7 +97,9 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
   To play only shorter licks use e.g. '--max-holes 8'.
   '--start-with' specifies the first lick to play and accepts the special 
-  value 'last' to repeat the last lick.
+  value 'last' or 'l' to repeat the last lick ('2l', '3l' for earlier licks);
+  licks addressed this way will not be written to the journal.
+  To see a list of recent licks use '--start-with print'.
 
   for this to be useful, you need to create a file with your own licks
   for more info see the starter file created initally.  Please

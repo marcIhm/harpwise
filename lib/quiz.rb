@@ -60,8 +60,7 @@ def do_quiz
       $ctl_loop = true
 
     elsif $ctl_replay
-    # just check, if lick has changed
-
+      # just check, if lick has changed
       if lick_idx && refresh_licks
         lick_idx_before = lick_idx
         lick = $licks[lick_idx]
@@ -72,17 +71,27 @@ def do_quiz
     else # e.g. $ctl_next
       all_wanted_before = all_wanted
 
+      do_write_journal = true
+
       # figure out holes to play
       if $mode == :quiz
 
         all_wanted = get_sample($num_quiz)
+        jtext = holes.join(' ')
 
       else # memorize
 
         if $opts[:start_with]
           lick_idx = 0
-          if $opts[:start_with] == 'last'
-            lick_idx = get_last_lick_from_journal
+          if $opts[:start_with] == 'print'
+            print_last_licks_from_journal
+            exit
+          elsif $opts[:start_with] == 'last' || $opts[:start_with] == 'l'
+            lick_idx = get_last_lick_idxs_from_journal[0]
+            do_write_journal = false
+          elsif md = $opts[:start_with].match(/^(\dlast|\dl)$/)
+            lick_idx = get_last_lick_idxs_from_journal[md[1].to_i - 1]
+            do_write_journal = false
           else
             $licks.each do |l|
               break if l[:name] == $opts[:start_with]
@@ -96,8 +105,10 @@ def do_quiz
         end
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
+        jtext = sprintf('Lick %s: ', lick[:desc]) + all_wanted.join(' ')
 
       end
+      IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
       $ctl_loop = $opts[:loop]
 
     end
