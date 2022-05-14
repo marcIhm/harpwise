@@ -381,7 +381,9 @@ end
 
 
 def print_last_licks_from_journal
-  puts "\nList of most recent licks played (preceeded by journal-avoiding abbreviation for '--start-with')"
+  puts "\nList of most recent licks played:"
+  puts "  - journal-avoiding abbrev (e.g. '2l') for '--start-with'"
+  puts "  - name,tag1,tag2, ..."
   puts
   puts "Latest lick comes first:"
   puts
