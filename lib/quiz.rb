@@ -152,13 +152,13 @@ def do_quiz
         
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:desc] : '' )
+                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
                       else
                         "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
-                          ($mode == $memorize ? sprintf(' (%s)', lick[:desc]) : '')
+                          ($mode == $memorize ? sprintf(' (%s)', lick[:name]) : '') + ' '
                       end
                     end 
                   end,
@@ -210,7 +210,7 @@ def do_quiz
                                end
                              end
                            end
-                    ( hint || '' ) + ( $mode == :memorize ? sprintf("\e[2m (%s)", lick[:desc]) : '' )
+                    ( hint || '' ) + ( $mode == :memorize ? sprintf("\e[2m (%s)", lick[:name]) : '' )
                   end,
 
                   -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
@@ -412,7 +412,7 @@ end
 
 
 def play_recording lick, first_lap
-  issue = "Lick \e[0m\e[32m" + lick[:desc] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
+  issue = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
   if first_lap
     print "\e[#{$term_height}H#{issue}\e[K"
   else
