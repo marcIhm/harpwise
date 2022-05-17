@@ -20,6 +20,9 @@ def do_play
       jtext = sprintf('Lick %s: ', lick[:desc]) + lick[:holes].join(' ')
       lick[:holes]
     elsif hnle == 'print'
+      print_all_licks
+      exit
+    elsif hnle == 'hist' || hnle == 'history'
       print_last_licks_from_journal
       exit
     elsif (md = hnle.match(/^(\dlast|\dl)$/)) || hnle == 'last' || hnle == 'l'

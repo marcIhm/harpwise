@@ -8,13 +8,25 @@
 
 * Ideen für neue Feature
 
-  [2022-05-09 Mon] Anzeige der Länge eines mp3 in "play_recording";
-  allerdings bekommt man die Länge nur aus sox und das braucht eine
-  Weile dafür; also muss man das Ergebnis cachen (vermutlich in
-  sox_query).
+** TODO [2022-05-09 Mon] Anzeige der Länge eines mp3 in "play_recording"
 
-  [2022-05-11 Wed] In der Zusammenfassung der licks (per '--tags print')
-  auch eine Gruppierung/Histogramm nach Länge anzeigen.
+   allerdings bekommt man die Länge nur aus sox und das braucht eine
+   Weile dafür; also muss man das Ergebnis cachen (vermutlich in
+   sox_query).
 
-  [2022-05-11 Wed] Prüfen und präzisieren: Ist mir rec.length nicht
-  eher rec.end gemeint ?
+** TODO [2022-05-11 Wed] Längen in der Zusammenfassung der licks 
+
+   (per '--tags print') auch eine Gruppierung/Histogramm nach Länge
+   anzeigen.
+
+** DONE [2022-05-11 Wed] Prüfen und präzisieren
+
+   Ist mir rec.length nicht eher rec.end gemeint ?
+
+** TODO [2022-05-16 Mon] Klasse statt Lambdas
+
+   In get_hole, z.B. GHController (get-hole-controller) ?
+
+** DONE [2022-05-16 Mon] Nur Teile der Aufnahme spielen
+
+   Z.B. --partial 1/5 oder any/3 

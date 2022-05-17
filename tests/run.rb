@@ -313,6 +313,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  memorize 'use option --partial' do
+    new_session
+    tms './harp_trainer memo testing --start-with juke --partial 1s@x --tags print'
+    tms :ENTER
+    sleep 2
+    # Six licks in file, four in those two sections, but two of them are identical
+    expect { screen[-6]['Total number of licks:               7'] }
+    kill_session
+  end
+
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"

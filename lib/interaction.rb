@@ -204,7 +204,7 @@ def handle_kb_play_recording
   char = $ctl_kb_queue.deq
   if char == '.' || char == ','
     $ctl_replay = true
-    $ctl_ignore_recording =  char == ','
+    $ctl_ignore_recording = (char == ',')
   elsif char == ' '
     $ctl_pause_continue = true
   elsif char == '<'
@@ -260,9 +260,10 @@ def handle_kb_listen
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif (char == '.' || char == ',') && $ctl_can_next
+  elsif (char == '.' || char == ',' || char == ':') && $ctl_can_next
     $ctl_replay = true
-    $ctl_ignore_recording = char == ','
+    $ctl_ignore_recording = (char == ',')
+    $ctl_ignore_partial = (char == ':')
     text = 'Replay'
   elsif (char == '0' || char == '-') && $ctl_can_next
     $ctl_forget = true

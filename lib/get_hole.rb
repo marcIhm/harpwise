@@ -238,7 +238,8 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         $ctl_kb_queue.deq
         clear_area_help
         puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
-        puts "          .: replay current sequence  ,: replay, holes only"
+        puts "          .: replay current recording  ,: replay, holes only"
+        puts "          :: replay recording but ignore '--partial'"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
         puts "          i: toggle '--immediate'     l: loop current sequence"
         puts "        0,-: forget holes played  TAB,+: skip rest of sequence"
@@ -346,6 +347,7 @@ def text_for_key
   text += " #{$scale}"
   text += ",#{$opts[:merge]}" if $opts[:merge]
   text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
+  text += ", partial: #{$opts[:partial]}" if $opts[:partial]
   text += "\e[K"
 end
 

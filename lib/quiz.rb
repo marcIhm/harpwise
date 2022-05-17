@@ -10,14 +10,14 @@ def do_quiz
   $ctl_can_next = true
   $ctl_can_loop = true
   $ctl_can_change_comment = false
-  $ctl_ignore_recording = false
+  $ctl_ignore_recording = $ctl_ignore_partial = false
   $write_journal = true
   journal_start
   
   first_lap = true
   all_wanted_before = all_wanted = nil
   $licks = read_licks
-  lick = lick_idx = lick_idx_before = nil
+  lick = lick_idx = lick_idx_before = lick_idx_iter = nil
   puts
   puts "#{$licks.length} licks." if $mode == :memorize
   
@@ -81,11 +81,22 @@ def do_quiz
 
       else # memorize
 
-        if $opts[:start_with]
+        if $opts[:start_with] || lick_idx_iter
           lick_idx = 0
           if $opts[:start_with] == 'print'
+            print_all_licks
+            exit
+          elsif $opts[:start_with] == 'hist' || $opts[:start_with] == 'history'
             print_last_licks_from_journal
             exit
+          elsif %w(i iter iterate).include?($opts[:start_with]) || lick_idx_iter
+            lick_idx_iter ||= -1
+            lick_idx_iter += 1
+            lick_idx = lick_idx_iter
+            if lick_idx_iter >= $licks.length
+              puts "\nIterated through all #{$licks.length} licks.\n\n"
+              exit
+            end
           elsif (md = $opts[:start_with].match(/^(\dlast|\dl)$/)) || $opts[:start_with] == 'last' || $opts[:start_with] == 'l'
             lick_idx = get_last_lick_idxs_from_journal[md ? md[1].to_i-1 : 0]
             do_write_journal = false
@@ -93,11 +104,11 @@ def do_quiz
             lick_idx = get_last_lick_idxs_from_journal[md[1].to_i - 1]
             do_write_journal = false
           else
-            $licks.each do |l|
-              break if l[:name] == $opts[:start_with]
-              lick_idx += 1
-            end
-            err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" if lick_idx >= $licks.length
+            doiter = %w(,i ,iter ,iterate).any? {|x| $opts[:start_with].end_with?(x)}
+            $opts[:start_with] = $opts[:start_with].split(',')[0..-2].join if doiter
+            lick_idx = $licks.index {|l| l[:name] == $opts[:start_with]}
+            err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
+            lick_idx_iter = lick_idx if doiter
           end
           $opts[:start_with] = nil
         else
@@ -123,7 +134,7 @@ def do_quiz
     end
     
     redo if $ctl_back || $ctl_next || $ctl_replay
-    $ctl_ignore_recording = false
+    $ctl_ignore_recording = $ctl_ignore_partial = false
 
     print "\e[0m\e[32m and !\e[0m"
     sleep 0.5
@@ -152,7 +163,7 @@ def do_quiz
         
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLooping\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
+                      "\e[32mLoop\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
@@ -194,7 +205,7 @@ def do_quiz
                     lap_passed = Time.now.to_f - lap_start
                     
                     hint = if $opts[:immediate] 
-                             "\e[2mPlay:" + (idx == 0 ? '' : ' ' + all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ')
+                             "\e[2mPlay:" + (idx == 0 ? '' : ' ' + all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ') + ' '
                            elsif all_wanted.length > 1 &&
                                  hole_passed > 4 &&
                                  lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
@@ -419,6 +430,39 @@ def play_recording lick, first_lap
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
   end
 
-  skipped = play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], first_lap
+  if $opts[:partial] && !$ctl_ignore_partial
+    start, length = calc_partial(lick[:rec_start], lick[:rec_length])
+  else
+    start, length = lick[:rec_start], lick[:rec_length]
+  end
+  skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_lap
   print skipped ? " skip rest" : " done"
+end
+
+
+def calc_partial start, length
+  return [nil, nil] unless start
+  start = start.to_f
+  length = length.to_f
+  if md = $opts[:partial].match(/^1\/(\d)@(0|x)$/)
+    pl = length / md[1].to_f
+    pl = [1,length].min if pl < 1
+    if md[2] == '0'
+      ps = start
+    else
+      ps = start + pl * rand(md[1].to_i)/md[1].to_f
+    end
+  elsif md = $opts[:partial].match(/^(\d*.?\d*)s@(0|x)$/)
+    err "Argument for option '--partial' should have digits before 's'; '#{$opts[:partial]}' does not" if md[1].length == 0
+    pl = md[1].to_f
+    pl = length if pl > length
+    if md[2] == '0'
+      ps = start
+    else
+      ps = start + (length - pl) * rand
+    end
+  else
+    err "Argument for option '--partial' must be like 1/3@0 or 1/4@x or 1s@0 or 2s@x but not '#{$opts[:partial]}'"
+  end
+  [sprintf("%.1f",ps), sprintf("%.1f",pl)]
 end

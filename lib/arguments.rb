@@ -23,6 +23,7 @@ chromatic) for various keys (e.g. a or c).  Main modes of operation are
 
 Usage by examples for the modes listen, quiz, memorize and calibrate: 
 
+------ listen ------
 
   The trainer listens, while your are playing a richter harmonica of key c
   and it shows the holes, that you played; green if from the scale, red
@@ -32,9 +33,11 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
   Add option '--comment interval' (or '-c i') to show intervals instead
   of notes; other possible values are 'note' and 'hole'.
+  See below ('quiz') for some options accepted by both modes.
 
   Switch on journal to get a simple transcription of the holes played.
 
+------ quiz ------
 
   The Trainer plays 3 notes from the scale 'mape' for a chromatic
   harmonica of key a and then quizes you to play them back (then repeat):
@@ -81,6 +84,8 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   running; type 'h' for details.
 
 
+------ memo ------
+
   The mode memo is a variation of quiz, which helps to memorize licks
   from a given set:
 
@@ -93,18 +98,27 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   be excluded like '--no-tags scales'.
 
   Use '--tags print' to see all defined tags in lick-file (or see there).
-  Use '--tags dump' to see the parsed set of licks for debugging.
 
-  To play only shorter licks use e.g. '--max-holes 8'.
-  '--start-with' specifies the first lick to play and accepts the special 
-  value 'last' or 'l' to repeat the last lick ('2l', '3l' for earlier licks);
-  licks addressed this way will not be written to the journal.
-  To see a list of recent licks use '--start-with print'.
+  To play only shorter licks use e.g. '--max-holes 8'.  '--start-with'
+  specifies the first lick to play and accepts the special value 'last' or
+  'l' to repeat the last lick ('2l', '3l' for earlier licks); licks
+  addressed this way will not be written to the journal.  Use
+  '--start-with iter' to iterate through all selected licks one by one;
+  use '--start-with foo,iter' to start at lick foo.
+  To see a list of recent licks use '--start-with history', for a list of all
+  licks '--start-with print'.
 
-  for this to be useful, you need to create a file with your own licks
-  for more info see the starter file created initally.  Please
-  note, that this mode will set the scale to 'all' implicitly.
+  To make the mode more challenging, you may let only parts of the
+  recording be played, e.g. '--partial 1/3@0' or '1/4@x' which would play
+  the first third of the recording or any randomly chosen quarter of it
+  (but at least one second). '--partial 1s@0' or '2s@x'
 
+  For memorize to be useful, you need to create a file with your own licks
+  for more info see the starter file created initally.  Please note, that
+  this mode will set the scale to 'all' implicitly.
+
+
+------ play ------
 
   If you just want to play a single lick without beeing challenged to play
   it back:
@@ -118,7 +132,11 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   'last' repeats the last lick played (even from memorize). 
   If you want to play the holes of the lick (rather than the recording), add
   option '--holes'.
+  This mode accepts the same special lick names (e.g. history or print) as 
+  '--start-with' for moder 'quit' above.
 
+
+------ calibrate ------
 
   Once in the lifetime of your c-harp you need to calibrate the trainer
   for the frequencies of the harp you are using:
@@ -137,7 +155,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   To calibrate only a single whole, add e.g. '--hole -3//'.
 
 
-Notes:
+--- Some Notes ---
 
   The possible scales depend on the chosen type of harmonica:
   #{types_content}
@@ -172,7 +190,7 @@ EOU
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :tags, :no_tags, :max_holes, :start_with]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :tags, :no_tags, :max_holes, :start_with, :partial]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -195,6 +213,7 @@ EOU
     %w(--holes) => :holes,
     %w(--no-progress) => :no_progress,
     %w(--start-with) => :start_with,
+    %w(--partial) => :partial,
     %w(-l --loop) => :loop}.each do |txts,opt|
     txts.each do |txt|
       for i in (0 .. ARGV.length - 1) do
@@ -306,7 +325,7 @@ EOU
    [[:memorize, :play],
     [:sections, :max_holes]],
    [[:memorize],
-    [:start_with]],
+    [:start_with, :partial]],
    [[:play],
     [:holes]]].each do |modes_opts|
     modes_opts[1].each do |opt|

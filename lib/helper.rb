@@ -154,7 +154,19 @@ def print_last_licks_from_journal
     
   end
   puts
-  puts "(extracted from #{$journal_file})"
+  puts "(from #{$journal_file})"
   puts
 end
 
+
+def print_all_licks
+  puts "\nList of all known licks (after applying selections):"
+  puts
+  lname = $licks.max_by {|l| l[:name].length}
+  $licks.each do |lick|
+    puts "  %#{lname[:name].length}s : %s" % [lick[:name], lick[:tags].join(',')]
+  end
+  puts
+  puts "#{$licks.length} licks"
+  puts "from #{$lick_file}"
+end
