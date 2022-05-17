@@ -299,7 +299,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[-2]['juke,samples,favorites'] }
+    expect { screen[-2]['(juke)'] }
     kill_session
   end
 
@@ -315,11 +315,11 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   memorize 'use option --partial' do
     new_session
-    tms './harp_trainer memo testing --start-with juke --partial 1s@x --tags print'
+    tms './harp_trainer memo testing --start-with juke --partial 1s@b --testing'
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[-6]['Total number of licks:               7'] }
+    expect { screen[1]['partial: 1s@b'] }
     kill_session
   end
 

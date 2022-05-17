@@ -13,7 +13,7 @@ def check_screen graceful: false
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
-      raise ArgumentError.new("Terminal is too small:\n[width, height] = [#{$term_width}, #{$term_height}] < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
+      raise ArgumentError.new("Terminal is too small:\n[width, height] = [#{$term_width}, #{$term_height}] (actual) < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (configured minimum)")
     end
 
     # check if enough room for fonts
@@ -260,10 +260,10 @@ def handle_kb_listen
   elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif (char == '.' || char == ',' || char == ':') && $ctl_can_next
+  elsif (char == '.' || char == ',' || char == ':' || char == 'p') && $ctl_can_next
     $ctl_replay = true
     $ctl_ignore_recording = (char == ',')
-    $ctl_ignore_partial = (char == ':')
+    $ctl_ignore_partial = (char == ':' || char == 'p')
     text = 'Replay'
   elsif (char == '0' || char == '-') && $ctl_can_next
     $ctl_forget = true

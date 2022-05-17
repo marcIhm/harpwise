@@ -77,7 +77,7 @@ def do_quiz
       if $mode == :quiz
 
         all_wanted = get_sample($num_quiz)
-        jtext = holes.join(' ')
+        jtext = all_wanted.join(' ')
 
       else # memorize
 

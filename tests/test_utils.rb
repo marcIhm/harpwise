@@ -4,7 +4,15 @@
 
 def new_session
   kill_session
-  sys "tmux -u new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht"
+  #
+  # The simple command below does not work because of a bug in tmux 3.2a:
+  # (use 'tmux -V' to get version)
+  #
+  #   sys "tmux -u new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht"
+  #
+  # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
+  #
+  sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht \\; new-window bash \\; kill-window -t 0"
   tms 'cd harp_trainer'
   tms :ENTER
 end

@@ -239,7 +239,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         clear_area_help
         puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
         puts "          .: replay current recording  ,: replay, holes only"
-        puts "          :: replay recording but ignore '--partial'"
+        puts "        :,p: replay recording but ignore '--partial'"
         puts "        RET: next sequence    BACKSPACE: previous sequence"
         puts "          i: toggle '--immediate'     l: loop current sequence"
         puts "        0,-: forget holes played  TAB,+: skip rest of sequence"

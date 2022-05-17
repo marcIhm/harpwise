@@ -159,6 +159,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 --- Some Notes ---
 
   The possible scales depend on the chosen type of harmonica:
+
   #{types_content}
 
   For modes 'listen' and 'quiz' you may choose to transpose the scale to
