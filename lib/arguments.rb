@@ -109,9 +109,10 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   licks '--start-with print'.
 
   To make the mode more challenging, you may let only parts of the
-  recording be played, e.g. '--partial 1/3@0' or '1/4@x' which would play
-  the first third of the recording or any randomly chosen quarter of it
-  (but at least one second). '--partial 1s@0' or '2s@x'
+  recording be played, e.g. '--partial 1/3@b', '1/4@x', '1/2@e' which
+  would play the first third of the recording, any randomly chosen quarter
+  of it or the last half (but at least one second). '--partial 1s@b',
+  '1s@e' or '2s@x' play the given number of seconds at position.
 
   For memorize to be useful, you need to create a file with your own licks
   for more info see the starter file created initally.  Please note, that

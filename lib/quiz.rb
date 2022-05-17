@@ -94,6 +94,7 @@ def do_quiz
             lick_idx_iter += 1
             lick_idx = lick_idx_iter
             if lick_idx_iter >= $licks.length
+              print "\e[#{$line_call2}H\e[K"
               puts "\nIterated through all #{$licks.length} licks.\n\n"
               exit
             end
@@ -444,25 +445,29 @@ def calc_partial start, length
   return [nil, nil] unless start
   start = start.to_f
   length = length.to_f
-  if md = $opts[:partial].match(/^1\/(\d)@(0|x)$/)
+  if md = $opts[:partial].match(/^1\/(\d)@(b|x|e)$/)
     pl = length / md[1].to_f
     pl = [1,length].min if pl < 1
-    if md[2] == '0'
+    if md[2] == 'b'
       ps = start
+    elsif md[2] == 'e'
+      ps = start + length - pl
     else
       ps = start + pl * rand(md[1].to_i)/md[1].to_f
     end
-  elsif md = $opts[:partial].match(/^(\d*.?\d*)s@(0|x)$/)
+  elsif md = $opts[:partial].match(/^(\d*.?\d*)s@(b|x|e)$/)
     err "Argument for option '--partial' should have digits before 's'; '#{$opts[:partial]}' does not" if md[1].length == 0
     pl = md[1].to_f
     pl = length if pl > length
-    if md[2] == '0'
+    if md[2] == 'b'
       ps = start
+    elsif md[2] == 'e'
+      ps = start + length - pl
     else
       ps = start + (length - pl) * rand
     end
   else
-    err "Argument for option '--partial' must be like 1/3@0 or 1/4@x or 1s@0 or 2s@x but not '#{$opts[:partial]}'"
+    err "Argument for option '--partial' must be like 1/3@b, 1/4@x, 1/2@e, 1s@b, 2s@x or 0.5s@e but not '#{$opts[:partial]}'"
   end
   [sprintf("%.1f",ps), sprintf("%.1f",pl)]
 end
