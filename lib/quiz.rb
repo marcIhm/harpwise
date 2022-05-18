@@ -10,7 +10,7 @@ def do_quiz
   $ctl_can_next = true
   $ctl_can_loop = true
   $ctl_can_change_comment = false
-  $ctl_ignore_recording = $ctl_ignore_partial = false
+  $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
   $write_journal = true
   journal_start
   
@@ -128,14 +128,14 @@ def do_quiz
     
     sleep 0.3
 
-    if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording
+    if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
       play_holes all_wanted, first_lap
     else
       play_recording lick, first_lap
     end
     
     redo if $ctl_back || $ctl_next || $ctl_replay
-    $ctl_ignore_recording = $ctl_ignore_partial = false
+    $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
 
     print "\e[0m\e[32m and !\e[0m"
     sleep 0.5
@@ -268,7 +268,6 @@ def do_quiz
     first_lap = false
   end # forever sequence after sequence
 end
-
       
 $sample_stats = Hash.new {|h,k| h[k] = 0}
 
@@ -356,9 +355,15 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes holes, first_lap
+def play_holes all_holes, first_lap
   ltext = "\e[2m(h for help) "
 
+  if $opts[:partial] && !$ctl_ignore_partial
+    holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
+  else
+    holes = all_holes
+  end
+    
   $ctl_skip = false
   holes.each_with_index do |hole, idx|
 
@@ -432,7 +437,7 @@ def play_recording lick, first_lap
   end
 
   if $opts[:partial] && !$ctl_ignore_partial
-    start, length = calc_partial(lick[:rec_start], lick[:rec_length])
+    _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
     start, length = lick[:rec_start], lick[:rec_length]
   end
@@ -441,33 +446,54 @@ def play_recording lick, first_lap
 end
 
 
-def calc_partial start, length
-  return [nil, nil] unless start
-  start = start.to_f
-  length = length.to_f
+def select_and_calc_partial all_holes, start_s, length_s
+  start = start_s.to_f
+  length = length_s.to_f
   if md = $opts[:partial].match(/^1\/(\d)@(b|x|e)$/)
+    numh = (all_holes.length/md[1].to_f).round
     pl = length / md[1].to_f
     pl = [1,length].min if pl < 1
-    if md[2] == 'b'
-      ps = start
-    elsif md[2] == 'e'
-      ps = start + length - pl
-    else
-      ps = start + pl * rand(md[1].to_i)/md[1].to_f
-    end
-  elsif md = $opts[:partial].match(/^(\d*.?\d*)s@(b|x|e)$/)
-    err "Argument for option '--partial' should have digits before 's'; '#{$opts[:partial]}' does not" if md[1].length == 0
+    ps = case md[2]
+         when 'b'
+           start
+         when 'e'
+           start + length - pl
+         else
+           start + pl * rand(md[1].to_i)/md[1].to_f
+         end
+  elsif md = $opts[:partial].match(/^(\d*\.?\d*)@(b|x|e)$/)
+    err "Argument for option '--partial' should have digits before '@'; '#{$opts[:partial]}' does not" if md[1].length == 0
+    numh = md[1].to_f.round
     pl = md[1].to_f
     pl = length if pl > length
-    if md[2] == 'b'
-      ps = start
-    elsif md[2] == 'e'
-      ps = start + length - pl
-    else
-      ps = start + (length - pl) * rand
-    end
+    ps = case md[2]
+         when 'b'
+           start
+         when 'e'
+           start + length - pl
+         else
+           start + (length - pl) * rand
+         end
   else
-    err "Argument for option '--partial' must be like 1/3@b, 1/4@x, 1/2@e, 1s@b, 2s@x or 0.5s@e but not '#{$opts[:partial]}'"
+    err "Argument for option '--partial' must be like 1/3@b, 1/4@x, 1/2@e, 1@b, 2@x or 0.5@e but not '#{$opts[:partial]}'"
   end
-  [sprintf("%.1f",ps), sprintf("%.1f",pl)]
+  
+  numh = 1 if numh == 0
+  numh = all_holes.length if numh > all_holes.length
+  holes = case md[2]
+          when 'b'
+            all_holes[0 .. numh-1]
+          when 'e'
+            all_holes[-numh .. -1]
+          else
+            pos = rand(all_holes.length - numh + 1)
+            all_holes[pos .. pos+numh-1]
+          end
+  if start_s
+    [holes, sprintf("%.1f",ps), sprintf("%.1f",pl)]
+  else
+    [holes, nil, nil]
+  end
 end
+
+
