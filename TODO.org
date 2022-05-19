@@ -30,3 +30,6 @@
 ** DONE [2022-05-16 Mon] Nur Teile der Aufnahme spielen
 
    Z.B. --partial 1/5 oder any/3 
+** TODO [2022-05-19 Thu] Hole grau anzeigen
+
+   Wenn es zwar aktuell nicht mehr richtig ist aber davor richtig war

@@ -114,7 +114,10 @@ def do_quiz
           $opts[:start_with] = nil
         else
           lick_idx = rand($licks.length)
+          # rathe take following lick than repeat one
+          lick_idx = (lick_idx + 1) % $licks.length if lick_idx == lick_idx_before
         end
+        lick_idx_before = lick_idx
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
         jtext = sprintf('Lick %s: ', lick[:desc]) + all_wanted.join(' ')
@@ -164,7 +167,7 @@ def do_quiz
         
         get_hole( -> () do      # lambda_issue
                     if $ctl_loop
-                      "\e[32mLoop\e[0m at #{idx} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
+                      "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
                     else
                       if $num_quiz == 1 
                         "Play the note you have heard !"
