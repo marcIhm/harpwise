@@ -37,7 +37,7 @@ def set_global_vars_early
   $freqs_queue = Queue.new
 
   $figlet_count = 0
-  $first_lap_get_hole = true
+  $first_lap_ever_get_hole = true
 end
 
 

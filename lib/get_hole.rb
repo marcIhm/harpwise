@@ -12,11 +12,11 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
-  first = true
+  first_lap = true
 
   loop do   # until var done or skip
     system('clear') if $ctl_redraw
-    if first || $ctl_redraw
+    if first_lap || $ctl_redraw
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
@@ -28,7 +28,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
         $message_shown = Time.now.to_f
       end
     end
-    print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if $first_lap_get_hole
+    print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if $first_lap_ever_get_hole
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
 
@@ -37,7 +37,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     $ctl_redraw = false
     pipeline_catch_up if handle_kb_listen
     ctl_issue
-    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first || $ctl_redraw
+    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first_lap || $ctl_redraw
 
     handle_win_change if $ctl_sig_winch
     
@@ -337,7 +337,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       print "\e[#{$line_hint_or_message}H\e[K"
       $message_shown = false
     end
-    first = $first_lap_get_hole = false
+    first_lap = $first_lap_ever_get_hole = false
   end  # loop until var done or skip
 end
 
