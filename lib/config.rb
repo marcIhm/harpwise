@@ -22,6 +22,10 @@ def set_global_vars_early
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
+
+  # will be created by test-driver
+  $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
+  
   $journal_listen = Array.new
   $debug_log = "debug.log"
   $write_journal = false
@@ -153,7 +157,6 @@ def read_musical_config
   hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
   note2hole = hole2note.invert
   harp_notes = harp.keys.map {|h| hole2note[h]}
-
 
   holes2remove = []
   if $opts[:remove]

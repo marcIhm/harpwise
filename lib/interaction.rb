@@ -75,7 +75,7 @@ end
 $figlet_cache = Hash.new
 $figlet_all_fonts = %w(smblock mono12 big)
 
-def do_figlet text, font, template = nil, truncate = :left
+def do_figlet text, font, width_template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   cmd = "figlet -d fonts -w 400 -f #{font} -l \" #{text}\""
   cmdt = cmd + truncate.to_s
@@ -92,13 +92,13 @@ def do_figlet text, font, template = nil, truncate = :left
     # overall length from figlet
     maxlen = lines.map {|l| l.length}.max
 
-    # calculate offset from template (if available) or from actual output of figlet
+    # calculate offset from width_template (if available) or from actual output of figlet
     offset_specific = 0.4 * ( $term_width - maxlen )
-    if template
-      if template.start_with?('fixed:')
-        offset = ( $term_width - figlet_text_width(template[6 .. -1], font) ) * 0.5
+    if width_template
+      if width_template.start_with?('fixed:')
+        offset = ( $term_width - figlet_text_width(width_template[6 .. -1], font) ) * 0.5
       else
-        twidth = figlet_text_width(template, font)
+        twidth = figlet_text_width(width_template, font)
         offset = ( twidth.to_f / $term_width < 0.6  ?  0.4  :  0.8 ) * ( $term_width - twidth )
       end
     else
@@ -422,12 +422,20 @@ def update_chart hole, state
     cell = $chart[xy[1]][xy[0]]
     pre = case state
           when :good
-            if $hole2flags[hole].include?(:both)
+            if $hole2flags[hole].include?(:all)
               "\e[0m\e[7m"
             elsif $hole2flags[hole].include?(:main)
               "\e[92m\e[7m"
             else
               "\e[94m\e[7m"
+            end
+          when :was_good
+            if $hole2flags[hole].include?(:all)
+              "\e[0m\e[2m\e[7m"
+            elsif $hole2flags[hole].include?(:main)
+              "\e[32m\e[7m"
+            else
+              "\e[34m\e[7m"
             end
           when :bad
             "\e[31m\e[7m"

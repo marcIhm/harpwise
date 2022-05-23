@@ -4,7 +4,7 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
+def get_hole lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -57,12 +57,13 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     end
     hole_for_inter = nil
     
-    good, done = lambda_good_done.call(hole, hole_since)
-    good, done = [false, false] if $opts[:no_progress]
-    if $opts[:screenshot]
-      good = true
-      done = true if $ctl_can_next && Time.now.to_f - hole_start > 2
-    end
+    good, done, was_good = if $opts[:screenshot]
+                             [true, $ctl_can_next && Time.now.to_f - hole_start > 2, false]
+                           elsif $opts[:no_progress]
+                             [false, false, false] 
+                           else
+                             lambda_good_done_was_good.call(hole, hole_since)
+                           end
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
     just_dots_short = '.........:.........'
@@ -85,7 +86,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[0m\e[%dm" %
-                 if $opts[:no_progress]
+                 if $opts[:no_progress] || was_good
                    2
                  else
                    if regular_hole?(hole)
@@ -109,7 +110,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
     when :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
-      update_chart(hole, good  ?  :good  :  :bad) 
+      update_chart(hole, good  ?  :good  :  ( was_good  ?  :was_good  :  :bad) )
     when :hole
       print "\e[#{$line_display}H\e[0m"
       print hole_color
@@ -162,7 +163,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
       comment_color,
       comment_text,
       font,
-      sample_text,
+      width_template,
       truncate =
       lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
                           inter_semi,
@@ -172,7 +173,7 @@ def get_hole lambda_issue, lambda_good_done, lambda_skip, lambda_comment, lambda
                           freq,
                           $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
       print "\e[#{$line_comment}H#{comment_color}"
-      do_figlet comment_text, font, sample_text, truncate
+      do_figlet comment_text, font, width_template, truncate
     end
 
     if done

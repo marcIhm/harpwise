@@ -69,9 +69,10 @@ $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', times: {}}
 $memo.transform_keys!(&:to_sym)
 
-def memorize text
+def do_test text
   $memo_count += 1
-  $within = true if $fromon && text[$fromon]
+  $within = true if ( $fromon_idx && $memo_count == $fromon_idx ) ||
+                    ( $fromon && text[$fromon] )
   return unless $within
   puts
   File.delete($testing_dump_file) if File.exists?($testing_dump_file)

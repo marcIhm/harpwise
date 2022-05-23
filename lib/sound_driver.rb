@@ -6,7 +6,7 @@ def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $sample_rate).to_i}" : "-d #{secs}"
   output_clause = ( opts[:silent] ? '>/dev/null 2>&1' : '' )
   if $opts[:testing]
-    FileUtils.cp "/tmp/#{File.basename($0)}_testing.wav", file
+    FileUtils.cp $test_wav, file
     sleep secs
   else
     system "arecord -r #{$sample_rate} #{duration_clause} #{file} #{output_clause}" or err "arecord failed"
@@ -171,7 +171,7 @@ end
 
 def arecord_to_fifo fifo
   arec_cmd = if $opts[:testing]
-               "cat /tmp/#{File.basename($0)}_testing.wav /dev/zero >#{fifo}"
+               "cat #{$test_wav} /dev/zero >#{fifo}"
              else
                "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
              end

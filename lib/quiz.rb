@@ -18,6 +18,7 @@ def do_quiz
   all_wanted_before = all_wanted = nil
   $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
+  start_with = $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :memorize
   
@@ -38,8 +39,8 @@ def do_quiz
     #  First compute and play the sequence that is expected
     #
     
-    # handle $ctl-commands from keyboard-thread
-    if $ctl_back
+    # handle $ctl-commands from keyboard-thread, that probably come from a previous loop
+    if $ctl_back # 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
           print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
@@ -60,16 +61,12 @@ def do_quiz
       $ctl_loop = true
 
     elsif $ctl_replay
-      # just check, if lick has changed
-      if lick_idx && refresh_licks
-        lick_idx_before = lick_idx
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-        ctl_issue 'Refreshed licks'
-      end
 
-    else # e.g. $ctl_next
+    # nothing to do
+      
+    else # e.g. sequence done or $ctl_next: go to the next sequence
       all_wanted_before = all_wanted
+      lick_idx_before = lick_idx
 
       do_write_journal = true
 
@@ -81,48 +78,63 @@ def do_quiz
 
       else # memorize
 
-        if $opts[:start_with] || lick_idx_iter
-          lick_idx = 0
-          if $opts[:start_with] == 'print'
-            print_all_licks
+        if lick_idx_iter # continue with iteration through licks
+
+          lick_idx_iter += 1
+          if lick_idx_iter >= $licks.length
+            print "\e[#{$line_call2}H\e[K"
+            puts "\nIterated through all #{$licks.length} licks.\n\n"
             exit
-          elsif $opts[:start_with] == 'hist' || $opts[:start_with] == 'history'
-            print_last_licks_from_journal
-            exit
-          elsif %w(i iter iterate).include?($opts[:start_with]) || lick_idx_iter
-            lick_idx_iter ||= -1
-            lick_idx_iter += 1
-            lick_idx = lick_idx_iter
-            if lick_idx_iter >= $licks.length
-              print "\e[#{$line_call2}H\e[K"
-              puts "\nIterated through all #{$licks.length} licks.\n\n"
-              exit
-            end
-          elsif (md = $opts[:start_with].match(/^(\dlast|\dl)$/)) || $opts[:start_with] == 'last' || $opts[:start_with] == 'l'
-            lick_idx = get_last_lick_idxs_from_journal[md ? md[1].to_i-1 : 0]
-            do_write_journal = false
-          elsif md = $opts[:start_with].match(/^(\dlast|\dl)$/)
-            lick_idx = get_last_lick_idxs_from_journal[md[1].to_i - 1]
-            do_write_journal = false
-          else
-            doiter = %w(,i ,iter ,iterate).any? {|x| $opts[:start_with].end_with?(x)}
-            $opts[:start_with] = $opts[:start_with].split(',')[0..-2].join if doiter
-            lick_idx = $licks.index {|l| l[:name] == $opts[:start_with]}
-            err "Unknown lick: '#{$opts[:start_with]}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
-            lick_idx_iter = lick_idx if doiter
           end
-          $opts[:start_with] = nil
-        else
+          lick_idx = lick_idx_iter
+
+        elsif !start_with # most general case: choose random lick
           lick_idx = rand($licks.length)
-          # rathe take following lick than repeat one
+          # rather take following lick than repeat one
           lick_idx = (lick_idx + 1) % $licks.length if lick_idx == lick_idx_before
+
+        elsif start_with == 'print'
+          print_all_licks
+          exit
+          
+        elsif start_with == 'hist' || start_with == 'history'
+          print_last_licks_from_journal
+          exit
+
+        elsif %w(i iter iterate).include?(start_with)
+          lick_idx_iter = 0
+          lick_idx = lick_idx_iter
+
+        elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
+          lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
+          do_write_journal = false
+
+        else # search lick by name and maybe iterate
+          doiter = %w(,iterate ,iter ,i).find {|x| start_with.end_with?(x)}
+          start_with[-doiter.length .. -1] = '' if doiter
+
+          lick_idx = $licks.index {|l| l[:name] == start_with}
+          err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
+
+          lick_idx_iter = lick_idx if doiter
+
         end
-        lick_idx_before = lick_idx
+
+        start_with = nil
+        
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
         jtext = sprintf('Lick %s: ', lick[:desc]) + all_wanted.join(' ')
 
       end
+
+      # check, if lick has changed
+      if lick_idx && refresh_licks
+        lick = $licks[lick_idx]
+        all_wanted = lick[:holes]
+        ctl_issue 'Refreshed licks'
+      end
+
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
       $ctl_loop = $opts[:loop]
 
@@ -149,7 +161,17 @@ def do_quiz
       print "\e[#{$line_hint_or_message}H\e[K"
       print "\e[#{$line_call2}H\e[K"
     end
-    full_hint_shown = false
+    full_seq_shown = false
+
+    # precompute some values, that do not change during sequence
+    min_sec_hold =  $mode == :memorize  ?  0.0  :  0.1
+    lick_names = if $mode == :memorize
+                   [sprintf(' (%s)', lick[:name]) ,
+                    ' ' + lick[:name] ,
+                    sprintf("\e[2m (%s)", lick[:name])]
+                 else
+                   ['','','']
+                 end
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -164,76 +186,119 @@ def do_quiz
 
         hole_start = Time.now.to_f
         pipeline_catch_up
-        
-        get_hole( -> () do      # lambda_issue
-                    if $ctl_loop
-                      "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes" + ( $mode == :memorize ? ' ' + lick[:name] : '' ) + ' ' # cover varying length of idx
-                    else
-                      if $num_quiz == 1 
-                        "Play the note you have heard !"
-                      else
-                        "Play note \e[32m#{idx+1}\e[0m of #{all_wanted.length} you have heard !" +
-                          ($mode == $memorize ? sprintf(' (%s)', lick[:name]) : '') + ' '
-                      end
-                    end 
-                  end,
-                  -> (played, since) {[played == wanted || musical_event?(wanted),  # lambda_good_done
-                                       $ctl_forget ||
-                                       ( ( played == wanted || musical_event?(wanted) ) && 
-                                         ( Time.now.to_f - since >= ( $mode == :memorize ? 0.0 : 0.1 ) ))]}, # return okay immediately only for memorize
-                  
-                  -> () {$ctl_next || $ctl_back || $ctl_replay},  # lambda_skip
-                  
-                  -> (_, _, _, _, _, _, _) do  # lambda_comment
-                    if $num_quiz == 1
-                      [ "\e[2m", '.  .  .', 'smblock', nil ]
-                    elsif $opts[:immediate]
-                      empty = idx > 8 ? ". . # . ." : ' .' * idx
-                      [ "\e[2m",
-                        'Play  ' + empty + all_wanted[idx .. -1].join(' '),
-                        'smblock',
-                        'play  ' + '--' * all_wanted.length,
-                        :right ]
-                    else
-                      empty = all_wanted.length - idx > 8  ? " _ _ # _ _" : ' _' * (all_wanted.length - idx)
-                      [ "\e[2m",
-                        'Yes  ' + all_wanted.slice(0,idx).join(' ') + empty,
-                        'smblock',
-                        'yes  ' + '--' * [6,all_wanted.length].min,
-                        :left ]
-                    end
-                  end,
-                  
-                  -> (_) do  # lambda_hint
-                    hole_passed = Time.now.to_f - hole_start
-                    lap_passed = Time.now.to_f - lap_start
-                    
-                    hint = if $opts[:immediate] 
-                             "\e[2mPlay:" + (idx == 0 ? '' : ' ' + all_wanted[0 .. idx - 1].join(' ')) + "\e[0m\e[92m*\e[0m" + all_wanted[idx .. -1].join(' ') + ' '
-                           elsif all_wanted.length > 1 &&
-                                 hole_passed > 4 &&
-                                 lap_passed > ( full_hint_shown ? 3 : 6 ) * all_wanted.length
-                             full_hint_shown = true
-                             "\e[0mSolution: The complete sequence is: #{all_wanted.join(' ')}" 
-                           elsif hole_passed > 4
-                             "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
-                           else
-                             if idx > 0
-                               isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                               if isemi
-                                 "Hint: Move " + ( itext ? "a #{itext}" : isemi )
-                               end
-                             end
-                           end
-                    ( hint || '' ) + ( $mode == :memorize ? sprintf("\e[2m (%s)", lick[:name]) : '' )
-                  end,
 
-                  -> (_, _) { idx > 0 && all_wanted[idx - 1] })  # lambda_hole_for_inter
+        # precompute some values, that change in every iteration
+        hidden_holes = if $opts[:immediate] # played holes are hidden
+                         if idx > 8
+                           ". . # . ."
+                         else
+                           ' .' * idx
+                         end
+                       else # unplayed holes are hidden
+                         if all_wanted.length - idx > 8
+                           " _ _ # _ _" # abbreviation for long sequence of ' _'
+                         else
+                           ' _' * (all_wanted.length - idx)
+                         end
+                       end
+
+        hole_passed = Time.now.to_f - hole_start
+        lap_passed = Time.now.to_f - lap_start
+
+        hint = if $opts[:immediate] # show all holes right away
+                 "\e[2mPlay:" +
+                   if idx == 0
+                     ''
+                   else
+                     ' ' + all_wanted[0 .. idx - 1].join(' ')
+                   end +
+                   "\e[0m\e[92m*\e[0m" +
+                   all_wanted[idx .. -1].join(' ')
+               elsif all_wanted.length > 1 &&
+                     hole_passed > 4 &&
+                     # show holes earlier, if we showed them already for this seq
+                     lap_passed > ( full_seq_shown ? 3 : 6 ) * all_wanted.length
+                 "\e[0mThe complete sequence is: #{all_wanted.join(' ')}" 
+                 full_seq_shown = true
+               elsif hole_passed > 4
+                 "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+               else
+                 if idx > 0
+                   isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                   if isemi
+                     "Hint: Move " + ( itext ? "a #{itext}" : isemi )
+                   end
+                 end
+               end
+            
+        
+        get_hole(
+          
+          # lambda_issue
+          -> () do      
+            if $ctl_loop
+              "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes" +
+                lick_names[1] +
+                ' ' # cover varying length of idx
+            else
+              if $num_quiz == 1 
+                "Play the note you have heard !"
+              else
+                "Play note \e[32m#{idx+1}\e[0m of" +
+                  " #{all_wanted.length} you have heard !" +
+                  lick_names[0] + ' '
+              end
+            end 
+          end,
+
+          
+          # lambda_good_done_was_good
+          -> (played, since) {[played == wanted || musical_event?(wanted),  
+                               $ctl_forget ||
+                               ((played == wanted || musical_event?(wanted)) &&
+                                (Time.now.to_f - since >= min_sec_hold )),
+                               idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
+
+
+          # lambda_skip
+          -> () {$ctl_next || $ctl_back || $ctl_replay},  
+
+          
+          # lambda_comment
+          -> (_, _, _, _, _, _, _) do  
+            if $num_quiz == 1
+              [ "\e[2m", '.  .  .', 'smblock', nil ]
+            elsif $opts[:immediate] # show all unplayed
+              [ "\e[2m",
+                'Play  ' + hidden_holes + all_wanted[idx .. -1].join(' '),
+                'smblock',
+                'play  ' + '--' * all_wanted.length,  # width_template
+                :right ]  # truncate at
+            else # show all played
+              [ "\e[2m",
+                'Yes  ' + all_wanted.slice(0,idx).join(' ') + hidden_holes,
+                'smblock',
+                'yes  ' + '--' * [6,all_wanted.length].min,  # width_template
+                :left ]  # truncate at
+            end
+          end,
+
+          
+          # lambda_hint
+          -> (_) do  
+            ( hint || '' ) + lick_names[2]
+          end,
+          
+          
+          # lambda_hole_for_inter
+          -> (_, _) { idx > 0 && all_wanted[idx - 1] }
+
+        )  # end of get_hole
 
         break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget
 
       end # notes in a sequence
-
+      
       #
       #  Finally judge result
       #
@@ -250,7 +315,7 @@ def do_quiz
                elsif $ctl_replay
                  "replay"
                else
-                 ( full_hint_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
+                 ( full_seq_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
                end
         print "\e[#{$line_comment}H\e[2m\e[32m"
         do_figlet text, 'smblock'
@@ -260,7 +325,7 @@ def do_quiz
         unless $ctl_replay || $ctl_forget
           print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
-          full_hint_shown = true
+          full_seq_shown = true
           sleep 1
         end
       end
