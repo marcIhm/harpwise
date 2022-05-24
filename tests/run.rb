@@ -22,11 +22,11 @@ $within = ARGV.length == 0
 $testing_dump_file = '/tmp/harp_trainer_dumped_for_testing.json'
 $data_dir = "#{Dir.home}/.harp_trainer"
 $all_testing_licks = %w(juke special blues mape one two)
-system("sox -n /tmp/harp_trainer_testing.wav synth 40.0 sawtooth 494")
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   puts "\nPreparing data"
+  system("sox -n /tmp/harp_trainer_testing.wav synth 200.0 sawtooth 494")
   FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
   FileUtils.cp_r 'config/richter', 'config/testing'
   
@@ -283,6 +283,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  #
   do_test 'memorize with --start-with' do
     new_session
     tms './harp_trainer memo testing --start-with juke a --testing'
@@ -336,7 +337,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 4
     tms :ENTER
     expect { screen[-2]['special'] }
-    sleep 4
+    sleep 6
     tms :ENTER
     expect { screen[-2]['blues'] }
     kill_session

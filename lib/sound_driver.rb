@@ -188,7 +188,7 @@ def aubiopitch_to_queue fifo, num_samples
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
-    sleep 0.1 if $opts[:testing]
+    sleep 0.2 if $opts[:testing]
     $jitter = Time.now.to_f - $program_start - fields[0]
     $freqs_queue.enq fields[1]
   end
