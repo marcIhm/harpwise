@@ -14,7 +14,7 @@ def do_listen
   system('clear')
   pipeline_catch_up
 
-  get_hole(
+  sense_holes(
     
     # lambda_issue
     -> () {"\e[0mPlay notes from the scale to get \e[32mgreen\e[0m"},   

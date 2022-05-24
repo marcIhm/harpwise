@@ -30,7 +30,7 @@ def set_global_vars_early
   $debug_log = "debug.log"
   $write_journal = false
   $message_shown = false
-  $display_choices = [:chart, :hole, :bend]
+  $display_choices = [:hole, :chart, :bend]
   $comment_choices = [:note, :interval, :hole, :cents]
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )

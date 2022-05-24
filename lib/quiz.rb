@@ -232,7 +232,7 @@ def do_quiz
                end
             
         
-        get_hole(
+        sense_holes(
           
           # lambda_issue
           -> () do      

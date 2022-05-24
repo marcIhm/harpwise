@@ -1,10 +1,10 @@
 #
-# Get hole
+# Sense holes played
 #
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def get_hole lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
+def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -86,8 +86,10 @@ def get_hole lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_commen
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[0m\e[%dm" %
-                 if $opts[:no_progress] || was_good
+                 if $opts[:no_progress]
                    2
+                 elsif was_good
+                   33
                  else
                    if regular_hole?(hole)
                      if good
