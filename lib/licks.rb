@@ -28,22 +28,23 @@ def read_licks
     next if line == ''
     derived << line
 
-    # [section]
+    # [start new lick or default]
     if md = line.match(/^\[(#{word_re})\]$/)
-      derived.insert(-2,'')
+      derived.insert(-2,'') # empty line before in derived
       nname = md[1]
 
       # Do final processing of previous lick: merging with default and replacement of vars
       if lick
         if name == 'default'
-          default = lick
+          lick.each {|k,v| default[k] = v}
         elsif name == 'vars'
           # vars have already been assigned; nothing to do here
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
-          lick[:tags] = ([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself)
+          lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
           lick[:desc] = [name, lick[:tags]].flatten.join(',')
           lick[:rec_key] ||= 'c'
+          lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
         end
       end
@@ -81,14 +82,7 @@ def read_licks
       tags.split.each do |tag|
         err "Tags must consist of word characters; '#{tag}' does not" unless tag.match?(/^#{word_re}$/) || tag.match?(/^\$#{word_re}$/) 
       end
-      lick[var] = tags.split.map! do |tag|
-        if tag.start_with?('$')
-          err("Unknown variable #{tag} used in lick #{name}") unless vars[tag]
-          vars[tag]
-        else
-          tag
-        end
-      end
+      lick[var] = tags.split
 
     # holes = value1 value2 ...
     elsif md = line.match(/^ *holes *= *(.*?) *$/)
@@ -167,23 +161,7 @@ def read_licks
   tags_in_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
 
   if $opts[:tags] == 'print'
-    puts "All Tags from #{lfile}:"
-    counts = Hash.new {|h,k| h[k] = 0}
-    all_licks.each do |lick|
-      lick[:tags].each {|tag| counts[tag] += 1}
-    end
-    long_text = 'Total number of different tags:'
-    maxlen = [long_text.length,counts.keys.max_by(&:length).length].max
-    format = "  %-#{maxlen}s %6s\n"
-    line = ' ' + '-' * (maxlen + 10)
-    printf format,'Tag','Count'
-    puts line
-    counts.keys.sort.each {|k| printf format,k,counts[k]}
-    puts line
-    printf format, 'Total number of tags:', counts.values.sum
-    printf format, long_text, counts.keys.length
-    puts line
-    printf format, 'Total number of licks: ',all_licks.length
+    print_lick_and_tag_info all_licks
     exit
   end
 
@@ -191,7 +169,12 @@ def read_licks
     pp all_licks
     exit
   end
-  
+
+  if $opts[:tags] == 'hist' || $opts[:tags] == 'history'
+    print_last_licks_from_journal all_licks
+    exit
+  end
+
   err("No licks can be found, because options '--tags' and '--no-tags' have this intersection: #{keep.intersection(discard).to_a}") if keep.intersection(discard).any?
 
   err("There are some tags in option '--tags' and '--no-tags' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in '--tags' and '--no-tags' are: #{(tags_in_opts - tags_in_licks).to_a}") unless tags_in_opts.subset?(tags_in_licks)
@@ -200,11 +183,12 @@ def read_licks
             select {|lick| keep.empty? || (keep.to_a & lick[:tags]).any?}.
             reject {|lick| discard.any? && (discard.to_a & lick[:tags]).any?}.
             select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
+            select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}.
             uniq {|lick| lick[:holes]}
 
-  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying options '--tags' and '--no-tags' and '--max-holes'") if licks.length == 0
+  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying options '--tags' and '--no-tags', '--max-holes' and '--min-holes'") if licks.length == 0
 
-  licks
+  [all_licks, licks]
 end
 
 
@@ -225,7 +209,7 @@ def create_initial_lick_file lfile
         #
         # Special sections are:
         #   [vars]     defining global variables to be used in tags;
-        #              may help to save some typing
+        #              may help to save some typing.
         #   [default]  define values, that will be included in any lick;
         #              works only for tags; in an individual lick you
         #              may override or add to this.
@@ -354,7 +338,7 @@ end
 
 def refresh_licks
   if File.mtime($lick_file) > $lick_file_mod_time
-    $licks = read_licks
+    $all_licks, $licks = read_licks
     true
   else
     false
@@ -364,4 +348,123 @@ end
 
 def musical_event? hole_or_note
   hole_or_note.match?(/^\(\S*\)$/)
+end
+
+
+def print_lick_and_tag_info all_licks = $all_licks
+
+  puts "\n(read from #{$lick_file})\n\n"
+
+  puts "All known licks with tags:"
+  puts
+  lname = all_licks.max_by {|l| l[:name].length}
+  ltags = tags = nil
+  print '  '
+  all_licks.each do |lick|
+    tags = lick[:tags].join(',')
+    if ltags && ltags != tags
+      print "  :  #{ltags}\n  "
+    else
+      print ',' if ltags
+    end
+    print lick[:name]
+    ltags = tags
+  end
+  puts "  :  #{ltags}"
+
+  # stats for tags
+  puts "\nAll tags:\n\n"
+  counts = Hash.new {|h,k| h[k] = 0}
+  all_licks.each do |lick|
+    lick[:tags].each {|tag| counts[tag] += 1}
+  end
+  long_text = 'Total number of different tags:'
+  maxlen = [long_text.length,counts.keys.max_by(&:length).length].max
+  format = "  %-#{maxlen}s %6s\n"
+  line = ' ' + '-' * (maxlen + 10)
+  printf format,'Tag','Count'
+  puts line
+  counts.keys.sort.each {|k| printf format,k,counts[k]}
+  puts line
+  printf format, 'Total number of tags:', counts.values.sum
+  printf format, long_text, counts.keys.length
+  puts line
+  printf format, 'Total number of licks: ',all_licks.length
+
+  # stats for lick lengths
+  puts "\nCounting licks by number of holes:\n"  
+  format = "  %2d ... %2d     %3d\n"
+  line = "  ----------    ---------------"
+  puts "\n  Hole Range    Number of Licks"
+  puts line
+  by_len = all_licks.group_by {|l| l[:holes].length}
+  cnt = 0
+  lens = []
+  by_len.keys.sort.each_with_index do |len,idx|
+    cnt += by_len[len].length
+    lens << len
+    if cnt > all_licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
+      printf format % [lens[0],lens[-1],cnt]
+      cnt = 0
+      lens = []
+    end
+  end
+  puts line
+  puts format % [by_len.keys.minmax, all_licks.length].flatten
+  puts
+end
+
+
+def replace_vars vars, words, name
+  words.map do |word|
+    if word.start_with?('$')
+      err("Unknown variable #{word} used in lick #{name}") unless vars[word]
+      vars[word]
+    else
+      word
+    end
+  end
+end
+
+
+def get_last_lick_idxs_from_journal licks = $licks
+  lnames = []
+  File.readlines($journal_file).each do |line|
+    md = line.match(/^Lick +([^, ]+)/)
+    lnames << md[1] if md
+    lnames.shift if lnames.length > 100
+  end
+  err "Did not find any licks in #{$journal_file}" unless lnames.length > 0
+  idxs = lnames.map do |ln|
+    licks.index {|l| l[:name] == ln }
+  end.select(&:itself)
+  err "Could not find any lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}" if idxs.length == 0
+  idxs.reverse[0..16]
+end
+
+
+def print_last_licks_from_journal licks = $licks
+  puts "\nList of most recent licks played:"
+  puts "  - abbrev (e.g. '2l') for '--start-with'"
+  puts "  - name,tag1,tag2, ... of lick"
+  puts
+  puts "Last lick comes first:"
+  puts
+  cnt = 1
+  get_last_lick_idxs_from_journal(licks).each do |idx|
+    print '  '
+    if cnt == 1
+      print ' l: '
+    elsif cnt <= 9
+      print cnt.to_s + 'l: '
+    else
+      print '    '
+    end
+    cnt += 1
+    puts licks[idx][:desc]
+    
+  end
+  puts
+  puts "(from #{$journal_file})"
+  puts
 end

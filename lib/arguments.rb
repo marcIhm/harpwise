@@ -99,14 +99,14 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
   Use '--tags print' to see all defined tags in lick-file (or see there).
 
-  To play only shorter licks use e.g. '--max-holes 8'.  '--start-with'
-  specifies the first lick to play and accepts the special value 'last' or
-  'l' to repeat the last lick ('2l', '3l' for earlier licks); licks
-  addressed this way will not be written to the journal.  Use
-  '--start-with iter' to iterate through all selected licks one by one;
-  use '--start-with foo,iter' to start at lick foo.
-  To see a list of recent licks use '--start-with history', for a list of all
-  licks '--start-with print'.
+  To play only shorter licks use e.g. '--max-holes 8' or '--min-holes 12'
+  for longer.  '--start-with' specifies the first lick to play and accepts
+  the special value 'last' or 'l' to repeat the last lick ('2l', '3l' for
+  earlier licks); licks addressed this way will not be written to the
+  journal.  Use '--start-with iter' to iterate through all selected licks
+  one by one; use '--start-with foo,iter' to start at lick foo.  To see a
+  list of recent licks use '--start-with history', for a list of all licks
+  from lick-file '--start-with print'.
 
   To make the mode more *challenging* and to improve the learning result,
   you may let only parts of the recording be played. E.g. with '--partial
@@ -217,6 +217,7 @@ EOU
     %w(--tags) => :tags,
     %w(--no-tags) => :no_tags,
     %w(--max-holes) =>:max_holes,
+    %w(--min-holes) =>:min_holes,
     %w(--holes) => :holes,
     %w(--no-progress) => :no_progress,
     %w(--start-with) => :start_with,

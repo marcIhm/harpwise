@@ -3,7 +3,7 @@
 #
 
 def do_play
-  $licks = read_licks
+  $all_licks, $licks = read_licks
   lick = nil
   jtext = nil
   do_write_journal = true
@@ -20,10 +20,13 @@ def do_play
       jtext = sprintf('Lick %s: ', lick[:desc]) + lick[:holes].join(' ')
       lick[:holes]
     elsif hnle == 'print'
-      print_all_licks
+      print_lick_and_tag_info $all_licks
       exit
+     elsif hnle == 'dump'
+       pp $all_licks
+       exit
     elsif hnle == 'hist' || hnle == 'history'
-      print_last_licks_from_journal
+      print_last_licks_from_journal $all_licks
       exit
     elsif (md = hnle.match(/^(\dlast|\dl)$/)) || hnle == 'last' || hnle == 'l'
       err "Argument 'last' must be single on command line" if ARGV.length > 1

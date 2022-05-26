@@ -14,7 +14,7 @@
    Weile dafür; also muss man das Ergebnis cachen (vermutlich in
    sox_query).
 
-** TODO [2022-05-11 Wed] Längen in der Zusammenfassung der licks 
+** DONE [2022-05-11 Wed] Anzahl Löcher in der Zusammenfassung der licks 
 
    (per '--tags print') auch eine Gruppierung/Histogramm nach Länge
    (i.e. Anzahl Löcher) anzeigen.
@@ -23,7 +23,7 @@
 
    Ist mit rec.length nicht eher rec.end gemeint ?
 
-** TODO [2022-05-16 Mon] Klasse statt Lambdas
+** CANCELED [2022-05-16 Mon] Klasse statt Lambdas
 
    In get_hole, z.B. GHController (get-hole-controller) ?
 
@@ -31,6 +31,16 @@
 
    Z.B. --partial 1/5 oder any/3 
 
-** TODO [2022-05-19 Thu] Hole grau anzeigen
+** DONE [2022-05-19 Thu] Hole grau anzeigen
 
    Wenn es zwar aktuell nicht mehr richtig ist aber davor richtig war
+
+   Gelb
+
+** DONE [2022-05-25 Wed] Gleichverteilung beim Würfeln des nächsten Licks
+
+   Und so daß keins zweimal hintereinander kommt.
+
+** DONE [2022-05-25 Wed] Default in den Licks überschreibt den nächsten
+
+   Und ersetzt ihn nicht

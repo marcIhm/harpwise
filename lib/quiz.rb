@@ -16,7 +16,7 @@ def do_quiz
   
   first_lap = true
   all_wanted_before = all_wanted = nil
-  $licks = read_licks
+  $all_licks, $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
   start_with = $opts[:start_with].dup
   puts
@@ -38,7 +38,14 @@ def do_quiz
     #
     #  First compute and play the sequence that is expected
     #
-    
+
+    # check, if lick has changed
+    if lick_idx && refresh_licks
+      lick = $licks[lick_idx]
+      all_wanted = lick[:holes]
+      ctl_issue 'Refreshed licks'
+    end
+
     # handle $ctl-commands from keyboard-thread, that probably come from a previous loop
     if $ctl_back # 
       if lick
@@ -89,16 +96,22 @@ def do_quiz
           lick_idx = lick_idx_iter
 
         elsif !start_with # most general case: choose random lick
-          lick_idx = rand($licks.length)
-          # rather take following lick than repeat one
-          lick_idx = (lick_idx + 1) % $licks.length if lick_idx == lick_idx_before
+          if lick_idx_before
+            lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
+          else
+            lick_idx = rand($licks.length)
+          end
 
         elsif start_with == 'print'
-          print_all_licks
+          print_lick_and_tag_info $all_licks
+          exit
+          
+        elsif start_with == 'dump'
+          pp $all_licks
           exit
           
         elsif start_with == 'hist' || start_with == 'history'
-          print_last_licks_from_journal
+          print_last_licks_from_journal $all_licks
           exit
 
         elsif %w(i iter iterate).include?(start_with)
@@ -126,13 +139,6 @@ def do_quiz
         all_wanted = lick[:holes]
         jtext = sprintf('Lick %s: ', lick[:desc]) + all_wanted.join(' ')
 
-      end
-
-      # check, if lick has changed
-      if lick_idx && refresh_licks
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-        ctl_issue 'Refreshed licks'
       end
 
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal

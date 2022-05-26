@@ -87,7 +87,7 @@ def set_global_vars_late
   else
     $journal_file = "#{$data_dir}/journal_#{$mode}.txt"
   end
-  $licks = nil
+  $all_licks, $licks = nil
 end
 
 

@@ -49,7 +49,7 @@ set_global_vars_late
 $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
 
 $chart, $hole2chart = read_chart
-$licks = read_licks if $mode == :play || $mode == :memorize
+$all_licks, $licks = read_licks if $mode == :play || $mode == :memorize
 
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
