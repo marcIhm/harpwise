@@ -17,9 +17,14 @@ require_relative 'test_utils.rb'
 
 $sut = load_technical_config
 $fromon = ARGV.join(' ')
-$fromon_idx = $fromon.to_i if $fromon.match?(/^\d+$/)
+$fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
+$fromon_id_regex = '^(id-[a-z0-9]+):'
+if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
+  $fromon_id = md[1]
+end
 $within = ARGV.length == 0
 $testing_dump_file = '/tmp/harp_trainer_dumped_for_testing.json'
+$testing_output_file = '/tmp/harp_trainer_dumped_for_testing.txt'
 $data_dir = "#{Dir.home}/.harp_trainer"
 $all_testing_licks = %w(juke special blues mape one two)
 
@@ -33,7 +38,12 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   print "Testing"
 
-  do_test 'usage screen' do
+  #
+  # How to assign ids: either any two uniq hex-digits for tests not in a loop
+  # or any letter from 'g' on for a series of numbered tests
+  #
+  
+  do_test 'id-01: usage screen' do
     new_session
     tms './harp_trainer'
     tms :ENTER
@@ -42,8 +52,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  %w(a c).each do |key|
-    do_test "auto-calibration key of #{key}" do
+  %w(a c).each_with_index do |key,idx|
+    do_test "id-g#{idx}: auto-calibration key of #{key}" do
       sound 8, 2
       new_session
       tms "./harp_trainer calib testing #{key} --auto --testing"
@@ -55,7 +65,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     end
   end
 
-  do_test 'manual calibration' do
+  do_test 'id-02: manual calibration' do
     sound 1, -14
     new_session
     tms './harp_trainer calib testing g --testing'
@@ -69,7 +79,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'manual calibration summary' do
+  do_test 'id-03: manual calibration summary' do
     sound 1, -14
     new_session
     tms './harp_trainer calib testing a --testing'
@@ -81,7 +91,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'manual calibration starting at hole' do
+  do_test 'id-04: manual calibration starting at hole' do
     sound 1, -14
     new_session
     tms './harp_trainer calib testing a --hole +4 --testing'
@@ -98,7 +108,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'check against et' do
+  do_test 'id-05: check against et' do
     sound 1, 10
     new_session
     tms './harp_trainer calib testing c --hole +4 --testing'
@@ -113,7 +123,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'listen' do
+  do_test 'id-06: listen' do
     sound 8, 2
     journal_file = "#{$data_dir}/journal_listen.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
@@ -128,7 +138,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'change key of harp' do
+  do_test 'id-07: change key of harp' do
     new_session
     tms './harp_trainer listen testing a all --testing'
     tms :ENTER
@@ -142,7 +152,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'listen with merged scale' do
+  do_test 'id-08: listen with merged scale' do
     sound 8, 2
     new_session
     tms './harp_trainer listen testing a blues --merge chord-v,chord-i --testing'
@@ -152,7 +162,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'listen with removed scale' do
+  do_test 'id-09: listen with removed scale' do
     sound 8, 2
     new_session
     tms './harp_trainer listen testing a all --remove drawbends --testing'
@@ -163,7 +173,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'memorize to create simple lick file' do
+  do_test 'id-0a: memorize to create simple lick file' do
     lick_dir = "#{$data_dir}/licks/testing"
     lick_file = "#{lick_dir}/licks_with_holes.txt"
     FileUtils.rm_r lick_dir if File.exist?(lick_dir)
@@ -176,7 +186,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'quiz' do
+  do_test 'id-10: quiz' do
     sound 8, 3
     new_session
     tms './harp_trainer quiz 2 testing c all --testing'
@@ -186,7 +196,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'transpose scale does work on zero shift' do
+  do_test 'id-11: transpose scale does work on zero shift' do
     new_session
     tms './harp_trainer listen testing a blues --transpose_scale_to c'
     tms :ENTER
@@ -195,7 +205,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'transpose scale works on non-zero shift' do
+  do_test 'id-12: transpose scale works on non-zero shift' do
     new_session
     tms './harp_trainer listen testing a blues --transpose_scale_to g --testing'
     tms :ENTER
@@ -205,7 +215,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'transpose scale not working in some cases' do
+  do_test 'id-13: transpose scale not working in some cases' do
     new_session
     tms './harp_trainer listen testing a blues --transpose_scale_to b'
     tms :ENTER
@@ -214,7 +224,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'play a lick' do
+  do_test 'id-14: play a lick' do
     new_session
     tms './harp_trainer play testing a mape --testing'
     tms :ENTER
@@ -223,7 +233,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'play a lick with recording' do
+  do_test 'id-15: play a lick with recording' do
     new_session
     tms './harp_trainer play testing a juke --testing'
     tms :ENTER
@@ -233,7 +243,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'play some holes and notes' do
+  do_test 'id-16: play some holes and notes' do
     new_session
     tms './harp_trainer play testing a -1 a5 +4 --testing'
     tms :ENTER
@@ -242,7 +252,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'memorize with lick file from previous test' do
+  do_test 'id-17: memorize with lick file from previous test' do
     new_session
     tms './harp_trainer memo testing a --testing'
     tms :ENTER
@@ -253,7 +263,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'memorize with licks with tags' do
+  do_test 'id-18: memorize with licks with tags' do
     new_session
     tms './harp_trainer memo testing --tags favorites,testing a --testing'
     tms :ENTER
@@ -264,7 +274,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'memorize with licks excluding one tag' do
+  do_test 'id-19: memorize with licks excluding one tag' do
     new_session
     tms './harp_trainer memo testing --no-tags scales a --testing'
     tms :ENTER
@@ -275,7 +285,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'error on unknown --tags' do
+  do_test 'id-1a: error on unknown --tags' do
     new_session
     tms './harp_trainer memo testing --tags unknown a --testing'
     tms :ENTER
@@ -285,38 +295,39 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
   #
-  do_test 'memorize with --start-with' do
+  do_test 'id-1b: memorize with --start-with' do
     new_session
     tms './harp_trainer memo testing --start-with juke a --testing'
     tms :ENTER
-    sleep 2
+    sleep 4
     expect { screen[-2]['(juke)'] }
     kill_session
   end
 
-  do_test 'print list of tags' do
+  do_test 'id-1c: print list of tags' do
     new_session
     tms './harp_trainer memo testing --tags print'
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[10]['Total number of licks:               7'] }
+    expect { screen[8]['Total number of licks:               7'] }
     expect { screen[-3]['3 ... 18'] }
     kill_session
   end
 
-  do_test 'print list of licks' do
+  do_test 'id-1d: print list of licks' do
     new_session
-    tms './harp_trainer play testing print'
+    tms "./harp_trainer play testing print >#{$testing_output_file}"
     tms :ENTER
     sleep 2
+    lines = File.read($testing_output_file).lines
     $all_testing_licks.each_with_index do |txt,idx|
-      expect { screen[8+idx][txt]}
+      expect { lines[5+(idx < 4 ? idx : 4)][txt]}
     end
     kill_session
   end
 
-  do_test 'iterate through holes' do
+  do_test 'id-1e: iterate through holes' do
     new_session
     tms './harp_trainer memo testing --start-with iterate --testing'
     tms :ENTER
@@ -332,7 +343,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'iterate through holes from starting point' do
+  do_test 'id-1f: iterate through holes from starting point' do
     new_session
     tms './harp_trainer memo testing --start-with special,iter --testing'
     tms :ENTER
@@ -345,7 +356,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'back one lick' do
+  do_test 'id-20: back one lick' do
     new_session
     tms './harp_trainer memo testing --start-with juke --testing'
     tms :ENTER
@@ -360,7 +371,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'use option --partial' do
+  do_test 'id-21: use option --partial' do
     new_session
     tms './harp_trainer memo testing --start-with juke --partial 1@b --testing'
     tms :ENTER
@@ -370,7 +381,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'use option --partial and --holes' do
+  do_test 'id-22: use option --partial and --holes' do
     new_session
     tms './harp_trainer memo testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER

@@ -66,23 +66,32 @@ end
 $memo_file = "#{Dir.home}/.harp_trainer_test_memo.json"
 $memo_count = 0
 $memo_seen = Set.new
-$memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', times: {}}
+$memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
 $memo.transform_keys!(&:to_sym)
+$fromon_id_uniq = Set.new
 
 def do_test text
   $memo_count += 1
-  $within = true if ( $fromon_idx && $memo_count == $fromon_idx ) ||
-                    ( $fromon && text[$fromon] )
+  if md = text.match(/#{$fromon_id_regex}/)
+    id = md[1]
+    fail "Test-id #{id} has already appeared" if $fromon_id_uniq.include?(id)
+    $fromon_id_uniq << id
+  else
+    fail "Test '#{text}' should start with an id"
+  end
+  $within = true if ( $fromon_cnt && $memo_count == $fromon_cnt ) ||
+                    ( $fromon_id && text.start_with?($fromon_id))
+  ( $fromon && text[$fromon] )
   return unless $within
   puts
   File.delete($testing_dump_file) if File.exists?($testing_dump_file)
   $memo_seen << text
-  maxlen = $memo[:times].keys.map {|k| k.length}.max || 0
-  time = $memo[:times][text]
+  maxlen = $memo[:durations].keys.map {|k| k.length}.max || 0
+  time = $memo[:durations][text]
   print "  #{text.ljust(maxlen)}    #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
   start = Time.now.to_f
   yield
-  $memo[:times][text] = Time.now.to_f - start
+  $memo[:durations][text] = Time.now.to_f - start
 end
 
 def read_testing_output
@@ -91,9 +100,9 @@ def read_testing_output
 end
 
 at_exit {
-  if $!.nil? || $!.success?
+  if $!.nil?
     $memo[:count] = $memo_count
-    $memo[:times].each_key {|k| $memo[:times].delete(k) unless $memo_seen === k}
+    $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
   end
-  File.write($memo_file, JSON.pretty_generate($memo)) unless $fromon
+  File.write($memo_file, JSON.pretty_generate($memo)) unless $fromon&.length > 0
 }

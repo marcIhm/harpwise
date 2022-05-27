@@ -357,7 +357,6 @@ def print_lick_and_tag_info all_licks = $all_licks
 
   puts "All known licks with tags:"
   puts
-  lname = all_licks.max_by {|l| l[:name].length}
   ltags = tags = nil
   print '  '
   all_licks.each do |lick|
