@@ -422,7 +422,7 @@ def update_chart hole, state
     cell = $chart[xy[1]][xy[0]]
     pre = case state
           when :good
-            if $hole2flags[hole].include?(:all)
+            if $hole2flags[hole].include?(:both)
               "\e[0m\e[7m"
             elsif $hole2flags[hole].include?(:main)
               "\e[92m\e[7m"
@@ -430,7 +430,7 @@ def update_chart hole, state
               "\e[94m\e[7m"
             end
           when :was_good
-            if $hole2flags[hole].include?(:all)
+            if $hole2flags[hole].include?(:both)
               "\e[33m\e[7m"
             elsif $hole2flags[hole].include?(:main)
               "\e[32m\e[7m"
