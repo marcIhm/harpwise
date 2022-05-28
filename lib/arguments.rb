@@ -121,7 +121,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
   For memorize to be useful, you need to create a file with your own licks
   for more info see the starter file created initally.  Please note, that
-  this mode will set the scale to 'all' implicitly.
+  this mode will set the scale to 'all' if no scale argument is given.
 
 
 ------ play ------
@@ -307,9 +307,14 @@ EOU
    
   (er = check_key_and_set_pref_sig(key)) && err(er)
   $err_binding = binding
-  if mode == :calibrate || mode == :memorize
-    err("Do not need a scale argument for mode #{mode}: #{ARGV}") if ARGV.length == 1
-    scale = 'all' if mode == :memorize
+  if mode == :calibrate
+    err("Do not need a scale argument for mode calibrate: #{ARGV[0]}") if ARGV.length == 1
+  elsif mode == :memorize
+    if ARGV.length == 1
+      scale = scales_for_type(type).select {|s| s==ARGV[0]}[0]
+    else
+      scale = 'all'
+    end
   elsif mode == :play
     err("Need a scale or some holes as arguments") if ARGV.length == 0
     scale = scales_for_type(type).select {|s| s==ARGV[0]}[0] if ARGV.length == 1
@@ -319,7 +324,7 @@ EOU
   err "Need at least one argument for mode play" if ARGV.length == 0 && mode == :play
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play
+  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :memorize
   $err_binding = nil
   
   # late option processing depending on mode

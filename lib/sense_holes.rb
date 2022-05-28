@@ -154,7 +154,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
         else
           print "\e[34m#{$opts[:merge]}"
         end
-        print "\e[0m\e[2m#{$hole2rem && (';' + $hole2rem[hole])}".strip
+        print "\e[0m\e[2m#{$hole2rem && (';' + ($hole2rem[hole] || ''))}".strip
       else
         print ($hole2rem && $hole2rem[hole]) || '--'
       end

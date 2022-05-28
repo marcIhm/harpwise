@@ -1,8 +1,9 @@
-Testing the scripts from directory install is done via docker.
+Testing the scripts from the top-level directory "install" is done via docker.
 
 * Build a docker image
 
-    docker build -f dockerfile.ubuntu --progress=plain --no-cache -t harp_trainer_ubuntu:latest $HOME
+    docker build -f dockerfile.ubuntu --progress=plain \
+                 --no-cache -t harp_trainer_ubuntu:latest $HOME
 
   or 
 
@@ -20,8 +21,9 @@ Testing the scripts from directory install is done via docker.
     docker run -it harp_trainer_fedora:latest
 
 
-  this proves, that the scripts for installing dependencies from
-  directory install do work.
+  As the script tests all (?) its dependencies on each invocation, a
+  successfull usage-information already proves, that the scripts for
+  installing dependencies from directory install do work.
 
   (add '--entrypoint /bin/bash' to investigate, if not)
 
