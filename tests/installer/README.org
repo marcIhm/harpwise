@@ -2,13 +2,15 @@ Testing the scripts from the top-level directory "install" is done via docker.
 
 * Build a docker image
 
+  (in harp_trainer/tests/installer)
+
     docker build -f dockerfile.ubuntu --progress=plain \
                  --no-cache -t harp_trainer_ubuntu:latest $HOME
 
   or 
 
-    docker build -f dockerfile.fedora --progress=plain --no-cache -t harp_trainer_fedora:latest $HOME
-
+    docker build -f dockerfile.fedora --progress=plain \
+                 --no-cache -t harp_trainer_fedora:latest $HOME
 
 * Run the image 
 
