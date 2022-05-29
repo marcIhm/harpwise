@@ -443,13 +443,13 @@ end
     
 
 def get_hole_color_inactive hole
-  if $scale_notes.include?(hole)
+  if $scale_holes.include?(hole)
     if $hole2flags[hole].include?(:all)
-      print 0
+      0
     elsif $hole2flags[hole].include?(:main)
-      print 32
+      32
     else
-      print 34
+      34
     end
   else
     2
