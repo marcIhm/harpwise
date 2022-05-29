@@ -12,6 +12,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
+  was_good = was_was_good = was_good_since = nil
   first_lap = true
 
   loop do   # until var done or skip
@@ -56,7 +57,8 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       end
     end
     hole_for_inter = nil
-    
+
+    was_was_good = was_good
     good, done, was_good = if $opts[:screenshot]
                              [true, $ctl_can_next && Time.now.to_f - hole_start > 2, false]
                            elsif $opts[:no_progress]
@@ -64,6 +66,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
                            else
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
+    was_good_since = Time.now.to_f if was_good && was_good != was_was_good
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
     just_dots_short = '.........:.........'
@@ -86,33 +89,40 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[0m\e[%dm" %
-                 if $opts[:no_progress]
+                 if $opts[:no_progress] || !regular_hole?(hole)
                    2
-                 elsif was_good
-                   33
-                 else
-                   if regular_hole?(hole)
-                     if good
-                       if $hole2flags[hole].include?(:both)
-                         0
-                       elsif $hole2flags[hole].include?(:main)
-                         32
-                       else
-                         34
-                       end
-                     else
-                       31
-                     end
+                 elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
+                   if $hole2flags[hole].include?(:both)
+                     0
+                   elsif $hole2flags[hole].include?(:main)
+                     92
                    else
-                     2
+                     94
                    end
+                 elsif (was_good && (Time.now.to_f - was_good_since) < 1)
+                   if $hole2flags[hole].include?(:both)
+                     2
+                   elsif $hole2flags[hole].include?(:main)
+                     32
+                   else
+                     34
+                   end
+                 else
+                   31
                  end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
     when :chart
       update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
-      update_chart(hole, good  ?  :good  :  ( was_good  ?  :was_good  :  :bad) )
+      update_chart(hole,
+                   if good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
+                     :good
+                   elsif (was_good && (Time.now.to_f - was_good_since) < 1)
+                     :was_good
+                   else
+                     :bad
+                   end)
     when :hole
       print "\e[#{$line_display}H\e[0m"
       print hole_color

@@ -431,7 +431,7 @@ def update_chart hole, state
             end
           when :was_good
             if $hole2flags[hole].include?(:both)
-              "\e[33m\e[7m"
+              "\e[2m\e[7m"
             elsif $hole2flags[hole].include?(:main)
               "\e[32m\e[7m"
             else
