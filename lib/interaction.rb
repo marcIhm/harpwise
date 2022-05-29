@@ -375,21 +375,8 @@ def print_chart
   $chart.each do |row|
     print ' ' * ( xoff - 1)
     row[0 .. -2].each do |cell|
-      dim = comment_in_chart?(cell) || !$scale_notes.include?(cell.strip)
       hole = $note2hole[cell.strip]
-      print "\e[0m"
-      if dim
-        print "\e[2m"
-      else
-        if $hole2flags[hole].include?(:all)
-          print "\e[0m"
-        elsif $hole2flags[hole].include?(:main)
-          print "\e[32m"
-        else
-          print "\e[34m"
-        end
-      end
-    
+      printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
       print cell
     end
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
@@ -415,47 +402,57 @@ def clear_area_help
 end
 
 
-def update_chart hole, state
+def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
     cell = $chart[xy[1]][xy[0]]
-    pre = case state
-          when :good
-            if $hole2flags[hole].include?(:both)
-              "\e[0m\e[7m"
-            elsif $hole2flags[hole].include?(:main)
-              "\e[92m\e[7m"
-            else
-              "\e[94m\e[7m"
-            end
-          when :was_good
-            if $hole2flags[hole].include?(:both)
-              "\e[2m\e[7m"
-            elsif $hole2flags[hole].include?(:main)
-              "\e[32m\e[7m"
-            else
-              "\e[34m\e[7m"
-            end
-          when :bad
-            "\e[31m\e[7m"
-          when :normal
-            if $scale_notes.include?(cell.strip)
-              if $hole2flags[hole].include?(:all)
-                "\e[0m"
-              elsif $hole2flags[hole].include?(:main)
-                "\e[32m"
-              else
-                "\e[34m"
-              end
-            else
-              "\e[0m\e[2m"
-            end
-          else
-            fail "Internal error"
-          end
-            
-    print "\e[#{y};#{x}H\e[0m#{pre}#{cell}\e[0m"
+    hole_color = if state == :inactive
+                   "\e[%dm" % get_hole_color_inactive(hole)
+                 else
+                   "\e[%dm\e[7m" % get_hole_color_active(hole, good, was_good, was_good_since)
+                 end
+    print "\e[#{y};#{x}H\e[0m#{hole_color}#{cell}\e[0m"
+  end
+end
+
+
+def get_hole_color_active hole, good, was_good, was_good_since
+  if $opts[:no_progress] || !regular_hole?(hole)
+    2
+  elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
+    if $hole2flags[hole].include?(:both)
+      0
+    elsif $hole2flags[hole].include?(:main)
+      92
+    else
+      94
+    end
+  elsif (was_good && (Time.now.to_f - was_good_since) < 1)
+    if $hole2flags[hole].include?(:both)
+      2
+    elsif $hole2flags[hole].include?(:main)
+      32
+    else
+      34
+    end
+  else
+    31
+  end
+end
+    
+
+def get_hole_color_inactive hole
+  if $scale_notes.include?(hole)
+    if $hole2flags[hole].include?(:all)
+      print 0
+    elsif $hole2flags[hole].include?(:main)
+      print 32
+    else
+      print 34
+    end
+  else
+    2
   end
 end
 

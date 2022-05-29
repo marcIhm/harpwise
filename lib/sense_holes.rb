@@ -88,41 +88,13 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[0m\e[%dm" %
-                 if $opts[:no_progress] || !regular_hole?(hole)
-                   2
-                 elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
-                   if $hole2flags[hole].include?(:both)
-                     0
-                   elsif $hole2flags[hole].include?(:main)
-                     92
-                   else
-                     94
-                   end
-                 elsif (was_good && (Time.now.to_f - was_good_since) < 1)
-                   if $hole2flags[hole].include?(:both)
-                     2
-                   elsif $hole2flags[hole].include?(:main)
-                     32
-                   else
-                     34
-                   end
-                 else
-                   31
-                 end
+    hole_color = "\e[0m\e[%dm" % get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
     when :chart
-      update_chart(hole_was_for_disp, :normal) if hole_was_for_disp && hole_was_for_disp != hole
+      update_chart(hole_was_for_disp, :inactive) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
-      update_chart(hole,
-                   if good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
-                     :good
-                   elsif (was_good && (Time.now.to_f - was_good_since) < 1)
-                     :was_good
-                   else
-                     :bad
-                   end)
+      update_chart(hole, :active, good, was_good, was_good_since)
     when :hole
       print "\e[#{$line_display}H\e[0m"
       print hole_color
