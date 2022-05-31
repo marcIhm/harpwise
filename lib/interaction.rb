@@ -436,6 +436,8 @@ def get_hole_color_active hole, good, was_good, was_good_since
     else
       34
     end
+  elsif was_good
+    93
   else
     31
   end
