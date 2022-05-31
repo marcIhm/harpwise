@@ -32,6 +32,9 @@ Sys::ProcTable.ps{ |p|
   err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[myself] && p.cmdline['ruby']
 }
 
+# go to where the executable is
+Dir.chdir(File.dirname(File.realpath(File.expand_path(__FILE__))))
+
 check_installation
 
 $term_height, $term_width = prepare_screen
