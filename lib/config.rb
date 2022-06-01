@@ -91,13 +91,16 @@ def set_global_vars_late
 end
 
 
-def check_installation
+def check_installation install_dir
   # check for some required programs
   not_found = %w( figlet arecord aplay aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
-  
-  if !File.exist?(File.basename($0))
-    err "Please invoke this program from within its own directory (cannot find #{File.basename($0)} in current dir)"
+
+  # Check some sample dirs and files
+  %w(fonts/mono12.tlf config/intervals.yaml recordings/juke.mp3).each do |file|
+    if !File.exist?(install_dir + '/' + file)
+      err "Installation is incomplete: The file #{file} does not exist in #{install_dir}"
+    end
   end
 end
 
