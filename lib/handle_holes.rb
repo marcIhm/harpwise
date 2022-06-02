@@ -21,7 +21,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
-      print "\e[#{$line_key}H\e[2m" + text_for_key
+      print "\e[#{$line_key}H" + text_for_key
       
       print_chart if $conf[:display] == :chart
       if $ctl_redraw && $ctl_redraw != :silent
@@ -261,7 +261,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
 
       $ctl_toggle_journal = false
 
-      print "\e[#{$line_key}H\e[2m" + text_for_key      
+      print "\e[#{$line_key}H" + text_for_key      
       $message_shown = Time.now.to_f
     end
 
@@ -303,7 +303,8 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       prepare_term
       $ctl_redraw = :silent
       system('clear')
-      print "\e[3J\e[#{$line_key}H\e[2m" + text_for_key
+      print "\e[3J" # clear scrollback
+      print "\e[#{$line_key}H" + text_for_key
       if $ctl_change_key
         print "\e[#{$line_hint_or_message}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
       else
@@ -328,10 +329,16 @@ end
 
 
 def text_for_key
-  text = "Mode: #{$mode} #{$type} #{$key}"
-  text += " #{$scale}"
-  text += ",#{$opts[:merge]}" if $opts[:merge]
-  text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
+  text = "\e[2mMode: #{$mode} #{$type} #{$key}"
+  if $opts[:merge]
+    text += "\e[0m"
+    text += " \e[32m#{$scale}"
+    text += "\e[0m\e[2m," + $opts[:merge].split(',').map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
+    text += "\e[0m\e[2m"
+  else
+    text += " #{$scale}"
+  end
+  text += ', journal: ' + ( $write_journal  ?  'on' : 'off' )
   text += ", partial: #{$opts[:partial]}" if $opts[:partial]
   text += "\e[K"
 end

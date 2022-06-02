@@ -240,7 +240,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
     tempo_clause = if tempo == 1.0
                      ""
                    else
-                     "tempo %.1f" % tempo
+                     "tempo -m %.1f" % tempo
                    end                  
     cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
     _, _, wait_thr  = Open3.popen2(cmd)
