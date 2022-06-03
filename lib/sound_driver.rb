@@ -266,7 +266,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         end
       elsif $ctl_slower
         tempo -= 0.1 if tempo > 0.4
-        print "\e[0m\e[32mx%.1f\e[0m " % tempo
+        print "\e[0m\e[32m x%.1f\e[0m" % tempo
       elsif $ctl_rec_loop
         print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
         ctl_not_loop = false

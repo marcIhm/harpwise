@@ -30,7 +30,7 @@ def set_global_vars_early
   $debug_log = "debug.log"
   $write_journal = false
   $message_shown = false
-  $display_choices = [:hole, :chart, :bend]
+  $display_choices = [:hole, :chart_notes, :chart_scales, :bend]
   $comment_choices = [:note, :interval, :hole, :cents]
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
@@ -129,7 +129,7 @@ def read_technical_config
   conf = load_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-  [:comment_listen, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].to_sym}
+  [:comment_listen, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
@@ -161,37 +161,39 @@ def read_musical_config
   note2hole = hole2note.invert
   harp_notes = harp.keys.map {|h| hole2note[h]}
 
-  holes2remove = []
-  if $opts[:remove]
-    $opts[:remove].split(',').each do |sn|
-      sc, _ = read_and_parse_scale(sn, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
-      holes2remove.concat(sc)
-    end
-  end
+  # process scales
   if $scale
-    snames = [$scale]
-    snames.concat($opts[:merge].split(',')) if $opts[:merge]
+    
+    # get all holes to remove
+    holes_remove = []
+    if $opts[:remove]
+      $opts[:remove].split(',').each do |sn|
+        sc_ho, _ = read_and_parse_scale(sn, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+        holes_remove.concat(sc_ho)
+      end
+    end
+
     scale = []
-    h2sn = Hash.new {|h,k| h[k] = Array.new}
-    snames.each_with_index do |sname, i|
+    h2sabb = Hash.new {|h,k| h[k] = ''}
+    $scales.each_with_index do |sname, idx|
       # read scale
-      sc, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
-      # merge results
-      holes2remove.each {|h| sc.delete(h)}
-      scale.concat(sc) unless i > 0 && $opts[:no_add]
+      sc_ho, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+      # build resulting scale
+      holes_remove.each {|h| sc_ho.delete(h)}
+      scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
       h2r.each_key do |h|
-        next if holes2remove.include?(h)
-        if i == 0
+        next if holes_remove.include?(h)
+        if idx == 0
           hole2flags[h] << :main
         else
-          next if $opts[:no_add] && !hole2flags[h]
-          hole2flags[h] << :merged
+          next if $opts[:add_no_holes] && !hole2flags[h]
+          hole2flags[h] << :added
         end
-        hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:merged)
-        hole2flags[h] << :all if !$opts[:merge] || hole2flags[h].include?(:both)
+        hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:added)
+        hole2flags[h] << :all if !$opts[:add_scales] || hole2flags[h].include?(:both)
         hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
-        h2sn[h] << sname
-        if i == 0
+        h2sabb[h] += $scale2abbrev[sname]
+        if idx == 0
           hole2rem[h] = h2r[h]
         else
           hole2rem[h] = if !hole2rem[h] && !h2r[h]
@@ -216,6 +218,7 @@ def read_musical_config
   else            
     semi2hole = scale_holes = scale_notes = nil
   end
+  
   # read from first available intervals file
   ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
@@ -227,6 +230,7 @@ def read_musical_config
     scale_notes,
     hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
+    h2sabb,
     semi2hole,
     note2hole,
     intervals,
@@ -246,11 +250,11 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
   sfile = sfiles[0]
 
   scale_read = yaml_parse(sfile)
-  scale = Array.new
+  scale_holes = Array.new
   hole2rem = Hash.new
 
   err_msg = if $opts[:transpose_scale_to]
-              "Transposing scale #{$scale} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+              "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
             else
               "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
             end
@@ -267,56 +271,67 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
       hole = note2hole[note]
       hole2rem[hole] = rem
       err(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]) unless hole
-      scale << hole
+      scale_holes << hole
     end
   end
   
-  scale_holes_with_rem = scale.map {|h| "#{h} #{hole2rem[h]}".strip}
-  scale_notes_with_rem = scale.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
+  scale_holes_with_rem = scale_holes.map {|h| "#{h} #{hole2rem[h]}".strip}
+  scale_notes_with_rem = scale_holes.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
   
   # write derived scale file
   dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
   comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
   File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
   
-  [scale, hole2rem]
+  [scale_holes, hole2rem]
 end
 
 
 def read_chart
   $chart_file = "config/#{$type}/chart.yaml"
-  chart = yaml_parse($chart_file)
-  chart.map! {|r| r.is_a?(String)  ?  r.split('|')  :  r}
+  chart_with_notes = yaml_parse($chart_file)
+  len = chart_with_notes.shift
+  chart_with_notes.map! {|r| r.split('|')}
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
-  len = chart.shift
   # first two elements will be set when checking for terminal size
   $conf[:chart_offset_xyl] = [0, 0, len] unless $conf[:chart_offset_xyl]
   begin
     # check for completeness
-    hchart = Set.new(chart.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
-    hharp = Set.new($harp.keys)
-    raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{hharp - hchart}, extra in chart: #{hchart - hharp}") if hchart != hharp
-
+    chart_holes = Set.new(chart_with_notes.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
+    harp_holes = Set.new($harp.keys)
+    raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{harp_holes - chart_holes}, extra in chart: #{chart_holes - harp_holes}") if chart_holes != harp_holes
+    
+    chart_with_scales = []
     # map from holes to notes for given key
-    (0 ... chart.length).each do |row|
-      (0 ... chart[row].length - 1).each do |col|
-        hole = chart[row][col]
-        chart[row][col] = if comment_in_chart?(hole)
-                            hole[0,len]
-                          else
-                            note = $harp[hole.strip][:note]
-                            raise ArgumentError.new("hole '#{hole}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
-                            hole2chart[hole.strip] << [col, row]
-                            note.center(len)
-                          end
+    (0 ... chart_with_notes.length).each do |row|
+      chart_with_scales << []
+      (0 ... chart_with_notes[row].length - 1).each do |col|
+        hole_padded = chart_with_notes[row][col]
+        chart_with_notes[row][col] = if comment_in_chart?(hole_padded)
+                                       hole_padded[0,len]
+                                     else
+                                       note = $harp[hole_padded.strip][:note]
+                                       raise ArgumentError.new("hole '#{hole_padded.strip}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
+                                       hole2chart[hole_padded.strip] << [col, row]
+                                       note.center(len)
+                                     end
+        chart_with_scales[row][col] = if comment_in_chart?(hole_padded)
+                                        hole_padded[0,len]
+                                      else
+                                        abbrevs = $hole2scale_abbrevs[hole_padded.strip]
+                                        abbrevs ||= '---'
+                                        raise ArgumentError.new("hole '#{hole_padded.strip}' maps to scale abbreviations '#{abbrevs}' which are longer than given length '#{len}'") if abbrevs.length > len
+                                        abbrevs.center(len)
+                                      end
       end
+      chart_with_scales[row] << chart_with_notes[row][-1]
     end
 
   rescue ArgumentError => e
     fail "Internal error with #{$chart_file}: #{e}"
   end
-  
-  [ chart, hole2chart ]
+
+  [ chart_with_notes, chart_with_scales, hole2chart ]
   
 end
 

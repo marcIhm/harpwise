@@ -376,7 +376,6 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer memo testing --start-with juke --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    # Six licks in file, four in those two sections, but two of them are identical
     expect { screen[1]['partial: 1@b'] }
     kill_session
   end
@@ -386,8 +385,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer memo testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    # Six licks in file, four in those two sections, but two of them are identical
     expect { screen[1]['partial: 1@b'] }
+    kill_session
+  end
+
+  do_test 'id-23: show chart with scales' do
+    new_session
+    tms './harp_trainer listen testing --display chart_with_scales --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[1]['yet unknown'] }
     kill_session
   end
 

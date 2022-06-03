@@ -9,7 +9,7 @@ key: c
 comment_listen: note
 
 # what to display for listen when a note has been recognized
-display_listen: chart
+display_listen: chart_notes
 
 # what to display for quiz and memorize when a note has been recognized
 display_quiz: hole

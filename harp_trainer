@@ -19,7 +19,7 @@ require_relative 'lib/interaction'
 require_relative 'lib/sound_driver'
 require_relative 'lib/analyze'
 require_relative 'lib/licks'
-require_relative 'lib/sense_holes'
+require_relative 'lib/handle_holes'
 require_relative 'lib/listen'
 require_relative 'lib/play'
 require_relative 'lib/calibrate'
@@ -42,15 +42,22 @@ set_global_vars_early
 
 $conf = read_technical_config
 
+# will be populated along with $scale and $scales
+$scale2abbrev = Hash.new  
+
 $mode, $type, $key, $scale, $opts = parse_arguments
 
-# we need to have mode for this
+$scales = get_all_scales($opts[:add_scales])
+
+# we need to have mode for this, so calculate it late
 calculate_screen_layout
   
 set_global_vars_late
-$harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+$harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
 
-$chart, $hole2chart = read_chart
+$chart_with_notes, $chart_with_scales, $hole2chart = read_chart
+
+$chart = $chart_with_notes
 $all_licks, $licks = read_licks if $mode == :play || $mode == :memorize
 
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])

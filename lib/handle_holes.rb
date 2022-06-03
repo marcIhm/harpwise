@@ -13,6 +13,8 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
+  $chart = $chart_with_notes if $conf[:display] == :chart_notes
+  $chart = $chart_with_scales if $conf[:display] == :chart_scales
   first_lap = true
 
   loop do   # until var done or skip
@@ -23,7 +25,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       ctl_issue
       print "\e[#{$line_key}H" + text_for_key
       
-      print_chart if $conf[:display] == :chart
+      print_chart if $conf[:display] == :chart_notes || $conf[:display] == :chart_scales
       if $ctl_redraw && $ctl_redraw != :silent
         print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
@@ -91,7 +93,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     hole_color = "\e[0m\e[%dm" % get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
-    when :chart
+    when :chart_notes, :chart_scales
       update_chart(hole_was_for_disp, :inactive) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
       update_chart(hole, :active, good, was_good, was_good_since)
@@ -125,16 +127,16 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
-    if $hole2rem || $opts[:merge]
+    if $hole2rem || $opts[:add_scales]
       print ",  Rem: "
-      if $opts[:merge] && $scale_holes.include?(hole)
+      if $opts[:add_scales] && $scale_holes.include?(hole)
         print "\e[0m"
         if $hole2flags[hole].include?(:both)
-          print "#{$scale},#{$opts[:merge]}"
+          print $scales.join(',')
         elsif $hole2flags[hole].include?(:main)
           print "\e[32m#{$scale}"
         else
-          print "\e[34m#{$opts[:merge]}"
+          print "\e[34m#{$scales[1..-1].join(',')}"
         end
         print "\e[0m\e[2m#{$hole2rem && (';' + ($hole2rem[hole] || ''))}".strip
       else
@@ -192,8 +194,10 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     if $ctl_change_display
       choices = [ $display_choices, $display_choices ].flatten
       $conf[:display] = choices[choices.index($conf[:display]) + 1]
+      $chart = $chart_with_notes if $conf[:display] == :chart_notes
+      $chart = $chart_with_scales if $conf[:display] == :chart_scales
       clear_area_display
-      print_chart if $conf[:display] == :chart
+      print_chart if $conf[:display] == :chart_notes || $conf[:display] == :chart_scales
       print "\e[#{$line_hint_or_message}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
       $message_shown = Time.now.to_f
       $ctl_change_display = false
@@ -330,16 +334,16 @@ end
 
 def text_for_key
   text = "\e[2mMode: #{$mode} #{$type} #{$key}"
-  if $opts[:merge]
+  if $opts[:add_scales]
     text += "\e[0m"
     text += " \e[32m#{$scale}"
-    text += "\e[0m\e[2m," + $opts[:merge].split(',').map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
-    text += "\e[0m\e[2m"
+    text += "\e[0m\e[2m," + $scales[1..-1].map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
+    text += "\e[0m,all\e[2m"
   else
     text += " #{$scale}"
   end
-  text += ', journal: ' + ( $write_journal  ?  'on' : 'off' )
-  text += ", partial: #{$opts[:partial]}" if $opts[:partial]
+  text += ', jour: ' + ( $write_journal  ?  'on' : 'off' )
+  text += ", part: #{$opts[:partial]}" if $opts[:partial]
   text += "\e[K"
 end
 

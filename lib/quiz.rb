@@ -346,7 +346,7 @@ end
 $sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
-  # construct chains of holes within scale and merged scale
+  # construct chains of holes within scale and added scale
   holes = Array.new
   # favor lower starting notes
   if rand > 0.5
@@ -380,12 +380,12 @@ def get_sample num
     end
   end
 
-  if $opts[:merge]
-    # (randomly) replace notes with merged ones and so prefer them 
+  if $opts[:add_scales]
+    # (randomly) replace notes with added ones and so prefer them 
     for i in (1 .. num - 1)
       if rand >= 0.6
-        holes[i] = nearest_hole_with_flag(holes[i], :merged)
-        what[i] = :nearest_merged
+        holes[i] = nearest_hole_with_flag(holes[i], :added)
+        what[i] = :nearest_added
       end
     end
     # (randomly) make last note a root note
@@ -466,9 +466,9 @@ def play_holes all_holes, first_lap
              else
                "\e[0m#{$harp[hole][:note]}\e[2m"
              end
-    if $opts[:merge]
+    if $opts[:add_scales]
       part = '(' +
-             $hole2flags[hole].map {|f| {merged: 'm', root: 'r'}[f]}.compact.join(',') +
+             $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
              ')'
       ltext += part unles part == '()'
     end

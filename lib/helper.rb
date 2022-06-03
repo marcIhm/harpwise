@@ -7,9 +7,9 @@
 
 def match_or cand, choices
   return unless cand
-  matches = choices.select {|c| c.start_with?(cand)}
-  yield "'#{cand}'", choices.join(', ') unless matches.length == 1
-  matches[0]
+  match = choices.find {|c| c.start_with?(cand)}
+  yield "'#{cand}'", choices.join(', ') unless match
+  match
 end
 
 
@@ -77,7 +77,7 @@ def display_kb_help what, first_lap, body
     clear_area_help
     puts "\e[#{$line_help}H\e[0m"
   end
-  puts "Keys available when playing a #{what}:\e[0m\e[32m\n"
+  puts "Keys available while playing a #{what}:\e[0m\e[32m\n"
   body.lines.each {|l| puts '      ' + l.chomp + "\n"}
   print "\e[0mType any key to continue ..."
   $ctl_kb_queue.clear

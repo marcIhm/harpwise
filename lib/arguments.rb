@@ -57,18 +57,21 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   is valid as well.
 
 
-  Both modes listen and quiz accept the option '--merge' with one or more
-  scales (separated by comma) to be merged. E.g. when trying licks for the
-  v-chord, you might use the blues scale and add the scale chord-v:
+  Both modes listen and quiz accept the option '--add-scales' with one or
+  more extra scales (separated by comma) to be shown. E.g. when trying
+  licks for the v-chord, you might use the blues scale and add the scales
+  chord-i and chord-v:
 
-    ./harp_trainer l blues --merge chord-v
+    ./harp_trainer l blues:b --add-scales chord-i:1,chord-v:5
 
-  For quiz, the holes from the merged scale (chord-v in the example above)
-  will be chosen more frequent than the holes from the main scale (blues);
-  the last note of a sequence will likely be a root note (i.e. one with
-  the remark root). If you do not want to add new holes during the merge,
-  so that you only use remarks, colors and scale-name from the merged
-  scale, add option '--no-add'.
+  This example also uses abbreviations, l,1 and 5, for the scales which
+  will be used in the chart.
+    
+  For quiz, the holes from the additional scales will be chosen more
+  frequent than the holes from the main scale (blues); the last note of a
+  sequence will likely be a root note (i.e. one with the remark root). If
+  you do not want to add new holes, so that you only use remarks, colors
+  and scale-name from the additional scales, add option '--add-no-holes'.
 
   Both modes accept the option '--remove' with one or more scales to be
   removed from the original scale. E.g. you might want to remove bends
@@ -197,16 +200,16 @@ EOU
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :merge, :remove, :tags, :no_tags, :max_holes, :start_with, :partial]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :add_scales, :remove, :tags, :no_tags, :max_holes, :start_with, :partial]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
     %w(-h --help) => :help,
     %w(--auto) =>:auto,
     %w(--hole) => :hole,
-    %w(-m --merge) => :merge,
+    %w(--add-scales) => :add_scales,
     %w(-r --remove) => :remove,
-    %w(--no-add) => :no_add,
+    %w(--add-no-holes) => :no_add_holes,
     %w(--immediate) => :immediate,
     %w(--transpose_scale_to) => :transpose_scale_to,
     %w(-r --ref) => :ref,
@@ -242,7 +245,7 @@ EOU
     err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
-  opts[:display] = match_or(opts[:display], $display_choices) do |none, choices|
+  opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
 
@@ -287,7 +290,7 @@ EOU
   if [:calibrate, :play, :memorize].include?(mode)
     scale = nil
   else
-    scale = ARGV.pop
+    scale = get_scale(ARGV.pop)
     err "Need at least one argument for scale" unless scale
   end
 
@@ -311,16 +314,17 @@ EOU
     err("Do not need a scale argument for mode calibrate: #{ARGV[0]}") if ARGV.length == 1
   elsif mode == :memorize
     if ARGV.length == 1
-      scale = scales_for_type(type).select {|s| s==ARGV[0]}[0]
+      scale = get_scale(ARGV[0])
     else
-      scale = 'all'
+      scale = get_scale('all')
     end
   elsif mode == :play
     err("Need a scale or some holes as arguments") if ARGV.length == 0
-    scale = scales_for_type(type).select {|s| s==ARGV[0]}[0] if ARGV.length == 1
+    scale = get_scale(ARGV[0])
   else
     err("Need value for scale as one more argument") unless scale
   end
+  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless scales_for_type(type).include?(scale)
   err "Need at least one argument for mode play" if ARGV.length == 0 && mode == :play
   
   # do this check late, because we have more specific error messages before
@@ -332,7 +336,7 @@ EOU
   [[[:quiz, :memorize],
     [:loop, :immediate]],
    [[:listen, :quiz, :memorize],
-    [:remove, :merge, :no_add, :comment]],
+    [:remove, :add_scales, :add_no_holes, :comment]],
    [[:calibrate],
     [:auto]],
    [[:memorize, :play],
@@ -352,6 +356,39 @@ EOU
   # some of these have already been set as global vars, but return them
   # anyway to make their origin transparent
   [ mode, type, key, scale, opts]
+end
+
+
+  $scale_abbrev_count = 1
+$abbrev2scale = Hash.new
+
+def get_scale scale_abbrev
+  err_text = "Abbreviation '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'"
+  scale = nil
+  if md = scale_abbrev.match(/^(.*?):(.*)$/)
+    scale = md[1]
+    $scale2abbrev[md[1]] = md[2]
+    err(err_text % [md[2], abbrev2scale[md[2]], md[1]]) if $abbrev2scale[md[1]]
+    $abbrev2scale[md[2]] = md[1]
+  else
+    scale = scale_abbrev
+    $scale2abbrev[scale_abbrev] = $scale_abbrev_count.to_s
+    err(err_text % [$scale_abbrev_count.to_s, $abbrev2scale[$scale_abbrev_count.to_s], scale_abbrev]) if $abbrev2scale[$scale_abbrev_count.to_s]
+    $abbrev2scale[$scale_abbrev_count.to_s] = scale_abbrev
+    $scale_abbrev_count += 1
+  end
+  scale
+end
+
+
+def get_all_scales scales_abbrevs
+  scales = [$scale]
+  if scales_abbrevs
+    scales_abbrevs.split(',').each do |scale_abbrev|
+      scales << get_scale(scale_abbrev)
+    end
+  end
+  scales
 end
 
 

@@ -2,8 +2,8 @@
 
   With these commandlines:
 
-  ./harp_trainer listen richter c blues --merge chord-v --screenshot
+  ./harp_trainer listen richter c blues --add-scales chord-v --screenshot
 
-  ./harp_trainer quiz 5 richter c blues --merge chord-v --screenshot
+  ./harp_trainer quiz 5 richter c blues --add-scales chord-v --screenshot
 
   
