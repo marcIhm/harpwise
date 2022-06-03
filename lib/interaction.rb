@@ -372,10 +372,10 @@ end
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
   print "\e[#{$line_display + yoff}H"
-  $chart.each do |row|
+  $chart.each_with_index do |row, ridx|
     print ' ' * ( xoff - 1)
-    row[0 .. -2].each do |cell|
-      hole = $note2hole[cell.strip]
+    row[0 .. -2].each_with_index do |cell, cidx|
+      hole = $note2hole[$chart_with_notes[ridx][cidx].strip]
       printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
       print cell
     end

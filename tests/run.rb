@@ -391,7 +391,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-23: show chart with scales' do
     new_session
-    tms './harp_trainer listen testing --display chart_with_scales --testing'
+    tms './harp_trainer listen testing --display chart-scales --testing'
     tms :ENTER
     sleep 2
     expect { screen[1]['yet unknown'] }
