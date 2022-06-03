@@ -58,6 +58,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       new_session
       tms "./harp_trainer calib testing #{key} --auto --testing"
       tms :ENTER
+      sleep 1
       tms 'y'
       sleep 10
       expect { screen[-4] == 'Recordings done.' }
@@ -155,7 +156,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   do_test 'id-08: listen with merged scale' do
     sound 8, 2
     new_session
-    tms './harp_trainer listen testing a blues --merge chord-v,chord-i --testing'
+    tms './harp_trainer listen testing a blues --add-scales chord-v,chord-i --testing'
     tms :ENTER
     sleep 4
     expect { screen[12]['blues,chord-v,chord-i;root'] }
@@ -182,7 +183,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     expect { File.exist?(lick_file) }
-    expect { screen[10]['does not exist'] }
+    expect { screen[9]['does not exist'] }
     kill_session
   end
 
@@ -220,7 +221,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer listen testing a blues --transpose_scale_to b'
     tms :ENTER
     sleep 2
-    expect { screen[7]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
+    expect { screen[6]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
     kill_session
   end
   
@@ -229,7 +230,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer play testing a mape --testing'
     tms :ENTER
     sleep 4
-    expect { screen[7]['-1 +2 -2+3'] }
+    expect { screen[6]['-1 +2 -2+3'] }
     kill_session
   end
   
@@ -238,8 +239,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[7]['Lick juke,samples,favorites'] }
-    expect { screen[8]['-1 -2/ -3// -3 -4'] }
+    expect { screen[6]['Lick juke,samples,favorites'] }
+    expect { screen[7]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
   
@@ -248,7 +249,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
-    expect { screen[7]['-1 +7 +4'] }
+    expect { screen[6]['-1 +7 +4'] }
     kill_session
   end
   
@@ -290,7 +291,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer memo testing --tags unknown a --testing'
     tms :ENTER
     sleep 2
-    expect { screen[7]['ERROR: There are some tags'] }
+    expect { screen[6]['ERROR: There are some tags'] }
     kill_session
   end
 
@@ -331,7 +332,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harp_trainer memo testing --start-with iterate --testing'
     tms :ENTER
-    sleep 2
+    sleep 4
     tms :ENTER
     expect { screen[-2][$all_testing_licks[0]] }
     sleep 4
@@ -376,7 +377,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer memo testing --start-with juke --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['partial: 1@b'] }
+    expect { screen[1]['part: 1@b'] }
     kill_session
   end
 
@@ -385,16 +386,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp_trainer memo testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['partial: 1@b'] }
+    expect { screen[1]['part: 1@b'] }
     kill_session
   end
 
   do_test 'id-23: show chart with scales' do
     new_session
-    tms './harp_trainer listen testing --display chart-scales --testing'
+    tms './harp_trainer listen testing blues:b --add-scales chord-i:1 --display chart-scales --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['yet unknown'] }
+    expect { screen[8]['b1   b1    1   b1    b    b    1   b1    b    b'] }
     kill_session
   end
 

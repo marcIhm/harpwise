@@ -248,6 +248,7 @@ EOU
   opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
+  opts[:display]&.gsub!('-','_')
 
   if opts[:max_holes]
     err "Option '--max_holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
@@ -312,19 +313,20 @@ EOU
   $err_binding = binding
   if mode == :calibrate
     err("Do not need a scale argument for mode calibrate: #{ARGV[0]}") if ARGV.length == 1
+    scale = get_scale('all:a')
   elsif mode == :memorize
     if ARGV.length == 1
       scale = get_scale(ARGV[0])
     else
-      scale = get_scale('all')
+      scale = get_scale('all:a')
     end
   elsif mode == :play
-    err("Need a scale or some holes as arguments") if ARGV.length == 0
-    scale = get_scale(ARGV[0])
+    err("Need a lick or some holes as arguments") if ARGV.length == 0
+    scale = get_scale('all:a')
   else
     err("Need value for scale as one more argument") unless scale
   end
-  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless scales_for_type(type).include?(scale)
+  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless !$scale || scales_for_type(type).include?(scale)
   err "Need at least one argument for mode play" if ARGV.length == 0 && mode == :play
   
   # do this check late, because we have more specific error messages before
@@ -352,6 +354,7 @@ EOU
   $conf[:comment_listen] = opts[:comment] if opts[:comment]
   $conf[:display] = $conf["display_#{mode}".to_sym]
   $conf[:display] = opts[:display] if opts[:display]
+  $conf[:display] = $conf[:display]&.to_sym
 
   # some of these have already been set as global vars, but return them
   # anyway to make their origin transparent

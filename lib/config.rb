@@ -318,8 +318,7 @@ def read_chart
         chart_with_scales[row][col] = if comment_in_chart?(hole_padded)
                                         hole_padded[0,len]
                                       else
-                                        abbrevs = $hole2scale_abbrevs[hole_padded.strip]
-                                        abbrevs ||= '---'
+                                        abbrevs = $hole2scale_abbrevs[hole_padded.strip] || '---'
                                         raise ArgumentError.new("hole '#{hole_padded.strip}' maps to scale abbreviations '#{abbrevs}' which are longer than given length '#{len}'") if abbrevs.length > len
                                         abbrevs.center(len)
                                       end
