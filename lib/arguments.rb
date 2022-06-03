@@ -15,7 +15,7 @@ def parse_arguments
   usage = <<EOU
 
 
-harp_trainer ('trainer', for short) helps to practice scales
+harp-wizard ('wizard', for short) helps to practice scales
 (e.g. blues or mape) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation are
 'listen' and 'quiz'.
@@ -25,11 +25,11 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
 ------ listen ------
 
-  The trainer listens, while your are playing a richter harmonica of key c
+  The wizard listens, while your are playing a richter harmonica of key c
   and it shows the holes, that you played; green if from the scale, red
   otherwise:
 
-    ./harp_trainer listen ri c blues
+    ./harp-wizard listen ri c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead
   of notes; other possible values are 'note' and 'hole'.
@@ -39,10 +39,10 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
 ------ quiz ------
 
-  The Trainer plays 3 notes from the scale 'mape' for a chromatic
+  The Wizard plays 3 notes from the scale 'mape' for a chromatic
   harmonica of key a and then quizes you to play them back (then repeat):
 
-    ./harp_trainer quiz 3 chrom a mape
+    ./harp-wizard quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type
   'RETURN'. Option '--immediate' shows the full hole-sequence during quiz
@@ -52,7 +52,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   chromatic) and, in addition, the key (e.g. c or a) may be omitted and
   are then taken from the config; so
 
-    ./harp_trainer q 3 ma
+    ./harp-wizard q 3 ma
 
   is valid as well.
 
@@ -62,7 +62,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   licks for the v-chord, you might use the blues scale and add the scales
   chord-i and chord-v:
 
-    ./harp_trainer l blues:b --add-scales chord-i:1,chord-v:5
+    ./harp-wizard l blues:b --add-scales chord-i:1,chord-v:5
 
   This example also uses abbreviations, l,1 and 5, for the scales which
   will be used in the chart.
@@ -77,7 +77,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   removed from the original scale. E.g. you might want to remove bends
   from all notes:
 
-    ./harp_trainer q all --remove blowbends,drawbends
+    ./harp-wizard q all --remove blowbends,drawbends
 
   Both modes listen and quiz allow an option '--display' with possible
   values of 'hole' and 'chart' to change how a recognized hole will be
@@ -92,9 +92,9 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   The mode memo is a variation of quiz, which helps to memorize licks
   from a given set:
 
-    ./harp_trainer memo c
+    ./harp-wizard memo c
 
-    ./harp_trainer memo c --tags fav,scales
+    ./harp-wizard memo c --tags fav,scales
 
   As shown in the second example, you may restrict the set of licks to
   those with certain tags; tags (e.g. 'scales') may also
@@ -132,9 +132,9 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   If you just want to play a single lick without beeing challenged to play
   it back:
 
-    ./harp_trainer play c blues
+    ./harp-wizard play c blues
 
-    ./harp_trainer play c 1 -2 c4
+    ./harp-wizard play c 1 -2 c4
 
   which can play either a complete lick or the holes or notes given on the
   commandline. The special argument 'random' just plays a random lick, 
@@ -147,10 +147,10 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
 
 ------ calibrate ------
 
-  Once in the lifetime of your c-harp you need to calibrate the trainer
+  Once in the lifetime of your c-harp you need to calibrate the wizard
   for the frequencies of the harp you are using:
 
-    ./harp_trainer calibrate c
+    ./harp-wizard calibrate c
     
   this will ask you to play notes on your harp. The samples will be
   stored in the hidden folder .#{File.basename($0)} within your home

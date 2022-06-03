@@ -1,6 +1,6 @@
 # -*- fill-column: 74 -*-
 
-* Harp Scale Trainer
+* Harp Wizard
 
   [[images/harmonicas.jpg]]
 
@@ -24,11 +24,11 @@
 
   Get a short usage information by invoking without arguments:
   
-    ./harp_trainer
+    ./harp-wizard
 
 
   This will show examples and options for the four main operations of the
-  trainer: 
+  wizard: 
   
   - listen: Listen to your playing, e.g. to monitor bends or scales
   - quiz: Train your ear and musical memory
@@ -36,7 +36,7 @@
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
-  wav-files will be kept in directory ~/.harp_trainer
+  wav-files will be kept in directory ~/.harp-wizard
 
   To get started quickly you may use auto-calibration for
   machine-generated tones and frequencies.
@@ -44,7 +44,7 @@
 * Some general concepts
 ** The reference hole
 
-   The trainer can remember a hole you have played to refer to it; this is
+   The wizard can remember a hole you have played to refer to it; this is
    useful e.g. to show the interval between the currently played hole and
    the reference, or to show the deviation from the current played
    frequency to the nominal frequency of the hole, especially when
@@ -73,7 +73,7 @@
 
 * A closer look at the display
 
-  Please note, that the trainer tries to adapt itself to different screen
+  Please note, that the wizard tries to adapt itself to different screen
   sizes by inserting blank lines in its display; you do not need to
   restart it for this.
 
@@ -138,26 +138,26 @@
 
 * Tuning
 
-  The harp_trainer does not make assumptions about the tuning of
+  The harp wizard does not make assumptions about the tuning of
   your harmonica; e.g. it works equally well with "equal temperament" (ET)
   or "just intonation" tuning.  Simply because, it asks you to play your
   own harp (whatever its tuning might be), to generate samples; and it
   then computes frequency values from these.
   
-  However, sometimes harp_trainer has to choose one tuning,
+  However, sometimes harp-wizard has to choose one tuning,
   e.g. when doing auto calibration, or when your samples need to be judged
   against some standard. In such cases it generally uses "equal
   temperament" (ET for short).
   
 * Installation
 
-  The program harp_trainer runs in the linux console (no graphical
+  The program harp-wizard runs in the linux console (no graphical
   environment needed); it has no formal installation, but rather runs
   directly from within the directory, which you need to download as a
   release or clone from github first. Vice versa it can simply be removed
   by deleting the cloned directory.
 
-  harp_trainer has a bunch of dependencies and one of the scripts in
+  harp-wizard has a bunch of dependencies and one of the scripts in
   directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for

@@ -2,7 +2,7 @@ FROM fedora:34
 MAINTAINER Marc Ihm (marc@ihm.name)
 ENV DEBIAN_FRONTEND noninteractive
 RUN yum install -y sudo which ca-certificates
-COPY harp_trainer /harp_trainer
-WORKDIR /harp_trainer
+COPY harp-wizard /harp-wizard
+WORKDIR /harp-wizard
 RUN bash ./install/install-dependencies-on-fedora.sh
-ENTRYPOINT ["./harp_trainer"]
+ENTRYPOINT ["./harp-wizard"]

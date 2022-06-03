@@ -16,7 +16,7 @@ This will generate all needed samples for holes:
 
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
-Letting this trainer generate your samples is a good way to get started
+Letting this wizard generate your samples is a good way to get started
 quickly. The notes will be in "equal temperament" tuning.
 
 However, any generated notes and their frequencies cannot match those of
