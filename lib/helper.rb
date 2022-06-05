@@ -116,3 +116,21 @@ def journal_start
 end
 
 
+def truncate_colored_text text, len
+  ttext = ''
+  tlen = 0
+  begin
+    if md = text.match(/^(\e\[\d+m)(.*)$/)
+      ttext += md[1]
+      text = md[2]
+    elsif md = text.match(/^\e/)
+      err "Internal error: Unknown escape"
+    else
+      md = text.match(/^([^\e]+)/)
+      ttext += md[1][0,len - tlen]
+      text[0,md[1].length] = ''
+      tlen += md[1].length
+    end
+  end while text.length > 0 && tlen < len
+  return ttext
+end

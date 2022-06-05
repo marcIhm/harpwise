@@ -161,7 +161,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard listen testing a blues --add-scales chord-v,chord-i --testing'
     tms :ENTER
     sleep 4
-    expect { screen[12]['blues,chord-v,chord-i;root'] }
+    expect { screen[12]['blues,chord-v,chord-i,root'] }
     kill_session
   end
 

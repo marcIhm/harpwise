@@ -127,22 +127,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
     end
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
-    if $hole2rem || $opts[:add_scales]
-      print ",  Rem: "
-      if $opts[:add_scales] && $scale_holes.include?(hole)
-        print "\e[0m"
-        if $hole2flags[hole].include?(:both)
-          print $scales.join(',')
-        elsif $hole2flags[hole].include?(:main)
-          print "\e[32m#{$scale}"
-        else
-          print "\e[34m#{$scales[1..-1].join(',')}"
-        end
-        print "\e[0m\e[2m#{$hole2rem && (';' + ($hole2rem[hole] || ''))}".strip
-      else
-        print ($hole2rem && $hole2rem[hole]) || '--'
-      end
-    end
+    print ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
     print "\e[K"
 
     if lambda_comment
@@ -172,7 +157,10 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       hint = lambda_hint.call(hole) || ''
       print "\e[#{$line_call2}H\e[K" if $line_call2 > 0
       print "\e[#{$line_hint_or_message}H"
-      maxlen = ( $mode == :listen  ?  $term_width - 4  :  2 * $term_width - 4 )
+      # leave safety margin below $term_width to account for ansi
+      # control-sequences; usage of truncate_colored_text does not
+      # seem necessary
+      maxlen = ( $mode == :listen  ?  $term_width - 8  :  2 * $term_width - 12 )
       if hint.length >= maxlen
         pspc = hint[maxlen - 8 .. maxlen - 2].index(' ')
         if pspc
@@ -301,7 +289,9 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
           end
         end
       end while er
-      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+      # next line also appears in file harp-wizard
+      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+      
       $chart, $hole2chart = read_chart
       set_global_vars_late
       $freq2hole = read_calibration
@@ -340,13 +330,13 @@ def text_for_key
     text += "\e[0m"
     text += " \e[32m#{$scale}"
     text += "\e[0m\e[2m," + $scales[1..-1].map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
-    text += "\e[0m,all\e[2m"
+    text += ",\e[0mall\e[2m"
   else
     text += " #{$scale}"
   end
   text += ', jour: ' + ( $write_journal  ?  'on' : 'off' )
   text += ", part: #{$opts[:partial]}" if $opts[:partial]
-  text += "\e[K"
+  truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
 

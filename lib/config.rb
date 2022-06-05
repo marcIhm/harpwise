@@ -193,23 +193,9 @@ def read_musical_config
         hole2flags[h] << :all if !$opts[:add_scales] || hole2flags[h].include?(:both)
         hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
         h2sabb[h] += $scale2abbrev[sname]
-        if idx == 0
-          hole2rem[h] = h2r[h]
-        else
-          hole2rem[h] = if !hole2rem[h] && !h2r[h]
-                          nil
-                        elsif !!hole2rem[h] != !!h2r[h]
-                          # only one remark
-                          "#{hole2rem[h]}#{h2r[h]}"
-                        elsif hole2rem[h][h2r[h]]
-                          # one within the other
-                          hole2rem[h]
-                        elsif h2r[h][hole2rem[h]]
-                          h2r[h]
-                        else
-                          "#{hole2rem[h]}; #{h2r[h]}"
-                        end
-        end
+        hole2rem[h] ||= [[],[]]
+        hole2rem[h][0] << sname if $opts[:add_scales]
+        hole2rem[h][1] << h2r[h]
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
@@ -217,6 +203,10 @@ def read_musical_config
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            
     semi2hole = scale_holes = scale_notes = nil
+  end
+
+  hole2rem.each_key do |h|
+    hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).join(',')
   end
   
   # read from first available intervals file
@@ -269,7 +259,7 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
     if semi >= min_semi && semi <= max_semi
       note = semi2note(semi)
       hole = note2hole[note]
-      hole2rem[hole] = rem
+      hole2rem[hole] = rem&.strip
       err(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]) unless hole
       scale_holes << hole
     end

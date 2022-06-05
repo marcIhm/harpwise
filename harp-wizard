@@ -53,6 +53,8 @@ $scales = get_all_scales($opts[:add_scales])
 calculate_screen_layout
   
 set_global_vars_late
+
+# next line also appears in file handle_holes.rb
 $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
 
 $chart_with_notes, $chart_with_scales, $hole2chart = read_chart
