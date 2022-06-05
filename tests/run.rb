@@ -379,7 +379,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['part: 1@b'] }
+    expect { screen[1]['memorize testing c all'] } # just checks, that it started correctly
     kill_session
   end
 
@@ -388,7 +388,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['part: 1@b'] }
+    expect { screen[1]['memorize testing c all'] } # just checks, that it started correctly
     kill_session
   end
 

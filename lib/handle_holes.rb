@@ -4,7 +4,7 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
+def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -15,11 +15,11 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
   was_good = was_was_good = was_good_since = nil
   $chart = $chart_with_notes if $conf[:display] == :chart_notes
   $chart = $chart_with_scales if $conf[:display] == :chart_scales
-  first_lap = true
+  first_round = true
 
   loop do   # until var done or skip
     system('clear') if $ctl_redraw
-    if first_lap || $ctl_redraw
+    if first_round || $ctl_redraw
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
@@ -31,7 +31,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
         $message_shown = Time.now.to_f
       end
     end
-    print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if $first_lap_ever_get_hole
+    print "\e[#{$line_hint_or_message}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
 
@@ -40,7 +40,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     $ctl_redraw = false
     pipeline_catch_up if handle_kb_listen
     ctl_issue
-    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first_lap || $ctl_redraw
+    print "\e[#{$line_interval}H\e[2mInterval:   --  to   --  is   --  \e[K" if first_round || $ctl_redraw
 
     handle_win_change if $ctl_sig_winch
     
@@ -315,8 +315,8 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     if done || ( $message_shown && Time.now.to_f - $message_shown > 8 )
       print "\e[#{$line_hint_or_message}H\e[K"
       $message_shown = false
-    end
-    first_lap = $first_lap_ever_get_hole = false
+    end 
+   first_round = $first_round_ever_get_hole = false
   end  # loop until var done or skip
 end
 
@@ -331,8 +331,7 @@ def text_for_key
   else
     text += " #{$scale}"
   end
-  text += ', jour: ' + ( $write_journal  ?  'on' : 'off' )
-  text += ", part: #{$opts[:partial]}" if $opts[:partial]
+  text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 

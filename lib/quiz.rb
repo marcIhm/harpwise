@@ -14,7 +14,7 @@ def do_quiz
   $write_journal = true
   journal_start
   
-  first_lap = true
+  first_round = true
   all_wanted_before = all_wanted = nil
   $all_licks, $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
@@ -24,7 +24,7 @@ def do_quiz
   
   loop do   # forever until ctrl-c, sequence after sequence
 
-    if first_lap
+    if first_round
       print "\n"
       print "\e[#{$term_height}H\e[K"
       print "\e[#{$term_height-1}H\e[K"
@@ -150,9 +150,9 @@ def do_quiz
     sleep 0.3
 
     if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
-      play_holes all_wanted, first_lap
+      play_holes all_wanted, first_round
     else
-      play_recording lick, first_lap
+      play_recording lick, first_round
     end
     
     redo if $ctl_back || $ctl_next || $ctl_replay
@@ -161,7 +161,7 @@ def do_quiz
     print "\e[0m\e[32m and !\e[0m"
     sleep 0.5
 
-    if first_lap
+    if first_round
       system('clear')
     else
       print "\e[#{$line_hint_or_message}H\e[K"
@@ -185,60 +185,15 @@ def do_quiz
 
     begin   # while looping over one sequence
 
-      lap_start = Time.now.to_f
+      round_start = Time.now.to_f
       $ctl_forget = false
       
-      all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one lap while looping
+      all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
         hole_start = Time.now.to_f
         pipeline_catch_up
 
-        # precompute some values, that change in every iteration
-        hidden_holes = if $opts[:immediate] # played holes are hidden
-                         if idx > 8
-                           ". . # . ."
-                         else
-                           ' .' * idx
-                         end
-                       else # unplayed holes are hidden
-                         if all_wanted.length - idx > 8
-                           " _ _ # _ _" # abbreviation for long sequence of ' _'
-                         else
-                           ' _' * (all_wanted.length - idx)
-                         end
-                       end
-
-        hole_passed = Time.now.to_f - hole_start
-        lap_passed = Time.now.to_f - lap_start
-
-        hint = if $opts[:immediate] # show all holes right away
-                 "\e[2mPlay:" +
-                   if idx == 0
-                     ''
-                   else
-                     ' ' + all_wanted[0 .. idx - 1].join(' ')
-                   end +
-                   "\e[0m\e[92m*\e[0m" +
-                   all_wanted[idx .. -1].join(' ')
-               elsif all_wanted.length > 1 &&
-                     hole_passed > 4 &&
-                     # show holes earlier, if we showed them already for this seq
-                     lap_passed > ( full_seq_shown ? 3 : 6 ) * all_wanted.length
-                 "\e[0mThe complete sequence is: #{all_wanted.join(' ')}" 
-                 full_seq_shown = true
-               elsif hole_passed > 4
-                 "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
-               else
-                 if idx > 0
-                   isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
-                   if isemi
-                     "Hint: Move " + ( itext ? "a #{itext}" : isemi )
-                   end
-                 end
-               end
-            
-        
-        sense_holes(
+        handle_holes(
           
           # lambda_issue
           -> () do      
@@ -265,7 +220,6 @@ def do_quiz
                                 (Time.now.to_f - since >= min_sec_hold )),
                                idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
 
-
           # lambda_skip
           -> () {$ctl_next || $ctl_back || $ctl_replay},  
 
@@ -275,12 +229,22 @@ def do_quiz
             if $num_quiz == 1
               [ "\e[2m", '.  .  .', 'smblock', nil ]
             elsif $opts[:immediate] # show all unplayed
+              hidden_holes = if idx > 8
+                               ". . # . ."
+                             else
+                               ' .' * idx
+                             end
               [ "\e[2m",
                 'Play  ' + hidden_holes + all_wanted[idx .. -1].join(' '),
                 'smblock',
                 'play  ' + '--' * all_wanted.length,  # width_template
                 :right ]  # truncate at
             else # show all played
+              hidden_holes = if all_wanted.length - idx > 8
+                               " _ _ # _ _" # abbreviation for long sequence of ' _'
+                             else
+                               ' _' * (all_wanted.length - idx)
+                             end
               [ "\e[2m",
                 'Yes  ' + all_wanted.slice(0,idx).join(' ') + hidden_holes,
                 'smblock',
@@ -291,7 +255,37 @@ def do_quiz
 
           
           # lambda_hint
-          -> (_) do  
+          -> (_) do
+            hole_passed = Time.now.to_f - hole_start
+            round_passed = Time.now.to_f - round_start
+            
+            hint = if $opts[:immediate] # show all holes right away
+                     "\e[2mPlay:" +
+                       if idx == 0
+                         ''
+                       else
+                         ' ' + all_wanted[0 .. idx - 1].join(' ')
+                       end +
+                       "\e[0m\e[92m*\e[0m" +
+                       all_wanted[idx .. -1].join(' ')
+                   elsif all_wanted.length > 1 &&
+                         hole_passed > 4 &&
+                         # show holes earlier, if we showed them
+                         # already for this seq
+                         round_passed > ( full_seq_shown ? 3 : 6 ) * all_wanted.length
+                     "\e[0mThe complete sequence is: #{all_wanted.join(' ')}" 
+                     full_seq_shown = true
+                   elsif hole_passed > 4
+                     "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+                   else
+                     if idx > 0
+                       isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                       if isemi
+                         "Hint: Move " + ( itext ? "a #{itext}" : isemi )
+                       end
+                     end
+                   end
+
             ( hint || '' ) + lick_names[2]
           end,
           
@@ -339,7 +333,7 @@ def do_quiz
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
     print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
-    first_lap = false
+    first_round = false
   end # forever sequence after sequence
 end
       
@@ -429,7 +423,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes all_holes, first_lap
+def play_holes all_holes, first_round
   ltext = "\e[2m(h for help) "
 
   if $opts[:partial] && !$ctl_ignore_partial
@@ -443,7 +437,7 @@ def play_holes all_holes, first_lap
 
     if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
       ltext = "\e[2m(h for help) "
-      if first_lap
+      if first_round
         print "\e[#{$term_height}H\e[K"
         print "\e[#{$term_height-1}H\e[K"
       else
@@ -470,10 +464,10 @@ def play_holes all_holes, first_lap
       part = '(' +
              $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
              ')'
-      ltext += part unles part == '()'
+      ltext += part unless part == '()'
     end
 
-    if first_lap
+    if first_round
       print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
     else
       print "\e[#{$line_call2}H\e[K"
@@ -487,7 +481,7 @@ def play_holes all_holes, first_lap
     end
 
     if $ctl_show_help
-      display_kb_help 'series of holes',first_lap, <<~end_of_content
+      display_kb_help 'series of holes',first_round, <<~end_of_content
         SPACE: pause/continue 
         TAB,+: skip to end
       end_of_content
@@ -502,9 +496,9 @@ def play_holes all_holes, first_lap
 end
 
 
-def play_recording lick, first_lap
+def play_recording lick, first_round
   issue = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
-  if first_lap
+  if first_round
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$line_hint_or_message}H#{issue}\e[K"
@@ -515,7 +509,7 @@ def play_recording lick, first_lap
   else
     start, length = lick[:rec_start], lick[:rec_length]
   end
-  skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_lap
+  skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_round
   print skipped ? " skip rest" : " done"
 end
 
