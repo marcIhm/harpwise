@@ -121,11 +121,8 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     end
 
     print "\e[#{$line_hole}H\e[2m"
-    if regular_hole?(hole)
-      print "Hole: \e[0m%#{longest_hole_name.length}s\e[2m, Note: \e[0m%4s\e[2m" % [hole, $harp[hole][:note]]
-    else
-      print "Hole: %#{longest_hole_name.length}s, Note: %4s" % ['-- ', '-- ']
-    end
+    print "Hole: %#{longest_hole_name.length}s, Note: %4s" %
+          (regular_hole?(hole)  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
     print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     print ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
     print "\e[K"
