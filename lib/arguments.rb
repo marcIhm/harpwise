@@ -6,7 +6,7 @@
 
 def parse_arguments
 
-  # get content of all harmonica-types
+  # get content of all harmonica-types to be inserted in usage
   types_content = $conf[:all_types].map do |type|
     "scales for #{type}: " +
       scales_for_type(type).join(', ')
@@ -18,10 +18,12 @@ def parse_arguments
 harp-wizard ('wizard', for short) helps to practice scales
 (e.g. blues or mape) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation are
-'listen' and 'quiz'.
+'listen', 'quiz' and 'memo'.
 
 
-Usage by examples for the modes listen, quiz, memorize and calibrate: 
+Usage by examples for the modes listen, quiz, memorize, play and
+calibrate:
+
 
 ------ listen ------
 
@@ -36,6 +38,7 @@ Usage by examples for the modes listen, quiz, memorize and calibrate:
   See below ('quiz') for some options accepted by both modes.
 
   Switch on journal to get a simple transcription of the holes played.
+
 
 ------ quiz ------
 
@@ -194,7 +197,13 @@ This program is subject to the MIT License.
 
 EOU
 
-  # extract options from ARGV
+  # General idea of processing commandline:
+  #
+  # We process options first, because there do not have ambiguities; after
+  # that, the remaining ags will be processed by their content (see below)
+
+  # Process options
+  
   opts = Hash.new
 
   # defaults from config
@@ -240,7 +249,8 @@ EOU
     err "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)
   end
 
-  # special processing for some options
+  # Special handling for some options
+  
   opts[:comment] = match_or(opts[:comment], $comment_choices) do |none, choices|
     err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
@@ -255,85 +265,42 @@ EOU
     opts[:max_holes] = opts[:max_holes].to_i
   end
     
-  
   opts[:fast] = false if opts[:no_fast]
 
   err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
-  # see end of function for final processing of options
-
+  # usage if no arguments
   if ARGV.length == 0 || opts[:help]
     puts usage
     exit 1
   end
 
-  # now ARGV does not contain any more options; process non-option arguments
+  # used to issue current state of processing in error messages
+  $err_binding = binding
 
-  # General idea of argument processing: We take the mode, then key and
-  # type, by recognising it among other args by its content and then the
-  # rest.
   
+  # Now ARGV does not contain any more options; process non-option arguments
+
+  # General idea of argument processing:
+  #
+  # We take the mode, then type and key, by recognising it among other
+  # args by their content; then we process the scale, which is normally
+  # the only remaining argument.
+
+  # get mode
   mode = match_or(ARGV[0], %w(listen quiz memorize play calibrate)) do |none, choices|
-    err "First argument can be one of #{choices}, not #{none}"
+    err "First argument can be one of #{choices} (maybe abbreviated), not #{none}"
   end.to_sym
   ARGV.shift
 
-  ARGV.select {|arg| arg.start_with?('-')}.tap {|left| err "Unknown options: #{left.join(',')}" if left.length > 0} unless mode == :play
 
-  if mode == :quiz
-    $num_quiz = ARGV[0].to_i
-    if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
-    end
-    ARGV.shift
-  end
+  # As we now have the mode, we may do some final processing on options,
+  # which requires the mode
 
-  if [:calibrate, :play, :memorize].include?(mode)
-    scale = nil
-  else
-    scale = get_scale(ARGV.pop)
-    err "Need at least one argument for scale" unless scale
-  end
+  # check for unprocessed args, that look like options
+  other_opts = ARGV.select {|arg| arg.start_with?('-')}
+  err("Unknown options: #{other_opts.join(',')}") if other_opts.length > 0 && mode != :play
 
-  # type and key are taken from front of args only if they match the
-  # predefined set of coices; otherwise they come from config
-  if ARGV.length > 0
-    type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
-    if type_matches.length == 1 && ARGV[0].length > 1
-      type =  type_matches[0]
-      ARGV.shift
-    end
-  end
-  type ||= $conf[:type]     
-  $type = type
-  key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-  key ||= $conf[:key]
-   
-  (er = check_key_and_set_pref_sig(key)) && err(er)
-  $err_binding = binding
-  if mode == :calibrate
-    err("Do not need a scale argument for mode calibrate: #{ARGV[0]}") if ARGV.length == 1
-    scale = get_scale('all:a')
-  elsif mode == :memorize
-    if ARGV.length == 1
-      scale = get_scale(ARGV[0])
-    else
-      scale = get_scale('all:a')
-    end
-  elsif mode == :play
-    err("Need a lick or some holes as arguments") if ARGV.length == 0
-    scale = get_scale('all:a')
-  else
-    err("Need value for scale as one more argument") unless scale
-  end
-  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless !$scale || scales_for_type(type).include?(scale)
-  err "Need at least one argument for mode play" if ARGV.length == 0 && mode == :play
-  
-  # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :memorize
-  $err_binding = nil
-  
-  # late option processing depending on mode
   # check for invalid combinations of mode and options
   [[[:quiz, :memorize],
     [:loop, :immediate]],
@@ -349,6 +316,78 @@ EOU
       err "Option '--#{opt}' is allowed for modes '#{modes_opts[0]}' only" if opts[opt] && !modes_opts[0].include?(mode)
     end
   end
+
+
+  # In any case, mode quiz requires a numeric argument right after the
+  # mode-argument; so process it even before type and key
+
+  if mode == :quiz
+    $num_quiz = ARGV[0].to_i
+    if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
+      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
+    end
+    ARGV.shift
+  end
+
+
+  # type and key are taken from front of args only if they match the
+  # predefined set of choices; otherwise they come from config
+  
+  if ARGV.length > 0
+    type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
+    if type_matches.length == 1 && ARGV[0].length > 1
+      type =  type_matches[0]
+      ARGV.shift
+    end
+  end
+  type ||= $conf[:type]     
+  $type = type
+
+  key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
+  key ||= $conf[:key]
+  check_key_and_set_pref_sig(key)
+
+
+  # For mode play, all the remaining arguments (after processing type and
+  # key) are things to play; a scale is not allowed, so we do this before
+  # processing the scale
+
+  if mode == :play
+    $to_play = []
+    $to_play << ARGV.shift while ARGV.length > 0
+    err("Need a lick or some holes as arguments") if $to_play.length == 0
+  end
+
+  
+  # Get scale which must be the only remaining argument (if any);
+  # modes that do not need a scale get scale 'all'
+
+  case mode
+  when :listen, :quiz
+    err("Mode '#{mode}' needs at least one argument for scale") if ARGV.length == 0
+    scale = get_scale(ARGV.shift)
+  when :memorize
+    if ARGV.length > 0
+      scale = get_scale(ARGV.shift)
+    else
+      scale = get_scale('all:a')
+    end
+  when :play
+    scale = get_scale('all:a')
+  when :calibrate
+    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}") if ARGV.length > 0
+    scale = get_scale('all:a')
+  else
+    fail "Internal error"
+  end
+  
+  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless !$scale || scales_for_type(type).include?(scale)
+  
+  # do this check late, because we have more specific error messages before
+  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :memorize
+  $err_binding = nil
+
+  # Commandline processing is complete here
   
   # carry some options over into $conf
   $conf[:comment_listen] = opts[:comment] if opts[:comment]
@@ -356,13 +395,13 @@ EOU
   $conf[:display] = opts[:display] if opts[:display]
   $conf[:display] = $conf[:display]&.to_sym
 
-  # some of these have already been set as global vars, but return them
-  # anyway to make their origin transparent
+  # some of these have already been set as global vars (e.g. for error
+  # messages), but return them anyway to make their origin transparent
   [ mode, type, key, scale, opts]
 end
 
 
-  $scale_abbrev_count = 1
+$scale_abbrev_count = 1
 $abbrev2scale = Hash.new
 
 def get_scale scale_abbrev
@@ -405,9 +444,7 @@ def check_key_and_set_pref_sig key
                      else
                        $conf[:pref_sig_def]
                      end
-  if $conf[:all_keys].include?(key)
+
     nil
-  else
-    "Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'"
-  end
+    err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
 end

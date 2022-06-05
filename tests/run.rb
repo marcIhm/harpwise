@@ -33,6 +33,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   puts "\nPreparing data"
   # point 3 of a delicate balance for tests
   system("sox -n /tmp/harp-wizard_testing.wav synth 200.0 sawtooth 494")
+  # on error we tend to leave aubiopitch benind
+  system("killall aubiopitch")
   FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
   FileUtils.cp_r 'config/richter', 'config/testing'
   
@@ -183,7 +185,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     expect { File.exist?(lick_file) }
-    expect { screen[9]['does not exist'] }
+    expect { screen[7]['does not exist'] }
     kill_session
   end
 
@@ -221,7 +223,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard listen testing a blues --transpose_scale_to b'
     tms :ENTER
     sleep 2
-    expect { screen[6]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
+    expect { screen[4]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
     kill_session
   end
   
@@ -230,7 +232,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard play testing a mape --testing'
     tms :ENTER
     sleep 4
-    expect { screen[6]['-1 +2 -2+3'] }
+    expect { screen[4]['-1 +2 -2+3'] }
     kill_session
   end
   
@@ -239,8 +241,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[6]['Lick juke,samples,favorites'] }
-    expect { screen[7]['-1 -2/ -3// -3 -4'] }
+    expect { screen[4]['Lick juke,samples,favorites'] }
+    expect { screen[5]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
   
@@ -249,7 +251,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
-    expect { screen[6]['-1 +7 +4'] }
+    expect { screen[4]['-1 +7 +4'] }
     kill_session
   end
   
@@ -260,7 +262,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 12
     tst_out = read_testing_output
     expect { tst_out[:licks].length == 6 }
-    expect { screen[1]['Mode: memorize testing a all'] }
+    expect { screen[1]['memorize testing a all'] }
     kill_session
   end
 
@@ -291,7 +293,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --tags unknown a --testing'
     tms :ENTER
     sleep 2
-    expect { screen[6]['ERROR: There are some tags'] }
+    expect { screen[4]['ERROR: There are some tags'] }
     kill_session
   end
 
@@ -333,14 +335,14 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with iterate --testing'
     tms :ENTER
     sleep 4
-    tms :ENTER
     expect { screen[-2][$all_testing_licks[0]] }
+    tms :ENTER
     sleep 4
-    tms :ENTER
     expect { screen[-2][$all_testing_licks[1]] }
-    sleep 6
     tms :ENTER
+    sleep 6
     expect { screen[-2][$all_testing_licks[2]] }
+    tms :ENTER
     kill_session
   end
 
@@ -349,11 +351,11 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with special,iter --testing'
     tms :ENTER
     sleep 4
-    tms :ENTER
     expect { screen[-2]['special'] }
-    sleep 6
     tms :ENTER
+    sleep 6
     expect { screen[-2]['blues'] }
+    tms :ENTER
     kill_session
   end
 

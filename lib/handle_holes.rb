@@ -193,6 +193,7 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     
     if $ctl_change_display
       choices = [ $display_choices, $display_choices ].flatten
+      choices = choices.reverse if $ctl_change_display == :back
       $conf[:display] = choices[choices.index($conf[:display]) + 1]
       $chart = $chart_with_notes if $conf[:display] == :chart_notes
       $chart = $chart_with_scales if $conf[:display] == :chart_scales
@@ -203,8 +204,9 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
       $ctl_change_display = false
     end
     
-    if $ctl_can_change_comment && $ctl_change_comment
+    if $ctl_change_comment
       choices = [ $comment_choices, $comment_choices ].flatten
+      choices = choices.reverse if $ctl_change_comment == :back
       $conf[:comment_listen] = choices[choices.index($conf[:comment_listen]) + 1]
       clear_area_comment
       print "\e[#{$line_hint_or_message}H\e[2mComment is now #{$conf[:comment_listen].upcase}\e[0m\e[K"
@@ -215,24 +217,24 @@ def sense_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_com
     if $ctl_show_help
       clear_area_help
       puts "\e[#{$line_help}H\e[0mShort help on keys (see README.org for more details):\e[0m\e[32m\n"
-      puts "      SPACE: pause               ctrl-l: redraw screen"
-      puts "   TAB or d: change display (upper part of screen)"
-      puts " S-TAB or c: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
-      puts "          r: set reference hole       j: toggle writing of journal file"
-      puts "          k: change key of harp       s: change scale"
-      puts "          q: quit                     h: this help"
+      puts "   SPACE: pause               ctrl-l: redraw screen"
+      puts " TAB,S-TAB,d,D: change display (upper part of screen)"
+      puts "     c,C: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
+      puts "       r: set reference hole       j: toggle writing of journal file"
+      puts "       k: change key of harp       s: change scale"
+      puts "       q: quit                     h: this help"
       if $ctl_can_next
         puts "\e[0mType any key to show more help ..."
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         clear_area_help
         puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
-        puts "          .: replay current recording  ,: replay, holes only"
-        puts "        :,p: replay recording but ignore '--partial'"
-        puts "        RET: next sequence    BACKSPACE: previous sequence"
-        puts "          i: toggle '--immediate'     l: loop current sequence"
-        puts "        0,-: forget holes played  TAB,+: skip rest of sequence"
-        puts "          #: toggle track progress in seq"
+        puts "     .: replay current recording          ,: replay, holes only"
+        puts "   :,p: replay recording but ignore '--partial'"
+        puts "   RET: next sequence             BACKSPACE: previous sequence"
+        puts "     i: toggle '--immediate'              l: loop current sequence"
+        puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
+        puts "     #: toggle track progress in seq"
       end
       puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
@@ -333,7 +335,7 @@ end
 
 
 def text_for_key
-  text = "\e[2mMode: #{$mode} #{$type} #{$key}"
+  text = "\e[2m#{$mode} #{$type} #{$key}"
   if $opts[:add_scales]
     text += "\e[0m"
     text += " \e[32m#{$scale}"

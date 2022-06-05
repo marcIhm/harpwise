@@ -255,12 +255,18 @@ def handle_kb_listen
   elsif char == 'd' || char == "\t"
     $ctl_change_display = true
     text = 'Change display'
+  elsif char == 'D' || char.ord == 90 
+    $ctl_change_display = :back
+    text = 'Change display back'
   elsif char == 'r'
     $ctl_set_ref = true
     text = 'Set reference'
-  elsif ( char == 'c' || char.ord == 90 ) && $ctl_can_change_comment
+  elsif char == 'c' && $ctl_can_change_comment
     $ctl_change_comment = true
     text = 'Change comment'
+  elsif char == 'c' && $ctl_can_change_comment
+    $ctl_change_comment = :back
+    text = 'Change comment back'
   elsif (char == '.' || char == ',' || char == ':' || char == 'p') && $ctl_can_next
     $ctl_replay = true
     $ctl_ignore_recording = (char == ',')

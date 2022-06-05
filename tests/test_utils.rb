@@ -30,11 +30,14 @@ end
   
 
 def tms cmd
+  # let typed command appear on screen
+  sleep 0.5
   if cmd.is_a?(Symbol)
     sys "tmux send -t ht #{cmd.to_s.tr('_','-')}"
   else
     sys "tmux send -l -t ht \"#{cmd}\""
   end
+  sleep 0.5
 end
 
 

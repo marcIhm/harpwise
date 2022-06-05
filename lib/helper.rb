@@ -7,9 +7,9 @@
 
 def match_or cand, choices
   return unless cand
-  match = choices.find {|c| c.start_with?(cand)}
-  yield "'#{cand}'", choices.join(', ') unless match
-  match
+  matches = choices.select {|c| c.start_with?(cand)}
+  yield "'#{cand}'", choices.join(', ') if matches.length != 1
+  matches[0]
 end
 
 
