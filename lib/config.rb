@@ -195,7 +195,7 @@ def read_musical_config
         h2sabb[h] += $scale2abbrev[sname]
         hole2rem[h] ||= [[],[]]
         hole2rem[h][0] << sname if $opts[:add_scales]
-        hole2rem[h][1] << h2r[h]
+        hole2rem[h][1] << h2r[h]&.split(/, /)
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
@@ -206,7 +206,7 @@ def read_musical_config
   end
 
   hole2rem.each_key do |h|
-    hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).join(',')
+    hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
   
   # read from first available intervals file

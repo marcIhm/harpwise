@@ -41,7 +41,7 @@ def trim_recording hole, recorded
     end
     puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f" % play_from
     puts 'Choices: <num-of-secs-start> | d:raw | p:play | y:es | f:requency | r:ecord'
-    print "Your choice ('h' for help): "
+    print "Your choice (h for help): "
     choice = one_char
 
     if ('0' .. '9').to_a.include?(choice) || choice == '.'
@@ -268,9 +268,6 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
       elsif $ctl_slower
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32m x%.1f\e[0m" % tempo
-      elsif $ctl_rec_loop
-        print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
-        ctl_not_loop = false
       elsif $ctl_show_help
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'recording',first_lap, <<~end_of_content
@@ -282,6 +279,10 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         $ctl_show_help = false
       elsif $ctl_replay
         print "\e[0m\e[32m replay\e[0m"
+      elsif $ctl_rec_loop
+        # have this last, because its $ctl-Variable is not reset automatically
+        print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
+        ctl_not_loop = false
       end
     end while wait_thr.alive? && !$ctl_skip && !$ctl_replay && !$ctl_slower
     $ctl_rec_loop = false if $ctl_skip

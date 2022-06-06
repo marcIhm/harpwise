@@ -324,7 +324,7 @@ def read_answer ans2chs_dsc
   end
 
   begin
-    print "\nYour choice ('h' for help): "
+    print "\nYour choice (h for help): "
     char = one_char
     char = {' ' => 'SPACE', "\r" => 'RETURN'}[char] || char
     puts char
