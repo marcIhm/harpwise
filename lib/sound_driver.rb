@@ -232,7 +232,6 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                    "pitch #{dsemi * 100}"
                  end
 
-  return false if $opts[:testing]
   tempo = 1.0
   $ctl_rec_loop = false
   ctl_not_loop = true
@@ -243,6 +242,8 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                      "tempo -m %.1f" % tempo
                    end                  
     cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
+    IO.write($testing_log, cmd, mode: 'a') if $opts[:testing]
+    return false if $opts[:testing]
     _, _, wait_thr  = Open3.popen2(cmd)
     $ctl_skip = $ctl_replay = $ctl_pause_continue = $ctl_slower = $ctl_help = $ctl_show_help = false
     started = Time.now.to_f

@@ -25,6 +25,7 @@ end
 $within = ARGV.length == 0
 $testing_dump_file = '/tmp/harp-wizard_dumped_for_testing.json'
 $testing_output_file = '/tmp/harp-wizard_dumped_for_testing.txt'
+$testing_log_file = '/tmp/harp-wizard_testing.log'
 $data_dir = "#{Dir.home}/.harp-wizard"
 $all_testing_licks = %w(juke special blues mape one two)
 
@@ -379,7 +380,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['memorize testing c all'] } # just checks, that it started correctly
+    tlog = read_testing_log
+    expect { tlog[-1]['play -q -V1 /home/ihm/.harp-wizard/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
     kill_session
   end
 
@@ -388,7 +390,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['memorize testing c all'] } # just checks, that it started correctly
+    tlog = read_testing_log
+    expect { tlog[-1]['["-1", "-2/", "-3//", "-3", "-4", "-4"]'] }
     kill_session
   end
 

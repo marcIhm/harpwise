@@ -27,7 +27,7 @@ def set_global_vars_early
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
   
   $journal_listen = Array.new
-  $debug_log = "debug.log"
+  $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $write_journal = false
   $message_shown = false
   $display_choices = [:hole, :chart_notes, :chart_scales, :bend]

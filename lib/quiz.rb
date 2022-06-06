@@ -398,7 +398,6 @@ def get_sample num
     $sample_stats[what[i]] += 1
   end
 
-  IO.write($debug_log, "\n#{Time.now}:\n#{$sample_stats.inspect}\n", mode: 'a') if $opts[:debug]
   holes
 end
 
@@ -431,7 +430,8 @@ def play_holes all_holes, first_round
   else
     holes = all_holes
   end
-    
+  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
+  
   $ctl_skip = false
   holes.each_with_index do |hole, idx|
 

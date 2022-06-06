@@ -87,7 +87,9 @@ def do_test text
   ( $fromon && text[$fromon] )
   return unless $within
   puts
-  File.delete($testing_dump_file) if File.exists?($testing_dump_file)
+  [$testing_dump_file, $testing_log_file].each do |file|
+    File.delete(file) if File.exists?(file)
+  end
   $memo_seen << text
   maxlen = $memo[:durations].keys.map {|k| k.length}.max || 0
   time = $memo[:durations][text]
@@ -97,10 +99,16 @@ def do_test text
   $memo[:durations][text] = Time.now.to_f - start
 end
 
+
 def read_testing_output
-  fail "Dump with data to test does not exist: #{$testing_dump_file}" unless File.exists?($testing_dump_file)
   JSON.parse(File.read($testing_dump_file), symbolize_names: true)
 end
+
+
+def read_testing_log
+  File.readlines($testing_log_file)
+end
+
 
 at_exit {
   if $!.nil?
