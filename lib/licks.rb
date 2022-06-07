@@ -42,7 +42,7 @@ def read_licks
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
-          lick[:desc] = [name, lick[:tags]].flatten.join(',')
+          lick[:desc] = name + '  ' + lick[:tags].join(',')
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -445,7 +445,7 @@ end
 def print_last_licks_from_journal licks = $licks
   puts "\nList of most recent licks played:"
   puts "  - abbrev (e.g. '2l') for '--start-with'"
-  puts "  - name,tag1,tag2, ... of lick"
+  puts "  - name  tag1,tag2, ... of lick"
   puts
   puts "Last lick comes first:"
   puts

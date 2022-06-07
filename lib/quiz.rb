@@ -18,6 +18,7 @@ def do_quiz
   all_wanted_before = all_wanted = nil
   $all_licks, $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
+  lick_cycle = false
   start_with = $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :memorize
@@ -89,9 +90,14 @@ def do_quiz
 
           lick_idx_iter += 1
           if lick_idx_iter >= $licks.length
-            print "\e[#{$line_call2}H\e[K"
-            puts "\nIterated through all #{$licks.length} licks.\n\n"
-            exit
+            if lick_cycle
+              lick_idx_iter = 0
+              ctl_issue 'Next cycle'
+            else
+              print "\e[#{$line_call2}H\e[K"
+              puts "\nIterated through all #{$licks.length} licks.\n\n"
+              exit
+            end
           end
           lick_idx = lick_idx_iter
 
@@ -114,7 +120,8 @@ def do_quiz
           print_last_licks_from_journal $all_licks
           exit
 
-        elsif %w(i iter iterate).include?(start_with)
+        elsif %w(i iter iterate cycle).include?(start_with)
+          lick_cycle = ( start_with == 'cycle' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
 
@@ -123,7 +130,8 @@ def do_quiz
           do_write_journal = false
 
         else # search lick by name and maybe iterate
-          doiter = %w(,iterate ,iter ,i).find {|x| start_with.end_with?(x)}
+          doiter = %w(,iterate ,iter ,i ,cycle).find {|x| start_with.end_with?(x)}
+          lick_cycle = start_with.end_with?('cycle')
           start_with[-doiter.length .. -1] = '' if doiter
 
           lick_idx = $licks.index {|l| l[:name] == start_with}
