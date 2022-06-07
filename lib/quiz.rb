@@ -109,7 +109,7 @@ def do_quiz
           end
 
         elsif start_with == 'print'
-          print_lick_and_tag_info $all_licks
+          print_lick_and_tag_info
           exit
           
         elsif start_with == 'dump'
