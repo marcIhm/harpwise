@@ -133,20 +133,26 @@ calibrate:
 
 ------ play ------
 
-  If you just want to play a single lick without beeing challenged to play
-  it back:
-
-    ./harp-wizard play c blues
+  If you just want the wizard to play something, without beeing challenged
+  to play it back:
 
     ./harp-wizard play c 1 -2 c4
 
-  which can play either a complete lick or the holes or notes given on the
-  commandline. The special argument 'random' just plays a random lick, 
-  'last' repeats the last lick played (even from memorize). 
-  If you want to play the holes of the lick (rather than the recording), add
-  option '--holes'.
-  This mode accepts the same special lick names (e.g. history or print) as 
-  '--start-with' for moder 'quit' above.
+    ./harp-wizard play c juke
+
+  which can play either the holes or notes given on the commandline or a
+  complete lick.
+
+  The special argument 'random' just plays a random lick, 'last' (or 'l',
+  '2l', etc) repeats the last lick played (even from mode memorize).
+
+  The arguments 'iterate' or 'cycle' play all the licks selected by
+  options '--tags' and '--no-tags'. Also, the special lick names
+  'history', 'print' and 'dump' are accepted as plain arguments (see
+  '--start-with' for mode memorize above).
+
+  If you want to play the holes of the lick (rather than the recording),
+  add option '--holes'.
 
 
 ------ calibrate ------

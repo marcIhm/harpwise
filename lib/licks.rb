@@ -15,6 +15,7 @@ def read_licks
   all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add)
 
   all_licks = []
+  licks = nil
   derived = []
   all_lick_names = Set.new
   default = Hash.new
@@ -42,7 +43,7 @@ def read_licks
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
-          lick[:desc] = name + '  ' + lick[:tags].join(',')
+          lick[:desc] = name + ':' + lick[:tags].join(',')
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -161,7 +162,7 @@ def read_licks
   tags_in_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
 
   if $opts[:tags] == 'print'
-    print_lick_and_tag_info all_licks
+    print_lick_and_tag_info all_licks, licks
     exit
   end
 
@@ -351,23 +352,25 @@ def musical_event? hole_or_note
 end
 
 
-def print_lick_and_tag_info
+def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
 
   puts "\n(read from #{$lick_file})\n\n"
 
-  puts "\nInformation about licks selected by tags and hole-count only\n"
-  puts "============================================================\n\n"
-  print_licks_by_tags $licks
+  if licks
+    puts "\nInformation about licks selected by tags and hole-count only\n"
+    puts "============================================================\n\n"
+    print_licks_by_tags licks
+  end
   
   puts "\n\nInformation about all known licks, disregarding tags and hole count\n"
   puts "===================================================================\n\n"
-  print_licks_by_tags $all_licks
+  print_licks_by_tags all_licks
   puts
   
   # stats for tags
   puts "All tags:\n\n"
   counts = Hash.new {|h,k| h[k] = 0}
-  $all_licks.each do |lick|
+  all_licks.each do |lick|
     lick[:tags].each {|tag| counts[tag] += 1}
   end
   long_text = 'Total number of different tags:'
@@ -381,7 +384,7 @@ def print_lick_and_tag_info
   printf format, 'Total number of tags:', counts.values.sum
   printf format, long_text, counts.keys.length
   puts line
-  printf format, 'Total number of licks: ',$all_licks.length
+  printf format, 'Total number of licks: ',all_licks.length
 
   # stats for lick lengths
   puts "\nCounting licks by number of holes:\n"  
@@ -389,20 +392,20 @@ def print_lick_and_tag_info
   line = "  ----------    ---------------"
   puts "\n  Hole Range    Number of Licks"
   puts line
-  by_len = $all_licks.group_by {|l| l[:holes].length}
+  by_len = all_licks.group_by {|l| l[:holes].length}
   cnt = 0
   lens = []
   by_len.keys.sort.each_with_index do |len,idx|
     cnt += by_len[len].length
     lens << len
-    if cnt > $all_licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
+    if cnt > all_licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
       printf format % [lens[0],lens[-1],cnt]
       cnt = 0
       lens = []
     end
   end
   puts line
-  puts format % [by_len.keys.minmax, $all_licks.length].flatten
+  puts format % [by_len.keys.minmax, all_licks.length].flatten
   puts
 end
 

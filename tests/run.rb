@@ -233,7 +233,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard play testing a mape --testing'
     tms :ENTER
     sleep 4
-    expect { screen[4]['-1 +2 -2+3'] }
+    expect { screen[5]['-1 +2 -2+3'] }
     kill_session
   end
   
@@ -242,7 +242,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[4]['Lick juke,samples,favorites'] }
+    expect { screen[4]['Lick juke:samples,favorites'] }
     expect { screen[5]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
@@ -253,6 +253,27 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     expect { screen[4]['-1 +7 +4'] }
+    kill_session
+  end
+  
+  do_test 'id-16a: error on mixing licks and notes for play' do
+    new_session
+    tms './harp-wizard play testing a -1 juke --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[3]['but only one of them'] }
+    kill_session
+  end
+  
+  do_test 'id-16b: cycle in play' do
+    new_session
+    tms './harp-wizard play testing a cycle --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[4]['Lick juke:samples,favorites'] }
+    tms :ENTER
+    sleep 2
+    expect { screen[9]['Lick special:samples'] }
     kill_session
   end
   
@@ -298,7 +319,6 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  #
   do_test 'id-1b: memorize with --start-with' do
     new_session
     tms './harp-wizard memo testing --start-with juke a --testing'
@@ -326,7 +346,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     lines = File.read($testing_output_file).lines
     $all_testing_licks.each_with_index do |txt,idx|
-      expect { lines[5+(idx < 4 ? idx : 4)][txt]}
+      # last two licks are printed on the same line
+      expect { lines[10+(idx < 4 ? idx : 4)][txt]}
     end
     kill_session
   end

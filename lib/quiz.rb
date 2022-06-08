@@ -102,6 +102,7 @@ def do_quiz
           lick_idx = lick_idx_iter
 
         elsif !start_with # most general case: choose random lick
+          # avoid playing the same lick twice in a row
           if lick_idx_before
             lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
           else
