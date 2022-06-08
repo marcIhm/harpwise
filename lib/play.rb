@@ -24,7 +24,7 @@ def do_play
   # Partition arguments
   #
   
-  $to_play.each do |tp|
+  $to_play.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
     if musical_event?(tp)
       holes << tp
     elsif $harp_holes.include?(tp)

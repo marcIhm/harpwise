@@ -415,6 +415,8 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
     cell = $chart[xy[1]][xy[0]]
     hole_color = if state == :inactive
                    "\e[%dm" % get_hole_color_inactive(hole)
+                 elsif $opts[:no_progress]
+                   "\e[%dm\e[7m" % get_hole_color_inactive(hole)
                  else
                    "\e[%dm\e[7m" % get_hole_color_active(hole, good, was_good, was_good_since)
                  end
@@ -424,7 +426,7 @@ end
 
 
 def get_hole_color_active hole, good, was_good, was_good_since
-  if $opts[:no_progress] || !regular_hole?(hole)
+  if !regular_hole?(hole)
     2
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
     if $hole2flags[hole].include?(:both)
@@ -434,7 +436,7 @@ def get_hole_color_active hole, good, was_good, was_good_since
     else
       94
     end
-  elsif (was_good && (Time.now.to_f - was_good_since) < 1)
+  elsif was_good && (Time.now.to_f - was_good_since) < 1
     if $hole2flags[hole].include?(:both)
       2
     elsif $hole2flags[hole].include?(:main)

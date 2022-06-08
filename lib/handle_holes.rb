@@ -63,11 +63,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     was_was_good = was_good
     good, done, was_good = if $opts[:screenshot]
                              [true, $ctl_can_next && Time.now.to_f - hole_start > 2, false]
-                           elsif $opts[:no_progress]
-                             [false, false, false] 
                            else
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
+    done = false if $opts[:no_progress]
+
     was_good_since = Time.now.to_f if was_good && was_good != was_was_good
 
     print "\e[2m\e[#{$line_frequency}HFrequency:  "
@@ -90,7 +90,12 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[0m\e[%dm" % get_hole_color_active(hole, good, was_good, was_good_since)
+    hole_color = "\e[0m\e[%dm" %
+                 if $opts[:no_progress]
+                   get_hole_color_inactive(hole)
+                 else
+                   get_hole_color_active(hole, good, was_good, was_good_since)
+                 end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
     when :chart_notes, :chart_scales

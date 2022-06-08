@@ -27,9 +27,8 @@ require_relative 'lib/quiz'
 
 $program_start = Time.now.to_f
 
-myself = File.basename($0)
 Sys::ProcTable.ps{ |p|
-  err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[myself] && p.cmdline['ruby']
+  err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
 }
 
 install_dir = File.dirname(File.realpath(File.expand_path(__FILE__)))
