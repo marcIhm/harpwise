@@ -319,7 +319,7 @@ def do_quiz
                elsif $ctl_replay
                  "replay"
                else
-                 ( full_seq_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
+                 full_seq_shown ? 'Yes ' : 'Great ! '
                end
         if $conf[:comment] == :holes_all_with_scales
           clear_area_comment
@@ -582,7 +582,7 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
   holes_scales.each_with_index do |hole_scale, idx|
     line += " \e[0m" +
             if idx < idx_first_active
-              ' ' + "\e[0m\e[38;5;238m" + hole_scale[0] + hole_scale[1] + ':' + hole_scale[2]
+              ' ' + "\e[0m\e[38;5;238m" + hole_scale[0] + hole_scale[1] + '.' + hole_scale[2]
             else
               hole_scale[0] +
                 if idx == idx_first_active
@@ -590,8 +590,8 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
                 else
                   ' '
                 end +
-                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1])) +
-                hole_scale[1] + "\e[0m\e[38;5;238m" + ':' + hole_scale[2]
+                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1],true)) +
+                hole_scale[1] + "\e[0m\e[38;5;238m" + '.' + hole_scale[2]
             end
     if idx > 0 && idx % per_line == 0
       lines << line

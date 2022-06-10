@@ -427,10 +427,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-24: comment with holes' do
     new_session
-    tms './harp-wizard memorize testing blues:b --add-scales chord-i:1 --display chart-scales --comment holes_large --testing'
+    tms './harp-wizard memorize testing blues:b --add-scales chord-i:1 --comment holes-all --testing --start-with juke'
     tms :ENTER
     sleep 2
-    expect { screen[8]['unknown'] }
+    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
     kill_session
   end
 

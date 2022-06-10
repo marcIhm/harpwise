@@ -262,7 +262,7 @@ EOU
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
   opts[:display]&.gsub!('-','_')
-
+  
   if opts[:max_holes]
     err "Option '--max_holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
     opts[:max_holes] = opts[:max_holes].to_i
@@ -300,9 +300,10 @@ EOU
   # As we now have the mode, we may do some final processing on options,
   # which requires the mode
 
-  opts[:comment] = match_or(opts[:comment], $comment_choices[mode]) do |none, choices|
+  opts[:comment] = match_or(opts[:comment], $comment_choices[mode].map {|c| c.to_s.gsub('_','-')}) do |none, choices|
     err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
+  opts[:comment] = opts[:comment].gsub!('-','_').to_sym if opts[:comment]
   
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
