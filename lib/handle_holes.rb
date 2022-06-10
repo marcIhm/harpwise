@@ -133,20 +133,25 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     print "\e[K"
 
     if lambda_comment
-      comment_color,
-      comment_text,
-      font,
-      width_template,
-      truncate =
-      lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
-                          inter_semi,
-                          inter_text,
-                          hole && $harp[hole] && $harp[hole][:note],
-                          hole_disp,
-                          freq,
-                          $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
-      print "\e[#{$line_comment}H#{comment_color}"
-      do_figlet comment_text, font, width_template, truncate
+      if $conf[:comment] == :holes_all_with_scales
+        print "\e[#{$line_comment}H"
+        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+      else
+        comment_color,
+        comment_text,
+        font,
+        width_template,
+        truncate =
+        lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
+                            inter_semi,
+                            inter_text,
+                            hole && $harp[hole] && $harp[hole][:note],
+                            hole_disp,
+                            freq,
+                            $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
+        print "\e[#{$line_comment}H#{comment_color}"
+        do_figlet comment_text, font, width_template, truncate
+      end
     end
 
     if done
@@ -195,11 +200,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
     
     if $ctl_change_comment
-      choices = [ $comment_choices, $comment_choices ].flatten
+      choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
       choices = choices.reverse if $ctl_change_comment == :back
-      $conf[:comment_listen] = choices[choices.index($conf[:comment_listen]) + 1]
+      $conf[:comment] = choices[choices.index($conf[:comment]) + 1]
       clear_area_comment
-      print "\e[#{$line_hint_or_message}H\e[2mComment is now #{$conf[:comment_listen].upcase}\e[0m\e[K"
+      print "\e[#{$line_hint_or_message}H\e[2mComment is now #{$conf[:comment].upcase}\e[0m\e[K"
       $message_shown = Time.now.to_f
       $ctl_change_comment = false
     end
@@ -209,7 +214,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "\e[#{$line_help}H\e[0mShort help on keys (see README.org for more details):\e[0m\e[32m\n"
       puts "   SPACE: pause               ctrl-l: redraw screen"
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
-      puts "     c,C: change comment (lower, i.e. this, part of screen)" if $ctl_can_change_comment
+      puts "     c,C: change comment (lower, i.e. this, part of screen)"
       puts "       r: set reference hole       j: toggle writing of journal file"
       puts "       k: change key of harp       s: change scale"
       puts "       q: quit                     h: this help"

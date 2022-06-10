@@ -425,6 +425,15 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  do_test 'id-24: comment with holes' do
+    new_session
+    tms './harp-wizard memorize testing blues:b --add-scales chord-i:1 --display chart-scales --comment holes_large --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[8]['unknown'] }
+    kill_session
+  end
+
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"

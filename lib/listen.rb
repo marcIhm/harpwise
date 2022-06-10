@@ -9,7 +9,6 @@ def do_listen
   start_collect_freqs 
   $ctl_can_next = false
   $ctl_can_loop = false
-  $ctl_can_change_comment = true
   
   system('clear')
   pipeline_catch_up
@@ -32,7 +31,7 @@ def do_listen
     -> (hole_color, isemi, itext, note, hole_disp, f1, f2) do
       color = "\e[0m" + hole_color
       stext = nil
-      text = case $conf[:comment_listen]
+      text = case $conf[:comment]
              when :note
                note
              when :interval
@@ -56,7 +55,7 @@ def do_listen
                  'set ref'
                end
              else
-               fail "Internal error: #{$conf[:comment_listen]}"
+               fail "Internal error: #{$conf[:comment]}"
              end || '.  .  .'
       [color, text, 'big', stext]
     end,

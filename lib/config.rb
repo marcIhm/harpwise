@@ -14,7 +14,6 @@ def set_global_vars_early
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
   $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
   $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_redraw = false
-  $ctl_can_change_comment = false
   $ctl_issue_width = 36
   $ctl_non_def_issue_ts = nil
   $ctl_sig_winch = false
@@ -30,8 +29,6 @@ def set_global_vars_early
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $write_journal = false
   $message_shown = false
-  $display_choices = [:hole, :chart_notes, :chart_scales, :bend]
-  $comment_choices = [:note, :interval, :hole, :cents]
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
@@ -42,6 +39,11 @@ def set_global_vars_early
 
   $figlet_count = 0
   $first_round_ever_get_hole = true
+
+  $display_choices = [:hole, :chart_notes, :chart_scales, :bend]
+  $comment_choices = Hash.new([:holes_large, :holes_all_with_scales])
+  $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
+
 end
 
 
@@ -82,11 +84,11 @@ def set_global_vars_late
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
-  if $mode == :memorize || $mode == :play
-    $journal_file = "#{$data_dir}/journal_memorize_play.txt"
-  else
-    $journal_file = "#{$data_dir}/journal_#{$mode}.txt"
-  end
+  $journal_file = if $mode == :memorize || $mode == :play
+                    "#{$data_dir}/journal_memorize_play.txt"
+                  else
+                    "#{$data_dir}/journal_#{$mode}.txt"
+                  end
   $all_licks, $licks = nil
 end
 
@@ -109,7 +111,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = "#{$data_dir}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
+  req_keys = Set.new([:type, :key, :comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -129,7 +131,7 @@ def read_technical_config
   conf = load_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-  [:comment_listen, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
+  [:comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.

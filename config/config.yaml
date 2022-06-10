@@ -8,6 +8,9 @@ key: c
 # While listening, show comments as note or interval
 comment_listen: note
 
+# for quiz and memorize
+comment_quiz: holes_large
+
 # what to display for listen when a note has been recognized
 display_listen: chart_notes
 

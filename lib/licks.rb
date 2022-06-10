@@ -425,7 +425,7 @@ end
 def get_last_lick_idxs_from_journal licks = $licks
   lnames = []
   File.readlines($journal_file).each do |line|
-    md = line.match(/^Lick +([^, ]+)/)
+    md = line.match(/^Lick +([^, :]+)/)
     lnames << md[1] if md
     lnames.shift if lnames.length > 100
   end
@@ -433,7 +433,7 @@ def get_last_lick_idxs_from_journal licks = $licks
   idxs = lnames.map do |ln|
     licks.index {|l| l[:name] == ln }
   end.select(&:itself)
-  err "Could not find any lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}" if idxs.length == 0
+  err "Could not find any of the lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}" if idxs.length == 0
   idxs.reverse[0..16]
 end
 

@@ -261,10 +261,10 @@ def handle_kb_listen
   elsif char == 'r'
     $ctl_set_ref = true
     text = 'Set reference'
-  elsif char == 'c' && $ctl_can_change_comment
+  elsif char == 'c'
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif char == 'c' && $ctl_can_change_comment
+  elsif char == 'c'
     $ctl_change_comment = :back
     text = 'Change comment back'
   elsif (char == '.' || char == ',' || char == ':' || char == 'p') && $ctl_can_next

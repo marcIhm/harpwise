@@ -9,7 +9,6 @@ def do_quiz
   start_collect_freqs
   $ctl_can_next = true
   $ctl_can_loop = true
-  $ctl_can_change_comment = false
   $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
   $write_journal = true
   journal_start
@@ -188,6 +187,9 @@ def do_quiz
                    ['','','']
                  end
 
+    
+    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_all_with_scales
+
     #
     #  Now listen for user to play the sequence back correctly
     #
@@ -196,6 +198,8 @@ def do_quiz
 
       round_start = Time.now.to_f
       $ctl_forget = false
+      idx_refresh_comment_cache = comment_cache = nil
+      clear_area_comment if $conf[:comment] == :holes_all_with_scales
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -234,32 +238,17 @@ def do_quiz
 
           
           # lambda_comment
-          -> (_, _, _, _, _, _, _) do  
-            if $num_quiz == 1
-              [ "\e[2m", '.  .  .', 'smblock', nil ]
-            elsif $opts[:immediate] # show all unplayed
-              hidden_holes = if idx > 8
-                               ". . # . ."
-                             else
-                               ' .' * idx
-                             end
-              [ "\e[2m",
-                'Play  ' + hidden_holes + all_wanted[idx .. -1].join(' '),
-                'smblock',
-                'play  ' + '--' * all_wanted.length,  # width_template
-                :right ]  # truncate at
-            else # show all played
-              hidden_holes = if all_wanted.length - idx > 8
-                               " _ _ # _ _" # abbreviation for long sequence of ' _'
-                             else
-                               ' _' * (all_wanted.length - idx)
-                             end
-              [ "\e[2m",
-                'Yes  ' + all_wanted.slice(0,idx).join(' ') + hidden_holes,
-                'smblock',
-                'yes  ' + '--' * [6,all_wanted.length].min,  # width_template
-                :left ]  # truncate at
+          -> (_, _, _, _, _, _, _) do
+            if idx != idx_refresh_comment_cache
+              idx_refresh_ccache = idx
+              comment_cache = 
+                if $conf[:comment] == :holes_all_with_scales
+                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
+                else
+                  largify(all_wanted, idx)
+                end
             end
+            comment_cache
           end,
 
           
@@ -312,9 +301,15 @@ def do_quiz
       #  Finally judge result
       #
 
+      clear_area_comment if $conf[:comment] == :holes_all_with_scales
       if $ctl_forget
-        print "\e[#{$line_comment}H\e[2m\e[32m"
-        do_figlet 'again', 'smblock'
+        if $conf[:comment] == :holes_all_with_scales
+          clear_area_comment
+          print "\e[#{$line_comment + 2}H\e[0m\e[32m   again"
+        else
+          print "\e[#{$line_comment}H\e[0m\e[32m"
+          do_figlet 'again', 'smblock'
+        end
         sleep 0.5
       else
         text = if $ctl_next
@@ -326,8 +321,13 @@ def do_quiz
                else
                  ( full_seq_shown ? 'Yes ' : 'Great ! ' ) + all_wanted.join(' ')
                end
-        print "\e[#{$line_comment}H\e[2m\e[32m"
-        do_figlet text, 'smblock'
+        if $conf[:comment] == :holes_all_with_scales
+          clear_area_comment
+          puts "\e[#{$line_comment + 2}H\e[0m\e[32m   " + text
+        else
+          print "\e[#{$line_comment}H\e[0m\e[32m"
+          do_figlet text, 'smblock'
+        end
         print "\e[0m"
         
         print "\e[#{$line_hint_or_message}H\e[K"
@@ -574,3 +574,73 @@ def select_and_calc_partial all_holes, start_s, length_s
 end
 
 
+def tabify_colorize max_lines, holes_scales, idx_first_active
+  lines = Array.new
+  max_cell_len = holes_scales.map {|hs| hs.map(&:length).sum + 2}.max
+  per_line = (($term_width * 0.8 - 4)/ max_cell_len).truncate
+  line = '   '
+  holes_scales.each_with_index do |hole_scale, idx|
+    line += " \e[0m" +
+            if idx < idx_first_active
+              ' ' + "\e[0m\e[38;5;238m" + hole_scale[0] + hole_scale[1] + ':' + hole_scale[2]
+            else
+              hole_scale[0] +
+                if idx == idx_first_active
+                  "\e[0m\e[92m*"
+                else
+                  ' '
+                end +
+                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1])) +
+                hole_scale[1] + "\e[0m\e[38;5;238m" + ':' + hole_scale[2]
+            end
+    if idx > 0 && idx % per_line == 0
+      lines << line
+      line = '   '
+      if lines.length >= max_lines - 1
+        lines[-1] = lines[-1].ljust(per_line)
+        lines[-1][-6 .. -1] = "\e[0m  ... "
+        return lines
+      end
+      lines << ''
+    end
+  end
+  lines << line + "\e[0m"
+  lines << ''
+end
+
+
+def scaleify holes
+  holes = holes.reject {|h| musical_event?(h)}
+  holes_maxlen = holes.max_by(&:length).length
+  abbrev_maxlen = holes.map {|hole| $hole2scale_abbrevs[hole]}.max_by(&:length).length
+  holes.each.map {|hole| [' ' * (holes_maxlen - hole.length), hole, $hole2scale_abbrevs[hole].ljust(abbrev_maxlen)]}
+end
+
+
+def largify all_wanted, idx
+  if $num_quiz == 1
+    [ "\e[2m", '.  .  .', 'smblock', nil ]
+  elsif $opts[:immediate] # show all unplayed
+    hidden_holes = if idx > 8
+                     ". . # . ."
+                   else
+                     ' .' * idx
+                   end
+    [ "\e[2m",
+      'Play  ' + hidden_holes + all_wanted[idx .. -1].join(' '),
+      'smblock',
+      'play  ' + '--' * all_wanted.length,  # width_template
+      :right ]  # truncate at
+  else # show all played
+    hidden_holes = if all_wanted.length - idx > 8
+                     " _ _ # _ _" # abbreviation for long sequence of ' _'
+                   else
+                     ' _' * (all_wanted.length - idx)
+                   end
+    [ "\e[2m",
+      'Yes  ' + all_wanted.slice(0,idx).join(' ') + hidden_holes,
+      'smblock',
+      'yes  ' + '--' * [6,all_wanted.length].min,  # width_template
+      :left ]  # truncate at
+  end
+end

@@ -258,10 +258,6 @@ EOU
 
   # Special handling for some options
   
-  opts[:comment] = match_or(opts[:comment], $comment_choices) do |none, choices|
-    err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
-  end
-
   opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
     err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
   end
@@ -304,6 +300,10 @@ EOU
   # As we now have the mode, we may do some final processing on options,
   # which requires the mode
 
+  opts[:comment] = match_or(opts[:comment], $comment_choices[mode]) do |none, choices|
+    err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+  end
+  
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
   err("Unknown options: #{other_opts.join(',')}") if other_opts.length > 0 && mode != :play
@@ -397,7 +397,12 @@ EOU
   # Commandline processing is complete here
   
   # carry some options over into $conf
-  $conf[:comment_listen] = opts[:comment] if opts[:comment]
+  $conf[:comment] = if mode == :listen
+                      $conf[:comment_listen]
+                    else
+                      $conf[:comment_quiz]
+                    end
+  $conf[:comment] = opts[:comment] if opts[:comment]
   $conf[:display] = $conf["display_#{mode}".to_sym]
   $conf[:display] = opts[:display] if opts[:display]
   $conf[:display] = $conf[:display]&.to_sym
