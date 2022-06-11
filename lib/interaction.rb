@@ -41,15 +41,17 @@ def check_screen graceful: false
     # check for maximum value of $line_xx_ variables
     all_vars = Hash.new
     $bottom_line = bottom_line_var = 0
+    allowed_clashes = [:$line_help, :$line_comment, :$line_comment_tall].
+                        combination(2).
+                        map {|pair| Set.new(pair)}
     global_variables.each do |var|
-      if var.to_s.start_with?('$line_')
-        val = eval(var.to_s)
-        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment]) && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment_tall])
-        all_vars[val] = var
-        if val > $bottom_line
-          $bottom_line = eval(var.to_s)
-          bottom_line_var = var
-        end
+      next unless var.to_s.start_with?('$line_')
+      val = eval(var.to_s)
+      raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && !allowed_clashes.include?(Set.new([var, all_vars[val]]))
+      all_vars[val] = var
+      if val > $bottom_line
+        $bottom_line = eval(var.to_s)
+        bottom_line_var = var
       end
     end
     if $bottom_line > $term_height

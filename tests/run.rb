@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+# coding: utf-8
 
 #
 # run all tests
@@ -416,7 +417,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'id-23: show chart with scales' do
+  do_test 'id-23: display as chart with scales' do
     new_session
     tms './harp-wizard listen testing blues:b --add-scales chord-i:1 --display chart-scales --testing'
     tms :ENTER
@@ -425,12 +426,21 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'id-24: comment with holes' do
+  do_test 'id-24: comment with scales' do
+    new_session
+    tms './harp-wizard memorize testing blues:b --add-scales chord-i:1 --comment holes-with-scales --testing --start-with juke'
+    tms :ENTER
+    sleep 2
+    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+    kill_session
+  end
+
+  do_test 'id-25: comment with all holes' do
     new_session
     tms './harp-wizard memorize testing blues:b --add-scales chord-i:1 --comment holes-all --testing --start-with juke'
     tms :ENTER
     sleep 2
-    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+    expect { screen[16]['  ▄▖▜   ▄▖▄▌▐   ▄▖▄▌▐ ▐   ▄▖▄▌  ▄▖▙▌  ▄▖▙▌'] }
     kill_session
   end
 
