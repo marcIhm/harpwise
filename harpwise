@@ -64,7 +64,7 @@ $all_licks, $licks = read_licks if $mode == :play || $mode == :memorize
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
-check_screen
+check_screen unless $mode == :calibrate
 
 $freq2hole = read_calibration unless $mode == :calibrate
 

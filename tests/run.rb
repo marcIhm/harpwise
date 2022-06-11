@@ -138,8 +138,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 4
     tms 'j'
     sleep 1
-    expect { File.exist?(journal_file) }
     expect { screen[12]['b4'] }
+    expect { File.exist?(journal_file) }
     kill_session
   end
   
@@ -234,7 +234,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a mape --testing'
     tms :ENTER
     sleep 4
-    expect { screen[4]['-1 +2 -2+3'] }
+    expect { screen[5]['-1 +2 -2+3'] }
     kill_session
   end
   
@@ -243,8 +243,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[3]['Lick juke:samples,favorites'] }
-    expect { screen[4]['-1 -2/ -3// -3 -4'] }
+    expect { screen[4]['Lick juke:samples,favorites'] }
+    expect { screen[5]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
   
@@ -253,7 +253,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a -1 a5 +4 --testing'
     tms :ENTER
     sleep 2
-    expect { screen[4]['-1 +7 +4'] }
+    expect { screen[5]['-1 +7 +4'] }
     kill_session
   end
   
@@ -262,7 +262,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a -1 juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[2]['but only one of them'] }
+    expect { screen[3]['but only one of them'] }
     kill_session
   end
   
@@ -271,10 +271,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a cycle --testing'
     tms :ENTER
     sleep 2
-    expect { screen[3]['Lick juke:samples,favorites'] }
+    expect { screen[4]['Lick juke:samples,favorites'] }
     tms :ENTER
     sleep 2
-    expect { screen[8]['Lick special:samples'] }
+    expect { screen[9]['Lick special:samples'] }
     kill_session
   end
   
@@ -348,7 +348,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     lines = File.read($testing_output_file).lines
     $all_testing_licks.each_with_index do |txt,idx|
       # last two licks are printed on the same line
-      expect { lines[10+(idx < 4 ? idx : 4)][txt]}
+      expect { lines[11+(idx < 4 ? idx : 4)][txt]}
     end
     kill_session
   end
@@ -431,7 +431,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-with-scales --testing --start-with juke'
     tms :ENTER
     sleep 2
-    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+    expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
     kill_session
   end
 
