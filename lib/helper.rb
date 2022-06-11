@@ -111,7 +111,7 @@ def journal_start
              "Columns: Secs since prog start, duration, hole, note\n" +
                "Notes played by you only.\n\n"
            else
-             "Notes played by wizard only.\n\n"
+             "Notes played by harpwise only.\n\n"
            end, mode: 'a')
 end
 

@@ -1,15 +1,23 @@
 # -*- fill-column: 74 -*-
 
-* Harp Wizard
+* Harp Wise
 
   [[images/harmonicas.jpg]]
 
-  Ruby script to support the daily practice for bends, scales or licks on
-  a (diatonic) richter or chromatic harmonica for various keys. May also
-  be useful when writing tabs.
+  Ruby script to support the daily practice for bends, scales, licks or
+  intervals on a (diatonic) richter or chromatic harmonica for various
+  keys. May also be useful when writing down tabs.
 
-  Its main operation modes are 'listen', 'quiz' and 'memorize'.
-  
+  Its main operation modes are 'listen', 'quiz' and 'memorize'; these
+  modes may help to:
+
+  - Work on bends
+  - Train your musical memory
+  - Internalize various scales
+  - Memorize and analyze licks
+  - Help in writing down a sequence
+
+    
   The first screenshow is from mode 'listen': The program has recognized a
   note from the blues scale and marks it in the harmonica chart.
   
@@ -24,11 +32,11 @@
 
   Get a short usage information by invoking without arguments:
   
-    ./harp-wizard
+    ./harpwise
 
 
   This will show examples and options for the four main operations of the
-  wizard: 
+  wise: 
   
   - listen: Listen to your playing, e.g. to monitor bends or scales
   - quiz: Train your ear and musical memory
@@ -36,15 +44,44 @@
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
-  wav-files will be kept in directory ~/.harp-wizard
+  wav-files will be kept in directory ~/.harpwise
 
   To get started quickly you may use auto-calibration for
   machine-generated tones and frequencies.
 
+  If you want to work with mode memorize for learning licks (highle
+  recommended !), you need to add your own licks first.
+  They need to be added to your own lick-file, which is located at
+
+  ~/.harpwise/licks/richter/licks_with_holes.txt
+
+  this file is created on first invocation and filled with only a few
+  sample-licks; however it contans extensive instructions on how to add
+  new licks and on (printed) sources.
+
 * Some general concepts
+** Scales and Licks
+
+   Both concepts:
+
+   - scales, e.g. "blues" or "major pentatonic" and even "chord-i" (holes
+     of the i-Chord)
+   - Licks, e.g. the opening lick of "Juke"
+
+   they play a central very role for harpwise.
+
+   In many of its different views, harpwise shows information about the scales,
+   a given hole belongs to. Or it helps you to memorize your favorite licks.
+
+   For this to work best, you may:
+
+   - Add the option --add-scales on the commandline to tell, which scales
+     you may want to see, e.g. "--add-scales chord-i:1,chord-iv:4,chord-v:5,root:r"
+   - Find and add your own licks as described above
+   
 ** The reference hole
 
-   The wizard can remember a hole you have played to refer to it; this is
+   The wise can remember a hole you have played to refer to it; this is
    useful e.g. to show the interval between the currently played hole and
    the reference, or to show the deviation from the current played
    frequency to the nominal frequency of the hole, especially when
@@ -73,32 +110,37 @@
 
 * A closer look at the display
 
-  Please note, that the wizard tries to adapt itself to different screen
+  Please note, that the wise tries to adapt itself to different screen
   sizes by inserting blank lines in its display; you do not need to
   restart it for this.
 
-** The upper half of the screen
+** The upper half of the screen, the "display"
 
-   This part can display different things:
+   The display shows details and context about the notes you are playing:
 
    - The hole you played
-   - A Chart showing the layout of your harmonica
+   - A Chart showing the layout of your harmonica with notes
+   - A similar chart but with scales
    - A frequency scale, centered around the currently referenced note
 
-   The color changes depending, if you hit a note from the chosen scale or
-   not.
+   The color may show, if you hit a note from the chosen scales.
 
-** The lower half of the screen
+** The lower half of the screen, the "comment"
 
-   This shows whatever comment is appropriate for listen or quiz. 
+   This shows whatever comment is appropriate for listen or quiz and memorize. 
 
-   For listen this may be changed interactively between:
+   For listen this may be one of:
 
    - The hole you played
    - The respective note
    - The interval to the previous note or the stored reference
    - Cents deviation of the current frequency to the reference
 
+
+   For quiz and memorize the comment gives information about the sequence
+   of holes, the wise expects you to play. There are three layouts showing
+   the holes small and large and with associated scales.
+   
 ** The middle part of the display
 *** The Hole-line
     
@@ -138,26 +180,26 @@
 
 * Tuning
 
-  The harp wizard does not make assumptions about the tuning of
+  The harp wise does not make assumptions about the tuning of
   your harmonica; e.g. it works equally well with "equal temperament" (ET)
   or "just intonation" tuning.  Simply because, it asks you to play your
   own harp (whatever its tuning might be), to generate samples; and it
   then computes frequency values from these.
   
-  However, sometimes harp-wizard has to choose one tuning,
+  However, sometimes harpwise has to choose one tuning,
   e.g. when doing auto calibration, or when your samples need to be judged
   against some standard. In such cases it generally uses "equal
   temperament" (ET for short).
   
 * Installation
 
-  The program harp-wizard runs in the linux console (no graphical
+  The program harpwise runs in the linux console (no graphical
   environment needed); it has no formal installation, but rather runs
   directly from within the directory, which you need to download as a
   release or clone from github first. Vice versa it can simply be removed
   by deleting the cloned directory.
 
-  harp-wizard has a bunch of dependencies and one of the scripts in
+  harpwise has a bunch of dependencies and one of the scripts in
   directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for

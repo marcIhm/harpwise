@@ -15,7 +15,7 @@ def parse_arguments
   usage = <<EOU
 
 
-harp-wizard ('wizard', for short) helps to practice scales
+harpwise ('wise', for short) helps to practice scales
 (e.g. blues or mape) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation are
 'listen', 'quiz' and 'memo'.
@@ -27,11 +27,11 @@ calibrate:
 
 ------ listen ------
 
-  The wizard listens, while your are playing a richter harmonica of key c
+  The wise listens, while your are playing a richter harmonica of key c
   and it shows the holes, that you played; green if from the scale, red
   otherwise:
 
-    ./harp-wizard listen ri c blues
+    ./harpwise listen ri c blues
 
   Add option '--comment interval' (or '-c i') to show intervals instead
   of notes; other possible values are 'note' and 'hole'.
@@ -42,10 +42,10 @@ calibrate:
 
 ------ quiz ------
 
-  The Wizard plays 3 notes from the scale 'mape' for a chromatic
-  harmonica of key a and then quizes you to play them back (then repeat):
+  The Wise plays 3 notes from the scale 'mape' for a chromatic harmonica
+  of key a and then quizes you to play them back (then repeat):
 
-    ./harp-wizard quiz 3 chrom a mape
+    ./harpwise quiz 3 chrom a mape
 
   Add option '--loop' (or '-l') to loop over sequence until you type
   'RETURN'. Option '--immediate' shows the full hole-sequence during quiz
@@ -55,7 +55,7 @@ calibrate:
   chromatic) and, in addition, the key (e.g. c or a) may be omitted and
   are then taken from the config; so
 
-    ./harp-wizard q 3 ma
+    ./harpwise q 3 ma
 
   is valid as well.
 
@@ -65,7 +65,7 @@ calibrate:
   licks for the v-chord, you might use the blues scale and add the scales
   chord-i and chord-v:
 
-    ./harp-wizard l blues:b --add-scales chord-i:1,chord-v:5
+    ./harpwise l blues:b --add-scales chord-i:1,chord-v:5
 
   This example also uses abbreviations, l,1 and 5, for the scales which
   will be used in the chart.
@@ -80,7 +80,7 @@ calibrate:
   removed from the original scale. E.g. you might want to remove bends
   from all notes:
 
-    ./harp-wizard q all --remove blowbends,drawbends
+    ./harpwise q all --remove blowbends,drawbends
 
   Both modes listen and quiz allow an option '--display' with possible
   values of 'hole' and 'chart' to change how a recognized hole will be
@@ -95,9 +95,9 @@ calibrate:
   The mode memo is a variation of quiz, which helps to memorize licks
   from a given set:
 
-    ./harp-wizard memo c
+    ./harpwise memo c
 
-    ./harp-wizard memo c --tags fav,scales
+    ./harpwise memo c --tags fav,scales
 
   As shown in the second example, you may restrict the set of licks to
   those with certain tags; tags (e.g. 'scales') may also
@@ -133,12 +133,12 @@ calibrate:
 
 ------ play ------
 
-  If you just want the wizard to play something, without beeing challenged
+  If you just want the wise to play something, without beeing challenged
   to play it back:
 
-    ./harp-wizard play c 1 -2 c4
+    ./harpwise play c 1 -2 c4
 
-    ./harp-wizard play c juke
+    ./harpwise play c juke
 
   which can play either the holes or notes given on the commandline or a
   complete lick.
@@ -157,10 +157,10 @@ calibrate:
 
 ------ calibrate ------
 
-  Once in the lifetime of your c-harp you need to calibrate the wizard
-  for the frequencies of the harp you are using:
+  Once in the lifetime of your c-harp you need to calibrate the wise for
+  the frequencies of the harp you are using:
 
-    ./harp-wizard calibrate c
+    ./harpwise calibrate c
     
   this will ask you to play notes on your harp. The samples will be
   stored in the hidden folder .#{File.basename($0)} within your home
@@ -174,6 +174,20 @@ calibrate:
   To calibrate only a single whole, add e.g. '--hole -3//'.
 
 
+--- Real-World examples ---
+
+  Memorize licks, but only shorter ones and show the scales for each hole:
+
+    harpwise memo c blues:b --loop --max-holes 15 --imm --no-tags scales \
+        --disp chart-scales --add-scales chord-i:1,chord-iv:4,chord-v:5,root:r \
+        --comment holes-all
+
+
+  Lick-Shuffle: Play all my licks in random order:
+
+    harpwise play random cycle
+
+  
 --- Some Notes ---
 
   The possible scales depend on the chosen type of harmonica:

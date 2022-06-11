@@ -2,25 +2,25 @@ Testing the scripts from the top-level directory "install" is done via docker.
 
 * Build a docker image
 
-  (in harp-wizard/tests/installer)
+  (in harpwise/tests/installer)
 
     docker build -f dockerfile.ubuntu --progress=plain \
-                 --no-cache -t harp-wizard_ubuntu:latest $HOME
+                 --no-cache -t harpwise_ubuntu:latest $HOME
 
   or 
 
     docker build -f dockerfile.fedora --progress=plain \
-                 --no-cache -t harp-wizard_fedora:latest $HOME
+                 --no-cache -t harpwise_fedora:latest $HOME
 
 * Run the image 
 
   and verify the usage information:
 
-    docker run -it harp-wizard_ubuntu:latest
+    docker run -it harpwise_ubuntu:latest
 
   or
 
-    docker run -it harp-wizard_fedora:latest
+    docker run -it harpwise_fedora:latest
 
 
   As the script tests all (?) its dependencies on each invocation, a
@@ -31,5 +31,5 @@ Testing the scripts from the top-level directory "install" is done via docker.
 
 * However
 
-  harp-wizard itself however, cannot run from within a container
+  harpwise itself however, cannot run from within a container
   without setting up the sound-system manually.

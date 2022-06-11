@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y
 RUN apt-get install -y sudo
 RUN apt-get install -y ca-certificates
-COPY harp-wizard /harp-wizard
-WORKDIR /harp-wizard
+COPY harpwise /harpwise
+WORKDIR /harpwise
 RUN bash ./install/install-dependencies-on-ubuntu.sh
-ENTRYPOINT ["./harp-wizard"]
+ENTRYPOINT ["./harpwise"]

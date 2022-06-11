@@ -9,7 +9,7 @@
   - config.yaml :: Main config file; see comments within for some
     explanations.
 
-  - ~/.harp-wizard/config.yaml :: Optional, may contain any of
+  - ~/.harpwise/config.yaml :: Optional, may contain any of
     the config-keys from config.yaml and then overrides those; not included in
     git-versioning.
 
@@ -23,7 +23,7 @@
     overrides the one directly within config.
 
   - holes.yaml :: Maps holes to notes for a harmonica of key c. Any other key
-    (chosen when starting the wizard) will be automatically derived from this
+    (chosen when starting the harpwise) will be automatically derived from this
     one
 
   - scales_SCALE_with_holes.yaml :: List of holes for scale SCALE; each line
@@ -48,7 +48,7 @@
   E.g. for a new scale chord-iii (notes from the iii-chord), you would just
   copy the file scales_all_with_holes.yaml (see above) to
   scales_chord-iii_with_holes.yaml and edit it appropriately. The next time,
-  the wizard is started, it would recognize the new scale.
+  the harpwise is started, it would recognize the new scale.
 
   Creating new scales is easy and should be used freely to support your
   training.

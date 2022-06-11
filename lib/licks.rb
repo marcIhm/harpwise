@@ -248,12 +248,12 @@ def create_initial_lick_file lfile
         # To this end you may search the web; make sure, to grep 
         # audio samples too or record them yourself.
         #
-        # A great one-stop source of licks complete with audio samples 
-        # is the book:
+        # Two great sources of licks, complete with audio samples 
+        # are these books:
         #
-        #    100 Authentic Blues Harmonica Licks
+        # - "100 Authentic Blues Harmonica Licks" by Steve Cohen
         #
-        # by Steve Cohen
+        # - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
         #
 
         [default]

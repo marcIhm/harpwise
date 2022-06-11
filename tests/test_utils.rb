@@ -13,7 +13,7 @@ def new_session
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
   sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht \\; new-window bash \\; kill-window -t 0"
-  tms 'cd ~/harp-wizard'
+  tms 'cd ~/harpwise'
   tms :ENTER
 end
 
@@ -62,11 +62,11 @@ end
 
 
 def sound secs, semi
-    sys "sox -n /tmp/harp-wizard_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
+    sys "sox -n /tmp/harpwise_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
 end
 
 
-$memo_file = "#{Dir.home}/.harp-wizard_test_memo.json"
+$memo_file = "#{Dir.home}/.harpwise_test_memo.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}

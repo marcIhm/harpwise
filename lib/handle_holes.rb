@@ -300,7 +300,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           end
         end
       end while er
-      # next line also appears in file harp-wizard
+      # next line also appears in file harpwise
       $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
       
       $chart, $hole2chart = read_chart

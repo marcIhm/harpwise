@@ -2,8 +2,8 @@
 
   With these commandlines:
 
-  ./harp-wizard listen richter c blues --add-scales chord-v --screenshot
+  ./harpwise listen richter c blues --add-scales chord-v --screenshot
 
-  ./harp-wizard quiz 5 richter c blues --add-scales chord-v --screenshot
+  ./harpwise quiz 5 richter c blues --add-scales chord-v --screenshot
 
   
