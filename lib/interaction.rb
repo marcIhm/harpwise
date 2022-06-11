@@ -18,8 +18,14 @@ def check_screen graceful: false
 
     # check if enough room for fonts
     space = $line_hole - $line_display
-    if figlet_char_height('mono12') > space
-      raise ArgumentError.new("Space of #{space} lines between $line_hole and $line_display is too small")
+    height = figlet_char_height('mono12')
+    if height > space
+      raise ArgumentError.new("Space of #{space} lines between $line_hole and $line_display is less than needed #{height}")
+    end
+    space = $line_hint_or_message - $line_comment_tall
+    height = [figlet_char_height('big'),figlet_char_height('smblock')].max
+    if height > space
+      raise ArgumentError.new("Space of #{space} lines between $line_comment_tall and $line_hint_or_message is less than needed #{height}")
     end
 
     space = $line_hint_or_message - $line_comment

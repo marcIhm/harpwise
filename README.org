@@ -14,11 +14,12 @@
   - Work on bends
   - Train your musical memory
   - Internalize various scales
-  - Memorize and analyze licks
-  - Help in writing down a sequence
+  - Memorize and analyze licks regarding scales and chords
+  - Support improvisation: Provide licks and scale info
+  - Help in writing down a sequence of holes
 
     
-  The first screenshow is from mode 'listen': The program has recognized a
+  The first screenshot is from mode 'listen': The program has recognized a
   note from the blues scale and marks it in the harmonica chart.
   
   [[images/screenshot_listen.png]]
@@ -193,16 +194,15 @@
   
 * Installation
 
-  The program harpwise runs in the linux console (no graphical
-  environment needed); it has no formal installation, but rather runs
-  directly from within the directory, which you need to download as a
-  release or clone from github first. Vice versa it can simply be removed
-  by deleting the cloned directory.
+  The program harpwise runs in the linux console (no graphical environment
+  needed); it runs directly from within the directory, which you need to
+  clone from github first. Vice versa it can simply be removed by deleting
+  the cloned directory. 
 
   harpwise has a bunch of dependencies and one of the scripts in
   directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
-  Linux wslg, which supports sound through the remote desktop protocol.
+  Linux wsl2, which supports sound through the remote desktop protocol.
 
   See README.org in directory install for more details.

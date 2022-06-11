@@ -56,22 +56,22 @@ def calculate_screen_layout
   $line_key = 2
   $line_display = 4 + stretch - squeeze
   $line_hole = 15 + 2 * stretch - 2 * squeeze
-  $line_frequency = 16 + 2 * stretch - 2 * squeeze
-  $line_interval = 17 + 2 * stretch - 2 * squeeze
+  $line_frequency = $line_hole + 1
+  $line_interval = $line_hole + 2
   $line_comment = 18 + 3 * stretch - 2 * squeeze
-  $line_help = $line_comment
   $line_hint_or_message = 26 + 5 * stretch - 2 * squeeze
+  $line_hint_or_message += 1 if $term_height - $line_hint_or_message > 2
   $line_comment_tall = $line_comment
   if $mode == :quiz || $mode == :memorize
     # font for quiz is fairly small
     $line_comment += 1
     $line_call2 = $line_hint_or_message + 1
   else
+    # call starts on $line_hint_or_message, so $line_call2 is actually
+    # its second line
     $line_call2 = -1
   end
-  # call starts on $line_hint_or_message, so $line_call2 is actually
-  # its second line
-
+  $line_help = $line_comment
 end
 
 
