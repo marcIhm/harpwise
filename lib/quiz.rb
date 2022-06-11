@@ -314,6 +314,7 @@ def do_quiz
       #
 
       if $ctl_forget
+        clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
         if $conf[:comment] == :holes_with_scales
           print "\e[#{$line_comment + 2}H\e[0m\e[32m   again"
         else

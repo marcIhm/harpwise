@@ -18,7 +18,8 @@ def do_play
 
   prepare_term
   start_kb_handler
-  any_key = "\e[2mPress any key for next lick\e[0m"
+  any_key = "\e[2mPress any key for next lick (or 'c' to go without)\e[0m"
+  no_wait_for_key = false
 
   #
   # Partition arguments
@@ -128,9 +129,13 @@ def do_play
             lick_idx = rand($licks.length)
           end
           play_and_print_lick $licks[lick_idx]
-          puts any_key
-          $ctl_kb_queue.deq
-          puts
+          if no_wait_for_key
+            sleep 0.5
+          else
+            puts any_key
+            no_wait_for_key = true if $ctl_kb_queue.deq == 'c'
+            puts
+          end
         end
       else
         play_and_print_lick $licks.sample(1)[0]
