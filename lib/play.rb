@@ -141,7 +141,7 @@ def do_play
         play_and_print_lick $licks.sample(1)[0]
       end
 
-    else # plain cycle or iterate
+    else # special is cycle or iterate without random
 
       begin
         $licks.each do |lick|

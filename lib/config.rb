@@ -60,12 +60,11 @@ def calculate_screen_layout
   $line_interval = 17 + 2 * stretch - 2 * squeeze
   $line_comment = 18 + 3 * stretch - 2 * squeeze
   $line_help = $line_comment
-  $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
+  $line_hint_or_message = 26 + 5 * stretch - 2 * squeeze
   $line_comment_tall = $line_comment
   if $mode == :quiz || $mode == :memorize
     # font for quiz is fairly small
     $line_comment += 1
-    $line_hint_or_message -= 1 
     $line_call2 = $line_hint_or_message + 1
   else
     $line_call2 = -1

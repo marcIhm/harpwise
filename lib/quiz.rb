@@ -669,6 +669,7 @@ def put_wrapify_for_comment max_lines, holes, idx_first_active
   # now update screen in one pass
   print "\e[#{$line_comment_tall}H\e[0m"
   lines_all.each_with_index do |line, idx|
+    break if idx >= max_lines - 1
     print "\e[0m#{line.chomp}\e[K"
     print "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx]}" if idx < lines_inactive.length
     print "\n"

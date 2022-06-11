@@ -325,7 +325,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke a --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-2]['(juke)'] }
+    expect { screen[-1]['(juke)'] }
     kill_session
   end
 
@@ -358,13 +358,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with iterate --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-2][$all_testing_licks[0]] }
+    expect { screen[-1][$all_testing_licks[0]] }
     tms :ENTER
     sleep 4
-    expect { screen[-2][$all_testing_licks[1]] }
+    expect { screen[-1][$all_testing_licks[1]] }
     tms :ENTER
     sleep 6
-    expect { screen[-2][$all_testing_licks[2]] }
+    expect { screen[-1][$all_testing_licks[2]] }
     tms :ENTER
     kill_session
   end
@@ -374,10 +374,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with special,iter --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-2]['special'] }
+    expect { screen[-1]['special'] }
     tms :ENTER
     sleep 6
-    expect { screen[-2]['blues'] }
+    expect { screen[-1]['blues'] }
     tms :ENTER
     kill_session
   end
@@ -387,13 +387,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harp-wizard memo testing --start-with juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-2]['juke'] }
+    expect { screen[-1]['juke'] }
     tms :ENTER
     sleep 4
-    expect { !screen[-2]['juke'] }
+    expect { !screen[-1]['juke'] }
     tms :BSPACE
     sleep 4
-    expect { screen[-2]['juke'] }
+    expect { screen[-1]['juke'] }
     kill_session
   end
 

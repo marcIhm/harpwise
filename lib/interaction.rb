@@ -54,7 +54,8 @@ def check_screen graceful: false
         bottom_line_var = var
       end
     end
-    if $bottom_line > $term_height
+    # lines for ansi term start at 1
+    if $bottom_line > $term_height + 1
       raise ArgumentError.new("Variable #{bottom_line_var} = #{$bottom_line} is larger than terminal height = #{$term_height}")
     end
 
