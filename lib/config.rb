@@ -51,7 +51,7 @@ def calculate_screen_layout
   squeeze = stretch = 0
   stretch += 1 if $term_height > 30
   stretch += 1 if $term_height > 36
-  squeeze = 1 if $term_height < 26
+  squeeze = 1 if $term_height < 27
   $line_issue = 1
   $line_key = 2
   $line_display = 4 + stretch - squeeze

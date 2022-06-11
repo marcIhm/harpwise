@@ -214,7 +214,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
 
     if $ctl_show_help
-      clear_area_help
+      clear_area_comment
       puts "\e[#{$line_help}H\e[0mShort help on keys (see README.org for more details):\e[0m\e[32m\n"
       puts "   SPACE: pause               ctrl-l: redraw screen"
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
@@ -226,7 +226,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         puts "\e[0mType any key to show more help ..."
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
-        clear_area_help
+        clear_area_comment
         puts "\e[#{$line_help}H\e[0mMore help on keys:\e[0m\e[32m\n"
         puts "     .: replay current recording          ,: replay, holes only"
         puts "   :,p: replay recording but ignore '--partial'"
@@ -239,7 +239,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true
-      clear_area_help
+      clear_area_comment
       $ctl_show_help = false
     end
 

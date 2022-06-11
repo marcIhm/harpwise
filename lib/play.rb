@@ -21,6 +21,8 @@ def do_play
   any_key = "\e[2mPress any key for next lick (or 'c' to go without)\e[0m"
   no_wait_for_key = false
 
+  puts "#{$type} #{$key} #{$scale}"
+  
   #
   # Partition arguments
   #

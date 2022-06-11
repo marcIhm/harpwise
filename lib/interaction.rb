@@ -61,7 +61,7 @@ def check_screen graceful: false
       end
     end
     # lines for ansi term start at 1
-    if $bottom_line > $term_height + 1
+    if $bottom_line > $term_height
       raise ArgumentError.new("Variable #{bottom_line_var} = #{$bottom_line} is larger than terminal height = #{$term_height}")
     end
 
@@ -429,13 +429,7 @@ end
 
 def clear_area_comment
   ($line_comment_tall .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
-  print "\e[#{$line_display}H"
-end
-
-
-def clear_area_help
-  ($line_help .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
-  print "\e[#{$line_display}H"
+  print "\e[#{$line_comment_tall}H"
 end
 
 

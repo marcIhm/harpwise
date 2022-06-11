@@ -74,7 +74,7 @@ def display_kb_help what, first_lap, body
   if first_lap
     puts "\n\n\e[0m"
   else
-    clear_area_help
+    clear_area_comment
     puts "\e[#{$line_help}H\e[0m"
   end
   puts "Keys available while playing a #{what}:\e[0m\e[32m\n"
@@ -83,7 +83,7 @@ def display_kb_help what, first_lap, body
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   unless first_lap
-    clear_area_help 
+    clear_area_comment
   end
   if first_lap
     puts "\ncontinue"
