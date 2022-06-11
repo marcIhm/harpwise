@@ -133,9 +133,13 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     print "\e[K"
 
     if lambda_comment
-      if $conf[:comment] == :holes_all_with_scales
+      case $conf[:comment]
+      when :holes_with_scales
         print "\e[#{$line_comment}H"
         lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+      when :holes_all
+        # goes to $line_comment_tall by itself
+        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil)
       else
         comment_color,
         comment_text,

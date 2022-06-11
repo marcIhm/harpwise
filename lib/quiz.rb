@@ -152,11 +152,14 @@ def do_quiz
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
       $ctl_loop = $opts[:loop]
 
-    end
+    end # handling $ctl-commands
     $ctl_back = $ctl_next = $ctl_replay = false
     
-    sleep 0.3
+    #
+    #  Play the sequence or recording
+    #
 
+    sleep 0.3
     if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
       play_holes all_wanted, first_round
     else
@@ -167,8 +170,12 @@ def do_quiz
     $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
 
     print "\e[0m\e[32m and !\e[0m"
-    sleep 0.5
+    sleep 0.3
 
+    #
+    #  Prepare for listening
+    #
+    
     if first_round
       system('clear')
     else
@@ -187,8 +194,7 @@ def do_quiz
                    ['','','']
                  end
 
-    
-    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_all_with_scales
+    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_with_scales
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -199,7 +205,7 @@ def do_quiz
       round_start = Time.now.to_f
       $ctl_forget = false
       idx_refresh_comment_cache = comment_cache = nil
-      clear_area_comment if $conf[:comment] == :holes_all_with_scales
+      clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -242,10 +248,16 @@ def do_quiz
             if idx != idx_refresh_comment_cache
               idx_refresh_ccache = idx
               comment_cache = 
-                if $conf[:comment] == :holes_all_with_scales
-                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
-                else
+                case $conf[:comment]
+                when :holes_large
                   largify(all_wanted, idx)
+                when :holes_with_scales
+                  holes_with_scales = scaleify(all_wanted) unless holes_with_scales
+                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
+                when :holes_all
+                  put_wrapify_for_comment($line_hint_or_message - $line_comment_tall + 1, all_wanted, idx)
+                else
+                  err "Internal error unknown comment style #{$conf[:comment]}"
                 end
             end
             comment_cache
@@ -301,17 +313,17 @@ def do_quiz
       #  Finally judge result
       #
 
-      clear_area_comment if $conf[:comment] == :holes_all_with_scales
       if $ctl_forget
-        if $conf[:comment] == :holes_all_with_scales
-          clear_area_comment
+        if $conf[:comment] == :holes_with_scales
           print "\e[#{$line_comment + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$line_comment}H\e[0m\e[32m"
           do_figlet 'again', 'smblock'
         end
-        sleep 0.5
+        sleep 0.3
       else
+        sleep 0.3
+        clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
         text = if $ctl_next
                  "next"
                elsif $ctl_back
@@ -321,7 +333,9 @@ def do_quiz
                else
                  full_seq_shown ? 'Yes ' : 'Great ! '
                end
-        if $conf[:comment] == :holes_all_with_scales
+
+        # update comment
+        if $conf[:comment] == :holes_with_scales
           clear_area_comment
           puts "\e[#{$line_comment + 2}H\e[0m\e[32m   " + text
         else
@@ -329,14 +343,15 @@ def do_quiz
           do_figlet text, 'smblock'
         end
         print "\e[0m"
-        
+
+        # update hint
         print "\e[#{$line_hint_or_message}H\e[K"
-        unless $ctl_replay || $ctl_forget
+        unless $ctl_replay || $ctl_forget || $ctl_next
           print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_seq_shown = true
-          sleep 1
         end
+        sleep 0.5
       end
       
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
@@ -617,7 +632,7 @@ def scaleify holes
 end
 
 
-def largify all_wanted, idx
+def largify holes, idx
   if $num_quiz == 1
     [ "\e[2m", '.  .  .', 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
@@ -627,20 +642,35 @@ def largify all_wanted, idx
                      ' .' * idx
                    end
     [ "\e[2m",
-      'Play  ' + hidden_holes + all_wanted[idx .. -1].join(' '),
+      'Play  ' + hidden_holes + holes[idx .. -1].join(' '),
       'smblock',
-      'play  ' + '--' * all_wanted.length,  # width_template
+      'play  ' + '--' * holes.length,  # width_template
       :right ]  # truncate at
   else # show all played
-    hidden_holes = if all_wanted.length - idx > 8
+    hidden_holes = if holes.length - idx > 8
                      " _ _ # _ _" # abbreviation for long sequence of ' _'
                    else
-                     ' _' * (all_wanted.length - idx)
+                     ' _' * (holes.length - idx)
                    end
     [ "\e[2m",
-      'Yes  ' + all_wanted.slice(0,idx).join(' ') + hidden_holes,
+      'Yes  ' + holes.slice(0,idx).join(' ') + hidden_holes,
       'smblock',
-      'yes  ' + '--' * [6,all_wanted.length].min,  # width_template
+      'yes  ' + '--' * [6,holes.length].min,  # width_template
       :left ]  # truncate at
   end
+end
+
+
+def put_wrapify_for_comment max_lines, holes, idx_first_active
+  # get figlet output first, because this may take some time
+  lines_all = get_figlet_wrapped(holes.join(' '))
+  lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join(' '))
+  # now update screen in one pass
+  print "\e[#{$line_comment_tall}H\e[0m"
+  lines_all.each_with_index do |line, idx|
+    print "\e[0m#{line.chomp}\e[K"
+    print "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx]}" if idx < lines_inactive.length
+    print "\n"
+  end
+  print"\e[0m"
 end

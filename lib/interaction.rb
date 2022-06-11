@@ -44,7 +44,7 @@ def check_screen graceful: false
     global_variables.each do |var|
       if var.to_s.start_with?('$line_')
         val = eval(var.to_s)
-        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment])
+        raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment]) && Set.new([var, all_vars[val]]) != Set.new([:$line_help, :$line_comment_tall])
         all_vars[val] = var
         if val > $bottom_line
           $bottom_line = eval(var.to_s)
@@ -131,6 +131,28 @@ def do_figlet text, font, width_template = nil, truncate = :left
     end
     print"\e[0m"
   end
+end
+
+
+$figlet_wrap_cache = Hash.new
+
+def get_figlet_wrapped text
+  cmd = "figlet -d fonts -w #{$term_width - 4} -f miniwi -l \" #{text}\""
+  unless $figlet_wrap_cache[cmd]
+    out, _ = Open3.capture2e(cmd)
+    $figlet_count += 1
+    lines = out.lines.map {|l| l.rstrip}
+
+    # strip common spaces at front in groups of four, known to be figlet line height
+    lines = lines.each_slice(4).map do |lpl| # lines (terminal) per line (figlet)
+      common = lpl.select {|l| l.lstrip.length > 0}.
+                 map {|l| l.length - l.lstrip.length}.min
+      lpl.map {|l| l[common .. -1] || ''}
+    end.flatten
+
+    $figlet_wrap_cache[cmd] = lines.map {|l| '  ' + l}
+  end
+  $figlet_wrap_cache[cmd]
 end
 
 
@@ -397,7 +419,7 @@ end
 
 
 def clear_area_comment
-  ($line_comment .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
+  ($line_comment_tall .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$line_display}H"
 end
 

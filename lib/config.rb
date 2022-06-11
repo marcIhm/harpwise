@@ -41,7 +41,7 @@ def set_global_vars_early
   $first_round_ever_get_hole = true
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :bend]
-  $comment_choices = Hash.new([:holes_large, :holes_all_with_scales])
+  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_with_scales])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
 end
@@ -61,6 +61,7 @@ def calculate_screen_layout
   $line_comment = 18 + 3 * stretch - 2 * squeeze
   $line_help = $line_comment
   $line_hint_or_message = 26 + 4 * stretch - 2 * squeeze
+  $line_comment_tall = $line_comment
   if $mode == :quiz || $mode == :memorize
     # font for quiz is fairly small
     $line_comment += 1
