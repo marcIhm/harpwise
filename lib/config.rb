@@ -13,7 +13,7 @@ def set_global_vars_early
   $ctl_default_issue = ''
   $ctl_skip = $ctl_loop = $ctl_start_loop = false
   $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
-  $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_redraw = false
+  $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_after_set_ref = $ctl_redraw = false
   $ctl_issue_width = 36
   $ctl_non_def_issue_ts = nil
   $ctl_sig_winch = false
@@ -40,8 +40,8 @@ def set_global_vars_early
   $figlet_count = 0
   $first_round_ever_get_hole = true
 
-  $display_choices = [:hole, :chart_notes, :chart_scales, :bend]
-  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_with_scales])
+  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals, :bend]
+  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_with_scales, :holes_with_intervals])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
 end
@@ -281,52 +281,90 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
 end
 
 
+$chart_with_holes_raw = nil
+$chart_cell_len = nil
 def read_chart
   $chart_file = "config/#{$type}/chart.yaml"
-  chart_with_notes = yaml_parse($chart_file)
-  len = chart_with_notes.shift
-  chart_with_notes.map! {|r| r.split('|')}
+  chart_with_holes_raw = yaml_parse($chart_file)
+  len = chart_with_holes_raw.shift
+  chart_with_holes_raw.map! {|r| r.split('|')}
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   # first two elements will be set when checking for terminal size
   $conf[:chart_offset_xyl] = [0, 0, len] unless $conf[:chart_offset_xyl]
   begin
     # check for completeness
-    chart_holes = Set.new(chart_with_notes.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
+    chart_holes = Set.new(chart_with_holes_raw.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
     harp_holes = Set.new($harp.keys)
     raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{harp_holes - chart_holes}, extra in chart: #{chart_holes - harp_holes}") if chart_holes != harp_holes
     
+    chart_with_notes = []
     chart_with_scales = []
-    # map from holes to notes for given key
-    (0 ... chart_with_notes.length).each do |row|
+    # will be used in get chart with intervals
+    $chart_with_holes_raw = chart_with_holes_raw
+    $chart_cell_len = len
+    # for given key: map from holes to notes or scales
+    (0 ... chart_with_holes_raw.length).each do |row|
+      chart_with_notes << []
       chart_with_scales << []
-      (0 ... chart_with_notes[row].length - 1).each do |col|
-        hole_padded = chart_with_notes[row][col]
-        chart_with_notes[row][col] = if comment_in_chart?(hole_padded)
-                                       hole_padded[0,len]
-                                     else
-                                       note = $harp[hole_padded.strip][:note]
-                                       raise ArgumentError.new("hole '#{hole_padded.strip}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
-                                       hole2chart[hole_padded.strip] << [col, row]
-                                       note.center(len)
-                                     end
-        chart_with_scales[row][col] = if comment_in_chart?(hole_padded)
-                                        hole_padded[0,len]
-                                      else
-                                        abbrevs = $hole2scale_abbrevs[hole_padded.strip]
-                                        abbrevs = '-' if abbrevs == ''
-                                        raise ArgumentError.new("hole '#{hole_padded.strip}' maps to scale abbreviations '#{abbrevs}' which are longer than given length '#{len}'") if abbrevs.length > len
-                                        abbrevs.center(len)
-                                      end
+      (0 ... chart_with_holes_raw[row].length - 1).each do |col|
+        hole_padded = chart_with_holes_raw[row][col]
+        hole = hole_padded.strip
+        chart_with_notes[row][col] =
+          if comment_in_chart?(hole_padded)
+            hole_padded[0,len]
+          else
+            note = $harp[hole][:note]
+            raise ArgumentError.new("hole '#{hole}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
+            hole2chart[hole] << [col, row]
+            note.center(len)
+          end
+        chart_with_scales[row][col] =
+          if comment_in_chart?(hole_padded)
+            hole_padded[0,len]
+          else
+            abbrevs = $hole2scale_abbrevs[hole]
+            abbrevs = '-' if abbrevs == ''
+            raise ArgumentError.new("hole '#{hole}' maps to scale abbreviations '#{abbrevs}' which are longer than given length '#{len}'") if abbrevs.length > len
+            abbrevs.center(len)
+          end
       end
-      chart_with_scales[row] << chart_with_notes[row][-1]
+      chart_with_notes[row] << chart_with_holes_raw[row][-1]
+      chart_with_scales[row] << chart_with_holes_raw[row][-1]
     end
 
   rescue ArgumentError => e
     fail "Internal error with #{$chart_file}: #{e}"
   end
 
-  [ chart_with_notes, chart_with_scales, hole2chart ]
+  [ chart_with_notes, chart_with_scales, nil, hole2chart ]
   
+end
+
+
+def get_chart_with_intervals
+  err "Internal error: reference hole is not set" unless $hole_ref
+  len = $chart_cell_len
+  chart_with_holes_raw = $chart_with_holes_raw
+  chart_with_intervals = []
+  (0 ... chart_with_holes_raw.length).each do |row|
+    chart_with_intervals << []
+    (0 ... chart_with_holes_raw[row].length - 1).each do |col|
+      hole_padded = chart_with_holes_raw[row][col]
+      hole = hole_padded.strip
+      chart_with_intervals[row][col] =
+        if comment_in_chart?(hole_padded)
+          hole_padded[0,len]
+        else
+          isemi ,_ ,itext, dsemi = describe_inter(hole, $hole_ref)
+          idesc = itext || isemi
+          idesc.gsub!(' ','')
+          idesc = 'REF' if dsemi == 0
+          raise ArgumentError.new("hole '#{hole}' maps to interval description '#{idesc}' which is longer than given length '#{len}'") if idesc.length > len
+          idesc.center(len)
+        end
+    end
+  end
+  chart_with_intervals
 end
 
 

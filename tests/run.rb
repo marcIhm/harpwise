@@ -444,6 +444,17 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  do_test 'id-26: display as chart with intervals' do
+    new_session
+    tms './harpwise listen testing blues --display chart-intervals --comment holes-intervals --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[0]['some intervals'] }
+    expect { screen[0]['some intervals'] }
+    kill_session
+  end
+
+
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"

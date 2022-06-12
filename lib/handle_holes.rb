@@ -13,19 +13,21 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
-  $chart = $chart_with_notes if $conf[:display] == :chart_notes
-  $chart = $chart_with_scales if $conf[:display] == :chart_scales
+  $chart_with_intervals ||= get_chart_with_intervals if $hole_ref && $conf[:display] == :chart_intervals
   first_round = true
 
   loop do   # until var done or skip
     system('clear') if $ctl_redraw
+    $chart_with_intervals ||= get_chart_with_intervals if $hole_ref && $conf[:display] == :chart_intervals
+    $chart = {chart_notes: $chart_with_notes,
+              chart_scales: $chart_with_scales,
+              chart_intervals: $chart_with_intervals}[$conf[:display]]
     if first_round || $ctl_redraw
       print "\e[#{$line_issue}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
       print "\e[#{$line_key}H" + text_for_key
-      
-      print_chart if $conf[:display] == :chart_notes || $conf[:display] == :chart_scales
+      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       if $ctl_redraw && $ctl_redraw != :silent
         print "\e[#{$line_hint_or_message}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown = Time.now.to_f
@@ -82,7 +84,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print format % ['--', '--', just_dots_short]
     end
 
-    inter_semi, inter_text = describe_inter(hole_held, hole_for_inter)
+    inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
     if inter_semi
       print "\e[#{$line_interval}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
@@ -98,7 +100,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                  end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $conf[:display]
-    when :chart_notes, :chart_scales
+    when :chart_notes, :chart_scales, :chart_intervals
       update_chart(hole_was_for_disp, :inactive) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
       update_chart(hole, :active, good, was_good, was_good_since)
@@ -135,6 +137,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if lambda_comment
       case $conf[:comment]
       when :holes_with_scales
+        print "\e[#{$line_comment}H"
+        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+      when :holes_with_intervals
         print "\e[#{$line_comment}H"
         lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
       when :holes_all
@@ -186,18 +191,26 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if $ctl_set_ref
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
       print "\e[#{$line_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference for intervals and display of bends\e[0m\e[K"
+      if $hole_ref && $conf[:display] == :chart_intervals
+        $chart = $chart_with_intervals = get_chart_with_intervals
+        clear_area_display
+        print_chart
+      end
       $message_shown = Time.now.to_f
       $ctl_set_ref = false
+      $ctl_update_after_set_ref = true
     end
     
     if $ctl_change_display
       choices = [ $display_choices, $display_choices ].flatten
       choices = choices.reverse if $ctl_change_display == :back
       $conf[:display] = choices[choices.index($conf[:display]) + 1]
-      $chart = $chart_with_notes if $conf[:display] == :chart_notes
-      $chart = $chart_with_scales if $conf[:display] == :chart_scales
+      $chart_with_intervals ||= get_chart_with_intervals if $hole_ref && $conf[:display] == :chart_intervals
+      $chart = {chart_notes: $chart_with_notes,
+                chart_scales: $chart_with_scales,
+                chart_intervals: $chart_with_intervals}[$conf[:display]] || $chart
       clear_area_display
-      print_chart if $conf[:display] == :chart_notes || $conf[:display] == :chart_scales
+      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       print "\e[#{$line_hint_or_message}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
       $message_shown = Time.now.to_f
       $ctl_change_display = false

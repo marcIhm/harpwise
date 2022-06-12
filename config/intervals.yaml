@@ -1,9 +1,27 @@
 ---
-'4': maj Third
-'7': per Fifth
-'12': Octave
-'16': Oct + Thrd
-'19': Oct + Fift
-'24': 2 Octaves
-'36': 3 Octaves
-'48': 4 Octaves
+'0':
+  - Tonica
+  - Ton
+'4':
+  - maj Third
+  - mT
+'7':
+  - per Fifth
+  - pF
+'12':
+  - Octave
+  - Oct
+'16':
+  - Oct + Thrd
+  - O+T
+'19':
+  - O+F
+'24':
+  - 2 Octaves
+  - 2O
+'36':
+  - 3 Octaves
+  - 3O
+'48':
+  - 4 Octaves
+  - 4O

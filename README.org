@@ -4,8 +4,8 @@
 
   [[images/harmonicas.jpg]]
 
-  Ruby script to support the daily practice for bends, scales, licks or
-  intervals on a (diatonic) richter or chromatic harmonica for various
+  Ruby script to support the daily practice for bends, scales, intervals
+  or licks on a (diatonic) richter or chromatic harmonica for various
   keys. May also be useful when writing down tabs.
 
   Its main operation modes are 'listen', 'quiz' and 'memorize'; these
@@ -14,6 +14,7 @@
   - Work on bends
   - Train your musical memory
   - Internalize various scales
+  - Play and remember intervals
   - Memorize and analyze licks regarding scales and chords
   - Support improvisation: Provide licks and scale info
   - Help in writing down a sequence of holes
@@ -122,6 +123,7 @@
    - The hole you played
    - A Chart showing the layout of your harmonica with notes
    - A similar chart but with scales
+   - Chart with intervals (if the reference is set)
    - A frequency scale, centered around the currently referenced note
 
    The color may show, if you hit a note from the chosen scales.

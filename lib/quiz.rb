@@ -195,6 +195,7 @@ def do_quiz
                  end
 
     holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_with_scales
+    holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_with_intervals
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -205,7 +206,7 @@ def do_quiz
       round_start = Time.now.to_f
       $ctl_forget = false
       idx_refresh_comment_cache = comment_cache = nil
-      clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
+      clear_area_comment if [:holes_with_scales, :holes_all, :holes_with_intervals]
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -245,7 +246,7 @@ def do_quiz
           
           # lambda_comment
           -> (_, _, _, _, _, _, _) do
-            if idx != idx_refresh_comment_cache
+            if idx != idx_refresh_comment_cache || $ctl_update_after_set_ref
               idx_refresh_ccache = idx
               comment_cache = 
                 case $conf[:comment]
@@ -254,12 +255,16 @@ def do_quiz
                 when :holes_with_scales
                   holes_with_scales = scaleify(all_wanted) unless holes_with_scales
                   tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
+                when :holes_with_intervals
+                  holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
+                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_intervals, idx)
                 when :holes_all
                   put_wrapify_for_comment($line_hint_or_message - $line_comment_tall + 1, all_wanted, idx)
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
             end
+            $ctl_update_after_set_ref = false
             comment_cache
           end,
 
@@ -289,7 +294,7 @@ def do_quiz
                      "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
                    else
                      if idx > 0
-                       isemi, itext = describe_inter(wanted, all_wanted[idx - 1])
+                       isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
                        if isemi
                          "Hint: Move " + ( itext ? "a #{itext}" : isemi )
                        end
@@ -472,7 +477,7 @@ def play_holes all_holes, first_round
     end
     if idx > 0
       if !musical_event?(hole) && !musical_event?(holes[idx - 1])
-        isemi, itext = describe_inter(hole, holes[idx - 1])
+        isemi, itext, _, _ = describe_inter(hole, holes[idx - 1])
         ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
       else
         ltext += ' '
@@ -629,7 +634,28 @@ def scaleify holes
   holes = holes.reject {|h| musical_event?(h)}
   holes_maxlen = holes.max_by(&:length).length
   abbrev_maxlen = holes.map {|hole| $hole2scale_abbrevs[hole]}.max_by(&:length).length
-  holes.each.map {|hole| [' ' * (holes_maxlen - hole.length), hole, $hole2scale_abbrevs[hole].ljust(abbrev_maxlen)]}
+  holes.each.map do |hole|
+    [' ' * (holes_maxlen - hole.length), hole, $hole2scale_abbrevs[hole].ljust(abbrev_maxlen)]
+  end
+end
+
+
+def intervalify holes
+  holes = holes.reject {|h| musical_event?(h)}
+  holes_maxlen = holes.max_by(&:length).length
+  inters = []
+  holes.each_with_index do |hole,idx|
+    isemi ,_ ,itext, _ = describe_inter(hole,
+                                     idx == 0 ? hole : holes[idx - 1])
+    idesc = itext || isemi
+    idesc.gsub!(' ','')
+    inters << idesc
+  end
+  holes_maxlen = holes.max_by(&:length).length
+  inters_maxlen = inters.max_by(&:length).length
+  holes.each.map do |hole|
+    [' ' * (holes_maxlen - hole.length), hole, inters.shift.ljust(inters_maxlen)]
+  end
 end
 
 

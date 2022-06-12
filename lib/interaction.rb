@@ -408,15 +408,19 @@ end
 
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
-  print "\e[#{$line_display + yoff}H"
-  $chart.each_with_index do |row, ridx|
-    print ' ' * ( xoff - 1)
-    row[0 .. -2].each_with_index do |cell, cidx|
-      hole = $note2hole[$chart_with_notes[ridx][cidx].strip]
-      printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
-      print cell
+  if $chart == $chart_with_intervals && !$hole_ref
+    print "\e[#{$line_display + yoff + 4}H    Set ref first"
+  else    
+    print "\e[#{$line_display + yoff}H"
+    $chart.each_with_index do |row, ridx|
+      print ' ' * ( xoff - 1)
+      row[0 .. -2].each_with_index do |cell, cidx|
+        hole = $note2hole[$chart_with_notes[ridx][cidx].strip]
+        printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
+        print cell
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
 end
 
@@ -434,6 +438,7 @@ end
 
 
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
+  return if $chart == $chart_with_intervals && !$hole_ref
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
