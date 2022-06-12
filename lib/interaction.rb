@@ -408,7 +408,7 @@ end
 
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
-  if $chart == $chart_with_intervals && !$hole_ref
+  if $conf[:display] == :chart_intervals && !$hole_ref
     print "\e[#{$line_display + yoff + 4}H    Set ref first"
   else    
     print "\e[#{$line_display + yoff}H"
@@ -438,7 +438,7 @@ end
 
 
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
-  return if $chart == $chart_with_intervals && !$hole_ref
+  return if $conf[:display] == :chart_intervals && !$hole_ref
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
