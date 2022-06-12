@@ -283,6 +283,7 @@ end
 
 $chart_with_holes_raw = nil
 $chart_cell_len = nil
+
 def read_chart
   $chart_file = "config/#{$type}/chart.yaml"
   chart_with_holes_raw = yaml_parse($chart_file)
@@ -363,6 +364,7 @@ def get_chart_with_intervals
           idesc.center(len)
         end
     end
+    chart_with_intervals[row] << chart_with_holes_raw[row][-1]
   end
   chart_with_intervals
 end
