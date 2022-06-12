@@ -428,7 +428,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-24: comment with scales' do
     new_session
-    tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-with-scales --testing --start-with juke'
+    tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
     tms :ENTER
     sleep 2
     expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
@@ -446,11 +446,11 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-26: display as chart with intervals' do
     new_session
-    tms './harpwise listen testing blues --display chart-intervals --comment holes-intervals --testing'
+    tms './harpwise memorize testing blues --display chart-intervals --comment holes-intervals --ref -2+3 --start-with juke --testing'
     tms :ENTER
-    sleep 2
-    expect { screen[0]['some intervals'] }
-    expect { screen[0]['some intervals'] }
+    sleep 4
+    expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
+    expect { screen[15]['*-1.Ton   -2/.mT   -3//.3st'] }
     kill_session
   end
 

@@ -136,10 +136,10 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     if lambda_comment
       case $conf[:comment]
-      when :holes_with_scales
+      when :holes_scales
         print "\e[#{$line_comment}H"
         lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
-      when :holes_with_intervals
+      when :holes_intervals
         print "\e[#{$line_comment}H"
         lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
       when :holes_all

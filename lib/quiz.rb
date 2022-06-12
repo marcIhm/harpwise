@@ -194,8 +194,8 @@ def do_quiz
                    ['','','']
                  end
 
-    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_with_scales
-    holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_with_intervals
+    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_scales
+    holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_intervals
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -206,7 +206,7 @@ def do_quiz
       round_start = Time.now.to_f
       $ctl_forget = false
       idx_refresh_comment_cache = comment_cache = nil
-      clear_area_comment if [:holes_with_scales, :holes_all, :holes_with_intervals]
+      clear_area_comment if [:holes_scales, :holes_all, :holes_intervals]
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -252,10 +252,10 @@ def do_quiz
                 case $conf[:comment]
                 when :holes_large
                   largify(all_wanted, idx)
-                when :holes_with_scales
+                when :holes_scales
                   holes_with_scales = scaleify(all_wanted) unless holes_with_scales
                   tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
-                when :holes_with_intervals
+                when :holes_intervals
                   holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
                   tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_intervals, idx)
                 when :holes_all
@@ -319,8 +319,8 @@ def do_quiz
       #
 
       if $ctl_forget
-        clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
-        if $conf[:comment] == :holes_with_scales
+        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
+        if [:holes_scales, :holes_intervals].include?($conf[:comment])
           print "\e[#{$line_comment + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$line_comment}H\e[0m\e[32m"
@@ -329,7 +329,7 @@ def do_quiz
         sleep 0.3
       else
         sleep 0.3
-        clear_area_comment if $conf[:comment] == :holes_with_scales || $conf[:comment] == :holes_all
+        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         text = if $ctl_next
                  "next"
                elsif $ctl_back
@@ -341,7 +341,7 @@ def do_quiz
                end
 
         # update comment
-        if $conf[:comment] == :holes_with_scales
+        if [:holes_scales, :holes_intervals].include?($conf[:comment])
           clear_area_comment
           puts "\e[#{$line_comment + 2}H\e[0m\e[32m   " + text
         else
@@ -603,7 +603,7 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
   holes_scales.each_with_index do |hole_scale, idx|
     line += " \e[0m" +
             if idx < idx_first_active
-              ' ' + "\e[0m\e[38;5;238m" + hole_scale[0] + hole_scale[1] + '.' + hole_scale[2]
+              ' ' + "\e[0m\e[2m" + hole_scale[0] + hole_scale[1] + '.' + hole_scale[2]
             else
               hole_scale[0] +
                 if idx == idx_first_active
@@ -612,7 +612,7 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
                   ' '
                 end +
                 sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1],true)) +
-                hole_scale[1] + "\e[0m\e[38;5;238m" + '.' + hole_scale[2]
+                hole_scale[1] + "\e[0m\e[2m" + '.' + hole_scale[2]
             end
     if idx > 0 && idx % per_line == 0
       lines << line
