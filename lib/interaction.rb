@@ -299,7 +299,7 @@ def handle_kb_listen
   elsif char == 'c'
     $ctl_change_comment = true
     text = 'Change comment'
-  elsif char == 'c'
+  elsif char == 'C'
     $ctl_change_comment = :back
     text = 'Change comment back'
   elsif (char == '.' || char == ',' || char == ':' || char == 'p') && $ctl_can_next

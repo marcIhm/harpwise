@@ -159,7 +159,6 @@ def do_quiz
     #  Play the sequence or recording
     #
 
-    sleep 0.3
     if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
       play_holes all_wanted, first_round
     else
@@ -331,11 +330,11 @@ def do_quiz
         sleep 0.3
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         text = if $ctl_next
-                 "next"
+                 'next'
                elsif $ctl_back
-                 "jump back"
+                 'jump back'
                elsif $ctl_replay
-                 "replay"
+                 'replay'
                else
                  full_seq_shown ? 'Yes ' : 'Great ! '
                end
@@ -357,7 +356,7 @@ def do_quiz
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_seq_shown = true
         end
-        sleep 0.5
+        sleep 0.3
       end
       
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
@@ -453,18 +452,18 @@ end
 
 
 def play_holes all_holes, first_round
-  ltext = "\e[2m(h for help) "
-
   if $opts[:partial] && !$ctl_ignore_partial
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
   end
+  return if holes.length == 0
+  
   IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
   
   $ctl_skip = false
+  ltext = "\e[2m(h for help) "
   holes.each_with_index do |hole, idx|
-
     if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
       ltext = "\e[2m(h for help) "
       if first_round
@@ -519,7 +518,7 @@ def play_holes all_holes, first_round
     end
     if $ctl_skip
       print "\e[0m\e[32m skip to end\e[0m"
-      sleep 0.5
+      sleep 0.3
       break
     end
   end
@@ -527,17 +526,17 @@ end
 
 
 def play_recording lick, first_round
+  if $opts[:partial] && !$ctl_ignore_partial
+    _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
+  else
+    start, length = lick[:rec_start], lick[:rec_length]
+  end
+  return if length.to_f == 0.0
   issue = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
   if first_round
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$lines[:hint_or_message]}H#{issue}\e[K"
-  end
-
-  if $opts[:partial] && !$ctl_ignore_partial
-    _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
-  else
-    start, length = lick[:rec_start], lick[:rec_length]
   end
   skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_round
   print skipped ? " skip rest" : " done"
@@ -576,16 +575,19 @@ def select_and_calc_partial all_holes, start_s, length_s
     err "Argument for option '--partial' must be like 1/3@b, 1/4@x, 1/2@e, 1@b, 2@x or 0.5@e but not '#{$opts[:partial]}'"
   end
   
-  numh = 1 if numh == 0
   numh = all_holes.length if numh > all_holes.length
-  holes = case md[2]
-          when 'b'
-            all_holes[0 .. numh-1]
-          when 'e'
-            all_holes[-numh .. -1]
+  holes = if numh == 0
+            []
           else
-            pos = rand(all_holes.length - numh + 1)
-            all_holes[pos .. pos+numh-1]
+            case md[2]
+            when 'b'
+              all_holes[0 ... numh]
+            when 'e'
+              all_holes[-numh .. -1]
+            else
+              pos = rand(all_holes.length - numh + 1)
+              all_holes[pos .. pos+numh-1]
+            end
           end
   if start_s
     [holes, sprintf("%.1f",ps), sprintf("%.1f",pl)]

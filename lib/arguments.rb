@@ -121,7 +121,7 @@ calibrate:
   the recording, any randomly chosen quarter (1/4) of it or the last half
   (1/2) (but at least one second). '--partial 1@b', '1@e' or '2@x' play
   the given number of seconds or holes (1 or 2) at the given position
-  (b=begin, x=random, e=end).
+  (b=begin, x=random, e=end); or, e.g. '1/2@e' plays the second half.
 
   If you want to play the holes of the lick (rather than the recording), add
   option '--holes', which also honors the option '--partial'.
