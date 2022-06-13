@@ -431,7 +431,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
     tms :ENTER
     sleep 2
-    expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
     kill_session
   end
 
@@ -450,7 +450,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 4
     expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
-    expect { screen[15]['*-1.Ton   -2/.mT   -3//.3st'] }
+    expect { screen[16]['*-1.Ton   -2/.mT   -3//.3st'] }
     kill_session
   end
 

@@ -29,9 +29,9 @@ def do_quiz
       print "\e[#{$term_height}H\e[K"
       print "\e[#{$term_height-1}H\e[K"
     else
-      print "\e[#{$line_hint_or_message}H\e[K"
-      print "\e[#{$line_call2}H\e[K"
-      print "\e[#{$line_issue}H\e[0mListen ...\e[K"
+      print "\e[#{$lines[:hint_or_message]}H\e[K"
+      print "\e[#{$lines[:call2]}H\e[K"
+      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K"
       ctl_issue
     end
 
@@ -93,7 +93,7 @@ def do_quiz
               lick_idx_iter = 0
               ctl_issue 'Next cycle'
             else
-              print "\e[#{$line_call2}H\e[K"
+              print "\e[#{$lines[:call2]}H\e[K"
               puts "\nIterated through all #{$licks.length} licks.\n\n"
               exit
             end
@@ -179,8 +179,8 @@ def do_quiz
     if first_round
       system('clear')
     else
-      print "\e[#{$line_hint_or_message}H\e[K"
-      print "\e[#{$line_call2}H\e[K"
+      print "\e[#{$lines[:hint_or_message]}H\e[K"
+      print "\e[#{$lines[:call2]}H\e[K"
     end
     full_seq_shown = false
 
@@ -254,12 +254,12 @@ def do_quiz
                   largify(all_wanted, idx)
                 when :holes_scales
                   holes_with_scales = scaleify(all_wanted) unless holes_with_scales
-                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_scales, idx)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment] + 1, holes_with_scales, idx)
                 when :holes_intervals
                   holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
-                  tabify_colorize($line_hint_or_message - $line_comment + 1, holes_with_intervals, idx)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment] + 1, holes_with_intervals, idx)
                 when :holes_all
-                  put_wrapify_for_comment($line_hint_or_message - $line_comment_tall + 1, all_wanted, idx)
+                  put_wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall] + 1, all_wanted, idx)
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
@@ -321,9 +321,9 @@ def do_quiz
       if $ctl_forget
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
-          print "\e[#{$line_comment + 2}H\e[0m\e[32m   again"
+          print "\e[#{$lines[:comment + 2]}H\e[0m\e[32m   again"
         else
-          print "\e[#{$line_comment}H\e[0m\e[32m"
+          print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet 'again', 'smblock'
         end
         sleep 0.3
@@ -343,15 +343,15 @@ def do_quiz
         # update comment
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
           clear_area_comment
-          puts "\e[#{$line_comment + 2}H\e[0m\e[32m   " + text
+          puts "\e[#{$lines[:comment + 2]}H\e[0m\e[32m   " + text
         else
-          print "\e[#{$line_comment}H\e[0m\e[32m"
+          print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet text, 'smblock'
         end
         print "\e[0m"
 
         # update hint
-        print "\e[#{$line_hint_or_message}H\e[K"
+        print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless $ctl_replay || $ctl_forget || $ctl_next
           print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
@@ -362,7 +362,7 @@ def do_quiz
       
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
 
-    print "\e[#{$line_issue}H#{''.ljust($term_width - $ctl_issue_width)}"
+    print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_round = false
   end # forever sequence after sequence
 end
@@ -471,8 +471,8 @@ def play_holes all_holes, first_round
         print "\e[#{$term_height}H\e[K"
         print "\e[#{$term_height-1}H\e[K"
       else
-        print "\e[#{$line_hint_or_message}H\e[K"
-        print "\e[#{$line_call2}H\e[K"
+        print "\e[#{$lines[:hint_or_message]}H\e[K"
+        print "\e[#{$lines[:call2]}H\e[K"
       end
     end
     if idx > 0
@@ -500,8 +500,8 @@ def play_holes all_holes, first_round
     if first_round
       print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
     else
-      print "\e[#{$line_call2}H\e[K"
-      print "\e[#{$line_hint_or_message}H#{ltext.strip}\e[K"
+      print "\e[#{$lines[:call2]}H\e[K"
+      print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
     end
 
     if musical_event?(hole)
@@ -531,7 +531,7 @@ def play_recording lick, first_round
   if first_round
     print "\e[#{$term_height}H#{issue}\e[K"
   else
-    print "\e[#{$line_hint_or_message}H#{issue}\e[K"
+    print "\e[#{$lines[:hint_or_message]}H#{issue}\e[K"
   end
 
   if $opts[:partial] && !$ctl_ignore_partial
@@ -693,7 +693,7 @@ def put_wrapify_for_comment max_lines, holes, idx_first_active
   lines_all = get_figlet_wrapped(holes.join(' '))
   lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join(' '))
   # now update screen in one pass
-  print "\e[#{$line_comment_tall}H\e[0m"
+  print "\e[#{$lines[:comment_tall]}H\e[0m"
   lines_all.each_with_index do |line, idx|
     break if idx >= max_lines - 1
     print "\e[0m#{line.chomp}\e[K"

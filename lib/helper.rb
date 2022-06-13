@@ -75,7 +75,7 @@ def display_kb_help what, first_lap, body
     puts "\n\n\e[0m"
   else
     clear_area_comment
-    puts "\e[#{$line_help}H\e[0m"
+    puts "\e[#{$lines[:help]}H\e[0m"
   end
   puts "Keys available while playing a #{what}:\e[0m\e[32m\n"
   body.lines.each {|l| puts '      ' + l.chomp + "\n"}

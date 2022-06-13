@@ -16,60 +16,64 @@ def check_screen graceful: false
       raise ArgumentError.new("Terminal is too small:\n[width, height] = [#{$term_width}, #{$term_height}] (actual) < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (configured minimum)")
     end
 
-    # check if enough room for fonts
-    space = $line_hole - $line_display
-    height = figlet_char_height('mono12')
-    if height > space
-      raise ArgumentError.new("Space of #{space} lines between $line_hole and $line_display is less than needed #{height}")
-    end
-    space = $line_hint_or_message - $line_comment_tall
-    height = [figlet_char_height('big'),figlet_char_height('smblock')].max
-    if height > space
-      raise ArgumentError.new("Space of #{space} lines between $line_comment_tall and $line_hint_or_message is less than needed #{height}")
-    end
-
-    space = $line_hint_or_message - $line_comment
-    if figlet_char_height($mode == :listen  ?  'big'  : 'smblock') > space
-      raise ArgumentError.new("Space of #{space} lines between $line_hint_or_message and $line_comment is too small")
+    # check if enough room between lines for various fonts
+    [[:display, :hole,
+      figlet_char_height('mono12')],
+     [:comment, :hint_or_message, 
+      figlet_char_height($mode == :listen  ?  'big'  : 'smblock')]
+    ].each do |l1, l2, height|
+      space = $lines[l2] - $lines[l1]
+      if height > space
+        raise ArgumentError.new("Space of #{space} lines between $lines[#{l1}] and $lines[#{l2}] is less than needed #{height}")
+      end
     end
     
     # check for size of chart
-    xroom = $term_width - $chart.map {|r| r.join.length}.max
+    xroom = $term_width - $charts[:chart_notes].map {|r| r.join.length}.max
     raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
-    yroom = $line_hole - $line_display - $chart.length
+    yroom = $lines[:hole] - $lines[:display] - $charts[:chart_notes].length
     raise ArgumentError.new("Terminal has not enough lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
 
+    # compute and store offset-values en passant
     yoff = ( yroom - 1 ) / 2
     yoff = 0 if yoff < 0
     yoff += 1 if yroom > 1
     $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.5).to_i, yoff ]
 
-    # check for maximum value of $line_xx_ variables
-    all_vars = Hash.new
-    $bottom_line = bottom_line_var = 0
-    allowed_clashes = [:$line_help, :$line_comment, :$line_comment_tall].
-                        combination(2).
-                        map {|pair| Set.new(pair)}
-    global_variables.each do |var|
-      next unless var.to_s.start_with?('$line_')
-      val = eval(var.to_s)
-      raise ArgumentError.new("Variable #{var} has the same value as #{all_vars[val]} = #{val}") if all_vars[val] && !allowed_clashes.include?(Set.new([var, all_vars[val]]))
-      all_vars[val] = var
-      if val > $bottom_line
-        $bottom_line = eval(var.to_s)
-        bottom_line_var = var
-      end
-    end
-    # lines for ansi term start at 1
-    if $bottom_line > $term_height + 1
-      raise ArgumentError.new("Variable #{bottom_line_var} = #{$bottom_line} is larger than terminal height = #{$term_height}")
+    # check for clashes
+    clashes_ok = (2..3).map do |n|
+      [:help, :comment, :comment_tall].combination(n).map {|pair| Set.new(pair)}
+    end.flatten
+    
+    lines_inv = $lines.inject(Hash.new([])) {|m,(k,v)| m[v] += [k]; m}
+    clashes = lines_inv.select {|l,ks| ks.length > 1 && !clashes_ok.include?(Set.new(ks))}
+    if clashes.length > 0
+      puts "Collisions:"
+      clashes.each {|l,ks| puts "Keys #{ks} all map to line #{l}"}
+      raise ArgumentError.new('See above')
     end
 
+    # check bottom line 
+    bt_key, bt_line, = $lines.max_by {|k,l| l}
+    # lines for ansi term start at 1
+    if bt_line > $term_height + 1
+      raise ArgumentError.new("Line #{bt_key} = #{bt_line} is larger than terminal height = #{$term_height}")
+    end
+    
   rescue ArgumentError => e
+    puts "[width, height] = [#{$term_width}, #{$term_height}]"
+    pp $lines
     err e.to_s unless graceful
     puts "\e[0m#{e}"
     return false
   end
+  if $opts[:debug] && $debug_state[:screen_once]
+    puts "[width, height] = [#{$term_width}, #{$term_height}]"
+    pp $lines
+    puts "press any key to continue"
+    $ctl_kb_queue.deq
+  end
+  $debug_state[:screen_once] = true
   return true
 end
 
@@ -409,13 +413,13 @@ end
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
   if $conf[:display] == :chart_intervals && !$hole_ref
-    print "\e[#{$line_display + yoff + 4}H    Set ref first"
+    print "\e[#{$lines[:display] + yoff + 4}H    Set ref first"
   else    
-    print "\e[#{$line_display + yoff}H"
-    $chart.each_with_index do |row, ridx|
+    print "\e[#{$lines[:display] + yoff}H"
+    $charts[$conf[:display]].each_with_index do |row, ridx|
       print ' ' * ( xoff - 1)
       row[0 .. -2].each_with_index do |cell, cidx|
-        hole = $note2hole[$chart_with_notes[ridx][cidx].strip]
+        hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
         printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
         print cell
       end
@@ -426,14 +430,14 @@ end
 
 
 def clear_area_display
-  ($line_display .. $line_hole - 1).each {|l| print "\e[#{l}H\e[K"}
-  print "\e[#{$line_display}H"
+  ($lines[:display] .. $lines[:hole] - 1).each {|l| print "\e[#{l}H\e[K"}
+  print "\e[#{$lines[:display]}H"
 end
 
 
 def clear_area_comment
-  ($line_comment_tall .. $line_hint_or_message - 1).each {|l| print "\e[#{l}H\e[K"}
-  print "\e[#{$line_comment_tall}H"
+  ($lines[:comment_tall] .. $lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
+  print "\e[#{$lines[:comment_tall]}H"
 end
 
 
@@ -441,8 +445,8 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
   return if $conf[:display] == :chart_intervals && !$hole_ref
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
-    y = $line_display + $conf[:chart_offset_xyl][1] + xy[1]
-    cell = $chart[xy[1]][xy[0]]
+    y = $lines[:display] + $conf[:chart_offset_xyl][1] + xy[1]
+    cell = $charts[$conf[:display]][xy[1]][xy[0]]
     hole_color = if state == :inactive
                    "\e[%dm" % get_hole_color_inactive(hole)
                  elsif $opts[:no_progress]
@@ -499,7 +503,7 @@ end
 
 def handle_win_change
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
-  calculate_screen_layout
+  $lines = calculate_screen_layout
   system('clear')
   puts
   while !check_screen(graceful: true)
@@ -513,7 +517,7 @@ def handle_win_change
       sleep 0.1
     end
     $term_height, $term_width = %x(stty size).split.map(&:to_i)
-    calculate_screen_layout
+    $lines = calculate_screen_layout
     system('clear')
     puts
   end 

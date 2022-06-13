@@ -52,28 +52,31 @@ def calculate_screen_layout
   stretch += 1 if $term_height > 30
   stretch += 1 if $term_height > 36
   squeeze = 1 if $term_height < 27
-  $line_issue = 1
-  $line_key = 2
-  $line_display = 4 + stretch - squeeze
-  $line_hole = 15 + 2 * stretch - 2 * squeeze
-  $line_frequency = $line_hole + 1
-  $line_interval = $line_hole + 2
-  $line_comment = 18 + 3 * stretch - 2 * squeeze
-  $line_hint_or_message = 26 + 5 * stretch - 2 * squeeze
+  lines = Hash.new
+  lines[:issue] = 1
+  lines[:key] = 2
+  lines[:display] = 4 + stretch - squeeze
+  lines[:hole] = 15 + 2 * stretch - 2 * squeeze
+  lines[:frequency] = lines[:hole] + 1
+  lines[:interval] = lines[:hole] + 2
+  lines[:comment] = 18 + 3 * stretch - 2 * squeeze
+  lines[:hint_or_message] = 26 + 5 * stretch - 2 * squeeze
   2.times do
-    $line_hint_or_message += 1 if $term_height - $line_hint_or_message > 1
+    lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > 1
   end
-  $line_comment_tall = $line_comment
+  lines[:comment_tall] = lines[:comment]
   if $mode == :quiz || $mode == :memorize
     # font for quiz is fairly small, so we may leave some space
-    $line_comment += 1 unless squeeze > 0
-    # call starts on $line_hint_or_message, so $line_call2 is actually
+    lines[:comment] += 1
+    # call starts on lines[:hint_or_message], so lines[:call2] is actually
     # its second line
-    $line_call2 = $line_hint_or_message + 1
+    lines[:call2] = lines[:hint_or_message] + 1
   else
-    $line_call2 = -1
+    # we do not need a second line for mode :listen
+    lines[:call2] = -1
   end
-  $line_help = $line_comment
+  lines[:help] = lines[:comment]
+  lines
 end
 
 
@@ -337,7 +340,10 @@ def read_chart
     fail "Internal error with #{$chart_file}: #{e}"
   end
 
-  [ chart_with_notes, chart_with_scales, nil, hole2chart ]
+  [ {chart_notes: chart_with_notes,
+     chart_scales: chart_with_scales,
+     chart_intervals: nil},
+    hole2chart ]
   
 end
 

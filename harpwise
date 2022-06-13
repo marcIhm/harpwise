@@ -26,6 +26,8 @@ require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
 $program_start = Time.now.to_f
+# store stuff for debugging (depends on problem)
+$debug_state = {}
 
 Sys::ProcTable.ps{ |p|
   err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
@@ -49,16 +51,15 @@ $mode, $type, $key, $scale, $opts = parse_arguments
 $scales = get_all_scales($opts[:add_scales])
 
 # we need to have mode for this, so calculate it late
-calculate_screen_layout
+$lines = calculate_screen_layout
   
 set_global_vars_late
 
 # next line also appears in file handle_holes.rb
 $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
 
-$chart_with_notes, $chart_with_scales, $chart_with_intervals, $hole2chart = read_chart
+$charts, $hole2chart = read_chart
 
-$chart = $chart_with_notes
 $all_licks, $licks = read_licks if $mode == :play || $mode == :memorize
 
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
