@@ -189,7 +189,7 @@ def do_quiz
     lick_names = if $mode == :memorize
                    [sprintf(' (%s)', lick[:name]) ,
                     ' ' + lick[:name] ,
-                    sprintf("\e[2m (%s)", lick[:name])]
+                    sprintf("\e[2m (%s)", lick[:desc])]
                  else
                    ['','','']
                  end

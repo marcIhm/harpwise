@@ -43,7 +43,7 @@ def read_licks
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
-          lick[:desc] = name + ':' + lick[:tags].join(',')
+          lick[:desc] = name + '/' + lick[:tags].join(',')
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick

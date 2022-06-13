@@ -243,7 +243,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[4]['Lick juke:samples,favorites'] }
+    expect { screen[4]['Lick juke/samples,favorites'] }
     expect { screen[5]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
@@ -271,10 +271,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a cycle --testing'
     tms :ENTER
     sleep 2
-    expect { screen[4]['Lick juke:samples,favorites'] }
+    expect { screen[4]['Lick juke/samples,favorites'] }
     tms :ENTER
     sleep 2
-    expect { screen[9]['Lick special:samples'] }
+    expect { screen[9]['Lick special/samples'] }
     kill_session
   end
   
@@ -285,7 +285,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 12
     tst_out = read_testing_output
     expect { tst_out[:licks].length == 6 }
-    expect { screen[1]['memorize testing a all'] }
+    expect { screen[1]['memorize(6) testing a all'] }
     kill_session
   end
 
@@ -325,7 +325,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise memo testing --start-with juke a --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1]['(juke)'] }
+    expect { screen[-1]['(juke/samples,favorites)'] }
     kill_session
   end
 
