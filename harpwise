@@ -26,7 +26,9 @@ require_relative 'lib/calibrate'
 require_relative 'lib/quiz'
 
 $program_start = Time.now.to_f
-# store stuff for debugging (depends on problem)
+# grep 'debug' to see choices; still need to give '--debug' to switch it on
+$debug_what = Set.new([:check_screen])
+# store (ad-hoc) state for debugging
 $debug_state = {}
 
 Sys::ProcTable.ps{ |p|

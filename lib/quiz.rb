@@ -321,7 +321,7 @@ def do_quiz
       if $ctl_forget
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
-          print "\e[#{$lines[:comment + 2]}H\e[0m\e[32m   again"
+          print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet 'again', 'smblock'
@@ -343,7 +343,7 @@ def do_quiz
         # update comment
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
           clear_area_comment
-          puts "\e[#{$lines[:comment + 2]}H\e[0m\e[32m   " + text
+          puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + text
         else
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet text, 'smblock'

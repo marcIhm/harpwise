@@ -344,7 +344,9 @@ end
 
 
 def text_for_key
-  text = "\e[2m#{$mode} #{$type} #{$key}"
+  text = "\e[2m#{$mode}"
+  text += "(#{$licks.length})" if $mode == :memorize
+  text += " #{$type} #{$key}"
   if $opts[:add_scales]
     text += "\e[0m"
     text += " \e[32m#{$scale}"

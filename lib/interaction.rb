@@ -67,13 +67,12 @@ def check_screen graceful: false
     puts "\e[0m#{e}"
     return false
   end
-  if $opts[:debug] && $debug_state[:screen_once]
+  if $opts[:debug] && $debug_what.include?(:check_screen) && $debug_state[:kb_handler_started]
     puts "[width, height] = [#{$term_width}, #{$term_height}]"
     pp $lines
     puts "press any key to continue"
     $ctl_kb_queue.deq
   end
-  $debug_state[:screen_once] = true
   return true
 end
 
@@ -208,6 +207,7 @@ def start_kb_handler
       $ctl_kb_queue.enq STDIN.getc
     end
   end
+  $debug_state[:kb_handler_started] = true
 end
 
 
