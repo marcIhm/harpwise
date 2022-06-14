@@ -425,7 +425,7 @@ end
 def get_last_lick_idxs_from_journal licks = $licks
   lnames = []
   File.readlines($journal_file).each do |line|
-    md = line.match(/^Lick +([^, :]+)/)
+    md = line.match(/^Lick +([^, :\/]+)/)
     lnames << md[1] if md
     lnames.shift if lnames.length > 100
   end

@@ -146,7 +146,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   do_test 'id-06a: listen and change display and comment' do
     sound 20, 2
     new_session
-    tms './harpwise listen testing a all --testing'
+    tms './harpwise listen testing a all --ref +2 --testing'
     tms :ENTER
     sleep 6
     # just cycle (more than once) through display and comments without errors
@@ -222,7 +222,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   do_test 'id-10a: quiz' do
     sound 20, 2
     new_session
-    tms './harpwise quiz 2 testing c all --testing'
+    tms './harpwise quiz 2 testing c all --ref +2 --testing'
     tms :ENTER
     sleep 6
     # just cycle (more than once) through display and comments without errors
