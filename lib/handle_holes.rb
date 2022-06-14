@@ -161,7 +161,6 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     if done
       print "\e[#{$lines[:call2]}H"
-      $move_down_on_exit = false
       return
     end
 

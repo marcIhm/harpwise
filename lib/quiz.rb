@@ -31,7 +31,7 @@ def do_quiz
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       print "\e[#{$lines[:call2]}H\e[K"
-      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K"
+      print "\e[#{$lines[:issue]}H\e[K"
       ctl_issue
     end
 
@@ -69,7 +69,7 @@ def do_quiz
 
     elsif $ctl_replay
 
-    # nothing to do
+    # nothing to do, replay will happen at start of next loop
       
     else # e.g. sequence done or $ctl_next: go to the next sequence
       all_wanted_before = all_wanted
@@ -153,23 +153,40 @@ def do_quiz
       $ctl_loop = $opts[:loop]
 
     end # handling $ctl-commands
-    $ctl_back = $ctl_next = $ctl_replay = false
-    
+
     #
     #  Play the sequence or recording
     #
 
-    if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
-      play_holes all_wanted, first_round
-    else
-      play_recording lick, first_round
-    end
-    
-    redo if $ctl_back || $ctl_next || $ctl_replay
-    $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
+    if !zero_partial? || $ctl_replay
+      
+      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K" unless first_round
 
-    print "\e[0m\e[32m and !\e[0m"
-    sleep 0.3
+      $ctl_ignore_partial = true if zero_partial? && $ctl_replay
+
+      # reset those controls here, because play-calls below may set
+      # them again and we may need to redo below accordingly
+      $ctl_back = $ctl_next = $ctl_replay = false
+      
+      if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
+        play_holes all_wanted, first_round
+      else
+        play_recording lick, first_round
+      end
+
+      redo if $ctl_back || $ctl_next || $ctl_replay      
+
+      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[32m and !\e[0m\e[K" unless first_round
+      sleep 0.3
+
+    end
+
+    # reset controls before listening
+    $ctl_back = $ctl_next = $ctl_replay = false
+
+    # these controls are only used during play, but can be set during
+    # listening and play
+    $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
 
     #
     #  Prepare for listening
@@ -452,12 +469,12 @@ end
 
 
 def play_holes all_holes, first_round
+
   if $opts[:partial] && !$ctl_ignore_partial
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
   end
-  return if holes.length == 0
   
   IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
   
@@ -526,20 +543,28 @@ end
 
 
 def play_recording lick, first_round
+
   if $opts[:partial] && !$ctl_ignore_partial
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
     start, length = lick[:rec_start], lick[:rec_length]
   end
-  return if length.to_f == 0.0
+
   issue = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
   if first_round
     print "\e[#{$term_height}H#{issue}\e[K"
   else
     print "\e[#{$lines[:hint_or_message]}H#{issue}\e[K"
   end
+
   skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_round
+
   print skipped ? " skip rest" : " done"
+end
+
+
+def zero_partial?
+  $opts[:partial] && %w[0@ 0.0@ 0/].any? {|hd| $opts[:partial].start_with?(hd)}
 end
 
 

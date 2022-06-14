@@ -256,15 +256,19 @@ EOU
     %w(--start-with) => :start_with,
     %w(--partial) => :partial,
     %w(-l --loop) => :loop}.each do |txts,opt|
-    txts.each do |txt|
-      for i in (0 .. ARGV.length - 1) do
-        if txt.start_with?(ARGV[i]) && ARGV[i].length >= [4, txt.length].min
-          opts[opt] = opts_with_args.include?(opt) ? ARGV.delete_at(i+1) : true
-          ARGV.delete_at(i)
-          break
+    begin
+      found_one = false
+      txts.each do |txt|
+        for i in (0 .. ARGV.length - 1) do
+          if txt.start_with?(ARGV[i]) && ARGV[i].length >= [4, txt.length].min
+            opts[opt] = opts_with_args.include?(opt) ? ARGV.delete_at(i+1) : true
+            ARGV.delete_at(i)
+            found_one = true
+            break
+          end
         end
       end
-    end
+    end while found_one
   end
   opts_with_args.each do |opt|
     err "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)

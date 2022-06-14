@@ -148,9 +148,15 @@ def do_play
       begin
         $licks.each do |lick|
           play_and_print_lick lick
-          puts any_key
-          $ctl_kb_queue.deq
-          puts
+          if lick != $licks[-1] || special.include?(:cycle)
+            if no_wait_for_key
+              sleep 0.5
+            else
+              puts any_key
+              no_wait_for_key = true if $ctl_kb_queue.deq == 'c'
+              puts
+            end
+          end
         end
       end while special.include?(:cycle)
       puts "Iterated through all #{$licks.length} licks."

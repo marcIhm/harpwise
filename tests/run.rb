@@ -143,6 +143,24 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
+  do_test 'id-06a: listen and change display and comment' do
+    sound 20, 2
+    new_session
+    tms './harpwise listen testing a all --testing'
+    tms :ENTER
+    sleep 6
+    # just cycle (more than once) through display and comments without errors
+    8.times do
+      tms 'd'
+      tms 'c'
+    end
+    sleep 1
+    tms 'q'
+    sleep 2
+    expect { screen[-3]['Terminating on user request'] }
+    kill_session
+  end
+  
   do_test 'id-07: change key of harp' do
     new_session
     tms './harpwise listen testing a all --testing'
@@ -196,8 +214,26 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harpwise quiz 2 testing c all --testing'
     tms :ENTER
-    sleep 8
+    sleep 4
     expect { screen[12]['c5'] }
+    kill_session
+  end
+  
+  do_test 'id-10a: quiz' do
+    sound 20, 2
+    new_session
+    tms './harpwise quiz 2 testing c all --testing'
+    tms :ENTER
+    sleep 6
+    # just cycle (more than once) through display and comments without errors
+    8.times do
+      tms 'd'
+      tms 'c'
+    end
+    sleep 1
+    tms 'q'
+    sleep 2
+    expect { screen[-3]['Terminating on user request'] }
     kill_session
   end
   
