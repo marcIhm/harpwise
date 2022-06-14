@@ -11,12 +11,13 @@ def set_global_vars_early
 
   $ctl_kb_queue = Queue.new
   $ctl_default_issue = ''
-  $ctl_skip = $ctl_loop = $ctl_start_loop = false
-  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = false
+  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = false
+  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_can_named = false
   $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_after_set_ref = $ctl_redraw = false
   $ctl_issue_width = 36
   $ctl_non_def_issue_ts = nil
   $ctl_sig_winch = false
+  $all_licks = $licks = nil
   
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
@@ -94,7 +95,6 @@ def set_global_vars_late
                   else
                     "#{$data_dir}/journal_#{$mode}.txt"
                   end
-  $all_licks, $licks = nil
 end
 
 

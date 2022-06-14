@@ -9,6 +9,7 @@ def do_quiz
   start_collect_freqs
   $ctl_can_next = true
   $ctl_can_loop = true
+  $ctl_can_named = ( $mode == :memorize )
   $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
   $write_journal = true
   journal_start
@@ -67,6 +68,32 @@ def do_quiz
       end
       $ctl_loop = true
 
+    elsif $ctl_named_lick  # can only happen in memorize
+
+      stop_kb_handler
+      sane_term
+      er = inp = nil
+      clear_area_comment
+      print "\e[#{$lines[:hint_or_message]}H\e[J"
+      print "\e[0m\e[2mPlease enter \e[0mname of new lick\e[2m (current is #{lick[:name]}):\e[0m "
+      inp = STDIN.gets.chomp
+      new_lick = $licks.find {|l| l[:name] == inp}
+      named_lick_idx = $licks.index {|l| l[:name] == inp}
+
+      start_kb_handler
+      prepare_term
+      print "\e[3J" # clear scrollback
+      if named_lick_idx
+        lick_idx_before = lick_idx
+        lick_idx = named_lick_idx
+        lick = $licks[lick_idx]
+        all_wanted = lick[:holes]
+      else
+        print "\e[#{$lines[:hint_or_message]}H\e[2mUnknown lick \e[0m'#{inp}', staying with '#{lick[:name]}'\e[K"
+        sleep 2
+      end
+      $ctl_named_lick = false
+      
     elsif $ctl_replay
 
     # nothing to do, replay will happen at start of next loop
@@ -326,7 +353,7 @@ def do_quiz
 
         )  # end of get_hole
 
-        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget
+        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget || $ctl_named_lick
 
       end # notes in a sequence
       
@@ -352,31 +379,36 @@ def do_quiz
                  'jump back'
                elsif $ctl_replay
                  'replay'
+               elsif $ctl_named_lick
+                 nil
                else
                  full_seq_shown ? 'Yes ' : 'Great ! '
                end
 
         # update comment
-        if [:holes_scales, :holes_intervals].include?($conf[:comment])
-          clear_area_comment
-          puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + text
-        else
-          print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-          do_figlet text, 'smblock'
+        if text
+          if [:holes_scales, :holes_intervals].include?($conf[:comment])
+            clear_area_comment
+            puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + text
+          else
+            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            do_figlet text, 'smblock'
+          end
+          print "\e[0m"
         end
-        print "\e[0m"
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless $ctl_replay || $ctl_forget || $ctl_next
+        unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick
           print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_seq_shown = true
+          sleep unless text
         end
-        sleep 0.3
+        sleep 0.3 if text
       end
       
-    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay # looping over one sequence
+    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick # looping over one sequence
 
     print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_round = false

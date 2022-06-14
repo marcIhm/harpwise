@@ -272,6 +272,9 @@ def handle_kb_listen
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = 'Skip'
+  elsif char == "n" && $ctl_can_named
+    $ctl_named_lick = true
+    text = 'Named'
   elsif char == 'j'
     $ctl_toggle_journal = true
     text = nil

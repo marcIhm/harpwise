@@ -490,7 +490,24 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  do_test 'id-27: change lick by name' do
+    new_session
+    tms './harpwise memorize testing blues --start-with juke --testing'
+    tms :ENTER
+    sleep 2
+    tms 'n'
+    sleep 1
+    expect { screen[-1]['juke'] }
+    tms 'special'
+    tms :ENTER
+    sleep 1
+    expect { screen[-1]['special'] }
+    kill_session
+  end
 
+
+
+  
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 puts "\ndone.\n\n"

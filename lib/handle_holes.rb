@@ -240,7 +240,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         puts "   RET: next sequence             BACKSPACE: previous sequence"
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
-        puts "     #: toggle track progress in seq"
+        print "     #: toggle track progress in seq"
+        print "      n: switch to lick by name" if $ctl_can_named
+        puts
       end
       puts "\e[0mType any key to continue ..."
       $ctl_kb_queue.clear
@@ -327,6 +329,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $message_shown = Time.now.to_f
       $ctl_change_key = $ctl_change_scale = false
     end
+
+    return if $ctl_named_lick
 
     if $ctl_quit
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
