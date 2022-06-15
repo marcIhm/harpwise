@@ -75,23 +75,29 @@ def do_quiz
       er = inp = nil
       clear_area_comment
       print "\e[#{$lines[:hint_or_message]}H\e[J"
-      print "\e[0m\e[2mPlease enter \e[0mname of new lick\e[2m (current is #{lick[:name]}):\e[0m "
+      print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
       inp = STDIN.gets.chomp
-      new_lick = $licks.find {|l| l[:name] == inp}
-      named_lick_idx = $licks.index {|l| l[:name] == inp}
 
+      matching = $licks.map.with_index.select {|li| li[0][:name][inp]}
+      if matching.length == 0
+        print "\e[#{$lines[:comment]}H\e[0mLick '#{inp}' is unknown among currently available licks (selected by tags and hole count)\nStaying with '#{lick[:name]}'"
+        print "\n\n\e[2mPress RETURN to continue ..."
+        STDIN.gets
+        clear_area_comment
+      elsif matching.length == 1
+        lick_idx_before = lick_idx
+        lick = matching[0][0]
+        lick_idx = matching[0][1]
+        all_wanted = lick[:holes]
+      else
+        print "\e[#{$lines[:comment]}H\e[0mMultiple matches for '#{inp}': #{matching.map {|m| m[0][:name]}}\nStaying with '#{lick[:name]}'"
+        print "\n\n\e[2mPress RETURN to continue ..."
+        STDIN.gets
+        clear_area_comment
+      end
       start_kb_handler
       prepare_term
       print "\e[3J" # clear scrollback
-      if named_lick_idx
-        lick_idx_before = lick_idx
-        lick_idx = named_lick_idx
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-      else
-        print "\e[#{$lines[:hint_or_message]}H\e[2mUnknown lick \e[0m'#{inp}', staying with '#{lick[:name]}'\e[K"
-        sleep 2
-      end
       $ctl_named_lick = false
       
     elsif $ctl_replay
