@@ -72,28 +72,37 @@ def do_quiz
 
       stop_kb_handler
       sane_term
-      er = inp = nil
-      clear_area_comment
-      print "\e[#{$lines[:hint_or_message]}H\e[J"
-      print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
-      inp = STDIN.gets.chomp
+      input = matching = nil
+      begin
+        clear_area_comment
+        print "\e[#{$lines[:hint_or_message]}H\e[J"
+        print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
+        input = STDIN.gets.chomp
 
-      matching = $licks.map.with_index.select {|li| li[0][:name][inp]}
-      if matching.length == 0
-        print "\e[#{$lines[:comment]}H\e[0mLick '#{inp}' is unknown among currently available licks (selected by tags and hole count)\nStaying with '#{lick[:name]}'"
-        print "\n\n\e[2mPress RETURN to continue ..."
-        STDIN.gets
-        clear_area_comment
-      elsif matching.length == 1
-        lick_idx_before = lick_idx
-        lick = matching[0][0]
-        lick_idx = matching[0][1]
-        all_wanted = lick[:holes]
-      else
-        print "\e[#{$lines[:comment]}H\e[0mMultiple matches for '#{inp}': #{matching.map {|m| m[0][:name]}}\nStaying with '#{lick[:name]}'"
-        print "\n\n\e[2mPress RETURN to continue ..."
-        STDIN.gets
-        clear_area_comment
+        begin
+          matching = $licks.map.with_index.select {|li| li[0][:name][input]}
+          if matching.length != 1
+            print "\e[#{$lines[:comment]}H\e[0m\e[J\n\n"
+            if matching.length == 0
+              print "Lick '#{input}' is unknown among currently available licks (selected by tags and hole count)\n"
+            else
+              print "Multiple matches for '#{input}': #{matching.map {|m| m[0][:name]}}"
+            end
+            print "\e[#{$lines[:hint_or_message]}H\e[J"
+            print "Enter a new name \e[2mor just press RETURN keep current '#{lick[:name]}':\e[0m "
+            input = STDIN.gets.chomp
+            matching = [[lick,lick_idx]] if input == ''
+          end
+        end while matching.length != 1
+
+        print "\e[#{$lines[:comment]}H\e[0m\e[J"
+        if lick_idx != matching[0][1]
+          lick_idx_before = lick_idx 
+          lick = matching[0][0]
+          lick_idx = matching[0][1]
+          all_wanted = lick[:holes]
+        end
+
       end
       start_kb_handler
       prepare_term
