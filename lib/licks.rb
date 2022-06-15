@@ -10,7 +10,6 @@ def read_licks
 
   $lick_file = lfile = get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
-
   word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add)
 

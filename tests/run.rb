@@ -504,10 +504,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     expect { screen[-1]['special'] }
     kill_session
   end
-
-
-
   
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
+system("killall aubiopitch")
 puts "\ndone.\n\n"

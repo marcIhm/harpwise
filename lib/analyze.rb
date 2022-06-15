@@ -3,7 +3,14 @@
 #
 
 
+$desc_freq_cache_lb = 1
+$desc_freq_cache_ub = -1
+$desc_freq_cache = nil
+
 def describe_freq freq
+
+  # be able to return the same result as before rather quick
+  return $desc_freq_cache if freq >= $desc_freq_cache_lb && freq < $desc_freq_cache_ub
 
   minfr = $harp[$harp_holes[0]][:freq]
   maxfr = $harp[$harp_holes[-1]][:freq]
@@ -15,7 +22,12 @@ def describe_freq freq
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
     return :low, nil, nil, nil if (freq < lb)
-    return $freq2hole[fr], lb, fr, ub if (freq >= lb) and (freq < ub)
+    if (freq >= lb) and (freq < ub)
+      $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
+      $desc_freq_cache_lb = lb
+      $desc_freq_cache_ub = ub
+      return $desc_freq_cache
+    end
   end
   return :high, nil, nil, nil
 end

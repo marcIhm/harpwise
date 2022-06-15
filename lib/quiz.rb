@@ -76,17 +76,29 @@ def do_quiz
       begin
         clear_area_comment
         print "\e[#{$lines[:hint_or_message]}H\e[J"
-        print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
+        print "\e[0m(part of) Name of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
         input = STDIN.gets.chomp
 
         begin
           matching = $licks.map.with_index.select {|li| li[0][:name][input]}
           if matching.length != 1
-            print "\e[#{$lines[:comment]}H\e[0m\e[J\n\n"
+            print "\e[#{$lines[:comment]}H\e[0m\e[J"
             if matching.length == 0
-              print "Lick '#{input}' is unknown among currently available licks (selected by tags and hole count)\n"
+              print "No lick of currently available licks (selected by tags and hole count) contains '#{input}'\n"
             else
-              print "Multiple matches for '#{input}': #{matching.map {|m| m[0][:name]}}"
+              print "Multiple licks (#{matching.length}) contain '#{input}':\n"
+              line = '  '
+              matching.
+                map {|m| m[0][:name]}.
+                map {|n| n + ' ' * (-n.length % 8)}.
+                each do |n|
+                if (line + n).length > $term_width - 4
+                  puts line
+                  line = '  '
+                end
+                line += n
+              end
+              puts line
             end
             print "\e[#{$lines[:hint_or_message]}H\e[J"
             print "Enter a new name \e[2mor just press RETURN keep current '#{lick[:name]}':\e[0m "

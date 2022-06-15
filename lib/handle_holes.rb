@@ -340,8 +340,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if done || ( $message_shown && Time.now.to_f - $message_shown > 8 )
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       $message_shown = false
-    end 
-   first_round = $first_round_ever_get_hole = false
+    end
+    first_round = $first_round_ever_get_hole = false
   end  # loop until var done or skip
 end
 
