@@ -8,15 +8,15 @@ key: c
 # While listening, show comments as note or interval
 comment_listen: note
 
-# for quiz and memorize
+# for quiz and licks
 comment_quiz: holes_large
 
 # what to display for listen when a note has been recognized
 display_listen: chart_notes
 
-# what to display for quiz and memorize when a note has been recognized
+# what to display for quiz and licks when a note has been recognized
 display_quiz: hole
-display_memorize: hole
+display_licks: hole
 
 # measure frequency over slices of this duration (in secs)
 time_slice: 0.1

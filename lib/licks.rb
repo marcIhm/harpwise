@@ -196,12 +196,12 @@ def create_initial_lick_file lfile
   puts "\nLick file\n\n  #{lfile}\n\ndoes not exist !"
   puts "\nCreating it with a single sample lick (and comments);"
   puts "however, you need to add more licks yourself,"
-  puts "to make this mode (memorize) really useful."
+  puts "to make this mode (licks) really useful."
   puts
   File.open(lfile, 'w') do |f|
     f.write <<~end_of_content
         #
-        # Library of licks used in modes memorize or play.
+        # Library of licks used in modes licks or play.
         #
         #
         # This file is made up of [sections].
@@ -242,18 +242,21 @@ def create_initial_lick_file lfile
         # richter harp; they may not work for other harps however.
         #
         # You will need to add licks and recordings, before
-        # the feature memorize can be useful.
+        # the feature licks can be useful.
         #
         # To this end you may search the web; make sure, to grep 
-        # audio samples too or record them yourself.
+        # audio samples too or record them yourself. See e.g.
+        #   https://www.harmonica.com/6-blues-riffs/
+        # for a few gread licks.
         #
-        # Two great sources of licks, complete with audio samples 
-        # are these books:
+        # Two great sources for lots of licks, complete with audio
+        # samples are these books:
         #
         # - "100 Authentic Blues Harmonica Licks" by Steve Cohen
         #
         # - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
         #
+       
 
         [default]
           # this applies for all licks until overwritten by another [default];

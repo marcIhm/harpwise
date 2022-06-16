@@ -1,5 +1,5 @@
 #
-# Perform quiz and memorize
+# Perform quiz and licks
 #
 
 def do_quiz
@@ -9,7 +9,7 @@ def do_quiz
   start_collect_freqs
   $ctl_can_next = true
   $ctl_can_loop = true
-  $ctl_can_named = ( $mode == :memorize )
+  $ctl_can_named = ( $mode == :licks )
   $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
   $write_journal = true
   journal_start
@@ -21,7 +21,7 @@ def do_quiz
   lick_cycle = false
   start_with = $opts[:start_with].dup
   puts
-  puts "#{$licks.length} licks." if $mode == :memorize
+  puts "#{$licks.length} licks." if $mode == :licks
   
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -68,7 +68,7 @@ def do_quiz
       end
       $ctl_loop = true
 
-    elsif $ctl_named_lick  # can only happen in memorize
+    elsif $ctl_named_lick  # can only happen in licks
 
       stop_kb_handler
       sane_term
@@ -137,7 +137,7 @@ def do_quiz
         all_wanted = get_sample($num_quiz)
         jtext = all_wanted.join(' ')
 
-      else # memorize
+      else # licks
 
         if lick_idx_iter # continue with iteration through licks
 
@@ -255,8 +255,8 @@ def do_quiz
     full_seq_shown = false
 
     # precompute some values, that do not change during sequence
-    min_sec_hold =  $mode == :memorize  ?  0.0  :  0.1
-    lick_names = if $mode == :memorize
+    min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
+    lick_names = if $mode == :licks
                    [sprintf(' (%s)', lick[:name]) ,
                     ' ' + lick[:name] ,
                     sprintf("\e[2m (%s)", lick[:desc])]

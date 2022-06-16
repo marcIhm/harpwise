@@ -62,12 +62,12 @@ $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2fl
 
 $charts, $hole2chart = read_chart
 
-$all_licks, $licks = read_licks if $mode == :play || $mode == :memorize
+$all_licks, $licks = read_licks if $mode == :play || $mode == :licks
 
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
-check_screen if [:listen, :quiz, :memorize].include?($mode)
+check_screen if [:listen, :quiz, :licks].include?($mode)
 
 $freq2hole = read_calibration unless $mode == :calibrate
 
@@ -89,7 +89,7 @@ Signal.trap('SIGINT') do
 end
 
 
-if [:listen, :quiz, :memorize].include?($mode)
+if [:listen, :quiz, :licks].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true
   end
@@ -118,7 +118,7 @@ semi2note(0) == 'a4' or fail 'Internal error'
 case $mode
 when :quiz
   do_quiz
-when :memorize
+when :licks
   do_quiz
 when :listen
   do_listen

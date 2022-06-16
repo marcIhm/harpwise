@@ -196,12 +196,12 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'id-0a: memorize to create simple lick file' do
+  do_test 'id-0a: mode licks to create simple lick file' do
     lick_dir = "#{$data_dir}/licks/testing"
     lick_file = "#{lick_dir}/licks_with_holes.txt"
     FileUtils.rm_r lick_dir if File.exist?(lick_dir)
     new_session
-    tms './harpwise memo testing a --testing'
+    tms './harpwise licks testing a --testing'
     tms :ENTER
     sleep 2
     expect { File.exist?(lick_file) }
@@ -314,20 +314,20 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'id-17: memorize with lick file from previous test' do
+  do_test 'id-17: mode licks with lick file from previous test' do
     new_session
-    tms './harpwise memo testing a --testing'
+    tms './harpwise licks testing a --testing'
     tms :ENTER
     sleep 12
     tst_out = read_testing_output
     expect { tst_out[:licks].length == 6 }
-    expect { screen[1]['memorize(6) testing a all'] }
+    expect { screen[1]['licks(6) testing a all'] }
     kill_session
   end
 
-  do_test 'id-18: memorize with licks with tags' do
+  do_test 'id-18: mode licks with licks with tags' do
     new_session
-    tms './harpwise memo testing --tags favorites,testing a --testing'
+    tms './harpwise licks testing --tags favorites,testing a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -336,9 +336,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
-  do_test 'id-19: memorize with licks excluding one tag' do
+  do_test 'id-19: mode licks with licks excluding one tag' do
     new_session
-    tms './harpwise memo testing --no-tags scales a --testing'
+    tms './harpwise licks testing --no-tags scales a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
@@ -349,16 +349,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1a: error on unknown --tags' do
     new_session
-    tms './harpwise memo testing --tags unknown a --testing'
+    tms './harpwise licks testing --tags unknown a --testing'
     tms :ENTER
     sleep 2
     expect { screen[4]['ERROR: There are some tags'] }
     kill_session
   end
 
-  do_test 'id-1b: memorize with --start-with' do
+  do_test 'id-1b: mode licks with --start-with' do
     new_session
-    tms './harpwise memo testing --start-with juke a --testing'
+    tms './harpwise licks testing --start-with juke a --testing'
     tms :ENTER
     sleep 4
     expect { screen[-1]['(juke/samples,favorites)'] }
@@ -367,7 +367,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1c: print list of tags' do
     new_session
-    tms './harpwise memo testing --tags print'
+    tms './harpwise licks testing --tags print'
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
@@ -391,7 +391,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1e: iterate through holes' do
     new_session
-    tms './harpwise memo testing --start-with iterate --testing'
+    tms './harpwise licks testing --start-with iterate --testing'
     tms :ENTER
     sleep 4
     expect { screen[-1][$all_testing_licks[0]] }
@@ -407,7 +407,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1f: iterate through holes from starting point' do
     new_session
-    tms './harpwise memo testing --start-with special,iter --testing'
+    tms './harpwise licks testing --start-with special,iter --testing'
     tms :ENTER
     sleep 4
     expect { screen[-1]['special'] }
@@ -420,7 +420,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-20: back one lick' do
     new_session
-    tms './harpwise memo testing --start-with juke --testing'
+    tms './harpwise licks testing --start-with juke --testing'
     tms :ENTER
     sleep 4
     expect { screen[-1]['juke'] }
@@ -435,7 +435,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-21: use option --partial' do
     new_session
-    tms './harpwise memo testing --start-with juke --partial 1@b --testing'
+    tms './harpwise licks testing --start-with juke --partial 1@b --testing'
     tms :ENTER
     sleep 2
     tlog = read_testing_log
@@ -445,7 +445,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-22: use option --partial and --holes' do
     new_session
-    tms './harpwise memo testing --start-with juke --holes --partial 1@b --testing'
+    tms './harpwise licks testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER
     sleep 2
     tlog = read_testing_log
@@ -464,7 +464,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-24: comment with scales' do
     new_session
-    tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
+    tms './harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
     tms :ENTER
     sleep 2
     expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
@@ -473,7 +473,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-25: comment with all holes' do
     new_session
-    tms './harpwise memorize testing blues:b --add-scales chord-i:1 --comment holes-all --testing --start-with juke'
+    tms './harpwise lic testing blues:b --add-scales chord-i:1 --comment holes-all --testing --start-with juke'
     tms :ENTER
     sleep 2
     expect { screen[16]['  ▄▖▜   ▄▖▄▌▐   ▄▖▄▌▐ ▐   ▄▖▄▌  ▄▖▙▌  ▄▖▙▌'] }
@@ -482,7 +482,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-26: display as chart with intervals' do
     new_session
-    tms './harpwise memorize testing blues --display chart-intervals --comment holes-intervals --ref -2+3 --start-with juke --testing'
+    tms './harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2+3 --start-with juke --testing'
     tms :ENTER
     sleep 4
     expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
@@ -492,7 +492,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-27: change lick by name' do
     new_session
-    tms './harpwise memorize testing blues --start-with juke --testing'
+    tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
     tms 'n'
@@ -502,6 +502,24 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 1
     expect { screen[-1]['special'] }
+    kill_session
+  end
+
+  do_test 'id-28: error on ambigous mode' do
+    new_session
+    tms './harpwise li testing blues'
+    tms :ENTER
+    sleep 2
+    expect { screen[3]['argument can be one of'] }
+    kill_session
+  end
+  
+  do_test 'id-29: error on mode memorize' do
+    new_session
+    tms './harpwise memo testing blues'
+    tms :ENTER
+    sleep 2
+    expect { screen[3]['Mode \'memorize\' is now \'licks\''] }
     kill_session
   end
   

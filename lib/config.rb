@@ -66,7 +66,7 @@ def calculate_screen_layout
     lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > 1
   end
   lines[:comment_tall] = lines[:comment]
-  if $mode == :quiz || $mode == :memorize
+  if $mode == :quiz || $mode == :licks
     # font for quiz is fairly small, so we may leave some space
     lines[:comment] += 1
     # call starts on lines[:hint_or_message], so lines[:call2] is actually
@@ -90,8 +90,8 @@ def set_global_vars_late
   $helper_wave = "#{$tmp_dir}/helper.wav"
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
-  $journal_file = if $mode == :memorize || $mode == :play
-                    "#{$data_dir}/journal_memorize_play.txt"
+  $journal_file = if $mode == :licks || $mode == :play
+                    "#{$data_dir}/journal_licks_play.txt"
                   else
                     "#{$data_dir}/journal_#{$mode}.txt"
                   end
@@ -116,7 +116,7 @@ def load_technical_config
   file = 'config/config.yaml'
   merge_file = "#{$data_dir}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_memorize, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
+  req_keys = Set.new([:type, :key, :comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
   file_keys = Set.new(conf.keys)
   fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
   if File.exist?(merge_file)
@@ -136,7 +136,7 @@ def read_technical_config
   conf = load_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-  [:comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_memorize, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
+  [:comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
   conf[:all_types] = Dir['config/*'].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.

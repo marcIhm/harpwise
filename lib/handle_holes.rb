@@ -348,7 +348,7 @@ end
 
 def text_for_key
   text = "\e[2m#{$mode}"
-  text += "(#{$licks.length})" if $mode == :memorize
+  text += "(#{$licks.length})" if $mode == :licks
   text += " #{$type} #{$key}"
   if $opts[:add_scales]
     text += "\e[0m"

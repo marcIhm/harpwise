@@ -18,10 +18,10 @@ def parse_arguments
 harpwise ('wise', for short) helps to practice scales
 (e.g. blues or mape) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation are
-'listen', 'quiz' and 'memo'.
+'listen', 'quiz' and 'licks'.
 
 
-Usage by examples for the modes listen, quiz, memorize, play and
+Usage by examples for the modes listen, quiz, licks, play and
 calibrate:
 
 
@@ -90,14 +90,14 @@ calibrate:
   running; type 'h' for details.
 
 
------- memo ------
+------ licks ------
 
-  The mode memo is a variation of quiz, which helps to memorize licks
-  from a given set:
+  The mode licks is a variation of quiz, which helps to learn and memorize
+  licks from a given set:
 
-    ./harpwise memo c
+    ./harpwise licks c
 
-    ./harpwise memo c --tags fav,scales
+    ./harpwise licks c --tags fav,scales
 
   As shown in the second example, you may restrict the set of licks to
   those with certain tags; tags (e.g. 'scales') may also
@@ -126,9 +126,10 @@ calibrate:
   If you want to play the holes of the lick (rather than the recording), add
   option '--holes', which also honors the option '--partial'.
 
-  For memorize to be useful, you need to create a file with your own licks
-  for more info see the starter file created initally.  Please note, that
-  this mode will set the scale to 'all' if no scale argument is given.
+  For mode licks to be useful, you need to create a file with your own
+  licks for more info see the starter file created initally.  Please note,
+  that this mode will set the scale to 'all' if no scale argument is
+  given.
 
 
 ------ play ------
@@ -144,12 +145,12 @@ calibrate:
   complete lick.
 
   The special argument 'random' just plays a random lick, 'last' (or 'l',
-  '2l', etc) repeats the last lick played (even from mode memorize).
+  '2l', etc) repeats the last lick played (even from mode licks).
 
   The arguments 'iterate' or 'cycle' play all the licks selected by
   options '--tags' and '--no-tags'. Also, the special lick names
   'history', 'print' and 'dump' are accepted as plain arguments (see
-  '--start-with' for mode memorize above).
+  '--start-with' for mode licks above).
 
   If you want to play the holes of the lick (rather than the recording),
   add option '--holes'.
@@ -178,16 +179,21 @@ calibrate:
 
   Memorize licks, but only shorter ones and show the scales for each hole:
 
-    harpwise memo c blues:b --loop --max-holes 15 --imm --no-tags scales \
+    harpwise licks c blues:b --loop --max-holes 15 --imm --no-tags scales \
         --disp chart-scales --add-scales chord-i:1,chord-iv:4,chord-v:5,root:r \
         --comment holes-all
 
 
-  Lick-Shuffle: Play all my licks in random order:
+  Lick-Radio: Play all my licks in random order:
 
     harpwise play random cycle
 
+
+  Show what I am playing, emphasise notes from scales blues and major pentatonic:
+
+    ./harpwise listen blues --add-scales mape
   
+
 --- Some Notes ---
 
   The possible scales depend on the chosen type of harmonica:
@@ -277,7 +283,7 @@ EOU
   # Special handling for some options
   
   opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
-    err "Option '--display' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+    err "Option '--display' needs one of #{choices} (or abbreviated unambiguously) as an argument, not #{none}"
   end
   opts[:display]&.gsub!('-','_')
   
@@ -309,7 +315,8 @@ EOU
   # the only remaining argument.
 
   # get mode
-  mode = match_or(ARGV[0], %w(listen quiz memorize play calibrate)) do |none, choices|
+  err "Mode 'memorize' is now 'licks'; please change your first argument" if 'memorize'.start_with?(ARGV[0])
+  mode = match_or(ARGV[0], %w(listen quiz licks play calibrate)) do |none, choices|
     err "First argument can be one of #{choices} (maybe abbreviated), not #{none}"
   end.to_sym
   ARGV.shift
@@ -328,15 +335,15 @@ EOU
   err("Unknown options: #{other_opts.join(',')}") if other_opts.length > 0 && mode != :play
 
   # check for invalid combinations of mode and options
-  [[[:quiz, :memorize],
+  [[[:quiz, :licks],
     [:loop, :immediate]],
-   [[:listen, :quiz, :memorize],
+   [[:listen, :quiz, :licks],
     [:remove, :add_scales, :add_no_holes, :comment]],
    [[:calibrate],
     [:auto]],
-   [[:memorize, :play],
+   [[:licks, :play],
     [:sections, :max_holes, :holes]],
-   [[:memorize],
+   [[:licks],
     [:start_with, :partial]]].each do |modes_opts|
     modes_opts[1].each do |opt|
       err "Option '--#{opt}' is allowed for modes '#{modes_opts[0]}' only" if opts[opt] && !modes_opts[0].include?(mode)
@@ -392,7 +399,7 @@ EOU
   when :listen, :quiz
     err("Mode '#{mode}' needs at least one argument for scale") if ARGV.length == 0
     scale = get_scale(ARGV.shift)
-  when :memorize
+  when :licks
     if ARGV.length > 0
       scale = get_scale(ARGV.shift)
     else
@@ -410,7 +417,7 @@ EOU
   err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless !$scale || scales_for_type(type).include?(scale)
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :memorize
+  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :licks
   $err_binding = nil
 
   # Commandline processing is complete here

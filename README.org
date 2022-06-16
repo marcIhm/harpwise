@@ -8,14 +8,14 @@
   or licks on a (diatonic) richter or chromatic harmonica for various
   keys. May also be useful when writing down tabs.
 
-  Its main operation modes are 'listen', 'quiz' and 'memorize'; these
+  Its main operation modes are 'listen', 'quiz' and 'licks'; these
   modes may help to:
 
   - Work on bends
   - Train your musical memory
   - Internalize various scales
   - Play and remember intervals
-  - Memorize and analyze licks regarding scales and chords
+  - Learn, memorize and analyze licks regarding scales, chords and intervals
   - Support improvisation: Provide licks and scale info
   - Help in writing down a sequence of holes
 
@@ -42,7 +42,7 @@
   
   - listen: Listen to your playing, e.g. to monitor bends or scales
   - quiz: Train your ear and musical memory
-  - memorize: Learn licks (licks not included, but some pointers)
+  - licks: Learn licks (licks not included, but some pointers)
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
@@ -51,15 +51,15 @@
   To get started quickly you may use auto-calibration for
   machine-generated tones and frequencies.
 
-  If you want to work with mode memorize for learning licks (highle
-  recommended !), you need to add your own licks first.
-  They need to be added to your own lick-file, which is located at
+  If you want to work with mode licks to learn and memorize licks (highly
+  recommended !), you will need to add new licks very soon.  They need to
+  be added to your own lick-file, which is typically located at
 
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
   this file is created on first invocation and filled with only a few
   sample-licks; however it contans extensive instructions on how to add
-  new licks and on (printed) sources.
+  new licks and some pointers to sources for more (printed and online).
 
 * Some general concepts
 ** Scales and Licks
@@ -130,7 +130,7 @@
 
 ** The lower half of the screen, the "comment"
 
-   This shows whatever comment is appropriate for listen or quiz and memorize. 
+   This shows whatever comment is appropriate for listen or quiz and licks.
 
    For listen this may be one of:
 
@@ -140,7 +140,7 @@
    - Cents deviation of the current frequency to the reference
 
 
-   For quiz and memorize the comment gives information about the sequence
+   For quiz and licks the comment gives information about the sequence
    of holes, the wise expects you to play. There are three layouts showing
    the holes small and large and with associated scales.
    
