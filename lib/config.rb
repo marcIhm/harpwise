@@ -29,7 +29,6 @@ def set_global_vars_early
   $journal_listen = Array.new
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $write_journal = false
-  $message_shown = false
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )

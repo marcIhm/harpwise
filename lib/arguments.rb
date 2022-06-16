@@ -236,7 +236,7 @@ EOU
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :add_scales, :remove, :tags, :no_tags, :max_holes, :start_with, :partial]
+  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :add_scales, :remove, :tags, :no_tags, :max_holes, :min_holes, :start_with, :partial]
   { %w(--debug) => :debug,
     %w(--testing) => :testing,
     %w(-s --screenshot) => :screenshot,
@@ -288,8 +288,13 @@ EOU
   opts[:display]&.gsub!('-','_')
   
   if opts[:max_holes]
-    err "Option '--max_holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
+    err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
     opts[:max_holes] = opts[:max_holes].to_i
+  end
+    
+  if opts[:min_holes]
+    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'" unless opts[:min_holes].match?(/^\d+$/)
+    opts[:min_holes] = opts[:min_holes].to_i
   end
     
   opts[:fast] = false if opts[:no_fast]

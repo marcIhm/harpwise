@@ -119,18 +119,31 @@ end
 def truncate_colored_text text, len
   ttext = ''
   tlen = 0
+  trunced = ''
   begin
     if md = text.match(/^(\e\[\d+m)(.*)$/)
+      # escape-sequence: just copy into ttext but do not count in tlen
       ttext += md[1]
       text = md[2]
     elsif md = text.match(/^\e/)
       err "Internal error: Unknown escape"
     else
+      # no escape a start, copy to ttext and count
       md = text.match(/^([^\e]+)/)
       ttext += md[1][0,len - tlen]
-      text[0,md[1].length] = ''
       tlen += md[1].length
+      text[0,md[1].length] = ''
     end
   end while text.length > 0 && tlen < len
+  ttext += ' ...' if tlen >= len
   return ttext
+end
+
+
+def truncate_text text, len
+  if text.length > len
+    text[0,len] + ' ...'
+  else
+    text
+  end
 end

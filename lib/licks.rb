@@ -11,7 +11,7 @@ def read_licks
   $lick_file = lfile = get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
   word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
-  all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add)
+  all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add desc desc.add)
 
   all_licks = []
   licks = nil
@@ -42,7 +42,14 @@ def read_licks
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
-          lick[:desc] = name + '/' + lick[:tags].join(',')
+          lick[:desc] = (lick[:desc] || default[:desc] || '') +
+                        if lick[:desc_add] && lick[:desc_add].length > 0
+                          '; ' + lick[:desc_add]
+                        else
+                          ''
+                        end
+          lick[:banner] = name + ' / ' + lick[:tags].join(',')
+          lick[:banner] += ' / ' + lick[:desc] if lick[:desc] 
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -74,8 +81,8 @@ def read_licks
 
     # tags.add = value1 value2 ...
     # tags = value1 value2 ...
-    elsif md = line.match(/^ *(tags.add) *= *(.*?) *$/) ||
-         md = line.match(/^ *(tags) *= *(.*?) *$/)
+    elsif (md = line.match(/^ *(tags.add) *= *(.*?) *$/))||
+          (md = line.match(/^ *(tags) *= *(.*?) *$/))
       var, tags = md[1 .. 2]
       var = var.gsub('.','_').to_sym
       err "Section [default] does only allow 'tags', but not 'tags.add'" if name == 'default' && var == :tags_add
@@ -107,10 +114,18 @@ def read_licks
       end
       derived[-1] = "  holes = " + lick['holes'].join(' ')
 
+    # desc.add = multi word description
+    # desc = multi word description
+    elsif (md = line.match(/^ *desc *= *(.*?) *$/)) ||
+          (md = line.match(/^ *desc *= *(.*?) *$/))
+      var, desc = md[1 .. 2]
+      var = var.gsub('.','_').to_sym
+      err "Section [default] does only allow 'desc', but not 'desc.add'" if name == 'default' && var == :desc_add
+      lick[var] = desc
+      
     # key = value  (for remaining keys, e.g. rec)
     elsif md = line.match(/^ *(#{word_re}) *= *(#{word_re})$/)
       key, value = md[1..2]
-      lick = Hash.new unless lick
 
       if name == 'default'
         # correct assignment has been handled before
@@ -194,8 +209,10 @@ end
 
 def create_initial_lick_file lfile
   puts "\nLick file\n\n  #{lfile}\n\ndoes not exist !"
-  puts "\nCreating it with a single sample lick (and comments);"
-  puts "however, you need to add more licks yourself,"
+  puts "\nCreating it with a single sample lick and"
+  puts "lots of comments explaining the format."
+  puts
+  puts "However, you need to add more licks yourself,"
   puts "to make this mode (licks) really useful."
   puts
   File.open(lfile, 'w') do |f|
@@ -208,12 +225,16 @@ def create_initial_lick_file lfile
         # Empty lines and comments are ignored.
         #
         # Special sections are:
+        #
         #   [vars]     defining global variables to be used in tags;
         #              may help to save some typing.
         #   [default]  define values, that will be included in any lick;
         #              works only for tags; in an individual lick you
         #              may override or add to this.
-        # both sections are optional.
+        #
+        # both sections are optional, so you may just omit them (although
+        # they can save you some typing ...)
+        #
         #
         # Normal sections each define one lick by starting 
         # with its [name].
@@ -222,6 +243,9 @@ def create_initial_lick_file lfile
         # but may also contain special accustic events (e.g. '(pull)') 
         # that are recognized by the surrounding parens and will 
         # not be played; they just serve as a kind of reminder.
+        #
+        # If you add a comment, it will be shown at the bottom of the
+        # screen, when the lick is played.
         #
         # A lick may contain a recording ('rec ='), that can be played
         # on request; it will be searched in subdir 'recordings'.
@@ -265,6 +289,7 @@ def create_initial_lick_file lfile
 
         [juke]
           holes = -1 -2/ -3// -3 -4 -4
+          comment = classic
           # we also have a recording for this lick
           rec = juke.mp3
           # next two are optional
@@ -406,6 +431,7 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
       lens = []
     end
   end
+  printf format % [lens[0],lens[-1],cnt]
   puts line
   puts format % [by_len.keys.minmax, all_licks.length].flatten
   puts
@@ -458,7 +484,7 @@ def print_last_licks_from_journal licks = $licks
       print '    '
     end
     cnt += 1
-    puts licks[idx][:desc]
+    puts licks[idx][:name]
     
   end
   puts

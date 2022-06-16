@@ -63,7 +63,7 @@ def do_listen
     
     # lambda_hint
     -> (hole) do  
-      "Hint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"
+      ["Hint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
     end,
 
     

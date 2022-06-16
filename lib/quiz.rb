@@ -199,7 +199,7 @@ def do_quiz
         
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
-        jtext = sprintf('Lick %s: ', lick[:desc]) + all_wanted.join(' ')
+        jtext = sprintf('Lick %s: ', lick[:name]) + all_wanted.join(' ')
 
       end
 
@@ -259,7 +259,7 @@ def do_quiz
     lick_names = if $mode == :licks
                    [sprintf(' (%s)', lick[:name]) ,
                     ' ' + lick[:name] ,
-                    sprintf("\e[2m (%s)", lick[:desc])]
+                    lick[:banner]]
                  else
                    ['','','']
                  end
@@ -343,35 +343,20 @@ def do_quiz
           -> (_) do
             hole_passed = Time.now.to_f - hole_start
             round_passed = Time.now.to_f - round_start
-            
-            hint = if $opts[:immediate] # show all holes right away
-                     "\e[2mPlay:" +
-                       if idx == 0
-                         ''
-                       else
-                         ' ' + all_wanted[0 .. idx - 1].join(' ')
-                       end +
-                       "\e[0m\e[92m*\e[0m" +
-                       all_wanted[idx .. -1].join(' ')
-                   elsif all_wanted.length > 1 &&
-                         hole_passed > 4 &&
-                         # show holes earlier, if we showed them
-                         # already for this seq
-                         round_passed > ( full_seq_shown ? 3 : 6 ) * all_wanted.length
-                     "\e[0mThe complete sequence is: #{all_wanted.join(' ')}" 
-                     full_seq_shown = true
-                   elsif hole_passed > 4
-                     "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
-                   else
-                     if idx > 0
-                       isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
-                       if isemi
-                         "Hint: Move " + ( itext ? "a #{itext}" : isemi )
-                       end
-                     end
-                   end
-
-            ( hint || '' ) + lick_names[2]
+        
+            [
+              if hole_passed > 4
+                "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+              else
+                if idx > 0
+                  isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
+                  "\e[2mHint: Move " + ( itext ? "a #{itext}" : isemi ) + "\e[0m"
+                else
+                  ''
+                end
+              end,
+              lick_names[2]
+            ]
           end,
           
           
@@ -430,9 +415,9 @@ def do_quiz
           print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_seq_shown = true
-          sleep unless text
+          sleep(0.3) unless text
         end
-        sleep 0.3 if text
+        sleep(0.3) if text
       end
       
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick # looping over one sequence
