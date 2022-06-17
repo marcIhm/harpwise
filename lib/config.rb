@@ -70,12 +70,11 @@ def calculate_screen_layout
   if $mode == :quiz || $mode == :licks
     # font for quiz is fairly small, so we may leave some space
     lines[:comment] += 1
-    # call starts on lines[:hint_or_message], so lines[:call2] is actually
-    # its second line
-    lines[:call2] = lines[:hint_or_message] + 1
+    # only needed for quiz and licks
+    lines[:message2] = lines[:hint_or_message] + 1
   else
     # we do not need a second line for mode :listen
-    lines[:call2] = -1
+    lines[:message2] = -1
   end
   lines[:help] = lines[:comment]
   lines

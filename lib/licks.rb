@@ -36,7 +36,7 @@ def read_licks
       # Do final processing of previous lick: merging with default and replacement of vars
       if lick
         if name == 'default'
-          lick.each {|k,v| default[k] = v}
+          default = lick
         elsif name == 'vars'
           # vars have already been assigned; nothing to do here
         else

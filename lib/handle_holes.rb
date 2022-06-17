@@ -160,20 +160,20 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
 
     if done
-      print "\e[#{$lines[:call2]}H"
+      print "\e[#{$lines[:message2]}H" if $lines[:message2] > 0
       return
     end
 
     if lambda_hint && !$message_shown
       hints = lambda_hint.call(hole)
-      print "\e[#{$lines[:call2]}H\e[K" if $lines[:call2] > 0
+      print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
       print "\e[#{$lines[:hint_or_message]}H"
       # Using truncate_colored_text might be too slow here
       if hints.length == 1
         print truncate_text(hints[0], $term_width - 4) + "\e[K"
-      elsif hints.length == 2 && $lines[:call2] > 0
+      elsif hints.length == 2 && $lines[:message2] > 0
         print truncate_text(hints[0], $term_width - 4) + "\e[K"
-        print "\e[#{$lines[:call2]}H\e[0m\e[2m"
+        print "\e[#{$lines[:message2]}H\e[0m\e[2m"
         print truncate_text(hints[1], $term_width - 4) + "\e[K"
       else
         err "Internal error"

@@ -31,7 +31,7 @@ def do_quiz
       print "\e[#{$term_height-1}H\e[K"
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
-      print "\e[#{$lines[:call2]}H\e[K"
+      print "\e[#{$lines[:message2]}H\e[K"
       print "\e[#{$lines[:issue]}H\e[K"
       ctl_issue
     end
@@ -147,7 +147,7 @@ def do_quiz
               lick_idx_iter = 0
               ctl_issue 'Next cycle'
             else
-              print "\e[#{$lines[:call2]}H\e[K"
+              print "\e[#{$lines[:message2]}H\e[K"
               puts "\nIterated through all #{$licks.length} licks.\n\n"
               exit
             end
@@ -250,7 +250,7 @@ def do_quiz
       system('clear')
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
-      print "\e[#{$lines[:call2]}H\e[K"
+      print "\e[#{$lines[:message2]}H\e[K"
     end
     full_seq_shown = false
 
@@ -534,7 +534,7 @@ def play_holes all_holes, first_round
         print "\e[#{$term_height-1}H\e[K"
       else
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        print "\e[#{$lines[:call2]}H\e[K"
+        print "\e[#{$lines[:message2]}H\e[K"
       end
     end
     if idx > 0
@@ -562,7 +562,7 @@ def play_holes all_holes, first_round
     if first_round
       print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
     else
-      print "\e[#{$lines[:call2]}H\e[K"
+      print "\e[#{$lines[:message2]}H\e[K"
       print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
     end
 
