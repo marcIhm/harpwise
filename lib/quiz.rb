@@ -389,26 +389,25 @@ def do_quiz
       else
         sleep 0.3
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
-        text = if $ctl_next
-                 'next'
-               elsif $ctl_back
-                 'jump back'
-               elsif $ctl_replay
-                 'replay'
-               elsif $ctl_named_lick
-                 nil
-               else
-                 full_seq_shown ? 'Yes ' : 'Great ! '
-               end
-
         # update comment
-        if text
+        ctext = if $ctl_next
+                  'next'
+                elsif $ctl_back
+                  'jump back'
+                elsif $ctl_replay
+                  'replay'
+                elsif $ctl_named_lick
+                  nil
+                else
+                  full_seq_shown ? 'Yes ' : 'Great ! '
+                end
+        if ctext
           if [:holes_scales, :holes_intervals].include?($conf[:comment])
             clear_area_comment
-            puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + text
+            puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + ctext
           else
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-            do_figlet text, 'smblock'
+            do_figlet ctext, 'smblock'
           end
           print "\e[0m"
         end
@@ -416,12 +415,11 @@ def do_quiz
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick
-          print "\e[0m#{$ctl_next || $ctl_back ? 'T' : 'Yes, t'}he sequence was: #{all_wanted.join(' ')} ... "
           print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
           full_seq_shown = true
-          sleep(0.3) unless text
+          sleep 0.5 unless ctext
         end
-        sleep(0.3) if text
+        sleep 0.5 if ctext
       end
       
     end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick # looping over one sequence

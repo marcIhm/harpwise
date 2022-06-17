@@ -14,7 +14,6 @@ def do_play
   all_lnames = $licks.map {|l| l[:name]}
   
   jtext = nil
-  do_write_journal = true
 
   prepare_term
   start_kb_handler
@@ -115,6 +114,8 @@ def do_play
     lnames.each do |lname|
       lick = $licks.find {|l| l[:name] == lname}
       play_and_print_lick lick
+      jtext = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
+      IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
     end
       
   elsif special.length > 0

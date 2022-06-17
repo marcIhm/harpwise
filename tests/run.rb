@@ -275,12 +275,24 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
   do_test 'id-15: play a lick with recording' do
+    journal_file = "#{$data_dir}/journal_licks_play.txt"
+    FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harpwise play testing a juke --testing'
     tms :ENTER
     sleep 4
     expect { screen[4]['Lick juke'] }
     expect { screen[5]['-1 -2/ -3// -3 -4'] }
+    expect { File.exist?(journal_file) }
+    kill_session
+  end
+  
+  do_test 'id-15a: check history from previous invocation of play' do
+    new_session
+    tms './harpwise play testing hist --testing'
+    tms :ENTER
+    sleep 4
+    expect { screen[11][' l: juke'] }
     kill_session
   end
   
