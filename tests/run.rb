@@ -279,7 +279,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[4]['Lick juke/samples,favorites'] }
+    expect { screen[4]['Lick juke'] }
     expect { screen[5]['-1 -2/ -3// -3 -4'] }
     kill_session
   end
@@ -307,10 +307,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a cycle --testing'
     tms :ENTER
     sleep 2
-    expect { screen[4]['Lick juke/samples,favorites'] }
+    expect { screen[4]['Lick juke'] }
     tms :ENTER
     sleep 2
-    expect { screen[9]['Lick special/samples'] }
+    expect { screen[9]['Lick special'] }
     kill_session
   end
   
@@ -361,7 +361,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with juke a --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1]['(juke/samples,favorites/classic)'] }
+    expect { screen[-1]['juke / samples,favorites / a classic lick by Little Walter'] }
     kill_session
   end
 
@@ -525,5 +525,5 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
-system("killall aubiopitch")
+system("killall aubiopitch >/dev/null >&1")
 puts "\ndone.\n\n"

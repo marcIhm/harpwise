@@ -76,33 +76,7 @@ def do_calibrate_assistant
             $harp_holes
           end
 
-  puts <<EOINTRO
-
-
-This is an interactive assistant, that will ask you to play these holes of
-your harmonica, key of #{$key}, one after the other:
-
-  \e[32m#{holes.join(' ')}\e[0m
-
-Any existing recording will be presented first for review. Then you may
-start a new recording and trim it (cut of initial silence). This will be
-repeated for all holes.
-
-After all holes have been recorded, a table of all frequencies will be
-printed, so that you may do a final check of your recordings.
-
-You may invoke this assistant again at any later time, just to review your
-recorded notes and maybe correct some of them.  Results are written to
-disk immediately, so you may end the process after any hole. To start from
-a specific hole, use option '--hole'.
-
-The harp, that you are going to use for calbration, should be the one,
-that you will use for your practice later.
-
-The recorded samples will be used to determine the frequencies of your
-particular instrument and will be played back in mode 'quiz'.
-
-EOINTRO
+  puts ERB.new(IO.read('resources/calibration_intro.txt')).result(binding)
 
   print "Press any key to start with the first hole\n"
   print "  or type 's' to skip directly to summary: "

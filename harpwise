@@ -12,6 +12,7 @@ require 'open3'
 require 'pp'
 require 'sys/proctable'
 require 'tmpdir'
+require 'erb'
 require_relative 'lib/helper'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
@@ -27,7 +28,8 @@ require_relative 'lib/quiz'
 
 $program_start = Time.now.to_f
 # grep 'debug' to see choices; still need to give '--debug' to switch it on
-$debug_what = Set.new([:check_screen])
+# e.g. :check_screen
+$debug_what = Set.new([])
 # store (ad-hoc) state for debugging
 $debug_state = {}
 

@@ -346,11 +346,15 @@ def do_quiz
         
             [
               if hole_passed > 4
-                "\e[2mHint: Play \e[0m\e[32m#{wanted}\e[0m"
+                "\e[2mHint: Play \e[0m\e[32m#{wanted}"
               else
                 if idx > 0
                   isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
-                  "\e[2mHint: Move " + ( itext ? "a #{itext}" : isemi ) + "\e[0m"
+                  if itext
+                    "\e[2mHint: Move " + ( itext ? "a #{itext}" : isemi )
+                  else
+                    ''
+                  end
                 else
                   ''
                 end

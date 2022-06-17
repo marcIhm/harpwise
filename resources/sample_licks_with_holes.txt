@@ -1,0 +1,106 @@
+#  -*- mode: conf-mode; fill-column: 65 -*-
+#
+# Library of licks used in modes licks or play.
+#
+#
+# This file is made up of [sections].
+# Empty lines and comments are ignored.
+#
+#
+# A lick (juke) can be defined like this:
+#
+
+[juke]
+  holes = -1 -2/ -3// -3 -4 -4
+  # this will be shown at the bottom of the screen, when the lick
+  # is played.
+  desc = a classic lick by Little Walter
+  # we have a recording for this lick; will be searched in subdir 'recordings'.
+  rec = juke.mp3
+  # next two lines are optional; useful if you only want to play
+  # part of the recording
+  rec.start = 2.2
+  rec.length = 4
+  # This has the tags 'samples' and 'favorites', that can be used
+  # to select among a larger number of licks
+  tags = samples favorites
+  # Key of 'c' is the default anyway, use this if the recording
+  # is done with a different harmonica
+  rec.key = c
+
+#
+# The above lick is only a sample and only for richter harp.
+# See further down below for more examples with more explanation.
+#
+# You will need to add some more licks and recordings, before the
+# mode 'licks' can really be useful.
+#
+# To get started end you may search the web; make sure, to grep 
+# audio samples too or record them yourself. For example, see
+#
+#   https://www.harmonica.com/6-blues-riffs/
+#
+# for a handful of great licks.
+#
+#
+# Much more extensive are these two books with lots of licks,
+# complete with AUDIO SAMPLES:
+#
+# - "100 Authentic Blues Harmonica Licks" by Steve Cohen
+#
+# - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
+#
+
+
+#
+# Once you have defined more than a dozen licks, you may want to
+# reduce typing efford when defining a new lick. This can be done
+# by defining some default-information and reusing it in many licks.
+#
+# To this end there are two Special sections:
+#
+#   [vars]     defining global variables to be used in tags;
+#              may help to save some typing.
+#   [default]  define values, that will be included in any lick;
+#              works only for tags; in an individual lick you
+#              may override or add to this.
+#
+# both sections are optional, so you may just omit them.
+#
+
+
+[default]
+  # This applies for all licks until overwritten by another [default];
+  # tags specified in the individual lick will be added
+  tags = samples
+  desc = The sample licks
+
+[special]
+  # A lick requires a series of holes ('holes =') to be played,
+  # but may also contain special accustic events (e.g. '(pull)') 
+  # that are recognized by the surrounding parens and will 
+  # not be played; they just serve as a kind of reminder.
+  holes = -1 +1 -2+3 (pull) -1
+  # This lick adds a tag to those given by the defaults
+  tags.add = advanced
+  # You may also add to the description
+  desc.add = Notice the pull
+  # unfortunately no recording
+
+[vars]
+  # Variables may help to save typing; they are useful in tags
+  $source = theory
+
+[default]
+  # notice the use of the variable
+  tags = scales $source
+
+[blues]
+  holes = +1 -1/ -1 -2// -2+3 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
+  # has tags 'scales' and 'theory'
+
+[mape] # major pentatonic
+  holes = -1 +2 -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
+  # has tags 'scales' only
+  tags = scales
+

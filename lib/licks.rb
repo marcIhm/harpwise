@@ -42,14 +42,10 @@ def read_licks
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
-          lick[:desc] = (lick[:desc] || default[:desc] || '') +
-                        if lick[:desc_add] && lick[:desc_add].length > 0
-                          '; ' + lick[:desc_add]
-                        else
-                          ''
-                        end
+          lick[:desc] = lick[:desc] || default[:desc] || ''
+          lick[:desc] += '; ' + lick[:desc_add] if lick[:desc_add] && lick[:desc_add].length > 0
           lick[:banner] = name + ' / ' + lick[:tags].join(',')
-          lick[:banner] += ' / ' + lick[:desc] if lick[:desc] 
+          lick[:banner] += (' / ' + lick[:desc]) if lick[:desc] && lick[:desc] != ''
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -116,8 +112,8 @@ def read_licks
 
     # desc.add = multi word description
     # desc = multi word description
-    elsif (md = line.match(/^ *desc *= *(.*?) *$/)) ||
-          (md = line.match(/^ *desc *= *(.*?) *$/))
+    elsif (md = line.match(/^ *(desc.add) *= *(.*?) *$/)) ||
+          (md = line.match(/^ *(desc) *= *(.*?) *$/))
       var, desc = md[1 .. 2]
       var = var.gsub('.','_').to_sym
       err "Section [default] does only allow 'desc', but not 'desc.add'" if name == 'default' && var == :desc_add
@@ -215,113 +211,10 @@ def create_initial_lick_file lfile
   puts "However, you need to add more licks yourself,"
   puts "to make this mode (licks) really useful."
   puts
-  File.open(lfile, 'w') do |f|
-    f.write <<~end_of_content
-        #
-        # Library of licks used in modes licks or play.
-        #
-        #
-        # This file is made up of [sections].
-        # Empty lines and comments are ignored.
-        #
-        # Special sections are:
-        #
-        #   [vars]     defining global variables to be used in tags;
-        #              may help to save some typing.
-        #   [default]  define values, that will be included in any lick;
-        #              works only for tags; in an individual lick you
-        #              may override or add to this.
-        #
-        # both sections are optional, so you may just omit them (although
-        # they can save you some typing ...)
-        #
-        #
-        # Normal sections each define one lick by starting 
-        # with its [name].
-        #
-        # A lick requires a series of holes ('holes =') to be played,
-        # but may also contain special accustic events (e.g. '(pull)') 
-        # that are recognized by the surrounding parens and will 
-        # not be played; they just serve as a kind of reminder.
-        #
-        # If you add a comment, it will be shown at the bottom of the
-        # screen, when the lick is played.
-        #
-        # A lick may contain a recording ('rec ='), that can be played
-        # on request; it will be searched in subdir 'recordings'.
-        # If it is not in the key of 'c', you should specify 'rec.key ='.
-        # In any case the recoording which will be transposed to the key
-        # of your harp. To play only a clip from the recording, you may 
-        # specify 'rec.start =' and 'rec.duration ='.
-        #
-        # It is recommended to assign tags to a lick, that can later be used
-        # to select licks on the commandline with options '--tags' and
-        # '--no-tags'. To this end, licks may contain: 
-        #
-        #  'tags.add =' to add to the licks from the last [default], or 
-        #  'tags ='     to specify the list of tags disregarding any 
-        #               defaults
-        #
-        # Initially this file is populated with sample licks for a
-        # richter harp; they may not work for other harps however.
-        #
-        # You will need to add licks and recordings, before
-        # the feature licks can be useful.
-        #
-        # To this end you may search the web; make sure, to grep 
-        # audio samples too or record them yourself. See e.g.
-        #   https://www.harmonica.com/6-blues-riffs/
-        # for a few gread licks.
-        #
-        # Two great sources for lots of licks, complete with audio
-        # samples are these books:
-        #
-        # - "100 Authentic Blues Harmonica Licks" by Steve Cohen
-        #
-        # - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
-        #
-       
-
-        [default]
-          # this applies for all licks until overwritten by another [default];
-          # tags specified in the individual lick will be added
-          tags = samples
-
-        [juke]
-          holes = -1 -2/ -3// -3 -4 -4
-          comment = classic
-          # we also have a recording for this lick
-          rec = juke.mp3
-          # next two are optional
-          rec.start = 2.2
-          rec.length = 4
-          # This lick will have the tags 'samples' and 'favorites'
-          tags.add = favorites  
-        
-        [special]
-          holes = -1 +1 -2+3 (pull) -1
-          # unfortunately no recording ...
-
-        [vars]
-          # may help to save typing 
-          $source = theory
-
-        [default]
-          # section [default] may appear multiple times
-          tags = scales $source
-
-        [blues]
-          holes = +1 -1/ -1 -2// -2+3 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
-          # has tags 'scales' and 'theory'
-        
-        [mape] # major pentatonic
-          holes = -1 +2 -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
-          # has tags 'scales' only
-          tags = scales
-
-        end_of_content
-
-    if $opts[:testing]
+  FileUtils.cp('resources/sample_licks_with_holes.txt', lfile)
+  FileUtils.cp('recordings/juke.mp3', $lick_dir + '/recordings') 
+  if $opts[:testing]
+    File.open(lfile, 'a') do |f|
       f.write <<~end_of_content
 
         [default]
@@ -339,9 +232,7 @@ def create_initial_lick_file lfile
         end_of_content
     end
   end
-  FileUtils.cp('recordings/juke.mp3', $lick_dir + '/recordings') 
-  exit
-  puts "Now you may try again with a few predefined licks (e.g. 'ending') ..."
+  puts "Now you may try again with a few predefined licks (e.g. 'juke') ..."
   puts "...and then add some of your own to make this feature useful !\n\n"
 end
 
@@ -431,7 +322,7 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
       lens = []
     end
   end
-  printf format % [lens[0],lens[-1],cnt]
+  printf format % [lens[0],lens[-1],cnt] if lens.length > 0
   puts line
   puts format % [by_len.keys.minmax, all_licks.length].flatten
   puts

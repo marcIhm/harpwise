@@ -18,6 +18,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
 
   loop do   # until var done or skip
+
     system('clear') if $ctl_redraw
     if first_round || $ctl_redraw
       print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
@@ -124,12 +125,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       fail "Internal error: #{$conf[:display]}"
     end
 
-    print "\e[#{$lines[:hole]}H\e[2m"
-    print "Hole: %#{longest_hole_name.length}s, Note: %4s" %
-          (regular_hole?(hole)  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
-    print ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
-    print ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
-    print "\e[K"
+    text = "Hole: %#{longest_hole_name.length}s, Note: %4s" %
+           (regular_hole?(hole)  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
+    text += ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
+    text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
+    print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text, $term_width - 4) + "\e[K"
 
     if lambda_comment
       case $conf[:comment]
@@ -171,7 +171,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:hint_or_message]}H"
       # Using truncate_colored_text might be too slow here
       if hints.length == 1
-        print truncate_text(hints[0], 2 * $term_width - 4) + "\e[K"
+        print truncate_text(hints[0], $term_width - 4) + "\e[K"
       elsif hints.length == 2 && $lines[:call2] > 0
         print truncate_text(hints[0], $term_width - 4) + "\e[K"
         print "\e[#{$lines[:call2]}H"
@@ -270,11 +270,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:hint_or_message]}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
+      message_shown = Time.now.to_f
 
       $ctl_toggle_journal = false
 
       print "\e[#{$lines[:key]}H" + text_for_key      
-      message_shown = Time.now.to_f
     end
 
     if $ctl_change_key || $ctl_change_scale
