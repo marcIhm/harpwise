@@ -32,7 +32,6 @@ def describe_freq freq
   return :high, nil, nil, nil
 end
 
-
 def note2semi note
   note = note.downcase
   raise ArgumentError.new("note '#{note}' should end with a single digit") unless ('0'..'9').include?(note[-1])
@@ -137,4 +136,19 @@ def inspect_recording hole, file
     puts "\nMaybe repeat recording with the right hole and pitch ?\n\n"
   end
   return freq
+end
+
+
+def diff_semitones key1, key2, g_is_lowest = false
+  semis = [key1, key2].map {|k| note2semi(k.to_s + '0')}
+  if g_is_lowest
+    semig = note2semi('g0')
+    semis.map! {|s| s >= semig ? s - 12 : s}
+    dsemi = semis[0] - semis[1]
+  else
+    dsemi = semis[0] - semis[1]
+    dsemi -= 12 if dsemi > 8
+    dsemi += 12 if dsemi < -8
+  end
+  dsemi
 end

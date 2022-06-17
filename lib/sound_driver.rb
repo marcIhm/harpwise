@@ -223,11 +223,9 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                 else
                   ""
                 end
-  dsemi = note2semi($key.to_s + '0') - note2semi(key + '0')
-  dsemi -= 12 if dsemi > 6
-  dsemi += 12 if dsemi < -6
+  dsemi = diff_semitones($key, key, true)
   pitch_clause = if dsemi == 0
-                   ""
+                   ''
                  else
                    "pitch #{dsemi * 100}"
                  end
@@ -237,9 +235,9 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
   ctl_not_loop = true
   begin
     tempo_clause = if tempo == 1.0
-                     ""
+                     ''
                    else
-                     "tempo -m %.1f" % tempo
+                     'tempo -m %.1f' % tempo
                    end                  
     cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
     IO.write($testing_log, cmd, mode: 'a') if $opts[:testing]
