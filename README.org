@@ -144,7 +144,7 @@
    of holes, the wise expects you to play. There are three layouts showing
    the holes small and large and with associated scales.
    
-** The middle part of the display
+** The middle part of the screen
 *** The Hole-line
     
     The first line in the middle of the display currently looks like this:

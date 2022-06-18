@@ -139,16 +139,18 @@ def inspect_recording hole, file
 end
 
 
-def diff_semitones key1, key2, g_is_lowest = false
+def diff_semitones key1, key2, strategy = :minimum_distance
   semis = [key1, key2].map {|k| note2semi(k.to_s + '0')}
-  if g_is_lowest
-    semig = note2semi('g0')
-    semis.map! {|s| s >= semig ? s - 12 : s}
+  @semi_for_g ||= note2semi('g0')
+  if strategy == :minimum_distance
+    dsemi = semis[0] - semis[1]
+    dsemi -= 12 if dsemi > 6
+    dsemi += 12 if dsemi < -6
+  elsif strategy == :g_is_lowest
+    semis.map! {|s| s >= @semi_for_g ? s - 12 : s}
     dsemi = semis[0] - semis[1]
   else
-    dsemi = semis[0] - semis[1]
-    dsemi -= 12 if dsemi > 8
-    dsemi += 12 if dsemi < -8
+    err "Internal error: unknown strategy #{strategy}"
   end
   dsemi
 end

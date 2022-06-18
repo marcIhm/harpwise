@@ -223,7 +223,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                 else
                   ""
                 end
-  dsemi = diff_semitones($key, key, true)
+  dsemi = diff_semitones($key, key, :g_is_lowest)
   pitch_clause = if dsemi == 0
                    ''
                  else
