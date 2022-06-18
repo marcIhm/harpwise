@@ -76,11 +76,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       dots, _ = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
       cents = cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
-      hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     else
       print format % ['--', '--', just_dots_short]
     end
 
+    hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
     inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"

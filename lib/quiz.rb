@@ -346,15 +346,11 @@ def do_quiz
         
             [
               if hole_passed > 4
-                "\e[2mHint: Play \e[0m\e[32m#{wanted}"
+                "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m"
               else
                 if idx > 0
                   isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
-                  if itext
-                    "\e[2mHint: Move " + ( itext ? "a #{itext}" : isemi )
-                  else
-                    ''
-                  end
+                  "\e[0mHint:\e[2m Move " + ( itext ? "a \e[0m\e[32m#{itext}" : "\e[0m\e[32m#{isemi}" ) + "\e[0m"
                 else
                   ''
                 end
@@ -415,7 +411,7 @@ def do_quiz
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick
-          print "\e[0m\e[32mand #{$ctl_loop ? 'again' : 'next'}\e[0m !\e[K"
+          print "\e[0m\e[32mAnd #{$ctl_loop ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
         end

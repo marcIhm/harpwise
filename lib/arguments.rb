@@ -83,6 +83,8 @@ def parse_arguments
 
   err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
+  opts[:partial] = '0@b' if opts[:partial] == '0'
+
   # usage if no arguments
   if ARGV.length == 0 || opts[:help]
 

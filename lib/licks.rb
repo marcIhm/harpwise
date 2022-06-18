@@ -44,8 +44,8 @@ def read_licks
           lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
           lick[:desc] = lick[:desc] || default[:desc] || ''
           lick[:desc] += '; ' + lick[:desc_add] if lick[:desc_add] && lick[:desc_add].length > 0
-          lick[:banner] = name + ' / ' + lick[:tags].join(',')
-          lick[:banner] += (' / ' + lick[:desc]) if lick[:desc] && lick[:desc] != ''
+          lick[:banner] = name + ' | ' + lick[:tags].join(',')
+          lick[:banner] += (' | ' + lick[:desc]) if lick[:desc] && lick[:desc] != ''
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
