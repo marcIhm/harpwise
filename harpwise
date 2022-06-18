@@ -85,8 +85,8 @@ Thread.report_on_exception = false
 
 Signal.trap('SIGINT') do
   print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-  fail "\nexit on ctrl-c" if $opts[:debug]
-  puts "\nexit on ctrl-c"
+  fail "\n\e[0mexit on ctrl-c" if $opts[:debug]
+  puts "\n\e[0mexit on ctrl-c"
   exit 1
 end
 

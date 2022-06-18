@@ -732,7 +732,7 @@ def largify holes, idx
   if $num_quiz == 1
     [ "\e[2m", '.  .  .', 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
-    hidden_holes = if idx > 8
+    hidden_holes = if idx > 6
                      ". . # . ."
                    else
                      ' .' * idx
