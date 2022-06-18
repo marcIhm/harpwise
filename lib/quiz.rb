@@ -345,7 +345,7 @@ def do_quiz
             round_passed = Time.now.to_f - round_start
         
             [
-              if hole_passed > 4
+              if hole_passed > 6
                 "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m"
               else
                 if idx > 0

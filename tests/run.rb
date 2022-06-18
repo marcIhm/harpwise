@@ -373,7 +373,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with juke a --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1]['juke / samples,favorites / a classic lick by Little Walter'] }
+    expect { screen[-1]['juke | samples,favorites | a classic lick by Little Walter'] }
     kill_session
   end
 

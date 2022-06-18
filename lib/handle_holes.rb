@@ -84,6 +84,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
+    elsif hole_for_inter
+      print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to   --  is   --  \e[K"
     else
       # let old interval be visible
     end
