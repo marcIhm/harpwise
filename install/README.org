@@ -1,39 +1,64 @@
 Scripts to install dependencies for harpwise for different
-linux-distributions.
+linux-distributions or WSL2 under Windows
 
-The wise itself needs no installation but should rather be started
+The Wise itself needs no installation but should rather be started
 directly from its toplevel directory.
 
 * Downloading harpwise
 
-  From https://github.com/marcIhm/harpwise
+  You may either clone the repo OR just download the zip-file from
+  github.
+
+  In either case, you will end up with a directory ~/harpwise
+
+** Clone the repo
+
+   Within your home directory type:
+
+   git clone https://github.com/marcIhm/harpwise.git
+
+   This will give you the full repository with its version history.
+
+   The advantage (over downloading just the zip as described below, is
+   that you will easily be able tu update to newer versions by typing
+   "git pull" within ~/harpwise)
+
+** Alternative: Download the zip-file 
+
+   Within your home directory type:
+
+   wget https://github.com/marcIhm/harpwise/archive/main.zip
+   unzip harpwise-main.zip
+   rm harpwise-main.zip
+   mv harpwise-main harpwise
   
-  You may download and unpack a release into your home; this will give
-  you a directory ~/harpwise
-
-  If you want to contribute patches you may just as well clone the
-  repo.
-
 * Installing dependencies
 
-  The scripts to install dependencies are:
+  For Ubuntu and thus WSL2 under Windows:
 
-    install-dependencies-on-ubuntu.sh | tee ~/harpwise/install.log
+    cd install
+    ./install-dependencies-on-ubuntu.sh | tee ~/harpwise/install.log
 
   may be suitable for other debian-based systems too (which use apt to
   install software).
 
-    install-dependencies-on-fedora.sh | tee ~/harpwise/install.log
+
+  For fedora, redhat, centos:
+
+    cd install
+    ./install-dependencies-on-fedora.sh | tee ~/harpwise/install.log
 
   might also work on systems derived from fedora (which use yum to
   install software).
 
+
   Both scripts are fairly simple and you are invited to inspect them
   before running.
 
-  As suggested, you may capture the output of the script to see which
-  packages were installed and which are already present on your
-  system; this ist helpful, if you would like to remove them later.
+
+  As suggested, you may capture the output of the script; this is
+  helpful, if you have problems during installation, as you may send
+  me (marc@ihm.name) the install.log
 
 * Configuration of your sound system (not covered)
 
@@ -56,7 +81,7 @@ directly from its toplevel directory.
 
    The data of harpwise (samples for calibration and
    journal.txt) is kept in the hidden directory ~/.harpwise,
-   which you may want to remove too.
+   which you may or may not want to remove too.
 
 ** Uninstalling dependencies 
 
@@ -68,8 +93,7 @@ directly from its toplevel directory.
 
    However, in general, the number of packages installed as
    dependencies and their disk-usage is fairly low, so there is not
-   much pressure to remove those dependencies, even if you do not want
-   to use harpwise any more.
+   much pressure to remove those dependencies.
 
 * Testing the installer
 
