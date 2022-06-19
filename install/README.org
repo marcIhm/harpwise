@@ -15,7 +15,7 @@ directly from its toplevel directory.
 
    Within your home directory type:
 
-   git clone https://github.com/marcIhm/harpwise.git
+   - git clone https://github.com/marcIhm/harpwise.git
 
    This will give you the full repository with its version history.
 
@@ -27,17 +27,17 @@ directly from its toplevel directory.
 
    Within your home directory type:
 
-   wget https://github.com/marcIhm/harpwise/archive/main.zip
-   unzip harpwise-main.zip
-   rm harpwise-main.zip
-   mv harpwise-main harpwise
+   - wget https://github.com/marcIhm/harpwise/archive/main.zip
+   - unzip harpwise-main.zip
+   - rm harpwise-main.zip
+   - mv harpwise-main harpwise
   
 * Installing dependencies
 
   For Ubuntu and thus WSL2 under Windows:
 
-    cd install
-    ./install-dependencies-on-ubuntu.sh | tee ~/harpwise/install.log
+    - cd install
+    - ./install-dependencies-on-ubuntu.sh | tee ~/harpwise/install.log
 
   may be suitable for other debian-based systems too (which use apt to
   install software).
@@ -45,8 +45,8 @@ directly from its toplevel directory.
 
   For fedora, redhat, centos:
 
-    cd install
-    ./install-dependencies-on-fedora.sh | tee ~/harpwise/install.log
+    - cd install
+    - ./install-dependencies-on-fedora.sh | tee ~/harpwise/install.log
 
   might also work on systems derived from fedora (which use yum to
   install software).
