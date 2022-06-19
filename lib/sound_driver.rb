@@ -277,6 +277,8 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         $ctl_show_help = false
       elsif $ctl_replay
         print "\e[0m\e[32m replay\e[0m"
+      elsif $ctl_skip
+        print "\e[0m\e[32m skip to end\e[0m"
       elsif $ctl_rec_loop
         # have this last, because its $ctl-Variable is not reset automatically
         print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop

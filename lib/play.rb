@@ -79,7 +79,7 @@ def do_play
   end
   
   if sources_count > 1
-    puts "The following types of arguments are present, but only one of them can be handled at a time:"
+    puts "The following types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
     puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
     puts "- licks: #{lnames}" if lnames.length > 0
     puts "- special: #{special}" if special.length > 0
@@ -107,7 +107,7 @@ def do_play
   
   if holes.length > 0
 
-    play_and_print_holes holes
+    play_holes holes, true, true
 
   elsif lnames.length > 0
 
@@ -182,28 +182,14 @@ def do_play
 end
 
 
-def play_and_print_holes holes
-  holes.each_with_index do |hole, i|
-    print ' ' if i > 0
-    print hole
-    if musical_event?(hole)
-      sleep $opts[:fast]  ?  0.25  :  0.5
-    else
-      play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
-    end
-  end
-  puts
-end
-
-
 def play_and_print_lick lick
   if lick[:rec] && !$opts[:holes]
     puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
     puts
   else
-    puts "Lick #{lick[:name]}"
-    play_and_print_holes lick[:holes]
+    puts "Lick #{lick[:name]} (h for help)"
+    play_holes lick[:holes], true, true
     puts
   end
 end

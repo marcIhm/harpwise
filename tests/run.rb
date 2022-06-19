@@ -310,7 +310,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise play testing a -1 juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[3]['but only one of them'] }
+    expect { screen[4]['but ONLY ONE OF THEM'] }
     kill_session
   end
   
@@ -537,5 +537,5 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
-system("killall aubiopitch >/dev/null >&1")
+system("killall aubiopitch >/dev/null 2>&1")
 puts "\ndone.\n\n"

@@ -510,7 +510,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes all_holes, first_round
+def play_holes all_holes, first_round, terse = false
 
   if $opts[:partial] && !$ctl_ignore_partial
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
@@ -523,43 +523,47 @@ def play_holes all_holes, first_round
   $ctl_skip = false
   ltext = "\e[2m(h for help) "
   holes.each_with_index do |hole, idx|
-    if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-      ltext = "\e[2m(h for help) "
-      if first_round
-        print "\e[#{$term_height}H\e[K"
-        print "\e[#{$term_height-1}H\e[K"
-      else
-        print "\e[#{$lines[:hint_or_message]}H\e[K"
-        print "\e[#{$lines[:message2]}H\e[K"
-      end
-    end
-    if idx > 0
-      if !musical_event?(hole) && !musical_event?(holes[idx - 1])
-        isemi, itext, _, _ = describe_inter(hole, holes[idx - 1])
-        ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
-      else
-        ltext += ' '
-      end
-    end
-    ltext += if musical_event?(hole)
-               "\e[0m#{hole}\e[2m"
-             elsif $opts[:immediate]
-               "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
-             else
-               "\e[0m#{$harp[hole][:note]}\e[2m"
-             end
-    if $opts[:add_scales]
-      part = '(' +
-             $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
-             ')'
-      ltext += part unless part == '()'
-    end
-
-    if first_round
-      print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
+    if terse
+      print hole + ' '
     else
-      print "\e[#{$lines[:message2]}H\e[K"
-      print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
+      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
+        ltext = "\e[2m(h for help) "
+        if first_round
+          print "\e[#{$term_height}H\e[K"
+          print "\e[#{$term_height-1}H\e[K"
+        else
+          print "\e[#{$lines[:hint_or_message]}H\e[K"
+          print "\e[#{$lines[:message2]}H\e[K"
+        end
+      end
+      if idx > 0
+        if !musical_event?(hole) && !musical_event?(holes[idx - 1])
+          isemi, itext, _, _ = describe_inter(hole, holes[idx - 1])
+          ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
+        else
+          ltext += ' '
+        end
+      end
+      ltext += if musical_event?(hole)
+                 "\e[0m#{hole}\e[2m"
+               elsif $opts[:immediate]
+                 "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
+               else
+                 "\e[0m#{$harp[hole][:note]}\e[2m"
+               end
+      if $opts[:add_scales]
+        part = '(' +
+               $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
+               ')'
+        ltext += part unless part == '()'
+      end
+
+      if first_round
+        print "\e[#{$term_height-1}H#{ltext.strip}\e[K"
+      else
+        print "\e[#{$lines[:message2]}H\e[K"
+        print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
+      end
     end
 
     if musical_event?(hole)
@@ -581,6 +585,7 @@ def play_holes all_holes, first_round
       break
     end
   end
+  puts if terse
 end
 
 
