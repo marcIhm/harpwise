@@ -69,7 +69,8 @@ def do_listen
     
     # lambda_hole_for_inter
     -> (hole_held_before, hole_ref) do  
-      hole_ref || hole_held_before
+      hfi = hole_ref || hole_held_before
+      ( hfi == :low || hfi == :high ) && nil
     end)
 end
 
