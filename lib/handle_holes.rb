@@ -72,7 +72,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     print "\e[2m\e[#{$lines[:frequency]}HFrequency:  "
     just_dots_short = '.........:.........'
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
-    if hole != :low && hole != :high
+    if regular_hole?(hole)
       dots, _ = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
       cents = cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
