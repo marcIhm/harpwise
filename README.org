@@ -2,7 +2,7 @@
 
 * Harp Wise
 
-  [[images/harmonicas.jpg]]
+  [[images/harmonica.jpg]]
 
   Ruby script to support the daily practice for bends, scales, intervals
   or licks on a (diatonic) richter or chromatic harmonica for various
