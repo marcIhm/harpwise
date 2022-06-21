@@ -507,13 +507,26 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
-    tms 'n'
-    sleep 1
     expect { screen[-1]['juke'] }
+    tms 'n'
     tms 'special'
     tms :ENTER
     sleep 1
     expect { screen[-1]['special'] }
+    kill_session
+  end
+
+  do_test 'id-27a: change tags' do
+    new_session
+    tms './harpwise lick testing blues --start-with juke --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[0]['one count'] }
+    tms 't'
+    tms 'special'
+    tms :ENTER
+    sleep 1
+    expect { screen[0]['other count'] }
     kill_session
   end
 

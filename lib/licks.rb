@@ -6,7 +6,7 @@
 $lick_file_mod_time = nil
 $lick_file = nil
 
-def read_licks
+def read_licks graceful = false
 
   $lick_file = lfile = get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
@@ -149,7 +149,7 @@ def read_licks
     end
   end # end of processing lines in file
 
-  err("No licks found in #{lfile}") unless all_licks.length > 0
+  err("No licks found in #{lfile}") unless all_licks.length > 0 
 
   # write derived lick file
   dfile = File.dirname(lfile) + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
@@ -186,10 +186,22 @@ def read_licks
     exit
   end
 
-  err("No licks can be found, because options '--tags' and '--no-tags' have this intersection: #{keep.intersection(discard).to_a}") if keep.intersection(discard).any?
-
-  err("There are some tags in option '--tags' and '--no-tags' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in '--tags' and '--no-tags' are: #{(tags_in_opts - tags_in_licks).to_a}") unless tags_in_opts.subset?(tags_in_licks)
-
+  if keep.intersection(discard).any?
+    if graceful
+      return [[],[]]
+    else
+      err "No licks can be found, because options '--tags' and '--no-tags' have this intersection: #{keep.intersection(discard).to_a}"
+    end
+  end
+    
+  if !tags_in_opts.subset?(tags_in_licks)
+    if graceful
+      return [[],[]]
+    else
+      err "There are some tags in option '--tags' and '--no-tags' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in '--tags' and '--no-tags' are: #{(tags_in_opts - tags_in_licks).to_a}"
+    end
+  end
+  
   licks = all_licks.
             select {|lick| keep.empty? || (keep.to_a & lick[:tags]).any?}.
             reject {|lick| discard.any? && (discard.to_a & lick[:tags]).any?}.

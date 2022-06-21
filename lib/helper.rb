@@ -147,3 +147,17 @@ def truncate_text text, len
     text
   end
 end
+
+
+def print_in_columns names
+  line = '  '
+  names.map {|n| n + ' ' * (-n.length % 8)}.
+    each do |n|
+    if (line + n).length > $term_width - 4
+      puts line
+      line = '  '
+    end
+    line += n
+  end
+  puts line
+end

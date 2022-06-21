@@ -275,6 +275,9 @@ def handle_kb_listen
   elsif char == "n" && $ctl_can_named
     $ctl_named_lick = true
     text = 'Named'
+  elsif char == "t" && $ctl_can_named
+    $ctl_change_tags = true
+    text = 'Named'
   elsif char == 'j'
     $ctl_toggle_journal = true
     text = nil

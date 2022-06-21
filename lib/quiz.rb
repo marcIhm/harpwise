@@ -87,21 +87,10 @@ def do_quiz
               print "No lick of currently available licks (selected by tags and hole count) contains '#{input}'\n"
             else
               print "Multiple licks (#{matching.length}) contain '#{input}':\n"
-              line = '  '
-              matching.
-                map {|m| m[0][:name]}.
-                map {|n| n + ' ' * (-n.length % 8)}.
-                each do |n|
-                if (line + n).length > $term_width - 4
-                  puts line
-                  line = '  '
-                end
-                line += n
-              end
-              puts line
+              print_in_columns matching.map {|m| m[0][:name]}
             end
             print "\e[#{$lines[:hint_or_message]}H\e[J"
-            print "Enter a new name \e[2mor just press RETURN keep current '#{lick[:name]}':\e[0m "
+            print "Enter a new name \e[2mor just press RETURN to keep current '#{lick[:name]}':\e[0m "
             input = STDIN.gets.chomp
             matching = [[lick,lick_idx]] if input == ''
           end
@@ -120,6 +109,60 @@ def do_quiz
       prepare_term
       print "\e[3J" # clear scrollback
       $ctl_named_lick = false
+      
+    elsif $ctl_change_tags  # can only happen in licks
+
+      stop_kb_handler
+      sane_term
+      input = ''
+      old_name = lick[:name]
+      all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
+      begin
+        clear_area_comment
+        print "\e[#{$lines[:comment]}H\e[0m\e[J"
+        print "Current lick has tags #{lick[:tags].join(',')}"
+        print "\e[#{$lines[:hint_or_message]}H\e[J"
+        print "\e[0mNew value for option '--tags' (or part of): "
+        input = STDIN.gets.chomp
+        begin
+          $opts[:tags] = if input == '' || input[',']
+                           input
+                         else
+                           # match among tags
+                           mtags = all_tags.select {|t| t[input]}
+                           if mtags.length > 0
+                             # pretend this is our input to give some
+                             # feedback on match result
+                             input = mtags.join(',')
+                           else
+                             input
+                           end
+                         end
+          $all_licks, $licks = read_licks true
+          if $licks.length == 0
+            print "\e[#{$lines[:comment]}H\e[0m\e[J"
+            print "No licks (limited by hole count) match '--tags #{input}'\n"
+            print "\e[#{$lines[:hint_or_message]}H\e[J"
+            print "Enter a new value \e[2mor just press RETURN to go without:\e[0m "
+            input = STDIN.gets.chomp
+          end
+        end while $licks.length == 0
+        print "\e[#{$lines[:comment]}H\e[0m\e[J"
+        print "\e[#{$lines[:key]}H\e[k" + text_for_key
+        old_in_new = $licks.map.with_index.find {|li| li[0][:name] == old_name}
+        lick_idx = if old_in_new
+                     old_in_new[1]
+                   else
+                     0
+                   end
+        lick = $licks[lick_idx]
+        lick_idx_before = lick_idx
+        all_wanted = lick[:holes]
+      end
+      start_kb_handler
+      prepare_term
+      print "\e[3J" # clear scrollback
+      $ctl_change_tags = false
       
     elsif $ctl_replay
 
@@ -365,7 +408,7 @@ def do_quiz
 
         )  # end of get_hole
 
-        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget || $ctl_named_lick
+        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget || $ctl_named_lick || $ctl_change_tags
 
       end # notes in a sequence
       
@@ -392,7 +435,7 @@ def do_quiz
                   'jump back'
                 elsif $ctl_replay
                   'replay'
-                elsif $ctl_named_lick
+                elsif $ctl_named_lick || $ctl_change_tags
                   nil
                 else
                   full_seq_shown ? 'Yes ' : 'Great ! '
@@ -410,7 +453,7 @@ def do_quiz
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick
+        unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick || $ctl_change_tags
           print "\e[0m\e[32mAnd #{$ctl_loop ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -418,7 +461,7 @@ def do_quiz
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick # looping over one sequence
+    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick  && !$ctl_change_tags  # looping over one sequence
 
     print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_round = false

@@ -230,7 +230,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "       k: change key of harp       s: change scale"
       puts "       q: quit                     h: this help"
       if $ctl_can_next
-        puts "\e[0mType any key to show more help ..."
+        puts "\e[0mType any key to show more help ...\e[K"
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         clear_area_comment
@@ -240,11 +240,17 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         puts "   RET: next sequence             BACKSPACE: previous sequence"
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
-        print "     #: toggle track progress in seq"
-        print "      n: switch to lick by name" if $ctl_can_named
-        puts
+        puts "     #: toggle track progress in seq"
+        if $ctl_can_named
+          puts "\e[0mType any key to show more help ...\e[K"
+          $ctl_kb_queue.clear
+          $ctl_kb_queue.deq
+          clear_area_comment
+          puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n\n"
+          puts "   n: switch to lick by name     t: change option --tags"
+        end
       end
-      puts "\e[0mType any key to continue ..."
+      puts "\n\e[0mType any key to continue ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true
@@ -330,7 +336,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $ctl_change_key = $ctl_change_scale = false
     end
 
-    return if $ctl_named_lick
+    return if $ctl_named_lick || $ctl_change_tags
 
     if $ctl_quit
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
