@@ -30,7 +30,7 @@ def set_global_vars_early
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $write_journal = false
   # is only used in handle_holes, but needs to persist between invocations
-  $message_shown = false
+  $message_shown_at = false
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
