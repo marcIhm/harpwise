@@ -349,7 +349,7 @@ def do_quiz
         handle_holes(
           
           # lambda_issue
-          -> () do      
+          -> () do
             if $ctl_loop
               "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes" +
                 lick_names[1] +
@@ -380,6 +380,8 @@ def do_quiz
           # lambda_comment
           -> (_, _, _, _, _, _, _) do
             if idx != idx_refresh_comment_cache || $ctl_update_after_set_ref
+              idx_refresh_comment_cache = idx
+              $perfctr[:lambda_comment_quiz_call] += 1
               idx_refresh_ccache = idx
               comment_cache = 
                 case $conf[:comment]

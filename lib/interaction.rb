@@ -93,7 +93,7 @@ def do_figlet text, font, width_template = nil, truncate = :left
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
     out, _ = Open3.capture2e(cmd)
-    $figlet_count += 1
+    $perfctr[:figlet_1] += 1
     lines = out.lines.map {|l| l.rstrip}
 
     # strip common spaces at front
@@ -152,7 +152,7 @@ def get_figlet_wrapped text
   cmd = "figlet -d fonts -w #{$term_width - 4} -f miniwi -l \" #{text}\""
   unless $figlet_wrap_cache[cmd]
     out, _ = Open3.capture2e(cmd)
-    $figlet_count += 1
+    $perfctr[:figlet_2] += 1
     lines = out.lines.map {|l| l.rstrip}
 
     # strip common spaces at front in groups of four, known to be figlet line height
@@ -172,7 +172,7 @@ def figlet_char_height font
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   # high and low chars
   out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l Igq")
-  $figlet_count += 1
+  $perfctr[:figlet_3] += 1
   out.lines.length
 end
 
@@ -181,7 +181,7 @@ $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
     out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l #{text}")
-    $figlet_count += 1
+    $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end
   $figlet_text_width_cache[text + font]

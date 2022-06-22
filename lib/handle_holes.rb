@@ -16,12 +16,15 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
   first_round = true
+  $perfctr[:handle_holes_calls] += 1
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
 
   loop do   # until var done or skip
 
+    $perfctr[:handle_holes_loops] += 1
     system('clear') if $ctl_redraw
     if first_round || $ctl_redraw
+      $perfctr[:lambda_issue_call] += 1
       print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
@@ -65,6 +68,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     good, done, was_good = if $opts[:screenshot]
                              [true, $ctl_can_next && Time.now.to_f - hole_start > 2, false]
                            else
+                             $perfctr[:lambda_good_done_was_good_call] += 1
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
     done = false if $opts[:no_progress]
@@ -82,7 +86,10 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print format % ['--', '--', just_dots_short]
     end
 
-    hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref) if lambda_hole_for_inter
+    if lambda_hole_for_inter
+      $perfctr[:lambda_hole_for_inter_call] += 1
+      hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref)
+    end
     inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
@@ -135,6 +142,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text, $term_width - 4) + "\e[K"
 
     if lambda_comment
+      $perfctr[:lambda_comment_call] += 1
       case $conf[:comment]
       when :holes_scales
         print "\e[#{$lines[:comment]}H"
@@ -173,6 +181,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         # triggers refresh of hint, once the current message has been elapsed
         hints_old = nil
       else
+        $perfctr[:lambda_hint_call] += 1
         hints = lambda_hint.call(hole)
         hints_refreshed_at = Time.now.to_f
         if hints != hints_old
@@ -265,6 +274,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if $ctl_can_loop && $ctl_start_loop
       $ctl_loop = true
       $ctl_start_loop = false
+      $perfctr[:lambda_issue_call] += 1
       print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
     end
     
