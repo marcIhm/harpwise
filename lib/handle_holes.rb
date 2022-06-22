@@ -13,6 +13,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   hole = hole_since = hole_was_for_disp = nil
   hole_held = hole_held_before = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
+  hints_refreshed_at = Time.now.to_f - 1000.0
+  hints = hints_old = nil
   first_round = true
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
 
@@ -27,7 +29,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       if $ctl_redraw && $ctl_redraw != :silent
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
-        $message_shown = Time.now.to_f
+        $message_shown_at = Time.now.to_f
       end
     end
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
@@ -166,21 +168,30 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       return
     end
 
-    if lambda_hint && !$message_shown
-      hints = lambda_hint.call(hole)
-      print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
-      print "\e[#{$lines[:hint_or_message]}H"
-      # Using truncate_colored_text might be too slow here
-      if hints.length == 1
-        print truncate_text(hints[0], $term_width - 4) + "\e[K"
-      elsif hints.length == 2 && $lines[:message2] > 0
-        print truncate_text(hints[0], $term_width - 4) + "\e[K"
-        print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-        print truncate_text(hints[1], $term_width - 4) + "\e[K"
+    if lambda_hint && Time.now.to_f - hints_refreshed_at > 0.5
+      if $message_shown_at
+        # triggers refresh of hint, once the current message has been elapsed
+        hints_old = nil
       else
-        err "Internal error"
+        hints = lambda_hint.call(hole)
+        hints_refreshed_at = Time.now.to_f
+        if hints != hints_old
+          print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
+          print "\e[#{$lines[:hint_or_message]}H"
+          # Using truncate_colored_text might be too slow here
+          if hints.length == 1
+            print truncate_text(hints[0], $term_width - 4) + "\e[K"
+          elsif hints.length == 2 && $lines[:message2] > 0
+            print truncate_text(hints[0], $term_width - 4) + "\e[K"
+            print "\e[#{$lines[:message2]}H\e[0m\e[2m"
+            print truncate_text(hints[1], $term_width - 4) + "\e[K"
+          else
+            err "Internal error"
+          end
+          print "\e[0m\e[2m"
+        end
+        hints_old = hints
       end
-      print "\e[0m\e[2m"
     end      
 
     if $ctl_set_ref
@@ -193,7 +204,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           print_chart
         end
       end
-      $message_shown = Time.now.to_f
+      $message_shown_at = Time.now.to_f
       $ctl_set_ref = false
       $ctl_update_after_set_ref = true
     end
@@ -206,7 +217,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       print "\e[#{$lines[:hint_or_message]}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
-      $message_shown = Time.now.to_f
+      $message_shown_at = Time.now.to_f
       $ctl_change_display = false
     end
     
@@ -216,7 +227,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $conf[:comment] = choices[choices.index($conf[:comment]) + 1]
       clear_area_comment
       print "\e[#{$lines[:hint_or_message]}H\e[2mComment is now #{$conf[:comment].upcase}\e[0m\e[K"
-      $message_shown = Time.now.to_f
+      $message_shown_at = Time.now.to_f
       $ctl_change_comment = false
     end
 
@@ -271,7 +282,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:hint_or_message]}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
-      $message_shown = Time.now.to_f
+      $message_shown_at = Time.now.to_f
 
       $ctl_toggle_journal = false
 
@@ -325,7 +336,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       else
         print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale in use to \e[0m#{$scale}\e[K"
       end
-      $message_shown = Time.now.to_f
+      $message_shown_at = Time.now.to_f
       $ctl_change_key = $ctl_change_scale = false
     end
 
@@ -336,9 +347,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       exit 0
     end
 
-    if done || ( $message_shown && Time.now.to_f - $message_shown > 8 )
+    if done || ( $message_shown_at && Time.now.to_f - $message_shown_at > 8 )
       print "\e[#{$lines[:hint_or_message]}H\e[K"
-      $message_shown = false
+      $message_shown_at = false
     end
     first_round = $first_round_ever_get_hole = false
   end  # loop until var done or skip
