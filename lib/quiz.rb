@@ -379,7 +379,7 @@ def do_quiz
           
           # lambda_comment
           -> (_, _, _, _, _, _, _) do
-            if idx != idx_refresh_comment_cache || $ctl_update_after_set_ref
+            if idx != idx_refresh_comment_cache || $ctl_update_comment
               idx_refresh_comment_cache = idx
               $perfctr[:lambda_comment_quiz_call] += 1
               idx_refresh_ccache = idx
@@ -398,8 +398,8 @@ def do_quiz
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
+              $ctl_update_comment = false
             end
-            $ctl_update_after_set_ref = false
             comment_cache
           end,
 

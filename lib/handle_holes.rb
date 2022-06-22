@@ -30,10 +30,12 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       ctl_issue
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
+      print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_redraw && $ctl_redraw != :silent
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $message_shown_at = Time.now.to_f
       end
+      $ctl_redraw = false
     end
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
@@ -43,8 +45,6 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     pipeline_catch_up if handle_kb_listen
     ctl_issue
-    print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K" if first_round || $ctl_redraw
-    $ctl_redraw = false
 
     handle_win_change if $ctl_sig_winch
     
@@ -215,7 +215,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       end
       $message_shown_at = Time.now.to_f
       $ctl_set_ref = false
-      $ctl_update_after_set_ref = true
+      $ctl_update_comment = true
     end
     
     if $ctl_change_display
@@ -238,6 +238,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:hint_or_message]}H\e[2mComment is now #{$conf[:comment].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
       $ctl_change_comment = false
+      $ctl_update_comment = true
     end
 
     if $ctl_show_help
