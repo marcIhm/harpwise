@@ -36,7 +36,6 @@ def set_global_vars_early
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
 
-  $jitter = 0.0
   $freqs_queue = Queue.new
 
   $figlet_count = 0
