@@ -76,7 +76,7 @@ def calculate_screen_layout
     # we do not need a second line for mode :listen
     lines[:message2] = -1
   end
-  lines[:help] = lines[:comment]
+  lines[:help] = lines[:comment_tall]
   lines
 end
 

@@ -84,7 +84,8 @@ def do_quiz
           if matching.length != 1
             print "\e[#{$lines[:comment]}H\e[0m\e[J"
             if matching.length == 0
-              print "No lick of currently available licks (selected by tags and hole count) contains '#{input}'\n"
+              print "No lick (pre-selected by tags and hole count) contains '#{input}'; all:\n"
+              print_in_columns $licks.map {|l| l[:name]}.sort
             else
               print "Multiple licks (#{matching.length}) contain '#{input}':\n"
               print_in_columns matching.map {|m| m[0][:name]}
@@ -116,37 +117,56 @@ def do_quiz
       sane_term
       input = ''
       old_name = lick[:name]
+      # save this, before changing $all_licks below
       all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
       begin
         clear_area_comment
         print "\e[#{$lines[:comment]}H\e[0m\e[J"
         print "Current lick has tags #{lick[:tags].join(',')}"
         print "\e[#{$lines[:hint_or_message]}H\e[J"
-        print "\e[0mNew value for option '--tags' (or part of): "
+        opof = '(or part of; SPC to list, RET to go without)'
+        print "\e[0mNew value for option '--tags' \e[2m#{opof}\e[0m: "
         input = STDIN.gets.chomp
         begin
-          $opts[:tags] = if input == '' || input[',']
-                           input
-                         else
-                           # match among tags
-                           mtags = all_tags.select {|t| t[input]}
-                           if mtags.length > 0
-                             # pretend this is our input to give some
-                             # feedback on match result
-                             input = mtags.join(',')
-                           else
-                             input
-                           end
-                         end
-          $all_licks, $licks = read_licks true
-          if $licks.length == 0
+          mtags = if input == ' '
+                    all_tags
+                  elsif input == ''
+                    [nil] 
+                  elsif input[',']
+                    [input]
+                  else
+                    all_tags.select {|t| t[input]}
+                  end
+          read_again = true
+          if mtags.length == 1
+            $opts[:tags] = mtags[0]
+            $all_licks, $licks = read_licks true
+            if $licks.length == 0
+              print "\e[#{$lines[:comment]}H\e[0m\e[J"
+              print "No licks (limited by hole count) match '--tags #{input}'\n"
+            else
+              read_again = false
+            end
+          elsif mtags.length == 0
             print "\e[#{$lines[:comment]}H\e[0m\e[J"
-            print "No licks (limited by hole count) match '--tags #{input}'\n"
+            print "No tags match your input '#{input}'; these are available:\n"
+            print_in_columns all_tags.sort
+          else
+            print "\e[#{$lines[:comment]}H\e[0m\e[J"
+            if input == ' '
+              print "All tags:\n"
+            else
+              print "Multiple tags match your input:\n"
+            end
+            print_in_columns mtags.sort
+          end
+          if read_again
             print "\e[#{$lines[:hint_or_message]}H\e[J"
-            print "Enter a new value \e[2mor just press RETURN to go without:\e[0m "
+            print "Enter a new value \e[2m#{opof}\e[0m: "
             input = STDIN.gets.chomp
           end
-        end while $licks.length == 0
+
+        end while read_again || $licks.length == 0
         print "\e[#{$lines[:comment]}H\e[0m\e[J"
         print "\e[#{$lines[:key]}H\e[k" + text_for_key
         old_in_new = $licks.map.with_index.find {|li| li[0][:name] == old_name}

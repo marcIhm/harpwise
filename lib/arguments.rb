@@ -42,7 +42,7 @@ def parse_arguments
     %w(--holes) => :holes,
     %w(--no-progress) => :no_progress,
     %w(--start-with) => :start_with,
-    %w(--partial) => :partial,
+    %w(-p --partial) => :partial,
     %w(-l --loop) => :loop}.each do |txts,opt|
     begin
       found_one = false

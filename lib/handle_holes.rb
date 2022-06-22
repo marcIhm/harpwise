@@ -241,16 +241,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
         puts "     #: toggle track progress in seq"
-        if $ctl_can_named
-          puts "\e[0mType any key to show more help ...\e[K"
-          $ctl_kb_queue.clear
-          $ctl_kb_queue.deq
-          clear_area_comment
-          puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n\n"
-          puts "   n: switch to lick by name     t: change option --tags"
-        end
+        puts "     n: switch to lick by name            t: change option --tags" if $ctl_can_named
       end
-      puts "\n\e[0mType any key to continue ...\e[K"
+      puts "\e[0mType any key to continue ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true

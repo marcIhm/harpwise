@@ -521,12 +521,12 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[0]['one count'] }
+    expect { screen[1]['licks(6)'] }
     tms 't'
-    tms 'special'
+    tms 'favorites'
     tms :ENTER
     sleep 1
-    expect { screen[0]['other count'] }
+    expect { screen[1]['licks(1)'] }
     kill_session
   end
 
