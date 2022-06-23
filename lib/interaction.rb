@@ -324,7 +324,7 @@ def handle_kb_listen
     $ctl_back = true
     text = 'Skip back'
   elsif char.ord == 12
-    $ctl_redraw = true
+    $ctl_redraw = :silent
     text = 'redraw'
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
