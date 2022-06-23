@@ -194,18 +194,18 @@ def parse_arguments
   case mode
   when :listen, :quiz
     err("Mode '#{mode}' needs at least one argument for scale") if ARGV.length == 0
-    scale = get_scale(ARGV.shift)
+    scale = get_scale_from_sws(ARGV.shift)
   when :licks
     if ARGV.length > 0
-      scale = get_scale(ARGV.shift)
+      scale = get_scale_from_sws(ARGV.shift)
     else
-      scale = get_scale('all:a')
+      scale = get_scale_from_sws('all:A')
     end
   when :play
-    scale = get_scale('all:a')
+    scale = get_scale_from_sws('all:A')
   when :calibrate
     err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}") if ARGV.length > 0
-    scale = get_scale('all:a')
+    scale = get_scale_from_sws('all:A')
   else
     fail "Internal error"
   end
@@ -235,33 +235,26 @@ def parse_arguments
 end
 
 
-$scale_abbrev_count = 1
-$abbrev2scale = Hash.new
-
-def get_scale scale_abbrev
-  err_text = "Abbreviation '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'"
+def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
   scale = nil
-  if md = scale_abbrev.match(/^(.*?):(.*)$/)
+  if md = scale_w_short.match(/^(.*?):(.*)$/)
     scale = md[1]
-    $scale2abbrev[md[1]] = md[2]
-    err(err_text % [md[2], abbrev2scale[md[2]], md[1]]) if $abbrev2scale[md[1]]
-    $abbrev2scale[md[2]] = md[1]
+    $scale2short[md[1]] = md[2]
+    err($scale2short_err_text % [md[2], $short2scale[md[2]], md[1]]) if $short2scale[md[2]]
+    $short2scale[md[2]] = md[1]
   else
-    scale = scale_abbrev
-    $scale2abbrev[scale_abbrev] = $scale_abbrev_count.to_s
-    err(err_text % [$scale_abbrev_count.to_s, $abbrev2scale[$scale_abbrev_count.to_s], scale_abbrev]) if $abbrev2scale[$scale_abbrev_count.to_s]
-    $abbrev2scale[$scale_abbrev_count.to_s] = scale_abbrev
-    $scale_abbrev_count += 1
+    # $scale2short will be set when actually reading scale
+    scale = scale_w_short
   end
   scale
 end
 
 
-def get_all_scales scales_abbrevs
+def get_all_scales scales_w_shorts
   scales = [$scale]
-  if scales_abbrevs
-    scales_abbrevs.split(',').each do |scale_abbrev|
-      scales << get_scale(scale_abbrev)
+  if scales_w_shorts
+    scales_w_shorts.split(',').each do |sws|
+      scales << get_scale_from_sws(sws)
     end
   end
   scales

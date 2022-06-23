@@ -37,11 +37,12 @@
     remark too.
 
   
-  Each scale (e.g. blues or mape) has its own file and can be either notated
-  with holes or notes, but NOT both. However, if a scale with notes is parsed,
-  the same scale is written out with holes (prefixed with the word 'derived')
-  and vice versa. So for example using scale_blues_with_holes.yaml will
-  trigger the creation of derived_scale_blues_with_notes.yaml.
+  Each scale (e.g. blues or major_pentatonic) has its own file and can be
+  either notated with holes or notes, but NOT both. However, if a scale with
+  notes is parsed, the same scale is written out with holes (prefixed with the
+  word 'derived') and vice versa. So for example using
+  scale_blues_with_holes.yaml will trigger the creation of
+  derived_scale_blues_with_notes.yaml.
 
 * Creating new scales for a given type
 

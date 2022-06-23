@@ -474,6 +474,15 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  do_test 'id-23a: error with double shortname for scales' do
+    new_session
+    tms './harpwise listen testing blues:b --add-scales chord-i:b --display chart-scales --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[4]['ERROR: Shortname \'b\' has already been used'] }
+    kill_session
+  end
+
   do_test 'id-24: comment with scales' do
     new_session
     tms './harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'

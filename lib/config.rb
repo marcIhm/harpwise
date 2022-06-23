@@ -45,6 +45,12 @@ def set_global_vars_early
   $comment_choices = Hash.new([:holes_large, :holes_all, :holes_scales, :holes_intervals])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
+  # will be populated along with $scale and $scales
+  $scale2short = Hash.new
+  $short2scale = Hash.new
+  $scale2short_count = 0
+  $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
+
 end
 
 
@@ -178,7 +184,7 @@ def read_musical_config
     end
 
     scale = []
-    h2sabb = Hash.new {|h,k| h[k] = ''}
+    h2s_shorts = Hash.new {|h,k| h[k] = ''}
     $scales.each_with_index do |sname, idx|
       # read scale
       sc_ho, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
@@ -196,7 +202,7 @@ def read_musical_config
         hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:added)
         hole2flags[h] << :all if !$opts[:add_scales] || hole2flags[h].include?(:both)
         hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
-        h2sabb[h] += $scale2abbrev[sname]
+        h2s_shorts[h] += $scale2short[sname]
         hole2rem[h] ||= [[],[]]
         hole2rem[h][0] << sname if $opts[:add_scales]
         hole2rem[h][1] << h2r[h]&.split(/, /)
@@ -224,7 +230,7 @@ def read_musical_config
     scale_notes,
     hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
-    h2sabb,
+    h2s_shorts,
     semi2hole,
     note2hole,
     intervals,
@@ -243,7 +249,29 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
   end
   sfile = sfiles[0]
 
-  scale_read = yaml_parse(sfile)
+  # Actually read the file
+  all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
+
+  # get properties of scale; currently only :short
+  props = Hash.new
+  all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
+  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' is supported" unless Set.new(props.keys).subset?(Set.new([:short]))
+  props[:short] = props[:short].to_s if props[:short]
+  
+  unless $scale2short[sname]
+    # No short name given on commandline: use from scale properties or make one up
+    if props[:short]
+      short = props[:short]
+    else
+      short = ('Q'.ord + $scale2short_count).chr
+      $scale2short_count += 1
+    end
+
+    err($scale2short_err_text % [short, $short2scale[short], sname]) if $short2scale[short]
+    $short2scale[short] = sname
+    $scale2short[sname] = short
+  end
+  
   scale_holes = Array.new
   hole2rem = Hash.new
 
@@ -275,7 +303,7 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
   # write derived scale file
   dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
   comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
-  File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump(dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem))
+  File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump([{short: $scale2short[sname]}] + (dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem)))
   
   [scale_holes, hole2rem]
 end
@@ -323,10 +351,10 @@ def read_chart
           if comment_in_chart?(hole_padded)
             hole_padded[0,len]
           else
-            abbrevs = $hole2scale_abbrevs[hole]
-            abbrevs = '-' if abbrevs == ''
-            raise ArgumentError.new("hole '#{hole}' maps to scale abbreviations '#{abbrevs}' which are longer than given length '#{len}'") if abbrevs.length > len
-            abbrevs.center(len)
+            shorts = $hole2scale_shorts[hole]
+            shorts = '-' if shorts == ''
+            raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter srhornames for scales on the commandline like 'scale:x'") if shorts.length > len
+            shorts.center(len)
           end
       end
       chart_with_notes[row] << chart_with_holes_raw[row][-1]

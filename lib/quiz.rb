@@ -76,7 +76,7 @@ def do_quiz
       begin
         clear_area_comment
         print "\e[#{$lines[:hint_or_message]}H\e[J"
-        print "\e[0m(part of) Name of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
+        print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
         input = STDIN.gets.chomp
 
         begin
@@ -169,14 +169,8 @@ def do_quiz
         end while read_again || $licks.length == 0
         print "\e[#{$lines[:comment]}H\e[0m\e[J"
         print "\e[#{$lines[:key]}H\e[k" + text_for_key
-        old_in_new = $licks.map.with_index.find {|li| li[0][:name] == old_name}
-        lick_idx = if old_in_new
-                     old_in_new[1]
-                   else
-                     0
-                   end
+        lick_idx_before = lick_idx = rand($licks.length)
         lick = $licks[lick_idx]
-        lick_idx_before = lick_idx
         all_wanted = lick[:holes]
       end
       start_kb_handler
@@ -772,9 +766,9 @@ end
 def scaleify holes
   holes = holes.reject {|h| musical_event?(h)}
   holes_maxlen = holes.max_by(&:length).length
-  abbrev_maxlen = holes.map {|hole| $hole2scale_abbrevs[hole]}.max_by(&:length).length
+  shorts_maxlen = holes.map {|hole| $hole2scale_shorts[hole]}.max_by(&:length).length
   holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole, $hole2scale_abbrevs[hole].ljust(abbrev_maxlen)]
+    [' ' * (holes_maxlen - hole.length), hole, $hole2scale_shorts[hole].ljust(shorts_maxlen)]
   end
 end
 

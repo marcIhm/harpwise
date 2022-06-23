@@ -36,6 +36,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         $message_shown_at = Time.now.to_f
       end
       $ctl_redraw = false
+      $ctl_update_comment = true
     end
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
@@ -331,7 +332,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         end
       end while er
       # next two lines also appears in file harpwise
-      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_abbrevs, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
       $charts, $hole2chart = read_chart
       $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
       set_global_vars_late

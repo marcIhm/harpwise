@@ -3,6 +3,7 @@
 # created from config/richter/scale_mape_with_holes.yaml
 #
 ---
+- short: ma
 - d3
 - e3
 - g3

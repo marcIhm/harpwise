@@ -1,4 +1,5 @@
 ---
+- short: r
 - "-1 chord-v"
 - "+1 chord-iv"
 - "-2+3 chord-i"
