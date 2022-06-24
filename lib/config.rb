@@ -23,6 +23,9 @@ def set_global_vars_early
   $data_dir = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
 
+  $version = File.read('resources/version.txt').lines[0].chomp
+  fail 'Version read from resources/version.txt does not start with a number' unless $version.to_i > 0
+
   # will be created by test-driver
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
   

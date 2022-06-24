@@ -119,6 +119,8 @@ end
 note2semi('a4') == 0 or fail 'Internal error'
 semi2note(0) == 'a4' or fail 'Internal error'
 
+puts "Version #{$version}"
+
 case $mode
 when :quiz
   do_quiz

@@ -1,6 +1,6 @@
 
 
-harpwise ('wise', for short) helps to practice scales (e.g. blues or
+harpwise ('wise' for short) helps to practice scales (e.g. blues or
 major_pentatonic) for harmonicas of various types (e.g. richter or
 chromatic) for various keys (e.g. a or c).  Main modes of operation
 are 'listen', 'quiz' and 'licks'.
@@ -207,6 +207,7 @@ calibrate:
 
 Suggested reading: The toplevel file README.org
 
+Version <%=$version%>
 Copyright (c) 2021-2022 by Marc Ihm.
 This program is subject to the MIT License.
 
