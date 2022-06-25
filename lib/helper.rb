@@ -161,3 +161,10 @@ def print_in_columns names
   end
   puts line
 end
+
+
+def pbg # prepare byebug
+  sane_term
+  stop_kb_handler
+  require 'byebug'
+end

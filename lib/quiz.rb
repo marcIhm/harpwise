@@ -73,12 +73,19 @@ def do_quiz
       stop_kb_handler
       sane_term
       input = matching = nil
-      begin
-        clear_area_comment
-        print "\e[#{$lines[:hint_or_message]}H\e[J"
-        print "\e[0mName of new lick (or part of)\e[2m (current is #{lick[:name]}):\e[0m "
-        input = STDIN.gets.chomp
-
+      old_licks = get_last_lick_idxs_from_journal($licks)
+      clear_area_comment
+      print "\e[#{$lines[:message2]}H\e[2mRecent licks: "
+      print old_licks[0,5].map {|i| $licks[i][:name]}.join(",")
+      print "\e[J"
+      print "\e[#{$lines[:hint_or_message]}H\e[0mName of new lick (or part of) or l,2l,..\e[2m (current is #{lick[:name]}):\e[0m \e[k"
+      input = STDIN.gets.chomp
+      if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
+        lick_idx_before = lick_idx 
+        lick_idx = old_licks[md  ?  md[1].to_i - 1  :  0]
+        lick = $licks[lick_idx]
+        all_wanted = lick[:holes]
+      else
         begin
           matching = $licks.map.with_index.select {|li| li[0][:name][input]}
           if matching.length != 1
@@ -96,7 +103,7 @@ def do_quiz
             matching = [[lick,lick_idx]] if input == ''
           end
         end while matching.length != 1
-
+        
         print "\e[#{$lines[:comment]}H\e[0m\e[J"
         if lick_idx != matching[0][1]
           lick_idx_before = lick_idx 
@@ -104,8 +111,8 @@ def do_quiz
           lick_idx = matching[0][1]
           all_wanted = lick[:holes]
         end
-
       end
+      
       start_kb_handler
       prepare_term
       print "\e[3J" # clear scrollback
@@ -651,6 +658,7 @@ end
 def play_recording lick, first_round
 
   if $opts[:partial] && !$ctl_ignore_partial
+    lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
     start, length = lick[:rec_start], lick[:rec_length]
@@ -720,11 +728,7 @@ def select_and_calc_partial all_holes, start_s, length_s
               all_holes[pos .. pos+numh-1]
             end
           end
-  if start_s
-    [holes, sprintf("%.1f",ps), sprintf("%.1f",pl)]
-  else
-    [holes, nil, nil]
-  end
+  [holes, sprintf("%.1f",ps), sprintf("%.1f",pl)]
 end
 
 

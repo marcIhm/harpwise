@@ -25,7 +25,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     system('clear') if $ctl_redraw
     if first_round || $ctl_redraw
       $perfctr[:lambda_issue_call] += 1
-      print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
+      print "\e[#{$lines[:issue]}H\e[0m#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_default_issue = "SPACE to pause; h for help"
       ctl_issue
       print "\e[#{$lines[:key]}H" + text_for_key
