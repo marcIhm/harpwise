@@ -36,7 +36,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   # point 3 of a delicate balance for tests
   system("sox -n /tmp/harpwise_testing.wav synth 200.0 sawtooth 494")
   # on error we tend to leave aubiopitch benind
-  system("killall aubiopitch")
+  system("killall aubiopitch >/dev/null 2>&1")
   FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
   FileUtils.cp_r 'config/richter', 'config/testing'
   
@@ -446,6 +446,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
   do_test 'id-21: use option --partial' do
+    clear_testing_log
     new_session
     tms './harpwise licks testing --start-with juke --partial 1@b --testing'
     tms :ENTER
@@ -455,7 +456,25 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  do_test 'id-21a: use option --partial at end' do
+    clear_testing_log
+    new_session
+    tms './harpwise licks testing --start-with juke --partial 1/2@e --testing'
+    tms :ENTER
+    sleep 2
+    tlog = read_testing_log
+    #
+    # Without option --partial, the cmd would be (as the recording
+    # itself has start and length):
+    #
+    #   play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 4
+    #
+    expect { tlog[-1]['play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 4.2 2.0'] }
+    kill_session
+  end
+
   do_test 'id-22: use option --partial and --holes' do
+    clear_testing_log
     new_session
     tms './harpwise licks testing --start-with juke --holes --partial 1@b --testing'
     tms :ENTER

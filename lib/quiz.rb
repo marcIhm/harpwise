@@ -22,7 +22,6 @@ def do_quiz
   start_with = $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :licks
-  
   loop do   # forever until ctrl-c, sequence after sequence
 
     if first_round
@@ -275,7 +274,6 @@ def do_quiz
     #
     #  Play the sequence or recording
     #
-
     if !zero_partial? || $ctl_replay
       
       print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K" unless first_round

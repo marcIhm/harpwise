@@ -212,7 +212,6 @@ end
 
 
 def play_recording_and_handle_kb recording, start, length, key, first_lap = true
-
   trim_clause = if start && length
                   "trim #{start} #{length}"
                 elsif start
@@ -239,7 +238,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                      'tempo -m %.1f' % tempo
                    end                  
     cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
-    IO.write($testing_log, cmd, mode: 'a') if $opts[:testing]
+    IO.write($testing_log, cmd + "\n", mode: 'a') if $opts[:testing]
     return false if $opts[:testing]
     _, _, wait_thr  = Open3.popen2(cmd)
     $ctl_skip = $ctl_replay = $ctl_pause_continue = $ctl_slower = $ctl_help = $ctl_show_help = false

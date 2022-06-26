@@ -110,6 +110,11 @@ def read_testing_log
 end
 
 
+def clear_testing_log
+  File.rm($testing_log_file) if File.exist?($testing_log_file)
+end
+
+
 at_exit {
   if $!.nil?
     $memo[:count] = $memo_count
