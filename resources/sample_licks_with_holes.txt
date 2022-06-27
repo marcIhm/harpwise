@@ -52,10 +52,10 @@
 #
 
 
-#
 # Once you have defined more than a dozen licks, you may want to
-# reduce typing efford when defining a new lick. This can be done
-# by defining some default-information and reusing it in many licks.
+# reduce typing efford when adding a new lick. This can be done
+# by setting some default-information and reusing it in many
+# licks.
 #
 # To this end there are two Special sections:
 #

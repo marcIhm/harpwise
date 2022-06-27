@@ -5,8 +5,8 @@
   [[images/harmonica.png]]
 
   Ruby script to support the daily practice for bends, scales, intervals
-  or licks on a (diatonic) richter or chromatic harmonica for various
-  keys. May also be useful when writing down tabs.
+  or licks on a diatonic (richter) or chromatic harmonica for various
+  keys. Also helps when writing down tabs.
 
   Its main operation modes are 'listen', 'quiz' and 'licks'; these
   modes may help to:
@@ -15,7 +15,8 @@
   - Train your musical memory
   - Internalize various scales
   - Play and remember intervals
-  - Learn, memorize and analyze licks regarding scales, chords and intervals
+  - Learn, memorize and licks
+  - Analyze licks regarding scales, chords and intervals
   - Support improvisation: Provide licks and scale info
   - Help in writing down a sequence of holes
 
@@ -32,7 +33,7 @@
 
 * Usage and Overview
 
-  Get a short usage information by invoking without arguments:
+  Get usage information by invoking without arguments:
   
     ./harpwise
 
@@ -70,10 +71,11 @@
      of the i-Chord)
    - Licks, e.g. the opening lick of "Juke"
 
-   they play a central very role for harpwise.
+   play a central role for harpwise.
 
-   In many of its different views, harpwise shows information about the scales,
-   a given hole belongs to. Or it helps you to memorize your favorite licks.
+   In some of its various views, harpwise shows information about the
+   scales, a given hole belongs to. Or it helps you to memorize your
+   favorite licks.
 
    For this to work best, you may:
 
@@ -183,11 +185,11 @@
 
 * Tuning
 
-  The harp wise does not make assumptions about the tuning of
-  your harmonica; e.g. it works equally well with "equal temperament" (ET)
-  or "just intonation" tuning.  Simply because, it asks you to play your
-  own harp (whatever its tuning might be), to generate samples; and it
-  then computes frequency values from these.
+  The harp wise does not make assumptions about the tuning of your
+  harmonica; e.g. it works equally well with "equal temperament" (ET) or
+  "just intonation" tuning.  Simply because, it asks you to play your own
+  harp to generate samples (whatever its tuning might be); and it then
+  computes frequency values from these samples.
   
   However, sometimes harpwise has to choose one tuning,
   e.g. when doing auto calibration, or when your samples need to be judged
