@@ -86,6 +86,9 @@ calibrate:
 
     ./harpwise licks c --tags fav,scales
 
+  If the lick has a recording, it will be transposed to match the key
+  specified.
+
   As shown in the second example, you may restrict the set of licks to
   those with certain tags; tags (e.g. 'scales') may also
   be excluded like '--no-tags scales'.
@@ -94,7 +97,7 @@ calibrate:
 
   To play only shorter licks use e.g. '--max-holes 8' or '--min-holes 12'
   for longer.  '--start-with' specifies the first lick to play and accepts
-  the special value 'last' or 'l' to repeat the last lick ('2l', '3l' for
+  the special values 'last' or 'l' to repeat the last lick ('2l', '3l' for
   earlier licks); licks addressed this way will not be written to the
   journal.  Use '--start-with iter' to iterate through all selected licks
   one by one; use '--start-with foo,iter' to start at lick foo; 'cycle'

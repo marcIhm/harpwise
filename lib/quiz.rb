@@ -22,7 +22,10 @@ def do_quiz
   start_with = $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :licks
+
   loop do   # forever until ctrl-c, sequence after sequence
+
+    do_write_journal = false
 
     if first_round
       print "\n"
@@ -39,7 +42,7 @@ def do_quiz
     #  First compute and play the sequence that is expected
     #
 
-    # check, if lick has changed
+    # check, if lick-file has changed
     if lick_idx && refresh_licks
       lick = $licks[lick_idx]
       all_wanted = lick[:holes]
@@ -67,7 +70,7 @@ def do_quiz
       end
       $ctl_loop = true
 
-    elsif $ctl_named_lick  # can only happen in licks
+    elsif $ctl_named_lick  # can only happen for mode licks
 
       stop_kb_handler
       sane_term
@@ -109,6 +112,7 @@ def do_quiz
           lick = matching[0][0]
           lick_idx = matching[0][1]
           all_wanted = lick[:holes]
+          do_write_journal = true
         end
       end
       
@@ -186,7 +190,7 @@ def do_quiz
       
     elsif $ctl_replay
 
-    # nothing to do, replay will happen at start of next loop
+      # nothing to do here, replay will happen at start of next loop
       
     else # e.g. sequence done or $ctl_next: go to the next sequence
       all_wanted_before = all_wanted
@@ -244,7 +248,6 @@ def do_quiz
 
         elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
           lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
-          do_write_journal = false
 
         else # search lick by name and maybe iterate
           doiter = %w(,iterate ,iter ,i ,cycle).find {|x| start_with.end_with?(x)}
