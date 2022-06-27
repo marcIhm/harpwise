@@ -342,10 +342,10 @@ end
 
 def ctl_issue text = nil, **opts
   if text
-    $ctl_non_def_issue_ts = Time.now.to_f 
+    $ctl_issue_non_def_ts = Time.now.to_f 
   else
-    return if $ctl_non_def_issue_ts && Time.now.to_f - $ctl_non_def_issue_ts < 3
-    text = $ctl_default_issue
+    return if $ctl_issue_non_def_ts && Time.now.to_f - $ctl_issue_non_def_ts < 3
+    text = $ctl_issue_default
   end
   fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_issue_width}" if text.length > $ctl_issue_width
   print "\e[1;#{$term_width - $ctl_issue_width}H\e[0m\e[#{opts[:hl] ? 32 : 2}m#{text.rjust($ctl_issue_width)}\e[0m"

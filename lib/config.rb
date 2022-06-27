@@ -9,14 +9,19 @@ def set_global_vars_early
   
   $sample_rate = 48000
 
+  # These $ctl-Vars transport requests and events initiated by the
+  # user; mostly keys pressed but also window changed; but not input
+  # from the microphone
   $ctl_kb_queue = Queue.new
-  $ctl_default_issue = ''
-  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = false
-  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_can_named = false
-  $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_comment = $ctl_redraw = false
-  $ctl_issue_width = 36
-  $ctl_non_def_issue_ts = nil
+  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_comment = $ctl_redraw = false
+  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_named = false
   $ctl_sig_winch = false
+  # These are related to the ctl_issue function, which allows
+  # reactions on user actions
+  $ctl_issue_default = ''
+  $ctl_issue_width = 36
+  $ctl_issue_non_def_ts = nil
+
   $all_licks = $licks = nil
   
   $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
