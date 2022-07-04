@@ -92,7 +92,7 @@ def read_licks graceful = false
       holes = md[1]
       err "File #{lfile} should only contain key 'notes', not 'holes' (below [#{name}])" if lfile['notes']
       lick[:holes] = holes.split.map do |hole|
-        err("Hole #{hole} from #{lfile} is not among holes of harp #{$harp_holes}") unless musical_event?(hole) || $harp_holes.include?(hole)
+        err("Hole '#{hole}' from #{lfile} is not among holes of harp #{$harp_holes}") unless musical_event?(hole) || $harp_holes.include?(hole)
         hole
       end
       err "Lick #{name} does not contain any holes (#{lfile})" unless lick[:holes].length > 0
@@ -105,7 +105,7 @@ def read_licks graceful = false
       notes = md[1]
       err "File #{lfile} should only contain key 'holes', not 'notes' (below [#{name}])" if lfile['holes']
       lick[:holes] = notes.split.map do |note|
-        err("Note #{note} from #{lfile} is not among notes of harp #{$harp_notes}") unless musical_event?(note) || $harp_notes.include?(note)
+        err("Note '#{note}' from #{lfile} is not among notes of harp #{$harp_notes}") unless musical_event?(note) || $harp_notes.include?(note)
         $note2hole[note]
       end
       derived[-1] = "  holes = " + lick['holes'].join(' ')
