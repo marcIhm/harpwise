@@ -56,7 +56,7 @@ def check_screen graceful: false
     # check bottom line 
     bt_key, bt_line, = $lines.max_by {|k,l| l}
     # lines for ansi term start at 1
-    if bt_line > $term_height + 1
+    if bt_line > $term_height
       raise ArgumentError.new("Line #{bt_key} = #{bt_line} is larger than terminal height = #{$term_height}")
     end
     

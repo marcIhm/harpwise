@@ -67,6 +67,8 @@ def calculate_screen_layout
   stretch += 1 if $term_height > 30
   stretch += 1 if $term_height > 36
   squeeze = 1 if $term_height < 27
+  on_edge = ( $term_height <= $conf[:term_min_height] )
+  need_message2 = ( $mode == :quiz || $mode == :licks )
   lines = Hash.new
   lines[:issue] = 1
   lines[:key] = 2
@@ -75,14 +77,16 @@ def calculate_screen_layout
   lines[:frequency] = lines[:hole] + 1
   lines[:interval] = lines[:hole] + 2
   lines[:comment] = 18 + 3 * stretch - 2 * squeeze
-  lines[:hint_or_message] = 26 + 5 * stretch - 2 * squeeze
+  lines[:hint_or_message] = 26 + 5 * stretch - ( need_message2 ? 3 : 2 ) * squeeze
   2.times do
-    lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > 1
+    lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > ( need_message2 ? 1 : 0 )
   end
   lines[:comment_tall] = lines[:comment]
-  if $mode == :quiz || $mode == :licks
-    # font for quiz is fairly small, so we may leave some space
-    lines[:comment] += 1
+  if need_message2
+    unless on_edge
+      # font for quiz is fairly small, so we may leave some space
+      lines[:comment] += 1
+    end
     # only needed for quiz and licks
     lines[:message2] = lines[:hint_or_message] + 1
   else

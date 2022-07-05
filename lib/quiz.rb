@@ -321,13 +321,6 @@ def do_quiz
 
     # precompute some values, that do not change during sequence
     min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
-    lick_names = if $mode == :licks
-                   [sprintf(' (%s)', lick[:name]) ,
-                    ' ' + lick[:name] ,
-                    lick[:banner]]
-                 else
-                   ['','','']
-                 end
 
     holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_scales
     holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_intervals
@@ -407,20 +400,24 @@ def do_quiz
           -> (_) do
             hole_passed = Time.now.to_f - hole_start
             round_passed = Time.now.to_f - round_start
-        
-            [
-              if hole_passed > 6
-                "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m"
-              else
-                if idx > 0
-                  isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
-                  "\e[0mHint:\e[2m Move " + ( itext ? "a \e[0m\e[32m#{itext}" : "\e[0m\e[32m#{isemi}" ) + "\e[0m"
-                else
-                  ''
-                end
-              end,
-              lick_names[2]
-            ]
+            hole_hint = if hole_passed > 6
+                          "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}"
+                        else
+                          if idx > 0
+                            isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
+                            "\e[0mHint:\e[2m Move " + ( itext ? "a \e[0m\e[32m#{itext}" : "\e[0m\e[32m#{isemi}" )
+                          else
+                            ''
+                          end
+                        end
+            if $mode == :licks
+              [ lick[:name],
+                lick[:tags].join(','),
+                hole_hint,
+                lick[:desc] ]
+            else
+              [ hole_hint ]
+            end
           end,
           
           

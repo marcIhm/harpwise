@@ -372,8 +372,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harpwise licks testing --start-with juke a --testing'
     tms :ENTER
-    sleep 4
-    expect { screen[-1]['juke | samples,favorites | a classic lick by Little Walter'] }
+    sleep 8
+    expect { screen[-2]['juke | samples,favorites | Hint: Play -1'] }
+    expect { screen[-1]['a classic lick by Little Walter'] }
     kill_session
   end
 
@@ -406,13 +407,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with iterate --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1][$all_testing_licks[0]] }
+    expect { screen[-2][$all_testing_licks[0]] }
     tms :ENTER
     sleep 4
-    expect { screen[-1][$all_testing_licks[1]] }
+    expect { screen[-2][$all_testing_licks[1]] }
     tms :ENTER
     sleep 6
-    expect { screen[-1][$all_testing_licks[2]] }
+    expect { screen[-2][$all_testing_licks[2]] }
     tms :ENTER
     kill_session
   end
@@ -422,10 +423,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with special,iter --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1]['special'] }
+    expect { screen[-2]['special'] }
     tms :ENTER
     sleep 6
-    expect { screen[-1]['blues'] }
+    expect { screen[-2]['blues'] }
     tms :ENTER
     kill_session
   end
@@ -435,13 +436,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with juke --testing'
     tms :ENTER
     sleep 4
-    expect { screen[-1]['juke'] }
+    expect { screen[-2]['juke'] }
     tms :ENTER
     sleep 4
-    expect { !screen[-1]['juke'] }
+    expect { !screen[-2]['juke'] }
     tms :BSPACE
     sleep 4
-    expect { screen[-1]['juke'] }
+    expect { screen[-2]['juke'] }
     kill_session
   end
 
@@ -507,7 +508,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
     tms :ENTER
     sleep 2
-    expect { screen[16]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+    expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
     kill_session
   end
 
@@ -526,7 +527,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 4
     expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
-    expect { screen[16]['*-1.Ton   -2/.mT   -3//.3st'] }
+    expect { screen[15]['*-1.Ton   -2/.mT   -3//.3st'] }
     kill_session
   end
 
@@ -535,12 +536,12 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[-1]['juke'] }
+    expect { screen[-2]['juke'] }
     tms 'n'
     tms 'special'
     tms :ENTER
     sleep 1
-    expect { screen[-1]['special'] }
+    expect { screen[-2]['special'] }
     kill_session
   end
 

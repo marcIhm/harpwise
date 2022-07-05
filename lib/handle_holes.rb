@@ -186,15 +186,34 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         hints = lambda_hint.call(hole)
         hints_refreshed_at = Time.now.to_f
         if hints != hints_old
+          $perfctr[:lambda_hint_reprint] += 1
           print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
-          print "\e[#{$lines[:hint_or_message]}H"
+          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
           # Using truncate_colored_text might be too slow here
           if hints.length == 1
+            # for mode quiz
             print truncate_text(hints[0], $term_width - 4) + "\e[K"
-          elsif hints.length == 2 && $lines[:message2] > 0
-            print truncate_text(hints[0], $term_width - 4) + "\e[K"
+          elsif hints.length == 4 && $lines[:message2] > 0
+            # for mode licks
+            # hints[0 .. 2] are on first line, hints[3] on the second
+            # if necessary, we truncate or omit hints[1]
+            maxl_h1 = $term_width - 10 - hints[0].length - hints[2].length
+            print(
+              if maxl_h1 >= 12
+                # enough space to show at least something
+                [hints[0],
+                 if maxl_h1 > hints[1].length
+                   hints[1]
+                 else
+                   hints[1][0,maxl_h1 - 3] + '...'
+                 end,
+                 hints[2]]
+              else
+                # we omit hints[1] altogether
+                [hints[0], '...', hints[2]]
+              end.select {|x| x && x.length > 0}.join(' | ') + "\e[K")
             print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-            print truncate_text(hints[1], $term_width - 4) + "\e[K"
+            print truncate_text(hints[3], $term_width - 4) + "\e[K"
           else
             err "Internal error"
           end
