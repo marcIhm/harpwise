@@ -150,16 +150,22 @@ end
 
 
 def print_in_columns names
+  cnt = 0
+  max_cnt = $lines[:hint_or_message] - $lines[:comment] - 1
   line = '  '
-  names.map {|n| n + ' ' * (-n.length % 8)}.
-    each do |n|
-    if (line + n).length > $term_width - 4
-      puts line
+  names.map {|nm| nm + ' ' * (-nm.length % 8)}.
+    each_with_index do |nm,i|
+    if (line + nm).length > $term_width - 4 || i == names.length - 1
+      if cnt == max_cnt
+        puts ' ... more omitted ...'
+      elsif cnt < max_cnt
+        puts line
+      end
+      cnt += 1
       line = '  '
     end
-    line += n
+    line += nm
   end
-  puts line
 end
 
 

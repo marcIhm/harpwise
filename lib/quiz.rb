@@ -77,10 +77,10 @@ def do_quiz
       input = matching = nil
       old_licks = get_last_lick_idxs_from_journal($licks)
       clear_area_comment
-      print "\e[#{$lines[:message2]}H\e[2mRecent licks: "
-      print old_licks[0,5].map {|i| $licks[i][:name]}.join(",")
-      print "\e[J"
-      print "\e[#{$lines[:hint_or_message]}H\e[0mName of new lick (or part of) or l,2l,..\e[2m (current is #{lick[:name]}):\e[0m \e[k"
+      print "\e[#{$lines[:comment]}H\e[2mRecent licks:\e[J\n"
+      print old_licks[0,5].map {|i| $licks[i][:name]}.join(", ")
+      print "\e[#{$lines[:message2]}H\e[2mcurrent lick is #{lick[:name]}"
+      print "\e[#{$lines[:hint_or_message]}H\e[0mName of new lick (or part of or l,2l,..):\e[K "
       $column_short_hint_or_message = 1
       input = STDIN.gets.chomp
       if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
@@ -100,9 +100,10 @@ def do_quiz
               print "Multiple licks (#{matching.length}) contain '#{input}':\n"
               print_in_columns matching.map {|m| m[0][:name]}
             end
-            print "\e[#{$lines[:hint_or_message]}H\e[J"
-            $column_short_hint_or_message = 1
-            print "Enter a new name \e[2mor just press RETURN to keep current '#{lick[:name]}':\e[0m "
+            print "\e[#{$lines[:message2]}H\e[J"
+            print "\e[2mor just press RETURN to keep current '#{lick[:name]}'"
+            print "\e[#{$lines[:hint_or_message]}H\e[K"
+            print "\e[0mEnter a new name: "
             input = STDIN.gets.chomp
             matching = [[lick,lick_idx]] if input == ''
           end
@@ -133,12 +134,13 @@ def do_quiz
       # save this, before changing $all_licks below
       all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
       begin
-        clear_area_comment
         print "\e[#{$lines[:comment]}H\e[0m\e[J"
-        print "Current lick has tags #{lick[:tags].join(',')}"
-        print "\e[#{$lines[:hint_or_message]}H\e[J"
-        opof = '(or part of; SPC to list, RET to go without)'
-        print "\e[0mNew value for option '--tags' \e[2m#{opof}\e[0m: "
+        print "Current lick has tags  #{lick[:tags].join(', ')}"
+        opof = 'or part of; SPC to list, RET to go without'
+        print "\e[#{$lines[:message2]}H"
+        print "\e[2m#{opof}"
+        print "\e[#{$lines[:hint_or_message]}H"
+        print "\e[0mNew value for option '--tags': "
         input = STDIN.gets.chomp
         begin
           mtags = if input == ' '
@@ -174,8 +176,10 @@ def do_quiz
             print_in_columns mtags.sort
           end
           if read_again
-            print "\e[#{$lines[:hint_or_message]}H\e[J"
-            print "Enter a new value \e[2m#{opof}\e[0m: "
+            print "\e[#{$lines[:message2]}H\e[J"
+            print "\e[2m#{opof}"
+            print "\e[#{$lines[:hint_or_message]}H\e[K"
+            print "Enter a new value: "
             input = STDIN.gets.chomp
           end
 
