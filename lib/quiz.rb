@@ -81,6 +81,7 @@ def do_quiz
       print old_licks[0,5].map {|i| $licks[i][:name]}.join(",")
       print "\e[J"
       print "\e[#{$lines[:hint_or_message]}H\e[0mName of new lick (or part of) or l,2l,..\e[2m (current is #{lick[:name]}):\e[0m \e[k"
+      $column_short_hint_or_message = 1
       input = STDIN.gets.chomp
       if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
         lick_idx_before = lick_idx 
@@ -100,6 +101,7 @@ def do_quiz
               print_in_columns matching.map {|m| m[0][:name]}
             end
             print "\e[#{$lines[:hint_or_message]}H\e[J"
+            $column_short_hint_or_message = 1
             print "Enter a new name \e[2mor just press RETURN to keep current '#{lick[:name]}':\e[0m "
             input = STDIN.gets.chomp
             matching = [[lick,lick_idx]] if input == ''
@@ -125,6 +127,7 @@ def do_quiz
 
       stop_kb_handler
       sane_term
+      $column_short_hint_or_message = 1
       input = ''
       old_name = lick[:name]
       # save this, before changing $all_licks below
@@ -315,6 +318,7 @@ def do_quiz
       system('clear')
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
+      $column_short_hint_or_message = 1
       print "\e[#{$lines[:message2]}H\e[K"
     end
     full_seq_shown = false
@@ -470,7 +474,8 @@ def do_quiz
         end
 
         # update hint
-        print "\e[#{$lines[:hint_or_message]}H\e[K"
+        print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
+        $column_short_hint_or_message = 1
         unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick || $ctl_change_tags
           print "\e[0m\e[32mAnd #{$ctl_loop ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
@@ -582,6 +587,7 @@ def play_holes all_holes, first_round, terse = false
   IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
   
   $ctl_skip = false
+  $column_short_hint_or_message = 1
   ltext = "\e[2m(h for help) "
   holes.each_with_index do |hole, idx|
     if terse

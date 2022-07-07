@@ -94,6 +94,8 @@ def calculate_screen_layout
     lines[:message2] = -1
   end
   lines[:help] = lines[:comment_tall]
+  $column_short_hint_or_message = 1
+
   lines
 end
 
