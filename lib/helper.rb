@@ -151,7 +151,7 @@ end
 
 def print_in_columns names
   cnt = 0
-  max_cnt = $lines[:hint_or_message] - $lines[:comment] - 1
+  max_cnt = $lines[:hint_or_message] - $lines[:comment] - 2
   line = '  '
   names.map {|nm| nm + ' ' * (-nm.length % 8)}.
     each_with_index do |nm,i|
