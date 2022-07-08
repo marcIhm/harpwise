@@ -191,6 +191,7 @@ end
 def prepare_term
   system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
   print "\e[?25l"  # hide cursor
+  print "\e[3J" # clear scrollback
 end
 
 

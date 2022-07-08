@@ -149,26 +149,6 @@ def truncate_text text, len
 end
 
 
-def print_in_columns names
-  cnt = 0
-  max_cnt = $lines[:hint_or_message] - $lines[:comment] - 2
-  line = '  '
-  names.map {|nm| nm + ' ' * (-nm.length % 8)}.
-    each_with_index do |nm,i|
-    if (line + nm).length > $term_width - 4 || i == names.length - 1
-      if cnt == max_cnt
-        puts ' ... more omitted ...'
-      elsif cnt < max_cnt
-        puts line
-      end
-      cnt += 1
-      line = '  '
-    end
-    line += nm
-  end
-end
-
-
 def bbg # prepare byebug
   sane_term
   stop_kb_handler

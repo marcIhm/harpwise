@@ -49,7 +49,14 @@ def do_quiz
       ctl_issue 'Refreshed licks'
     end
 
-    # handle $ctl-commands from keyboard-thread, that probably come from a previous loop
+    # For licks, the calculation of next one has these cases:
+    # - ctl-command that takes us back
+    # - requests for a named lick
+    # - change
+    # - iteration
+    # - simply done with previous lick and next lick is required
+    
+    # handle $ctl-commands from keyboard-thread, that probably come from a previous loop iteration
     if $ctl_back # 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
@@ -75,131 +82,57 @@ def do_quiz
       stop_kb_handler
       sane_term
       input = matching = nil
+
       old_licks = get_last_lick_idxs_from_journal($licks)
-      clear_area_comment
-      print "\e[#{$lines[:comment]}H\e[2mRecent licks:\e[J\n"
-      print old_licks[0,5].map {|i| $licks[i][:name]}.join(", ")
-      print "\e[#{$lines[:message2]}H\e[2mcurrent lick is #{lick[:name]}"
-      print "\e[#{$lines[:hint_or_message]}H\e[0mName of new lick (or part of or l,2l,..):\e[K "
-      $column_short_hint_or_message = 1
+      print_in_columns 'Recent licks',
+                       old_licks[0,10].map {|i| $licks[i][:name]}
+      print_prompt_context "Name of new lick (or part of or l,2l,..)",
+                           "current lick is #{lick[:name]}"
       input = STDIN.gets.chomp
+      
       if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
+        # one of last licks requested
         lick_idx_before = lick_idx 
         lick_idx = old_licks[md  ?  md[1].to_i - 1  :  0]
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
       else
-        begin
-          matching = $licks.map.with_index.select {|li| li[0][:name][input]}
-          if matching.length != 1
-            print "\e[#{$lines[:comment]}H\e[0m\e[J"
-            if matching.length == 0
-              print "No lick (pre-selected by tags and hole count) contains '#{input}'; all:\n"
-              print_in_columns $licks.map {|l| l[:name]}.sort
-            else
-              print "Multiple licks (#{matching.length}) contain '#{input}':\n"
-              print_in_columns matching.map {|m| m[0][:name]}
-            end
-            print "\e[#{$lines[:message2]}H\e[J"
-            print "\e[2mor just press RETURN to keep current '#{lick[:name]}'"
-            print "\e[#{$lines[:hint_or_message]}H\e[K"
-            print "\e[0mEnter a new name: "
-            input = STDIN.gets.chomp
-            matching = [[lick,lick_idx]] if input == ''
-          end
-        end while matching.length != 1
-        
-        print "\e[#{$lines[:comment]}H\e[0m\e[J"
-        if lick_idx != matching[0][1]
+        matching = read_lick_name(input, lick_idx)
+        if lick_idx != matching[1]
           lick_idx_before = lick_idx 
-          lick = matching[0][0]
-          lick_idx = matching[0][1]
+          lick = matching[0]
+          lick_idx = matching[1]
           all_wanted = lick[:holes]
           do_write_journal = true
         end
       end
+      lick_idx_iter = nil
       
       start_kb_handler
       prepare_term
-      print "\e[3J" # clear scrollback
       $ctl_named_lick = false
       
     elsif $ctl_change_tags  # can only happen in licks
-
+      
       stop_kb_handler
       sane_term
-      $column_short_hint_or_message = 1
-      input = ''
-      old_name = lick[:name]
-      # save this, before changing $all_licks below
-      all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
-      begin
-        print "\e[#{$lines[:comment]}H\e[0m\e[J"
-        print "Current lick has tags  #{lick[:tags].join(', ')}"
-        opof = 'or part of; SPC to list, RET to go without'
-        print "\e[#{$lines[:message2]}H"
-        print "\e[2m#{opof}"
-        print "\e[#{$lines[:hint_or_message]}H"
-        print "\e[0mNew value for option '--tags': "
-        input = STDIN.gets.chomp
-        begin
-          mtags = if input == ' '
-                    all_tags
-                  elsif input == ''
-                    [nil] 
-                  elsif input[',']
-                    [input]
-                  else
-                    all_tags.select {|t| t[input]}
-                  end
-          read_again = true
-          if mtags.length == 1
-            $opts[:tags] = mtags[0]
-            $all_licks, $licks = read_licks true
-            if $licks.length == 0
-              print "\e[#{$lines[:comment]}H\e[0m\e[J"
-              print "No licks (limited by hole count) match '--tags #{input}'\n"
-            else
-              read_again = false
-            end
-          elsif mtags.length == 0
-            print "\e[#{$lines[:comment]}H\e[0m\e[J"
-            print "No tags match your input '#{input}'; these are available:\n"
-            print_in_columns all_tags.sort
-          else
-            print "\e[#{$lines[:comment]}H\e[0m\e[J"
-            if input == ' '
-              print "All tags:\n"
-            else
-              print "Multiple tags match your input:\n"
-            end
-            print_in_columns mtags.sort
-          end
-          if read_again
-            print "\e[#{$lines[:message2]}H\e[J"
-            print "\e[2m#{opof}"
-            print "\e[#{$lines[:hint_or_message]}H\e[K"
-            print "Enter a new value: "
-            input = STDIN.gets.chomp
-          end
+      read_tags_and_refresh_licks lick
+      print "\e[#{$lines[:key]}H\e[k" + text_for_key
+      lick_idx_before = lick_idx = rand($licks.length)
+      lick = $licks[lick_idx]
+      lick_idx_iter = nil
+      all_wanted = lick[:holes]
 
-        end while read_again || $licks.length == 0
-        print "\e[#{$lines[:comment]}H\e[0m\e[J"
-        print "\e[#{$lines[:key]}H\e[k" + text_for_key
-        lick_idx_before = lick_idx = rand($licks.length)
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-      end
       start_kb_handler
       prepare_term
-      print "\e[3J" # clear scrollback
       $ctl_change_tags = false
       
     elsif $ctl_replay
-
+      
       # nothing to do here, replay will happen at start of next loop
       
     else # e.g. sequence done or $ctl_next: go to the next sequence
+
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
 
@@ -256,7 +189,7 @@ def do_quiz
         elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
           lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
 
-        else # search lick by name and maybe iterate
+        else # search lick by name and maybe start iteration          
           doiter = %w(,iterate ,iter ,i ,cycle).find {|x| start_with.end_with?(x)}
           lick_cycle = start_with.end_with?('cycle')
           start_with[-doiter.length .. -1] = '' if doiter
@@ -265,7 +198,6 @@ def do_quiz
           err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
 
           lick_idx_iter = lick_idx if doiter
-
         end
 
         start_with = nil
@@ -279,7 +211,7 @@ def do_quiz
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
       $ctl_loop = $opts[:loop]
 
-    end # handling $ctl-commands
+    end # handling $ctl-commands and calculating the next holes
 
     #
     #  Play the sequence or recording
@@ -843,4 +775,105 @@ def put_wrapify_for_comment max_lines, holes, idx_first_active
     print "\n"
   end
   print"\e[0m"
+end
+  
+
+def print_prompt_context prompt, context
+  print "\e[#{$lines[:hint_or_message]}H\e[J"
+  print "\e[#{$lines[:message2]}H\e[0m\e[2m#{context}"
+  print "\e[#{$lines[:hint_or_message]}H\e[0m#{prompt}: "
+end
+
+
+def print_in_columns head, names
+  print "\e[#{$lines[:comment]}H\e[2m#{head}:\e[J\n"
+  lns = 0
+  max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
+  line = '  '
+  more = ' ... more'
+  names.map {|nm| nm + ' ' * (-nm.length % 8)}.
+    each_with_index do |nm,i|
+    break if lns >= max_lns
+    if (line + nm).length > $term_width - 4 || i == names.length - 1
+      line[-more.length ..] = more if lns == max_lns && i < names.length - 1
+      puts line
+      lns += 1
+      line = '  '
+    end
+    line += nm
+  end
+end
+
+
+def read_lick_name input, curr_lick_idx
+  curr_lick = $licks[curr_lick_idx]
+  begin
+    matching = $licks.map.with_index.select {|li| li[0][:name][input]}
+    if matching.length != 1
+      if matching.length == 0
+        print_in_columns(
+          "No lick contains '#{input}'; all",
+          $licks.map {|l| l[:name]}.sort)
+      else
+        print_in_columns(
+          "Multiple licks (#{matching.length}) contain '#{input}'",
+          matching.map {|m| m[0][:name]})
+      end
+      print_prompt_context "Enter a new name",
+                           "or just press RETURN to keep current '#{curr_lick[:name]}"
+      input = STDIN.gets.chomp
+      matching = [[curr_lick,curr_lick_idx]] if input == ''
+    end
+  end while matching.length != 1
+  print "\e[#{$lines[:comment]}H\e[0m\e[J"
+  matching[0]
+end
+
+
+def read_tags_and_refresh_licks curr_lick
+  all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
+  opof = 'or part of; SPC to list, RET to go without'
+  print_in_columns "Current lick has these tags", curr_lick[:tags]
+  print_prompt_context "New value for option '--tags'", opof
+  input = STDIN.gets.chomp
+  begin
+    mtags = if input == ' '
+              all_tags
+            elsif input == ''
+              [nil] 
+            elsif input[',']
+              [input]
+            else
+              all_tags.select {|t| t[input]}
+            end
+    done = false
+    
+    if mtags.length == 1
+      $opts[:tags] = mtags[0]
+      $all_licks, $licks = read_licks true
+      if $licks.length == 0
+        print "\e[#{$lines[:comment]}H\e[0m\e[J"
+        print "No licks (limited by hole count) match '--tags #{input}'\n"
+      else
+        done = true
+      end
+    elsif mtags.length == 0
+      print_in_columns "No tags match your input '#{input}'; these are available",
+                       all_tags.sort
+    else
+      print_in_columns(
+        if input == ' '
+          'All tags'
+        else
+          'Multiple tags match your input'
+        end,
+        mtags.sort)
+    end
+    unless done
+      print_prompt_context 'Enter a new value',
+                           opof
+      input = STDIN.gets.chomp
+    end
+  end while !done || $licks.length == 0
+  print "\e[#{$lines[:comment]}H\e[0m\e[J"
 end

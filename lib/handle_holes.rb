@@ -366,7 +366,6 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       prepare_term
       $ctl_redraw = :silent
       system('clear')
-      print "\e[3J" # clear scrollback
       print "\e[#{$lines[:key]}H" + text_for_key
       if $ctl_change_key
         print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
