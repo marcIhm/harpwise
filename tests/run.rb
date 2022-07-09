@@ -232,7 +232,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     end
     sleep 1
     tms 'q'
-    sleep 2
+    sleep 1
     expect { screen[-3]['Terminating on user request'] }
     kill_session
   end
@@ -332,8 +332,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 12
     tst_out = read_testing_output
-    expect { tst_out[:licks].length == 6 }
-    expect { screen[1]['licks(6) testing a all'] }
+    expect { tst_out[:licks].length == 7 }
+    expect { screen[1]['licks(7) testing a all'] }
     kill_session
   end
 
@@ -344,7 +344,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tst_out = read_testing_output
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { tst_out[:licks].length == 3 }
+    expect { tst_out[:licks].length == 4 }
     kill_session
   end
 
@@ -355,7 +355,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tst_out = read_testing_output
     # Seven licks in file minus one scale with two licks minus one double
-    expect { tst_out[:licks].length == 4 }
+    expect { tst_out[:licks].length == 5 }
     kill_session
   end
 
@@ -384,8 +384,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
-    expect { screen[8]['Total number of licks:               7'] }
-    expect { screen[-3]['3 ... 18'] }
+    expect { screen[7]['Total number of licks:               8'] }
+    expect { screen[-3]['3 ... 86'] }
     kill_session
   end
 
@@ -550,7 +550,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['licks(6)'] }
+    expect { screen[1]['licks(7)'] }
     tms 't'
     tms 'favorites'
     tms :ENTER
@@ -574,6 +574,22 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 2
     expect { screen[3]['Mode \'memorize\' is now \'licks\''] }
+    kill_session
+  end
+  
+  do_test 'id-30: handling a very long lick' do
+    new_session
+    tms './harpwise lick testing blues --start-with long --testing --comment holes-all'
+    tms :ENTER
+    sleep 2
+    20.times {
+      tms '1'
+    }
+    expect { screen[-8]['  ▄▖▄▌  ▄▖▄▌  ▄▖▄▌  ▄▖▄▌  ▄▖▄▌  ▄▖▄▌  ▄▖▄▌  ▄▖▙▌  ▄▖▙▌'] }
+    tms 'c'
+    sleep 1
+    expect { screen[-6]['-3.     -4.b    -4.b'] }
+    expect { screen[-5]['-5.b    -5.b    -5.b    -5.b'] }
     kill_session
   end
   

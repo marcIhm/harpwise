@@ -273,10 +273,10 @@ def handle_kb_listen
   elsif char == "\n" && $ctl_can_next
     $ctl_next = true
     text = 'Skip'
-  elsif char == "n" && $ctl_can_named
+  elsif char == 'n' && $ctl_can_named
     $ctl_named_lick = true
     text = 'Named'
-  elsif char == "t" && $ctl_can_named
+  elsif char == 't' && $ctl_can_named
     $ctl_change_tags = true
     text = 'Named'
   elsif char == 'j'
@@ -291,6 +291,9 @@ def handle_kb_listen
   elsif char == 'q'
     $ctl_quit = true
     text = nil
+  elsif char == '1'
+    $ctl_done = true
+    text = 'Hole done'
   elsif char == '?' or char == 'h'
     $ctl_show_help = true
     text = 'See below for short help'

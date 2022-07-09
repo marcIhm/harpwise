@@ -326,7 +326,7 @@ def do_quiz
                   holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment] + 1, holes_with_intervals, idx)
                 when :holes_all
-                  put_wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall] + 1, all_wanted, idx)
+                  wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall] + 1, all_wanted, idx)
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
@@ -675,6 +675,11 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
   per_line = (($term_width * 0.8 - 4)/ max_cell_len).truncate
   line = '   '
   holes_scales.each_with_index do |hole_scale, idx|
+    if idx > 0 && idx % per_line == 0
+      lines << line
+      lines << ''
+      line = '   '
+    end
     line += " \e[0m" +
             if idx < idx_first_active
               ' ' + "\e[0m\e[2m" + hole_scale[0] + hole_scale[1] + '.' + hole_scale[2]
@@ -688,19 +693,19 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
                 sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1],true)) +
                 hole_scale[1] + "\e[0m\e[2m" + '.' + hole_scale[2]
             end
-    if idx > 0 && idx % per_line == 0
-      lines << line
-      line = '   '
-      if lines.length >= max_lines - 1
-        lines[-1] = lines[-1].ljust(per_line)
-        lines[-1][-6 .. -1] = "\e[0m  ... "
-        return lines
-      end
-      lines << ''
-    end
   end
-  lines << line + "\e[0m"
+  lines << line
   lines << ''
+  if lines.length > max_lines
+    lines = lines.select {|l| l.length > 0}
+  end
+  if lines.length > max_lines
+    lines = lines[0 .. max_lines - 1]
+    lines[-1] = lines[-1].ljust(per_line)
+    lines[-1][-6 .. -1] = "\e[0m  ... "
+  end
+  lines[-1] += "\e[0m"
+  lines
 end
 
 
@@ -762,19 +767,39 @@ def largify holes, idx
 end
 
 
-def put_wrapify_for_comment max_lines, holes, idx_first_active
-  # get figlet output first, because this may take some time
+def wrapify_for_comment max_lines, holes, idx_first_active
+  # get output from figlet
   lines_all = get_figlet_wrapped(holes.join(' '))
   lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join(' '))
-  # now update screen in one pass
-  print "\e[#{$lines[:comment_tall]}H\e[0m"
-  lines_all.each_with_index do |line, idx|
-    break if idx >= max_lines - 1
-    print "\e[0m#{line.chomp}\e[K"
-    print "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx]}" if idx < lines_inactive.length
-    print "\n"
+
+  # we know that each figlet-line has 4 screen lines; integer arithmetic on purpose
+  fig_lines_max = max_lines / 4
+  fig_lines_all = lines_all.length / 4
+  fig_lines_inactive = lines_inactive.length / 4
+  lns = [lines_all.length, lines_inactive.length]
+  
+  # truncate if necessary
+  offset = 0
+  if fig_lines_all > fig_lines_max
+    if fig_lines_inactive == 1
+      # need to show first inactive figlet-line, because it also contain
+      # active holes screen lines at bottom will be truncated below
+    else
+      # use offset instead of shifting from arrays to avoid caching issues
+      offset = (fig_lines_inactive - 1) * 4
+    end
   end
-  print"\e[0m"
+
+  # construct final set of lines
+  lines = []
+  lines_all[offset .. -1].each_with_index do |line, idx|
+    break if idx >= max_lines - 1
+    lines << "\e[0m#{line.chomp}\e[K"
+    lines[-1] += "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx + offset]}" if idx + offset < lines_inactive.length
+  end
+  lines[-1] += "\e[0m"
+  lines << "\e[0K" while lines.length < max_lines
+  lines
 end
   
 

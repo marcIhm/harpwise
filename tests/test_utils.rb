@@ -66,7 +66,7 @@ def sound secs, semi
 end
 
 
-$memo_file = "#{Dir.home}/.harpwise_test_memo.json"
+$memo_file = "#{Dir.home}/.harpwise/test_memo.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}

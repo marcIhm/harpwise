@@ -75,6 +75,10 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
     done = false if $opts[:no_progress]
+    if $ctl_done
+      good = done = true
+      $ctl_done = false
+    end
 
     was_good_since = Time.now.to_f if was_good && was_good != was_was_good
 
@@ -154,8 +158,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         print "\e[#{$lines[:comment]}H"
         lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
       when :holes_all
-        # goes to $lines[:comment_tall] by itself
-        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil)
+        print "\e[#{$lines[:comment_tall]}H\e[0m"
+        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
       else
         comment_color,
         comment_text,

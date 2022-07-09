@@ -13,7 +13,9 @@ def set_global_vars_early
   # user; mostly keys pressed but also window changed; but not input
   # from the microphone
   $ctl_kb_queue = Queue.new
-  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_comment = $ctl_redraw = false
+  # Variables that be set by pressing keys
+  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_comment = $ctl_redraw = $ctl_done = $ctl_next = false
+  # variables that define capabilities
   $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_named = false
   $ctl_sig_winch = false
   # These are related to the ctl_issue function, which allows
