@@ -152,14 +152,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $perfctr[:lambda_comment_call] += 1
       case $conf[:comment]
       when :holes_scales
-        print "\e[#{$lines[:comment]}H"
-        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+        fit_into_comment lambda_comment.call
       when :holes_intervals
-        print "\e[#{$lines[:comment]}H"
-        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+        fit_into_comment lambda_comment.call
       when :holes_all
-        print "\e[#{$lines[:comment_tall]}H\e[0m"
-        lambda_comment.call(nil,nil,nil,nil,nil,nil,nil).each {|l| puts l}
+        fit_into_comment lambda_comment.call
       else
         comment_color,
         comment_text,
@@ -429,4 +426,18 @@ def get_dots dots, delta, freq, low, middle, high
   hit = ((hdots - delta  .. hdots + delta) === pos )
   dots[pos] = yield( hit, 'I') if pos > 0 && pos < dots.length
   return dots, hit
+end
+
+
+def fit_into_comment lines
+  start = if lines.length >= $lines[:hint_or_message] - $lines[:comment_tall]
+            $lines[:comment_tall]
+          else
+            print "\e[#{$lines[:comment_tall]}\e[K"
+            $lines[:comment]
+          end
+  print "\e[#{start}H\e[0m"
+  (start .. $lines[:hint_or_message] - 1).to_a.each do |n|
+    puts ( lines[n - start] || "\e[K" )
+  end 
 end

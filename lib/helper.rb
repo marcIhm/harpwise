@@ -152,6 +152,7 @@ end
 def bbg # prepare byebug
   sane_term
   stop_kb_handler
+  print "\e[0m"
   require 'byebug'
   byebug
 end

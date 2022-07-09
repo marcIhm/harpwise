@@ -309,8 +309,8 @@ def do_quiz
           -> () {$ctl_next || $ctl_back || $ctl_replay},  
 
           
-          # lambda_comment
-          -> (_, _, _, _, _, _, _) do
+          # lambda_comment; this one needs no arguments at all
+          -> (*_) do
             if idx != idx_refresh_comment_cache || $ctl_update_comment
               idx_refresh_comment_cache = idx
               $perfctr[:lambda_comment_quiz_call] += 1
@@ -321,12 +321,12 @@ def do_quiz
                   largify(all_wanted, idx)
                 when :holes_scales
                   holes_with_scales = scaleify(all_wanted) unless holes_with_scales
-                  tabify_colorize($lines[:hint_or_message] - $lines[:comment] + 1, holes_with_scales, idx)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, idx)
                 when :holes_intervals
                   holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
-                  tabify_colorize($lines[:hint_or_message] - $lines[:comment] + 1, holes_with_intervals, idx)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, idx)
                 when :holes_all
-                  wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall] + 1, all_wanted, idx)
+                  wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], all_wanted, idx)
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
@@ -771,12 +771,10 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   # get output from figlet
   lines_all = get_figlet_wrapped(holes.join(' '))
   lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join(' '))
-
   # we know that each figlet-line has 4 screen lines; integer arithmetic on purpose
   fig_lines_max = max_lines / 4
   fig_lines_all = lines_all.length / 4
   fig_lines_inactive = lines_inactive.length / 4
-  lns = [lines_all.length, lines_inactive.length]
   
   # truncate if necessary
   offset = 0
@@ -793,12 +791,11 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   # construct final set of lines
   lines = []
   lines_all[offset .. -1].each_with_index do |line, idx|
-    break if idx >= max_lines - 1
+    break if idx >= max_lines
     lines << "\e[0m#{line.chomp}\e[K"
     lines[-1] += "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx + offset]}" if idx + offset < lines_inactive.length
   end
   lines[-1] += "\e[0m"
-  lines << "\e[0K" while lines.length < max_lines
   lines
 end
   
