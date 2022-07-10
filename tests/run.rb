@@ -30,7 +30,27 @@ $testing_log_file = '/tmp/harpwise_testing.log'
 $data_dir = "#{Dir.home}/.harpwise"
 $all_testing_licks = %w(juke special blues mape one two)
 
+
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
+
+  #
+  # Collect usage examples and later check, that none of them produces string error
+  #
+  usage_examples = []
+  File.read('resources/usage.txt').lines.map(&:strip).each do |l|
+    usage_examples[-1] += ' ' + l if (usage_examples[-1] || '')[-1] == '\\'
+    usage_examples << l if l.start_with?('harpwise ') || l.start_with?('./harpwise ')
+  end
+  usage_examples.map {|l| l.gsub!('\\','')}
+  # remove known false positives
+  known_not = ['helps to practice', 'chrom']
+  usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
+  # replace some, e.g. due to my different set of licks
+  repl = {'./harpwise play c juke' => './harpwise play c easy'}
+  usage_examples.map! {|l| repl[l] || l}
+  # check count
+  num_exp = 12
+  fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
   
   puts "\nPreparing data"
   # point 3 of a delicate balance for tests
@@ -47,12 +67,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   # or any letter from 'g' on for a series of numbered tests
   #
 
+
   do_test 'id-01: usage screen' do
     new_session
     tms './harpwise'
     tms :ENTER
     sleep 2
-    expect { screen[-7].start_with? 'Suggested reading' }
+    expect { screen[-7]['Suggested reading'] }
     kill_session
   end
   
@@ -65,7 +86,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       sleep 1
       tms 'y'
       sleep 10
-      expect { screen[-4] == 'Recordings done.' }
+      expect { screen[-4]['Recordings done.'] }
       kill_session
     end
   end
@@ -80,7 +101,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 10
-    expect { screen[-4] == 'Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208' }
+    expect { screen[-4]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
     kill_session
   end
   
@@ -92,7 +113,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 's'
     sleep 4
-    expect { screen[9] == '       -10   |     1482 |     1480 |      2 |      2 | ........I........' }
+    expect { screen[9]['       -10   |     1482 |     1480 |      2 |      2 | ........I........'] }
     kill_session
   end
 
@@ -108,8 +129,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     tms 'r'
     sleep 8
-    expect { screen[-15] == 'The frequency recorded for -4/ (note bf4, semi 1) is too different from ET' }
-    expect { screen[-11] == '  Difference:             -271.2' }
+    expect { screen[-15]['The frequency recorded for -4/ (note bf4, semi 1) is too different from ET'] }
+    expect { screen[-11]['  Difference:             -271.2'] }
     kill_session
   end
   
@@ -602,6 +623,17 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
 
+  usage_examples.each_with_index do |ex,idx|
+    do_test "id-u%02d: usage #{ex}" % idx do
+      new_session
+      tms ex + ' --testing'
+      tms :ENTER
+      sleep 1
+      expect { screen.select {|l| l.downcase['error']}.length == 0 }
+      kill_session
+    end
+  end
+  
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 system("killall aubiopitch >/dev/null 2>&1")
