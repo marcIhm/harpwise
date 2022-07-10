@@ -813,9 +813,8 @@ def print_in_columns head, names
   max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
   line = '  '
   more = ' ... more'
-  names.map {|nm| nm + ' ' * (-nm.length % 8)}.
-    each_with_index do |nm,i|
-    break if lns >= max_lns
+  names.map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,i|
+    break if lns > max_lns
     if (line + nm).length > $term_width - 4 || i == names.length - 1
       line[-more.length ..] = more if lns == max_lns && i < names.length - 1
       puts line
@@ -824,6 +823,7 @@ def print_in_columns head, names
     end
     line += nm
   end
+  puts line unless line.strip.empty? && lns < max_lns
 end
 
 
@@ -855,7 +855,7 @@ end
 def read_tags_and_refresh_licks curr_lick
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
   opof = 'or part of; SPC to list, RET to go without'
-  print_in_columns "Current lick has these tags", curr_lick[:tags]
+  print_in_columns "Current lick #{curr_lick[:name]} has these tags", curr_lick[:tags]
   print_prompt_context "New value for option '--tags'", opof
   input = STDIN.gets.chomp
   begin
