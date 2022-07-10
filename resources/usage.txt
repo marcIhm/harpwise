@@ -43,7 +43,7 @@ calibrate:
 
     ./harpwise q 3 ma
 
-  is valid as well.
+  is valid as well (but would choose a richter harp).
 
 
   Both modes listen and quiz accept the option '--add-scales' with one or
@@ -51,7 +51,7 @@ calibrate:
   licks for the v-chord, you might use the blues scale and add the scales
   chord-i and chord-v:
 
-    ./harpwise l blues --add-scales chord-i:1,chord-v
+    ./harpwise lis blues --add-scales chord-i:1,chord-v
 
   This example also defines a short name, '1' for the scale 'chord-i'
   which will be used in the chart (however without need, because that
@@ -67,7 +67,7 @@ calibrate:
   removed from the original scale. E.g. you might want to remove bends
   from all notes:
 
-    ./harpwise q all --remove blowbends,drawbends
+    ./harpwise quiz 3 all --remove drawbends
 
   Both modes listen and quiz allow an option '--display' with possible
   values of 'hole' and 'chart' to change how a recognized hole will be
@@ -128,7 +128,7 @@ calibrate:
   If you just want the wise to play something, without beeing challenged
   to play it back:
 
-    ./harpwise play c 1 -2 c4
+    ./harpwise play c +1 -2+3 c4
 
     ./harpwise play c juke
 
@@ -170,14 +170,14 @@ calibrate:
 
   Memorize licks, but only shorter ones and show the scales for each hole:
 
-    harpwise licks c blues --loop --max-holes 15 --imm --no-tags scales \
+    ./harpwise licks c blues --loop --max-holes 15 --imm --no-tags scales \
         --disp chart-scales --add-scales chord-i,chord-iv,chord-v \
         --comment holes-all
 
 
   Lick-Radio: Play all my licks in random order:
 
-    harpwise play random cycle
+    ./harpwise play random cycle
 
 
   Show what I am playing, emphasise notes from scales blues and major pentatonic:
