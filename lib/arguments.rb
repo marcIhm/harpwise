@@ -65,7 +65,7 @@ def parse_arguments
   # Special handling for some options
   
   opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
-    err "Option '--display' needs one of #{choices} (or abbreviated unambiguously) as an argument, not #{none}"
+    err "Option '--display' needs one of #{choices} as an argument, not #{none}"
   end
   opts[:display]&.gsub!('-','_')
   
@@ -113,7 +113,7 @@ def parse_arguments
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if 'memorize'.start_with?(ARGV[0])
   mode = match_or(ARGV[0], %w(listen quiz licks play calibrate)) do |none, choices|
-    err "First argument can be one of #{choices} (maybe abbreviated), not #{none}"
+    err "First argument can be one of #{choices}, not #{none}"
   end.to_sym
   ARGV.shift
 
@@ -122,7 +122,7 @@ def parse_arguments
   # which requires the mode
 
   opts[:comment] = match_or(opts[:comment], $comment_choices[mode].map {|c| c.to_s.gsub('_','-')}) do |none, choices|
-    err "Option '--comment' needs one of #{choices} (maybe abbreviated) as an argument, not #{none}"
+    err "Option '--comment' needs one of #{choices} as an argument, not #{none}"
   end
   opts[:comment] = opts[:comment].gsub!('-','_').to_sym if opts[:comment]
   
@@ -237,6 +237,7 @@ end
 
 def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
   scale = nil
+
   if md = scale_w_short.match(/^(.*?):(.*)$/)
     scale = md[1]
     $scale2short[md[1]] = md[2]
@@ -246,7 +247,10 @@ def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
     # $scale2short will be set when actually reading scale
     scale = scale_w_short
   end
-  scale
+
+  match_or(scale, scales_for_type($type)) do |none, choices|
+    err "Scale must be one of #{choices}, not #{none}"
+  end
 end
 
 

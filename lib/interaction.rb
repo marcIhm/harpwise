@@ -213,7 +213,7 @@ end
 
 
 def stop_kb_handler
-  @kb_handler.exit
+  @kb_handler.exit if @kb_handler
 end
 
 

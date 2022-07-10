@@ -12,9 +12,9 @@ calibrate:
 
 ------ listen ------
 
-  The wise listens, while your are playing a richter harmonica of key c
-  and it shows the holes, that you played; green if from the scale, red
-  otherwise:
+  Example: The wise listens, while your are playing a richter
+  (abbreviated as 'ri') harmonica of key c and it shows the holes,
+  that you played; green if from the scale, red otherwise:
 
     ./harpwise listen ri c blues
 
@@ -28,7 +28,7 @@ calibrate:
 ------ quiz ------
 
   The Wise plays 3 notes from the scale 'major_pentatonic' for a
-  chromatic harmonica of key a and then quizes you to play them back
+  chromatic harmonica of key a and then quizzes you to play them back
   (then repeat):
 
     ./harpwise quiz 3 chrom a major_pentatonic

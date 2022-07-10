@@ -7,8 +7,10 @@
 
 def match_or cand, choices
   return unless cand
+  exact_matches = choices.select {|c| c == cand}
+  return exact_matches[0] if exact_matches.length == 1
   matches = choices.select {|c| c.start_with?(cand)}
-  yield "'#{cand}'", choices.join(', ') if matches.length != 1
+  yield "'#{cand}'", choices.join(', ') + ' (or abbreviated uniquely)' if matches.length != 1
   matches[0]
 end
 

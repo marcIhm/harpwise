@@ -46,7 +46,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   # How to assign ids: either any two uniq hex-digits for tests not in a loop
   # or any letter from 'g' on for a series of numbered tests
   #
-  
+
   do_test 'id-01: usage screen' do
     new_session
     tms './harpwise'
@@ -592,7 +592,16 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     expect { screen[-5]['-5.b    -5.b    -5.b    -5.b'] }
     kill_session
   end
-  
+
+  do_test 'id-31: abbreviated scale' do
+    new_session
+    tms './harpwise licks testing bl --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[1]['blues'] }
+    kill_session
+  end
+
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 system("killall aubiopitch >/dev/null 2>&1")
