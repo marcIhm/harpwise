@@ -2,7 +2,7 @@
 # Perform quiz and licks
 #
 
-$abbrevs_for_iter = %w(iterate iter i cycle cyc c)
+$abbrevs_for_iter = %w(iterate iter cycle cyc)
 
 def do_quiz
 
@@ -858,7 +858,7 @@ def read_tags_and_refresh_licks curr_lick
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
   opof = 'or part of; SPC to list, RET to go without'
   print_in_columns "Current lick #{curr_lick[:name]} has these tags", curr_lick[:tags]
-  print_prompt_context "Single value for option '--tags' (opt with ,cycle)", opof
+  print_prompt_context "New value for '--tags' (maybe with ,cycle)", opof
   input = STDIN.gets.chomp
   doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| input.end_with?(x)}
   input[-doiter.length .. -1] = '' if doiter
@@ -874,12 +874,12 @@ def read_tags_and_refresh_licks curr_lick
             end
     done = false
     
-    if mtags.length == 1
+    if mtags.length == 1 || input[',']
       $opts[:tags] = mtags[0]
       $all_licks, $licks = read_licks true
       if $licks.length == 0
-        print "\e[#{$lines[:comment]}H\e[0m\e[J"
-        print "No licks (limited by hole count) match '--tags #{input}'\n"
+        print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
+                         all_tags.sort
       else
         done = true
         $opts[:tags] += doiter if doiter

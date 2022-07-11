@@ -91,9 +91,10 @@ def do_test text
     File.delete(file) if File.exists?(file)
   end
   $memo_seen << text
-  maxlen = $memo[:durations].keys.map {|k| k.length}.max || 0
+  klens = $memo[:durations].keys.map(&:length).sort
+  most_ian = klens[klens.length * 3.to_f / 4] || 0
   time = $memo[:durations][text]
-  print "  #{text.ljust(maxlen)}    #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
+  print "  #{text.ljust(most_ian)}   #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
   start = Time.now.to_f
   yield
   $memo[:durations][text] = Time.now.to_f - start

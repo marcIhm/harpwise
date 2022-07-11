@@ -573,7 +573,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     sleep 2
     expect { screen[1]['licks(7)'] }
     tms 't'
-    tms 'favorites'
+    tms 'favorites,iter'
     tms :ENTER
     sleep 1
     expect { screen[1]['licks(1)'] }

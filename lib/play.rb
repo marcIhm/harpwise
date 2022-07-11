@@ -9,7 +9,7 @@ def do_play
   special = []
   report = []
   other = []
-  special_allowed = %w(ran rand random iterate iter cycle)
+  special_allowed = %w(ran rand random iterate iter cycle cyc)
   report_allowed = %w(print dump history hist)
   all_lnames = $licks.map {|l| l[:name]}
   
@@ -36,14 +36,10 @@ def do_play
     elsif all_lnames.include?(tp)
       lnames << tp
     elsif special_allowed.include?(tp)
-      special <<
-        if tp == 'iter'
-          'iterate'
-        elsif tp == 'ran' || tp == 'rand'
-          'random'
-        else
-          tp
-        end.to_sym
+      special << ({'iter' => 'iterate',
+                   'cyc' => 'cycle',
+                   'ran' => 'random',
+                   'rand' => 'random'}[tp] || tp).to_sym
     elsif report_allowed.include?(tp)
       report <<
         if tp == 'hist'
