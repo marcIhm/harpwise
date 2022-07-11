@@ -2,6 +2,8 @@
 # Perform quiz and licks
 #
 
+$abbrevs_for_iter = %w(iterate iter i cycle cyc c)
+
 def do_quiz
 
   prepare_term
@@ -181,8 +183,8 @@ def do_quiz
           print_last_licks_from_journal $all_licks
           exit
 
-        elsif %w(i iter iterate cycle).include?(start_with)
-          lick_cycle = ( start_with == 'cycle' )
+        elsif $abbrevs_for_iter.include?(start_with)
+          lick_cycle = ( start_with == 'c' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
 
@@ -190,7 +192,7 @@ def do_quiz
           lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
 
         else # search lick by name and maybe start iteration          
-          doiter = %w(,iterate ,iter ,i ,cycle).find {|x| start_with.end_with?(x)}
+          doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
           lick_cycle = start_with.end_with?('cycle')
           start_with[-doiter.length .. -1] = '' if doiter
 
@@ -856,8 +858,10 @@ def read_tags_and_refresh_licks curr_lick
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
   opof = 'or part of; SPC to list, RET to go without'
   print_in_columns "Current lick #{curr_lick[:name]} has these tags", curr_lick[:tags]
-  print_prompt_context "New value for option '--tags'", opof
+  print_prompt_context "Single value for option '--tags' (opt with ,cycle)", opof
   input = STDIN.gets.chomp
+  doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| input.end_with?(x)}
+  input[-doiter.length .. -1] = '' if doiter
   begin
     mtags = if input == ' '
               all_tags
@@ -878,6 +882,7 @@ def read_tags_and_refresh_licks curr_lick
         print "No licks (limited by hole count) match '--tags #{input}'\n"
       else
         done = true
+        $opts[:tags] += doiter if doiter
       end
     elsif mtags.length == 0
       print_in_columns "No tags match your input '#{input}'; these are available",
