@@ -227,6 +227,12 @@ def do_quiz
       # reset those controls here, because play-calls below may set
       # them again and we may need to redo below accordingly
       $ctl_back = $ctl_next = $ctl_replay = false
+
+      # show later comment already while playing
+      unless first_round
+        lines = comment_while_playing(all_wanted)
+        fit_into_comment(lines) if lines
+      end
       
       if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
         play_holes all_wanted, first_round
@@ -903,4 +909,20 @@ def read_tags_and_refresh_licks curr_lick
     end
   end while !done || $licks.length == 0
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
+end
+
+
+def comment_while_playing holes
+  # Show all lines in case of immediate or if the comment would show them anyway
+  if $conf[:comment] == :holes_scales
+    holes_with_scales = scaleify(holes)
+    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, 0)
+  elsif $conf[:comment] == :holes_intervals
+    holes_with_intervals = intervalify(holes)
+    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, 0)
+  elsif $conf[:comment] == :holes_all || $opts[:immediate]
+    wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
+  else
+    nil
+  end
 end
