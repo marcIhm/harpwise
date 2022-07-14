@@ -79,8 +79,9 @@ calibrate:
 
 ------ licks ------
 
-  The mode licks is a variation of quiz, which helps to learn and memorize
-  licks from a given set:
+  The mode licks (recommended !) is a variation of quiz, which helps
+  to learn and memorize licks (i.e. short musical phrases with a
+  sequence of holes and an mp3-recording):
 
     ./harpwise licks c
 
@@ -93,7 +94,15 @@ calibrate:
   those with certain tags; tags (e.g. 'scales') may also
   be excluded like '--no-tags scales'.
 
-  Use '--tags print' to see all defined tags in lick-file (or see there).
+  Use '--tags print' to see all defined tags in lick-file (or see there); the
+  lick file 
+
+  For mode licks to be useful, you need to add your own licks; for
+  more info and possible sources see the starter file created initally
+  (typically at ~/.harpwise/licks/richter/licks_with_holes.txt).
+
+  Please note, that this mode will set the scale to 'all' if no scale
+  argument is given.
 
   To play only shorter licks use e.g. '--max-holes 8' or '--min-holes 12'
   for longer.  '--start-with' specifies the first lick to play and accepts
@@ -116,11 +125,6 @@ calibrate:
 
   If you want to play the holes of the lick (rather than the recording), add
   option '--holes', which also honors the option '--partial'.
-
-  For mode licks to be useful, you need to create a file with your own
-  licks for more info see the starter file created initally.  Please note,
-  that this mode will set the scale to 'all' if no scale argument is
-  given.
 
 
 ------ play ------
@@ -174,6 +178,10 @@ calibrate:
         --disp chart-scales --add-scales chord-i,chord-iv,chord-v \
         --comment holes-all
 
+  Personally I have spend some money on some good lick collections
+  (see the sample lick file for pointers), so that I have 50 or so
+  licks, that just sound great in my ears.
+  
 
   Lick-Radio: Play all my licks in random order:
 

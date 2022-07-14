@@ -163,9 +163,9 @@
 
 *** The frequency gauge
 
-    Currently it looks like this:
+    It looks like this:
 
-    [..........:..|.......]
+    [..........:..I.......]
 
     The middle position (marked by ":") represents the frequency, that was
     found during calibration. If you have done an automatic calibration,

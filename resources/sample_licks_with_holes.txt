@@ -6,14 +6,14 @@
 # This file is made up of [sections].
 # Empty lines and comments are ignored.
 #
-#
-# A lick (juke) can be defined like this:
-#
 
+#
+# A lick (e.g. 'juke') can be defined like this:
+#
 [juke]
   holes = -1 -2/ -3// -3 -4 -4
-  # this will be shown at the bottom of the screen, when the lick
-  # is played.
+  # the description will be shown at the bottom of the screen,
+  # when the lick is played.
   desc = a classic lick by Little Walter
   # we have a recording for this lick; will be searched in subdir 'recordings'.
   rec = juke.mp3
@@ -27,20 +27,23 @@
   # Key of 'c' is the default anyway, use this if the recording
   # is done with a different harmonica
   rec.key = c
+#
+# The above lick is only a simple sample (for a richter harp).
+# See further down below for more complex examples of defining
+# licks with more explanation.
+#
+
 
 #
-# The above lick is only a sample and only for richter harp.
-# See further down below for more examples with more explanation.
+# Important Note: You will need to add quite some more licks (with
+# recordings), before the mode 'licks' can really be useful.
 #
-# You will need to add some more licks and recordings, before the
-# mode 'licks' can really be useful.
-#
-# To get started end you may search the web; make sure, to grep 
+# To get started you may search the web; make sure, to grep 
 # audio samples too or record them yourself. For example, see
 #
-#   https://www.harmonica.com/6-blues-riffs/
+#   https://www.harmonica.com/6-blues-riffs
 #
-# for a handful of great and free licks.
+# for a handful of great licks.
 #
 #
 # Much more extensive are these two books with lots of licks,
@@ -51,26 +54,39 @@
 # - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
 #
 #
-# Liam Ward has lick collections for each skill level at
+# Also, Liam Ward has really nice collections of licks for each
+# skill level at:
 #
-#   https://www.learntheharmonica.com/
+#   https://www.learntheharmonica.com
+#
+#
+# Not beeing commercially connected with any of these offerings,
+# I really found them invaluable in collecting the 50 or so
+# favorite licks, that I am trying to learn ...
+#
+# Finally When adding licks to this file, you probably will need
+# to adjust the notation for holes; let the initial error
+# messages be your guide or look at the file
+# harpwise/config/richter/holes.yaml
 #
 
 
-# Once you have defined more than a dozen licks, you may want to
-# reduce typing efford when adding a new lick. This can be done
-# by setting some default-information and reusing it in many
-# licks.
+#
+# Once you have defined more than a dozen licks, you may or may
+# not want to reduce typing efford when adding a new lick. This
+# can be done by setting some default-information and reusing it
+# in many licks.
 #
 # To this end there are two Special sections:
 #
 #   [vars]     defining global variables to be used in tags;
-#              may help to save some typing.
+#              this may help to save some typing.
 #   [default]  define values, that will be included in any lick;
-#              works only for tags; in an individual lick you
+#              only allowed, for tags; in an individual lick you
 #              may override or add to this.
 #
-# both sections are optional, so you may just omit them.
+# both sections are totally optional, so you may just omit them
+# at start, or if you find them confusing
 #
 
 
