@@ -8,143 +8,174 @@ def parse_arguments
 
   # General idea of processing commandline:
   #
-  # We process options first, because there do not have ambiguities; after
-  # that, the remaining ags will be processed by their content (see below)
+  # We get the mode first, because set of available options depends on it.
+  #  
+  # Then we process all options.  Last come the remaining positional
+  # arguments, which depend on the mode too, but are not only recognized
+  # by the position, but by their content too.
 
+  # produce general usage, if appropriate
+  if ARGV.length == 0 || %w(-h --help -? ? help usage --usage).any? {|w| w.start_with?(ARGV[0])}
+    print_usage_info
+    exit
+  end
+  # get mode
+  err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
+  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play calibrate)) do |none, choices|
+    err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information"
+  end.to_sym
+  ARGV.shift
+  for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
+
+
+  #
   # Process options
+  #
   
   opts = Hash.new
-
   # defaults from config
   opts[:fast] = $conf[:play_holes_fast]
 
-  opts_with_args = [:hole, :comment, :display, :transpose_scale_to, :ref, :add_scales, :remove, :tags, :no_tags, :max_holes, :min_holes, :start_with, :partial]
-  { %w(--debug) => :debug,
-    %w(--testing) => :testing,
-    %w(-s --screenshot) => :screenshot,
-    %w(-h --help) => :help,
-    %w(--auto) =>:auto,
-    %w(--hole) => :hole,
-    %w(--add-scales) => :add_scales,
-    %w(-r --remove) => :remove,
-    %w(--add-no-holes) => :no_add_holes,
-    %w(--immediate) => :immediate,
-    %w(--transpose_scale_to) => :transpose_scale_to,
-    %w(-r --ref) => :ref,
-    %w(-d --display) => :display,
-    %w(-c --comment) => :comment,
-    %w(-f --fast) => :fast,
-    %w(--no-fast) => :no_fast,
-    %w(--tags) => :tags,
-    %w(--no-tags) => :no_tags,
-    %w(--max-holes) =>:max_holes,
-    %w(--min-holes) =>:min_holes,
-    %w(--holes) => :holes,
-    %w(--no-progress) => :no_progress,
-    %w(--start-with) => :start_with,
-    %w(-p --partial) => :partial,
-    %w(-l --loop) => :loop}.each do |txts,opt|
-    begin
-      found_one = false
-      txts.each do |txt|
-        for i in (0 .. ARGV.length - 1) do
-          if txt.start_with?(ARGV[i]) && ARGV[i].length >= [4, txt.length].min
-            opts[opt] = opts_with_args.include?(opt) ? ARGV.delete_at(i+1) : true
-            ARGV.delete_at(i)
-            found_one = true
-            break
-          end
-        end
-      end
-    end while found_one
-  end
-  opts_with_args.each do |opt|
-    err "Option '--#{opt}' needs an argument" if opts.keys.include?(opt) && !opts[opt].is_a?(String)
+  # will be enriched with descriptions and arguments below
+  modes2opts = 
+    [[Set[:calibrate, :listen, :quiz, :licks, :play], {
+        debug: %w(--debug),
+        testing: %w(--testing),
+        screenshot: %w(--screenshot),
+        help: %w(-h --help -? --usage)}],
+     [Set[:listen, :quiz, :licks], {
+        add_scales: %w(--add-scales ),
+        remove_scales: %w(--remove-scales),
+        no_add_holes: %w(--no-add-holes),
+        ref: %w(-r --ref ),
+        display: %w(-d --display),
+        comment: %w(-c --comment)}],
+     [Set[:quiz, :play], {
+        fast: %w(--fast),
+        no_fast: %w(--no-fast)}],
+     [Set[:quiz, :licks], {
+        immediate: %w(--immediate),
+        no_progress: %w(--no-progress),
+        loop: %w(--loop)}],
+     [Set[:listen, :quiz], {
+        transpose_scale_to: %w(--transpose_scale_to)}],
+     [Set[:calibrate], {
+        auto: %w(--auto),
+        hole: %w(--hole)}],
+     [Set[:licks], {
+        tags_any: %w(-t --tags-any),
+        tags_all: %w(--tags-all),
+        no_tags_any: %w(-n --no-tags-any),
+        no_tags_all: %w(--no-tags-all),
+        max_holes: %w(--max-holes),
+        min_holes: %w(--min-holes),
+        holes: %w(--holes),
+        start_with: %w(--start-with),
+        partial: %w(-p --partial)}]]
+
+  all_sets = modes2opts.map {|m2o| m2o[0]}
+  fail 'Internal error; at least one set of modes appears twice' unless all_sets.uniq.length == all_sets.length
+
+  # construct hash with options specific for mode; take descriptions from
+  # file with embedded ruby
+  opt2desc = yaml_parse('resources/opt2desc.yaml').transform_keys!(&:to_sym)
+  opts_all = Hash.new
+  modes2opts.each do |modes, opts|
+    next unless modes.include?(mode)
+    opts.each do |osym, odet|
+      fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
+      opts_all[osym] = [odet]
+      opts_all[osym] << opt2desc[osym][1]
+      opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
+    end
   end
 
+  # match available options against command-line arguments
+  i = 0
+  while i<ARGV.length do
+    unless ARGV[i].start_with?('-')
+      i += 1
+      next
+    end
+    matching = Hash.new {|h,k| h[k] = Array.new}
+    opts_all.each do |osym, odet|
+      odet[0].each do |ostr|
+        matching[osym] << ostr if ostr.start_with?(ARGV[i])
+      end
+    end
+
+    if matching.keys.length > 1
+      err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
+    elsif matching.keys.length == 0
+       if mode != :play
+         err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{for_usage}"
+       else
+         i += 1
+       end
+    else
+      # put into central hash of options
+      osym = matching.keys[0]
+      odet = opts_all[matching.keys[0]]
+      ARGV.delete_at(i)
+      if odet[1]
+        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{for_usage}")
+        ARGV.delete_at(i)
+      else
+        opts[osym] = true
+      end
+    end
+  end
+
+  
+  #
   # Special handling for some options
+  #
   
   opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
-    err "Option '--display' needs one of #{choices} as an argument, not #{none}"
+    err "Option '--display' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
   end
   opts[:display]&.gsub!('-','_')
   
   if opts[:max_holes]
-    err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'" unless opts[:max_holes].match?(/^\d+$/)
+    err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'; #{for_usage}" unless opts[:max_holes].to_s.match?(/^\d+$/)
     opts[:max_holes] = opts[:max_holes].to_i
   end
     
   if opts[:min_holes]
-    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'" unless opts[:min_holes].match?(/^\d+$/)
+    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{for_usage}" unless opts[:min_holes].match?(/^\d+$/)
     opts[:min_holes] = opts[:min_holes].to_i
   end
     
   opts[:fast] = false if opts[:no_fast]
 
-  err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
+  err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
-  # usage if no arguments
-  if ARGV.length == 0 || opts[:help]
-
-    # get content of all harmonica-types to be inserted
-    types_content = $conf[:all_types].map do |type|
-      "scales for #{type}: " +
-        scales_for_type(type).join(', ')
-    end.join("\n  ")
-    
-    puts ERB.new(IO.read('resources/usage.txt')).result(binding)
+  if opts[:help] || ARGV.length == 0
+    print_usage_info(mode, opts_all) 
     exit 1
   end
 
   # used to issue current state of processing in error messages
   $err_binding = binding
 
-  
-  # Now ARGV does not contain any more options; process non-option arguments
-
-  # General idea of argument processing:
   #
-  # We take the mode, then type and key, by recognising it among other
-  # args by their content; then we process the scale, which is normally
-  # the only remaining argument.
+  # Now ARGV does not contain any options; process remaining non-option arguments
 
-  # get mode
-  err "Mode 'memorize' is now 'licks'; please change your first argument" if 'memorize'.start_with?(ARGV[0])
-  mode = match_or(ARGV[0], %w(listen quiz licks play calibrate)) do |none, choices|
-    err "First argument can be one of #{choices}, not #{none}"
-  end.to_sym
-  ARGV.shift
-
-
-  # As we now have the mode, we may do some final processing on options,
-  # which requires the mode
+  # Mode has already been takne first, so we take type and key, by
+  # recognising it among other args by their content; then we process the
+  # scale, which is normally the only remaining argument.
+  #
 
   opts[:comment] = match_or(opts[:comment], $comment_choices[mode].map {|c| c.to_s.gsub('_','-')}) do |none, choices|
-    err "Option '--comment' needs one of #{choices} as an argument, not #{none}"
+    err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
   end
   opts[:comment] = opts[:comment].gsub!('-','_').to_sym if opts[:comment]
   
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
-  err("Unknown options: #{other_opts.join(',')}") if other_opts.length > 0 && mode != :play
-
-  # check for invalid combinations of mode and options
-  [[[:quiz, :licks],
-    [:loop, :immediate]],
-   [[:listen, :quiz, :licks],
-    [:remove, :add_scales, :add_no_holes, :comment]],
-   [[:calibrate],
-    [:auto]],
-   [[:licks, :play],
-    [:sections, :max_holes, :holes]],
-   [[:licks],
-    [:start_with, :partial]]].each do |modes_opts|
-    modes_opts[1].each do |opt|
-      err "Option '--#{opt}' is allowed for modes '#{modes_opts[0]}' only" if opts[opt] && !modes_opts[0].include?(mode)
-    end
-  end
+  err("Unknown options: #{other_opts.join(',')}; #{for_usage}") if other_opts.length > 0 && mode != :play
 
 
   # In any case, mode quiz requires a numeric argument right after the
@@ -153,7 +184,7 @@ def parse_arguments
   if mode == :quiz
     $num_quiz = ARGV[0].to_i
     if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'"
+      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'; #{for_usage}"
     end
     ARGV.shift
   end
@@ -161,7 +192,7 @@ def parse_arguments
 
   # type and key are taken from front of args only if they match the
   # predefined set of choices; otherwise they come from config
-  
+
   if ARGV.length > 0
     type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
     if type_matches.length == 1 && ARGV[0].length > 1
@@ -184,7 +215,7 @@ def parse_arguments
   if mode == :play
     $to_play = []
     $to_play << ARGV.shift while ARGV.length > 0
-    err("Need a lick or some holes as arguments") if $to_play.length == 0
+    err("Need a lick or some holes as arguments; #{for_usage}") if $to_play.length == 0
   end
 
   
@@ -193,7 +224,7 @@ def parse_arguments
 
   case mode
   when :listen, :quiz
-    err("Mode '#{mode}' needs at least one argument for scale") if ARGV.length == 0
+    err("Mode '#{mode}' needs at least one argument for scale; #{for_usage}") if ARGV.length == 0
     scale = get_scale_from_sws(ARGV.shift)
   when :licks
     if ARGV.length > 0
@@ -204,16 +235,16 @@ def parse_arguments
   when :play
     scale = get_scale_from_sws('all:A')
   when :calibrate
-    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}") if ARGV.length > 0
+    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{for_usage}") if ARGV.length > 0
     scale = get_scale_from_sws('all:A')
   else
     fail "Internal error"
   end
   
-  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}" unless !$scale || scales_for_type(type).include?(scale)
+  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{for_usage}" unless !$scale || scales_for_type(type).include?(scale)
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}" if ARGV.length > 0 && mode != :play && mode != :licks
+  err "Cannot handle these arguments: #{ARGV}; #{for_usage}" if ARGV.length > 0 && mode != :play && mode != :licks
   $err_binding = nil
 
   # Commandline processing is complete here
@@ -278,4 +309,37 @@ def check_key_and_set_pref_sig key
 
     nil
     err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
+end
+
+
+def print_usage_info mode = nil, opts = nil
+  # get content of all harmonica-types to be inserted
+  types_content = $conf[:all_types].map do |type|
+    txt = "scales for #{type}: "
+    scales_for_type(type).each do |scale|
+      txt += "\n    " if (txt + scale).lines[-1].length > 80
+      txt += scale + ', '
+    end
+    txt.chomp(', ')
+  end.join("\n  ")
+
+  puts
+  puts ERB.new(IO.read("resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
+  
+  if opts
+    puts "\nAVAILABLE OPTIONS\n\n"  
+    opts.values.each do |odet|
+      next unless odet[2]
+      print "\e[0m\e[32m"
+      print '  ' + odet[0].join(', ')
+      print(' ' + odet[1]) if odet[1]
+      print "\e[0m"
+      print ' : '
+      lines = odet[2].chomp.lines
+      print lines[0]
+      lines[1..-1].each {|l| print '    ' + l}
+      puts
+    end
+  end
+  puts
 end

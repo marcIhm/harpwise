@@ -1,0 +1,32 @@
+OVERVIEW
+
+  The mode 'quiz' (similar to the mode 'listen') is a game of
+  challenge (the wise) and response (you).  Typically it plays a
+  random sequence of holes and asks you to play it back. If
+  successful, the next sequence will be chosen.
+
+  This mode helps to train your musical memory.
+
+  The mode requires an additional argument at second place, stating
+  the length of the sequence.
+
+USAGE BY EXAMPLES
+
+  The Wise plays 3 notes from the scale 'major_pentatonic' for a
+  chromatic harmonica of key a and then quizzes you to play them back
+  (then repeat):
+
+    ./harpwise quiz 3 chrom a major_pentatonic
+
+  In the examples above, the type of harmonica (e.g. richter or
+  chromatic) and, in addition, the key (e.g. c or a) may be omitted and
+  are then taken from the config; so
+
+    ./harpwise q 3 ma
+
+  is valid as well (but would choose a richter harp).
+
+  This example to removes drawbends from all notes:
+
+    ./harpwise quiz 3 all --remove-scales drawbends
+

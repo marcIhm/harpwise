@@ -192,8 +192,8 @@ def read_musical_config
     
     # get all holes to remove
     holes_remove = []
-    if $opts[:remove]
-      $opts[:remove].split(',').each do |sn|
+    if $opts[:remove_scales]
+      $opts[:remove_scales].split(',').each do |sn|
         sc_ho, _ = read_and_parse_scale(sn, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
         holes_remove.concat(sc_ho)
       end

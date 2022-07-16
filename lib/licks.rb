@@ -5,7 +5,6 @@
 
 $lick_file_mod_time = nil
 $lick_file = nil
-
 def read_licks graceful = false
 
   $lick_file = lfile = get_lick_file
@@ -163,32 +162,36 @@ def read_licks graceful = false
     df.puts derived.join("\n") + "\n"
   end
 
-  # keep only those licks, that match argument --tags
-  keep = Set.new($opts[:tags]&.split(','))
-  discard = Set.new($opts[:no_tags]&.split(','))
-  tags_in_opts = Set.new(discard + keep)
+  # keep only those licks, that match any of the four --tags arguments
+  keep_any = Set.new($opts[:tags_any]&.split(','))
+  keep_all = Set.new($opts[:tags_all]&.split(','))
+  discard_any = Set.new($opts[:no_tags_any]&.split(','))
+  discard_all = Set.new($opts[:no_tags_all]&.split(','))
+  tags_in_opts = Set.new(discard_any + discard_all + keep_any + keep_all)
   tags_in_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
 
-  if $opts[:tags] == 'print'
+  all_tag_opts = [$opts[:tags_any], $opts[:tags_all], $opts[:no_tags_any], $opts[:no_tags_all]]
+
+  if all_tag_opts.include?('print')
     print_lick_and_tag_info all_licks, licks
     exit
   end
 
-  if $opts[:tags] == 'dump'
+  if all_tag_opts.include?('dump')
     pp all_licks
     exit
   end
 
-  if $opts[:tags] == 'hist' || $opts[:tags] == 'history'
+  if (all_tag_opts & ['hist', 'history']).any?
     print_last_licks_from_journal all_licks
     exit
   end
 
-  if keep.intersection(discard).any?
+  if (keep_all).intersection(discard_any).any?
     if graceful
       return [[],[]]
     else
-      err "No licks can be found, because options '--tags' and '--no-tags' have this intersection: #{keep.intersection(discard).to_a}"
+      err "No licks can be found, because options '--tags-all' and '--no-tags-any' have this intersection: #{(keep_all).intersection(discard_any).to_a}"
     end
   end
     
@@ -196,18 +199,18 @@ def read_licks graceful = false
     if graceful
       return [[],[]]
     else
-      err "There are some tags in option '--tags' and '--no-tags' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in '--tags' and '--no-tags' are: #{(tags_in_opts - tags_in_licks).to_a}"
+      err "There are some tags in option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in options are: #{(tags_in_opts - tags_in_licks).to_a}"
     end
   end
-  
-  licks = all_licks.
-            select {|lick| keep.empty? || (keep.to_a & lick[:tags]).any?}.
-            reject {|lick| discard.any? && (discard.to_a & lick[:tags]).any?}.
-            select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
-            select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}.
-            uniq {|lick| lick[:holes]}
 
-  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying options '--tags' and '--no-tags', '--max-holes' and '--min-holes'") if licks.length == 0
+  licks = all_licks.
+            select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
+            select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
+            reject {|lick| discard_any.any? && (discard_any.to_a & lick[:tags]).any?}.
+            reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
+            select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
+            select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
+  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying options '--tags-any', '--tags-all', '--no-tags-any', '--no-tags-all', '--max-holes' and '--min-holes'") if licks.length == 0
 
   [all_licks, licks]
 end
@@ -402,7 +405,7 @@ end
 
 def print_licks_by_tags licks
   ltags = tags = nil
-  puts "All licks with their tags:"
+  puts "Licks with their tags:"
   puts
   print '  '
   licks.each do |lick|

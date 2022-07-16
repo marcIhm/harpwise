@@ -1,224 +1,64 @@
+harpwise ('wise' for short) supports the daily practice of bends,
+scales, intervals or licks on a diatonic (richter) or chromatic
+harmonica for various keys.
 
+The first argument on the commandline specifies the mode of operation;
+it can be one of:
 
-harpwise ('wise' for short) helps to practice scales (e.g. blues or
-major_pentatonic) for harmonicas of various types (e.g. richter or
-chromatic) for various keys (e.g. a or c).  Main modes of operation
-are 'listen', 'quiz' and 'licks'.
+  - listen: Listen to your playing, e.g. to monitor bends or scales
+  - quiz: Train your ear and musical memory
+  - licks: Learn licks (licks not included, but some pointers)
+  - play: Play scales, holes or licks
+  - calibrate: Generate samples for holes or record your own
 
+to read more details, usage examples and options for the individual
+modes, invoke them without arguments, e.g.
 
-Usage by examples for the modes listen, quiz, licks, play and
-calibrate:
+  ./harpwise listen
 
 
------- listen ------
+After the first argument (which specifies the mode) some additional
+arguments may be given:
 
-  Example: The wise listens, while your are playing a richter
-  (abbreviated as 'ri') harmonica of key c and it shows the holes,
-  that you played; green if from the scale, red otherwise:
+  - type: mostly 'richter' or 'chromatic' but other choices might be
+    defined. If ommitted, this defaults to 'richter'.
 
-    ./harpwise listen ri c blues
+  - key: key of harp, e.g. 'c' or 'g' or 'af' (a flat) or
+    'ds' (d sharp). If ommitted, this defaults to 'c'.
 
-  Add option '--comment interval' (or '-c i') to show intervals instead
-  of notes; other possible values are 'note' and 'hole'.
-  See below ('quiz') for some options accepted by both modes.
+  - scale: scale on which you want to concentrate, e.g. 'blues',
+    'major_pentatonic' or 'all'. No default.
 
-  Switch on journal to get a simple transcription of the holes played.
+An example using all these arguments would be:
 
+  ./harpwise listen richter c blues
 
------- quiz ------
+,which (relying on defaults), could also be written as:
 
-  The Wise plays 3 notes from the scale 'major_pentatonic' for a
-  chromatic harmonica of key a and then quizzes you to play them back
-  (then repeat):
+  ./harpwise listen blues   
 
-    ./harpwise quiz 3 chrom a major_pentatonic
 
-  Add option '--loop' (or '-l') to loop over sequence until you type
-  'RETURN'. Option '--immediate' shows the full hole-sequence during quiz
-  right from the start (rather than after some delay only).
-
-  In the examples above, the type of harmonica (e.g. richter or
-  chromatic) and, in addition, the key (e.g. c or a) may be omitted and
-  are then taken from the config; so
-
-    ./harpwise q 3 ma
-
-  is valid as well (but would choose a richter harp).
-
-
-  Both modes listen and quiz accept the option '--add-scales' with one or
-  more extra scales (separated by comma) to be shown. E.g. when trying
-  licks for the v-chord, you might use the blues scale and add the scales
-  chord-i and chord-v:
-
-    ./harpwise lis blues --add-scales chord-i:1,chord-v
-
-  This example also defines a short name, '1' for the scale 'chord-i'
-  which will be used in the chart (however without need, because that
-  short name is already defined within the scale-file).
-    
-  For quiz, the holes from the additional scales will be chosen more
-  frequent than the holes from the main scale (blues); the last note of a
-  sequence will likely be a root note (i.e. one with the remark root). If
-  you do not want to add new holes, so that you only use remarks, colors
-  and scale-name from the additional scales, add option '--add-no-holes'.
-
-  Both modes accept the option '--remove' with one or more scales to be
-  removed from the original scale. E.g. you might want to remove bends
-  from all notes:
-
-    ./harpwise quiz 3 all --remove drawbends
-
-  Both modes listen and quiz allow an option '--display' with possible
-  values of 'hole' and 'chart' to change how a recognized hole will be
-  displayed.
-
-  Some (display-)settings can also be changed while the program is
-  running; type 'h' for details.
-
-
------- licks ------
-
-  The mode licks (recommended !) is a variation of quiz, which helps
-  to learn and memorize licks (i.e. short musical phrases with a
-  sequence of holes and an mp3-recording):
-
-    ./harpwise licks c
-
-    ./harpwise licks c --tags fav,scales
-
-  If the lick has a recording, it will be transposed to match the key
-  specified.
-
-  As shown in the second example, you may restrict the set of licks to
-  those with certain tags; tags (e.g. 'scales') may also
-  be excluded like '--no-tags scales'.
-
-  Use '--tags print' to see all defined tags in lick-file (or see there); the
-  lick file 
-
-  For mode licks to be useful, you need to add your own licks; for
-  more info and possible sources see the starter file created initally
-  (typically at ~/.harpwise/licks/richter/licks_with_holes.txt).
-
-  Please note, that this mode will set the scale to 'all' if no scale
-  argument is given.
-
-  To play only shorter licks use e.g. '--max-holes 8' or '--min-holes 12'
-  for longer.  '--start-with' specifies the first lick to play and accepts
-  the special values 'last' or 'l' to repeat the last lick ('2l', '3l' for
-  earlier licks); licks addressed this way will not be written to the
-  journal.  Use '--start-with iter' to iterate through all selected licks
-  one by one; use '--start-with foo,iter' to start at lick foo; 'cycle'
-  instead of 'iter' starts all over at the end.  To see a list of recent
-  licks use '--start-with history', for a list of all licks from lick-file
-  '--start-with print'.
-
-  To make the mode more *challenging* and to improve the learning result,
-  you may let only parts of the recording be played. E.g. with '--partial
-  1/3@b', '1/4@x' or '1/2@e', which would play the first (1/3) third of
-  the recording, any randomly chosen quarter (1/4) of it or the last half
-  (1/2) (but at least one second). '--partial 1@b', '1@e' or '2@x' play
-  the given number of seconds or holes (1 or 2) at the given position
-  (b=begin, x=random, e=end); or, e.g. '1/2@e' plays the second half;
-  as a special case '--part 0' plays nothing initially.
-
-  If you want to play the holes of the lick (rather than the recording), add
-  option '--holes', which also honors the option '--partial'.
-
-
------- play ------
-
-  If you just want the wise to play something, without beeing challenged
-  to play it back:
-
-    ./harpwise play c +1 -2+3 c4
-
-    ./harpwise play c juke
-
-  which can play either the holes or notes given on the commandline or a
-  complete lick.
-
-  The special argument 'random' just plays a random lick, 'last' (or 'l',
-  '2l', etc) repeats the last lick played (even from mode licks).
-
-  The arguments 'iterate' or 'cycle' play all the licks selected by
-  options '--tags' and '--no-tags'. Also, the special lick names
-  'history', 'print' and 'dump' are accepted as plain arguments (see
-  '--start-with' for mode licks above).
-
-  If you want to play the holes of the lick (rather than the recording),
-  add option '--holes'.
-
-
------- calibrate ------
-
-  Once in the lifetime of your c-harp you need to calibrate the wise for
-  the frequencies of the harp you are using:
-
-    ./harpwise calibrate c
-    
-  this will ask you to play notes on your harp. The samples will be
-  stored in the hidden folder .harpwise within your home
-  directory; frequencies will be extracted to the file frequencies.yaml.
-
-  This command does not need a scale-argument.
-
-  For quick (but possibly inaccurate) calibration you may use the option
-  '--auto' to generate and analyze all needed samples automatically.
-
-  To calibrate only a single whole, add e.g. '--hole -3//'.
-
-
---- Real-World examples ---
-
-  Memorize licks, but only shorter ones and show the scales for each hole:
-
-    ./harpwise licks c blues --loop --max-holes 15 --imm --no-tags scales \
-        --disp chart-scales --add-scales chord-i,chord-iv,chord-v \
-        --comment holes-all
-
-  Personally I have spend some money on some good lick collections
-  (see the sample lick file for pointers), so that I have 50 or so
-  licks, that just sound great in my ears.
-  
-
-  Lick-Radio: Play all my licks in random order:
-
-    ./harpwise play random cycle
-
-
-  Show what I am playing, emphasise notes from scales blues and major pentatonic:
-
-    ./harpwise listen blues --add-scales major_pentatonic
-  
-
---- Some Notes ---
-
-  The possible scales depend on the chosen type of harmonica:
+The possible scales depend on the chosen type of harmonica:
 
   <%=types_content%>
+  
 
-  For modes 'listen' and 'quiz' you may choose to transpose the scale to
-  another key: '--transpose_scale_to d'. This would be helpful, if you
-  want to practice e.g. the d-major scale on a chromatic harmonica of key
-  c. For a diatonic harmonica, however, your milage may vary, as not all
-  notes are available.
+Besides the arguments for type, key and scale, there are a lot of
+options (introduced by '-'), some requiring an argument.
 
-  Modes, that play notes (usually one second) accept the option '--fast'
-  to play them for half a second only; use '--no-fast' to override on the
-  commandline, if config.yaml sets this to true.
+Most arguments and options can be abreviated, e.g 'lis' for 'listen'
+or 'cal' for 'calibrate'.
 
-  Most arguments and options can be abreviated, e.g 'l' for 'listen' or
-  'cal' for 'calibrate'.
+Also note, that for most modes, the behaviour (e.g. the kind of
+display) of the wise can be changed interactively; type 'h' to see
+help on this.
 
-  Finally there are some less used options: --ref, --no-progress, --debug,
-  --screenshot, --help, --testing
+Suggested reading:
 
+  - usage information for the individual modes
+  - the toplevel file README.org
 
-Suggested reading: The toplevel file README.org
 
 Version <%=$version%>
-Copyright (c) 2021-2022 by Marc Ihm.
+Copyright (c) 2021-2022 by Marc Ihm. 
 This program is subject to the MIT License.
-

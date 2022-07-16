@@ -83,8 +83,8 @@ def do_play
     err 'See above'
   end
   
-  if holes.length > 0 && ( $opts[:tags] || $opts[:no_tags] )
-    err "Cannot use option '--tags' or '--no-tags' when playing holes #{holes}"
+  if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
+    err "Cannot use option '--tags_any', '--tags_all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
   end
   
   if special.include?(:iterate) && special.include?(:cycle)

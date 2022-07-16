@@ -1,0 +1,35 @@
+OVERVIEW
+
+  The mode 'play' builds no fancy display and is not interactive; it
+  rather plays, what you specify on the commandline; this can be any
+  of:
+
+    - holes
+    - licks
+    - special values to reference e.g. the last lick
+    - Not play anything, but give information about licks
+    
+  This mode needs no scale argument.
+
+USAGE BY EXAMPLES
+
+  Play a few holes on a harp of key c:
+  to play it back:
+
+    ./harpwise play c +1 -2+3 c4
+
+  Play the lick 'juke'; transpose it to d:
+  
+    ./harpwise play d juke
+
+  Play a single random lick:
+
+    ./harpwise play random
+
+  Lick-Radio: Play all my licks in random order:
+
+    ./harpwise play random cycle
+
+  Give info about licks:
+
+    ./harpwise play print

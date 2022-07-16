@@ -1,0 +1,46 @@
+OVERVIEW
+
+  The mode 'licks' (similar to the mode 'quiz') is a game of challenge
+  (the wise) and response (you).  Typically it plays a random lick
+  from your collection and asks you to play it back note by note. If
+  successful, the next lick will be chosen.
+
+  This mode helps to learn and memorize licks.
+
+  For harpwise, a 'lick' is a short musical phrase with a sequence of
+  holes and an mp3-recording.
+  
+  Please Note: This mode relies on a collection of licks, that you
+  need to accumulate over time; only a simple starter collection will
+  be created at first start; tyypically it will be kept at:
+  ~/.harpwise/licks/richter/licks_with_holes.txt
+
+  This mode will set the scale to 'all' if no scale argument is given.
+
+USAGE BY EXAMPLES
+
+  Play licks from your collection; transpose them (i.e. recordings) to
+  the key of c if necessary:
+  
+    ./harpwise licks c
+
+  The same, but only choose from licks with tags 'fav' or 'scales'
+
+    ./harpwise licks c --tags-any fav,scales
+
+  There are a lot more options to filter the set of available licks
+  (see below); see also the lick-file created initially on more
+  explanation on the concept of tags.
+  
+  Here is a more sophisticated example. It helps to memorize licks,
+  but only shorter ones and it shows the scales for each hole:
+
+    ./harpwise licks c blues --loop --max-holes 15 --imm \
+        --no-tags-any scales --disp chart-scales \
+	--add-scales chord-i,chord-iv,chord-v \
+        --comment holes-all
+
+  Personally I have spend some money on some good lick collections
+  (see the sample lick file for pointers), so that I have 50 or so
+  licks, that just sound great in my ears.
+  

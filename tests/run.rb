@@ -36,20 +36,27 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   #
   # Collect usage examples and later check, that none of them produces string error
   #
+  usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play].map do |t|
+    [(t || :none).to_s,
+     ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
+  end.to_h
   usage_examples = []
-  File.read('resources/usage.txt').lines.map(&:strip).each do |l|
-    usage_examples[-1] += ' ' + l if (usage_examples[-1] || '')[-1] == '\\'
-    usage_examples << l if l.start_with?('harpwise ') || l.start_with?('./harpwise ')
+
+  usage_types.values.map {|p| p[0]}.each do |fname|
+    File.read("resources/#{fname}.txt").lines.map(&:strip).each do |l|
+      usage_examples[-1] += ' ' + l if (usage_examples[-1] || '')[-1] == '\\'
+      usage_examples << l if l.start_with?('harpwise ') || l.start_with?('./harpwise ')
+    end
   end
   usage_examples.map {|l| l.gsub!('\\','')}
   # remove known false positives
-  known_not = ['helps to practice', 'chrom']
+  known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke']
   usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
   # replace some, e.g. due to my different set of licks
   repl = {'./harpwise play c juke' => './harpwise play c easy'}
   usage_examples.map! {|l| repl[l] || l}
   # check count
-  num_exp = 12
+  num_exp = 17
   fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
   
   puts "\nPreparing data"
@@ -68,13 +75,22 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   #
 
 
-  do_test 'id-01: usage screen' do
-    new_session
-    tms './harpwise'
-    tms :ENTER
-    sleep 2
-    expect { screen[-7]['Suggested reading'] }
-    kill_session
+  usage_types.keys.each_with_index do |mode, idx|
+    do_test "id-u%02d: usage screen mode #{mode}" % idx do
+      new_session
+      tms "./harpwise #{usage_types[mode][1]}"
+      tms :ENTER
+      sleep 2
+      exp = { 'none' => [-11, 'Suggested reading'],
+              'calibrate' => [-3, 'start with calibration'],
+              'listen' => [-3, 'your milage may vary'],
+              'quiz' => [-3, 'your milage may vary'],
+              'licks' => [-3, 'plays nothing initially'],
+              'play' => [-3, 'notes are played'] }
+      
+      expect { screen[exp[mode][0]][exp[mode][1]] }
+      kill_session
+    end
   end
   
   %w(a c).each_with_index do |key,idx|
@@ -217,6 +233,14 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
+  do_test 'id-09a: error on ambigous option' do
+    new_session
+    tms './harpwise listen testing a all --r drawbends --testing'
+    tms :ENTER
+    expect { screen[4]['ERROR: Argument'] }
+    kill_session
+  end
+  
   do_test 'id-0a: mode licks to create simple lick file' do
     lick_dir = "#{$data_dir}/licks/testing"
     lick_file = "#{lick_dir}/licks_with_holes.txt"
@@ -353,36 +377,57 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 12
     tst_out = read_testing_output
-    expect { tst_out[:licks].length == 7 }
-    expect { screen[1]['licks(7) testing a all'] }
+    expect { tst_out[:licks].length == 8 }
+    expect { screen[1]['licks(8) testing a all'] }
     kill_session
   end
 
-  do_test 'id-18: mode licks with licks with tags' do
+#  All testing-licks with their tags:
+#
+#  juke ..... samples,favorites
+#  special ..... samples,advanced
+#  blues ..... scales,theory
+#  mape ..... scales
+#  one,two,three,long ..... testing
+#
+#  Total number of licks:   8
+  
+  do_test 'id-18: mode licks with licks with tags_any' do
     new_session
-    tms './harpwise licks testing --tags favorites,testing a --testing'
+    tms './harpwise licks testing --tags-any favorites,testing a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
-    # Six licks in file, four in those two sections, but two of them are identical
-    expect { tst_out[:licks].length == 4 }
+    # See comments above for verification
+    expect { tst_out[:licks].length == 5 }
+    kill_session
+  end
+  
+  do_test 'id-18a: mode licks with licks with tags_all' do
+    new_session
+    tms './harpwise licks testing --tags-all scales,theory a --testing'
+    tms :ENTER
+    sleep 2
+    tst_out = read_testing_output
+    # See comments above for verification
+    expect { tst_out[:licks].length == 1 }
     kill_session
   end
 
   do_test 'id-19: mode licks with licks excluding one tag' do
     new_session
-    tms './harpwise licks testing --no-tags scales a --testing'
+    tms './harpwise licks testing --no-tags-any scales a --testing'
     tms :ENTER
     sleep 2
     tst_out = read_testing_output
-    # Seven licks in file minus one scale with two licks minus one double
-    expect { tst_out[:licks].length == 5 }
+    # See comments above for verification
+    expect { tst_out[:licks].length == 6 }
     kill_session
   end
 
   do_test 'id-1a: error on unknown --tags' do
     new_session
-    tms './harpwise licks testing --tags unknown a --testing'
+    tms './harpwise licks testing --tags-any unknown a --testing'
     tms :ENTER
     sleep 2
     expect { screen[4]['ERROR: There are some tags'] }
@@ -401,7 +446,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1c: print list of tags' do
     new_session
-    tms './harpwise licks testing --tags print'
+    tms './harpwise licks testing --tags-any print'
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
@@ -571,8 +616,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise lick testing blues --start-with juke --testing'
     tms :ENTER
     sleep 2
-    expect { screen[1]['licks(7)'] }
+    expect { screen[1]['licks(8)'] }
     tms 't'
+    tms '1'
+    tms :ENTER
     tms 'favorites,iter'
     tms :ENTER
     sleep 1
@@ -624,7 +671,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
 
   usage_examples.each_with_index do |ex,idx|
-    do_test "id-u%02d: usage #{ex}" % idx do
+    do_test "id-e%02d: usage #{ex}" % idx do
       new_session
       tms ex + ' --testing'
       tms :ENTER

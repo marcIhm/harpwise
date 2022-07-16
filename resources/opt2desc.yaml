@@ -1,0 +1,145 @@
+# See https://yaml-multiline.info for various types of quotes
+# Some processing on multiline strings happens in arguments.rb too
+
+debug:
+  -
+
+testing:
+  -
+
+screenshot:
+  -
+
+help:
+  -
+
+add_scales:
+  - show these additional scales
+  - SCALE1,SCALE2,...
+
+remove_scales:
+  - "subtract the holes of these scales\nfrom the primary one"
+  - SCALE1,SCALE2,...
+
+no_add_holes:
+
+  - |
+    for holes from the primary scale, take remarks, colors and
+    scale-name from the additional scales; but do not add any new
+    holes
+    
+transpose_scale_to:
+
+  - |
+    transpose the scale to another key (e.g. d).
+    This would be helpful, if you want to practice e.g. the d-major
+    scale on a chromatic harmonica of key c. For a diatonic harmonica,
+    however, your milage may vary, as not all notes are available
+  - KEY
+
+display:
+  - "initial display, ARG can be one of:\n
+    <%=$display_choices.map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
+  - ARG
+
+comment:
+  - "initial comment, ARG can be one of one of:\n
+    <%=$comment_choices[$mode].map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
+  - ARG
+  
+ref:
+  - reference hole used e.g. in some displays
+  - HOLE
+
+fast:
+  - samples for notes are played for half a second only
+
+no_fast:
+  - samples for notes are played for one second
+  
+immediate:
+  - show correct sequence of holes right away
+
+no_progress:
+  - "do check for correctness of played holes, just show,\nwhat you play"
+  
+loop:
+
+  - |
+    when the sequence has been played correctly, do not advance,
+    but rather query the same sequence again; repeat until you press
+    RETURN
+
+auto:
+  - generate audio samples without user intervention
+  
+hole:
+  - start with calibration from this hole and on
+  - HOLE
+
+tags_any:
+
+  - "filter licks and keep those, having any\nof the given tags (example: --tags-any scales,classic)"
+  - TAG1,TAG2,...
+    
+tags_all:
+  
+  - "filter licks and keep only those, having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
+  - TAG1,TAG2,...
+
+no_tags_any:
+  - "filter licks and keep only those, which do\nnot have any of the given tags"
+  - TAG1,TAG2,...
+
+no_tags_all:
+  - "filter licks and keep those, which do not have\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
+  - TAG1,TAG2,...
+
+max_holes:
+  - "filter licks and keep those, that have at maximum\nthis number of holes"
+  - NUMBER
+
+min_holes:
+  - "filter licks and keep those, that have at minimum\nthis number of holes"
+  - NUMBER
+  
+holes:
+  - play the sequence of holes, even if a sample is available
+  
+start_with:
+
+  - |
+    the name of the first lick to play;
+    accepts the special values 'last' or 'l' to repeat the last lick
+    (2l, 3l for earlier licks); licks addressed this way will not be
+    written to the journal.
+
+    Use '--start-with iter' to iterate through all selected licks one by one
+    use '--start-with foo,iter' to start at lick foo; 
+    'cycle' instead of 'iter' starts all over at the end.  
+
+    To see a list of recent licks use '--start-with history'; 
+    for a list of all licks from lick-file '--start-with print'
+  - LICK_OR_KEYWORD
+
+partial:
+
+  - |
+    to make the mode 'licks' more *challenging*
+    and to improve the learning result, you may let only parts of the
+    recording be played.
+
+    Examples for this option are:
+
+      --partial 1/3@b, 1/4@x or 1/2@e, which would
+      play: the first third of the recording, any randomly chosen
+      quarter (1/4) of it or the last half (but at least one
+      second). 
+ 
+      --partial 1@b, 1@e or 2@x play the given number of
+      seconds or holes (1 or 2) at the given position (b=begin,
+      x=random, e=end) 
+
+      as a special case --part 0 plays nothing initially
+  - PARTIAL_SPEC
+  

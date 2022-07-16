@@ -1,0 +1,42 @@
+OVERVIEW
+
+  The wise needs a set of audio-samples; these are the sounds of each
+  of the holes for one second; blow, draw, bend.
+  
+  The samples are used to:
+  
+  - play a series of wholes, that you should remember (e.g. for mode quiz)
+  - judge the frequencies of your playing against the frequencies of the
+    samples to find out, which note you are actually playing
+
+  You may either record those samples under the guidance of this mode;
+  or you may let the wise generate them for you (see option --auto
+  below)
+
+  The samples need to be generated for each key but only once in the
+  lifetime of the wise; you may start with just gerating them for the
+  key of c.
+
+  By its nature, this mode only accepts arguments for type and key,
+  but not for scale.
+  
+
+USAGE BY EXAMPLES
+
+  Calibrate the wise for the frequencies of the harp you are using:
+
+    ./harpwise calibrate c
+
+  this will ask you to play notes on your harp. The samples will be
+  stored in the hidden folder .harpwise within your home
+  directory; frequencies will be extracted to the file frequencies.yaml.
+
+
+  For quick (but possibly inaccurate) calibration you may use:
+
+    ./harpwise calibrate c --auto
+
+
+  To calibrate a single hole only (for key a):
+
+    ./harpwise calibrate c --hole -3//

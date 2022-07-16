@@ -4,9 +4,9 @@
 
   [[images/harmonica.png]]
 
-  Ruby script to support the daily practice for bends, scales, intervals
+  Ruby script to support the daily practice of bends, scales, intervals
   or licks on a diatonic (richter) or chromatic harmonica for various
-  keys. Also helps when writing down tabs.
+  keys.
 
   Its main operation modes are 'listen', 'quiz' and 'licks'; these
   modes may help to:
@@ -44,6 +44,7 @@
   - listen: Listen to your playing, e.g. to monitor bends or scales
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
+  - play: Play scales, holes or licks
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
@@ -80,7 +81,7 @@
    For this to work best, you may:
 
    - Add the option --add-scales on the commandline to tell, which scales
-     you may want to see, e.g. "--add-scales chord-i:1,chord-iv:4,chord-v:5,root:r"
+     you may want to see, e.g. "--add-scales chord-i,chord-iv,chord-v"
    - Find and add your own licks as described above
    
 ** The reference hole
