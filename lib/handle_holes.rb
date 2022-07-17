@@ -283,7 +283,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     if $ctl_show_help
       clear_area_comment
-      puts "\e[#{$lines[:help]}H\e[0mShort help on keys (see README.org for more details):\e[0m\e[32m\n"
+      puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
       puts "   SPACE: pause               ctrl-l: redraw screen"
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
       puts "     c,C: change comment (lower, i.e. this, part of screen)"

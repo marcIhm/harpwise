@@ -1,7 +1,8 @@
 OVERVIEW
 
-  The wise needs a set of audio-samples; these are the sounds of each
-  of the holes for one second; blow, draw, bend.
+  The wise needs a set of audio-samples; these are the sounds-files
+  (recorded or generated) of each of the holes for one second;
+  blow, draw, bend.
   
   The samples are used to:
   
@@ -9,13 +10,13 @@ OVERVIEW
   - judge the frequencies of your playing against the frequencies of the
     samples to find out, which note you are actually playing
 
-  You may either record those samples under the guidance of this mode;
-  or you may let the wise generate them for you (see option --auto
-  below)
+  You may either record those samples under the guidance of this mode,
+  or you may let the wise generate them for you (see option '--auto'
+  below).
 
-  The samples need to be generated for each key but only once in the
-  lifetime of the wise; you may start with just gerating them for the
-  key of c.
+  The samples need to be generated for each key, but only once in the
+  lifetime of your harp; you may start with the key of c only.
+  After that you are ready to use the other modes of the wise.
 
   By its nature, this mode only accepts arguments for type and key,
   but not for scale.
@@ -39,4 +40,4 @@ USAGE BY EXAMPLES
 
   To calibrate a single hole only (for key a):
 
-    ./harpwise calibrate c --hole -3//
+    ./harpwise calibrate a --hole -3//

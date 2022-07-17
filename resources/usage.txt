@@ -56,7 +56,8 @@ help on this.
 Suggested reading:
 
   - usage information for the individual modes
-  - the toplevel file README.org
+  - the toplevel file README.org, also available at:
+    https://github.com/marcIhm/harpwise/blob/main/README.org
 
 
 Version <%=$version%>

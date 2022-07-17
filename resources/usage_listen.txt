@@ -1,12 +1,12 @@
 OVERVIEW
 
   The mode 'listen' shows information on the notes you play; depending
-  on settings for display and comment, this can be:
+  on settings for display and comment this can be:
 
     - Hole
     - Note
     - Interval to previous note
-    - Difference to a defined reference note, e.g. to train bends
+    - Difference to a reference note, e.g. to practice bends
     - Membership of played note in various scales
 
 USAGE BY EXAMPLES
@@ -17,8 +17,9 @@ USAGE BY EXAMPLES
 
     ./harpwise listen ri c blues
 
-  The same but also show the notes from the one-chord (chord-i):
+  The same, but also showing the notes from the one-chord (chord-i):
 
     ./harpwise listen blues --add-scales chord-i --display chart-scales
 
-  Switch on journal to get a simple transcription of the holes played.
+  When playing, you may switch on journal to get a simple
+  transcription of the holes played.

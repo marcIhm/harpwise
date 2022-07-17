@@ -18,15 +18,15 @@ add_scales:
   - SCALE1,SCALE2,...
 
 remove_scales:
-  - "subtract the holes of these scales\nfrom the primary one"
+  - "subtract the holes of\nthese scales from the primary one"
   - SCALE1,SCALE2,...
 
 no_add_holes:
 
   - |
-    for holes from the primary scale, take remarks, colors and
-    scale-name from the additional scales; but do not add any new
-    holes
+    for holes from the primary scale, take remarks,
+    colors and scale-name from the additional scales; but 
+    do not add any new holes
     
 transpose_scale_to:
 
@@ -61,7 +61,7 @@ immediate:
   - show correct sequence of holes right away
 
 no_progress:
-  - "do check for correctness of played holes, just show,\nwhat you play"
+  - "do not check for correctness of played holes,\njust show, what you play"
   
 loop:
 
@@ -79,20 +79,20 @@ hole:
 
 tags_any:
 
-  - "filter licks and keep those, having any\nof the given tags (example: --tags-any scales,classic)"
+  - "filter licks and keep those having any\nof the given tags (example: --tags-any scales,classic)"
   - TAG1,TAG2,...
     
 tags_all:
   
-  - "filter licks and keep only those, having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
+  - "filter licks and keep only those having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
   - TAG1,TAG2,...
 
 no_tags_any:
-  - "filter licks and keep only those, which do\nnot have any of the given tags"
+  - "filter licks and keep only those which do\nnot have any of the given tags"
   - TAG1,TAG2,...
 
 no_tags_all:
-  - "filter licks and keep those, which do not have\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
+  - "filter licks and keep those which do not have\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
   - TAG1,TAG2,...
 
 max_holes:

@@ -12,21 +12,21 @@ OVERVIEW
 
 USAGE BY EXAMPLES
 
-  The Wise plays 3 notes from the scale 'major_pentatonic' for a
-  chromatic harmonica of key a and then quizzes you to play them back
-  (then repeat):
+  The Wise plays 3 notes from the scale major_pentatonic for a
+  chromatic harmonica of key a and then quizzes you to play them
+  back (then repeat):
 
     ./harpwise quiz 3 chrom a major_pentatonic
 
   In the examples above, the type of harmonica (e.g. richter or
-  chromatic) and, in addition, the key (e.g. c or a) may be omitted and
-  are then taken from the config; so
+  chromatic) and, in addition, the key (e.g. c or a) may be omitted
+  and are then taken from the config; so
 
     ./harpwise q 3 ma
 
   is valid as well (but would choose a richter harp).
 
-  This example to removes drawbends from all notes:
+  This example removes drawbends from all notes:
 
     ./harpwise quiz 3 all --remove-scales drawbends
 

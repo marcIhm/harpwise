@@ -65,7 +65,7 @@ def parse_arguments
      [Set[:licks], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
-        no_tags_any: %w(-n --no-tags-any),
+        no_tags_any: %w(-nt --no-tags-any),
         no_tags_all: %w(--no-tags-all),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes),

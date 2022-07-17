@@ -1,6 +1,6 @@
 # -*- fill-column: 74 -*-
 
-* Harp Wise
+* harpwise
 
   [[images/harmonica.png]]
 
