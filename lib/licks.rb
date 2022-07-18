@@ -47,7 +47,7 @@ def read_licks graceful = false
           elsif default[:desc_add] && default[:desc_add].length > 0
             lick[:desc] += ' ' + default[:desc_add] 
           end
-          lick[:desc].chomp!
+          lick[:desc].strip!
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -95,7 +95,7 @@ def read_licks graceful = false
       holes = md[1]
       err "File #{lfile} should only contain key 'notes', not 'holes' (below [#{name}])" if lfile['notes']
       lick[:holes] = holes.split.map do |hole|
-        err("Hole '#{hole}' from #{lfile} is not among holes of harp #{$harp_holes}") unless musical_event?(hole) || $harp_holes.include?(hole)
+        err("Hole '#{hole}' in lick #{name} from #{lfile} is not among holes of harp #{$harp_holes}") unless musical_event?(hole) || $harp_holes.include?(hole)
         hole
       end
       err "Lick #{name} does not contain any holes (#{lfile})" unless lick[:holes].length > 0
