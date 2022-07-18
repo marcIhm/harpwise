@@ -101,8 +101,13 @@ def do_test text
 end
 
 
-def read_testing_output
+def read_testing_dump
   JSON.parse(File.read($testing_dump_file), symbolize_names: true)
+end
+
+
+def clear_testing_dump
+  File.rm($testing_dump_file) if File.exist?($testing_dump_file)
 end
 
 

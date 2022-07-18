@@ -40,9 +40,14 @@ def read_licks graceful = false
           # vars have already been assigned; nothing to do here
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
-          lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add]]).flatten.select(&:itself),name)
+          lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add] || default[:tags_add]]).flatten.select(&:itself),name).sort.uniq
           lick[:desc] = lick[:desc] || default[:desc] || ''
-          lick[:desc] += '; ' + lick[:desc_add] if lick[:desc_add] && lick[:desc_add].length > 0
+          if lick[:desc_add] && lick[:desc_add].length > 0
+            lick[:desc] += ' ' + lick[:desc_add] 
+          elsif default[:desc_add] && default[:desc_add].length > 0
+            lick[:desc] += ' ' + default[:desc_add] 
+          end
+          lick[:desc].chomp!
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
           all_licks << lick
@@ -78,14 +83,15 @@ def read_licks graceful = false
           (md = line.match(/^ *(tags) *= *(.*?) *$/))
       var, tags = md[1 .. 2]
       var = var.gsub('.','_').to_sym
-      err "Section [default] does only allow 'tags', but not 'tags.add'" if name == 'default' && var == :tags_add
-      tags.split.each do |tag|
-        err "Tags must consist of word characters; '#{tag}' does not" unless tag.match?(/^#{word_re}$/) || tag.match?(/^\$#{word_re}$/) 
-      end
+      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[var]
       lick[var] = tags.split
+      lick[var].each do |tag|
+        err "Tags must consist of word characters; '#{tag}' (below [#{name}]) does not" unless tag.match?(/^#{word_re}$/) || tag.match?(/^\$#{word_re}$/) 
+      end
 
     # holes = value1 value2 ...
     elsif md = line.match(/^ *holes *= *(.*?) *$/)
+      err "Key 'holes' (below [#{name}]) has already been defined" if lick[:holes]
       holes = md[1]
       err "File #{lfile} should only contain key 'notes', not 'holes' (below [#{name}])" if lfile['notes']
       lick[:holes] = holes.split.map do |hole|
@@ -99,6 +105,7 @@ def read_licks graceful = false
 
     # notes = value1 value2 ...
     elsif md = line.match(/^ *notes *= *(.*?) *$/)
+      err "Key 'notes' (below [#{name}]) has already been defined" if lick[:notes]
       notes = md[1]
       err "File #{lfile} should only contain key 'holes', not 'notes' (below [#{name}])" if lfile['holes']
       lick[:holes] = notes.split.map do |note|
@@ -113,7 +120,7 @@ def read_licks graceful = false
           (md = line.match(/^ *(desc) *= *(.*?) *$/))
       var, desc = md[1 .. 2]
       var = var.gsub('.','_').to_sym
-      err "Section [default] does only allow 'desc', but not 'desc.add'" if name == 'default' && var == :desc_add
+      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[var]
       lick[var] = desc
       
     # key = value  (for remaining keys, e.g. rec)
@@ -122,15 +129,17 @@ def read_licks graceful = false
 
       if name == 'default'
         # correct assignment has been handled before
-        err "Default section only allows key 'tags', not '#{key}'" 
+        err "Default section only allows keys tags, tags.add, desc or desc.add ; not '#{key}'" 
       elsif name == 'vars'
         # correct assignments have been handled before
         err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile})"
       # normal lick
       else
-        # tags, holes and notes have been handled above special
+        # tags, holes and notes have already been handled above special
         if all_keys.include?(key)
-          lick[key.gsub('.','_').to_sym] = value
+          skey = key.gsub('.','_').to_sym
+          err "Key '#{skey}' (below [#{name}]) has already been defined" if lick[skey]
+          lick[skey] = value
         else
           err "Unknown key '#{key}', none of #{all_keys}"
         end
@@ -232,15 +241,23 @@ def create_initial_lick_file lfile
 
         [default]
           tags = testing
+          tags.add = x
+          desc = a
+          desc.add = b
 
         [one]
           holes = +1 +1 -1
 
         [two] 
           holes = +1 +1 -1 +1
+          tags = y
+          tags.add =
+          desc = c
           
         [three]
           holes = +1 +1 -1
+          tags.add = z
+          desc.add = d
 
         [long]
           holes = -1 -1 -1 -1 -1 -1 -1 -1 -2+3 -2+3 -2+3 -2+3 -2+3 -2+3 -2+3 -2+3 -3 -3 -3 -3 -3 -3 -3 -3 -3 -4 -4 -4 -4 -4 -4 -5 -5 -5 -5 -5 -5 -5 -5 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -7 -7 -7 -7 -7 -7 -7 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -10 -10 -10 -10 -10 -10 -10 -10 -10

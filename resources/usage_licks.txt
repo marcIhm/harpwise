@@ -15,6 +15,9 @@ OVERVIEW
   be created at first start; tyypically it will be kept at:
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
+  When adding licks and need to adjust start and end of the recording,
+  you may find the mode 'play' helpful, to check your results.
+
   Personally I have paid for some good lick collections (see the
   sample lick file for pointers), so that I have 50 or so licks, that
   really sound great in my ears.

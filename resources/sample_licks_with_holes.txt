@@ -27,6 +27,7 @@
   # Key of 'c' is the default anyway, use this if the recording
   # is done with a different harmonica
   rec.key = c
+
 #
 # The above lick is only a simple sample (for a richter harp).
 # See further down below for more complex examples of defining
@@ -94,7 +95,8 @@
   # This applies for all licks until overwritten by another [default];
   # tags specified in the individual lick will be added
   tags = samples
-  desc = The sample licks
+  desc = some text that should appear in all licks below
+  desc.add = more text we intend to overwrite in some licks below
 
 [special]
   # A lick requires a series of holes ('holes =') to be played,

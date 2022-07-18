@@ -25,7 +25,7 @@ if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
 end
 $within = ARGV.length == 0
 $testing_dump_file = '/tmp/harpwise_dumped_for_testing.json'
-$testing_output_file = '/tmp/harpwise_dumped_for_testing.txt'
+$testing_output_file = '/tmp/harpwise_output_for_testing.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $data_dir = "#{Dir.home}/.harpwise"
 $all_testing_licks = %w(juke special blues mape one two)
@@ -120,7 +120,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     expect { screen[-4]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
     kill_session
   end
-  
+
   do_test 'id-03: manual calibration summary' do
     sound 1, -14
     new_session
@@ -224,12 +224,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-09: listen with removed scale' do
     sound 8, 2
+    clear_testing_dump
     new_session
     tms './harpwise listen testing a all --remove drawbends --testing'
     tms :ENTER
     sleep 4
-    tst_out = read_testing_output
-    expect { tst_out[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
+    tst_dump = read_testing_dump
+    expect { tst_dump[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
     kill_session
   end
   
@@ -237,6 +238,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     new_session
     tms './harpwise listen testing a all --r drawbends --testing'
     tms :ENTER
+    sleep 1
     expect { screen[4]['ERROR: Argument'] }
     kill_session
   end
@@ -292,12 +294,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
   do_test 'id-12: transpose scale works on non-zero shift' do
+    clear_testing_dump
     new_session
     tms './harpwise listen testing a blues --transpose_scale_to g --testing'
     tms :ENTER
     sleep 2
-    tst_out = read_testing_output
-    expect { tst_out[:scale_holes] == ['-2+3','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+    tst_dump = read_testing_dump
+    expect { tst_dump[:scale_holes] == ['-2+3','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
     kill_session
   end
 
@@ -316,6 +319,26 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms :ENTER
     sleep 4
     expect { screen[5]['-1 +2 -2+3'] }
+    kill_session
+  end
+  
+  do_test 'id-14a: check lick processing on tags.add and desc.add' do
+    clear_testing_dump
+    new_session
+    tms './harpwise play testing a mape --testing'
+    tms :ENTER
+    sleep 4
+    tst_dump = read_testing_dump
+    # use 'one' twice to make index match name
+    licks = %w(one one two three).map do |lname| 
+      tst_dump[:licks].find {|l| l[:name] == lname} 
+    end
+    expect { licks[1][:tags] == %w(testing x) }
+    expect { licks[2][:tags] == %w(y) }
+    expect { licks[3][:tags] == %w(testing z) }
+    expect { licks[1][:desc] == 'a b' }
+    expect { licks[2][:desc] == 'c b' }
+    expect { licks[3][:desc] == 'a d' }
     kill_session
   end
   
@@ -367,61 +390,68 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     expect { screen[4]['Lick juke'] }
     tms :ENTER
     sleep 2
-    expect { screen[9]['Lick special'] }
+    expect { screen[10]['Lick special'] }
     kill_session
   end
   
   do_test 'id-17: mode licks with lick file from previous test' do
+    clear_testing_dump
     new_session
     tms './harpwise licks testing a --testing'
     tms :ENTER
     sleep 12
-    tst_out = read_testing_output
-    expect { tst_out[:licks].length == 8 }
+    tst_dump = read_testing_dump
+    expect { tst_dump[:licks].length == 8 }
     expect { screen[1]['licks(8) testing a all'] }
     kill_session
   end
 
-#  All testing-licks with their tags:
+#  Licks with their tags:
 #
-#  juke ..... samples,favorites
-#  special ..... samples,advanced
+#  juke ..... favorites,samples
+#  special ..... advanced,samples
 #  blues ..... scales,theory
 #  mape ..... scales
-#  one,two,three,long ..... testing
+#  one ..... testing,x
+#  two ..... x,y
+#  three ..... testing,z
+#  long ..... testing,x
 #
 #  Total number of licks:   8
   
   do_test 'id-18: mode licks with licks with tags_any' do
+    clear_testing_dump
     new_session
     tms './harpwise licks testing --tags-any favorites,testing a --testing'
     tms :ENTER
     sleep 2
-    tst_out = read_testing_output
+    tst_dump = read_testing_dump
     # See comments above for verification
-    expect { tst_out[:licks].length == 5 }
+    expect { tst_dump[:licks].length == 4 }
     kill_session
   end
   
   do_test 'id-18a: mode licks with licks with tags_all' do
+    clear_testing_dump
     new_session
     tms './harpwise licks testing --tags-all scales,theory a --testing'
     tms :ENTER
     sleep 2
-    tst_out = read_testing_output
+    tst_dump = read_testing_dump
     # See comments above for verification
-    expect { tst_out[:licks].length == 1 }
+    expect { tst_dump[:licks].length == 1 }
     kill_session
   end
 
   do_test 'id-19: mode licks with licks excluding one tag' do
+    clear_testing_dump
     new_session
     tms './harpwise licks testing --no-tags-any scales a --testing'
     tms :ENTER
     sleep 2
-    tst_out = read_testing_output
+    tst_dump = read_testing_dump
     # See comments above for verification
-    expect { tst_out[:licks].length == 6 }
+    expect { tst_dump[:licks].length == 6 }
     kill_session
   end
 
@@ -439,7 +469,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms './harpwise licks testing --start-with juke a --testing'
     tms :ENTER
     sleep 8
-    expect { screen[-2]['juke | samples,favorites | Hint: Play -1'] }
+    expect { screen[-2]['juke | favorites,samples | Hint: Play -1'] }
     expect { screen[-1]['a classic lick by Little Walter'] }
     kill_session
   end
@@ -463,7 +493,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     lines = File.read($testing_output_file).lines
     $all_testing_licks.each_with_index do |txt,idx|
       # last two licks are printed on the same line
-      expect { lines[11+(idx < 4 ? idx : 4)][txt]}
+      expect { lines[11+idx][txt]}
     end
     kill_session
   end

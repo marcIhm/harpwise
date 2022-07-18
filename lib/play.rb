@@ -181,6 +181,7 @@ end
 def play_and_print_lick lick
   if lick[:rec] && !$opts[:holes]
     puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
+    puts "\e[0m\e[2m#{lick[:desc]}\e[0m" if lick[:desc]
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
     puts
   else
