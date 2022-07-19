@@ -63,6 +63,8 @@ def parse_arguments
         auto: %w(--auto),
         hole: %w(--hole)}],
      [Set[:licks, :play], {
+        holes: %w(--holes),
+        start_with: %w(--start-with),
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
@@ -71,8 +73,6 @@ def parse_arguments
         min_holes: %w(--min-holes),
       }],
      [Set[:licks], {
-        holes: %w(--holes),
-        start_with: %w(--start-with),
         partial: %w(-p --partial)}]]
 
   all_sets = modes2opts.map {|m2o| m2o[0]}

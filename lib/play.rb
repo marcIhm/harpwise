@@ -183,7 +183,7 @@ def play_and_print_lick lick
     puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
     print "\e[0m\e[2m"
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
-    puts "Desc: #{lick[:desc]}" if lick[:desc]
+    puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
     puts
