@@ -88,11 +88,11 @@ tags_all:
   - TAG1,TAG2,...
 
 no_tags_any:
-  - "filter licks and keep only those which do\nnot have any of the given tags"
+  - "filter licks and keep only those which\ndo not have any of the given tags"
   - TAG1,TAG2,...
 
 no_tags_all:
-  - "filter licks and keep those which do not have\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
+  - "filter licks and keep those which do\nnot have all of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
   - TAG1,TAG2,...
 
 max_holes:
@@ -114,7 +114,8 @@ start_with:
     (2l, 3l for earlier licks); licks addressed this way will not be
     written to the journal.
 
-    Use '--start-with iter' to iterate through all selected licks one by one
+    Use '--start-with iter' to iterate through all selected
+    licks one by one
     use '--start-with foo,iter' to start at lick foo; 
     'cycle' instead of 'iter' starts all over at the end.  
 

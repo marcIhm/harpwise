@@ -45,9 +45,10 @@ The possible scales depend on the chosen type of harmonica:
 
 Besides the arguments for type, key and scale, there are a lot of
 options (introduced by '-'), some requiring an argument.
+All options are described in the usage info of the various modes.
 
-Most arguments and options can be abreviated, e.g 'lis' for 'listen'
-or 'cal' for 'calibrate'.
+Most arguments and options can be abreviated, e.g 'lis' for 'listen',
+'cal' for 'calibrate' or '-t' for '--tags-any'.
 
 Also note, that for most modes, the behaviour (e.g. the kind of
 display) of the wise can be changed interactively; type 'h' to see
