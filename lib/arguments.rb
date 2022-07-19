@@ -62,13 +62,15 @@ def parse_arguments
      [Set[:calibrate], {
         auto: %w(--auto),
         hole: %w(--hole)}],
-     [Set[:licks], {
+     [Set[:licks, :play], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
         no_tags_all: %w(--no-tags-all),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes),
+      }],
+     [Set[:licks], {
         holes: %w(--holes),
         start_with: %w(--start-with),
         partial: %w(-p --partial)}]]

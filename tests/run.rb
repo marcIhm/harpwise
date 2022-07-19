@@ -81,14 +81,14 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       tms "./harpwise #{usage_types[mode][1]}"
       tms :ENTER
       sleep 2
-      exp = { 'none' => [-12, 'Suggested reading'],
-              'calibrate' => [-3, 'start with calibration'],
-              'listen' => [-3, 'your milage may vary'],
-              'quiz' => [-3, 'your milage may vary'],
-              'licks' => [-3, 'plays nothing initially'],
-              'play' => [-3, 'notes are played'] }
+      expect_usage = { 'none' => [-12, 'Suggested reading'],
+                       'calibrate' => [-3, 'start with calibration'],
+                       'listen' => [-3, 'your milage may vary'],
+                       'quiz' => [-3, 'your milage may vary'],
+                       'licks' => [-3, 'plays nothing initially'],
+                       'play' => [-3, 'this number of holes'] }
       
-      expect { screen[exp[mode][0]][exp[mode][1]] }
+      expect { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
       kill_session
     end
   end
