@@ -33,6 +33,14 @@ USAGE BY EXAMPLES
 
     ./harpwise licks c --tags-any fav,scales
 
+  Show the licks selected by the previous example:
+
+    ./harpwise licks c --tags-any fav,scales -s print
+
+  Show the same with mode play:
+  
+    ./harpwise play print --tags-any fav,scales
+
   There are a lot more options to *filter* the set of available licks
   (see below); see also the lick-file created initially on more
   explanation on the concept of tags.

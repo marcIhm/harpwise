@@ -31,6 +31,6 @@ USAGE BY EXAMPLES
 
     ./harpwise play random cycle
 
-  Show info about licks:
+  Show info about licks; add filter option to select a subset:
 
     ./harpwise play print
