@@ -607,14 +607,14 @@ def play_recording lick, first_round
     start, length = lick[:rec_start], lick[:rec_length]
   end
 
-  issue = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
+  text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
   if first_round
-    print "\e[#{$term_height}H#{issue}\e[K"
+    print "\e[#{$term_height}H#{text} \e[K"
   else
-    print "\e[#{$lines[:hint_or_message]}H#{issue}\e[K"
+    print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_recording_and_handle_kb lick[:rec], start, length, lick[:rec_key], first_round
+  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], first_round)
 
   print skipped ? " skip rest" : " done"
 end

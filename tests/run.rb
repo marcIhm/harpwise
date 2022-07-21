@@ -56,7 +56,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   repl = {'./harpwise play c juke' => './harpwise play c easy'}
   usage_examples.map! {|l| repl[l] || l}
   # check count
-  num_exp = 17
+  num_exp = 19
   fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
   
   puts "\nPreparing data"

@@ -204,7 +204,7 @@ end
 def play_hole_and_handle_kb hole
   wait_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
   begin
-    sleep 0.2
+    sleep 0.1
     handle_kb_play_holes
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread
@@ -238,7 +238,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
   loop_loop_was = $ctl_rec[:loop_loop]
 
   # loop as long as the recording needs to be played again due to
-  # immediate controls triggered pressed while it is playing
+  # immediate controls triggered while it is playing
   begin
     tempo_clause = if tempo == 1.0
                      ''
@@ -261,7 +261,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
 
     # loop to check repeatedly while the recording is beeing played
     begin
-      sleep 0.2
+      sleep 0.1
       handle_kb_play_recording
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
@@ -278,13 +278,13 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         end
       elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
-        print "\e[0m\e[32m x%.1f\e[0m" % tempo
+        print "\e[0m\e[32mx%.1f \e[0m" % tempo
       elsif $ctl_rec[:vol_up]
-        volume += 3 if volume < 30
-        print "\e[0m\e[32m %+ddB\e[0m" % volume
-      elsif $ctl_rec[:vol_up]
-        volume -= 3 if volume > -30
-        print "\e[0m\e[32m %+ddB\e[0m" % volume
+        volume += 3 if volume < 60
+        print "\e[0m\e[32m%+ddB \e[0m" % volume
+      elsif $ctl_rec[:vol_down]
+        volume -= 3 if volume > -60
+        print "\e[0m\e[32m%+ddB \e[0m" % volume
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'recording',first_lap,
@@ -315,7 +315,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
       end
 
       if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (+ to end)" + 
+        print "\e[0m\e[32mloop (+ to end) " + 
               ( $ctl_rec[:loop_loop]  ?  ' and loop after loop (L to end)'  :  '' ) +
               "\e[0m"
         loop_message_printed = true
