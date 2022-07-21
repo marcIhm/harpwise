@@ -390,7 +390,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     expect { screen[4]['Lick juke'] }
     tms :ENTER
     sleep 2
-    expect { screen[11]['Lick special'] }
+    expect { screen[13]['Lick special'] }
     kill_session
   end
   
@@ -636,7 +636,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     tms 'n'
     tms 'special'
     tms :ENTER
-    sleep 1
+    sleep 2
     expect { screen[-2]['special'] }
     kill_session
   end
