@@ -9,10 +9,10 @@ def do_quiz
   prepare_term
   start_kb_handler
   start_collect_freqs
-  $ctl_can_next = true
-  $ctl_can_loop = true
-  $ctl_can_named = ( $mode == :licks )
-  $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
+  $ctl_can[:next] = true
+  $ctl_can[:loop] = true
+  $ctl_can[:named] = ( $mode == :licks )
+  $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
   $write_journal = true
   journal_start
   
@@ -59,7 +59,7 @@ def do_quiz
     # - simply done with previous lick and next lick is required
     
     # handle $ctl-commands from keyboard-thread, that probably come from a previous loop iteration
-    if $ctl_back # 
+    if $ctl_listen[:back] # 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
           print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
@@ -77,9 +77,9 @@ def do_quiz
           all_wanted = all_wanted_before
         end
       end
-      $ctl_loop = true
+      $ctl_listen[:loop] = true
 
-    elsif $ctl_named_lick  # can only happen for mode licks
+    elsif $ctl_listen[:named_lick]  # can only happen for mode licks
 
       stop_kb_handler
       sane_term
@@ -112,9 +112,9 @@ def do_quiz
       
       start_kb_handler
       prepare_term
-      $ctl_named_lick = false
+      $ctl_listen[:named_lick] = false
       
-    elsif $ctl_change_tags  # can only happen in licks
+    elsif $ctl_listen[:change_tags]  # can only happen in licks
       
       stop_kb_handler
       sane_term
@@ -127,13 +127,13 @@ def do_quiz
 
       start_kb_handler
       prepare_term
-      $ctl_change_tags = false
+      $ctl_listen[:change_tags] = false
       
-    elsif $ctl_replay
+    elsif $ctl_listen[:replay]
       
       # nothing to do here, replay will happen at start of next loop
       
-    else # e.g. sequence done or $ctl_next: go to the next sequence
+    else # e.g. sequence done or $ctl_listen[:next]: go to the next sequence
 
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
@@ -211,22 +211,18 @@ def do_quiz
       end
 
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
-      $ctl_loop = $opts[:loop]
+      $ctl_listen[:loop] = $opts[:loop]
 
     end # handling $ctl-commands and calculating the next holes
 
     #
     #  Play the sequence or recording
     #
-    if !zero_partial? || $ctl_replay
+    if !zero_partial? || $ctl_listen[:replay]
       
       print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K" unless first_round
 
-      $ctl_ignore_partial = true if zero_partial? && $ctl_replay
-
-      # reset those controls here, because play-calls below may set
-      # them again and we may need to redo below accordingly
-      $ctl_back = $ctl_next = $ctl_replay = false
+      $ctl_listen[:ignore_partial] = true if zero_partial? && $ctl_listen[:replay]
 
       # show later comment already while playing
       unless first_round
@@ -234,13 +230,16 @@ def do_quiz
         fit_into_comment(lines) if lines
       end
       
-      if $mode == :quiz || !lick[:rec] || $ctl_ignore_recording || ($opts[:holes] && !$ctl_ignore_holes)
+      if $mode == :quiz || !lick[:rec] || $ctl_listen[:ignore_recording] || ($opts[:holes] && !$ctl_listen[:ignore_holes])
         play_holes all_wanted, first_round
       else
         play_recording lick, first_round
       end
 
-      redo if $ctl_back || $ctl_next || $ctl_replay      
+      if $ctl_rec[:replay]
+        $ctl_listen[:replay] = true
+        redo
+      end
 
       print "\e[#{$lines[:issue]}H\e[0mListen ...\e[32m and !\e[0m\e[K" unless first_round
       sleep 0.3
@@ -248,11 +247,11 @@ def do_quiz
     end
 
     # reset controls before listening
-    $ctl_back = $ctl_next = $ctl_replay = false
+    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
-    $ctl_ignore_recording = $ctl_ignore_holes = $ctl_ignore_partial = false
+    $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
 
     #
     #  Prepare for listening
@@ -280,7 +279,7 @@ def do_quiz
     begin   # while looping over one sequence
 
       round_start = Time.now.to_f
-      $ctl_forget = false
+      $ctl_listen[:forget] = false
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment if [:holes_scales, :holes_all, :holes_intervals]
       
@@ -293,7 +292,7 @@ def do_quiz
           
           # lambda_issue
           -> () do
-            if $ctl_loop
+            if $ctl_listen[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes "
             else
               if $num_quiz == 1 
@@ -308,18 +307,18 @@ def do_quiz
           
           # lambda_good_done_was_good
           -> (played, since) {[played == wanted || musical_event?(wanted),  
-                               $ctl_forget ||
+                               $ctl_listen[:forget] ||
                                ((played == wanted || musical_event?(wanted)) &&
                                 (Time.now.to_f - since >= min_sec_hold )),
                                idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
 
           # lambda_skip
-          -> () {$ctl_next || $ctl_back || $ctl_replay},  
+          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay]},  
 
           
           # lambda_comment; this one needs no arguments at all
           -> (*_) do
-            if idx != idx_refresh_comment_cache || $ctl_update_comment
+            if idx != idx_refresh_comment_cache || $ctl_listen[:update_comment]
               idx_refresh_comment_cache = idx
               $perfctr[:lambda_comment_quiz_call] += 1
               idx_refresh_ccache = idx
@@ -338,7 +337,7 @@ def do_quiz
                 else
                   err "Internal error unknown comment style #{$conf[:comment]}"
                 end
-              $ctl_update_comment = false
+              $ctl_listen[:update_comment] = false
             end
             comment_cache
           end,
@@ -374,7 +373,7 @@ def do_quiz
 
         )  # end of get_hole
 
-        break if $ctl_next || $ctl_back || $ctl_replay || $ctl_forget || $ctl_named_lick || $ctl_change_tags
+        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
 
       end # notes in a sequence
       
@@ -382,7 +381,7 @@ def do_quiz
       #  Finally judge result
       #
 
-      if $ctl_forget
+      if $ctl_listen[:forget]
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
@@ -395,13 +394,13 @@ def do_quiz
         sleep 0.3
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
         # update comment
-        ctext = if $ctl_next
+        ctext = if $ctl_listen[:next]
                   'next'
-                elsif $ctl_back
+                elsif $ctl_listen[:back]
                   'jump back'
-                elsif $ctl_replay
+                elsif $ctl_listen[:replay]
                   'replay'
-                elsif $ctl_named_lick || $ctl_change_tags
+                elsif $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
                   nil
                 else
                   full_seq_shown ? 'Yes ' : 'Great ! '
@@ -420,15 +419,15 @@ def do_quiz
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless $ctl_replay || $ctl_forget || $ctl_next || $ctl_named_lick || $ctl_change_tags
-          print "\e[0m\e[32mAnd #{$ctl_loop ? 'again' : 'next'} !\e[0m\e[K"
+        unless $ctl_listen[:replay] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+          print "\e[0m\e[32mAnd #{$ctl_listen[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
         end
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_loop || $ctl_forget) && !$ctl_back && !$ctl_next && !$ctl_replay && !$ctl_named_lick  && !$ctl_change_tags  # looping over one sequence
+    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
 
     print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_round = false
@@ -522,7 +521,7 @@ end
 
 def play_holes all_holes, first_round, terse = false
 
-  if $opts[:partial] && !$ctl_ignore_partial
+  if $opts[:partial] && !$ctl_listen[:ignore_partial]
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
@@ -530,7 +529,7 @@ def play_holes all_holes, first_round, terse = false
   
   IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
   
-  $ctl_skip = false
+  $ctl_hole[:skip] = false
   $column_short_hint_or_message = 1
   ltext = "\e[2m(h for help) "
   holes.each_with_index do |hole, idx|
@@ -583,14 +582,13 @@ def play_holes all_holes, first_round, terse = false
       play_hole_and_handle_kb hole
     end
 
-    if $ctl_show_help
-      display_kb_help 'series of holes',first_round, <<~end_of_content
-        SPACE: pause/continue 
+    if $ctl_hole[:show_help]
+      display_kb_help 'series of holes',first_round,  <<~end_of_content
+        SPACE: pause/continue
         TAB,+: skip to end
       end_of_content
-      $ctl_show_help = false
-    end
-    if $ctl_skip
+      $ctl_hole[:show_help] = false
+    elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"
       sleep 0.3
       break
@@ -602,7 +600,7 @@ end
 
 def play_recording lick, first_round
 
-  if $opts[:partial] && !$ctl_ignore_partial
+  if $opts[:partial] && !$ctl_listen[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else

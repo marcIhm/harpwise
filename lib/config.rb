@@ -9,17 +9,47 @@ def set_global_vars_early
   
   $sample_rate = 48000
 
+  #
   # These $ctl-Vars transport requests and events initiated by the
   # user; mostly keys pressed but also window changed; but not input
   # from the microphone
+  #
+  # We choose Struct instead of Hash to be more typesafe
+  #
+
+  # Collect any key pressed and keep it until processed
   $ctl_kb_queue = Queue.new
-  # Variables that be set by pressing keys
-  $ctl_skip = $ctl_loop = $ctl_start_loop = $ctl_named_lick = $ctl_toggle_journal = $ctl_show_help = $ctl_change_key = $ctl_change_scale = $ctl_quit = $ctl_change_display = $ctl_change_comment = $ctl_set_ref = $ctl_update_comment = $ctl_redraw = $ctl_done = $ctl_next = false
-  # variables that define capabilities
-  $ctl_can_next = $ctl_can_back = $ctl_can_loop = $ctl_can_named = false
   $ctl_sig_winch = false
+  
+  # Variables that may be set by pressing keys when listening to microphone
+  ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, 
+        :loop, :start_loop,
+        :named_lick, :change_key, :change_scale, :change_tags, :show_help,
+        :ignore_partial, :ignore_holes, :ignore_recording, 
+        :toggle_journal, :change_display, :change_comment, :update_comment,
+        :set_ref]
+  $ctl_listen = Struct.new(*ks).new
+  ks.each {|k| $ctl_listen[k] = false}
+
+  # result of processing keys, while a recording is played
+  ks = [:skip, :replay, :slower, :vol_up, :vol_down,
+        :loop, :loop_loop, :lick_lick,
+        :show_help, :pause_continue]
+  $ctl_rec = Struct.new(*ks).new
+  ks.each {|k| $ctl_rec[k] = false}
+
+  # result of processing keys, while a series of holes is played
+  ks = [:skip, :show_help]
+  $ctl_hole = Struct.new(*ks).new
+  ks.each {|k| $ctl_hole[k] = false}
+
+  # capabilities available (or not) when processing keyboard
+  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named]
+  $ctl_can = Struct.new(*ks).new
+  ks.each {|k| $ctl_can[k] = false} 
+  
   # These are related to the ctl_issue function, which allows
-  # reactions on user actions
+  # reactions on user actions immediately from within the keyboard handler
   $ctl_issue_default = ''
   $ctl_issue_width = 36
   $ctl_issue_non_def_ts = nil
@@ -71,6 +101,7 @@ def calculate_screen_layout
   squeeze = 1 if $term_height < 27
   on_edge = ( $term_height <= $conf[:term_min_height] )
   need_message2 = ( $mode == :quiz || $mode == :licks )
+  lines = Struct.new(:issue, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :comment_tall).new
   lines = Hash.new
   lines[:issue] = 1
   lines[:key] = 2

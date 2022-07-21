@@ -23,8 +23,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   loop do   # until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
-    system('clear') if $ctl_redraw
-    if first_round || $ctl_redraw
+    system('clear') if $ctl_listen[:redraw]
+    if first_round || $ctl_listen[:redraw]
       $perfctr[:lambda_issue_call] += 1
       print "\e[#{$lines[:issue]}H\e[0m#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
       $ctl_issue_default = "SPACE to pause; h for help"
@@ -32,13 +32,13 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
-      if $ctl_redraw && $ctl_redraw != :silent
+      if $ctl_listen[:redraw] && $ctl_listen[:redraw] != :silent
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;91mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $column_short_hint_or_message = 1
         $message_shown_at = Time.now.to_f
       end
-      $ctl_redraw = false
-      $ctl_update_comment = true
+      $ctl_listen[:redraw] = false
+      $ctl_listen[:update_comment] = true
     end
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
@@ -69,15 +69,15 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     was_was_good = was_good
     good, done, was_good = if $opts[:screenshot]
-                             [true, $ctl_can_next && Time.now.to_f - hole_start > 2, false]
+                             [true, $ctl_can[:next] && Time.now.to_f - hole_start > 2, false]
                            else
                              $perfctr[:lambda_good_done_was_good_call] += 1
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
     done = false if $opts[:no_progress]
-    if $ctl_done
+    if $ctl_listen[:done]
       good = done = true
-      $ctl_done = false
+      $ctl_listen[:done] = false
     end
 
     was_good_since = Time.now.to_f if was_good && was_good != was_was_good
@@ -243,9 +243,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       end
     end      
 
-    if $ctl_set_ref
+    if $ctl_listen[:set_ref]
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} refernce hole\e[0m\e[K"
+      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference hole\e[0m\e[K"
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals
         if $conf[:display] == :chart_intervals
@@ -254,34 +254,34 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         end
       end
       $message_shown_at = Time.now.to_f
-      $ctl_set_ref = false
-      $ctl_update_comment = true
+      $ctl_listen[:set_ref] = false
+      $ctl_listen[:update_comment] = true
     end
     
-    if $ctl_change_display
+    if $ctl_listen[:change_display]
       choices = [ $display_choices, $display_choices ].flatten
-      choices = choices.reverse if $ctl_change_display == :back
+      choices = choices.reverse if $ctl_listen[:change_display] == :back
       $conf[:display] = choices[choices.index($conf[:display]) + 1]
       $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
-      $ctl_change_display = false
+      $ctl_listen[:change_display] = false
     end
     
-    if $ctl_change_comment
+    if $ctl_listen[:change_comment]
       choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
-      choices = choices.reverse if $ctl_change_comment == :back
+      choices = choices.reverse if $ctl_listen[:change_comment] == :back
       $conf[:comment] = choices[choices.index($conf[:comment]) + 1]
       clear_area_comment
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$conf[:comment].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
-      $ctl_change_comment = false
-      $ctl_update_comment = true
+      $ctl_listen[:change_comment] = false
+      $ctl_listen[:update_comment] = true
     end
 
-    if $ctl_show_help
+    if $ctl_listen[:show_help]
       clear_area_comment
       puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
       puts "   SPACE: pause               ctrl-l: redraw screen"
@@ -290,36 +290,36 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "       r: set reference hole       j: toggle writing of journal file"
       puts "       k: change key of harp       s: change scale"
       puts "       q: quit                     h: this help"
-      if $ctl_can_next
+      if $ctl_can[:next]
         puts "\e[0mType any key to show more help ...\e[K"
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         clear_area_comment
         puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
         puts "     .: replay current recording          ,: replay, holes only"
-        puts "   :,p: replay recording but ignore '--partial'"
+        puts "  :,pP: replay recording but ignore '--partial'"
         puts "   RET: next sequence             BACKSPACE: previous sequence"
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
         puts "     #: toggle track progress in seq"
-        puts "     n: switch to lick by name            t: change option --tags" if $ctl_can_named
+        puts "     n: switch to lick by name            t: change option --tags" if $ctl_can[:named]
       end
       puts "\e[0mType any key to continue ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true
       clear_area_comment
-      $ctl_show_help = false
+      $ctl_listen[:show_help] = false
     end
 
-    if $ctl_can_loop && $ctl_start_loop
-      $ctl_loop = true
-      $ctl_start_loop = false
+    if $ctl_can[:loop] && $ctl_listen[:start_loop]
+      $ctl_listen[:loop] = true
+      $ctl_listen[:start_loop] = false
       $perfctr[:lambda_issue_call] += 1
       print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
     end
     
-    if $ctl_toggle_journal
+    if $ctl_listen[:toggle_journal]
       $write_journal = !$write_journal
       if $write_journal
         journal_start
@@ -335,19 +335,19 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[K"
       $message_shown_at = Time.now.to_f
 
-      $ctl_toggle_journal = false
+      $ctl_listen[:toggle_journal] = false
 
       print "\e[#{$lines[:key]}H" + text_for_key      
     end
 
-    if $ctl_change_key || $ctl_change_scale
+    if $ctl_listen[:change_key] || $ctl_listen[:change_scale]
       print "\e[#{$lines[:hint_or_message]}H\e[J\e[0m\e[K"
       $column_short_hint_or_message = 1
       stop_kb_handler
       sane_term
       er = inp = nil
       begin
-        if $ctl_change_key
+        if $ctl_listen[:change_key]
           print "\e[0m\e[2mPlease enter \e[0mnew key\e[2m (current is #{$key}):\e[0m "
           inp = STDIN.gets.chomp
           inp = $key.to_s if inp == ''
@@ -364,7 +364,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         if er
           puts "\e[91m#{er}"
         else
-          if $ctl_change_key
+          if $ctl_listen[:change_key]
             $key = inp.to_sym
           else
             $scale = inp
@@ -379,21 +379,21 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $freq2hole = read_calibration
       start_kb_handler
       prepare_term
-      $ctl_redraw = :silent
+      $ctl_listen[:redraw] = :silent
       system('clear')
       print "\e[#{$lines[:key]}H" + text_for_key
-      if $ctl_change_key
+      if $ctl_listen[:change_key]
         print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
       else
         print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale in use to \e[0m#{$scale}\e[K"
       end
       $message_shown_at = Time.now.to_f
-      $ctl_change_key = $ctl_change_scale = false
+      $ctl_listen[:change_key] = $ctl_listen[:change_scale] = false
     end
 
-    return if $ctl_named_lick || $ctl_change_tags
+    return if $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
 
-    if $ctl_quit
+    if $ctl_listen[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
       exit 0
     end

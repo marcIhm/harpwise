@@ -217,7 +217,7 @@ def stop_kb_handler
 end
 
 
-def handle_kb_play
+def handle_kb_play_holes
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   if char == ' '
@@ -228,9 +228,9 @@ def handle_kb_play
     print "go"
     sleep 0.5
   elsif char == "\t" || char == '+'
-    $ctl_skip = true
+    $ctl_hole[:skip] = true
   elsif char == 'h'
-    $ctl_show_help = true
+    $ctl_hole[:show_help] = true
   end
 end
 
@@ -238,22 +238,26 @@ end
 def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  if char == '.' || char == ','
-    $ctl_replay = true
-    $ctl_ignore_recording = (char == ',')
-    $ctl_ignore_holes = (char == '.')
+  if char == '.' || char == ',' || char == '-'
+    $ctl_rec[:replay] = true
   elsif char == ' '
-    $ctl_pause_continue = true
+    $ctl_rec[:pause_continue] = true
   elsif char == '<'
-    $ctl_slower = true
+    $ctl_rec[:slower] = true
+  elsif char == 'v'
+    $ctl_rec[:vol_down] = true
+  elsif char == 'V'
+    $ctl_rec[:vol_up] = true
   elsif char == 'l'
-    $ctl_rec_loop = true
+    $ctl_rec[:loop] = true
+  elsif char == 'L' && $ctl_can[:loop_loop]
+    $ctl_rec[:loop] = $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] 
+  elsif char == 'c' && $ctl_can[:lick_lick]
+    $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] 
   elsif char == 'h'
-    $ctl_show_help = true
+    $ctl_rec[:show_help] = true
   elsif char == "\t" || char == '+'
-    $ctl_skip = true
-  elsif char == '-'
-    $ctl_replay = true
+    $ctl_rec[:skip] = true
   end
 end
 
@@ -270,71 +274,71 @@ def handle_kb_listen
     end until char == ' '
     ctl_issue 'continue', hl: true
     waited = true
-  elsif char == "\n" && $ctl_can_next
-    $ctl_next = true
+  elsif char == "\n" && $ctl_can[:next]
+    $ctl_listen[:next] = true
     text = 'Skip'
-  elsif char == 'n' && $ctl_can_named
-    $ctl_named_lick = true
+  elsif char == 'n' && $ctl_can[:named]
+    $ctl_listen[:named_lick] = true
     text = 'Named'
-  elsif char == 't' && $ctl_can_named
-    $ctl_change_tags = true
+  elsif char == 't' && $ctl_can[:named]
+    $ctl_listen[:change_tags] = true
     text = 'Named'
   elsif char == 'j'
-    $ctl_toggle_journal = true
+    $ctl_listen[:toggle_journal] = true
     text = nil
   elsif char == 'k'
-    $ctl_change_key = true
+    $ctl_listen[:change_key] = true
     text = nil
   elsif char == 's'
-    $ctl_change_scale = true
+    $ctl_listen[:change_scale] = true
     text = nil
   elsif char == 'q'
-    $ctl_quit = true
+    $ctl_listen[:quit] = true
     text = nil
   elsif char == '1'
-    $ctl_done = true
+    $ctl_listen[:done] = true
     text = 'Hole done'
   elsif char == '?' or char == 'h'
-    $ctl_show_help = true
+    $ctl_listen[:show_help] = true
     text = 'See below for short help'
   elsif char == 'd' || char == "\t"
-    $ctl_change_display = true
+    $ctl_listen[:change_display] = true
     text = 'Change display'
   elsif char == 'D' || char.ord == 90 
-    $ctl_change_display = :back
+    $ctl_listen[:change_display] = :back
     text = 'Change display back'
   elsif char == 'r'
-    $ctl_set_ref = true
+    $ctl_listen[:set_ref] = true
     text = 'Set reference'
   elsif char == 'c'
-    $ctl_change_comment = true
+    $ctl_listen[:change_comment] = true
     text = 'Change comment'
   elsif char == 'C'
-    $ctl_change_comment = :back
+    $ctl_listen[:change_comment] = :back
     text = 'Change comment back'
-  elsif (char == '.' || char == ',' || char == ':' || char == 'p') && $ctl_can_next
-    $ctl_replay = true
-    $ctl_ignore_recording = (char == ',')
-    $ctl_ignore_holes = (char == '.')
-    $ctl_ignore_partial = (char == ':' || char == 'p')
+  elsif %w(. , : p).include?(char) && $ctl_can[:next]
+    $ctl_listen[:replay] = true
+    $ctl_listen[:ignore_recording] = (char == ',')
+    $ctl_listen[:ignore_holes] = (char == '.')
+    $ctl_listen[:ignore_partial] = (char == ':' || char == 'p')
     text = 'Replay'
-  elsif (char == '0' || char == '-') && $ctl_can_next
-    $ctl_forget = true
+  elsif (char == '0' || char == '-') && $ctl_can[:next]
+    $ctl_listen[:forget] = true
     text = 'Forget'
   elsif char == '#'
     $opts[:no_progress] = !$opts[:no_progress]
     text = $opts[:no_progress] ? 'Do not track progress' : 'Track progress'
-  elsif char.ord == 127 && $ctl_can_next
-    $ctl_back = true
+  elsif char.ord == 127 && $ctl_can[:next]
+    $ctl_listen[:back] = true
     text = 'Skip back'
   elsif char.ord == 12
-    $ctl_redraw = :silent
+    $ctl_listen[:redraw] = :silent
     text = 'redraw'
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
-  elsif char == 'l' && $ctl_can_loop && $ctl_can_next
-    $ctl_start_loop = true
+  elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
+    $ctl_listen[:start_loop] = true
     text = 'Loop started'
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
@@ -524,7 +528,7 @@ def handle_win_change
     puts "(Or press ctrl-c to break out of this checking loop.)"
     $ctl_sig_winch = false
     while !$ctl_sig_winch
-      sleep 0.1
+      sleep 0.2
     end
     $term_height, $term_width = %x(stty size).split.map(&:to_i)
     $lines = calculate_screen_layout
@@ -533,6 +537,6 @@ def handle_win_change
   end 
   ctl_issue 'redraw'
   $figlet_cache = Hash.new
-  $ctl_redraw = true
+  $ctl_listen[:redraw] = true
   $ctl_sig_winch = false
 end

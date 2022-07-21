@@ -7,8 +7,8 @@ def do_listen
   prepare_term
   start_kb_handler
   start_collect_freqs 
-  $ctl_can_next = false
-  $ctl_can_loop = false
+  $ctl_can[:next] = false
+  $ctl_can[:loop] = false
   
   system('clear')
   pipeline_catch_up
