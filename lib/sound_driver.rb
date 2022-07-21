@@ -204,14 +204,15 @@ end
 def play_hole_and_handle_kb hole
   wait_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
   begin
-    sleep 0.1
-    handle_kb_play
+    sleep 0.2
+    handle_kb_play_holes
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread
 end
 
 
 def play_recording_and_handle_kb recording, start, length, key, first_lap = true
+
   trim_clause = if start && length
                   "trim #{start} #{length}"
                 elsif start
@@ -229,27 +230,41 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                  end
 
   tempo = 1.0
-  $ctl_rec_loop = false
-  ctl_not_loop = true
+  volume = 0
+  $ctl_rec[:loop] = $ctl_rec[:loop_loop]
+  imm_ctrls_again = [:replay, :slower, :vol_up, :vol_down]
+  loop_message_printed = false
+  lick_lick_was = $ctl_rec[:lick_lick]
+  loop_loop_was = $ctl_rec[:loop_loop]
+
+  # loop as long as the recording needs to be played again due to
+  # immediate controls triggered pressed while it is playing
   begin
     tempo_clause = if tempo == 1.0
                      ''
                    else
                      'tempo -m %.1f' % tempo
                    end                  
-    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause}"
+    volume_clause = if volume == 0
+                     ''
+                   else
+                     'vol %ddb' % volume
+                   end                  
+    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{volume_clause}"
     IO.write($testing_log, cmd + "\n", mode: 'a') if $opts[:testing]
     return false if $opts[:testing]
     _, _, wait_thr  = Open3.popen2(cmd)
-    $ctl_skip = $ctl_replay = $ctl_pause_continue = $ctl_slower = $ctl_help = $ctl_show_help = false
+    (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
     started = Time.now.to_f
     duration = 0.0
     paused = false
+
+    # loop to check repeatedly while the recording is beeing played
     begin
-      sleep 0.1
+      sleep 0.2
       handle_kb_play_recording
-      if $ctl_pause_continue
-        $ctl_pause_continue = false
+      if $ctl_rec[:pause_continue]
+        $ctl_rec[:pause_continue] = false
         if paused
           Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
           paused = false
@@ -261,32 +276,58 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
           started = Time.now.to_f
           printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", duration
         end
-      elsif $ctl_slower
+      elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32m x%.1f\e[0m" % tempo
-      elsif $ctl_show_help
+      elsif $ctl_rec[:vol_up]
+        volume += 3 if volume < 30
+        print "\e[0m\e[32m %+ddB\e[0m" % volume
+      elsif $ctl_rec[:vol_up]
+        volume -= 3 if volume > -30
+        print "\e[0m\e[32m %+ddB\e[0m" % volume
+      elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        display_kb_help 'recording',first_lap, <<~end_of_content
-          SPACE: pause/continue
-          TAB,+: skip to end         -: skip to start
-              <: decrease speed      l: loop over recording
-        end_of_content
+        display_kb_help 'recording',first_lap,
+                        "  SPACE: pause/continue        <: decrease speed\n" + 
+                        "      +: jump to end           -: jump to start\n" +
+                        "      v: decrease volume       V: increase volume by 3dB\n" +
+                        "      l: loop over recording   " +
+                        ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
+                        ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
-        $ctl_show_help = false
-      elsif $ctl_replay
-        print "\e[0m\e[32m replay\e[0m"
-      elsif $ctl_skip
-        print "\e[0m\e[32m skip to end\e[0m"
-      elsif $ctl_rec_loop
-        # have this last, because its $ctl-Variable is not reset automatically
-        print "\e[0m\e[32m loop (+ to end)\e[0m" if ctl_not_loop
-        ctl_not_loop = false
+        $ctl_rec[:show_help] = false
+      elsif $ctl_rec[:replay]
+        print "\e[0m\e[32mreplay \e[0m"
+      elsif $ctl_rec[:skip]
+        print "\e[0m\e[32mjump to end \e[0m"
       end
-    end while wait_thr.alive? && !$ctl_skip && !$ctl_replay && !$ctl_slower
-    $ctl_rec_loop = false if $ctl_skip
+
+      if $ctl_rec[:lick_lick] != lick_lick_was
+        print "\n\e[0m\e[32mContinue with next lick at end is: \e[0m" +
+              ( $ctl_rec[:lick_lick]  ?  'ON'  :  'OFF' ) + "\n"
+        lick_lick_was = $ctl_rec[:lick_lick]
+      end
+
+      if $ctl_rec[:loop_loop] != loop_loop_was
+        print "\n\e[0m\e[32mLoop over next licks is: \e[0m" +
+              ( $ctl_rec[:loop_loop]  ?  'ON'  :  'OFF' ) + "\n"
+        loop_loop_was = $ctl_rec[:loop_loop]
+      end
+
+      if $ctl_rec[:loop] && !loop_message_printed
+        print "\e[0m\e[32mloop (+ to end)" + 
+              ( $ctl_rec[:loop_loop]  ?  ' and loop after loop (L to end)'  :  '' ) +
+              "\e[0m"
+        loop_message_printed = true
+      end
+
+      # need to go leave this loop and play again if any immediate
+      # controls have been triggered
+    end while wait_thr.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
+    
+    $ctl_rec[:loop] = false if $ctl_rec[:skip]
     Process.kill('KILL',wait_thr.pid) if wait_thr.alive?
-    wait_thr.join unless $ctl_skip # raises any errors from thread
-    err('See above') unless $ctl_skip || $ctl_replay || $ctl_slower || $ctl_rec_loop || wait_thr.value.success?
-  end while $ctl_replay || $ctl_slower || $ctl_rec_loop
-  $ctl_skip
+    wait_thr.join unless $ctl_rec[:skip] # raises any errors from thread
+  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
+  $ctl_rec[:skip]
 end

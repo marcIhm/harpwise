@@ -12,13 +12,14 @@ def do_play
   special_allowed = %w(ran rand random iterate iter cycle cyc)
   report_allowed = %w(print dump history hist)
   all_lnames = $licks.map {|l| l[:name]}
+  $ctl_can[:loop_loop] = true
+  $ctl_can[:lick_lick] = true
+  $ctl_rec[:lick_lick] = false
   
   jtext = nil
 
   prepare_term
   start_kb_handler
-  any_key = "\e[2mPress any key for next lick (or 'c' to go without)\e[0m"
-  no_wait_for_key = false
 
   puts "Type is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   
@@ -82,7 +83,7 @@ def do_play
     puts "- report: #{report}" if report.length > 0
     err 'See above'
   end
-  
+
   if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
     err "Cannot use option '--tags_any', '--tags_all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
   end
@@ -128,13 +129,7 @@ def do_play
             lick_idx = rand($licks.length)
           end
           play_and_print_lick $licks[lick_idx]
-          if no_wait_for_key
-            sleep 0.5
-          else
-            puts any_key
-            no_wait_for_key = true if $ctl_kb_queue.deq == 'c'
-            puts
-          end
+          maybe_wait_for_key
         end
       else
         play_and_print_lick $licks.sample(1)[0]
@@ -146,13 +141,7 @@ def do_play
         $licks.each do |lick|
           play_and_print_lick lick
           if lick != $licks[-1] || special.include?(:cycle)
-            if no_wait_for_key
-              sleep 0.5
-            else
-              puts any_key
-              no_wait_for_key = true if $ctl_kb_queue.deq == 'c'
-              puts
-            end
+            maybe_wait_for_key
           end
         end
       end while special.include?(:cycle)
@@ -179,6 +168,7 @@ end
 
 
 def play_and_print_lick lick
+  sleep 1 if $ctl_rec[:loop_loop]
   if lick[:rec] && !$opts[:holes]
     puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
     print "\e[0m\e[2m"
@@ -186,10 +176,27 @@ def play_and_print_lick lick
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
-    puts
   else
     puts "Lick #{lick[:name]} (h for help)"
     play_holes lick[:holes], true, true
+  end
+  puts
+end
+
+def maybe_wait_for_key
+  if $ctl_rec[:lick_lick]
+    puts "\e[0m\e[2mContinue with next lick without waiting for key (press 'c' to toggle)\e[0m"
+    sleep 0.5
+  else
+    puts "\e[0m\e[2m" +
+         "Press any key for next lick, especially:\n" +
+         "  c: continue without further questions\n" +
+         "  L: loop over next and all licks until pressed again " +
+         ( $ctl_rec[:loop_loop]  ?  "(already ON)"  :  "(currently OFF)" ) +
+         "\e[0m"
+    char = $ctl_kb_queue.deq
+    $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] if char == 'c'
+    $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] if char == 'L'
     puts
   end
 end
