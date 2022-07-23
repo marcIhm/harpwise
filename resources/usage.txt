@@ -9,6 +9,7 @@ it can be one of:
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
   - play: Play scales, holes or licks
+  - report: Produce reports about licks and your playing history
   - calibrate: Generate samples for holes or record your own
 
 to read more details, usage examples and options for the individual
@@ -44,7 +45,7 @@ The possible scales depend on the chosen type of harmonica:
   
 
 Besides the arguments for type, key and scale, there are a lot of
-options (introduced by '-'), some requiring an argument.
+options (introduced by '-'), some requiring an argument themselves.
 All options are described in the usage info of the various modes.
 
 Most arguments and options can be abreviated, e.g 'lis' for 'listen',

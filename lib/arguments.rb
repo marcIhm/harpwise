@@ -21,7 +21,7 @@ def parse_arguments
   end
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
-  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play calibrate)) do |none, choices|
+  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play report calibrate)) do |none, choices|
     err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information"
   end.to_sym
   ARGV.shift
@@ -38,7 +38,7 @@ def parse_arguments
 
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play], {
+    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
         debug: %w(--debug),
         testing: %w(--testing),
         screenshot: %w(--screenshot),
@@ -63,7 +63,8 @@ def parse_arguments
         auto: %w(--auto),
         hole: %w(--hole)}],
      [Set[:licks, :play], {
-        holes: %w(--holes),
+        holes: %w(--holes)}],
+     [Set[:licks, :play, :report], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
@@ -109,7 +110,7 @@ def parse_arguments
     if matching.keys.length > 1
       err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
     elsif matching.keys.length == 0
-       if mode != :play
+      if mode != :play && mode != :report
          err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{for_usage}"
        else
          i += 1
@@ -177,7 +178,7 @@ def parse_arguments
   
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
-  err("Unknown options: #{other_opts.join(',')}; #{for_usage}") if other_opts.length > 0 && mode != :play
+  err("Unknown options: #{other_opts.join(',')}; #{for_usage}") if other_opts.length > 0 && mode != :play && mode != :report
 
 
   # In any case, mode quiz requires a numeric argument right after the
@@ -210,14 +211,13 @@ def parse_arguments
   check_key_and_set_pref_sig(key)
 
 
-  # For mode play, all the remaining arguments (after processing type and
-  # key) are things to play; a scale is not allowed, so we do this before
-  # processing the scale
+  # For modes play and report, all the remaining arguments (after processing
+  # type and key) are things to play or keywords; a scale is not allowed,
+  # so we do this before processing the scale
 
-  if mode == :play
-    $to_play = []
-    $to_play << ARGV.shift while ARGV.length > 0
-    err("Need a lick or some holes as arguments; #{for_usage}") if $to_play.length == 0
+  if mode == :play || mode == :report
+    to_handle = []
+    to_handle << ARGV.shift while !ARGV.empty?
   end
 
   
@@ -234,7 +234,7 @@ def parse_arguments
     else
       scale = get_scale_from_sws('all:A')
     end
-  when :play
+  when :play, :report
     scale = get_scale_from_sws('all:A')
   when :calibrate
     err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{for_usage}") if ARGV.length > 0
@@ -264,7 +264,7 @@ def parse_arguments
 
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
-  [ mode, type, key, scale, opts]
+  [ mode, type, key, scale, opts, to_handle]
 end
 
 

@@ -79,20 +79,20 @@ hole:
 
 tags_any:
 
-  - "filter licks and keep those having any\nof the given tags (example: --tags-any scales,classic)"
+  - "filter licks and keep those having\nany of the given tags (example: --tags-any scales,classic)"
   - TAG1,TAG2,...
     
 tags_all:
   
-  - "filter licks and keep only those having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
+  - "filter licks and keep those having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
   - TAG1,TAG2,...
 
 no_tags_any:
-  - "filter licks and keep only those which\ndo not have any of the given tags"
+  - "filter licks and discard those having\nany of the given tags"
   - TAG1,TAG2,...
 
 no_tags_all:
-  - "filter licks and keep those which do\nnot have all of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
+  - "filter licks and discard those having\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
   - TAG1,TAG2,...
 
 max_holes:
@@ -118,9 +118,6 @@ start_with:
     licks one by one
     use '--start-with foo,iter' to start at lick foo; 
     'cycle' instead of 'iter' starts all over at the end.  
-
-    To see a list of recent licks use '--start-with history'; 
-    for a list of all licks from lick-file '--start-with print'
   - LICK_OR_KEYWORD
 
 partial:

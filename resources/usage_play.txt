@@ -1,15 +1,15 @@
 OVERVIEW
 
-  The mode 'play' builds no fancy display and is not interactive; it
-  rather plays, what you specify on the commandline; this can be 
-  any of:
+  The mode 'play' picks from the commandline: holes, notes or licks;
+  it may play multiple holes but cannot mix them with e.g. licks.
 
-    - holes
-    - licks
+  Its arguments can be any of:
+
+    - holes (e.g. '-1')
+    - licks (e.g. 'juke')
     - special values (e.g. 'l', '2l) to reference e.g. the last lick
-    - keywords (e.g. 'random' or 'cycle'), that influence, how licks
-      are played
-    - the keyword 'print', that just gives information about licks
+    - keywords (e.g. 'random' or 'cycle'), that influence, what and
+      how licks are played
     
   This mode needs no scale argument.
 
@@ -31,6 +31,12 @@ USAGE BY EXAMPLES
 
     ./harpwise play random cycle
 
-  Show info about licks; add filter option to select a subset:
+  Play an earlier lick:
 
-    ./harpwise play print
+    ./harpwise play 3l
+
+
+  The special keywords (e.g. 'iter' or 'rand') are the same, that
+  may appear in option --start-with in mode (e.g.) licks; see there
+  for more examples.
+  

@@ -2,15 +2,13 @@
 # Play from the commandline
 #
 
-def do_play
+def do_play to_play
   $all_licks, $licks = read_licks
   holes = []
   lnames = []
   special = []
-  report = []
   other = []
   special_allowed = %w(ran rand random iterate iter cycle cyc)
-  report_allowed = %w(print dump history hist)
   all_lnames = $licks.map {|l| l[:name]}
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
@@ -27,13 +25,15 @@ def do_play
   # Partition arguments
   #
   
-  $to_play.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+  to_play.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
     if musical_event?(tp)
       holes << tp
     elsif $harp_holes.include?(tp)
       holes << tp
     elsif $harp_notes.include?(tp)
       holes << $note2hole[tp]
+    elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
+      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]][:name]
     elsif all_lnames.include?(tp)
       lnames << tp
     elsif special_allowed.include?(tp)
@@ -41,13 +41,6 @@ def do_play
                    'cyc' => 'cycle',
                    'ran' => 'random',
                    'rand' => 'random'}[tp] || tp).to_sym
-    elsif report_allowed.include?(tp)
-      report <<
-        if tp == 'hist'
-          'history'
-        else
-          tp
-        end.to_sym
     else
       other << tp
     end
@@ -65,11 +58,10 @@ def do_play
     puts "- notes: #{$harp_notes}"
     puts "- licks: #{all_lnames}"
     puts "- special: #{special_allowed}"
-    puts "- report: #{report_allowed}"
     err 'See above'
   end
   
-  sources_count = [holes, lnames, special, report].select {|s| s.length > 0}.length
+  sources_count = [holes, lnames, special].select {|s| s.length > 0}.length
   if sources_count == 0
     puts 'Nothing to play'
     exit
@@ -80,7 +72,6 @@ def do_play
     puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
     puts "- licks: #{lnames}" if lnames.length > 0
     puts "- special: #{special}" if special.length > 0
-    puts "- report: #{report}" if report.length > 0
     err 'See above'
   end
 
@@ -92,10 +83,6 @@ def do_play
     err "Cannot use special words 'iterate' and 'cycle' at the same time"
   end
 
-  if report.length > 1
-    err "Only one of these allowed at the same time: #{report_allowed}, but given is: #{report}"
-  end
-  
   puts
 
   #
@@ -149,18 +136,6 @@ def do_play
       
     end
 
-  elsif report.length > 0
-
-    case report[0]
-    when :print
-           print_lick_and_tag_info
-    when :history
-           print_last_licks_from_journal $all_licks
-    when :dump
-           pp $all_licks
-    end
-    exit
-    
   else
     err "Internal error"
   end
@@ -185,7 +160,7 @@ end
 
 def maybe_wait_for_key
   if $ctl_rec[:lick_lick]
-    puts "\e[0m\e[2mContinue with next lick without waiting for key (press 'c' to toggle)\e[0m"
+    puts "\e[0m\e[2mContinue with next lick without waiting for key ('c' to toggle)\e[0m"
     sleep 0.5
   else
     puts "\e[0m\e[2m" +

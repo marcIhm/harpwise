@@ -1,0 +1,37 @@
+OVERVIEW
+
+  The mode 'report' show helps to select licks by tags and shows what
+  you played.
+  
+  Its single argument can be any of the keywords:
+
+    - licks, to show and group licks and tags, so that you may select
+      them with the various tag-options (e.g. --tags-any). This report
+      has two seperate sections:
+      - Licks selected by the tag-options
+      - Any and all licks, disregarding any options
+    - history, to show, which licks you played recently in modes licks
+      or play
+    - dump, dump all the licks in json-format (for advanced use)
+    
+  This mode needs no scale argument.
+
+USAGE BY EXAMPLES
+
+  Report licks with tags 'fav' first, and then all
+
+    ./harpwise report licks -t fav
+
+  ,which is the same as:
+  
+    ./harpwise report richter licks -t fav
+
+  If you have collected licks for the chromatic harmonica, you may
+  also use:
+
+    ./harpwise report chromatic licks -t fav
+
+  Show what you have played recently along with shortcuts 'l', '2l', ...
+  
+    ./harpwise report history
+

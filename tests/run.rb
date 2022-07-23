@@ -36,7 +36,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   #
   # Collect usage examples and later check, that none of them produces string error
   #
-  usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play].map do |t|
+  usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :report].map do |t|
     [(t || :none).to_s,
      ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
   end.to_h
@@ -50,13 +50,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   usage_examples.map {|l| l.gsub!('\\','')}
   # remove known false positives
-  known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke']
+  known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke','report chromatic licks -t fav']
   usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
   # replace some, e.g. due to my different set of licks
   repl = {'./harpwise play c juke' => './harpwise play c easy'}
   usage_examples.map! {|l| repl[l] || l}
-  # check count
-  num_exp = 19
+  # check count, so that we may not break our detection of usage examples unknowingly
+  num_exp = 21
   fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
   
   puts "\nPreparing data"
@@ -86,7 +86,8 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
                        'listen' => [-3, 'your milage may vary'],
                        'quiz' => [-3, 'your milage may vary'],
                        'licks' => [-3, 'plays nothing initially'],
-                       'play' => [-3, 'this number of holes'] }
+                       'play' => [-3, 'this number of holes'],
+                       'report' => [2, 'Show what you have played recently']}
       
       expect { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
       kill_session
@@ -357,10 +358,10 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   
   do_test 'id-15a: check history from previous invocation of play' do
     new_session
-    tms './harpwise play testing hist --testing'
+    tms './harpwise report testing hist --testing'
     tms :ENTER
     sleep 4
-    expect { screen[11][' l: juke'] }
+    expect { screen[10][' l: juke'] }
     kill_session
   end
   
@@ -476,7 +477,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1c: print list of tags' do
     new_session
-    tms './harpwise licks testing --tags-any print'
+    tms './harpwise report testing --tags-any favorites licks'
     tms :ENTER
     sleep 2
     # Six licks in file, four in those two sections, but two of them are identical
@@ -487,13 +488,13 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-1d: print list of licks' do
     new_session
-    tms "./harpwise play testing print >#{$testing_output_file}"
+    tms "./harpwise report testing licks >#{$testing_output_file}"
     tms :ENTER
     sleep 2
     lines = File.read($testing_output_file).lines
     $all_testing_licks.each_with_index do |txt,idx|
       # last two licks are printed on the same line
-      expect { lines[11+idx][txt]}
+      expect { lines[10+idx][txt]}
     end
     kill_session
   end
@@ -710,6 +711,25 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
       kill_session
     end
   end
+
+  do_test 'id-32: error on history in play' do
+    new_session
+    tms './harpwise play testing hist --testing'
+    tms :ENTER
+    sleep 2
+    expect { screen[16]['ERROR'] }
+    kill_session
+  end
+  
+  do_test 'id-33: error on print in licks' do
+    new_session
+    tms './harpwise licks testing --tags-any print'
+    tms :ENTER
+    sleep 2
+    expect { screen[3]['ERROR'] }
+    kill_session
+  end
+  
   
 end
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')

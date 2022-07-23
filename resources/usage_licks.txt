@@ -3,16 +3,16 @@ OVERVIEW
   The mode 'licks' (similar to the mode 'quiz') is a game of challenge
   (the wise) and response (you).  Typically it plays a random lick
   from your collection and asks you to play it back note by note. If
-  successful, the next lick will be chosen.
+  successful, the next lick will be challenged.
 
   This mode helps to learn and memorize licks.
 
   For harpwise, a 'lick' is a short musical phrase with a sequence of
-  holes and an mp3-recording.
+  holes and an mp3-recording. It will be transposed as necessary.
 
   Please Note: This mode relies on a collection of licks, that you
   need to accumulate over time; only a simple starter set will
-  be created at first start; tyypically it will be kept at:
+  be created at first start; typically it will be kept at:
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
   When adding licks and need to adjust start and end of the recording,
@@ -20,12 +20,12 @@ OVERVIEW
 
   Personally I have paid for some good lick collections (see the
   sample lick file for pointers), so that I have 50 or so licks, that
-  really sound great in my ears.
+  really sound great for me.
   
 USAGE BY EXAMPLES
 
-  Play licks from your collection; transpose them (i.e. recordings) to
-  the key of c, if necessary:
+  Play licks from your collection; transpose them (i.e. their
+  recordings) to the key of c, if necessary:
   
     ./harpwise licks c
 
@@ -33,15 +33,12 @@ USAGE BY EXAMPLES
 
     ./harpwise licks c --tags-any fav,scales
 
-  Show the licks selected by the previous example:
+  Show the licks selected by the previous example, employing the
+  modemode 'report':
 
-    ./harpwise licks c --tags-any fav,scales -s print
+    ./harpwise report licks --tags-any fav,scales
 
-  Show the same with mode play:
-  
-    ./harpwise play print --tags-any fav,scales
-
-  There are a lot more options to *filter* the set of available licks
+  There are some more options to *filter* the set of available licks
   (see below); see also the lick-file created initially on more
   explanation on the concept of tags.
   

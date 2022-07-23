@@ -171,18 +171,6 @@ def do_quiz
             lick_idx = rand($licks.length)
           end
 
-        elsif start_with == 'print'
-          print_lick_and_tag_info
-          exit
-          
-        elsif start_with == 'dump'
-          pp $all_licks
-          exit
-          
-        elsif start_with == 'hist' || start_with == 'history'
-          print_last_licks_from_journal $all_licks
-          exit
-
         elsif $abbrevs_for_iter.include?(start_with)
           lick_cycle = ( start_with == 'c' )
           lick_idx_iter = 0
