@@ -449,7 +449,7 @@ end
 
 
 def read_calibration
-  err "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first" unless File.exist?($freq_file)
+  err "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first, e.g.: #{$0} calibrate #{$key} --auto" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes"
