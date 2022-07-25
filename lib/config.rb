@@ -143,9 +143,9 @@ def set_global_vars_late
   $recorded_data = "#{$tmp_dir}/recorded.dat"
   $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
   $journal_file = if $mode == :licks || $mode == :play || $mode == :report
-                    "#{$data_dir}/journal_licks_play.txt"
+                    "#{$data_dir}/journal_modes_licks_and_play.txt"
                   else
-                    "#{$data_dir}/journal_#{$mode}.txt"
+                    "#{$data_dir}/journal_mode_#{$mode}.txt"
                   end
 end
 

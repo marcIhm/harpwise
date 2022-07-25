@@ -5,19 +5,19 @@
 def do_report to_report
 
   $all_licks, $licks = read_licks
-  reports_allowed = %w(licks dump history hist)
+  reports_allowed = %w(licks dump journal jour)
 
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
   err "Unknown report #{to_report[0]}, only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
   report = to_report[0].to_sym
-  report = :history if report == :hist
+  report = :journal if report == :jour
 
   puts
 
   case report
   when :licks
     print_lick_and_tag_info
-  when :history
+  when :journal
     print_last_licks_from_journal $all_licks
   when :dump
     pp $all_licks

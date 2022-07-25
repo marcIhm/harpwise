@@ -10,7 +10,7 @@ OVERVIEW
       has two seperate sections:
       - Licks selected by the tag-options
       - Any and all licks, disregarding any options
-    - history, to show, which licks you played recently in modes licks
+    - journal, to show, which licks you played recently in modes licks
       or play
     - dump, dump all the licks in json-format (for advanced use)
     
@@ -33,5 +33,5 @@ USAGE BY EXAMPLES
 
   Show what you have played recently along with shortcuts 'l', '2l', ...
   
-    ./harpwise report history
+    ./harpwise report journal
 

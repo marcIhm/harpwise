@@ -17,7 +17,8 @@ directly from its toplevel directory.
 
    - git clone https://github.com/marcIhm/harpwise.git
 
-   This will give you the full repository with its version history.
+   This will give you the full repository with its history and will make
+   it easier to contribute (e.g. new scales or harmonica types).
 
    The advantage (over downloading just the zip as described below, is
    that you will easily be able tu update to newer versions by typing

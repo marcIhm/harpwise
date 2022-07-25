@@ -168,7 +168,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
 
   do_test 'id-06: listen' do
     sound 8, 2
-    journal_file = "#{$data_dir}/journal_listen.txt"
+    journal_file = "#{$data_dir}/journal_mode_listen.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harpwise listen testing a all --testing'
@@ -344,7 +344,7 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
   end
   
   do_test 'id-15: play a lick with recording' do
-    journal_file = "#{$data_dir}/journal_licks_play.txt"
+    journal_file = "#{$data_dir}/journal_modes_licks_and_play.txt"
     FileUtils.rm journal_file if File.exist?(journal_file)
     new_session
     tms './harpwise play testing a juke --testing'
@@ -356,9 +356,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     kill_session
   end
   
-  do_test 'id-15a: check history from previous invocation of play' do
+  do_test 'id-15a: check journal from previous invocation of play' do
     new_session
-    tms './harpwise report testing hist --testing'
+    tms './harpwise report testing jour --testing'
     tms :ENTER
     sleep 4
     expect { screen[10][' l: juke'] }
@@ -712,9 +712,9 @@ Dir.chdir(%x(git rev-parse --show-toplevel).chomp) do
     end
   end
 
-  do_test 'id-32: error on history in play' do
+  do_test 'id-32: error on journal in play' do
     new_session
-    tms './harpwise play testing hist --testing'
+    tms './harpwise play testing journal --testing'
     tms :ENTER
     sleep 2
     expect { screen[16]['ERROR'] }

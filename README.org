@@ -45,7 +45,7 @@
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
   - play: Play scales, holes or licks
-  - report: Produce reports about licks and your playing history
+  - report: Produce reports about licks and tags or a journal of licks played
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
