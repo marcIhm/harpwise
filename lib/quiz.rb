@@ -775,7 +775,10 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   if fig_lines_all > fig_lines_max
     if fig_lines_inactive == 1
       # need to show first inactive figlet-line, because it also contain
-      # active holes screen lines at bottom will be truncated below
+      # active holes; screen lines at bottom will be truncated below
+    elsif fig_lines_all - fig_lines_inactive <= 1
+      # show the last two lines
+      offset = (fig_lines_all - 2) * 4
     else
       # use offset instead of shifting from arrays to avoid caching issues
       offset = (fig_lines_inactive - 1) * 4

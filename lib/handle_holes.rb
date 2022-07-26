@@ -447,7 +447,7 @@ def fit_into_comment lines
   start = if lines.length >= $lines[:hint_or_message] - $lines[:comment_tall]
             $lines[:comment_tall]
           else
-            print "\e[#{$lines[:comment_tall]}\e[K"
+            print "\e[#{$lines[:comment_tall]}H\e[K"
             $lines[:comment]
           end
   print "\e[#{start}H\e[0m"
