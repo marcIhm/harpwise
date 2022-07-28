@@ -218,8 +218,8 @@ def create_initial_lick_file lfile
   puts "However, you need to add more licks yourself,"
   puts "to make this mode (licks) really useful."
   puts
-  FileUtils.cp('resources/sample_licks_with_holes.txt', lfile)
-  FileUtils.cp('recordings/juke.mp3', $lick_dir + '/recordings') 
+  FileUtils.cp("#{$dirs[:install]}/resources/sample_licks_with_holes.txt", lfile)
+  FileUtils.cp("#{$dirs[:install]}/recordings/juke.mp3", $lick_dir + '/recordings') 
   if $opts[:testing]
     File.open(lfile, 'a') do |f|
       f.write <<~end_of_content

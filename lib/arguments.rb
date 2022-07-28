@@ -81,7 +81,7 @@ def parse_arguments
 
   # construct hash with options specific for mode; take descriptions from
   # file with embedded ruby
-  opt2desc = yaml_parse('resources/opt2desc.yaml').transform_keys!(&:to_sym)
+  opt2desc = yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
   opts_all = Hash.new
   modes2opts.each do |modes, opts|
     next unless modes.include?(mode)

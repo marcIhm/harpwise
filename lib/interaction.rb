@@ -89,7 +89,7 @@ $figlet_all_fonts = %w(smblock mono12 big)
 
 def do_figlet text, font, width_template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
-  cmd = "figlet -d fonts -w 400 -f #{font} -l \" #{text}\""
+  cmd = "figlet -d #{$dirs[:install]}/fonts -w 400 -f #{font} -l \" #{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
     out, _ = Open3.capture2e(cmd)
@@ -149,7 +149,7 @@ end
 $figlet_wrap_cache = Hash.new
 
 def get_figlet_wrapped text
-  cmd = "figlet -d fonts -w #{$term_width - 4} -f miniwi -l \" #{text}\""
+  cmd = "figlet -d #{$dirs[:install]}/fonts -w #{$term_width - 4} -f miniwi -l \" #{text}\""
   unless $figlet_wrap_cache[cmd]
     out, _ = Open3.capture2e(cmd)
     $perfctr[:figlet_2] += 1
@@ -171,7 +171,7 @@ end
 def figlet_char_height font
   fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
   # high and low chars
-  out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l Igq")
+  out, _ = Open3.capture2e("figlet -d #{$dirs[:install]}/fonts -f #{font} -l Igq")
   $perfctr[:figlet_3] += 1
   out.lines.length
 end
@@ -180,7 +180,7 @@ end
 $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
-    out, _ = Open3.capture2e("figlet -d fonts -f #{font} -l #{text}")
+    out, _ = Open3.capture2e("figlet -d #{$dirs[:install]}/fonts -f #{font} -l #{text}")
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end
@@ -395,7 +395,7 @@ end
 
 
 def draw_data file, marker1, marker2
-  sys "sox #{file} #{$tmp_dir}/sound-to-plot.dat"
+  sys "sox #{file} #{$dirs[:tmp]}/sound-to-plot.dat"
   cmds = <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
 set datafile commentschars ";"
@@ -406,9 +406,9 @@ set nokey
 %s
 plot "#{file}" using 1:2
 EOGPL
-  IO.write "#{$tmp_dir}/sound.gp", cmds % [marker1 > 0  ?  "set arrow from #{marker1}, graph 0 to #{marker1}, graph 1 nohead"  :  '',
+  IO.write "#{$dirs[:tmp]}/sound.gp", cmds % [marker1 > 0  ?  "set arrow from #{marker1}, graph 0 to #{marker1}, graph 1 nohead"  :  '',
                                            marker2 > 0  ?  "set arrow from #{marker2}, graph 0 to #{marker2}, graph 1 nohead"  :  '']
-  system "gnuplot #{$tmp_dir}/sound.gp"
+  system "gnuplot #{$dirs[:tmp]}/sound.gp"
 end
 
 

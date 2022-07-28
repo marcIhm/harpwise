@@ -76,7 +76,7 @@ def do_calibrate_assistant
             $harp_holes
           end
 
-  puts ERB.new(IO.read('resources/calibration_intro.txt')).result(binding)
+  puts ERB.new(IO.read("#{$dirs[:install]}/resources/calibration_intro.txt")).result(binding)
 
   print "Press any key to start with the first hole\n"
   print "  or type 's' to skip directly to summary: "

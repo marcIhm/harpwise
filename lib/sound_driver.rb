@@ -160,7 +160,7 @@ end
 
 def start_collect_freqs
   num_samples = ($sample_rate * $conf[:time_slice]).to_i
-  fifo = "#{$tmp_dir}/fifo_arecord_aubiopitch"
+  fifo = "#{$dirs[:tmp]}/fifo_arecord_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
   err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
 

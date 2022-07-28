@@ -55,13 +55,11 @@ def set_global_vars_early
   $ctl_issue_non_def_ts = nil
 
   $all_licks = $licks = nil
-  
-  $tmp_dir = Dir.mktmpdir(File.basename($0) + '_')
-  $data_dir = "#{Dir.home}/.#{File.basename($0)}"
-  FileUtils.mkdir_p($data_dir) unless File.directory?($data_dir)
 
-  $version = File.read('resources/version.txt').lines[0].chomp
-  fail 'Version read from resources/version.txt does not start with a number' unless $version.to_i > 0
+  find_and_check_dirs
+
+  $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
+  fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
 
   # will be created by test-driver
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
@@ -74,7 +72,7 @@ def set_global_vars_early
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
-  $scale_files_template = 'config/%s/scale_%s_with_%s.yaml'
+  $scale_files_template = "#{$dirs[:install]}/config/%s/scale_%s_with_%s.yaml"
 
   $freqs_queue = Queue.new
 
@@ -91,6 +89,19 @@ def set_global_vars_early
   $scale2short_count = 0
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
 
+end
+
+
+# will be called from tests too
+def find_and_check_dirs
+  $dirs = Hash.new
+  $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
+  $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_')
+  $dirs[:data] = "#{Dir.home}/.#{File.basename($0)}"
+  FileUtils.mkdir_p($dirs[:data]) unless File.directory?($dirs[:data])
+  $dirs.each do |k,v|
+    err "Directory #{v} for #{k} does not exist; installation looks bogus" unless File.directory?(v)
+  end
 end
 
 
@@ -134,39 +145,39 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = this_or_equiv("#{$data_dir}/samples/#{$type}/key_of_%s", $key.to_s)
-  $lick_dir = "#{$data_dir}/licks/#{$type}"
+  $sample_dir = this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", $key.to_s)
+  $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
-  $holes_file = "config/#{$type}/holes.yaml"
-  $helper_wave = "#{$tmp_dir}/helper.wav"
-  $recorded_data = "#{$tmp_dir}/recorded.dat"
-  $trimmed_wave = "#{$tmp_dir}/trimmed.wav"
+  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
+  $helper_wave = "#{$dirs[:tmp]}/helper.wav"
+  $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
+  $trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
   $journal_file = if $mode == :licks || $mode == :play || $mode == :report
-                    "#{$data_dir}/journal_modes_licks_and_play.txt"
+                    "#{$dirs[:data]}/journal_modes_licks_and_play.txt"
                   else
-                    "#{$data_dir}/journal_mode_#{$mode}.txt"
+                    "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
 end
 
 
-def check_installation install_dir
+def check_installation
   # check for some required programs
   not_found = %w( figlet arecord aplay aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
   # Check some sample dirs and files
   %w(fonts/mono12.tlf config/intervals.yaml recordings/juke.mp3).each do |file|
-    if !File.exist?(install_dir + '/' + file)
-      err "Installation is incomplete: The file #{file} does not exist in #{install_dir}"
+    if !File.exist?($dirs[:install] + '/' + file)
+      err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
     end
   end
 end
 
 
 def load_technical_config
-  file = 'config/config.yaml'
-  merge_file = "#{$data_dir}/config.yaml"
+  file = "#{$dirs[:install]}/config/config.yaml"
+  merge_file = "#{$dirs[:data]}/config.yaml"
   conf = yaml_parse(file).transform_keys!(&:to_sym)
   req_keys = Set.new([:type, :key, :comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
   file_keys = Set.new(conf.keys)
@@ -189,7 +200,7 @@ def read_technical_config
   # working some individual configs
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
   [:comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
-  conf[:all_types] = Dir['config/*'].
+  conf[:all_types] = Dir["#{$dirs[:install]}/config/*"].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
@@ -267,7 +278,7 @@ def read_musical_config
   end
   
   # read from first available intervals file
-  ifile = ["config/#{$type}/intervals.yaml", "config/intervals.yaml"].find {|f| File.exists?(f)}
+  ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
 
   [ harp,
@@ -360,7 +371,7 @@ $chart_with_holes_raw = nil
 $chart_cell_len = nil
 
 def read_chart
-  $chart_file = "config/#{$type}/chart.yaml"
+  $chart_file = "#{$dirs[:install]}/config/#{$type}/chart.yaml"
   chart_with_holes_raw = yaml_parse($chart_file)
   len = chart_with_holes_raw.shift
   chart_with_holes_raw.map! {|r| r.split('|')}

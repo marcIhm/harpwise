@@ -34,21 +34,23 @@ $debug_what = Set.new([])
 # store (ad-hoc) state for debugging
 $debug_state = {}
 
-install_dir = File.dirname(File.realpath(File.expand_path(__FILE__)))
-Dir.chdir(install_dir)
-check_installation install_dir
-
 $term_height, $term_width = prepare_screen
 
+# while testing, additionally make sure, that we do not use relative
+# paths; do this early, before we even have parsed options
+Dir.chdir("/tmp") if ARGV.include?('--testing')
+
 set_global_vars_early
+
+check_installation
 
 $conf = read_technical_config
 
 $mode, $type, $key, $scale, $opts, to_handle = parse_arguments
 
-Sys::ProcTable.ps{ |p|
+Sys::ProcTable.ps do |p|
   err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if $mode != :report && Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
-}
+end
 
 $scales = get_all_scales($opts[:add_scales])
 

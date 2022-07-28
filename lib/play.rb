@@ -160,7 +160,7 @@ end
 
 def maybe_wait_for_key
   if $ctl_rec[:lick_lick]
-    puts "\e[0m\e[2mContinue with next lick without waiting for key ('c' to toggle)\e[0m"
+    puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
     sleep 0.5
   else
     puts "\e[0m\e[2m" +
