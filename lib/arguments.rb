@@ -44,7 +44,7 @@ def parse_arguments
         screenshot: %w(--screenshot),
         help: %w(-h --help -? --usage)}],
      [Set[:listen, :quiz, :licks], {
-        add_scales: %w(--add-scales ),
+        add_scales: %w(-a --add-scales ),
         remove_scales: %w(--remove-scales),
         no_add_holes: %w(--no-add-holes),
         ref: %w(-r --ref ),
@@ -79,21 +79,27 @@ def parse_arguments
   all_sets = modes2opts.map {|m2o| m2o[0]}
   fail 'Internal error; at least one set of modes appears twice' unless all_sets.uniq.length == all_sets.length
 
-  # construct hash with options specific for mode; take descriptions from
-  # file with embedded ruby
+  # construct hash opts_all with options specific for mode; take
+  # descriptions from file with embedded ruby
   opt2desc = yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
   opts_all = Hash.new
+  oabbr2osym = Hash.new {|h,k| h[k] = Array.new}
   modes2opts.each do |modes, opts|
     next unless modes.include?(mode)
-    opts.each do |osym, odet|
+    opts.each do |osym, oabbrevs|
+      oabbrevs.each do |oabbr|
+        oabbr2osym[oabbr] << osym
+        fail "Internal error: option '#{oabbr}' belongs to multiple options: #{oabbr2osym[oabbr]}" if oabbr2osym[oabbr].length > 1
+      end
       fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
-      opts_all[osym] = [odet]
+      opts_all[osym] = [oabbrevs]
       opts_all[osym] << opt2desc[osym][1]
       opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
     end
   end
 
-  # match available options against command-line arguments
+  # match command-line arguments one after the other against available
+  # options; use loop index (i) but also remove elements from ARGV
   i = 0
   while i<ARGV.length do
     unless ARGV[i].start_with?('-')

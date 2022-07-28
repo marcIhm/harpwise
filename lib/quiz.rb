@@ -172,7 +172,7 @@ def do_quiz
           end
 
         elsif $abbrevs_for_iter.include?(start_with)
-          lick_cycle = ( start_with == 'c' )
+          lick_cycle = ( start_with[0] == 'c' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
 
@@ -181,7 +181,7 @@ def do_quiz
 
         else # search lick by name and maybe start iteration          
           doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
-          lick_cycle = start_with.end_with?('cycle')
+          lick_cycle = start_with[',c']
           start_with[-doiter.length .. -1] = '' if doiter
 
           lick_idx = $licks.index {|l| l[:name] == start_with}

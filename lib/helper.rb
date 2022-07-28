@@ -39,7 +39,7 @@ def err text
   puts "ERROR: #{text} !"
   puts_err_context
   puts
-  fail if $opts[:debug]
+  fail if $opts && $opts[:debug]
   exit 1
 end
 
