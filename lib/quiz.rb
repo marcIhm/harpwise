@@ -157,7 +157,7 @@ def do_quiz
               ctl_issue 'Next cycle'
             else
               print "\e[#{$lines[:message2]}H\e[K"
-              puts "\nIterated through all #{$licks.length} licks.\n\n"
+              puts "\nIterated through licks.\n\n"
               exit
             end
           end
@@ -181,8 +181,10 @@ def do_quiz
 
         else # search lick by name and maybe start iteration          
           doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
-          lick_cycle = start_with[',c']
-          start_with[-doiter.length .. -1] = '' if doiter
+          if doiter
+            lick_cycle = ( doiter[1] == 'c' )
+            start_with[-doiter.length .. -1] = ''
+          end
 
           lick_idx = $licks.index {|l| l[:name] == start_with}
           err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
