@@ -46,7 +46,7 @@ def screen
 end
 
 
-def expect &block
+def expect *failinfo, &block
   if yield
     print "\e[32mOkay \e[0m"
   else
@@ -55,6 +55,7 @@ def expect &block
     pp screen if source['screen']
     puts "\e[31mNOT Okay\e[0m"
     puts source
+    pp failinfo if failinfo.length > 0
     kill_session
     exit 1
   end
@@ -95,6 +96,7 @@ def do_test text
   most_ian = klens[klens.length * 3.to_f / 4] || 0
   time = $memo[:durations][text]
   print "  #{text.ljust(most_ian)}   #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
+  FileUtils.cp '/tmp/harpwise_testing.wav_default','/tmp/harpwise_testing.wav'
   start = Time.now.to_f
   yield
   $memo[:durations][text] = Time.now.to_f - start

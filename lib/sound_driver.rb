@@ -173,7 +173,6 @@ def arecord_to_fifo fifo
   arec_cmd = if $opts[:testing]
                "cat #{$test_wav} /dev/zero >#{fifo}"
              else
-               # point 1 of a delicate balance for tests
                "arecord -r #{$sample_rate} >#{fifo} 2>/dev/null"
              end
   _, _, wait_thread  = Open3.popen2(arec_cmd)
@@ -189,7 +188,6 @@ def aubiopitch_to_queue fifo, num_samples
   
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
-    # point 2 of a delicate balance for tests
     sleep 0.2 if $opts[:testing]
     $freqs_queue.enq fields[1]
   end

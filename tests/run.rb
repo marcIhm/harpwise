@@ -31,7 +31,7 @@ $within = ARGV.length == 0
 $testing_dump_file = '/tmp/harpwise_dumped_for_testing.json'
 $testing_output_file = '/tmp/harpwise_output_for_testing.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(juke special blues mape one two)
+$all_testing_licks = %w(juke special blues mape one two three long)
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
 
@@ -62,9 +62,10 @@ num_exp = 21
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
-# point 3 of a delicate balance for tests
+# individual tests may generate their own
 system("sox -n /tmp/harpwise_testing.wav synth 200.0 sawtooth 494")
-# on error we tend to leave aubiopitch benind
+FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
+# on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
 FileUtils.cp_r 'config/richter', 'config/testing'
@@ -105,7 +106,6 @@ end
 
 %w(a c).each_with_index do |key,idx|
   do_test "id-g#{idx}: auto-calibration key of #{key}" do
-    sound 8, 2
     new_session
     tms "./harpwise calib testing #{key} --auto --testing"
     tms :ENTER
@@ -118,7 +118,7 @@ end
 end
 
 do_test 'id-02: manual calibration' do
-  sound 1, -14
+  sound 10, -14
   new_session
   tms './harpwise calib testing g --testing'
   tms :ENTER
@@ -132,7 +132,6 @@ do_test 'id-02: manual calibration' do
 end
 
 do_test 'id-03: manual calibration summary' do
-  sound 1, -14
   new_session
   tms './harpwise calib testing a --testing'
   tms :ENTER
@@ -223,17 +222,15 @@ do_test 'id-07: change key of harp' do
 end
 
 do_test 'id-08: listen with merged scale' do
-  sound 8, 2
   new_session
   tms './harpwise listen testing a blues --add-scales chord-v,chord-i --testing'
   tms :ENTER
-  sleep 4
-  expect { screen[12]['blues,chord-v,chord-i,root'] }
+  sleep 6
+  expect { screen[1]['blues,chord-v,chord-i,all'] }
   kill_session
 end
 
 do_test 'id-09: listen with removed scale' do
-  sound 8, 2
   clear_testing_dump
   new_session
   tms './harpwise listen testing a all --remove drawbends --testing'
@@ -267,11 +264,11 @@ do_test 'id-0a: mode licks to create simple lick file' do
 end
 
 do_test 'id-10: quiz' do
-  sound 8, 3
+  sound 12, 3
   new_session
   tms './harpwise quiz 2 testing c all --testing'
   tms :ENTER
-  sleep 4
+  sleep 6
   expect { screen[12]['c5'] }
   kill_session
 end
@@ -508,7 +505,7 @@ do_test 'id-1d: print list of licks' do
   kill_session
 end
 
-do_test 'id-1e: iterate through holes' do
+do_test 'id-1e: iterate through licks' do
   new_session
   tms './harpwise licks testing --start-with iterate --testing'
   tms :ENTER
@@ -524,16 +521,44 @@ do_test 'id-1e: iterate through holes' do
   kill_session
 end
 
-do_test 'id-1f: iterate through holes from starting point' do
+do_test 'id-1f: cycle through licks' do
+  new_session
+  tms './harpwise licks testing --start-with cycle --testing'
+  (0 .. $all_testing_licks.length + 2).to_a.each do |i|
+    tms :ENTER
+    sleep 4
+    lickname = $all_testing_licks[i % $all_testing_licks.length]
+    expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
+  end
+  kill_session
+end
+
+do_test 'id-1g: iterate from one lick through to end' do
   new_session
   tms './harpwise licks testing --start-with special,iter --testing'
   tms :ENTER
   sleep 4
   expect { screen[-2]['special'] }
   tms :ENTER
-  sleep 6
+  sleep 4
   expect { screen[-1]['blues'] }
-  tms :ENTER
+  (0 .. $all_testing_licks.length + 2).to_a.each do |i|
+    tms :ENTER
+    sleep 2
+  end
+  expect { screen[-8]['Iterated through licks'] }
+  kill_session
+end
+
+do_test 'id-1h: cycle through licks from starting point' do
+  new_session
+  tms './harpwise licks testing --start-with special,cycle --testing'
+  (0 .. $all_testing_licks.length + 2).to_a.each do |i|
+    tms :ENTER
+    sleep 4
+    lickname = $all_testing_licks[(i + 1) % $all_testing_licks.length]
+    expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
+  end
   kill_session
 end
 
