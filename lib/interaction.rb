@@ -282,7 +282,13 @@ def handle_kb_listen
     text = 'Named'
   elsif char == 't' && $ctl_can[:named]
     $ctl_listen[:change_tags] = true
-    text = 'Named'
+    text = 'Tags'
+  elsif char == '>' && $ctl_can[:octave]
+    $ctl_listen[:octave] = :up
+    text = 'Octave up'
+  elsif char == '<' && $ctl_can[:octave]
+    $ctl_listen[:octave] = :down
+    text = 'Octave down'
   elsif char == 'j'
     $ctl_listen[:toggle_journal] = true
     text = nil
@@ -316,11 +322,11 @@ def handle_kb_listen
   elsif char == 'C'
     $ctl_listen[:change_comment] = :back
     text = 'Change comment back'
-  elsif %w(. , : p).include?(char) && $ctl_can[:next]
+  elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
     $ctl_listen[:replay] = true
-    $ctl_listen[:ignore_recording] = (char == ',')
-    $ctl_listen[:ignore_holes] = (char == '.')
-    $ctl_listen[:ignore_partial] = (char == ':' || char == 'p')
+    $ctl_listen[:ignore_recording] = (char == ',' || char == ';')
+    $ctl_listen[:ignore_holes] = (char == '.' || char == ':')
+    $ctl_listen[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
     text = 'Replay'
   elsif (char == '0' || char == '-') && $ctl_can[:next]
     $ctl_listen[:forget] = true

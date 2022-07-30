@@ -122,11 +122,11 @@ do_test 'id-02: manual calibration' do
   new_session
   tms './harpwise calib testing g --testing'
   tms :ENTER
-  sleep 2
+  sleep 4
   tms :ENTER
-  sleep 2
+  sleep 4
   tms 'r'
-  sleep 10
+  sleep 12
   expect { screen[-4]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
   kill_session
 end
@@ -634,12 +634,20 @@ do_test 'id-23a: error with double shortname for scales' do
   kill_session
 end
 
-do_test 'id-24: comment with scales' do
+do_test 'id-24: comment with scales and octave shifts' do
   new_session
   tms './harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --testing --start-with juke'
   tms :ENTER
   sleep 2
   expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+  tms '>'
+  sleep 2
+  expect { screen[15]['*-4.b1  -6.b   -7.1   -8.b1  -8.b1'] }
+  tms '<'
+  sleep 2
+  tms '<'
+  sleep 2
+  expect { screen[15]['-1.b1  -1.b1'] }
   kill_session
 end
 

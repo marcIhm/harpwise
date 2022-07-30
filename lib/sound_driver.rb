@@ -209,7 +209,7 @@ def play_hole_and_handle_kb hole
 end
 
 
-def play_recording_and_handle_kb recording, start, length, key, first_lap = true
+def play_recording_and_handle_kb recording, start, length, key, first_lap = true, octave_shift = 0
 
   trim_clause = if start && length
                   "trim #{start} #{length}"
@@ -220,7 +220,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                 else
                   ""
                 end
-  dsemi = diff_semitones($key, key, :g_is_lowest)
+  dsemi = diff_semitones($key, key, :g_is_lowest) + octave_shift * 12
   pitch_clause = if dsemi == 0
                    ''
                  else

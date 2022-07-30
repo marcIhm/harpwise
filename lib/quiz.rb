@@ -11,7 +11,7 @@ def do_quiz
   start_collect_freqs
   $ctl_can[:next] = true
   $ctl_can[:loop] = true
-  $ctl_can[:named] = ( $mode == :licks )
+  $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
   $write_journal = true
   journal_start
@@ -21,6 +21,7 @@ def do_quiz
   $all_licks, $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
   lick_cycle = false
+  octave_shift = 0
   start_with = $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :licks
@@ -58,8 +59,9 @@ def do_quiz
     # - iteration
     # - simply done with previous lick and next lick is required
     
-    # handle $ctl-commands from keyboard-thread, that probably come from a previous loop iteration
-    if $ctl_listen[:back] # 
+    # handle $ctl-commands from keyboard-thread, that probably come
+    # from a previous loop iteration
+    if $ctl_listen[:back] 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
           print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
@@ -128,15 +130,39 @@ def do_quiz
       start_kb_handler
       prepare_term
       $ctl_listen[:change_tags] = false
-      
+
     elsif $ctl_listen[:replay]
       
       # nothing to do here, replay will happen at start of next loop
+
+    elsif $ctl_listen[:octave]
+
+      octave_shift_was = octave_shift
+      octave_shift += ( $ctl_listen[:octave] == :up  ?  +1  :  -1 )
+      all_wanted_was = all_wanted
+      all_wanted = lick[:holes].map do |hole|
+        if musical_event?(hole) || octave_shift == 0
+          hole
+        else
+          $semi2hole[$harp[hole][:semi] + 12 * octave_shift] || '(*)'
+        end
+      end
+      if all_wanted.reject {|h| musical_event?(h)}.length == 0
+        print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mShifting lick by (one more) octave would not have any playable notes.\e[K"
+        all_wanted = all_wanted_was
+        octave_shift = octave_shift_was
+        ctl_issue "Octave shift #{octave_shift}"
+        sleep 2
+      else
+        ctl_issue "Octave shift #{octave_shift}"
+      end
       
-    else # e.g. sequence done or $ctl_listen[:next]: go to the next sequence
+    else # most general case: e.g. first or next sequence or
+         # $ctl_listen[:next]: go to the next sequence
 
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
+      octave_shift = 0
 
       do_write_journal = true
 
@@ -164,7 +190,7 @@ def do_quiz
           lick_idx = lick_idx_iter
 
         elsif !start_with # most general case: choose random lick
-          # avoid playing the same lick twice in a row
+                          # avoid playing the same lick twice in a row
           if lick_idx_before
             lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
           else
@@ -190,9 +216,13 @@ def do_quiz
           err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
 
           lick_idx_iter = lick_idx if doiter
-        end
+        end # continue with iteration through licks
 
         start_with = nil
+
+        #
+        # now that we have a lick-index, we get the lick and its holes
+        #
         
         lick = $licks[lick_idx]
         all_wanted = lick[:holes]
@@ -208,7 +238,7 @@ def do_quiz
     #
     #  Play the sequence or recording
     #
-    if !zero_partial? || $ctl_listen[:replay]
+    if !zero_partial? || $ctl_listen[:replay] || $ctl_listen[:octave]
       
       print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K" unless first_round
 
@@ -223,7 +253,7 @@ def do_quiz
       if $mode == :quiz || !lick[:rec] || $ctl_listen[:ignore_recording] || ($opts[:holes] && !$ctl_listen[:ignore_holes])
         play_holes all_wanted, first_round
       else
-        play_recording lick, first_round
+        play_recording lick, first_round, octave_shift
       end
 
       if $ctl_rec[:replay]
@@ -237,7 +267,7 @@ def do_quiz
     end
 
     # reset controls before listening
-    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = false
+    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = $ctl_listen[:octave] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -303,7 +333,7 @@ def do_quiz
                                idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
 
           # lambda_skip
-          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay]},  
+          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave]},  
 
           
           # lambda_comment; this one needs no arguments at all
@@ -363,7 +393,7 @@ def do_quiz
 
         )  # end of get_hole
 
-        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
 
       end # notes in a sequence
       
@@ -390,6 +420,10 @@ def do_quiz
                   'jump back'
                 elsif $ctl_listen[:replay]
                   'replay'
+                elsif $ctl_listen[:octave] == :up
+                  'octave up'
+                elsif $ctl_listen[:octave] == :down
+                  'octave down'
                 elsif $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
                   nil
                 else
@@ -409,7 +443,7 @@ def do_quiz
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless $ctl_listen[:replay] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+        unless $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
           print "\e[0m\e[32mAnd #{$ctl_listen[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -417,7 +451,7 @@ def do_quiz
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
+    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:octave] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
 
     print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
     first_round = false
@@ -588,7 +622,7 @@ def play_holes all_holes, first_round, terse = false
 end
 
 
-def play_recording lick, first_round
+def play_recording lick, first_round, octave_shift
 
   if $opts[:partial] && !$ctl_listen[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -604,7 +638,7 @@ def play_recording lick, first_round
     print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], first_round)
+  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], first_round, octave_shift)
 
   print skipped ? " skip rest" : " done"
 end

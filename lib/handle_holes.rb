@@ -297,12 +297,20 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         clear_area_comment
         puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
         puts "     .: replay current recording          ,: replay, holes only"
-        puts "  :,pP: replay recording but ignore '--partial'"
+        puts "   :;p: replay but ignore '--partial'"
         puts "   RET: next sequence             BACKSPACE: previous sequence"
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
         puts "     #: toggle track progress in seq"
-        puts "     n: switch to lick by name            t: change option --tags" if $ctl_can[:named]
+        if $ctl_can[:named]
+          puts "\e[0mType any key to show more help ...\e[K"
+          $ctl_kb_queue.clear
+          $ctl_kb_queue.deq
+          clear_area_comment
+          puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
+          puts "     n: switch to lick by name            t: change option --tags"
+          puts "     <: shift lick down by one octave     >: shift lick up"
+        end
       end
       puts "\e[0mType any key to continue ...\e[K"
       $ctl_kb_queue.clear
