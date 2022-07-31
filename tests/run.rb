@@ -670,6 +670,16 @@ do_test 'id-26: display as chart with intervals' do
   kill_session
 end
 
+do_test 'id-26a: display as chart with notes' do
+  new_session
+  tms './harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2+3 --start-with juke --testing'
+  tms :ENTER
+  sleep 4
+  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
+  expect { screen[15]['*-1.d4    -2/.gf4  -3//.a4     -3.b4     -4.d5     -4.d5'] }
+  kill_session
+end
+
 do_test 'id-27: change lick by name' do
   new_session
   tms './harpwise lick testing blues --start-with juke --testing'

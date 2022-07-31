@@ -300,6 +300,7 @@ def do_quiz
 
     holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_scales
     holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_intervals
+    holes_with_notes = noteify(all_wanted) if $conf[:comment] == :holes_notes
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -310,7 +311,7 @@ def do_quiz
       round_start = Time.now.to_f
       $ctl_listen[:forget] = false
       idx_refresh_comment_cache = comment_cache = nil
-      clear_area_comment if [:holes_scales, :holes_all, :holes_intervals]
+      clear_area_comment if [:holes_scales, :holes_all, :holes_intervals, :holes_notes]
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -356,11 +357,14 @@ def do_quiz
                 when :holes_large
                   largify(all_wanted, idx)
                 when :holes_scales
-                  holes_with_scales = scaleify(all_wanted) unless holes_with_scales
+                  holes_with_scales ||= scaleify(all_wanted)
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, idx)
                 when :holes_intervals
-                  holes_with_intervals = intervalify(all_wanted) unless holes_with_intervals
+                  holes_with_intervals ||= intervalify(all_wanted)
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, idx)
+                when :holes_notes
+                  holes_with_notes ||= noteify(all_wanted)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_notes, idx)
                 when :holes_all
                   wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], all_wanted, idx)
                 else
@@ -773,6 +777,16 @@ def intervalify holes
   inters_maxlen = inters.max_by(&:length).length
   holes.each.map do |hole|
     [' ' * (holes_maxlen - hole.length), hole, inters.shift.ljust(inters_maxlen)]
+  end
+end
+
+
+def noteify holes
+  holes = holes.reject {|h| musical_event?(h)}
+  holes_maxlen = holes.max_by(&:length).length
+  notes_maxlen = holes.map {|hole| $harp[hole][:note]}.max_by(&:length).length
+  holes.each.map do |hole|
+    [' ' * (holes_maxlen - hole.length), hole, $harp[hole][:note].ljust(notes_maxlen)]
   end
 end
 

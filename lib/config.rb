@@ -80,7 +80,7 @@ def set_global_vars_early
   $first_round_ever_get_hole = true
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals, :bend]
-  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_scales, :holes_intervals])
+  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
   # will be populated along with $scale and $scales

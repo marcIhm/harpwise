@@ -157,6 +157,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         fit_into_comment lambda_comment.call
       when :holes_all
         fit_into_comment lambda_comment.call
+      when :holes_notes
+        fit_into_comment lambda_comment.call
       else
         comment_color,
         comment_text,
