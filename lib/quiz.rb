@@ -60,7 +60,8 @@ def do_quiz
     # - simply done with previous lick and next lick is required
     
     # handle $ctl-commands from keyboard-thread, that probably come
-    # from a previous loop iteration
+    # from a previous loop iteration.
+    # The else-branch further down handles the general case without $ctl-commands
     if $ctl_listen[:back] 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
@@ -148,7 +149,10 @@ def do_quiz
         end
       end
       if all_wanted.reject {|h| musical_event?(h)}.length == 0
-        print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mShifting lick by (one more) octave would not have any playable notes.\e[K"
+        print "\e[#{$lines[:hint_or_message]}H\e[0;101mShifting lick by (one more) octave does not produce any playable notes.\e[0m\e[K"
+        print "\e[#{$lines[:message2]}HPress any key to continue ... "
+        $ctl_kb_queue.deq
+        print "\e[#{$lines[:hint_or_message]}H\e[K\e[#{$lines[:message2]}H\e[K"
         all_wanted = all_wanted_was
         octave_shift = octave_shift_was
         ctl_issue "Octave shift #{octave_shift}"
@@ -157,8 +161,8 @@ def do_quiz
         ctl_issue "Octave shift #{octave_shift}"
       end
       
-    else # most general case: e.g. first or next sequence or
-         # $ctl_listen[:next]: go to the next sequence
+    else # most general case: no $ctl-command. E.g. first or next
+         # sequence or $ctl_listen[:next]: go to the next sequence
 
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
@@ -174,7 +178,8 @@ def do_quiz
 
       else # licks
 
-        if lick_idx_iter # continue with iteration through licks
+        # continue with iteration through licks
+        if lick_idx_iter 
 
           lick_idx_iter += 1
           if lick_idx_iter >= $licks.length
@@ -189,14 +194,17 @@ def do_quiz
           end
           lick_idx = lick_idx_iter
 
-        elsif !start_with # most general case: choose random lick
-                          # avoid playing the same lick twice in a row
+        # most general case: choose random lick
+        elsif !start_with 
+
           if lick_idx_before
+            # avoid playing the same lick twice in a row
             lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
           else
             lick_idx = rand($licks.length)
           end
 
+        # start lick iteration
         elsif $abbrevs_for_iter.include?(start_with)
           lick_cycle = ( start_with[0] == 'c' )
           lick_idx_iter = 0
@@ -205,7 +213,8 @@ def do_quiz
         elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
           lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
 
-        else # search lick by name and maybe start iteration          
+        # search lick by name and maybe start iteration          
+        else 
           doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
           if doiter
             lick_cycle = ( doiter[1] == 'c' )
