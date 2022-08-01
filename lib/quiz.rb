@@ -402,8 +402,10 @@ def do_quiz
           
           
           # lambda_hole_for_inter
-          -> (_, _) { idx > 0 && all_wanted[idx - 1] }
-
+          -> (hole_held_before, hole_ref) do  
+            hfi = hole_ref || hole_held_before
+            regular_hole?(hfi)  ?  hfi  :  nil
+          end
         )  # end of get_hole
 
         break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
