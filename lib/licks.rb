@@ -248,7 +248,7 @@ def create_initial_lick_file lfile
           desc = c
           
         [three]
-          holes = +1 +1 -1
+          holes = +1 +1 -2+3
           tags.add = z
           desc.add = d
 

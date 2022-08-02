@@ -99,7 +99,7 @@ def do_quiz
           '    '
         end + $licks[lick_idx][:name]
       end
-      print_in_columns 'Recent licks', lnames_abbr.map {|ln| ln + '    '}
+      print_in_columns 'Recent licks', lnames_abbr.map {|ln| ln + '   '}
       print_prompt_context "Name of new lick (or part of or l,2l,..)",
                            "current lick is #{lick[:name]}"
       input = STDIN.gets&.chomp || ''
@@ -885,7 +885,9 @@ def print_in_columns head, names
   max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
   line = '  '
   more = ' ... more'
-  names.map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,i|
+  names.
+    map {|nm| nm + ' '}.
+    map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,i|
     break if lns > max_lns
     if (line + nm).length > $term_width - 4 || i == names.length - 1
       line[-more.length ..] = more if lns == max_lns && i < names.length - 1
