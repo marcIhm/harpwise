@@ -96,14 +96,14 @@ def get_last_lick_idxs_from_journal licks = $licks
     licks.index {|l| l[:name] == ln }
   end.select(&:itself)
   err "Could not find any of the lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}" if idxs.length == 0
-  idxs.reverse[0..16]
+  idxs.reverse.uniq[0..16]
 end
 
 
 def print_last_licks_from_journal licks = $licks
   puts "\nList of most recent licks played:"
   puts "  - abbrev (e.g. '2l') for '--start-with'"
-  puts "  - name  tag1,tag2, ... of lick"
+  puts "  - name of lick"
   puts
   puts "Last lick comes first:"
   puts

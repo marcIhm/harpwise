@@ -89,11 +89,20 @@ def do_quiz
       input = matching = nil
 
       old_licks = get_last_lick_idxs_from_journal($licks)
-      print_in_columns 'Recent licks',
-                       old_licks[0,10].map {|i| $licks[i][:name]}
+      lnames_abbr = old_licks[0,12].each_with_index.map do |lick_idx,ar_idx|
+        case ar_idx
+        when 0
+          ' l: '
+        when (1..9)
+          "#{ar_idx}l: "
+        else
+          '    '
+        end + $licks[lick_idx][:name]
+      end
+      print_in_columns 'Recent licks', lnames_abbr.map {|ln| ln + '    '}
       print_prompt_context "Name of new lick (or part of or l,2l,..)",
                            "current lick is #{lick[:name]}"
-      input = STDIN.gets.chomp
+      input = STDIN.gets&.chomp || ''
       
       if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
         # one of last licks requested
