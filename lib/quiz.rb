@@ -128,17 +128,12 @@ def do_quiz
       
     elsif $ctl_listen[:change_tags]  # can only happen in licks
       
-      stop_kb_handler
-      sane_term
       read_tags_and_refresh_licks lick
       print "\e[#{$lines[:key]}H\e[k" + text_for_key
       lick_idx_before = lick_idx = rand($licks.length)
       lick = $licks[lick_idx]
       lick_idx_iter = nil
       all_wanted = lick[:holes]
-
-      start_kb_handler
-      prepare_term
       $ctl_listen[:change_tags] = false
 
     elsif $ctl_listen[:replay]
@@ -935,16 +930,18 @@ def read_tags_and_refresh_licks curr_lick
     print_in_columns prompt,
                      tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "}
     print_prompt_context 'Please choose which option to set (1,2,3 or 4)',
-                         'The three options will be set to the empty string'
-    input = STDIN.gets.chomp
-    if %w( 1 2 3 4 ).include?(input)
-      tag_option = tag_options[input.to_i - 1][2..-1].gsub('-','_').to_sym
+                         'The other options will be set to the empty string'
+    char = $ctl_kb_queue.deq
+    if %w( 1 2 3 4 ).include?(char)
+      tag_option = tag_options[char.to_i - 1][2..-1].gsub('-','_').to_sym
     else
-      prompt = "\e[0m\e[32mInvalid Input: '#{input}; none of 1..4 ! \e[0m\e[2m; please try again\n"
+      prompt = "\e[0m\e[32mInvalid Input: '#{char}'; none of 1..4 ! \e[0m\e[2m; please try again\n"
     end
   end until tag_option
   tag_options.each {|to| $opts[to[2..-1].gsub('-','_').to_sym] = ''}
-  
+
+  stop_kb_handler
+  sane_term
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
   opof = 'or part of; SPC to list, RET to go without'
   print_in_columns "Current lick #{curr_lick[:name]} has these tags", curr_lick[:tags]
@@ -992,6 +989,8 @@ def read_tags_and_refresh_licks curr_lick
       input = STDIN.gets.chomp
     end
   end while !done || $licks.length == 0
+  start_kb_handler
+  prepare_term
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
 end
 
