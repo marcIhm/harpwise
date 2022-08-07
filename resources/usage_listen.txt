@@ -15,11 +15,15 @@ USAGE BY EXAMPLES
   'ri') harp of key c and it shows the holes, that you played; green
   if from the scale, red otherwise:
 
-    ./harpwise listen ri c blues
+    harpwise listen ri c blues
+
+  The same, but relying on the defaults:
+
+    harpwise listen blues
 
   The same, but also showing the notes from the one-chord (chord-i):
 
-    ./harpwise listen blues --add-scales chord-i --display chart-scales
+    harpwise listen blues --add-scales chord-i --display chart-scales
 
   When playing, you may switch on journal to get a simple
   transcription of the holes played.

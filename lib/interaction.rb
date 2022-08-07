@@ -20,7 +20,7 @@ def check_screen graceful: false
     [[:display, :hole,
       figlet_char_height('mono12')],
      [:comment, :hint_or_message, 
-      figlet_char_height($mode == :listen  ?  'big'  : 'smblock')]
+      figlet_char_height($mode == :listen  ?  'mono9'  : 'smblock')]
     ].each do |l1, l2, height|
       space = $lines[l2] - $lines[l1]
       if height > space
@@ -41,8 +41,8 @@ def check_screen graceful: false
     $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.5).to_i, yoff ]
 
     # check for clashes
-    clashes_ok = (2..3).map do |n|
-      [:help, :comment, :comment_tall].combination(n).map {|pair| Set.new(pair)}
+    clashes_ok = (2..4).map do |n|
+      [:help, :comment, :comment_tall, :comment_low].combination(n).map {|pair| Set.new(pair)}
     end.flatten
     
     lines_inv = $lines.inject(Hash.new([])) {|m,(k,v)| m[v] += [k]; m}
@@ -85,11 +85,10 @@ end
 
 
 $figlet_cache = Hash.new
-$figlet_all_fonts = %w(smblock mono12 big)
 
-def do_figlet text, font, width_template = nil, truncate = :left
-  fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
-  cmd = "figlet -d #{$dirs[:install]}/fonts -w 400 -f #{font} -l \" #{text}\""
+def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
+  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+  cmd = "figlet -w 400 -f #{font} -l  -- \"#{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
     out, _ = Open3.capture2e(cmd)
@@ -148,8 +147,9 @@ end
 
 $figlet_wrap_cache = Hash.new
 
-def get_figlet_wrapped text
-  cmd = "figlet -d #{$dirs[:install]}/fonts -w #{$term_width - 4} -f miniwi -l \" #{text}\""
+def get_figlet_wrapped text, font
+  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+  cmd = "figlet -w #{$term_width - 4} -f #{font} -l -- \"#{text}\""
   unless $figlet_wrap_cache[cmd]
     out, _ = Open3.capture2e(cmd)
     $perfctr[:figlet_2] += 1
@@ -169,9 +169,9 @@ end
 
 
 def figlet_char_height font
-  fail "Unknown font: #{font}" unless $figlet_all_fonts.include?(font)
+  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
   # high and low chars
-  out, _ = Open3.capture2e("figlet -d #{$dirs[:install]}/fonts -f #{font} -l Igq")
+  out, _ = Open3.capture2e("figlet -f #{font} -l Igq")
   $perfctr[:figlet_3] += 1
   out.lines.length
 end
@@ -180,7 +180,8 @@ end
 $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
-    out, _ = Open3.capture2e("figlet -d #{$dirs[:install]}/fonts -f #{font} -l #{text}")
+    fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+    out, _ = Open3.capture2e("figlet -f #{font} -l -- \"#{text}\"")
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end
@@ -343,6 +344,7 @@ def handle_kb_listen
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
+    $ctl_listen[:redraw] = :silent if $conf[:comment] == :holes_some
   elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
     $ctl_listen[:start_loop] = true
     text = 'Loop started'

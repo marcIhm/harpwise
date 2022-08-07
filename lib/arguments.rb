@@ -332,7 +332,7 @@ def print_usage_info mode = nil, opts = nil
   end.join("\n  ")
 
   puts
-  puts ERB.new(IO.read("resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
+  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
   
   if opts
     puts "\nAVAILABLE OPTIONS\n\n"  

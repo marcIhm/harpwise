@@ -13,7 +13,7 @@ def new_session
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
   sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht \\; new-window bash \\; kill-window -t 0"
-  tms 'cd ~/harpwise'
+  tms 'cd /tmp'
   tms :ENTER
 end
 

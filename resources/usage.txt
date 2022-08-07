@@ -5,17 +5,17 @@ harmonica for various keys.
 The first argument on the commandline specifies the mode of operation;
 it can be one of:
 
-  - listen: Listen to your playing, e.g. to monitor bends or scales
+  - listen: The wise listens to your playing, e.g. to monitor bends or scales
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
-  - play: Play scales, holes or licks
+  - play: Wise plays scales, holes or licks
   - report: Produce reports about licks and tags or a journal of licks played
-  - calibrate: Generate samples for holes or record your own
+  - calibrate: It generates samples for holes, or you record your own
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.
 
-  ./harpwise listen
+  harpwise listen
 
 
 After the first argument (which specifies the mode) some additional
@@ -32,11 +32,11 @@ arguments may be given:
 
 An example using all these arguments would be:
 
-  ./harpwise listen richter c blues
+  harpwise listen richter c blues
 
 ,which (relying on defaults), could also be written as:
 
-  ./harpwise listen blues   
+  harpwise listen blues   
 
 
 The possible scales depend on the chosen type of harmonica:
@@ -57,11 +57,11 @@ help on this.
 
 Suggested reading:
 
-  - usage information for the individual modes
-  - the toplevel file README.org, also available at:
+  - Usage information for the individual modes
+  - The toplevel file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
 
 Version <%=$version%>
-Copyright (c) 2021-2022 by Marc Ihm. 
+Copyright (c) 2021-2022 by Marc Ihm (marc@ihm.name) 
 This program is subject to the MIT License.

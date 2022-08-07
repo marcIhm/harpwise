@@ -33,7 +33,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_listen[:redraw] && $ctl_listen[:redraw] != :silent
-        print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'is above'} minimum size [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
+        print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $column_short_hint_or_message = 1
         $message_shown_at = Time.now.to_f
       end
@@ -122,7 +122,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     when :hole
       print "\e[#{$lines[:display]}H\e[0m"
       print hole_color
-      do_figlet hole_disp, 'mono12', longest_hole_name
+      do_figlet_unwrapped hole_disp, 'mono12', longest_hole_name
     when :bend
       print "\e[#{$lines[:display] + 2}H"
       if $hole_ref
@@ -133,10 +133,10 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                              semi2freq_et(semi_ref),
                              semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
         print ( hit  ?  "\e[0m\e[32m"  :  "\e[0m\e[31m" )
-        do_figlet dots, 'smblock', 'fixed:' + just_dots_long
+        do_figlet_unwrapped dots, 'smblock', 'fixed:' + just_dots_long
       else
         print "\e[2m"
-        do_figlet 'set ref first', 'smblock'
+        do_figlet_unwrapped 'set ref first', 'smblock'
       end
     else
       fail "Internal error: #{$conf[:display]}"
@@ -172,8 +172,8 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                             hole_disp,
                             freq,
                             $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
-        print "\e[#{$lines[:comment]}H#{comment_color}"
-        do_figlet comment_text, font, width_template, truncate
+        print "\e[#{$lines[:comment_low]}H#{comment_color}"
+        do_figlet_unwrapped comment_text, font, width_template, truncate
       end
     end
 

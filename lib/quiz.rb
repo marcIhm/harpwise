@@ -315,7 +315,7 @@ def do_quiz
       round_start = Time.now.to_f
       $ctl_listen[:forget] = false
       idx_refresh_comment_cache = comment_cache = nil
-      clear_area_comment if [:holes_scales, :holes_all, :holes_intervals, :holes_notes]
+      clear_area_comment
       
       all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
@@ -358,7 +358,7 @@ def do_quiz
               idx_refresh_ccache = idx
               comment_cache = 
                 case $conf[:comment]
-                when :holes_large
+                when :holes_some
                   largify(all_wanted, idx)
                 when :holes_scales
                   holes_with_scales ||= scaleify(all_wanted)
@@ -421,12 +421,12 @@ def do_quiz
       #
 
       if $ctl_listen[:forget]
-        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
+        clear_area_comment
         if [:holes_scales, :holes_intervals].include?($conf[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-          do_figlet 'again', 'smblock'
+          do_figlet_unwrapped 'again', 'smblock'
         end
         sleep 0.3
       else
@@ -454,7 +454,7 @@ def do_quiz
             puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + ctext
           else
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-            do_figlet ctext, 'smblock'
+            do_figlet_unwrapped ctext, 'smblock'
           end
           print "\e[0m"
         end
@@ -799,15 +799,15 @@ end
 
 def largify holes, idx
   if $num_quiz == 1
-    [ "\e[2m", '.  .  .', 'smblock', nil ]
+    [ "\e[2m", '...', 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
     hidden_holes = if idx > 6
-                     ". . # . ."
+                     ".. # .."
                    else
-                     ' .' * idx
+                     '.' * idx
                    end
     [ "\e[2m",
-      'Play  ' + hidden_holes + holes[idx .. -1].join(' '),
+      'Play  ' + hidden_holes + holes[idx .. -1].join('  '),
       'smblock',
       'play  ' + '--' * holes.length,  # width_template
       :right ]  # truncate at
@@ -818,7 +818,7 @@ def largify holes, idx
                      ' _' * (holes.length - idx)
                    end
     [ "\e[2m",
-      'Yes  ' + holes.slice(0,idx).join(' ') + hidden_holes,
+      'Yes  ' + holes.slice(0,idx).join('  ') + hidden_holes,
       'smblock',
       'yes  ' + '--' * [6,holes.length].min,  # width_template
       :left ]  # truncate at
@@ -828,27 +828,30 @@ end
 
 def wrapify_for_comment max_lines, holes, idx_first_active
   # get output from figlet
-  lines_all = get_figlet_wrapped(holes.join(' '))
-  lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join(' '))
+  lines_all = get_figlet_wrapped(holes.join('  '),'smblock')
+  lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join('  '),'smblock')
   # we know that each figlet-line has 4 screen lines; integer arithmetic on purpose
   fig_lines_max = max_lines / 4
   fig_lines_all = lines_all.length / 4
   fig_lines_inactive = lines_inactive.length / 4
   
   # truncate if necessary
+  # use offset instead of shifting from arrays to avoid caching issues
   offset = 0
   if fig_lines_all > fig_lines_max
-    if fig_lines_inactive == 1
-      # need to show first inactive figlet-line, because it also contain
-      # active holes; screen lines at bottom will be truncated below
+    if fig_lines_inactive <= 1
+      # This happens during begin of replay: need to show first
+      # inactive figlet-line, because it also contain active holes;
+      # screen lines at bottom will be truncated below
     elsif fig_lines_all - fig_lines_inactive <= 1
-      # show the last two lines
+      # This happens during end of replay: show the last two lines
       offset = (fig_lines_all - 2) * 4
     else
-      # use offset instead of shifting from arrays to avoid caching issues
+      # In between begin and end of replay (if at all)
       offset = (fig_lines_inactive - 1) * 4
     end
   end
+  offset = 0 if offset < 0
 
   # construct final set of lines
   lines = []

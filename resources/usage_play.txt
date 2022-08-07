@@ -17,23 +17,23 @@ USAGE BY EXAMPLES
 
   Play a few holes on a harp of key c:
 
-    ./harpwise play c +1 -2+3 c4
+    harpwise play c +1 -2+3 c4
 
   Play the lick 'juke'; transpose it to d:
   
-    ./harpwise play d juke
+    harpwise play d juke
 
   Play a single random lick:
 
-    ./harpwise play random
+    harpwise play random
 
   Lick-Radio: Play all my licks in random order without end:
 
-    ./harpwise play random cycle
+    harpwise play random cycle
 
   Play an earlier lick:
 
-    ./harpwise play 3l
+    harpwise play 3l
 
 
   The special keywords (e.g. 'iter' or 'rand') are the same, that

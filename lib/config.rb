@@ -76,11 +76,12 @@ def set_global_vars_early
 
   $freqs_queue = Queue.new
 
-  $figlet_count = 0
+  $figlet_fonts = %w(smblock mono12 mono9)
+
   $first_round_ever_get_hole = true
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals, :bend]
-  $comment_choices = Hash.new([:holes_large, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
+  $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
   # will be populated along with $scale and $scales
@@ -110,7 +111,7 @@ def calculate_screen_layout
   stretch += 1 if $term_height > 30
   stretch += 1 if $term_height > 36
   squeeze = 1 if $term_height < 27
-  on_edge = ( $term_height <= $conf[:term_min_height] )
+  lines_extra = $term_height - $conf[:term_min_height]
   need_message2 = ( $mode == :quiz || $mode == :licks )
   lines = Struct.new(:issue, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :comment_tall).new
   lines = Hash.new
@@ -125,10 +126,12 @@ def calculate_screen_layout
   2.times do
     lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > ( need_message2 ? 1 : 0 )
   end
-  lines[:comment_tall] = lines[:comment]
+  lines[:comment_tall] = lines[:comment_low] = lines[:comment]
   if need_message2
-    unless on_edge
+    lines[:comment_low] += 1
+    if lines_extra > 0
       # font for quiz is fairly small, so we may leave some space
+      lines[:comment_low] += 1
       lines[:comment] += 1
     end
     # only needed for quiz and licks
@@ -163,14 +166,20 @@ end
 
 def check_installation
   # check for some required programs
-  not_found = %w( figlet arecord aplay aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
+  not_found = %w( figlet toilet arecord aplay aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
   # Check some sample dirs and files
-  %w(fonts/mono12.tlf config/intervals.yaml recordings/juke.mp3).each do |file|
+  %w(resources/usage.txt config/intervals.yaml recordings/juke.mp3).each do |file|
     if !File.exist?($dirs[:install] + '/' + file)
       err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
     end
+  end
+
+  # check fonts
+  font_dir = %x(figlet -I2).chomp
+  $figlet_fonts.each do |font|
+    err "Did not find font #{font} in #{font_dir}" unless %w(flf tlf).any? {|ending| File.exist?("#{font_dir}/#{font}.#{ending}")}
   end
 end
 

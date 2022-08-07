@@ -9,7 +9,7 @@ key: c
 comment_listen: note
 
 # for quiz and licks
-comment_quiz: holes_large
+comment_quiz: holes_some
 
 # what to display for listen when a note has been recognized
 display_listen: chart_notes

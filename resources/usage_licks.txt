@@ -27,16 +27,16 @@ USAGE BY EXAMPLES
   Play licks from your collection; transpose them (i.e. their
   recordings) to the key of c, if necessary:
   
-    ./harpwise licks c
+    harpwise licks c
 
   The same, but only choose from licks with tags 'fav' or 'scales'
 
-    ./harpwise licks c --tags-any fav,scales
+    harpwise licks c --tags-any fav,scales
 
   Show the licks selected by the previous example, employing the
   modemode 'report':
 
-    ./harpwise report licks --tags-any fav,scales
+    harpwise report licks --tags-any fav,scales
 
   There are some more options to *filter* the set of available licks
   (see below); see also the lick-file created initially on more
@@ -45,7 +45,7 @@ USAGE BY EXAMPLES
   Here is a more sophisticated example. It helps to memorize licks,
   but only shorter ones and it shows the scales for each hole:
 
-    ./harpwise licks c blues --loop --max-holes 15 --imm \
+    harpwise licks c blues --loop --max-holes 15 --imm \
         --no-tags-any scales --disp chart-scales \
 	--add-scales chord-i,chord-iv,chord-v \
         --comment holes-all

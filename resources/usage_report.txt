@@ -20,18 +20,18 @@ USAGE BY EXAMPLES
 
   Report licks with tags 'fav' first, and then all
 
-    ./harpwise report licks -t fav
+    harpwise report licks -t fav
 
   ,which is the same as:
   
-    ./harpwise report richter licks -t fav
+    harpwise report richter licks -t fav
 
   If you have collected licks for the chromatic harmonica, you may
   also use:
 
-    ./harpwise report chromatic licks -t fav
+    harpwise report chromatic licks -t fav
 
   Show what you have played recently along with shortcuts 'l', '2l', ...
   
-    ./harpwise report journal
+    harpwise report journal
 

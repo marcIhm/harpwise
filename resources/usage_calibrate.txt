@@ -26,7 +26,7 @@ USAGE BY EXAMPLES
 
   Calibrate the wise for the frequencies of the harp you are using:
 
-    ./harpwise calibrate c
+    harpwise calibrate c
 
   this will ask you to play notes on your harp. The samples will be
   stored in the hidden folder .harpwise within your home
@@ -35,9 +35,9 @@ USAGE BY EXAMPLES
 
   For quick (but possibly inaccurate) calibration you may use:
 
-    ./harpwise calibrate c --auto
+    harpwise calibrate c --auto
 
 
   To calibrate a single hole only (for key a):
 
-    ./harpwise calibrate a --hole -3//
+    harpwise calibrate a --hole -3//

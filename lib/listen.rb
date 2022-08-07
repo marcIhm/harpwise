@@ -48,7 +48,7 @@ def do_listen
                  else
                    color = "\e[0m\e[31m"
                    stext = 'c +100'
-                   'c  . . .'
+                   'c  ...'
                  end
                else
                  color = "\e[2m"
@@ -56,8 +56,8 @@ def do_listen
                end
              else
                fail "Internal error: #{$conf[:comment]}"
-             end || '.  .  .'
-      [color, text, 'big', stext]
+             end || '...'
+      [color, text, 'mono9', stext]
     end,
 
     
