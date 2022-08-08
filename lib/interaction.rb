@@ -221,6 +221,8 @@ end
 def handle_kb_play_holes
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+
   if char == ' '
     print "\e[0m\e[32m SPACE to continue ..."
     begin
@@ -239,6 +241,8 @@ end
 def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+
   if char == '.' || char == ',' || char == '-'
     $ctl_rec[:replay] = true
   elsif char == ' '
@@ -266,6 +270,7 @@ end
 def handle_kb_listen
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
   waited = false
   
   if char == ' '

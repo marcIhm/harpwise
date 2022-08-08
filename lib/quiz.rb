@@ -449,8 +449,8 @@ def do_quiz
                   full_seq_shown ? 'Yes ' : 'Great ! '
                 end
         if ctext
+          clear_area_comment
           if [:holes_scales, :holes_intervals].include?($conf[:comment])
-            clear_area_comment
             puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + ctext
           else
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -932,13 +932,15 @@ def read_tags_and_refresh_licks curr_lick
   begin
     print_in_columns prompt,
                      tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "}
-    print_prompt_context 'Please choose which option to set (1,2,3 or 4)',
+    print_prompt_context 'Please choose which option to set (1,2,3,4 or q to quit)',
                          'The other options will be set to the empty string'
     char = $ctl_kb_queue.deq
     if %w( 1 2 3 4 ).include?(char)
       tag_option = tag_options[char.to_i - 1][2..-1].gsub('-','_').to_sym
+    elsif char == 'q'
+      return
     else
-      prompt = "\e[0m\e[32mInvalid Input: '#{char}'; none of 1..4 ! \e[0m\e[2m; please try again\n"
+      prompt = "\e[0m\e[32mInvalid Input: '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}); none of 1..4 ! \e[0m\e[2m; please try again\n"
     end
   end until tag_option
   tag_options.each {|to| $opts[to[2..-1].gsub('-','_').to_sym] = ''}
