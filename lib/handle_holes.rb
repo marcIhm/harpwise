@@ -420,14 +420,14 @@ end
 def text_for_key
   text = "\e[2m#{$mode}"
   text += "(#{$licks.length})" if $mode == :licks
-  text += " #{$type} #{$key}"
+  text += " #{$type} \e[0m#{$key}"
   if $opts[:add_scales]
     text += "\e[0m"
     text += " \e[32m#{$scale}"
     text += "\e[0m\e[2m," + $scales[1..-1].map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
     text += ",\e[0mall\e[2m"
   else
-    text += " #{$scale}"
+    text += "\e[2m #{$scale}"
   end
   text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
