@@ -1,0 +1,8 @@
+Some source and lincense information about these images
+
+- harmonica.png
+  - From: https://pixabay.com/photos/harmonica-blues-instrument-music-1407275/
+  - License: https://pixabay.com/service/license/, i.e. free for use as here
+- screenshot_listen.png, screenshot_quiz.png
+  - From: My own screenshots (Marc Ihm)
+  - MIT License
