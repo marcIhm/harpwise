@@ -21,8 +21,8 @@ def parse_arguments
   end
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
-  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play report calibrate)) do |none, choices|
-    err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information"
+  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play report calibrate develop)) do |none, choices|
+    err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information; note, that mode 'develop' is only useful for the maintainer or developer of harpwise."
   end.to_sym
   ARGV.shift
   for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
@@ -38,7 +38,10 @@ def parse_arguments
 
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
+    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report, :develop], {
+        debug: %w(--debug),
+        help: %w(-h --help -? --usage)}],
+     [Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
         debug: %w(--debug),
         testing: %w(--testing),
         screenshot: %w(--screenshot),
@@ -221,7 +224,7 @@ def parse_arguments
   # type and key) are things to play or keywords; a scale is not allowed,
   # so we do this before processing the scale
 
-  if mode == :play || mode == :report
+  if mode == :play || mode == :report || mode == :develop
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
@@ -240,7 +243,7 @@ def parse_arguments
     else
       scale = get_scale_from_sws('all:A')
     end
-  when :play, :report
+  when :play, :report, :develop
     scale = get_scale_from_sws('all:A')
   when :calibrate
     err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{for_usage}") if ARGV.length > 0
@@ -335,9 +338,11 @@ def print_usage_info mode = nil, opts = nil
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
   
   if opts
-    puts "\nAVAILABLE OPTIONS\n\n"  
+    puts "\nAVAILABLE OPTIONS\n\n"
+    nprinted = 0
     opts.values.each do |odet|
       next unless odet[2]
+      nprinted += 1
       print "\e[0m\e[32m"
       print '  ' + odet[0].join(', ')
       print(' ' + odet[1]) if odet[1]
@@ -348,6 +353,7 @@ def print_usage_info mode = nil, opts = nil
       lines[1..-1].each {|l| print '    ' + l}
       puts
     end
+    puts '  none' if nprinted == 0
   end
   puts
 end

@@ -22,10 +22,11 @@ require_relative 'lib/analyze'
 require_relative 'lib/licks'
 require_relative 'lib/handle_holes'
 require_relative 'lib/listen'
+require_relative 'lib/quiz'
 require_relative 'lib/play'
 require_relative 'lib/report'
 require_relative 'lib/calibrate'
-require_relative 'lib/quiz'
+require_relative 'lib/develop'
 
 $program_start = Time.now.to_f
 # grep .rb-files for 'debug' to see choices; still need to give
@@ -49,7 +50,7 @@ $conf = read_technical_config
 $mode, $type, $key, $scale, $opts, to_handle = parse_arguments
 
 Sys::ProcTable.ps do |p|
-  err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if $mode != :report && Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
+  err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if $mode != :report && $mode != :develop && Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
 end
 
 $scales = get_all_scales($opts[:add_scales])
@@ -139,4 +140,6 @@ when :calibrate
   else
     do_calibrate_assistant
   end
+when :develop
+  do_develop to_handle
 end

@@ -1,0 +1,9 @@
+OVERVIEW
+
+  This mode is only useful for the maintainer or developer of
+  harpwise; it is therefore not listed in the general usage
+  information.
+
+  Its single argument specifies the task to perform and can be any of the keywords:
+  
+  - man, process harpwise.1.erb into harpwise.1
