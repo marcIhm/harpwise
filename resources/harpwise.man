@@ -102,7 +102,7 @@ options (introduced by '-'), some requiring an argument themselves.
 All options are described in the usage info of the various modes.
 
 Most arguments and options can be abreviated, e.g 'lis'
-xfor 'listen', 'cal' for 'calibrate' or '-t' for '--tags-any'.
+for 'listen', 'cal' for 'calibrate' or '-t' for '--tags-any'.
 
 Also note, that for most modes, the behaviour (e.g. the kind of
 display) of the wise can be changed interactively; type 'h' to see
