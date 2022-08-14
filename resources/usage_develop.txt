@@ -6,4 +6,6 @@ OVERVIEW
 
   Its single argument specifies the task to perform and can be any of the keywords:
   
-  - man, process harpwise.1.erb into harpwise.1
+  - man, process harpwise.1.erb into harpwise.1 and show it as a man page
+  - diff, compare man page produced as above with plain usage info, as
+    they are maintained seperately. Result can be useful in git-hooks

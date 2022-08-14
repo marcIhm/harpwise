@@ -42,10 +42,8 @@ def parse_arguments
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
      [Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
-        debug: %w(--debug),
         testing: %w(--testing),
-        screenshot: %w(--screenshot),
-        help: %w(-h --help -? --usage)}],
+        screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks], {
         add_scales: %w(-a --add-scales ),
         remove_scales: %w(--remove-scales),
@@ -325,14 +323,7 @@ end
 
 def print_usage_info mode = nil, opts = nil
   # get content of all harmonica-types to be inserted
-  types_content = $conf[:all_types].map do |type|
-    txt = "scales for #{type}: "
-    scales_for_type(type).each do |scale|
-      txt += "\n    " if (txt + scale).lines[-1].length > 80
-      txt += scale + ', '
-    end
-    txt.chomp(', ')
-  end.join("\n  ")
+  types_content = get_types_content
 
   puts
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
@@ -356,4 +347,16 @@ def print_usage_info mode = nil, opts = nil
     puts '  none' if nprinted == 0
   end
   puts
+end
+
+
+def get_types_content
+  $conf[:all_types].map do |type|
+    txt = "scales for #{type}: "
+    scales_for_type(type).each do |scale|
+      txt += "\n    " if (txt + scale).lines[-1].length > 80
+      txt += scale + ', '
+    end
+    txt.chomp(', ')
+  end.join("\n  ")
 end
