@@ -1,0 +1,138 @@
+." Process this file with
+." groff -man -Tascii harpwise.1
+." man -l man/harpwise.1
+."
+." See https://www.gnu.org/software/groff/manual/html_node/index.html#Top
+.TH harpwise 1
+
+.SH NAME
+
+.B harpwise
+- practice harmonica with your microphone and speaker
+
+.SH SYNOPSIS
+
+.B harpwise
+.RB {MODE}
+.RB {ARGUMENTS}
+.RB [OPTIONS]
+
+.SH DESCRIPTION
+
+.B harpwise
+('wise' for short) supports the daily practice of bends,
+scales, intervals or licks on a diatonic (richter) or chromatic
+harmonica for various keys.
+
+The primary documentation of harpwise is its usage information that
+can be rquested by calling it without argument:
+.IP
+harpwise
+.RE
+
+this man page also gives this information (so you may keep on
+reading); but there are more usage informations for the individual
+modes (see below), which are not available as man-pages.
+
+.SH MODE
+
+The first argument for harpwise specifies the mode of operation;
+it can be one of:
+.IP - 2
+.B listen:
+The wise listens to your playing, e.g. to monitor bends or scales
+.IP -
+.B quiz: 
+Train your ear and musical memory
+.IP -
+.B licks: 
+Learn licks (licks not included, but some pointers)
+.IP -
+.B play: 
+Wise plays scales, holes or licks
+.IP -
+.B report: 
+Produce reports about licks and tags or a journal of licks played
+.IP -
+.B calibrate: 
+It generates samples for holes, or you record your own
+.RE
+
+to read more details, usage examples and options for the individual
+modes, invoke them without arguments, e.g.
+.IP
+harpwise listen
+.RE
+
+.SH ARGUMENTS
+
+After the first argument (which specifies the mode) some additional
+arguments may be given:
+.IP - 2
+.B type:
+mostly 'richter' or 'chromatic' but other choices might be defined. If
+ommitted, this defaults to 'richter'.
+.IP -
+.B KEY: 
+key of harp, e.g. 'c' or 'g' or 'af' (a flat) or 'ds' (d sharp). If
+ommitted, this defaults to 'c'.
+.IP -
+.B SCALE:
+scale on which you want to concentrate, e.g. 'blues',
+'major_pentatonic' or 'all'. No default.
+.RE
+
+An example using all these arguments would be:
+.IP
+harpwise listen richter c blues
+.RE
+
+,which (relying on defaults), could also be written as:
+.IP
+harpwise listen blues   
+.RE
+
+The possible scales depend on the chosen type of harmonica:
+
+<%=types_content%>
+  
+.SH OPTIONS
+
+Besides the arguments for type, key and scale, there are a lot of
+options (introduced by '-'), some requiring an argument themselves.
+All options are described in the usage info of the various modes.
+
+Most arguments and options can be abreviated, e.g 'lis' for 'listen',
+'cal' for 'calibrate' or '-t' for '--tags-any'.
+
+Also note, that for most modes, the behaviour (e.g. the kind of
+display) of the wise can be changed interactively; type 'h' to see
+help on this.
+
+.SH SUGGESTED READING
+
+.IP - 2
+Usage information for the individual modes
+.IP -
+The toplevel file README.org, also available at:
+
+https://github.com/marcIhm/harpwise/blob/main/README.org
+.RE
+
+.SH EXAMPLES
+
+See the usage information of the individual modes.
+
+.SH COPYRIGHT
+
+.PP
+Version <%=$version%>
+.br
+Copyright (c) 2021-2022 by Marc Ihm (marc@ihm.name) 
+.br
+This program is subject to the MIT License.
+
+.SH SEE ALSO
+
+Again, the usage information of the individual modes.
+
