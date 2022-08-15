@@ -15,7 +15,7 @@
   - Train your musical memory
   - Internalize various scales
   - Play and remember intervals
-  - Learn, memorize and licks
+  - Learn and memorize licks
   - Analyze licks regarding scales, chords and intervals
   - Support improvisation: Provide licks and scale info
   - Help in writing down a sequence of holes
