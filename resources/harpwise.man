@@ -24,15 +24,16 @@
 scales, intervals or licks on a diatonic (richter) or chromatic
 harmonica for various keys.
 
-The primary documentation of harpwise is its usage information that
-can be rquested by calling it without argument:
+The primary documentation of harpwise is its usage information, that
+can be retrieved by calling it without arguments:
 .IP
 harpwise
 .RE
 
-this man page also gives this information (so you may keep on
-reading); but there are more usage informations for the individual
-modes (see below), which are not available as man-pages.
+this man page has the very same information (so you may keep on
+reading ...); but there are more usage informations for the individual
+modes, which are not available as man-pages (see below, on how to get
+them).
 
 .SH MODE
 

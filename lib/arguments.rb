@@ -352,11 +352,12 @@ end
 
 def get_types_content
   $conf[:all_types].map do |type|
+    next if type == 'testing'
     txt = "scales for #{type}: "
     scales_for_type(type).each do |scale|
       txt += "\n    " if (txt + scale).lines[-1].length > 80
       txt += scale + ', '
     end
     txt.chomp(', ')
-  end.join("\n  ")
+  end.compact.join("\n  ")
 end

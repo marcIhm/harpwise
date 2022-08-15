@@ -26,7 +26,7 @@ def task_man
 
   puts
   system("ls -l #{$dirs[:install]}/man/harpwise.1")
-  puts "\nProcess with:\n\n  man -l #{$dirs[:install]}/man/harpwise.1\n\n"
+  puts "\nTo read it:\n\n  man -l #{$dirs[:install]}/man/harpwise.1\n\n"
 end
 
 
@@ -34,28 +34,30 @@ def task_diff
   types_content = get_types_content
   seen = false
 
-  #
-  # Bring usage information and man page into canonical form
-  #
-
   lines = Hash.new
   line = Hash.new
   srcs = [:usage, :man]
   
   seen = {:desc => [/^DESCRIPTION$/, false],
           :prim_start => [/The primary documentation/, false],
-          :prim_end => [/which are not available as man-pages/, false],
+          :prim_end => [/not available as man-pages/, false],
           :exa_start => [/^EXAMPLES$/, false],
           :exa_end => [/^COPYRIGHT$/, false]}
   
   erase_part = ['<hy>', '<beginning of page>']
   erase_line = %w(MODE ARGUMENTS OPTIONS)
   replaces = {'SUGGESTED READING' => 'SUGGESTED READING:'}
-  
+
+  #
+  # Bring usage information and man page into canonical form
+  #
+
+  # keep everything
   lines[:usage] = ERB.new(IO.read("#{$dirs[:install]}/resources/usage.txt")).result(binding).lines.
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
 
+  # remove disclaimer for the man-page or lines, which are added by groff
   lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
                   # use only some sections of lines
