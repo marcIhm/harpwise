@@ -4,7 +4,7 @@
 
 * How to produce screenshots
 
-  In full screen with: stty size = 29 89 
+  In full screen with: stty size = 25 78
 
   ./harpwise listen richter c blues --add-scales chord-v --screenshot
 
