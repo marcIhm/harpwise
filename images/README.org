@@ -1,8 +1,12 @@
-Some source and lincense information about these images
+* Source and lincense information about these images
 
-- harmonica.png
-  - From: https://pixabay.com/photos/harmonica-blues-instrument-music-1407275/
-  - License: https://pixabay.com/service/license/, i.e. free for use as here
-- screenshot_listen.png, screenshot_quiz.png
-  - From: My own screenshots (Marc Ihm)
-  - MIT License
+  Pictures (camera or screenshot) by Marc Ihm subject to MIT License.
+
+* How to produce screenshots
+
+  In full screen with: stty size = 29 89 
+
+  ./harpwise listen richter c blues --add-scales chord-v --screenshot
+
+  ./harpwise quiz 5 richter c blues --add-scales chord-v --screenshot
+

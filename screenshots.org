@@ -1,9 +1,0 @@
-* Making the screenshots
-
-  With these commandlines:
-
-  ./harpwise listen richter c blues --add-scales chord-v --screenshot
-
-  ./harpwise quiz 5 richter c blues --add-scales chord-v --screenshot
-
-  
