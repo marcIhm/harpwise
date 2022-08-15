@@ -24,7 +24,9 @@ def task_man
   File.write("#{$dirs[:install]}/man/harpwise.1",
              ERB.new(IO.read("#{$dirs[:install]}/resources/harpwise.man")).result(binding).chomp)
 
-  system("man -l #{$dirs[:install]}/man/harpwise.1")
+  puts
+  system("ls -l #{$dirs[:install]}/man/harpwise.1")
+  puts "\nProcess with:\n\n  man -l #{$dirs[:install]}/man/harpwise.1\n\n"
 end
 
 
@@ -44,8 +46,8 @@ def task_diff
           :prim_start => [/The primary documentation/, false],
           :prim_end => [/which are not available as man-pages/, false],
           :exa_start => [/^EXAMPLES$/, false],
-          :exa_end => [/^COPYRIGHT$/, false],
-         }
+          :exa_end => [/^COPYRIGHT$/, false]}
+  
   erase_part = ['<hy>', '<beginning of page>']
   erase_line = %w(MODE ARGUMENTS OPTIONS)
   replaces = {'SUGGESTED READING' => 'SUGGESTED READING:'}
@@ -56,6 +58,7 @@ def task_diff
 
   lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
+                  # use only some sections of lines
                   map do |l|
                     newly_seen = false
                     seen.each do |k,v|
@@ -76,6 +79,7 @@ def task_diff
                       l
                     end
                   end.compact.
+                  # erase and replace
                   map do |l|
                     erase_part.each {|e| l.gsub!(e,'')}
                     l
@@ -83,7 +87,7 @@ def task_diff
                   map do |l|
                     erase_line.any? {|e| e == l.strip} ? nil : l
                   end.compact.
-                  map {|l| replaces[l] || l}.  
+                  map {|l| replaces[l] || l}.
                   map {|l| l.strip.downcase}.reject(&:empty?).compact
 
   srcs.each {|s| line[s] = lines[s].shift}

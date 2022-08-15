@@ -4,6 +4,7 @@
 
 
 def prepare_screen
+  return [24, 80] unless STDIN.isatty
   STDOUT.sync = true
   %x(stty size).split.map(&:to_i)
 end

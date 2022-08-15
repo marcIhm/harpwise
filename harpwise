@@ -35,7 +35,7 @@ $debug_what = Set.new([])
 # store (ad-hoc) state for debugging
 $debug_state = {}
 
-$term_height, $term_width = prepare_screen
+$term_height, $term_width = prepare_screen 
 
 # while testing, additionally make sure, that we do not use relative
 # paths; do this early, before we even have parsed options
@@ -56,7 +56,7 @@ end
 $scales = get_all_scales($opts[:add_scales])
 
 # we need to have mode for this, so calculate it late
-$lines = calculate_screen_layout unless $mode == :develop
+$lines = calculate_screen_layout
 # Count things and print them on --debug; supplements info from ruby -rprofile
 $perfctr = Hash.new {|h,k| h[k] = 0}
   
@@ -110,7 +110,7 @@ end
 
 
 at_exit do
-  sane_term
+  sane_term if STDIN.isatty
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
