@@ -34,6 +34,7 @@ end
 
 
 def err text
+  raise ArgumentError.new(text) if $on_error_raise
   sane_term
   puts
   puts "ERROR: #{text} !"
@@ -82,7 +83,7 @@ def display_kb_help what, first_lap, body
   end
   puts "Keys available while playing a #{what}:\e[0m\e[32m\n"
   body.lines.each {|l| puts '      ' + l.chomp + "\n"}
-  print "\e[0mType any key to continue ..."
+  print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   unless first_lap
@@ -158,4 +159,80 @@ def bbg # prepare byebug
   print "\e[0m"
   require 'byebug'
   byebug
+end
+
+
+def write_dump marker
+  dumpfile = '/tmp/' + File.basename($0) + "_dumped_for_testing_#{marker}.json"
+  File.delete(dumpfile) if File.exists?(dumpfile)
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts}
+  File.write(dumpfile, JSON.pretty_generate(structure))
+end
+
+
+def print_issue text
+  print "\e[#{$lines[:issue]}H\e[0m#{text.ljust($term_width - $ctl_issue_width)}\e[0m"
+end
+
+
+#
+# Three functions (starting with cmnt_), that handle together extensive
+# interaction using the comment-area
+#
+
+def cmnt_print_in_columns head, names, tail = []
+  print "\e[#{$lines[:comment_tall]}H\e[0m\e[32m#{head.chomp}:\e[0m\e[2m\e[J\n"
+  $column_short_hint_or_message = 1
+  if head[-1] == "\n"
+    lns = 1
+    puts
+  else
+    lns = 0
+  end
+  max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
+  off_for_tail = [tail.length, 2].min
+  line = '  '
+  more = ' ... more'
+  names.
+    map {|nm| nm + ' '}.
+    map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
+    break if lns > max_lns - off_for_tail
+    if (line + nm).length > $term_width - 4 || idx == names.length - 1
+      line[-more.length ..] = more if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
+      puts line
+      lns += 1
+      line = '  '
+    end
+    line += nm
+  end
+  puts line unless line.strip.empty? && lns < max_lns - off_for_tail
+
+  print "\e[0m\e[32m" 
+  while tail.length > 0
+    break if lns > max_lns
+    puts tail.shift
+    lns += 1
+  end
+  print "\e[0m"
+end
+
+
+def cmnt_report_error_wait_key etext
+  prepare_term
+  start_kb_handler
+  # This makes the terminal scroll
+  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+  print etext
+  print "\n\e[2mPress any key to continue ... \e[K"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+  stop_kb_handler
+  sane_term
+end
+
+
+def cmnt_print_prompt text_low, text_high, text_low2 = ''
+  text_low2.prepend(' ') unless text_low2.empty?
+  print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
+  print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
 end

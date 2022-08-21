@@ -28,7 +28,7 @@ if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
   $fromon_id = md[1]
 end
 $within = ARGV.length == 0
-$testing_dump_file = '/tmp/harpwise_dumped_for_testing.json'
+$testing_dump_template = '/tmp/harpwise_dumped_for_testing_%s.json'
 $testing_output_file = '/tmp/harpwise_output_for_testing.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(juke special blues mape one two three long)
@@ -226,17 +226,17 @@ do_test 'id-08: listen with merged scale' do
   tms 'harpwise listen testing a blues --add-scales chord-v,chord-i --testing'
   tms :ENTER
   sleep 6
-  expect { screen[1]['blues,chord-v,chord-i,all'] }
+  expect { screen[1]['blues,5,1,all'] }
   kill_session
 end
 
 do_test 'id-09: listen with removed scale' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise listen testing a all --remove drawbends --testing'
   tms :ENTER
   sleep 4
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   expect { tst_dump[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
   kill_session
 end
@@ -301,12 +301,12 @@ do_test 'id-11: transpose scale does work on zero shift' do
 end
 
 do_test 'id-12: transpose scale works on non-zero shift' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise listen testing a blues --transpose_scale_to g --testing'
   tms :ENTER
   sleep 2
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   expect { tst_dump[:scale_holes] == ['-2+3','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
   kill_session
 end
@@ -330,12 +330,12 @@ do_test 'id-14: play a lick' do
 end
 
 do_test 'id-14a: check lick processing on tags.add and desc.add' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise play testing a mape --testing'
   tms :ENTER
   sleep 4
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   # use 'one' twice to make index match name
   licks = %w(one one two three).map do |lname| 
     tst_dump[:licks].find {|l| l[:name] == lname} 
@@ -402,12 +402,12 @@ do_test 'id-16b: cycle in play' do
 end
 
 do_test 'id-17: mode licks with lick file from previous test' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise licks testing a --testing'
   tms :ENTER
   sleep 12
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   expect { tst_dump[:licks].length == 8 }
   expect { screen[1]['licks(8) testing a all'] }
   kill_session
@@ -427,36 +427,36 @@ end
 #  Total number of licks:   8
 
 do_test 'id-18: mode licks with licks with tags_any' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise licks testing --tags-any favorites,testing a --testing'
   tms :ENTER
   sleep 2
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   # See comments above for verification
   expect { tst_dump[:licks].length == 4 }
   kill_session
 end
 
 do_test 'id-18a: mode licks with licks with tags_all' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise licks testing --tags-all scales,theory a --testing'
   tms :ENTER
   sleep 2
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   # See comments above for verification
   expect { tst_dump[:licks].length == 1 }
   kill_session
 end
 
 do_test 'id-19: mode licks with licks excluding one tag' do
-  clear_testing_dump
+  clear_testing_dumps
   new_session
   tms 'harpwise licks testing --no-tags-any scales a --testing'
   tms :ENTER
   sleep 2
-  tst_dump = read_testing_dump
+  tst_dump = read_testing_dump('start')
   # See comments above for verification
   expect { tst_dump[:licks].length == 6 }
   kill_session
@@ -709,6 +709,22 @@ do_test 'id-27a: change tags' do
   kill_session
 end
 
+do_test 'id-27b: change partial' do
+  new_session
+  tms 'harpwise lick testing blues --start-with juke --testing'
+  tms :ENTER
+  sleep 2
+  tms '@'
+  tms '1@e'
+  tms :ENTER
+  sleep 1
+  tms 'q'
+  sleep 1
+  tst_dump = read_testing_dump('end')
+  expect { tst_dump[:opts][:partial] == '1@e' }
+  kill_session
+end
+
 do_test 'id-28: error on ambigous mode' do
   new_session
   tms 'harpwise li testing blues'
@@ -781,7 +797,22 @@ do_test 'id-33: error on print in licks' do
   expect { screen[3]['ERROR'] }
   kill_session
 end
-  
+
+do_test 'id-34: switch between modes' do
+  new_session
+  tms 'harpwise licks testing a --testing'
+  tms :ENTER
+  sleep 4
+  expect { screen[1]['licks'] }
+  tms '%'
+  sleep 4
+  expect { screen[1]['listen'] }
+  tms '%'
+  sleep 4
+  expect { screen[1]['licks'] }
+  kill_session
+end
+
 FileUtils.rm_r 'config/testing' if File.directory?("#{$dirs[:install]}/config/testing")
 system("killall aubiopitch >/dev/null 2>&1")
 puts "\ndone.\n\n"

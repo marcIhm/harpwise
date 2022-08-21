@@ -24,8 +24,9 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
-        :named_lick, :change_key, :change_scale, :change_tags, :show_help,
-        :ignore_partial, :ignore_holes, :ignore_recording, 
+        :named_lick, :change_key, :change_scale, :change_tags, :show_help, :change_partial,
+        :ignore_partial, :ignore_holes, :ignore_recording,
+        :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment,
         :set_ref]
   $ctl_listen = Struct.new(*ks).new
@@ -44,7 +45,7 @@ def set_global_vars_early
   ks.each {|k| $ctl_hole[k] = false}
 
   # capabilities available (or not) when processing keyboard
-  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named, :octave]
+  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named, :octave, :switch_modes]
   $ctl_can = Struct.new(*ks).new
   ks.each {|k| $ctl_can[k] = false} 
   
@@ -84,7 +85,7 @@ def set_global_vars_early
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:note, :interval, :hole, :cents]                       
 
-  # will be populated along with $scale and $scales
+  # will be populated along with $scale and $all_scales
   $scale2short = Hash.new
   $short2scale = Hash.new
   $scale2short_count = 0
@@ -252,7 +253,7 @@ def read_musical_config
 
     scale = []
     h2s_shorts = Hash.new {|h,k| h[k] = ''}
-    $scales.each_with_index do |sname, idx|
+    $all_scales.each_with_index do |sname, idx|
       # read scale
       sc_ho, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
       # build resulting scale
@@ -390,6 +391,8 @@ def read_chart
   begin
     # check for completeness
     chart_holes = Set.new(chart_with_holes_raw.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
+    # Beware of false friends: $harp.keys has nothing to do with the
+    # musical key of the harp ...
     harp_holes = Set.new($harp.keys)
     raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{harp_holes - chart_holes}, extra in chart: #{chart_holes - harp_holes}") if chart_holes != harp_holes
     
@@ -491,5 +494,14 @@ def read_calibration
   freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.to_h
 
   freq2hole
+end
 
+
+def set_global_musical_vars
+  $all_scales = get_all_scales($opts[:add_scales])
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+  $charts, $hole2chart = read_chart
+  $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
+  $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
+  $freq2hole = read_calibration unless $mode == :calibrate
 end

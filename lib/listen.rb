@@ -4,12 +4,15 @@
 
 def do_listen
 
-  prepare_term
-  start_kb_handler
-  start_collect_freqs 
+  unless $other_mode_saved[:conf]
+    prepare_term
+    start_kb_handler
+    start_collect_freqs
+  end
   $ctl_can[:next] = false
   $ctl_can[:loop] = false
-  
+  $modes_for_switch = [:listen, :licks]
+
   system('clear')
   pipeline_catch_up
 
@@ -20,7 +23,7 @@ def do_listen
 
 
     # lambda_good_done_was_good
-    -> (played, _) {[$scale_holes.include?(played), false, false]},
+    -> (played, _) {[$scale_holes.include?(played), $ctl_listen[:switch_modes], false]},
     
 
     # lambda_skip
@@ -72,6 +75,7 @@ def do_listen
       hfi = hole_ref || hole_held_before
       regular_hole?(hfi)  ?  hfi  :  nil
     end)
+  
 end
 
 

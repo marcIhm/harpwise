@@ -29,6 +29,7 @@ require_relative 'lib/calibrate'
 require_relative 'lib/develop'
 
 $program_start = Time.now.to_f
+$on_error_raise = false
 # grep .rb-files for 'debug' to see choices; still need to give
 # '--debug' to switch it on e.g. :check_screen
 $debug_what = Set.new([])
@@ -53,8 +54,6 @@ Sys::ProcTable.ps do |p|
   err "An instance of this program is already running: pid: #{p.pid}, commandline: '#{p.cmdline}'" if $mode != :report && $mode != :develop && Process.pid != p.pid && p.cmdline[File.basename($0)] && p.cmdline['ruby']
 end
 
-$scales = get_all_scales($opts[:add_scales])
-
 # we need to have mode for this, so calculate it late
 $lines = calculate_screen_layout
 # Count things and print them on --debug; supplements info from ruby -rprofile
@@ -62,26 +61,14 @@ $perfctr = Hash.new {|h,k| h[k] = 0}
   
 set_global_vars_late
 
-# next line also appears in file handle_holes.rb
-$harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
-
-$charts, $hole2chart = read_chart
-
-$all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
+set_global_musical_vars
 
 err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
 $hole_ref = $opts[:ref]
 
 check_screen if [:listen, :quiz, :licks].include?($mode)
 
-$freq2hole = read_calibration unless $mode == :calibrate
-
-if $opts[:testing]
-  dumpfile = '/tmp/' + File.basename($0) + '_dumped_for_testing.json'
-  File.delete(dumpfile) if File.exists?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks}
-  File.write(dumpfile, JSON.pretty_generate(structure))
-end
+write_dump 'start' if $opts[:testing]
 
 Thread.report_on_exception = false
 
@@ -111,6 +98,7 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
+  write_dump 'end' if $opts[:testing]
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
@@ -123,23 +111,43 @@ end
 note2semi('a4') == 0 or fail 'Internal error'
 semi2note(0) == 'a4' or fail 'Internal error'
 
-case $mode
-when :quiz
-  do_quiz
-when :licks
-  do_quiz
-when :listen
-  do_listen
-when :play
-  do_play to_handle
-when :report
-  do_report to_handle
-when :calibrate
-  if $opts[:auto]
-    do_calibrate_auto
-  else
-    do_calibrate_assistant
+$other_mode_saved = Hash.new
+begin
+  if $ctl_listen[:switch_modes]
+    $ctl_listen[:switch_modes] = false
+    $mode = ($modes_for_switch - [$mode])[0]
+    if !$other_mode_saved[:conf]
+      # We are switching from licks or quiz to listen
+      $other_mode_saved[:conf] = $conf.clone
+      $other_mode_saved[:conf][:comment] = :note
+    end
+    $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
+    $lines = calculate_screen_layout
+
+    clear_area_comment
+    print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[34m"
+    do_figlet_unwrapped "> > >   switch to #{$mode}   > > >", 'smblock'
+    sleep 1.5
   end
-when :develop
-  do_develop to_handle
-end
+  case $mode
+  when :quiz
+    do_quiz_or_licks
+  when :licks
+    do_quiz_or_licks
+  when :listen
+    do_listen
+  when :play
+    do_play to_handle
+  when :report
+    do_report to_handle
+  when :calibrate
+    if $opts[:auto]
+      do_calibrate_auto
+    else
+      do_calibrate_assistant
+    end
+  when :develop
+    do_develop to_handle
+  end
+end while $ctl_listen[:switch_modes]
+

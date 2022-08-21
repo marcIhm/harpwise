@@ -26,7 +26,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     system('clear') if $ctl_listen[:redraw]
     if first_round || $ctl_listen[:redraw]
       $perfctr[:lambda_issue_call] += 1
-      print "\e[#{$lines[:issue]}H\e[0m#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
+      print_issue lambda_issue.call
       $ctl_issue_default = "SPACE to pause; h for help"
       ctl_issue
       print "\e[#{$lines[:key]}H" + text_for_key
@@ -47,6 +47,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_listen
+    # restores also default text after a while
     ctl_issue
 
     handle_win_change if $ctl_sig_winch
@@ -290,8 +291,13 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
       puts "     c,C: change comment (lower, i.e. this, part of screen)"
       puts "       r: set reference hole       j: toggle writing of journal file"
-      puts "       k: change key of harp       s: change scale"
+      puts "       k: change key of harp       s: change scale and --add-scale"
       puts "       q: quit                     h: this help"
+      if $ctl_can[:switch_modes]
+        puts "       m: switch between modes #{$modes_for_switch}"
+      elsif $mode == :listen
+        puts "       m: start with quiz or licks to switch to and from"
+      end
       if $ctl_can[:next]
         puts "\e[0mType any key to show more help ...\e[K"
         $ctl_kb_queue.clear
@@ -310,11 +316,12 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           $ctl_kb_queue.deq
           clear_area_comment
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-          puts "     n: switch to lick by name            t: change option --tags"
+          puts "     n: switch to lick by name            t: change options --tags"
           puts "     <: shift lick down by one octave     >: shift lick up"
+          puts "     @: change option --partial"
         end
       end
-      puts "\e[0mType any key to continue ...\e[K"
+      puts "\e[0mPress any key to continue ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_issue 'continue', hl: true
@@ -326,7 +333,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $ctl_listen[:loop] = true
       $ctl_listen[:start_loop] = false
       $perfctr[:lambda_issue_call] += 1
-      print "\e[#{$lines[:issue]}H#{lambda_issue.call.ljust($term_width - $ctl_issue_width)}\e[0m"
+      print_issue lambda_issue.call
     end
     
     if $ctl_listen[:toggle_journal]
@@ -350,58 +357,23 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:key]}H" + text_for_key      
     end
 
-    if $ctl_listen[:change_key] || $ctl_listen[:change_scale]
-      print "\e[#{$lines[:hint_or_message]}H\e[J\e[0m\e[K"
-      $column_short_hint_or_message = 1
-      stop_kb_handler
-      sane_term
-      er = inp = nil
-      begin
-        if $ctl_listen[:change_key]
-          print "\e[0m\e[2mPlease enter \e[0mnew key\e[2m (current is #{$key}):\e[0m "
-          inp = STDIN.gets.chomp
-          inp = $key.to_s if inp == ''
-          er = check_key_and_set_pref_sig(inp)
-        else
-          scales = scales_for_type($type)
-          print "\e[0m\e[2mPlease enter \e[0mnew scale\e[2m (one of #{scales.join(', ')}; current is #{$scale}):\e[0m "
-          inp = STDIN.gets.chomp
-          inp = $scale if inp == ''
-          scale = match_or(inp, scales) do |none, choices|
-            er = "Given scale #{none} is none of #{choices}"
-          end            
-        end
-        if er
-          puts "\e[91m#{er}"
-        else
-          if $ctl_listen[:change_key]
-            $key = inp.to_sym
-          else
-            $scale = inp
-          end
-        end
-      end while er
-      # next two lines also appears in file harpwise
-      $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
-      $charts, $hole2chart = read_chart
-      $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
-      set_global_vars_late
-      $freq2hole = read_calibration
-      start_kb_handler
-      prepare_term
+    if $ctl_listen[:change_key]
+      do_change_key
+      $ctl_listen[:change_key] = false
       $ctl_listen[:redraw] = :silent
-      system('clear')
-      print "\e[#{$lines[:key]}H" + text_for_key
-      if $ctl_listen[:change_key]
-        print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
-      else
-        print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale in use to \e[0m#{$scale}\e[K"
-      end
-      $message_shown_at = Time.now.to_f
-      $ctl_listen[:change_key] = $ctl_listen[:change_scale] = false
+      set_global_vars_late
+      set_global_musical_vars
     end
 
-    return if $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+    if $ctl_listen[:change_scale]
+      do_change_scale_add_scales
+      $ctl_listen[:change_scale] = false
+      $ctl_listen[:redraw] = :silent
+      set_global_vars_late
+      set_global_musical_vars
+    end
+
+    return if $ctl_listen[:named_lick] || $ctl_listen[:change_tags] || $ctl_listen[:switch_modes]
 
     if $ctl_listen[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
@@ -418,18 +390,18 @@ end
 
 
 def text_for_key
-  text = "\e[2m#{$mode}"
+  text = "\e[0m#{$mode}\e[2m"
   text += "(#{$licks.length})" if $mode == :licks
   text += " #{$type} \e[0m#{$key}"
   if $opts[:add_scales]
     text += "\e[0m"
     text += " \e[32m#{$scale}"
-    text += "\e[0m\e[2m," + $scales[1..-1].map {|s| "\e[0m\e[34m#{s}\e[0m\e[2m"}.join(',')
+    text += "\e[0m\e[2m," + $all_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
     text += ",\e[0mall\e[2m"
   else
     text += "\e[2m #{$scale}"
   end
-  text += ', journal: ' + ( $write_journal  ?  ' on' : 'off' )
+  text += '; journal: ' + ( $write_journal  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
@@ -464,4 +436,93 @@ def fit_into_comment lines
   (start .. $lines[:hint_or_message] - 1).to_a.each do |n|
     puts ( lines[n - start] || "\e[K" )
   end 
+end
+
+
+def do_change_key
+  stop_kb_handler
+  sane_term
+  begin
+    cmnt_print_in_columns 'Available keys', $conf[:all_keys], ["current is #{$key}"]
+    cmnt_print_prompt  'Please enter','new key'
+    
+    input = STDIN.gets.chomp
+    input = $key.to_s if input == ''
+    error = nil
+    begin
+      $on_error_raise = true
+      check_key_and_set_pref_sig(input)
+    rescue ArgumentError => error
+      cmnt_report_error_wait_key error
+    else
+      $key = input.to_sym
+    ensure
+      $on_error_raise = false
+    end
+  end while error
+  start_kb_handler
+  prepare_term
+  print "\e[#{$lines[:key]}H" + text_for_key
+  print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
+  $message_shown_at = Time.now.to_f
+end
+
+
+def do_change_scale_add_scales
+  stop_kb_handler
+  sane_term
+
+  # Change scale
+  begin
+    cmnt_print_in_columns 'First setting main scale; available scales',
+                          $all_scales,
+                          ["current scale is #{$scale}",
+                           'RETURN to keep']
+    cmnt_print_prompt 'Please enter', 'new scale', '(abbrev)'
+    input = STDIN.gets.chomp.strip
+    error = nil
+    break if input == ''
+    scale = match_or(input, $all_scales) do |none, choices|
+      error = "Given scale #{none} is none of #{choices}"
+    end
+    if error
+      cmnt_report_error_wait_key error
+    else
+      $scale = scale
+    end
+  end while error
+
+  # Change --add-scales
+  begin
+    cmnt_print_in_columns 'Now setting --add-scales; available scales',
+                          $all_scales,
+                          ["current value is #{$opts[:add_scales]}",
+                           'RETURN to keep, SPACE to clear']
+    cmnt_print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'
+    input = STDIN.gets.chomp
+    error = nil
+    if input == ''
+      break
+    elsif input.strip.empty?
+      $opts[:add_scales] = nil
+      break
+    end
+    input.gsub!(',',' ')
+    add_scales = input.split.map do |scale|
+      match_or(input, $all_scales) do |none, choices|
+        error ||= "Given scale #{none} is none of #{choices}"
+      end
+    end
+    if error
+      cmnt_report_error_wait_key error
+    else
+      $opts[:add_scales] = add_scales.join(',')
+    end
+  end while error
+
+  start_kb_handler
+  prepare_term
+  print "\e[#{$lines[:key]}H" + text_for_key
+  print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m#{$scale}\e[K"
+  $message_shown_at = Time.now.to_f  
 end

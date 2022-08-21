@@ -4,13 +4,17 @@
 
 $abbrevs_for_iter = %w(iterate iter cycle cyc)
 
-def do_quiz
+def do_quiz_or_licks
 
-  prepare_term
-  start_kb_handler
-  start_collect_freqs
+  unless $other_mode_saved[:conf]
+    prepare_term
+    start_kb_handler
+    start_collect_freqs
+  end
   $ctl_can[:next] = true
   $ctl_can[:loop] = true
+  $ctl_can[:switch_modes] = true
+  $modes_for_switch = [:listen, :quiz]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
   $write_journal = true
@@ -22,7 +26,7 @@ def do_quiz
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
   lick_cycle = false
   octave_shift = 0
-  start_with = $opts[:start_with].dup
+  start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   puts
   puts "#{$licks.length} licks." if $mode == :licks
 
@@ -31,13 +35,13 @@ def do_quiz
     do_write_journal = false
 
     if first_round
-      print "\n"
+      print "\n\n\n"
       print "\e[#{$term_height}H\e[K"
       print "\e[#{$term_height-1}H\e[K"
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       print "\e[#{$lines[:message2]}H\e[K"
-      print "\e[#{$lines[:issue]}H\e[K"
+      print_issue ''
       ctl_issue
     end
 
@@ -53,6 +57,7 @@ def do_quiz
     end
 
     # For licks, the calculation of next one has these cases:
+    # - switching back to mode from listen
     # - ctl-command that takes us back
     # - requests for a named lick
     # - change
@@ -60,9 +65,18 @@ def do_quiz
     # - simply done with previous lick and next lick is required
     
     # handle $ctl-commands from keyboard-thread, that probably come
-    # from a previous loop iteration.
+    # from a previous loop iteration or from other mode
     # The else-branch further down handles the general case without $ctl-commands
-    if $ctl_listen[:back] 
+    if $other_mode_saved[:lick_idx]
+      lick_idx = $other_mode_saved[:lick_idx]
+      lick = $licks[lick_idx]
+      all_wanted = lick[:holes]
+      $other_mode_saved[:lick_idx] = nil
+      lick_idx_before = nil
+    elsif $other_mode_saved[:all_wanted]
+      all_wanted = $other_mode_saved[:all_wanted]
+      $other_mode_saved[:all_wanted] = nil
+    elsif $ctl_listen[:back] 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
           print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
@@ -99,9 +113,11 @@ def do_quiz
           '    '
         end + $licks[lick_idx][:name]
       end
-      print_in_columns 'Recent licks', lnames_abbr.map {|ln| ln + '   '}
-      print_prompt_context "Name of new lick (or part of or l,2l,..)",
-                           "current lick is #{lick[:name]}"
+      cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + $licks.map {|l| l[:name]},
+                            ["current lick is #{lick[:name]}"]
+      cmnt_print_prompt 'Please enter', 'Name of new lick',
+                        '(or part of or l,2l,..)'
+                           
       input = STDIN.gets&.chomp || ''
       
       if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
@@ -155,16 +171,23 @@ def do_quiz
       if all_wanted.reject {|h| musical_event?(h)}.length == 0
         print "\e[#{$lines[:hint_or_message]}H\e[0;101mShifting lick by (one more) octave does not produce any playable notes.\e[0m\e[K"
         print "\e[#{$lines[:message2]}HPress any key to continue ... "
+        $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         print "\e[#{$lines[:hint_or_message]}H\e[K\e[#{$lines[:message2]}H\e[K"
         all_wanted = all_wanted_was
         octave_shift = octave_shift_was
-        ctl_issue "Octave shift #{octave_shift}"
         sleep 2
       else
-        ctl_issue "Octave shift #{octave_shift}"
+        print "\e[#{$lines[:hint_or_message]}H\e[2mOctave shift \e[0m#{octave_shift}\e[K"
+        $message_shown_at = Time.now.to_f
       end
-      
+
+    elsif $ctl_listen[:change_partial]
+
+      read_and_set_partial
+      print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
+      $message_shown_at = Time.now.to_f
+
     else # most general case: no $ctl-command. E.g. first or next
          # sequence or $ctl_listen[:next]: go to the next sequence
 
@@ -184,7 +207,6 @@ def do_quiz
 
         # continue with iteration through licks
         if lick_idx_iter 
-
           lick_idx_iter += 1
           if lick_idx_iter >= $licks.length
             if lick_cycle
@@ -251,9 +273,9 @@ def do_quiz
     #
     #  Play the sequence or recording
     #
-    if !zero_partial? || $ctl_listen[:replay] || $ctl_listen[:octave]
+    if !zero_partial? || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial]
       
-      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[K" unless first_round
+      print_issue('Listen ...') unless first_round
 
       $ctl_listen[:ignore_partial] = true if zero_partial? && $ctl_listen[:replay]
 
@@ -262,7 +284,7 @@ def do_quiz
         lines = comment_while_playing(all_wanted)
         fit_into_comment(lines) if lines
       end
-      
+
       if $mode == :quiz || !lick[:rec] || $ctl_listen[:ignore_recording] || ($opts[:holes] && !$ctl_listen[:ignore_holes])
         play_holes all_wanted, first_round
       else
@@ -274,13 +296,13 @@ def do_quiz
         redo
       end
 
-      print "\e[#{$lines[:issue]}H\e[0mListen ...\e[32m and !\e[0m\e[K" unless first_round
+      print_issue "Listen ... and !" unless first_round
       sleep 0.3
 
     end
 
     # reset controls before listening
-    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = $ctl_listen[:octave] = false
+    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = $ctl_listen[:octave] = $ctl_listen[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -347,7 +369,7 @@ def do_quiz
                                idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
 
           # lambda_skip
-          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave]},  
+          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial]},  
 
           
           # lambda_comment; this one needs no arguments at all
@@ -412,7 +434,16 @@ def do_quiz
           end
         )  # end of get_hole
 
-        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+        if $ctl_listen[:switch_modes]
+          if $mode == :licks
+            $other_mode_saved[:lick_idx] = lick_idx
+          else
+            $other_mode_saved[:all_wanted] = all_wanted
+          end
+          return
+        end
+        
+        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave]  || $ctl_listen[:change_partial] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
 
       end # notes in a sequence
       
@@ -443,7 +474,8 @@ def do_quiz
                   'octave up'
                 elsif $ctl_listen[:octave] == :down
                   'octave down'
-                elsif $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+                elsif $ctl_listen[:named_lick] || $ctl_listen[:change_tags] || $ctl_listen[:change_partial]
+                  # these will issue their own message
                   nil
                 else
                   full_seq_shown ? 'Yes ' : 'Great ! '
@@ -462,7 +494,7 @@ def do_quiz
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+        unless $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
           print "\e[0m\e[32mAnd #{$ctl_listen[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -470,9 +502,9 @@ def do_quiz
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:octave] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
+    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:octave] && !$ctl_listen[:change_partial] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
 
-    print "\e[#{$lines[:issue]}H#{''.ljust($term_width - $ctl_issue_width)}"
+    print_issue ''
     first_round = false
   end # forever sequence after sequence
 end
@@ -684,7 +716,9 @@ def select_and_calc_partial all_holes, start_s, length_s
            start + pl * rand(md[1].to_i)/md[1].to_f
          end
   elsif md = $opts[:partial].match(/^(\d*\.?\d*)@(b|x|e)$/)
-    err "Argument for option '--partial' should have digits before '@'; '#{$opts[:partial]}' does not" if md[1].length == 0
+    if md[1].length == 0
+      err "Argument for option '--partial' should have digits before '@'; '#{$opts[:partial]}' does not"
+    end
     numh = md[1].to_f.round
     pl = md[1].to_f
     pl = length if pl > length
@@ -865,56 +899,21 @@ def wrapify_for_comment max_lines, holes, idx_first_active
 end
   
 
-def print_prompt_context prompt, context
-  print "\e[#{$lines[:hint_or_message]}H\e[J"
-  print "\e[#{$lines[:message2]}H\e[0m\e[2m#{context}"
-  print "\e[#{$lines[:hint_or_message]}H\e[0m#{prompt}: "
-end
-
-
-def print_in_columns head, names
-  print "\e[#{$lines[:comment]}H\e[2m#{head.chomp}:\e[J\n"
-  if head[-1] == "\n"
-    lns = 1
-    puts
-  else
-    lns = 0
-  end
-  max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
-  line = '  '
-  more = ' ... more'
-  names.
-    map {|nm| nm + ' '}.
-    map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,i|
-    break if lns > max_lns
-    if (line + nm).length > $term_width - 4 || i == names.length - 1
-      line[-more.length ..] = more if lns == max_lns && i < names.length - 1
-      puts line
-      lns += 1
-      line = '  '
-    end
-    line += nm
-  end
-  puts line unless line.strip.empty? && lns < max_lns
-end
-
-
 def read_lick_name input, curr_lick_idx
   curr_lick = $licks[curr_lick_idx]
   begin
     matching = $licks.map.with_index.select {|li| li[0][:name][input]}
     if matching.length != 1
       if matching.length == 0
-        print_in_columns(
-          "No lick contains '#{input}'; all",
-          $licks.map {|l| l[:name]}.sort)
+        cmnt_print_in_columns "No lick contains '#{input}'; all",
+                              $licks.map {|l| l[:name]}.sort,
+                              ["current is '#{curr_lick[:name]}'"]
       else
-        print_in_columns(
-          "Multiple licks (#{matching.length}) contain '#{input}'",
-          matching.map {|m| m[0][:name]})
+        cmnt_print_in_columns "Multiple licks (#{matching.length}) contain '#{input}'",
+                              matching.map {|m| m[0][:name]},
+                              ["current is '#{curr_lick[:name]}'"]
       end
-      print_prompt_context "Enter a new name",
-                           "or just press RETURN to keep current '#{curr_lick[:name]}"
+      cmnt_print_prompt 'Enter a', 'new name', 'or just press RETURN to keep'
       input = STDIN.gets.chomp
       matching = [[curr_lick,curr_lick_idx]] if input == ''
     end
@@ -925,22 +924,23 @@ end
 
 
 def read_tags_and_refresh_licks curr_lick
-
   tag_options = %w( --tags-all --tags-any --no-tags-all --no-tags-any )
   tag_option = nil
-  prompt = "There are four relevant options\n"
   begin
-    print_in_columns prompt,
-                     tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "}
-    print_prompt_context 'Please choose which option to set (1,2,3,4 or q to quit)',
-                         'The other options will be set to the empty string'
+    cmnt_print_in_columns 'There are four relevant options',
+                          tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
+                          ['the other options will be set to the empty string']
+    cmnt_print_prompt 'Please choose', 'which option to set',
+                      '(1,2,3,4 or q to quit)'
     char = $ctl_kb_queue.deq
     if %w( 1 2 3 4 ).include?(char)
       tag_option = tag_options[char.to_i - 1][2..-1].gsub('-','_').to_sym
     elsif char == 'q'
       return
     else
-      prompt = "\e[0m\e[32mInvalid Input: '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}); none of 1..4 ! \e[0m\e[2m; please try again\n"
+      cmnt_report_error_wait_key 'Invalid Input: ' +
+                                 (char.match?(/[[:print:]]/) ? char : '?') +
+                                 " (#{char.ord}); none of 1..4 !"
     end
   end until tag_option
   tag_options.each {|to| $opts[to[2..-1].gsub('-','_').to_sym] = ''}
@@ -948,9 +948,12 @@ def read_tags_and_refresh_licks curr_lick
   stop_kb_handler
   sane_term
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
-  opof = 'or part of; SPC to list, RET to go without'
-  print_in_columns "Current lick #{curr_lick[:name]} has these tags", curr_lick[:tags]
-  print_prompt_context "New value for '--#{tag_option.to_s.gsub('_','-')}' (maybe with ,cycle)", opof
+  cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
+                        curr_lick[:tags] + all_tags,
+                        ["maybe with ',cycle', SPC to list, RET to go without"]
+  topt = '--' + tag_option.to_s.gsub('_','-')
+  opof = '(or part of)'
+  cmnt_print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
   doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| input.end_with?(x)}
   input[-doiter.length .. -1] = '' if doiter
@@ -970,17 +973,17 @@ def read_tags_and_refresh_licks curr_lick
       $opts[tag_option] = mtags[0]
       $all_licks, $licks = read_licks true
       if $licks.length == 0
-        print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
-                         all_tags.sort
+        cmnt_print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
+                              all_tags.sort
       else
         done = true
         $opts[tag_option] += doiter if doiter
       end
     elsif mtags.length == 0
-      print_in_columns "No tags match your input '#{input}'; these are available",
-                       all_tags.sort
+      cmnt_print_in_columns "No tags match your input '#{input}'; these are available",
+                            all_tags.sort
     else
-      print_in_columns(
+      cmnt_print_in_columns(
         if input == ' '
           'All tags'
         else
@@ -989,13 +992,47 @@ def read_tags_and_refresh_licks curr_lick
         mtags.sort)
     end
     unless done
-      print_prompt_context 'Enter a new value',
-                           opof
+      cmnt_print_prompt 'Enter a new value for', topt, opof
       input = STDIN.gets.chomp
     end
   end while !done || $licks.length == 0
   start_kb_handler
   prepare_term
+  print "\e[#{$lines[:comment_tall]}H\e[0m\e[J"
+end
+
+
+def read_and_set_partial
+  stop_kb_handler
+  sane_term
+  cmnt_print_in_columns 'Examples for --partial',
+                        %w(1/3@b 1/4@x 1/2@e 1@b, 1@e 2@x 0),
+                        ["current value is '#{$opts[:partial]}'",
+                         'RETURN to keep, SPACE to clear',
+                         'see usage info for more explanations']
+  cmnt_print_prompt 'Please enter', 'new value'
+  input = STDIN.gets.chomp
+  old = $opts[:partial]
+  $opts[:partial] = if input == ''
+                      $opts[:partial]
+                    elsif input.strip.empty?
+                      nil
+                    elsif input == '0'
+                      '0@b'
+                    else
+                      input
+                    end
+  prepare_term
+  start_kb_handler
+  begin
+    # test with some artifical arguments
+    $on_error_raise = true
+    select_and_calc_partial($harp_holes, 0, 1) if $opts[:partial] && !$opts[:partial].empty?
+    $on_error_raise = false
+  rescue ArgumentError => e
+    cmnt_report_error_wait_key e
+    $opts[:partial] = old
+  end
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
 end
 

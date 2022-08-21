@@ -72,6 +72,7 @@ def check_screen graceful: false
     puts "[width, height] = [#{$term_width}, #{$term_height}]"
     pp $lines
     puts "press any key to continue"
+    $ctl_kb_queue.clear
     $ctl_kb_queue.deq
   end
   return true
@@ -296,6 +297,12 @@ def handle_kb_listen
   elsif char == '<' && $ctl_can[:octave]
     $ctl_listen[:octave] = :down
     text = 'Octave down'
+  elsif char == '@' && $ctl_can[:named]
+    $ctl_listen[:change_partial] = true
+    text = 'Partial'
+  elsif char == 'm' && $ctl_can[:switch_modes]
+    $ctl_listen[:switch_modes] = true
+    text = 'Switch modes'
   elsif char == 'j'
     $ctl_listen[:toggle_journal] = true
     text = nil

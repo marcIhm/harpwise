@@ -88,7 +88,7 @@ def do_test text
   ( $fromon && text[$fromon] )
   return unless $within
   puts
-  [$testing_dump_file, $testing_log_file].each do |file|
+  [$testing_dump_template % 'start', $testing_dump_template % 'end', $testing_log_file].each do |file|
     File.delete(file) if File.exists?(file)
   end
   $memo_seen << text
@@ -103,13 +103,15 @@ def do_test text
 end
 
 
-def read_testing_dump
-  JSON.parse(File.read($testing_dump_file), symbolize_names: true)
+def read_testing_dump marker
+  JSON.parse(File.read($testing_dump_template % marker), symbolize_names: true)
 end
 
 
-def clear_testing_dump
-  File.rm($testing_dump_file) if File.exist?($testing_dump_file)
+def clear_testing_dumps
+  %w(start end).each do |marker|
+    File.delete($testing_dump_template % marker) if File.exist?($testing_dump_template % marker)
+  end
 end
 
 
