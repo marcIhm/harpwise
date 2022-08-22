@@ -804,10 +804,10 @@ do_test 'id-34: switch between modes' do
   tms :ENTER
   sleep 4
   expect { screen[1]['licks'] }
-  tms '%'
+  tms 'm'
   sleep 4
   expect { screen[1]['listen'] }
-  tms '%'
+  tms 'm'
   sleep 4
   expect { screen[1]['licks'] }
   kill_session

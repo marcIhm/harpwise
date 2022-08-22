@@ -125,8 +125,8 @@ begin
     $lines = calculate_screen_layout
 
     clear_area_comment
-    print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[34m"
-    do_figlet_unwrapped "> > >   switch to #{$mode}   > > >", 'smblock'
+    print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
+    do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
     sleep 1.5
   end
   case $mode

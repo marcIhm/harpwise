@@ -28,7 +28,7 @@ def do_quiz_or_licks
   octave_shift = 0
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   puts
-  puts "#{$licks.length} licks." if $mode == :licks
+  puts "#{$licks.length} licks." if $mode == :licks && !$other_mode_saved[:conf]
 
   loop do   # forever until ctrl-c, sequence after sequence
 
