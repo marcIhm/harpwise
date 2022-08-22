@@ -21,6 +21,10 @@ OVERVIEW
   Personally I have paid for some good lick collections (see the
   sample lick file for pointers), so that I have 50 or so licks, that
   really sound great for me.
+
+  If you get comfortable with a lick and want to explore it beyond its
+  written wholes, you may find it useful to switch to mode listen,
+  which can be done by typing 'm' without stopping the wise first.
   
 USAGE BY EXAMPLES
 
