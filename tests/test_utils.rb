@@ -68,6 +68,7 @@ end
 
 
 $memo_file = "#{Dir.home}/.harpwise/test_memo.json"
+$last_test = "#{Dir.home}/.harpwise/last_test_tried.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
@@ -83,6 +84,7 @@ def do_test text
   else
     fail "Test '#{text}' should start with an id"
   end
+  File.write $last_test, JSON.pretty_generate({time: Time.now, id: id}) + "\n"
   $within = true if ( $fromon_cnt && $memo_count == $fromon_cnt ) ||
                     ( $fromon_id && text.start_with?($fromon_id))
   ( $fromon && text[$fromon] )

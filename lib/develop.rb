@@ -22,7 +22,7 @@ def task_man
   types_content = get_types_content
   
   File.write("#{$dirs[:install]}/man/harpwise.1",
-             ERB.new(IO.read("#{$dirs[:install]}/resources/harpwise.man")).result(binding).chomp)
+             ERB.new(IO.read("#{$dirs[:install]}/resources/harpwise.man.erb")).result(binding).chomp)
 
   puts
   system("ls -l #{$dirs[:install]}/man/harpwise.1")

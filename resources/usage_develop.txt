@@ -1,11 +1,15 @@
 OVERVIEW
 
-  This mode is only useful for the maintainer or developer of
+  This mode is useful only for the maintainer or developer of
   harpwise; it is therefore not listed in the general usage
   information.
 
-  Its single argument specifies the task to perform and can be any of the keywords:
+  Its single argument specifies the task to perform and can be any of
+  these:
   
-  - man, process harpwise.1.erb into harpwise.1 and show it as a man page
-  - diff, compare man page produced as above with plain usage info, as
-    they are maintained seperately. Result can be useful in git-hooks
+  - man, process harpwise.man.erb into harpwise.1 and show it as a man
+    page
+
+  - diff, compare the man page produced above with the plain usage
+    info. This is needed, as they are maintained seperately. Result
+    can be useful in git-hooks

@@ -198,14 +198,17 @@ def cmnt_print_in_columns head, names, tail = []
     map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
     break if lns > max_lns - off_for_tail
     if (line + nm).length > $term_width - 4 || idx == names.length - 1
-      line[-more.length ..] = more if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
+      if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
+        line[-more.length ..] = more
+        more = nil
+      end
       puts line
       lns += 1
       line = '  '
     end
     line += nm
   end
-  puts line unless line.strip.empty? && lns < max_lns - off_for_tail
+  puts line unless more.nil? || ( line.strip.empty? && lns < max_lns - off_for_tail )
 
   print "\e[0m\e[32m" 
   while tail.length > 0

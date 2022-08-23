@@ -113,7 +113,7 @@ def do_quiz_or_licks
           '    '
         end + $licks[lick_idx][:name]
       end
-      cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + $licks.map {|l| l[:name]},
+      cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
                             ["current lick is #{lick[:name]}"]
       cmnt_print_prompt 'Please enter', 'Name of new lick',
                         '(or part of or l,2l,..)'
@@ -832,8 +832,9 @@ end
 
 
 def largify holes, idx
+  line = $lines[:comment_low]
   if $num_quiz == 1
-    [ "\e[2m", '...', 'smblock', nil ]
+    [ "\e[2m", '...', line, 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
     hidden_holes = if idx > 6
                      ".. # .."
@@ -842,6 +843,7 @@ def largify holes, idx
                    end
     [ "\e[2m",
       'Play  ' + hidden_holes + holes[idx .. -1].join('  '),
+      line,
       'smblock',
       'play  ' + '--' * holes.length,  # width_template
       :right ]  # truncate at
@@ -853,6 +855,7 @@ def largify holes, idx
                    end
     [ "\e[2m",
       'Yes  ' + holes.slice(0,idx).join('  ') + hidden_holes,
+      line,
       'smblock',
       'yes  ' + '--' * [6,holes.length].min,  # width_template
       :left ]  # truncate at
@@ -910,7 +913,7 @@ def read_lick_name input, curr_lick_idx
                               ["current is '#{curr_lick[:name]}'"]
       else
         cmnt_print_in_columns "Multiple licks (#{matching.length}) contain '#{input}'",
-                              matching.map {|m| m[0][:name]},
+                              matching.map {|m| m[0][:name]}.sort,
                               ["current is '#{curr_lick[:name]}'"]
       end
       cmnt_print_prompt 'Enter a', 'new name', 'or just press RETURN to keep'
@@ -947,9 +950,9 @@ def read_tags_and_refresh_licks curr_lick
 
   stop_kb_handler
   sane_term
-  all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq
+  all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
-                        curr_lick[:tags] + all_tags,
+                        curr_lick[:tags] + ['//'] + all_tags,
                         ["maybe with ',cycle', SPC to list, RET to go without"]
   topt = '--' + tag_option.to_s.gsub('_','-')
   opof = '(or part of)'
@@ -974,14 +977,14 @@ def read_tags_and_refresh_licks curr_lick
       $all_licks, $licks = read_licks true
       if $licks.length == 0
         cmnt_print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
-                              all_tags.sort
+                              all_tags
       else
         done = true
         $opts[tag_option] += doiter if doiter
       end
     elsif mtags.length == 0
       cmnt_print_in_columns "No tags match your input '#{input}'; these are available",
-                            all_tags.sort
+                            all_tags
     else
       cmnt_print_in_columns(
         if input == ' '

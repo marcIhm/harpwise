@@ -181,7 +181,7 @@ def parse_arguments
   opts[:comment] = match_or(opts[:comment], $comment_choices[mode].map {|c| c.to_s.gsub('_','-')}) do |none, choices|
     err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
   end
-  opts[:comment] = opts[:comment].gsub!('-','_').to_sym if opts[:comment]
+  opts[:comment] = opts[:comment].gsub('-','_').to_sym if opts[:comment]
   
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}

@@ -87,7 +87,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     just_dots_short = '.........:.........'
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
     if regular_hole?(hole)
-      dots, _ = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|hit, idx| hit ? "\e[0m#{idx}\e[2m" : idx}
+      dots, in_range = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|in_range, marker| in_range ? "\e[0m#{marker}\e[2m" : marker}
       cents = cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
     else
@@ -124,21 +124,6 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:display]}H\e[0m"
       print hole_color
       do_figlet_unwrapped hole_disp, 'mono12', longest_hole_name
-    when :bend
-      print "\e[#{$lines[:display] + 2}H"
-      if $hole_ref
-        semi_ref = $harp[$hole_ref][:semi]
-        just_dots_long = '......:......:......:......'
-        dots, hit = get_dots(just_dots_long.dup, 4, freq,
-                             semi2freq_et(semi_ref - 2),
-                             semi2freq_et(semi_ref),
-                             semi2freq_et(semi_ref + 2)) {|ok,idx| idx}
-        print ( hit  ?  "\e[0m\e[32m"  :  "\e[0m\e[31m" )
-        do_figlet_unwrapped dots, 'smblock', 'fixed:' + just_dots_long
-      else
-        print "\e[2m"
-        do_figlet_unwrapped 'set ref first', 'smblock'
-      end
     else
       fail "Internal error: #{$conf[:display]}"
     end
@@ -161,20 +146,21 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       when :holes_notes
         fit_into_comment lambda_comment.call
       else
-        comment_color,
-        comment_text,
+        # lambda may choose a different position
+        color,
+        text,
+        line,
         font,
-        width_template,
-        truncate =
+        width_template =
         lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
                             inter_semi,
                             inter_text,
                             hole && $harp[hole] && $harp[hole][:note],
                             hole_disp,
-                            freq,
-                            $hole_ref ? semi2freq_et($harp[$hole_ref][:semi]) : nil)
-        print "\e[#{$lines[:comment_low]}H#{comment_color}"
-        do_figlet_unwrapped comment_text, font, width_template, truncate
+                            freq)
+        print "\e[#{line}H#{color}"
+
+        do_figlet_unwrapped text, font, width_template
       end
     end
 
@@ -290,13 +276,22 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "   SPACE: pause               ctrl-l: redraw screen"
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
       puts "     c,C: change comment (lower, i.e. this, part of screen)"
-      puts "       r: set reference hole       j: toggle writing of journal file"
+      puts "       r: set reference hole to last played"
+      puts "       j: toggle writing of journal file"
       puts "       k: change key of harp       s: change scale and --add-scale"
-      puts "       q: quit                     h: this help"
+      puts "\e[0mType any key to show more help ...\e[K"
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      clear_area_comment
+      puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
       if $ctl_can[:switch_modes]
         puts "       m: switch between modes #{$modes_for_switch}"
       elsif $mode == :listen
-        puts "       m: start with quiz or licks to switch to and from"
+        puts "       m: switch between modes; not available now; rather start"
+        puts "          with modes quiz or licks to be able to switch to"
+        puts "          listen and then back"
+        puts "       q: quit harpwise            h: this help"
+
       end
       if $ctl_can[:next]
         puts "\e[0mType any key to show more help ...\e[K"
@@ -411,7 +406,7 @@ def regular_hole? hole
 end
 
 
-def get_dots dots, delta, freq, low, middle, high
+def get_dots dots, delta_ok, freq, low, middle, high
   hdots = (dots.length - 1)/2
   if freq > middle
     pos = hdots + ( hdots + 1 ) * (freq - middle) / (high - middle)
@@ -419,9 +414,9 @@ def get_dots dots, delta, freq, low, middle, high
     pos = hdots - ( hdots + 1 ) * (middle - freq) / (middle - low)
   end
 
-  hit = ((hdots - delta  .. hdots + delta) === pos )
-  dots[pos] = yield( hit, 'I') if pos > 0 && pos < dots.length
-  return dots, hit
+  in_range = ((hdots - delta_ok  .. hdots + delta_ok) === pos )
+  dots[pos] = yield( in_range, 'I') if pos > 0 && pos < dots.length
+  return dots, in_range
 end
 
 
@@ -475,7 +470,7 @@ def do_change_scale_add_scales
   # Change scale
   begin
     cmnt_print_in_columns 'First setting main scale; available scales',
-                          $all_scales,
+                          $all_scales.sort,
                           ["current scale is #{$scale}",
                            'RETURN to keep']
     cmnt_print_prompt 'Please enter', 'new scale', '(abbrev)'
@@ -495,7 +490,7 @@ def do_change_scale_add_scales
   # Change --add-scales
   begin
     cmnt_print_in_columns 'Now setting --add-scales; available scales',
-                          $all_scales,
+                          $all_scales.sort,
                           ["current value is #{$opts[:add_scales]}",
                            'RETURN to keep, SPACE to clear']
     cmnt_print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'

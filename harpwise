@@ -127,7 +127,7 @@ begin
     clear_area_comment
     print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
     do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
-    sleep 1.5
+    sleep 1
   end
   case $mode
   when :quiz
