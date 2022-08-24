@@ -2,7 +2,7 @@
 # Perform quiz and licks
 #
 
-$abbrevs_for_iter = %w(iterate iter cycle cyc)
+$abbrevs_for_iter = %w(iterate iter i cycle cyc c)
 
 def do_quiz_or_licks
 
@@ -28,16 +28,16 @@ def do_quiz_or_licks
   octave_shift = 0
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   puts
-  puts "#{$licks.length} licks." if $mode == :licks && !$other_mode_saved[:conf]
-
+  puts
+  puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+         "key of #{$key}" unless $other_mode_saved[:conf]
+      
   loop do   # forever until ctrl-c, sequence after sequence
 
     do_write_journal = false
 
     if first_round
-      print "\n\n\n"
-      print "\e[#{$term_height}H\e[K"
-      print "\e[#{$term_height-1}H\e[K"
+      print "\n\n"
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       print "\e[#{$lines[:message2]}H\e[K"
@@ -934,8 +934,10 @@ def read_tags_and_refresh_licks curr_lick
                           tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
                           ['the other options will be set to the empty string']
     cmnt_print_prompt 'Please choose', 'which option to set',
-                      '(1,2,3,4 or q to quit)'
+                      '(1,2,3,4, RETURN for 1 or q to quit)'
     char = $ctl_kb_queue.deq
+    pp char
+    char = '1' if char == "\n"
     if %w( 1 2 3 4 ).include?(char)
       tag_option = tag_options[char.to_i - 1][2..-1].gsub('-','_').to_sym
     elsif char == 'q'
@@ -953,7 +955,7 @@ def read_tags_and_refresh_licks curr_lick
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
                         curr_lick[:tags] + ['//'] + all_tags,
-                        ["maybe with ',cycle', SPC to list, RET to go without"]
+                        ["maybe with ',cycle', SPACE to list, RETURN to go without"]
   topt = '--' + tag_option.to_s.gsub('_','-')
   opof = '(or part of)'
   cmnt_print_prompt 'New value for', topt, opof

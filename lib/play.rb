@@ -8,7 +8,7 @@ def do_play to_play
   lnames = []
   special = []
   other = []
-  special_allowed = %w(ran rand random iterate iter cycle cyc)
+  special_allowed = %w(ran rand random iterate iter i cycle cyc c)
   all_lnames = $licks.map {|l| l[:name]}
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
@@ -38,7 +38,9 @@ def do_play to_play
       lnames << tp
     elsif special_allowed.include?(tp)
       special << ({'iter' => 'iterate',
+                   'i' => 'iterate',
                    'cyc' => 'cycle',
+                   'c' => 'cycle',
                    'ran' => 'random',
                    'rand' => 'random'}[tp] || tp).to_sym
     else
