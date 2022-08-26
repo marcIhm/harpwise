@@ -28,8 +28,8 @@ if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
   $fromon_id = md[1]
 end
 $within = ARGV.length == 0
-$testing_dump_template = '/tmp/harpwise_dumped_for_testing_%s.json'
-$testing_output_file = '/tmp/harpwise_output_for_testing.txt'
+$testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
+$testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(juke special blues mape one two three long)
 
@@ -584,7 +584,7 @@ do_test 'id-21: use option --partial' do
   tms :ENTER
   sleep 2
   tlog = read_testing_log
-  expect { tlog[-1]['play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
+  expect { tlog[-1]['play -q -V1 ' + Dir.home + '/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
   kill_session
 end
 
@@ -601,7 +601,7 @@ do_test 'id-21a: use option --partial at end' do
   #
   #   play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 4
   #
-  expect { tlog[-1]['play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 4.2 2.0'] }
+  expect { tlog[-1]['play -q -V1 ' + Dir.home + '/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 4.2 2.0'] }
   kill_session
 end
 
@@ -785,7 +785,7 @@ do_test 'id-32: error on journal in play' do
   tms 'harpwise play testing journal --testing'
   tms :ENTER
   sleep 2
-  expect { screen[16]['ERROR'] }
+  expect { screen[17]['ERROR'] }
   kill_session
 end
 

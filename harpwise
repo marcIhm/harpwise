@@ -103,7 +103,10 @@ at_exit do
     thread.exit unless thread == Thread.current
   end
   # give processes started by threads some time to terminate
-  sleep 0.1 
+  sleep 0.1
+  # take car of not removing too much, if something happens and $dirs
+  # would not be initialized completetly
+  FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
 end
 
 

@@ -98,7 +98,7 @@ end
 def find_and_check_dirs
   $dirs = Hash.new
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
-  $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_')
+  $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:data] = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($dirs[:data]) unless File.directory?($dirs[:data])
   $dirs.each do |k,v|

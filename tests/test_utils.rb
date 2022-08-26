@@ -12,14 +12,15 @@ def new_session
   #
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
-  sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s ht \\; new-window bash \\; kill-window -t 0"
+  sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s harpwise \\; new-window bash \\; kill-window -t 0"
   tms 'cd /tmp'
   tms :ENTER
 end
 
 
 def kill_session
-  system "tmux kill-session -t ht >/dev/null 2>&1"
+  system "tmux kill-session -t harpwise >/dev/null 2>&1"
+  system "rm -rf /tmp/harpwise*-* >/dev/null 2>&1"
 end
 
 
@@ -33,16 +34,16 @@ def tms cmd
   # let typed command appear on screen
   sleep 0.5
   if cmd.is_a?(Symbol)
-    sys "tmux send -t ht #{cmd.to_s.tr('_','-')}"
+    sys "tmux send -t harpwise #{cmd.to_s.tr('_','-')}"
   else
-    sys "tmux send -l -t ht \"#{cmd}\""
+    sys "tmux send -l -t harpwise \"#{cmd}\""
   end
   sleep 0.5
 end
 
 
 def screen
-  %x(tmux capture-pane -t ht -p).lines.map!(&:chomp)
+  %x(tmux capture-pane -t harpwise -p).lines.map!(&:chomp)
 end
 
 
@@ -67,8 +68,8 @@ def sound secs, semi
 end
 
 
-$memo_file = "#{Dir.home}/.harpwise/test_memo.json"
-$last_test = "#{Dir.home}/.harpwise/last_test_tried.json"
+$memo_file = "/tmp/harpwise_testing_memo.json"
+$last_test = "/tmp/harpwise_testing_last_tried.json"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}

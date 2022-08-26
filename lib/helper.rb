@@ -163,7 +163,7 @@ end
 
 
 def write_dump marker
-  dumpfile = '/tmp/' + File.basename($0) + "_dumped_for_testing_#{marker}.json"
+  dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
   File.delete(dumpfile) if File.exists?(dumpfile)
   structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts}
   File.write(dumpfile, JSON.pretty_generate(structure))
