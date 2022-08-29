@@ -203,12 +203,11 @@ def parse_arguments
   # type and key are taken from front of args only if they match the
   # predefined set of choices; otherwise they come from config
 
-  if ARGV.length > 0
-    type_matches = $conf[:all_types].select {|c| c.start_with?(ARGV[0])}
-    if type_matches.length == 1 && ARGV[0].length > 1
-      type =  type_matches[0]
-      ARGV.shift
-    end
+  if ARGV.length > 0 && ARGV[0].length > 1
+    type = [$conf[:all_types].select {|c| c == ARGV[0]} ,
+            $conf[:all_types].select {|c| c.start_with?(ARGV[0])}].
+             find {|matches| matches.length == 1}&.at(0)
+    ARGV.shift if type
   end
   type ||= $conf[:type]     
   $type = type
