@@ -37,23 +37,32 @@ def task_diff
   lines = Hash.new
   line = Hash.new
   srcs = [:usage, :man]
+
+  # Modifications for usage
+  erase_line_usage_if_word = ['Version 3']
+
+  # Modifications for man
+  seen_man = {:desc => [/^DESCRIPTION$/, false],
+              :prim_start => [/The primary documentation/, false],
+              :prim_end => [/not available as man-pages/, false],
+              :exa_start => [/^EXAMPLES$/, false],
+              :exa_end => [/^COPYRIGHT$/, false]}
   
-  seen = {:desc => [/^DESCRIPTION$/, false],
-          :prim_start => [/The primary documentation/, false],
-          :prim_end => [/not available as man-pages/, false],
-          :exa_start => [/^EXAMPLES$/, false],
-          :exa_end => [/^COPYRIGHT$/, false]}
-  
-  erase_part = ['<hy>', '<beginning of page>']
-  erase_line = %w(MODE ARGUMENTS OPTIONS)
-  replaces = {'SUGGESTED READING' => 'SUGGESTED READING:'}
+  erase_part_man = ['<hy>', '<beginning of page>']
+  erase_line_man = %w(MODE ARGUMENTS OPTIONS)
+  replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:'}
 
   #
-  # Bring usage information and man page into canonical form
+  # Bring usage information and man page into canonical form by
+  # applying modifications
   #
 
-  # keep everything
-  lines[:usage] = ERB.new(IO.read("#{$dirs[:install]}/resources/usage.txt")).result(binding).lines.
+  # only remove some lines
+  lines[:usage] = ERB.new(IO.read("#{$dirs[:install]}/resources/usage.txt")).
+                    result(binding).lines.
+                    map do |l|
+                      erase_line_usage_if_word.any? {|e| l.strip[e]} ? nil : l
+                    end.compact.
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
 
@@ -63,7 +72,7 @@ def task_diff
                   # use only some sections of lines
                   map do |l|
                     newly_seen = false
-                    seen.each do |k,v|
+                    seen_man.each do |k,v|
                       if l.strip.match?(v[0])
                         v[1] = true
                         newly_seen = true
@@ -71,11 +80,11 @@ def task_diff
                     end
                     if newly_seen
                       nil
-                    elsif !seen[:desc][1]
+                    elsif !seen_man[:desc][1]
                       nil
-                    elsif seen[:prim_start][1] && !seen[:prim_end][1]
+                    elsif seen_man[:prim_start][1] && !seen_man[:prim_end][1]
                       nil
-                    elsif seen[:exa_start][1] && !seen[:exa_end][1]
+                    elsif seen_man[:exa_start][1] && !seen_man[:exa_end][1]
                       nil
                     else
                       l
@@ -83,13 +92,13 @@ def task_diff
                   end.compact.
                   # erase and replace
                   map do |l|
-                    erase_part.each {|e| l.gsub!(e,'')}
+                    erase_part_man.each {|e| l.gsub!(e,'')}
                     l
                   end.
                   map do |l|
-                    erase_line.any? {|e| e == l.strip} ? nil : l
+                    erase_line_man.any? {|e| e == l.strip} ? nil : l
                   end.compact.
-                  map {|l| replaces[l] || l}.
+                  map {|l| replaces_man[l] || l}.
                   map {|l| l.strip.downcase}.reject(&:empty?).compact
 
   srcs.each {|s| line[s] = lines[s].shift}
