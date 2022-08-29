@@ -313,7 +313,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
           puts "     n: switch to lick by name            t: change options --tags"
           puts "     <: shift lick down by one octave     >: shift lick up"
-          puts "     @: change option --partial           *: Star current lick"
+          puts "     @: change option --partial"
+          puts "     *: Star current lick persistently; see message for the"
+          puts "        filename; access starred licks by tag 'starred'"
         end
       end
       puts "\e[0mPress any key to continue ...\e[K"

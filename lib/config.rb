@@ -85,6 +85,9 @@ def set_global_vars_early
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref]
 
+  # need to define this here, so we may mention it in usage info
+  $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
+  
   # will be populated along with $scale and $all_scales
   $scale2short = Hash.new
   $short2scale = Hash.new
@@ -162,6 +165,7 @@ def set_global_vars_late
                   else
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
+  $star_file = $star_file_template % $type
 end
 
 

@@ -79,7 +79,7 @@ hole:
 
 tags_any:
 
-  - "filter licks and keep those having\nany of the given tags (example: --tags-any scales,classic)"
+  - "filter licks and keep those having\nany of the given tags (example: --tags-any scales,classic).\nThe special tag 'starred' is carried by all licks, that have\nbeen starred at some moment in the past, see e.g.\n<%=$star_file_template % 'richter'%>"
   - TAG1,TAG2,...
     
 tags_all:

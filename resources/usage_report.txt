@@ -24,7 +24,7 @@ USAGE BY EXAMPLES
 
     harpwise report licks -t fav
 
-  ,which is the same as:
+  which is the same as:
   
     harpwise report richter licks -t fav
 
