@@ -4,7 +4,7 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter
+def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter, lambda_star_lick
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -313,7 +313,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
           puts "     n: switch to lick by name            t: change options --tags"
           puts "     <: shift lick down by one octave     >: shift lick up"
-          puts "     @: change option --partial"
+          puts "     @: change option --partial           *: Star current lick"
         end
       end
       puts "\e[0mPress any key to continue ...\e[K"
@@ -352,6 +352,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:key]}H" + text_for_key      
     end
 
+    if $ctl_listen[:star_lick] && lambda_star_lick
+      lambda_star_lick.call
+      $ctl_listen[:star_lick] = false
+    end
+    
     if $ctl_listen[:change_key]
       do_change_key
       $ctl_listen[:change_key] = false

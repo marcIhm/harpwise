@@ -95,7 +95,12 @@ def do_listen
     -> (hole_held_before, hole_ref) do  
       hfi = hole_ref || hole_held_before
       regular_hole?(hfi)  ?  hfi  :  nil
-    end)
+    end,
+
+  
+    # lambda_star_lick
+    nil
+  )  # end of get_hole
   
 end
 

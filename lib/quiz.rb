@@ -431,9 +431,23 @@ def do_quiz_or_licks
           -> (hole_held_before, hole_ref) do  
             hfi = hole_ref || hole_held_before
             regular_hole?(hfi)  ?  hfi  :  nil
+          end,
+
+          
+          # lambda_star_lick
+          if $mode == :licks
+            -> () do
+              $starred[lick[:name]] += 1
+              File.write($star_file, YAML.dump($starred))
+              print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mWrote #{$star_file}\e[K"
+              $message_shown_at = Time.now.to_f
+            end
+          else
+            nil
           end
         )  # end of get_hole
 
+        
         if $ctl_listen[:switch_modes]
           if $mode == :licks
             $other_mode_saved[:lick_idx] = lick_idx

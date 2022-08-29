@@ -40,7 +40,14 @@ def read_licks graceful = false
           # vars have already been assigned; nothing to do here
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
-          lick[:tags] = replace_vars(vars,([lick[:tags] || default[:tags]] + [lick[:tags_add] || default[:tags_add]]).flatten.select(&:itself),name).sort.uniq
+
+          lick[:tags] = replace_vars(vars,
+                                     ([lick[:tags] || default[:tags]] +
+                                      [lick[:tags_add] || default[:tags_add]] +
+                                      # maybe add synthetic tag 'starred'
+                                      ( $starred.keys.include?(name)  ?  ['starred']  :  [] )
+                                     ).flatten.select(&:itself),name).sort.uniq
+
           lick[:desc] = lick[:desc] || default[:desc] || ''
           if lick[:desc_add] && lick[:desc_add].length > 0
             lick[:desc] += ' ' + lick[:desc_add] 
@@ -48,8 +55,10 @@ def read_licks graceful = false
             lick[:desc] += ' ' + default[:desc_add] 
           end
           lick[:desc].strip!
+
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
+
           all_licks << lick
         end
       end

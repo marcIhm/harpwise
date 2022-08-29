@@ -300,6 +300,9 @@ def handle_kb_listen
   elsif char == '@' && $ctl_can[:named]
     $ctl_listen[:change_partial] = true
     text = 'Partial'
+  elsif char == '*' && $ctl_can[:named]
+    $ctl_listen[:star_lick] = true
+    text = 'Star this lick'
   elsif char == 'm' && $ctl_can[:switch_modes]
     $ctl_listen[:switch_modes] = true
     text = 'Switch modes'

@@ -25,7 +25,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
         :named_lick, :change_key, :change_scale, :change_tags, :show_help, :change_partial,
-        :ignore_partial, :ignore_holes, :ignore_recording,
+        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment,
         :set_ref]
@@ -162,6 +162,9 @@ def set_global_vars_late
                   else
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
+  $star_file = "#{$dirs[:data]}/licks/#{$type}/starred.yaml"
+  File.write($star_file, YAML.dump(Hash.new)) unless File.exist?($star_file)
+  ($starred = Hash.new {|h,k| h[k] = 0}).merge! yaml_parse($star_file)
 end
 
 

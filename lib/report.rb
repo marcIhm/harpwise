@@ -5,12 +5,13 @@
 def do_report to_report
 
   $all_licks, $licks = read_licks
-  reports_allowed = %w(licks dump journal jour)
+  reports_allowed = %w(licks dump journal jour starred star stars)
 
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
   err "Unknown report #{to_report[0]}, only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
   report = to_report[0].to_sym
   report = :journal if report == :jour
+  report = :starred if report == :star || report == :stars
 
   puts
 
@@ -19,6 +20,8 @@ def do_report to_report
     print_lick_and_tag_info
   when :journal
     print_last_licks_from_journal $all_licks
+  when :starred
+    print_starred_licks
   when :dump
     pp $all_licks
   end
@@ -143,5 +146,18 @@ def print_licks_by_tags licks
     ltags = tags
   end
   puts " ..... #{ltags}"
-  puts "\n  Total number of licks:   #{licks.length}\n"
+  puts "\n  Total number of licks:   #{licks.length}"
+  puts
 end
+
+
+def print_starred_licks
+  print "Licks with stars:\n\n"
+  maxlen = $starred.keys.map(&:length).max
+  $starred.keys.sort {|x,y| $starred[x] <=> $starred[y]}.each do |lname|
+    print "  %-#{maxlen}s: %4d\n" % [lname, $starred[lname]]
+  end
+  print "\nTotal number of starred licks: %4d\n" % $starred.keys.length
+  print "Total number of stars:       %6d\n" % $starred.values.sum
+  print "Stars from: #{$star_file}\n\n"
+end      
