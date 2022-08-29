@@ -58,7 +58,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c juke' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 22
+num_exp = 24
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -237,7 +237,7 @@ do_test 'id-09: listen with removed scale' do
   tms :ENTER
   sleep 4
   tst_dump = read_testing_dump('start')
-  expect { tst_dump[:scale_holes] == ['+1','-1','+2','-2+3','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
+  expect { tst_dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
   kill_session
 end
 
@@ -307,7 +307,7 @@ do_test 'id-12: transpose scale works on non-zero shift' do
   tms :ENTER
   sleep 2
   tst_dump = read_testing_dump('start')
-  expect { tst_dump[:scale_holes] == ['-2+3','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+  expect { tst_dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
   kill_session
 end
 
@@ -316,7 +316,7 @@ do_test 'id-13: transpose scale not working in some cases' do
   tms 'harpwise listen testing a blues --transpose_scale_to b'
   tms :ENTER
   sleep 2
-  expect { screen[4]['ERROR: Transposing scale blues from key of c to b results in hole -2+3'] }
+  expect { screen[4]['ERROR: Transposing scale blues from key of c to b results in hole -2'] }
   kill_session
 end
 
@@ -325,7 +325,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play testing a mape --testing'
   tms :ENTER
   sleep 4
-  expect { screen[5]['-1 +2 -2+3'] }
+  expect { screen[5]['-1 +2 -2'] }
   kill_session
 end
 
@@ -662,7 +662,7 @@ end
 
 do_test 'id-26: display as chart with intervals' do
   new_session
-  tms 'harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2+3 --start-with juke --testing'
+  tms 'harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2 --start-with juke --testing'
   tms :ENTER
   sleep 4
   expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
@@ -672,7 +672,7 @@ end
 
 do_test 'id-26a: display as chart with notes' do
   new_session
-  tms 'harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2+3 --start-with juke --testing'
+  tms 'harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2 --start-with juke --testing'
   tms :ENTER
   sleep 4
   expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
@@ -810,6 +810,30 @@ do_test 'id-34: switch between modes' do
   tms 'm'
   sleep 4
   expect { screen[1]['licks'] }
+  kill_session
+end
+
+do_test 'id-35: star a licks' do
+  starred_file = Dir.home + '/.harpwise/licks/richter/starred.yaml'
+  FileUtils.rm starred_file if File.exist?(starred_file)  
+  new_session
+  tms 'harpwise licks testing a --start-with juke --testing'
+  tms :ENTER
+  sleep 4
+  tms '*'
+  sleep 1
+  tms 'q'
+  sleep 1
+  kill_session
+  expect { File.exist?(starred_file) }
+end
+
+do_test 'id-36: show lick starred in previous invocation' do
+  new_session
+  tms 'harpwise report testing starred'
+  tms :ENTER
+  sleep 2
+  expect { screen[10]['juke'] }
   kill_session
 end
 

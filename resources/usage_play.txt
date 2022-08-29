@@ -17,7 +17,7 @@ USAGE BY EXAMPLES
 
   Play a few holes on a harp of key c:
 
-    harpwise play c +1 -2+3 c4
+    harpwise play c +1 -2 c4
 
   Play the lick 'juke'; transpose it to d:
   

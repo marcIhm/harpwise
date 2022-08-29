@@ -2,7 +2,7 @@
 - short: r
 - "-1 chord-v"
 - "+1 chord-iv"
-- "-2+3 chord-i"
+- "-2 chord-i"
 - "+4 chord-iv"
 - "-4 chord-v"
 - "+6 chord-i"

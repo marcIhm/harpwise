@@ -103,7 +103,7 @@
   # but may also contain special accustic events (e.g. '(pull)') 
   # that are recognized by the surrounding parens and will 
   # not be played; they just serve as a kind of reminder.
-  holes = -1 +1 -2+3 (pull) -1
+  holes = -1 +1 -2 (pull) -1
   # This lick adds a tag to those given by the defaults
   tags.add = advanced
   # You may also add to the description
@@ -119,11 +119,11 @@
   tags = scales $source
 
 [blues]
-  holes = +1 -1/ -1 -2// -2+3 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
+  holes = +1 -1/ -1 -2// -2 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
   # has tags 'scales' and 'theory'
 
 [mape] # major pentatonic
-  holes = -1 +2 -2+3 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
+  holes = -1 +2 -2 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
   # has tags 'scales' only
   tags = scales
 

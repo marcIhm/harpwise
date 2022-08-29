@@ -101,14 +101,22 @@
 
    The Program uses the term "holes" throughout to give you feedback or
    hints.  Examples would be "-1" or "+4"; these obviously name the holes
-   of your harmonica and distinguish between "draw" and "blow"; a special
-   name like "-2+3" is used as a common name, if two holes ("-2" and "+3")
-   produce the same note.
+   of your harmonica and distinguish between "draw" and "blow".
 
-   So, if such a hole-name is given, you always know the note that sounds,
-   when the hole is played (at least for a given key of harmonica).
+   The diatonic harmonica is well known to produce the same note for holes
+   "-2" and "+3"; in this case "-2" is chosen as the common name and
+   displayed in the chart. But for playing-reasons (e.g. economising on
+   air), you may choose to play "+3" instead.
 
-   In effect, you may consider hole-names like "-2+3" as practical names
+   For the chromatic harmonica things are even more involved on many holes
+   and you may encounter somewhat lengthy holes names like "+45-4b". These
+   get clear however, if you take a look at the chart.
+
+   So, if a hole-name is given, you always know the note that sounds, when
+   the hole is played (at least for a given key of harmonica). But at
+   least in some cases, you have a choice on which hole to play this note.
+
+   In summary, you may consider hole-names like "-2" as practical names
    for the notes played on a harmonica of a given key.
 
    By the way, if you prefer other names, you may create your own type of

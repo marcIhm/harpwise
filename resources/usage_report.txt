@@ -12,6 +12,8 @@ OVERVIEW
       - Any and all licks, disregarding any options
     - journal, to show, which licks you played recently in modes licks
       or play
+    - starred, to show all starred licks with their respective number
+      of stars
     - dump, dump all the licks in json-format (for advanced use)
     
   This mode needs no scale argument.
@@ -35,3 +37,9 @@ USAGE BY EXAMPLES
   
     harpwise report journal
 
+  List all the licks, that you have starred:
+
+    harpwise report starred
+
+  Remark: In other modes you may access these licks through the
+  tag 'starred', which they get assigned automatically.
