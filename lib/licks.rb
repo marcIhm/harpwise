@@ -12,6 +12,11 @@ def read_licks graceful = false
   word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add desc desc.add)
 
+  # directory may just have been created when getting lick_file
+  $star_file = "#{$dirs[:data]}/licks/#{$type}/starred.yaml"
+  File.write($star_file, YAML.dump(Hash.new)) unless File.exist?($star_file)
+  ($starred = Hash.new {|h,k| h[k] = 0}).merge! yaml_parse($star_file)
+  
   all_licks = []
   licks = nil
   derived = []

@@ -418,7 +418,9 @@ def do_quiz_or_licks
                         end
             if $mode == :licks
               [ lick[:name],
-                lick[:tags].join(','),
+                lick[:tags].map do |t|
+                  t == 'starred'  ?  "#{$starred[lick[:name]] || 0}*#{t}"  :  t
+                end.join(','),
                 hole_hint,
                 lick[:desc] ]
             else

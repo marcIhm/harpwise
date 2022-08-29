@@ -97,7 +97,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'quiz' => [-3, 'your milage may vary'],
                      'licks' => [-3, 'plays nothing initially'],
                      'play' => [-3, 'this number of holes'],
-                     'report' => [2, 'Show what you have played recently']}
+                     'report' => [3, 'In other modes']}
     
     expect { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -258,8 +258,8 @@ do_test 'id-0a: mode licks to create simple lick file' do
   tms 'harpwise licks testing a --testing'
   tms :ENTER
   sleep 2
-  expect { File.exist?(lick_file) }
   expect { screen[7]['does not exist'] }
+  expect { File.exist?(lick_file) }
   kill_session
 end
 
@@ -748,15 +748,14 @@ do_test 'id-30: handling a very long lick' do
   tms 'harpwise lick testing blues --start-with long --testing --comment holes-all'
   tms :ENTER
   sleep 2
-  expect { screen[-8]['  ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▗▘▄▙▖ ▄▘'] }
+  expect { screen[-8]['  ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▌   ▄▄▖▗▘  ▄▄▖▗▘'] }
   20.times {
     tms '1'
   }
-  expect { screen[-8]['  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
+  expect { screen[-8]['  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
   tms 'c'
   sleep 1
-  expect { screen[-6]['-3.     -4.b    -4.b'] }
-  expect { screen[-5]['-5.b    -5.b    -5.b    -5.b'] }
+  expect { screen[-6]['-4.b  *-4.b   -4.b   -4.b   -5.b   -5.b   -5.b   -5.b   -5.b'] }
   kill_session
 end
 
@@ -813,8 +812,8 @@ do_test 'id-34: switch between modes' do
   kill_session
 end
 
-do_test 'id-35: star a licks' do
-  starred_file = Dir.home + '/.harpwise/licks/richter/starred.yaml'
+do_test 'id-35: star a lick' do
+  starred_file = Dir.home + '/.harpwise/licks/testing/starred.yaml'
   FileUtils.rm starred_file if File.exist?(starred_file)  
   new_session
   tms 'harpwise licks testing a --start-with juke --testing'
@@ -833,7 +832,7 @@ do_test 'id-36: show lick starred in previous invocation' do
   tms 'harpwise report testing starred'
   tms :ENTER
   sleep 2
-  expect { screen[10]['juke'] }
+  expect { screen[5]['juke:    1'] }
   kill_session
 end
 

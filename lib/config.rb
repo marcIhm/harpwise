@@ -162,9 +162,6 @@ def set_global_vars_late
                   else
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
-  $star_file = "#{$dirs[:data]}/licks/#{$type}/starred.yaml"
-  File.write($star_file, YAML.dump(Hash.new)) unless File.exist?($star_file)
-  ($starred = Hash.new {|h,k| h[k] = 0}).merge! yaml_parse($star_file)
 end
 
 
