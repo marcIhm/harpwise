@@ -4,3 +4,4 @@ samples/*
 *Zone.Identifier
 config/*/derived_*.yaml
 config/testing
+config/testing2

@@ -2,7 +2,7 @@
 # Utilities for testing with run.rb
 #
 
-def new_session
+def new_session x = $sut[:term_min_width], y = $sut[:term_min_height]
   kill_session
   #
   # The simple command below does not work because of a bug in tmux 3.2a:
@@ -12,7 +12,7 @@ def new_session
   #
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
-  sys "tmux new-session -d -x #{$sut[:term_min_width]} -y #{$sut[:term_min_height]} -s harpwise \\; new-window bash \\; kill-window -t 0"
+  sys "tmux new-session -d -x #{x} -y #{y} -s harpwise \\; new-window bash \\; kill-window -t 0"
   tms 'cd /tmp'
   tms :ENTER
 end

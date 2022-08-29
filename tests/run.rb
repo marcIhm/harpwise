@@ -67,8 +67,11 @@ system("sox -n /tmp/harpwise_testing.wav synth 200.0 sawtooth 494")
 FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
-FileUtils.rm_r 'config/testing' if File.directory?('config/testing')
-FileUtils.cp_r 'config/richter', 'config/testing'
+[['config/richter', 'config/testing'],
+ ['config/chromatic', 'config/testing2']].each do |from, to|
+  FileUtils.rm_r to if File.directory?(to)
+  FileUtils.cp_r from, to
+end
 
 print "Testing"
 
@@ -76,7 +79,6 @@ print "Testing"
 # How to assign ids: either any two uniq hex-digits for tests not in a loop
 # or any letter from 'g' on for a series of numbered tests
 #
-
 do_test "id-01: Test dir paths from config" do
   should = {:install=>"#{Dir.home}/harpwise",
             :data=>"#{Dir.home}/.harpwise"}
@@ -97,7 +99,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'quiz' => [-3, 'your milage may vary'],
                      'licks' => [-3, 'plays nothing initially'],
                      'play' => [-3, 'this number of holes'],
-                     'report' => [3, 'In other modes']}
+                     'report' => [0, 'In other modes']}
     
     expect { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -833,6 +835,27 @@ do_test 'id-36: show lick starred in previous invocation' do
   tms :ENTER
   sleep 2
   expect { screen[5]['juke:    1'] }
+  kill_session
+end
+
+do_test "id-37: chromatic; auto-calibration key of a" do
+  new_session
+  tms "harpwise calib testing2 a --auto --testing"
+  tms :ENTER
+  sleep 1
+  tms 'y'
+  sleep 10
+  expect { screen[-4]['Recordings done.'] }
+  kill_session
+end
+
+do_test 'id-38: chromatic; listen' do
+  sound 8, 2
+  new_session 92, 30
+  tms 'harpwise listen testing2 a all --testing'
+  tms :ENTER
+  sleep 4
+  expect { screen[4]['a3   df4    e4    a4    a4   df5'] }
   kill_session
 end
 
