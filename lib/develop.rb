@@ -39,7 +39,7 @@ def task_diff
   srcs = [:usage, :man]
 
   # Modifications for usage
-  erase_line_usage_if_word = ['Version 3']
+  erase_line_usage_if_part = ['Version 3']
 
   # Modifications for man
   seen_man = {:desc => [/^DESCRIPTION$/, false],
@@ -57,16 +57,16 @@ def task_diff
   # applying modifications
   #
 
-  # only remove some lines
+  # only a simple modification
   lines[:usage] = ERB.new(IO.read("#{$dirs[:install]}/resources/usage.txt")).
                     result(binding).lines.
                     map do |l|
-                      erase_line_usage_if_word.any? {|e| l.strip[e]} ? nil : l
+                      erase_line_usage_if_part.any? {|e| l.strip[e]} ? nil : l
                     end.compact.
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
 
-  # remove disclaimer for the man-page or lines, which are added by groff
+  # long modification pipeline
   lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
                   # use only some sections of lines
