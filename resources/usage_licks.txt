@@ -53,9 +53,8 @@ USAGE BY EXAMPLES
   explanation on the concept of tags.
   
   Here is a more sophisticated example. It helps to memorize licks,
-  but only shorter ones and it shows the scales for each hole:
+  but not scales and shows the scales for each hole:
 
-    harpwise licks c blues --loop --max-holes 15 --imm \
-        --no-tags-any scales --disp chart-scales \
-	--add-scales chord-i,chord-iv,chord-v \
-        --comment holes-all
+    harpwise licks c blues --loop --imm --no-tags-any scales \
+        --add-scales chord-i,chord-iv,chord-v \
+        --display chart-scales --comment holes-all
