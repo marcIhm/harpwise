@@ -126,7 +126,8 @@ def calculate_screen_layout
   lines[:frequency] = lines[:hole] + 1
   lines[:interval] = lines[:hole] + 2
   lines[:comment] = 18 + 3 * stretch - 2 * squeeze
-  lines[:hint_or_message] = 26 + 5 * stretch - ( need_message2 ? 3 : 2 ) * squeeze
+  lines[:hint_or_message] = [26 + 5 * stretch - ( need_message2 ? 3 : 2 ) * squeeze,
+                             $term_height - ( need_message2 ? 1 : 0 )].min
   2.times do
     lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > ( need_message2 ? 1 : 0 )
   end
