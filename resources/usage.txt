@@ -2,6 +2,9 @@ harpwise ('wise' for short) supports the daily practice of bends,
 scales, intervals or licks on a diatonic (richter) or chromatic
 harmonica for various keys.
 
+The wise is limited to play and recognice single notes only, so that
+e.g. chords or octaves are out of its reach.
+
 The first argument on the commandline specifies the mode of operation;
 it can be one of:
 
