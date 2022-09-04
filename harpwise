@@ -40,7 +40,7 @@ $term_height, $term_width = prepare_screen
 
 # while testing, additionally make sure, that we do not use relative
 # paths; do this early, before we even have parsed options
-Dir.chdir("/tmp") if ARGV.include?('--testing')
+Dir.chdir(Dir.home) if ARGV.include?('--testing')
 
 set_global_vars_early
 

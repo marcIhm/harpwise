@@ -12,15 +12,20 @@ def new_session x = $sut[:term_min_width], y = $sut[:term_min_height]
   #
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
+  system "rm -rf /tmp/harpwise*-* >/dev/null 2>&1"
+  FileUtils.rm($pipeline_started) if File.exist?($pipeline_started)
   sys "tmux new-session -d -x #{x} -y #{y} -s harpwise \\; new-window bash \\; kill-window -t 0"
-  tms 'cd /tmp'
+  tms 'cd ~'
+  tms :ENTER
+  tms 'PS1=\"\$ \"'
+  tms :ENTER
+  tms 'clear'
   tms :ENTER
 end
 
 
 def kill_session
   system "tmux kill-session -t harpwise >/dev/null 2>&1"
-  system "rm -rf /tmp/harpwise*-* >/dev/null 2>&1"
 end
 
 
@@ -47,21 +52,37 @@ def screen
 end
 
 
-def expect *failinfo, &block
-  if yield
-    print "\e[32mOkay \e[0m"
-  else
-    puts
-    source = block.to_source
-    pp screen if source['screen']
-    puts "\e[31mNOT Okay\e[0m"
-    puts source
-    pp failinfo if failinfo.length > 0
-    kill_session
-    exit 1
+def wait_for_pipeline
+  20.times do
+    if File.exist?($pipeline_started)
+      sleep 1
+      return
+    end
+    sleep 1
   end
+  pp screen
+  fail "Pipeline did not start"
 end
 
+
+def expect *failinfo, &block
+  5.times do 
+    if yield
+      print "\e[32mOkay \e[0m"
+      return
+    end
+    sleep 1
+  end
+  
+  puts
+  source = block.to_source
+  pp screen if source['screen']
+  puts "\e[31mNOT Okay\e[0m"
+  puts source
+  pp failinfo if failinfo.length > 0
+  kill_session
+  exit 1
+end
 
 def sound secs, semi
     sys "sox -n /tmp/harpwise_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
@@ -124,7 +145,7 @@ end
 
 
 def clear_testing_log
-  File.rm($testing_log_file) if File.exist?($testing_log_file)
+  FileUtils.rm($testing_log_file) if File.exist?($testing_log_file)
 end
 
 

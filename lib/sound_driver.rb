@@ -183,12 +183,17 @@ end
 
 
 def aubiopitch_to_queue fifo, num_samples
-  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples * 1} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out = Open3.popen2(aubio_cmd)
-  
+
+  ptouch = false
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
-    sleep 0.2 if $opts[:testing]
+    if $opts[:testing]
+      sleep 0.2
+      FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started") unless ptouch
+      ptouch = true
+    end
     $freqs_queue.enq fields[1]
   end
 end
