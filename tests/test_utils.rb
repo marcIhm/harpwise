@@ -13,6 +13,9 @@ def new_session x = $sut[:term_min_width], y = $sut[:term_min_height]
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
   system "rm -rf /tmp/harpwise*-* >/dev/null 2>&1"
+  %w(start end).each do |marker|
+    File.delete($testing_dump_template % marker) if File.exist?($testing_dump_template % marker)
+  end
   FileUtils.rm($pipeline_started) if File.exist?($pipeline_started)
   sys "tmux new-session -d -x #{x} -y #{y} -s harpwise \\; new-window bash \\; kill-window -t 0"
   tms 'cd ~'
@@ -52,7 +55,7 @@ def screen
 end
 
 
-def wait_for_pipeline
+def wait_for_start_of_pipeline
   20.times do
     if File.exist?($pipeline_started)
       sleep 1
@@ -61,7 +64,20 @@ def wait_for_pipeline
     sleep 1
   end
   pp screen
-  fail "Pipeline did not start"
+  fail "Pipeline did not start OR harpwise has not been started wih '--testing' OR harpwise did not even initialize completely"
+end
+
+
+def wait_for_end_of_harpwise
+  20.times do
+    unless Sys::ProcTable.ps.any? {|p| p.cmdline['harpwise'] && p.cmdline['ruby']}
+      sleep 1
+      return
+    end
+    sleep 1
+  end
+  pp screen
+  fail "harpwise did not come to an end"
 end
 
 
@@ -129,13 +145,6 @@ end
 
 def read_testing_dump marker
   JSON.parse(File.read($testing_dump_template % marker), symbolize_names: true)
-end
-
-
-def clear_testing_dumps
-  %w(start end).each do |marker|
-    File.delete($testing_dump_template % marker) if File.exist?($testing_dump_template % marker)
-  end
 end
 
 
