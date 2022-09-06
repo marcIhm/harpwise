@@ -150,7 +150,7 @@ def diff_semitones key1, key2, strategy = :minimum_distance
     semis.map! {|s| s >= @semi_for_g ? s - 12 : s}
     dsemi = semis[0] - semis[1]
   else
-    err "Internal error: unknown strategy #{strategy}"
+    fail "Internal error: unknown strategy #{strategy}"
   end
   dsemi
 end

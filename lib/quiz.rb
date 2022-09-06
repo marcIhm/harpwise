@@ -2,13 +2,10 @@
 # Perform quiz and licks
 #
 
-$abbrevs_for_iter = %w(iterate iter i cycle cyc c)
-
 def do_quiz_or_licks
 
   unless $other_mode_saved[:conf]
-    prepare_term
-    start_kb_handler
+    make_term_immediate
     start_collect_freqs
   end
   $ctl_can[:next] = true
@@ -98,8 +95,7 @@ def do_quiz_or_licks
 
     elsif $ctl_listen[:named_lick]  # can only happen for mode licks
 
-      stop_kb_handler
-      sane_term
+      make_term_cooked
       input = matching = nil
 
       old_licks = get_last_lick_idxs_from_journal($licks)
@@ -137,18 +133,29 @@ def do_quiz_or_licks
         end
       end
       lick_idx_iter = nil
-      
-      start_kb_handler
-      prepare_term
+
+      make_term_immediate
       $ctl_listen[:named_lick] = false
       
     elsif $ctl_listen[:change_tags]  # can only happen in licks
       
-      read_tags_and_refresh_licks lick
+      doiter = read_tags_and_refresh_licks(lick,
+                                           $ctl_listen[:change_tags] == :all ? true : false)
       print "\e[#{$lines[:key]}H\e[k" + text_for_key
-      lick_idx_before = lick_idx = rand($licks.length)
-      lick = $licks[lick_idx]
-      lick_idx_iter = nil
+      case doiter
+      when true
+        lick_idx_before = lick_idx = 0
+        lick_idx_iter = lick_idx
+        lick = $licks[lick_idx]
+      when false
+        lick_idx_before = lick_idx = rand($licks.length)
+        lick_idx_iter = nil
+        lick = $licks[lick_idx]
+      when :keep
+        # keep iteration state
+      else
+        fail "Internal error"
+      end
       all_wanted = lick[:holes]
       $ctl_listen[:change_tags] = false
 
@@ -231,7 +238,7 @@ def do_quiz_or_licks
           end
 
         # start lick iteration
-        elsif $abbrevs_for_iter.include?(start_with)
+        elsif $conf[:abbrevs_for_iter].include?(start_with)
           lick_cycle = ( start_with[0] == 'c' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
@@ -241,7 +248,7 @@ def do_quiz_or_licks
 
         # search lick by name and maybe start iteration          
         else 
-          doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
+          doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
           if doiter
             lick_cycle = ( doiter[1] == 'c' )
             start_with[-doiter.length .. -1] = ''
@@ -394,7 +401,7 @@ def do_quiz_or_licks
                 when :holes_all
                   wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], all_wanted, idx)
                 else
-                  err "Internal error unknown comment style #{$conf[:comment]}"
+                  fail "Internal error unknown comment style #{$conf[:comment]}"
                 end
               $ctl_listen[:update_comment] = false
             end
@@ -943,41 +950,42 @@ def read_lick_name input, curr_lick_idx
 end
 
 
-def read_tags_and_refresh_licks curr_lick
-  tag_options = %w( --tags-all --tags-any --no-tags-all --no-tags-any )
-  tag_option = nil
-  begin
-    cmnt_print_in_columns 'There are four relevant options',
-                          tag_options.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
-                          ['the other options will be set to the empty string']
-    cmnt_print_prompt 'Please choose', 'which option to set',
-                      '(1,2,3,4, RETURN for 1 or q to quit)'
-    char = $ctl_kb_queue.deq
-    pp char
-    char = '1' if char == "\n"
-    if %w( 1 2 3 4 ).include?(char)
-      tag_option = tag_options[char.to_i - 1][2..-1].gsub('-','_').to_sym
-    elsif char == 'q'
-      return
-    else
-      cmnt_report_error_wait_key 'Invalid Input: ' +
-                                 (char.match?(/[[:print:]]/) ? char : '?') +
-                                 " (#{char.ord}); none of 1..4 !"
-    end
-  end until tag_option
-  tag_options.each {|to| $opts[to[2..-1].gsub('-','_').to_sym] = ''}
+def read_tags_and_refresh_licks curr_lick, all
+  tag_opts = %w( --tags-any --tags-all --no-tags-any --no-tags-all )
+  tag_opt = nil
+  make_term_cooked
+  if all
+    begin
+      cmnt_print_in_columns 'There are four relevant options',
+                            tag_opts.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
+                            ['the other options will be set to the empty string']
+      cmnt_print_prompt 'Please choose', 'which option to set',
+                        '(1,2,3,4 or just RETURN for 1 or q to quit)'
+      input = STDIN.gets.chomp
+      input = '1' if input == ''
+      if %w( 1 2 3 4 ).include?(input)
+        tag_opt = tag_opts[input.to_i - 1][2..-1].gsub('-','_').to_sym
+      elsif input == 'q'
+        return :keep
+      else
+        cmnt_report_error_wait_key "Invalid input: '#{input}'; none of 1..4,q !"
+      end
+    end until tag_opt
+  else
+    tag_opt = :tags_any
+  end
+  tag_opts.map {|to| to[2..-1].gsub('-','_').to_sym}.
+    each {|ts| $opts[ts] = '' unless ts == tag_opt}
 
-  stop_kb_handler
-  sane_term
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
                         curr_lick[:tags] + ['//'] + all_tags,
                         ["maybe with ',cycle', SPACE to list, RETURN to go without"]
-  topt = '--' + tag_option.to_s.gsub('_','-')
-  opof = '(or part of)'
+  topt = '--' + tag_opt.to_s.gsub('_','-')
+  opof = "(or part of; current value is '#{$opts[tag_opt]}')"
   cmnt_print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
-  doiter = $abbrevs_for_iter.map {|a| ',' + a}.find {|x| input.end_with?(x)}
+  doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| input.end_with?(x)}
   input[-doiter.length .. -1] = '' if doiter
   begin
     mtags = if input == ' '
@@ -992,14 +1000,13 @@ def read_tags_and_refresh_licks curr_lick
     done = false
     
     if mtags.length == 1 || input[',']
-      $opts[tag_option] = mtags[0]
+      $opts[tag_opt] = mtags[0]
       $all_licks, $licks = read_licks true
       if $licks.length == 0
         cmnt_print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
                               all_tags
       else
         done = true
-        $opts[tag_option] += doiter if doiter
       end
     elsif mtags.length == 0
       cmnt_print_in_columns "No tags match your input '#{input}'; these are available",
@@ -1018,15 +1025,14 @@ def read_tags_and_refresh_licks curr_lick
       input = STDIN.gets.chomp
     end
   end while !done || $licks.length == 0
-  start_kb_handler
-  prepare_term
+  make_term_immediate
   print "\e[#{$lines[:comment_tall]}H\e[0m\e[J"
+  return ( doiter ? true : false )
 end
 
 
 def read_and_set_partial
-  stop_kb_handler
-  sane_term
+  make_term_cooked
   cmnt_print_in_columns 'Examples for --partial',
                         %w(1/3@b 1/4@x 1/2@e 1@b, 1@e 2@x 0),
                         ["current value is '#{$opts[:partial]}'",
@@ -1044,8 +1050,8 @@ def read_and_set_partial
                     else
                       input
                     end
-  prepare_term
-  start_kb_handler
+
+  make_term_immediate
   begin
     # test with some artifical arguments
     $on_error_raise = true

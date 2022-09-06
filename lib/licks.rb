@@ -197,8 +197,6 @@ def read_licks graceful = false
   keep_all = Set.new($opts[:tags_all]&.split(','))
   discard_any = Set.new($opts[:no_tags_any]&.split(','))
   discard_all = Set.new($opts[:no_tags_all]&.split(','))
-  tags_in_opts = Set.new(discard_any + discard_all + keep_any + keep_all)
-  tags_in_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
 
   all_tag_opts = [$opts[:tags_any], $opts[:tags_all], $opts[:no_tags_any], $opts[:no_tags_all]]
 
@@ -209,12 +207,18 @@ def read_licks graceful = false
       err "No licks can be found, because options '--tags-all' and '--no-tags-any' have this intersection: #{(keep_all).intersection(discard_any).to_a}"
     end
   end
-    
-  if !tags_in_opts.subset?(tags_in_licks)
-    if graceful
-      return [[],[]]
-    else
-      err "There are some tags in option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' #{tags_in_opts.to_a} which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in options are: #{(tags_in_opts - tags_in_licks).to_a}"
+
+  tags_in_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
+  [['--tags-any', keep_any],
+   ['--tags-all', keep_all],
+   ['--no-tags-any', discard_any],
+   ['--no-tags-all', discard_all]].each do |opt, tags|
+    if !tags.subset?(tags_in_licks)
+      if graceful
+        return [[],[]]
+      else
+        err "Among tags #{tags.to_a} in option #{opt}, there are some, which are not in lick file #{lfile} #{tags_in_licks.to_a}; unknown in options are: #{(tags - tags_in_licks).to_a}"
+      end
     end
   end
 

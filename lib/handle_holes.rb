@@ -224,7 +224,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
               print truncate_text(hints[3], $term_width - 4) + "\e[K"
             end
           else
-            err "Internal error"
+            fail "Internal error"
           end
           print "\e[0m\e[2m"
         end
@@ -311,8 +311,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           $ctl_kb_queue.deq
           clear_area_comment
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-          puts "     n: switch to lick by name            t: change options --tags"
-          puts "     <: shift lick down by one octave     >: shift lick up"
+          puts "     n: switch to lick by name"
+          puts "   t,T: change one/any of options --tags"
+          puts "     <: shift lick down by one octave    >: shift lick up"
           puts "     @: change option --partial"
           puts "     *: Star current lick persistently; see message for the"
           puts "        filename; access starred licks by tag 'starred'"
@@ -442,8 +443,7 @@ end
 
 
 def do_change_key
-  stop_kb_handler
-  sane_term
+  make_term_cooked
   begin
     cmnt_print_in_columns 'Available keys', $conf[:all_keys], ["current is #{$key}"]
     cmnt_print_prompt  'Please enter','new key'
@@ -462,8 +462,7 @@ def do_change_key
       $on_error_raise = false
     end
   end while error
-  start_kb_handler
-  prepare_term
+  make_term_immediate
   print "\e[#{$lines[:key]}H" + text_for_key
   print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
   $message_shown_at = Time.now.to_f
@@ -471,8 +470,7 @@ end
 
 
 def do_change_scale_add_scales
-  stop_kb_handler
-  sane_term
+  make_term_cooked
 
   # Change scale
   begin
@@ -522,8 +520,7 @@ def do_change_scale_add_scales
     end
   end while error
 
-  start_kb_handler
-  prepare_term
+  make_term_immediate
   print "\e[#{$lines[:key]}H" + text_for_key
   print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m#{$scale}\e[K"
   $message_shown_at = Time.now.to_f  

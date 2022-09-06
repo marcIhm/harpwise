@@ -221,7 +221,7 @@ do_test 'id-06a: listen and change display and comment' do
   end
   sleep 1
   tms 'q'
-  sleep 2
+  sleep 1
   expect { screen[-3]['Terminating on user request'] }
   kill_session
 end
@@ -486,7 +486,7 @@ do_test 'id-1a: error on unknown --tags' do
   tms 'harpwise licks testing --tags-any unknown a --testing'
   tms :ENTER
   sleep 2
-  expect { screen[2]['ERROR: There are some tags'] }
+  expect { screen[2]['ERROR: Among tags ["unknown"] in option --tags-any, there are some'] }
   kill_session
 end
 
@@ -717,22 +717,42 @@ do_test 'id-27: change lick by name' do
   kill_session
 end
 
-do_test 'id-27a: change tags' do
+do_test 'id-27a: change first of options --tags' do
+  clear_testing_dumps
+  new_session
+  tms 'harpwise lick testing blues --start-with juke --testing'
+  tms :ENTER
+  wait_for_pipeline
+  tms 't'
+  tms 'favorites'
+  tms :ENTER
+  tms 'q'
+  sleep 1
+  tst_dump = read_testing_dump('end')
+  expect(tst_dump[:opts]) { tst_dump[:opts][:tags_any] == 'favorites'}
+  kill_session
+end
+
+do_test 'id-27b: change one of four of options --tags' do
+  clear_testing_dumps
   new_session
   tms 'harpwise lick testing blues --start-with juke --testing'
   tms :ENTER
   wait_for_pipeline
   expect { screen[1]['licks(8)'] }
-  tms 't'
-  tms '1'
+  tms 'T'
+  tms '2'
+  tms :ENTER
   tms 'favorites,iter'
   tms :ENTER
+  tms 'q'
   sleep 1
-  expect { screen[1]['licks(1)'] }
+  tst_dump = read_testing_dump('end')
+  expect(tst_dump[:opts]) { tst_dump[:opts][:tags_all] == 'favorites'}
   kill_session
 end
 
-do_test 'id-27b: change partial' do
+do_test 'id-27c: change partial' do
   new_session
   tms 'harpwise lick testing blues --start-with juke --testing'
   tms :ENTER

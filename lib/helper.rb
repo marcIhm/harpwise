@@ -130,7 +130,7 @@ def truncate_colored_text text, len
       ttext += md[1]
       text = md[2]
     elsif md = text.match(/^\e/)
-      err "Internal error: Unknown escape"
+      fail "Internal error: Unknown escape"
     else
       # no escape a start, copy to ttext and count
       md = text.match(/^([^\e]+)/)
@@ -154,8 +154,7 @@ end
 
 
 def bbg # prepare byebug
-  sane_term
-  stop_kb_handler
+  make_term_cooked
   print "\e[0m"
   require 'byebug'
   byebug
@@ -221,16 +220,16 @@ end
 
 
 def cmnt_report_error_wait_key etext
-  prepare_term
-  start_kb_handler
+  term_immediate_was = $term_immediate
+  make_term_immediate
   # This makes the terminal scroll
   print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
   print etext
   print "\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
-  stop_kb_handler
-  sane_term
+  # leave term in initial state
+  make_term_cooked unless term_immediate_was
 end
 
 

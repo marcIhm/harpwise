@@ -89,7 +89,7 @@ end
 $figlet_cache = Hash.new
 
 def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
-  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+  fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
   cmd = "figlet -w 400 -f #{font} -l  -- \"#{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
@@ -150,7 +150,7 @@ end
 $figlet_wrap_cache = Hash.new
 
 def get_figlet_wrapped text, font
-  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+  fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
   cmd = "figlet -w #{$term_width - 4} -f #{font} -l -- \"#{text}\""
   unless $figlet_wrap_cache[cmd]
     out, _ = Open3.capture2e(cmd)
@@ -171,7 +171,7 @@ end
 
 
 def figlet_char_height font
-  fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+  fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
   # high and low chars
   out, _ = Open3.capture2e("figlet -f #{font} -l Igq")
   $perfctr[:figlet_3] += 1
@@ -182,7 +182,7 @@ end
 $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
-    fail "Unknown font: #{font}" unless $figlet_fonts.include?(font)
+    fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
     out, _ = Open3.capture2e("figlet -f #{font} -l -- \"#{text}\"")
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
@@ -217,6 +217,22 @@ end
 
 def stop_kb_handler
   @kb_handler.exit if @kb_handler
+end
+
+
+def make_term_immediate
+  return if $term_immediate
+  prepare_term
+  start_kb_handler
+  $term_immediate = true
+end
+
+
+def make_term_cooked
+  return unless $term_immediate
+  stop_kb_handler
+  sane_term
+  $term_immediate = false
 end
 
 
@@ -291,6 +307,9 @@ def handle_kb_listen
   elsif char == 't' && $ctl_can[:named]
     $ctl_listen[:change_tags] = true
     text = 'Tags'
+  elsif char == 'T' && $ctl_can[:named]
+    $ctl_listen[:change_tags] = :all
+    text = 'All Tags'
   elsif char == '>' && $ctl_can[:octave]
     $ctl_listen[:octave] = :up
     text = 'Octave up'

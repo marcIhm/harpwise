@@ -8,7 +8,6 @@ def do_play to_play
   lnames = []
   special = []
   other = []
-  special_allowed = %w(ran rand random iterate iter i cycle cyc c)
   all_lnames = $licks.map {|l| l[:name]}
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
@@ -16,8 +15,7 @@ def do_play to_play
   
   jtext = nil
 
-  prepare_term
-  start_kb_handler
+  make_term_immediate
 
   puts "Type is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   
@@ -36,7 +34,7 @@ def do_play to_play
       lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]][:name]
     elsif all_lnames.include?(tp)
       lnames << tp
-    elsif special_allowed.include?(tp)
+    elsif $conf[:specials_allowed_play].include?(tp)
       special << ({'iter' => 'iterate',
                    'i' => 'iterate',
                    'cyc' => 'cycle',
@@ -59,7 +57,7 @@ def do_play to_play
     puts "- holes: #{$harp_holes}"
     puts "- notes: #{$harp_notes}"
     puts "- licks: #{all_lnames}"
-    puts "- special: #{special_allowed}"
+    puts "- special: #{$conf[:specials_allowed_play]}"
     err 'See above'
   end
   
@@ -78,7 +76,7 @@ def do_play to_play
   end
 
   if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
-    err "Cannot use option '--tags_any', '--tags_all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
+    err "Cannot use option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
   end
   
   if special.include?(:iterate) && special.include?(:cycle)
@@ -139,7 +137,7 @@ def do_play to_play
     end
 
   else
-    err "Internal error"
+    fail "Internal error"
   end
 end
 

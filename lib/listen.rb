@@ -5,8 +5,7 @@
 def do_listen
 
   unless $other_mode_saved[:conf]
-    prepare_term
-    start_kb_handler
+    make_term_immediate
     start_collect_freqs
   end
   $ctl_can[:next] = false

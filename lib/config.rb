@@ -77,8 +77,6 @@ def set_global_vars_early
 
   $freqs_queue = Queue.new
 
-  $figlet_fonts = %w(smblock mono12 mono9)
-
   $first_round_ever_get_hole = true
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
@@ -94,6 +92,8 @@ def set_global_vars_early
   $scale2short_count = 0
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
 
+  $early_conf = Hash.new
+  $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
 end
 
 
@@ -184,7 +184,7 @@ def check_installation
 
   # check fonts
   font_dir = %x(figlet -I2).chomp
-  $figlet_fonts.each do |font|
+  $early_conf[:figlet_fonts].each do |font|
     err "Did not find font #{font} in #{font_dir}" unless %w(flf tlf).any? {|ending| File.exist?("#{font_dir}/#{font}.#{ending}")}
   end
 end
@@ -219,6 +219,12 @@ def read_technical_config
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
+
+  # Set some things we do not take from file
+  $early_conf.each {|k,v| conf[k] = v}
+  conf[:abbrevs_for_iter] = %w(iterate iter i cycle cyc c)
+  conf[:specials_allowed_play] = %w(r ran rand random) + conf[:abbrevs_for_iter]
+
   conf
 end
 
@@ -449,7 +455,7 @@ end
 
 
 def get_chart_with_intervals
-  err "Internal error: reference hole is not set" unless $hole_ref
+  fail "Internal error: reference hole is not set" unless $hole_ref
   len = $chart_cell_len
   chart_with_holes_raw = $chart_with_holes_raw
   chart_with_intervals = []
