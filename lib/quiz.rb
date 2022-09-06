@@ -142,19 +142,17 @@ def do_quiz_or_licks
       doiter = read_tags_and_refresh_licks(lick,
                                            $ctl_listen[:change_tags] == :all ? true : false)
       print "\e[#{$lines[:key]}H\e[k" + text_for_key
-      case doiter
-      when true
+      if doiter == :keep
+        # keep iteration state
+      elsif doiter
+        lick_cycle = ( doiter[0] == 'c' )
         lick_idx_before = lick_idx = 0
         lick_idx_iter = lick_idx
         lick = $licks[lick_idx]
-      when false
+      else
         lick_idx_before = lick_idx = rand($licks.length)
         lick_idx_iter = nil
         lick = $licks[lick_idx]
-      when :keep
-        # keep iteration state
-      else
-        fail "Internal error"
       end
       all_wanted = lick[:holes]
       $ctl_listen[:change_tags] = false
@@ -980,7 +978,7 @@ def read_tags_and_refresh_licks curr_lick, all
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
                         curr_lick[:tags] + ['//'] + all_tags,
-                        ["maybe with ',cycle', SPACE to list, RETURN to go without"]
+                        ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
   topt = '--' + tag_opt.to_s.gsub('_','-')
   opof = "(or part of; current value is '#{$opts[tag_opt]}')"
   cmnt_print_prompt 'New value for', topt, opof
@@ -1027,7 +1025,7 @@ def read_tags_and_refresh_licks curr_lick, all
   end while !done || $licks.length == 0
   make_term_immediate
   print "\e[#{$lines[:comment_tall]}H\e[0m\e[J"
-  return ( doiter ? true : false )
+  return doiter
 end
 
 
