@@ -145,7 +145,8 @@ def do_quiz_or_licks
       if doiter == :keep
         # keep iteration state
       elsif doiter
-        lick_cycle = ( doiter[0] == 'c' )
+        # we treat iter like cycle
+        lick_cycle = true
         lick_idx_before = lick_idx = 0
         lick_idx_iter = lick_idx
         lick = $licks[lick_idx]
