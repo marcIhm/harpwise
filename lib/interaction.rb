@@ -379,7 +379,7 @@ def handle_kb_listen
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
-    $ctl_listen[:redraw] = :silent if $conf[:comment] == :holes_some
+    $ctl_listen[:redraw] = :silent if $opts[:comment] == :holes_some
   elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
     $ctl_listen[:start_loop] = true
     text = 'Loop started'
@@ -469,11 +469,11 @@ end
 
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
-  if $conf[:display] == :chart_intervals && !$hole_ref
+  if $opts[:display] == :chart_intervals && !$hole_ref
     print "\e[#{$lines[:display] + yoff + 4}H    Set ref first"
   else    
     print "\e[#{$lines[:display] + yoff}H"
-    $charts[$conf[:display]].each_with_index do |row, ridx|
+    $charts[$opts[:display]].each_with_index do |row, ridx|
       print ' ' * ( xoff - 1)
       row[0 .. -2].each_with_index do |cell, cidx|
         hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
@@ -499,11 +499,11 @@ end
 
 
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
-  return if $conf[:display] == :chart_intervals && !$hole_ref
+  return if $opts[:display] == :chart_intervals && !$hole_ref
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $lines[:display] + $conf[:chart_offset_xyl][1] + xy[1]
-    cell = $charts[$conf[:display]][xy[1]][xy[0]]
+    cell = $charts[$opts[:display]][xy[1]][xy[0]]
     hole_color = if state == :inactive
                    "\e[%dm" % get_hole_color_inactive(hole)
                  elsif $opts[:no_progress]

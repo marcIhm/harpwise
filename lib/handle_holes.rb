@@ -30,7 +30,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       $ctl_issue_default = "SPACE to pause; h for help"
       ctl_issue
       print "\e[#{$lines[:key]}H" + text_for_key
-      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
+      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_listen[:redraw] && $ctl_listen[:redraw] != :silent
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
@@ -115,7 +115,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                    get_hole_color_active(hole, good, was_good, was_good_since)
                  end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
-    case $conf[:display]
+    case $opts[:display]
     when :chart_notes, :chart_scales, :chart_intervals
       update_chart(hole_was_for_disp, :inactive) if hole_was_for_disp && hole_was_for_disp != hole
       hole_was_for_disp = hole if hole
@@ -125,7 +125,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print hole_color
       do_figlet_unwrapped hole_disp, 'mono12', longest_hole_name
     else
-      fail "Internal error: #{$conf[:display]}"
+      fail "Internal error: #{$opts[:display]}"
     end
 
     text = "Hole: %#{longest_hole_name.length}s, Note: %4s" %
@@ -136,7 +136,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
 
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
-      case $conf[:comment]
+      case $opts[:comment]
       when :holes_scales
         fit_into_comment lambda_comment.call
       when :holes_intervals
@@ -237,7 +237,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference hole\e[0m\e[K"
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals
-        if $conf[:display] == :chart_intervals
+        if $opts[:display] == :chart_intervals
           clear_area_display
           print_chart
         end
@@ -250,11 +250,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if $ctl_listen[:change_display]
       choices = [ $display_choices, $display_choices ].flatten
       choices = choices.reverse if $ctl_listen[:change_display] == :back
-      $conf[:display] = choices[choices.index($conf[:display]) + 1]
+      $opts[:display] = choices[choices.index($opts[:display]) + 1]
       $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
       clear_area_display
-      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($conf[:display])
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mDisplay is now #{$conf[:display].upcase}\e[0m\e[K"
+      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
+      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mDisplay is now #{$opts[:display].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
       $ctl_listen[:change_display] = false
     end
@@ -262,9 +262,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     if $ctl_listen[:change_comment]
       choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
       choices = choices.reverse if $ctl_listen[:change_comment] == :back
-      $conf[:comment] = choices[choices.index($conf[:comment]) + 1]
+      $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
       clear_area_comment
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$conf[:comment].upcase}\e[0m\e[K"
+      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$opts[:comment].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
       $ctl_listen[:change_comment] = false
       $ctl_listen[:update_comment] = true

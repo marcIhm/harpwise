@@ -4,6 +4,41 @@
 # General helper functions
 #
 
+class Symbol
+  def o2str
+    self.to_s.gsub('_','-') if self
+  end
+end
+
+class String
+  def o2sym
+    self.gsub('-','_').to_sym if self
+  end
+
+  def to_b
+    case self
+    when 'true'
+      true
+    when 'false'
+      false
+    else
+      nil
+    end
+  end
+
+  def empty2nil
+    self.empty?  ?  nil  :  self
+  end
+
+  def num_or_str
+    begin
+      return Integer(self)
+      return Float(self)
+    rescue
+      return self
+    end
+  end
+end
 
 def match_or cand, choices
   return unless cand

@@ -21,7 +21,7 @@ def parse_arguments
   end
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
-  $mode = mode = match_or(ARGV[0], %w(listen quiz licks play report calibrate develop)) do |none, choices|
+  $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
     err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information; note, that mode 'develop' is only useful for the maintainer or developer of harpwise."
   end.to_sym
   ARGV.shift
@@ -33,8 +33,6 @@ def parse_arguments
   #
   
   opts = Hash.new
-  # defaults from config
-  opts[:fast] = $conf[:play_holes_fast]
 
   # will be enriched with descriptions and arguments below
   modes2opts = 
@@ -99,6 +97,17 @@ def parse_arguments
     end
   end
 
+  # now, that we have the mode, we can finish $conf
+  $conf[:any_mode].each {|k,v| $conf[k] = v}
+  if $conf_meta[:sections].include?(mode)
+    $conf[mode].each {|k,v| $conf[k] = v}
+  end
+  
+  # preset some options from config (maybe overriden later)
+  $conf_meta[:keys_for_modes].each do |k|
+    opts[k] ||= $conf[k] if opts_all[k]
+  end
+
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
@@ -141,10 +150,9 @@ def parse_arguments
   # Special handling for some options
   #
   
-  opts[:display] = match_or(opts[:display], $display_choices.map {|c| c.to_s.gsub('_','-')}) do |none, choices|
+  opts[:display] = match_or(opts[:display].o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
     err "Option '--display' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
-  end
-  opts[:display]&.gsub!('-','_')
+  end.o2sym
   
   if opts[:max_holes]
     err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'; #{for_usage}" unless opts[:max_holes].to_s.match?(/^\d+$/)
@@ -173,15 +181,14 @@ def parse_arguments
   #
   # Now ARGV does not contain any options; process remaining non-option arguments
 
-  # Mode has already been takne first, so we take type and key, by
+  # Mode has already been taken first, so we take type and key, by
   # recognising it among other args by their content; then we process the
   # scale, which is normally the only remaining argument.
   #
 
-  opts[:comment] = match_or(opts[:comment], $comment_choices[mode].map {|c| c.to_s.gsub('_','-')}) do |none, choices|
+  opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
     err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
-  end
-  opts[:comment] = opts[:comment].gsub('-','_').to_sym if opts[:comment]
+  end&.o2sym
   
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
@@ -209,11 +216,11 @@ def parse_arguments
              find {|matches| matches.length == 1}&.at(0)
     ARGV.shift if type
   end
-  type ||= $conf[:type]     
+  type ||= ( $conf["type-#{mode}".o2sym] || $conf[:type] )
   $type = type
 
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-  key ||= $conf[:key]
+  key ||= ( $conf["key-#{mode}".o2sym] || $conf[:key] )
   check_key_and_set_pref_sig(key)
 
 
@@ -257,17 +264,6 @@ def parse_arguments
 
   # Commandline processing is complete here
   
-  # carry some options over into $conf
-  $conf[:comment] = if mode == :listen
-                      $conf[:comment_listen]
-                    else
-                      $conf[:comment_quiz]
-                    end
-  $conf[:comment] = opts[:comment] if opts[:comment]
-  $conf[:display] = $conf["display_#{mode}".to_sym]
-  $conf[:display] = opts[:display] if opts[:display]
-  $conf[:display] = $conf[:display]&.to_sym
-
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
   [ mode, type, key, scale, opts, to_handle]
@@ -343,7 +339,11 @@ def print_usage_info mode = nil, opts = nil
       lines[1..-1].each {|l| print '    ' + l}
       puts
     end
-    puts '  none' if nprinted == 0
+    if nprinted == 0
+      puts '  none'
+    else
+      puts "  \n\nPlease note, that options, that you use on\n  every invocation, may also be put into\n  #{$early_conf[:config_file_user]}"
+    end
   end
   puts
 end

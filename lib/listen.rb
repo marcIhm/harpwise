@@ -35,7 +35,7 @@ def do_listen
       witdh_template = nil
       line = $lines[:comment_low]
       font = 'mono9'
-      text = case $conf[:comment]
+      text = case $opts[:comment]
              when :note
                note
              when :interval
@@ -78,7 +78,7 @@ def do_listen
                  'set ref'
                end
              else
-               fail "Internal error: #{$conf[:comment]}"
+               fail "Internal error: #{$opts[:comment]}"
              end || '...'
       [color, text, line, font, width_template]
     end,

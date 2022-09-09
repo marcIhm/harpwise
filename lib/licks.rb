@@ -5,11 +5,11 @@
 
 $lick_file_mod_time = nil
 $lick_file = nil
+
 def read_licks graceful = false
 
   $lick_file = lfile = get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
-  word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   all_keys = %w(holes notes rec rec.start rec.length rec.key tags tags.add desc desc.add)
 
   # directory may just have been created when getting lick_file
@@ -32,7 +32,7 @@ def read_licks graceful = false
     derived << line
 
     # [start new lick or default]
-    if md = line.match(/^\[(#{word_re})\]$/)
+    if md = line.match(/^\[(#{$word_re})\]$/)
       derived.insert(-2,'') # empty line before in derived
       nname = md[1]
 
@@ -85,7 +85,7 @@ def read_licks graceful = false
       err "Invalid lick name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile})"
 
     # $var = value
-    elsif md = line.match(/^ *(\$#{word_re}) *= *(#{word_re})$/)
+    elsif md = line.match(/^ *(\$#{$word_re}) *= *(#{$word_re})$/)
       var, value = md[1..2]
       err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile})" unless name == 'vars'
       vars[var] = value
@@ -99,7 +99,7 @@ def read_licks graceful = false
       err "Key '#{var}' (below [#{name}]) has already been defined" if lick[var]
       lick[var] = tags.split
       lick[var].each do |tag|
-        err "Tags must consist of word characters; '#{tag}' (below [#{name}]) does not" unless tag.match?(/^#{word_re}$/) || tag.match?(/^\$#{word_re}$/) 
+        err "Tags must consist of word characters; '#{tag}' (below [#{name}]) does not" unless tag.match?(/^#{$word_re}$/) || tag.match?(/^\$#{$word_re}$/) 
       end
 
     # holes = value1 value2 ...
@@ -137,7 +137,7 @@ def read_licks graceful = false
       lick[var] = desc
       
     # key = value  (for remaining keys, e.g. rec)
-    elsif md = line.match(/^ *(#{word_re}) *= *(#{word_re})$/)
+    elsif md = line.match(/^ *(#{$word_re}) *= *(#{$word_re})$/)
       key, value = md[1..2]
 
       if name == 'default'

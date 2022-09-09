@@ -6,9 +6,22 @@ def set_global_vars_early
 
   $move_down_on_exit = false
   $err_binding = nil
-  
-  $sample_rate = 48000
+  $word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
 
+  # two more entries will be set in find_and_check_dirs
+  $early_conf = Hash.new
+  $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
+  $early_conf[:modes] = %w(listen quiz licks play report calibrate develop)
+
+  # define expectations for config-file
+  $conf_meta = Hash.new
+  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
+  $conf_meta[:keys_for_modes] = [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast]
+  $conf_meta[:keys_for_general] = [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
+  $conf_meta[:conversions] = {:display => :to_sym, :comment => :to_sym, :sharp_or_flat => :to_sym,
+                              :immediate => :to_b, :loop => :to_b, :fast => :to_b,
+                              :add_scales => :empty2nil}
+  
   #
   # These $ctl-Vars transport requests and events initiated by the
   # user; mostly keys pressed but also window changed; but not input
@@ -92,8 +105,6 @@ def set_global_vars_early
   $scale2short_count = 0
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
 
-  $early_conf = Hash.new
-  $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
 end
 
 
@@ -104,6 +115,34 @@ def find_and_check_dirs
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:data] = "#{Dir.home}/.#{File.basename($0)}"
   FileUtils.mkdir_p($dirs[:data]) unless File.directory?($dirs[:data])
+
+  $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
+  $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
+
+  unless File.exist?($early_conf[:config_file_user])
+    File.open($early_conf[:config_file_user], 'w') do |cfu|
+      cfu.write(<<~end_of_content)
+      #
+      # config-file for user
+      #
+      # This is a verbatim copy of the global config file
+      # #{$early_conf[:config_file]}
+      # with every entry commented out.
+      #
+      # The global config defines the defaults, which you may 
+      # override here.
+      #
+
+      end_of_content
+      past_head = false
+      File.readlines($early_conf[:config_file]).each do |line|
+        past_head = true if line[0] != '#'
+        next unless past_head
+        cfu.write ( ['#', '['].include?(line[0])  ?  line  :  '#' + line )
+      end
+    end
+  end
+
   $dirs.each do |k,v|
     err "Directory #{v} for #{k} does not exist; installation looks bogus" unless File.directory?(v)
   end
@@ -190,42 +229,94 @@ def check_installation
 end
 
 
-def load_technical_config
-  file = "#{$dirs[:install]}/config/config.yaml"
-  merge_file = "#{$dirs[:data]}/config.yaml"
-  conf = yaml_parse(file).transform_keys!(&:to_sym)
-  req_keys = Set.new([:type, :key, :comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :time_slice, :pitch_detection, :pref_sig_def, :min_freq, :max_freq, :term_min_width, :term_min_height, :play_holes_fast])
-  file_keys = Set.new(conf.keys)
-  fail "Internal error: Set of keys in #{file} (#{file_keys}) does not equal required set #{req_keys}" unless req_keys == file_keys
-  if File.exist?(merge_file)
-    merge_conf = yaml_parse(merge_file)
-    err "Config from #{merge_file} is not a hash" unless merge_conf.is_a?(Hash)
-    merge_conf.transform_keys!(&:to_sym)
-    merge_conf.each do |k,v|
-      err "Key '#{k}' from #{merge_file} is none of the valid keys #{req_keys}" unless req_keys.include?(k)
-      conf[k] = v
+def read_technical_config
+  # read and merge
+  conf = read_config_ini($early_conf[:config_file], strict: true)
+
+  if File.exist?($early_conf[:config_file_user])
+    uconf = read_config_ini($early_conf[:config_file_user], strict: false)
+    # deep merge
+    uconf.each do |k,v|
+      if v.is_a?(Hash)
+        conf[k] ||= Hash.new
+        v.each do |kk,vv|
+          conf[k][kk] = vv
+        end
+      else
+        conf[k] = v
+      end
     end
   end
-  conf
-end
 
-
-def read_technical_config
-  conf = load_technical_config
-  # working some individual configs
+  # carry over from early config
+  $early_conf.each {|k,v| conf[k] = v}
+  # Set some things we do not take from file
+  conf[:abbrevs_for_iter] = %w(iterate iter i cycle cyc c)
+  conf[:specials_allowed_play] = %w(r ran rand random) + conf[:abbrevs_for_iter]
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
-  [:comment_listen, :comment_quiz, :display_listen, :display_quiz, :display_licks, :pref_sig_def].each {|key| conf[key] = conf[key].gsub('-','_').to_sym}
   conf[:all_types] = Dir["#{$dirs[:install]}/config/*"].
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
 
-  # Set some things we do not take from file
-  $early_conf.each {|k,v| conf[k] = v}
-  conf[:abbrevs_for_iter] = %w(iterate iter i cycle cyc c)
-  conf[:specials_allowed_play] = %w(r ran rand random) + conf[:abbrevs_for_iter]
-
   conf
+end
+
+
+def read_config_ini file, strict: true
+
+  lnum = 0
+  section = nil
+  result = Hash.new
+  $conf_meta[:sections].each {|s| result[s] = Hash.new}
+
+  File.readlines(file).each do |line|
+    lnum += 1
+    err_head = "Error in #{file}, line #{lnum}: "
+    line.chomp!
+    line.gsub!(/#.*/,'')
+    line.strip!
+    next if line == ''
+
+    if md = line.match(/^\[(#{$word_re})\]$/)
+      # new section
+      section = md[1].o2sym
+      err err_head + "Section #{section.o2str} is none of allowed #{$conf_meta[:sections].map(&:o2str)}" unless $conf_meta[:sections].include?(section)
+    elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
+      key = md[1].to_sym
+      value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
+      if [:any_mode, :listen, :quiz, :licks, :general].include?(section)
+        key_meta = ( section == :general  ?  :keys_for_general  :  :keys_for_modes )
+        err err_head + "Key '#{key.to_s}' is not among allowed keys in section '#{section}'; none of '#{$conf_meta[key_meta]}'" unless $conf_meta[key_meta].include?(key)
+        result[section][key] = value
+      elsif section.nil?
+        err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
+      end
+    else
+      err err_head + "Cannot understand this line:\n\n#{line}\n\n,should be either a [section] or 'key = value'"
+    end
+  end
+
+  # overall checking of key-sets
+  err_head = "Error in #{file}: "
+  $conf_meta[:sections].each do |sect|
+    key_meta = ( sect == :general  ?  :keys_for_general  :  :keys_for_modes )
+    found = Set.new(result[sect].keys.sort)
+    required = Set.new($conf_meta[key_meta].sort)
+
+    err err_head + "Section #{sect.o2str} has these keys:\n\n#{found}\n\nwhich is not a subset of all keys:\n\n#{required}" unless found.subset?(required)
+
+    if [:any_mode, :general].include?(sect)
+      err err_head + "Required section #{sect.o2str} not present" unless result.has_key?(sect)
+      if strict
+        err err_head + "Section #{sect.o2str} has these keys:\n\n#{found}\n\nwhich is different from required set:\n\n#{required}" unless required == found
+      end
+    end
+  end
+
+  # transfer keys from general
+  result[:general].each {|k,v| result[k] = v}
+  result
 end
 
 

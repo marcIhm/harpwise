@@ -131,7 +131,7 @@ do_test 'id-01a: start without .harpwise (do not interrupt without need)' do
   tms :ENTER
   sleep 2
   kill_session
-  created = File.exist?(dotdir)
+  created = File.exist?(dotdir) && File.exist?(dotdir + '/config.yaml')
   FileUtils.rm_r dotdir
   FileUtils.mv dotdir_saved, dotdir
   fail "Dot-dir #{dotdir} has not been created during run; now it is present however, because it has been restored from its save #{dotdir_saved}, so you do not need to restore it" unless created

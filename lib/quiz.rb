@@ -330,9 +330,9 @@ def do_quiz_or_licks
     # precompute some values, that do not change during sequence
     min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
 
-    holes_with_scales = scaleify(all_wanted) if $conf[:comment] == :holes_scales
-    holes_with_intervals = intervalify(all_wanted) if $conf[:comment] == :holes_intervals
-    holes_with_notes = noteify(all_wanted) if $conf[:comment] == :holes_notes
+    holes_with_scales = scaleify(all_wanted) if $opts[:comment] == :holes_scales
+    holes_with_intervals = intervalify(all_wanted) if $opts[:comment] == :holes_intervals
+    holes_with_notes = noteify(all_wanted) if $opts[:comment] == :holes_notes
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -385,7 +385,7 @@ def do_quiz_or_licks
               $perfctr[:lambda_comment_quiz_call] += 1
               idx_refresh_ccache = idx
               comment_cache = 
-                case $conf[:comment]
+                case $opts[:comment]
                 when :holes_some
                   largify(all_wanted, idx)
                 when :holes_scales
@@ -400,7 +400,7 @@ def do_quiz_or_licks
                 when :holes_all
                   wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], all_wanted, idx)
                 else
-                  fail "Internal error unknown comment style #{$conf[:comment]}"
+                  fail "Internal error unknown comment style: #{$opts[:comment]}"
                 end
               $ctl_listen[:update_comment] = false
             end
@@ -476,7 +476,7 @@ def do_quiz_or_licks
 
       if $ctl_listen[:forget]
         clear_area_comment
-        if [:holes_scales, :holes_intervals].include?($conf[:comment])
+        if [:holes_scales, :holes_intervals].include?($opts[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -485,7 +485,7 @@ def do_quiz_or_licks
         sleep 0.3
       else
         sleep 0.3
-        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($conf[:comment])
+        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($opts[:comment])
         # update comment
         ctext = if $ctl_listen[:next]
                   'next'
@@ -505,7 +505,7 @@ def do_quiz_or_licks
                 end
         if ctext
           clear_area_comment
-          if [:holes_scales, :holes_intervals].include?($conf[:comment])
+          if [:holes_scales, :holes_intervals].include?($opts[:comment])
             puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + ctext
           else
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -963,7 +963,7 @@ def read_tags_and_refresh_licks curr_lick, all
       input = STDIN.gets.chomp
       input = '1' if input == ''
       if %w( 1 2 3 4 ).include?(input)
-        tag_opt = tag_opts[input.to_i - 1][2..-1].gsub('-','_').to_sym
+        tag_opt = tag_opts[input.to_i - 1][2..-1].o2sym
       elsif input == 'q'
         return :keep
       else
@@ -973,14 +973,14 @@ def read_tags_and_refresh_licks curr_lick, all
   else
     tag_opt = :tags_any
   end
-  tag_opts.map {|to| to[2..-1].gsub('-','_').to_sym}.
+  tag_opts.map {|to| to[2..-1].o2sym}.
     each {|ts| $opts[ts] = '' unless ts == tag_opt}
 
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
                         curr_lick[:tags] + ['//'] + all_tags,
                         ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
-  topt = '--' + tag_opt.to_s.gsub('_','-')
+  topt = '--' + tag_opt.o2str
   opof = "(or part of; current value is '#{$opts[tag_opt]}')"
   cmnt_print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
@@ -1066,13 +1066,13 @@ end
 
 def comment_while_playing holes
   # Show all lines in case of immediate or if the comment would show them anyway
-  if $conf[:comment] == :holes_scales
+  if $opts[:comment] == :holes_scales
     holes_with_scales = scaleify(holes)
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, 0)
-  elsif $conf[:comment] == :holes_intervals
+  elsif $opts[:comment] == :holes_intervals
     holes_with_intervals = intervalify(holes)
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, 0)
-  elsif $conf[:comment] == :holes_all || $opts[:immediate]
+  elsif $opts[:comment] == :holes_all || $opts[:immediate]
     wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
   else
     nil
