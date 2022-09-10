@@ -13,16 +13,11 @@ require 'sourcify'
 require 'json'
 require 'tmpdir'
 require 'sys/proctable'
-require_relative '../lib/config.rb'
-require_relative '../lib/interaction.rb'
-require_relative '../lib/helper.rb'
 require_relative 'test_utils.rb'
 
 $dotdir_state_unknown = true
 # needed in config.rb but not initialized there
 $early_conf = Hash.new
-find_and_check_dirs
-$dirs.each {|k,v| $dirs[k] = v.gsub('run.rb','harpwise')}
 
 $fromon = ARGV.join(' ')
 $fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
@@ -36,6 +31,7 @@ $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(juke special blues mape one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
+$installdir = "#{Dir.home}/harpwise"
 $dotdir = "#{Dir.home}/.harpwise"
 $dotdir_saved = "#{Dir.home}/dot_harpwise_saved"
 $config_ini = $dotdir + '/config.ini'
@@ -89,19 +85,7 @@ end
 
 print "Testing"
 
-#
-# How to assign ids: either any two uniq hex-digits for tests not in a loop
-# or any letter from 'g' on for a series of numbered tests
-#
-do_test "id-01: Test dir paths from config" do
-  should = {:install=>"#{Dir.home}/harpwise",
-            :data=>"#{Dir.home}/.harpwise"}
-  dirs_without_tmp = $dirs.clone
-  dirs_without_tmp.delete(:tmp)
-  expect { should == dirs_without_tmp } 
-end
-
-do_test 'id-01a: start without .harpwise' do
+do_test 'id-01: start without .harpwise' do
   move_dotdir
   new_session
   tms 'harpwise'
@@ -112,7 +96,7 @@ do_test 'id-01a: start without .harpwise' do
   restore_dotdir
 end
 
-do_test 'id-01b: config.ini, user prevails' do
+do_test 'id-01a: config.ini, user prevails' do
   backup_dotdir
   File.write $config_ini, <<~end_of_content
   [any-mode]
@@ -127,6 +111,60 @@ do_test 'id-01b: config.ini, user prevails' do
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
   expect(dump[:conf_user]) { dump[:conf_user][:any_mode][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01b: config.ini, mode prevails' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [licks]
+    key = a    
+  end_of_content
+  new_session
+  tms 'harpwise licks blues --testing'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect(dump[:conf_system]) { dump[:conf_system][:licks] == nil }
+  expect(dump[:conf_user]) { dump[:conf_user][:licks][:key] == 'a' }
+  expect(dump[:key]) { dump[:conf][:key] == 'a' }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01c: config.ini, set loop (example for boolean)' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [licks]
+    loop = true
+  end_of_content
+  new_session
+  tms 'harpwise licks --testing'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect(dump[:conf_system]) { dump[:conf_system][:loop] == false }
+  expect(dump[:conf_user]) { dump[:conf_user][:licks][:loop] == true }
+  expect(dump[:key]) { dump[:conf][:loop] == true }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01d: config.ini, unset loop with option' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [licks]
+    loop = true
+  end_of_content
+  new_session
+  tms 'harpwise licks --no-loop --testing'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect(dump[:conf_system]) { dump[:conf_system][:loop] == false }
+  expect(dump[:conf_user]) { dump[:conf_user][:licks][:loop] == true }
+  expect(dump[:key]) { dump[:conf][:loop] == false }
   kill_session
   restore_dotdir
 end
@@ -222,7 +260,7 @@ end
 
 do_test 'id-06: listen' do
   sound 8, 2
-  journal_file = "#{$dirs[:data]}/journal_mode_listen.txt"
+  journal_file = "#{$dotdir}/journal_mode_listen.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen testing a all --testing'
@@ -296,7 +334,7 @@ do_test 'id-09a: error on ambigous option' do
 end
 
 do_test 'id-0a: mode licks to create simple lick file' do
-  lick_dir = "#{$dirs[:data]}/licks/testing"
+  lick_dir = "#{$dotdir}/licks/testing"
   lick_file = "#{lick_dir}/licks_with_holes.txt"
   FileUtils.rm_r lick_dir if File.exist?(lick_dir)
   new_session
@@ -393,7 +431,7 @@ do_test 'id-14a: check lick processing on tags.add and desc.add' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  journal_file = "#{$dirs[:data]}/journal_modes_licks_and_play.txt"
+  journal_file = "#{$dotdir}/journal_modes_licks_and_play.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise play testing a juke --testing'
@@ -915,6 +953,6 @@ do_test 'id-38: chromatic; listen' do
   kill_session
 end
 
-FileUtils.rm_r 'config/testing' if File.directory?("#{$dirs[:install]}/config/testing")
+FileUtils.rm_r 'config/testing' if File.directory?("#{$installdir}/config/testing")
 system("killall aubiopitch >/dev/null 2>&1")
 puts "\ndone.\n\n"
