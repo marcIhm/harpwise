@@ -173,9 +173,9 @@ def move_or_backup_dotdir what
   $dotdir_state_unknown = true
   case what
   when :move
-    FileUtils.mv dotdir, dotdir_saved
+    FileUtils.mv $dotdir, $dotdir_saved
   when :backup
-    FileUtils.cp_r dotdir, dotdir_saved
+    FileUtils.cp_r $dotdir, $dotdir_saved
   else
     fail "Internal error"
   end

@@ -101,6 +101,36 @@ do_test "id-01: Test dir paths from config" do
   expect { should == dirs_without_tmp } 
 end
 
+do_test 'id-01a: start without .harpwise' do
+  move_dotdir
+  new_session
+  tms 'harpwise'
+  tms :ENTER
+  sleep 2
+  expect {File.directory?($dotdir) && File.exist?($config_ini)}
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01b: config.ini, user prevails' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [any-mode]
+    key = a    
+  end_of_content
+  new_session
+  # any invocation would be okay too
+  tms 'harpwise report journal --testing'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
+  expect(dump[:conf_user]) { dump[:conf_user][:any_mode][:key] == 'a' }
+  expect(dump[:key]) { dump[:conf][:key] == 'a' }
+  kill_session
+  restore_dotdir
+end
+
 usage_types.keys.each_with_index do |mode, idx|
   do_test "id-u%02d: usage screen mode #{mode}" % idx do
     new_session
@@ -131,35 +161,6 @@ end
     expect { screen[-4]['Recordings done.'] }
     kill_session
   end
-end
-
-do_test 'id-01a: start without .harpwise (do not interrupt without need)' do
-  move_dotdir
-  new_session
-  tms 'harpwise'
-  tms :ENTER
-  sleep 2
-  expect {File.directory?($dotdir) && File.exist?($config_ini)}
-  kill_session
-  restore_dotdir
-end
-
-do_test 'id-01b: config.ini, user prevails' do
-  backup_dotdir
-  File.write $config_ini, <<~end_of_content
-  [any-mode]
-    key = a    
-  end_of_content
-  new_session
-  tms 'harpwise'
-  tms :ENTER
-  sleep 2
-  dump = read_testing_dump('start')
-  expect { dump[:conf_system][:key] == 'c' }
-  expect { dump[:conf_user][:key] == 'a' }
-  expect { dump[:conf][:key] == 'a' }
-  kill_session
-  restore_dotdir
 end
 
 do_test 'id-02: manual calibration' do

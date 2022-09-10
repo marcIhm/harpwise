@@ -150,9 +150,9 @@ def parse_arguments
   # Special handling for some options
   #
   
-  opts[:display] = match_or(opts[:display].o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
+  opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
     err "Option '--display' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
-  end.o2sym
+  end&.o2sym
   
   if opts[:max_holes]
     err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'; #{for_usage}" unless opts[:max_holes].to_s.match?(/^\d+$/)

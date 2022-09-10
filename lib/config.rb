@@ -234,10 +234,12 @@ def read_technical_config
   # read and merge
   conf = read_config_ini($early_conf[:config_file], strict: true)
   $conf_system = conf.clone
+  $conf_system.each {|k,v| $conf_system[k] = v.clone}
 
   if File.exist?($early_conf[:config_file_user])
     uconf = read_config_ini($early_conf[:config_file_user], strict: false)
     $conf_user = uconf.clone
+    $conf_user.each {|k,v| $conf_user[k] = v.clone}
     # deep merge
     uconf.each do |k,v|
       if v.is_a?(Hash)
