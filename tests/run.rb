@@ -18,10 +18,12 @@ require_relative '../lib/interaction.rb'
 require_relative '../lib/helper.rb'
 require_relative 'test_utils.rb'
 
+$dotdir_state_unknown = true
+# needed in config.rb but not initialized there
+$early_conf = Hash.new
 find_and_check_dirs
 $dirs.each {|k,v| $dirs[k] = v.gsub('run.rb','harpwise')}
 
-$sut = load_technical_config
 $fromon = ARGV.join(' ')
 $fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
 $fromon_id_regex = '^(id-[a-z0-9]+):'
@@ -34,8 +36,18 @@ $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(juke special blues mape one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
+$dotdir = "#{Dir.home}/.harpwise"
+$dotdir_saved = "#{Dir.home}/dot_harpwise_saved"
+$config_ini = $dotdir + '/config.ini'
+check_dotdir_state
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
+# get termsize
+File.readlines('config/config.ini').each do |line|
+  $term_min_width ||= line.match(/^\s*term_min_width\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
+  $term_min_height ||= line.match(/^\s*term_min_height\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
+end
+fail "Could not parse term size from config/config.ini" unless $term_min_width && $term_min_height
 
 #
 # Collect usage examples and later check, that none of them produces string error
@@ -122,19 +134,32 @@ end
 end
 
 do_test 'id-01a: start without .harpwise (do not interrupt without need)' do
-  dotdir = "#{Dir.home}/.harpwise"
-  dotdir_saved = "#{Dir.home}/dot_harpwise_saved"
-  fail "Saved dot-dir #{dotdir_saved} already exists; a previous run might have failed. Please check its content and *maybe* rename it to #{dotdir} " if File.exist?(dotdir_saved)
-  FileUtils.mv dotdir, dotdir_saved
+  move_dotdir
   new_session
   tms 'harpwise'
   tms :ENTER
   sleep 2
+  expect {File.directory?($dotdir) && File.exist?($config_ini)}
   kill_session
-  created = File.exist?(dotdir) && File.exist?(dotdir + '/config.yaml')
-  FileUtils.rm_r dotdir
-  FileUtils.mv dotdir_saved, dotdir
-  fail "Dot-dir #{dotdir} has not been created during run; now it is present however, because it has been restored from its save #{dotdir_saved}, so you do not need to restore it" unless created
+  restore_dotdir
+end
+
+do_test 'id-01b: config.ini, user prevails' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [any-mode]
+    key = a    
+  end_of_content
+  new_session
+  tms 'harpwise'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect { dump[:conf_system][:key] == 'c' }
+  expect { dump[:conf_user][:key] == 'a' }
+  expect { dump[:conf][:key] == 'a' }
+  kill_session
+  restore_dotdir
 end
 
 do_test 'id-02: manual calibration' do
@@ -255,8 +280,8 @@ do_test 'id-09: listen with removed scale' do
   tms 'harpwise listen testing a all --remove drawbends --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
-  expect { tst_dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
+  dump = read_testing_dump('start')
+  expect { dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
   kill_session
 end
 
@@ -324,8 +349,8 @@ do_test 'id-12: transpose scale works on non-zero shift' do
   tms 'harpwise listen testing a blues --transpose_scale_to g --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
-  expect { tst_dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+  dump = read_testing_dump('start')
+  expect { dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
   kill_session
 end
 
@@ -352,10 +377,10 @@ do_test 'id-14a: check lick processing on tags.add and desc.add' do
   tms 'harpwise play testing a mape --testing'
   tms :ENTER
   wait_for_end_of_harpwise
-  tst_dump = read_testing_dump('start')
+  dump = read_testing_dump('start')
   # use 'one' twice to make index match name
   licks = %w(one one two three).map do |lname| 
-    tst_dump[:licks].find {|l| l[:name] == lname} 
+    dump[:licks].find {|l| l[:name] == lname} 
   end
   expect { licks[1][:tags] == %w(testing x) }
   expect { licks[2][:tags] == %w(y) }
@@ -423,8 +448,8 @@ do_test 'id-17: mode licks with lick file from previous test' do
   tms 'harpwise licks testing a --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
-  expect { tst_dump[:licks].length == 8 }
+  dump = read_testing_dump('start')
+  expect { dump[:licks].length == 8 }
   expect { screen[1]['licks(8) testing a all'] }
   kill_session
 end
@@ -447,9 +472,9 @@ do_test 'id-18: mode licks with licks with tags_any' do
   tms 'harpwise licks testing --tags-any favorites,testing a --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
+  dump = read_testing_dump('start')
   # See comments above for verification
-  expect { tst_dump[:licks].length == 4 }
+  expect { dump[:licks].length == 4 }
   kill_session
 end
 
@@ -458,9 +483,9 @@ do_test 'id-18a: mode licks with licks with tags_all' do
   tms 'harpwise licks testing --tags-all scales,theory a --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
+  dump = read_testing_dump('start')
   # See comments above for verification
-  expect { tst_dump[:licks].length == 1 }
+  expect { dump[:licks].length == 1 }
   kill_session
 end
 
@@ -469,9 +494,9 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   tms 'harpwise licks testing --no-tags-any scales a --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tst_dump = read_testing_dump('start')
+  dump = read_testing_dump('start')
   # See comments above for verification
-  expect { tst_dump[:licks].length == 6 }
+  expect { dump[:licks].length == 6 }
   kill_session
 end
 
@@ -718,8 +743,8 @@ do_test 'id-27a: change first of options --tags' do
   tms :ENTER
   tms 'q'
   sleep 1
-  tst_dump = read_testing_dump('end')
-  expect(tst_dump[:opts]) { tst_dump[:opts][:tags_any] == 'favorites'}
+  dump = read_testing_dump('end')
+  expect(dump[:opts]) { dump[:opts][:tags_any] == 'favorites'}
   kill_session
 end
 
@@ -736,8 +761,8 @@ do_test 'id-27b: change one of four of options --tags' do
   tms :ENTER
   tms 'q'
   sleep 1
-  tst_dump = read_testing_dump('end')
-  expect(tst_dump[:opts]) { tst_dump[:opts][:tags_all] == 'favorites'}
+  dump = read_testing_dump('end')
+  expect(dump[:opts]) { dump[:opts][:tags_all] == 'favorites'}
   kill_session
 end
 
@@ -752,8 +777,8 @@ do_test 'id-27c: change partial' do
   sleep 1
   tms 'q'
   sleep 1
-  tst_dump = read_testing_dump('end')
-  expect { tst_dump[:opts][:partial] == '1@e' }
+  dump = read_testing_dump('end')
+  expect { dump[:opts][:partial] == '1@e' }
   kill_session
 end
 

@@ -32,8 +32,11 @@ class String
 
   def num_or_str
     begin
-      return Integer(self)
-      return Float(self)
+      begin
+        return Integer(self)
+      rescue
+        return Float(self)
+      end
     rescue
       return self
     end
@@ -199,7 +202,7 @@ end
 def write_dump marker
   dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
   File.delete(dumpfile) if File.exists?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user}
   File.write(dumpfile, JSON.pretty_generate(structure))
 end
 

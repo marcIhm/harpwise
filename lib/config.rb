@@ -13,12 +13,13 @@ def set_global_vars_early
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
   $early_conf[:modes] = %w(listen quiz licks play report calibrate develop)
 
-  # define expectations for config-file
+  # expectations for config-file
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
   $conf_meta[:keys_for_modes] = [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast]
   $conf_meta[:keys_for_general] = [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
   $conf_meta[:conversions] = {:display => :to_sym, :comment => :to_sym, :sharp_or_flat => :to_sym,
+                              :pref_sig_def => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :add_scales => :empty2nil}
   
@@ -232,9 +233,11 @@ end
 def read_technical_config
   # read and merge
   conf = read_config_ini($early_conf[:config_file], strict: true)
+  $conf_system = conf.clone
 
   if File.exist?($early_conf[:config_file_user])
     uconf = read_config_ini($early_conf[:config_file_user], strict: false)
+    $conf_user = uconf.clone
     # deep merge
     uconf.each do |k,v|
       if v.is_a?(Hash)
