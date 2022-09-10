@@ -65,7 +65,7 @@ end
 def do_calibrate_assistant
 
   if $opts[:hole] && !$harp_holes.include?($opts[:hole])
-    err "Argument to Option '--hole', '#{$opts[:hole]} is none of #{$harp_holes.inspect}"
+    err "Argument to Option '--hole', '#{$opts[:hole]}' is none of #{$harp_holes.inspect}"
   end
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)

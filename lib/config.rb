@@ -16,9 +16,9 @@ def set_global_vars_early
   # expectations for config-file
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
-  $conf_meta[:keys_for_modes] = [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast]
+  $conf_meta[:keys_for_modes] = [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast, :tags_any]
   $conf_meta[:keys_for_general] = [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
-  $conf_meta[:conversions] = {:display => :to_sym, :comment => :to_sym, :sharp_or_flat => :to_sym,
+  $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
                               :pref_sig_def => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :add_scales => :empty2nil}
@@ -292,7 +292,7 @@ def read_config_ini file, strict: true
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
       if [:any_mode, :listen, :quiz, :licks, :general].include?(section)
         key_meta = ( section == :general  ?  :keys_for_general  :  :keys_for_modes )
-        err err_head + "Key '#{key.to_s}' is not among allowed keys in section '#{section}'; none of '#{$conf_meta[key_meta]}'" unless $conf_meta[key_meta].include?(key)
+        err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{$conf_meta[key_meta]}'" unless $conf_meta[key_meta].include?(key)
         result[section][key] = value
       elsif section.nil?
         err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
@@ -611,4 +611,8 @@ def set_global_musical_vars
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
   $freq2hole = read_calibration unless $mode == :calibrate
+  if $opts[:ref] 
+    err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
+    $hole_ref = $opts[:ref]
+  end
 end

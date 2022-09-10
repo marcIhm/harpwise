@@ -70,6 +70,11 @@ loop:
     but rather query the same sequence again; repeat until you press
     RETURN
 
+no_loop:
+
+  - |
+    inverse of --no-loop
+
 auto:
   - generate audio samples without user intervention
   

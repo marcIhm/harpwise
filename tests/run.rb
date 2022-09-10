@@ -118,16 +118,17 @@ end
 do_test 'id-01b: config.ini, mode prevails' do
   backup_dotdir
   File.write $config_ini, <<~end_of_content
-  [licks]
+  [quiz]
     key = a    
   end_of_content
   new_session
-  tms 'harpwise licks blues --testing'
+  tms 'harpwise quiz 3 blues --testing'
   tms :ENTER
   sleep 2
   dump = read_testing_dump('start')
-  expect(dump[:conf_system]) { dump[:conf_system][:licks] == nil }
-  expect(dump[:conf_user]) { dump[:conf_user][:licks][:key] == 'a' }
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
+  expect(dump[:conf_system]) { dump[:conf_system][:quiz] == {} }
+  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
   kill_session
   restore_dotdir
@@ -136,17 +137,18 @@ end
 do_test 'id-01c: config.ini, set loop (example for boolean)' do
   backup_dotdir
   File.write $config_ini, <<~end_of_content
-  [licks]
+  [quiz]
     loop = true
   end_of_content
   new_session
-  tms 'harpwise licks --testing'
+  tms 'harpwise quiz 3 blues --testing'
   tms :ENTER
   sleep 2
   dump = read_testing_dump('start')
-  expect(dump[:conf_system]) { dump[:conf_system][:loop] == false }
-  expect(dump[:conf_user]) { dump[:conf_user][:licks][:loop] == true }
-  expect(dump[:key]) { dump[:conf][:loop] == true }
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
+  expect(dump[:conf_system]) { dump[:conf_system][:loop] == nil }
+  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
+  expect(dump[:conf]) { dump[:conf][:loop] == true }
   kill_session
   restore_dotdir
 end
@@ -154,17 +156,33 @@ end
 do_test 'id-01d: config.ini, unset loop with option' do
   backup_dotdir
   File.write $config_ini, <<~end_of_content
-  [licks]
+  [quiz]
     loop = true
   end_of_content
   new_session
-  tms 'harpwise licks --no-loop --testing'
+  tms 'harpwise quiz 3 blues --no-loop --testing'
   tms :ENTER
   sleep 2
   dump = read_testing_dump('start')
-  expect(dump[:conf_system]) { dump[:conf_system][:loop] == false }
-  expect(dump[:conf_user]) { dump[:conf_user][:licks][:loop] == true }
-  expect(dump[:key]) { dump[:conf][:loop] == false }
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
+  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
+  expect(dump[:opts]) { dump[:opts][:loop] == false }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01e: config.ini, take default key from config' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [quiz]
+    key = a
+  end_of_content
+  new_session
+  tms 'harpwise quiz 3 blues --no-loop --testing'
+  tms :ENTER
+  sleep 2
+  dump = read_testing_dump('start')
+  expect(dump[:opts]) { dump[:opts][:key] == 'a' }
   kill_session
   restore_dotdir
 end
@@ -176,14 +194,14 @@ usage_types.keys.each_with_index do |mode, idx|
     tms :ENTER
     sleep 2
     expect_usage = { 'none' => [-12, 'Suggested reading'],
-                     'calibrate' => [-3, 'start with calibration'],
-                     'listen' => [-3, 'your milage may vary'],
-                     'quiz' => [-3, 'your milage may vary'],
-                     'licks' => [-3, 'plays nothing initially'],
-                     'play' => [-3, 'this number of holes'],
-                     'report' => [0, 'In other modes']}
+                     'calibrate' => [-6, 'start with calibration'],
+                     'listen' => [-6, 'your milage may vary'],
+                     'quiz' => [-6, 'your milage may vary'],
+                     'licks' => [-6, 'plays nothing initially'],
+                     'play' => [-6, 'this number of holes'],
+                     'report' => [-4, 'on every invocation']}
     
-    expect { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
+    expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
   end
 end
@@ -376,7 +394,7 @@ end
 
 do_test 'id-11: transpose scale does work on zero shift' do
   new_session
-  tms 'harpwise listen testing a blues --transpose_scale_to c --testing'
+  tms 'harpwise listen testing a blues --transpose-scale-to c --testing'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[0]['Play notes from the scale to get green'] }
@@ -385,7 +403,7 @@ end
 
 do_test 'id-12: transpose scale works on non-zero shift' do
   new_session
-  tms 'harpwise listen testing a blues --transpose_scale_to g --testing'
+  tms 'harpwise listen testing a blues --transpose-scale-to g --testing'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
@@ -395,7 +413,7 @@ end
 
 do_test 'id-13: transpose scale not working in some cases' do
   new_session
-  tms 'harpwise listen testing a blues --transpose_scale_to b'
+  tms 'harpwise listen testing a blues --transpose-scale-to b'
   tms :ENTER
   sleep 2
   expect { screen[2]['ERROR: Transposing scale blues from key of c to b results in hole -2'] }
@@ -668,19 +686,13 @@ do_test 'id-21: use option --partial' do
   kill_session
 end
 
-do_test 'id-21a: use option --partial at end' do
+do_test 'id-21a: use option --partial' do
   new_session
-  tms 'harpwise licks testing --start-with juke --partial 1/2@e --testing'
+  tms 'harpwise licks testing --start-with juke --partial 1@b --testing'
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  #
-  # Without option --partial, the cmd would be (as the recording
-  # itself has start and length):
-  #
-  #   play -q -V1 /home/ihm/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 4
-  #
-  expect { tlog[-1]['play -q -V1 ' + Dir.home + '/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 4.2 2.0'] }
+  expect { tlog[-1]['play -q -V1 ' + Dir.home + '/.harpwise/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
   kill_session
 end
 

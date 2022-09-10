@@ -55,9 +55,10 @@ def parse_arguments
      [Set[:quiz, :licks], {
         immediate: %w(--immediate),
         no_progress: %w(--no-progress),
-        loop: %w(--loop)}],
+        :loop => %w(--loop),
+        no_loop: %w(--no-loop)}],
      [Set[:listen, :quiz], {
-        transpose_scale_to: %w(--transpose_scale_to)}],
+        transpose_scale_to: %w(--transpose-scale-to)}],
      [Set[:calibrate], {
         auto: %w(--auto),
         hole: %w(--hole)}],
@@ -105,7 +106,9 @@ def parse_arguments
   
   # preset some options from config (maybe overriden later)
   $conf_meta[:keys_for_modes].each do |k|
-    opts[k] ||= $conf[k] if opts_all[k]
+    if opts_all[k]
+      opts[k] ||= $conf[k]
+    end
   end
 
   # match command-line arguments one after the other against available
@@ -138,6 +141,8 @@ def parse_arguments
       ARGV.delete_at(i)
       if odet[1]
         opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{for_usage}")
+        # convert options as described for configs; only one exception
+        opts[osym] = opts[osym].send($conf_meta[:conversions][osym] || :num_or_str) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)
       else
         opts[osym] = true
@@ -149,9 +154,8 @@ def parse_arguments
   #
   # Special handling for some options
   #
-  
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
-    err "Option '--display' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
+    err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{for_usage}"
   end&.o2sym
   
   if opts[:max_holes]
@@ -163,8 +167,9 @@ def parse_arguments
     err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{for_usage}" unless opts[:min_holes].match?(/^\d+$/)
     opts[:min_holes] = opts[:min_holes].to_i
   end
-    
+
   opts[:fast] = false if opts[:no_fast]
+  opts[:loop] = false if opts[:no_loop]
 
   err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
 
@@ -342,7 +347,7 @@ def print_usage_info mode = nil, opts = nil
     if nprinted == 0
       puts '  none'
     else
-      puts "  \n\nPlease note, that options, that you use on\n  every invocation, may also be put into\n  #{$early_conf[:config_file_user]}"
+      puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}"
     end
   end
   puts

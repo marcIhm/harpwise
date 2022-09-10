@@ -63,9 +63,6 @@ set_global_vars_late
 
 set_global_musical_vars
 
-err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" if $opts[:ref] && !$harp_holes.include?($opts[:ref])
-$hole_ref = $opts[:ref]
-
 check_screen if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $opts[:testing]
@@ -122,9 +119,11 @@ begin
     if !$other_mode_saved[:conf]
       # We are switching from licks or quiz to listen
       $other_mode_saved[:conf] = $conf.clone
-      $other_mode_saved[:conf][:comment] = :note
+      $other_mode_saved[:opts] = $opts.clone
+      $other_mode_saved[:opts][:comment] = :note
     end
     $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
+    $opts, $other_mode_saved[:opts] = $other_mode_saved[:opts], $opts
     $lines = calculate_screen_layout
 
     clear_area_comment
