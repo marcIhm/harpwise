@@ -110,7 +110,7 @@ def parse_arguments
       opts[k] ||= $conf[k]
     end
   end
-
+  
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
@@ -150,12 +150,19 @@ def parse_arguments
     end
   end
 
+  # clear options with special value '-'
+  opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
+
   
   #
   # Special handling for some options
   #
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
     err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{for_usage}"
+  end&.o2sym
+  
+  opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
+    err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
   end&.o2sym
   
   if opts[:max_holes]
@@ -171,7 +178,10 @@ def parse_arguments
   opts[:fast] = false if opts[:no_fast]
   opts[:loop] = false if opts[:no_loop]
 
-  err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to]) if opts[:transpose_scale_to]
+  if opts[:transpose_scale_to]
+    err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to])
+    opts[:add_scales] = nil
+  end
 
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
@@ -191,10 +201,6 @@ def parse_arguments
   # scale, which is normally the only remaining argument.
   #
 
-  opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
-    err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
-  end&.o2sym
-  
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
   err("Unknown options: #{other_opts.join(',')}; #{for_usage}") if other_opts.length > 0 && mode != :play && mode != :report
@@ -221,13 +227,13 @@ def parse_arguments
              find {|matches| matches.length == 1}&.at(0)
     ARGV.shift if type
   end
-  type ||= ( $conf["type-#{mode}".o2sym] || $conf[:type] )
+  type ||= $conf[:type]
   $type = type
 
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-  key ||= ( $conf["key-#{mode}".o2sym] || $conf[:key] )
+  key ||= $conf[:key]
   check_key_and_set_pref_sig(key)
-
+  
 
   # For modes play and report, all the remaining arguments (after processing
   # type and key) are things to play or keywords; a scale is not allowed,
@@ -347,7 +353,7 @@ def print_usage_info mode = nil, opts = nil
     if nprinted == 0
       puts '  none'
     else
-      puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}"
+      puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
     end
   end
   puts

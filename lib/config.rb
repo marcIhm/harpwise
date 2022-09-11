@@ -16,8 +16,12 @@ def set_global_vars_early
   # expectations for config-file
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
-  $conf_meta[:keys_for_modes] = [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast, :tags_any]
-  $conf_meta[:keys_for_general] = [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
+  $conf_meta[:sections_keys] = {
+    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast],
+    :licks => [:tags_any],
+    :general => [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
+  }
+  $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
                               :pref_sig_def => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
@@ -139,7 +143,7 @@ def find_and_check_dirs
       File.readlines($early_conf[:config_file]).each do |line|
         past_head = true if line[0] != '#'
         next unless past_head
-        cfu.write ( ['#', '['].include?(line[0])  ?  line  :  '#' + line )
+        cfu.write ( line[0] == '#'  ?  line  :  '#' + line )
       end
     end
   end
@@ -290,9 +294,10 @@ def read_config_ini file, strict: true
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
-      if [:any_mode, :listen, :quiz, :licks, :general].include?(section)
-        key_meta = ( section == :general  ?  :keys_for_general  :  :keys_for_modes )
-        err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{$conf_meta[key_meta]}'" unless $conf_meta[key_meta].include?(key)
+      if section
+        allowed = Set.new($conf_meta[:sections_keys][section])
+        allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
+        err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'" unless allowed.include?(key)
         result[section][key] = value
       elsif section.nil?
         err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
@@ -304,18 +309,16 @@ def read_config_ini file, strict: true
 
   # overall checking of key-sets
   err_head = "Error in #{file}: "
-  $conf_meta[:sections].each do |sect|
-    key_meta = ( sect == :general  ?  :keys_for_general  :  :keys_for_modes )
-    found = Set.new(result[sect].keys.sort)
-    required = Set.new($conf_meta[key_meta].sort)
+  $conf_meta[:sections].each do |section|
+    found = Set.new(result[section].keys.sort)
+    required = Set.new($conf_meta[:sections_keys][section])
+    allowed = required.clone
+    allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
 
-    err err_head + "Section #{sect.o2str} has these keys:\n\n#{found}\n\nwhich is not a subset of all keys:\n\n#{required}" unless found.subset?(required)
+    err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is not a subset of all keys allowed:\n\n#{allowed}" unless found.subset?(allowed)
 
-    if [:any_mode, :general].include?(sect)
-      err err_head + "Required section #{sect.o2str} not present" unless result.has_key?(sect)
-      if strict
-        err err_head + "Section #{sect.o2str} has these keys:\n\n#{found}\n\nwhich is different from required set:\n\n#{required}" unless required == found
-      end
+    if strict && [:any_mode, :general].include?(section)
+      err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is different from all keys required:\n\n#{required}" unless required == found
     end
   end
 
@@ -413,7 +416,8 @@ def read_musical_config
 end
 
 
-def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi
+def read_and_parse_scale sname, hole2note_read, hole2note, note2hole,
+                         dsemi_harp, min_semi, max_semi
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
   glob = $scale_files_template % [$type, sname, '{holes,notes}']
   sfiles = Dir[glob]
@@ -450,14 +454,9 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
   scale_holes = Array.new
   hole2rem = Hash.new
 
-  err_msg = if $opts[:transpose_scale_to]
-              "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
-            else
-              "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
-            end
   # For convenience we have both hole2note and hole2note_read; they only differ,
-  # if key does not equal c, and the following relation always holds true:
-  # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi(key) - note2semi('c') =: dsemi_harp
+  # if key does not equal c; the following relation always holds true:
+  # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi($key) - note2semi('c') =: dsemi_harp
   # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
   dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
   scale_read.each do |fields|
@@ -467,7 +466,14 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole, dsemi_harp
       note = semi2note(semi)
       hole = note2hole[note]
       hole2rem[hole] = rem&.strip
-      err(err_msg % [ sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]) unless hole
+      err(
+        if $opts[:transpose_scale_to]
+          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+        else
+          "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
+        end %
+        [sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]
+      ) unless hole
       scale_holes << hole
     end
   end

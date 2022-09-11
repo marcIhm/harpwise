@@ -68,7 +68,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c juke' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 24
+num_exp = 25
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -124,10 +124,10 @@ do_test 'id-01b: config.ini, mode prevails' do
   new_session
   tms 'harpwise quiz 3 blues --testing'
   tms :ENTER
-  sleep 2
+  wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
-  expect(dump[:conf_system]) { dump[:conf_system][:quiz] == {} }
+  expect(dump[:conf_system]) { dump[:conf_system][:key] == nil }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
   kill_session
@@ -143,7 +143,7 @@ do_test 'id-01c: config.ini, set loop (example for boolean)' do
   new_session
   tms 'harpwise quiz 3 blues --testing'
   tms :ENTER
-  sleep 2
+  wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
   expect(dump[:conf_system]) { dump[:conf_system][:loop] == nil }
@@ -162,7 +162,7 @@ do_test 'id-01d: config.ini, unset loop with option' do
   new_session
   tms 'harpwise quiz 3 blues --no-loop --testing'
   tms :ENTER
-  sleep 2
+  wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
@@ -180,9 +180,41 @@ do_test 'id-01e: config.ini, take default key from config' do
   new_session
   tms 'harpwise quiz 3 blues --no-loop --testing'
   tms :ENTER
-  sleep 2
+  wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:opts]) { dump[:opts][:key] == 'a' }
+  expect(dump[:key]) { dump[:key] == 'a' }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01f: config.ini, take key from commandline' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [quiz]
+    key = c
+  end_of_content
+  new_session
+  tms 'harpwise listen testing a blues --testing'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect(dump[:key]) { dump[:key] == 'a' }
+  kill_session
+  restore_dotdir
+end
+
+do_test 'id-01g: config.ini, set value in config and clear again on commandline' do
+  backup_dotdir
+  File.write $config_ini, <<~end_of_content
+  [quiz]
+    add_scales = major_pentatonic
+  end_of_content
+  new_session
+  tms 'harpwise quiz 3 blues --no-loop --add-scales - --testing'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect(dump[:opts]) { dump[:opts][:add_scales] == nil }
   kill_session
   restore_dotdir
 end
@@ -194,12 +226,12 @@ usage_types.keys.each_with_index do |mode, idx|
     tms :ENTER
     sleep 2
     expect_usage = { 'none' => [-12, 'Suggested reading'],
-                     'calibrate' => [-6, 'start with calibration'],
-                     'listen' => [-6, 'your milage may vary'],
-                     'quiz' => [-6, 'your milage may vary'],
-                     'licks' => [-6, 'plays nothing initially'],
-                     'play' => [-6, 'this number of holes'],
-                     'report' => [-4, 'on every invocation']}
+                     'calibrate' => [-8, 'start with calibration'],
+                     'listen' => [-8, 'your milage may vary'],
+                     'quiz' => [-8, 'your milage may vary'],
+                     'licks' => [-8, 'plays nothing initially'],
+                     'play' => [-8, 'this number of holes'],
+                     'report' => [-6, 'on every invocation']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -392,7 +424,7 @@ do_test 'id-10a: quiz' do
   kill_session
 end
 
-do_test 'id-11: transpose scale does work on zero shift' do
+do_test 'id-11: transpose scale works on zero shift' do
   new_session
   tms 'harpwise listen testing a blues --transpose-scale-to c --testing'
   tms :ENTER
@@ -862,8 +894,9 @@ do_test 'id-30: handling a very long lick' do
   }
   expect { screen[-8]['  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
   tms 'c'
+  tms '1'
   sleep 1
-  expect { screen[-6]['-4.b  *-4.b   -4.b   -4.b   -5.b   -5.b   -5.b   -5.b   -5.b'] }
+  expect { screen[-5]['-4.b15  *-4.b15   -4.b15   -5.b'] }
   kill_session
 end
 
@@ -958,7 +991,7 @@ end
 do_test 'id-38: chromatic; listen' do
   sound 8, 2
   new_session 92, 30
-  tms 'harpwise listen testing2 a all --testing'
+  tms 'harpwise listen testing2 a all --testing --add-scales - --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['a3   df4    e4    a4    a4   df5'] }

@@ -58,3 +58,11 @@ USAGE BY EXAMPLES
     harpwise licks c blues --loop --imm --no-tags-any scales \
         --add-scales chord-i,chord-iv,chord-v \
         --display chart-scales --comment holes-all
+
+  However, if you find yourself using these options for mode licks
+  over and over again, you may move them to your config.ini and
+  shorten the above commandline to:
+
+    harpwise licks blues
+
+  
