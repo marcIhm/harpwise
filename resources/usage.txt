@@ -2,18 +2,23 @@ harpwise ('wise' for short) supports the daily practice of bends,
 scales, intervals or licks on a diatonic (richter) or chromatic
 harmonica for various keys.
 
-The wise is limited to play and recognize single notes only, so that
-e.g. chords or octaves are out of its reach.
+The wise is limited to play and recognize single notes only; it has no
+sense of chords or grooves. So from the three ingredients of music,
+melody, harmony and rhythm, it can help you with the melody only.
 
-The first argument on the commandline specifies the mode of operation;
-it can be one of:
 
-  - listen: The wise listens to your playing, e.g. to monitor bends or scales
+When invoking harpwise, the first argument on the commandline
+specifies the mode of operation; it can be one of:
+
+  - listen: The wise listens to your playing, e.g. to monitor bends or
+    scales
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
   - play: Wise plays scales, holes or licks
-  - report: Produce reports about licks and tags or a journal of licks played
-  - calibrate: Wise generates samples for holes, or you record your own
+  - report: Produce reports about licks and tags or a journal of licks
+    played
+  - calibrate: Wise generates samples for holes, or assists in
+    recording your own
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.
