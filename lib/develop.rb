@@ -103,16 +103,20 @@ def task_diff
 
   srcs.each {|s| line[s] = lines[s].shift}
 
+  last_common = Array.new
+  
   while srcs.all? {|s| lines[s].length > 0}
     clen = 0
     clen += 1 while line[:usage][clen] && line[:usage][clen] == line[:man][clen]
     if clen > 0
+      last_common << [line[:usage][0, clen], line[:man][0, clen]] 
       srcs.each do |s|
         line[s][0, clen] = ''
         line[s].strip!
         line[s] = lines[s].shift.strip if line[s].empty?
       end
     else
+      pp last_common[-2 .. -1]
       pp [line[:usage], line[:man]]
       fail "#{srcs} differ; see above"
     end
