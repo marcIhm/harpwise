@@ -356,7 +356,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
 
     if $ctl_listen[:star_lick] && lambda_star_lick
-      lambda_star_lick.call
+      lambda_star_lick.call($ctl_listen[:star_lick] == :up)
       $ctl_listen[:star_lick] = false
     end
     

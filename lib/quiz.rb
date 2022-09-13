@@ -444,10 +444,11 @@ def do_quiz_or_licks
           
           # lambda_star_lick
           if $mode == :licks
-            -> () do
-              $starred[lick[:name]] += 1
+            -> (plus) do
+              $starred[lick[:name]] += ( plus  ?  +1  :  -1 )
               File.write($star_file, YAML.dump($starred))
-              lick[:tags] << 'starred' unless lick[:tags].include?('starred')
+              tag = ( plus  ?  'starred'  :  'unstarred' )
+              lick[:tags] << tag unless lick[:tags].include?(tag)
               print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mWrote #{$star_file}\e[K"
               $message_shown_at = Time.now.to_f
             end

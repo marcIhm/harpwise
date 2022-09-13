@@ -225,5 +225,5 @@ at_exit {
     $memo[:count] = $memo_count
     $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
   end
-  File.write($memo_file, JSON.pretty_generate($memo)) unless $fromon.empty?
+  File.write($memo_file, JSON.pretty_generate($memo)) if $fromon.empty?
 }

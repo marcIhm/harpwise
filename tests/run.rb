@@ -953,19 +953,26 @@ do_test 'id-34: switch between modes' do
   kill_session
 end
 
-do_test 'id-35: star a lick' do
+do_test 'id-35: star and unstar a lick' do
   starred_file = Dir.home + '/.harpwise/licks/testing/starred.yaml'
   FileUtils.rm starred_file if File.exist?(starred_file)  
   new_session
   tms 'harpwise licks testing a --start-with juke --testing'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms '*'
-  sleep 1
+  5.times do
+    tms '*'
+    sleep 1
+  end
+  3.times do
+    tms '~'
+    sleep 1
+  end
   tms 'q'
   sleep 1
   kill_session
-  expect { File.exist?(starred_file) }
+  stars = YAML.load_file(starred_file)
+  expect(stars) { stars['juke'] == 2 }
 end
 
 do_test 'id-36: show lick starred in previous invocation' do
@@ -973,7 +980,7 @@ do_test 'id-36: show lick starred in previous invocation' do
   tms 'harpwise report testing starred'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[4]['juke:    1'] }
+  expect { screen[4]['juke:    2'] }
   kill_session
 end
 
