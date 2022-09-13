@@ -322,7 +322,7 @@ def handle_kb_listen
   elsif char == '*' && $ctl_can[:named]
     $ctl_listen[:star_lick] = :up
     text = 'Star this lick up'
-  elsif char == '~' && $ctl_can[:named]
+  elsif char == '/' && $ctl_can[:named]
     $ctl_listen[:star_lick] = :down
     text = 'Star this lick down'
   elsif char == 'm' && $ctl_can[:switch_modes]

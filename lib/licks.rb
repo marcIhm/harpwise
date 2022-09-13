@@ -45,11 +45,23 @@ def read_licks graceful = false
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
 
+          # merge from star-file
+          starred = if $starred.keys.include?(name)
+                      if $starred[name] > 0
+                        ['starred']
+                      elsif $starred[name] < 0
+                        ['unstarred']
+                      else
+                        []
+                      end
+                    else
+                      []
+                    end
+                        
           lick[:tags] = replace_vars(vars,
                                      ([lick[:tags] || default[:tags]] +
                                       [lick[:tags_add] || default[:tags_add]] +
-                                      # maybe add synthetic tag 'starred'
-                                      ( $starred.keys.include?(name)  ?  ['starred']  :  [] )
+                                      starred
                                      ).flatten.select(&:itself),name).sort.uniq
 
           lick[:desc] = lick[:desc] || default[:desc] || ''

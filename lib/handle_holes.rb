@@ -311,12 +311,12 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
           $ctl_kb_queue.deq
           clear_area_comment
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-          puts "     n: switch to lick by name"
-          puts "   t,T: change one/any of options --tags"
-          puts "     <: shift lick down by one octave    >: shift lick up"
-          puts "     @: change option --partial"
-          puts "     *: Star current lick persistently; see message for the"
-          puts "        filename; access starred licks by tag 'starred'"
+          puts "   n: switch to lick by name"
+          puts " t,T: change one/any of options --tags"
+          puts "   <: shift lick down by one octave    >: shift lick up"
+          puts "   @: change option --partial"
+          puts "  */: Add or remove Star from current lick persistently;"
+          puts "      select them later by tag 'starred'"
         end
       end
       puts "\e[0mPress any key to continue ...\e[K"
@@ -356,7 +356,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     end
 
     if $ctl_listen[:star_lick] && lambda_star_lick
-      lambda_star_lick.call($ctl_listen[:star_lick] == :up)
+      lambda_star_lick.call($ctl_listen[:star_lick] == :up  ?  +1  :  -1)
       $ctl_listen[:star_lick] = false
     end
     

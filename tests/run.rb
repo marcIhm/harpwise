@@ -965,7 +965,7 @@ do_test 'id-35: star and unstar a lick' do
     sleep 1
   end
   3.times do
-    tms '~'
+    tms '/'
     sleep 1
   end
   tms 'q'
@@ -981,6 +981,15 @@ do_test 'id-36: show lick starred in previous invocation' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[4]['juke:    2'] }
+  kill_session
+end
+
+do_test 'id-36a: verify persistant tag "starred"' do
+  new_session
+  tms 'harpwise report testing licks | head -20'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[11]['juke ..... favorites,samples,starred'] }
   kill_session
 end
 
