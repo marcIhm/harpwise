@@ -450,8 +450,6 @@ def do_quiz_or_licks
                           'starred'
                         elsif $starred[lick[:name]] < 0
                           'unstarred'
-                        else
-                          nil
                         end
               %w(starred unstarred).each {|t| lick[:tags].delete(t)}
               lick[:tags] << startag if startag

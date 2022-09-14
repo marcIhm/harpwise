@@ -51,12 +51,8 @@ def read_licks graceful = false
                         ['starred']
                       elsif $starred[name] < 0
                         ['unstarred']
-                      else
-                        []
                       end
-                    else
-                      []
-                    end
+                    end || []
                         
           lick[:tags] = replace_vars(vars,
                                      ([lick[:tags] || default[:tags]] +
