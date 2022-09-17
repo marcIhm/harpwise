@@ -39,11 +39,11 @@ check_dotdir_state
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
 # get termsize
-File.readlines('config/config.ini').each do |line|
-  $term_min_width ||= line.match(/^\s*term_min_width\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
-  $term_min_height ||= line.match(/^\s*term_min_height\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
+File.readlines('lib/config.rb').each do |line|
+  $term_min_width ||= line.match(/^\s*conf\[:term_min_width\]\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
+  $term_min_height ||= line.match(/^\s*conf\[:term_min_height\]\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
 end
-fail "Could not parse term size from config/config.ini" unless $term_min_width && $term_min_height
+fail "Could not parse term size from lib/config.rb" unless $term_min_width && $term_min_height
 
 #
 # Collect usage examples and later check, that none of them produces string error
@@ -138,17 +138,17 @@ do_test 'id-01c: config.ini, set loop (example for boolean)' do
   backup_dotdir
   File.write $config_ini, <<~end_of_content
   [quiz]
-    loop = true
+    loop = false
   end_of_content
   new_session
   tms 'harpwise quiz 3 blues --testing'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
   expect(dump[:conf_system]) { dump[:conf_system][:loop] == nil }
-  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
-  expect(dump[:conf]) { dump[:conf][:loop] == true }
+  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == false }
+  expect(dump[:conf]) { dump[:conf][:loop] == false }
   kill_session
   restore_dotdir
 end
@@ -164,7 +164,7 @@ do_test 'id-01d: config.ini, unset loop with option' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == false }
+  expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
   expect(dump[:opts]) { dump[:opts][:loop] == false }
   kill_session

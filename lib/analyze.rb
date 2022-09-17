@@ -98,7 +98,7 @@ end
 def analyze_with_aubio file
   freqs = run_aubiopitch(file).lines.
             map {|line| line.split[1].to_i}.
-            select {|freq| freq > $conf[:min_freq] && freq < $conf[:max_freq]}
+            select {|freq| freq > 50 && freq < 8000}
   # take only second half to avoid transients
   freqs = freqs[freqs.length/2 .. -1]
   minf, maxf = freqs.minmax

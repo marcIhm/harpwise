@@ -19,7 +19,7 @@ def set_global_vars_early
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast],
     :licks => [:tags_any],
-    :general => [:min_freq, :max_freq, :term_min_width, :term_min_height, :time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
+    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
   }
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
@@ -128,22 +128,29 @@ def find_and_check_dirs
     File.open($early_conf[:config_file_user], 'w') do |cfu|
       cfu.write(<<~end_of_content)
       #
-      # config-file for user
+      # Custom configuration
       #
       # This is a verbatim copy of the global config file
-      # #{$early_conf[:config_file]}
+      #
+      #   #{$early_conf[:config_file]}
+      #
       # with every entry commented out.
       #
       # The global config defines the defaults, which you may 
       # override here.
       #
-
       end_of_content
       past_head = false
       File.readlines($early_conf[:config_file]).each do |line|
         past_head = true if line[0] != '#'
         next unless past_head
-        cfu.write ( line[0] == '#'  ?  line  :  '#' + line )
+        cfu.write(
+          if line[0] == '#' || line.strip == '' 
+            line
+          else
+            '#' + line
+          end
+        )
       end
     end
   end
@@ -267,6 +274,9 @@ def read_technical_config
                        select {|f| File.directory?(f)}.
                        map {|f| File.basename(f)}.
                        reject {|f| f.start_with?('.')}
+  conf[:term_min_width] = 75
+  conf[:term_min_height] = 24
+
 
   conf
 end
