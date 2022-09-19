@@ -32,7 +32,7 @@
   [[images/screenshot_listen.png]]
 
   The second screenshot is from mode 'quiz': The program has played five
-  notes intially and now challenges to play them back.
+  notes initially and now challenges to play them back.
   
   [[images/screenshot_quiz.png]]
 
@@ -66,7 +66,7 @@
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
   this file is created on first invocation and filled with only a few
-  sample-licks; however it contans extensive instructions on how to add
+  sample-licks; however it contains extensive instructions on how to add
   new licks and some pointers to sources for more (printed and online).
 
 * Some general concepts
@@ -86,7 +86,7 @@
 
    For this to work best, you may:
 
-   - Add the option --add-scales on the commandline to tell, which scales
+   - Add the option --add-scales on the command line to tell, which scales
      you may want to see, e.g. "--add-scales chord-i,chord-iv,chord-v"
    - Find and add your own licks as described above
    
@@ -110,8 +110,8 @@
 
    The diatonic harmonica is well known to produce the same note for holes
    "-2" and "+3"; in this case "-2" is chosen as the common name and
-   displayed in the chart. But for playing-reasons (e.g. economising on
-   air), you may choose to play "+3" instead.
+   displayed in the chart. But for some reasons (e.g. saving air), you may
+   choose to play "+3" instead.
 
    For the chromatic harmonica things are even more involved on many holes
    and you may encounter somewhat lengthy holes names like "+45-4b". These
@@ -125,7 +125,7 @@
    for the notes played on a harmonica of a given key.
 
    By the way, if you prefer other names, you may create your own type of
-   harmonica, which ist faily easy (see the paragraph on configuration).
+   harmonica, which is fairly easy (see the paragraph on configuration).
 
 * A closer look at the display
 

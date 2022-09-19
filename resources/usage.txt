@@ -7,7 +7,7 @@ sense of chords or grooves. So from the three ingredients of music,
 melody, harmony and rhythm, it can help you with the melody only.
 
 
-When invoking harpwise, the first argument on the commandline
+When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
 
   - listen: The wise listens to your playing, e.g. to monitor bends or
@@ -56,7 +56,7 @@ Besides the arguments for type, key and scale, there are a lot of
 options (introduced by '-'), some requiring an argument themselves.
 All options are described in the usage info of the various modes.
 
-Most arguments and options can be abreviated, e.g 'lis' for 'listen',
+Most arguments and options can be abbreviated, e.g 'lis' for 'listen',
 'cal' for 'calibrate' or '-t' for '--tags-any'.
 
 Also note, that for most modes, the behaviour (e.g. the kind of
@@ -66,7 +66,7 @@ help on this.
 Suggested reading:
 
   - Usage information for the individual modes
-  - The toplevel file README.org, also available at:
+  - The top level file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
 

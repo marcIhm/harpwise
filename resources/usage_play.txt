@@ -1,6 +1,6 @@
 OVERVIEW
 
-  The mode 'play' picks from the commandline: holes, notes or licks;
+  The mode 'play' picks from the command line: holes, notes or licks;
   it may play multiple holes but cannot mix them with e.g. licks.
 
   Its arguments can be any of:

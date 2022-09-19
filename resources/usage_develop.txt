@@ -11,5 +11,5 @@ OVERVIEW
     page
 
   - diff, compare the man page produced above with the plain usage
-    info. This is needed, as they are maintained seperately. Result
+    info. This is needed, as they are maintained separately. Result
     can be useful in git-hooks

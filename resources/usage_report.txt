@@ -7,7 +7,7 @@ OVERVIEW
 
     - licks, to show and group licks and tags, so that you may select
       them with the various tag-options (e.g. --tags-any). This report
-      has two seperate sections:
+      has two separate sections:
       - Licks selected by the tag-options
       - Any and all licks, disregarding any options
     - journal, to show, which licks you played recently in modes licks
