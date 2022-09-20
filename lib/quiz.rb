@@ -319,6 +319,7 @@ def do_quiz_or_licks
     #
     
     if first_round
+      clear_screen_and_scrollback
       system('clear')
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"

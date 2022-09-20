@@ -193,8 +193,8 @@ end
 
 def prepare_term
   system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
-  print "\e[?25l"  # hide cursor
-  print "\e[3J" # clear scrollback
+  # hide cursor
+  print "\e[?25l"  
 end
 
 
@@ -202,6 +202,14 @@ def sane_term
   system("stty cooked")
   system("stty sane")
   print "\e[?25h"  # show cursor
+end
+
+
+def clear_screen_and_scrollback
+  # clear screen
+  print "\e[2J" 
+  # clear scrollback and screen and switch to different buffer for some terms at least
+  print "\e[3J"
 end
 
 

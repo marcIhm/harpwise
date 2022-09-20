@@ -276,7 +276,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "   SPACE: pause               ctrl-l: redraw screen"
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
       puts "     c,C: change comment (lower, i.e. this, part of screen)"
-      puts "       r: set reference hole to last played"
+      puts "       r: set reference to last hole sensed (not freq played)"
       puts "       j: toggle writing of journal file"
       puts "       k: change key of harp       s: change scale and --add-scale"
       puts "\e[0mType any key to show more help ...\e[K"
