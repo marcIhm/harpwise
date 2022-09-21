@@ -1,5 +1,5 @@
 #
-# Perform quiz and licks
+# Perform quiz or licks
 #
 
 def do_quiz_or_licks
@@ -11,7 +11,7 @@ def do_quiz_or_licks
   $ctl_can[:next] = true
   $ctl_can[:loop] = true
   $ctl_can[:switch_modes] = true
-  $modes_for_switch = [:listen, :quiz]
+  $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
   $write_journal = true
@@ -24,10 +24,23 @@ def do_quiz_or_licks
   lick_cycle = false
   octave_shift = 0
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
-  puts
-  puts
-  puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
-         "key of #{$key}" unless $other_mode_saved[:conf]
+
+  # write banner
+  unless $other_mode_saved[:conf]
+    puts
+    print "\e[0m\e[2m" + ('| ' * 10) + "\e[1G|"
+    '~HARPWISE~'.each_char do
+      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+      sleep 0.04
+    end
+    puts
+    puts "\e[2m#{$version}\e[0m"
+    sleep 0.2
+    puts
+    puts
+    puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+         "key of #{$key}"
+  end
       
   loop do   # forever until ctrl-c, sequence after sequence
 

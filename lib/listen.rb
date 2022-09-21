@@ -10,7 +10,6 @@ def do_listen
   end
   $ctl_can[:next] = false
   $ctl_can[:loop] = false
-  $modes_for_switch = [:listen, :licks]
 
   system('clear')
   pipeline_catch_up
