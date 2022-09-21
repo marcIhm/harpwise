@@ -144,7 +144,10 @@ end
 
 
 def read_testing_dump marker
-  JSON.parse(File.read($testing_dump_template % marker), symbolize_names: true)
+  file = $testing_dump_template % marker
+  dump = JSON.parse(File.read(file), symbolize_names: true)
+  dump[:file_from] = file
+  dump
 end
 
 
@@ -158,72 +161,24 @@ def clear_testing_log
 end
 
 
-def move_dotdir
-  move_or_backup_dotdir :move
+def ensure_dotdir_testing
+  FileUtils.rm_r $dotdir_testing if File.directory?($dotdir_testing)
+  FileUtils.cp_r $dotdir_orig, $dotdir_testing
+  ensure_config_ini_testing
 end
 
 
-def backup_dotdir 
-  move_or_backup_dotdir :backup
-end
-
-
-def move_or_backup_dotdir what
-  check_dotdir_state
-  $dotdir_state_unknown = true
-  case what
-  when :move
-    FileUtils.mv $dotdir, $dotdir_saved
-  when :backup
-    FileUtils.cp_r $dotdir, $dotdir_saved
-  else
-    fail "Internal error"
-  end
-  $dotdir_state_unknown = false
-end
-
-
-def check_dotdir_state
-  $dotdir_state_unknown = true
-  if File.exist?($dotdir_saved)
-    fail "Saved dot-dir #{$dotdir_saved} already exists; a previous run might have failed. Please check its content and *maybe* rename it to #{$dotdir}"
-  end
-  unless File.exist?($dotdir)
-    fail "Dot-dir #{$dotdir} does not exist; a previous run might have failed. Please check its content and *maybe* rename it to #{$dotdir_saved}"
-  end
-  $dotdir_state_unknown = false
-end
-  
-
-def restore_dotdir regular: true
-  unless File.directory?($dotdir_saved)
-    if regular
-      $dotdir_state_unknown = true
-      fail "Expected save #{$dotdir_saved} does not exist" 
-    end
-    return
-  end
-  $dotdir_state_unknown = true
-  FileUtils.rm_r $dotdir
-  FileUtils.mv $dotdir_saved, $dotdir
-  puts "Restored #{$dotdir} from #{$dotdir_saved}" unless regular
-  $dotdir_state_unknown = false
+def ensure_config_ini_testing
+  FileUtils.rm $config_ini_testing if File.exists?($config_ini_testing)
+  FileUtils.cp $config_ini_saved, $config_ini_testing
 end
 
 
 at_exit {
-  if $dotdir_state_unknown
-    if $dotdir && $dotdir_saved
-      puts "State of #{$dotdir} is unknown (see above); not trying to restore from #{$dotdir_saved}"
-    else
-      # early fail
-    end
-  else
-    restore_dotdir regular: false
-  end
   if $!.nil?
     $memo[:count] = $memo_count
     $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
   end
+  system("killall aubiopitch >/dev/null 2>&1")
   File.write($memo_file, JSON.pretty_generate($memo)) if $fromon.empty?
 }

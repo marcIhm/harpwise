@@ -253,7 +253,7 @@ def create_initial_lick_file lfile
   puts
   FileUtils.cp("#{$dirs[:install]}/resources/sample_licks_with_holes.txt", lfile)
   FileUtils.cp("#{$dirs[:install]}/recordings/juke.mp3", $lick_dir + '/recordings') 
-  if $opts[:testing]
+  if $testing
     File.open(lfile, 'a') do |f|
       f.write <<~end_of_content
 

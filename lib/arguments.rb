@@ -40,7 +40,6 @@ def parse_arguments
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
      [Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
-        testing: %w(--testing),
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks], {
         add_scales: %w(-a --add-scales ),

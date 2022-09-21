@@ -5,7 +5,7 @@
 def record_sound secs, file, **opts
   duration_clause = secs < 1 ? "-s #{(secs.to_f * $conf[:sample_rate]).to_i}" : "-d #{secs}"
   output_clause = ( opts[:silent] ? '>/dev/null 2>&1' : '' )
-  if $opts[:testing]
+  if $testing
     FileUtils.cp $test_wav, file
     sleep secs
   else
@@ -16,7 +16,7 @@ end
 
 def play_sound file
   samples = $opts[:fast] ? 24000 : 0
-  sys "aplay #{file} -s #{samples}" unless $opts[:testing]
+  sys "aplay #{file} -s #{samples}" unless $testing
 end
 
 
@@ -170,7 +170,7 @@ end
 
 
 def arecord_to_fifo fifo
-  arec_cmd = if $opts[:testing]
+  arec_cmd = if $testing
                "cat #{$test_wav} /dev/zero >#{fifo}"
              else
                "arecord -r #{$conf[:sample_rate]} >#{fifo} 2>/dev/null"
@@ -189,7 +189,7 @@ def aubiopitch_to_queue fifo, num_samples
   ptouch = false
   loop do
     fields = aubio_out.gets.split.map {|f| f.to_f}
-    if $opts[:testing]
+    if $testing
       sleep 0.2
       FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started") unless ptouch
       ptouch = true
@@ -254,8 +254,8 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
                      'vol %ddb' % volume
                    end                  
     cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{volume_clause}"
-    IO.write($testing_log, cmd + "\n", mode: 'a') if $opts[:testing]
-    return false if $opts[:testing]
+    IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
+    return false if $testing
     _, _, wait_thr  = Open3.popen2(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
     started = Time.now.to_f

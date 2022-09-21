@@ -28,14 +28,19 @@ def do_quiz_or_licks
   # write banner
   unless $other_mode_saved[:conf]
     puts
-    print "\e[0m\e[2m" + ('| ' * 10) + "\e[1G|"
-    '~HARPWISE~'.each_char do
-      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
-      sleep 0.04
+    if $testing
+      puts "\e[0;101mTESTING\e[0m"
+      sleep 1
+    else
+      print "\e[0m\e[2m" + ('| ' * 10) + "\e[1G|"
+      '~HARPWISE~'.each_char do
+        |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+        sleep 0.04
+      end
+      puts
+      puts "\e[2m#{$version}\e[0m"
+      sleep 0.2
     end
-    puts
-    puts "\e[2m#{$version}\e[0m"
-    sleep 0.2
     puts
     puts
     puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
@@ -646,7 +651,7 @@ def play_holes all_holes, first_round, terse = false
     holes = all_holes
   end
   
-  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $opts[:testing]
+  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $testing
   
   $ctl_hole[:skip] = false
   $column_short_hint_or_message = 1

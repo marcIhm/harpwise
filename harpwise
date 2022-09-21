@@ -38,9 +38,12 @@ $debug_state = {}
 
 $term_height, $term_width = prepare_screen 
 
+# check this early, beause it is used during initialization
+$testing = !!ENV["HARPWISE_TESTING"]
+
 # while testing, additionally make sure, that we do not use relative
 # paths; do this early, before we even have parsed options
-Dir.chdir(Dir.home) if ARGV.include?('--testing')
+Dir.chdir(Dir.home) if $testing
 
 set_global_vars_early
 
@@ -65,7 +68,7 @@ set_global_musical_vars
 
 check_screen if [:listen, :quiz, :licks].include?($mode)
 
-write_dump 'start' if $opts[:testing]
+write_dump 'start' if $testing
 
 Thread.report_on_exception = false
 
@@ -95,13 +98,13 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
-  write_dump 'end' if $opts[:testing]
+  write_dump 'end' if $testing
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
   # give processes started by threads some time to terminate
   sleep 0.1
-  # take car of not removing too much, if something happens and $dirs
+  # take care to not remove too much, if something happens and $dirs
   # would not be initialized completetly
   FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
 end
