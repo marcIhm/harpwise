@@ -31,7 +31,7 @@ def do_play to_play
     elsif $harp_notes.include?(tp)
       holes << $note2hole[tp]
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
-      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]][:name]
+      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     elsif all_lnames.include?(tp)
       lnames << tp
     elsif $conf[:specials_allowed_play].include?(tp)
