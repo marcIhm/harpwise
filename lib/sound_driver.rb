@@ -214,7 +214,7 @@ def play_hole_and_handle_kb hole
 end
 
 
-def play_recording_and_handle_kb recording, start, length, key, first_lap = true, octave_shift = 0
+def play_recording_and_handle_kb recording, start, length, key, first_round = true, octave_shift = 0
 
   trim_clause = if start && length
                   "trim #{start} #{length}"
@@ -290,14 +290,14 @@ def play_recording_and_handle_kb recording, start, length, key, first_lap = true
         print "\e[0m\e[32m%+ddB \e[0m" % volume
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        display_kb_help 'recording',first_lap,
+        display_kb_help 'recording',first_round,
                         "  SPACE: pause/continue        <: decrease speed\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                         "      l: loop over recording   " +
                         ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
                         ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
-        print "\e[#{$lines[:hint_or_message]}H" unless first_lap
+        print "\e[#{$lines[:hint_or_message]}H" unless first_round
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]

@@ -112,8 +112,8 @@ def scales_for_type type
 end
 
 
-def display_kb_help what, first_lap, body
-  if first_lap
+def display_kb_help what, first_round, body
+  if first_round
     puts "\n\n\e[0m"
   else
     clear_area_comment
@@ -124,7 +124,7 @@ def display_kb_help what, first_lap, body
   print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
-  if first_lap
+  if first_round
     puts "\ncontinue"
   else
     clear_area_comment
