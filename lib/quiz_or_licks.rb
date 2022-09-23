@@ -19,8 +19,7 @@ def do_quiz_or_licks
   $write_journal = true
   journal_start
   
-  first_round = true
-  override_line_message = false
+  override_line_message = nil
   all_wanted_before = all_wanted = nil
   $all_licks, $licks = read_licks
   lick = lick_idx = lick_idx_before = lick_idx_iter = nil
@@ -64,7 +63,7 @@ def do_quiz_or_licks
 
     do_write_journal = false
 
-    if first_round
+    if override_line_message
       puts
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
@@ -312,12 +311,12 @@ def do_quiz_or_licks
     #
     if !zero_partial? || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial]
       
-      print_issue('Listen ...') unless first_round
+      print_issue('Listen ...') unless override_line_message
 
       $ctl_listen[:ignore_partial] = true if zero_partial? && $ctl_listen[:replay]
 
       # show later comment already while playing
-      unless first_round
+      unless override_line_message
         lines = comment_while_playing(all_wanted)
         fit_into_comment(lines) if lines
       end
@@ -333,7 +332,7 @@ def do_quiz_or_licks
         redo
       end
 
-      print_issue "Listen ... and !" unless first_round
+      print_issue "Listen ... and !" unless override_line_message
       sleep 0.3
 
     end
@@ -349,7 +348,7 @@ def do_quiz_or_licks
     #  Prepare for listening
     #
     
-    if first_round
+    if override_line_message
       clear_screen_and_scrollback
       system('clear')
     else
@@ -567,7 +566,7 @@ def do_quiz_or_licks
     end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:octave] && !$ctl_listen[:change_partial] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
 
     print_issue ''
-    first_round = override_line_message = false
+    override_line_message = nil
   end # forever sequence after sequence
 end
       
