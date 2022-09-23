@@ -727,7 +727,7 @@ def play_holes all_holes, initial_line, terse = false
       end_of_content
       # continue below help (first round only)
       print "\n\n"
-      initial_line = [initial_line + 10, $term_height].min
+      initial_line = [initial_line + 10, $term_height].min if initial_line
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"
