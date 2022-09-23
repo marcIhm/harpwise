@@ -706,6 +706,7 @@ def play_holes all_holes, initial_line, terse = false
       end
 
       if initial_line
+        print "\e[#{initial_line}H\e[K"
         print "\e[#{initial_line-1}H#{ltext.strip}\e[K"
       else
         print "\e[#{$lines[:message2]}H\e[K"
@@ -724,6 +725,9 @@ def play_holes all_holes, initial_line, terse = false
         SPACE: pause/continue
         TAB,+: skip to end
       end_of_content
+      # continue below help (first round only)
+      print "\n\n"
+      initial_line = [initial_line + 10, $term_height].min
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"

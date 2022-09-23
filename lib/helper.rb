@@ -124,12 +124,10 @@ def display_kb_help what, first_lap, body
   print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
-  unless first_lap
-    clear_area_comment
-  end
   if first_lap
     puts "\ncontinue"
   else
+    clear_area_comment
     ctl_issue 'continue'
   end
 end
