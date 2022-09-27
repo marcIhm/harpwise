@@ -116,13 +116,14 @@ semi2note(0) == 'a4' or fail 'Internal error'
 
 $other_mode_saved = Hash.new
 begin
-  if $ctl_listen[:switch_modes]
-    $ctl_listen[:switch_modes] = false
+  if $ctl_mic[:switch_modes]
+    $ctl_mic[:switch_modes] = false
     $mode = ($modes_for_switch - [$mode])[0]
     if !$other_mode_saved[:conf]
-      # We are switching from licks or quiz to listen
+      # We are switching first time from licks or quiz to listen
       $other_mode_saved[:conf] = $conf.clone
       $other_mode_saved[:opts] = $opts.clone
+      $other_mode_saved[:opts][:no_progress] = false
       $other_mode_saved[:opts][:comment] = :note
     end
     $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
@@ -154,5 +155,5 @@ begin
   when :develop
     do_develop to_handle
   end
-end while $ctl_listen[:switch_modes]
+end while $ctl_mic[:switch_modes]
 

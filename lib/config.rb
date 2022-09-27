@@ -29,10 +29,10 @@ def set_global_vars_early
   
   #
   # These $ctl-Vars transport requests and events initiated by the
-  # user; mostly keys pressed but also window changed; but not input
-  # from the microphone
+  # user; mostly keys pressed but also window changed.
+  # But not input from the microphone.
   #
-  # We choose Struct instead of Hash to be more typesafe
+  # Choose Struct instead of Hash to be more typesafe
   #
 
   # Collect any key pressed and keep it until processed
@@ -45,10 +45,10 @@ def set_global_vars_early
         :named_lick, :change_key, :change_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick,
         :switch_modes,
-        :toggle_journal, :change_display, :change_comment, :update_comment,
+        :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]
-  $ctl_listen = Struct.new(*ks).new
-  ks.each {|k| $ctl_listen[k] = false}
+  $ctl_mic = Struct.new(*ks).new
+  ks.each {|k| $ctl_mic[k] = false}
 
   # result of processing keys, while a recording is played
   ks = [:skip, :replay, :slower, :vol_up, :vol_down,
@@ -63,15 +63,15 @@ def set_global_vars_early
   ks.each {|k| $ctl_hole[k] = false}
 
   # capabilities available (or not) when processing keyboard
-  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named, :octave, :switch_modes]
+  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named, :octave, :switch_modes, :no_progress]
   $ctl_can = Struct.new(*ks).new
   ks.each {|k| $ctl_can[k] = false} 
   
-  # These are related to the ctl_issue function, which allows
+  # These are related to the ctl_response function, which allows
   # reactions on user actions immediately from within the keyboard handler
-  $ctl_issue_default = ''
-  $ctl_issue_width = 36
-  $ctl_issue_non_def_ts = nil
+  $ctl_reponse_default = ''
+  $ctl_response_width = 36
+  $ctl_response_non_def_ts = nil
 
   $all_licks = $licks = nil
 
@@ -173,9 +173,9 @@ def calculate_screen_layout
   squeeze = 1 if $term_height < 27
   lines_extra = $term_height - $conf[:term_min_height]
   need_message2 = ( $mode == :quiz || $mode == :licks )
-  lines = Struct.new(:issue, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :comment_tall).new
+  lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :comment_tall).new
   lines = Hash.new
-  lines[:issue] = 1
+  lines[:mission] = 1
   lines[:key] = 2
   lines[:display] = 4 + stretch - squeeze
   lines[:hole] = 15 + 2 * stretch - 2 * squeeze

@@ -13,9 +13,10 @@ def do_quiz_or_licks
   $ctl_can[:next] = true
   $ctl_can[:loop] = true
   $ctl_can[:switch_modes] = true
+  $ctl_can[:no_progress] = true
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
-  $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
+  $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   $write_journal = true
   journal_start
   
@@ -29,31 +30,7 @@ def do_quiz_or_licks
 
   # write banner, provide smooth animation
   unless $other_mode_saved[:conf]
-    print "\e[J"
-    puts
-    if $testing
-      puts "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
-      sleep 1
-    else
-      print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
-      '~HARPWISE~'.each_char do
-        |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
-        sleep 0.04
-      end
-      puts
-      sleep 0.01
-      puts "\e[2m#{$version}\e[0m"
-      sleep 0.2
-    end
-    puts
-    sleep 0.01
-    puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
-         "key of #{$key}"
-    sleep 0.01
-    3.times do
-      puts
-      sleep 0.01
-    end
+    animate_splash_line
 
     # get current cursor line, will be used as bottom of two lines for messages
     print "\e[6n"
@@ -61,7 +38,7 @@ def do_quiz_or_licks
     reply += STDIN.gets(1) while reply[-1] != 'R'
     oride_l_message2 = reply.match(/^.*?([0-9]+)/)[1].to_i - 1
 
-    # complete term ini
+    # complete term init
     make_term_immediate
   end
 
@@ -75,8 +52,8 @@ def do_quiz_or_licks
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       print "\e[#{$lines[:message2]}H\e[K"
-      print_issue ''
-      ctl_issue
+      print_mission ''
+      ctl_response
     end
 
     #
@@ -87,7 +64,7 @@ def do_quiz_or_licks
     if lick_idx && refresh_licks
       lick = $licks[lick_idx]
       all_wanted = lick[:holes]
-      ctl_issue 'Refreshed licks'
+      ctl_response 'Refreshed licks'
     end
 
     # For licks, the calculation of next one has these cases:
@@ -110,7 +87,7 @@ def do_quiz_or_licks
     elsif $other_mode_saved[:all_wanted]
       all_wanted = $other_mode_saved[:all_wanted]
       $other_mode_saved[:all_wanted] = nil
-    elsif $ctl_listen[:back] 
+    elsif $ctl_mic[:back] 
       if lick
         if !lick_idx_before || lick_idx_before == lick_idx
           print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
@@ -128,9 +105,9 @@ def do_quiz_or_licks
           all_wanted = all_wanted_before
         end
       end
-      $ctl_listen[:loop] = true
+      $ctl_mic[:loop] = true
 
-    elsif $ctl_listen[:named_lick]  # can only happen for mode licks
+    elsif $ctl_mic[:named_lick]  # can only happen for mode licks
 
       make_term_cooked
       input = matching = nil
@@ -172,12 +149,12 @@ def do_quiz_or_licks
       lick_idx_iter = nil
 
       make_term_immediate
-      $ctl_listen[:named_lick] = false
+      $ctl_mic[:named_lick] = false
       
-    elsif $ctl_listen[:change_tags]  # can only happen in licks
+    elsif $ctl_mic[:change_tags]  # can only happen in licks
       
       doiter = read_tags_and_refresh_licks(lick,
-                                           $ctl_listen[:change_tags] == :all ? true : false)
+                                           $ctl_mic[:change_tags] == :all ? true : false)
       print "\e[#{$lines[:key]}H\e[k" + text_for_key
       if doiter == :keep
         # keep iteration state
@@ -193,16 +170,16 @@ def do_quiz_or_licks
         lick = $licks[lick_idx]
       end
       all_wanted = lick[:holes]
-      $ctl_listen[:change_tags] = false
+      $ctl_mic[:change_tags] = false
 
-    elsif $ctl_listen[:replay]
+    elsif $ctl_mic[:replay]
       
       # nothing to do here, replay will happen at start of next loop
 
-    elsif $ctl_listen[:octave]
+    elsif $ctl_mic[:octave]
 
       octave_shift_was = octave_shift
-      octave_shift += ( $ctl_listen[:octave] == :up  ?  +1  :  -1 )
+      octave_shift += ( $ctl_mic[:octave] == :up  ?  +1  :  -1 )
       all_wanted_was = all_wanted
       all_wanted = lick[:holes].map do |hole|
         if musical_event?(hole) || octave_shift == 0
@@ -225,14 +202,14 @@ def do_quiz_or_licks
         $message_shown_at = Time.now.to_f
       end
 
-    elsif $ctl_listen[:change_partial]
+    elsif $ctl_mic[:change_partial]
 
       read_and_set_partial
       print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
       $message_shown_at = Time.now.to_f
 
     else # most general case: no $ctl-command. E.g. first or next
-         # sequence or $ctl_listen[:next]: go to the next sequence
+         # sequence or $ctl_mic[:next]: go to the next sequence
 
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
@@ -254,7 +231,7 @@ def do_quiz_or_licks
           if lick_idx_iter >= $licks.length
             if lick_cycle
               lick_idx_iter = 0
-              ctl_issue 'Next cycle'
+              ctl_response 'Next cycle'
             else
               print "\e[#{$lines[:message2]}H\e[K"
               puts "\nIterated through licks.\n\n"
@@ -309,18 +286,18 @@ def do_quiz_or_licks
       end
 
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
-      $ctl_listen[:loop] = $opts[:loop]
+      $ctl_mic[:loop] = $opts[:loop]
 
     end # handling $ctl-commands and calculating the next holes
 
     #
     #  Play the sequence or recording
     #
-    if !zero_partial? || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial]
+    if !zero_partial? || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
-      print_issue('Listen ...') unless oride_l_message2
+      print_mission('Listen ...') unless oride_l_message2
 
-      $ctl_listen[:ignore_partial] = true if zero_partial? && $ctl_listen[:replay]
+      $ctl_mic[:ignore_partial] = true if zero_partial? && $ctl_mic[:replay]
 
       # show later comment already while playing
       unless oride_l_message2
@@ -328,28 +305,28 @@ def do_quiz_or_licks
         fit_into_comment(lines) if lines
       end
 
-      if $mode == :quiz || !lick[:rec] || $ctl_listen[:ignore_recording] || ($opts[:holes] && !$ctl_listen[:ignore_holes])
+      if $mode == :quiz || !lick[:rec] || $ctl_mic[:ignore_recording] || ($opts[:holes] && !$ctl_mic[:ignore_holes])
         play_holes all_wanted, oride_l_message2
       else
         play_recording lick, oride_l_message2, octave_shift
       end
 
       if $ctl_rec[:replay]
-        $ctl_listen[:replay] = true
+        $ctl_mic[:replay] = true
         redo
       end
 
-      print_issue "Listen ... and !" unless oride_l_message2
+      print_mission "Listen ... and !" unless oride_l_message2
       sleep 0.3
 
     end
 
     # reset controls before listening
-    $ctl_listen[:back] = $ctl_listen[:next] = $ctl_listen[:replay] = $ctl_listen[:octave] = $ctl_listen[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
-    $ctl_listen[:ignore_recording] = $ctl_listen[:ignore_holes] = $ctl_listen[:ignore_partial] = false
+    $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
 
     #
     #  Prepare for listening
@@ -379,7 +356,7 @@ def do_quiz_or_licks
     begin   # while looping over one sequence
 
       round_start = Time.now.to_f
-      $ctl_listen[:forget] = false
+      $ctl_mic[:forget] = false
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
       
@@ -390,9 +367,9 @@ def do_quiz_or_licks
 
         handle_holes(
           
-          # lambda_issue
+          # lambda_mission
           -> () do
-            if $ctl_listen[:loop]
+            if $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes "
             else
               if $num_quiz == 1 
@@ -401,24 +378,24 @@ def do_quiz_or_licks
                 "Play note \e[32m#{idx+1}\e[0m of" +
                   " #{all_wanted.length} you have heard ! "
               end
-            end 
+            end
           end,
-
+          
           
           # lambda_good_done_was_good
           -> (played, since) {[played == wanted || musical_event?(wanted),  
-                               $ctl_listen[:forget] ||
+                               $ctl_mic[:forget] ||
                                ((played == wanted || musical_event?(wanted)) &&
                                 (Time.now.to_f - since >= min_sec_hold )),
                                idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
 
           # lambda_skip
-          -> () {$ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial]},  
+          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]},  
 
           
           # lambda_comment; this one needs no arguments at all
           -> (*_) do
-            if idx != idx_refresh_comment_cache || $ctl_listen[:update_comment]
+            if idx != idx_refresh_comment_cache || $ctl_mic[:update_comment]
               idx_refresh_comment_cache = idx
               $perfctr[:lambda_comment_quiz_call] += 1
               idx_refresh_ccache = idx
@@ -440,7 +417,7 @@ def do_quiz_or_licks
                 else
                   fail "Internal error unknown comment style: #{$opts[:comment]}"
                 end
-              $ctl_listen[:update_comment] = false
+              $ctl_mic[:update_comment] = false
             end
             comment_cache
           end,
@@ -502,7 +479,7 @@ def do_quiz_or_licks
         )  # end of get_hole
 
         
-        if $ctl_listen[:switch_modes]
+        if $ctl_mic[:switch_modes]
           if $mode == :licks
             $other_mode_saved[:lick_idx] = lick_idx
           else
@@ -511,7 +488,7 @@ def do_quiz_or_licks
           return
         end
         
-        break if $ctl_listen[:next] || $ctl_listen[:back] || $ctl_listen[:replay] || $ctl_listen[:octave]  || $ctl_listen[:change_partial] || $ctl_listen[:forget] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :change_tags].any? {|k| $ctl_mic[k]}
 
       end # notes in a sequence
       
@@ -519,7 +496,7 @@ def do_quiz_or_licks
       #  Finally judge result
       #
 
-      if $ctl_listen[:forget]
+      if $ctl_mic[:forget]
         clear_area_comment
         if [:holes_scales, :holes_intervals].include?($opts[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
@@ -532,17 +509,17 @@ def do_quiz_or_licks
         sleep 0.3
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($opts[:comment])
         # update comment
-        ctext = if $ctl_listen[:next]
+        ctext = if $ctl_mic[:next]
                   'next'
-                elsif $ctl_listen[:back]
+                elsif $ctl_mic[:back]
                   'jump back'
-                elsif $ctl_listen[:replay]
+                elsif $ctl_mic[:replay]
                   'replay'
-                elsif $ctl_listen[:octave] == :up
+                elsif $ctl_mic[:octave] == :up
                   'octave up'
-                elsif $ctl_listen[:octave] == :down
+                elsif $ctl_mic[:octave] == :down
                   'octave down'
-                elsif $ctl_listen[:named_lick] || $ctl_listen[:change_tags] || $ctl_listen[:change_partial]
+                elsif $ctl_mic[:named_lick] || $ctl_mic[:change_tags] || $ctl_mic[:change_partial]
                   # these will issue their own message
                   nil
                 else
@@ -562,17 +539,17 @@ def do_quiz_or_licks
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless $ctl_listen[:replay] || $ctl_listen[:octave] || $ctl_listen[:change_partial] || $ctl_listen[:forget] || $ctl_listen[:next] || $ctl_listen[:named_lick] || $ctl_listen[:change_tags]
-          print "\e[0m\e[32mAnd #{$ctl_listen[:loop] ? 'again' : 'next'} !\e[0m\e[K"
+        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :change_tags].any? {|k| $ctl_mic[k]}
+          print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
         end
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_listen[:loop] || $ctl_listen[:forget]) && !$ctl_listen[:back] && !$ctl_listen[:next] && !$ctl_listen[:replay] && !$ctl_listen[:octave] && !$ctl_listen[:change_partial] && !$ctl_listen[:named_lick]  && !$ctl_listen[:change_tags]  # looping over one sequence
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :change_tags].all? {|k| !$ctl_mic[k]}  # looping over one sequence
 
-    print_issue ''
+    print_mission ''
     oride_l_message2 = nil
   end # forever sequence after sequence
 end
@@ -664,7 +641,7 @@ end
 
 def play_holes all_holes, oride_l_message2, terse = false
 
-  if $opts[:partial] && !$ctl_listen[:ignore_partial]
+  if $opts[:partial] && !$ctl_mic[:ignore_partial]
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
@@ -674,13 +651,13 @@ def play_holes all_holes, oride_l_message2, terse = false
   
   $ctl_hole[:skip] = false
   $column_short_hint_or_message = 1
-  ltext = "\e[2m(h for help) "
+  ltext = "\e[2m(h for help)  "
   holes.each_with_index do |hole, idx|
     if terse
       print hole + ' '
     else
       if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-        ltext = "\e[2m(h for help) "
+        ltext = "\e[2m(h for help)  "
         if oride_l_message2
           print "\e[#{oride_l_message2}H\e[K"
           print "\e[#{oride_l_message2-1}H\e[K"
@@ -747,7 +724,7 @@ end
 
 def play_recording lick, oride_l_message2, octave_shift
 
-  if $opts[:partial] && !$ctl_listen[:ignore_partial]
+  if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
@@ -1125,5 +1102,34 @@ def comment_while_playing holes
     wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
   else
     nil
+  end
+end
+
+
+def animate_splash_line
+  print "\e[J"
+  puts
+  if $testing
+    puts "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
+    sleep 1
+  else
+    print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
+    '~HARPWISE~'.each_char do
+      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+      sleep 0.04
+    end
+    puts
+    sleep 0.01
+    puts "\e[2m#{$version}\e[0m"
+    sleep 0.2
+  end
+  puts
+  sleep 0.01
+  puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+       "key of #{$key}"
+  sleep 0.01
+  3.times do
+    puts
+    sleep 0.01
   end
 end

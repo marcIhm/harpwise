@@ -300,117 +300,118 @@ def handle_kb_listen
   waited = false
   
   if char == ' '
-    ctl_issue 'SPACE to continue', hl: true
+    ctl_response 'SPACE to continue', hl: true
     begin
       char = $ctl_kb_queue.deq
     end until char == ' '
-    ctl_issue 'continue', hl: true
+    ctl_response 'continue', hl: true
     waited = true
   elsif char == "\n" && $ctl_can[:next]
-    $ctl_listen[:next] = true
+    $ctl_mic[:next] = true
     text = 'Skip'
   elsif char == 'n' && $ctl_can[:named]
-    $ctl_listen[:named_lick] = true
+    $ctl_mic[:named_lick] = true
     text = 'Named'
   elsif char == 't' && $ctl_can[:named]
-    $ctl_listen[:change_tags] = true
+    $ctl_mic[:change_tags] = true
     text = 'Tags'
   elsif char == 'T' && $ctl_can[:named]
-    $ctl_listen[:change_tags] = :all
+    $ctl_mic[:change_tags] = :all
     text = 'All Tags'
   elsif char == '>' && $ctl_can[:octave]
-    $ctl_listen[:octave] = :up
+    $ctl_mic[:octave] = :up
     text = 'Octave up'
   elsif char == '<' && $ctl_can[:octave]
-    $ctl_listen[:octave] = :down
+    $ctl_mic[:octave] = :down
     text = 'Octave down'
   elsif char == '@' && $ctl_can[:named]
-    $ctl_listen[:change_partial] = true
+    $ctl_mic[:change_partial] = true
     text = 'Partial'
   elsif char == '*' && $ctl_can[:named]
-    $ctl_listen[:star_lick] = :up
+    $ctl_mic[:star_lick] = :up
     text = 'Star this lick up'
   elsif char == '/' && $ctl_can[:named]
-    $ctl_listen[:star_lick] = :down
+    $ctl_mic[:star_lick] = :down
     text = 'Star this lick down'
   elsif char == 'm' && $ctl_can[:switch_modes]
-    $ctl_listen[:switch_modes] = true
+    $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
   elsif char == 'j'
-    $ctl_listen[:toggle_journal] = true
+    $ctl_mic[:toggle_journal] = true
     text = nil
   elsif char == 'k'
-    $ctl_listen[:change_key] = true
+    $ctl_mic[:change_key] = true
     text = nil
   elsif char == 's'
-    $ctl_listen[:change_scale] = true
+    $ctl_mic[:change_scale] = true
     text = nil
   elsif char == 'q'
-    $ctl_listen[:quit] = true
+    $ctl_mic[:quit] = true
     text = nil
   elsif char == '1'
-    $ctl_listen[:done] = true
+    $ctl_mic[:done] = true
     text = 'Hole done'
   elsif char == '?' or char == 'h'
-    $ctl_listen[:show_help] = true
+    $ctl_mic[:show_help] = true
     text = 'See below for short help'
   elsif char == 'd' || char == "\t"
-    $ctl_listen[:change_display] = true
+    $ctl_mic[:change_display] = true
     text = 'Change display'
   elsif char == 'D' || char.ord == 90 
-    $ctl_listen[:change_display] = :back
+    $ctl_mic[:change_display] = :back
     text = 'Change display back'
   elsif char == 'r'
-    $ctl_listen[:set_ref] = true
+    $ctl_mic[:set_ref] = true
     text = 'Set reference'
   elsif char == 'c'
-    $ctl_listen[:change_comment] = true
+    $ctl_mic[:change_comment] = true
     text = 'Change comment'
   elsif char == 'C'
-    $ctl_listen[:change_comment] = :back
+    $ctl_mic[:change_comment] = :back
     text = 'Change comment back'
   elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
-    $ctl_listen[:replay] = true
-    $ctl_listen[:ignore_recording] = (char == ',' || char == ';')
-    $ctl_listen[:ignore_holes] = (char == '.' || char == ':')
-    $ctl_listen[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
+    $ctl_mic[:replay] = true
+    $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
+    $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
+    $ctl_mic[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
     text = 'Replay'
   elsif (char == '0' || char == '-') && $ctl_can[:next]
-    $ctl_listen[:forget] = true
+    $ctl_mic[:forget] = true
     text = 'Forget'
-  elsif char == '#'
-    $opts[:no_progress] = !$opts[:no_progress]
-    text = $opts[:no_progress] ? 'Do not track progress' : 'Track progress'
+  elsif char == '#' && $ctl_can[:no_progress]
+    $ctl_mic[:toggle_progress] = true
+    # $opts[:no_progress] will be toggled later
+    text = $opts[:no_progress]  ?  'Track progress'  :  'Do not track progress'
   elsif char.ord == 127 && $ctl_can[:next]
-    $ctl_listen[:back] = true
+    $ctl_mic[:back] = true
     text = 'Skip back'
   elsif char.ord == 12
-    $ctl_listen[:redraw] = :silent
+    $ctl_mic[:redraw] = :silent
     text = 'redraw'
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
-    $ctl_listen[:redraw] = :silent if $opts[:comment] == :holes_some
+    $ctl_mic[:redraw] = :silent if $opts[:comment] == :holes_some
   elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
-    $ctl_listen[:start_loop] = true
+    $ctl_mic[:start_loop] = true
     text = 'Loop started'
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
   end
-  ctl_issue text if text && !waited
+  ctl_response text if text && !waited
   waited
 end
 
 
-def ctl_issue text = nil, **opts
+def ctl_response text = nil, **opts
   if text
-    $ctl_issue_non_def_ts = Time.now.to_f 
+    $ctl_response_non_def_ts = Time.now.to_f 
   else
-    return if $ctl_issue_non_def_ts && Time.now.to_f - $ctl_issue_non_def_ts < 3
-    text = $ctl_issue_default
+    return if $ctl_response_non_def_ts && Time.now.to_f - $ctl_response_non_def_ts < 3
+    text = $ctl_response_default
   end
-  fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_issue_width}" if text.length > $ctl_issue_width
-  print "\e[1;#{$term_width - $ctl_issue_width}H\e[0m\e[#{opts[:hl] ? 32 : 2}m#{text.rjust($ctl_issue_width)}\e[0m"
+  fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_response_width}" if text.length > $ctl_response_width
+  print "\e[1;#{$term_width - $ctl_response_width}H\e[0m\e[#{opts[:hl] ? 32 : 2}m#{text.rjust($ctl_response_width)}\e[0m"
 end
   
 
@@ -589,8 +590,8 @@ def handle_win_change
     system('clear')
     puts
   end 
-  ctl_issue 'redraw'
+  ctl_response 'redraw'
   $figlet_cache = Hash.new
-  $ctl_listen[:redraw] = true
+  $ctl_mic[:redraw] = true
   $ctl_sig_winch = false
 end

@@ -4,7 +4,7 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter, lambda_star_lick
+def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter, lambda_star_lick
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -19,26 +19,25 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
   $perfctr[:handle_holes_calls] += 1
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $column_short_hint_or_message = 1
+  $ctl_response_default = 'SPACE to pause; h for help'
 
   loop do   # until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
-    system('clear') if $ctl_listen[:redraw]
-    if first_round || $ctl_listen[:redraw]
-      $perfctr[:lambda_issue_call] += 1
-      print_issue lambda_issue.call
-      $ctl_issue_default = "SPACE to pause; h for help"
-      ctl_issue
+    system('clear') if $ctl_mic[:redraw]
+    if first_round || $ctl_mic[:redraw]
+      print_mission(get_mission_override || lambda_mission.call)
+      ctl_response
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
-      if $ctl_listen[:redraw] && $ctl_listen[:redraw] != :silent
+      if $ctl_mic[:redraw] && $ctl_mic[:redraw] != :silent
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $column_short_hint_or_message = 1
         $message_shown_at = Time.now.to_f
       end
-      $ctl_listen[:redraw] = false
-      $ctl_listen[:update_comment] = true
+      $ctl_mic[:redraw] = false
+      $ctl_mic[:update_comment] = true
     end
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
@@ -47,8 +46,9 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_listen
+
     # restores also default text after a while
-    ctl_issue
+    ctl_response
 
     handle_win_change if $ctl_sig_winch
     
@@ -75,10 +75,11 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
                              $perfctr[:lambda_good_done_was_good_call] += 1
                              lambda_good_done_was_good.call(hole, hole_since)
                            end
-    done = false if $opts[:no_progress]
-    if $ctl_listen[:done]
+    # even if we do not track progress we need to return to forget
+    done = $ctl_mic[:forget] if $opts[:no_progress]
+    if $ctl_mic[:done]
       good = done = true
-      $ctl_listen[:done] = false
+      $ctl_mic[:done] = false
     end
 
     was_good_since = Time.now.to_f if was_good && was_good != was_was_good
@@ -232,7 +233,7 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       end
     end      
 
-    if $ctl_listen[:set_ref]
+    if $ctl_mic[:set_ref]
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference hole\e[0m\e[K"
       if $hole_ref 
@@ -243,34 +244,34 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         end
       end
       $message_shown_at = Time.now.to_f
-      $ctl_listen[:set_ref] = false
-      $ctl_listen[:update_comment] = true
+      $ctl_mic[:set_ref] = false
+      $ctl_mic[:update_comment] = true
     end
     
-    if $ctl_listen[:change_display]
+    if $ctl_mic[:change_display]
       choices = [ $display_choices, $display_choices ].flatten
-      choices = choices.reverse if $ctl_listen[:change_display] == :back
+      choices = choices.reverse if $ctl_mic[:change_display] == :back
       $opts[:display] = choices[choices.index($opts[:display]) + 1]
       $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mDisplay is now #{$opts[:display].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
-      $ctl_listen[:change_display] = false
+      $ctl_mic[:change_display] = false
     end
     
-    if $ctl_listen[:change_comment]
+    if $ctl_mic[:change_comment]
       choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
-      choices = choices.reverse if $ctl_listen[:change_comment] == :back
+      choices = choices.reverse if $ctl_mic[:change_comment] == :back
       $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
       clear_area_comment
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$opts[:comment].upcase}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
-      $ctl_listen[:change_comment] = false
-      $ctl_listen[:update_comment] = true
+      $ctl_mic[:change_comment] = false
+      $ctl_mic[:update_comment] = true
     end
 
-    if $ctl_listen[:show_help]
+    if $ctl_mic[:show_help]
       clear_area_comment
       puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
       puts "   SPACE: pause               ctrl-l: redraw screen"
@@ -322,19 +323,24 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
       puts "\e[0mPress any key to continue ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
-      ctl_issue 'continue', hl: true
+      ctl_response 'continue', hl: true
       clear_area_comment
-      $ctl_listen[:show_help] = false
+      $ctl_mic[:show_help] = false
     end
 
-    if $ctl_can[:loop] && $ctl_listen[:start_loop]
-      $ctl_listen[:loop] = true
-      $ctl_listen[:start_loop] = false
-      $perfctr[:lambda_issue_call] += 1
-      print_issue lambda_issue.call
+    if $ctl_can[:loop] && $ctl_mic[:start_loop]
+      $ctl_mic[:loop] = true
+      $ctl_mic[:start_loop] = false
+      print_mission(get_mission_override || lambda_mission.call)
     end
     
-    if $ctl_listen[:toggle_journal]
+    if $ctl_mic[:toggle_progress]
+      $opts[:no_progress] = !$opts[:no_progress]
+      $ctl_mic[:toggle_progress] = false
+      print_mission(get_mission_override || lambda_mission.call)
+    end
+    
+    if $ctl_mic[:toggle_journal]
       $write_journal = !$write_journal
       if $write_journal
         journal_start
@@ -344,41 +350,41 @@ def handle_holes lambda_issue, lambda_good_done_was_good, lambda_skip, lambda_co
         IO.write($journal_file, "All holes: #{$journal_listen.join(' ')}\n", mode: 'a') if $mode == :listen && $journal_listen.length > 0
         IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
       end
-      ctl_issue "Journal #{$write_journal ? ' ON' : 'OFF'}"
+      ctl_response "Journal #{$write_journal ? ' ON' : 'OFF'}"
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m"      
       print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
       $message_shown_at = Time.now.to_f
 
-      $ctl_listen[:toggle_journal] = false
+      $ctl_mic[:toggle_journal] = false
 
       print "\e[#{$lines[:key]}H" + text_for_key      
     end
 
-    if $ctl_listen[:star_lick] && lambda_star_lick
-      lambda_star_lick.call($ctl_listen[:star_lick] == :up  ?  +1  :  -1)
-      $ctl_listen[:star_lick] = false
+    if $ctl_mic[:star_lick] && lambda_star_lick
+      lambda_star_lick.call($ctl_mic[:star_lick] == :up  ?  +1  :  -1)
+      $ctl_mic[:star_lick] = false
     end
     
-    if $ctl_listen[:change_key]
+    if $ctl_mic[:change_key]
       do_change_key
-      $ctl_listen[:change_key] = false
-      $ctl_listen[:redraw] = :silent
+      $ctl_mic[:change_key] = false
+      $ctl_mic[:redraw] = :silent
       set_global_vars_late
       set_global_musical_vars
     end
 
-    if $ctl_listen[:change_scale]
+    if $ctl_mic[:change_scale]
       do_change_scale_add_scales
-      $ctl_listen[:change_scale] = false
-      $ctl_listen[:redraw] = :silent
+      $ctl_mic[:change_scale] = false
+      $ctl_mic[:redraw] = :silent
       set_global_vars_late
       set_global_musical_vars
     end
 
-    return if $ctl_listen[:named_lick] || $ctl_listen[:change_tags] || $ctl_listen[:switch_modes]
+    return if $ctl_mic[:named_lick] || $ctl_mic[:change_tags] || $ctl_mic[:switch_modes]
 
-    if $ctl_listen[:quit]
+    if $ctl_mic[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
       exit 0
     end
@@ -524,4 +530,9 @@ def do_change_scale_add_scales
   print "\e[#{$lines[:key]}H" + text_for_key
   print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m#{$scale}\e[K"
   $message_shown_at = Time.now.to_f  
+end
+
+
+def get_mission_override
+  $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil
 end

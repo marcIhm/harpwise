@@ -16,12 +16,12 @@ def do_listen
 
   handle_holes(
     
-    # lambda_issue
+    # lambda_mission
     -> () {"\e[0mPlay notes from the scale to get \e[32mgreen\e[0m"},   
 
 
     # lambda_good_done_was_good
-    -> (played, _) {[$scale_holes.include?(played), $ctl_listen[:switch_modes], false]},
+    -> (played, _) {[$scale_holes.include?(played), $ctl_mic[:switch_modes], false]},
     
 
     # lambda_skip

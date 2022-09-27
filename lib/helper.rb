@@ -128,7 +128,7 @@ def display_kb_help what, first_round, body
     puts "\ncontinue"
   else
     clear_area_comment
-    ctl_issue 'continue'
+    ctl_response 'continue'
   end
 end
 
@@ -205,8 +205,8 @@ def write_dump marker
 end
 
 
-def print_issue text
-  print "\e[#{$lines[:issue]}H\e[0m#{text.ljust($term_width - $ctl_issue_width)}\e[0m"
+def print_mission text
+  print "\e[#{$lines[:mission]}H\e[0m#{text.ljust($term_width - $ctl_response_width)}\e[0m"
 end
 
 
