@@ -99,10 +99,28 @@
   desc.add = more text we intend to overwrite in some licks below
 
 [special]
-  # A lick requires a series of holes ('holes =') to be played,
-  # but may also contain special accustic events (e.g. '(pull)') 
-  # that are recognized by the surrounding parens and will 
-  # not be played; they just serve as a kind of reminder.
+
+  # A lick requires a series of holes ('holes =') to be played.
+  #
+  # A lick may also contain inline comments (e.g. '(slide)' or
+  # '[+123]'), that are recognized by the surrounding parens or
+  # brackets; they may contain anything you choose and will not
+  # be played; neither will you be expected to play them.
+  #
+  # To give different meanings to parens and brackets, you may or
+  # may not adopt these simple convention:
+  #
+  # - Use '()' for any instructions that modify, how the whole
+  #   written before should be played; an example would be:
+  #   '+1 (slide) +4'.
+  #
+  # - Use '[]' for any musical event, that cannot be reconized by
+  #   harpwise, but nevertheless should be played on its own; an
+  #   example would be a chord '[+123]'.
+  #
+  # - For more complex inline comments you may also want to add a
+  #   short note in the description.
+
   holes = -1 +1 -2 (pull) -1
   # This lick adds a tag to those given by the defaults
   tags.add = advanced

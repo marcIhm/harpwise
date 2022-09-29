@@ -320,7 +320,7 @@ end
 
 
 def musical_event? hole_or_note
-  hole_or_note.match?(/^\(\S*\)$/)
+  hole_or_note.match?(/^\(\S*\)$/) || hole_or_note.match?(/^\[\S*\]$/)
 end
 
 
