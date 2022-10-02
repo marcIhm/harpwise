@@ -17,7 +17,7 @@ def do_play to_play
 
   make_term_immediate
 
-  puts "Type is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
+  puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   
   #
   # Partition arguments
