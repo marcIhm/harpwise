@@ -459,7 +459,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play testing a mape'
   tms :ENTER
   sleep 2
-  expect { screen[4]['-1 +2 -2'] }
+  expect { screen[5]['-1 +2 -2'] }
   kill_session
 end
 
@@ -489,8 +489,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play testing a juke'
   tms :ENTER
   sleep 2
-  expect { screen[3]['Lick juke'] }
-  expect { screen[4]['-1 -2/ -3// -3 -4'] }
+  expect { screen[4]['Lick juke'] }
+  expect { screen[5]['-1 -2/ -3// -3 -4'] }
   expect { File.exist?(journal_file) }
   kill_session
 end
@@ -509,7 +509,7 @@ do_test 'id-16: play some holes and notes' do
   tms 'harpwise play testing a -1 a5 +4'
   tms :ENTER
   sleep 2
-  expect { screen[3]['-1 +7 +4'] }
+  expect { screen[4]['-1 +7 +4'] }
   kill_session
 end
 
@@ -518,7 +518,7 @@ do_test 'id-16a: error on mixing licks and notes for play' do
   tms 'harpwise play testing a -1 juke'
   tms :ENTER
   sleep 1
-  expect { screen[3]['but ONLY ONE OF THEM'] }
+  expect { screen[4]['but ONLY ONE OF THEM'] }
   kill_session
 end
 
@@ -527,10 +527,10 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play testing a cycle'
   tms :ENTER
   sleep 2
-  expect { screen[3]['Lick juke'] }
+  expect { screen[4]['Lick juke'] }
   tms :ENTER
   sleep 2
-  expect { screen[12]['Lick special'] }
+  expect { screen[13]['Lick special'] }
   kill_session
 end
 
@@ -541,7 +541,7 @@ do_test 'id-17: mode licks with initial lickfile' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:licks]) { dump[:licks].length == 8 }
-  expect { screen[1]['licks(8) testing a all'] }
+  expect { screen[1]['licks(8,random) testing a all'] }
   kill_session
 end
 
@@ -669,6 +669,7 @@ do_test 'id-1g: iterate from one lick through to end' do
   tms 'harpwise licks testing --start-with special,iter'
   tms :ENTER
   wait_for_start_of_pipeline
+  expect { screen[1]['iter'] }
   expect { screen[-2]['special'] }
   tms :ENTER
   sleep 4
@@ -692,6 +693,15 @@ do_test 'id-1h: cycle through licks from starting point' do
     tms :ENTER
     sleep 4
   end
+  kill_session
+end
+
+do_test 'id-1i: iterate triggered by tags' do
+  new_session
+  tms 'harpwise licks testing -t fav,iter'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[1]['1,iterate'] }
   kill_session
 end
 
@@ -838,7 +848,7 @@ do_test 'id-27b: change one of four of options --tags' do
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['licks(8)'] }
+  expect { screen[1]['licks(8,random)'] }
   tms 'T'
   tms '2'
   tms :ENTER
@@ -927,7 +937,7 @@ do_test 'id-32: error on journal in play' do
   tms 'harpwise play testing journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['ERROR'] }
+  expect { screen[17]['ERROR'] }
   kill_session
 end
 

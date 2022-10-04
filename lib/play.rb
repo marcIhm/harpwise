@@ -35,12 +35,7 @@ def do_play to_play
     elsif all_lnames.include?(tp)
       lnames << tp
     elsif $conf[:specials_allowed_play].include?(tp)
-      special << ({'iter' => 'iterate',
-                   'i' => 'iterate',
-                   'cyc' => 'cycle',
-                   'c' => 'cycle',
-                   'ran' => 'random',
-                   'rand' => 'random'}[tp] || tp).to_sym
+      special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
     else
       other << tp
     end

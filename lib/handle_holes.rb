@@ -400,7 +400,13 @@ end
 
 def text_for_key
   text = "\e[0m#{$mode}\e[2m"
-  text += "(#{$licks.length})" if $mode == :licks
+  if $mode == :licks
+    if $lick_iter_display
+      text += "(#{$licks.length},#{$lick_iter_display})"
+    else
+      text += "(#{$licks.length},random)"
+    end
+  end
   text += " #{$type} \e[0m#{$key}"
   if $opts[:add_scales]
     text += "\e[0m"

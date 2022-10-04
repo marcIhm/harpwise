@@ -23,7 +23,7 @@ def do_quiz_or_licks
   oride_l_message2 = nil
   all_wanted_before = all_wanted = nil
   $all_licks, $licks = read_licks
-  lick = lick_idx = lick_idx_before = lick_idx_iter = nil
+  lick = lick_idx = lick_idx_before = lick_idx_iter = $lick_iter_display = nil
   lick_cycle = false
   octave_shift = 0
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
@@ -146,7 +146,7 @@ def do_quiz_or_licks
           do_write_journal = true
         end
       end
-      lick_idx_iter = nil
+      lick_idx_iter = $lick_iter_display = nil
 
       make_term_immediate
       $ctl_mic[:named_lick] = false
@@ -155,7 +155,6 @@ def do_quiz_or_licks
       
       doiter = read_tags_and_refresh_licks(lick,
                                            $ctl_mic[:change_tags] == :all ? true : false)
-      print "\e[#{$lines[:key]}H\e[k" + text_for_key
       if doiter == :keep
         # keep iteration state
       elsif doiter
@@ -164,13 +163,15 @@ def do_quiz_or_licks
         lick_idx_before = lick_idx = 0
         lick_idx_iter = lick_idx
         lick = $licks[lick_idx]
+        $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
       else
         lick_idx_before = lick_idx = rand($licks.length)
-        lick_idx_iter = nil
+        lick_idx_iter = $lick_iter_display = nil
         lick = $licks[lick_idx]
       end
       all_wanted = lick[:holes]
       $ctl_mic[:change_tags] = false
+      print "\e[#{$lines[:key]}H\e[k" + text_for_key
 
     elsif $ctl_mic[:replay]
       
@@ -249,18 +250,21 @@ def do_quiz_or_licks
           else
             lick_idx = rand($licks.length)
           end
-
+          if $opts[:doiter] 
+            lick_idx_iter = 0
+            $lick_iter_display = $opts[:doiter]
+          end
         # start lick iteration
         elsif $conf[:abbrevs_for_iter].include?(start_with)
           lick_cycle = ( start_with[0] == 'c' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
-
+          $lick_iter_display = $conf[:abbrevs_for_iter_2_long][start_with[0]]
         elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
           lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
 
         # search lick by name and maybe start iteration          
-        else 
+        else
           doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
           if doiter
             lick_cycle = ( doiter[1] == 'c' )
@@ -270,7 +274,10 @@ def do_quiz_or_licks
           lick_idx = $licks.index {|l| l[:name] == start_with}
           err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
 
-          lick_idx_iter = lick_idx if doiter
+          if doiter
+            lick_idx_iter = lick_idx
+            $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
+          end
         end # continue with iteration through licks
 
         start_with = nil
@@ -370,13 +377,13 @@ def do_quiz_or_licks
           # lambda_mission
           -> () do
             if $ctl_mic[:loop]
-              "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes "
+              "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes"
             else
               if $num_quiz == 1 
                 "Play the note you have heard !"
               else
                 "Play note \e[32m#{idx+1}\e[0m of" +
-                  " #{all_wanted.length} you have heard ! "
+                  " #{all_wanted.length} you have heard !"
               end
             end
           end,
@@ -1010,9 +1017,9 @@ def read_tags_and_refresh_licks curr_lick, all
   opof = "(or part of; current value is '#{$opts[tag_opt]}')"
   cmnt_print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
-  doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| input.end_with?(x)}
-  input[-doiter.length .. -1] = '' if doiter
   begin
+    doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| input.end_with?(x)}
+    input[-doiter.length .. -1] = '' if doiter
     mtags = if input == ' '
               all_tags
             elsif input == ''
