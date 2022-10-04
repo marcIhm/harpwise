@@ -116,9 +116,9 @@ def do_quiz_or_licks
       lnames_abbr = old_licks[0,12].each_with_index.map do |lick_idx,ar_idx|
         case ar_idx
         when 0
-          ' l: '
+          ' l:'
         when (1..9)
-          "#{ar_idx}l: "
+          "#{ar_idx + 1}l:"
         else
           '    '
         end + $licks[lick_idx][:name]
@@ -130,7 +130,7 @@ def do_quiz_or_licks
                            
       input = STDIN.gets&.chomp || ''
       
-      if (md = input.match(/^(\dlast|\dl)$/)) || input == 'last' || input == 'l'
+      if (md = input.match(/^(\dlast|\dl)$/)) || (md = input.match(/^(\d)$/)) || input == 'last' || input == 'l'
         # one of last licks requested
         lick_idx_before = lick_idx 
         lick_idx = old_licks[md  ?  md[1].to_i - 1  :  0]
@@ -150,6 +150,30 @@ def do_quiz_or_licks
 
       make_term_immediate
       $ctl_mic[:named_lick] = false
+
+    elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
+
+      editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
+      print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{$lick_file} with: \e[0m#{editor}\e[k"
+      sleep 1
+      print "\e[#{$lines[:message2]}H\e[K"
+      make_term_cooked
+      system("#{editor} #{$lick_file}")
+      # cannot make_term_immediate here without spoiling $?
+      if $? == 0
+        make_term_immediate
+        print "\e[#{$lines[:message2]}H\e[0m\e[32mdone.\e[K"
+        sleep 1
+      else
+        make_term_immediate
+        puts "\e[0;101mFAILED !\e[0m\e[k"
+        puts "Press any key to continue ...\e[K"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+      end
+        
+      $ctl_mic[:redraw] = :silent
+      $ctl_mic[:edit_lick_file] = false
       
     elsif $ctl_mic[:change_tags]  # can only happen in licks
       
@@ -495,7 +519,7 @@ def do_quiz_or_licks
           return
         end
         
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :change_tags].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :edit_lick_file, :change_tags].any? {|k| $ctl_mic[k]}
 
       end # notes in a sequence
       
@@ -526,7 +550,7 @@ def do_quiz_or_licks
                   'octave up'
                 elsif $ctl_mic[:octave] == :down
                   'octave down'
-                elsif $ctl_mic[:named_lick] || $ctl_mic[:change_tags] || $ctl_mic[:change_partial]
+                elsif [:named_lick, :edit_lick_file, :change_tags, :change_partial].any? {|k| $ctl_mic[k]}
                   # these will issue their own message
                   nil
                 else
@@ -546,7 +570,7 @@ def do_quiz_or_licks
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :change_tags].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :edit_lick_file, :change_tags].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -554,7 +578,7 @@ def do_quiz_or_licks
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :change_tags].all? {|k| !$ctl_mic[k]}  # looping over one sequence
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :edit_lick_file, :change_tags].all? {|k| !$ctl_mic[k]}  # looping over one sequence
 
     print_mission ''
     oride_l_message2 = nil
@@ -1011,10 +1035,10 @@ def read_tags_and_refresh_licks curr_lick, all
 
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
-                        curr_lick[:tags] + ['//'] + all_tags,
+                        curr_lick[:tags].each_with_index.map {|t,i| "#{i+1}.#{t}"} + ['//'] + all_tags,
                         ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
   topt = '--' + tag_opt.o2str
-  opof = "(or part of; current value is '#{$opts[tag_opt]}')"
+  opof = "(or part of or 1,2,..; current value is '#{$opts[tag_opt]}')"
   cmnt_print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
   begin
@@ -1026,6 +1050,8 @@ def read_tags_and_refresh_licks curr_lick, all
               [nil] 
             elsif input[',']
               [input]
+            elsif input.match(/^\d$/)
+              [curr_lick[:tags][input.to_i-1]]
             else
               all_tags.select {|t| t[input]}
             end

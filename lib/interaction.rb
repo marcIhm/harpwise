@@ -312,6 +312,9 @@ def handle_kb_listen
   elsif char == 'n' && $ctl_can[:named]
     $ctl_mic[:named_lick] = true
     text = 'Named'
+  elsif char == 'e' && $ctl_can[:named]
+    $ctl_mic[:edit_lick_file] = true
+    text = 'Edit'
   elsif char == 't' && $ctl_can[:named]
     $ctl_mic[:change_tags] = true
     text = 'Tags'

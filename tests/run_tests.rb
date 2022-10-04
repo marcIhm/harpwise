@@ -1041,4 +1041,17 @@ do_test 'id-38: chromatic; listen' do
   kill_session
 end
 
+do_test 'id-39: edit lickfile' do
+  ENV['EDITOR']='vi'
+  new_session
+  tms 'harpwise licks testing blues'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'e'
+  sleep 1
+  expect { screen[2]['Library of licks used in modes licks or play'] }
+  kill_session
+  ENV.delete('EDITOR')
+end
+
 puts "\ndone.\n\n"

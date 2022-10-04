@@ -312,7 +312,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           $ctl_kb_queue.deq
           clear_area_comment
           puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-          puts "   n: switch to lick by name"
+          puts "   n: switch to lick by name           e: edit lickfile"
           puts " t,T: change one/any of options --tags"
           puts "   <: shift lick down by one octave    >: shift lick up"
           puts "   @: change option --partial"
@@ -382,7 +382,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       set_global_musical_vars
     end
 
-    return if $ctl_mic[:named_lick] || $ctl_mic[:change_tags] || $ctl_mic[:switch_modes]
+    return if [:named_lick, :edit_lick_file, :change_tags, :switch_modes].any? {|k| $ctl_mic[k]}
 
     if $ctl_mic[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
