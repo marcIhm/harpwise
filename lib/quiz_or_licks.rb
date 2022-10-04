@@ -163,6 +163,11 @@ def do_quiz_or_licks
       if $? == 0
         make_term_immediate
         print "\e[#{$lines[:message2]}H\e[0m\e[32mdone.\e[K"
+        if lick_idx && refresh_licks
+          lick = $licks[lick_idx]
+          all_wanted = lick[:holes]
+          ctl_response 'Refreshed licks'
+        end
         sleep 1
       else
         make_term_immediate
