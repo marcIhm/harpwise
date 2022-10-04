@@ -404,7 +404,7 @@ def text_for_key
     if $lick_iter_display
       text += "(#{$licks.length},#{$lick_iter_display})"
     else
-      text += "(#{$licks.length},random)"
+      text += "(#{$licks.length})"
     end
   end
   text += " #{$type} \e[0m#{$key}"
