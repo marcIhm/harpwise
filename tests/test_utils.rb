@@ -29,6 +29,7 @@ end
 
 def kill_session
   system "tmux kill-session -t harpwise >/dev/null 2>&1"
+  system("killall aubiopitch >/dev/null 2>&1")
 end
 
 

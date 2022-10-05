@@ -541,7 +541,7 @@ do_test 'id-17: mode licks with initial lickfile' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:licks]) { dump[:licks].length == 8 }
-  expect { screen[1]['licks(8,random) testing a all'] }
+  expect { screen[1]['licks(8) testing a all'] }
   kill_session
 end
 
@@ -848,7 +848,7 @@ do_test 'id-27b: change one of four of options --tags' do
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['licks(8,random)'] }
+  expect { screen[1]['licks(8)'] }
   tms 'T'
   tms '2'
   tms :ENTER
