@@ -162,7 +162,7 @@ def do_quiz_or_licks
       # cannot make_term_immediate here without spoiling $?
       if $? == 0
         make_term_immediate
-        print "\e[#{$lines[:message2]}H\e[0m\e[32mdone.\e[K"
+        print "\e[#{$lines[:message2]}H\e[0m\e[32mEditing done.\e[K"
         if lick_idx && refresh_licks
           lick = $licks[lick_idx]
           all_wanted = lick[:holes]
@@ -171,7 +171,7 @@ def do_quiz_or_licks
         sleep 1
       else
         make_term_immediate
-        puts "\e[0;101mFAILED !\e[0m\e[k"
+        puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
         puts "Press any key to continue ...\e[K"
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
