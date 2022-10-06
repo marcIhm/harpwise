@@ -123,8 +123,12 @@ def find_and_check_dirs
                  else
                    "#{Dir.home}/.#{File.basename($0)}"
                  end
-                   
-  FileUtils.mkdir_p($dirs[:data]) unless File.directory?($dirs[:data])
+
+  unless File.exist?($dirs[:data])
+    err "Directory #{$dirs[:data]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[:data]}) + "\nplease check, correct and retry" unless File.directory?($dirs[:data])
+    FileUtils.mkdir_p($dirs[:data])
+  end
+    
 
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
