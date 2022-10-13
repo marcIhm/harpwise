@@ -253,7 +253,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
                    else
                      'vol %ddb' % volume
                    end                  
-    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{volume_clause}"
+    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{volume_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     return false if $testing
     _, _, wait_thr  = Open3.popen2(cmd)

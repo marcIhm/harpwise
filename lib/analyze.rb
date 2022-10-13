@@ -147,7 +147,7 @@ def diff_semitones key1, key2, strategy = :minimum_distance
     dsemi -= 12 if dsemi > 6
     dsemi += 12 if dsemi < -6
   elsif strategy == :g_is_lowest
-    semis.map! {|s| s >= @semi_for_g ? s - 12 : s}
+    semis.map! {|s| s < @semi_for_g ? s + 12 : s}
     dsemi = semis[0] - semis[1]
   else
     fail "Internal error: unknown strategy #{strategy}"
