@@ -93,7 +93,8 @@ do_test 'id-01: start without dot_harpwise' do
   tms 'harpwise'
   tms :ENTER
   sleep 2
-  expect {File.directory?($dotdir_testing) && File.exist?($config_ini_testing)}
+  expect {File.directory?($dotdir_testing)}
+  expect {File.exist?($config_ini_testing)}
   kill_session
 end
 

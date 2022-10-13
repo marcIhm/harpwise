@@ -124,8 +124,9 @@ def find_and_check_dirs
                    "#{Dir.home}/.#{File.basename($0)}"
                  end
 
-  unless File.exist?($dirs[:data])
-    err "Directory #{$dirs[:data]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[:data]}) + "\nplease check, correct and retry" unless File.directory?($dirs[:data])
+  if File.exist?($dirs[:data])
+    err "Directory #{$dirs[:data]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[:data]} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?($dirs[:data])
+  else
     FileUtils.mkdir_p($dirs[:data])
   end
     
