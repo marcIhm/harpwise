@@ -1040,7 +1040,7 @@ def read_tags_and_refresh_licks curr_lick, all
 
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
   cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
-                        curr_lick[:tags].each_with_index.map {|t,i| "#{i+1}.#{t}"} + ['//'] + all_tags,
+                        curr_lick[:tags].each_with_index.map {|t,i| "#{i+1})#{t}"} + ['//'] + all_tags,
                         ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
   topt = '--' + tag_opt.o2str
   opof = "(or part of or 1,2,..; current value is '#{$opts[tag_opt]}')"
