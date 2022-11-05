@@ -293,7 +293,7 @@ def handle_kb_play_recording
 end
 
 
-def handle_kb_listen
+def handle_kb_mic
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -321,6 +321,9 @@ def handle_kb_listen
   elsif char == 'T' && $ctl_can[:named]
     $ctl_mic[:change_tags] = :all
     text = 'All Tags'
+  elsif char == 'R' && $ctl_can[:named]
+    $ctl_mic[:reverse_holes] = :all
+    text = 'Reverse'
   elsif char == '>' && $ctl_can[:octave]
     $ctl_mic[:octave] = :up
     text = 'Octave up'

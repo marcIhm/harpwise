@@ -45,7 +45,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     return if lambda_skip && lambda_skip.call()
 
-    pipeline_catch_up if handle_kb_listen
+    pipeline_catch_up if handle_kb_mic
 
     # restores also default text after a while
     ctl_response
@@ -299,19 +299,19 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         clear_area_comment
-        puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-        puts "     .: replay current recording          ,: replay, holes only"
+        puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for modes licks and quiz):\e[0m\e[32m\n"
+        puts "     .: replay current                    ,: replay, holes only"
         puts "   :;p: replay but ignore '--partial'"
-        puts "   RET: next sequence             BACKSPACE: previous sequence"
+        puts "   RET: next sequence or lick     BACKSPACE: previous sequence"
         puts "     i: toggle '--immediate'              l: loop current sequence"
         puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
-        puts "     #: toggle track progress in seq"
+        puts "     #: toggle track progress in seq      R: play holes reverse"
         if $ctl_can[:named]
           puts "\e[0mType any key to show more help ...\e[K"
           $ctl_kb_queue.clear
           $ctl_kb_queue.deq
           clear_area_comment
-          puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
+          puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for mode licks):\e[0m\e[32m\n"
           puts "   n: switch to lick by name           e: edit lickfile"
           puts " t,T: change one/any of options --tags"
           puts "   <: shift lick down by one octave    >: shift lick up"
@@ -382,7 +382,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       set_global_musical_vars
     end
 
-    return if [:named_lick, :edit_lick_file, :change_tags, :switch_modes].any? {|k| $ctl_mic[k]}
+    return if [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
 
     if $ctl_mic[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"

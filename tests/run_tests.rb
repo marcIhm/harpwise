@@ -464,7 +464,16 @@ do_test 'id-14: play a lick' do
   kill_session
 end
 
-do_test 'id-14a: check lick processing on tags.add and desc.add' do
+do_test 'id-14a: play a lick reverse' do
+  new_session
+  tms 'harpwise play testing a mape --reverse'
+  tms :ENTER
+  sleep 2
+  expect { screen[5]['-2 +2 -1'] }
+  kill_session
+end
+
+do_test 'id-14b: check lick processing on tags.add and desc.add' do
   new_session
   tms 'harpwise play testing a mape'
   tms :ENTER
@@ -542,7 +551,7 @@ do_test 'id-17: mode licks with initial lickfile' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:licks]) { dump[:licks].length == 8 }
-  expect { screen[1]['licks(8) testing a all'] }
+  expect { screen[1]['licks(8) testing a blues'] }
   kill_session
 end
 
@@ -774,7 +783,7 @@ do_test 'id-24: comment with scales and octave shifts' do
   tms 'harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --start-with juke'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b1   -2/.    -3//.      -3.1     -4.b1    -4.b1'] }
+  expect { screen[15]['-1.b1   -2/   -3//     -3.1     -4.b1    -4.b1'] }
   tms '>'
   sleep 2
   expect { screen[15]['*-4.b1  -6.b   -7.1   -8.b1  -8.b1'] }
@@ -783,6 +792,18 @@ do_test 'id-24: comment with scales and octave shifts' do
   tms '<'
   sleep 2
   expect { screen[15]['-1.b1  -1.b1'] }
+  kill_session
+end
+
+do_test 'id-24b: comment with reverted scale' do
+  new_session
+  tms 'harpwise licks testing --comment holes-scales --add-scales - --start-with juke'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[15]['-1.b   -2/   -3//     -3     -4.b    -4.b'] }
+  tms 'R'
+  sleep 2
+  expect { screen[15]['-4.b    -4.b    -3   -3//    -2/     -1.b'] }
   kill_session
 end
 

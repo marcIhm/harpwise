@@ -139,7 +139,7 @@ end
 
 def play_and_print_lick lick
   sleep 1 if $ctl_rec[:loop_loop]
-  if lick[:rec] && !$opts[:holes]
+  if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
     print "\e[0m\e[2m"
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
@@ -147,8 +147,13 @@ def play_and_print_lick lick
     print "\e[0m"
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
   else
-    puts "Lick #{lick[:name]} (h for help)"
-    play_holes lick[:holes], true, true
+    if $opts[:reverse]
+      puts "Lick #{lick[:name]} in reverse (h for help)"
+      play_holes lick[:holes].reverse, true, true
+    else
+      puts "Lick #{lick[:name]} (h for help)"
+      play_holes lick[:holes], true, true
+    end
   end
   puts
 end

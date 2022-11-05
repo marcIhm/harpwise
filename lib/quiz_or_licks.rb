@@ -202,6 +202,10 @@ def do_quiz_or_licks
       $ctl_mic[:change_tags] = false
       print "\e[#{$lines[:key]}H\e[k" + text_for_key
 
+    elsif $ctl_mic[:reverse_holes]
+
+      all_wanted = all_wanted.reverse
+
     elsif $ctl_mic[:replay]
       
       # nothing to do here, replay will happen at start of next loop
@@ -341,7 +345,9 @@ def do_quiz_or_licks
         fit_into_comment(lines) if lines
       end
 
-      if $mode == :quiz || !lick[:rec] || $ctl_mic[:ignore_recording] || ($opts[:holes] && !$ctl_mic[:ignore_holes])
+      if $mode == :quiz || !lick[:rec] || $ctl_mic[:ignore_recording] ||
+         (all_wanted == lick[:holes].reverse) ||
+         ($opts[:holes] && !$ctl_mic[:ignore_holes])
         play_holes all_wanted, oride_l_message2
       else
         play_recording lick, oride_l_message2, octave_shift
@@ -358,7 +364,7 @@ def do_quiz_or_licks
     end
 
     # reset controls before listening
-    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:reverse_holes] = $ctl_mic[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -524,7 +530,7 @@ def do_quiz_or_licks
           return
         end
         
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :edit_lick_file, :change_tags].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
 
       end # notes in a sequence
       
@@ -555,7 +561,9 @@ def do_quiz_or_licks
                   'octave up'
                 elsif $ctl_mic[:octave] == :down
                   'octave down'
-                elsif [:named_lick, :edit_lick_file, :change_tags, :change_partial].any? {|k| $ctl_mic[k]}
+                elsif $ctl_mic[:reverse_holes] == :down
+                  'octave down'
+                elsif [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial].any? {|k| $ctl_mic[k]}
                   # these will issue their own message
                   nil
                 else
@@ -575,7 +583,7 @@ def do_quiz_or_licks
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :edit_lick_file, :change_tags].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -583,7 +591,7 @@ def do_quiz_or_licks
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :edit_lick_file, :change_tags].all? {|k| !$ctl_mic[k]}  # looping over one sequence
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}  # looping over one sequence
 
     print_mission ''
     oride_l_message2 = nil
@@ -848,9 +856,14 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
       lines << ''
       line = '   '
     end
+    mb_w_dot = if hole_scale[2].strip.length > 0
+                 '.' + hole_scale[2]
+               else
+                 ' '
+               end
     line += " \e[0m" +
             if idx < idx_first_active
-              ' ' + "\e[0m\e[2m" + hole_scale[0] + hole_scale[1] + '.' + hole_scale[2]
+              ' ' + "\e[0m\e[2m" + hole_scale[0] + hole_scale[1] + mb_w_dot
             else
               hole_scale[0] +
                 if idx == idx_first_active
@@ -859,7 +872,7 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
                   ' '
                 end +
                 sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1],true)) +
-                hole_scale[1] + "\e[0m\e[2m" + '.' + hole_scale[2]
+                hole_scale[1] + "\e[0m\e[2m" + mb_w_dot
             end
   end
   lines << line

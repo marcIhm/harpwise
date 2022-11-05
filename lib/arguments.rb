@@ -62,7 +62,8 @@ def parse_arguments
         auto: %w(--auto),
         hole: %w(--hole)}],
      [Set[:licks, :play], {
-        holes: %w(--holes)}],
+        holes: %w(--holes),
+        reverse: %w(--reverse)}],
      [Set[:licks, :play, :report], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
@@ -248,20 +249,17 @@ def parse_arguments
   # modes that do not need a scale get scale 'all'
 
   case mode
-  when :listen, :quiz
-    err("Mode '#{mode}' needs at least one argument for scale; #{for_usage}") if ARGV.length == 0
-    scale = get_scale_from_sws(ARGV.shift)
-  when :licks
+  when :listen, :quiz, :licks
     if ARGV.length > 0
       scale = get_scale_from_sws(ARGV.shift)
     else
-      scale = get_scale_from_sws('all:A')
+      scale = get_scale_from_sws('blues')
     end
   when :play, :report, :develop
-    scale = get_scale_from_sws('all:A')
+    scale = get_scale_from_sws('all:a')
   when :calibrate
     err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{for_usage}") if ARGV.length > 0
-    scale = get_scale_from_sws('all:A')
+    scale = get_scale_from_sws('all:a')
   else
     fail "Internal error"
   end

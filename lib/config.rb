@@ -43,7 +43,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
         :named_lick, :change_key, :change_scale, :change_tags, :show_help, :change_partial,
-        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file,
+        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]

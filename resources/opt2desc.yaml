@@ -108,6 +108,9 @@ min_holes:
 holes:
   - play the sequence of holes, even if a sample is available
   
+reverse:
+  - play the sequence of holes but reverse it first
+  
 start_with:
 
   - |

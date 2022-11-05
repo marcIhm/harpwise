@@ -84,8 +84,14 @@ def do_listen
 
     
     # lambda_hint
-    -> (hole) do  
-      ["\e[0m\e[2mHint: Scale has #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
+    -> (hole) do
+      ["\e[0m\e[2mHint: " +
+        if $all_scales.length == 1 || $opts[:add_no_holes]
+          "Scale has"
+        else
+          "Combined Scales have"
+        end +
+        " #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
     end,
 
     
