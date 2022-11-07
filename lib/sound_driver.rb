@@ -173,7 +173,8 @@ def arecord_to_fifo fifo
   arec_cmd = if $testing
                "cat #{$test_wav} /dev/zero >#{fifo}"
              else
-               "arecord -r #{$conf[:sample_rate]} >#{fifo} 2>/dev/null"
+               "arecord -r #{$conf[:sample_rate]} >#{fifo}" +
+                 ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
              end
   _, _, wait_thread  = Open3.popen2(arec_cmd)
   wait_thread.join

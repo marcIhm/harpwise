@@ -9,7 +9,6 @@ def do_quiz_or_licks
     prepare_term
     start_collect_freqs
   end
-
   $ctl_can[:next] = true
   $ctl_can[:loop] = true
   $ctl_can[:switch_modes] = true
