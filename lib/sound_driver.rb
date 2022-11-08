@@ -162,7 +162,7 @@ def start_collect_freqs
   num_samples = ($conf[:sample_rate] * $conf[:time_slice]).to_i
   fifo = "#{$dirs[:tmp]}/fifo_arecord_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
-  err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != "fifo"
+  err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != 'fifo'
 
   Thread.new {arecord_to_fifo(fifo)}
   Thread.new {aubiopitch_to_queue(fifo, num_samples)}
