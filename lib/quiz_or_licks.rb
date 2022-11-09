@@ -157,7 +157,7 @@ def do_quiz_or_licks
       sleep 1
       print "\e[#{$lines[:message2]}H\e[K"
       make_term_cooked
-      system("#{editor} #{$lick_file}")
+      system("#{editor} +#{lick[:lno]} #{$lick_file}")
       # cannot make_term_immediate here without spoiling $?
       if $? == 0
         make_term_immediate

@@ -24,7 +24,7 @@ def read_licks graceful = false
   vars = Hash.new
   lick = name = nil
 
-  (File.readlines(lfile) << '[default]').each do |line|  # trigger checks for new lick even at end of file
+  (File.readlines(lfile) << '[default]').each_with_index do |line, idx|  # trigger checks for new lick even at end of file
     line.chomp!
     line.gsub!(/#.*/,'')
     line.strip!
@@ -83,6 +83,7 @@ def read_licks graceful = false
       end
       lick = Hash.new
       lick[:name] = nname
+      lick[:lno] = idx + 1
 
     # [empty section]
     elsif line.match?(/^ *\[\] *$/)
