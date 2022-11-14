@@ -611,9 +611,8 @@ def get_sample num
 
   what = Array.new(num)
   for i in (1 .. num - 1)
-    ran = rand
     tries = 0
-    if ran > 0.7
+    if rand > 0.7
       what[i] = :nearby
       begin
         try_semi = $harp[holes[i-1]][:semi] + rand(-6 .. 6)
