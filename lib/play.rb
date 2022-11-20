@@ -73,12 +73,12 @@ def do_play to_play
   if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
     err "Cannot use option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
   end
-  
+
+  special << $opts[:doiter].to_sym if $opts[:doiter]
+
   if special.include?(:iterate) && special.include?(:cycle)
     err "Cannot use special words 'iterate' and 'cycle' at the same time"
   end
-
-  puts
 
   #
   #  Actually play
