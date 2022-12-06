@@ -68,7 +68,7 @@ def do_quiz_or_licks
 
     # For licks, the calculation of next one has these cases:
     # - switching back to mode from listen
-    # - ctl-command that takes us back
+    # - ctl-command that take us back
     # - requests for a named lick
     # - change
     # - iteration
@@ -76,7 +76,8 @@ def do_quiz_or_licks
     
     # handle $ctl-commands from keyboard-thread, that probably come
     # from a previous loop iteration or from other mode
-    # The else-branch further down handles the general case without $ctl-commands
+    # The else-branch further down handles the general case without
+    # $ctl-commands
     if $other_mode_saved[:lick_idx]
       lick_idx = $other_mode_saved[:lick_idx]
       lick = $licks[lick_idx]
@@ -241,8 +242,8 @@ def do_quiz_or_licks
       print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
       $message_shown_at = Time.now.to_f
 
-    else # most general case: no $ctl-command. E.g. first or next
-         # sequence or $ctl_mic[:next]: go to the next sequence
+    else # most general case: no $ctl-command or $ctl_mic[:next]. Go
+         # to the next sequence
 
       all_wanted_before = all_wanted
       lick_idx_before = lick_idx
@@ -273,7 +274,7 @@ def do_quiz_or_licks
           end
           lick_idx = lick_idx_iter
 
-        # most general case: choose random lick
+        # no iteration: choose random lick
         elsif !start_with 
 
           if lick_idx_before
@@ -286,8 +287,10 @@ def do_quiz_or_licks
             lick_idx_iter = 0
             $lick_iter_display = $opts[:doiter]
           end
+          
         # start lick iteration
         elsif $conf[:abbrevs_for_iter].include?(start_with)
+
           lick_cycle = ( start_with[0] == 'c' )
           lick_idx_iter = 0
           lick_idx = lick_idx_iter
