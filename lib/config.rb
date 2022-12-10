@@ -25,6 +25,7 @@ def set_global_vars_early
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
                               :pref_sig_def => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
+                              :tags_any => :to_str,
                               :add_scales => :empty2nil}
   
   #
@@ -228,6 +229,8 @@ def set_global_vars_late
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
   $star_file = $star_file_template % $type
+  $term_immediate = false
+  $term_kb_handler = nil
 end
 
 

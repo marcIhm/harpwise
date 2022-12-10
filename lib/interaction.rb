@@ -199,7 +199,6 @@ end
 
 
 def sane_term
-  system("stty cooked")
   system("stty sane")
   print "\e[?25h"  # show cursor
 end
@@ -214,7 +213,7 @@ end
 
 
 def start_kb_handler
-  @kb_handler = Thread.new do
+  $term_kb_handler = Thread.new do
     loop do
       $ctl_kb_queue.enq STDIN.getc
     end
@@ -224,12 +223,11 @@ end
 
 
 def stop_kb_handler
-  @kb_handler.exit if @kb_handler
+  $term_kb_handler.kill.join if $term_kb_handler
 end
 
 
 def make_term_immediate
-  return if $term_immediate
   prepare_term
   start_kb_handler
   $term_immediate = true
@@ -237,7 +235,6 @@ end
 
 
 def make_term_cooked
-  return unless $term_immediate
   stop_kb_handler
   sane_term
   $term_immediate = false

@@ -18,13 +18,11 @@ def do_quiz_or_licks
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   $write_journal = true
   journal_start
-  
+
+  to_play = PlayController.new
   oride_l_message2 = nil
-  all_wanted_before = all_wanted = nil
   $all_licks, $licks = read_licks
-  lick = lick_idx = lick_idx_before = lick_idx_iter = $lick_iter_display = nil
-  lick_cycle = false
-  octave_shift = 0
+  $lick_iter_display = nil
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
 
   # write banner, provide smooth animation
@@ -40,7 +38,6 @@ def do_quiz_or_licks
     # complete term init
     make_term_immediate
   end
-
       
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -60,9 +57,9 @@ def do_quiz_or_licks
     #
 
     # check, if lick-file has changed
-    if lick_idx && refresh_licks
-      lick = $licks[lick_idx]
-      all_wanted = lick[:holes]
+    if to_play[:lick_idx] && refresh_licks
+      to_play[:lick] = $licks[to_play[:lick_idx]]
+      to_play[:all_wanted] = to_play[:lick][:holes]
       ctl_response 'Refreshed licks'
     end
 
@@ -79,252 +76,90 @@ def do_quiz_or_licks
     # The else-branch further down handles the general case without
     # $ctl-commands
     if $other_mode_saved[:lick_idx]
-      lick_idx = $other_mode_saved[:lick_idx]
-      lick = $licks[lick_idx]
-      all_wanted = lick[:holes]
+      to_play[:lick_idx] = $other_mode_saved[:lick_idx]
+      to_play[:lick] = $licks[to_play[:lick_idx]]
+      to_play[:all_wanted] = to_play[:lick][:holes]
       $other_mode_saved[:lick_idx] = nil
-      lick_idx_before = nil
+      to_play[:lick_idx_before] = nil
+
     elsif $other_mode_saved[:all_wanted]
-      all_wanted = $other_mode_saved[:all_wanted]
+      to_play[:all_wanted] = $other_mode_saved[:all_wanted]
       $other_mode_saved[:all_wanted] = nil
-    elsif $ctl_mic[:back] 
-      if lick
-        if !lick_idx_before || lick_idx_before == lick_idx
-          print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
-          sleep 1
-        else
-          lick_idx = lick_idx_before
-          lick = $licks[lick_idx]
-          all_wanted = lick[:holes]
-        end
-      else
-        if !all_wanted_before || all_wanted_before == all_wanted
-          print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
-          sleep 1
-        else
-          all_wanted = all_wanted_before
-        end
-      end
-      $ctl_mic[:loop] = true
 
+    elsif $ctl_mic[:back]
+      to_play.back_one_lick
+      
     elsif $ctl_mic[:named_lick]  # can only happen for mode licks
-
-      make_term_cooked
-      input = matching = nil
-
-      old_licks = get_last_lick_idxs_from_journal($licks)
-      lnames_abbr = old_licks[0,12].each_with_index.map do |lick_idx,ar_idx|
-        case ar_idx
-        when 0
-          ' l:'
-        when (1..9)
-          "#{ar_idx + 1}l:"
-        else
-          '    '
-        end + $licks[lick_idx][:name]
-      end
-      cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
-                            ["current lick is #{lick[:name]}"]
-      cmnt_print_prompt 'Please enter', 'Name of new lick',
-                        '(or part of or l,2l,..)'
-                           
-      input = STDIN.gets&.chomp || ''
+      to_play.read_name_change_lick
       
-      if (md = input.match(/^(\dlast|\dl)$/)) || (md = input.match(/^(\d)$/)) || input == 'last' || input == 'l'
-        # one of last licks requested
-        lick_idx_before = lick_idx 
-        lick_idx = old_licks[md  ?  md[1].to_i - 1  :  0]
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-      else
-        matching = read_lick_name(input, lick_idx)
-        if lick_idx != matching[1]
-          lick_idx_before = lick_idx 
-          lick = matching[0]
-          lick_idx = matching[1]
-          all_wanted = lick[:holes]
-          do_write_journal = true
-        end
-      end
-      lick_idx_iter = $lick_iter_display = nil
-
-      make_term_immediate
-      $ctl_mic[:named_lick] = false
-
     elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
+      to_play.edit_lick
 
-      editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
-      print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{$lick_file} with: \e[0m#{editor}\e[k"
-      sleep 1
-      print "\e[#{$lines[:message2]}H\e[K"
-      make_term_cooked
-      system("#{editor} +#{lick[:lno]} #{$lick_file}")
-      # cannot make_term_immediate here without spoiling $?
-      if $? == 0
-        make_term_immediate
-        print "\e[#{$lines[:message2]}H\e[0m\e[32mEditing done.\e[K"
-        if lick_idx && refresh_licks
-          lick = $licks[lick_idx]
-          all_wanted = lick[:holes]
-          ctl_response 'Refreshed licks'
-        end
-        sleep 1
-      else
-        make_term_immediate
-        puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
-        puts "Press any key to continue ...\e[K"
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-      end
-        
-      $ctl_mic[:redraw] = :silent
-      $ctl_mic[:edit_lick_file] = false
-      
     elsif $ctl_mic[:change_tags]  # can only happen in licks
-      
-      doiter = read_tags_and_refresh_licks(lick,
-                                           $ctl_mic[:change_tags] == :all ? true : false)
-      if doiter == :keep
-        # keep iteration state
-      elsif doiter
-        # we treat iter like cycle
-        lick_cycle = true
-        lick_idx_before = lick_idx = 0
-        lick_idx_iter = lick_idx
-        lick = $licks[lick_idx]
-        $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
-      else
-        lick_idx_before = lick_idx = rand($licks.length)
-        lick_idx_iter = $lick_iter_display = nil
-        lick = $licks[lick_idx]
-      end
-      all_wanted = lick[:holes]
-      $ctl_mic[:change_tags] = false
-      print "\e[#{$lines[:key]}H\e[k" + text_for_key
+      to_play.change_tags
 
     elsif $ctl_mic[:reverse_holes]
+      to_play[:all_wanted] = to_play[:all_wanted].reverse
 
-      all_wanted = all_wanted.reverse
-
-    elsif $ctl_mic[:replay]
-      
-      # nothing to do here, replay will happen at start of next loop
+    elsif $ctl_mic[:replay]      
+      # nothing to do here, (re)playing will happen further down
 
     elsif $ctl_mic[:octave]
-
-      octave_shift_was = octave_shift
-      octave_shift += ( $ctl_mic[:octave] == :up  ?  +1  :  -1 )
-      all_wanted_was = all_wanted
-      all_wanted = lick[:holes].map do |hole|
-        if musical_event?(hole) || octave_shift == 0
-          hole
-        else
-          $semi2hole[$harp[hole][:semi] + 12 * octave_shift] || '(*)'
-        end
-      end
-      if all_wanted.reject {|h| musical_event?(h)}.length == 0
-        print "\e[#{$lines[:hint_or_message]}H\e[0;101mShifting lick by (one more) octave does not produce any playable notes.\e[0m\e[K"
-        print "\e[#{$lines[:message2]}HPress any key to continue ... "
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-        print "\e[#{$lines[:hint_or_message]}H\e[K\e[#{$lines[:message2]}H\e[K"
-        all_wanted = all_wanted_was
-        octave_shift = octave_shift_was
-        sleep 2
-      else
-        print "\e[#{$lines[:hint_or_message]}H\e[2mOctave shift \e[0m#{octave_shift}\e[K"
-        $message_shown_at = Time.now.to_f
-      end
+      to_play[:octave_shift_was] = to_play[:octave_shift]
+      to_play[:octave_shift] += ( $ctl_mic[:octave] == :up  ?  +1  :  -1 )
+      to_play.change_octave
 
     elsif $ctl_mic[:change_partial]
-
       read_and_set_partial
       print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
       $message_shown_at = Time.now.to_f
 
-    else # most general case: no $ctl-command or $ctl_mic[:next]. Go
-         # to the next sequence
+    else # most general case: $ctl_mic[:next] or no $ctl-command;
+         # go to the next lick or sequence of holes
 
-      all_wanted_before = all_wanted
-      lick_idx_before = lick_idx
-      octave_shift = 0
+      to_play[:all_wanted_before] = to_play[:all_wanted]
+      to_play[:lick_idx_before] = to_play[:lick_idx]
+      to_play[:octave_shift] = 0
 
       do_write_journal = true
 
       # figure out holes to play
       if $mode == :quiz
+        to_play[:all_wanted] = get_sample($num_quiz)
+        jtext = to_play[:all_wanted].join(' ')
 
-        all_wanted = get_sample($num_quiz)
-        jtext = all_wanted.join(' ')
+      else # $mode == :licks
+        # ongoing iteration
+        if to_play[:lick_idx_iter]
+          to_play.continue_with_iteration
 
-      else # licks
-
-        # continue with iteration through licks
-        if lick_idx_iter 
-          lick_idx_iter += 1
-          if lick_idx_iter >= $licks.length
-            if lick_cycle
-              lick_idx_iter = 0
-              ctl_response 'Next cycle'
-            else
-              print "\e[#{$lines[:message2]}H\e[K"
-              puts "\nIterated through licks.\n\n"
-              exit
-            end
-          end
-          lick_idx = lick_idx_iter
-
-        # no iteration: choose random lick
-        elsif !start_with 
-
-          if lick_idx_before
-            # avoid playing the same lick twice in a row
-            lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
-          else
-            lick_idx = rand($licks.length)
-          end
-          if $opts[:doiter] 
-            lick_idx_iter = 0
-            $lick_iter_display = $opts[:doiter]
-          end
+        # no iteration and no lick to start with
+        elsif !start_with
+          to_play.choose_random_lick
           
-        # start lick iteration
+        # start iteration from first lick on
         elsif $conf[:abbrevs_for_iter].include?(start_with)
-
-          lick_cycle = ( start_with[0] == 'c' )
-          lick_idx_iter = 0
-          lick_idx = lick_idx_iter
+          to_play[:lick_cycle] = ( start_with[0] == 'c' )
+          to_play[:lick_idx_iter] = 0
+          to_play[:lick_idx] = to_play[:lick_idx_iter]
           $lick_iter_display = $conf[:abbrevs_for_iter_2_long][start_with[0]]
+
+        # start with lick from history
         elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
-          lick_idx = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
+          to_play[:lick_idx] = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
 
-        # search lick by name and maybe start iteration          
+        # no special case for start_with, so search lick by name and maybe start iteration          
         else
-          doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
-          if doiter
-            lick_cycle = ( doiter[1] == 'c' )
-            start_with[-doiter.length .. -1] = ''
-          end
+          to_play.choose_lick_by_name(start_with)
 
-          lick_idx = $licks.index {|l| l[:name] == start_with}
-          err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless lick_idx
+        end
 
-          if doiter
-            lick_idx_iter = lick_idx
-            $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
-          end
-        end # continue with iteration through licks
-
+        # only valid for first loop
         start_with = nil
-
-        #
-        # now that we have a lick-index, we get the lick and its holes
-        #
         
-        lick = $licks[lick_idx]
-        all_wanted = lick[:holes]
-        jtext = sprintf('Lick %s: ', lick[:name]) + all_wanted.join(' ')
-
+        to_play[:lick] = $licks[to_play[:lick_idx]]
+        to_play[:all_wanted] = to_play[:lick][:holes]
+        jtext = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
       end
 
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
@@ -343,16 +178,16 @@ def do_quiz_or_licks
 
       # show later comment already while playing
       unless oride_l_message2
-        lines = comment_while_playing(all_wanted)
+        lines = comment_while_playing(to_play[:all_wanted])
         fit_into_comment(lines) if lines
       end
 
-      if $mode == :quiz || !lick[:rec] || $ctl_mic[:ignore_recording] ||
-         (all_wanted == lick[:holes].reverse) ||
+      if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
+         (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
          ($opts[:holes] && !$ctl_mic[:ignore_holes])
-        play_holes all_wanted, oride_l_message2
+        play_holes to_play[:all_wanted], oride_l_message2
       else
-        play_recording lick, oride_l_message2, octave_shift
+        play_recording to_play[:lick], oride_l_message2, to_play[:octave_shift]
       end
 
       if $ctl_rec[:replay]
@@ -389,9 +224,9 @@ def do_quiz_or_licks
     # precompute some values, that do not change during sequence
     min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
 
-    holes_with_scales = scaleify(all_wanted) if $opts[:comment] == :holes_scales
-    holes_with_intervals = intervalify(all_wanted) if $opts[:comment] == :holes_intervals
-    holes_with_notes = noteify(all_wanted) if $opts[:comment] == :holes_notes
+    holes_with_scales = scaleify(to_play[:all_wanted]) if $opts[:comment] == :holes_scales
+    holes_with_intervals = intervalify(to_play[:all_wanted]) if $opts[:comment] == :holes_intervals
+    holes_with_notes = noteify(to_play[:all_wanted]) if $opts[:comment] == :holes_notes
 
     #
     #  Now listen for user to play the sequence back correctly
@@ -404,7 +239,7 @@ def do_quiz_or_licks
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
       
-      all_wanted.each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
+      to_play[:all_wanted].each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
 
         hole_start = Time.now.to_f
         pipeline_catch_up
@@ -414,13 +249,13 @@ def do_quiz_or_licks
           # lambda_mission
           -> () do
             if $ctl_mic[:loop]
-              "\e[32mLoop\e[0m at #{idx+1} of #{all_wanted.length} notes"
+              "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else
               if $num_quiz == 1 
                 "Play the note you have heard !"
               else
                 "Play note \e[32m#{idx+1}\e[0m of" +
-                  " #{all_wanted.length} you have heard !"
+                  " #{to_play[:all_wanted].length} you have heard !"
               end
             end
           end,
@@ -431,7 +266,7 @@ def do_quiz_or_licks
                                $ctl_mic[:forget] ||
                                ((played == wanted || musical_event?(wanted)) &&
                                 (Time.now.to_f - since >= min_sec_hold )),
-                               idx > 0 && played == all_wanted[idx-1] && played != wanted]}, 
+                               idx > 0 && played == to_play[:all_wanted][idx-1] && played != wanted]}, 
 
           # lambda_skip
           -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]},  
@@ -446,18 +281,18 @@ def do_quiz_or_licks
               comment_cache = 
                 case $opts[:comment]
                 when :holes_some
-                  largify(all_wanted, idx)
+                  largify(to_play[:all_wanted], idx)
                 when :holes_scales
-                  holes_with_scales ||= scaleify(all_wanted)
+                  holes_with_scales ||= scaleify(to_play[:all_wanted])
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, idx)
                 when :holes_intervals
-                  holes_with_intervals ||= intervalify(all_wanted)
+                  holes_with_intervals ||= intervalify(to_play[:all_wanted])
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, idx)
                 when :holes_notes
-                  holes_with_notes ||= noteify(all_wanted)
+                  holes_with_notes ||= noteify(to_play[:all_wanted])
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_notes, idx)
                 when :holes_all
-                  wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], all_wanted, idx)
+                  wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], to_play[:all_wanted], idx)
                 else
                   fail "Internal error unknown comment style: #{$opts[:comment]}"
                 end
@@ -475,19 +310,19 @@ def do_quiz_or_licks
                           "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}"
                         else
                           if idx > 0
-                            isemi, itext, _, _ = describe_inter(wanted, all_wanted[idx - 1])
+                            isemi, itext, _, _ = describe_inter(wanted, to_play[:all_wanted][idx - 1])
                             "\e[0mHint:\e[2m Move " + ( itext ? "a \e[0m\e[32m#{itext}" : "\e[0m\e[32m#{isemi}" )
                           else
                             ''
                           end
                         end
             if $mode == :licks
-              [ lick[:name],
-                lick[:tags].map do |t|
-                  t == 'starred'  ?  "#{$starred[lick[:name]] || 0}*#{t}"  :  t
+              [ to_play[:lick][:name],
+                to_play[:lick][:tags].map do |t|
+                  t == 'starred'  ?  "#{$starred[to_play[:lick][:name]] || 0}*#{t}"  :  t
                 end.join(','),
                 hole_hint,
-                lick[:desc] ]
+                to_play[:lick][:desc] ]
             else
               [ hole_hint ]
             end
@@ -504,15 +339,15 @@ def do_quiz_or_licks
           # lambda_star_lick
           if $mode == :licks
             -> (delta) do
-              $starred[lick[:name]] += delta
-              startag = if $starred[lick[:name]] > 0
+              $starred[to_play[:lick][:name]] += delta
+              startag = if $starred[to_play[:lick][:name]] > 0
                           'starred'
-                        elsif $starred[lick[:name]] < 0
+                        elsif $starred[to_play[:lick][:name]] < 0
                           'unstarred'
                         end
-              %w(starred unstarred).each {|t| lick[:tags].delete(t)}
-              lick[:tags] << startag if startag
-              $starred.delete([lick[:name]]) if $starred[lick[:name]] == 0
+              %w(starred unstarred).each {|t| to_play[:lick][:tags].delete(t)}
+              to_play[:lick][:tags] << startag if startag
+              $starred.delete([to_play[:lick][:name]]) if $starred[to_play[:lick][:name]] == 0
               File.write($star_file, YAML.dump($starred))
               print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mWrote #{$star_file}\e[K"
               $message_shown_at = Time.now.to_f
@@ -520,14 +355,14 @@ def do_quiz_or_licks
           else
             nil
           end
-        )  # end of get_hole
+        )  # end of handle_holes
 
         
         if $ctl_mic[:switch_modes]
           if $mode == :licks
-            $other_mode_saved[:lick_idx] = lick_idx
+            $other_mode_saved[:lick_idx] = to_play[:lick_idx]
           else
-            $other_mode_saved[:all_wanted] = all_wanted
+            $other_mode_saved[:all_wanted] = to_play[:all_wanted]
           end
           return
         end
@@ -599,7 +434,8 @@ def do_quiz_or_licks
     oride_l_message2 = nil
   end # forever sequence after sequence
 end
-      
+
+
 $sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
@@ -1001,7 +837,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
 end
   
 
-def read_lick_name input, curr_lick_idx
+def match_lick_name input, curr_lick_idx
   curr_lick = $licks[curr_lick_idx]
   begin
     matching = $licks.map.with_index.select {|li| li[0][:name][input]}
@@ -1183,5 +1019,206 @@ def animate_splash_line
   3.times do
     puts
     sleep 0.01
+  end
+end
+
+
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_idx_iter, :lick_cycle, :octave_shift, :octave_shift_was)
+
+  def initialize
+    self[:octave_shift] = 0
+  end
+
+  
+  def read_name_change_lick
+    make_term_cooked
+    input = matching = nil
+
+    old_licks = get_last_lick_idxs_from_journal($licks)
+    lnames_abbr = old_licks[0,12].each_with_index.map do |lick_idx,ar_idx|
+      case ar_idx
+      when 0
+        ' l:'
+      when (1..9)
+        "#{ar_idx + 1}l:"
+      else
+        '    '
+      end + $licks[lick_idx][:name]
+    end
+    cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
+                          ["current lick is #{self[:lick][:name]}"]
+    cmnt_print_prompt 'Please enter', 'Name of new lick',
+                      '(or part of or l,2l,..)'    
+
+    input = STDIN.gets&.chomp || ''
+    
+    if (md = input.match(/^(\dlast|\dl)$/)) || (md = input.match(/^(\d)$/)) || input == 'last' || input == 'l'
+      # one of last licks requested
+      self[:lick_idx_before] = self[:lick_idx] 
+      self[:lick_idx] = old_licks[md  ?  md[1].to_i - 1  :  0]
+      self[:lick] = $licks[self[:lick_idx]]
+      self[:all_wanted] = self[:lick][:holes]
+    else
+      matching = match_lick_name(input, self[:lick_idx])
+      if self[:lick_idx] != matching[1]
+        self[:lick_idx_before] = self[:lick_idx] 
+        self[:lick_idx] = matching[1]
+        self[:lick] = matching[0]
+        self[:all_wanted] = self[:lick][:holes]
+        do_write_journal = true
+      end
+    end
+    self[:lick_idx_iter] = $lick_iter_display = nil
+    
+    make_term_immediate
+    $ctl_mic[:named_lick] = false
+    
+  end
+
+
+  def back_one_lick
+    if self[:lick]
+      if !self[:lick_idx_before] || self[:lick_idx_before] == self[:lick_idx]
+        print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
+        sleep 1
+      else
+        self[:lick_idx] = self[:lick_idx_before]
+        self[:lick] = $licks[self[:lick_idx]]
+        self[:all_wanted] = self[:lick][:holes]
+      end
+    else
+      if !self[:all_wanted_before] || self[:all_wanted_before] == self[:all_wanted]
+        print "\e[G\e[0m\e[32mNo previous sequence; replay\e[K"
+        sleep 1
+      else
+        self[:all_wanted] = self[:all_wanted_before]
+      end
+    end
+    $ctl_mic[:loop] = true
+  end
+
+
+  def edit_lick
+    editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
+    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{$lick_file} with: \e[0m#{editor}\e[k"
+    sleep 1
+    print "\e[#{$lines[:message2]}H\e[K"
+    make_term_cooked
+    system("#{editor} +#{self[:lick][:lno]} #{$lick_file}")
+    # note: we cannot make_term_immediate in this line without spoiling $?
+    if $? == 0
+      make_term_immediate
+      print "\e[#{$lines[:message2]}H\e[0m\e[32mEditing done.\e[K"
+      if self[:lick_idx] && refresh_licks
+        self[:lick] = $licks[self[:lick_idx]]
+        self[:all_wanted] = self[:lick][:holes]
+        ctl_response 'Refreshed licks'
+      end
+      sleep 1
+    else
+      make_term_immediate
+      puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
+      puts "Press any key to continue ...\e[K"
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+    end
+    
+    $ctl_mic[:redraw] = :silent
+    $ctl_mic[:edit_lick_file] = false
+  end
+
+
+  def change_tags
+    doiter = read_tags_and_refresh_licks(self[:lick],
+                                         $ctl_mic[:change_tags] == :all ? true : false)
+    if doiter == :keep
+    # keep iteration state
+    elsif doiter
+      # we treat iter like cycle
+      self[:lick_cycle] = true
+      self[:lick_idx_before] = self[:lick_idx] = 0
+      self[:lick_idx_iter] = self[:lick_idx]
+      self[:lick] = $licks[self[:lick_idx]]
+      $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
+    else
+      self[:lick_idx_before] = self[:lick_idx] = rand($licks.length)
+      self[:lick_idx_iter] = $lick_iter_display = nil
+      self[:lick] = $licks[self[:lick_idx]]
+    end
+    self[:all_wanted] = self[:lick][:holes]
+    $ctl_mic[:change_tags] = false
+    print "\e[#{$lines[:key]}H\e[k" + text_for_key
+  end
+
+
+  def change_octave
+    all_wanted_was = self[:all_wanted]
+    self[:all_wanted] = self[:lick][:holes].map do |hole|
+      if musical_event?(hole) || self[:octave_shift] == 0
+        hole
+      else
+        $semi2hole[$harp[hole][:semi] + 12 * self[:octave_shift]] || '(*)'
+      end
+    end
+    if self[:all_wanted].reject {|h| musical_event?(h)}.length == 0
+      print "\e[#{$lines[:hint_or_message]}H\e[0;101mShifting lick by (one more) octave does not produce any playable notes.\e[0m\e[K"
+      print "\e[#{$lines[:message2]}HPress any key to continue ... "
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      print "\e[#{$lines[:hint_or_message]}H\e[K\e[#{$lines[:message2]}H\e[K"
+      self[:all_wanted] = all_wanted_was
+      self[:octave_shift] = self[:octave_shift_was]
+      sleep 2
+    else
+      print "\e[#{$lines[:hint_or_message]}H\e[2mOctave shift \e[0m#{self[:octave_shift]}\e[K"
+      $message_shown_at = Time.now.to_f
+    end
+  end
+
+
+  def continue_with_iteration 
+    self[:lick_idx_iter] += 1
+    if self[:lick_idx_iter] >= $licks.length
+      if self[:lick_cycle]
+        self[:lick_idx_iter] = 0
+        ctl_response 'Next cycle'
+      else
+        print "\e[#{$lines[:message2]}H\e[K"
+        puts "\nIterated through licks.\n\n"
+        exit
+      end
+    end
+    self[:lick_idx] = self[:lick_idx_iter]
+  end
+
+
+  def choose_random_lick
+    if self[:lick_idx_before]
+      # avoid playing the same lick twice in a row
+      self[:lick_idx] = (self[:lick_idx] + 1 + rand($licks.length - 1)) % $licks.length
+    else
+      self[:lick_idx] = rand($licks.length)
+    end
+    if $opts[:doiter] 
+      self[:lick_idx_iter] = 0
+      $lick_iter_display = $opts[:doiter]
+    end
+  end
+
+
+  def choose_lick_by_name start_with
+    doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
+    if doiter
+      self[:lick_cycle] = ( doiter[1] == 'c' )
+      start_with[-doiter.length .. -1] = ''
+    end
+    
+    self[:lick_idx] = $licks.index {|l| l[:name] == start_with}
+    err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless self[:lick_idx]
+    
+    if doiter
+      self[:lick_idx_iter] = self[:lick_idx]
+      $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
+    end
   end
 end

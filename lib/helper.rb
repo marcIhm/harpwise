@@ -189,7 +189,7 @@ def truncate_text text, len
 end
 
 
-def bbg # prepare byebug
+def dbg # prepare byebug
   make_term_cooked
   print "\e[0m"
   require 'byebug'

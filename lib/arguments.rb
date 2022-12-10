@@ -110,7 +110,7 @@ def parse_arguments
       opts[k] ||= $conf[k]
     end
   end
-  
+
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
@@ -141,7 +141,7 @@ def parse_arguments
       ARGV.delete_at(i)
       if odet[1]
         opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{for_usage}")
-        # convert options as described for configs; only one exception
+        # convert options as described for configs
         opts[osym] = opts[osym].send($conf_meta[:conversions][osym] || :num_or_str) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)
       else

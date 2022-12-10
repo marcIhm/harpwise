@@ -87,7 +87,7 @@ end
 
 print "Testing"
 
-do_test 'id-01: start without dot_harpwise' do
+do_test 'id-1: start without dot_harpwise' do
   FileUtils.rm_r $dotdir_testing if File.exist?($dotdir_testing)
   new_session
   tms 'harpwise'
@@ -104,7 +104,7 @@ FileUtils.rm $config_ini_saved if File.exist?($config_ini_saved)
 FileUtils.cp $config_ini_testing, $config_ini_saved
 ensure_dotdir_testing
 
-do_test 'id-01a: config.ini, user prevails' do
+do_test 'id-1a: config.ini, user prevails' do
   File.write $config_ini_testing, <<~end_of_content
   [any-mode]
     key = a    
@@ -122,7 +122,7 @@ do_test 'id-01a: config.ini, user prevails' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01b: config.ini, mode prevails' do
+do_test 'id-1b: config.ini, mode prevails' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     key = a    
@@ -140,7 +140,7 @@ do_test 'id-01b: config.ini, mode prevails' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01c: config.ini, set loop (example for boolean)' do
+do_test 'id-1c: config.ini, set loop (example for boolean)' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     loop = false
@@ -158,7 +158,7 @@ do_test 'id-01c: config.ini, set loop (example for boolean)' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01d: config.ini, unset loop with option' do
+do_test 'id-1d: config.ini, unset loop with option' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     loop = true
@@ -175,7 +175,7 @@ do_test 'id-01d: config.ini, unset loop with option' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01e: config.ini, take default key from config' do
+do_test 'id-1e: config.ini, take default key from config' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     key = a
@@ -190,7 +190,7 @@ do_test 'id-01e: config.ini, take default key from config' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01f: config.ini, take key from commandline' do
+do_test 'id-1f: config.ini, take key from commandline' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     key = c
@@ -205,7 +205,7 @@ do_test 'id-01f: config.ini, take key from commandline' do
   ensure_config_ini_testing
 end
 
-do_test 'id-01g: config.ini, set value in config and clear again on commandline' do
+do_test 'id-1g: config.ini, set value in config and clear again on commandline' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     add_scales = major_pentatonic
@@ -221,7 +221,7 @@ do_test 'id-01g: config.ini, set value in config and clear again on commandline'
 end
 
 usage_types.keys.each_with_index do |mode, idx|
-  do_test "id-u%02d: usage screen mode #{mode}" % idx do
+  do_test "id-1h#{idx}: usage screen mode #{mode}" do
     new_session
     tms "harpwise #{usage_types[mode][1]}"
     tms :ENTER
@@ -240,7 +240,7 @@ usage_types.keys.each_with_index do |mode, idx|
 end
 
 %w(a c).each_with_index do |key,idx|
-  do_test "id-g#{idx}: auto-calibration key of #{key}" do
+  do_test "id-1g#{idx}: auto-calibration key of #{key}" do
     new_session
     tms "harpwise calib testing #{key} --auto"
     tms :ENTER
@@ -252,7 +252,7 @@ end
   end
 end
 
-do_test 'id-02: manual calibration' do
+do_test 'id-2: manual calibration' do
   sound 10, -14
   new_session
   tms 'harpwise calib testing g'
@@ -266,7 +266,7 @@ do_test 'id-02: manual calibration' do
   kill_session
 end
 
-do_test 'id-03: manual calibration summary' do
+do_test 'id-3: manual calibration summary' do
   new_session
   tms 'harpwise calib testing a'
   tms :ENTER
@@ -277,7 +277,7 @@ do_test 'id-03: manual calibration summary' do
   kill_session
 end
 
-do_test 'id-04: manual calibration starting at hole' do
+do_test 'id-4: manual calibration starting at hole' do
   sound 1, -14
   new_session
   tms 'harpwise calib testing a --hole +4'
@@ -294,7 +294,7 @@ do_test 'id-04: manual calibration starting at hole' do
   kill_session
 end
 
-do_test 'id-05: check against et' do
+do_test 'id-5: check against et' do
   sound 1, 10
   new_session
   tms 'harpwise calib testing c --hole +4'
@@ -309,7 +309,7 @@ do_test 'id-05: check against et' do
   kill_session
 end
 
-do_test 'id-06: listen' do
+do_test 'id-6: listen' do
   sound 8, 2
   journal_file = "#{$dotdir_testing}/journal_mode_listen.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
@@ -324,7 +324,7 @@ do_test 'id-06: listen' do
   kill_session
 end
 
-do_test 'id-06a: listen and change display and comment' do
+do_test 'id-6a: listen and change display and comment' do
   sound 20, 2
   new_session
   tms 'harpwise listen testing a all --ref +2'
@@ -342,7 +342,7 @@ do_test 'id-06a: listen and change display and comment' do
   kill_session
 end
 
-do_test 'id-07: change key of harp' do
+do_test 'id-7: change key of harp' do
   ensure_config_ini_testing
   new_session
   tms 'harpwise listen testing a all'
@@ -357,7 +357,7 @@ do_test 'id-07: change key of harp' do
   kill_session
 end
 
-do_test 'id-08: listen with merged scale' do
+do_test 'id-8: listen with merged scale' do
   new_session
   tms 'harpwise listen testing a blues --add-scales chord-v,chord-i'
   tms :ENTER
@@ -366,7 +366,7 @@ do_test 'id-08: listen with merged scale' do
   kill_session
 end
 
-do_test 'id-09: listen with removed scale' do
+do_test 'id-9: listen with removed scale' do
   new_session
   tms 'harpwise listen testing a all --remove drawbends'
   tms :ENTER
@@ -376,7 +376,7 @@ do_test 'id-09: listen with removed scale' do
   kill_session
 end
 
-do_test 'id-09a: error on ambigous option' do
+do_test 'id-9a: error on ambigous option' do
   new_session
   tms 'harpwise listen testing a all --r drawbends'
   tms :ENTER
@@ -385,7 +385,7 @@ do_test 'id-09a: error on ambigous option' do
   kill_session
 end
 
-do_test 'id-0a: mode licks to create simple lick file' do
+do_test 'id-9b: mode licks to create simple lick file' do
   lick_dir = "#{$dotdir_testing}/licks/testing"
   lick_file = "#{lick_dir}/licks_with_holes.txt"
   FileUtils.rm_r lick_dir if File.exist?(lick_dir)
@@ -460,7 +460,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play testing a mape'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-1 +2 -2'] }
+  expect { screen[4]['-1 +2 -2'] }
   kill_session
 end
 
@@ -469,7 +469,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play testing a mape --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-2 +2 -1'] }
+  expect { screen[4]['-2 +2 -1'] }
   kill_session
 end
 
@@ -499,8 +499,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play testing a juke'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick juke'] }
-  expect { screen[5]['-1 -2/ -3// -3 -4'] }
+  expect { screen[3]['Lick juke'] }
+  expect { screen[4]['-1 -2/ -3// -3 -4'] }
   expect { File.exist?(journal_file) }
   kill_session
 end
@@ -519,7 +519,7 @@ do_test 'id-16: play some holes and notes' do
   tms 'harpwise play testing a -1 a5 +4'
   tms :ENTER
   sleep 2
-  expect { screen[4]['-1 +7 +4'] }
+  expect { screen[3]['-1 +7 +4'] }
   kill_session
 end
 
@@ -537,10 +537,10 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play testing a cycle'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick juke'] }
+  expect { screen[3]['Lick juke'] }
   tms :ENTER
   sleep 2
-  expect { screen[13]['Lick special'] }
+  expect { screen[12]['Lick special'] }
   kill_session
 end
 
@@ -601,7 +601,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
-do_test 'id-1a: error on unknown names in --tags' do
+do_test 'id-20: error on unknown names in --tags' do
   new_session
   tms 'harpwise licks testing --tags-any unknown a'
   tms :ENTER
@@ -610,7 +610,7 @@ do_test 'id-1a: error on unknown names in --tags' do
   kill_session
 end
 
-do_test 'id-1b: mode licks with --start-with' do
+do_test 'id-21: mode licks with --start-with' do
   new_session
   tms 'harpwise licks testing --start-with juke a'
   tms :ENTER
@@ -620,7 +620,7 @@ do_test 'id-1b: mode licks with --start-with' do
   kill_session
 end
 
-do_test 'id-1c: print list of tags' do
+do_test 'id-22: print list of tags' do
   new_session
   tms 'harpwise report testing --tags-any fav licks'
   tms :ENTER
@@ -631,7 +631,7 @@ do_test 'id-1c: print list of tags' do
   kill_session
 end
 
-do_test 'id-1d: print list of licks' do
+do_test 'id-23: print list of licks' do
   new_session
   tms "harpwise report testing licks >#{$testing_output_file}"
   tms :ENTER
@@ -644,7 +644,7 @@ do_test 'id-1d: print list of licks' do
   kill_session
 end
 
-do_test 'id-1e: iterate through licks' do
+do_test 'id-24: iterate through licks' do
   new_session
   tms 'harpwise licks testing --start-with iterate'
   tms :ENTER
@@ -660,7 +660,7 @@ do_test 'id-1e: iterate through licks' do
   kill_session
 end
 
-do_test 'id-1f: cycle through licks' do
+do_test 'id-25: cycle through licks' do
   new_session
   tms 'harpwise licks testing --start-with cycle'
   tms :ENTER
@@ -674,7 +674,7 @@ do_test 'id-1f: cycle through licks' do
   kill_session
 end
 
-do_test 'id-1g: iterate from one lick through to end' do
+do_test 'id-26: iterate from one lick through to end' do
   new_session
   tms 'harpwise licks testing --start-with special,iter'
   tms :ENTER
@@ -692,7 +692,7 @@ do_test 'id-1g: iterate from one lick through to end' do
   kill_session
 end
 
-do_test 'id-1h: cycle through licks from starting point' do
+do_test 'id-27: cycle through licks from starting point' do
   new_session
   tms 'harpwise licks testing --start-with special,cycle'
   tms :ENTER
@@ -706,7 +706,7 @@ do_test 'id-1h: cycle through licks from starting point' do
   kill_session
 end
 
-do_test 'id-1i: iterate triggered by tags' do
+do_test 'id-28: iterate triggered by tags' do
   new_session
   tms 'harpwise licks testing -t fav,iter'
   tms :ENTER
@@ -715,7 +715,7 @@ do_test 'id-1i: iterate triggered by tags' do
   kill_session
 end
 
-do_test 'id-20: back one lick' do
+do_test 'id-29: back one lick' do
   new_session
   tms 'harpwise licks testing --start-with juke'
   tms :ENTER
@@ -730,7 +730,7 @@ do_test 'id-20: back one lick' do
   kill_session
 end
 
-do_test 'id-21: use option --partial' do
+do_test 'id-30: use option --partial' do
   new_session
   tms 'harpwise licks testing --start-with juke --partial 1@b'
   tms :ENTER
@@ -740,7 +740,7 @@ do_test 'id-21: use option --partial' do
   kill_session
 end
 
-do_test 'id-21a: use option --partial' do
+do_test 'id-31: use option --partial' do
   new_session
   tms 'harpwise licks testing --start-with juke --partial 1@b'
   tms :ENTER
@@ -750,7 +750,7 @@ do_test 'id-21a: use option --partial' do
   kill_session
 end
 
-do_test 'id-22: use option --partial and --holes' do
+do_test 'id-32: use option --partial and --holes' do
   new_session
   tms 'harpwise licks testing --start-with juke --holes --partial 1@b'
   tms :ENTER
@@ -760,7 +760,7 @@ do_test 'id-22: use option --partial and --holes' do
   kill_session
 end
 
-do_test 'id-23: display as chart with scales' do
+do_test 'id-33: display as chart with scales' do
   new_session
   tms 'harpwise listen testing blues:b --add-scales chord-i:1 --display chart-scales'
   tms :ENTER
@@ -769,7 +769,7 @@ do_test 'id-23: display as chart with scales' do
   kill_session
 end
 
-do_test 'id-23a: error with double shortname for scales' do
+do_test 'id-33a: error with double shortname for scales' do
   new_session
   tms 'harpwise listen testing blues:b --add-scales chord-i:b --display chart-scales'
   tms :ENTER
@@ -778,7 +778,7 @@ do_test 'id-23a: error with double shortname for scales' do
   kill_session
 end
 
-do_test 'id-24: comment with scales and octave shifts' do
+do_test 'id-34: comment with scales and octave shifts' do
   new_session
   tms 'harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --start-with juke'
   tms :ENTER
@@ -795,7 +795,7 @@ do_test 'id-24: comment with scales and octave shifts' do
   kill_session
 end
 
-do_test 'id-24b: comment with reverted scale' do
+do_test 'id-34b: comment with reverted scale' do
   new_session
   tms 'harpwise licks testing --comment holes-scales --add-scales - --start-with juke'
   tms :ENTER
@@ -807,7 +807,7 @@ do_test 'id-24b: comment with reverted scale' do
   kill_session
 end
 
-do_test 'id-25: comment with all holes' do
+do_test 'id-35: comment with all holes' do
   new_session
   tms 'harpwise lic testing blues:b --add-scales chord-i:1 --comment holes-all --start-with juke'
   tms :ENTER
@@ -816,7 +816,7 @@ do_test 'id-25: comment with all holes' do
   kill_session
 end
 
-do_test 'id-26: display as chart with intervals' do
+do_test 'id-36: display as chart with intervals' do
   new_session
   tms 'harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2 --start-with juke'
   tms :ENTER
@@ -826,7 +826,7 @@ do_test 'id-26: display as chart with intervals' do
   kill_session
 end
 
-do_test 'id-26a: display as chart with notes' do
+do_test 'id-36a: display as chart with notes' do
   new_session
   tms 'harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2 --start-with juke'
   tms :ENTER
@@ -836,7 +836,7 @@ do_test 'id-26a: display as chart with notes' do
   kill_session
 end
 
-do_test 'id-27: change lick by name' do
+do_test 'id-37: change lick by name' do
   new_session
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
@@ -846,11 +846,11 @@ do_test 'id-27: change lick by name' do
   tms 'special'
   tms :ENTER
   sleep 2
-  expect { screen[-2]['special'] }
+  expect { screen[-2]['special |'] }
   kill_session
 end
 
-do_test 'id-27a: change first of options --tags' do
+do_test 'id-37a: change first of options --tags' do
   new_session
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
@@ -865,7 +865,7 @@ do_test 'id-27a: change first of options --tags' do
   kill_session
 end
 
-do_test 'id-27b: change one of four of options --tags' do
+do_test 'id-37b: change one of four of options --tags' do
   new_session
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
@@ -883,7 +883,7 @@ do_test 'id-27b: change one of four of options --tags' do
   kill_session
 end
 
-do_test 'id-27c: change partial' do
+do_test 'id-37c: change partial' do
   new_session
   tms 'harpwise lick testing blues --start-with juke'
   tms :ENTER
@@ -899,7 +899,7 @@ do_test 'id-27c: change partial' do
   kill_session
 end
 
-do_test 'id-28: error on ambigous mode' do
+do_test 'id-38: error on ambigous mode' do
   new_session
   tms 'harpwise li testing blues'
   tms :ENTER
@@ -908,7 +908,7 @@ do_test 'id-28: error on ambigous mode' do
   kill_session
 end
 
-do_test 'id-29: error on mode memorize' do
+do_test 'id-39: error on mode memorize' do
   new_session
   tms 'harpwise memo testing blues'
   tms :ENTER
@@ -917,7 +917,7 @@ do_test 'id-29: error on mode memorize' do
   kill_session
 end
 
-do_test 'id-30: handling a very long lick' do
+do_test 'id-40: handling a very long lick' do
   new_session
   tms 'harpwise lick testing blues --start-with long --comment holes-all'
   tms :ENTER
@@ -934,7 +934,7 @@ do_test 'id-30: handling a very long lick' do
   kill_session
 end
 
-do_test 'id-31: abbreviated scale' do
+do_test 'id-41: abbreviated scale' do
   new_session
   tms 'harpwise licks testing bl'
   tms :ENTER
@@ -944,7 +944,7 @@ do_test 'id-31: abbreviated scale' do
 end
 
 usage_examples.each_with_index do |ex,idx|
-  do_test "id-e%02d: usage #{ex}" % idx do
+  do_test "id-41a%d: usage #{ex}" % idx do
     new_session
     tms ex + ''
     tms :ENTER
@@ -954,7 +954,7 @@ usage_examples.each_with_index do |ex,idx|
   end
 end
 
-do_test 'id-32: error on journal in play' do
+do_test 'id-42: error on journal in play' do
   new_session
   tms 'harpwise play testing journal'
   tms :ENTER
@@ -963,7 +963,7 @@ do_test 'id-32: error on journal in play' do
   kill_session
 end
 
-do_test 'id-33: error on print in licks' do
+do_test 'id-43: error on print in licks' do
   new_session
   tms 'harpwise licks testing --tags-any print'
   tms :ENTER
@@ -972,7 +972,7 @@ do_test 'id-33: error on print in licks' do
   kill_session
 end
 
-do_test 'id-34: switch between modes licks and listen' do
+do_test 'id-44: switch between modes licks and listen' do
   new_session
   tms 'harpwise licks testing a'
   tms :ENTER
@@ -987,7 +987,7 @@ do_test 'id-34: switch between modes licks and listen' do
   kill_session
 end
 
-do_test 'id-34a: switch between modes quiz and listen' do
+do_test 'id-44a: switch between modes quiz and listen' do
   new_session
   tms 'harpwise quiz 3 blues'
   tms :ENTER
@@ -1002,7 +1002,7 @@ do_test 'id-34a: switch between modes quiz and listen' do
   kill_session
 end
 
-do_test 'id-35: star and unstar a lick' do
+do_test 'id-45: star and unstar a lick' do
   starred_file = Dir.home + '/dot_harpwise_testing/licks/testing/starred.yaml'
   FileUtils.rm starred_file if File.exist?(starred_file)  
   new_session
@@ -1024,7 +1024,7 @@ do_test 'id-35: star and unstar a lick' do
   expect(stars) { stars['juke'] == 2 }
 end
 
-do_test 'id-36: show lick starred in previous invocation' do
+do_test 'id-46: show lick starred in previous invocation' do
   new_session
   tms 'harpwise report testing starred'
   tms :ENTER
@@ -1033,7 +1033,7 @@ do_test 'id-36: show lick starred in previous invocation' do
   kill_session
 end
 
-do_test 'id-36a: verify persistent tag "starred"' do
+do_test 'id-46a: verify persistent tag "starred"' do
   new_session
   tms 'harpwise report testing licks | head -20'
   tms :ENTER
@@ -1042,7 +1042,7 @@ do_test 'id-36a: verify persistent tag "starred"' do
   kill_session
 end
 
-do_test "id-37: chromatic; auto-calibration key of a" do
+do_test "id-47: chromatic; auto-calibration key of a" do
   new_session
   tms 'harpwise calib testing2 a --auto'
   tms :ENTER
@@ -1053,7 +1053,7 @@ do_test "id-37: chromatic; auto-calibration key of a" do
   kill_session
 end
 
-do_test 'id-38: chromatic; listen' do
+do_test 'id-48: chromatic; listen' do
   sound 8, 2
   new_session 92, 30
   tms 'harpwise listen testing2 a all --add-scales - --display chart-notes'
@@ -1063,10 +1063,10 @@ do_test 'id-38: chromatic; listen' do
   kill_session
 end
 
-do_test 'id-39: edit lickfile' do
+do_test 'id-49: edit lickfile' do
   ENV['EDITOR']='vi'
   new_session
-  tms 'harpwise licks testing blues'
+  tms 'harpwise licks testing blues --start-with juke'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'e'

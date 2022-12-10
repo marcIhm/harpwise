@@ -15,7 +15,6 @@ def read_licks graceful = false
   # directory may just have been created when getting lick_file
   File.write($star_file, YAML.dump(Hash.new)) unless File.exist?($star_file)
   ($starred = Hash.new {|h,k| h[k] = 0}).merge! yaml_parse($star_file)
-  
   all_licks = []
   licks = nil
   derived = []
