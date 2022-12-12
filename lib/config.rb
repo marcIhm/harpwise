@@ -11,7 +11,7 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks play report calibrate develop)
+  $early_conf[:modes] = %w(listen quiz licks play report calibrate tools develop)
 
   # expectations for config-file
   $conf_meta = Hash.new

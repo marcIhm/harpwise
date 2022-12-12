@@ -25,7 +25,9 @@ def parse_arguments
     err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information; note, that mode 'develop' is only useful for the maintainer or developer of harpwise."
   end.to_sym
   ARGV.shift
-  for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
+
+  # needed for other modes too
+  $for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
 
 
   #
@@ -129,8 +131,8 @@ def parse_arguments
     if matching.keys.length > 1
       err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
     elsif matching.keys.length == 0
-      if mode != :play && mode != :report
-         err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{for_usage}"
+      if ![:play, :report, :tools].include?(mode)
+         err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{$for_usage}"
        else
          i += 1
        end
@@ -140,7 +142,7 @@ def parse_arguments
       odet = opts_all[matching.keys[0]]
       ARGV.delete_at(i)
       if odet[1]
-        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{for_usage}")
+        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{$for_usage}")
         # convert options as described for configs
         opts[osym] = opts[osym].send($conf_meta[:conversions][osym] || :num_or_str) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)
@@ -158,20 +160,20 @@ def parse_arguments
   # Special handling for some options
   #
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
-    err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{for_usage}"
+    err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
   end&.o2sym
   
   opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
-    err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{for_usage}"
+    err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
   end&.o2sym
   
   if opts[:max_holes]
-    err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'; #{for_usage}" unless opts[:max_holes].to_s.match?(/^\d+$/)
+    err "Option '--max-holes' needs an integer argument, not '#{opts[:max_holes]}'; #{$for_usage}" unless opts[:max_holes].to_s.match?(/^\d+$/)
     opts[:max_holes] = opts[:max_holes].to_i
   end
     
   if opts[:min_holes]
-    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{for_usage}" unless opts[:min_holes].match?(/^\d+$/)
+    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{$for_usage}" unless opts[:min_holes].match?(/^\d+$/)
     opts[:min_holes] = opts[:min_holes].to_i
   end
 
@@ -179,7 +181,7 @@ def parse_arguments
   opts[:loop] = false if opts[:no_loop]
 
   if opts[:transpose_scale_to]
-    err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to])
+    err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{$for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to])
     opts[:add_scales] = nil
   end
 
@@ -203,7 +205,7 @@ def parse_arguments
 
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
-  err("Unknown options: #{other_opts.join(',')}; #{for_usage}") if other_opts.length > 0 && mode != :play && mode != :report
+  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 && ![:play, :report, :tools].include?(mode)
 
 
   # In any case, mode quiz requires a numeric argument right after the
@@ -212,7 +214,7 @@ def parse_arguments
   if mode == :quiz
     $num_quiz = ARGV[0].to_i
     if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'; #{for_usage}"
+      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'; #{$for_usage}"
     end
     ARGV.shift
   end
@@ -230,6 +232,11 @@ def parse_arguments
   type ||= $conf[:type]
   $type = type
 
+  # Handle special case; convert 'harpwise tools transpose c g'
+  #                         into 'harpwise tools c transpose g'
+  if mode == :tools && ARGV.length >= 3 && 'transpose'.start_with?(ARGV[0]) && $conf[:all_keys].include?(ARGV[1]) &&  $conf[:all_keys].include?(ARGV[2])
+    ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
+  end
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   key ||= $conf[:key]
   check_key_and_set_pref_sig(key)
@@ -239,7 +246,7 @@ def parse_arguments
   # type and key) are things to play or keywords; a scale is not allowed,
   # so we do this before processing the scale
 
-  if mode == :play || mode == :report || mode == :develop
+  if [:play, :report, :tools, :develop].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
@@ -255,19 +262,19 @@ def parse_arguments
     else
       scale = get_scale_from_sws('blues')
     end
-  when :play, :report, :develop
+  when :play, :report, :develop, :tools
     scale = get_scale_from_sws('all:a')
   when :calibrate
-    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{for_usage}") if ARGV.length > 0
+    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{$for_usage}") if ARGV.length > 0
     scale = get_scale_from_sws('all:a')
   else
     fail "Internal error"
   end
   
-  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{for_usage}" unless !$scale || scales_for_type(type).include?(scale)
+  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{$for_usage}" unless !$scale || scales_for_type(type).include?(scale)
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}; #{for_usage}" if ARGV.length > 0 && mode != :play && mode != :licks
+  err "Cannot handle these arguments: #{ARGV}; #{$for_usage}" if ARGV.length > 0 && mode != :play && mode != :licks
   $err_binding = nil
 
   # Commandline processing is complete here
@@ -329,7 +336,7 @@ def print_usage_info mode = nil, opts = nil
   types_content = get_types_content
 
   puts
-  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).chomp
+  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/\n+\Z/,'')
   
   if opts
     puts "\nAVAILABLE OPTIONS\n\n"
