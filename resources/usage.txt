@@ -19,6 +19,7 @@ specifies the mode of operation; it can be one of:
     played
   - calibrate: Wise generates samples for holes, or assists in
     recording your own
+  - tools: A collection of simple, non-interactive tools
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.

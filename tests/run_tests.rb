@@ -50,7 +50,7 @@ fail "Could not parse term size from lib/config.rb" unless $term_min_width && $t
 #
 # Collect usage examples and later check, that none of them produces string error
 #
-usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :report].map do |t|
+usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :report, :tools].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -70,7 +70,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c juke' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 26
+num_exp = 30
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -232,7 +232,8 @@ usage_types.keys.each_with_index do |mode, idx|
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [-8, 'this number of holes'],
-                     'report' => [-6, 'on every invocation']}
+                     'report' => [-6, 'on every invocation'],
+                     'tools' => [-14, 'harmonica chart for the key']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -1074,6 +1075,30 @@ do_test 'id-49: edit lickfile' do
   expect { screen[2]['Library of licks used in modes licks or play'] }
   kill_session
   ENV.delete('EDITOR')
+end
+
+do_test 'id-50: tools positions' do
+  new_session
+  tms 'harpwise tools positions'
+  tms :ENTER
+  expect { screen[1]['Af'] }
+  kill_session
+end
+
+do_test 'id-51: tools transpose' do
+  new_session
+  tms 'harpwise tools transpose c g -1'
+  tms :ENTER
+  expect { screen[2]['c and g is -5'] }
+  kill_session
+end
+
+do_test 'id-52: tools chart' do
+  new_session
+  tms 'harpwise tools chart f'
+  tms :ENTER
+  expect { screen[5]['f4   a4   c5   f5'] }
+  kill_session
 end
 
 puts "\ndone.\n\n"

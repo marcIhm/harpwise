@@ -4,16 +4,18 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(positions transpose)
+  tools_allowed = %w(positions transpose chart)
   tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
     err "Argument for mode 'tools' must be one of #{choices}, no #{none}; #{$for_usage}"
   end
 
   case tool
   when 'positions'
-    tool_positions
+    tool_positions to_handle
   when 'transpose'
     tool_transpose to_handle
+  when 'chart'
+    tool_chart to_handle
   else
     err "Unknown tool '#{tool}'; #{$for_usage}"
   end
@@ -21,7 +23,10 @@ def do_tools to_handle
 end
 
 
-def tool_positions
+def tool_positions to_handle
+
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+  
 puts <<EOCHART
 
   | Key of Song  |              |              |              |
@@ -58,7 +63,9 @@ end
 
 
 def tool_transpose to_handle
+
   err "Need at least two additional arguments: a second key and at least one hole (e.g. 'g -1'); #{to_handle.inspect} is not enough" unless to_handle.length > 1
+
   key_other = to_handle.shift
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
   to_handle.each do |hole|
@@ -87,5 +94,23 @@ EOHEAD
                      end].flatten
   end
   puts
+  puts
+end
+
+
+def tool_chart to_handle
+
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+
+  puts
+  puts
+  $charts[:chart_notes].each_with_index do |row, ridx|
+    print '  '
+    row[0 .. -2].each_with_index do |cell, cidx|
+      hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
+      print cell
+    end
+    puts "\e[0m\e[2m#{row[-1]}\e[0m"
+  end
   puts
 end

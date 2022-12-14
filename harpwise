@@ -26,6 +26,7 @@ require_relative 'lib/quiz_or_licks'
 require_relative 'lib/play'
 require_relative 'lib/report'
 require_relative 'lib/calibrate'
+require_relative 'lib/tools'
 require_relative 'lib/develop'
 
 $program_start = Time.now.to_f
@@ -136,6 +137,7 @@ begin
     do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
     sleep 1
   end
+
   case $mode
   when :quiz
     do_quiz_or_licks
@@ -153,6 +155,8 @@ begin
     else
       do_calibrate_assistant
     end
+  when :tools
+    do_tools to_handle
   when :develop
     do_develop to_handle
   end

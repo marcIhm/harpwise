@@ -1,0 +1,38 @@
+OVERVIEW
+
+  The mode 'tools' offers some non-interactive but useful utilities,
+  which are mostly related to basic harmonica theory; they do not use
+  microphone or speaker.
+
+  The required additional argument specifies the tool to run;
+  it can be one of:
+
+  - transpose: transpose a sequence of notes from one key of harp
+    to another
+  - positions: simply print out a chart of positions
+  - chart: print the usual harmonica chart with notes, matching the
+    given key
+  
+USAGE BY EXAMPLES
+
+  Transpose a sequence of notes (but specified by their hole) from
+  the key of c to g:
+
+    harpwise tools transpose c g -1 +2 -3
+
+  note, that no all notes maybe available on the harp of the new key.
+
+
+  Print the simple table of positions:
+  
+    harpwise tools positions
+    
+
+  Print a harmonica chart for the key of g
+
+    harpwise tools chart g
+
+  The same chart, but arguments rearranged
+
+    harpwise tools g chart
+    
