@@ -73,13 +73,13 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke','report chromatic licks -t favorites']
+known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke','report chromatic licks -t favorites','harpwise tools print juke']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # replace some, e.g. due to my different set of licks
 repl = {'harpwise play c juke' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 30
+num_exp = 31
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 #
@@ -245,7 +245,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [-8, 'this number of holes'],
                      'report' => [-6, 'on every invocation'],
-                     'tools' => [-14, 'harmonica chart for the key']}
+                     'tools' => [-23, 'harmonica chart for the key']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -473,7 +473,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play testing a mape'
   tms :ENTER
   sleep 2
-  expect { screen[4]['-1 +2 -2'] }
+  expect { screen[5]['-1 +2 -2'] }
   kill_session
 end
 
@@ -482,7 +482,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play testing a mape --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[4]['-2 +2 -1'] }
+  expect { screen[5]['-2 +2 -1'] }
   kill_session
 end
 
@@ -512,8 +512,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play testing a juke'
   tms :ENTER
   sleep 2
-  expect { screen[3]['Lick juke'] }
-  expect { screen[4]['-1 -2/ -3// -3 -4'] }
+  expect { screen[4]['Lick juke'] }
+  expect { screen[5]['-1 -2/ -3// -3 -4'] }
   expect { File.exist?(journal_file) }
   kill_session
 end
@@ -532,7 +532,7 @@ do_test 'id-16: play some holes and notes' do
   tms 'harpwise play testing a -1 a5 +4'
   tms :ENTER
   sleep 2
-  expect { screen[3]['-1 +7 +4'] }
+  expect { screen[4]['-1 +7 +4'] }
   kill_session
 end
 
@@ -541,7 +541,7 @@ do_test 'id-16a: error on mixing licks and notes for play' do
   tms 'harpwise play testing a -1 juke'
   tms :ENTER
   sleep 1
-  expect { screen[4]['but ONLY ONE OF THEM'] }
+  expect { screen[5]['but ONLY ONE OF THEM'] }
   kill_session
 end
 
@@ -550,10 +550,10 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play testing a cycle'
   tms :ENTER
   sleep 2
-  expect { screen[3]['Lick juke'] }
+  expect { screen[4]['Lick juke'] }
   tms :ENTER
   sleep 2
-  expect { screen[12]['Lick special'] }
+  expect { screen[13]['Lick special'] }
   kill_session
 end
 
@@ -972,7 +972,7 @@ do_test 'id-42: error on journal in play' do
   tms 'harpwise play testing journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[17]['ERROR'] }
+  expect { screen[18]['ERROR'] }
   kill_session
 end
 
@@ -1110,6 +1110,14 @@ do_test 'id-52: tools chart' do
   tms 'harpwise tools chart f'
   tms :ENTER
   expect { screen[5]['f4   a4   c5   f5'] }
+  kill_session
+end
+
+do_test 'id-53: tools print' do
+  new_session
+  tms 'harpwise tools testing print juke'
+  tms :ENTER
+  expect { screen[8]['-1      -2/     -3//'] }
   kill_session
 end
 

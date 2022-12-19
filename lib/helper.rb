@@ -232,7 +232,7 @@ def cmnt_print_in_columns head, names, tail = []
     map {|nm| nm + ' '}.
     map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
     break if lns > max_lns - off_for_tail
-    if (line + nm).length > $term_width - 4 || idx == names.length - 1
+    if (line + nm).length > $term_width - 4
       if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
         line[-more.length ..] = more
         more = nil
@@ -273,4 +273,19 @@ def cmnt_print_prompt text_low, text_high, text_low2 = ''
   text_low2.prepend(' ') unless text_low2.empty?
   print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
   print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
+end
+
+
+def print_in_columns names
+  line = '  '
+  names.
+    map {|nm| nm + ' '}.
+    map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
+    if (line + nm).length > $term_width - 4
+      puts line
+      line = '  '
+    end
+    line += nm
+  end
+  puts line unless line.strip.empty?
 end

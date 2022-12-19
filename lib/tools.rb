@@ -4,7 +4,7 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(positions transpose chart)
+  tools_allowed = %w(positions transpose chart print)
   tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
     err "Argument for mode 'tools' must be one of #{choices}, no #{none}; #{$for_usage}"
   end
@@ -16,6 +16,8 @@ def do_tools to_handle
     tool_transpose to_handle
   when 'chart'
     tool_chart to_handle
+  when 'print'
+    tool_print to_handle
   else
     err "Unknown tool '#{tool}'; #{$for_usage}"
   end
@@ -112,5 +114,55 @@ def tool_chart to_handle
     end
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
+  puts
+end
+
+
+def tool_print to_handle
+  $all_licks, $licks = read_licks
+  holes, lnames, snames, special = partition_to_play_or_print(to_handle)
+  err "Cannot print these special arguments: #{special}" if special.length > 0
+  
+  puts "\nType is #{$type}, key of #{$key}."
+  puts
+  
+  if holes.length > 0
+
+    puts 'Holes given as arguments:'
+    puts
+    print_holes_and_notes holes
+
+  elsif snames.length > 0
+
+    puts 'Scales given as arguments:'
+    puts
+    snames.each do |sname|
+      puts " #{sname}:"
+      puts
+      scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+      print_holes_and_notes scale_holes
+    end
+      
+  elsif lnames.length > 0
+
+    puts 'Licks given as arguments:'
+    puts
+    lnames.each do |lname|
+      puts " #{lname}:"
+      puts
+      lick = $licks.find {|l| l[:name] == lname}
+      print_holes_and_notes lick[:holes]
+    end
+
+  end
+
+  puts
+end
+
+
+def print_holes_and_notes holes
+  print_in_columns holes
+  puts
+  print_in_columns holes.map {|h| $hole2note[h]}
   puts
 end

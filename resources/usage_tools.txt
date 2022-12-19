@@ -12,6 +12,8 @@ OVERVIEW
   - positions: simply print out a chart of positions
   - chart: print the usual harmonica chart with notes, matching the
     given key
+  - print: print contents of notes, holes, scales or licks as given
+    on commandline
   
 USAGE BY EXAMPLES
 
@@ -28,11 +30,20 @@ USAGE BY EXAMPLES
     harpwise tools positions
     
 
-  Print a harmonica chart for the key of g
+  Print a harmonica chart for the key of g:
 
     harpwise tools chart g
 
   The same chart, but arguments rearranged
 
     harpwise tools g chart
+    
+    
+  Print holes and notes of a lick:
+
+    harpwise tools print juke
+    
+  Print hole holes and notes of a scale:
+
+    harpwise tools print blues
     

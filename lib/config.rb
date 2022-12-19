@@ -362,26 +362,26 @@ def read_config_ini file, strict: true
 end
 
 
-def read_musical_config
-  hole2note_read = yaml_parse($holes_file)
-  dsemi_harp = diff_semitones($key, 'c')
+def read_and_set_musical_config
+  $hole2note_read = yaml_parse($holes_file)
+  $dsemi_harp = diff_semitones($key, 'c')
   harp = Hash.new
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
-  hole2note_read.each do |hole,note|
-    semi = note2semi(note) + dsemi_harp
+  $hole2note_read.each do |hole,note|
+    semi = note2semi(note) + $dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
                   [:semi, semi]].to_h
   end
   semis = harp.map {|hole, hash| hash[:semi]}
-  min_semi = semis.min
-  max_semi = semis.max
+  $min_semi = semis.min
+  $max_semi = semis.max
   harp_holes = harp.keys
 
   # for convenience
-  hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
-  note2hole = hole2note.invert
-  harp_notes = harp.keys.map {|h| hole2note[h]}
+  $hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
+  $note2hole = $hole2note.invert
+  harp_notes = harp.keys.map {|h| $hole2note[h]}
 
   # process scales
   if $scale
@@ -390,7 +390,7 @@ def read_musical_config
     holes_remove = []
     if $opts[:remove_scales]
       $opts[:remove_scales].split(',').each do |sn|
-        sc_ho, _ = read_and_parse_scale(sn, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+        sc_ho, _ = read_and_parse_scale(sn)
         holes_remove.concat(sc_ho)
       end
     end
@@ -399,7 +399,7 @@ def read_musical_config
     h2s_shorts = Hash.new {|h,k| h[k] = ''}
     $all_scales.each_with_index do |sname, idx|
       # read scale
-      sc_ho, h2r = read_and_parse_scale(sname, hole2note_read, hole2note, note2hole, dsemi_harp, min_semi, max_semi)
+      sc_ho, h2r = read_and_parse_scale(sname)
       # build resulting scale
       holes_remove.each {|h| sc_ho.delete(h)}
       scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
@@ -421,7 +421,7 @@ def read_musical_config
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
-    scale_notes = scale_holes.map {|h| hole2note[h]}
+    scale_notes = scale_holes.map {|h| $hole2note[h]}
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            
     semi2hole = scale_holes = scale_notes = nil
@@ -444,26 +444,13 @@ def read_musical_config
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     h2s_shorts,
     semi2hole,
-    note2hole,
-    intervals,
-    dsemi_harp]
+    intervals]
 end
 
 
-def read_and_parse_scale sname, hole2note_read, hole2note, note2hole,
-                         dsemi_harp, min_semi, max_semi
-  err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
-  glob = $scale_files_template % [$type, sname, '{holes,notes}']
-  sfiles = Dir[glob]
-  if sfiles.length != 1
-    snames = scales_for_type($type)
-    err "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
-    err "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
-  end
-  sfile = sfiles[0]
-
-  # Actually read the file
-  all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
+def read_and_parse_scale sname
+  
+  scale_holes, hole2rem, all_props, sfile = read_and_parse_scale_simple(sname)
 
   # get properties of scale; currently only :short
   props = Hash.new
@@ -484,36 +471,10 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole,
     $short2scale[short] = sname
     $scale2short[sname] = short
   end
-  
-  scale_holes = Array.new
-  hole2rem = Hash.new
 
-  # For convenience we have both hole2note and hole2note_read; they only differ,
-  # if key does not equal c; the following relation always holds true:
-  # note2semi(hole2note[h]) - note2semi(hole2note_read[h]) == note2semi($key) - note2semi('c') =: dsemi_harp
-  # Please note, that below we transpose the scale, regardless if it is written as notes or as holes.
-  dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
-  scale_read.each do |fields|
-    hole_or_note, rem = fields.split(nil,2)
-    semi = dsemi_harp + dsemi_scale + ( sfile['holes']  ?  note2semi(hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
-    if semi >= min_semi && semi <= max_semi
-      note = semi2note(semi)
-      hole = note2hole[note]
-      hole2rem[hole] = rem&.strip
-      err(
-        if $opts[:transpose_scale_to]
-          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
-        else
-          "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{min_semi} .. #{max_semi}). Please correct these files"
-        end %
-        [sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]
-      ) unless hole
-      scale_holes << hole
-    end
-  end
   
   scale_holes_with_rem = scale_holes.map {|h| "#{h} #{hole2rem[h]}".strip}
-  scale_notes_with_rem = scale_holes.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
+  scale_notes_with_rem = scale_holes.map {|h| "#{$hole2note[h]} #{hole2rem[h]}".strip}
   
   # write derived scale file
   dfile = $derived_dir + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
@@ -521,6 +482,52 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole,
   File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump([{short: $scale2short[sname]}] + (dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem)))
   
   [scale_holes, hole2rem]
+end
+
+
+def read_and_parse_scale_simple sname
+  
+  err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
+  glob = $scale_files_template % [$type, sname, '{holes,notes}']
+  sfiles = Dir[glob]
+  if sfiles.length != 1
+    snames = scales_for_type($type)
+    err "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
+    err "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
+  end
+  sfile = sfiles[0]
+
+  # Actually read the file
+  all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
+
+  scale_holes = Array.new
+  hole2rem = Hash.new
+
+  # For convenience we have both $hole2note and $hole2note_read; they only differ,
+  # if key does not equal c; the following relation always holds true:
+  # note2semi($hole2note[h]) - note2semi($hole2note_read[h]) == note2semi($key) - note2semi('c') =: $dsemi_harp
+  # Note, that below we transpose the scale, regardless if it is written as notes or as holes.
+  dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
+  scale_read.each do |fields|
+    hole_or_note, rem = fields.split(nil,2)
+    semi = $dsemi_harp + dsemi_scale + ( sfile['holes']  ?  note2semi($hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
+    if semi >= $min_semi && semi <= $max_semi
+      note = semi2note(semi)
+      hole = $note2hole[note]
+      hole2rem[hole] = rem&.strip
+      err(
+        if $opts[:transpose_scale_to]
+          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+        else
+          "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files"
+        end %
+        [sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]
+      ) unless hole
+      scale_holes << hole
+    end
+  end
+  
+  [scale_holes, hole2rem, all_props, sfile]
 end
 
 
@@ -646,7 +653,7 @@ end
 
 def set_global_musical_vars
   $all_scales = get_all_scales($opts[:add_scales])
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $note2hole, $intervals, $dsemi_harp = read_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info

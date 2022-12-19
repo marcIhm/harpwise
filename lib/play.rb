@@ -4,11 +4,6 @@
 
 def do_play to_play
   $all_licks, $licks = read_licks
-  holes = []
-  lnames = []
-  special = []
-  other = []
-  all_lnames = $licks.map {|l| l[:name]}
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
   $ctl_rec[:lick_lick] = false
@@ -18,63 +13,9 @@ def do_play to_play
   make_term_immediate
 
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
-  
-  #
-  # Partition arguments
-  #
-  
-  to_play.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
-    if musical_event?(tp)
-      holes << tp
-    elsif $harp_holes.include?(tp)
-      holes << tp
-    elsif $harp_notes.include?(tp)
-      holes << $note2hole[tp]
-    elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
-      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0] || 0][:name]
-    elsif all_lnames.include?(tp)
-      lnames << tp
-    elsif $conf[:specials_allowed_play].include?(tp)
-      special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
-    else
-      other << tp
-    end
-  end
+  puts
 
-  #
-  # Check results for consistency
-  # 
-
-  if other.length > 0
-    puts "Cannot understand these arguments: #{other};"
-    puts "they are none of:"
-    puts "- musical events in ()"
-    puts "- holes: #{$harp_holes}"
-    puts "- notes: #{$harp_notes}"
-    puts "- licks: #{all_lnames}"
-    puts "- special: #{$conf[:specials_allowed_play]}"
-    err 'See above'
-  end
-  
-  sources_count = [holes, lnames, special].select {|s| s.length > 0}.length
-  if sources_count == 0
-    puts 'Nothing to play'
-    exit
-  end
-  
-  if sources_count > 1
-    puts "The following types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
-    puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
-    puts "- licks: #{lnames}" if lnames.length > 0
-    puts "- special: #{special}" if special.length > 0
-    err 'See above'
-  end
-
-  if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
-    err "Cannot use option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
-  end
-
-  special << $opts[:doiter].to_sym if $opts[:doiter]
+  holes, lnames, snames, special = partition_to_play_or_print(to_play)
 
   if special.include?(:iterate) && special.include?(:cycle)
     err "Cannot use special words 'iterate' and 'cycle' at the same time"
@@ -88,6 +29,15 @@ def do_play to_play
 
     play_holes holes, true, true
 
+  elsif snames.length > 0
+
+    snames.each do |sname|
+      scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+      play_holes scale_holes, true, true
+      jtext = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
+      IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
+    end
+      
   elsif lnames.length > 0
 
     lnames.each do |lname|
@@ -134,6 +84,86 @@ def do_play to_play
   else
     fail "Internal error"
   end
+end
+
+
+def partition_to_play_or_print to_p
+
+  holes = []
+  lnames = []
+  snames = []
+  special = []
+  other = []
+
+  all_lnames = $licks.map {|l| l[:name]}
+  all_snames = scales_for_type($type)
+  
+  to_p.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+    if musical_event?(tp)
+      holes << tp
+    elsif $harp_holes.include?(tp)
+      holes << tp
+    elsif $harp_notes.include?(tp)
+      holes << $note2hole[tp]
+    elsif all_snames.include?(tp)
+      snames << tp
+    elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
+      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0] || 0][:name]
+    elsif all_lnames.include?(tp)
+      lnames << tp
+    elsif $conf[:specials_allowed_play].include?(tp)
+      special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
+    else
+      other << tp
+    end
+  end
+
+  #
+  # Check results for consistency
+  # 
+
+  sources_count = [holes, lnames, snames, special].select {|s| s.length > 0}.length
+
+  if other.length > 0 || sources_count == 0
+    puts
+    if other.length == 0
+      puts 'Nothing to play or print; please specify any of:'
+    else
+      puts "Cannot understand these arguments: #{other};"
+      puts 'they are none of (exact match required):'
+    end
+    puts "\n- musical events in () or []"
+    puts "\n- holes:"
+    print_in_columns $harp_holes
+    puts "\n- notes:"
+    print_in_columns $harp_notes
+    puts "\n- scales:"
+    print_in_columns all_snames
+    puts "\n- licks:"
+    print_in_columns all_lnames
+    puts "\n- special: #{$conf[:specials_allowed_play].join(',')}"
+    puts
+    exit if other.length == 0
+    err 'See above'
+  end
+  
+  if sources_count > 1
+    puts "The following types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
+    puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
+    puts "- scales: #{snames}" if snames.length > 0
+    puts "- licks: #{lnames}" if lnames.length > 0
+    puts "- special: #{special}" if special.length > 0
+    err 'See above'
+  end
+
+  if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
+    err "Cannot use option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
+  end
+
+  special << $opts[:doiter].to_sym if $opts[:doiter]
+  
+  [holes, lnames, snames, special]
+
 end
 
 
