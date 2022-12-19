@@ -21,12 +21,12 @@ end
 def task_man
   types_content = get_types_content
   
-  File.write("#{$dirs[:install]}/man/harpwise.1",
-             ERB.new(IO.read("#{$dirs[:install]}/resources/harpwise.man.erb")).result(binding).chomp)
+  File.write("#{$dirs[:install_devel]}/man/harpwise.1",
+             ERB.new(IO.read("#{$dirs[:install_devel]}/resources/harpwise.man.erb")).result(binding).chomp)
 
   puts
-  system("ls -l #{$dirs[:install]}/man/harpwise.1")
-  puts "\nTo read it:\n\n  man -l #{$dirs[:install]}/man/harpwise.1\n\n"
+  system("ls -l #{$dirs[:install_devel]}/man/harpwise.1")
+  puts "\nTo read it:\n\n  man -l #{$dirs[:install_devel]}/man/harpwise.1\n\n"
 end
 
 
@@ -58,7 +58,7 @@ def task_diff
   #
 
   # only a simple modification
-  lines[:usage] = ERB.new(IO.read("#{$dirs[:install]}/resources/usage.txt")).
+  lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/resources/usage.txt")).
                     result(binding).lines.
                     map do |l|
                       erase_line_usage_if_part.any? {|e| l.strip[e]} ? nil : l
@@ -67,7 +67,7 @@ def task_diff
                     reject(&:empty?)
 
   # long modification pipeline
-  lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install]}/man/harpwise.1).lines.
+  lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install_devel]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
                   # use only some sections of lines
                   map do |l|
