@@ -5,7 +5,8 @@
 def do_quiz_or_licks
 
   unless $other_mode_saved[:conf]
-    # do not start kb thread yet
+    # do not start kb thread yet as we need to read current cursor
+    # line from terminal below
     prepare_term
     start_collect_freqs
   end
@@ -443,7 +444,7 @@ def get_sample num
   holes = Array.new
   # favor lower starting notes
   if rand > 0.5
-    holes[0] = $scale_holes[0 .. $scale_holes.length/2].sample
+    holes[0] = $scaleb_holes[0 .. $scale_holes.length/2].sample
   else
     holes[0] = $scale_holes.sample
   end
@@ -472,7 +473,7 @@ def get_sample num
     end
   end
 
-  if $opts[:add_scales]
+  if $used_scales.length > 1
     # (randomly) replace notes with added ones and so prefer them 
     for i in (1 .. num - 1)
       if rand >= 0.6
@@ -562,7 +563,7 @@ def play_holes all_holes, oride_l_message2, terse = false
                else
                  "\e[0m#{$harp[hole][:note]}\e[2m"
                end
-      if $opts[:add_scales]
+      if $used_scales.length > 1
         part = '(' +
                $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
                ')'

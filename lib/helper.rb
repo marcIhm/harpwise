@@ -258,7 +258,6 @@ end
 def cmnt_report_error_wait_key etext
   term_immediate_was = $term_immediate
   make_term_immediate
-  # This makes the terminal scroll
   print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
   print etext
   print "\n\e[2mPress any key to continue ... \e[K"

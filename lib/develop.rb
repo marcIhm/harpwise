@@ -19,8 +19,7 @@ end
 
 
 def task_man
-  types_content = get_types_content
-  
+  types_with_scales = get_types_with_scales
   File.write("#{$dirs[:install_devel]}/man/harpwise.1",
              ERB.new(IO.read("#{$dirs[:install_devel]}/resources/harpwise.man.erb")).result(binding).chomp)
 
@@ -31,7 +30,7 @@ end
 
 
 def task_diff
-  types_content = get_types_content
+  types_with_scales = get_types_with_scales
   seen = false
 
   lines = Hash.new

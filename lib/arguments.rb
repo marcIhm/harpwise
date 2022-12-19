@@ -306,11 +306,12 @@ def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
 end
 
 
-def get_all_scales scales_w_shorts
+def get_used_scales scales_w_shorts
   scales = [$scale]
   if scales_w_shorts
     scales_w_shorts.split(',').each do |sws|
-      scales << get_scale_from_sws(sws)
+      sc = get_scale_from_sws(sws)
+      scales << sc unless scales.include?(sc)
     end
   end
   scales
@@ -335,7 +336,7 @@ end
 
 def print_usage_info mode = nil, opts = nil
   # get content of all harmonica-types to be inserted
-  types_content = get_types_content
+  types_with_scales = get_types_with_scales
 
   puts
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/\n+\Z/,'')
@@ -366,7 +367,7 @@ def print_usage_info mode = nil, opts = nil
 end
 
 
-def get_types_content
+def get_types_with_scales
   $conf[:all_types].map do |type|
     next if type == 'testing'
     txt = "scales for #{type}: "

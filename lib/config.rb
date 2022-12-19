@@ -43,7 +43,7 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
-        :named_lick, :change_key, :change_scale, :change_tags, :show_help, :change_partial,
+        :named_lick, :change_key, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
@@ -105,11 +105,13 @@ def set_global_vars_early
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
   
-  # will be populated along with $scale and $all_scales
+  # will be populated along with $scale and $used_scales
   $scale2short = Hash.new
   $short2scale = Hash.new
   $scale2short_count = 0
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
+  $term_immediate = false
+  $term_kb_handler = nil
 
 end
 
@@ -231,8 +233,6 @@ def set_global_vars_late
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"
                   end
   $star_file = $star_file_template % $type
-  $term_immediate = false
-  $term_kb_handler = nil
 end
 
 
@@ -396,8 +396,8 @@ def read_and_set_musical_config
     end
 
     scale = []
-    h2s_shorts = Hash.new {|h,k| h[k] = ''}
-    $all_scales.each_with_index do |sname, idx|
+    h2s_shorts = Hash.new('')
+    $used_scales.each_with_index do |sname, idx|
       # read scale
       sc_ho, h2r = read_and_parse_scale(sname)
       # build resulting scale
@@ -411,12 +411,10 @@ def read_and_set_musical_config
           next if $opts[:add_no_holes] && !hole2flags[h]
           hole2flags[h] << :added
         end
-        hole2flags[h] << :both if hole2flags[h].include?(:main) && hole2flags[h].include?(:added)
-        hole2flags[h] << :all if !$opts[:add_scales] || hole2flags[h].include?(:both)
         hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
         h2s_shorts[h] += $scale2short[sname]
         hole2rem[h] ||= [[],[]]
-        hole2rem[h][0] << sname if $opts[:add_scales]
+        hole2rem[h][0] << sname if $used_scales.length > 1
         hole2rem[h][1] << h2r[h]&.split(/, /)
       end
     end
@@ -434,7 +432,7 @@ def read_and_set_musical_config
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
-
+  
   [ harp,
     harp_holes,
     harp_notes,
@@ -471,7 +469,6 @@ def read_and_parse_scale sname
     $short2scale[short] = sname
     $scale2short[sname] = short
   end
-
   
   scale_holes_with_rem = scale_holes.map {|h| "#{h} #{hole2rem[h]}".strip}
   scale_notes_with_rem = scale_holes.map {|h| "#{$hole2note[h]} #{hole2rem[h]}".strip}
@@ -652,7 +649,9 @@ end
 
 
 def set_global_musical_vars
-  $all_scales = get_all_scales($opts[:add_scales])
+  $used_scales = get_used_scales($opts[:add_scales])
+  $opts[:add_scales] = nil if $used_scales.length == 1
+  $all_scales = scales_for_type($type)
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref

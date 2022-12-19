@@ -36,6 +36,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $column_short_hint_or_message = 1
         $message_shown_at = Time.now.to_f
       end
+      print $pending_message_after_redraw
+      $pending_message_after_redraw = nil
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
@@ -278,8 +280,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       puts " TAB,S-TAB,d,D: change display (upper part of screen)"
       puts "     c,C: change comment (lower, i.e. this, part of screen)"
       puts "       r: set reference to last hole sensed (not freq played)"
-      puts "       j: toggle writing of journal file"
-      puts "       k: change key of harp       s: change scale and --add-scale"
+      puts "       j: toggle journal file      k: change key of harp"
+      puts "       s: rotate scales            S: set them anew"
       puts "\e[0mType any key to show more help ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
@@ -382,6 +384,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       set_global_musical_vars
     end
 
+    if $ctl_mic[:rotate_scale]
+      do_rotate_scale_add_scales
+      $ctl_mic[:rotate_scale] = false
+      $ctl_mic[:redraw] = :silent
+      set_global_vars_late
+      set_global_musical_vars
+    end
+
     return if [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
 
     if $ctl_mic[:quit]
@@ -408,13 +418,12 @@ def text_for_key
     end
   end
   text += " #{$type} \e[0m#{$key}"
-  if $opts[:add_scales]
+  if $used_scales.length > 1
     text += "\e[0m"
     text += " \e[32m#{$scale}"
-    text += "\e[0m\e[2m," + $all_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
-    text += ",\e[0mall\e[2m"
+    text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
   else
-    text += "\e[2m #{$scale}"
+    text += "\e[32m #{$scale}\e[0m\e[2m"
   end
   text += '; journal: ' + ( $write_journal  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
@@ -475,15 +484,13 @@ def do_change_key
     end
   end while error
   make_term_immediate
-  print "\e[#{$lines[:key]}H" + text_for_key
-  print "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
   $message_shown_at = Time.now.to_f
+  "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
 end
 
 
 def do_change_scale_add_scales
   make_term_cooked
-
   # Change scale
   begin
     cmnt_print_in_columns 'First setting main scale; available scales',
@@ -508,7 +515,7 @@ def do_change_scale_add_scales
   begin
     cmnt_print_in_columns 'Now setting --add-scales; available scales',
                           $all_scales.sort,
-                          ["current value is #{$opts[:add_scales]}",
+                          ["current value is '#{$opts[:add_scales]}'",
                            'RETURN to keep, SPACE to clear']
     cmnt_print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'
     input = STDIN.gets.chomp
@@ -521,7 +528,7 @@ def do_change_scale_add_scales
     end
     input.gsub!(',',' ')
     add_scales = input.split.map do |scale|
-      match_or(input, $all_scales) do |none, choices|
+      match_or(scale, $all_scales) do |none, choices|
         error ||= "Given scale #{none} is none of #{choices}"
       end
     end
@@ -533,9 +540,17 @@ def do_change_scale_add_scales
   end while error
 
   make_term_immediate
-  print "\e[#{$lines[:key]}H" + text_for_key
-  print "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m#{$scale}\e[K"
-  $message_shown_at = Time.now.to_f  
+  $message_shown_at = Time.now.to_f
+  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
+end
+
+
+def do_rotate_scale_add_scales
+  $used_scales.rotate!
+  $scale = $used_scales[0]
+  $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
+  $message_shown_at = Time.now.to_f
+  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
 end
 
 

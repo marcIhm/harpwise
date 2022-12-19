@@ -72,8 +72,8 @@ def check_screen graceful: false
     puts "[width, height] = [#{$term_width}, #{$term_height}]"
     pp $lines
     puts "press any key to continue"
-    $ctl_kb_queue.clear
     $ctl_kb_queue.deq
+    $ctl_kb_queue.clear
   end
   return true
 end
@@ -223,7 +223,7 @@ end
 
 
 def stop_kb_handler
-  $term_kb_handler.kill.join if $term_kb_handler
+  $term_kb_handler.kill if $term_kb_handler
 end
 
 
@@ -235,8 +235,8 @@ end
 
 
 def make_term_cooked
-  stop_kb_handler
   sane_term
+  stop_kb_handler
   $term_immediate = false
 end
 
@@ -346,6 +346,9 @@ def handle_kb_mic
     $ctl_mic[:change_key] = true
     text = nil
   elsif char == 's'
+    $ctl_mic[:rotate_scale] = true
+    text = nil
+  elsif char == 'S'
     $ctl_mic[:change_scale] = true
     text = nil
   elsif char == 'q'
@@ -535,17 +538,13 @@ def get_hole_color_active hole, good, was_good, was_good_since
   if !regular_hole?(hole)
     2
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
-    if $hole2flags[hole].include?(:both)
-      0
-    elsif $hole2flags[hole].include?(:main)
+    if $hole2flags[hole].include?(:main)
       92
     else
       94
     end
   elsif was_good && (Time.now.to_f - was_good_since) < 1
-    if $hole2flags[hole].include?(:both)
-      2
-    elsif $hole2flags[hole].include?(:main)
+    if $hole2flags[hole].include?(:main)
       32
     else
       34
@@ -560,10 +559,8 @@ end
 
 def get_hole_color_inactive hole, bright = false
   if $scale_holes.include?(hole)
-    if $hole2flags[hole].include?(:all)
-      0
-    elsif $hole2flags[hole].include?(:main)
-      bright ? 92 : 32
+    if $hole2flags[hole].include?(:main)
+      32
     else
       bright ? 94 : 34
     end
