@@ -187,7 +187,7 @@ def read_licks graceful = false
   err "Some hole-sequences appear under more than one name: #{h2n.inspect}" if h2n.length > 0
   
   # write derived lick file
-  dfile = File.dirname(lfile) + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
+  dfile = $derived_dir + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
   File.open(dfile,'w') do |df|
     df.write <<~end_of_content
     

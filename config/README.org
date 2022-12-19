@@ -42,7 +42,7 @@
   notes is parsed, the same scale is written out with holes (prefixed with the
   word 'derived') and vice versa. So for example using
   scale_blues_with_holes.yaml will trigger the creation of
-  derived_scale_blues_with_notes.yaml.
+  derived_scale_blues_with_notes.yaml (within ~/.harpwise/derived)
 
 * Creating new scales for a given type
 

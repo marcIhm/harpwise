@@ -114,7 +114,6 @@ def set_global_vars_early
 end
 
 
-# will be called from tests too
 def find_and_check_dirs
   $dirs = Hash.new
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
@@ -217,6 +216,8 @@ end
 def set_global_vars_late
   $sample_dir = this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", $key.to_s)
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
+  $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
+  FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
@@ -514,7 +515,7 @@ def read_and_parse_scale sname, hole2note_read, hole2note, note2hole,
   scale_notes_with_rem = scale_holes.map {|h| "#{hole2note[h]} #{hole2rem[h]}".strip}
   
   # write derived scale file
-  dfile = File.dirname(sfile) + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
+  dfile = $derived_dir + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
   comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
   File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump([{short: $scale2short[sname]}] + (dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem)))
   

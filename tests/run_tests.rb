@@ -15,9 +15,9 @@ require 'tmpdir'
 require 'sys/proctable'
 require_relative 'test_utils.rb'
 
-# needed in config.rb but not initialized there
-$early_conf = Hash.new
-
+#
+# Set vars
+#
 $fromon = ARGV.join(' ')
 $fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
 $fromon_id_regex = '^(id-[a-z0-9]+):'
@@ -48,6 +48,15 @@ end
 fail "Could not parse term size from lib/config.rb" unless $term_min_width && $term_min_height
 
 #
+# Create read-only mount
+#
+system('sudo umount ~/harpwise 2>&1 >/dev/null')
+sys('sudo mount -o bind,ro ~/hw ~/harpwise')
+hw_abs = %x(which harpwise).chomp
+system("touch #{hw_abs} 2>/dev/null")
+fail "#{hw_abs} is writeable" if $?.success?
+
+#
 # Collect usage examples and later check, that none of them produces string error
 #
 usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :report, :tools].map do |t|
@@ -73,8 +82,11 @@ usage_examples.map! {|l| repl[l] || l}
 num_exp = 30
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
-puts "\nPreparing data"
+#
+# Prepare test data
 # individual tests may generate their own
+#
+puts "\nPreparing data"
 system("sox -n /tmp/harpwise_testing.wav synth 200.0 sawtooth 494")
 FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 # on error we tend to leave aubiopitch behind
