@@ -444,7 +444,7 @@ def get_sample num
   holes = Array.new
   # favor lower starting notes
   if rand > 0.5
-    holes[0] = $scaleb_holes[0 .. $scale_holes.length/2].sample
+    holes[0] = $scale_holes[0 .. $scale_holes.length/2].sample
   else
     holes[0] = $scale_holes.sample
   end

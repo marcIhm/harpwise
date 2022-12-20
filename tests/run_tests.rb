@@ -370,12 +370,40 @@ do_test 'id-7: change key of harp' do
   kill_session
 end
 
+do_test 'id-7a: change scale of harp' do
+  ensure_config_ini_testing
+  new_session
+  tms 'harpwise listen testing a all'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'S'
+  sleep 1
+  tms 'blues'
+  tms :ENTER
+  tms :ENTER
+  sleep 1
+  expect { screen[1]['listen testing a blues'] }
+  kill_session
+end
+
+do_test 'id-7b: rotate scale of harp' do
+  ensure_config_ini_testing
+  new_session
+  tms 'harpwise listen testing a all'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 's'
+  sleep 1
+  expect { screen[1]['listen testing a chord-i'] }
+  kill_session
+end
+
 do_test 'id-8: listen with merged scale' do
   new_session
   tms 'harpwise listen testing a blues --add-scales chord-v,chord-i'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['blues,5,1,all'] }
+  expect { screen[1]['blues,5,1'] }
   kill_session
 end
 
