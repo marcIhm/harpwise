@@ -39,7 +39,7 @@ def do_quiz_or_licks
     # complete term init
     make_term_immediate
   end
-      
+  
   loop do   # forever until ctrl-c, sequence after sequence
 
     do_write_journal = false
@@ -103,7 +103,7 @@ def do_quiz_or_licks
       to_play[:all_wanted] = to_play[:all_wanted].reverse
 
     elsif $ctl_mic[:replay]      
-      # nothing to do here, (re)playing will happen further down
+    # nothing to do here, (re)playing will happen further down
 
     elsif $ctl_mic[:octave]
       to_play[:octave_shift_was] = to_play[:octave_shift]
@@ -116,7 +116,7 @@ def do_quiz_or_licks
       $message_shown_at = Time.now.to_f
 
     else # most general case: $ctl_mic[:next] or no $ctl-command;
-         # go to the next lick or sequence of holes
+      # go to the next lick or sequence of holes
 
       to_play[:all_wanted_before] = to_play[:all_wanted]
       to_play[:lick_idx_before] = to_play[:lick_idx]
@@ -744,7 +744,7 @@ def intervalify holes
   inters = []
   holes.each_with_index do |hole,idx|
     isemi ,_ ,itext, _ = describe_inter(hole,
-                                     idx == 0 ? hole : holes[idx - 1])
+                                        idx == 0 ? hole : holes[idx - 1])
     idesc = itext || isemi
     idesc.gsub!(' ','')
     inters << idesc
@@ -813,9 +813,9 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   offset = 0
   if fig_lines_all > fig_lines_max
     if fig_lines_inactive <= 1
-      # This happens during begin of replay: need to show first
-      # inactive figlet-line, because it also contain active holes;
-      # screen lines at bottom will be truncated below
+    # This happens during begin of replay: need to show first
+    # inactive figlet-line, because it also contain active holes;
+    # screen lines at bottom will be truncated below
     elsif fig_lines_all - fig_lines_inactive <= 1
       # This happens during end of replay: show the last two lines
       offset = (fig_lines_all - 2) * 4
@@ -836,7 +836,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   lines[-1] += "\e[0m"
   lines
 end
-  
+
 
 def match_lick_name input, curr_lick_idx
   curr_lick = $licks[curr_lick_idx]
@@ -844,15 +844,15 @@ def match_lick_name input, curr_lick_idx
     matching = $licks.map.with_index.select {|li| li[0][:name][input]}
     if matching.length != 1
       if matching.length == 0
-        cmnt_print_in_columns "No lick contains '#{input}'; all",
-                              $licks.map {|l| l[:name]}.sort,
-                              ["current is '#{curr_lick[:name]}'"]
+        PnR.print_in_columns "No lick contains '#{input}'; all",
+                             $licks.map {|l| l[:name]}.sort,
+                             ["current is '#{curr_lick[:name]}'"]
       else
-        cmnt_print_in_columns "Multiple licks (#{matching.length}) contain '#{input}'",
-                              matching.map {|m| m[0][:name]}.sort,
-                              ["current is '#{curr_lick[:name]}'"]
+        PnR.print_in_columns "Multiple licks (#{matching.length}) contain '#{input}'",
+                             matching.map {|m| m[0][:name]}.sort,
+                             ["current is '#{curr_lick[:name]}'"]
       end
-      cmnt_print_prompt 'Enter a', 'new name', 'or just press RETURN to keep'
+      PnR.print_prompt 'Enter a', 'new name', 'or just press RETURN to keep'
       input = STDIN.gets.chomp
       matching = [[curr_lick,curr_lick_idx]] if input == ''
     end
@@ -868,11 +868,11 @@ def read_tags_and_refresh_licks curr_lick, all
   make_term_cooked
   if all
     begin
-      cmnt_print_in_columns 'There are four relevant options',
-                            tag_opts.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
-                            ['the other options will be set to the empty string']
-      cmnt_print_prompt 'Please choose', 'which option to set',
-                        '(1,2,3,4 or just RETURN for 1 or q to quit)'
+      PnR.print_in_columns 'There are four relevant options',
+                           tag_opts.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
+                           ['the other options will be set to the empty string']
+      PnR.print_prompt 'Please choose', 'which option to set',
+                       '(1,2,3,4 or just RETURN for 1 or q to quit)'
       input = STDIN.gets.chomp
       input = '1' if input == ''
       if %w( 1 2 3 4 ).include?(input)
@@ -880,7 +880,7 @@ def read_tags_and_refresh_licks curr_lick, all
       elsif input == 'q'
         return :keep
       else
-        cmnt_report_error_wait_key "Invalid input: '#{input}'; none of 1..4,q !"
+        PnR.report_error_wait_key "Invalid input: '#{input}'; none of 1..4,q !"
       end
     end until tag_opt
   else
@@ -890,12 +890,12 @@ def read_tags_and_refresh_licks curr_lick, all
     each {|ts| $opts[ts] = '' unless ts == tag_opt}
 
   all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
-  cmnt_print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
-                        curr_lick[:tags].each_with_index.map {|t,i| "#{i+1})#{t}"} + ['//'] + all_tags,
-                        ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
+  PnR.print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
+                       curr_lick[:tags].each_with_index.map {|t,i| "#{i+1})#{t}"} + ['//'] + all_tags,
+                       ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
   topt = '--' + tag_opt.o2str
   opof = "(or part of or 1,2,..; current value is '#{$opts[tag_opt]}')"
-  cmnt_print_prompt 'New value for', topt, opof
+  PnR.print_prompt 'New value for', topt, opof
   input = STDIN.gets.chomp
   begin
     doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| input.end_with?(x)}
@@ -917,16 +917,16 @@ def read_tags_and_refresh_licks curr_lick, all
       $opts[tag_opt] = mtags[0]
       $all_licks, $licks = read_licks true
       if $licks.length == 0
-        cmnt_print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
-                              all_tags
+        PnR.print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
+                             all_tags
       else
         done = true
       end
     elsif mtags.length == 0
-      cmnt_print_in_columns "No tags match your input '#{input}'; these are available",
-                            all_tags
+      PnR.print_in_columns "No tags match your input '#{input}'; these are available",
+                           all_tags
     else
-      cmnt_print_in_columns(
+      PnR.print_in_columns(
         if input == ' '
           'All tags'
         else
@@ -935,7 +935,7 @@ def read_tags_and_refresh_licks curr_lick, all
         mtags.sort)
     end
     unless done
-      cmnt_print_prompt 'Enter a new value for', topt, opof
+      PnR.print_prompt 'Enter a new value for', topt, opof
       input = STDIN.gets.chomp
     end
   end while !done || $licks.length == 0
@@ -947,12 +947,12 @@ end
 
 def read_and_set_partial
   make_term_cooked
-  cmnt_print_in_columns 'Examples for --partial',
-                        %w(1/3@b 1/4@x 1/2@e 1@b, 1@e 2@x 0),
-                        ["current value is '#{$opts[:partial]}'",
-                         'RETURN to keep, SPACE to clear',
-                         'see usage info for more explanations']
-  cmnt_print_prompt 'Please enter', 'new value'
+  PnR.print_in_columns 'Examples for --partial',
+                       %w(1/3@b 1/4@x 1/2@e 1@b, 1@e 2@x 0),
+                       ["current value is '#{$opts[:partial]}'",
+                        'RETURN to keep, SPACE to clear',
+                        'see usage info for more explanations']
+  PnR.print_prompt 'Please enter', 'new value'
   input = STDIN.gets.chomp
   old = $opts[:partial]
   $opts[:partial] = if input == ''
@@ -972,7 +972,7 @@ def read_and_set_partial
     select_and_calc_partial($harp_holes, 0, 1) if $opts[:partial] && !$opts[:partial].empty?
     $on_error_raise = false
   rescue ArgumentError => e
-    cmnt_report_error_wait_key e
+    PnR.report_error_wait_key e
     $opts[:partial] = old
   end
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
@@ -1046,10 +1046,10 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         '    '
       end + $licks[lick_idx][:name]
     end
-    cmnt_print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
-                          ["current lick is #{self[:lick][:name]}"]
-    cmnt_print_prompt 'Please enter', 'Name of new lick',
-                      '(or part of or l,2l,..)'    
+    PnR.print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
+                         ["current lick is #{self[:lick][:name]}"]
+    PnR.print_prompt 'Please enter', 'Name of new lick',
+                     '(or part of or l,2l,..)'    
 
     input = STDIN.gets&.chomp || ''
     
@@ -1124,7 +1124,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       $ctl_kb_queue.deq
     end
     
-    $ctl_mic[:redraw] = :silent
+    $ctl_mic[:redraw] = Set[:silent, :clear]
     $ctl_mic[:edit_lick_file] = false
   end
 

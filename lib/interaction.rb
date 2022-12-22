@@ -392,12 +392,12 @@ def handle_kb_mic
     $ctl_mic[:back] = true
     text = 'Skip back'
   elsif char.ord == 12
-    $ctl_mic[:redraw] = :silent
+    $ctl_mic[:redraw] = Set[:silent, :clear]
     text = 'redraw'
   elsif char == 'i'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
-    $ctl_mic[:redraw] = :silent if $opts[:comment] == :holes_some
+    $ctl_mic[:redraw] = Set[:silent] if $opts[:comment] == :holes_some
   elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
     $ctl_mic[:start_loop] = true
     text = 'Loop started'
@@ -592,6 +592,6 @@ def handle_win_change
   end 
   ctl_response 'redraw'
   $figlet_cache = Hash.new
-  $ctl_mic[:redraw] = true
+  $ctl_mic[:redraw] = Set.new()
   $ctl_sig_winch = false
 end

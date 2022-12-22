@@ -453,7 +453,7 @@ def read_and_parse_scale sname
   # get properties of scale; currently only :short
   props = Hash.new
   all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
-  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' is supported" unless Set.new(props.keys).subset?(Set.new([:short]))
+  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' is supported" unless Set.new(props.keys).subset?(Set[:short])
   props[:short] = props[:short].to_s if props[:short]
   
   unless $scale2short[sname]

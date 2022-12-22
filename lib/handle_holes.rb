@@ -24,14 +24,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   loop do   # until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
-    system('clear') if $ctl_mic[:redraw]
+    system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
     if first_round || $ctl_mic[:redraw]
       print_mission(get_mission_override || lambda_mission.call)
       ctl_response
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
-      if $ctl_mic[:redraw] && $ctl_mic[:redraw] != :silent
+      if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
         $column_short_hint_or_message = 1
         $message_shown_at = Time.now.to_f
@@ -55,7 +55,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     handle_win_change if $ctl_sig_winch
     
     good = done = false
-      
+    
     hole_was_for_since = hole
     hole = nil
     hole, lbor, cntr, ubor = describe_freq(freq)
@@ -371,7 +371,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $ctl_mic[:change_key]
       do_change_key
       $ctl_mic[:change_key] = false
-      $ctl_mic[:redraw] = :silent
+      $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
     end
@@ -379,7 +379,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $ctl_mic[:change_scale]
       do_change_scale_add_scales
       $ctl_mic[:change_scale] = false
-      $ctl_mic[:redraw] = :silent
+      $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
     end
@@ -387,7 +387,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $ctl_mic[:rotate_scale]
       do_rotate_scale_add_scales
       $ctl_mic[:rotate_scale] = false
-      $ctl_mic[:redraw] = :silent
+      $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
     end
@@ -466,8 +466,8 @@ end
 def do_change_key
   make_term_cooked
   begin
-    cmnt_print_in_columns 'Available keys', $conf[:all_keys], ["current is #{$key}"]
-    cmnt_print_prompt  'Please enter','new key'
+    PnR.print_in_columns 'Available keys', $conf[:all_keys], ["current is #{$key}"]
+    PnR.print_prompt  'Please enter','new key'
     
     input = STDIN.gets.chomp
     input = $key.to_s if input == ''
@@ -476,7 +476,7 @@ def do_change_key
       $on_error_raise = true
       check_key_and_set_pref_sig(input)
     rescue ArgumentError => error
-      cmnt_report_error_wait_key error
+      PnR.report_error_wait_key error
     else
       $key = input.to_sym
     ensure
@@ -493,11 +493,11 @@ def do_change_scale_add_scales
   make_term_cooked
   # Change scale
   begin
-    cmnt_print_in_columns 'First setting main scale; available scales',
-                          $all_scales.sort,
-                          ["current scale is #{$scale}",
-                           'RETURN to keep']
-    cmnt_print_prompt 'Please enter', 'new scale', '(abbrev)'
+    PnR.print_in_columns 'First setting main scale; available scales',
+                         $all_scales.sort,
+                         ["current scale is #{$scale}",
+                          'RETURN to keep']
+    PnR.print_prompt 'Please enter', 'new scale', '(abbrev)'
     input = STDIN.gets.chomp.strip
     error = nil
     break if input == ''
@@ -505,7 +505,7 @@ def do_change_scale_add_scales
       error = "Given scale #{none} is none of #{choices}"
     end
     if error
-      cmnt_report_error_wait_key error
+      PnR.report_error_wait_key error
     else
       $scale = scale
     end
@@ -513,11 +513,11 @@ def do_change_scale_add_scales
 
   # Change --add-scales
   begin
-    cmnt_print_in_columns 'Now setting --add-scales; available scales',
-                          $all_scales.sort,
-                          ["current value is '#{$opts[:add_scales]}'",
-                           'RETURN to keep, SPACE to clear']
-    cmnt_print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'
+    PnR.print_in_columns 'Now setting --add-scales; available scales',
+                         $all_scales.sort,
+                         ["current value is '#{$opts[:add_scales]}'",
+                          'RETURN to keep, SPACE to clear']
+    PnR.print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'
     input = STDIN.gets.chomp
     error = nil
     if input == ''
@@ -533,7 +533,7 @@ def do_change_scale_add_scales
       end
     end
     if error
-      cmnt_report_error_wait_key error
+      PnR.report_error_wait_key error
     else
       $opts[:add_scales] = add_scales.join(',')
     end

@@ -210,71 +210,6 @@ def print_mission text
 end
 
 
-#
-# Three functions (starting with cmnt_), that handle together extensive
-# interaction using the comment-area
-#
-
-def cmnt_print_in_columns head, names, tail = []
-  print "\e[#{$lines[:comment_tall]}H\e[0m\e[32m#{head.chomp}:\e[0m\e[2m\e[J\n"
-  $column_short_hint_or_message = 1
-  if head[-1] == "\n"
-    lns = 1
-    puts
-  else
-    lns = 0
-  end
-  max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
-  off_for_tail = [tail.length, 2].min
-  line = '  '
-  more = ' ... more'
-  names.
-    map {|nm| nm + ' '}.
-    map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
-    break if lns > max_lns - off_for_tail
-    if (line + nm).length > $term_width - 4
-      if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
-        line[-more.length ..] = more
-        more = nil
-      end
-      puts line
-      lns += 1
-      line = '  '
-    end
-    line += nm
-  end
-  puts line unless more.nil? || ( line.strip.empty? && lns < max_lns - off_for_tail )
-
-  print "\e[0m\e[32m" 
-  while tail.length > 0
-    break if lns > max_lns
-    puts tail.shift
-    lns += 1
-  end
-  print "\e[0m"
-end
-
-
-def cmnt_report_error_wait_key etext
-  term_immediate_was = $term_immediate
-  make_term_immediate
-  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
-  print etext
-  print "\n\e[2mPress any key to continue ... \e[K"
-  $ctl_kb_queue.clear
-  $ctl_kb_queue.deq
-  # leave term in initial state
-  make_term_cooked unless term_immediate_was
-end
-
-
-def cmnt_print_prompt text_low, text_high, text_low2 = ''
-  text_low2.prepend(' ') unless text_low2.empty?
-  print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
-  print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
-end
-
-
 def print_in_columns names
   line = '  '
   names.
@@ -288,3 +223,70 @@ def print_in_columns names
   end
   puts line unless line.strip.empty?
 end
+
+
+#
+# Handle extensive interaction using the comment-area
+#
+
+class PnR
+  def self.print_in_columns head, names, tail = []
+    print "\e[#{$lines[:comment_tall]}H\e[0m\e[32m#{head.chomp}:\e[0m\e[2m\e[J\n"
+    $column_short_hint_or_message = 1
+    if head[-1] == "\n"
+      lns = 1
+      puts
+    else
+      lns = 0
+    end
+    max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
+    off_for_tail = [tail.length, 2].min
+    line = '  '
+    more = ' ... more'
+    names.
+      map {|nm| nm + ' '}.
+      map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
+      break if lns > max_lns - off_for_tail
+      if (line + nm).length > $term_width - 4
+        if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
+          line[-more.length ..] = more
+          more = nil
+        end
+        puts line
+        lns += 1
+        line = '  '
+      end
+      line += nm
+    end
+    puts line unless more.nil? || ( line.strip.empty? && lns < max_lns - off_for_tail )
+
+    print "\e[0m\e[32m" 
+    while tail.length > 0
+      break if lns > max_lns
+      puts tail.shift
+      lns += 1
+    end
+    print "\e[0m"
+  end
+
+
+  def self.report_error_wait_key etext
+    term_immediate_was = $term_immediate
+    make_term_immediate
+    print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+    print etext
+    print "\n\e[2mPress any key to continue ... \e[K"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    # leave term in initial state
+    make_term_cooked unless term_immediate_was
+  end
+
+
+  def self.print_prompt text_low, text_high, text_low2 = ''
+    text_low2.prepend(' ') unless text_low2.empty?
+    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
+    print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
+  end
+end
+
