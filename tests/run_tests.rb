@@ -274,7 +274,7 @@ do_test 'id-2: manual calibration' do
   tms :ENTER
   sleep 2
   tms 'r'
-  sleep 16
+  sleep 18
   expect { screen[-4]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
   kill_session
 end
