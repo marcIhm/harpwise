@@ -1,0 +1,33 @@
+You will need to add more licks (with recordings), before the mode
+'licks' can really be useful.
+
+To get started you may search the web.  Make sure, to grep audio
+samples too or record them yourself. For example, see
+
+  https://www.harmonica.com/6-blues-riffs
+
+for a handful of great licks.
+
+
+Much more extensive are these two books with lots of licks,
+complete with audio samples:
+
+- "100 Authentic Blues Harmonica Licks" by Steve Cohen
+
+- "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
+
+
+Also, Liam Ward has useful collections of licks for various skill
+levels at:
+
+  https://www.learntheharmonica.com
+
+
+Not beeing commercially connected with any of these offerings, I found
+these paid source invaluable in collecting the 60 or so favorite licks,
+that I am practicing regularly.
+
+Note, that When adding licks to this file by copying them from a book or
+from the web, you probably will need to adjust the notation for holes;
+let the initial error messages be your guide or look at the file
+<%= "#{$dirs[:install]}/config/richter/holes.yaml" %>

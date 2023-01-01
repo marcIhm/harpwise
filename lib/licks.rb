@@ -250,15 +250,21 @@ end
 
 
 def create_initial_lick_file lfile
-  puts "\nLick file\n\n  #{lfile}\n\ndoes not exist !"
-  puts "\nCreating it with a single sample lick and"
-  puts "lots of comments explaining the format."
+  puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !"
+  puts "\nCreating it with two sample licks and loads of comments,"
+  puts "explaining the format."
   puts
-  puts "However, you need to add more licks yourself,"
-  puts "to make this mode (licks) really useful."
+  puts "However, you need to add more licks yourself, to make"
+  puts "this mode (licks) really useful."
   puts
-  FileUtils.cp("#{$dirs[:install]}/resources/sample_licks_with_holes.txt", lfile)
-  FileUtils.cp("#{$dirs[:install]}/recordings/juke.mp3", $lick_dir + '/recordings') 
+  puts "\n\e[32mON GETTING MORE LICKS\e[0m\n\n"
+  lick_sources = ERB.new(IO.read("#{$dirs[:install]}/resources/lick_sources.txt")).result(binding).lines
+  lick_sources.pop while lick_sources[-1].strip.empty?
+  File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes.txt")).result(binding))
+  lick_sources.each {|l| print l}
+  %w(wade.mp3 st-louis.mp3).each do |file|
+    FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
+  end
   if $testing
     File.open(lfile, 'a') do |f|
       f.write <<~end_of_content
@@ -285,15 +291,21 @@ def create_initial_lick_file lfile
 
         [long]
           holes = -1 -1 -1 -1 -1 -1 -1 -1 -2 -2 -2 -2 -2 -2 -2 -2 -3 -3 -3 -3 -3 -3 -3 -3 -3 -4 -4 -4 -4 -4 -4 -5 -5 -5 -5 -5 -5 -5 -5 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -7 -7 -7 -7 -7 -7 -7 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -10 -10 -10 -10 -10 -10 -10 -10 -10
-          rec = juke.mp3
-          rec.start = 2.2
-          rec.length = 4
+          rec = wade.mp3
+          rec.start = 0.2
+          rec.length = 2
 
         end_of_content
     end
   end
-  puts "Now you may try again with a few predefined licks (e.g. 'juke') ..."
-  puts "...and then add some of your own to make this feature useful !\n\n"
+  puts
+  puts "\n\e[32mGO AHEAD\e[0m\n\n"
+  puts 'Now you may try again with two predefined licks'
+  puts "(from 'Wade in the Water' and 'St. Louis Blues') !\n\n"
+  puts "And maybe remember to add more licks to:"
+  puts "#{lfile}"
+  puts "to make this mode useful."
+  puts "(you may then reread the suggestions as comments in the file above)\n\n"
 end
 
 

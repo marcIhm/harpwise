@@ -28,7 +28,7 @@ $within = ARGV.length == 0
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(juke special blues mape one two three long)
+$all_testing_licks = %w(wade st-louis special blues mape one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $dotdir_orig = "#{Dir.home}/.harpwise"
@@ -73,13 +73,13 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d juke','report chromatic licks -t favorites','harpwise tools print juke']
+known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d st-louis','report chromatic licks -t favorites','harpwise tools print st-louis']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # replace some, e.g. due to my different set of licks
-repl = {'harpwise play c juke' => 'harpwise play c easy'}
+repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 31
+num_exp = 32
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 #
@@ -537,10 +537,10 @@ do_test 'id-15: play a lick with recording' do
   journal_file = "#{$dotdir_testing}/journal_modes_licks_and_play.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
-  tms 'harpwise play testing a juke'
+  tms 'harpwise play testing a wade'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick juke'] }
+  expect { screen[4]['Lick wade'] }
   expect { screen[5]['-1 -2/ -3// -3 -4'] }
   expect { File.exist?(journal_file) }
   kill_session
@@ -551,7 +551,7 @@ do_test 'id-15a: check journal from previous invocation of play' do
   tms 'harpwise report testing jour'
   tms :ENTER
   sleep 2
-  expect { screen[9][' l: juke'] }
+  expect { screen[9][' l: st-louis'] }
   kill_session
 end
 
@@ -566,7 +566,7 @@ end
 
 do_test 'id-16a: error on mixing licks and notes for play' do
   new_session
-  tms 'harpwise play testing a -1 juke'
+  tms 'harpwise play testing a -1 wade'
   tms :ENTER
   sleep 1
   expect { screen[5]['but ONLY ONE OF THEM'] }
@@ -578,7 +578,7 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play testing a cycle'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick juke'] }
+  expect { screen[4]['Lick st-louis'] }
   tms :ENTER
   sleep 2
   expect { screen[13]['Lick special'] }
@@ -598,7 +598,8 @@ end
 
 #  Licks with their tags:
 #
-#  juke ..... favorites,samples
+#  wade ..... favorites,samples
+#  st-louis ..... favorites,samples
 #  special ..... advanced,samples
 #  blues ..... scales,theory
 #  mape ..... scales
@@ -653,11 +654,11 @@ end
 
 do_test 'id-21: mode licks with --start-with' do
   new_session
-  tms 'harpwise licks testing --start-with juke a'
+  tms 'harpwise licks testing --start-with wade a'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['juke | fav,samples'] }
-  expect { screen[-1]['a classic lick by Little Walter'] }
+  expect { screen[-2]['wade | fav,samples'] }
+  expect { screen[-1]['Wade in the Water'] }
   kill_session
 end
 
@@ -758,42 +759,42 @@ end
 
 do_test 'id-29: back one lick' do
   new_session
-  tms 'harpwise licks testing --start-with juke'
+  tms 'harpwise licks testing --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['juke'] }
+  expect { screen[-2]['st-louis'] }
   tms :ENTER
   sleep 4
-  expect { !screen[-2]['juke'] }
+  expect { !screen[-2]['st-louis'] }
   tms :BSPACE
   sleep 4
-  expect { screen[-2]['juke'] }
+  expect { screen[-2]['st-louis'] }
   kill_session
 end
 
 do_test 'id-30: use option --partial' do
   new_session
-  tms 'harpwise licks testing --start-with juke --partial 1@b'
+  tms 'harpwise licks testing --start-with wade --partial 1@b'
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise_testing/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
+  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise_testing/licks/testing/recordings/wade.mp3 -t alsa trim 2.2 1.0'] }
   kill_session
 end
 
 do_test 'id-31: use option --partial' do
   new_session
-  tms 'harpwise licks testing --start-with juke --partial 1@b'
+  tms 'harpwise licks testing --start-with st-louis --partial 1@b'
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise_testing/licks/testing/recordings/juke.mp3 -t alsa trim 2.2 1.0'] }
+  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise_testing/licks/testing/recordings/st-louis.mp3 -t alsa trim 2.2 1.0'] }
   kill_session
 end
 
 do_test 'id-32: use option --partial and --holes' do
   new_session
-  tms 'harpwise licks testing --start-with juke --holes --partial 1@b'
+  tms 'harpwise licks testing --start-with wade --holes --partial 1@b'
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
@@ -821,7 +822,7 @@ end
 
 do_test 'id-34: comment with scales and octave shifts' do
   new_session
-  tms 'harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --start-with juke'
+  tms 'harpwise licks testing blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-1.b1   -2/   -3//     -3.1     -4.b1    -4.b1'] }
@@ -838,7 +839,7 @@ end
 
 do_test 'id-34b: comment with reverted scale' do
   new_session
-  tms 'harpwise licks testing --comment holes-scales --add-scales - --start-with juke'
+  tms 'harpwise licks testing --comment holes-scales --add-scales - --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-1.b   -2/   -3//     -3     -4.b    -4.b'] }
@@ -850,7 +851,7 @@ end
 
 do_test 'id-35: comment with all holes' do
   new_session
-  tms 'harpwise lic testing blues:b --add-scales chord-i:1 --comment holes-all --start-with juke'
+  tms 'harpwise lic testing blues:b --add-scales chord-i:1 --comment holes-all --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[16]['  ▄▄▖▌   ▄▄▖▗▘ ▞   ▄▄▖▄▘ ▞ ▞   ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
@@ -859,7 +860,7 @@ end
 
 do_test 'id-36: display as chart with intervals' do
   new_session
-  tms 'harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2 --start-with juke'
+  tms 'harpwise licks testing blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
@@ -869,7 +870,7 @@ end
 
 do_test 'id-36a: display as chart with notes' do
   new_session
-  tms 'harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2 --start-with juke'
+  tms 'harpwise licks testing blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
@@ -879,10 +880,10 @@ end
 
 do_test 'id-37: change lick by name' do
   new_session
-  tms 'harpwise lick testing blues --start-with juke'
+  tms 'harpwise lick testing blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['juke'] }
+  expect { screen[-2]['wade'] }
   tms 'n'
   tms 'special'
   tms :ENTER
@@ -893,7 +894,7 @@ end
 
 do_test 'id-37a: change first of options --tags' do
   new_session
-  tms 'harpwise lick testing blues --start-with juke'
+  tms 'harpwise lick testing blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
@@ -908,7 +909,7 @@ end
 
 do_test 'id-37b: change one of four of options --tags' do
   new_session
-  tms 'harpwise lick testing blues --start-with juke'
+  tms 'harpwise lick testing blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['licks(8)'] }
@@ -926,7 +927,7 @@ end
 
 do_test 'id-37c: change partial' do
   new_session
-  tms 'harpwise lick testing blues --start-with juke'
+  tms 'harpwise lick testing blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   tms '@'
@@ -1047,7 +1048,7 @@ do_test 'id-45: star and unstar a lick' do
   starred_file = Dir.home + '/dot_harpwise_testing/licks/testing/starred.yaml'
   FileUtils.rm starred_file if File.exist?(starred_file)  
   new_session
-  tms 'harpwise licks testing a --start-with juke'
+  tms 'harpwise licks testing a --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   5.times do
@@ -1062,7 +1063,7 @@ do_test 'id-45: star and unstar a lick' do
   sleep 1
   kill_session
   stars = YAML.load_file(starred_file)
-  expect(stars) { stars['juke'] == 2 }
+  expect(stars) { stars['st-louis'] == 2 }
 end
 
 do_test 'id-46: show lick starred in previous invocation' do
@@ -1070,7 +1071,7 @@ do_test 'id-46: show lick starred in previous invocation' do
   tms 'harpwise report testing starred'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[4]['juke:    2'] }
+  expect { screen[4]['wade:    2'] }
   kill_session
 end
 
@@ -1079,7 +1080,7 @@ do_test 'id-46a: verify persistent tag "starred"' do
   tms 'harpwise report testing licks | head -20'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[12]['juke ..... fav,samples,starred'] }
+  expect { screen[12]['st-louis ..... fav,samples,starred'] }
   kill_session
 end
 
@@ -1107,7 +1108,7 @@ end
 do_test 'id-49: edit lickfile' do
   ENV['EDITOR']='vi'
   new_session
-  tms 'harpwise licks testing blues --start-with juke'
+  tms 'harpwise licks testing blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'e'
@@ -1143,7 +1144,7 @@ end
 
 do_test 'id-53: tools print' do
   new_session
-  tms 'harpwise tools testing print juke'
+  tms 'harpwise tools testing print st-louis'
   tms :ENTER
   expect { screen[8]['-1      -2/     -3//'] }
   kill_session

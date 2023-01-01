@@ -8,75 +8,71 @@
 #
 
 #
-# A lick (e.g. 'juke') can be defined like this:
+# A lick (e.g. 'wade') can be defined like this:
 #
-[juke]
-  holes = -1 -2/ -3// -3 -4 -4
-  # the description will be shown at the bottom of the screen,
+[wade]
+  holes = -2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2 
+  # The description will be shown at the bottom of the screen,
   # when the lick is played.
-  desc = a classic lick by Little Walter
-  # we have a recording for this lick; will be searched in subdir 'recordings'.
-  rec = juke.mp3
-  # next two lines are optional; useful if you only want to play
+  desc = Wade in the Water
+  # We have a recording for this lick; will be searched in subdir 'recordings'.
+  rec = wade.mp3
+  # Next two lines are optional; useful if you only want to play
   # part of the recording
-  rec.start = 2.2
-  rec.length = 4
+  rec.start = 0.0
+  rec.length = 10
   # This has the tags 'samples' and 'favorites', that can be used
   # to select among a larger number of licks
   tags = samples favorites
-  # Key of 'c' is the default anyway, use this if the recording
+  # Key of 'c' is the default key, use this if the recording
   # is done with a different harmonica
-  rec.key = c
+  rec.key = a
 
 #
-# The above lick is only a simple sample (for a richter harp).
-# See further down below for more complex examples of defining
-# licks with more explanation.
+# A second lick, mostly without comments
 #
+[st-louis]
+  holes = -1 +2 -2 -3/ -2 -3/ -3// -2
+  desc = St. Louis Blues
+  rec = st-louis.mp3
+  tags = samples favorites
+  rec.key = a
 
 
 #
-# Important Note: You will need to add quite some more licks (with
-# recordings), before the mode 'licks' can really be useful.
+#  ***  ABOUT THE REST OF THIS FILE  ***
+
 #
-# To get started you may search the web; make sure, to grep 
-# audio samples too or record them yourself. For example, see
+# The rest of this file contains comments only but on two
+# different topics:
 #
-#   https://www.harmonica.com/6-blues-riffs
+# - On getting more licks
 #
-# for a handful of great licks.
-#
-#
-# Much more extensive are these two books with lots of licks,
-# complete with AUDIO SAMPLES:
-#
-# - "100 Authentic Blues Harmonica Licks" by Steve Cohen
-#
-# - "100 Easy Blues Harmonica Licks" by Yvonnick Prene 
-#
-#
-# Also, Liam Ward has really nice collections of licks for each
-# skill level at:
-#
-#   https://www.learntheharmonica.com
-#
-#
-# Not beeing commercially connected with any of these offerings,
-# I really found them invaluable in collecting the 50 or so
-# favorite licks, that I am trying to learn ...
-#
-# Finally When adding licks to this file, you probably will need
-# to adjust the notation for holes; let the initial error
-# messages be your guide or look at the file
-# harpwise/config/richter/holes.yaml
+# - Advanced Features in this file: Defaults and Variables
 #
 
 
 #
-# Once you have defined more than a dozen licks, you may or may
-# not want to reduce typing efford when adding a new lick. This
-# can be done by setting some default-information and reusing it
-# in many licks.
+#  ***  ON GETTING MORE LICKS  ***
+#
+<%= lick_sources.map {|l| "# #{l}"}.join %>
+
+
+#
+#  ***  ADVANCED FEATURES IN THIS FILE: DEFAULTS AND VARIABLES  ***
+#
+
+# The rest of this file is commented out (with '## '), so it does
+# not add anything to your library of licks. But by reading it,
+# you may more fully understand the format used and the features
+# available. This can be useful, if managing lots of licks
+# becomes cumbersome ...
+
+#
+# Once you have defined more than a dozen licks (recommended !),
+# you may or may not want to reduce typing effort when adding a
+# new lick. This can be done by setting some default-information
+# and reusing it in many licks.
 #
 # To this end there are two Special sections:
 #
@@ -87,61 +83,61 @@
 #              may override or add to this.
 #
 # both sections are totally optional, so you may just omit them
-# at start, or if you find them confusing
-#
+# at start, or if you find them confusing.
 
 
-[default]
-  # This applies for all licks until overwritten by another [default];
-  # tags specified in the individual lick will be added
-  tags = samples
-  desc = some text that should appear in all licks below
-  desc.add = more text we intend to overwrite in some licks below
-
-[special]
-
-  # A lick requires a series of holes ('holes =') to be played.
-  #
-  # A lick may also contain inline comments (e.g. '(slide)' or
-  # '[+123]'), that are recognized by the surrounding parens or
-  # brackets; they may contain anything you choose and will not
-  # be played; neither will you be expected to play them.
-  #
-  # To give different meanings to parens and brackets, you may or
-  # may not adopt these simple convention:
-  #
-  # - Use '()' for any instructions that modify, how the whole
-  #   written before should be played; an example would be:
-  #   '+1 (slide) +4'.
-  #
-  # - Use '[]' for any musical event, that cannot be reconized by
-  #   harpwise, but nevertheless should be played on its own; an
-  #   example would be a chord '[+123]'.
-  #
-  # - For more complex inline comments you may also want to add a
-  #   short note in the description.
-
-  holes = -1 +1 -2 (pull) -1
-  # This tag adds a tag to those given by the defaults
-  tags.add = advanced
-  # You may also add to the description
-  desc.add = Notice the pull
-  # unfortunately no recording
-
-[vars]
-  # Variables may help to save typing; they are useful in tags
-  $source = theory
-
-[default]
-  # notice the use of the variable
-  tags = scales $source
-
-[blues]
-  holes = +1 -1/ -1 -2// -2 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
-  # has tags 'scales' and 'theory'
-
-[mape] # major pentatonic
-  holes = -1 +2 -2 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
-  # has tags 'scales' only
-  tags = scales
-
+## [default]
+##   # This applies for all licks until overwritten by another [default];
+##   # tags specified in the individual lick will be added
+##   tags = samples
+##   desc = some text that should appear in all licks below
+##   desc.add = more text we intend to overwrite in some licks below
+## 
+## [special]
+## 
+##   # A lick requires a series of holes ('holes =') to be played.
+##   #
+##   # A lick may also contain inline comments (e.g. '(slide)' or
+##   # '[+123]'), that are recognized by the surrounding parens or
+##   # brackets; they may contain anything you choose and will not
+##   # be played; neither will you be expected to play them.
+##   #
+##   # To give different meanings to parens and brackets, you may or
+##   # may not adopt these simple convention:
+##   #
+##   # - Use '()' for any instructions that modify, how the whole
+##   #   written before should be played; an example would be:
+##   #   '+1 (slide) +4'.
+##   #
+##   # - Use '[]' for any musical event, that cannot be reconized by
+##   #   harpwise, but nevertheless should be played on its own; an
+##   #   example would be a chord '[+123]'.
+##   #
+##   # - For more complex inline comments you may also want to add a
+##   #   short note in the description.
+## 
+##   holes = -1 +1 -2 (pull) -1
+##   # This tag adds a tag to those given by the defaults
+##   tags.add = advanced
+##   # You may also add to the description
+##   desc.add = Notice the pull
+##   # unfortunately no recording
+## 
+## [vars]
+##   # Variables may help to save typing; they are useful in tags
+##   $source = theory
+## 
+## [default]
+##   # notice the use of the variable
+##   tags = scales $source
+## 
+## [blues]
+##   holes = +1 -1/ -1 -2// -2 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
+##   # has tags 'scales' and 'theory'
+## 
+## [mape] # major pentatonic
+##   holes = -1 +2 -2 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
+##   # has tags 'scales' only
+##   tags = scales
+## 
+## 

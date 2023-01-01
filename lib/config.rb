@@ -242,7 +242,7 @@ def check_installation
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
   # Check some sample dirs and files
-  %w(resources/usage.txt config/intervals.yaml recordings/juke.mp3).each do |file|
+  %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3).each do |file|
     if !File.exist?($dirs[:install] + '/' + file)
       err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
     end

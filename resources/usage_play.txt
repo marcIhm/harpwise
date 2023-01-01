@@ -6,7 +6,7 @@ OVERVIEW
   Its arguments can be any of:
 
     - holes (e.g. '-1')
-    - licks (e.g. 'juke')
+    - licks (e.g. 'st-louis')
     - special values (e.g. 'l', '2l) to reference e.g. the last lick
     - keywords (e.g. 'random' or 'cycle'), that influence, what and
       how licks are played
@@ -19,9 +19,9 @@ USAGE BY EXAMPLES
 
     harpwise play c +1 -2 c4
 
-  Play the lick 'juke'; transpose it to d:
+  Play the lick 'wade'; transpose it to d:
   
-    harpwise play d juke
+    harpwise play d wade
 
   Play a single random lick:
 
