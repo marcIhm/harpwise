@@ -841,7 +841,8 @@ end
 def match_lick_name input, curr_lick_idx
   curr_lick = $licks[curr_lick_idx]
   begin
-    matching = $licks.map.with_index.select {|li| li[0][:name][input]}
+    matching = $licks.map.with_index.select {|li| li[0][:name] == input}
+    matching = $licks.map.with_index.select {|li| li[0][:name][input]} unless matching.length == 1
     if matching.length != 1
       if matching.length == 0
         PnR.print_in_columns "No lick contains '#{input}'; all",
@@ -909,7 +910,7 @@ def read_tags_and_refresh_licks curr_lick, all
             elsif input.match(/^\d$/)
               [curr_lick[:tags][input.to_i-1]]
             else
-              all_tags.select {|t| t[input]}
+              all_tags.include?(input)  ?  [input]  :  all_tags.select {|t| t[input]}
             end
     done = false
     

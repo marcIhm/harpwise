@@ -141,7 +141,8 @@ def partition_to_play_or_print to_p
     print_in_columns all_snames
     puts "\n- licks:"
     print_in_columns all_lnames
-    puts "\n- special: #{$conf[:specials_allowed_play].join(',')}"
+    puts "\n- special:"
+    print_in_columns $conf[:specials_allowed_play]
     puts
     exit if other.length == 0
     err 'See above'

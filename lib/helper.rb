@@ -96,6 +96,7 @@ def puts_err_context
   end.select(&:itself)
   puts
   puts "(result of argument processing so far: #{clauses.join(', ')})" if clauses.length > 0
+  puts "(config from #{$early_conf[:config_file]} and #{$early_conf[:config_file_user]})" if $early_conf
 end
 
 

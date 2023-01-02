@@ -301,11 +301,13 @@ def create_initial_lick_file lfile
   puts
   puts "\n\e[32mGO AHEAD\e[0m\n\n"
   puts 'Now you may try again with two predefined licks'
-  puts "(from 'Wade in the Water' and 'St. Louis Blues') !\n\n"
-  puts "And maybe remember to add more licks to:"
+  puts "from 'Wade in the Water' and 'St. Louis Blues' !"
+  puts "(both in my own, rather imperfect recording)"
+  puts "If you like this mode and want to make it more useful,"
+  puts "then consider adding more licks to:"
   puts "#{lfile}"
-  puts "to make this mode useful."
-  puts "(you may then reread the suggestions as comments in the file above)\n\n"
+  puts "(where you may also reread these suggestions)"
+  puts
 end
 
 
