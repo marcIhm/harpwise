@@ -122,7 +122,7 @@ def find_and_check_dirs
   $dirs[:install_devel] = File.realpath(File.expand_path(__FILE__) + '/../../../') + '/hw'
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:data] = if $testing
-                   "#{Dir.home}/dot_#{File.basename($0)}_testing"
+                   "#{Dir.home}/dot_#{File.basename($0)}"
                  else
                    "#{Dir.home}/.#{File.basename($0)}"
                  end

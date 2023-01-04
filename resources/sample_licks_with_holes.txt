@@ -11,19 +11,26 @@
 # A lick (e.g. 'wade') can be defined like this:
 #
 [wade]
+
+  # This is what will be displayed on screen and asked to play back
   holes = -2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2 
+
   # The description will be shown at the bottom of the screen,
   # when the lick is played.
   desc = Wade in the Water
+
   # We have a recording for this lick; will be searched in subdir 'recordings'.
   rec = wade.mp3
+
   # Next two lines are optional; useful if you only want to play
   # part of the recording
   rec.start = 0.0
   rec.length = 10
+
   # This has the tags 'samples' and 'favorites', that can be used
   # to select among a larger number of licks
   tags = samples favorites
+
   # Key of 'c' is the default key, use this if the recording
   # is done with a different harmonica
   rec.key = a
@@ -38,17 +45,27 @@
   tags = samples favorites
   rec.key = a
 
+#
+# The third and last lick, that comes with harpwise as a starter-pack
+#
+[feeling-bad]
+  holes = +6 +5 +6 +6 +6 +5 -4 -4 +4
+  desc = Going down the road feeling bad
+  rec = feeling-bad.mp3
+  tags = samples favorites
+  rec.key = c
+
 
 #
 #  ***  ABOUT THE REST OF THIS FILE  ***
 
 #
-# The rest of this file contains comments only but on two
+# The rest of this file contains comments only; they are on two
 # different topics:
 #
-# - On getting more licks
+#  - On getting more licks
 #
-# - Advanced Features in this file: Defaults and Variables
+#  - Advanced Features in this file: Defaults and Variables
 #
 
 

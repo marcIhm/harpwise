@@ -240,7 +240,7 @@ class PnR
     else
       lns = 0
     end
-    max_lns = $lines[:hint_or_message] - $lines[:comment] - 2
+    max_lns = $lines[:hint_or_message] - $lines[:comment] - 3
     off_for_tail = [tail.length, 2].min
     line = '  '
     more = ' ... more'
@@ -286,7 +286,7 @@ class PnR
 
   def self.print_prompt text_low, text_high, text_low2 = ''
     text_low2.prepend(' ') unless text_low2.empty?
-    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
+    print "\e[#{$lines[:hint_or_message]-1}H\e[0m\e[2m"
     print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
   end
 end

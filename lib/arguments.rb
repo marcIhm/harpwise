@@ -5,7 +5,7 @@
 #
 
 def parse_arguments
-
+  
   # General idea of processing commandline:
   #
   # We get the mode first, because set of available options depends on it.
@@ -25,6 +25,7 @@ def parse_arguments
     err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information; note, that mode 'develop' is only useful for the maintainer or developer of harpwise."
   end.to_sym
   ARGV.shift
+  num_args_after_mode = ARGV.length
 
   # needed for other modes too
   $for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
@@ -187,7 +188,7 @@ def parse_arguments
 
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
-  if opts[:help] || ARGV.length == 0
+  if opts[:help] || num_args_after_mode == 0
     print_usage_info(mode, opts_all) 
     exit 1
   end

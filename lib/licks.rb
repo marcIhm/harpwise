@@ -103,10 +103,10 @@ def read_licks graceful = false
     elsif (md = line.match(/^ *(tags.add) *= *(.*?) *$/))||
           (md = line.match(/^ *(tags) *= *(.*?) *$/))
       var, tags = md[1 .. 2]
-      var = var.gsub('.','_').to_sym
-      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[var]
-      lick[var] = tags.split
-      lick[var].each do |tag|
+      svar = var.gsub('.','_').to_sym
+      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[svar]
+      lick[svar] = tags.split
+      lick[svar].each do |tag|
         err "Tags must consist of word characters; '#{tag}' (below [#{name}]) does not" unless tag.match?(/^#{$word_re}$/) || tag.match?(/^\$#{$word_re}$/) 
       end
 
@@ -140,9 +140,9 @@ def read_licks graceful = false
     elsif (md = line.match(/^ *(desc.add) *= *(.*?) *$/)) ||
           (md = line.match(/^ *(desc) *= *(.*?) *$/))
       var, desc = md[1 .. 2]
-      var = var.gsub('.','_').to_sym
-      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[var]
-      lick[var] = desc
+      svar = var.gsub('.','_').to_sym
+      err "Key '#{var}' (below [#{name}]) has already been defined" if lick[svar]
+      lick[svar] = desc
       
     # key = value  (for remaining keys, e.g. rec)
     elsif md = line.match(/^ *(#{$word_re}) *= *(#{$word_re})$/)
@@ -159,7 +159,7 @@ def read_licks graceful = false
         # tags, holes and notes have already been handled above special
         if all_keys.include?(key)
           skey = key.gsub('.','_').to_sym
-          err "Key '#{skey}' (below [#{name}]) has already been defined" if lick[skey]
+          err "Key '#{key}' (below [#{name}]) has already been defined" if lick[skey]
           lick[skey] = value
         else
           err "Unknown key '#{key}', none of #{all_keys}"
@@ -262,47 +262,15 @@ def create_initial_lick_file lfile
   lick_sources.pop while lick_sources[-1].strip.empty?
   File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes.txt")).result(binding))
   lick_sources.each {|l| print l}
-  %w(wade.mp3 st-louis.mp3).each do |file|
+  %w(wade.mp3 st-louis.mp3 feeling-bad.mp3).each do |file|
     FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
-  end
-  if $testing
-    File.open(lfile, 'a') do |f|
-      f.write <<~end_of_content
-
-        [default]
-          tags = testing
-          tags.add = x
-          desc = a
-          desc.add = b
-
-        [one]
-          holes = +1 +1 -1
-
-        [two] 
-          holes = +1 +1 -1 +1
-          tags = y
-          tags.add =
-          desc = c
-          
-        [three]
-          holes = +1 +1 -2
-          tags.add = z
-          desc.add = d
-
-        [long]
-          holes = -1 -1 -1 -1 -1 -1 -1 -1 -2 -2 -2 -2 -2 -2 -2 -2 -3 -3 -3 -3 -3 -3 -3 -3 -3 -4 -4 -4 -4 -4 -4 -5 -5 -5 -5 -5 -5 -5 -5 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -7 -7 -7 -7 -7 -7 -7 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -10 -10 -10 -10 -10 -10 -10 -10 -10
-          rec = wade.mp3
-          rec.start = 0.2
-          rec.length = 2
-
-        end_of_content
-    end
   end
   puts
   puts "\n\e[32mGO AHEAD\e[0m\n\n"
-  puts 'Now you may try again with two predefined licks'
-  puts "from 'Wade in the Water' and 'St. Louis Blues' !"
-  puts "(both in my own, rather imperfect recording)"
+  puts 'Now you may try again with three predefined licks'
+  puts "from 'Wade in the Water', 'St. Louis Blues' and"
+  puts "'Going down that road feeling bad' !"
+  puts "(all in my own, rather imperfect recording)"
   puts "If you like this mode and want to make it more useful,"
   puts "then consider adding more licks to:"
   puts "#{lfile}"
