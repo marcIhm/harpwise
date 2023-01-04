@@ -1,0 +1,49 @@
+
+[default]
+  tags = samples
+  desc = some text that should appear in all licks below.
+  desc.add = more text we intend to overwrite in some licks below
+
+[special]
+  holes = -1 +1 -2 (pull) -1
+  tags.add = advanced
+  desc.add = Notice the pull
+
+[vars]
+  $source = theory
+
+[default]
+  tags = scales $source
+
+[blues]
+  holes = +1 -1/ -1 -2// -2 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
+
+[mape] # major pentatonic
+  holes = -1 +2 -2 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
+  tags = scales
+
+[default]
+  tags = testing
+  tags.add = x
+  desc = a
+  desc.add = b
+
+[one]
+  holes = +1 +1 -1
+
+[two] 
+  holes = +1 +1 -1 +1
+  tags = y
+  tags.add =
+  desc = c
+  
+[three]
+  holes = +1 +1 -2
+  tags.add = z fav favorites
+  desc.add = d
+
+[long]
+  holes = -1 -1 -1 -1 -1 -1 -1 -1 -2 -2 -2 -2 -2 -2 -2 -2 -3 -3 -3 -3 -3 -3 -3 -3 -3 -4 -4 -4 -4 -4 -4 -5 -5 -5 -5 -5 -5 -5 -5 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -7 -7 -7 -7 -7 -7 -7 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -8 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -10 -10 -10 -10 -10 -10 -10 -10 -10
+  rec = wade.mp3
+  rec.start = 2.2
+  rec.length = 4

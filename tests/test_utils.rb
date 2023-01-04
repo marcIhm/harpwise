@@ -162,13 +162,6 @@ def clear_testing_log
 end
 
 
-def ensure_dotdir_testing
-  FileUtils.rm_r $dotdir_testing if File.directory?($dotdir_testing)
-  FileUtils.cp_r $dotdir_orig, $dotdir_testing
-  ensure_config_ini_testing
-end
-
-
 def ensure_config_ini_testing
   FileUtils.rm $config_ini_testing if File.exists?($config_ini_testing)
   FileUtils.cp $config_ini_saved, $config_ini_testing
