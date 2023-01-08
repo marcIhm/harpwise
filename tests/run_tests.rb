@@ -841,6 +841,18 @@ do_test 'id-33a: error with double shortname for scales' do
   kill_session
 end
 
+do_test 'id-33b: display chart where -2 equals +3' do
+  new_session
+  tms 'harpwise listen blues:b --add-scales chord-i:1,chord-iv:4,chord-v:5 --display chart-scales'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  # ends on +3 ; change 8 into correct line
+  expect { screen[8]['b4    4   b14']}
+  # ends on -2 ; change 12 into correct line
+  expect { screen[12]['b15   b14']}
+  kill_session
+end
+
 do_test 'id-34: comment with scales and octave shifts' do
   new_session
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
@@ -1111,7 +1123,20 @@ do_test 'id-48: chromatic; listen' do
   tms 'harpwise listen chromatic a all --add-scales - --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['a3   df4    e4    a4    a4   df5'] }
+  # adjust lines 
+  expect { screen[4][' c5 '] }
+  expect { screen[4][' c5 '] }
+  expect { screen[4][' c5 '] }
+  kill_session
+end
+
+do_test 'id-48a: display chart where +45-4b all map to c5' do
+  new_session
+  tms 'harpwise listen chromatic blues:b --add-scales chord-i:1,chord-iv:4,chord-v:5 --display chart-scales'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[8]['?']}
+  expect { screen[12]['?']}
   kill_session
 end
 

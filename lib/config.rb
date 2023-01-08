@@ -631,8 +631,12 @@ def read_calibration
   unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
     err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly"
   end
-  unless $harp_holes.map {|hole| hole2freq[hole]}.each_cons(2).all? { |a, b| a < b }
-    err "Frequencies in #{$freq_file} are not strictly ascending in order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
+  unless $harp_holes.each_cons(2).all? do |ha, hb|
+      fa, fb = [ha,hb].map {|h| hole2freq[h]}
+      fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
+      fa < fb_plus
+    end
+    err "Frequencies in #{$freq_file} are not even in roughly ascending (by 0.25 semitones margin) order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
