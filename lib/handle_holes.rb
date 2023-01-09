@@ -58,7 +58,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     
     hole_was_for_since = hole
     hole = nil
+    
     hole, lbor, cntr, ubor = describe_freq(freq)
+    
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held  &&  Time.now.to_f - hole_since > 0.1
       hole_held_before = hole_held
@@ -274,55 +276,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:show_help]
-      clear_area_comment
-      puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
-      puts "   SPACE: pause               ctrl-l: redraw screen"
-      puts " TAB,S-TAB,d,D: change display (upper part of screen)"
-      puts "     c,C: change comment (lower, i.e. this, part of screen)"
-      puts "       r: set reference to last hole sensed (not freq played)"
-      puts "       j: toggle journal file      k: change key of harp"
-      puts "       s: rotate scales            S: set them anew"
-      puts "\e[0mType any key to show more help ...\e[K"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      clear_area_comment
-      puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-      if $ctl_can[:switch_modes]
-        puts "       m: switch between modes #{$modes_for_switch}"
-      elsif $mode == :listen
-        puts "       m: switch between modes; not available now; rather start"
-        puts "          with modes quiz or licks to be able to switch to"
-        puts "          listen and then back"
-        puts "       q: quit harpwise            h: this help"
-
-      end
-      if $ctl_can[:next]
-        puts "\e[0mType any key to show more help ...\e[K"
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-        clear_area_comment
-        puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for modes licks and quiz):\e[0m\e[32m\n"
-        puts "     .: replay current                    ,: replay, holes only"
-        puts "   :;p: replay but ignore '--partial'"
-        puts "   RET: next sequence or lick     BACKSPACE: previous sequence"
-        puts "     i: toggle '--immediate'              l: loop current sequence"
-        puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
-        puts "     #: toggle track progress in seq      R: play holes reverse"
-        if $ctl_can[:named]
-          puts "\e[0mType any key to show more help ...\e[K"
-          $ctl_kb_queue.clear
-          $ctl_kb_queue.deq
-          clear_area_comment
-          puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for mode licks):\e[0m\e[32m\n"
-          puts "   n: switch to lick by name           e: edit lickfile"
-          puts " t,T: change one/any of options --tags"
-          puts "   <: shift lick down by one octave    >: shift lick up"
-          puts "   @: change option --partial"
-          puts "  */: Add or remove Star from current lick persistently;"
-          puts "      select them later by tag 'starred'"
-        end
-      end
-      puts "\e[0mPress any key to continue ...\e[K"
+      show_help
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_response 'continue', hl: true
@@ -556,4 +510,57 @@ end
 
 def get_mission_override
   $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil
+end
+
+
+def show_help
+  clear_area_comment
+  puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
+  puts "   SPACE: pause               ctrl-l: redraw screen"
+  puts " TAB,S-TAB,d,D: change display (upper part of screen)"
+  puts "     c,C: change comment (lower, i.e. this, part of screen)"
+  puts "       r: set reference to last hole sensed (not freq played)"
+  puts "       j: toggle journal file      k: change key of harp"
+  puts "       s: rotate scales            S: set them anew"
+  puts "\e[0mType any key to show more help ...\e[K"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+  clear_area_comment
+  puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
+  if $ctl_can[:switch_modes]
+    puts "       m: switch between modes #{$modes_for_switch}"
+  elsif $mode == :listen
+    puts "       m: switch between modes; not available now; rather start"
+    puts "          with modes quiz or licks to be able to switch to"
+    puts "          listen and then back"
+    puts "       q: quit harpwise            h: this help"
+
+  end
+  if $ctl_can[:next]
+    puts "\e[0mType any key to show more help ...\e[K"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    clear_area_comment
+    puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for modes licks and quiz):\e[0m\e[32m\n"
+    puts "     .: replay current                    ,: replay, holes only"
+    puts "   :;p: replay but ignore '--partial'"
+    puts "   RET: next sequence or lick     BACKSPACE: previous sequence"
+    puts "     i: toggle '--immediate'              l: loop current sequence"
+    puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
+    puts "     #: toggle track progress in seq      R: play holes reverse"
+    if $ctl_can[:named]
+      puts "\e[0mType any key to show more help ...\e[K"
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      clear_area_comment
+      puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for mode licks):\e[0m\e[32m\n"
+      puts "   n: switch to lick by name           e: edit lickfile"
+      puts " t,T: change one/any of options --tags"
+      puts "   <: shift lick down by one octave    >: shift lick up"
+      puts "   @: change option --partial"
+      puts "  */: Add or remove Star from current lick persistently;"
+      puts "      select them later by tag 'starred'"
+    end
+  end
+  puts "\e[0mPress any key to continue ...\e[K"
 end

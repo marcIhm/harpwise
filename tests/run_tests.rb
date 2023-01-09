@@ -441,7 +441,7 @@ do_test 'id-9: listen with removed scale' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect { dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
+  expect(dump[:scale_holes]) { dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
   kill_session
 end
 

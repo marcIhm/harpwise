@@ -125,7 +125,7 @@ def do_test text
   end
   File.write $last_test, JSON.pretty_generate({time: Time.now, id: id}) + "\n"
   $within = true if ( $fromon_cnt && $memo_count == $fromon_cnt ) ||
-                    ( $fromon_id && text.start_with?($fromon_id))
+                    ( $fromon_id && text.start_with?($fromon_id + ':'))
   ( $fromon && text[$fromon] )
   return unless $within
   puts

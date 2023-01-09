@@ -4,13 +4,13 @@
 
   [[images/harmonica.png]]
 
-  Ruby script to support the daily practice of bends, scales, intervals
-  or licks on a diatonic (richter) or chromatic harmonica for various
-  keys.
+  Ruby script to support the daily practice of bends, scales, intervals or
+  licks on a diatonic (richter) or chromatic harmonica for various keys.
 
   harpwise is limited to play and recognize single notes only; it has no
   sense of chords or grooves. So from the three ingredients of music,
-  melody, harmony and rhythm, it can help you with the melody only.
+  melody, harmony and rhythm, it can help you with the melody only and a bit
+  with harmony too, if you play your chords as arpeggios.
 
 
   Its main operation modes are 'listen', 'quiz' and 'licks'; these
@@ -51,6 +51,7 @@
   - licks: Learn licks (licks not included, but some pointers)
   - play: Play scales, holes or licks
   - report: Produce reports about licks and tags or a journal of licks played
+  - tools: Some utilities, mostly related to basic harmonica theory
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
@@ -60,16 +61,16 @@
   machine-generated tones and frequencies.
 
   If you want to work with mode licks to learn and memorize licks (highly
-  recommended !), you will need to add new licks very soon.  They need to
-  be added to your own lick-file, which is typically located at
+  recommended !), you will need to add new licks very soon.  Add them to
+  your own lick-file, which is typically located at
 
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
-  this file is created on first invocation and filled with only a few
+  this file is created on first invocation and filled with only a three
   sample-licks; however it contains extensive instructions on how to add
   new licks and some pointers to sources for more (printed and online).
 
-* Some general concepts
+* Some concepts
 ** Scales and Licks
 
    Both concepts:
@@ -102,36 +103,37 @@
    r at the same time. To clear the reference you simply need to hit r
    when not playing anything.
 
-** A word on the term holes
+** When multiple holes produce the same note
 
-   The Program uses the term "holes" throughout to give you feedback or
-   hints.  Examples would be "-1" or "+4"; these obviously name the holes
-   of your harmonica and distinguish between "draw" and "blow".
+   Many harps produce identical notes on certain holes; e.g. the diatonic
+   harmonica on holes -2 and +3; or many more cases e.g. for a chromatic.
 
-   The diatonic harmonica is well known to produce the same note for holes
-   "-2" and "+3"; in this case "-2" is chosen as the common name and
-   displayed in the chart. But for some reasons (e.g. saving air), you may
-   choose to play "+3" instead.
+   The harpwise cannot distinguish between them either and therefore
+   simply displays the first hole when in doubt. 
 
-   For the chromatic harmonica things are even more involved on many holes
-   and you may encounter somewhat lengthy holes names like "+45-4b". These
-   get clear however, if you take a look at the chart.
+   For writing down licks however, you are free to use any of thos
+   multiple holes.
 
-   So, if a hole-name is given, you always know the note that sounds, when
-   the hole is played (at least for a given key of harmonica). But at
-   least in some cases, you have a choice on which hole to play this note.
+** Tuning
 
-   In summary, you may consider hole-names like "-2" as practical names
-   for the notes played on a harmonica of a given key.
-
-   By the way, if you prefer other names, you may create your own type of
-   harmonica, which is fairly easy (see the paragraph on configuration).
+   The harp wise does not make assumptions about the tuning of your
+   harmonica; e.g. it works equally well with "equal temperament" (ET) or
+   "just intonation" tuning.  Simply because, it asks you to play your own
+   harp to generate samples (whatever its tuning might be); and it then
+   computes frequency values from these samples.
+  
+   However, sometimes harpwise has to choose one tuning, e.g. when doing
+   auto calibration, or when your samples need to be judged against some
+   standard. In such cases it generally uses "equal temperament" (ET for
+   short).
 
 * A closer look at the display
 
   Please note, that the wise tries to adapt itself to different screen
-  sizes by inserting blank lines in its display; you do not need to
-  restart it for this.
+  sizes by inserting blank lines in its display.
+
+  If your terminal window supports changing the screen size, the harpwise
+  will react accordingly and you do not need to restart it.
 
 ** The upper half of the screen, the "display"
 
@@ -141,7 +143,6 @@
    - A Chart showing the layout of your harmonica with notes
    - A similar chart but with scales
    - Chart with intervals (if the reference is set)
-   - A frequency scale, centered around the currently referenced note
 
    The color may show, if you hit a note from the chosen scales.
 
@@ -149,20 +150,25 @@
 
    This shows whatever comment is appropriate for listen or quiz and licks.
 
-   For listen this may be one of:
+*** For listen this may be one of
 
-   - The hole you played
-   - The respective note
-   - The interval to the previous note or the stored reference
-   - Cents deviation of the current frequency to the reference
+    - The hole you played
+    - The respective note
+    - The interval to the previous note or the stored reference
+    - Cents deviation of the current frequency to the reference
+    - A frequency gauge, centered around the currently referenced note
 
+*** For quiz and licks
 
-   For quiz and licks the comment gives information about the sequence
-   of holes, the wise expects you to play. There are three layouts showing
-   the holes small and large and with associated scales.
+    the comment gives information about the sequence of holes, the wise
+    expects you to play. There are multiple layouts showing the holes
+    small and large and with associated scales, intervals or notes.
+
+    If you are doing quiz you may choose a comment, that does not show
+    you, what you are supposed to remember.
    
 ** The middle part of the screen
-*** The Hole-line
+*** The hole line
     
     The first line in the middle of the display currently looks like this:
 
@@ -176,9 +182,13 @@
     - Rem :: A remark, that can be defined for a scale (i.e. within the
       file scales_SCALE_with_holes.yaml)
 
-*** The frequency gauge
+*** The frequency line
 
-    It looks like this:
+    It shows the absolute Frequency sensed and the deviation in cent from
+    the recognized note.
+
+    The same deviation is depicted in the frequency gauge; it looks like
+    this:
 
     [..........:..I.......]
 
@@ -194,23 +204,15 @@
     the ":" will represent the next hole and the displayed cursor ("I")
     will jump to the other side to approach the central position again.
 
+*** The interval line
+    
+    It show the interval to the reference hole (if one has been set) or
+    the interval the the previously played hole.
+
 * Configuration
 
   See the README within directory config.
 
-* Tuning
-
-  The harp wise does not make assumptions about the tuning of your
-  harmonica; e.g. it works equally well with "equal temperament" (ET) or
-  "just intonation" tuning.  Simply because, it asks you to play your own
-  harp to generate samples (whatever its tuning might be); and it then
-  computes frequency values from these samples.
-  
-  However, sometimes harpwise has to choose one tuning,
-  e.g. when doing auto calibration, or when your samples need to be judged
-  against some standard. In such cases it generally uses "equal
-  temperament" (ET for short).
-  
 * Installation
 
   The program harpwise runs in the linux console (no graphical environment
@@ -218,8 +220,8 @@
   clone from github first. Vice versa it can simply be removed by deleting
   the cloned directory. 
 
-  harpwise has a bunch of dependencies and one of the scripts in
-  directory install may be used to install them.
+  harpwise has a bunch of dependencies and one of the scripts in directory
+  install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wsl2, which supports sound through the remote desktop protocol.

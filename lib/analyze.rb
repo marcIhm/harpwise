@@ -9,7 +9,7 @@ $desc_freq_cache = nil
 
 def describe_freq freq
 
-  # be able to return the same result as before rather quick
+  # Be able to return the same result as before rather quick
   return $desc_freq_cache if freq >= $desc_freq_cache_lb && freq < $desc_freq_cache_ub
 
   minfr = $harp[$harp_holes[0]][:freq]

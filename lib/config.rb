@@ -385,7 +385,8 @@ def read_and_set_musical_config
   harp_holes = harp.keys
 
   # for convenience
-  $hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.to_h
+  # 'reverse', because we want to get the first of two holes having the same freq
+  $hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.reverse.to_h
   $note2hole = $hole2note.invert
   harp_notes = harp.keys.map {|h| $hole2note[h]}
 
@@ -484,7 +485,7 @@ def read_and_parse_scale sname
   dfile = $derived_dir + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
   comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
   File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump([{short: $scale2short[sname]}] + (dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem)))
-  
+
   [scale_holes, hole2rem]
 end
 
@@ -514,6 +515,7 @@ def read_and_parse_scale_simple sname
   dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
   scale_read.each do |fields|
     hole_or_note, rem = fields.split(nil,2)
+    err "Internal error: hole or note #{hole_or_note}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hole_or_note]
     semi = $dsemi_harp + dsemi_scale + ( sfile['holes']  ?  note2semi($hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
     if semi >= $min_semi && semi <= $max_semi
       note = semi2note(semi)
@@ -654,7 +656,8 @@ def read_calibration
     err "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
   end
 
-  freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.to_h
+  # 'reverse', because we want to get the first of two holes having the same freq
+  freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.reverse.to_h
 
   freq2hole
 end
