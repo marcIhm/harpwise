@@ -264,13 +264,13 @@ def do_quiz_or_licks
           
           # lambda_good_done_was_good
           -> (played, since) do
-            good = (holes_equiv?(played,wanted) || musical_event?(wanted))
+            good = (holes_equiv?(played, wanted) || musical_event?(wanted))
             [good,  
              $ctl_mic[:forget] ||
              (good && (Time.now.to_f - since >= min_sec_hold )),
              idx > 0 &&
              holes_equiv?(played, to_play[:all_wanted][idx-1]) &&
-             !holes_equiv(played, wanted)]
+             !holes_equiv?(played, wanted)]
           end, 
           
           # lambda_skip

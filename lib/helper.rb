@@ -293,5 +293,9 @@ end
 
 
 def holes_equiv? h1,h2
-  h1 == h2 || $harp[h1][:equiv].include(h2)
+  if h1.is_a?(String) && h2.is_a?(String)
+    h1 == h2 || $harp[h1][:equiv].include?(h2)
+  else
+    false
+  end
 end
