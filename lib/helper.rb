@@ -291,3 +291,7 @@ class PnR
   end
 end
 
+
+def holes_equiv? h1,h2
+  h1 == h2 || $harp[h1][:equiv].include(h2)
+end

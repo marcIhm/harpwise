@@ -368,10 +368,16 @@ def read_and_set_musical_config
   harp = Hash.new
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
-  $hole2note_read.each do |hole,note|
+  semi2holes = Hash.new {|h,k| h[k] = Array.new}
+  $hole2note_read.each do |hole, note|
     semi = note2semi(note) + $dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
                   [:semi, semi]].to_h
+    semi2holes[semi] << hole
+  end
+  $hole2note_read.each do |hole, _|
+    all_holes = 
+    harp[hole][:equiv] = semi2holes[harp[hole][:semi]].reject {|h| h == hole}
   end
   semis = harp.map {|hole, hash| hash[:semi]}
   $min_semi = semis.min
@@ -399,11 +405,11 @@ def read_and_set_musical_config
     h2s_shorts = Hash.new('')
     $used_scales.each_with_index do |sname, idx|
       # read scale
-      sc_ho, h2r = read_and_parse_scale(sname)
+      sc_ho, h2rem = read_and_parse_scale(sname)
       # build resulting scale
       holes_remove.each {|h| sc_ho.delete(h)}
       scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
-      h2r.each_key do |h|
+      h2rem.each_key do |h|
         next if holes_remove.include?(h)
         if idx == 0
           hole2flags[h] << :main
@@ -411,11 +417,12 @@ def read_and_set_musical_config
           next if $opts[:add_no_holes] && !hole2flags[h]
           hole2flags[h] << :added
         end
-        hole2flags[h] << :root if h2r[h] && h2r[h].match(/\broot\b/)
+        hole2flags[h] << :root if h2rem[h] && h2rem[h].match(/\broot\b/)
         h2s_shorts[h] += $scale2short[sname]
+        harp[h][:equiv].each {|h| h2s_shorts[h] += $scale2short[sname]}
         hole2rem[h] ||= [[],[]]
         hole2rem[h][0] << sname if $used_scales.length > 1
-        hole2rem[h][1] << h2r[h]&.split(/, /)
+        hole2rem[h][1] << h2rem[h]&.split(/, /)
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
@@ -432,7 +439,7 @@ def read_and_set_musical_config
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
-  
+
   [ harp,
     harp_holes,
     harp_notes,
@@ -469,7 +476,7 @@ def read_and_parse_scale sname
     $short2scale[short] = sname
     $scale2short[sname] = short
   end
-  
+
   scale_holes_with_rem = scale_holes.map {|h| "#{h} #{hole2rem[h]}".strip}
   scale_notes_with_rem = scale_holes.map {|h| "#{$hole2note[h]} #{hole2rem[h]}".strip}
   
@@ -566,6 +573,7 @@ def read_chart
             note = $harp[hole][:note]
             raise ArgumentError.new("hole '#{hole}' maps to note '#{note}' which is longer than given length '#{len}'") if note.length > len
             hole2chart[hole] << [col, row]
+            $harp[hole][:equiv].each {|h| hole2chart[h] << [col, row]}
             note.center(len)
           end
         chart_with_scales[row][col] =

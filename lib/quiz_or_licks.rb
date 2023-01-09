@@ -263,12 +263,16 @@ def do_quiz_or_licks
           
           
           # lambda_good_done_was_good
-          -> (played, since) {[played == wanted || musical_event?(wanted),  
-                               $ctl_mic[:forget] ||
-                               ((played == wanted || musical_event?(wanted)) &&
-                                (Time.now.to_f - since >= min_sec_hold )),
-                               idx > 0 && played == to_play[:all_wanted][idx-1] && played != wanted]}, 
-
+          -> (played, since) do
+            good = (holes_equiv?(played,wanted) || musical_event?(wanted))
+            [good,  
+             $ctl_mic[:forget] ||
+             (good && (Time.now.to_f - since >= min_sec_hold )),
+             idx > 0 &&
+             holes_equiv?(played, to_play[:all_wanted][idx-1]) &&
+             !holes_equiv(played, wanted)]
+          end, 
+          
           # lambda_skip
           -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]},  
 

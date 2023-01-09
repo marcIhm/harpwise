@@ -39,7 +39,7 @@
 # A second lick, mostly without comments
 #
 [st-louis]
-  holes = -1 +2 -2 -3/ -2 -3/ -3// -2
+  holes = -1 +2 -2 -3/ +3 -3/ -3// -2
   desc = St. Louis Blues
   rec = st-louis.mp3
   tags = samples favorites
