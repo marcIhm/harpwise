@@ -302,7 +302,12 @@ def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
   end
 
   match_or(scale, scales_for_type($type)) do |none, choices|
-    err "Scale must be one of #{choices}, not #{none}"
+    err "Scale (%s) must be one of #{choices}, not #{none}" %
+        if scale == $scale
+          'main scale'
+        else
+          'given in option --add-scales'
+        end
   end
 end
 

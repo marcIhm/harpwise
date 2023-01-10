@@ -3,7 +3,9 @@
 # Library of licks used in modes licks or play.
 #
 #
-# This file is made up of [sections].
+# This lickfile is for type 'richter'.
+#
+# It is made up of [sections].
 # Empty lines and comments are ignored.
 #
 

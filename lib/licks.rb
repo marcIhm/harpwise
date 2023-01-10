@@ -249,33 +249,43 @@ def read_licks graceful = false
 end
 
 
-def create_initial_lick_file lfile
-  puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !"
-  puts "\nCreating it with two sample licks and loads of comments,"
-  puts "explaining the format."
-  puts
-  puts "However, you need to add more licks yourself, to make"
-  puts "this mode (licks) really useful."
-  puts
-  puts "\n\e[32mON GETTING MORE LICKS\e[0m\n\n"
-  lick_sources = ERB.new(IO.read("#{$dirs[:install]}/resources/lick_sources.txt")).result(binding).lines
-  lick_sources.pop while lick_sources[-1].strip.empty?
-  File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes.txt")).result(binding))
-  lick_sources.each {|l| print l}
-  %w(wade.mp3 st-louis.mp3 feeling-bad.mp3).each do |file|
-    FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
+def create_initial_lick_library lfile
+  if $type == :richter
+    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !"
+    puts "\nCreating it with two sample licks and loads of comments,"
+    puts "explaining the format."
+    puts
+    puts "However, you need to add more licks yourself, to make"
+    puts "this mode (licks) really useful."
+    puts
+    puts "\n\e[32mON GETTING MORE LICKS\e[0m\n\n"
+    lick_sources = ERB.new(IO.read("#{$dirs[:install]}/resources/lick_sources.txt")).result(binding).lines
+    lick_sources.pop while lick_sources[-1].strip.empty?
+    File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes_richter.txt")).result(binding))
+    lick_sources.each {|l| print l}
+    %w(wade.mp3 st-louis.mp3 feeling-bad.mp3).each do |file|
+      FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
+    end
+    puts
+    puts "\n\e[32mGO AHEAD\e[0m\n\n"
+    puts 'Now you may try again with three predefined licks'
+    puts "from 'Wade in the Water', 'St. Louis Blues' and"
+    puts "'Going down that road feeling bad' !"
+    puts "(all in my own, rather imperfect recording)"
+    puts "If you like this mode and want to make it more useful,"
+    puts "then consider adding more licks to:"
+    puts "#{lfile}"
+    puts "(where you may also reread these suggestions)"
+    puts
+  else
+    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !\n\n"
+    puts "Creating an empty initial version for type '#{$type}'.\n\n"
+    try_richter = ERB.new(IO.read("#{$dirs[:install]}/resources/try_richter.txt")).result(binding).lines
+    try_richter.pop while try_richter[-1].strip.empty?
+    File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes_other.txt")).result(binding))
+    try_richter.each {|l| print l}
+    puts
   end
-  puts
-  puts "\n\e[32mGO AHEAD\e[0m\n\n"
-  puts 'Now you may try again with three predefined licks'
-  puts "from 'Wade in the Water', 'St. Louis Blues' and"
-  puts "'Going down that road feeling bad' !"
-  puts "(all in my own, rather imperfect recording)"
-  puts "If you like this mode and want to make it more useful,"
-  puts "then consider adding more licks to:"
-  puts "#{lfile}"
-  puts "(where you may also reread these suggestions)"
-  puts
 end
 
 
@@ -288,7 +298,7 @@ def get_lick_file
   err "There are two files matching #{glob}; please check and remove one" if lfiles.length > 1
   if lfiles.length == 0
     lfile = $lick_file_template % 'holes'
-    create_initial_lick_file lfile
+    create_initial_lick_library lfile
     exit
   else
     lfile = lfiles[0]

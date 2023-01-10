@@ -116,7 +116,7 @@ do_test 'id-9b: mode licks to create simple lick file' do
   new_session
   tms 'harpwise licks a'
   tms :ENTER
-  sleep 2
+  wait_for_end_of_harpwise
   expect { screen[-8]['road'] }
   expect(lick_file) { File.exist?(lick_file) }
   kill_session
@@ -126,6 +126,19 @@ do_test 'id-9b: mode licks to create simple lick file' do
     file.write(File.read('tests/data/add_to_licks_with_holes.txt'))
   end
   File.write "#{$dotdir_testing}/README.org", "This directory contains test-data for harpwise\nand will be recreated on each run of tests."
+end
+
+do_test 'id-9c: create simple lick file for chromatic' do
+  lick_dir = "#{$dotdir_testing}/licks/chromatic"
+  lick_file = "#{lick_dir}/licks_with_holes.txt"
+  FileUtils.rm_r lick_dir if File.exist?(lick_dir)
+  new_session
+  tms 'harpwise licks chromatic a'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[-8]['?'] }
+  expect(lick_file) { File.exist?(lick_file) }
+  kill_session
 end
 
 %w(g a c d).each_with_index do |key,idx|
@@ -1141,6 +1154,17 @@ do_test 'id-48a: chromatic in a; listen' do
   kill_session
 end
 
+do_test 'id-48b: chromatic in a, scale blues; listen' do
+  sound 8, 2
+  new_session 92, 30
+  tms 'harpwise listen chromatic a blues --add-scales - --display chart-scales'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  # adjust lines 
+  expect { screen[4][' b     -     b     b     b     -     b     b     b     -     b     b'] }
+  kill_session
+end
+
 do_test 'id-49: edit lickfile' do
   ENV['EDITOR']='vi'
   new_session
@@ -1186,4 +1210,21 @@ do_test 'id-53: tools print' do
   kill_session
 end
 
+i = 0
+%w(richter chromatic).each do |type|
+  glob = $installdir + "/config/#{type}/scale_*_with_holes.yaml"
+  star_at = glob.index('*')
+  Dir[glob].each do |sfile|
+    scale = sfile[star_at .. star_at - glob.length]
+    i += 1
+    do_test "id-54a#{i}: tools print type #{type}, scale #{scale}" do
+      new_session
+      tms "harpwise tools #{type} print #{scale}"
+      tms :ENTER
+      wait_for_end_of_harpwise
+      expect { screen.select {|l| l.downcase['error']}.length == 0 }
+      kill_session
+    end
+  end
+end
 puts "\ndone.\n\n"

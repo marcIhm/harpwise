@@ -1,0 +1,16 @@
+#  -*- mode: conf-mode; fill-column: 65 -*-
+#
+# Library of licks used in modes licks or play.
+#
+#
+# This lickfile is for type '<%= $type %>'.
+#
+<%= try_richter.map {|l| "# #{l}"}.join %>
+# In addition a lickfile for type 'richter' will contain all the
+# comments needed to understand this file properly.
+
+# A trivial lick can be defined like this:
+[trivial]
+
+  holes = -1 -2
+  desc = Just an example
