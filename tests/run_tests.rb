@@ -847,9 +847,9 @@ do_test 'id-33b: display chart where -2 equals +3' do
   tms :ENTER
   wait_for_start_of_pipeline
   # ends on +3 ; change 8 into correct line
-  expect { screen[8]['b4    4   b14']}
+  expect { screen[4]['b4    4   b14']}
   # ends on -2 ; change 12 into correct line
-  expect { screen[12]['b15   b14']}
+  expect { screen[8]['b15  b14']}
   kill_session
 end
 
@@ -858,7 +858,7 @@ do_test 'id-34: comment with scales and octave shifts' do
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     -2.b1   -3/.b   -3//'] }
+  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   tms '>'
   sleep 2
   expect { screen[15]['-4.b1  +6.b1  +6.b1  -6.b   +6.b1'] }
@@ -887,7 +887,7 @@ do_test 'id-35: comment with all holes' do
   tms 'harpwise lic blues:b --add-scales chord-i:1 --comment holes-all --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[16][' ▄▄▖▌   ▄▙▖ ▗▘  ▄▄▖▗▘  ▄▄▖▄▘ ▞   ▄▄▖▗▘  ▄▄▖▄▘ ▞   ▄▄▖▄▘ ▞ ▞   ▄▄▖▗▘'] }
+  expect { screen[16]['  ▄▄▖▌   ▄▙▖ ▗▘  ▄▄▖▗▘  ▄▄▖▄▘ ▞   ▄▙▖ ▄▘  ▄▄▖▄▘ ▞   ▄▄▖▄▘ ▞ ▞   ▄▄▖▗▘'] }
   kill_session
 end
 
@@ -907,7 +907,7 @@ do_test 'id-36a: display as chart with notes' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
-  expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    -2.g4    -3/.bf4'] }
+  expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
 
@@ -1117,26 +1117,27 @@ do_test 'id-46a: verify persistent tag "starred"' do
   kill_session
 end
 
-do_test 'id-48: chromatic; listen' do
+do_test 'id-48: chromatic in c; listen' do
+  sound 8, 2
+  new_session 92, 30
+  tms 'harpwise listen chromatic c all --add-scales - --display chart-notes'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  # adjust lines 
+  expect { screen[4]['c4    e4    g4    c5    c5    e5    g5    c6    c6'] }
+  expect { screen[6]['d4    f4    a4    b4    d5    f5    a5    b5    d6    f6    a6    b6'] }
+  expect { screen[10]['df4    f4   af4   df5   df5    f5   af5   df6   df6'] }
+  kill_session
+end
+
+do_test 'id-48a: chromatic in a; listen' do
   sound 8, 2
   new_session 92, 30
   tms 'harpwise listen chromatic a all --add-scales - --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
-  expect { screen[4][' c5 '] }
-  expect { screen[4][' c5 '] }
-  expect { screen[4][' c5 '] }
-  kill_session
-end
-
-do_test 'id-48a: display chart where +45-4b all map to c5' do
-  new_session
-  tms 'harpwise listen chromatic blues:b --add-scales chord-i:1,chord-iv:4,chord-v:5 --display chart-scales'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  expect { screen[8]['?']}
-  expect { screen[12]['?']}
+  expect { screen[4]['a3   df4    e4    a4    a4   df5    e5    a5    a5   df6    e6    a6'] }
   kill_session
 end
 
@@ -1181,7 +1182,7 @@ do_test 'id-53: tools print' do
   new_session
   tms 'harpwise tools print st-louis'
   tms :ENTER
-  expect { screen[8]['-1      +2      -2      -3/     -2      -3/     -3//    -2'] }
+  expect { screen[8]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
   kill_session
 end
 
