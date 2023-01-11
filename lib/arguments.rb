@@ -22,7 +22,7 @@ def parse_arguments
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
-    err "First argument can be one of #{choices}, not #{none}; invoke without argument for general usage information; note, that mode 'develop' is only useful for the maintainer or developer of harpwise."
+    err "First argument can be one of #{choices}, not #{none}.\n\n    Please invoke without argument for general usage information !\n\n(note, that mode 'develop' is only useful for the maintainer or developer of harpwise.)"
   end.to_sym
   ARGV.shift
   num_args_after_mode = ARGV.length
