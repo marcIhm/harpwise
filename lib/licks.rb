@@ -250,7 +250,7 @@ end
 
 
 def create_initial_lick_library lfile
-  if $type == :richter
+  if $type == 'richter'
     puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !"
     puts "\nCreating it with two sample licks and loads of comments,"
     puts "explaining the format."

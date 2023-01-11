@@ -133,10 +133,10 @@ do_test 'id-9c: create simple lick file for chromatic' do
   lick_file = "#{lick_dir}/licks_with_holes.txt"
   FileUtils.rm_r lick_dir if File.exist?(lick_dir)
   new_session
-  tms 'harpwise licks chromatic a'
+  tms 'harpwise licks chromatic a --add-scales -'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[-8]['?'] }
+  expect { screen[9]['empty initial version'] }
   expect(lick_file) { File.exist?(lick_file) }
   kill_session
 end
@@ -1173,7 +1173,7 @@ do_test 'id-49: edit lickfile' do
   wait_for_start_of_pipeline
   tms 'e'
   sleep 1
-  expect { screen[12]['[wade]'] }
+  expect { screen[14]['[wade]'] }
   kill_session
   ENV.delete('EDITOR')
 end
