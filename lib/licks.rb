@@ -284,6 +284,7 @@ def create_initial_lick_library lfile
     try_richter.pop while try_richter[-1].strip.empty?
     File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes_other.txt")).result(binding))
     try_richter.each {|l| print l}
+    puts "\nNow you may try again."
     puts
   end
 end

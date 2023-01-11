@@ -9,8 +9,7 @@
 # In addition a lickfile for type 'richter' will contain all the
 # comments needed to understand this file properly.
 
-# A trivial lick can be defined like this:
-[trivial]
-
-  holes = -1 -2
-  desc = Just an example
+# This lick has no recording
+[some]
+  holes = <%= $harp_holes[0..5].join(' ') %>
+  desc = all holes for type '<%= $type %>'
