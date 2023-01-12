@@ -9,9 +9,10 @@ OVERVIEW
 
   - transpose: transpose a sequence of notes from one key of harp
     to another
-  - positions: simply print out a chart of positions
-  - chart: print the usual harmonica chart with notes, matching the
-    given key
+  - positions: print a fixed chart with positions
+  - chords: print the chords i, iv and v for the given key of harp as
+    played in second position
+  - chart: print harmonica chart with notes for the given key
   - print: print contents of notes, holes, scales or licks as given
     on commandline
   

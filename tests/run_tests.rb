@@ -1194,6 +1194,14 @@ do_test 'id-51: tools transpose' do
   kill_session
 end
 
+do_test 'id-51a: tools chords' do
+  new_session
+  tms 'harpwise tools g chords'
+  tms :ENTER
+  expect { screen[10]['g3      b3      d4'] }
+  kill_session
+end
+
 do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
@@ -1228,3 +1236,4 @@ i = 0
   end
 end
 puts "\ndone.\n\n"
+

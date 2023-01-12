@@ -4,9 +4,9 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(positions transpose chart print)
+  tools_allowed = %w(positions transpose chart chords print)
   tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
-    err "Argument for mode 'tools' must be one of #{choices}, no #{none}; #{$for_usage}"
+    err "Argument for mode 'tools' must be one of #{choices}, not #{none}; #{$for_usage}"
   end
 
   case tool
@@ -14,12 +14,14 @@ def do_tools to_handle
     tool_positions to_handle
   when 'transpose'
     tool_transpose to_handle
+  when 'chords'
+    tool_chords to_handle
   when 'chart'
     tool_chart to_handle
   when 'print'
     tool_print to_handle
   else
-    err "Unknown tool '#{tool}'; #{$for_usage}"
+    err "Internal error: Unknown tool '#{tool}'"
   end
 
 end
@@ -97,6 +99,33 @@ EOHEAD
   end
   puts
   puts
+end
+
+
+def tool_chords to_handle
+
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+
+  puts "\nChords for harp in key of #{$key} played in second position:\n\n"
+  # offset of notes of major scale against base note; computed from
+  # whole- and half-note steps
+  scale_semi_tones = [2, 2, 1, 2, 2, 2, 1, 2].inject([0]) {|memo, elem| memo << memo[-1] + elem; memo}
+  # offset for playing in second position i.e. for staring with the fifth note
+  offset = scale_semi_tones[5-1]
+  names = %w(i iv v)
+  [[1, 3, 5], [4, 6, 8], [5, 7, 9]].each do |chord|
+    chord_st = chord.map do |i|
+      semi = offset + scale_semi_tones[i-1]
+      semi -= 12 if $semi2hole[$min_semi + semi - 12]
+      semi
+    end.sort
+    puts "chord-#{names[0]}:"
+    print_in_columns chord_st.map {|st| ( $semi2hole[$min_semi + st] || '--') + ' '}
+    print_in_columns chord_st.map {|st| semi2note($min_semi + st) + ' '}
+    puts
+    names.shift
+  end
+
 end
 
 
