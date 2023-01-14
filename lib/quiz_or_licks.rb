@@ -1111,7 +1111,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   def edit_lick
     editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
     print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{$lick_file} with: \e[0m#{editor}\e[k"
-    sleep 1
+    sleep editing_message_seen  ?  0.5  :  1
     print "\e[#{$lines[:message2]}H\e[K"
     make_term_cooked
     system("#{editor} +#{self[:lick][:lno]} #{$lick_file}")
@@ -1124,7 +1124,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         self[:all_wanted] = self[:lick][:holes]
         ctl_response 'Refreshed licks'
       end
-      sleep 1
+      sleep editing_message_seen  ?  0.5  :  1
     else
       make_term_immediate
       puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
@@ -1135,6 +1135,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     
     $ctl_mic[:redraw] = Set[:silent, :clear]
     $ctl_mic[:edit_lick_file] = false
+    $editing_message_seen = true
   end
 
 
