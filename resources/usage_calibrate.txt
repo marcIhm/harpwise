@@ -33,9 +33,12 @@ USAGE BY EXAMPLES
   directory; frequencies will be extracted to the file frequencies.yaml.
 
 
-  For quick (but possibly inaccurate) calibration you may use:
+  For automatic calibration (you will not need to play, sounds will be
+  synthesized; but results may be inaccurate) you may use:
 
     harpwise calibrate c --auto
+
+  which will get you started with harpwise quickly.
 
 
   To calibrate a single hole only (for key a):

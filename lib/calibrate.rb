@@ -44,9 +44,9 @@ EOINTRO
     exit 0
   end
   hole2freq = Hash.new
-  $harp_holes.each do |hole|
+  $harp_holes.each_with_index do |hole, idx|
     file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
-    synth_sound hole, file
+    synth_sound hole, file, " (#{idx + 1} of #{$harp_holes.length})"
     play_sound file
     hole2freq[hole] = analyze_with_aubio(file)
   end

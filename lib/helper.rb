@@ -75,7 +75,8 @@ def err text
   raise ArgumentError.new(text) if $on_error_raise
   sane_term
   puts
-  puts "ERROR: #{text} !"
+  print "ERROR: #{text}"
+  puts ' !' unless text['!']
   puts_err_context
   puts
   puts Thread.current.backtrace if $opts && $opts[:debug]
