@@ -52,6 +52,8 @@ check_installation
 
 $conf = read_technical_config
 
+# get debug info early to help e.g. for error messages
+$opts = {debug: true} if ARGV.include?('--debug')
 $mode, $type, $key, $scale, $opts, to_handle = parse_arguments
 
 Sys::ProcTable.ps do |p|

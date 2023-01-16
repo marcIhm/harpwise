@@ -8,7 +8,7 @@ def do_report to_report
   reports_allowed = %w(licks dump journal jour starred star stars)
 
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
-  err "Unknown report #{to_report[0]}, only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
+  err "Unknown report '#{to_report[0]}', only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
   report = to_report[0].to_sym
   report = :journal if report == :jour
   report = :starred if report == :star || report == :stars

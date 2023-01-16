@@ -36,7 +36,6 @@ def parse_arguments
   #
   
   opts = Hash.new
-
   # will be enriched with descriptions and arguments below
   modes2opts = 
     [[Set[:calibrate, :listen, :quiz, :licks, :play, :report, :develop, :tools], {
@@ -156,7 +155,7 @@ def parse_arguments
 
   # clear options with special value '-'
   opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
-
+  
   
   #
   # Special handling for some options
