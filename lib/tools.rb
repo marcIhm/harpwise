@@ -201,7 +201,8 @@ def print_holes_and_more holes
   print_in_columns holes
   puts
   if $used_scales[0] != 'all'
-    puts "Holes with scales:"
+    scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
+    puts "Holes with scales (#{scales_text}):"
     print_in_columns(scaleify(holes).map {|ps| ins_dot_mb(ps)})
     puts
   end
