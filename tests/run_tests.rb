@@ -81,7 +81,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 32
+num_exp = 34
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -299,7 +299,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [-8, 'this number of holes'],
                      'report' => [-6, 'on every invocation'],
-                     'tools' => [-23, 'harmonica chart for the key']}
+                     'tools' => [1, 'Print hole holes and notes of a scale']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -874,7 +874,7 @@ do_test 'id-34: comment with scales and octave shifts' do
   expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   tms '>'
   sleep 2
-  expect { screen[15]['-4.b1  +6.b1  +6.b1  -6.b   +6.b1'] }
+  expect { screen[15]['-4.b1  (*)    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
   tms '<'
   sleep 2
   tms '<'
@@ -1214,7 +1214,17 @@ do_test 'id-53: tools print' do
   new_session
   tms 'harpwise tools print st-louis'
   tms :ENTER
-  expect { screen[8]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
+  expect { screen[11]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
+  expect { screen[15]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
+  expect { screen[19]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  kill_session
+end
+
+do_test 'id-53a: tools print with scale' do
+  new_session
+  tms 'harpwise tools chord-i print st-louis --add-scales chord-iv,chord-v'
+  tms :ENTER
+  expect { screen[12]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
   kill_session
 end
 
@@ -1227,7 +1237,7 @@ i = 0
     i += 1
     do_test "id-54a#{i}: tools print type #{type}, scale #{scale}" do
       new_session
-      tms "harpwise tools #{type} print #{scale}"
+      tms "harpwise tools #{type} print #{scale} --add-scales -"
       tms :ENTER
       wait_for_end_of_harpwise
       expect { screen.select {|l| l.downcase['error']}.length == 0 }

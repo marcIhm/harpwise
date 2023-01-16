@@ -39,15 +39,16 @@ def parse_arguments
 
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report, :develop], {
+    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report, :develop, :tools], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
      [Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
         screenshot: %w(--screenshot)}],
-     [Set[:listen, :quiz, :licks], {
+     [Set[:listen, :quiz, :licks, :tools], {
         add_scales: %w(-a --add-scales ),
         remove_scales: %w(--remove-scales),
-        no_add_holes: %w(--no-add-holes),
+        no_add_holes: %w(--no-add-holes)}],
+     [Set[:listen, :quiz, :licks], {
         ref: %w(-r --ref ),
         display: %w(-d --display),
         comment: %w(-c --comment)}],
@@ -249,7 +250,7 @@ def parse_arguments
   # type and key) are things to play or keywords; a scale is not allowed,
   # so we do this before processing the scale
 
-  if [:play, :report, :tools, :develop].include?(mode)
+  if [:play, :report, :develop].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
@@ -265,6 +266,14 @@ def parse_arguments
     else
       scale = get_scale_from_sws('blues')
     end
+  when :tools
+    # if the first remaining argument looks like a scale, take it as such
+    scale = get_scale_from_sws(ARGV[0], true)
+    if scale
+      ARGV.shift
+    else
+      scale = get_scale_from_sws('all:a')
+    end
   when :play, :report, :develop, :tools
     scale = get_scale_from_sws('all:a')
   when :calibrate
@@ -275,6 +284,14 @@ def parse_arguments
   end
   
   err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{$for_usage}" unless !$scale || scales_for_type(type).include?(scale)
+
+  # now, as a possible scale argument has been recognized, all the rest is
+  # to handle for mode tools too; others see above
+  if mode == :tools
+    to_handle = []
+    to_handle << ARGV.shift while !ARGV.empty?
+  end
+
   
   # do this check late, because we have more specific error messages before
   err "Cannot handle these arguments: #{ARGV}; #{$for_usage}" if ARGV.length > 0 && mode != :play && mode != :licks
@@ -288,7 +305,7 @@ def parse_arguments
 end
 
 
-def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
+def get_scale_from_sws scale_w_short, graceful = false   # get_scale_from_scale_with_short
   scale = nil
 
   if md = scale_w_short.match(/^(.*?):(.*)$/)
@@ -302,12 +319,17 @@ def get_scale_from_sws scale_w_short   # get_scale_from_scale_with_short
   end
 
   match_or(scale, scales_for_type($type)) do |none, choices|
-    err "Scale (%s) must be one of #{choices}, not #{none}" %
-        if scale == $scale
-          'main scale'
-        else
-          'given in option --add-scales'
-        end
+    if graceful
+      nil
+    else
+      scale_glob = $scale_files_template % [$type, '*', '*']
+      err "Scale (%s) must be one of #{choices}, i.e. scales matching #{scale_glob}; not #{none}" %
+          if scale == $scale
+            'main scale'
+          else
+            'given in option --add-scales'
+          end
+    end
   end
 end
 

@@ -13,13 +13,14 @@ specifies the mode of operation; it can be one of:
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
   - quiz: Train your ear and musical memory
-  - licks: Learn licks (licks not included, but some pointers)
+  - licks: Learn licks (only licks three included, but some pointers)
   - play: Wise plays scales, holes or licks
   - report: Produce reports about licks and tags or a journal of licks
     played
+  - tools: A collection of simple, non-interactive tools related to
+    basic harmonica theory
   - calibrate: Wise generates samples for holes, or assists in
     recording your own
-  - tools: A collection of simple, non-interactive tools
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.

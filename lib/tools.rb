@@ -135,20 +135,25 @@ def tool_chart to_handle
 
   puts
   puts
-  $charts[:chart_notes].each_with_index do |row, ridx|
-    print '  '
-    row[0 .. -2].each_with_index do |cell, cidx|
-      hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
-      print cell
+  to_print = [:chart_notes]
+  to_print << :chart_scales if $used_scales[0] != 'all'
+  to_print.each do |tp|
+    $charts[tp].each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        print cell
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    puts
   end
   puts
 end
 
-
 def tool_print to_handle
   $all_licks, $licks = read_licks
+  # ignore any tag selection
+  $licks = $all_licks
   holes, lnames, snames, special = partition_to_play_or_print(to_handle)
   err "Cannot print these special arguments: #{special}" if special.length > 0
   
@@ -159,7 +164,7 @@ def tool_print to_handle
 
     puts 'Holes given as arguments:'
     puts
-    print_holes_and_notes holes
+    print_holes_and_more holes
 
   elsif snames.length > 0
 
@@ -169,18 +174,20 @@ def tool_print to_handle
       puts " #{sname}:"
       puts
       scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      print_holes_and_notes scale_holes
+      print_holes_and_more scale_holes
     end
       
   elsif lnames.length > 0
 
     puts 'Licks given as arguments:'
+    puts '========================='
     puts
     lnames.each do |lname|
-      puts " #{lname}:"
+      puts "#{lname}:"
+      puts '-' * (lname.length + 1)
       puts
       lick = $licks.find {|l| l[:name] == lname}
-      print_holes_and_notes lick[:holes]
+      print_holes_and_more lick[:holes]
     end
 
   end
@@ -189,9 +196,25 @@ def tool_print to_handle
 end
 
 
-def print_holes_and_notes holes
+def print_holes_and_more holes
+  puts "Holes:"
   print_in_columns holes
   puts
-  print_in_columns holes.map {|h| $hole2note[h]}
+  if $used_scales[0] != 'all'
+    puts "Holes with scales:"
+    print_in_columns(scaleify(holes).map {|ps| ins_dot_mb(ps)})
+    puts
+  end
+  puts "Holes with notes:"
+  print_in_columns(noteify(holes).map {|ps| ins_dot_mb(ps)})
   puts
+  puts "Holes with intervals:"
+  print_in_columns(intervalify(holes).map {|ps| ins_dot_mb(ps)})
+  puts
+end
+
+
+def ins_dot_mb parts
+  parts[0] + parts[1] +
+    ( parts[2].strip.length > 0  ?  '.' + parts[2]  :  parts[2] )
 end

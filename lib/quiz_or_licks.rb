@@ -733,7 +733,6 @@ end
 
 
 def scaleify holes
-  holes = holes.reject {|h| musical_event?(h)}
   holes_maxlen = holes.max_by(&:length).length
   shorts_maxlen = holes.map {|hole| $hole2scale_shorts[hole]}.max_by(&:length).length
   holes.each.map do |hole|
@@ -743,13 +742,14 @@ end
 
 
 def intervalify holes
-  holes = holes.reject {|h| musical_event?(h)}
   holes_maxlen = holes.max_by(&:length).length
   inters = []
   holes.each_with_index do |hole,idx|
-    isemi ,_ ,itext, _ = describe_inter(hole,
-                                        idx == 0 ? hole : holes[idx - 1])
-    idesc = itext || isemi
+    j = idx - 1
+    j = 0 if j < 0
+    j -= 1 while j > 0 && musical_event?(holes[j])
+    isemi ,_ ,itext, _ = describe_inter(hole, holes[j])
+    idesc = itext || isemi || ''
     idesc.gsub!(' ','')
     inters << idesc
   end
@@ -762,11 +762,21 @@ end
 
 
 def noteify holes
-  holes = holes.reject {|h| musical_event?(h)}
   holes_maxlen = holes.max_by(&:length).length
-  notes_maxlen = holes.map {|hole| $harp[hole][:note]}.max_by(&:length).length
+  notes_maxlen = holes.map do |hole|
+    if musical_event?(hole)
+      ''
+    else
+      $harp[hole][:note]
+    end
+  end.max_by(&:length).length
   holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole, $harp[hole][:note].ljust(notes_maxlen)]
+    [' ' * (holes_maxlen - hole.length), hole,
+     if musical_event?(hole)
+       ''
+     else
+       $harp[hole][:note]
+     end.ljust(notes_maxlen)]
   end
 end
 
