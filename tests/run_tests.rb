@@ -81,7 +81,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 34
+num_exp = 35
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -299,7 +299,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [-8, 'this number of holes'],
                      'report' => [-6, 'on every invocation'],
-                     'tools' => [1, 'Print hole holes and notes of a scale']}
+                     'tools' => [0, 'Print hole holes and notes of a scale']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -1206,7 +1206,7 @@ do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
   tms :ENTER
-  expect { screen[5]['g3   b3   d4   g4   b4   d5'] }
+  expect { screen[6]['g3   b3   d4   g4   b4   d5'] }
   kill_session
 end
 

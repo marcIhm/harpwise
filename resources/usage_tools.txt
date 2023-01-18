@@ -45,7 +45,12 @@ USAGE BY EXAMPLES
 
     harpwise tools g chord-i chart
     
-    
+  Three charts, the third with intervals of each hole to the given
+  reference:
+
+    harpwise tools chord-i chart --ref -4
+
+
   Print holes and notes of a lick:
 
     harpwise tools print st-louis

@@ -137,7 +137,12 @@ def tool_chart to_handle
   puts
   to_print = [:chart_notes]
   to_print << :chart_scales if $used_scales[0] != 'all'
+  if $opts[:ref]
+    to_print << :chart_intervals 
+    $charts[:chart_intervals] = get_chart_with_intervals
+  end
   to_print.each do |tp|
+    puts tp.to_s + ':'
     $charts[tp].each_with_index do |row, ridx|
       print '  '
       row[0 .. -2].each_with_index do |cell, cidx|

@@ -28,7 +28,7 @@ def parse_arguments
   num_args_after_mode = ARGV.length
 
   # needed for other modes too
-  $for_usage = "Invoke with single argument '#{mode}' for usage information specific for this mode or invoke without any arguments for more general usage"
+  $for_usage = "Invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage"
 
 
   #
@@ -45,10 +45,10 @@ def parse_arguments
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks, :tools], {
         add_scales: %w(-a --add-scales ),
+        ref: %w(-r --reference ),
         remove_scales: %w(--remove-scales),
         no_add_holes: %w(--no-add-holes)}],
      [Set[:listen, :quiz, :licks], {
-        ref: %w(-r --ref ),
         display: %w(-d --display),
         comment: %w(-c --comment)}],
      [Set[:quiz, :play], {
@@ -79,8 +79,11 @@ def parse_arguments
         start_with: %w(-s --start-with),
         partial: %w(-p --partial)}]]
 
-  all_sets = modes2opts.map {|m2o| m2o[0]}
-  fail 'Internal error; at least one set of modes appears twice' unless all_sets.uniq.length == all_sets.length
+  double_sets = modes2opts.map {|m2o| m2o[0]}
+  double_sets.uniq.each do |del|
+    double_sets.delete_at(double_sets.index(del))
+  end
+  fail "Internal error; at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
 
   # construct hash opts_all with options specific for mode; take
   # descriptions from file with embedded ruby
