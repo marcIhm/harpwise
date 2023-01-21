@@ -25,33 +25,11 @@ def do_quiz_or_licks
   $all_licks, $licks = read_licks
   $lick_iter_display = nil
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
+  splashed = false
 
-  # write banner, provide smooth animation
-  unless $other_mode_saved[:conf]
-    animate_splash_line
-
-    # get current cursor line, will be used as bottom of two lines for messages
-    print "\e[6n"
-    reply = ''
-    reply += STDIN.gets(1) while reply[-1] != 'R'
-    oride_l_message2 = reply.match(/^.*?([0-9]+)/)[1].to_i - 1
-
-    # complete term init
-    make_term_immediate
-  end
-  
   loop do   # forever until ctrl-c, sequence after sequence
 
     do_write_journal = false
-
-    if oride_l_message2
-      puts
-    else
-      print "\e[#{$lines[:hint_or_message]}H\e[K"
-      print "\e[#{$lines[:message2]}H\e[K"
-      print_mission ''
-      ctl_response
-    end
 
     #
     #  First compute and play the sequence that is expected
@@ -115,7 +93,8 @@ def do_quiz_or_licks
       print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
       $message_shown_at = Time.now.to_f
 
-    else # most general case: $ctl_mic[:next] or no $ctl-command;
+    else
+      # most general case: $ctl_mic[:next] or no $ctl-command;
       # go to the next lick or sequence of holes
 
       to_play[:all_wanted_before] = to_play[:all_wanted]
@@ -168,6 +147,32 @@ def do_quiz_or_licks
 
     end # handling $ctl-commands and calculating the next holes
 
+    # Now that we are past possible commandline errors, we may initialize screen fully
+    if !$other_mode_saved[:conf] && !splashed
+      # write banner, provide smooth animation
+      animate_splash_line
+      
+      # get current cursor line, will be used as bottom of two lines for messages
+      print "\e[6n"
+      reply = ''
+      reply += STDIN.gets(1) while reply[-1] != 'R'
+      oride_l_message2 = reply.match(/^.*?([0-9]+)/)[1].to_i - 1
+      
+      # complete term init
+      make_term_immediate
+      splashed = true
+    end
+
+    if oride_l_message2
+      puts
+    else
+      print "\e[#{$lines[:hint_or_message]}H\e[K"
+      print "\e[#{$lines[:message2]}H\e[K"
+      print_mission ''
+      ctl_response
+    end
+
+    
     #
     #  Play the sequence or recording
     #
@@ -1233,9 +1238,16 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:lick_cycle] = ( doiter[1] == 'c' )
       start_with[-doiter.length .. -1] = ''
     end
-    
-    self[:lick_idx] = $licks.index {|l| l[:name] == start_with}
-    err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')" unless self[:lick_idx]
+
+    mnames = $licks.map {|l| l[:name]}.select {|n| n.start_with?(start_with)}
+    case mnames.length
+    when 1
+      self[:lick_idx] = $licks.index {|l| l[:name][start_with]}
+    when 0
+      err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')"
+    else
+      err "Multiple licks start with '#{start_with}': #{mnames}"
+    end
     
     if doiter
       self[:lick_idx_iter] = self[:lick_idx]
