@@ -71,10 +71,9 @@ Suggested reading:
   - The top level file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
-Configuration files:
+User Configuration:
 
-  - <%=$conf[:config_file_user]%>
-  - <%=$conf[:config_file]%>
+  ~/.harpwise/config.ini
 
 Version <%=$version%>
 Copyright (c) 2021-2023 by Marc Ihm (marc@ihm.name) 
