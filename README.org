@@ -157,6 +157,7 @@
     - The interval to the previous note or the stored reference
     - Cents deviation of the current frequency to the reference
     - A frequency gauge, centered around the currently referenced note
+    - Warbles with respect to the reference hole
 
 *** For quiz and licks
 

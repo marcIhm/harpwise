@@ -29,7 +29,7 @@ def do_listen
 
     
     # lambda_comment
-    -> (hole_color, isemi, itext, note, hole_disp, freq) do
+    -> (hole_color, isemi, itext, note, hole_disp, freq, warbles) do
       color = "\e[0m" + hole_color
       witdh_template = nil
       line = $lines[:comment_low]
@@ -72,6 +72,21 @@ def do_listen
                                            semi2freq_et(semi_ref + 2)) {|ok,marker| marker}
                  color =  in_range  ?  "\e[0m\e[32m"  :  "\e[2m"
                  dots
+               else
+                 color = "\e[2m"
+                 'set ref'
+               end
+             when :warbles
+               font = 'smblock'
+               line += 2
+               if $hole_ref
+                 if warbles.length > 2
+                   color = "\e[0m\e[32m"
+                   '%.1f' % ( warbles.length / ( Time.now.to_f - warbles[0] ) )
+                 else
+                   color = "\e[2m"
+                   '--'
+                 end
                else
                  color = "\e[2m"
                  'set ref'

@@ -103,7 +103,7 @@ def set_global_vars_early
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
-  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref]
+  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles]
 
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"

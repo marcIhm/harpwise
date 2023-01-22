@@ -16,6 +16,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
   first_round = true
+  warbles = Array.new
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_started] = hole_start
@@ -27,6 +28,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     $perfctr[:handle_holes_loops] += 1
     $perfctr[:handle_holes_this_loops] += 1
+    tntf = Time.now.to_f
+    
     system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
     if first_round || $ctl_mic[:redraw]
       print_mission(get_mission_override || lambda_mission.call)
@@ -83,7 +86,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     hole, lbor, cntr, ubor = describe_freq(freq)
     
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
-    if hole != hole_held  &&  Time.now.to_f - hole_since > 0.1
+    if hole != hole_held && Time.now.to_f - hole_since > 0.1
       hole_held_before = hole_held
       write_to_journal(hole_held, hole_held_since) if $write_journal && $mode == :listen && regular_hole?(hole_held)
       if hole
@@ -92,6 +95,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       end
     end
     hole_for_inter = nil
+
+    if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
+      now = Time.now.to_f
+      warbles << now
+      warbles.shift while now - warbles[0] > 2
+    end
 
     was_was_good = was_good
     good, done, was_good = if $opts[:screenshot]
@@ -183,7 +192,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                             inter_text,
                             hole && $harp[hole] && $harp[hole][:note],
                             hole_disp,
-                            freq)
+                            freq,
+                            warbles)
         print "\e[#{line}H#{color}"
 
         do_figlet_unwrapped text, font, width_template
@@ -269,6 +279,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         end
       end
       $message_shown_at = Time.now.to_f
+      warbles = Array.new
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
@@ -290,7 +301,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       choices = choices.reverse if $ctl_mic[:change_comment] == :back
       $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
       clear_area_comment
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$opts[:comment].upcase}\e[0m\e[K"
+      warble_clause = if $opts[:comment] == :warbles
+                        ", max speed is #{(1/(2*$opts[:time_slice])).to_i}; use --time-slice to increase"
+                      else
+                        ''
+                      end
+      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$opts[:comment].upcase}#{warble_clause}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
       $ctl_mic[:change_comment] = false
       $ctl_mic[:update_comment] = true
