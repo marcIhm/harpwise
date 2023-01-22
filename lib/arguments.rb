@@ -50,7 +50,8 @@ def parse_arguments
         no_add_holes: %w(--no-add-holes)}],
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
-        comment: %w(-c --comment)}],
+        comment: %w(-c --comment),
+        time_slice: %w(--time-slice)}],
      [Set[:quiz, :play], {
         fast: %w(--fast),
         no_fast: %w(--no-fast)}],
@@ -116,6 +117,7 @@ def parse_arguments
       opts[k] ||= $conf[k]
     end
   end
+  opts[:time_slice] ||= $conf[:time_slice]
 
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
@@ -187,6 +189,15 @@ def parse_arguments
   if opts[:transpose_scale_to]
     err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{$for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to])
     opts[:add_scales] = nil
+  end
+
+  begin
+    opts[:time_slice] = Float(opts[:time_slice])
+  rescue ArgumentError
+    err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is not a floating point number"
+  end
+  if opts[:time_slice] < 0.02 || opts[:time_slice] > 2
+    err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is outside of useful range 0.02 ... 2"
   end
 
   opts[:partial] = '0@b' if opts[:partial] == '0'

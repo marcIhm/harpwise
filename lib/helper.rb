@@ -300,3 +300,38 @@ def holes_equiv? h1,h2
     false
   end
 end
+
+
+def print_debug_info
+  puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
+  puts '$quiz_sample_stats:'
+  pp $quiz_sample_stats
+  if $perfctr[:handle_holes_this_loops] > 0
+    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_started] )
+  end
+  puts '$perfctr:'
+  pp $perfctr
+  puts '$freqs_queue.length:'
+  puts $freqs_queue.length    
+end
+
+def print_lagging_info
+  puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
+  puts
+  puts <<~end_of_content
+
+         harpwise has been lagging behind at least once;
+         #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freqs} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freqs))} have been lost.
+
+         If you notice such a lag frequently and and want to reduce it, 
+         you may try to increase option '--time-slice' or config
+         'time_slice' from its default of #{$opts[:time_slice]} to something larger.
+         (See config file #{$conf[:config_file_user]} 
+          and usage info for more details.)
+
+         Note however, that increasing this value too far, may make
+         harpwise sluggish in sensing holes.
+
+         end_of_content
+    puts
+end

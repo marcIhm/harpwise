@@ -401,6 +401,9 @@ def handle_kb_mic
   elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
     $ctl_mic[:start_loop] = true
     text = 'Loop started'
+  elsif char == '&'
+    $opts[:debug] = true
+    text = 'Debug is ON'
   elsif char.length > 0
     text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
   end

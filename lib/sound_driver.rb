@@ -159,7 +159,7 @@ end
 
 
 def start_collect_freqs
-  num_samples = ($conf[:sample_rate] * $conf[:time_slice]).to_i
+  num_samples = ($conf[:sample_rate] * $opts[:time_slice]).to_i
   fifo = "#{$dirs[:tmp]}/fifo_arecord_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
   err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != 'fifo'
@@ -185,15 +185,17 @@ end
 
 def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
-  _, aubio_out = Open3.popen2(aubio_cmd)
+  _, aubio_out = Open3.popen2(aubio_cmd) unless $testing
 
   ptouch = false
   loop do
-    fields = aubio_out.gets.split.map {|f| f.to_f}
     if $testing
-      sleep 0.2
+      sleep 0.1
       FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started") unless ptouch
       ptouch = true
+      fields = [0.0, 16059.87793]
+    else
+      fields = aubio_out.gets.split.map {|f| f.to_f}
     end
     $freqs_queue.enq fields[1]
   end

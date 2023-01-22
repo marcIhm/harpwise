@@ -446,7 +446,7 @@ def do_quiz_or_licks
 end
 
 
-$sample_stats = Hash.new {|h,k| h[k] = 0}
+$quiz_sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
   # construct chains of holes within scale and added scale
@@ -503,7 +503,7 @@ def get_sample num
       holes[i] = $scale_holes.sample
       what[i] = :fallback
     end
-    $sample_stats[what[i]] += 1
+    $quiz_sample_stats[what[i]] += 1
   end
 
   holes

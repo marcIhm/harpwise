@@ -9,6 +9,9 @@ OVERVIEW
     - Difference to a reference note, e.g. to practice bends
     - Membership of played note in various scales
 
+  When playing, you may switch on journal to get a simple
+  transcription of the holes played.
+
 USAGE BY EXAMPLES
 
   The wise listens, while your are playing a richter (abbreviated as
@@ -25,5 +28,7 @@ USAGE BY EXAMPLES
 
     harpwise listen blues --add-scales chord-i --display chart-scales
 
-  When playing, you may switch on journal to get a simple
-  transcription of the holes played.
+  If you find harpwise sluggish or if you get a warning on lagging and
+  lost samples, you may want to experiment with --time-slice:
+
+    harpwise listen c --time-slice 0.1

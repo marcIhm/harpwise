@@ -69,8 +69,7 @@ loop:
 
 no_loop:
 
-  - |
-    inverse of --no-loop
+  - inverse of --no-loop
 
 auto:
   - generate audio samples without user intervention
@@ -146,3 +145,31 @@ partial:
       as a special case --part 0 plays nothing initially
   - PARTIAL_SPEC
   
+time_slice:
+
+  - |
+    time slice (in fractional seconds) for
+    sensing holes played. In each time slice only one hole can be
+    recognized. A typical value is 0.1 (seconds), but if your computer
+    is slow, a larger value (e.g. 0.2) might be more appropriate. If
+    your computer is fast a lower value (e.g. 0.05) might work too,
+    which will allow harpwise to follow your playing faster
+    (e.g. during warbles).
+
+    However, if you choose a value that is lower than appropriate,
+    harpwise will lag behind and show holes only (long) after you
+    played them; in such cases harpwise will issue a warning message
+    now and then.
+
+    If lagging occurs, you will get a detailed message on program
+    termination, that will allow to judge the situation.
+  - SECONDS
+
+suggest_time_slice:
+
+  - |
+    Start an automatic assistant to suggest
+    a value for time slice, which you may use as an option or put into
+    your configuration. See Option '--time-slice' for details.
+  
+

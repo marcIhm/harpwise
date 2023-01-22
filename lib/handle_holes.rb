@@ -17,6 +17,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hints = hints_old = nil
   first_round = true
   $perfctr[:handle_holes_calls] += 1
+  $perfctr[:handle_holes_this_loops] = 0
+  $perfctr[:handle_holes_this_started] = hole_start
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $column_short_hint_or_message = 1
   $ctl_response_default = 'SPACE to pause; h for help'
@@ -24,6 +26,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   loop do   # until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
+    $perfctr[:handle_holes_this_loops] += 1
     system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
     if first_round || $ctl_mic[:redraw]
       print_mission(get_mission_override || lambda_mission.call)
@@ -44,12 +47,30 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
-
+    $total_freqs += 1
+    
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_mic
+    
+    behind = $freqs_queue.length * $opts[:time_slice]
+    if behind > 0.5
+      now = Time.now.to_f
+      if now - $program_start > 10
+        $lagging_freqs_lost += $freqs_queue.length 
+        $freqs_queue.clear
+        if now - $lagging_freqs_message_ts > 120 
+          print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[0m"
+          print "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c)."
+          print "\e[K"
+          $lagging_freqs_message_ts = $message_shown_at = now
+        end
+      else
+        $freqs_queue.clear
+      end
+    end
 
-    # restores also default text after a while
+    # also restores default text after a while
     ctl_response
 
     handle_win_change if $ctl_sig_winch
@@ -282,6 +303,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       ctl_response 'continue', hl: true
       clear_area_comment
       $ctl_mic[:show_help] = false
+      $freqs_queue.clear
     end
 
     if $ctl_can[:loop] && $ctl_mic[:start_loop]

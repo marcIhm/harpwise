@@ -7,6 +7,9 @@ def set_global_vars_early
   $move_down_on_exit = false
   $err_binding = nil
   $word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
+  $lagging_freqs_message_ts = 0
+  $lagging_freqs_lost = 0
+  $total_freqs = 0
 
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
