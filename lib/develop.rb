@@ -49,7 +49,8 @@ def task_diff
   
   erase_part_man = ['<hy>', '<beginning of page>']
   erase_line_man = %w(MODE ARGUMENTS OPTIONS)
-  replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:'}
+  replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
+                  'USER CONFIGURATION' => 'USER CONFIGURATION:'}
 
   #
   # Bring usage information and man page into canonical form by

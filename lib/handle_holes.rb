@@ -51,7 +51,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
-    
+
+    if first_round && $opts[:comment] == :warbles
+      print "\e[#{$lines[:hint_or_message]}H\e[2mMax warble speed is #{max_warble_clause}\e[0m\e[K"
+      $message_shown_at = Time.now.to_f
+    end
+
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_mic
@@ -195,7 +200,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                             freq,
                             warbles)
         print "\e[#{line}H#{color}"
-
         do_figlet_unwrapped text, font, width_template
       end
     end
@@ -302,7 +306,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
       clear_area_comment
       warble_clause = if $opts[:comment] == :warbles
-                        ", max speed is #{(1/(2*$opts[:time_slice])).to_i}; use --time-slice to increase"
+                        ", max speed is " + max_warble_clause
                       else
                         ''
                       end
@@ -601,4 +605,9 @@ def show_help
     end
   end
   puts "\e[0mPress any key to continue ...\e[K"
+end
+
+
+def max_warble_clause
+  "#{(1/(2*$opts[:time_slice])).to_i}; tune --time-slice to increase"
 end

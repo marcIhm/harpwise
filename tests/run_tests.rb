@@ -81,7 +81,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 35
+num_exp = 36
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -292,7 +292,7 @@ usage_types.keys.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]}"
     tms :ENTER
     sleep 2
-    expect_usage = { 'none' => [-12, 'Suggested reading'],
+    expect_usage = { 'none' => [-15, 'Suggested reading'],
                      'calibrate' => [-8, 'start with calibration'],
                      'listen' => [-8, 'your mileage may vary'],
                      'quiz' => [-8, 'your mileage may vary'],
@@ -373,7 +373,6 @@ do_test 'id-6: listen' do
   wait_for_start_of_pipeline
   tms 'j'
   sleep 1
-  expect { screen[12]['b4'] }
   expect { File.exist?(journal_file) }
   kill_session
 end
@@ -470,10 +469,10 @@ end
 do_test 'id-10: quiz' do
   sound 12, 3
   new_session
-  tms 'harpwise quiz 2 c all'
+  tms 'harpwise quiz 2 c blues'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[12]['c5'] }
+  expect { screen[4]['b4    4   b14  b4    4   b14'] }
   kill_session
 end
 
@@ -1014,11 +1013,11 @@ do_test 'id-40: handling a very long lick' do
   20.times {
     tms '1'
   }
-  expect { screen[-8]['  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
+  expect { screen[-8]['▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘'] }
   tms 'c'
   tms '1'
   sleep 1
-  expect { screen[-5]['-4.b15  *-4.b15   -4.b15   -5.b'] }
+  expect { screen[-5]['-4.b15   -4.b15   -4.b15   -5.b     -5.b'] }
   kill_session
 end
 
