@@ -277,7 +277,7 @@ def parse_arguments
     if ARGV.length > 0
       scale = get_scale_from_sws(ARGV.shift)
     else
-      scale = get_scale_from_sws('blues')
+      scale = get_scale_from_sws($conf[:scale])
     end
   when :tools
     # if the first remaining argument looks like a scale, take it as such

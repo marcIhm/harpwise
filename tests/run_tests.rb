@@ -1136,9 +1136,9 @@ do_test 'id-48: chromatic in c; listen' do
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
-  expect { screen[4]['c4    e4    g4    c5    c5    e5    g5    c6    c6'] }
-  expect { screen[6]['d4    f4    a4    b4    d5    f5    a5    b5    d6    f6    a6    b6'] }
-  expect { screen[10]['df4    f4   af4   df5   df5    f5   af5   df6   df6'] }
+  expect { screen[4]['c4  e4  g4  c5  c5  e5  g5  c6  c6  e6  g6  c7'] }
+  expect { screen[6]['d4  f4  a4  b4  d5  f5  a5  b5  d6  f6  a6  b6'] }
+  expect { screen[10]['df4  f4 af4 df5 df5  f5 af5 df6 df6  f6 af6 df7'] }
   kill_session
 end
 
@@ -1149,7 +1149,7 @@ do_test 'id-48a: chromatic in a; listen' do
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
-  expect { screen[4]['a3   df4    e4    a4    a4   df5    e5    a5    a5   df6    e6    a6'] }
+  expect { screen[4]['a3 df4  e4  a4  a4 df5  e5  a5  a5 df6  e6  a6'] }
   kill_session
 end
 
@@ -1160,7 +1160,8 @@ do_test 'id-48b: chromatic in a, scale blues; listen' do
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
-  expect { screen[4][' b     -     b     b     b     -     b     b     b     -     b     b'] }
+  expect { screen[4][' b   -   b   b   b   -   b   b   b   -   b   b'] }
+  expect { screen[8]['==1===2===3===4===5===6===7===8===9==10==11==12========'] }
   kill_session
 end
 

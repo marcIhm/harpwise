@@ -20,7 +20,7 @@ def set_global_vars_early
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
   $conf_meta[:sections_keys] = {
-    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :fast],
+    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection]
   }
@@ -603,7 +603,7 @@ def read_chart
      chart_scales: chart_with_scales,
      chart_intervals: nil},
     hole2chart ]
-  
+
 end
 
 
@@ -683,5 +683,5 @@ end
 
 
 def for_automatic_calibration
-  "For automatic calibration use: #{$0} calibrate #{$key} --auto"
+  "For automatic calibration use:\n  #{$0} calibrate #{$type} #{$key} --auto"
 end
