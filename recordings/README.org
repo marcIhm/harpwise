@@ -1,3 +1,4 @@
+
 The licks in this directory are short phrases taken from these songs:
 
 - "Wade in the water" an "African American jubilee song", whose lyrics
@@ -11,4 +12,12 @@ The licks in this directory are short phrases taken from these songs:
 
 (mostly citing the Wikipedia)
 
-The actual recordings in this directory are done by me (Marc Ihm).
+So, as far as I can tell, these songs are in the Public Domain, either
+they are traditionals with unknown authors or their copyright has
+expired.  See https://12bar.de/cms/albums/public-domain-blues-songs/
+for some background.
+
+The actual recordings in this directory are done by me (Marc Ihm) and
+so I am free to release these sample under the same license as the
+program itself; see the file LICENSE in the toplevel directory.
+
