@@ -321,7 +321,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       ctl_response 'continue', hl: true
-      clear_area_comment
       $ctl_mic[:show_help] = false
       $freqs_queue.clear
     end
@@ -370,6 +369,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
+      $freqs_queue.clear
     end
 
     if $ctl_mic[:change_scale]
@@ -378,6 +378,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
+      $freqs_queue.clear
     end
 
     if $ctl_mic[:rotate_scale]
@@ -386,6 +387,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
       set_global_musical_vars
+      $freqs_queue.clear
     end
 
     return if [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
@@ -482,6 +484,7 @@ def do_change_key
   make_term_immediate
   $message_shown_at = Time.now.to_f
   "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
+  clear_area_comment
 end
 
 
@@ -538,6 +541,7 @@ def do_change_scale_add_scales
   make_term_immediate
   $message_shown_at = Time.now.to_f
   $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
+  clear_area_comment
 end
 
 
@@ -605,6 +609,7 @@ def show_help
     end
   end
   puts "\e[0mPress any key to continue ...\e[K"
+  clear_area_comment
 end
 
 
