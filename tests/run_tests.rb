@@ -52,8 +52,13 @@ fail "Could not parse term size from lib/config.rb" unless $term_min_width && $t
 #
 # Create read-only mount
 #
-system('sudo umount ~/harpwise 2>&1 >/dev/null')
-sys('sudo mount -o bind,ro ~/hw ~/harpwise')
+system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
+sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
+sys('sudo chown -R root:root /usr/lib/harpwise')
+sys('sudo chmod -R 644 /usr/lib/harpwise')
+sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
+sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
+exit if $0['copy']
 hw_abs = %x(which harpwise).chomp
 system("touch #{hw_abs} 2>/dev/null")
 fail "#{hw_abs} is writeable" if $?.success?

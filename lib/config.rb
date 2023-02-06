@@ -122,7 +122,11 @@ end
 def find_and_check_dirs
   $dirs = Hash.new
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
-  $dirs[:install_devel] = File.realpath(File.expand_path(__FILE__) + '/../../../') + '/hw'
+  $dirs[:install_devel] = if $testing
+                            '/DOES_NOT_EXIST'
+                          else
+                            File.realpath(File.expand_path('~') + '/harpwise')
+                          end
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:data] = if $testing
                    "#{Dir.home}/dot_#{File.basename($0)}"
@@ -172,6 +176,7 @@ def find_and_check_dirs
   end
 
   $dirs.each do |k,v|
+    next if k == :install_devel
     err "Directory #{v} for #{k} does not exist; installation looks bogus" unless File.directory?(v)
   end
 end
