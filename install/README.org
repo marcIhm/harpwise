@@ -32,10 +32,14 @@ linux-distributions or WSL2 under Windows
   
 * Installing dependencies
 
+  Remark: All dependencies are runtime-only, as there is no
+  build-process for harpwise (beeing a ruby-script, not depending on
+  any binary gems).
+
   For Ubuntu and thus WSL2 under Windows:
 
     - cd install
-    - ./install-dependencies-on-ubuntu.sh | tee ~/harpwise/install.log
+    - ./install-dependencies-on-ubuntu.sh 2>&1 | tee ~/harpwise/install.log
 
   may be suitable for other debian-based systems too (which use apt to
   install software).
@@ -44,7 +48,7 @@ linux-distributions or WSL2 under Windows
   For fedora, redhat, centos:
 
     - cd install
-    - ./install-dependencies-on-fedora.sh | tee ~/harpwise/install.log
+    - ./install-dependencies-on-fedora.sh 2>&1 | tee ~/harpwise/install.log
 
   might also work on systems derived from fedora (which use yum to
   install software).

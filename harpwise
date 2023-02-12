@@ -57,7 +57,7 @@ $mode, $type, $key, $scale, $opts, to_handle = parse_arguments
 
 IO.popen('ps -ef').each_line do |line|
   fields = line.chomp.split(' ',8)
-  err "An instance of this program is already running: pid: #{fields[1]}, commandline: '#{fields[-1]}'" if $mode != :report && $mode != :develop && Process.pid != fields[1] && fields[-1][File.basename($0)] && fields[-1]['ruby']
+  err "An instance of this program is already running: pid: #{fields[1]}, commandline: '#{fields[-1]}'" if $mode != :report && $mode != :develop && Process.pid != fields[1].to_i && fields[-1][File.basename($0)] && fields[-1]['ruby']
 end
 
 # we need to have mode for this, so calculate it late
