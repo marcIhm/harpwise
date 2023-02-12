@@ -1,9 +1,6 @@
 Scripts to install dependencies for harpwise for different
 linux-distributions or WSL2 under Windows
 
-The Wise itself needs no installation but should rather be started
-directly from its toplevel directory.
-
 * Downloading harpwise
 
   You may either clone the repo OR just download the zip-file from
