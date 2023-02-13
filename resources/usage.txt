@@ -32,10 +32,10 @@ After the first argument (which specifies the mode) some additional
 arguments may be given:
 
   - type: mostly 'richter' or 'chromatic' but other choices might be
-    defined. If ommitted, this defaults to 'richter'.
+    defined. If omitted, this defaults to 'richter'.
 
   - key: key of harp, e.g. 'c' or 'g' or 'af' (a flat) or
-    'ds' (d sharp). If ommitted, this defaults to 'c'.
+    'ds' (d sharp). If omitted, this defaults to 'c'.
 
   - scale: scale on which you want to concentrate, e.g. 'blues',
     'major_pentatonic' or 'all'. No default.
