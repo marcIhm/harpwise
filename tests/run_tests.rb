@@ -98,6 +98,11 @@ system("killall aubiopitch >/dev/null 2>&1")
 
 print "Testing"
 
+do_test 'id-0: man-page should process without errors' do
+  ste = %x(man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null)
+  expect(ste) {ste == ''}
+end
+
 # Prepare test-data through harpwise and then some
 do_test 'id-1: start without dot_harpwise' do
   # keep this within test, so that we only remove, if we also try to recreate

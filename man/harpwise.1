@@ -1,23 +1,23 @@
-." Process this file with
-." groff -man -Tascii harpwise.1
-." man -l man/harpwise.1
-."
-." See https://www.gnu.org/software/groff/manual/html_node/index.html#Top
+.\" Process this file with
+.\" groff -man -Tascii harpwise.1
+.\" man -l man/harpwise.1
+.\"
+.\" See https://www.gnu.org/software/groff/manual/html_node/index.html#Top
 .TH harpwise 1
 
-.SH NAME
+.SH "NAME"
 
 .B harpwise
 - practice harmonica with your microphone and speaker
 
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 
 .B harpwise
 .RB {MODE}
 .RB {ARGUMENTS}
 .RB [OPTIONS]
 
-.SH DESCRIPTION
+.SH "DESCRIPTION"
 
 .B harpwise
 ('wise' for short) supports the daily practice of bends,
@@ -35,11 +35,11 @@ harpwise
 .RE
 
 this man page has the very same information (so you may keep on
-reading ...); but there are more usage informations for the individual
+reading ...); but there are more usage information for the individual
 modes, which are not available as man-pages (see below, on how to get
 them).
 
-.SH MODE
+.SH "MODE"
 
 When invoking harpwise, the first argument on the commandline
 specifies the mode of operation; it can be one of:
@@ -72,18 +72,18 @@ modes, invoke them without arguments, e.g.
 harpwise listen
 .RE
 
-.SH ARGUMENTS
+.SH "ARGUMENTS"
 
 After the first argument (which specifies the mode) some additional
 arguments may be given:
 .IP - 2
 .B type:
 mostly 'richter' or 'chromatic' but other choices might be defined. If
-ommitted, this defaults to 'richter'.
+omitted, this defaults to 'richter'.
 .IP -
 .B KEY: 
 key of harp, e.g. 'c' or 'g' or 'af' (a flat) or 'ds' (d sharp). If
-ommitted, this defaults to 'c'.
+omitted, this defaults to 'c'.
 .IP -
 .B SCALE:
 scale on which you want to concentrate, e.g. 'blues', 'major_pentatonic' or 'all'. No default.
@@ -105,7 +105,7 @@ scales for chromatic: all, blues, one, two
   scales for richter: all, blues, chord-i, chord-iv, chord-v, drawbends, 
     major_pentatonic, middle, minor_pentatonic, mixolydian, root
   
-.SH OPTIONS
+.SH "OPTIONS"
 
 Besides the arguments for type, key and scale, there are a lot of
 options (introduced by '-'), some requiring an argument themselves.
@@ -118,7 +118,7 @@ Also note, that for most modes, the behaviour (e.g. the kind of
 display) of the wise can be changed interactively; type 'h' to see
 help on this.
 
-.SH SUGGESTED READING
+.SH "SUGGESTED READING"
 
 .IP - 2
 Usage information for the individual modes
@@ -128,7 +128,7 @@ The toplevel file README.org, also available at:
 https://github.com/marcIhm/harpwise/blob/main/README.org
 .RE
 
-.SH USER CONFIGURATION
+.SH "USER CONFIGURATION"
 
 ~/.harpwise/config.ini
 

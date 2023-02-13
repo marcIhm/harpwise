@@ -26,6 +26,7 @@ def task_man
   puts
   system("ls -l #{$dirs[:install_devel]}/man/harpwise.1")
   puts "\nTo read it:\n\n  man -l #{$dirs[:install_devel]}/man/harpwise.1\n\n"
+  puts "\nRedirect stdout to see any errors:\n\n  man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$dirs[:install_devel]}/man/harpwise.1 >/dev/null\n\n"
 end
 
 
