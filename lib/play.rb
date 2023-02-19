@@ -105,12 +105,12 @@ def partition_to_play_or_print to_p
       holes << tp
     elsif $harp_notes.include?(tp)
       holes << $note2hole[tp]
+    elsif all_lnames.include?(tp)
+      lnames << tp
     elsif all_snames.include?(tp)
       snames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
       lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0] || 0][:name]
-    elsif all_lnames.include?(tp)
-      lnames << tp
     elsif $conf[:specials_allowed_play].include?(tp)
       special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
     else
@@ -144,7 +144,6 @@ def partition_to_play_or_print to_p
     puts "\n- special:"
     print_in_columns $conf[:specials_allowed_play]
     puts
-    exit if other.length == 0
     err 'See above'
   end
   
@@ -155,10 +154,6 @@ def partition_to_play_or_print to_p
     puts "- licks: #{lnames}" if lnames.length > 0
     puts "- special: #{special}" if special.length > 0
     err 'See above'
-  end
-
-  if holes.length > 0 && ( $opts[:tags_all] || $opts[:tags_any] || $opts[:no_tags_any] || $opts[:no_tags_all] )
-    err "Cannot use option '--tags-any', '--tags-all', '--no-tags-any' or '--no-tags-all' when playing holes #{holes}"
   end
 
   special << $opts[:doiter].to_sym if $opts[:doiter]

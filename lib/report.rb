@@ -32,17 +32,18 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
 
   puts "\n(read from #{$lick_file})\n\n"
 
-  if licks
-    puts "\nInformation about licks selected by tags and hole-count only\n"
-    puts "============================================================\n\n"
-    print_licks_by_tags licks
+  iaal = "\nReporting for all licks\n=======================\n\n"
+  if [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].any? {|o| $opts[o]}
+    puts "\nReporting for licks selected by tags and hole-count only\n"
+    puts "========================================================\n\n"
+  else
+    print iaal
+    iaal = ''
   end
-  
-  puts "\n\nInformation about all known licks, disregarding tags and hole count\n"
-  puts "===================================================================\n\n"
-  print_licks_by_tags all_licks
-  puts
-  
+
+  print_licks_by_tags licks
+
+  print iaal
   # stats for tags
   puts "All tags:\n\n"
   counts = Hash.new {|h,k| h[k] = 0}

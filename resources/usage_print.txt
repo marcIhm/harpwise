@@ -1,0 +1,27 @@
+OVERVIEW
+
+  The mode 'print' takes its arguments (holes, notes or licks) and
+  prints their hole-content on the commandline.
+
+  If you specify a scale (optional) too, the scale-membership of the
+  the notes will be shown.
+
+  Its arguments can be any of:
+
+    - holes (e.g. '-1')
+    - licks (e.g. 'st-louis')
+    - scales (e.g. 'chord-i')
+    
+USAGE BY EXAMPLES
+
+  Print holes and notes of a lick:
+
+    harpwise print st-louis
+    
+  Print holes and notes of a scale:
+
+    harpwise print blues blues
+
+  Print the scales, each note belongs to too:
+
+    harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v

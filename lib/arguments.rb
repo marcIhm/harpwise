@@ -38,12 +38,12 @@ def parse_arguments
   opts = Hash.new
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :report, :develop, :tools], {
+    [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :report, :develop, :tools], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
-     [Set[:calibrate, :listen, :quiz, :licks, :play, :report], {
+     [Set[:calibrate, :listen, :quiz, :licks, :play, :print, :report], {
         screenshot: %w(--screenshot)}],
-     [Set[:listen, :quiz, :licks, :tools], {
+     [Set[:listen, :quiz, :licks, :tools, :print], {
         add_scales: %w(-a --add-scales ),
         ref: %w(-r --reference ),
         remove_scales: %w(--remove-scales),
@@ -68,7 +68,7 @@ def parse_arguments
      [Set[:licks, :play], {
         holes: %w(--holes),
         reverse: %w(--reverse)}],
-     [Set[:licks, :play, :report], {
+     [Set[:licks, :report], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
@@ -137,7 +137,7 @@ def parse_arguments
     if matching.keys.length > 1
       err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
     elsif matching.keys.length == 0
-      if ![:play, :report, :tools].include?(mode)
+      if ![:play, :print, :report, :tools].include?(mode)
          err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{$for_usage}"
        else
          i += 1
@@ -220,7 +220,7 @@ def parse_arguments
 
   # check for unprocessed args, that look like options
   other_opts = ARGV.select {|arg| arg.start_with?('-')}
-  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 && ![:play, :report, :tools].include?(mode)
+  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 && ![:play, :print, :report, :tools].include?(mode)
 
 
   # In any case, mode quiz requires a numeric argument right after the
@@ -287,7 +287,16 @@ def parse_arguments
     else
       scale = get_scale_from_sws('all:a')
     end
-  when :play, :report, :develop, :tools
+  when :print
+    # if there are tow args and the first remaining argument looks like a
+    # scale, take it as such
+    scale = get_scale_from_sws(ARGV[0], true)
+    if scale && ARGV.length > 1
+      ARGV.shift
+    else
+      scale = get_scale_from_sws('all:a')
+    end
+  when :play, :print, :report, :develop, :tools
     scale = get_scale_from_sws('all:a')
   when :calibrate
     err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{$for_usage}") if ARGV.length > 0
@@ -299,15 +308,15 @@ def parse_arguments
   err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{$for_usage}" unless !$scale || scales_for_type(type).include?(scale)
 
   # now, as a possible scale argument has been recognized, all the rest is
-  # to handle for mode tools too; others see above
-  if mode == :tools
+  # to handle for mode tools or print; others see above
+  if [:tools, :print].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
 
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}; #{$for_usage}" if ARGV.length > 0 && mode != :play && mode != :licks
+  err "Cannot handle these arguments: #{ARGV}; #{$for_usage}" if ARGV.length > 0
   $err_binding = nil
 
   # Commandline processing is complete here

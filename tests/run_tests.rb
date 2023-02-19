@@ -19,6 +19,10 @@ require_relative 'test_utils.rb'
 # Set vars
 #
 $fromon = ARGV.join(' ')
+if $fromon == '.'
+  $fromon = JSON.parse(File.read('/tmp/harpwise_testing_last_tried.json'))['id']
+  puts "Continue from last test tried ..."
+end
 $fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
 $fromon_id_regex = '^(id-[a-z0-9]+):'
 if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
@@ -66,7 +70,7 @@ fail "#{hw_abs} is writeable" if $?.success?
 #
 # Collect usage examples and later check, that none of them produces an error
 #
-usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :report, :tools].map do |t|
+usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :print, :report, :tools].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -307,9 +311,10 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [-8, 'your mileage may vary'],
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
-                     'play' => [-8, 'this number of holes'],
+                     'play' => [6, 'The special keywords'],
+                     'print' => [4, 'Print the scales, each note belongs to too'],
                      'report' => [-6, 'on every invocation'],
-                     'tools' => [0, 'Print hole holes and notes of a scale']}
+                     'tools' => [2, 'Three charts, the third with intervals of each hole']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -1220,9 +1225,9 @@ do_test 'id-52: tools chart' do
   kill_session
 end
 
-do_test 'id-53: tools print' do
+do_test 'id-53: print' do
   new_session
-  tms 'harpwise tools print st-louis'
+  tms 'harpwise print st-louis'
   tms :ENTER
   expect { screen[11]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
   expect { screen[15]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
@@ -1230,9 +1235,9 @@ do_test 'id-53: tools print' do
   kill_session
 end
 
-do_test 'id-53a: tools print with scale' do
+do_test 'id-53a: print with scale' do
   new_session
-  tms 'harpwise tools chord-i print st-louis --add-scales chord-iv,chord-v'
+  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
   expect { screen[12]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
   kill_session
@@ -1247,7 +1252,7 @@ i = 0
     i += 1
     do_test "id-54a#{i}: tools print type #{type}, scale #{scale}" do
       new_session
-      tms "harpwise tools #{type} print #{scale} --add-scales -"
+      tms "harpwise print #{type} #{scale} --add-scales -"
       tms :ENTER
       wait_for_end_of_harpwise
       expect { screen.select {|l| l.downcase['error']}.length == 0 }

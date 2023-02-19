@@ -6,10 +6,7 @@ OVERVIEW
   Its single argument can be any of the keywords:
 
     - licks, to show and group licks and tags, so that you may select
-      them with the various tag-options (e.g. --tags-any). This report
-      has two separate sections:
-      - Licks selected by the tag-options
-      - Any and all licks, disregarding any options
+      them with the various tag-options (e.g. --tags-any)
     - journal, to show, which licks you played recently in modes licks
       or play
     - starred, to show all starred licks with their respective number

@@ -14,7 +14,7 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks play report calibrate tools develop)
+  $early_conf[:modes] = %w(listen quiz licks play print report calibrate tools develop)
 
   # expectations for config-file
   $conf_meta = Hash.new
@@ -641,13 +641,16 @@ end
 
 
 def read_calibration
-  err "Frequency file #{$freq_file} does not exist, you need to calibrate for key of #{$key} first !\n#{for_automatic_calibration}" unless File.exist?($freq_file)
+  unless File.exist?($freq_file)
+    puts "\nFrequency file #{$freq_file}\n does not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\n(this needs to be done only once for this key)\n\n"
+    exit 1
+  end
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
-    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes. Or you may redo the whole calibration !\n#{for_automatic_calibration}"
+    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes. Or you may redo the whole calibration !\n\n#{for_automatic_calibration}"
   end
   unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
-    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly !\n#{for_automatic_calibration}"
+    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly !\n\n#{for_automatic_calibration}"
   end
   unless $harp_holes.each_cons(2).all? do |ha, hb|
       fa, fb = [ha,hb].map {|h| hole2freq[h]}
@@ -688,5 +691,5 @@ end
 
 
 def for_automatic_calibration
-  "For automatic calibration use:\n  #{$0} calibrate #{$type} #{$key} --auto"
+  "For automatic calibration use:\n\n  #{$0} calibrate #{$type} #{$key} --auto"
 end

@@ -14,11 +14,17 @@ specifies the mode of operation; it can be one of:
     scales
   - quiz: Train your ear and musical memory
   - licks: Learn licks (only licks three included, but some pointers)
-  - play: Wise plays scales, holes or licks
+
+and, perhaps less frequently used:
+
+  - play: Wise plays scales, holes or licks, not asking you to play
+    them back
+  - print: print and annottate the holes of scales or licks from the
+    commandline
   - report: Produce reports about licks and tags or a journal of licks
     played
-  - tools: A collection of simple, non-interactive tools related to
-    basic harmonica theory
+  - tools: Some simple, non-interactive tools related to basic
+    harmonica theory
   - calibrate: Wise generates samples for holes, or assists in
     recording your own
 

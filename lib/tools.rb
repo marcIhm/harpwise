@@ -18,8 +18,6 @@ def do_tools to_handle
     tool_chords to_handle
   when 'chart'
     tool_chart to_handle
-  when 'print'
-    tool_print to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
   end
@@ -153,74 +151,4 @@ def tool_chart to_handle
     puts
   end
   puts
-end
-
-def tool_print to_handle
-  $all_licks, $licks = read_licks
-  # ignore any tag selection
-  $licks = $all_licks
-  holes, lnames, snames, special = partition_to_play_or_print(to_handle)
-  err "Cannot print these special arguments: #{special}" if special.length > 0
-  
-  puts "\nType is #{$type}, key of #{$key}."
-  puts
-  
-  if holes.length > 0
-
-    puts 'Holes given as arguments:'
-    puts
-    print_holes_and_more holes
-
-  elsif snames.length > 0
-
-    puts 'Scales given as arguments:'
-    puts
-    snames.each do |sname|
-      puts " #{sname}:"
-      puts
-      scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      print_holes_and_more scale_holes
-    end
-      
-  elsif lnames.length > 0
-
-    puts 'Licks given as arguments:'
-    puts '========================='
-    puts
-    lnames.each do |lname|
-      puts "#{lname}:"
-      puts '-' * (lname.length + 1)
-      puts
-      lick = $licks.find {|l| l[:name] == lname}
-      print_holes_and_more lick[:holes]
-    end
-
-  end
-
-  puts
-end
-
-
-def print_holes_and_more holes
-  puts "Holes:"
-  print_in_columns holes
-  puts
-  if $used_scales[0] != 'all'
-    scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
-    puts "Holes with scales (#{scales_text}):"
-    print_in_columns(scaleify(holes).map {|ps| ins_dot_mb(ps)})
-    puts
-  end
-  puts "Holes with notes:"
-  print_in_columns(noteify(holes).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "Holes with intervals:"
-  print_in_columns(intervalify(holes).map {|ps| ins_dot_mb(ps)})
-  puts
-end
-
-
-def ins_dot_mb parts
-  parts[0] + parts[1] +
-    ( parts[2].strip.length > 0  ?  '.' + parts[2]  :  parts[2] )
 end

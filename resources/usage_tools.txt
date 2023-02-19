@@ -13,10 +13,7 @@ OVERVIEW
   - chords: print the chords i, iv and v for the given key of harp as
     played in second position
   - chart: print harmonica chart with notes for the given key; specify
-    a scale to see see it laid out on the harp
-  - print: print contents of notes, holes, scales or licks as given on
-    commandline. If you specify a scale (optional) too, the
-    scale-membership of the various notes will be shown
+    a scale to see see it laid out on the harp (second chart)
   
 USAGE BY EXAMPLES
 
@@ -49,16 +46,4 @@ USAGE BY EXAMPLES
   reference:
 
     harpwise tools chord-i chart --ref -4
-
-
-  Print holes and notes of a lick:
-
-    harpwise tools print st-louis
     
-  Print hole holes and notes of a scale:
-
-    harpwise tools print blues
-
-  Print the scales each note belongs to too:
-
-    harpwise tools chord-i print feeling-bad --add-scales chord-iv,chord-v

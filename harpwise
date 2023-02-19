@@ -23,6 +23,7 @@ require_relative 'lib/handle_holes'
 require_relative 'lib/listen'
 require_relative 'lib/quiz_or_licks'
 require_relative 'lib/play'
+require_relative 'lib/print'
 require_relative 'lib/report'
 require_relative 'lib/calibrate'
 require_relative 'lib/tools'
@@ -149,6 +150,8 @@ begin
     do_listen
   when :play
     do_play to_handle
+  when :print
+    do_print to_handle
   when :report
     do_report to_handle
   when :calibrate
