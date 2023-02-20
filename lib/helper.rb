@@ -335,3 +335,36 @@ def print_lagging_info
          end_of_content
     puts
 end
+
+
+def animate_splash_line single_line = false
+  print "\e[J"
+  puts unless single_line
+  if $testing
+    testing_clause = "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
+    if single_line
+      print testing_clause
+    else
+      puts testing_clause
+    end
+    sleep 0.3
+  else
+    print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
+    '~HARPWISE~'.each_char do
+      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+      sleep 0.04
+    end
+    puts unless single_line
+    sleep 0.01
+    version_clause = "\e[2m#{$version}\e[0m"
+    if single_line
+      print '  ' + version_clause + '  '
+    else
+      puts version_clause
+    end
+    sleep 0.2
+  end
+  puts unless single_line
+  sleep 0.01
+end
+

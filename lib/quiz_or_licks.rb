@@ -151,7 +151,14 @@ def do_quiz_or_licks
     if !$other_mode_saved[:conf] && !splashed
       # write banner, provide smooth animation
       animate_splash_line
-      
+      puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+           "key of #{$key}"
+      sleep 0.01
+      3.times do
+        puts
+        sleep 0.01
+      end
+
       # get current cursor line, will be used as bottom of two lines for messages
       print "\e[6n"
       reply = ''
@@ -1015,35 +1022,6 @@ def comment_while_playing holes
     wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
   else
     nil
-  end
-end
-
-
-def animate_splash_line
-  print "\e[J"
-  puts
-  if $testing
-    puts "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
-    sleep 1
-  else
-    print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
-    '~HARPWISE~'.each_char do
-      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
-      sleep 0.04
-    end
-    puts
-    sleep 0.01
-    puts "\e[2m#{$version}\e[0m"
-    sleep 0.2
-  end
-  puts
-  sleep 0.01
-  puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
-       "key of #{$key}"
-  sleep 0.01
-  3.times do
-    puts
-    sleep 0.01
   end
 end
 

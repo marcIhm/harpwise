@@ -47,7 +47,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
-    print "\e[#{$lines[:hint_or_message]}HWaiting for frequency pipeline to start ..." if $first_round_ever_get_hole
+    if $first_round_ever_get_hole
+      print "\e[#{$lines[:hint_or_message]}H"
+      animate_splash_line(single_line = true) if $mode == :listen
+      print "\e[2mWaiting for frequency pipeline ..."
+    end
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
