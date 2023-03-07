@@ -110,7 +110,7 @@ def partition_to_play_or_print to_p
     elsif all_snames.include?(tp)
       snames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
-      lnames << $all_licks[get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0] || 0][:name]
+      lnames << $all_licks[get_last_lick_idxs_from_journal($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     elsif $conf[:specials_allowed_play].include?(tp)
       special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
     else

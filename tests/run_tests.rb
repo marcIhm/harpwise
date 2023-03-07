@@ -101,7 +101,7 @@ FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 system("killall aubiopitch >/dev/null 2>&1")
 
 print "Testing"
-
+puts "\n\n\e[32mTo restart with a failed test use: #{File.basename($0)} .\e[0m\n\n"
 do_test 'id-0: man-page should process without errors' do
   ste = %x(man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null)
   expect(ste) {ste == ''}
@@ -709,9 +709,8 @@ do_test 'id-22: print list of tags' do
   tms 'harpwise report --tags-any favorites licks'
   tms :ENTER
   sleep 2
-  # Six licks in file, four in those two sections, but two of them are identical
-  expect { screen[-15]['Total number of licks:              10'] }
-  expect { screen[-3]['3 ... 86'] }
+  # for licks that match this tag
+  expect { screen[14]['Total number of licks:   4'] }
   kill_session
 end
 
@@ -729,6 +728,19 @@ do_test 'id-23: print list of licks' do
    "  two ..... y\n",
    "  three ..... fav,favorites,testing,z\n",
    "  long ..... testing,x\n"].each_with_index do |exp,idx|
+    expect(exp,idx) { lines[10+idx] = exp }
+  end
+  kill_session
+end
+
+do_test 'id-23a: print overview of all licks' do
+  new_session
+  tms "harpwise report all-licks >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  ["  ?\n",
+   "  ?\n"].each_with_index do |exp,idx|
     expect(exp,idx) { lines[10+idx] = exp }
   end
   kill_session

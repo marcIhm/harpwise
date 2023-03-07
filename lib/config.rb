@@ -19,6 +19,8 @@ def set_global_vars_early
   # expectations for config-file
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
+  # update config ini if the below is extended
+  $conf_meta[:sections_aliases] = {:report => :licks}
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
@@ -309,7 +311,6 @@ def read_technical_config
   conf[:term_min_width] = 75
   conf[:term_min_height] = 24
 
-
   conf
 end
 
@@ -318,8 +319,8 @@ def read_config_ini file, strict: true
 
   lnum = 0
   section = nil
-  result = Hash.new
-  $conf_meta[:sections].each {|s| result[s] = Hash.new}
+  conf = Hash.new
+  $conf_meta[:sections].each {|s| conf[s] = Hash.new}
 
   File.readlines(file).each do |line|
     lnum += 1
@@ -340,7 +341,7 @@ def read_config_ini file, strict: true
         allowed = Set.new($conf_meta[:sections_keys][section])
         allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
         err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'" unless allowed.include?(key)
-        result[section][key] = value
+        conf[section][key] = value
       elsif section.nil?
         err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
       end
@@ -352,7 +353,7 @@ def read_config_ini file, strict: true
   # overall checking of key-sets
   err_head = "Error in #{file}: "
   $conf_meta[:sections].each do |section|
-    found = Set.new(result[section].keys.sort)
+    found = Set.new(conf[section].keys.sort)
     required = Set.new($conf_meta[:sections_keys][section])
     allowed = required.clone
     allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
@@ -365,8 +366,9 @@ def read_config_ini file, strict: true
   end
 
   # transfer keys from general
-  result[:general].each {|k,v| result[k] = v}
-  result
+  conf[:general].each {|k,v| conf[k] = v}
+
+  conf
 end
 
 

@@ -105,10 +105,12 @@ def parse_arguments
     end
   end
 
-  # now, that we have the mode, we can finish $conf
+  # now, that we have the mode, we can finish $conf by promoting values
+  # from the active mode-section to toplevel
   $conf[:any_mode].each {|k,v| $conf[k] = v}
-  if $conf_meta[:sections].include?(mode)
-    $conf[mode].each {|k,v| $conf[k] = v}
+  mode_for_conf = $conf_meta[:sections_aliases][mode] || mode
+  if $conf_meta[:sections].include?(mode_for_conf)
+    $conf[mode_for_conf].each {|k,v| $conf[k] = v}
   end
   
   # preset some options from config (maybe overriden later)
@@ -160,7 +162,6 @@ def parse_arguments
 
   # clear options with special value '-'
   opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
-  
   
   #
   # Special handling for some options

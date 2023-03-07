@@ -7,6 +7,8 @@ OVERVIEW
 
     - licks, to show and group licks and tags, so that you may select
       them with the various tag-options (e.g. --tags-any)
+    - all-licks, overview for all known licks, regardless of options
+      or config
     - journal, to show, which licks you played recently in modes licks
       or play
     - starred, to show all starred licks with their respective number

@@ -5,11 +5,11 @@
 def do_report to_report
 
   $all_licks, $licks = read_licks
-  reports_allowed = %w(licks dump journal jour starred star stars)
+  reports_allowed = %w(licks all-licks dump journal jour starred star stars)
 
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
   err "Unknown report '#{to_report[0]}', only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
-  report = to_report[0].to_sym
+  report = to_report[0].o2sym
   report = :journal if report == :jour
   report = :starred if report == :star || report == :stars
 
@@ -17,7 +17,9 @@ def do_report to_report
 
   case report
   when :licks
-    print_lick_and_tag_info
+    print_licks_by_tags $licks
+  when :all_licks
+    print_lick_and_tag_info $all_licks
   when :journal
     print_last_licks_from_journal $all_licks
   when :starred
@@ -28,26 +30,17 @@ def do_report to_report
 end
 
 
-def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
+def print_lick_and_tag_info licks
 
   puts "\n(read from #{$lick_file})\n\n"
+  
+  puts "\nReporting for all licks\n"
+  puts "=======================\n\n"
 
-  iaal = "\nReporting for all licks\n=======================\n\n"
-  if [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].any? {|o| $opts[o]}
-    puts "\nReporting for licks selected by tags and hole-count only\n"
-    puts "========================================================\n\n"
-  else
-    print iaal
-    iaal = ''
-  end
-
-  print_licks_by_tags licks
-
-  print iaal
   # stats for tags
   puts "All tags:\n\n"
   counts = Hash.new {|h,k| h[k] = 0}
-  all_licks.each do |lick|
+  licks.each do |lick|
     lick[:tags].each {|tag| counts[tag] += 1}
   end
   long_text = 'Total number of different tags:'
@@ -61,7 +54,7 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
   printf format, 'Total number of tags:', counts.values.sum
   printf format, long_text, counts.keys.length
   puts line
-  printf format, 'Total number of licks: ',all_licks.length
+  printf format, 'Total number of licks: ',licks.length
 
   # stats for lick lengths
   puts "\nCounting licks by number of holes:\n"  
@@ -69,13 +62,13 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
   line = "  ----------    ---------------"
   puts "\n  Hole Range    Number of Licks"
   puts line
-  by_len = all_licks.group_by {|l| l[:holes].length}
+  by_len = licks.group_by {|l| l[:holes].length}
   cnt = 0
   lens = []
   by_len.keys.sort.each_with_index do |len,idx|
     cnt += by_len[len].length
     lens << len
-    if cnt > all_licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
+    if cnt > licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
       printf format % [lens[0],lens[-1],cnt]
       cnt = 0
       lens = []
@@ -83,12 +76,12 @@ def print_lick_and_tag_info all_licks = $all_licks, licks = $licks
   end
   printf format % [lens[0],lens[-1],cnt] if lens.length > 0
   puts line
-  puts format % [by_len.keys.minmax, all_licks.length].flatten
+  puts format % [by_len.keys.minmax, licks.length].flatten
   puts
 end
 
 
-def get_last_lick_idxs_from_journal licks = $licks
+def get_last_lick_idxs_from_journal licks
   lnames = []
   File.readlines($journal_file).each do |line|
     md = line.match(/^Lick +([^, :\/]+)/)
@@ -104,7 +97,7 @@ def get_last_lick_idxs_from_journal licks = $licks
 end
 
 
-def print_last_licks_from_journal licks = $licks
+def print_last_licks_from_journal licks
   puts "\nList of most recent licks played:"
   puts "  - abbrev (e.g. '2l') for '--start-with'"
   puts "  - name of lick"
@@ -132,6 +125,12 @@ end
 
 
 def print_licks_by_tags licks
+
+  puts "\n(read from #{$lick_file})\n\n"
+
+  puts "\nReporting for licks selected by tags and hole-count only\n"
+  puts "========================================================\n\n"
+  
   ltags = tags = nil
   puts "Licks with their tags:"
   puts
