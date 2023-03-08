@@ -37,12 +37,12 @@ $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 
 # locations for our test-data; these dirs will be created as full
-# copies of $dotdir_orig
-$dotdir_orig = "#{Dir.home}/.harpwise"
 $dotdir_testing = "#{Dir.home}/dot_harpwise"
 $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
-# This will make harpwise look into $dotdir_testing instead of $dotdir_orig
+# remove these to get clean even if we do not rebuild completely
+Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
+# This will make harpwise look into $dotdir_testing
 ENV['HARPWISE_TESTING']='1'
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
@@ -100,8 +100,8 @@ FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
-print "Testing"
-puts "\n\n\e[32mTo restart with a failed test use: #{File.basename($0)} .\e[0m\n\n"
+puts "Testing"
+puts "\n\e[32mTo restart with a failed test use: '#{File.basename($0)} .'\e[0m\n"
 do_test 'id-0: man-page should process without errors' do
   ste = %x(man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null)
   expect(ste) {ste == ''}
@@ -194,12 +194,12 @@ do_test 'id-1a: config.ini, user prevails' do
   tms 'harpwise report journal'
   tms :ENTER
   sleep 2
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
   expect(dump[:conf_user]) { dump[:conf_user][:any_mode][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1b: config.ini, mode prevails' do
@@ -211,13 +211,13 @@ do_test 'id-1b: config.ini, mode prevails' do
   tms 'harpwise quiz 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
   expect(dump[:conf_system]) { dump[:conf_system][:key] == nil }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1c: config.ini, set loop (example for boolean)' do
@@ -229,13 +229,13 @@ do_test 'id-1c: config.ini, set loop (example for boolean)' do
   tms 'harpwise quiz 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
   expect(dump[:conf_system]) { dump[:conf_system][:loop] == nil }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == false }
   expect(dump[:conf]) { dump[:conf][:loop] == false }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1d: config.ini, unset loop with option' do
@@ -247,12 +247,12 @@ do_test 'id-1d: config.ini, unset loop with option' do
   tms 'harpwise quiz 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
   expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
   expect(dump[:opts]) { dump[:opts][:loop] == false }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1e: config.ini, take default key from config' do
@@ -264,10 +264,10 @@ do_test 'id-1e: config.ini, take default key from config' do
   tms 'harpwise quiz 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:key]) { dump[:key] == 'a' }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1f: config.ini, take key from commandline' do
@@ -279,10 +279,10 @@ do_test 'id-1f: config.ini, take key from commandline' do
   tms 'harpwise listen a blues'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:key]) { dump[:key] == 'a' }
   kill_session
-  ensure_config_ini_testing
 end
 
 do_test 'id-1g: config.ini, set value in config and clear again on commandline' do
@@ -294,10 +294,10 @@ do_test 'id-1g: config.ini, set value in config and clear again on commandline' 
   tms 'harpwise quiz 3 blues --no-loop --add-scales -'
   tms :ENTER
   wait_for_start_of_pipeline
+  ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:opts]) { dump[:opts][:add_scales] == nil }
   kill_session
-  ensure_config_ini_testing
 end
 
 usage_types.keys.each_with_index do |mode, idx|
@@ -411,7 +411,6 @@ do_test 'id-6a: listen and change display and comment' do
 end
 
 do_test 'id-7: change key of harp' do
-  ensure_config_ini_testing
   new_session
   tms 'harpwise listen richter a all'
   tms :ENTER
@@ -426,7 +425,6 @@ do_test 'id-7: change key of harp' do
 end
 
 do_test 'id-7a: change scale of harp' do
-  ensure_config_ini_testing
   new_session
   tms 'harpwise listen a all'
   tms :ENTER
@@ -442,7 +440,6 @@ do_test 'id-7a: change scale of harp' do
 end
 
 do_test 'id-7b: rotate scale of harp' do
-  ensure_config_ini_testing
   new_session
   tms 'harpwise listen a all'
   tms :ENTER
@@ -728,7 +725,7 @@ do_test 'id-23: print list of licks' do
    "  two ..... y\n",
    "  three ..... fav,favorites,testing,z\n",
    "  long ..... testing,x\n"].each_with_index do |exp,idx|
-    expect(exp,idx) { lines[10+idx] = exp }
+    expect(lines,exp,idx) { lines[10+idx] == exp }
   end
   kill_session
 end
@@ -739,9 +736,24 @@ do_test 'id-23a: print overview of all licks' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["  ?\n",
-   "  ?\n"].each_with_index do |exp,idx|
-    expect(exp,idx) { lines[10+idx] = exp }
+  ["  Tag                              Count\n",
+   " -----------------------------------------\n",
+   "  advanced                             1\n",
+   "  fav                                  1\n",
+   "  favorites                            4\n",
+   "  samples                              4\n",
+   "  scales                               2\n",
+   "  testing                              3\n",
+   "  theory                               1\n",
+   "  x                                    2\n",
+   "  y                                    1\n",
+   "  z                                    1\n",
+   " -----------------------------------------\n",
+   "  Total number of tags:               20\n",
+   "  Total number of different tags:     10\n",
+   " -----------------------------------------\n",
+   "  Total number of licks:              10\n"].each_with_index do |exp,idx|
+    expect(exp,idx) { lines[10+idx] == exp }
   end
   kill_session
 end
