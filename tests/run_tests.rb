@@ -32,7 +32,7 @@ $within = ARGV.length == 0
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(wade st-louis feeling-bad special blues mape one two three long)
+$all_testing_licks = %w(wade st-louis feeling-bad blues mape special one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 
@@ -539,7 +539,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play a mape'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-1 +2 -2'] }
+  expect { screen[5]['-2 -3// -3 -4 +5 +6'] }
   kill_session
 end
 
@@ -548,7 +548,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play a mape --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-2 +2 -1'] }
+  expect { screen[5]['+6 +5 -4 -3 -3// -2'] }
   kill_session
 end
 
@@ -667,7 +667,7 @@ do_test 'id-18a: mode licks with licks with tags_all' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   # See comments above for verification
-  expect(dump[:licks]) { dump[:licks].length == 1 }
+  expect(dump[:licks]) { dump[:licks].length == 2 }
   kill_session
 end
 
@@ -718,9 +718,8 @@ do_test 'id-23: print list of licks' do
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
   ["  wade,st-louis,feeling-bad ..... favorites,samples\n",
+   "  blues,mape ..... scales,theory\n",
    "  special ..... advanced,samples\n",
-   "  blues ..... scales,theory\n",
-   "  mape ..... scales\n",
    "  one ..... testing,x\n",
    "  two ..... y\n",
    "  three ..... fav,favorites,testing,z\n",
@@ -744,16 +743,16 @@ do_test 'id-23a: print overview of all licks' do
    "  samples                              4\n",
    "  scales                               2\n",
    "  testing                              3\n",
-   "  theory                               1\n",
+   "  theory                               2\n",
    "  x                                    2\n",
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               20\n",
+   "  Total number of tags:               21\n",
    "  Total number of different tags:     10\n",
    " -----------------------------------------\n",
    "  Total number of licks:              10\n"].each_with_index do |exp,idx|
-    expect(exp,idx) { lines[10+idx] == exp }
+    expect(lines,exp,idx) { lines[10+idx] == exp }
   end
   kill_session
 end
@@ -797,12 +796,12 @@ do_test 'id-26: iterate from one lick through to end' do
   expect { screen[-2]['special'] }
   tms :ENTER
   sleep 4
-  expect { screen[-1]['blues'] }
-  (0 .. $all_testing_licks.length + 2).to_a.each do |i|
+  expect { screen[-2]['one'] }
+  4.times do |i|
     tms :ENTER
     sleep 4
   end
-  expect { screen[-10]['Iterated through licks'] }
+  expect { screen[-3]['Iterated through licks'] }
   kill_session
 end
 
@@ -812,7 +811,7 @@ do_test 'id-27: cycle through licks from starting point' do
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
-    lickname = $all_testing_licks[(i + 3) % $all_testing_licks.length]
+    lickname = $all_testing_licks[(i + 5) % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
     sleep 4

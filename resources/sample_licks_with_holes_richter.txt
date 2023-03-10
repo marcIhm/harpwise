@@ -48,7 +48,7 @@
   rec.key = a
 
 #
-# The third and last lick, that comes with harpwise as a starter-pack
+# The third lick, that comes with harpwise as a starter-pack
 #
 [feeling-bad]
   holes = +6 +5 +6 +6 +6 +5 -4 -4 +4
@@ -57,6 +57,19 @@
   tags = samples favorites
   rec.key = c
 
+#
+# The blues scale as a lick
+#
+[blues]
+  holes = -2 -3/ +4 -4/ -4 -5 +6
+  tags = scales theory
+
+#
+# The major pentatonic scale as a lick
+#
+[mape]
+  holes = -2 -3// -3 -4 +5 +6
+  tags = scales theory
 
 #
 #  ***  ABOUT THE REST OF THIS FILE  ***
@@ -150,11 +163,11 @@
 ##   # notice the use of the variable
 ##   tags = scales $source
 ## 
-## [blues]
+## [blues-full] # all octaves
 ##   holes = +1 -1/ -1 -2// -2 -3/ +4 -4/ -4 -5 +6 -6/ -6 +7 -8 -9 +9 -10
 ##   # has tags 'scales' and 'theory'
 ## 
-## [mape] # major pentatonic
+## [mape-full] # major pentatonic scales about all octaves
 ##   holes = -1 +2 -2 -3// -3 -4 +5 +6 -6 -7 -8 +8 +9
 ##   # has tags 'scales' only
 ##   tags = scales

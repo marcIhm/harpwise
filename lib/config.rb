@@ -333,6 +333,7 @@ def read_config_ini file, strict: true
     if md = line.match(/^\[(#{$word_re})\]$/)
       # new section
       section = md[1].o2sym
+      err err_head + "Section #{section.o2str} is not allowed, rather use section #{$conf_meta[:sections_aliases][section].o2str}, which is used by both modes" if $conf_meta[:sections_aliases].include?(section)
       err err_head + "Section #{section.o2str} is none of allowed #{$conf_meta[:sections].map(&:o2str)}" unless $conf_meta[:sections].include?(section)
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
@@ -684,7 +685,7 @@ def set_global_musical_vars
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
-  $freq2hole = read_calibration unless $mode == :calibrate
+  $freq2hole = read_calibration unless [:calibrate, :report, :print, :tools].include?($mode)
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]
