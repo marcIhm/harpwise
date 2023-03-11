@@ -380,11 +380,13 @@ def read_and_set_musical_config
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
   semi2holes = Hash.new {|h,k| h[k] = Array.new}
+  hole_root = nil
   $hole2note_read.each do |hole, note|
     semi = note2semi(note) + $dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
                   [:semi, semi]].to_h
     semi2holes[semi] << hole
+    hole_root ||= hole if semi % 12 == 0
   end
   $hole2note_read.each do |hole, _|
     all_holes = 
@@ -461,7 +463,8 @@ def read_and_set_musical_config
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     h2s_shorts,
     semi2hole,
-    intervals]
+    intervals,
+    hole_root]
 end
 
 
@@ -681,7 +684,7 @@ def set_global_musical_vars
   $used_scales = get_used_scales($opts[:add_scales])
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info

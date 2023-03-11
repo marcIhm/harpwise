@@ -458,18 +458,24 @@ $quiz_sample_stats = Hash.new {|h,k| h[k] = 0}
 def get_sample num
   # construct chains of holes within scale and added scale
   holes = Array.new
+  what = Array.new(num)
+  rnd = rand
   # favor lower starting notes
-  if rand > 0.5
+  if rnd > 0.7
     holes[0] = $scale_holes[0 .. $scale_holes.length/2].sample
-  else
+    what[0] = :start_sample_from_lower_scale
+  elsif rnd > 0.4
     holes[0] = $scale_holes.sample
+    what[0] = :start_sample_from_scale
+  else
+    holes[0] = $hole_root
+    what[0] = :start_root
   end
 
-  what = Array.new(num)
   for i in (1 .. num - 1)
     tries = 0
-    if rand > 0.7
-      what[i] = :nearby
+    if rand > 0.5
+      what[i] = :middle_nearby_hole
       begin
         try_semi = $harp[holes[i-1]][:semi] + rand(-6 .. 6)
         tries += 1
@@ -477,7 +483,7 @@ def get_sample num
       end until $semi2hole[try_semi]
       holes[i] = $semi2hole[try_semi]
     else
-      what[i] = :interval
+      what[i] = :middle_interval
       begin
         # semitone distances 4,7 and 12 are major third, perfect fifth
         # and octave respectively
@@ -494,21 +500,22 @@ def get_sample num
     for i in (1 .. num - 1)
       if rand >= 0.6
         holes[i] = nearest_hole_with_flag(holes[i], :added)
-        what[i] = :nearest_added
+        what[i] = :middle_nearest_hole_from_added_scale
       end
     end
-    # (randomly) make last note a root note
-    if rand >= 0.6
-      holes[-1] = nearest_hole_with_flag(holes[-1], :root)
-      what[-1] = :nearest_root
-    end
+  end
+  
+  # (randomly) make last note a root note
+  if rand >= 0.6
+    holes[-1] = nearest_hole_with_flag(holes[-1], :root)
+    what[-1] = :end_nearest_root
   end
 
   for i in (1 .. num - 1)
     # make sure, there is a note in every slot
     unless holes[i]
       holes[i] = $scale_holes.sample
-      what[i] = :fallback
+      what[i] = :middle_end_fallback
     end
     $quiz_sample_stats[what[i]] += 1
   end
