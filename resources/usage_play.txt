@@ -10,6 +10,9 @@ OVERVIEW
     - special values (e.g. 'l', '2l) to reference e.g. the last lick
     - keywords (e.g. 'random' or 'cycle'), that influence, what and
       how licks are played
+    - the special keyword 'key-of-song' to play a tone with adjustable
+      pitch; this is intended to find the key of a song by
+      ear-comparison
     
   This mode needs no scale argument.
 
@@ -39,4 +42,23 @@ USAGE BY EXAMPLES
   The special keywords (e.g. 'iter' or 'rand') are the same, that
   may appear in option --start-with in mode (e.g.) licks; see there
   for more examples.
+  
+
+  Play an adjusable pitch:
+
+    harpwise play key-of-song
+
+  try this while listening to a song to find its key by comparing the
+  song to this pitch.
+
+    harpwise play key c
+
+  Exactly the same result as above, but with explicitly sepcified key
+  of c. This will play two draw on a c-harp, which is g, because one
+  would normally use a c-harp to play a song in g.
+
+  Note: As an alternative, you may try to humm the "central note" or
+  "tonal center" of the song to find its key. This is the preferred
+  method, because it does not need a computer. But this command may
+  help to get started anyway.
   

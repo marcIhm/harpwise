@@ -290,6 +290,42 @@ def handle_kb_play_recording
 end
 
 
+def handle_kb_play_pitch
+  return if $ctl_kb_queue.length == 0
+  char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+  $ctl_pitch[:any] = true
+
+  if char == ' '
+    $ctl_pitch[:pause_continue] = true
+  elsif char == 'v'
+    $ctl_pitch[:vol_down] = true
+  elsif char == 'V'
+    $ctl_pitch[:vol_up] = true
+  elsif char == 'h'
+    $ctl_pitch[:show_help] = true
+  elsif char == 'S'
+    $ctl_pitch[:semi_up] = true
+  elsif char == 's'
+    $ctl_pitch[:semi_down] = true
+  elsif char == 'O'
+    $ctl_pitch[:octave_up] = true
+  elsif char == 'o'
+    $ctl_pitch[:octave_down] = true
+  elsif char == 'F' || char == 'Q'
+    $ctl_pitch[:fifth_up] = true
+  elsif char == 'f' || char == 'q'
+    $ctl_pitch[:fifth_down] = true
+  elsif char == 'W'
+    $ctl_pitch[:wave_up] = true
+  elsif char == 'w'
+    $ctl_pitch[:wave_down] = true
+  else
+    $ctl_pitch[:any] = false
+  end
+end
+
+
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq

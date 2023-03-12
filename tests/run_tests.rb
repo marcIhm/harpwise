@@ -90,7 +90,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 36
+num_exp = 38
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -311,7 +311,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [-8, 'your mileage may vary'],
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
-                     'play' => [6, 'The special keywords'],
+                     'play' => [7, 'because it does not need a computer'],
                      'print' => [4, 'Print the scales, each note belongs to too'],
                      'report' => [-6, 'on every invocation'],
                      'tools' => [2, 'Three charts, the third with intervals of each hole']}
@@ -620,6 +620,18 @@ do_test 'id-16b: cycle in play' do
   tms :ENTER
   sleep 2
   expect { screen[13]['Lick st-louis'] }
+  kill_session
+end
+
+do_test 'id-16c: play key-of-song' do
+  new_session
+  tms 'harpwise play key-of-song'
+  tms :ENTER
+  sleep 2
+  expect { screen[-10]['key of song: f  ,  key of harp (2nd pos): c'] }
+  tms 'f'
+  sleep 2
+  expect { screen[-7]['key of song: bf ,  key of harp (2nd pos): f'] }
   kill_session
 end
 

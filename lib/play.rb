@@ -15,7 +15,7 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  holes, lnames, snames, special = partition_to_play_or_print(to_play)
+  holes, lnames, snames, special, extra = partition_to_play_or_print(to_play, ['key-of-song','key'])
 
   if special.include?(:iterate) && special.include?(:cycle)
     err "Cannot use special words 'iterate' and 'cycle' at the same time"
@@ -46,7 +46,11 @@ def do_play to_play
       jtext = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
       IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
     end
-      
+
+  elsif extra.length > 0
+
+    play_controllable_pitch
+    
   elsif special.length > 0
 
     if special.include?(:random)
@@ -87,12 +91,13 @@ def do_play to_play
 end
 
 
-def partition_to_play_or_print to_p
+def partition_to_play_or_print to_p, extra_allowed = []
 
   holes = []
   lnames = []
   snames = []
   special = []
+  extra = []
   other = []
 
   all_lnames = $licks.map {|l| l[:name]}
@@ -113,6 +118,8 @@ def partition_to_play_or_print to_p
       lnames << $all_licks[get_last_lick_idxs_from_journal($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     elsif $conf[:specials_allowed_play].include?(tp)
       special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
+    elsif extra_allowed.include?(tp)
+      extra << tp
     else
       other << tp
     end
@@ -122,7 +129,7 @@ def partition_to_play_or_print to_p
   # Check results for consistency
   # 
 
-  sources_count = [holes, lnames, snames, special].select {|s| s.length > 0}.length
+  sources_count = [holes, lnames, snames, special, extra].select {|s| s.length > 0}.length
 
   if other.length > 0 || sources_count == 0
     puts
@@ -143,6 +150,10 @@ def partition_to_play_or_print to_p
     print_in_columns all_lnames
     puts "\n- special:"
     print_in_columns $conf[:specials_allowed_play]
+    if extra_allowed.length > 0
+      puts "\n- extra:"
+      print_in_columns extra_allowed
+    end
     puts
     err 'See above'
   end
@@ -158,7 +169,7 @@ def partition_to_play_or_print to_p
 
   special << $opts[:doiter].to_sym if $opts[:doiter]
   
-  [holes, lnames, snames, special]
+  [holes, lnames, snames, special, extra]
 
 end
 

@@ -32,6 +32,7 @@ def set_global_vars_early
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
+  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :any]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -57,11 +58,16 @@ def set_global_vars_early
   ks.each {|k| $ctl_mic[k] = false}
 
   # result of processing keys, while a recording is played
+  # this is partially mirrored in sound_driver.rb
   ks = [:skip, :replay, :slower, :vol_up, :vol_down,
         :loop, :loop_loop, :lick_lick,
         :show_help, :pause_continue]
   $ctl_rec = Struct.new(*ks).new
   ks.each {|k| $ctl_rec[k] = false}
+
+  # result of processing keys, while playing a pitch
+  $ctl_pitch = Struct.new(*$conf_meta[:ctrls_play_pitch]).new
+  $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
 
   # result of processing keys, while a series of holes is played
   ks = [:skip, :show_help]
@@ -294,10 +300,11 @@ def read_technical_config
   # Set some things we do not take from file
   conf[:abbrevs_for_iter_2_long] = {'iterate' => 'iterate',
                                     'iter' => 'iterate',
+                                    'it' => 'iterate',
                                     'i' => 'iterate',
                                     'cycle' => 'cycle',
                                     'cyc' => 'cycle',
-                                    'c' => 'cycle'}
+                                    'cy' => 'cycle'}
   conf[:abbrevs_for_iter] = conf[:abbrevs_for_iter_2_long].keys
   conf[:specials_allowed_play_2_long] = conf[:abbrevs_for_iter_2_long].merge({'random' => 'random',
                                                                               'rand' => 'random',

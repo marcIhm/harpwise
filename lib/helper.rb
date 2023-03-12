@@ -127,7 +127,7 @@ def display_kb_help what, first_round, body
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   if first_round
-    puts "\ncontinue"
+    puts "\n\e[0m\e[2mcontinue\e[0m"
   else
     clear_area_comment
     ctl_response 'continue'

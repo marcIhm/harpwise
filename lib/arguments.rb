@@ -251,10 +251,18 @@ def parse_arguments
   # Handle special cases; e.g convert 'harpwise tools transpose c g'
   #                              into 'harpwise tools c transpose g'
   if mode == :tools && $conf[:all_keys].include?(ARGV[1]) &&
-     ( ARGV.length >= 3 && 'transpose'.start_with?(ARGV[0]) && $conf[:all_keys].include?(ARGV[2]) ||
-       ARGV.length >= 2 && 'chart'.start_with?(ARGV[0]) )
-     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
+     ( ARGV.length >= 3 && 'transpose'.start_with?(ARGV[0]) && ARGV[0].length >= 3 && $conf[:all_keys].include?(ARGV[2] ) ||
+       ARGV.length >= 2 && 'chart'.start_with?(ARGV[0]) && ARGV[0].length >= 3 )
+    ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end
+  # Handle special case: convert 'harpwise play key-for-song g'
+  #                         into 'harpwise play g key-for-song'
+  if mode == :play && $conf[:all_keys].include?(ARGV[1]) &&
+     ARGV.length >= 2 && 'key-for-song'.start_with?(ARGV[0]) && ARGV[0].length >= 3
+    ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
+  end
+
+  # pick key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   key ||= $conf[:key]
   check_key_and_set_pref_sig(key)
