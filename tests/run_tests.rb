@@ -623,15 +623,15 @@ do_test 'id-16b: cycle in play' do
   kill_session
 end
 
-do_test 'id-16c: play key-of-song' do
+do_test 'id-16c: play pitch' do
   new_session
-  tms 'harpwise play key-of-song'
+  tms 'harpwise play pitch'
   tms :ENTER
   sleep 2
-  expect { screen[-10]['key of song: f  ,  key of harp (2nd pos): c'] }
+  expect { screen[-6]['key of song: g  ,  matches key of harp: c'] }
   tms 'f'
   sleep 2
-  expect { screen[-7]['key of song: bf ,  key of harp (2nd pos): f'] }
+  expect { screen[-3]['key of song: c  ,  matches key of harp: f'] }
   kill_session
 end
 

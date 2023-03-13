@@ -255,10 +255,10 @@ def parse_arguments
        ARGV.length >= 2 && 'chart'.start_with?(ARGV[0]) && ARGV[0].length >= 3 )
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end
-  # Handle special case: convert 'harpwise play key-for-song g'
-  #                         into 'harpwise play g key-for-song'
+  # Handle special case: convert 'harpwise play pitch g'
+  #                         into 'harpwise play g pitch'
   if mode == :play && $conf[:all_keys].include?(ARGV[1]) &&
-     ARGV.length >= 2 && 'key-for-song'.start_with?(ARGV[0]) && ARGV[0].length >= 3
+     ARGV.length >= 2 && 'pitch'.start_with?(ARGV[0]) && ARGV[0].length >= 3
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end
 

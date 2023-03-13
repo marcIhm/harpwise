@@ -15,7 +15,7 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  holes, lnames, snames, special, extra = partition_to_play_or_print(to_play, ['key-of-song','key'])
+  holes, lnames, snames, special, extra = partition_to_play_or_print(to_play, ['pitch'])
 
   if special.include?(:iterate) && special.include?(:cycle)
     err "Cannot use special words 'iterate' and 'cycle' at the same time"

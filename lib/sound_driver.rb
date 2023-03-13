@@ -342,11 +342,12 @@ def play_controllable_pitch
   cmd = cmd_was = nil
 
   puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is played in parallel."
+  puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
 
   puts
   puts "\e[0m\e[2mSuggested procedure: Play the song in the background and"
   puts "step by semitones until you hear a good match; then try a fifth"
-  puts "up and down, to hear if those may match even better. Step by octaves,"
+  puts "up and down, to check if those may match even better. Step by octaves,"
   puts "if your pitch is far above or below the song."
   puts
   puts "\e[0m\e[2m(type 'h' for help)\e[0m"
@@ -464,7 +465,7 @@ end
 def print_pitch_information semi, name = nil
   puts "\e[0m\e[2m#{name}\e[0m" if name
   puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
-  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi - 7)[0..-2]
-  print "\e[0mkey of harp (2nd pos): \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
+  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi + 7)[0..-2]
+  print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts
 end
