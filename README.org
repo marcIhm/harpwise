@@ -4,26 +4,32 @@
 
   [[images/harmonica.png]]
 
-  Ruby script to support the daily practice of bends, scales, intervals or
-  licks on a diatonic (richter) or chromatic harmonica for various keys.
+  harpwise is an interactive assistant that supports the daily practice of
+  scales, licks, bends, warbles or intervals on a diatonic (richter) or
+  chromatic harmonica for various keys. It uses your microphone and
+  speaker.
 
-  Please note, that harpwise is limited to play and recognize single notes
-  only; it has no sense of chords or grooves. So among the three
-  ingredients of music, i.e. melody, harmony and rhythm, it can only help
-  you with melody and (to some extent) harmony.
+  As a limitation, note that harpwise plays and recognizes single notes
+  only and has no sense of chords or grooves.
 
+  The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
+  these may help to:
 
-  Its main operation modes are 'listen', 'quiz' and 'licks'; these
-  modes may help to:
-
-  - Work on bends
-  - Train your musical memory
   - Internalize various scales
-  - Play and remember intervals
-  - Learn and memorize licks
-  - Analyze licks regarding scales, chords and intervals
-  - Support improvisation: Provide licks and scale info
+  - Analyze your playing regarding scales, chords and intervals
+  - Learn and memorize licks (which you need to collect before, however)
+  - Train your musical memory
+  - Work on bends or warbles
+
+  Other things that harpwise can do:
+
+  - Help to find the key of a song (with an adjustable pitch)
   - Help in writing down a sequence of holes
+  - Transpose a sequence of holes from one key of harp to another,
+    preserving the note-values
+  - Provide an overview table of positions, keys of songs and keys of harps
+  - Print the notes layed out on a harmonica chart
+  - Print chords i, iv, v
 
     
   The first screenshot is from mode 'listen': The program has recognized a
