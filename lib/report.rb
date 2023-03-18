@@ -5,13 +5,13 @@
 def do_report to_report
 
   $all_licks, $licks = read_licks
-  reports_allowed = %w(licks all-licks dump journal jour starred star stars)
-
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
-  err "Unknown report '#{to_report[0]}', only these are allowed: #{reports_allowed}" unless reports_allowed.include?(to_report[0])
+  to_report[0] = 'starred' if to_report[0] == 'stars'
+  reports_allowed = %w(licks all-licks dump history-of-licks starred)
+  to_report[0] = match_or(to_report[0], reports_allowed) do |none, choices|
+    err "Argument for mode 'report' must be one of #{choices}, not #{none}; #{$for_usage}"
+  end
   report = to_report[0].o2sym
-  report = :journal if report == :jour
-  report = :starred if report == :star || report == :stars
 
   puts
 
@@ -20,12 +20,14 @@ def do_report to_report
     print_licks_by_tags $licks
   when :all_licks
     print_lick_and_tag_info $all_licks
-  when :journal
+  when :history_of_licks
     print_last_licks_from_journal $all_licks
   when :starred
     print_starred_licks
   when :dump
     pp $all_licks
+  else
+    err "Internal error: Unknown report '#{report}'"
   end
 end
 
@@ -83,8 +85,9 @@ end
 
 def get_last_lick_idxs_from_journal licks
   lnames = []
+  err "Expected journal file #{$journal_file} could not be found" unless File.exist?($journal_file)
   File.readlines($journal_file).each do |line|
-    md = line.match(/^Lick +([^, :\/]+)/)
+    md = line.match(/^Lick +([^, :\/]+):/)
     lnames << md[1] if md
     lnames.shift if lnames.length > 100
   end

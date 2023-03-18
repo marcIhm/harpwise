@@ -9,7 +9,7 @@ OVERVIEW
       them with the various tag-options (e.g. --tags-any)
     - all-licks, overview for all known licks, regardless of options
       or config
-    - journal, to show, which licks you played recently in modes licks
+    - history, to show, which licks you played recently in modes licks
       or play
     - starred, to show all starred licks with their respective number
       of stars
@@ -32,9 +32,10 @@ USAGE BY EXAMPLES
 
     harpwise report chromatic licks -t fav
 
-  Show what you have played recently along with shortcuts 'l', '2l', ...
+  Show the licks you played recently along with their shortcuts 'l',
+  '2l', ...
   
-    harpwise report journal
+    harpwise report history
 
   List all the licks, that you have starred:
 

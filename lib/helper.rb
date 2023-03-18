@@ -135,7 +135,7 @@ def display_kb_help what, first_round, body
 end
 
 
-def write_to_journal hole, since
+def write_hole_to_journal hole, since
   IO.write($journal_file,
            "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
                                         Time.now.to_f - since,
@@ -148,15 +148,18 @@ end
 
 def journal_start
   IO.write($journal_file,
-           "\nStart writing journal at #{Time.now}, mode #{$mode}\n" +
+           "\n\n# Start writing journal at #{Time.now}\n# mode #{$mode}, type #{$type}, key #{$key}\n" +
            if $mode == :listen
-             "Columns: Secs since prog start, duration, hole, note\n" +
-               "Notes played by you only.\n\n"
+             "# Columns: Secs since prog start, duration, hole, note\n" +
+               "# Notes played by you only.\n"
            else
-             "Notes played by harpwise only.\n\n"
+             "# Notes played by harpwise only.\n"
            end, mode: 'a')
 end
 
+def journal_stop
+  IO.write($journal_file, "# Stop writing journal at #{Time.now}\n\n", mode: 'a')
+end
 
 def truncate_colored_text text, len
   ttext = ''

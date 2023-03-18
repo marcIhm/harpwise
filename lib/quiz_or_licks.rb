@@ -17,7 +17,7 @@ def do_quiz_or_licks
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
-  $write_journal = true
+  $journal_active = true
   journal_start
 
   to_play = PlayController.new
@@ -142,7 +142,7 @@ def do_quiz_or_licks
         jtext = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
       end
 
-      IO.write($journal_file, "#{jtext}\n\n", mode: 'a') if $write_journal && do_write_journal
+      IO.write($journal_file, "#{jtext}\n", mode: 'a') if $journal_active && do_write_journal
       $ctl_mic[:loop] = $opts[:loop]
 
     end # handling $ctl-commands and calculating the next holes

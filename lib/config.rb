@@ -97,7 +97,7 @@ def set_global_vars_early
   
   $journal_listen = Array.new
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
-  $write_journal = false
+  $journal_active = false
   # is only used in handle_holes, but needs to persist between invocations
   $message_shown_at = false
 
@@ -244,6 +244,7 @@ def set_global_vars_late
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
   $trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
   $journal_file = if $mode == :licks || $mode == :play || $mode == :report
+                    # modes licks and play both play random licks and report needs to read them
                     "#{$dirs[:data]}/journal_modes_licks_and_play.txt"
                   else
                     "#{$dirs[:data]}/journal_mode_#{$mode}.txt"

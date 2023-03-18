@@ -102,6 +102,7 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
+  journal_stop if $journal_active
   write_dump 'end' if $testing
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
@@ -135,6 +136,10 @@ begin
     $opts, $other_mode_saved[:opts] = $other_mode_saved[:opts], $opts
     $lines = calculate_screen_layout
 
+    if $journal_active
+      journal_stop
+      $journal_active = false
+    end
     clear_area_comment
     print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
     do_figlet_unwrapped "> > >   #{$mode}", 'smblock'

@@ -191,7 +191,7 @@ do_test 'id-1a: config.ini, user prevails' do
   end_of_content
   new_session
   # any invocation would be okay too
-  tms 'harpwise report journal'
+  tms 'harpwise report history'
   tms :ENTER
   sleep 2
   ensure_config_ini_testing
@@ -586,7 +586,7 @@ end
 
 do_test 'id-15a: check journal from previous invocation of play' do
   new_session
-  tms 'harpwise report jour'
+  tms 'harpwise report hist'
   tms :ENTER
   sleep 2
   expect { screen[9][' l: wade'] }

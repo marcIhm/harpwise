@@ -97,7 +97,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
     if hole != hole_held && Time.now.to_f - hole_since > 0.1
       hole_held_before = hole_held
-      write_to_journal(hole_held, hole_held_since) if $write_journal && $mode == :listen && regular_hole?(hole_held)
+      write_hole_to_journal(hole_held, hole_held_since) if $journal_active && $mode == :listen && regular_hole?(hole_held)
       if hole
         hole_held = hole
         hole_held_since = hole_since
@@ -342,18 +342,18 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
     
     if $ctl_mic[:toggle_journal]
-      $write_journal = !$write_journal
-      if $write_journal
+      $journal_active = !$journal_active
+      if $journal_active
         journal_start
         $journal_listen = Array.new
       else
-        write_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
+        write_hole_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
         IO.write($journal_file, "All holes: #{$journal_listen.join(' ')}\n", mode: 'a') if $mode == :listen && $journal_listen.length > 0
-        IO.write($journal_file, "Stop writing journal at #{Time.now}\n", mode: 'a')
+        journal_stop
       end
-      ctl_response "Journal #{$write_journal ? ' ON' : 'OFF'}"
+      ctl_response "Journal #{$journal_active ? ' ON' : 'OFF'}"
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m"      
-      print ( $write_journal  ?  "Appending to "  :  "Done with " ) + $journal_file
+      print ( $journal_active  ?  "Appending to "  :  "Done with " ) + $journal_file
       print "\e[K"
       $message_shown_at = Time.now.to_f
 
@@ -427,7 +427,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; journal: ' + ( $write_journal  ?  ' on' : 'off' )
+  text += '; journal: ' + ( $journal_active  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
