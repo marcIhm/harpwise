@@ -137,29 +137,34 @@ end
 
 def write_hole_to_journal hole, since
   IO.write($journal_file,
-           "%8.2f %8.2f %12s %6s\n" % [ Time.now.to_f - $program_start,
-                                        Time.now.to_f - since,
-                                        hole,
-                                        $harp[hole][:note]],
+           "%6.1f %8s %4s\n" % [ Time.now.to_f - since,
+                                 hole,
+                                 $harp[hole][:note]],
            mode: 'a')
   $journal_listen << hole
 end
 
 
 def journal_start
-  IO.write($journal_file,
-           "\n\n# Start writing journal at #{Time.now}\n# mode #{$mode}, type #{$type}, key #{$key}\n" +
-           if $mode == :listen
-             "# Columns: Secs since prog start, duration, hole, note\n" +
-               "# Notes played by you only.\n"
-           else
-             "# Notes played by harpwise only.\n"
-           end, mode: 'a')
+  text = if $journal_started_count == 0
+           "\n;; Start journal at #{Time.now}, key of #{$key}\n" +
+             if $mode == :listen
+               ";; Columns: duration, hole, note\n\n"
+             else
+               "\n"
+             end
+         else
+           "\n;; Start #{Time.now.strftime('%T')}\n"
+         end
+  $journal_started_count += 1
+  IO.write($journal_file, text, mode: 'a')
 end
 
+
 def journal_stop
-  IO.write($journal_file, "# Stop writing journal at #{Time.now}\n\n", mode: 'a')
+  IO.write($journal_file, "\n;; Stop journal at #{Time.now}\n\n", mode: 'a')
 end
+
 
 def truncate_colored_text text, len
   ttext = ''
@@ -371,3 +376,12 @@ def animate_splash_line single_line = false
   sleep 0.01
 end
 
+
+def get_journal_file
+  if $mode == :licks || $mode == :play || $mode == :report
+    # modes licks and play both play random licks and report needs to read them
+    "#{$dirs[:data]}/journal_#{$type}_modes_licks_and_play.txt"
+  else
+    "#{$dirs[:data]}/journal_#{$type}_mode_#{$mode}.txt"
+  end
+end

@@ -349,7 +349,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       else
         write_hole_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
         IO.write($journal_file, "All holes: #{$journal_listen.join(' ')}\n", mode: 'a') if $mode == :listen && $journal_listen.length > 0
-        journal_stop
+        # do not issue message in journal
       end
       ctl_response "Journal #{$journal_active ? ' ON' : 'OFF'}"
       print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m"      

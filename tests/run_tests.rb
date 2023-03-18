@@ -380,7 +380,7 @@ end
 
 do_test 'id-6: listen' do
   sound 8, 2
-  journal_file = "#{$dotdir_testing}/journal_mode_listen.txt"
+  journal_file = "#{$dotdir_testing}/journal_richter_mode_listen.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen a all'
@@ -572,7 +572,7 @@ do_test 'id-14b: check lick processing on tags.add and desc.add' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  journal_file = "#{$dotdir_testing}/journal_modes_licks_and_play.txt"
+  journal_file = "#{$dotdir_testing}/journal_richter_modes_licks_and_play.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise play a wade'

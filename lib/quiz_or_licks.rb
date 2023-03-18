@@ -17,8 +17,6 @@ def do_quiz_or_licks
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
-  $journal_active = true
-  journal_start
 
   to_play = PlayController.new
   oride_l_message2 = nil
