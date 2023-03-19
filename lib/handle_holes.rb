@@ -509,7 +509,7 @@ def do_change_key_to_pitch
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
-  $key = play_adjustable_pitch(do_sleep=true)
+  $key = play_adjustable_pitch(embedded = true) || $key
   text = if key_was == $key
            "Key of harp is still at"
          else

@@ -304,24 +304,24 @@ def handle_kb_play_pitch
     $ctl_pitch[:vol_up] = true
   elsif char == 'h'
     $ctl_pitch[:show_help] = true
-  elsif char == 'S'
-    $ctl_pitch[:semi_up] = true
   elsif char == 's'
+    $ctl_pitch[:semi_up] = true
+  elsif char == 'S'
     $ctl_pitch[:semi_down] = true
-  elsif char == 'O'
-    $ctl_pitch[:octave_up] = true
   elsif char == 'o'
+    $ctl_pitch[:octave_up] = true
+  elsif char == 'O'
     $ctl_pitch[:octave_down] = true
-  elsif char == 'F'
-    $ctl_pitch[:fifth_up] = true
   elsif char == 'f'
+    $ctl_pitch[:fifth_up] = true
+  elsif char == 'F'
     $ctl_pitch[:fifth_down] = true
   elsif char == 'W'
     $ctl_pitch[:wave_up] = true
   elsif char == 'w'
     $ctl_pitch[:wave_down] = true
-  elsif char == 'q' || char == 'x'
-    $ctl_pitch[:quit] = true    
+  elsif char == 'q' || char == 'x' || char == "\n"
+    $ctl_pitch[:quit] = char
   else
     $ctl_pitch[:any] = false
   end

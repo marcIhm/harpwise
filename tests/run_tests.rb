@@ -458,7 +458,7 @@ do_test 'id-7c: change key of harp with adjustable pitch' do
   tms 'K'
   sleep 1
   tms :ENTER
-  3.times {tms 's'}
+  3.times {tms 'S'}
   tms 'x'
   sleep 1
   expect { screen[1]['listen richter a all'] }
@@ -644,7 +644,7 @@ do_test 'id-16c: play pitch' do
   tms :ENTER
   sleep 2
   expect { screen[-6]['key of song: g  ,  matches key of harp: c'] }
-  tms 'f'
+  tms 'F'
   sleep 2
   expect { screen[-3]['key of song: c  ,  matches key of harp: f'] }
   kill_session
