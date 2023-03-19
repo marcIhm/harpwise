@@ -49,7 +49,7 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    play_controllable_pitch
+    play_adjustable_pitch
     
   elsif special.length > 0
 

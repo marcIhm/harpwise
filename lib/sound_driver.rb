@@ -329,7 +329,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
 end
 
 
-def play_controllable_pitch
+def play_adjustable_pitch do_sleep = false
 
   semi = note2semi($key + '4')
   all_waves = [:pluck, :sawtooth, :square, :sine]
@@ -341,14 +341,17 @@ def play_controllable_pitch
   wait_thr = nil
   cmd = cmd_was = nil
 
+  sleep 0.1 if do_sleep
   puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is played in parallel."
   puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
 
+  sleep 0.1 if do_sleep
   puts
   puts "\e[0m\e[2mSuggested procedure: Play the song in the background and"
   puts "step by semitones until you hear a good match; then try a fifth"
   puts "up and down, to check if those may match even better. Step by octaves,"
   puts "if your pitch is far above or below the song."
+  sleep 0.1 if do_sleep
   puts
   puts "\e[0m\e[2m(type 'h' for help)\e[0m"
   puts
@@ -365,7 +368,7 @@ def play_controllable_pitch
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
-      cmd = "play -q -n synth #{duration_clause} #{wave} %#{semi} #{volume_clause}"
+      cmd = "play -q -n synth #{duration_clause} #{wave} %#{semi+7} #{volume_clause}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
@@ -432,14 +435,17 @@ def play_controllable_pitch
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         [:semi_up, :semi_down, :octave_up, :octave_down, :change_wave, :vol_up, :vol_down, :show_help]
         display_kb_help 'pitch',true,
-                        "  SPACE: pause/continue\n" +
+                        "  SPACE: pause/continue      x,q: quit\n" +
                         "      w: change waveform       W: change waveform back\n" + 
                         "      s: one semitone down     S: one semitone up\n" +
                         "      o: one octave down       O: one octave up\n" +
-                        "    f,q: one fifth down      F,Q: one fifth up\n" +
+                        "      f: one fifth down        F: one fifth up\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n"
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
         print_pitch_information(semi)
+      elsif $ctl_pitch[:quit]
+        $ctl_pitch[:quit] = false
+        return semi2note(semi)[0..-2]
       end
 
       if paused && !$ctl_pitch[:pause_continue]
@@ -464,7 +470,7 @@ end
 
 def print_pitch_information semi, name = nil
   puts "\e[0m\e[2m#{name}\e[0m" if name
-  puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
+  puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi+7)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
   print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi + 7)[0..-2]
   print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts

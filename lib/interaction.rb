@@ -312,14 +312,16 @@ def handle_kb_play_pitch
     $ctl_pitch[:octave_up] = true
   elsif char == 'o'
     $ctl_pitch[:octave_down] = true
-  elsif char == 'F' || char == 'Q'
+  elsif char == 'F'
     $ctl_pitch[:fifth_up] = true
-  elsif char == 'f' || char == 'q'
+  elsif char == 'f'
     $ctl_pitch[:fifth_down] = true
   elsif char == 'W'
     $ctl_pitch[:wave_up] = true
   elsif char == 'w'
     $ctl_pitch[:wave_down] = true
+  elsif char == 'q' || char == 'x'
+    $ctl_pitch[:quit] = true    
   else
     $ctl_pitch[:any] = false
   end
@@ -387,6 +389,9 @@ def handle_kb_mic
   elsif char == 'S'
     $ctl_mic[:change_scale] = true
     text = nil
+  elsif char == 'K'
+    $ctl_mic[:pitch] = true
+    text = nil
   elsif char == 'q'
     $ctl_mic[:quit] = true
     text = nil
@@ -411,7 +416,7 @@ def handle_kb_mic
   elsif char == 'C'
     $ctl_mic[:change_comment] = :back
     text = 'Change comment back'
-  elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
+  elsif %w(. : , ; P).include?(char) && $ctl_can[:next]
     $ctl_mic[:replay] = true
     $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
     $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
@@ -552,6 +557,12 @@ end
 def clear_area_comment
   ($lines[:comment_tall] .. $lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$lines[:comment_tall]}H"
+end
+
+
+def clear_area_message
+  print "\e[#{$lines[:hint_or_message]}H\e[K"
+  print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
 end
 
 

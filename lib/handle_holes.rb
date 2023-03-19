@@ -322,8 +322,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     if $ctl_mic[:show_help]
       show_help
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
       ctl_response 'continue', hl: true
       $ctl_mic[:show_help] = false
       $freqs_queue.clear
@@ -371,6 +369,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       do_change_key
       $ctl_mic[:change_key] = false
       $ctl_mic[:redraw] = Set[:silent]
+      set_global_vars_late
+      set_global_musical_vars
+      $freqs_queue.clear
+    end
+
+    if $ctl_mic[:pitch]
+      do_change_key_to_pitch
+      $ctl_mic[:pitch] = false
+      $ctl_mic[:redraw] = Set[:clear, :silent]
       set_global_vars_late
       set_global_musical_vars
       $freqs_queue.clear
@@ -487,8 +494,29 @@ def do_change_key
   end while error
   make_term_immediate
   $message_shown_at = Time.now.to_f
-  "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
+  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
+  $message_shown_at = Time.now.to_f
   clear_area_comment
+end
+
+
+def do_change_key_to_pitch
+  clear_area_comment
+  clear_area_message
+  key_was = $key
+  print "\e[#{$lines[:comment]+1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
+  puts "\e[0m\e[2mPress any key to start (and 'q' when done) ...\e[K\e[0m\n\n"
+  $ctl_kb_queue.clear
+  char = $ctl_kb_queue.deq
+  return if char == 'q' || char == 'x'
+  $key = play_adjustable_pitch(do_sleep=true)
+  text = if key_was == $key
+           "Key of harp is still at"
+         else
+           "Changed key of harp to"
+         end
+  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2m#{text} \e[0m#{$key}\e[K" 
+  $message_shown_at = Time.now.to_f
 end
 
 
@@ -568,26 +596,27 @@ def show_help
   puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
   puts "   SPACE: pause               ctrl-l: redraw screen"
   puts " TAB,S-TAB,d,D: change display (upper part of screen)"
-  puts "     c,C: change comment (lower, i.e. this, part of screen)"
+  puts "     c,C: change comment (in lower, i.e. this, part of screen)"
   puts "       r: set reference to last hole sensed (not freq played)"
-  puts "       j: toggle journal file      k: change key of harp"
-  puts "       s: rotate scales            S: set them anew"
-  puts "\e[0mType any key to show more help ...\e[K"
+  puts "       k: change key of harp"
+  puts "       K: play adjustable pitch and take it as new key"
+  puts "       j: toggle journal file"
+  puts "\e[0mPress any key to show more help ...\e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   clear_area_comment
   puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
+  puts "       s: rotate scales            S: set them anew"
   if $ctl_can[:switch_modes]
     puts "       m: switch between modes #{$modes_for_switch}"
   elsif $mode == :listen
     puts "       m: switch between modes; not available now; rather start"
     puts "          with modes quiz or licks to be able to switch to"
     puts "          listen and then back"
-    puts "       q: quit harpwise            h: this help"
-
   end
+  puts "       q: quit harpwise            h: this help"
   if $ctl_can[:next]
-    puts "\e[0mType any key to show more help ...\e[K"
+    puts "\e[0mPress any key to show more help ...\e[K"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
     clear_area_comment
@@ -599,7 +628,7 @@ def show_help
     puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
     puts "     #: toggle track progress in seq      R: play holes reverse"
     if $ctl_can[:named]
-      puts "\e[0mType any key to show more help ...\e[K"
+      puts "\e[0mPress any key to show more help ...\e[K"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       clear_area_comment
@@ -613,6 +642,8 @@ def show_help
     end
   end
   puts "\e[0mPress any key to continue ...\e[K"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
   clear_area_comment
 end
 

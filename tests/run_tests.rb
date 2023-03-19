@@ -450,6 +450,21 @@ do_test 'id-7b: rotate scale of harp' do
   kill_session
 end
 
+do_test 'id-7c: change key of harp with adjustable pitch' do
+  new_session
+  tms 'harpwise listen richter c all'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'K'
+  sleep 1
+  tms :ENTER
+  3.times {tms 's'}
+  tms 'x'
+  sleep 1
+  expect { screen[1]['listen richter a all'] }
+  kill_session
+end
+
 do_test 'id-8: listen with merged scale' do
   new_session
   tms 'harpwise listen a blues --add-scales chord-v,chord-i'

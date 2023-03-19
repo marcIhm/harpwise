@@ -32,7 +32,7 @@ def set_global_vars_early
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
-  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :any]
+  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :any]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -49,7 +49,7 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
-        :named_lick, :change_key, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
+        :named_lick, :change_key, :pitch, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
