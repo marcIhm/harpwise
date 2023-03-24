@@ -239,6 +239,7 @@ end
 # Handle extensive interaction using the comment-area
 #
 
+# Print and Read
 class PnR
   def self.print_in_columns head, names, tail = []
     print "\e[#{$lines[:comment_tall]}H\e[0m\e[32m#{head.chomp}:\e[0m\e[2m\e[J\n"
@@ -383,5 +384,46 @@ def get_journal_file
     "#{$dirs[:data]}/journal_#{$type}_modes_licks_and_play.txt"
   else
     "#{$dirs[:data]}/journal_#{$type}_mode_#{$mode}.txt"
+  end
+end
+
+#
+# Volumes for sox
+#
+
+class Volume
+  @@vols = nil
+  def initialize(tag, vol)
+    unless @@vols
+      $pers_data['volume'] ||= Hash.new
+      @@vols = $pers_data['volume']
+    end
+    @tag = tag
+    # keep volume from last run of harpwise, if it is lower than default
+    @@vols[@tag] = vol unless @@vols[@tag] && @@vols[@tag] < vol
+    confine
+  end
+
+  def confine
+     @@vols[@tag] = 12 if @@vols[@tag] >= 12
+     @@vols[@tag] = -24 if @@vols[@tag] <= -24
+  end
+
+  def inc
+    @@vols[@tag] += 3
+    confine
+  end
+  
+  def dec
+    @@vols[@tag] -= 3
+    confine
+  end
+
+  def db
+    return "%+ddB" % @@vols[@tag]
+  end
+
+  def clause
+    return ( @@vols[@tag] == 0  ?  ''  :  ('vol %ddb' % @@vols[@tag]) )
   end
 end

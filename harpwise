@@ -9,7 +9,6 @@ require 'yaml'
 require 'json'
 require 'fileutils'
 require 'open3'
-require 'pp'
 require 'tmpdir'
 require 'erb'
 require_relative 'lib/helper'
@@ -113,6 +112,10 @@ at_exit do
   # take care to not remove too much, if something happens and $dirs
   # would not be initialized completetly
   FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
+
+  if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+    File.write($pers_file, JSON.pretty_generate($pers_data))
+  end
 end
 
 

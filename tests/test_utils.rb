@@ -92,7 +92,7 @@ def expect *failinfo, &block
   end
   
   puts
-  source = block.to_source
+  source = block.source
   pp screen if source['screen']
   puts "\e[31mNOT Okay\e[0m"
   puts source
@@ -140,6 +140,8 @@ def do_test text
   FileUtils.cp '/tmp/harpwise_testing.wav_default','/tmp/harpwise_testing.wav'
   start = Time.now.to_f
   yield
+  # these tend to accumulate, but as they are only testing-related, we do not investigate further
+  system('pkill -f "sh -c cat /tmp/harpwise_testing.wav /dev/zero"')
   $memo[:durations][text] = Time.now.to_f - start
 end
 

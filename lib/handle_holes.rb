@@ -505,7 +505,7 @@ def do_change_key_to_pitch
   clear_area_message
   key_was = $key
   print "\e[#{$lines[:comment]+1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
-  puts "\e[0m\e[2mPress any key to start (and 'q' when done) ...\e[K\e[0m\n\n"
+  puts "\e[0m\e[2mPress any key to start (and RETURN when done) ...\e[K\e[0m\n\n"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'

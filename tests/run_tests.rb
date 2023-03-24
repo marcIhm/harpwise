@@ -13,6 +13,7 @@ require 'sourcify'
 require 'json'
 require 'tmpdir'
 require 'sys/proctable'
+require 'method_source'
 require_relative 'test_utils.rb'
 
 #
@@ -459,7 +460,7 @@ do_test 'id-7c: change key of harp with adjustable pitch' do
   sleep 1
   tms :ENTER
   3.times {tms 'S'}
-  tms 'x'
+  tms :ENTER
   sleep 1
   expect { screen[1]['listen richter a all'] }
   kill_session
@@ -1309,6 +1310,34 @@ i = 0
       kill_session
     end
   end
+end
+
+do_test 'id-55: check persistence of volume' do
+  pers_file = "#{$dotdir_testing}/persistent_state.json"
+  FileUtils.rm pers_file if File.exist?(pers_file)
+  first_vol = -12
+  new_session
+  tms 'harpwise play pitch'
+  tms :ENTER
+  sleep 2
+  tms 'v'
+  expect { screen[-5]["#{first_vol}dB"] }
+  tms 'v'
+  sleep 2
+  expect { screen[-4]["#{first_vol - 3}dB"] }
+  tms 'q'
+  sleep 2
+  tms 'harpwise play pitch'
+  tms :ENTER
+  sleep 2
+  tms 'v'
+  sleep 2
+  expect { screen[-2]["#{first_vol - 6}dB"] }
+  tms 'q'
+  sleep 2
+  pers_data = JSON.parse(File.read(pers_file))
+  expect(pers_data) { pers_data['volume']['pitch'] == first_vol - 6 }
+  kill_session
 end
 puts "\ndone.\n\n"
 

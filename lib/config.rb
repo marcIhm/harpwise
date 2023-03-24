@@ -121,7 +121,6 @@ def set_global_vars_early
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
   $term_immediate = false
   $term_kb_handler = nil
-
 end
 
 
@@ -146,7 +145,6 @@ def find_and_check_dirs
     FileUtils.mkdir_p($dirs[:data])
   end
     
-
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
 
@@ -248,6 +246,18 @@ def set_global_vars_late
   $journal_file = get_journal_file
 
   $star_file = $star_file_template % $type
+
+  $pers_file = "#{$dirs[:data]}/persistent_state.json"
+  begin
+    $pers_data = JSON.parse(File.read($pers_file))
+  rescue Errno::ENOENT, JSON::ParserError
+    $pers_data = Hash.new
+  end
+  $pers_fingerprint = $pers_data.hash
+
+  # different volumes for recordings and pitch; persistent only in single program run
+  $vol_rec = Volume.new('recording', 0)
+  $vol_pitch = Volume.new('pitch', -9)
 end
 
 

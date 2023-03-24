@@ -231,7 +231,6 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   dsemi = diff_semitones($key, key, :g_is_lowest) + octave_shift * 12
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
-  volume = 0
   $ctl_rec[:loop] = $ctl_rec[:loop_loop]
   imm_ctrls_again = [:replay, :slower, :vol_up, :vol_down]
   loop_message_printed = false
@@ -242,8 +241,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   # immediate controls triggered while it is playing
   begin
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    volume_clause = ( volume == 0  ?  ''  :  ('vol %ddb' % volume) )
-    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{volume_clause}".strip
+    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{$vol_rec.clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     return false if $testing
     _, _, wait_thr  = Open3.popen2(cmd)
@@ -273,11 +271,11 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32mx%.1f \e[0m" % tempo
       elsif $ctl_rec[:vol_up]
-        volume += 3 if volume < 30
-        print "\e[0m\e[32m%+ddB \e[0m" % volume
+        $vol_rec.inc
+        print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
       elsif $ctl_rec[:vol_down]
-        volume -= 3 if volume > -30
-        print "\e[0m\e[32m%+ddB \e[0m" % volume
+        $vol_rec.dec
+        print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'recording',first_round,
@@ -333,7 +331,6 @@ def play_adjustable_pitch embedded = false
   semi = note2semi($key + '4')
   all_waves = [:pluck, :sawtooth, :square, :sine]
   wave = wave_was = :pluck
-  volume = -9
   min_semi = -24
   max_semi = 24
   paused = false
@@ -358,7 +355,6 @@ def play_adjustable_pitch embedded = false
   # loop forever until ctrl-c
   loop do
     
-    volume_clause = ( volume == 0  ?  ''  :  ('vol %ddb' % volume) )
     duration_clause = ( wave == :pluck  ?  3  :  86400 )
     if paused
       if wait_thr&.alive?
@@ -367,7 +363,7 @@ def play_adjustable_pitch embedded = false
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
-      cmd = "play -q -n synth #{duration_clause} #{wave} %#{semi+7} #{volume_clause}"
+      cmd = "play -q -n synth #{duration_clause} #{wave} %#{semi+7} #{$vol_pitch.clause}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
@@ -399,11 +395,11 @@ def play_adjustable_pitch embedded = false
           puts "\e[0m\e[2mSPACE to continue ...\e[0m"
         end
       elsif $ctl_pitch[:vol_up]
-        volume += 3 if volume < 30
-        puts "\e[0m\e[2m%+ddB\e[0m" % volume
+        $vol_pitch.inc
+        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
       elsif $ctl_pitch[:vol_down]
-        volume -= 3 if volume > -30
-        puts "\e[0m\e[2m%+ddB\e[0m" % volume
+        $vol_pitch.dec
+        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
       elsif $ctl_pitch[:semi_up]
         semi += 1 if semi < max_semi
         print_pitch_information(semi, knm)
