@@ -25,6 +25,7 @@ def do_quiz_or_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   splashed = false
 
+
   loop do   # forever until ctrl-c, sequence after sequence
 
     do_write_journal = false

@@ -215,7 +215,30 @@ end
 def start_kb_handler
   $term_kb_handler = Thread.new do
     loop do
-      $ctl_kb_queue.enq STDIN.getc
+      key = STDIN.getc
+      if key == "\e"
+        # try to read cursor keys
+        begin
+          ch = Timeout::timeout(0.05) { STDIN.getc }
+          if ch == '['
+            ch = Timeout::timeout(0.05) { STDIN.getc }
+            key = case ch
+                  when 'A'
+                    'up'
+                  when 'B'
+                    'down'
+                  when 'C'
+                    'right'
+                  when 'D'
+                    'left'
+                  else
+                    "\e"
+                  end
+          end
+        rescue Timeout::Error => e
+        end
+      end
+      $ctl_kb_queue.enq key
     end
   end
   $debug_state[:kb_handler_started] = true
@@ -446,7 +469,12 @@ def handle_kb_mic
     $opts[:debug] = true
     text = 'Debug is ON'
   elsif char.length > 0
-    text = "Invalid char '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord}), h for help"
+    desc = if char.match?(/^[[:print:]]+$/)
+             desc = char
+           else
+             desc = "? (#{char.ord})"
+           end
+    text = "Invalid char #{desc}, h for help"
   end
   ctl_response text if text && !waited
   waited
@@ -554,8 +582,8 @@ def clear_area_display
 end
 
 
-def clear_area_comment
-  ($lines[:comment_tall] .. $lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
+def clear_area_comment offset = 0
+  ($lines[:comment_tall] + offset .. $lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$lines[:comment_tall]}H"
 end
 
