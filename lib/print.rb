@@ -9,8 +9,7 @@ def do_print to_print
   $ctl_rec[:lick_lick] = false
   
   $all_licks, $licks = read_licks
-  holes, lnames, snames, special, _ = partition_to_play_or_print(to_print)
-  err "Cannot use specials when printing: #{specials}; maybe try them for play" if special.length > 0 
+  holes, lnames, snames, _, _ = partition_to_play_or_print(to_print)
 
   puts "\nType is #{$type}, key of #{$key}."
   puts

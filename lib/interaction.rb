@@ -376,9 +376,6 @@ def handle_kb_mic
   elsif char == 't' && $ctl_can[:named]
     $ctl_mic[:change_tags] = true
     text = 'Tags'
-  elsif char == 'T' && $ctl_can[:named]
-    $ctl_mic[:change_tags] = :all
-    text = 'All Tags'
   elsif char == 'R' && $ctl_can[:named]
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'

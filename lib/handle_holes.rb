@@ -480,7 +480,7 @@ def do_change_key
       $on_error_raise = true
       check_key_and_set_pref_sig(input)
     rescue ArgumentError => error
-      cplread_report_error_wait_key error
+      report_error_wait_key error
     else
       $key = input.to_sym
     ensure
@@ -592,7 +592,7 @@ def show_help
       clear_area_comment
       puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for mode licks):\e[0m\e[32m\n"
       puts "   n: switch to lick by name           e: edit lickfile"
-      puts " t,T: change one/any of options --tags"
+      puts "   t: change option --tags_any (aka -t)"
       puts "   <: shift lick down by one octave    >: shift lick up"
       puts "   @: change option --partial"
       puts "  */: Add or remove Star from current lick persistently;"

@@ -7,10 +7,9 @@ OVERVIEW
 
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
-    - special values (e.g. 'l', '2l) to reference e.g. the last lick
-    - keywords (e.g. 'random' or 'cycle'), that influence, what and
-      how licks are played
-    - keyword 'pitch' to play an interactive, adjustable pitch; this
+    - 'l', '2l', for the last lick, 2nd-to-last, etc.
+    - 'all-licks' for all licks
+    - 'pitch' to play an interactive, adjustable pitch; this
       may help to find the key of a song by ear-comparison
     
   This mode needs no scale argument.
@@ -25,13 +24,9 @@ USAGE BY EXAMPLES
   
     harpwise play d wade
 
-  Play a single random lick:
-
-    harpwise play random
-
   Lick-Radio: Play all my licks in random order without end:
 
-    harpwise play random cycle
+    harpwise play all
 
   Play an earlier lick:
 

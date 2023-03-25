@@ -15,11 +15,8 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  holes, lnames, snames, special, extra = partition_to_play_or_print(to_play, ['pitch'])
-
-  if special.include?(:iterate) && special.include?(:cycle)
-    err "Cannot use special words 'iterate' and 'cycle' at the same time"
-  end
+  holes, lnames, snames, extra = partition_to_play_or_print(to_play, %w(pitch al))
+  extra = Set.new(extra).to_a
 
   #
   #  Actually play
@@ -49,13 +46,13 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    play_adjustable_pitch
-    
-  elsif special.length > 0
+    err "only one of 'pitch', 'all' is allowed, not both" if extra.length > 1
+    if extra[0] == 'pitch'
+      play_adjustable_pitch
 
-    if special.include?(:random)
-
-      if special.include?(:cycle) || special.include?(:iterate)
+    # extra is 'all'
+    else
+      if $opts[:iterate] == :random
         lick_idx = nil
         loop do
           # avoid playing the same lick twice in a row
@@ -68,23 +65,14 @@ def do_play to_play
           maybe_wait_for_key
         end
       else
-        play_and_print_lick $licks.sample(1)[0]
-      end
-
-    else # special is cycle or iterate without random
-
-      begin
-        $licks.each do |lick|
-          play_and_print_lick lick
-          if lick != $licks[-1] || special.include?(:cycle)
+        loop do
+          $licks.each do |lick|
+            play_and_print_lick lick
             maybe_wait_for_key
           end
         end
-      end while special.include?(:cycle)
-      puts "Iterated through all #{$licks.length} licks."
-      
+      end
     end
-
   else
     fail "Internal error"
   end
@@ -96,7 +84,6 @@ def partition_to_play_or_print to_p, extra_allowed = []
   holes = []
   lnames = []
   snames = []
-  special = []
   extra = []
   other = []
 
@@ -116,8 +103,6 @@ def partition_to_play_or_print to_p, extra_allowed = []
       snames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
       lnames << $all_licks[get_last_lick_idxs_from_journal($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
-    elsif $conf[:specials_allowed_play].include?(tp)
-      special << ($conf[:specials_allowed_play_2_long][tp] || tp).to_sym
     elsif extra_allowed.include?(tp)
       extra << tp
     else
@@ -129,7 +114,7 @@ def partition_to_play_or_print to_p, extra_allowed = []
   # Check results for consistency
   # 
 
-  sources_count = [holes, lnames, snames, special, extra].select {|s| s.length > 0}.length
+  sources_count = [holes, lnames, snames, extra].select {|s| s.length > 0}.length
 
   if other.length > 0 || sources_count == 0
     puts
@@ -148,8 +133,6 @@ def partition_to_play_or_print to_p, extra_allowed = []
     print_in_columns all_snames
     puts "\n- licks:"
     print_in_columns all_lnames
-    puts "\n- special:"
-    print_in_columns $conf[:specials_allowed_play]
     if extra_allowed.length > 0
       puts "\n- extra:"
       print_in_columns extra_allowed
@@ -163,13 +146,12 @@ def partition_to_play_or_print to_p, extra_allowed = []
     puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
     puts "- scales: #{snames}" if snames.length > 0
     puts "- licks: #{lnames}" if lnames.length > 0
-    puts "- special: #{special}" if special.length > 0
     err 'See above'
   end
 
   special << $opts[:doiter].to_sym if $opts[:doiter]
   
-  [holes, lnames, snames, special, extra]
+  [holes, lnames, snames, extra]
 
 end
 

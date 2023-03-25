@@ -115,7 +115,6 @@ def do_quiz_or_licks
           
         # start iteration from first lick on
         elsif $conf[:abbrevs_for_iter].include?(start_with)
-          to_play[:lick_cycle] = ( start_with[0] == 'c' )
           to_play[:lick_idx_iter] = 0
           to_play[:lick_idx] = to_play[:lick_idx_iter]
           $lick_iter_display = $conf[:abbrevs_for_iter_2_long][start_with[0]]
@@ -869,100 +868,32 @@ end
 
 
 def read_tags_and_refresh_licks curr_lick, all
-  tag_opts = %w( --tags-any --tags-all --no-tags-any --no-tags-all )
-  tag_opt = nil
-  make_term_cooked
-  if all
-    begin
-      PnR.print_in_columns 'There are four relevant options',
-                           tag_opts.map.with_index {|to,idx| "#{idx+1}: '#{to}'        "},
-                           ['the other options will be set to the empty string']
-      PnR.print_prompt 'Please choose', 'which option to set',
-                       '(1,2,3,4 or just RETURN for 1 or q to quit)'
-      input = STDIN.gets.chomp
-      input = '1' if input == ''
-      if %w( 1 2 3 4 ).include?(input)
-        tag_opt = tag_opts[input.to_i - 1][2..-1].o2sym
-      elsif input == 'q'
-        return :keep
-      else
-        PnR.report_error_wait_key "Invalid input: '#{input}'; none of 1..4,q !"
-      end
-    end until tag_opt
-  else
-    tag_opt = :tags_any
-  end
-  tag_opts.map {|to| to[2..-1].o2sym}.
-    each {|ts| $opts[ts] = '' unless ts == tag_opt}
-
-  all_tags = $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
-  PnR.print_in_columns "Tags of current lick #{curr_lick[:name]} and some",
-                       curr_lick[:tags].each_with_index.map {|t,i| "#{i+1})#{t}"} + ['//'] + all_tags,
-                       ["maybe with ',cycle' or ',iter', SPACE to list, RETURN to go without"]
-  topt = '--' + tag_opt.o2str
-  opof = "(or part of or 1,2,..; current is '#{$opts[tag_opt]}')"
-  if topt == '--tags-any'
-    opof = "ie. #{topt} #{opof}"
-    topt = '-t'
-  end
-  PnR.print_prompt 'New value for', topt, opof
-  input = STDIN.gets.chomp
-  begin
-    doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| input.end_with?(x)}
-    input[-doiter.length .. -1] = '' if doiter
-    mtags = if input == ' '
-              all_tags
-            elsif input == ''
-              [nil] 
-            elsif input[',']
-              [input]
-            elsif input.match(/^\d$/)
-              [curr_lick[:tags][input.to_i-1]]
-            else
-              all_tags.include?(input)  ?  [input]  :  all_tags.select {|t| t[input]}
-            end
-    done = false
-    
-    if mtags.length == 1 || input[',']
-      $opts[tag_opt] = mtags[0]
-      $all_licks, $licks = read_licks true
-      if $licks.length == 0
-        PnR.print_in_columns "No licks match '--tags #{input}'; these tags are available\n",
-                             all_tags
-      else
-        done = true
-      end
-    elsif mtags.length == 0
-      PnR.print_in_columns "No tags match your input '#{input}'; these are available",
-                           all_tags
-    else
-      PnR.print_in_columns(
-        if input == ' '
-          'All tags'
-        else
-          'Multiple tags match your input'
-        end,
-        mtags.sort)
-    end
-    unless done
-      PnR.print_prompt 'Enter a new value for', topt, opof
-      input = STDIN.gets.chomp
-    end
-  end while !done || $licks.length == 0
-  make_term_immediate
-  print "\e[#{$lines[:comment_tall]}H\e[0m\e[J"
-  return doiter
+  all_tags = if curr_lick[:tags].length > 0
+               ['#OF_CURR_LICK->', curr_lick[:tags], '#ALL->']
+             else
+               []
+             end
+  all_tags << $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
+  input = cplread_one_of('Choose new tag for --tags_any (aka -t): ', all_tags.flatten)
+  return false unless input
+  $opts[:tags_any] = input
+  $all_licks, $licks = read_licks(true)
+  input = cplread_one_of('Choose new value for --iterate: ', %w(random cycle))
+  return true unless input
+  $opts[:iterate] = input.to_sym
+  return true
 end
 
 
 def read_and_set_partial
   make_term_cooked
-  PnR.print_in_columns 'Examples for --partial',
-                       %w(1/3@b 1/4@x 1/2@e 1@b, 1@e 2@x 0),
-                       ["current value is '#{$opts[:partial]}'",
-                        'RETURN to keep, SPACE to clear',
-                        'see usage info for more explanations']
-  PnR.print_prompt 'Please enter', 'new value'
+  clear_area_comment
+  puts "\e[#{$lines[:comment_tall]}H\e[0m\e[32mPlease enter new value for option '--partial'."
+  puts
+  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0"
+  puts " Current value is '#{$opts[:partial]}'"
+  puts
+  print "\e[0mYour input: "
   input = STDIN.gets.chomp
   old = $opts[:partial]
   $opts[:partial] = if input == ''
@@ -982,7 +913,7 @@ def read_and_set_partial
     select_and_calc_partial($harp_holes, 0, 1) if $opts[:partial] && !$opts[:partial].empty?
     $on_error_raise = false
   rescue ArgumentError => e
-    PnR.report_error_wait_key e
+    report_error_wait_key e
     $opts[:partial] = old
   end
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
@@ -1005,7 +936,7 @@ def comment_while_playing holes
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_idx_iter, :lick_cycle, :octave_shift, :octave_shift_was)
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_idx_iter, :octave_shift, :octave_shift_was)
 
   def initialize
     self[:octave_shift] = 0
@@ -1017,12 +948,13 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
     old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
     choices = if old_licks.length > 0
-                ['# RECENT >>', old_licks, '# ALL >>']
+                ['#RECENT->', old_licks[0 .. 3], '#ALL->']
               else
                 []
               end
     choices << $licks.map {|li| li[:name]}.sort
     input = cplread_one_of('Please choose lick: ', choices.flatten)
+    return nil unless input
     
     new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]
     if self[:lick_idx] != new_idx
@@ -1093,21 +1025,18 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
 
   def change_tags
-    doiter = read_tags_and_refresh_licks(self[:lick],
-                                         $ctl_mic[:change_tags] == :all ? true : false)
-    if doiter == :keep
-    # keep iteration state
-    elsif doiter
-      # we treat iter like cycle
-      self[:lick_cycle] = true
-      self[:lick_idx_before] = self[:lick_idx] = 0
-      self[:lick_idx_iter] = self[:lick_idx]
-      self[:lick] = $licks[self[:lick_idx]]
-      $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
-    else
-      self[:lick_idx_before] = self[:lick_idx] = rand($licks.length)
-      self[:lick_idx_iter] = $lick_iter_display = nil
-      self[:lick] = $licks[self[:lick_idx]]
+    new_iteration = read_tags_and_refresh_licks(self[:lick])
+    if new_iteration
+      if opts[:iteration] == :cycle
+        self[:lick_idx_before] = self[:lick_idx] = 0
+        self[:lick_idx_iter] = self[:lick_idx]
+        self[:lick] = $licks[self[:lick_idx]]
+        $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
+      else
+        self[:lick_idx_before] = self[:lick_idx] = rand($licks.length)
+        self[:lick_idx_iter] = $lick_iter_display = nil
+        self[:lick] = $licks[self[:lick_idx]]
+      end
     end
     self[:all_wanted] = self[:lick][:holes]
     $ctl_mic[:change_tags] = false
@@ -1143,14 +1072,8 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   def continue_with_iteration 
     self[:lick_idx_iter] += 1
     if self[:lick_idx_iter] >= $licks.length
-      if self[:lick_cycle]
-        self[:lick_idx_iter] = 0
-        ctl_response 'Next cycle'
-      else
-        print "\e[#{$lines[:message2]}H\e[K"
-        puts "\nIterated through licks.\n\n"
-        exit
-      end
+      self[:lick_idx_iter] = 0
+      ctl_response 'Next cycle'
     end
     self[:lick_idx] = self[:lick_idx_iter]
   end
@@ -1171,12 +1094,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
 
   def choose_lick_by_name start_with
-    doiter = $conf[:abbrevs_for_iter].map {|a| ',' + a}.find {|x| start_with.end_with?(x)}
-    if doiter
-      self[:lick_cycle] = ( doiter[1] == 'c' )
-      start_with[-doiter.length .. -1] = ''
-    end
-
     mnames = $licks.map {|l| l[:name]}.select {|n| n.start_with?(start_with)}
     case mnames.length
     when 1
@@ -1187,9 +1104,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       err "Multiple licks start with '#{start_with}': #{mnames}"
     end
     
-    if doiter
-      self[:lick_idx_iter] = self[:lick_idx]
-      $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
-    end
+    self[:lick_idx_iter] = self[:lick_idx]
+    $lick_iter_display = $opt[:iterate]
   end
 end

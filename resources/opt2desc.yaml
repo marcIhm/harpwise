@@ -115,14 +115,21 @@ start_with:
   - |
     the name of the first lick to play;
     accepts the special values 'last' or 'l' to repeat the last lick
-    (2l, 3l for earlier licks); licks addressed this way will not be
-    written to the journal.
+    (2l, 3l for earlier licks).
 
     Use '--start-with iter' to iterate through all selected
     licks one by one
     use '--start-with foo,iter' to start at lick foo; 
     'cycle' instead of 'iter' starts all over at the end.  
-  - LICK_OR_KEYWORD
+  - LICK_OR_L
+
+iterate:
+
+  - |
+    How to iterate throught all selected licks; this can be
+    (with abbreviations) either 'random' (pick licks at random) or
+    'cycle' (one lick after the other and then again).
+  - RANDOM_OR_CYCLE
 
 partial:
 

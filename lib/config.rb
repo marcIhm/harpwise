@@ -307,18 +307,6 @@ def read_technical_config
   # carry over from early config
   $early_conf.each {|k,v| conf[k] = v}
   # Set some things we do not take from file
-  conf[:abbrevs_for_iter_2_long] = {'iterate' => 'iterate',
-                                    'iter' => 'iterate',
-                                    'it' => 'iterate',
-                                    'i' => 'iterate',
-                                    'cycle' => 'cycle',
-                                    'cyc' => 'cycle',
-                                    'cy' => 'cycle'}
-  conf[:abbrevs_for_iter] = conf[:abbrevs_for_iter_2_long].keys
-  conf[:specials_allowed_play_2_long] = conf[:abbrevs_for_iter_2_long].merge({'random' => 'random',
-                                                                              'rand' => 'random',
-                                                                              'ran' => 'random'})
-  conf[:specials_allowed_play] = conf[:specials_allowed_play_2_long].keys
   conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
   conf[:all_types] = Dir["#{$dirs[:install]}/config/*"].
                        select {|f| File.directory?(f)}.

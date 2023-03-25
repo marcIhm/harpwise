@@ -235,73 +235,6 @@ def print_in_columns names
 end
 
 
-#
-# Handle extensive interaction using the comment-area
-#
-
-# Print and Read
-class PnR
-  def self.print_in_columns head, names, tail = []
-    print "\e[#{$lines[:comment_tall]}H\e[0m\e[32m#{head.chomp}:\e[0m\e[2m\e[J\n"
-    $column_short_hint_or_message = 1
-    if head[-1] == "\n"
-      lns = 1
-      puts
-    else
-      lns = 0
-    end
-    max_lns = $lines[:hint_or_message] - $lines[:comment] - 3
-    off_for_tail = [tail.length, 2].min
-    line = '  '
-    more = ' ... more'
-    names.
-      map {|nm| nm + ' '}.
-      map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
-      break if lns > max_lns - off_for_tail
-      if (line + nm).length > $term_width - 4
-        if lns == ( max_lns - off_for_tail ) && idx < names.length - 1
-          line[-more.length ..] = more
-          more = nil
-        end
-        puts line
-        lns += 1
-        line = '  '
-      end
-      line += nm
-    end
-    puts line unless more.nil? || ( line.strip.empty? && lns < max_lns - off_for_tail )
-
-    print "\e[0m\e[32m" 
-    while tail.length > 0
-      break if lns > max_lns
-      puts tail.shift
-      lns += 1
-    end
-    print "\e[0m"
-  end
-
-
-  def self.report_error_wait_key etext
-    term_immediate_was = $term_immediate
-    make_term_immediate
-    print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
-    print etext
-    print "\n\e[2mPress any key to continue ... \e[K"
-    $ctl_kb_queue.clear
-    $ctl_kb_queue.deq
-    # leave term in initial state
-    make_term_cooked unless term_immediate_was
-  end
-
-
-  def self.print_prompt text_low, text_high, text_low2 = ''
-    text_low2.prepend(' ') unless text_low2.empty?
-    print "\e[#{$lines[:hint_or_message]-1}H\e[0m\e[2m"
-    print "#{text_low} \e[0m#{text_high}\e[2m#{text_low2}:\e[0m "
-  end
-end
-
-
 def holes_equiv? h1,h2
   if h1.is_a?(String) && h2.is_a?(String)
     h1 == h2 || $harp[h1][:equiv].include?(h2)
@@ -475,7 +408,7 @@ def cplread_one_of prompt, names
         $cplread_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
       elsif matching[idx_hl]['#']
         clear_area_comment(2)
-        print "\e[#{$lines[:comment_tall] + 4}H\e[0m  \e[0;101mThis is a comment,\e[0m please choose another item."
+        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[34m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
         print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m  Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
         clear_area_comment(2)        
@@ -546,7 +479,7 @@ end
 
 def cplread_line_helper line
   line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
-    gsub('{'," \e[0m\e[32m").gsub('}'," \e[0m\e[2m") + "\e[K"
+    gsub('{'," \e[0m\e[34m").gsub('}'," \e[0m\e[2m") + "\e[K"
 end
 
 
@@ -601,7 +534,7 @@ def cplread_move_loc idx_old, dir, idx_max
 end
 
 
-def cplread_report_error_wait_key etext
+def report_error_wait_key etext
   clear_area_comment
   print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
   print etext

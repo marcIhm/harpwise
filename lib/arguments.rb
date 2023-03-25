@@ -67,6 +67,7 @@ def parse_arguments
         hole: %w(--hole)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
+        iterate: %w(--iterate),
         reverse: %w(--reverse)}],
      [Set[:licks, :report], {
         tags_any: %w(-t --tags-any),
@@ -203,6 +204,14 @@ def parse_arguments
 
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
+  if opts_all[:iterate]
+    %w(random cycle).each do |choice|
+      opts[:iterate] = choice.to_sym if opts[:iterate] && choice.start_with?(opts[:iterate])
+    end
+    opts[:iterate] ||= :random
+    err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
+  end
+  
   if opts[:help] || num_args_after_mode == 0
     print_usage_info(mode, opts_all) 
     exit 1
