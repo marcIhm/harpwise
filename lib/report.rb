@@ -83,19 +83,28 @@ def print_lick_and_tag_info licks
 end
 
 
-def get_last_lick_idxs_from_journal licks
+def get_last_lick_idxs_from_journal licks, graceful = false
   lnames = []
-  err "Expected journal file #{$journal_file} could not be found" unless File.exist?($journal_file)
+  if !File.exist?($journal_file)
+    return [] if graceful
+    err "Expected journal file #{$journal_file} could not be found"
+  end
   File.readlines($journal_file).each do |line|
     md = line.match(/^Lick +([^, :\/]+):/)
     lnames << md[1] if md
     lnames.shift if lnames.length > 100
   end
-  err "Did not find any licks in #{$journal_file}" unless lnames.length > 0
+  if lnames.length == 0
+    return [] if graceful
+    err "Did not find any licks in #{$journal_file}"
+  end
   idxs = lnames.map do |ln|
     licks.index {|l| l[:name] == ln }
   end.select(&:itself)
-  err "Could not find any of the lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}" if idxs.length == 0
+  if idxs.length == 0
+    return [] if graceful
+    err "Could not find any of the lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}"
+  end
   idxs.reverse.uniq[0..16]
 end
 

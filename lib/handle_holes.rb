@@ -473,30 +473,23 @@ end
 
 
 def do_change_key
-  make_term_cooked
   begin
-    PnR.print_in_columns 'Available keys', $conf[:all_keys], ["current is #{$key}"]
-    PnR.print_prompt  'Please enter','new key'
-    
-    input = STDIN.gets.chomp
-    input = $key.to_s if input == ''
+    input = cplread_one_of("Available keys: ", $conf[:all_keys].sort) || $key.to_s
     error = nil
     begin
       $on_error_raise = true
       check_key_and_set_pref_sig(input)
     rescue ArgumentError => error
-      PnR.report_error_wait_key error
+      cplread_report_error_wait_key error
     else
       $key = input.to_sym
     ensure
       $on_error_raise = false
     end
   end while error
-  make_term_immediate
   $message_shown_at = Time.now.to_f
   $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
   $message_shown_at = Time.now.to_f
-  clear_area_comment
 end
 
 
@@ -521,59 +514,24 @@ end
 
 
 def do_change_scale_add_scales
-  make_term_cooked
-  # Change scale
-  begin
-    PnR.print_in_columns 'First setting main scale; available scales',
-                         $all_scales.sort,
-                         ["current scale is #{$scale}",
-                          'RETURN to keep']
-    PnR.print_prompt 'Please enter', 'new scale', '(abbrev)'
-    input = STDIN.gets.chomp.strip
-    error = nil
-    break if input == ''
-    scale = match_or(input, $all_scales) do |none, choices|
-      error = "Given scale #{none} is none of #{choices}"
-    end
-    if error
-      PnR.report_error_wait_key error
-    else
-      $scale = scale
-    end
-  end while error
+  input = cplread_one_of("Choose main scale (current is #{$scale}): ", $all_scales.sort)
+  $scale = input if input
 
   # Change --add-scales
-  begin
-    PnR.print_in_columns 'Now setting --add-scales; available scales',
-                         $all_scales.sort,
-                         ["current value is '#{$opts[:add_scales]}'",
-                          'RETURN to keep, SPACE to clear']
-    PnR.print_prompt 'Please enter', "new value for --add-scales", '(maybe abbreviated)'
-    input = STDIN.gets.chomp
-    error = nil
-    if input == ''
-      break
-    elsif input.strip.empty?
-      $opts[:add_scales] = nil
-      break
-    end
-    input.gsub!(',',' ')
-    add_scales = input.split.map do |scale|
-      match_or(scale, $all_scales) do |none, choices|
-        error ||= "Given scale #{none} is none of #{choices}"
-      end
-    end
-    if error
-      PnR.report_error_wait_key error
-    else
-      $opts[:add_scales] = add_scales.join(',')
-    end
-  end while error
+  add_scales = []
+  loop do
+    input = cplread_one_of("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
+                           ['DONE', $all_scales.sort].flatten)
+    break if input == 'DONE'
+  end
+  if add_scales.length == 0
+    $opts[:add_scales] = nil
+  else
+    $opts[:add_scales] = add_scales.join(',')
+  end
 
-  make_term_immediate
   $message_shown_at = Time.now.to_f
   $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
-  clear_area_comment
 end
 
 

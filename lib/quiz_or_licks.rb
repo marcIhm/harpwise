@@ -17,6 +17,7 @@ def do_quiz_or_licks
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
+  $journal_active = true
 
   to_play = PlayController.new
   oride_l_message2 = nil
@@ -24,11 +25,9 @@ def do_quiz_or_licks
   $lick_iter_display = nil
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   splashed = false
-
-
+  jtext = nil
+  
   loop do   # forever until ctrl-c, sequence after sequence
-
-    do_write_journal = false
 
     #
     #  First compute and play the sequence that is expected
@@ -68,7 +67,7 @@ def do_quiz_or_licks
       to_play.back_one_lick
       
     elsif $ctl_mic[:named_lick]  # can only happen for mode licks
-      to_play.read_name_change_lick
+      jtext = to_play.read_name_change_lick
       
     elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
       to_play.edit_lick
@@ -99,8 +98,6 @@ def do_quiz_or_licks
       to_play[:all_wanted_before] = to_play[:all_wanted]
       to_play[:lick_idx_before] = to_play[:lick_idx]
       to_play[:octave_shift] = 0
-
-      do_write_journal = true
 
       # figure out holes to play
       if $mode == :quiz
@@ -141,7 +138,6 @@ def do_quiz_or_licks
         jtext = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
       end
 
-      IO.write($journal_file, "#{jtext}\n", mode: 'a') if $journal_active && do_write_journal
       $ctl_mic[:loop] = $opts[:loop]
 
     end # handling $ctl-commands and calculating the next holes
@@ -182,6 +178,8 @@ def do_quiz_or_licks
     #
     #  Play the sequence or recording
     #
+    IO.write($journal_file, "#{jtext}\n", mode: 'a') if $journal_active && jtext
+    jtext = nil
     if !zero_partial? || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
@@ -870,31 +868,6 @@ def wrapify_for_comment max_lines, holes, idx_first_active
 end
 
 
-def match_lick_name input, curr_lick_idx
-  curr_lick = $licks[curr_lick_idx]
-  begin
-    matching = $licks.map.with_index.select {|li| li[0][:name] == input}
-    matching = $licks.map.with_index.select {|li| li[0][:name][input]} unless matching.length == 1
-    if matching.length != 1
-      if matching.length == 0
-        PnR.print_in_columns "No lick contains '#{input}'; all",
-                             $licks.map {|l| l[:name]}.sort,
-                             ["current is '#{curr_lick[:name]}'"]
-      else
-        PnR.print_in_columns "Multiple licks (#{matching.length}) contain '#{input}'",
-                             matching.map {|m| m[0][:name]}.sort,
-                             ["current is '#{curr_lick[:name]}'"]
-      end
-      PnR.print_prompt 'Enter a', 'new name', 'or just press RETURN to keep'
-      input = STDIN.gets.chomp
-      matching = [[curr_lick,curr_lick_idx]] if input == ''
-    end
-  end while matching.length != 1
-  print "\e[#{$lines[:comment]}H\e[0m\e[J"
-  matching[0]
-end
-
-
 def read_tags_and_refresh_licks curr_lick, all
   tag_opts = %w( --tags-any --tags-all --no-tags-any --no-tags-all )
   tag_opt = nil
@@ -1040,48 +1013,29 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
   
   def read_name_change_lick
-    make_term_cooked
-    input = matching = nil
+    input = matching = jtext = nil
 
-    old_licks = get_last_lick_idxs_from_journal($licks)
-    lnames_abbr = old_licks[0,12].each_with_index.map do |lick_idx,ar_idx|
-      case ar_idx
-      when 0
-        ' l:'
-      when (1..9)
-        "#{ar_idx + 1}l:"
-      else
-        '    '
-      end + $licks[lick_idx][:name]
-    end
-    PnR.print_in_columns 'Recent licks and some', lnames_abbr.map {|ln| ln + '   '} + ['//'] + $licks.map {|l| l[:name]}.sort,
-                         ["current lick is #{self[:lick][:name]}"]
-    PnR.print_prompt 'Please enter', 'Name of new lick',
-                     '(or part of or l,2l,..)'    
-
-    input = STDIN.gets&.chomp || ''
+    old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
+    choices = if old_licks.length > 0
+                ['# RECENT >>', old_licks, '# ALL >>']
+              else
+                []
+              end
+    choices << $licks.map {|li| li[:name]}.sort
+    input = cplread_one_of('Please choose lick: ', choices.flatten)
     
-    if (md = input.match(/^(\dlast|\dl)$/)) || (md = input.match(/^(\d)$/)) || input == 'last' || input == 'l'
-      # one of last licks requested
+    new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]
+    if self[:lick_idx] != new_idx
       self[:lick_idx_before] = self[:lick_idx] 
-      self[:lick_idx] = old_licks[md  ?  md[1].to_i - 1  :  0]
-      self[:lick] = $licks[self[:lick_idx]]
+      self[:lick_idx] = new_idx
+      self[:lick] = $licks[new_idx]
       self[:all_wanted] = self[:lick][:holes]
-    else
-      matching = match_lick_name(input, self[:lick_idx])
-      if self[:lick_idx] != matching[1]
-        self[:lick_idx_before] = self[:lick_idx] 
-        self[:lick_idx] = matching[1]
-        self[:lick] = matching[0]
-        self[:all_wanted] = self[:lick][:holes]
-        do_write_journal = true
-      end
+      jtext = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
     end
     self[:lick_idx_iter] = $lick_iter_display = nil
     
-    make_term_immediate
     $ctl_mic[:named_lick] = false
-    
+    jtext
   end
 
 

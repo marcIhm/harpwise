@@ -430,45 +430,84 @@ end
 
 
 def cplread_one_of prompt, names
-  print "\e[#{$lines[:comment_tall]}H\e[0m#{prompt}\e[J\n"
+  prompt_orig = prompt
+  prompt_template = "\e[#{$lines[:comment_tall]}H\e[0m%s\e[J"
+  help_text = "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m(type to narrow; cursor keys to move; BSPC, RET, ESC, ctrl-l as usual)\e[J"
+  print prompt_template % prompt
+  print help_text
   $column_short_hint_or_message = 1
   $cplread_loc_cache = nil
+  $cplread_no_matches = nil
   idx_hl = 0
-
+  idx_hl += 1 while names[idx_hl]['#']
+    
   input = ''
   matching = names
   idx_max = cplread_print_in_columns(names, idx_hl)
   loop do
     key = $ctl_kb_queue.deq.downcase
     if key.match?(/^[[:print:]]$/)
-      input += key
+      if (prompt + input).length > $term_width - 4
+        prompt = '(...): '
+        input += key if (prompt + input).length <= $term_width - 4
+      else
+        prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
+        input += key
+      end
       matching = names.select {|n| n[input]} 
       idx_hl = 0
     elsif key.ord == 127
       input[-1] = '' if input.length > 0
       matching = names.select {|n| n[input]} 
       idx_hl = 0
+      prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
+      $cplread_no_matches = nil
     elsif key.ord == 8
       input= '' if input.length
       matching = names
       idx_hl = 0
+      prompt = prompt_orig
+      $cplread_no_matches = nil
     elsif %w(left right up down).include?(key)
       idx_hl = cplread_move_loc(idx_hl, key, idx_max)
     elsif key == "\n"
-      return matching[idx_hl]
+      if matching.length == 0
+        $cplread_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
+      elsif matching[idx_hl]['#']
+        clear_area_comment(2)
+        print "\e[#{$lines[:comment_tall] + 4}H\e[0m  \e[0;101mThis is a comment,\e[0m please choose another item."
+        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m  Press any key to continue ...\e[0m"
+        $ctl_kb_queue.deq
+        clear_area_comment(2)        
+      else
+        clear_area_comment
+        return matching[idx_hl]
+      end
+    elsif key.ord == 12
+      print "\e[2J"
+      handle_win_change
+      print prompt_template % prompt
+      print "\e[0m\e[32m#{input}\e[0m\e[K"
+      print help_text
+      cplread_print_in_columns(matching, idx_hl)
+    elsif key == "\e"
+      clear_area_comment
+      return nil
     end
+    print prompt_template % prompt
+    print "\e[0m\e[32m#{input}\e[0m\e[K"
+    print help_text
     idx_max = cplread_print_in_columns(matching, idx_hl)
-    print "\e[#{$lines[:comment_tall]}H\e[0m#{prompt}\e[0m\e[32m#{input}\e[0m\e[K"
   end
 end
 
 
 def cplread_print_in_columns names, idx_hl
-  print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m"
+  print "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[2m"
   $cplread_loc_cache = Array.new
   if names.length == 0
-    clear_area_comment 1
-    print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m  no matches"
+    clear_area_comment(2)
+    print "\e[#{$lines[:comment_tall] + 4}H\e[0m  " + ( $cplread_no_matches || 'No matches, please shorten input ...' )
 
     return 0 
   else
@@ -493,9 +532,9 @@ def cplread_print_in_columns names, idx_hl
         line = '  '
       end
       $cplread_loc_cache << [line.length, lns]
-      line[-1] = '{' if idx == idx_hl
+      line[-1] = (nm['#'] ? '{' : '[') if idx == idx_hl
       line += nm
-      line[line.rstrip.length] = '}'  if idx == idx_hl
+      line[line.rstrip.length] = (nm['#'] ? '}' : ']')  if idx == idx_hl
     end
     puts cplread_line_helper(line) unless more.nil? || line.strip.empty?
     (max_lns - lns).times {puts "\e[K\n"}
@@ -506,7 +545,8 @@ end
 
 
 def cplread_line_helper line
-  line.gsub('{'," \e[0m\e[32m\e[7m").gsub('}', "\e[0m\e[2m ") + "\e[K"
+  line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
+    gsub('{'," \e[0m\e[32m").gsub('}'," \e[0m\e[2m") + "\e[K"
 end
 
 
@@ -558,4 +598,14 @@ def cplread_move_loc idx_old, dir, idx_max
   idx_new = [idx_new, idx_max ].min
 
   return idx_new
+end
+
+
+def cplread_report_error_wait_key etext
+  clear_area_comment
+  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+  print etext
+  print "\n\e[2mPress any key to continue ... \e[K"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
 end
