@@ -91,7 +91,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 38
+num_exp = 39
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -313,7 +313,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [2, 'because it does not need a computer'],
-                     'print' => [4, 'Print the scales, each note belongs to too'],
+                     'print' => [3, 'Just print a list of all known licks'],
                      'report' => [-6, 'on every invocation'],
                      'tools' => [2, 'Three charts, the third with intervals of each hole']}
     
@@ -757,7 +757,7 @@ do_test 'id-23: print list of licks' do
   kill_session
 end
 
-do_test 'id-23a: print overview of all licks' do
+do_test 'id-23a: overview report for all licks' do
   new_session
   tms "harpwise report all-licks >#{$testing_output_file}"
   tms :ENTER
@@ -1304,6 +1304,37 @@ i = 0
     end
   end
 end
+
+
+do_test 'id-54b: print list of all licks' do
+  new_session
+  tms "harpwise print all-licks >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  [" wade        :  11\n",
+   " st-louis    :   8\n",
+   " feeling-bad :   9\n",].each_with_index do |exp,idx|
+    expect(lines,exp,idx) { lines[8+idx] == exp }
+  end
+  kill_session
+end
+
+
+do_test 'id-54c: print list of all scales' do
+  new_session
+  tms "harpwise print all-scales >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  [" all              :  32\n",
+   " blues            :  18\n",
+   " chord-i          :   8\n"].each_with_index do |exp,idx|
+    expect(lines,exp,idx) { lines[8+idx] == exp }
+  end
+  kill_session
+end
+
 
 do_test 'id-55: check persistence of volume' do
   pers_file = "#{$dotdir_testing}/persistent_state.json"

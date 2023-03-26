@@ -576,7 +576,7 @@ def show_help
     clear_area_comment
     puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for modes licks and quiz):\e[0m\e[32m\n"
     puts "     .: replay current                    ,: replay, holes only"
-    puts "   :;p: replay but ignore '--partial'"
+    puts "   :;p: replay but ignore '--partial'; i.e. play all"
     puts "   RET: next sequence or lick     BACKSPACE: previous sequence"
     puts "     i: toggle '--immediate'              l: loop current sequence"
     puts "   0,-: forget holes played           TAB,+: skip rest of sequence"

@@ -430,7 +430,7 @@ def play_adjustable_pitch embedded = false
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         [:semi_up, :semi_down, :octave_up, :octave_down, :change_wave, :vol_up, :vol_down, :show_help]
         display_kb_help 'pitch',true,
-                        "  SPACE: pause/continue      x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
+                        "  SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
                         "      w: change waveform       W: change waveform back\n" + 
                         "      s: one semitone up       S: one semitone down\n" +
                         "      o: one octave up         O: one octave down\n" +

@@ -373,11 +373,11 @@ def cplread_one_of prompt, names
   $cplread_loc_cache = nil
   $cplread_no_matches = nil
   idx_hl = 0
-  idx_hl += 1 while names[idx_hl]['#']
+  idx_hl += 1 while names[idx_hl][';']
     
   input = ''
   matching = names
-  idx_max = cplread_print_in_columns(names, idx_hl)
+  idx_last_shown = cplread_print_in_columns(names, idx_hl)
   loop do
     key = $ctl_kb_queue.deq.downcase
     if key.match?(/^[[:print:]]$/)
@@ -403,14 +403,14 @@ def cplread_one_of prompt, names
       prompt = prompt_orig
       $cplread_no_matches = nil
     elsif %w(left right up down).include?(key)
-      idx_hl = cplread_move_loc(idx_hl, key, idx_max)
+      idx_hl = cplread_move_loc(idx_hl, key, idx_last_shown)
     elsif key == "\n"
       if matching.length == 0
         $cplread_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
-      elsif matching[idx_hl]['#']
+      elsif matching[idx_hl][';']
         clear_area_comment(2)
         print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[34m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
-        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m  Press any key to continue ...\e[0m"
+        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
         clear_area_comment(2)        
       else
@@ -431,7 +431,7 @@ def cplread_one_of prompt, names
     print prompt_template % prompt
     print "\e[0m\e[32m#{input}\e[0m\e[K"
     print help_text
-    idx_max = cplread_print_in_columns(matching, idx_hl)
+    idx_last_shown = cplread_print_in_columns(matching, idx_hl)
   end
 end
 
@@ -447,33 +447,38 @@ def cplread_print_in_columns names, idx_hl
   else
     lns = 0
     max_lns = $lines[:hint_or_message] - $lines[:comment_tall] - 3
-    idx_max = names.length - 1
+    idx_last_shown = names.length - 1
     line = '  '
-    more = ' ... more'
+    wrote_more = false
     names.
       map {|nm| nm + ' '}.
       map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
       break if lns > max_lns
       if (line + nm).length > $term_width - 4
         if lns == max_lns && idx < names.length - 1
-          line[-more.length ..] = more
-          # we even overwrite the previous one
-          idx_max = idx - 2
-          more = nil
+          # we cannot output the current element, so we overwrite event the
+          # previous one to tell about this
+          text_more = ' ... more'
+          line[-text_more.length ..] = text_more
+          $cplread_loc_cache.pop
+          idx_last_shown = idx - 2
+          wrote_more = true
         end
+        # we know that we have reached the end, so we output our line
         puts cplread_line_helper(line)
         lns += 1
         line = '  '
       end
-      $cplread_loc_cache << [line.length, lns]
-      line[-1] = (nm['#'] ? '{' : '[') if idx == idx_hl
+      $cplread_loc_cache << [line.length, lns] unless wrote_more
+      line[-1] = (nm[';'] ? '{' : '[') if idx == idx_hl
       line += nm
-      line[line.rstrip.length] = (nm['#'] ? '}' : ']')  if idx == idx_hl
+      line[line.rstrip.length] = (nm[';'] ? '}' : ']')  if idx == idx_hl
     end
-    puts cplread_line_helper(line) unless more.nil? || line.strip.empty?
+    # only output, if not already done above
+    puts cplread_line_helper(line) unless wrote_more || line.strip.empty?
     (max_lns - lns).times {puts "\e[K\n"}
 
-    return idx_max
+    return idx_last_shown
   end
 end
 
@@ -484,7 +489,7 @@ def cplread_line_helper line
 end
 
 
-def cplread_move_loc idx_old, dir, idx_max
+def cplread_move_loc idx_old, dir, idx_last_shown
   column_old, line_old = $cplread_loc_cache[idx_old]
   line_max = $cplread_loc_cache[-1][1]
   if dir == 'left'
@@ -495,41 +500,46 @@ def cplread_move_loc idx_old, dir, idx_max
     idx_new = idx_old
     if line_old > 0 
       line_new = line_old - 1
-      $cplread_loc_cache[0 .. idx_old].each_with_index do |pos, idx|
-        column, line = pos
-        if line == line_new
-          column_of_next, line_of_next = $cplread_loc_cache[idx + 1]
+      $cplread_loc_cache[0 .. idx_old].each_with_index do |pos, idx_of_this|
+        column_of_this, line_of_this = pos
+        if line_of_this == line_new
+          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
           # keep updating until break below
-          idx_new = idx
+          idx_new = idx_of_this
           # next item is already on different line
-          break if line_of_next != line
+          break if line_of_next != line_of_this
           # next item is more distant columnwise than current
-          break if (column - column_old).abs < (column - column_of_next).abs
+          break if (column_of_this - column_old).abs <= (column_of_next - column_old).abs
         end
       end
     end
   elsif dir == 'down'
     idx_new = idx_old
     if line_old < line_max
+      # there is one line below, so try it
       line_new = line_old + 1
-      $cplread_loc_cache[idx_old .. $cplread_loc_cache.length - 2 ].each_with_index do |pos, idx|
-        column, line = pos
-        if line == line_new
-          break if idx_old + idx >= [idx_max + 1, $cplread_loc_cache.length - 2].min
-          column_of_next, line_of_next = $cplread_loc_cache[idx_old + idx + 1]
+      # idx in loop below stats at 0
+      $cplread_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
+        column_of_this, line_of_this = pos
+        idx_of_this = idx_old + idx
+        if line_of_this == line_new
+#          dbg
           # keep updating until break below
-          idx_new = idx_old + idx
+          idx_new = idx_of_this
+          # no further entries
+          break if idx_of_this == idx_last_shown
+          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
           # next item is already on different line
-          break if line_of_next != line
+          break if line_of_next != line_of_this
           # next item is more distant columnwise than current
-          break if (column - column_old).abs < (column - column_of_next).abs
+          break if (column_of_this - column_old).abs <= (column_of_next - column_old).abs
         end
       end
     end
   end
   # make sure to be in range
   idx_new = [idx_new, 0].max
-  idx_new = [idx_new, idx_max ].min
+  idx_new = [idx_new, idx_last_shown ].min
 
   return idx_new
 end

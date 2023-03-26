@@ -46,10 +46,13 @@ def do_quiz_or_licks
     # - requests for a named lick
     # - simply done with previous lick and next lick is required
     
-    # handle $ctl-commands from keyboard-thread, that probably came
-    # from a previous loop iteration or from other mode
-    # The else-branch further down handles the general case without
-    # $ctl-commands
+    # Handle $ctl-commands from keyboard-thread, that probably came
+    # from a previous loop iteration or from other mode; handle those
+    # here, because they might change the lick, that is to be played
+    # next
+
+    # The else-branch further down handles the general case of
+    # choosing the next lick without influence from $ctl-commands
     
     if $other_mode_saved[:lick_idx]
       # mode is licks
@@ -869,7 +872,7 @@ end
 
 def read_tags_and_refresh_licks curr_lick
   all_tags = if curr_lick[:tags].length > 0
-               ['#OF_CURR_LICK->', curr_lick[:tags], '#ALL->']
+               [';OF-CURR-LICK->', curr_lick[:tags], ';ALL-BUT->']
              else
                []
              end
@@ -945,10 +948,11 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   
   def read_name_change_lick
     input = matching = jtext = nil
+    $ctl_mic[:named_lick] = false
 
     old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
     choices = if old_licks.length > 0
-                ['#RECENT->', old_licks[0 .. 3], '#ALL->']
+                [';RECENT->', old_licks[0 .. 3], ';ALL-BUT->']
               else
                 []
               end
@@ -965,7 +969,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       jtext = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
     end
     
-    $ctl_mic[:named_lick] = false
     jtext
   end
 

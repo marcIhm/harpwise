@@ -10,7 +10,9 @@ OVERVIEW
 
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
+    - keyword 'all-licks'
     - scales (e.g. 'chord-i')
+    - keyword 'all-scales'
     
 USAGE BY EXAMPLES
 
@@ -25,3 +27,8 @@ USAGE BY EXAMPLES
   Print the scales, each note belongs to too:
 
     harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
+
+  Just print a list of all known licks:
+
+    harpwise print all-licks
+    

@@ -343,7 +343,7 @@ def handle_kb_play_pitch
     $ctl_pitch[:wave_up] = true
   elsif char == 'w'
     $ctl_pitch[:wave_down] = true
-  elsif char == 'q' || char == 'x' || char == "\n"
+  elsif char == 'q' || char == 'x' || char == "\e" || char == "\n"
     $ctl_pitch[:quit] = char
   else
     $ctl_pitch[:any] = false
@@ -436,7 +436,7 @@ def handle_kb_mic
   elsif char == 'C'
     $ctl_mic[:change_comment] = :back
     text = 'Change comment back'
-  elsif %w(. : , ; P).include?(char) && $ctl_can[:next]
+  elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
     $ctl_mic[:replay] = true
     $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
     $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
