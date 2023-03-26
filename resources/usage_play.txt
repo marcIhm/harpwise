@@ -26,7 +26,11 @@ USAGE BY EXAMPLES
 
   Lick-Radio: Play all my licks in random order without end:
 
-    harpwise play all
+    harpwise play all-licks
+
+  or play them one after another:
+
+    harpwise play all-licks --iterate cycle
 
   Play an earlier lick:
 

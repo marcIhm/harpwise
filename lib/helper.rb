@@ -364,8 +364,9 @@ end
 
 def cplread_one_of prompt, names
   prompt_orig = prompt
+  names.uniq!
   prompt_template = "\e[#{$lines[:comment_tall]}H\e[0m%s\e[J"
-  help_text = "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m(type to narrow; cursor keys to move; BSPC, RET, ESC, ctrl-l as usual)\e[J"
+  help_text = "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m(type to narrow; cursor keys to move; BACKSPACE,RETURN,ESC,ctrl-l as usual)\e[J"
   print prompt_template % prompt
   print help_text
   $column_short_hint_or_message = 1
@@ -479,7 +480,7 @@ end
 
 def cplread_line_helper line
   line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
-    gsub('{'," \e[0m\e[34m").gsub('}'," \e[0m\e[2m") + "\e[K"
+    gsub('{'," \e[0m\e[34m\e[7m").gsub('}',"\e[0m\e[2m ") + "\e[K"
 end
 
 
@@ -541,4 +542,11 @@ def report_error_wait_key etext
   print "\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
+end
+
+
+def puts_underlined text
+  puts text
+  puts '=' * text.length
+  puts
 end

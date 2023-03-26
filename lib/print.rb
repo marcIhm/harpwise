@@ -9,23 +9,19 @@ def do_print to_print
   $ctl_rec[:lick_lick] = false
   
   $all_licks, $licks = read_licks
-  holes, lnames, snames, _, _ = partition_to_play_or_print(to_print)
+  holes, lnames, snames, extra = partition_to_play_or_print(to_print, %w(all-licks all-scales))
 
   puts "\nType is #{$type}, key of #{$key}."
   puts
   
   if holes.length > 0
 
-    puts 'Holes given as arguments:'
-    puts '========================='
-    puts
+    puts_underlined 'Holes given as arguments:'
     print_holes_and_more holes
 
   elsif snames.length > 0
 
-    puts 'Scales given as arguments:'
-    puts '=========================='
-    puts
+    puts_underlined 'Scales given as arguments:'
     snames.each do |sname|
       puts " #{sname}:"
       puts
@@ -35,9 +31,7 @@ def do_print to_print
       
   elsif lnames.length > 0
 
-    puts 'Licks given as arguments:'
-    puts '========================='
-    puts
+    puts_underlined 'Licks given as arguments:'
     lnames.each do |lname|
       puts "#{lname}:"
       puts '-' * (lname.length + 1)
@@ -46,6 +40,27 @@ def do_print to_print
       print_holes_and_more lick[:holes]
     end
 
+  elsif extra.length > 0
+
+    err "only one of 'all-licks', 'all-scales' is allowed, not both" if extra.length > 1
+    if extra[0] == 'all-licks'
+      puts_underlined 'All licks:'
+      puts ' (name : holes)'
+      puts
+      maxl = $all_licks.map {|l| l[:name].length}.max
+      $licks.each do |lick|
+        puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
+      end
+    else
+      puts_underlined 'All scales:'
+      puts ' (name : holes)'
+      puts
+      maxs = $all_scales.map {|s| s.length}.max
+      $all_scales.each do |sname|
+        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
+      end
+    end
   end
 
   puts

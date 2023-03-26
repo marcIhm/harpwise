@@ -36,8 +36,7 @@ def print_lick_and_tag_info licks
 
   puts "\n(read from #{$lick_file})\n\n"
   
-  puts "\nReporting for all licks\n"
-  puts "=======================\n\n"
+  puts_underlined "\nReporting for all licks"
 
   # stats for tags
   puts "All tags:\n\n"
@@ -140,8 +139,7 @@ def print_licks_by_tags licks
 
   puts "\n(read from #{$lick_file})\n\n"
 
-  puts "\nReporting for licks selected by tags and hole-count only\n"
-  puts "========================================================\n\n"
+  puts_underlined "\nReporting for licks selected by tags and hole-count only"
   
   ltags = tags = nil
   puts "Licks with their tags:"

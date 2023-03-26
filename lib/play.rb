@@ -15,7 +15,7 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  holes, lnames, snames, extra = partition_to_play_or_print(to_play, %w(pitch al))
+  holes, lnames, snames, extra = partition_to_play_or_print(to_play, %w(pitch all-licks))
   extra = Set.new(extra).to_a
 
   #
@@ -46,7 +46,7 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    err "only one of 'pitch', 'all' is allowed, not both" if extra.length > 1
+    err "only one of 'pitch', 'all-licks' is allowed, not both" if extra.length > 1
     if extra[0] == 'pitch'
       play_adjustable_pitch
 
@@ -149,8 +149,6 @@ def partition_to_play_or_print to_p, extra_allowed = []
     err 'See above'
   end
 
-  special << $opts[:doiter].to_sym if $opts[:doiter]
-  
   [holes, lnames, snames, extra]
 
 end

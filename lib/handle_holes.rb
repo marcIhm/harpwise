@@ -420,11 +420,7 @@ end
 def text_for_key
   text = "\e[0m#{$mode}\e[2m"
   if $mode == :licks
-    if $lick_iter_display
-      text += "(#{$licks.length},#{$lick_iter_display})"
-    else
-      text += "(#{$licks.length})"
-    end
+    text += "(#{$licks.length},#{$opts[:iterate][0..2]})"
   end
   text += " #{$type} \e[0m#{$key}"
   if $used_scales.length > 1

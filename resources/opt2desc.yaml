@@ -126,9 +126,10 @@ start_with:
 iterate:
 
   - |
-    How to iterate throught all selected licks; this can be
-    (with abbreviations) either 'random' (pick licks at random) or
-    'cycle' (one lick after the other and then again).
+    how to iterate through all selected licks; this can be
+    either 'random' (pick licks at random) or 'cycle'
+    (one lick after the other and then again). Both can be
+    abbreviated, the default is 'random'.
   - RANDOM_OR_CYCLE
 
 partial:

@@ -22,10 +22,10 @@ def do_quiz_or_licks
   to_play = PlayController.new
   oride_l_message2 = nil
   $all_licks, $licks = read_licks
-  $lick_iter_display = nil
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   splashed = false
   jtext = nil
+
   
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -44,15 +44,15 @@ def do_quiz_or_licks
     # - switching back to mode from listen
     # - ctl-command that take us back
     # - requests for a named lick
-    # - change
-    # - iteration
     # - simply done with previous lick and next lick is required
     
-    # handle $ctl-commands from keyboard-thread, that probably come
+    # handle $ctl-commands from keyboard-thread, that probably came
     # from a previous loop iteration or from other mode
     # The else-branch further down handles the general case without
     # $ctl-commands
+    
     if $other_mode_saved[:lick_idx]
+      # mode is licks
       to_play[:lick_idx] = $other_mode_saved[:lick_idx]
       to_play[:lick] = $licks[to_play[:lick_idx]]
       to_play[:all_wanted] = to_play[:lick][:holes]
@@ -60,6 +60,7 @@ def do_quiz_or_licks
       to_play[:lick_idx_before] = nil
 
     elsif $other_mode_saved[:all_wanted]
+      # mode is quiz
       to_play[:all_wanted] = $other_mode_saved[:all_wanted]
       $other_mode_saved[:all_wanted] = nil
 
@@ -105,33 +106,31 @@ def do_quiz_or_licks
         jtext = to_play[:all_wanted].join(' ')
 
       else # $mode == :licks
-        # ongoing iteration
-        if to_play[:lick_idx_iter]
-          to_play.continue_with_iteration
 
-        # no iteration and no lick to start with
-        elsif !start_with
+        if start_with
+          if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
+            # start with lick from history
+            to_play[:lick_idx] = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
+          else
+            to_play.choose_lick_by_name(start_with)
+          end
+          # consumed
+          start_with = nil
+
+        elsif $opts[:iterate] == :cycle
+          if to_play[:lick_idx]
+            # ongoing cycle
+            to_play.continue_with_cycle
+          else
+            # start cycle
+            to_play[:lick_idx] = 0
+          end
+          
+        else # $opts[:iterate] == :random
           to_play.choose_random_lick
           
-        # start iteration from first lick on
-        elsif $conf[:abbrevs_for_iter].include?(start_with)
-          to_play[:lick_idx_iter] = 0
-          to_play[:lick_idx] = to_play[:lick_idx_iter]
-          $lick_iter_display = $conf[:abbrevs_for_iter_2_long][start_with[0]]
-
-        # start with lick from history
-        elsif (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
-          to_play[:lick_idx] = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
-
-        # no special case for start_with, so search lick by name and maybe start iteration          
-        else
-          to_play.choose_lick_by_name(start_with)
-
         end
 
-        # only valid for first loop
-        start_with = nil
-        
         to_play[:lick] = $licks[to_play[:lick_idx]]
         to_play[:all_wanted] = to_play[:lick][:holes]
         jtext = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
@@ -247,8 +246,9 @@ def do_quiz_or_licks
       $ctl_mic[:forget] = false
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
-      
-      to_play[:all_wanted].each_with_index do |wanted, idx|  # iterate over notes in sequence, i.e. one iteration while looping
+
+      # iterate over notes in sequence, i.e. one iteration while looping
+      to_play[:all_wanted].each_with_index do |wanted, idx|  
 
         hole_start = Time.now.to_f
         pipeline_catch_up
@@ -867,7 +867,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
 end
 
 
-def read_tags_and_refresh_licks curr_lick, all
+def read_tags_and_refresh_licks curr_lick
   all_tags = if curr_lick[:tags].length > 0
                ['#OF_CURR_LICK->', curr_lick[:tags], '#ALL->']
              else
@@ -936,7 +936,7 @@ def comment_while_playing holes
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_idx_iter, :octave_shift, :octave_shift_was)
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :octave_shift, :octave_shift_was)
 
   def initialize
     self[:octave_shift] = 0
@@ -964,7 +964,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:all_wanted] = self[:lick][:holes]
       jtext = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
     end
-    self[:lick_idx_iter] = $lick_iter_display = nil
     
     $ctl_mic[:named_lick] = false
     jtext
@@ -1025,20 +1024,16 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
 
   def change_tags
-    new_iteration = read_tags_and_refresh_licks(self[:lick])
-    if new_iteration
-      if opts[:iteration] == :cycle
+    start_new_iteration = read_tags_and_refresh_licks(self[:lick])
+    if start_new_iteration
+      if $opts[:iteration] == :cycle
         self[:lick_idx_before] = self[:lick_idx] = 0
-        self[:lick_idx_iter] = self[:lick_idx]
-        self[:lick] = $licks[self[:lick_idx]]
-        $lick_iter_display = $conf[:abbrevs_for_iter_2_long][doiter[1]]
       else
         self[:lick_idx_before] = self[:lick_idx] = rand($licks.length)
-        self[:lick_idx_iter] = $lick_iter_display = nil
-        self[:lick] = $licks[self[:lick_idx]]
       end
+      self[:lick] = $licks[self[:lick_idx]]
+      self[:all_wanted] = self[:lick][:holes]
     end
-    self[:all_wanted] = self[:lick][:holes]
     $ctl_mic[:change_tags] = false
     print "\e[#{$lines[:key]}H\e[k" + text_for_key
   end
@@ -1069,13 +1064,12 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   end
 
 
-  def continue_with_iteration 
-    self[:lick_idx_iter] += 1
-    if self[:lick_idx_iter] >= $licks.length
-      self[:lick_idx_iter] = 0
+  def continue_with_cycle
+    self[:lick_idx] += 1
+    if self[:lick_idx] >= $licks.length
+      self[:lick_idx] = 0
       ctl_response 'Next cycle'
     end
-    self[:lick_idx] = self[:lick_idx_iter]
   end
 
 
@@ -1085,10 +1079,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:lick_idx] = (self[:lick_idx] + 1 + rand($licks.length - 1)) % $licks.length
     else
       self[:lick_idx] = rand($licks.length)
-    end
-    if $opts[:doiter] 
-      self[:lick_idx_iter] = 0
-      $lick_iter_display = $opts[:doiter]
     end
   end
 
@@ -1103,8 +1093,5 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     else
       err "Multiple licks start with '#{start_with}': #{mnames}"
     end
-    
-    self[:lick_idx_iter] = self[:lick_idx]
-    $lick_iter_display = $opt[:iterate]
   end
 end

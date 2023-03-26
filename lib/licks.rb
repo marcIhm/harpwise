@@ -217,19 +217,13 @@ def read_licks graceful = false
   end
 
   tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
-  tags_iter = Set.new($conf[:abbrevs_for_iter])
-  $opts[:doiter] = nil
   [['--tags-any', keep_any],
    ['--tags-all', keep_all],
    ['--no-tags-any', discard_any],
    ['--no-tags-all', discard_all]].each do |opt, tags|
-    if (tags & tags_iter).length > 0
-      $opts[:doiter] = $conf[:abbrevs_for_iter_2_long][(tags & tags_iter).to_a[0]]
-      tags -= tags_iter
-    end
     if !tags.subset?(tags_licks)
       if graceful
-        return [[],[],doiter]
+        return [[],[]]
       else
         err "Among tags #{tags.to_a} in option #{opt}, there are some, which are not in lick file #{lfile} #{tags_licks.to_a}; unknown in options are: #{(tags - tags_licks).to_a}"
       end

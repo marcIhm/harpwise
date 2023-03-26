@@ -312,7 +312,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [-8, 'your mileage may vary'],
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
-                     'play' => [7, 'because it does not need a computer'],
+                     'play' => [2, 'because it does not need a computer'],
                      'print' => [4, 'Print the scales, each note belongs to too'],
                      'report' => [-6, 'on every invocation'],
                      'tools' => [2, 'Three charts, the third with intervals of each hole']}
@@ -629,7 +629,7 @@ end
 
 do_test 'id-16b: cycle in play' do
   new_session
-  tms 'harpwise play a cycle'
+  tms 'harpwise play a all-licks --iterate cycle'
   tms :ENTER
   sleep 2
   expect { screen[4]['Lick wade'] }
@@ -658,7 +658,7 @@ do_test 'id-17: mode licks with initial lickfile' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:licks]) { dump[:licks].length == 10 }
-  expect { screen[1]['licks(10) richter a blues'] }
+  expect { screen[1]['licks(10,ran) richter a blues,1,4,5'] }
   kill_session
 end
 
@@ -785,12 +785,12 @@ do_test 'id-23a: print overview of all licks' do
   kill_session
 end
 
-do_test 'id-24: iterate through licks' do
+do_test 'id-24: cycle through licks' do
   new_session
-  tms 'harpwise licks --start-with iterate'
+  tms 'harpwise licks --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2][$all_testing_licks[0]] }
+  expect($all_testing_licks[0]) { screen[-2][$all_testing_licks[0]] }
   tms :ENTER
   sleep 4
   expect { screen[-2][$all_testing_licks[1]] }
@@ -801,9 +801,9 @@ do_test 'id-24: iterate through licks' do
   kill_session
 end
 
-do_test 'id-25: cycle through licks' do
+do_test 'id-25: cycle through licks back to start' do
   new_session
-  tms 'harpwise licks --start-with cycle'
+  tms 'harpwise licks --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
@@ -815,27 +815,9 @@ do_test 'id-25: cycle through licks' do
   kill_session
 end
 
-do_test 'id-26: iterate from one lick through to end' do
-  new_session
-  tms 'harpwise licks --start-with special,iter'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  expect { screen[1]['iter'] }
-  expect { screen[-2]['special'] }
-  tms :ENTER
-  sleep 4
-  expect { screen[-2]['one'] }
-  4.times do |i|
-    tms :ENTER
-    sleep 4
-  end
-  expect { screen[-3]['Iterated through licks'] }
-  kill_session
-end
-
 do_test 'id-27: cycle through licks from starting point' do
   new_session
-  tms 'harpwise licks --start-with special,cycle'
+  tms 'harpwise licks --start-with special --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
@@ -844,15 +826,6 @@ do_test 'id-27: cycle through licks from starting point' do
     tms :ENTER
     sleep 4
   end
-  kill_session
-end
-
-do_test 'id-28: iterate triggered by tags' do
-  new_session
-  tms 'harpwise licks -t fav,iter'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  expect { screen[1]['1,iterate'] }
   kill_session
 end
 
@@ -883,11 +856,11 @@ end
 
 do_test 'id-31: use option --partial' do
   new_session
-  tms 'harpwise licks --start-with st-louis --partial 1@b'
+  tms 'harpwise licks --start-with st-louis --partial 1@e'
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise/licks/richter/recordings/st-louis.mp3 -t alsa trim 0.0 1.0'] }
+  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise/licks/richter/recordings/st-louis.mp3 -t alsa trim 3.0 1.0'] }
   kill_session
 end
 
@@ -1003,40 +976,60 @@ do_test 'id-37: change lick by name' do
   kill_session
 end
 
-do_test 'id-37a: change first of options --tags' do
+do_test 'id-37a: change lick by name with cursor keys' do
+  new_session
+  tms 'harpwise lick blues --start-with wade'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[-2]['wade'] }
+  tms 'n'
+  tms :RIGHT
+  tms :RIGHT
+  tms :ENTER
+  sleep 2
+  expect { screen[-2]['st-louis |'] }
+  kill_session
+end
+
+do_test 'id-37b: change option --tags' do
   new_session
   tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
-  tms 'fav'
+  tms 'fa'
+  tms :BSPACE
+  tms 'avo'
+  tms :ENTER
+  tms 'cyc'
   tms :ENTER
   tms 'q'
   sleep 1
   dump = read_testing_dump('end')
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'fav'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'favorites'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'cycle'}
   kill_session
 end
 
-do_test 'id-37b: change one of four of options --tags' do
+do_test 'id-37c: change option --tags with cursor keys' do
   new_session
-  tms 'harpwise lick blues --start-with wade'
+  tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['licks(10)'] }
-  tms 'T'
-  tms '2'
+  tms 't'
+  3.times {tms :RIGHT}
   tms :ENTER
-  tms 'fav,iter'
+  tms :DOWN
   tms :ENTER
   tms 'q'
   sleep 1
   dump = read_testing_dump('end')
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_all] == 'fav'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'advanced'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'random'}
   kill_session
 end
 
-do_test 'id-37c: change partial' do
+do_test 'id-37d: change partial' do
   new_session
   tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
