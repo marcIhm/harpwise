@@ -388,7 +388,7 @@ def cplread_one_of prompt, names
         prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
         input += key
       end
-      matching = names.select {|n| n[input]} 
+      matching = names.select {|n| n.downcase[input]} 
       idx_hl = 0
     elsif key.ord == 127
       input[-1] = '' if input.length > 0

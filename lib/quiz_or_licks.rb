@@ -177,7 +177,7 @@ def do_quiz_or_licks
 
     
     #
-    #  Play the sequence or recording
+    #  Play the holes or recording
     #
     IO.write($journal_file, "#{jtext}\n", mode: 'a') if $journal_active && jtext
     jtext = nil
@@ -196,7 +196,7 @@ def do_quiz_or_licks
       if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
          (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
          ($opts[:holes] && !$ctl_mic[:ignore_holes])
-        play_holes to_play[:all_wanted], oride_l_message2
+        play_holes to_play[:all_wanted], oride_l_message2, false, to_play[:lick]
       else
         play_recording to_play[:lick], oride_l_message2, to_play[:octave_shift]
       end
@@ -543,7 +543,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes all_holes, oride_l_message2, terse = false
+def play_holes all_holes, oride_l_message2, terse = false, lick = nil
 
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
@@ -555,7 +555,11 @@ def play_holes all_holes, oride_l_message2, terse = false
   
   $ctl_hole[:skip] = false
   $column_short_hint_or_message = 1
-  ltext = "\e[2m(h for help)  "
+  ltext = if lick
+            "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "
+          else
+            "\e[2m(h for help) ... "
+          end
   holes.each_with_index do |hole, idx|
     if terse
       print hole + ' '
