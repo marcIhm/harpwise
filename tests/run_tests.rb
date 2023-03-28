@@ -1363,5 +1363,40 @@ do_test 'id-55: check persistence of volume' do
   expect(pers_data) { pers_data['volume']['pitch'] == first_vol - 6 }
   kill_session
 end
+
+
+do_test 'id-56: forward and back in help' do
+  new_session
+  tms 'harpwise licks c'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'h'
+  expect { screen[6]['set reference to last hole'] }
+  tms :ENTER 
+  expect { screen[7]['forget holes played'] }
+  tms :BSPACE
+  expect { screen[6]['set reference to last hole'] }
+  kill_session
+end
+
+help_samples = {'harpwise listen d' => [[7,'change key of harp']],
+                'harpwise quiz 3 a' => [[7,'change key of harp'],[7,'forget holes played']],
+                'harpwise licks c' => [[7,'change key of harp'],[14,'select them later by tag']]}
+
+help_samples.keys.each_with_index do |cmd, idx|
+  do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do
+    new_session
+    tms cmd
+    tms :ENTER
+    wait_for_start_of_pipeline
+    tms 'h'
+    help_samples[cmd].each do |line,text|
+      expect(line,text) { screen[line][text] }
+      tms :ENTER
+    end
+    kill_session
+  end
+end
+
 puts "\ndone.\n\n"
 

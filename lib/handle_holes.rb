@@ -324,6 +324,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       show_help
       ctl_response 'continue', hl: true
       $ctl_mic[:show_help] = false
+      $ctl_mic[:redraw] = Set[:clear, :silent]
       $freqs_queue.clear
     end
 
@@ -546,59 +547,101 @@ end
 
 
 def show_help
-  clear_area_comment
-  puts "\e[#{$lines[:help]}H\e[0mHelp on keys (see usage info of harpwise too):\e[0m\e[32m\n"
-  puts "   SPACE: pause               ctrl-l: redraw screen"
-  puts " TAB,S-TAB,d,D: change display (upper part of screen)"
-  puts "     c,C: change comment (in lower, i.e. this, part of screen)"
-  puts "       r: set reference to last hole sensed (not freq played)"
-  puts "       k: change key of harp"
-  puts "       K: play adjustable pitch and take it as new key"
-  puts "       j: toggle journal file"
-  puts "\e[0mPress any key to show more help ...\e[K"
-  $ctl_kb_queue.clear
-  $ctl_kb_queue.deq
-  clear_area_comment
-  puts "\e[#{$lines[:help]}H\e[0mMore help on keys:\e[0m\e[32m\n"
-  puts "       s: rotate scales            S: set them anew"
+  lines_offset = ( $term_height - $conf[:term_min_height] ) / 2 + 2
+  max_lines_per_frame = $conf[:term_min_height] - lines_offset - 4
+
+  frames = Array.new
+  frames << [" Help on keys (invoke 'harpwise' without args for more info):",
+             "    SPACE: pause               ctrl-l: redraw screen",
+             "  TAB,S-TAB,d,D: change display (upper part of screen)",
+             "      c,C: change comment (in lower, i.e. this, part of screen)",
+             "        r: set reference to last hole sensed (not freq played)",
+             "        k: change key of harp",
+             "        K: play adjustable pitch and take it as new key",
+             "        j: toggle journal file",
+             "        s: rotate scales            S: set them anew"]
   if $ctl_can[:switch_modes]
-    puts "       m: switch between modes #{$modes_for_switch}"
+    frames[-1] << "        m: switch between modes #{$modes_for_switch}"
   elsif $mode == :listen
-    puts "       m: switch between modes; not available now; rather start"
-    puts "          with modes quiz or licks to be able to switch to"
-    puts "          listen and then back"
+    frames[-1].append(*["        m: switch between modes; not available now; rather start",
+                        "           with modes quiz or licks to be able to switch to",
+                        "           listen and then back"])
   end
-  puts "       q: quit harpwise            h: this help"
+  frames[-1] << "        q: quit harpwise            h: this help"
+  
   if $ctl_can[:next]
-    puts "\e[0mPress any key to show more help ...\e[K"
-    $ctl_kb_queue.clear
-    $ctl_kb_queue.deq
-    clear_area_comment
-    puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for modes licks and quiz):\e[0m\e[32m\n"
-    puts "     .: replay current                    ,: replay, holes only"
-    puts "   :;p: replay but ignore '--partial'; i.e. play all"
-    puts "   RET: next sequence or lick     BACKSPACE: previous sequence"
-    puts "     i: toggle '--immediate'              l: loop current sequence"
-    puts "   0,-: forget holes played           TAB,+: skip rest of sequence"
-    puts "     #: toggle track progress in seq      R: play holes reverse"
+    frames << [" More help on keys (special for modes licks and quiz):",
+               "      .: replay current                    ,: replay, holes only",
+               "    :;p: replay but ignore '--partial'; i.e. play all",
+               "    RET: next sequence or lick     BACKSPACE: previous sequence",
+               "      i: toggle '--immediate'              l: loop current sequence",
+               "    0,-: forget holes played           TAB,+: skip rest of sequence",
+               "      #: toggle track progress in seq      R: play holes reversed"]
     if $ctl_can[:named]
-      puts "\e[0mPress any key to show more help ...\e[K"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      clear_area_comment
-      puts "\e[#{$lines[:help]}H\e[0mMore help on keys (special for mode licks):\e[0m\e[32m\n"
-      puts "   n: switch to lick by name           e: edit lickfile"
-      puts "   t: change option --tags_any (aka -t)"
-      puts "   <: shift lick down by one octave    >: shift lick up"
-      puts "   @: change option --partial"
-      puts "  */: Add or remove Star from current lick persistently;"
-      puts "      select them later by tag 'starred'"
+      frames[-1].append(*["      n: switch to lick by name            e: edit lickfile",
+                          "      t: change option --tags_any (aka -t)",
+                          "      <: shift lick down by one octave     >: shift lick up",
+                          "      @: change option --partial",
+                          "     */: Add or remove Star from current lick persistently;",
+                          "         select them later by tag 'starred'"])
     end
   end
-  puts "\e[0mPress any key to continue ...\e[K"
-  $ctl_kb_queue.clear
-  $ctl_kb_queue.deq
-  clear_area_comment
+
+  # add prompt to frames, so that it can be tested below
+  frames.each_with_index do |frame, curr_frame|
+    can_back = ( curr_frame > 0 )
+    can_for = ( curr_frame < frames.length - 1 )
+    prompt = ' ' +
+             if can_for
+               'Press any key to show more help'
+             else
+               'Press any key to leave help'
+             end +
+             if can_back
+               ', BACKSPACE for previous screen'
+             else
+               ''
+             end +
+             ' ...'
+    frame << prompt
+  end
+    
+  
+  if $testing
+    frames.each do |frame|
+      err "Internal error: frame #{frame} with #{frame.length} lines is longer than maximum of #{max_lines_per_frame}" if frame.length > max_lines_per_frame
+      frame.each do |line|
+        err "Internal error line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 1}" if line.length > $term_width - 1
+      end
+    end
+  end
+
+  curr_frame_was = -1
+  curr_frame = 0
+  loop do
+    can_back = ( curr_frame > 0 )
+    can_for = ( curr_frame < frames.length - 1 )
+    if curr_frame != curr_frame_was
+      system('clear')
+      print "\e[#{lines_offset}H"
+      print "\e[0m#{frames[curr_frame][0]}\e[0m\e[32m\n"
+      puts
+      frames[curr_frame][1 .. -2].each {|line| puts line}
+      puts
+      print "\e[\e[0m#{frames[curr_frame][-1]}\e[0m\e[32m"
+    end
+    curr_frame_was = curr_frame
+    key = $ctl_kb_queue.deq
+    if key.ord == 127
+      curr_frame -= 1 if can_back
+    else
+      if can_for
+        curr_frame += 1
+      else
+        return
+      end
+    end
+  end
 end
 
 

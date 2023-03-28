@@ -670,3 +670,195 @@ def handle_win_change
   $ctl_mic[:redraw] = Set.new()
   $ctl_sig_winch = false
 end
+
+
+def cplread_one_of prompt, names
+  prompt_orig = prompt
+  names.uniq!
+  prompt_template = "\e[#{$lines[:comment_tall]}H\e[0m%s\e[J"
+  help_text = "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m(type to narrow; cursor keys to move; BACKSPACE,RETURN,ESC,ctrl-l as usual)\e[J"
+  print prompt_template % prompt
+  print help_text
+  $column_short_hint_or_message = 1
+  $cplread_loc_cache = nil
+  $cplread_no_matches = nil
+  idx_hl = 0
+  idx_hl += 1 while names[idx_hl][';']
+    
+  input = ''
+  matching = names
+  idx_last_shown = cplread_print_in_columns(names, idx_hl)
+  loop do
+    key = $ctl_kb_queue.deq.downcase
+    if key.match?(/^[[:print:]]$/)
+      if (prompt + input).length > $term_width - 4
+        prompt = '(...): '
+        input += key if (prompt + input).length <= $term_width - 4
+      else
+        prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
+        input += key
+      end
+      matching = names.select {|n| n.downcase[input]} 
+      idx_hl = 0
+    elsif key.ord == 127
+      input[-1] = '' if input.length > 0
+      matching = names.select {|n| n[input]} 
+      idx_hl = 0
+      prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
+      $cplread_no_matches = nil
+    elsif key.ord == 8
+      input= '' if input.length
+      matching = names
+      idx_hl = 0
+      prompt = prompt_orig
+      $cplread_no_matches = nil
+    elsif %w(left right up down).include?(key)
+      idx_hl = cplread_move_loc(idx_hl, key, idx_last_shown)
+    elsif key == "\n"
+      if matching.length == 0
+        $cplread_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
+      elsif matching[idx_hl][';']
+        clear_area_comment(2)
+        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[34m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
+        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
+        $ctl_kb_queue.deq
+        clear_area_comment(2)        
+      else
+        clear_area_comment
+        return matching[idx_hl]
+      end
+    elsif key.ord == 12
+      print "\e[2J"
+      handle_win_change
+      print prompt_template % prompt
+      print "\e[0m\e[32m#{input}\e[0m\e[K"
+      print help_text
+      cplread_print_in_columns(matching, idx_hl)
+    elsif key == "\e"
+      clear_area_comment
+      return nil
+    end
+    print prompt_template % prompt
+    print "\e[0m\e[32m#{input}\e[0m\e[K"
+    print help_text
+    idx_last_shown = cplread_print_in_columns(matching, idx_hl)
+  end
+end
+
+
+def cplread_print_in_columns names, idx_hl
+  print "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[2m"
+  $cplread_loc_cache = Array.new
+  if names.length == 0
+    clear_area_comment(2)
+    print "\e[#{$lines[:comment_tall] + 4}H\e[0m  " + ( $cplread_no_matches || 'No matches, please shorten input ...' )
+
+    return 0 
+  else
+    lns = 0
+    max_lns = $lines[:hint_or_message] - $lines[:comment_tall] - 3
+    idx_last_shown = names.length - 1
+    line = '  '
+    wrote_more = false
+    names.
+      map {|nm| nm + ' '}.
+      map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
+      break if lns > max_lns
+      if (line + nm).length > $term_width - 4
+        if lns == max_lns && idx < names.length - 1
+          # we cannot output the current element, so we overwrite event the
+          # previous one to tell about this
+          text_more = ' ... more'
+          line[-text_more.length ..] = text_more
+          $cplread_loc_cache.pop
+          idx_last_shown = idx - 2
+          wrote_more = true
+        end
+        # we know that we have reached the end, so we output our line
+        puts cplread_line_helper(line)
+        lns += 1
+        line = '  '
+      end
+      $cplread_loc_cache << [line.length, lns] unless wrote_more
+      line[-1] = (nm[';'] ? '{' : '[') if idx == idx_hl
+      line += nm
+      line[line.rstrip.length] = (nm[';'] ? '}' : ']')  if idx == idx_hl
+    end
+    # only output, if not already done above
+    puts cplread_line_helper(line) unless wrote_more || line.strip.empty?
+    (max_lns - lns).times {puts "\e[K\n"}
+
+    return idx_last_shown
+  end
+end
+
+
+def cplread_line_helper line
+  line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
+    gsub('{'," \e[0m\e[34m\e[7m").gsub('}',"\e[0m\e[2m ") + "\e[K"
+end
+
+
+def cplread_move_loc idx_old, dir, idx_last_shown
+  column_old, line_old = $cplread_loc_cache[idx_old]
+  line_max = $cplread_loc_cache[-1][1]
+  if dir == 'left'
+    idx_new = idx_old - 1
+  elsif dir == 'right'
+    idx_new = idx_old + 1
+  elsif dir == 'up'
+    idx_new = idx_old
+    if line_old > 0 
+      line_new = line_old - 1
+      $cplread_loc_cache[0 .. idx_old].each_with_index do |pos, idx_of_this|
+        column_of_this, line_of_this = pos
+        if line_of_this == line_new
+          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
+          # keep updating until break below
+          idx_new = idx_of_this
+          # next item is already on different line
+          break if line_of_next != line_of_this
+          # next item is more distant columnwise than current
+          break if (column_of_this - column_old).abs <= (column_of_next - column_old).abs
+        end
+      end
+    end
+  elsif dir == 'down'
+    idx_new = idx_old
+    if line_old < line_max
+      # there is one line below, so try it
+      line_new = line_old + 1
+      # idx in loop below stats at 0
+      $cplread_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
+        column_of_this, line_of_this = pos
+        idx_of_this = idx_old + idx
+        if line_of_this == line_new
+          # keep updating until break below
+          idx_new = idx_of_this
+          # no further entries
+          break if idx_of_this == idx_last_shown
+          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
+          # next item is already on different line
+          break if line_of_next != line_of_this
+          # next item is more distant columnwise than current
+          break if (column_of_this - column_old).abs <= (column_of_next - column_old).abs
+        end
+      end
+    end
+  end
+  # make sure to be in range
+  idx_new = [idx_new, 0].max
+  idx_new = [idx_new, idx_last_shown ].min
+
+  return idx_new
+end
+
+
+def report_error_wait_key etext
+  clear_area_comment
+  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+  print etext
+  print "\n\e[2mPress any key to continue ... \e[K"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+end
