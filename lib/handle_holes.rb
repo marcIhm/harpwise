@@ -176,7 +176,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
            (regular_hole?(hole)  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
     text += ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
-    print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text, $term_width - 4) + "\e[K"
+    print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text) + "\e[K"
 
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
@@ -228,7 +228,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           # Using truncate_colored_text might be too slow here
           if hints.length == 1
             # for mode quiz
-            print truncate_text(hints[0], $term_width - 4) + "\e[K"
+            print truncate_text(hints[0]) + "\e[K"
             $column_short_hint_or_message = 1
           elsif hints.length == 4 && $lines[:message2] > 0
             # for mode licks
@@ -240,7 +240,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
             #  3 = description of lick
             if hints[3] == ''
               # no description, put name of lick and tags on own line
-              print truncate_text(hints[2], $term_width - 4) + "\e[K"
+              print truncate_text(hints[2]) + "\e[K"
               message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
               print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
               $column_short_hint_or_message = 1
@@ -265,7 +265,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
               $column_short_hint_or_message = ( hint_or_message.rindex('|') || -2 ) + 3
               print hint_or_message
               print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-              print truncate_text(hints[3], $term_width - 4) + "\e[K"
+              print truncate_text(hints[3]) + "\e[K"
             end
           else
             fail "Internal error"
@@ -471,7 +471,7 @@ end
 
 def do_change_key
   begin
-    input = cplread_one_of("Available keys: ", $conf[:all_keys].sort) || $key.to_s
+    input = choose_interactive("Available keys: ", $conf[:all_keys].sort) || $key.to_s
     error = nil
     begin
       $on_error_raise = true
@@ -511,13 +511,13 @@ end
 
 
 def do_change_scale_add_scales
-  input = cplread_one_of("Choose main scale (current is #{$scale}): ", $all_scales.sort)
+  input = choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort)
   $scale = input if input
 
   # Change --add-scales
   add_scales = []
   loop do
-    input = cplread_one_of("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
+    input = choose_interactive("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
                            ['DONE', $all_scales.sort].flatten)
     break if input == 'DONE'
   end
@@ -552,14 +552,14 @@ def show_help
 
   frames = Array.new
   frames << [" Help on keys (invoke 'harpwise' without args for more info):",
-             "    SPACE: pause               ctrl-l: redraw screen",
+             "   SPACE: pause and continue      ctrl-l: redraw screen",
              "  TAB,S-TAB,d,D: change display (upper part of screen)",
-             "      c,C: change comment (in lower, i.e. this, part of screen)",
-             "        r: set reference to last hole sensed (not freq played)",
-             "        k: change key of harp",
-             "        K: play adjustable pitch and take it as new key",
-             "        j: toggle journal file",
-             "        s: rotate scales            S: set them anew"]
+             "     c,C: change comment (in lower part of screen)",
+             "       r: set reference hole played (not freq played)",
+             "       k: change key of harp",
+             "       K: play adjustable pitch and take it as new key",
+             "       j: toggle journal file",
+             "       s: rotate scales                S: set them anew"]
   if $ctl_can[:switch_modes]
     frames[-1] << "        m: switch between modes #{$modes_for_switch}"
   elsif $mode == :listen
@@ -572,11 +572,11 @@ def show_help
   if $ctl_can[:next]
     frames << [" More help on keys (special for modes licks and quiz):",
                "      .: replay current                    ,: replay, holes only",
-               "    :;p: replay but ignore '--partial'; i.e. play all",
-               "    RET: next sequence or lick     BACKSPACE: previous sequence",
+               "    :;p: replay but ignore '--partial', i.e. play all",
+               " RETURN: next sequence or lick     BACKSPACE: previous sequence",
                "      i: toggle '--immediate'              l: loop current sequence",
-               "    0,-: forget holes played           TAB,+: skip rest of sequence",
-               "      #: toggle track progress in seq      R: play holes reversed"]
+               "    0,-: forget holes played               +: skip rest of sequence",
+               "      #: toggle tracking progress in seq   R: play holes reversed"]
     if $ctl_can[:named]
       frames[-1].append(*["      n: switch to lick by name            e: edit lickfile",
                           "      t: change option --tags_any (aka -t)",

@@ -193,7 +193,7 @@ def calculate_screen_layout
   squeeze = 1 if $term_height < 27
   lines_extra = $term_height - $conf[:term_min_height]
   need_message2 = ( $mode == :quiz || $mode == :licks )
-  lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :comment_tall).new
+  lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
   lines = Hash.new
   lines[:mission] = 1
   lines[:key] = 2
@@ -221,6 +221,7 @@ def calculate_screen_layout
     # we do not need a second line for mode :listen
     lines[:message2] = -1
   end
+  lines[:message_bottom] = [lines[:hint_or_message], lines[:message2]].max
   lines[:help] = lines[:comment_tall]
   $column_short_hint_or_message = 1
 

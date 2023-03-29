@@ -26,7 +26,11 @@ def do_quiz_or_licks
   splashed = false
   jtext = nil
 
-  
+  system('clear')
+  make_term_immediate
+  puts to_play.read_name_change_lick
+  exit  
+
   loop do   # forever until ctrl-c, sequence after sequence
 
     #
@@ -881,11 +885,11 @@ def read_tags_and_refresh_licks curr_lick
                []
              end
   all_tags << $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
-  input = cplread_one_of('Choose new tag for --tags_any (aka -t): ', all_tags.flatten)
+  input = choose_interactive('Choose new tag for --tags_any (aka -t): ', all_tags.flatten)
   return false unless input
   $opts[:tags_any] = input
   $all_licks, $licks = read_licks(true)
-  input = cplread_one_of('Choose new value for --iterate: ', %w(random cycle))
+  input = choose_interactive('Choose new value for --iterate: ', %w(random cycle))
   return true unless input
   $opts[:iterate] = input.to_sym
   return true
@@ -961,7 +965,14 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
                 []
               end
     choices << $licks.map {|li| li[:name]}.sort
-    input = cplread_one_of('Please choose lick: ', choices.flatten)
+    input = choose_interactive('Please choose lick: ', choices.flatten) do |name|
+      lick = $licks.find {|l| l[:name] == name}
+      if lick
+        "[#{lick[:tags].join(',')}] #{lick[:desc]}"
+      else
+        "no description"
+      end
+    end
     return nil unless input
     
     new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]

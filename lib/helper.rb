@@ -190,7 +190,7 @@ def truncate_colored_text text, len
 end
 
 
-def truncate_text text, len
+def truncate_text text, len = $term_width - 5
   if text.length > len
     text[0,len] + ' ...'
   else

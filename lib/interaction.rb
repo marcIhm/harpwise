@@ -43,7 +43,10 @@ def check_screen graceful: false
 
     # check for clashes
     clashes_ok = (2..4).map do |n|
-      [:help, :comment, :comment_tall, :comment_low].combination(n).map {|pair| Set.new(pair)}
+      [[:help, :comment, :comment_tall, :comment_low],
+       [:hint_or_message, :message2, :message_bottom]].map do |set|
+        set.combination(n).map {|tuple| Set.new(tuple)}
+      end
     end.flatten
     
     lines_inv = $lines.inject(Hash.new([])) {|m,(k,v)| m[v] += [k]; m}
@@ -217,7 +220,7 @@ def start_kb_handler
     loop do
       key = STDIN.getc
       if key == "\e"
-        # try to read cursor keys
+        # try to read cursor keys and some
         begin
           ch = Timeout::timeout(0.05) { STDIN.getc }
           if ch == '['
@@ -231,9 +234,13 @@ def start_kb_handler
                     'right'
                   when 'D'
                     'left'
+                  when 'Z'
+                    'shift-tab'
                   else
                     "\e"
                   end
+          elsif ch == "\t"
+            key = 'shift-tab'
           end
         rescue Timeout::Error => e
         end
@@ -424,7 +431,7 @@ def handle_kb_mic
   elsif char == 'd' || char == "\t"
     $ctl_mic[:change_display] = true
     text = 'Change display'
-  elsif char == 'D' || char.ord == 90 
+  elsif char == 'D' || char == 'shift-tab'
     $ctl_mic[:change_display] = :back
     text = 'Change display back'
   elsif char == 'r'
@@ -672,25 +679,46 @@ def handle_win_change
 end
 
 
-def cplread_one_of prompt, names
+def choose_interactive prompt, names
   prompt_orig = prompt
   names.uniq!
-  prompt_template = "\e[#{$lines[:comment_tall]}H\e[0m%s\e[J"
-  help_text = "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[2m(type to narrow; cursor keys to move; BACKSPACE,RETURN,ESC,ctrl-l as usual)\e[J"
+  # keep screen-line as a variable to alow redraw
+  prompt_template = "\e[#{$lines[:comment_tall] + 1}H\e[0m%s \e[J"
+  help_text = "\e[#{$lines[:comment_tall] + 2}H\e[2m(any char or cursor keys to select, ? for short help)"
   print prompt_template % prompt
-  print help_text
   $column_short_hint_or_message = 1
-  $cplread_loc_cache = nil
-  $cplread_no_matches = nil
+  $chia_loc_cache = nil
+  $chia_no_matches = nil
+  total_chars = chia_padded(names).join.length
+  print help_text
   idx_hl = 0
   idx_hl += 1 while names[idx_hl][';']
-    
+  frame_start = 0
+  frame_start_was = Array.new
+
+  clear_area_message
   input = ''
   matching = names
-  idx_last_shown = cplread_print_in_columns(names, idx_hl)
+  idx_last_shown = chia_print_in_columns(chia_framify(names, frame_start), idx_hl, total_chars)
+  print chia_desc_helper(yield(matching[idx_hl])) if block_given?
   loop do
     key = $ctl_kb_queue.deq.downcase
-    if key.match?(/^[[:print:]]$/)
+    if key == '?'
+      clear_area_comment
+      clear_area_message
+      print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[0m"
+      puts "Help on selecting: Just type.\e[32m"
+      puts
+      puts " - any char adds to search, which narrows choices"
+      puts " - cursor keys move selection, ctrl-l redraws"
+      puts " - RETURN accepts, ESC aborts"
+      puts " - TAB and S-TAB go to next/prev page if '...more'"
+      puts
+      puts "\e[0m\e[2m(any key to continue)\e[0m"
+      $ctl_kb_queue.deq
+      clear_area_comment(2)        
+
+    elsif key.match?(/^[[:print:]]$/)
       if (prompt + input).length > $term_width - 4
         prompt = '(...): '
         input += key if (prompt + input).length <= $term_width - 4
@@ -698,25 +726,26 @@ def cplread_one_of prompt, names
         prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
         input += key
       end
-      matching = names.select {|n| n.downcase[input]} 
-      idx_hl = 0
-    elsif key.ord == 127
+      matching = names.select {|n| n.downcase[input]}
+      idx_hl = ( frame_start > 0  ?  1  :  0 )
+    elsif key.ord == 127 # backspace
       input[-1] = '' if input.length > 0
       matching = names.select {|n| n[input]} 
-      idx_hl = 0
+      idx_hl = ( frame_start > 0  ?  1  :  0 )
       prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
-      $cplread_no_matches = nil
-    elsif key.ord == 8
+      $chia_no_matches = nil
+    elsif key.ord == 8 # ctrl-backspace
       input= '' if input.length
       matching = names
-      idx_hl = 0
+      idx_hl = ( frame_start > 0  ?  1  :  0 )
       prompt = prompt_orig
-      $cplread_no_matches = nil
+      $chia_no_matches = nil
     elsif %w(left right up down).include?(key)
-      idx_hl = cplread_move_loc(idx_hl, key, idx_last_shown)
+      idx_hl = chia_move_loc(idx_hl, key,
+                             idx_last_shown, frame_start > 0 ? 1 : 0) if idx_last_shown >= 0
     elsif key == "\n"
       if matching.length == 0
-        $cplread_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
+        $chia_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
       elsif matching[idx_hl][';']
         clear_area_comment(2)
         print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[34m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
@@ -727,81 +756,112 @@ def cplread_one_of prompt, names
         clear_area_comment
         return matching[idx_hl]
       end
-    elsif key.ord == 12
+    elsif key.ord == 12 # ctrl-l
       print "\e[2J"
       handle_win_change
       print prompt_template % prompt
       print "\e[0m\e[32m#{input}\e[0m\e[K"
       print help_text
-      cplread_print_in_columns(matching, idx_hl)
     elsif key == "\e"
-      clear_area_comment
       return nil
+    elsif key == "\t"
+      if idx_last_shown + frame_start < matching.length - 1
+        frame_start_was = Array.new if frame_start == 0
+        frame_start_was << frame_start
+        frame_start += idx_last_shown
+        idx_hl = ( frame_start > 0  ?  1  :  0 )
+      end
+    elsif key == 'shift-tab'
+      if frame_start > 0
+        frame_start = frame_start_was.pop || 0
+        idx_hl = ( frame_start > 0  ?  1  :  0 )
+      end
     end
     print prompt_template % prompt
     print "\e[0m\e[32m#{input}\e[0m\e[K"
     print help_text
-    idx_last_shown = cplread_print_in_columns(matching, idx_hl)
+    idx_last_shown = chia_print_in_columns(chia_framify(matching, frame_start), idx_hl, total_chars)
+    print chia_desc_helper(yield(matching[idx_hl])) if block_given?
   end
 end
 
 
-def cplread_print_in_columns names, idx_hl
-  print "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[2m"
-  $cplread_loc_cache = Array.new
+def chia_print_in_columns names, idx_hl, total_chars
+  offset = ( total_chars > $term_width * 3  ?  3  :  4)
+  print "\e[#{$lines[:comment_tall] + offset}H\e[0m\e[2m"
+  $chia_loc_cache = Array.new
+  max_lines = $lines[:hint_or_message] - $lines[:comment_tall] - 4
+  # prepare array and print it over existing lines to reduce flicker
+  lines = (0 .. max_lines).map {|x| ''}
+  idx_last_shown = names.length - 1
   if names.length == 0
     clear_area_comment(2)
-    print "\e[#{$lines[:comment_tall] + 4}H\e[0m  " + ( $cplread_no_matches || 'No matches, please shorten input ...' )
-
-    return 0 
+    lines[0] = "  " + ( $chia_no_matches || 'No matches, please shorten input ...' )
   else
-    lns = 0
-    max_lns = $lines[:hint_or_message] - $lines[:comment_tall] - 3
-    idx_last_shown = names.length - 1
+    lines_count = 0
     line = '  '
     wrote_more = false
-    names.
-      map {|nm| nm + ' '}.
-      map {|nm| nm + ' ' * (-nm.length % 8)}.each_with_index do |nm,idx|
-      break if lns > max_lns
-      if (line + nm).length > $term_width - 4
-        if lns == max_lns && idx < names.length - 1
+    chia_padded(names).each_with_index do |name,idx|
+      break if lines_count > max_lines
+      if (line + name).length > $term_width - 4
+        if lines_count == max_lines && idx < names.length - 1
           # we cannot output the current element, so we overwrite event the
           # previous one to tell about this
           text_more = ' ... more'
           line[-text_more.length ..] = text_more
-          $cplread_loc_cache.pop
+          $chia_loc_cache.pop
           idx_last_shown = idx - 2
           wrote_more = true
         end
         # we know that we have reached the end, so we output our line
-        puts cplread_line_helper(line)
-        lns += 1
+        lines[lines_count] = chia_line_helper(line)
+        lines_count += 1
         line = '  '
       end
-      $cplread_loc_cache << [line.length, lns] unless wrote_more
-      line[-1] = (nm[';'] ? '{' : '[') if idx == idx_hl
-      line += nm
-      line[line.rstrip.length] = (nm[';'] ? '}' : ']')  if idx == idx_hl
+      $chia_loc_cache << [line.length, lines_count] unless wrote_more
+      line[-1] = (name[';'] ? '{' : '[') if idx == idx_hl
+      line += name
+      line[line.rstrip.length] = (name[';'] ? '}' : ']')  if idx == idx_hl
     end
     # only output, if not already done above
-    puts cplread_line_helper(line) unless wrote_more || line.strip.empty?
-    (max_lns - lns).times {puts "\e[K\n"}
+    lines[lines_count] = chia_line_helper(line) unless wrote_more || line.strip.empty?
+  end
+  lines.each_with_index do |line, idx|
+    print "\e[#{$lines[:comment_tall] + offset + idx}H#{line}\e[K"
+  end
+  return idx_last_shown
+end
 
-    return idx_last_shown
+
+def chia_line_helper line
+  line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
+    gsub('{'," \e[0m\e[34m\e[7m").gsub('}',"\e[0m\e[2m ")
+end
+
+
+def chia_desc_helper text
+  "\e[#{$lines[:message_bottom]}H\e[0m\e[2m" +
+    truncate_text(text) +
+    "\e[0m\e[K"
+end
+
+
+def chia_framify names, frame_start
+  if frame_start == 0
+    return names
+  else
+    if names
+      return ['... more'] + names[frame_start .. -1]
+    else
+      return nil
+    end
   end
 end
 
 
-def cplread_line_helper line
-  line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
-    gsub('{'," \e[0m\e[34m\e[7m").gsub('}',"\e[0m\e[2m ") + "\e[K"
-end
-
-
-def cplread_move_loc idx_old, dir, idx_last_shown
-  column_old, line_old = $cplread_loc_cache[idx_old]
-  line_max = $cplread_loc_cache[-1][1]
+def chia_move_loc idx_old, dir, idx_last_shown, idx_min
+  column_old, line_old = $chia_loc_cache[idx_old]
+  line_max = $chia_loc_cache[-1][1]
   if dir == 'left'
     idx_new = idx_old - 1
   elsif dir == 'right'
@@ -810,10 +870,10 @@ def cplread_move_loc idx_old, dir, idx_last_shown
     idx_new = idx_old
     if line_old > 0 
       line_new = line_old - 1
-      $cplread_loc_cache[0 .. idx_old].each_with_index do |pos, idx_of_this|
+      $chia_loc_cache[0 .. idx_old].each_with_index do |pos, idx_of_this|
         column_of_this, line_of_this = pos
         if line_of_this == line_new
-          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
+          column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
           # keep updating until break below
           idx_new = idx_of_this
           # next item is already on different line
@@ -829,7 +889,7 @@ def cplread_move_loc idx_old, dir, idx_last_shown
       # there is one line below, so try it
       line_new = line_old + 1
       # idx in loop below stats at 0
-      $cplread_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
+      $chia_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
         column_of_this, line_of_this = pos
         idx_of_this = idx_old + idx
         if line_of_this == line_new
@@ -837,7 +897,7 @@ def cplread_move_loc idx_old, dir, idx_last_shown
           idx_new = idx_of_this
           # no further entries
           break if idx_of_this == idx_last_shown
-          column_of_next, line_of_next = $cplread_loc_cache[idx_of_this + 1]
+          column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
           # next item is already on different line
           break if line_of_next != line_of_this
           # next item is more distant columnwise than current
@@ -847,16 +907,23 @@ def cplread_move_loc idx_old, dir, idx_last_shown
     end
   end
   # make sure to be in range
-  idx_new = [idx_new, 0].max
+  idx_new = [idx_new, idx_min].max
   idx_new = [idx_new, idx_last_shown ].min
 
   return idx_new
 end
 
 
+def chia_padded names
+  names.
+    map {|name| name + ' '}.
+    map {|name| name + ' ' * (-name.length % 8)}
+end
+
+
 def report_error_wait_key etext
   clear_area_comment
-  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+  print "\e[#{$lines[:comment_tall] + 1}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
   print etext
   print "\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
