@@ -26,11 +26,6 @@ def do_quiz_or_licks
   splashed = false
   jtext = nil
 
-  system('clear')
-  make_term_immediate
-  puts to_play.read_name_change_lick
-  exit  
-
   loop do   # forever until ctrl-c, sequence after sequence
 
     #

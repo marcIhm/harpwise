@@ -553,7 +553,7 @@ def show_help
   frames = Array.new
   frames << [" Help on keys (invoke 'harpwise' without args for more info):",
              "   SPACE: pause and continue      ctrl-l: redraw screen",
-             "  TAB,S-TAB,d,D: change display (upper part of screen)",
+             "     d,D: change display (upper part of screen)",
              "     c,C: change comment (in lower part of screen)",
              "       r: set reference hole played (not freq played)",
              "       k: change key of harp",

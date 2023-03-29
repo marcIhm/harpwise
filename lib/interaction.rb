@@ -428,10 +428,10 @@ def handle_kb_mic
   elsif char == '?' or char == 'h'
     $ctl_mic[:show_help] = true
     text = 'See below for short help'
-  elsif char == 'd' || char == "\t"
+  elsif char == 'd'
     $ctl_mic[:change_display] = true
     text = 'Change display'
-  elsif char == 'D' || char == 'shift-tab'
+  elsif char == 'D'
     $ctl_mic[:change_display] = :back
     text = 'Change display back'
   elsif char == 'r'
