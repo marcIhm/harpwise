@@ -555,19 +555,19 @@ def show_help
              "   SPACE: pause and continue      ctrl-l: redraw screen",
              "     d,D: change display (upper part of screen)",
              "     c,C: change comment (in lower part of screen)",
-             "       r: set reference hole played (not freq played)",
+             "       r: set reference to hole played (not freq played)",
              "       k: change key of harp",
              "       K: play adjustable pitch and take it as new key",
              "       j: toggle journal file",
              "       s: rotate scales                S: set them anew"]
   if $ctl_can[:switch_modes]
-    frames[-1] << "        m: switch between modes #{$modes_for_switch}"
+    frames[-1] << "       m: switch between modes #{$modes_for_switch.map(&:to_s)}"
   elsif $mode == :listen
-    frames[-1].append(*["        m: switch between modes; not available now; rather start",
-                        "           with modes quiz or licks to be able to switch to",
-                        "           listen and then back"])
+    frames[-1].append(*["       m: switch between modes; not available now; rather start",
+                        "          with modes quiz or licks to be able to switch to",
+                        "          listen and then back"])
   end
-  frames[-1] << "        q: quit harpwise            h: this help"
+  frames[-1] << "       q: quit harpwise                h: this help"
   
   if $ctl_can[:next]
     frames << [" More help on keys (special for modes licks and quiz):",
@@ -585,6 +585,8 @@ def show_help
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'"])
     end
+    frames[-1].append(*["",
+                        " Note, that other keys (and help) apply when harpwise plays itself."])
   end
 
   # add prompt to frames, so that it can be tested below

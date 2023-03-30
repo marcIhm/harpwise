@@ -1371,11 +1371,11 @@ do_test 'id-56: forward and back in help' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[6]['set reference to last hole'] }
+  expect { screen[6]['set reference to hole played'] }
   tms :ENTER 
   expect { screen[7]['forget holes played'] }
   tms :BSPACE
-  expect { screen[6]['set reference to last hole'] }
+  expect { screen[6]['set reference to hole played'] }
   kill_session
 end
 

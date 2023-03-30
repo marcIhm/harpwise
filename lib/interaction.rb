@@ -683,16 +683,16 @@ def choose_interactive prompt, names
   prompt_orig = prompt
   names.uniq!
   # keep screen-line as a variable to alow redraw
-  prompt_template = "\e[#{$lines[:comment_tall] + 1}H\e[0m%s \e[J"
-  help_text = "\e[#{$lines[:comment_tall] + 2}H\e[2m(any char or cursor keys to select, ? for short help)"
-  print prompt_template % prompt
+  prompt_template = "\e[%dH\e[0m%s \e[J"
+  help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
+  print prompt_template % [$lines[:comment_tall] + 1, prompt]
   $column_short_hint_or_message = 1
   $chia_loc_cache = nil
   $chia_no_matches = nil
   total_chars = chia_padded(names).join.length
-  print help_text
+  print help_template % ( $lines[:comment_tall] + 2 )
   idx_hl = 0
-  idx_hl += 1 while names[idx_hl][';']
+  idx_hl += 1 while names[idx_hl][0] == ';'
   frame_start = 0
   frame_start_was = Array.new
 
@@ -700,7 +700,7 @@ def choose_interactive prompt, names
   input = ''
   matching = names
   idx_last_shown = chia_print_in_columns(chia_framify(names, frame_start), idx_hl, total_chars)
-  print chia_desc_helper(yield(matching[idx_hl])) if block_given?
+  print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given?
   loop do
     key = $ctl_kb_queue.deq.downcase
     if key == '?'
@@ -746,22 +746,21 @@ def choose_interactive prompt, names
     elsif key == "\n"
       if matching.length == 0
         $chia_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
-      elsif matching[idx_hl][';']
+      elsif matching[idx_hl][0] == ';'
         clear_area_comment(2)
-        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[34m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
+        clear_area_message
+        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[2m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
         print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
-        clear_area_comment(2)        
       else
-        clear_area_comment
         return matching[idx_hl]
       end
     elsif key.ord == 12 # ctrl-l
       print "\e[2J"
       handle_win_change
-      print prompt_template % prompt
+      print prompt_template % [$lines[:comment_tall] + 1, prompt]
       print "\e[0m\e[32m#{input}\e[0m\e[K"
-      print help_text
+      print help_template % ( $lines[:comment_tall] + 2 )
     elsif key == "\e"
       return nil
     elsif key == "\t"
@@ -777,11 +776,11 @@ def choose_interactive prompt, names
         idx_hl = ( frame_start > 0  ?  1  :  0 )
       end
     end
-    print prompt_template % prompt
+    print prompt_template % [$lines[:comment_tall] + 1, prompt]
     print "\e[0m\e[32m#{input}\e[0m\e[K"
-    print help_text
+    print help_template % ( $lines[:comment_tall] + 2 )
     idx_last_shown = chia_print_in_columns(chia_framify(matching, frame_start), idx_hl, total_chars)
-    print chia_desc_helper(yield(matching[idx_hl])) if block_given?
+    print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given?
   end
 end
 
@@ -819,9 +818,9 @@ def chia_print_in_columns names, idx_hl, total_chars
         line = '  '
       end
       $chia_loc_cache << [line.length, lines_count] unless wrote_more
-      line[-1] = (name[';'] ? '{' : '[') if idx == idx_hl
+      line[-1] = (name[0] == ';' ? '{' : '[') if idx == idx_hl
       line += name
-      line[line.rstrip.length] = (name[';'] ? '}' : ']')  if idx == idx_hl
+      line[line.rstrip.length] = (name[0] == ';' ? '}' : ']')  if idx == idx_hl
     end
     # only output, if not already done above
     lines[lines_count] = chia_line_helper(line) unless wrote_more || line.strip.empty?
@@ -835,13 +834,13 @@ end
 
 def chia_line_helper line
   line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
-    gsub('{'," \e[0m\e[34m\e[7m").gsub('}',"\e[0m\e[2m ")
+    gsub('{'," \e[0m\e[2m\e[7m").gsub('}',"\e[0m\e[2m ")
 end
 
 
-def chia_desc_helper text
-  "\e[#{$lines[:message_bottom]}H\e[0m\e[2m" +
-    truncate_text(text) +
+def chia_desc_helper text, is_comment
+  "\e[#{$lines[:message_bottom]}H\e[0m\e[#{is_comment ? 2 : 32}m" +
+    ( is_comment ? 'This is a comment and cannot be chosen ...' : truncate_text(text) ) +
     "\e[0m\e[K"
 end
 
