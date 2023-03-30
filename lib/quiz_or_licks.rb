@@ -70,7 +70,7 @@ def do_quiz_or_licks
       to_play.back_one_lick
       
     elsif $ctl_mic[:named_lick]  # can only happen for mode licks
-      jtext = to_play.read_name_change_lick
+      jtext = to_play.read_name_change_lick(to_play[:lick])
       
     elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
       to_play.edit_lick
@@ -112,7 +112,7 @@ def do_quiz_or_licks
         if start_with
           if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
             # start with lick from history
-            to_play[:lick_idx] = get_last_lick_idxs_from_journal[md  ?  md[1].to_i - 1  :  0]
+            to_play[:lick_idx] = get_last_lick_idxs_from_journal($licks)[md  ?  md[1].to_i - 1  :  0]
           else
             to_play.choose_lick_by_name(start_with)
           end
@@ -949,7 +949,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   end
 
   
-  def read_name_change_lick
+  def read_name_change_lick curr_lick
     input = matching = jtext = nil
     $ctl_mic[:named_lick] = false
 
@@ -960,7 +960,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
                 []
               end
     choices << $licks.map {|li| li[:name]}.sort
-    input = choose_interactive('Please choose lick: ', choices.flatten) do |name|
+    input = choose_interactive("Please choose lick (current is #{curr_lick[:name]}): ", choices.flatten) do |name|
       lick = $licks.find {|l| l[:name] == name}
       if lick
         "[#{lick[:tags].join(',')}] #{lick[:desc]}"

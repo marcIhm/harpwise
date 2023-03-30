@@ -710,6 +710,15 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
+do_test 'id-19a: start with next to last lick' do
+  new_session
+  tms 'harpwise licks --start-with 2l'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[-1]['mape'] }
+  kill_session
+end
+
 do_test 'id-20: error on unknown names in --tags' do
   new_session
   tms 'harpwise licks --tags-any unknown a'
