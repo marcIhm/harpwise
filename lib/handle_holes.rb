@@ -511,15 +511,24 @@ end
 
 
 def do_change_scale_add_scales
-  input = choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort)
+  input = choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort) do |scale|
+    $scale_desc_maybe[scale] || '?'
+  end
   $scale = input if input
 
   # Change --add-scales
   add_scales = []
   loop do
     input = choose_interactive("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
-                           ['DONE', $all_scales.sort].flatten)
+                               ['DONE', $all_scales.sort].flatten) do |scale|
+      if scale == 'DONE'
+        'Choose this, when done with adding scales'
+      else
+        $scale_desc_maybe[scale] || '?'
+      end
+    end
     break if input == 'DONE'
+    add_scales << input
   end
   if add_scales.length == 0
     $opts[:add_scales] = nil

@@ -113,6 +113,19 @@ def scales_for_type type
   Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
 end
 
+def describe_scales_maybe scales, type
+  desc = Hash.new
+  scales.each do |scale|
+    sfile = $scale_files_template % [type, scale, 'holes']
+    begin 
+      _, holes_rem = YAML.load_file(sfile).partition {|x| x.is_a?(Hash)}
+      holes = holes_rem.map {|hr| hr.split[0]}
+      desc[scale] = "holes #{holes.join(',')}"
+    rescue Errno::ENOENT, Psych::SyntaxError
+    end
+  end
+  desc
+end
 
 def display_kb_help what, first_round, body
   if first_round

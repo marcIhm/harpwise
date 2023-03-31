@@ -102,7 +102,7 @@ def set_global_vars_early
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_template = "#{$dirs[:install]}/config/%s/scale_%s_with_%s.yaml"
-
+  
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
@@ -689,6 +689,7 @@ def set_global_musical_vars
   $used_scales = get_used_scales($opts[:add_scales])
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
+  $scale_desc_maybe = describe_scales_maybe($all_scales, $type)
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
