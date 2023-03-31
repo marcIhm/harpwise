@@ -880,7 +880,20 @@ def read_tags_and_refresh_licks curr_lick
                []
              end
   all_tags << $all_licks.map {|l| l[:tags]}.flatten.uniq.sort
-  input = choose_interactive('Choose new tag for --tags_any (aka -t): ', all_tags.flatten)
+  # count
+  tag2licks = Hash.new {|h,k| h[k] = Array.new}
+  $all_licks.each do |lick|
+    lick[:tags].each do |tag|
+      tag2licks[tag] << lick[:name]
+    end
+  end
+  input = choose_interactive("Choose new tag for --tags_any, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
+    if tag2licks[tag]
+      "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
+    else
+      'no licks with this tag'
+    end
+  end
   return false unless input
   $opts[:tags_any] = input
   $all_licks, $licks = read_licks(true)
@@ -960,12 +973,12 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
                 []
               end
     choices << $licks.map {|li| li[:name]}.sort
-    input = choose_interactive("Please choose lick (current is #{curr_lick[:name]}): ", choices.flatten) do |name|
-      lick = $licks.find {|l| l[:name] == name}
+    input = choose_interactive("Please choose lick (current is #{curr_lick[:name]}): ", choices.flatten) do |lname|
+      lick = $licks.find {|l| l[:name] == lname}
       if lick
         "[#{lick[:tags].join(',')}] #{lick[:desc]}"
       else
-        "no description"
+        'no description'
       end
     end
     return nil unless input
