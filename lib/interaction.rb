@@ -754,6 +754,7 @@ def choose_interactive prompt, names
         print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
       else
+        clear_area_comment
         clear_area_message
         return matching[idx_hl]
       end
@@ -764,6 +765,7 @@ def choose_interactive prompt, names
       print "\e[0m\e[32m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
     elsif key == "\e"
+      clear_area_comment
       clear_area_message
       return nil
     elsif key == "\t"
@@ -831,7 +833,6 @@ def chia_print_in_columns names, idx_hl, total_chars
   lines.each_with_index do |line, idx|
     print "\e[#{$lines[:comment_tall] + offset + idx}H#{line}\e[K"
   end
-  clear_area_message
   return idx_last_shown
 end
 

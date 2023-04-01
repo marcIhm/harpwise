@@ -338,7 +338,7 @@ def play_adjustable_pitch embedded = false
   cmd = cmd_was = nil
 
   sleep 0.1 if embedded
-  puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is played in parallel."
+  puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is playing at the same time."
   puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
 
   sleep 0.1 if embedded
