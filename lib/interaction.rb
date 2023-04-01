@@ -374,16 +374,16 @@ def handle_kb_mic
   elsif char == "\n" && $ctl_can[:next]
     $ctl_mic[:next] = true
     text = 'Skip'
-  elsif char == 'n' && $ctl_can[:named]
-    $ctl_mic[:named_lick] = true
+  elsif char == 'L' && $ctl_can[:lick]
+    $ctl_mic[:change_lick] = true
     text = 'Named'
-  elsif char == 'e' && $ctl_can[:named]
+  elsif char == 'e' && $ctl_can[:lick]
     $ctl_mic[:edit_lick_file] = true
     text = 'Edit'
-  elsif char == 't' && $ctl_can[:named]
+  elsif char == 't' && $ctl_can[:lick]
     $ctl_mic[:change_tags] = true
     text = 'Tags'
-  elsif char == 'R' && $ctl_can[:named]
+  elsif char == 'R' && $ctl_can[:lick]
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'
   elsif char == '>' && $ctl_can[:octave]
@@ -392,13 +392,13 @@ def handle_kb_mic
   elsif char == '<' && $ctl_can[:octave]
     $ctl_mic[:octave] = :down
     text = 'Octave down'
-  elsif char == '@' && $ctl_can[:named]
+  elsif ( char == '@' || char == 'P' ) && $ctl_can[:lick]
     $ctl_mic[:change_partial] = true
     text = 'Partial'
-  elsif char == '*' && $ctl_can[:named]
+  elsif char == '*' && $ctl_can[:lick]
     $ctl_mic[:star_lick] = :up
     text = 'Star this lick up'
-  elsif char == '/' && $ctl_can[:named]
+  elsif char == '/' && $ctl_can[:lick]
     $ctl_mic[:star_lick] = :down
     text = 'Star this lick down'
   elsif char == 'm' && $ctl_can[:switch_modes]
@@ -564,7 +564,7 @@ end
 def print_chart
   xoff, yoff, len = $conf[:chart_offset_xyl]
   if $opts[:display] == :chart_intervals && !$hole_ref
-    print "\e[#{$lines[:display] + yoff + 4}H    Set ref first"
+    print "\e[#{$lines[:display] + yoff + 4}H    Set ref"
   else    
     print "\e[#{$lines[:display] + yoff}H"
     $charts[$opts[:display]].each_with_index do |row, ridx|
@@ -682,6 +682,8 @@ end
 def choose_interactive prompt, names
   prompt_orig = prompt
   names.uniq!
+  clear_area_comment
+  clear_area_message
   # keep screen-line as a variable to alow redraw
   prompt_template = "\e[%dH\e[0m%s \e[J"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
@@ -696,7 +698,6 @@ def choose_interactive prompt, names
   frame_start = 0
   frame_start_was = Array.new
 
-  clear_area_message
   input = ''
   matching = names
   idx_last_shown = chia_print_in_columns(chia_framify(names, frame_start), idx_hl, total_chars)
@@ -753,6 +754,7 @@ def choose_interactive prompt, names
         print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
       else
+        clear_area_message
         return matching[idx_hl]
       end
     elsif key.ord == 12 # ctrl-l
@@ -762,6 +764,7 @@ def choose_interactive prompt, names
       print "\e[0m\e[32m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
     elsif key == "\e"
+      clear_area_message
       return nil
     elsif key == "\t"
       if idx_last_shown + frame_start < matching.length - 1
@@ -828,6 +831,7 @@ def chia_print_in_columns names, idx_hl, total_chars
   lines.each_with_index do |line, idx|
     print "\e[#{$lines[:comment_tall] + offset + idx}H#{line}\e[K"
   end
+  clear_area_message
   return idx_last_shown
 end
 

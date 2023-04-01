@@ -402,7 +402,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    return if [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
+    return if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
 
     if $ctl_mic[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
@@ -471,7 +471,22 @@ end
 
 def do_change_key
   begin
-    input = choose_interactive("Available keys: ", $conf[:all_keys].sort) || $key.to_s
+    keys = if $key[-1] == 's'
+             $notes_with_sharps
+           elsif $key[-1] == 'f'
+             $notes_with_sharps
+           elsif $conf[:pref_sig_def] == :flats
+             $notes_with_flats
+           else
+             $notes_with_sharps
+           end
+    input = choose_interactive("Available keys (current is #{$key}): ", keys) do |key|
+      if key == $key
+        "The current key"
+      else
+        "#{describe_inter_keys(key, $key)} the current key #{$key}"
+      end
+    end || $key
     error = nil
     begin
       $on_error_raise = true
@@ -479,7 +494,7 @@ def do_change_key
     rescue ArgumentError => error
       report_error_wait_key error
     else
-      $key = input.to_sym
+      $key = input
     ensure
       $on_error_raise = false
     end
@@ -586,11 +601,11 @@ def show_help
                "      i: toggle '--immediate'              l: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      #: toggle tracking progress in seq   R: play holes reversed"]
-    if $ctl_can[:named]
-      frames[-1].append(*["      n: switch to lick by name            e: edit lickfile",
+    if $ctl_can[:lick]
+      frames[-1].append(*["      L: change lick                       e: edit lickfile",
                           "      t: change option --tags_any (aka -t)",
                           "      <: shift lick down by one octave     >: shift lick up",
-                          "      @: change option --partial",
+                          "    @,P: change option --partial",
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'"])
     end

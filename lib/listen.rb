@@ -56,7 +56,7 @@ def do_listen
                  end
                else
                  color = "\e[2m"
-                 'set ref'
+                 "set ref"
                end
              when :gauge_to_ref
                font = 'smblock'
@@ -74,7 +74,7 @@ def do_listen
                  dots
                else
                  color = "\e[2m"
-                 'set ref'
+                 "set ref"
                end
              when :warbles
                font = 'smblock'
@@ -89,7 +89,7 @@ def do_listen
                  end
                else
                  color = "\e[2m"
-                 'set ref'
+                 "set ref"
                end
              else
                fail "Internal error: #{$opts[:comment]}"

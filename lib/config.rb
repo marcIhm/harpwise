@@ -49,7 +49,7 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
-        :named_lick, :change_key, :pitch, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
+        :change_lick, :change_key, :pitch, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
@@ -75,7 +75,7 @@ def set_global_vars_early
   ks.each {|k| $ctl_hole[k] = false}
 
   # capabilities available (or not) when processing keyboard
-  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :named, :octave, :switch_modes, :no_progress]
+  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :lick, :octave, :switch_modes, :no_progress]
   $ctl_can = Struct.new(*ks).new
   ks.each {|k| $ctl_can[k] = false} 
   

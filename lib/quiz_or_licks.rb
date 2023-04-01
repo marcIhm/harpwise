@@ -15,7 +15,7 @@ def do_quiz_or_licks
   $ctl_can[:switch_modes] = true
   $ctl_can[:no_progress] = true
   $modes_for_switch = [:listen, $mode.to_sym]
-  $ctl_can[:octave] = $ctl_can[:named] = ( $mode == :licks )
+  $ctl_can[:octave] = $ctl_can[:lick] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   $journal_active = true
 
@@ -69,7 +69,7 @@ def do_quiz_or_licks
     elsif $ctl_mic[:back]
       to_play.back_one_lick
       
-    elsif $ctl_mic[:named_lick]  # can only happen for mode licks
+    elsif $ctl_mic[:change_lick]  # can only happen for mode licks
       jtext = to_play.read_name_change_lick(to_play[:lick])
       
     elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
@@ -382,7 +382,7 @@ def do_quiz_or_licks
           return
         end
         
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
 
       end # notes in a sequence
       
@@ -415,7 +415,7 @@ def do_quiz_or_licks
                   'octave down'
                 elsif $ctl_mic[:reverse_holes] == :down
                   'octave down'
-                elsif [:named_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial].any? {|k| $ctl_mic[k]}
+                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial].any? {|k| $ctl_mic[k]}
                   # these will issue their own message
                   nil
                 else
@@ -435,7 +435,7 @@ def do_quiz_or_licks
         # update hint
         print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
         $column_short_hint_or_message = 1
-        unless [:replay, :octave, :change_partial, :forget, :next, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -443,7 +443,7 @@ def do_quiz_or_licks
         sleep 0.5 if ctext
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :named_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}  # looping over one sequence
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}  # looping over one sequence
 
     print_mission ''
     oride_l_message2 = nil
@@ -964,7 +964,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   
   def read_name_change_lick curr_lick
     input = matching = jtext = nil
-    $ctl_mic[:named_lick] = false
+    $ctl_mic[:change_lick] = false
 
     old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
     choices = if old_licks.length > 0
@@ -976,7 +976,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     input = choose_interactive("Please choose lick (current is #{curr_lick[:name]}): ", choices.flatten) do |lname|
       lick = $licks.find {|l| l[:name] == lname}
       if lick
-        "[#{lick[:tags].join(',')}] #{lick[:desc]}"
+        "[#{lick[:tags].join(',')}] #{lick[:holes].length} holes, #{lick[:desc]}"
       else
         'no description'
       end

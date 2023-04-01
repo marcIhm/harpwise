@@ -95,6 +95,15 @@ def describe_inter hole1, hole2
 end
 
 
+def describe_inter_keys key1, key2
+  dsemi = note2semi(key1 + '0') - note2semi(key2 + '0')
+  inter = $intervals[dsemi.abs] || [nil, nil]
+  return "#{dsemi.abs} semitones" + ' ' +
+         ( inter[0] ? "(#{inter[0]}) " : '' ) +
+         ( dsemi > 0 ? 'above' : 'below' )
+end
+
+
 def analyze_with_aubio file
   freqs = run_aubiopitch(file).lines.
             map {|line| line.split[1].to_i}.
