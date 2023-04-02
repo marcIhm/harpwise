@@ -10,7 +10,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   longest_hole_name = $harp_holes.max_by(&:length)
   
   hole_start = Time.now.to_f
-  hole = hole_since = hole_was_for_disp = nil
+  hole = hole_since = nil
+  # $hole_was_for_disp needs to be persistant over invocations and
+  # cannot be set here
   hole_held = hole_held_before = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
@@ -35,7 +37,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
       ctl_response
       print "\e[#{$lines[:key]}H" + text_for_key
-      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
+      print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display]) && ( first_round || $ctl_mic[:redraw] )
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
@@ -56,7 +58,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
 
-    if first_round && $opts[:comment] == :warbles
+    if $opts[:comment] == :warbles && !$max_warble_shown
       print "\e[#{$lines[:hint_or_message]}H\e[2mMax warble speed is #{max_warble_clause}\e[0m\e[K"
       $message_shown_at = Time.now.to_f
     end
@@ -112,12 +114,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     was_was_good = was_good
-    good, done, was_good = if $opts[:screenshot]
-                             [true, $ctl_can[:next] && Time.now.to_f - hole_start > 2, false]
-                           else
-                             $perfctr[:lambda_good_done_was_good_call] += 1
-                             lambda_good_done_was_good.call(hole, hole_since)
-                           end
+    good,
+    done,
+    was_good = if $opts[:screenshot]
+                 [true, $ctl_can[:next] && Time.now.to_f - hole_start > 2, false]
+               else
+                 $perfctr[:lambda_good_done_was_good_call] += 1
+                 lambda_good_done_was_good.call(hole, hole_since)
+               end
     # even if we do not track progress we need to return to forget
     done = $ctl_mic[:forget] if $opts[:no_progress]
     if $ctl_mic[:done]
@@ -161,8 +165,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $opts[:display]
     when :chart_notes, :chart_scales, :chart_intervals
-      update_chart(hole_was_for_disp, :inactive) if hole_was_for_disp && hole_was_for_disp != hole
-      hole_was_for_disp = hole if hole
+      update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
+      $hole_was_for_disp = hole if hole
       update_chart(hole, :active, good, was_good, was_good_since)
     when :hole
       print "\e[#{$lines[:display]}H\e[0m"

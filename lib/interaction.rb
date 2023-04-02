@@ -425,6 +425,9 @@ def handle_kb_mic
   elsif char == '1'
     $ctl_mic[:done] = true
     text = 'Hole done'
+  elsif char == '!' && $opts[:debug]
+    $ctl_mic[:debug] = !$ctl_mic[:debug]
+    text = "Debug: #{$ctl_mic[:debug]}"
   elsif char == '?' or char == 'h'
     $ctl_mic[:show_help] = true
     text = 'See below for short help'
@@ -561,7 +564,7 @@ def one_char
 end  
 
 
-def print_chart
+def print_chart skip_hole = nil
   xoff, yoff, len = $conf[:chart_offset_xyl]
   if $opts[:display] == :chart_intervals && !$hole_ref
     print "\e[#{$lines[:display] + yoff + 4}H    Set ref"
@@ -571,8 +574,12 @@ def print_chart
       print ' ' * ( xoff - 1)
       row[0 .. -2].each_with_index do |cell, cidx|
         hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
-        printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
-        print cell
+        if skip_hole && skip_hole == hole
+          print "\e[#{cell.length}C"
+        else
+          printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
+          print cell
+        end
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
@@ -600,6 +607,7 @@ end
 
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
   return if $opts[:display] == :chart_intervals && !$hole_ref
+  # a hole can appear at multiple positions in the chart
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
     y = $lines[:display] + $conf[:chart_offset_xyl][1] + xy[1]
@@ -616,6 +624,7 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
 end
 
 
+# a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
   if !regular_hole?(hole)
     2
@@ -639,6 +648,7 @@ def get_hole_color_active hole, good, was_good, was_good_since
 end
     
 
+# a hole, that is not played
 def get_hole_color_inactive hole, bright = false
   if $scale_holes.include?(hole)
     if $hole2flags[hole].include?(:main)

@@ -238,6 +238,8 @@ def do_quiz_or_licks
     holes_with_intervals = intervalify(to_play[:all_wanted]) if $opts[:comment] == :holes_intervals
     holes_with_notes = noteify(to_play[:all_wanted]) if $opts[:comment] == :holes_notes
 
+    $hole_was_for_disp = nil
+    
     #
     #  Now listen for user to play the sequence back correctly
     #
@@ -249,7 +251,8 @@ def do_quiz_or_licks
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
 
-      # iterate over notes in sequence, i.e. one iteration while looping
+      # iterate over notes in sequence, i.e. one iteration while
+      # looping over sequence again and again
       to_play[:all_wanted].each_with_index do |wanted, idx|  
 
         hole_start = Time.now.to_f
@@ -275,9 +278,11 @@ def do_quiz_or_licks
           # lambda_good_done_was_good
           -> (played, since) do
             good = (holes_equiv?(played, wanted) || musical_event?(wanted))
-            [good,  
+            [good,
+             
              $ctl_mic[:forget] ||
              (good && (Time.now.to_f - since >= min_sec_hold )),
+             
              idx > 0 &&
              holes_equiv?(played, to_play[:all_wanted][idx-1]) &&
              !holes_equiv?(played, wanted)]

@@ -13,7 +13,8 @@ def do_listen
 
   system('clear')
   pipeline_catch_up
-
+  $hole_was_for_disp = nil
+  
   handle_holes(
     
     # lambda_mission

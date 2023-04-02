@@ -710,7 +710,30 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
-do_test 'id-19a: start with next to last lick' do
+do_test 'id-19a: prepare and get history of licks' do
+  journal_file = "#{$dotdir_testing}/journal_richter_modes_licks_and_play.txt"
+  FileUtils.rm journal_file if File.exist?(journal_file)
+  new_session
+  %w(wade mape blues).each do |lick|
+    tms "harpwise licks --start-with #{lick} a"
+    tms :ENTER
+    wait_for_start_of_pipeline
+    tms 'q'
+    sleep 1
+  end
+  tms "harpwise report hist >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_start_of_pipeline
+  lines = File.read($testing_output_file).lines
+  ["   l: blues\n",
+   "  2l: mape\n",
+   "  3l: wade\n"].each_with_index do |exp,idx|
+    expect(lines,exp,idx) { lines[8+idx] == exp }
+  end
+  kill_session
+end
+
+do_test 'id-19b: start with next to last lick' do
   new_session
   tms 'harpwise licks --start-with 2l'
   tms :ENTER
@@ -1091,10 +1114,10 @@ end
 
 do_test 'id-41: abbreviated scale' do
   new_session
-  tms 'harpwise licks bl'
+  tms 'harpwise licks mid'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['blues'] }
+  expect { screen[1]['middle'] }
   kill_session
 end
 
@@ -1338,6 +1361,7 @@ do_test 'id-54c: print list of all scales' do
   lines = File.read($testing_output_file).lines
   [" all              :  32\n",
    " blues            :  18\n",
+   " blues-middle     :   7\n",
    " chord-i          :   8\n"].each_with_index do |exp,idx|
     expect(lines,exp,idx) { lines[8+idx] == exp }
   end

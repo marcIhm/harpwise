@@ -49,7 +49,7 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
-        :change_lick, :change_key, :pitch, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
+        :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
         :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
@@ -95,7 +95,6 @@ def set_global_vars_early
   # will be created by test-driver
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
   
-  $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   # is only used in handle_holes, but needs to persist between invocations
   $message_shown_at = false
 
@@ -106,6 +105,7 @@ def set_global_vars_early
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
+  $max_warble_shown = false
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
@@ -245,6 +245,10 @@ def set_global_vars_late
   $journal_active = false
   $journal_started_count = 0
   $journal_file = get_journal_file
+
+  $testing_log = "/tmp/#{File.basename($0)}_testing.log"
+  $debug_log = "/tmp/#{File.basename($0)}_debug.log"
+  File.delete($debug_log) if $opts && $opts[:debug] && File.exists?($debug_log)
 
   $star_file = $star_file_template % $type
 

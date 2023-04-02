@@ -79,10 +79,7 @@ Thread.report_on_exception = false
 
 Signal.trap('SIGINT') do
   print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-  if $opts[:debug]
-    print_debug_info
-    fail "\n\n\n\e[0mexit on ctrl-c"
-  end
+  fail "\n\n\n\e[0mexit on ctrl-c" if $opts[:debug]
   puts "\n\n\n\e[0mexit on ctrl-c"
   exit 1
 end
@@ -114,6 +111,11 @@ at_exit do
   # would not be initialized completetly
   FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
 
+  if $opts && $opts[:debug] 
+    print_debug_info
+    puts "Note: A debug log has been written: #{$debug_log}" if File.exists?($debug_log)
+  end
+    
   if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
     File.write($pers_file, JSON.pretty_generate($pers_data))
   end
@@ -139,6 +141,7 @@ begin
     $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
     $opts, $other_mode_saved[:opts] = $other_mode_saved[:opts], $opts
     $lines = calculate_screen_layout
+    $first_round_ever_get_hole = true
 
     if $journal_started_count > 0
       journal_stop
