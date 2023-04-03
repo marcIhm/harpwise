@@ -575,33 +575,37 @@ end
 
 
 def show_help
-  lines_offset = ( $term_height - $conf[:term_min_height] ) / 2 + 2
-  max_lines_per_frame = $conf[:term_min_height] - lines_offset - 4
+  lines_offset = ( $term_height - $conf[:term_min_height] ) / 2 + 4
+  max_lines_per_frame = $conf[:term_min_height] - lines_offset - 2
 
   frames = Array.new
   frames << [" Help on keys (invoke 'harpwise' without args for more info):",
-             "   SPACE: pause and continue      ctrl-l: redraw screen",
-             "     d,D: change display (upper part of screen)",
-             "     c,C: change comment (in lower part of screen)",
-             "       r: set reference to hole played (not freq played)",
-             "       k: change key of harp",
-             "       K: play adjustable pitch and take it as new key",
-             "       j: toggle journal file",
-             "       s: rotate scales                S: set them anew"]
+             " \e[0m\e[2mVersion #{$version}\e[0m\e[32m",
+             "",
+             "  SPACE: pause and continue      ctrl-l: redraw screen",
+             "    d,D: change display (upper part of screen)",
+             "    c,C: change comment (in lower part of screen)",
+             "      r: set reference to hole played (not freq played)",
+             "      k: change key of harp",
+             "      K: play adjustable pitch and take it as new key",
+             "      j: toggle journal file",
+             "      s: rotate scales                S: set them anew"]
   if $ctl_can[:switch_modes]
-    frames[-1] << "       m: switch between modes #{$modes_for_switch.map(&:to_s)}"
+    frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
   elsif $mode == :listen
-    frames[-1].append(*["       m: switch between modes; not available now; rather start",
-                        "          with modes quiz or licks to be able to switch to",
-                        "          listen and then back"])
+    frames[-1].append(*["      m: switch between modes; not available now; rather start",
+                        "         with modes quiz or licks to be able to switch to",
+                        "         listen and then back"])
   end
-  frames[-1] << "       q: quit harpwise                h: this help"
+  frames[-1].append(*["      q: quit harpwise                h: this help",
+                      ""])
   
   if $ctl_can[:next]
     frames << [" More help on keys (special for modes licks and quiz):",
+               "",
+               " RETURN: next sequence or lick     BACKSPACE: previous sequence",
                "      .: replay current                    ,: replay, holes only",
                "    :;p: replay but ignore '--partial', i.e. play all",
-               " RETURN: next sequence or lick     BACKSPACE: previous sequence",
                "      i: toggle '--immediate'              l: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      #: toggle tracking progress in seq   R: play holes reversed"]
@@ -611,7 +615,10 @@ def show_help
                           "      <: shift lick down by one octave     >: shift lick up",
                           "    @,P: change option --partial",
                           "     */: Add or remove Star from current lick persistently;",
-                          "         select them later by tag 'starred'"])
+                          "         select them later by tag 'starred'",
+                          ""])
+    else
+      frames[-1] << ""
     end
     frames[-1].append(*["",
                         " Note, that other keys (and help) apply when harpwise plays itself."])
@@ -654,11 +661,13 @@ def show_help
     if curr_frame != curr_frame_was
       system('clear')
       print "\e[#{lines_offset}H"
-      print "\e[0m#{frames[curr_frame][0]}\e[0m\e[32m\n"
-      puts
+      print "\e[0m"
+      print frames[curr_frame][0]
+      print "\e[0m\e[32m\n"
       frames[curr_frame][1 .. -2].each {|line| puts line}
-      puts
-      print "\e[\e[0m#{frames[curr_frame][-1]}\e[0m\e[32m"
+      print "\e[\e[0m"
+      print frames[curr_frame][-1]
+      print "\e[0m\e[32m"
     end
     curr_frame_was = curr_frame
     key = $ctl_kb_queue.deq
