@@ -70,15 +70,22 @@ end
 
 
 def wait_for_end_of_harpwise
+  hw_full_name = %x(which harpwise).chomp
+  fail 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
   20.times do
-    unless Sys::ProcTable.ps.any? {|p| p.cmdline['harpwise'] && p.cmdline['ruby']}
+    still_running = false
+    IO.popen('ps -ef').each_line do |line|
+      fields = line.chomp.split(' ',8)
+      still_running = true if fields[-1][hw_full_name]
+    end
+    if !still_running
       sleep 1
       return
     end
     sleep 1
   end
   pp screen
-  fail "harpwise did not come to an end"
+  fail 'harpwise did not come to an end'
 end
 
 
