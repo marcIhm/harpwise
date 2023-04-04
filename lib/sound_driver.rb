@@ -232,7 +232,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
   $ctl_rec[:loop] = $ctl_rec[:loop_loop]
-  imm_ctrls_again = [:replay, :slower, :vol_up, :vol_down]
+  imm_ctrls_again = [:replay, :slower, :faster, :vol_up, :vol_down]
   loop_message_printed = false
   lick_lick_was = $ctl_rec[:lick_lick]
   loop_loop_was = $ctl_rec[:loop_loop]
@@ -270,6 +270,9 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
       elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32mx%.1f \e[0m" % tempo
+      elsif $ctl_rec[:faster]
+        tempo += 0.1 if tempo < 2.0
+        print "\e[0m\e[32mx%.1f \e[0m" % tempo
       elsif $ctl_rec[:vol_up]
         $vol_rec.inc
         print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
@@ -279,9 +282,10 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'recording',first_round,
-                        "  SPACE: pause/continue        <: decrease speed\n" + 
+                        "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
+                        "      <: decrease speed        >: increase speed\n" +
                         "      l: loop over recording   " +
                         ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
                         ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )

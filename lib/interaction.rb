@@ -302,6 +302,8 @@ def handle_kb_play_recording
     $ctl_rec[:pause_continue] = true
   elsif char == '<'
     $ctl_rec[:slower] = true
+  elsif char == '>'
+    $ctl_rec[:faster] = true
   elsif char == 'v'
     $ctl_rec[:vol_down] = true
   elsif char == 'V'

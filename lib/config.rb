@@ -59,7 +59,7 @@ def set_global_vars_early
 
   # result of processing keys, while a recording is played
   # this is partially mirrored in sound_driver.rb
-  ks = [:skip, :replay, :slower, :vol_up, :vol_down,
+  ks = [:skip, :replay, :slower, :faster, :vol_up, :vol_down,
         :loop, :loop_loop, :lick_lick,
         :show_help, :pause_continue]
   $ctl_rec = Struct.new(*ks).new
