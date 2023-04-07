@@ -24,7 +24,7 @@ def set_global_vars_early
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
-    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :arecord_extra, :aplay_extra]
+    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :alsa_arecord_extra, :alsa_aplay_extra, :sox_play_extra]
   }
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
@@ -147,8 +147,9 @@ def find_and_check_dirs
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
-  $arecord_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to arecord_extra in #{$early_conf[:config_file_user]}"
-  $aplay_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to aplay_extra in #{$early_conf[:config_file_user]}"
+  $alsa_arecord_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to alsa_arecord_extra in #{$early_conf[:config_file_user]}"
+  $alsa_aplay_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to alsa_aplay_extra in #{$early_conf[:config_file_user]}"
+  $sox_play_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -t) to sox_play_extra in #{$early_conf[:config_file_user]}"
 
   unless File.exist?($early_conf[:config_file_user])
     File.open($early_conf[:config_file_user], 'w') do |cfu|

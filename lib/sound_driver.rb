@@ -9,15 +9,15 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "arecord -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:arecord_extra]} #{file}"
-    system("#{cmd} #{output_clause}") or err "arecord failed: could not run: #{cmd}\n#{$arecord_fail_however}"
+    cmd = "arecord -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:alsa_arecord_extra]} #{file}"
+    system("#{cmd} #{output_clause}") or err "arecord failed: could not run: #{cmd}\n#{$alsa_arecord_fail_however}"
   end
 end
 
 
 def play_sound file
   samples = $opts[:fast] ? 24000 : 0
-  sys("aplay #{file} -s #{samples} #{$conf[:aplay_extra]}", $aplay_fail_however) unless $testing
+  sys("aplay #{file} -s #{samples} #{$conf[:alsa_aplay_extra]}", $alsa_aplay_fail_however) unless $testing
 end
 
 
@@ -174,12 +174,12 @@ def arecord_to_fifo fifo
   arec_cmd = if $testing
                "cat #{$test_wav} /dev/zero"
              else
-               "arecord -r #{$conf[:sample_rate]} #{$conf[:arecord_extra]}" +
+               "arecord -r #{$conf[:sample_rate]} #{$conf[:alsa_arecord_extra]}" +
                  ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
              end
   _, _, wait_thread  = Open3.popen2("#{arec_cmd} >#{fifo}")
   wait_thread.join
-  err "command '#{arec_cmd}' terminated unexpectedly\n#{$arecord_fail_however}"
+  err "command '#{arec_cmd}' terminated unexpectedly\n#{$alsa_arecord_fail_however}"
   exit 1
 end
 
@@ -242,10 +242,10 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   # immediate controls triggered while it is playing
   begin
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} -t alsa #{trim_clause} #{pitch_clause} #{tempo_clause} #{$vol_rec.clause}".strip
+    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause} #{$vol_rec.clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     return false if $testing
-    _, _, wait_thr  = Open3.popen2(cmd)
+    _, stdout_err, wait_thr  = Open3.popen2e(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
     started = Time.now.to_f
     duration = 0.0
@@ -325,7 +325,12 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
     $ctl_rec[:loop] = false if $ctl_rec[:skip]
     if wait_thr.alive?
       Process.kill('KILL',wait_thr.pid)
-      wait_thr.join
+    end
+    wait_thr.join
+    if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
+      puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
+      puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
+      err 'See above'
     end
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
   $ctl_rec[:skip]
@@ -339,7 +344,7 @@ def play_adjustable_pitch embedded = false
   min_semi = -24
   max_semi = 24
   paused = false
-  wait_thr = nil
+  wait_thr = stdout_err = nil
   cmd = cmd_was = nil
 
   sleep 0.1 if embedded
@@ -359,7 +364,6 @@ def play_adjustable_pitch embedded = false
   print_pitch_information(semi)
   # loop forever until ctrl-c
   loop do
-    
     duration_clause = ( wave == :pluck  ?  3  :  86400 )
     if paused
       if wait_thr&.alive?
@@ -368,18 +372,23 @@ def play_adjustable_pitch embedded = false
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
-      cmd = "play -q -n synth #{duration_clause} #{wave} %#{semi+7} #{$vol_pitch.clause}"
+      cmd = "play -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7} #{$vol_pitch.clause}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
-          wait_thr.join
+        end
+        wait_thr&.join
+        if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
+          puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
+          puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
+          err 'See above'
         end
         if $testing
           IO.write($testing_log, cmd + "\n", mode: 'a')
           cmd = 'sleep 86400 ### ' + cmd
         end
         cmd_was = cmd
-        _, _, wait_thr  = Open3.popen2(cmd)
+        _, stdout_err, wait_thr  = Open3.popen2e(cmd)
       end
     end
 
