@@ -22,7 +22,7 @@ USAGE BY EXAMPLES
   chromatic) and, in addition, the key (e.g. c or a) may be omitted
   and are then taken from the config; so
 
-    harpwise q 3 ma
+    harpwise q 3 maj
 
   is valid as well (but would choose a richter harp).
 
