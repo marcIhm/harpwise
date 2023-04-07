@@ -82,9 +82,9 @@ def check_screen graceful: false
 end
 
 
-def sys cmd
+def sys cmd, failinfo = nil
   out, stat = Open3.capture2e(cmd)
-  stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
+  stat.success? || err("Command '#{cmd}' failed with:\n#{out}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
   out
 end
 

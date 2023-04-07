@@ -9,14 +9,15 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    system "arecord -r #{$conf[:sample_rate]} #{duration_clause} #{file} #{output_clause}" or err "arecord failed"
+    cmd = "arecord -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:arecord_extra]} #{file}"
+    system("#{cmd} #{output_clause}") or err "arecord failed: could not run: #{cmd}\n#{$arecord_fail_however}"
   end
 end
 
 
 def play_sound file
   samples = $opts[:fast] ? 24000 : 0
-  sys "aplay #{file} -s #{samples}" unless $testing
+  sys("aplay #{file} -s #{samples} #{$conf[:aplay_extra]}", $aplay_fail_however) unless $testing
 end
 
 
@@ -171,14 +172,14 @@ end
 
 def arecord_to_fifo fifo
   arec_cmd = if $testing
-               "cat #{$test_wav} /dev/zero >#{fifo}"
+               "cat #{$test_wav} /dev/zero"
              else
-               "arecord -r #{$conf[:sample_rate]} >#{fifo}" +
+               "arecord -r #{$conf[:sample_rate]} #{$conf[:arecord_extra]}" +
                  ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
              end
-  _, _, wait_thread  = Open3.popen2(arec_cmd)
+  _, _, wait_thread  = Open3.popen2("#{arec_cmd} >#{fifo}")
   wait_thread.join
-  err "command '#{arec_cmd}' terminated unexpectedly"
+  err "command '#{arec_cmd}' terminated unexpectedly\n#{$arecord_fail_however}"
   exit 1
 end
 
