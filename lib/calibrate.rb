@@ -199,9 +199,13 @@ def record_and_review_hole hole
     do_record, do_draw, do_trim = [false, false, false]
     case answer
     when :play
-      print "\e[33mPlay\e[0m ... "
-      play_sound recorded
-      puts 'done'
+      if File.exist?(recorded)
+        print "\e[33mPlay\e[0m ... "
+        play_sound recorded
+        puts 'done'
+      else
+        print "\e[31mFile #{recorded} does not exist !\e[0m\n"
+      end
     when :draw
       do_draw = true
     when :back
