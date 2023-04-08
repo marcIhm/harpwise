@@ -47,7 +47,7 @@ EOINTRO
   $harp_holes.each_with_index do |hole, idx|
     file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
     synth_sound hole, file, " (#{idx + 1} of #{$harp_holes.length})"
-    play_sound file
+    play_sound file, 12000
     hole2freq[hole] = analyze_with_aubio(file)
   end
   write_freq_file hole2freq
@@ -106,6 +106,8 @@ def do_calibrate_assistant
         else
           i -= 1
         end
+      elsif what == :cancel
+        # keep current value of i
       else
         i += 1
       end
@@ -170,8 +172,8 @@ def record_and_review_hole hole
         if result == :redo
           do_record, do_draw, do_trim = [true, false, true]
           redo                         
-        elsif result == :next_hole
-          return :next, analyze_with_aubio(recorded)
+        elsif result == :next || result == :cancel
+          return result, analyze_with_aubio(recorded)
         end
       end
       
@@ -181,9 +183,9 @@ def record_and_review_hole hole
 
     # get user input
     puts "\e[93mReview and/or record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key})"
-    choices = {:play => [['p', 'SPACE'], 'play recording', 'play recorded sound'],
+    choices = {:play => [['p', 'SPACE'], 'play current recording', 'play recorded sound'],
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
-               :frequency => [['f'], 'frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
+               :frequency => [['f'], 'play frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
                :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown); then trim recording and remove initial silence and surplus length'],
                :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
                :back => [['b'], 'back to prev hole', 'jump back to previous hole']}

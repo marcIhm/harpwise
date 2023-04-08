@@ -15,8 +15,8 @@ def record_sound secs, file, **opts
 end
 
 
-def play_sound file
-  samples = $opts[:fast] ? 24000 : 0
+def play_sound file, samples = nil
+  samples ||= $opts[:fast] ? 24000 : 0
   sys("aplay #{file} -s #{samples} #{$conf[:alsa_aplay_extra]}", $alsa_aplay_fail_however) unless $testing
 end
 
@@ -40,8 +40,9 @@ def trim_recording hole, recorded
     else
       puts
     end
-    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole \e[33m#{hole}\e[0m, play from %.2f" % play_from
-    puts 'Choices: <num-of-secs-start> | d:raw | p:play | y:es | f:requency | r:ecord'
+    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole   \e[33m#{hole}\e[0m   play from %.2f" % play_from
+    puts 'Choices: <secs-start> | d:raw | p:play (SPC) | y:es (RET)'
+    puts '                        f:req | r:ecord      | c:ancel'
     print "Your choice (h for help): "
     choice = one_char
 
@@ -59,13 +60,15 @@ def trim_recording hole, recorded
 
 Full Help:
 
-   <num-of-secs-start> :  set position to start from (marked by vertical
-                   line in plot); just start to type, e.g.:  0.4
-       p, SPACE :  play from current position
-              d :  draw current wave form
-      y, RETURN :  accept current play position, trim file
-                   and skip to next hole
-              r :  record and trim again
+   <secs-start>: set position to start from (marked by vertical bar
+                 line in plot); just start to type, e.g.:  0.4
+              d: draw current wave form
+       p, SPACE: play from current position
+      y, RETURN: accept current play position, trim file
+                 and skip to next hole
+              f: play a sample frequency for comparison 
+            q,c: cancel and go to main menu, where you may generate
+              r: record and trim again
 EOHELP
       
     elsif ['', ' ', 'p'].include?(choice)
@@ -73,11 +76,15 @@ EOHELP
       play_sound $trimmed_wave
     elsif choice == 'd'
       do_draw = true
-    elsif choice == 'y' || choice == "\r"
+    elsif choice == 'y' || choice == "\n"
       FileUtils.cp $trimmed_wave, recorded
       wave2data(recorded)
       puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"
-      return :next_hole
+      return :next
+    elsif choice == 'c' || choice == 'q'
+      wave2data(recorded)
+      puts "\nEdit\e[0m canceled, continue with current hole.\n\n"
+      return :cancel
     elsif choice == 'f'
       print "\e[33mSample\e[0m sound ..."
       synth_sound hole, $helper_wave

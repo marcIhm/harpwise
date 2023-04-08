@@ -510,14 +510,14 @@ def read_answer ans2chs_dsc
   maxlen = klists.map {|k,v| v.length}.max
   i = 0
   ans2chs_dsc.each do |ans, chs_dsc|
-    print "  %*s :  %-20s" % [maxlen, klists[ans], chs_dsc[1]]
+    print "  %*s :  %-22s" % [maxlen, klists[ans], chs_dsc[1]]
     puts if (i += 1) % 2 == 0
   end
 
   begin
     print "\nYour choice (h for help): "
     char = one_char
-    char = {' ' => 'SPACE', "\r" => 'RETURN'}[char] || char
+    char = {' ' => 'SPACE', "\n" => 'RETURN'}[char] || char
     puts char
     answer = nil
     ans2chs_dsc.each do |ans, chs_dsc|
@@ -555,13 +555,9 @@ end
 
 
 def one_char
-  system("stty raw -echo")
+  prepare_term
   char = STDIN.getc
-  system("stty -raw echo")
-  if char && char[0] && char[0].ord == 3
-    puts "\nexit on ctrl-c"
-    exit 1
-  end
+  sane_term
   char
 end  
 
