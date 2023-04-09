@@ -666,6 +666,7 @@ def handle_win_change
   system('clear')
   puts
   while !check_screen(graceful: true)
+    $lagging_expected = true
     puts "\e[2m"
     puts "\n\n\e[0mScreensize is not acceptable, see above !"
     puts "\nPlease resize screen right now to continue."

@@ -73,7 +73,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if now - $program_start > 10
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
-        if now - $lagging_freqs_message_ts > 120 
+        if !$lagging_expected && now - $lagging_freqs_message_ts > 120
           print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[0m"
           print "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c)."
           print "\e[K"
