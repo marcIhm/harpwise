@@ -684,6 +684,7 @@ def handle_win_change
   $figlet_cache = Hash.new
   $ctl_mic[:redraw] = Set.new()
   $ctl_sig_winch = false
+  $freqs_queue.clear
 end
 
 
