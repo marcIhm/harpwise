@@ -104,7 +104,7 @@ at_exit do
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
-  print_lagging_info if !$lagging_expected && $lagging_freqs_lost > 0 && $total_freqs > 0
+  print_lagging_info if $lagging_freqs_lost > 0 && $total_freqs > 0
   # give processes started by threads some time to terminate
   sleep 0.1
   # take care to not remove too much, if something happens and $dirs

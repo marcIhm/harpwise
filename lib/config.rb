@@ -9,7 +9,6 @@ def set_global_vars_early
   $word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   $lagging_freqs_message_ts = 0
   $lagging_freqs_lost = 0
-  $lagging_expected = false
   $total_freqs = 0
 
   # two more entries will be set in find_and_check_dirs
