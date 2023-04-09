@@ -13,7 +13,10 @@ OVERVIEW
     - keyword 'all-licks'
     - scales (e.g. 'chord-i')
     - keyword 'all-scales'
-    
+
+  To get some more detailed reports on licks and scales, especially on
+  how you use them, you may also try the mode: harpwise report
+  
 USAGE BY EXAMPLES
 
   Print holes and notes of a lick:

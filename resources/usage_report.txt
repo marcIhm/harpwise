@@ -17,6 +17,9 @@ OVERVIEW
     
   This mode needs no scale argument.
 
+  To get content of individual licks or scales or simply a list of
+  their names, you may also try the mode: harpwise print
+
 USAGE BY EXAMPLES
 
   Report licks with tags 'fav' first, and then all

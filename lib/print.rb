@@ -51,6 +51,8 @@ def do_print to_print
       $licks.each do |lick|
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
+      puts
+      puts "Total count: #{$all_licks.length}"
     else
       puts_underlined 'All scales:'
       puts ' (name : holes)'
@@ -60,6 +62,8 @@ def do_print to_print
         scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
         puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
       end
+      puts
+      puts "Total count: #{$all_scales.length}"
     end
   end
 
