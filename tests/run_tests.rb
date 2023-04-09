@@ -428,7 +428,7 @@ do_test 'id-7a: change scale of harp' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'S'
+  tms 's'
   sleep 1
   tms 'blues'
   tms :ENTER
@@ -443,7 +443,7 @@ do_test 'id-7b: rotate scale of harp' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 's'
+  tms 'S'
   sleep 1
   expect { screen[1]['listen richter a chord-i'] }
   kill_session
@@ -998,7 +998,7 @@ do_test 'id-37: change lick by name' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[-2]['wade'] }
-  tms 'L'
+  tms 'l'
   tms 'special'
   tms :ENTER
   sleep 2
@@ -1012,7 +1012,7 @@ do_test 'id-37a: change lick by name with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[-2]['wade'] }
-  tms 'L'
+  tms 'l'
   tms :RIGHT
   tms :RIGHT
   tms :ENTER

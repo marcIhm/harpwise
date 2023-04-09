@@ -376,7 +376,7 @@ def handle_kb_mic
   elsif char == "\n" && $ctl_can[:next]
     $ctl_mic[:next] = true
     text = 'Skip'
-  elsif char == 'L' && $ctl_can[:lick]
+  elsif char == 'l' && $ctl_can[:lick]
     $ctl_mic[:change_lick] = true
     text = 'Named'
   elsif char == 'e' && $ctl_can[:lick]
@@ -412,10 +412,10 @@ def handle_kb_mic
   elsif char == 'k'
     $ctl_mic[:change_key] = true
     text = nil
-  elsif char == 's'
+  elsif char == 'S'
     $ctl_mic[:rotate_scale] = true
     text = nil
-  elsif char == 'S'
+  elsif char == 's'
     $ctl_mic[:change_scale] = true
     text = nil
   elsif char == 'K'
@@ -471,7 +471,7 @@ def handle_kb_mic
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
     $ctl_mic[:redraw] = Set[:silent] if $opts[:comment] == :holes_some
-  elsif char == 'l' && $ctl_can[:loop] && $ctl_can[:next]
+  elsif char == 'L' && $ctl_can[:loop] && $ctl_can[:next]
     $ctl_mic[:start_loop] = true
     text = 'Loop started'
   elsif char == '&'

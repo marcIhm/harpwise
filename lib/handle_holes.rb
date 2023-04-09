@@ -534,7 +534,12 @@ def do_change_scale_add_scales
     $scale_desc_maybe[scale] || '?'
   end
   $scale = input if input
-
+  unless input
+    $message_shown_at = Time.now.to_f
+    $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mDid not change scale of harp.\e[0m\e[K"
+    return
+  end
+  
   # Change --add-scales
   add_scales = []
   loop do
@@ -546,7 +551,7 @@ def do_change_scale_add_scales
         $scale_desc_maybe[scale] || '?'
       end
     end
-    break if input == 'DONE'
+    break if !input || input == 'DONE'
     add_scales << input
   end
   if add_scales.length == 0
@@ -589,7 +594,7 @@ def show_help
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
              "      j: toggle journal file",
-             "      s: rotate scales                S: set them anew"]
+             "      s: set scales                   S: rotate scales"]
   if $ctl_can[:switch_modes]
     frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
   elsif $mode == :listen
@@ -606,11 +611,11 @@ def show_help
                " RETURN: next sequence or lick     BACKSPACE: previous sequence",
                "      .: replay current                    ,: replay, holes only",
                "    :;p: replay but ignore '--partial', i.e. play all",
-               "      i: toggle '--immediate'              l: loop current sequence",
+               "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      #: toggle tracking progress in seq   R: play holes reversed"]
     if $ctl_can[:lick]
-      frames[-1].append(*["      L: change lick                       e: edit lickfile",
+      frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags_any (aka -t)",
                           "      <: shift lick down by one octave     >: shift lick up",
                           "    @,P: change option --partial",
