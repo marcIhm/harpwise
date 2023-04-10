@@ -1275,6 +1275,14 @@ do_test 'id-50: tools positions' do
   kill_session
 end
 
+do_test 'id-50a: tools key as alias for positions' do
+  new_session
+  tms 'harpwise tools keys b'
+  tms :ENTER
+  expect { screen[1]['-3'] }
+  kill_session
+end
+
 do_test 'id-51: tools transpose' do
   new_session
   tms 'harpwise tools transpose c g -1'

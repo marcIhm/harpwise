@@ -26,10 +26,34 @@ end
 
 
 def tool_key_positions to_handle
+  
+  err "Can handle only one (optional) argument, not these: #{to_handle}" if to_handle.length > 1
+  if to_handle.length == 1
+    center_key = to_handle[0].downcase
+    err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(center_key)
+  else
+    center_key = 'c'
+  end
+  lines = File.read("#{$dirs[:install]}/resources/keys-positions.org").lines
+  center_idx = 0
+  lines.each do |line|
+    next unless line['%s']
+    break if line.split('|')[1].downcase.match?(/\b#{center_key}\b/)
+    center_idx += 1
+  end
 
-  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+  idx = 0
   puts
-  puts File.read("#{$dirs[:install]}/resources/keys-positions.org")
+  lines.each do |line|
+    if line['%s']
+      print "\e[0m\e[32m" if idx == center_idx
+      print line % (idx - center_idx).to_s.rjust(3)
+      print "\e[0m"
+      idx += 1
+    else
+      print line
+    end
+  end
   puts
 end
 
