@@ -46,10 +46,12 @@ def tool_key_positions to_handle
   puts
   lines.each do |line|
     if line['%s']
-      if idx == center_idx 
-        print "\e[0m\e[32m"
-      elsif line.downcase.match?(/\b#{center_key}\b/)
-        line.gsub!(/\b(#{center_key})\b/i, "\e[0m\e[34m" + '\1' + "\e[0m")
+      if to_handle.length > 0
+        if idx == center_idx 
+          print "\e[0m\e[32m"
+        elsif line.downcase.match?(/\b#{center_key}\b/)
+          line.gsub!(/\b(#{center_key})\b/i, "\e[0m\e[34m" + '\1' + "\e[0m")
+        end
       end
       print line % (idx - center_idx).to_s.rjust(3)
       print "\e[0m"
