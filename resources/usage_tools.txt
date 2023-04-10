@@ -9,7 +9,8 @@ OVERVIEW
 
   - transpose: transpose a sequence of notes from one key of harp
     to another
-  - keys (or positions): print a fixed chart with keys and positions
+  - keys (or positions): print a fixed chart with keys and positions,
+    optionally centered around the key given as argument
   - chords: print the chords i, iv and v for the given key of harp as
     played in second position
   - chart: print harmonica chart with notes for the given key; specify
@@ -25,23 +26,27 @@ USAGE BY EXAMPLES
   note, that no all notes maybe available on the harp of the new key.
 
 
-  Print the simple table of positions:
+  Print a simple table of keys and positions:
   
-    harpwise tools positions
+    harpwise tools keys
+
+  Center it around a specific key:
+
+    harpwise tools key bf
     
 
   Print a harmonica chart for the key of g:
 
     harpwise tools chart g
 
-  The same chart, but arguments rearranged
+  The same chart, but with arguments rearranged
 
     harpwise tools g chart
     
   Two charts, the second with scale-content
 
-    harpwise tools g chord-i chart
-    
+    harpwise tools g chord-i chart --add-scales -
+
   Three charts, the third with intervals of each hole to the given
   reference:
 
