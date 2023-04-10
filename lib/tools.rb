@@ -4,14 +4,14 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(positions transpose chart chords print)
+  tools_allowed = %w(keys positions transpose chart chords print)
   tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
     err "Argument for mode 'tools' must be one of #{choices}, not #{none}; #{$for_usage}"
   end
 
   case tool
-  when 'positions'
-    tool_positions to_handle
+  when 'keys', 'positions'
+    tool_key_positions to_handle
   when 'transpose'
     tool_transpose to_handle
   when 'chords'
@@ -25,42 +25,12 @@ def do_tools to_handle
 end
 
 
-def tool_positions to_handle
+def tool_key_positions to_handle
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
-  
-puts <<EOCHART
-
-  | Key of Song  |              |              |              |
-  | or Key       | Key of Harp  | Key of Harp  | Key of Harp  |
-  | of Harp in   | 2nd Position | 3rd Position | 4th Position |
-  | 1st Position |              |              |              |
-  |--------------+--------------+--------------+--------------|
-  | G            | C            | F            | Bf           |
-  |--------------+--------------+--------------+--------------|
-  | Af           | Df           | Fs           | B            |
-  |--------------+--------------+--------------+--------------|
-  | A            | D            | G            | C            |
-  |--------------+--------------+--------------+--------------|
-  | Bf           | Ef           | Af           | Cs           |
-  |--------------+--------------+--------------+--------------|
-  | B            | E            | A            | D            |
-  |--------------+--------------+--------------+--------------|
-  | C            | F            | Bf           | Ef           |
-  |--------------+--------------+--------------+--------------|
-  | Cs           | Fs           | B            | E            |
-  |--------------+--------------+--------------+--------------|
-  | D            | G            | C            | F            |
-  |--------------+--------------+--------------+--------------|
-  | Ef           | Af           | Cs           | Fs           |
-  |--------------+--------------+--------------+--------------|
-  | E            | A            | D            | G            |
-  |--------------+--------------+--------------+--------------|
-  | F            | Bf           | Ef           | Af           |
-  |--------------+--------------+--------------+--------------|
-  | Fs           | B            | E            | A            |
-
-EOCHART
+  puts
+  puts File.read("#{$dirs[:install]}/resources/keys-positions.org")
+  puts
 end
 
 
