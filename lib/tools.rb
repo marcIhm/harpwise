@@ -26,34 +26,42 @@ end
 
 
 def tool_key_positions to_handle
-  
-  err "Can handle only one (optional) argument, not these: #{to_handle}" if to_handle.length > 1
-  if to_handle.length == 1
-    center_key = to_handle[0].downcase
-    err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(center_key)
-  else
-    center_key = 'c'
+
+  harp_key = 'c'
+  harp_color = "\e[0m\e[32m"
+  song_key = nil
+  song_color = ''
+
+  err "Can handle only one or two (optional) argument, not these: #{to_handle}" if to_handle.length > 2
+
+  if to_handle.length >= 1
+    harp_key = to_handle[0].downcase
+    err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(harp_key)
+    harp_color += "\e[7m"
   end
+
+  if to_handle.length == 2
+    song_key = to_handle[1].downcase
+    err "Key #{to_handle[1]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(song_key)
+    song_color = "\e[0m\e[34m\e[7m"
+  end
+
   lines = File.read("#{$dirs[:install]}/resources/keys-positions.org").lines
-  center_idx = 0
+  harp_idx = 0
   lines.each do |line|
     next unless line['%s']
-    break if line.split('|')[1].downcase.match?(/\b#{center_key}\b/)
-    center_idx += 1
+    break if line.split('|')[1].downcase.match?(/\b#{harp_key}\b/)
+    harp_idx += 1
   end
 
   idx = 0
   puts
   lines.each do |line|
+    print '  '
     if line['%s']
-      if to_handle.length > 0
-        if idx == center_idx 
-          print "\e[0m\e[32m"
-        elsif line.downcase.match?(/\b#{center_key}\b/)
-          line.gsub!(/\b(#{center_key})\b/i, "\e[0m\e[34m" + '\1' + "\e[0m")
-        end
-      end
-      print line % (idx - center_idx).to_s.rjust(3)
+      line = colorize_word_cell(line, song_key, song_color,
+                                idx == harp_idx  ?  harp_color  :  "\e[0m")
+      print line % (idx - harp_idx).to_s.rjust(3)
       print "\e[0m"
       idx += 1
     else
@@ -61,6 +69,20 @@ def tool_key_positions to_handle
     end
   end
   puts
+end
+
+
+def colorize_word_cell plain, word, color_word, color_normal
+  colored = "\e[0m"
+  plain.strip.split('|').each_with_index do |field, idx|
+    colored += if word && idx >= 2 && field.downcase.match?(/\b#{word}\b/)
+                 color_word
+               else
+                 color_normal
+               end
+    colored += field + "\e[0m|"
+  end
+  return colored + "\n"
 end
 
 

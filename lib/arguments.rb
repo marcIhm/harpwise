@@ -125,7 +125,7 @@ def parse_arguments
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
-  while i<ARGV.length do
+  while i < ARGV.length do
     unless ARGV[i].start_with?('-')
       i += 1
       next
