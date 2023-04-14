@@ -52,7 +52,7 @@ def set_global_vars_early
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
-        :toggle_journal, :change_display, :change_comment, :update_comment, :toggle_progress,
+        :journal_current, :journal_delete, :journal_menu, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
@@ -109,7 +109,7 @@ def set_global_vars_early
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
-  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles]
+  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal]
 
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
@@ -248,6 +248,7 @@ def set_global_vars_late
   $journal_active = false
   $journal_started_count = 0
   $journal_file = get_journal_file
+  $journal_selected = Array.new
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"

@@ -185,14 +185,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
       case $opts[:comment]
-      when :holes_scales
+      when :holes_scales, :holes_intervals, :holes_all, :holes_notes
         fit_into_comment lambda_comment.call
-      when :holes_intervals
-        fit_into_comment lambda_comment.call
-      when :holes_all
-        fit_into_comment lambda_comment.call
-      when :holes_notes
-        fit_into_comment lambda_comment.call
+      when :journal
+        fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil, nil)
       else
         # lambda may choose a different position
         color,
@@ -343,8 +339,34 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:toggle_progress] = false
       print_mission(get_mission_override || lambda_mission.call)
     end
+
+    if $ctl_mic[:journal_current]
+      if $opts[:comment] == :journal
+        if hole_disp == '-'
+          case $journal_selected[-1]
+          when '(-)'
+            $journal_selected[-1] = '(+)'
+          when '(+)'
+            $journal_selected[-1] = '(-)'
+          else
+            $journal_selected << '(-)'
+          end
+        else
+          $journal_selected << hole_disp
+        end
+      else
+        print "\e[#{$lines[:hint_or_message]}H\e[0mCan add to journal only, when comment is JOURNAL\e[0m\e[K"
+        $message_shown_at = Time.now.to_f
+      end
+      $ctl_mic[:journal_current] = false
+    end
     
-    if $ctl_mic[:toggle_journal]
+    if $ctl_mic[:journal_delete]
+      $journal_selected.pop
+      $ctl_mic[:journal_delete] = false
+    end
+    
+    if $ctl_mic[:journal_menu]
       $journal_active = !$journal_active
       if $journal_active
         journal_start
@@ -360,7 +382,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print "\e[K"
       $message_shown_at = Time.now.to_f
 
-      $ctl_mic[:toggle_journal] = false
+      $ctl_mic[:journal_menu] = false
 
       print "\e[#{$lines[:key]}H" + text_for_key      
     end
@@ -435,7 +457,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; journal: ' + ( $journal_active  ?  ' on' : 'off' )
+  text += '; j2f: ' + ( $journal_active  ?  ' on' : 'off' )
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
@@ -593,7 +615,7 @@ def show_help
              "      r: set reference to hole played (not freq played)",
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
-             "      j: toggle journal file",
+             "      j: add current hole to journal  J: journal menu",
              "      s: set scales                   S: rotate scales"]
   if $ctl_can[:switch_modes]
     frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"

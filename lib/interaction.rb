@@ -406,8 +406,11 @@ def handle_kb_mic
   elsif char == 'm' && $ctl_can[:switch_modes]
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
+  elsif char == 'J'
+    $ctl_mic[:journal_menu] = true
+    text = 'Add to journal'
   elsif char == 'j'
-    $ctl_mic[:toggle_journal] = true
+    $ctl_mic[:journal_current] = true
     text = nil
   elsif char == 'k'
     $ctl_mic[:change_key] = true
@@ -461,9 +464,14 @@ def handle_kb_mic
     $ctl_mic[:toggle_progress] = true
     # $opts[:no_progress] will be toggled later
     text = $opts[:no_progress]  ?  'Track progress'  :  'Do not track progress'
-  elsif char.ord == 127 && $ctl_can[:next]
-    $ctl_mic[:back] = true
-    text = 'Skip back'
+  elsif char.ord == 127
+    if $ctl_can[:next]
+      $ctl_mic[:back] = true
+      text = 'Skip back'
+    elsif $opts[:comment] == :journal
+      $ctl_mic[:journal_delete] = true
+      text = 'Delete from journal'
+    end
   elsif char.ord == 12
     $ctl_mic[:redraw] = Set[:silent, :clear]
     text = 'redraw'

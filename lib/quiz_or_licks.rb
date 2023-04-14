@@ -297,7 +297,6 @@ def do_quiz_or_licks
             if idx != idx_refresh_comment_cache || $ctl_mic[:update_comment]
               idx_refresh_comment_cache = idx
               $perfctr[:lambda_comment_quiz_call] += 1
-              idx_refresh_ccache = idx
               comment_cache = 
                 case $opts[:comment]
                 when :holes_some
@@ -716,7 +715,7 @@ end
 def tabify_colorize max_lines, holes_scales, idx_first_active
   lines = Array.new
   max_cell_len = holes_scales.map {|hs| hs.map(&:length).sum + 2}.max
-  per_line = (($term_width * 0.8 - 4)/ max_cell_len).truncate
+  per_line = (($term_width * 0.8 - 4) / max_cell_len).truncate
   line = '   '
   holes_scales.each_with_index do |hole_scale, idx|
     if idx > 0 && idx % per_line == 0
@@ -755,6 +754,34 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
   end
   lines[-1] += "\e[0m"
   lines
+end
+
+
+def tabify max_lines, holes
+  lines = Array.new
+  lines << "\e[K"
+  max_cell_len = $harp_holes.map {|h| h.length}.max + 2
+  per_line = (($term_width * 0.9 - 4) / max_cell_len).truncate
+  to_del = 0
+  line = ''
+  holes.each_with_index do |hole, idx|
+    if idx > 0 && idx % per_line == 0
+      lines << line + "\e[K"
+      lines << "\e[K"
+      line = ''
+    end
+    line += hole.rjust(max_cell_len)
+  end
+  lines << line + "\e[K"
+  lines << "\e[K"
+  if lines.length > max_lines
+    lines = lines.select {|l| l != "\e[K"}
+  end
+  if lines.length > max_lines
+    lines.shift
+    to_del = per_line
+  end
+  return lines, to_del
 end
 
 
