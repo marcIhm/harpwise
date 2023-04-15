@@ -340,7 +340,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
     end
 
-    if $ctl_mic[:journal_current]
+    if $ctl_mic[:j2c_current]
       if $opts[:comment] == :journal
         if hole_disp == '-'
           case $journal_selected[-1]
@@ -358,15 +358,25 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         print "\e[#{$lines[:hint_or_message]}H\e[0mCan add to journal only, when comment is JOURNAL\e[0m\e[K"
         $message_shown_at = Time.now.to_f
       end
-      $ctl_mic[:journal_current] = false
+      $ctl_mic[:j2c_current] = false
     end
     
-    if $ctl_mic[:journal_delete]
+    if $ctl_mic[:j2c_delete]
       $journal_selected.pop
-      $ctl_mic[:journal_delete] = false
+      $ctl_mic[:j2c_delete] = false
     end
     
     if $ctl_mic[:journal_menu]
+      journal_menu
+      $ctl_mic[:journal_menu] = false
+      $ctl_mic[:redraw] = Set[:silent]
+      $freqs_queue.clear
+    end
+
+    if $ctl_mic[:j2c_clear]
+    end
+
+    if $ctl_mic[:j2f_toggle]
       $journal_active = !$journal_active
       if $journal_active
         journal_start
@@ -457,7 +467,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; j2f: ' + ( $journal_active  ?  ' on' : 'off' )
+  text += '; Jour2File ' if $journal_active
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 

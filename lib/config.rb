@@ -52,7 +52,7 @@ def set_global_vars_early
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
-        :journal_current, :journal_delete, :journal_menu, :change_display, :change_comment, :update_comment, :toggle_progress,
+        :j2c_current, :j2c_delete, :journal_menu, :j2c_clear, :j2c_write, :j2f_toggle, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}

@@ -373,9 +373,14 @@ def handle_kb_mic
     end until char == ' '
     ctl_response 'continue', hl: true
     waited = true
-  elsif char == "\n" && $ctl_can[:next]
-    $ctl_mic[:next] = true
-    text = 'Skip'
+  elsif char == "\n"
+    if $ctl_can[:next]
+      $ctl_mic[:next] = true
+      text = 'Skip'
+    elsif $opts[:comment] == :journal
+      $ctl_mic[:j2c_current] = true
+      text = 'Add to journal'
+    end
   elsif char == 'l' && $ctl_can[:lick]
     $ctl_mic[:change_lick] = true
     text = 'Named'
@@ -408,10 +413,10 @@ def handle_kb_mic
     text = 'Switch modes'
   elsif char == 'J'
     $ctl_mic[:journal_menu] = true
-    text = 'Add to journal'
+    text = 'Journal menu'
   elsif char == 'j'
-    $ctl_mic[:journal_current] = true
-    text = nil
+    $ctl_mic[:j2c_current] = true
+    text = 'Add to journal'
   elsif char == 'k'
     $ctl_mic[:change_key] = true
     text = nil
@@ -469,7 +474,7 @@ def handle_kb_mic
       $ctl_mic[:back] = true
       text = 'Skip back'
     elsif $opts[:comment] == :journal
-      $ctl_mic[:journal_delete] = true
+      $ctl_mic[:j2c_delete] = true
       text = 'Delete from journal'
     end
   elsif char.ord == 12
@@ -486,12 +491,12 @@ def handle_kb_mic
     $opts[:debug] = true
     text = 'Debug is ON'
   elsif char.length > 0
-    desc = if char.match?(/^[[:print:]]+$/)
-             desc = char
-           else
-             desc = "? (#{char.ord})"
-           end
-    text = "Invalid char #{desc}, h for help"
+    cdesc = if char.match?(/^[[:print:]]+$/)
+              char
+            else
+              "? (#{char.ord})"
+            end
+    text = "Invalid char #{cdesc}, h for help"
   end
   ctl_response text if text && !waited
   waited
@@ -826,7 +831,7 @@ def chia_print_in_columns names, idx_hl, total_chars
       break if lines_count > max_lines
       if (line + name).length > $term_width - 4
         if lines_count == max_lines && idx < names.length - 1
-          # we cannot output the current element, so we overwrite event the
+          # we cannot output the current element, so we overwrite even the
           # previous one to tell about this
           text_more = ' ... more'
           line[-text_more.length ..] = text_more
@@ -949,4 +954,51 @@ def report_error_wait_key etext
   print "\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
+end
+
+
+def journal_menu
+  clear_area_comment
+  print "\e[#{$lines[:comment_tall]}H\e[J"
+  print "\e[2m"
+  puts
+  puts " There are two types of journals with their respective commands:"
+  puts "   Journal-to-file (j2f), once activated, it writes everything you play"
+  print "\e[0m\e[32m"
+  puts "     t: toggle it on and off"
+  print "\e[0m\e[2m"
+  puts "   Journal-to-comment (j2c), shows holes when comment is JOURNAL,"
+  puts "   (holes are added THERE by pressing 'j' or RETURN, deleted by BACKSPACE)"
+  print "\e[0m\e[32m"
+  puts "     f: append it to a file        c: clear its content"
+  print "\n\e[0m\e[2m Type any of t,w,c or any other key to cancel ... \e[K"
+  $ctl_kb_queue.clear
+  char = $ctl_kb_queue.deq
+  case char
+  when 't'
+    $ctl_mic[:j2f_toggle] = true
+  when 'w'
+    $ctl_mic[:j2c_write] = true
+  when 'c'
+    clear_area_comment
+    print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
+    print "\n\e[0m  'Y' to clear, any other key to cancel ..."
+    $ctl_kb_queue.clear
+    char = $ctl_kb_queue.deq
+    if char == 'Y'
+      $ctl_mic[:j2c_clear] = true
+    else
+      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mJournal to comment NOT cleared\e[K"
+      $message_shown_at = Time.now.to_f
+    end
+  else
+    cdesc = if char.match?(/^[[:print:]]+$/)
+              "'#{char}'"
+            else
+              "? (#{char.ord})"
+            end
+    $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mInvalid char #{cdesc} for journal menu\e[K"
+    $message_shown_at = Time.now.to_f
+  end
+  clear_area_comment
 end

@@ -94,7 +94,7 @@ def do_listen
                  "set ref"
                end
              when :journal
-               return ["\e[K", "\e[K", '      No on-request journal yet to show.', "\e[K", "      \e[2mPlay and use 'j' to add, BACKSPACE to remove,", "      \e[2m'J' for menu.\e[0m"] if $journal_selected.length == 0
+               return ["\e[K", "\e[K", '      No on-request journal yet to show.', "\e[K", "      \e[2mPlay and use 'j' or RETURN to add what is beeing played,", "      \e[2mBACKSPACE to remove, 'J' for menu.\e[0m"] if $journal_selected.length == 0
                if jlen_refresh_comment_cache != $journal_selected.length || $ctl_mic[:update_comment]
                  jlen_refresh_comment_cache = $journal_selected.length
                  comment_cache, to_del = tabify($lines[:hint_or_message] - $lines[:comment_tall], $journal_selected)

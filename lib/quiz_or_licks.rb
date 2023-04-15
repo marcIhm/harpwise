@@ -770,7 +770,7 @@ def tabify max_lines, holes
       lines << "\e[K"
       line = ''
     end
-    line += hole.rjust(max_cell_len)
+    line += ( hole['(']  ?  "\e[2m"  :  "\e[0m" ) + hole.rjust(max_cell_len)
   end
   lines << line + "\e[K"
   lines << "\e[K"
