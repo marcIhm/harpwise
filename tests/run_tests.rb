@@ -94,8 +94,7 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 
 puts "\nPreparing data"
 # need a sound file
-system("sox -n /tmp/harpwise_testing.wav synth 200.0 sawtooth 494")
-FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
+system("sox -n /tmp/harpwise_testing.wav synth 1000.0 sawtooth 494")
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -385,9 +384,12 @@ do_test 'id-6: listen' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'j'
+  tms 'C'
+  tms 'C'
+  tms 'J'
+  tms 't'
   sleep 1
-  expect { File.exist?(journal_file) }
+  expect(journal_file) { File.exist?(journal_file) }
   kill_session
 end
 
@@ -1034,7 +1036,7 @@ do_test 'id-37b: change option --tags' do
   tms 'cyc'
   tms :ENTER
   tms 'q'
-  sleep 1
+  wait_for_end_of_harpwise
   dump = read_testing_dump('end')
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'favorites'}
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'cycle'}
@@ -1052,7 +1054,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms :DOWN
   tms :ENTER
   tms 'q'
-  sleep 1
+  wait_for_end_of_harpwise
   dump = read_testing_dump('end')
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'advanced'}
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'random'}
@@ -1067,11 +1069,11 @@ do_test 'id-37d: change partial' do
   tms '@'
   tms '1@e'
   tms :ENTER
-  sleep 1
+  sleep 2
   tms 'q'
-  sleep 1
+  wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect { dump[:opts][:partial] == '1@e' }
+  expect(dump[:opts]) { dump[:opts][:partial] == '1@e' }
   kill_session
 end
 
@@ -1102,10 +1104,11 @@ do_test 'id-40: handling a very long lick' do
   20.times {
     tms '1'
   }
-  expect { screen[-8]['▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▗▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘'] }
+  sleep 2
+  expect { screen[-8]['  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▄▘  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌  ▄▄▖▚▄▌'] }
   tms 'c'
   tms '1'
-  sleep 1
+  sleep 2
   expect { screen[-5]['-4.b15   -4.b15   -4.b15   -5.b     -5.b'] }
   kill_session
 end
@@ -1435,6 +1438,33 @@ help_samples.keys.each_with_index do |cmd, idx|
     end
     kill_session
   end
+end
+
+do_test 'id-58: listen with journal in comment' do
+  sound 8, 2
+  journal_file = "#{$dotdir_testing}/journal_richter_selected.txt"
+  FileUtils.rm journal_file if File.exist?(journal_file)
+  new_session
+  tms 'harpwise listen a all --comment journal'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms :ENTER
+  tms :ENTER
+  tms :ENTER
+  tms :BSPACE
+  sleep 1
+  expect { screen[-8] == '     -4     -4' }
+  tms 'J'
+  tms 'w'
+  sleep 1
+  expect { File.exist?(journal_file) }
+  tms 'J'
+  tms 'c'
+  tms 'y'
+  sleep 1
+  expect { screen[-7]['No on-request journal yet to show'] }
+  kill_session
 end
 
 puts "\ndone.\n\n"

@@ -179,7 +179,8 @@ end
 
 def arecord_to_fifo fifo
   arec_cmd = if $testing
-               "cat #{$test_wav} /dev/zero"
+               # 7680 is the rate of our sox-generated file; we use 10 times as much ?
+               "pv -qL 76800 #{$test_wav}"
              else
                "arecord -r #{$conf[:sample_rate]} #{$conf[:alsa_arecord_extra]}" +
                  ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
@@ -193,19 +194,15 @@ end
 
 def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
-  _, aubio_out = Open3.popen2(aubio_cmd) unless $testing
-
+  _, aubio_out = Open3.popen2(aubio_cmd)
   ptouch = false
   loop do
-    if $testing
-      sleep 0.1
+    fields = aubio_out.gets.split.map {|f| f.to_f}
+    $freqs_queue.enq fields[1]
+    if $testing && !ptouch
       FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started") unless ptouch
       ptouch = true
-      fields = [0.0, 16059.87793]
-    else
-      fields = aubio_out.gets.split.map {|f| f.to_f}
     end
-    $freqs_queue.enq fields[1]
   end
 end
 

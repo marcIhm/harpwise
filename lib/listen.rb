@@ -3,7 +3,6 @@
 #
 
 def do_listen
-
   unless $other_mode_saved[:conf]
     make_term_immediate
     start_collect_freqs
