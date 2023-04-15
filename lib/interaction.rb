@@ -411,10 +411,10 @@ def handle_kb_mic
   elsif char == 'm' && $ctl_can[:switch_modes]
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
-  elsif char == 'J'
+  elsif char == 'J' && !$ctl_can[:next]
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
-  elsif char == 'j'
+  elsif char == 'j' && !$ctl_can[:next]
     $ctl_mic[:j2c_current] = true
     text = 'Add to journal'
   elsif char == 'k'

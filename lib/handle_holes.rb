@@ -625,14 +625,16 @@ def show_help
              "      r: set reference to hole played (not freq played)",
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
-             "      j: add current hole to journal  J: journal menu",
              "      s: set scales                   S: rotate scales"]
+  if !$ctl_can[:next]
+    frames[-1] <<  "      j: add current hole to journal  J: journal menu"
+  end
+    
   if $ctl_can[:switch_modes]
     frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
   elsif $mode == :listen
-    frames[-1].append(*["      m: switch between modes; not available now; rather start",
-                        "         with modes quiz or licks to be able to switch to",
-                        "         listen and then back"])
+    frames[-1].append(*["      m: switch between modes; not available now; rather start with modes",
+                        "         quiz or licks to be able to switch to listen and then back"])
   end
   frames[-1].append(*["      q: quit harpwise                h: this help",
                       ""])
