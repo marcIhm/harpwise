@@ -381,3 +381,33 @@ def puts_underlined text
   puts '=' * text.length
   puts
 end
+
+
+def switch_modes
+  $ctl_mic[:switch_modes] = false
+  $mode = ($modes_for_switch - [$mode])[0]
+  if !$other_mode_saved[:conf]
+    # We are switching first time from licks or quiz to listen
+    $other_mode_saved[:conf] = $conf.clone
+    $other_mode_saved[:opts] = $opts.clone
+    $other_mode_saved[:opts][:no_progress] = false
+    $other_mode_saved[:opts][:comment] = :note
+  end
+  $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
+  $opts, $other_mode_saved[:opts] = $other_mode_saved[:opts], $opts
+  $lines = calculate_screen_layout
+  $first_round_ever_get_hole = true
+  
+  if $journal_started_count > 0
+    journal_stop
+    $journal_active = false
+    $journal_started_count = 0
+  end
+  $journal_file, $journal_file_selected = get_journal_files
+  clear_area_comment
+  print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
+  do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
+  sleep 1
+  $mode_start = Time.now.to_f
+  $freqs_queue.clear
+end

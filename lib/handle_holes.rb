@@ -70,7 +70,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     behind = $freqs_queue.length * $opts[:time_slice]
     if behind > 0.5
       now = Time.now.to_f
-      if now - $program_start > 10
+      if now - $mode_start > 10
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
         if now - $lagging_freqs_message_ts > 120 
