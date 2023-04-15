@@ -247,7 +247,7 @@ def set_global_vars_late
   $journal_listen = Array.new
   $journal_active = false
   $journal_started_count = 0
-  $journal_file = get_journal_file
+  $journal_file, $journal_file_selected = get_journal_files
   $journal_selected = Array.new
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"

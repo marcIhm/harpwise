@@ -341,42 +341,54 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:j2c_current]
-      if $opts[:comment] == :journal
-        if hole_disp == '-'
-          case $journal_selected[-1]
-          when '(-)'
-            $journal_selected[-1] = '(+)'
-          when '(+)'
-            $journal_selected[-1] = '(-)'
-          else
-            $journal_selected << '(-)'
-          end
+      if hole_disp == '-'
+        case $journal_selected[-1]
+        when '(-)'
+          $journal_selected[-1] = '(+)'
+        when '(+)'
+          $journal_selected[-1] = '(-)'
         else
-          $journal_selected << hole_disp
+          $journal_selected << '(-)'
         end
       else
-        print "\e[#{$lines[:hint_or_message]}H\e[0mCan add to journal only, when comment is JOURNAL\e[0m\e[K"
-        $message_shown_at = Time.now.to_f
+        $journal_selected << hole_disp
       end
       $ctl_mic[:j2c_current] = false
     end
     
     if $ctl_mic[:j2c_delete]
-      $journal_selected.pop
       $ctl_mic[:j2c_delete] = false
+      $journal_selected.pop
     end
     
     if $ctl_mic[:journal_menu]
-      journal_menu
+      if $opts[:comment] == :journal
+        journal_menu
+        $ctl_mic[:redraw] = Set[:silent]
+        $freqs_queue.clear
+      else
+        print "\e[#{$lines[:hint_or_message]}H\e[0mJournal menu is available only, when comment is JOURNAL\e[0m\e[K"
+        $message_shown_at = Time.now.to_f
+      end
       $ctl_mic[:journal_menu] = false
-      $ctl_mic[:redraw] = Set[:silent]
-      $freqs_queue.clear
+    end
+
+    if $ctl_mic[:j2c_write]
+      $ctl_mic[:j2c_write] = false
+      IO.write($journal_file_selected, "\n\n#{Time.now} -- #{$journal_selected.length} holes selected:\n#{$journal_selected.join(' ')}\n", mode: 'a')
+      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[0mWrote #{$journal_selected.length} holes to #{$journal_file_selected}\e[0m\e[K"
+      $message_shown_at = Time.now.to_f
     end
 
     if $ctl_mic[:j2c_clear]
+      $ctl_mic[:j2c_clear] = false
+      $journal_selected = Array.new
+      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[0mCleared journal\e[0m\e[K"
+      $message_shown_at = Time.now.to_f
     end
 
     if $ctl_mic[:j2f_toggle]
+      $ctl_mic[:j2f_toggle] = false
       $journal_active = !$journal_active
       if $journal_active
         journal_start
@@ -387,14 +399,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         # do not issue message in journal
       end
       ctl_response "Journal #{$journal_active ? ' ON' : 'OFF'}"
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m"      
-      print ( $journal_active  ?  "Appending to "  :  "Done with " ) + $journal_file
-      print "\e[K"
+      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m" + ( $journal_active  ?  "Appending to "  :  "Done with " ) + $journal_file +  "\e[K"
       $message_shown_at = Time.now.to_f
-
-      $ctl_mic[:journal_menu] = false
-
-      print "\e[#{$lines[:key]}H" + text_for_key      
     end
 
     if $ctl_mic[:star_lick] && lambda_star_lick
@@ -626,7 +632,9 @@ def show_help
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
              "      s: set scales                   S: rotate scales"]
-  if !$ctl_can[:next]
+  if $ctl_can[:next]
+    frames[-1] <<  "    j,J: keys for journal only available in mode listen"
+  else
     frames[-1] <<  "      j: add current hole to journal  J: journal menu"
   end
     

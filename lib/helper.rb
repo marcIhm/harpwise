@@ -324,13 +324,14 @@ def animate_splash_line single_line = false
 end
 
 
-def get_journal_file
-  if $mode == :licks || $mode == :play || $mode == :report
-    # modes licks and play both play random licks and report needs to read them
-    "#{$dirs[:data]}/journal_#{$type}_modes_licks_and_play.txt"
-  else
-    "#{$dirs[:data]}/journal_#{$type}_mode_#{$mode}.txt"
-  end
+def get_journal_files
+  j2f = if $mode == :licks || $mode == :play || $mode == :report
+          # modes licks and play both play random licks and report needs to read them
+          "#{$dirs[:data]}/journal_#{$type}_modes_licks_and_play.txt"
+        else
+          "#{$dirs[:data]}/journal_#{$type}_mode_#{$mode}.txt"
+        end
+  return [j2f, "#{$dirs[:data]}/journal_#{$type}_selected.txt"]
 end
 
 #

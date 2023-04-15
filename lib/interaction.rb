@@ -365,7 +365,7 @@ def handle_kb_mic
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
   waited = false
-  
+
   if char == ' '
     ctl_response 'SPACE to continue', hl: true
     begin
@@ -380,6 +380,8 @@ def handle_kb_mic
     elsif $opts[:comment] == :journal
       $ctl_mic[:j2c_current] = true
       text = 'Add to journal'
+    else
+      text = get_text_invalid(char)
     end
   elsif char == 'l' && $ctl_can[:lick]
     $ctl_mic[:change_lick] = true
@@ -476,6 +478,8 @@ def handle_kb_mic
     elsif $opts[:comment] == :journal
       $ctl_mic[:j2c_delete] = true
       text = 'Delete from journal'
+    else
+      text = get_text_invalid(char)
     end
   elsif char.ord == 12
     $ctl_mic[:redraw] = Set[:silent, :clear]
@@ -491,12 +495,7 @@ def handle_kb_mic
     $opts[:debug] = true
     text = 'Debug is ON'
   elsif char.length > 0
-    cdesc = if char.match?(/^[[:print:]]+$/)
-              char
-            else
-              "? (#{char.ord})"
-            end
-    text = "Invalid char #{cdesc}, h for help"
+    text = get_text_invalid(char)
   end
   ctl_response text if text && !waited
   waited
@@ -970,7 +969,7 @@ def journal_menu
   puts "   Journal-to-comment (j2c), shows holes when comment is JOURNAL,"
   puts "   (holes are added THERE by pressing 'j' or RETURN, deleted by BACKSPACE)"
   print "\e[0m\e[32m"
-  puts "     f: append it to a file        c: clear its content"
+  puts "     w: write it to a dedicated file      c: clear journal (but keep file)"
   print "\n\e[0m\e[2m Type any of t,w,c or any other key to cancel ... \e[K"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
@@ -982,10 +981,10 @@ def journal_menu
   when 'c'
     clear_area_comment
     print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
-    print "\n\e[0m  'Y' to clear, any other key to cancel ..."
+    print "\n\e[0m  'y' to clear, any other key to cancel ..."
     $ctl_kb_queue.clear
     char = $ctl_kb_queue.deq
-    if char == 'Y'
+    if char == 'y'
       $ctl_mic[:j2c_clear] = true
     else
       $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mJournal to comment NOT cleared\e[K"
@@ -1002,3 +1001,20 @@ def journal_menu
   end
   clear_area_comment
 end
+
+
+def get_text_invalid char
+  cdesc = if char.match?(/^[[:print:]]+$/)
+            char
+          elsif char.ord == 10
+            "RETURN"
+          elsif char.ord == 9
+            "TAB"
+          elsif char.ord == 127
+            "BACKSPACE"
+          else
+            "? (#{char.ord})"
+          end
+  "Invalid char #{cdesc}, h for help"
+end
+
