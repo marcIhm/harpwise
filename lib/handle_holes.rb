@@ -4,16 +4,22 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_hole_for_inter, lambda_star_lick
+def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_star_lick
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
   
   hole_start = Time.now.to_f
   hole = hole_since = nil
-  # $hole_was_for_disp needs to be persistant over invocations and
-  # cannot be set here
-  hole_held = hole_held_before = hole_held_since = nil
+
+  # Remark: $hole_was_for_disp needs to be persistant over invocations
+  # and cannot be set here
+
+  # hole_held (the hole beeing held) is the current hole if played
+  # sufficiently long; empty otherwise. hole_held_was and
+  # hole_held_was_regular are previous values of hold_held, the latter
+  # is guaranteed to by a regular hole
+  hole_held = hole_held_was = hole_held_was_regular = hole_was_for_since = nil
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
@@ -23,7 +29,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_started] = hole_start
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
-  $column_short_hint_or_message = 1
   $ctl_response_default = 'SPACE to pause; h for help'
 
   loop do   # until var done or skip
@@ -40,11 +45,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display]) && ( first_round || $ctl_mic[:redraw] )
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
-        print "\e[#{$lines[:hint_or_message]}H\e[2mTerminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]\e[K\e[0m"
-        $column_short_hint_or_message = 1
-        $message_shown_at = Time.now.to_f
+        print_hom("Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
       end
-      print $pending_message_after_redraw
+      print "\e[#{$lines[:hint_or_message]}H\e[2m#{$pending_message_after_redraw}\e[0m\e[K" if $pending_message_after_redraw
       $pending_message_after_redraw = nil
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
@@ -58,10 +61,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
 
-    if $opts[:comment] == :warbles && !$max_warble_shown
-      print "\e[#{$lines[:hint_or_message]}H\e[2mMax warble speed is #{max_warble_clause}\e[0m\e[K"
-      $message_shown_at = Time.now.to_f
-    end
+    print_hom "Max warble speed is #{max_warble_clause}" if $opts[:comment] == :warbles && !$max_warble_shown
 
     return if lambda_skip && lambda_skip.call()
 
@@ -74,10 +74,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
         if now - $lagging_freqs_message_ts > 120 
-          print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[0m"
-          print "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c)."
-          print "\e[K"
-          $lagging_freqs_message_ts = $message_shown_at = now
+          print_hom "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c)."
+          $lagging_freqs_message_ts = now
         end
       else
         $freqs_queue.clear
@@ -89,23 +87,29 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     handle_win_change if $ctl_sig_winch
     
-    good = done = false
-    
-    hole_was_for_since = hole
-    hole = nil
-    
+    # transform freq into hole
     hole, lbor, cntr, ubor = describe_freq(freq)
-    
-    hole_since = Time.now.to_f if !hole_since || hole != hole_was_for_since
-    if hole != hole_held && Time.now.to_f - hole_since > 0.1
-      hole_held_before = hole_held
-      write_hole_to_journal(hole_held, hole_held_since) if $journal_active && $mode == :listen && regular_hole?(hole_held)
-      if hole
-        hole_held = hole
-        hole_held_since = hole_since
-      end
+
+    if !hole_since || hole != hole_was_for_since
+      hole_since = Time.now.to_f 
+      hole_was_for_since = hole
     end
-    hole_for_inter = nil
+    if regular_hole?(hole)
+      hole_held_was = hole_held if hole_held != hole_held_was
+      hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
+      if Time.now.to_f - hole_since < 0.2
+        # too short, the current hole does not count as beeing held
+        hole_held = nil
+      else
+        hole_held = hole
+        if hole_held != hole_held_was && regular_hole?(hole_held)
+          write_hole_to_journal(hole_held, hole_since) if $journal_all_active
+          $journal_some << hole_held if $journal_all_to_some
+        end
+      end
+    else
+      hole_held = nil
+    end
 
     if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
       now = Time.now.to_f
@@ -131,6 +135,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     was_good_since = Time.now.to_f if was_good && was_good != was_was_good
 
+    #
+    # Handle Frequency and gauge
+    #
     print "\e[2m\e[#{$lines[:frequency]}HFrequency:  "
     just_dots_short = '.........:.........'
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
@@ -142,10 +149,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print format % ['--', '--', just_dots_short]
     end
 
-    if lambda_hole_for_inter
-      $perfctr[:lambda_hole_for_inter_call] += 1
-      hole_for_inter = lambda_hole_for_inter.call(hole_held_before, $hole_ref)
-    end
+    #
+    # Handle intervals
+    #
+    hfi = $hole_ref || hole_held_was_regular
+    hole_for_inter = regular_hole?(hfi)  ?  hfi  :  nil
     inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
@@ -229,7 +237,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           if hints.length == 1
             # for mode quiz
             print truncate_text(hints[0]) + "\e[K"
-            $column_short_hint_or_message = 1
           elsif hints.length == 4 && $lines[:message2] > 0
             # for mode licks
             
@@ -243,7 +250,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
               print truncate_text(hints[2]) + "\e[K"
               message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
               print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
-              $column_short_hint_or_message = 1
             else
               # hints[0 .. 2] are on first line, hints[3] on the second
               # if necessary, we truncate or omit hints[1] (tags)
@@ -262,7 +268,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                   # we omit hints[1] altogether
                   [hints[0], '...', hints[2]]
                 end.select {|x| x && x.length > 0}.join(' | ') + "\e[K"
-              $column_short_hint_or_message = ( hint_or_message.rindex('|') || -2 ) + 3
               print hint_or_message
               print "\e[#{$lines[:message2]}H\e[0m\e[2m"
               print truncate_text(hints[3]) + "\e[K"
@@ -278,7 +283,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     if $ctl_mic[:set_ref]
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m#{$hole_ref ? 'Stored' : 'Cleared'} reference hole\e[0m\e[K"
+      print_hom "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole"
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals
         if $opts[:display] == :chart_intervals
@@ -286,36 +291,49 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           print_chart
         end
       end
-      $message_shown_at = Time.now.to_f
       warbles = Array.new
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
     
     if $ctl_mic[:change_display]
-      choices = [ $display_choices, $display_choices ].flatten
-      choices = choices.reverse if $ctl_mic[:change_display] == :back
-      $opts[:display] = choices[choices.index($opts[:display]) + 1]
+      if $ctl_mic[:change_display] == :choose
+        choices = $display_choices[$mode].map(&:to_s)
+        choices.rotate! while choices[0].to_sym != $opts[:display]
+        $opts[:display] = (choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
+                             $display_choices_desc[choice.to_sym]
+        end || $opts[:display]).to_sym
+        $freqs_queue.clear
+      else
+        choices = [ $display_choices, $display_choices ].flatten
+        $opts[:display] = choices[choices.index($opts[:display]) + 1]
+      end
       $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mDisplay is now #{$opts[:display].upcase}\e[0m\e[K"
-      $message_shown_at = Time.now.to_f
+      print_hom "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}"
       $ctl_mic[:change_display] = false
     end
     
     if $ctl_mic[:change_comment]
-      choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
-      choices = choices.reverse if $ctl_mic[:change_comment] == :back
-      $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
+      if $ctl_mic[:change_comment] == :choose
+        choices = $comment_choices[$mode].map(&:to_s)
+        choices.rotate! while choices[0].to_sym != $opts[:comment]
+        $opts[:comment] = (choose_interactive("Available comment choices (current is #{$opts[:comment].upcase}): ", choices) do |choice|
+                             $comment_choices_desc[choice.to_sym]
+                           end || $opts[:comment]).to_sym
+        $freqs_queue.clear
+      else
+        choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
+        $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
+      end
       clear_area_comment
       warble_clause = if $opts[:comment] == :warbles
                         ", max speed is " + max_warble_clause
                       else
                         ''
                       end
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mComment is now #{$opts[:comment].upcase}#{warble_clause}\e[0m\e[K"
-      $message_shown_at = Time.now.to_f
+      print_hom "Comment is #{$opts[:comment].upcase}#{warble_clause}: #{$comment_choices_desc[$opts[:comment]]}"
       $ctl_mic[:change_comment] = false
       $ctl_mic[:update_comment] = true
     end
@@ -340,25 +358,25 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
     end
 
-    if $ctl_mic[:j2c_current]
+    if $ctl_mic[:journal_some_current]
       if hole_disp == '-'
-        case $journal_selected[-1]
+        case $journal_some[-1]
         when '(-)'
-          $journal_selected[-1] = '(+)'
+          $journal_some[-1] = '(+)'
         when '(+)'
-          $journal_selected[-1] = '(-)'
+          $journal_some[-1] = '(-)'
         else
-          $journal_selected << '(-)'
+          $journal_some << '(-)'
         end
       else
-        $journal_selected << hole_disp
+        $journal_some << hole_disp
       end
-      $ctl_mic[:j2c_current] = false
+      $ctl_mic[:journal_some_current] = false
     end
     
-    if $ctl_mic[:j2c_delete]
-      $ctl_mic[:j2c_delete] = false
-      $journal_selected.pop
+    if $ctl_mic[:journal_some_delete]
+      $ctl_mic[:journal_some_delete] = false
+      $journal_some.pop
     end
     
     if $ctl_mic[:journal_menu]
@@ -367,40 +385,54 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $ctl_mic[:redraw] = Set[:silent]
         $freqs_queue.clear
       else
-        print "\e[#{$lines[:hint_or_message]}H\e[0mJournal menu is available only, when comment is JOURNAL\e[0m\e[K"
-        $message_shown_at = Time.now.to_f
+        print "Journal menu is available only, when comment is JOURNAL"
       end
       $ctl_mic[:journal_menu] = false
     end
 
-    if $ctl_mic[:j2c_write]
-      $ctl_mic[:j2c_write] = false
-      IO.write($journal_file_selected, "\n\n#{Time.now} -- #{$journal_selected.length} holes selected:\n#{$journal_selected.join(' ')}\n", mode: 'a')
-      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[0mWrote #{$journal_selected.length} holes to #{$journal_file_selected}\e[0m\e[K"
-      $message_shown_at = Time.now.to_f
+    if $ctl_mic[:journal_some_write]
+      $ctl_mic[:journal_some_write] = false
+      IO.write($journal_file, "\n\n#{Time.now} -- #{$journal_some.length} holes selected:\n#{$journal_some.join(' ')}\n", mode: 'a')
+      pending_message "Wrote #{$journal_some.length} holes to #{$journal_file}"
     end
 
-    if $ctl_mic[:j2c_clear]
-      $ctl_mic[:j2c_clear] = false
-      $journal_selected = Array.new
-      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[0mCleared journal\e[0m\e[K"
-      $message_shown_at = Time.now.to_f
+    if $ctl_mic[:journal_some_clear]
+      $ctl_mic[:journal_some_clear] = false
+      $journal_some = Array.new
+      pending_message "Cleared journal"
     end
 
-    if $ctl_mic[:j2f_toggle]
-      $ctl_mic[:j2f_toggle] = false
-      $journal_active = !$journal_active
-      if $journal_active
+    if $ctl_mic[:journal_some_edit]
+      $ctl_mic[:journal_some_edit] = false
+      edit_journal_some
+      $freqs_queue.clear
+      $ctl_mic[:redraw] = Set[:silent]
+    end
+
+    if $ctl_mic[:journal_all_toggle]
+      $ctl_mic[:journal_all_toggle] = false
+      $journal_all_active = !$journal_all_active
+      if $journal_all_active
         journal_start
-        $journal_listen = Array.new
+        $journal_all = Array.new
       else
-        write_hole_to_journal(hole_held, hole_held_since) if $mode == :listen && regular_hole?(hole_held)
-        IO.write($journal_file, "All holes: #{$journal_listen.join(' ')}\n", mode: 'a') if $mode == :listen && $journal_listen.length > 0
-        # do not issue message in journal
+        IO.write($journal_file, "All holes: #{$journal_all.join(' ')}\n", mode: 'a') if $journal_all.length > 0
       end
-      ctl_response "Journal #{$journal_active ? ' ON' : 'OFF'}"
-      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2m" + ( $journal_active  ?  "Appending to "  :  "Done with " ) + $journal_file +  "\e[K"
-      $message_shown_at = Time.now.to_f
+      ctl_response "Journal #{$journal_all_active ? ' ON' : 'OFF'}"
+      pending_message ( $journal_all_active  ?  "Appending to "  :  "Done with " ) + $journal_file
+    end
+
+    if $ctl_mic[:journal_all_to_some_toggle]
+      $ctl_mic[:journal_all_to_some_toggle] = false
+      $journal_all_to_some = !$journal_all_to_some
+      if !$journal_all_active
+        journal_start
+        $journal_all_active = true
+        $journal_all = Array.new
+      end
+      pending_message("Mirroring journal-all into journal-some (in comment-area) is " +
+                      ( $journal_all_to_some ? 'ON' : 'OFF' ))
+      ctl_response "Mirror #{$journal_all_to_some ? ' ON' : 'OFF'}"
     end
 
     if $ctl_mic[:star_lick] && lambda_star_lick
@@ -452,7 +484,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if done || ( $message_shown_at && Time.now.to_f - $message_shown_at > 8 )
-      print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
+      print "\e[#{$lines[:hint_or_message]}H\e[K"
       $message_shown_at = false
     end
     first_round = $first_round_ever_get_hole = false
@@ -473,7 +505,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; Jour2File ' if $journal_active
+  text += '; journal-all ' if $journal_all_active
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
@@ -542,8 +574,7 @@ def do_change_key
     end
   end while error
   $message_shown_at = Time.now.to_f
-  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged key of harp to \e[0m#{$key}\e[K"
-  $message_shown_at = Time.now.to_f
+  pending_message "Changed key of harp to \e[0m#{$key}"
 end
 
 
@@ -557,13 +588,11 @@ def do_change_key_to_pitch
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
   $key = play_adjustable_pitch(embedded = true) || $key
-  text = if key_was == $key
-           "Key of harp is still at"
-         else
-           "Changed key of harp to"
-         end
-  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2m#{text} \e[0m#{$key}\e[K" 
-  $message_shown_at = Time.now.to_f
+  pending_message(if key_was == $key
+                  "Key of harp is still at"
+                 else
+                   "Changed key of harp to"
+                  end + " \e[0m#{$key}")
 end
 
 
@@ -573,8 +602,7 @@ def do_change_scale_add_scales
   end
   $scale = input if input
   unless input
-    $message_shown_at = Time.now.to_f
-    $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mDid not change scale of harp.\e[0m\e[K"
+    pending_message "Did not change scale of harp."
     return
   end
   
@@ -598,8 +626,7 @@ def do_change_scale_add_scales
     $opts[:add_scales] = add_scales.join(',')
   end
 
-  $message_shown_at = Time.now.to_f
-  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
+  pending_message "Changed scale of harp to \e[0m\e[32m#{$scale}"
 end
 
 
@@ -607,8 +634,7 @@ def do_rotate_scale_add_scales
   $used_scales.rotate!
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
-  $message_shown_at = Time.now.to_f
-  $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mChanged scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[K"
+  pending_message "Changed scale of harp to \e[0m\e[32m#{$scale}"
 end
 
 
@@ -633,9 +659,9 @@ def show_help
              "      K: play adjustable pitch and take it as new key",
              "      s: set scales                   S: rotate scales"]
   if $ctl_can[:next]
-    frames[-1] <<  "    j,J: keys for journal only available in mode listen"
+    frames[-1] <<  "    j: journal-menu, only available in mode listen"
   else
-    frames[-1] <<  "      j: add current hole to journal  J: journal menu"
+    frames[-1] <<  "      j: journal-menu"
   end
     
   if $ctl_can[:switch_modes]
@@ -733,4 +759,28 @@ end
 
 def max_warble_clause
   "#{(1/(2*$opts[:time_slice])).to_i}; tune --time-slice to increase"
+end
+
+
+def edit_journal_some
+  tfile = Tempfile.new(File.basename($0))
+  tfile.write($journal_some.join(' '))
+  tfile.close
+  if edit_file(tfile.path)
+    catch (:invalid_hole) do
+      holes = Array.new
+      File.readlines(tfile.path).join(' ').split.each do |hole|
+        if musical_event?(hole) || $harp_holes.include?(hole)
+          holes << hole
+        else
+          report_error_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
+          throw :invalid_hole
+        end
+      end
+      $journal_some = holes
+      pending_message 'Updated journal-some'
+      return
+    end
+  end
+  pending_message 'journal-some remains unchanged'
 end

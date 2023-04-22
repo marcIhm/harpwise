@@ -154,12 +154,12 @@ def write_hole_to_journal hole, since
                                  hole,
                                  $harp[hole][:note]],
            mode: 'a')
-  $journal_listen << hole
+  $journal_all << hole
 end
 
 
 def journal_start
-  text = if $journal_started_count == 0
+  text = if !$journal_all_active 
            "\n;; Start journal at #{Time.now}, key of #{$key}\n" +
              if $mode == :listen
                ";; Columns: duration, hole, note\n\n"
@@ -169,7 +169,7 @@ def journal_start
          else
            "\n;; Start #{Time.now.strftime('%T')}\n"
          end
-  $journal_started_count += 1
+  $journal_all_active = true
   IO.write($journal_file, text, mode: 'a')
 end
 
@@ -324,14 +324,16 @@ def animate_splash_line single_line = false
 end
 
 
-def get_journal_files
-  j2f = if $mode == :licks || $mode == :play || $mode == :report
+def get_files_journal_trace
+  trace = if $mode == :licks || $mode == :play || $mode == :report
           # modes licks and play both play random licks and report needs to read them
-          "#{$dirs[:data]}/journal_#{$type}_modes_licks_and_play.txt"
-        else
-          "#{$dirs[:data]}/journal_#{$type}_mode_#{$mode}.txt"
-        end
-  return [j2f, "#{$dirs[:data]}/journal_#{$type}_selected.txt"]
+            "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
+          elsif $mode == :quiz
+            "#{$dirs[:data]}/trace_#{$type}_mode_quiz.txt"
+          else
+            nil
+          end
+  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace]
 end
 
 #
@@ -398,16 +400,52 @@ def switch_modes
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
-  if $journal_started_count > 0
+  if $journal_all_active
     journal_stop
-    $journal_active = false
-    $journal_started_count = 0
+    $journal_all_active = false
   end
-  $journal_file, $journal_file_selected = get_journal_files
+  $journal_file, $trace_file  = get_files_journal_trace
   clear_area_comment
   print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
   do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
   sleep 1
   $mode_start = Time.now.to_f
   $freqs_queue.clear
+end
+
+
+def edit_file file, lno = nil
+  print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{file} with: \e[0m#{$editor}\e[k"
+  stime = $editing_message_seen[file]  ?  0.5  :  1
+  $editing_message_seen[file] = true
+  sleep stime
+  print "\e[#{$lines[:message2]}H\e[K"
+  make_term_cooked
+  if system($editor + ' ' + (lno ? "+#{lno}" : '') + ' ' + file)
+    make_term_immediate
+    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing done.\e[K"
+    sleep stime
+    return true
+  else
+    make_term_immediate
+    puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
+    puts "Press any key to continue ...\e[K"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    return false
+  end
+end
+
+
+def print_hom text, line = $lines[:hint_or_message]
+  print "\e[#{line}H\e[2m#{text}\e[0m\e[K"
+  $message_shown_at = Time.now.to_f
+  text
+end
+
+
+def pending_message text
+  $pending_message_after_redraw = text
+  $message_shown_at = Time.now.to_f
+  text
 end

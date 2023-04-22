@@ -378,7 +378,7 @@ def handle_kb_mic
       $ctl_mic[:next] = true
       text = 'Skip'
     elsif $opts[:comment] == :journal
-      $ctl_mic[:j2c_current] = true
+      $ctl_mic[:journal_some_current] = true
       text = 'Add to journal'
     else
       text = get_text_invalid(char)
@@ -413,12 +413,9 @@ def handle_kb_mic
   elsif char == 'm' && $ctl_can[:switch_modes]
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
-  elsif char == 'J' && !$ctl_can[:next]
+  elsif char == 'j' && !$ctl_can[:next]
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
-  elsif char == 'j' && !$ctl_can[:next]
-    $ctl_mic[:j2c_current] = true
-    text = 'Add to journal'
   elsif char == 'k'
     $ctl_mic[:change_key] = true
     text = nil
@@ -447,8 +444,8 @@ def handle_kb_mic
     $ctl_mic[:change_display] = true
     text = 'Change display'
   elsif char == 'D'
-    $ctl_mic[:change_display] = :back
-    text = 'Change display back'
+    $ctl_mic[:change_display] = :choose
+    text = 'Choose display'
   elsif char == 'r'
     $ctl_mic[:set_ref] = true
     text = 'Set reference'
@@ -456,8 +453,8 @@ def handle_kb_mic
     $ctl_mic[:change_comment] = true
     text = 'Change comment'
   elsif char == 'C'
-    $ctl_mic[:change_comment] = :back
-    text = 'Change comment back'
+    $ctl_mic[:change_comment] = :choose
+    text = 'Choose comment'
   elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
     $ctl_mic[:replay] = true
     $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
@@ -476,7 +473,7 @@ def handle_kb_mic
       $ctl_mic[:back] = true
       text = 'Skip back'
     elsif $opts[:comment] == :journal
-      $ctl_mic[:j2c_delete] = true
+      $ctl_mic[:journal_some_delete] = true
       text = 'Delete from journal'
     else
       text = get_text_invalid(char)
@@ -709,7 +706,6 @@ def choose_interactive prompt, names
   prompt_template = "\e[%dH\e[0m%s \e[J"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
-  $column_short_hint_or_message = 1
   $chia_loc_cache = nil
   $chia_no_matches = nil
   total_chars = chia_padded(names).join.length
@@ -722,7 +718,7 @@ def choose_interactive prompt, names
   input = ''
   matching = names
   idx_last_shown = chia_print_in_columns(chia_framify(names, frame_start), idx_hl, total_chars)
-  print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given?
+  print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given? && matching[idx_hl]
   loop do
     key = $ctl_kb_queue.deq.downcase
     if key == '?'
@@ -806,7 +802,7 @@ def choose_interactive prompt, names
     print "\e[0m\e[32m#{input}\e[0m\e[K"
     print help_template % ( $lines[:comment_tall] + 2 )
     idx_last_shown = chia_print_in_columns(chia_framify(matching, frame_start), idx_hl, total_chars)
-    print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given?
+    print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given? && matching[idx_hl]
   end
 end
 
@@ -962,22 +958,25 @@ def journal_menu
   print "\e[2m"
   puts
   puts " There are two types of journals with their respective commands:"
-  puts "   Journal-to-file (j2f), once activated, it writes everything you play"
+  puts "   journal-all, once activated it writes everything you play"
   print "\e[0m\e[32m"
-  puts "     t: toggle it on and off"
+  puts "     j: toggle it on and off           m: also mirror it to journal-some"
   print "\e[0m\e[2m"
-  puts "   Journal-to-comment (j2c), shows holes when comment is JOURNAL,"
-  puts "   (holes are added THERE by pressing 'j' or RETURN, deleted by BACKSPACE)"
+  puts "   journal-some, shows selected holes when comment is JOURNAL,"
+  puts "   (holes are added THERE by pressing RETURN, deleted by BACKSPACE)"
   print "\e[0m\e[32m"
-  puts "     w: write it to a dedicated file      c: clear journal (but keep file)"
-  print "\n\e[0m\e[2m Type any of t,w,c or any other key to cancel ... \e[K"
+  puts "     w: write it to a dedicated file   c: clear journal (but keep file)"
+  puts "     e: invoke editor on this journal"
+  print "\n\e[0m\e[2m Type any of j,m,w,c,e or any other key to cancel ... \e[K"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   case char
-  when 't'
-    $ctl_mic[:j2f_toggle] = true
+  when 'j'
+    $ctl_mic[:journal_all_toggle] = true
+  when 'm'
+    $ctl_mic[:journal_all_to_some_toggle] = true
   when 'w'
-    $ctl_mic[:j2c_write] = true
+    $ctl_mic[:journal_some_write] = true
   when 'c'
     clear_area_comment
     print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
@@ -985,19 +984,19 @@ def journal_menu
     $ctl_kb_queue.clear
     char = $ctl_kb_queue.deq
     if char == 'y'
-      $ctl_mic[:j2c_clear] = true
+      $ctl_mic[:journal_some_clear] = true
     else
-      $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mJournal to comment NOT cleared\e[K"
-      $message_shown_at = Time.now.to_f
+      pending_message "Journal to comment NOT cleared"
     end
+  when 'e'
+    $ctl_mic[:journal_some_edit] = true
   else
     cdesc = if char.match?(/^[[:print:]]+$/)
               "'#{char}'"
             else
               "? (#{char.ord})"
             end
-    $pending_message_after_redraw = "\e[#{$lines[:hint_or_message]}H\e[2mInvalid char #{cdesc} for journal menu\e[K"
-    $message_shown_at = Time.now.to_f
+    pending_message "Invalid char #{cdesc} for journal menu"
   end
   clear_area_comment
 end

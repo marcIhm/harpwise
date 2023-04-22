@@ -17,14 +17,13 @@ def do_quiz_or_licks
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:lick] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
-  $journal_active = true
 
   to_play = PlayController.new
   oride_l_message2 = nil
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   splashed = false
-  jtext = nil
+  trace_text = nil
 
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -70,7 +69,7 @@ def do_quiz_or_licks
       to_play.back_one_lick
       
     elsif $ctl_mic[:change_lick]  # can only happen for mode licks
-      jtext = to_play.read_name_change_lick(to_play[:lick])
+      trace_text = to_play.read_name_change_lick(to_play[:lick])
       
     elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
       to_play.edit_lick
@@ -91,8 +90,7 @@ def do_quiz_or_licks
 
     elsif $ctl_mic[:change_partial]
       read_and_set_partial
-      print "\e[#{$lines[:hint_or_message]}H\e[2mPartial is \e[0m'#{$opts[:partial]}'\e[K"
-      $message_shown_at = Time.now.to_f
+      print_hom "Partial is \e[0m'#{$opts[:partial]}'"
 
     else
       # most general case: $ctl_mic[:next] or no $ctl-command;
@@ -105,7 +103,7 @@ def do_quiz_or_licks
       # figure out holes to play
       if $mode == :quiz
         to_play[:all_wanted] = get_sample($num_quiz)
-        jtext = to_play[:all_wanted].join(' ')
+        jrc_text = to_play[:all_wanted].join(' ')
 
       else # $mode == :licks
 
@@ -135,7 +133,7 @@ def do_quiz_or_licks
 
         to_play[:lick] = $licks[to_play[:lick_idx]]
         to_play[:all_wanted] = to_play[:lick][:holes]
-        jtext = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
+        trace_text = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
       end
 
       $ctl_mic[:loop] = $opts[:loop]
@@ -178,8 +176,8 @@ def do_quiz_or_licks
     #
     #  Play the holes or recording
     #
-    IO.write($journal_file, "#{jtext}\n", mode: 'a') if $journal_active && jtext
-    jtext = nil
+    IO.write($trace_file, "#{trace_text}\n", mode: 'a') if trace_text
+    trace_text = nil
     if !zero_partial? || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
@@ -226,7 +224,6 @@ def do_quiz_or_licks
       system('clear')
     else
       print "\e[#{$lines[:hint_or_message]}H\e[K"
-      $column_short_hint_or_message = 1
       print "\e[#{$lines[:message2]}H\e[K"
     end
     full_seq_shown = false
@@ -348,13 +345,6 @@ def do_quiz_or_licks
           end,
           
           
-          # lambda_hole_for_inter
-          -> (hole_held_before, hole_ref) do  
-            hfi = hole_ref || hole_held_before
-            regular_hole?(hfi)  ?  hfi  :  nil
-          end,
-
-          
           # lambda_star_lick
           if $mode == :licks
             -> (delta) do
@@ -368,8 +358,7 @@ def do_quiz_or_licks
               to_play[:lick][:tags] << startag if startag
               $starred.delete([to_play[:lick][:name]]) if $starred[to_play[:lick][:name]] == 0
               File.write($star_file, YAML.dump($starred))
-              print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[2mWrote #{$star_file}\e[K"
-              $message_shown_at = Time.now.to_f
+              print_hom "Wrote #{$star_file}"
             end
           else
             nil
@@ -437,8 +426,7 @@ def do_quiz_or_licks
         end
 
         # update hint
-        print "\e[#{$lines[:hint_or_message]};#{$column_short_hint_or_message}H\e[K"
-        $column_short_hint_or_message = 1
+        print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
@@ -557,7 +545,6 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
   IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $testing
   
   $ctl_hole[:skip] = false
-  $column_short_hint_or_message = 1
   ltext = if lick
             "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "
           else
@@ -995,7 +982,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
   
   def read_name_change_lick curr_lick
-    input = matching = jtext = nil
+    input = matching = trace_text = nil
     $ctl_mic[:change_lick] = false
 
     old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
@@ -1021,10 +1008,10 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:lick_idx] = new_idx
       self[:lick] = $licks[new_idx]
       self[:all_wanted] = self[:lick][:holes]
-      jtext = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
+      trace_text = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
     end
     
-    jtext
+    trace_text
   end
 
 
@@ -1051,33 +1038,15 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
 
   def edit_lick
-    editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
-    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{$lick_file} with: \e[0m#{editor}\e[k"
-    sleep $editing_message_seen  ?  0.5  :  1
-    print "\e[#{$lines[:message2]}H\e[K"
-    make_term_cooked
-    system("#{editor} +#{self[:lick][:lno]} #{$lick_file}")
-    # note: we cannot make_term_immediate in this line without spoiling $?
-    if $? == 0
-      make_term_immediate
-      print "\e[#{$lines[:message2]}H\e[0m\e[32mEditing done.\e[K"
+    if edit_file($lick_file, self[:lick][:lno])
       if self[:lick_idx] && refresh_licks
         self[:lick] = $licks[self[:lick_idx]]
         self[:all_wanted] = self[:lick][:holes]
         ctl_response 'Refreshed licks'
       end
-      sleep $editing_message_seen  ?  0.5  :  1
-    else
-      make_term_immediate
-      puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
-      puts "Press any key to continue ...\e[K"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
     end
-    
     $ctl_mic[:redraw] = Set[:silent, :clear]
     $ctl_mic[:edit_lick_file] = false
-    $editing_message_seen = true
   end
 
 
@@ -1116,8 +1085,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:octave_shift] = self[:octave_shift_was]
       sleep 2
     else
-      print "\e[#{$lines[:hint_or_message]}H\e[2mOctave shift \e[0m#{self[:octave_shift]}\e[K"
-      $message_shown_at = Time.now.to_f
+      print_hom "Octave shift \e[0m#{self[:octave_shift]}"
     end
   end
 

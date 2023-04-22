@@ -8,7 +8,7 @@ def do_play to_play
   $ctl_can[:lick_lick] = true
   $ctl_rec[:lick_lick] = false
   
-  jtext = nil
+  trace_text = nil
 
   make_term_immediate
 
@@ -31,8 +31,8 @@ def do_play to_play
     snames.each do |sname|
       scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
       play_holes scale_holes, true, true
-      jtext = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
-      IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
+      trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
+      IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
     end
       
   elsif lnames.length > 0
@@ -40,8 +40,8 @@ def do_play to_play
     lnames.each do |lname|
       lick = $licks.find {|l| l[:name] == lname}
       play_and_print_lick lick
-      jtext = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
-      IO.write($journal_file, "#{jtext}\n\n", mode: 'a')
+      trace_text = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
+      IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
     end
 
   elsif extra.length > 0

@@ -85,7 +85,8 @@ end
 
 def describe_inter hole1, hole2
   semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
-  return [nil, nil, nil, nil] unless semi1 && semi2  # happens for pseudo holes low and high
+  # happens for pseudo holes low and high
+  return [nil, nil, nil, nil] unless semi1 && semi2 
   dsemi = semi1 - semi2
   inter = $intervals[dsemi.abs] || [nil, nil]
   return ["#{dsemi.abs} st",

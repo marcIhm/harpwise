@@ -378,16 +378,17 @@ end
 
 do_test 'id-6: listen' do
   sound 8, 2
-  journal_file = "#{$dotdir_testing}/journal_richter_mode_listen.txt"
+  journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'C'
-  tms 'C'
-  tms 'J'
-  tms 't'
+  tms 'j'
+  tms :ENTER
+  tms 'j'
+  tms 'j'
   sleep 1
   expect(journal_file) { File.exist?(journal_file) }
   kill_session
@@ -588,15 +589,15 @@ do_test 'id-14b: check lick processing on tags.add and desc.add' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  journal_file = "#{$dotdir_testing}/journal_richter_modes_licks_and_play.txt"
-  FileUtils.rm journal_file if File.exist?(journal_file)
+  trace_file = "#{$dotdir_testing}/trace_richter_modes_licks_and_play.txt"
+  FileUtils.rm trace_file if File.exist?(trace_file)
   new_session
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
   expect { screen[4]['Lick wade'] }
   expect { screen[5]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
-  expect { File.exist?(journal_file) }
+  expect { File.exist?(trace_file) }
   kill_session
 end
 
@@ -711,8 +712,8 @@ do_test 'id-19: mode licks with licks excluding one tag' do
 end
 
 do_test 'id-19a: prepare and get history of licks' do
-  journal_file = "#{$dotdir_testing}/journal_richter_modes_licks_and_play.txt"
-  FileUtils.rm journal_file if File.exist?(journal_file)
+  trace_file = "#{$dotdir_testing}/trace_richter_modes_licks_and_play.txt"
+  FileUtils.rm trace_file if File.exist?(trace_file)
   new_session
   %w(wade mape blues).each do |lick|
     tms "harpwise licks --start-with #{lick} a"
@@ -1440,9 +1441,9 @@ help_samples.keys.each_with_index do |cmd, idx|
   end
 end
 
-do_test 'id-58: listen with journal in comment' do
+do_test 'id-58: listen with journal-some to journal-all' do
   sound 8, 2
-  journal_file = "#{$dotdir_testing}/journal_richter_selected.txt"
+  journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen a all --comment journal'
@@ -1465,6 +1466,35 @@ do_test 'id-58: listen with journal in comment' do
   sleep 1
   expect { screen[-7]['No on-request journal yet to show'] }
   kill_session
+end
+
+do_test 'id-59: listen and edit journal-some' do
+  ENV['EDITOR']='vi'
+  sound 8, 2
+  journal_file = "#{$dotdir_testing}/journal_richter.txt"
+  FileUtils.rm journal_file if File.exist?(journal_file)
+  new_session
+  tms 'harpwise listen a all --comment journal'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms :ENTER
+  tms :ENTER
+  sleep 1
+  expect { screen[-8] == '     -4     -4' }
+  tms 'j'
+  tms 'e'
+  sleep 1
+  tms 'i'
+  tms '+'
+  tms '1'
+  tms ':'
+  tms 'w'
+  tms 'q'
+  sleep 1
+  expect { screen[-8] == '+1     -4     -4' }
+  kill_session
+  ENV.delete('EDITOR')
 end
 
 puts "\ndone.\n\n"

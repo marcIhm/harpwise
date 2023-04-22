@@ -82,27 +82,27 @@ def print_lick_and_tag_info licks
 end
 
 
-def get_last_lick_idxs_from_journal licks, graceful = false
+def get_last_lick_idxs_from_trace licks, graceful = false
   lnames = []
-  if !File.exist?($journal_file)
+  if !File.exist?($trace_file)
     return [] if graceful
-    err "Expected journal file #{$journal_file} could not be found"
+    err "Expected trace-file #{$trace_file} could not be found"
   end
-  File.readlines($journal_file).each do |line|
+  File.readlines($trace_file).each do |line|
     md = line.match(/^Lick +([^, :\/]+):/)
     lnames << md[1] if md
     lnames.shift if lnames.length > 100
   end
   if lnames.length == 0
     return [] if graceful
-    err "Did not find any licks in #{$journal_file}"
+    err "Did not find any licks in #{$trace_file}"
   end
   idxs = lnames.map do |ln|
     licks.index {|l| l[:name] == ln }
   end.select(&:itself)
   if idxs.length == 0
     return [] if graceful
-    err "Could not find any of the lick names #{lnames} from #{$journal_file} among current set of licks #{licks.map {|l| l[:name]}}"
+    err "Could not find any of the lick names #{lnames} from trace-fie #{$trace_file} among current set of licks #{licks.map {|l| l[:name]}}"
   end
   idxs.reverse.uniq[0..16]
 end
@@ -130,7 +130,7 @@ def print_last_licks_from_journal licks
     
   end
   puts
-  puts "(from #{$journal_file})"
+  puts "(from #{$trace_file})"
   puts
 end
 

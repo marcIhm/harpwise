@@ -12,6 +12,7 @@ require 'open3'
 require 'tmpdir'
 require 'erb'
 require 'timeout'
+require 'tempfile'
 require_relative 'lib/helper'
 require_relative 'lib/arguments'
 require_relative 'lib/config'
@@ -99,7 +100,7 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
-  journal_stop if $journal_started_count > 0
+  journal_stop if $journal_all_active
   write_dump 'end' if $testing
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current

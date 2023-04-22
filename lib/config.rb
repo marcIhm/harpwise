@@ -52,7 +52,7 @@ def set_global_vars_early
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
-        :j2c_current, :j2c_delete, :journal_menu, :j2c_clear, :j2c_write, :j2f_toggle, :change_display, :change_comment, :update_comment, :toggle_progress,
+        :journal_some_current, :journal_some_delete, :journal_menu, :journal_some_clear, :journal_some_write, :journal_some_edit, :journal_all_toggle, :journal_all_to_some_toggle, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
@@ -108,8 +108,24 @@ def set_global_vars_early
   $max_warble_shown = false
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
+  $display_choices_desc = {hole: 'Hole currently played',
+                           chart_notes: 'Chart with notes',
+                           chart_scales: 'Chart with abbreviated scales',
+                           chart_intervals: 'Chart with intervals to ref'}
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal]
+  $comment_choices_desc = {holes_some: 'Some of the holes, you should play',
+                           holes_all: 'All holes, that you should play',
+                           holes_scales: 'Holes, you should play with abbreviated scales',
+                           holes_intervals: 'Holes, you should play with intervals between',
+                           holes_notes: 'Holes, you should play with notes',
+                           hole: 'Hole currently played',
+                           note: 'Note currently played',
+                           interval: 'Interval to previous hole',
+                           cents_to_ref: 'Cents to ref',
+                           gauge_to_ref: 'Instrument for freq diff to ref',
+                           warbles: 'Counting warble speed',
+                           journal: 'Journal of selected notes, that you played'}
 
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
@@ -121,6 +137,9 @@ def set_global_vars_early
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
   $term_immediate = false
   $term_kb_handler = nil
+
+  $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
+  $editing_message_seen = Hash.new
 end
 
 
@@ -226,7 +245,6 @@ def calculate_screen_layout
   end
   lines[:message_bottom] = [lines[:hint_or_message], lines[:message2]].max
   lines[:help] = lines[:comment_tall]
-  $column_short_hint_or_message = 1
 
   lines
 end
@@ -244,11 +262,27 @@ def set_global_vars_late
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
   $trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
 
-  $journal_listen = Array.new
-  $journal_active = false
-  $journal_started_count = 0
-  $journal_file, $journal_file_selected = get_journal_files
-  $journal_selected = Array.new
+  # Concepts: 'journaling' is writing holes, that are played by user,
+  # 'tracing' (nothing to do with 'debugging') is writing holes, that
+  # are played by program.
+  
+  # In journaling: 'all' holes are all holes played by user; they are
+  # written to file (and sometimes mirrored to 'some'). 'some' holes
+  # are only those (from all), that are explicitly marked by user
+  # (e.g. by typing RET); they are shown in comment-area. If
+  # requested, 'all' will be mirorred to 'some' (sic), so the
+  # distinction may blur.
+
+  # remember, so we can write them again when closing journal
+  $journal_all = Array.new
+  # journaling of all holes ongoing ?
+  $journal_all_active = false
+  # will all holes go to some
+  $journal_all_to_some = false
+  # filenames; $journal_file contains both 'all' and 'some'
+  $journal_file, $trace_file = get_files_journal_trace
+  # journal for 'some' holes (see above)
+  $journal_some = Array.new
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
