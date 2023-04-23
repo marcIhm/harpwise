@@ -110,7 +110,7 @@ def do_quiz_or_licks
         if start_with
           if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
             # start with lick from history
-            to_play[:lick_idx] = get_last_lick_idxs_from_journal($licks)[md  ?  md[1].to_i - 1  :  0]
+            to_play[:lick_idx] = get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
           else
             to_play.choose_lick_by_name(start_with)
           end
@@ -744,7 +744,7 @@ def tabify_colorize max_lines, holes_scales, idx_first_active
 end
 
 
-def tabify max_lines, holes
+def tabify_hl max_lines, holes, idx_hl = nil
   lines = Array.new
   lines << "\e[K"
   max_cell_len = $harp_holes.map {|h| h.length}.max + 2
@@ -757,7 +757,9 @@ def tabify max_lines, holes
       lines << "\e[K"
       line = ''
     end
-    line += ( hole['(']  ?  "\e[2m"  :  "\e[0m" ) + hole.rjust(max_cell_len)
+    line += ( ( hole['('] || idx_hl )  ?  "\e[2m"  :  "\e[0m" ) +
+            ( idx == idx_hl  ?  "\e[0m\e[32m"  :  '') +
+            hole.rjust(max_cell_len) + "\e[0m"
   end
   lines << line + "\e[K"
   lines << "\e[K"
@@ -985,7 +987,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     input = matching = trace_text = nil
     $ctl_mic[:change_lick] = false
 
-    old_licks = get_last_lick_idxs_from_journal($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
+    old_licks = get_last_lick_idxs_from_trace($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
     choices = if old_licks.length > 0
                 [';RECENT->', old_licks[0 .. 3], ';ALL-BUT->']
               else

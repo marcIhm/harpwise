@@ -52,7 +52,7 @@ def set_global_vars_early
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
-        :journal_some_current, :journal_some_delete, :journal_menu, :journal_some_clear, :journal_some_write, :journal_some_edit, :journal_all_toggle, :journal_all_to_some_toggle, :change_display, :change_comment, :update_comment, :toggle_progress,
+        :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_all_toggle, :change_display, :change_comment, :update_comment, :toggle_progress,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
@@ -139,7 +139,7 @@ def set_global_vars_early
   $term_kb_handler = nil
 
   $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
-  $editing_message_seen = Hash.new
+  $messages_seen = Hash.new
 end
 
 
@@ -266,23 +266,11 @@ def set_global_vars_late
   # 'tracing' (nothing to do with 'debugging') is writing holes, that
   # are played by program.
   
-  # In journaling: 'all' holes are all holes played by user; they are
-  # written to file (and sometimes mirrored to 'some'). 'some' holes
-  # are only those (from all), that are explicitly marked by user
-  # (e.g. by typing RET); they are shown in comment-area. If
-  # requested, 'all' will be mirorred to 'some' (sic), so the
-  # distinction may blur.
-
-  # remember, so we can write them again when closing journal
-  $journal_all = Array.new
-  # journaling of all holes ongoing ?
-  $journal_all_active = false
-  # will all holes go to some
-  $journal_all_to_some = false
+  $journal = Array.new
+  # is journaling of all holes played ongoing ?
+  $journal_all = false
   # filenames; $journal_file contains both 'all' and 'some'
   $journal_file, $trace_file = get_files_journal_trace
-  # journal for 'some' holes (see above)
-  $journal_some = Array.new
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"

@@ -93,11 +93,11 @@ def do_listen
                  "set ref"
                end
              when :journal
-               return ["\e[K", "\e[K", '      No on-request journal yet to show.', "\e[K", "      \e[2mPlay and use RETURN to add what is beeing played,", "      \e[2mBACKSPACE to remove, 'j' for menu.\e[0m"] if $journal_some.length == 0
-               if jlen_refresh_comment_cache != $journal_some.length || $ctl_mic[:update_comment]
-                 jlen_refresh_comment_cache = $journal_some.length
-                 comment_cache, to_del = tabify($lines[:hint_or_message] - $lines[:comment_tall], $journal_some)
-                 $journal_some.shift(to_del)
+               return ["\e[K", "\e[K", "   No journal yet to show.", "\e[K", "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove", "   \e[2mType 'j' for menu e.g. to switch on journal for all notes beeing played\e[0m"] if $journal.length == 0
+               if jlen_refresh_comment_cache != $journal.length || $ctl_mic[:update_comment]
+                 jlen_refresh_comment_cache = $journal.length
+                 comment_cache, to_del = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
+                 $journal.shift(to_del)
                end
                # different convention on return value than other comments
                return comment_cache

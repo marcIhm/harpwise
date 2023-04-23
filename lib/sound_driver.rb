@@ -213,7 +213,7 @@ end
 
 
 def play_hole_and_handle_kb hole
-  wait_thr = Thread.new { play_sound this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]) }
+  wait_thr = Thread.new { play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])) }
   begin
     sleep 0.1
     handle_kb_play_holes

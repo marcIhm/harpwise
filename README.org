@@ -24,7 +24,7 @@
   Other things that harpwise can do:
 
   - Help to find the key of a song (with an adjustable pitch)
-  - Help in writing down a sequence of holes
+  - Help in writing down a sequence of holes (journal)
   - Transpose a sequence of holes from one key of harp to another,
     preserving the note-values
   - Provide an overview table of positions, keys of songs and keys of harps
@@ -56,7 +56,7 @@
   - quiz: Train your ear and musical memory
   - licks: Learn licks (licks not included, but some pointers)
   - play: Play scales, holes or licks
-  - report: Produce reports about licks and tags or a journal of licks played
+  - report: Produce reports about licks and tags or a history of licks played
   - tools: Some utilities, mostly related to basic harmonica theory
   - calibrate: Generate samples for holes or record your own
 

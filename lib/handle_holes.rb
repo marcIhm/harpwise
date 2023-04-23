@@ -97,14 +97,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if regular_hole?(hole)
       hole_held_was = hole_held if hole_held != hole_held_was
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
-      if Time.now.to_f - hole_since < 0.2
+      if Time.now.to_f - hole_since < 0.1
         # too short, the current hole does not count as beeing held
         hole_held = nil
       else
         hole_held = hole
-        if hole_held != hole_held_was && regular_hole?(hole_held)
-          write_hole_to_journal(hole_held, hole_since) if $journal_all_active
-          $journal_some << hole_held if $journal_all_to_some
+        if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
+          $journal << hole_held
+          print_hom "#{$journal.length} holes"
         end
       end
     else
@@ -221,7 +221,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       return
     end
 
-    if lambda_hint && Time.now.to_f - hints_refreshed_at > 0.5
+    if lambda_hint && $opts[:comment] != :journal && Time.now.to_f - hints_refreshed_at > 0.5
       if $message_shown_at
         # triggers refresh of hint, once the current message has been elapsed
         hints_old = nil
@@ -298,7 +298,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     
     if $ctl_mic[:change_display]
       if $ctl_mic[:change_display] == :choose
-        choices = $display_choices[$mode].map(&:to_s)
+        choices = $display_choices.map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:display]
         $opts[:display] = (choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
                              $display_choices_desc[choice.to_sym]
@@ -358,81 +358,97 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
     end
 
-    if $ctl_mic[:journal_some_current]
+    if $ctl_mic[:journal_current]
+      $ctl_mic[:journal_current] = false
       if hole_disp == '-'
-        case $journal_some[-1]
+        case $journal[-1]
         when '(-)'
-          $journal_some[-1] = '(+)'
+          $journal[-1] = '(+)'
         when '(+)'
-          $journal_some[-1] = '(-)'
+          $journal[-1] = '(-)'
         else
-          $journal_some << '(-)'
+          $journal << '(-)'
         end
       else
-        $journal_some << hole_disp
+        $journal << hole_disp
       end
-      $ctl_mic[:journal_some_current] = false
+      print_hom "#{$journal.length} holes"
     end
     
-    if $ctl_mic[:journal_some_delete]
-      $ctl_mic[:journal_some_delete] = false
-      $journal_some.pop
+    if $ctl_mic[:journal_delete]
+      $ctl_mic[:journal_delete] = false
+      $journal.pop
     end
     
     if $ctl_mic[:journal_menu]
-      if $opts[:comment] == :journal
-        journal_menu
-        $ctl_mic[:redraw] = Set[:silent]
-        $freqs_queue.clear
-      else
-        print "Journal menu is available only, when comment is JOURNAL"
-      end
+      journal_menu
+      $ctl_mic[:redraw] = Set[:silent]
+      $freqs_queue.clear
       $ctl_mic[:journal_menu] = false
     end
 
-    if $ctl_mic[:journal_some_write]
-      $ctl_mic[:journal_some_write] = false
-      IO.write($journal_file, "\n\n#{Time.now} -- #{$journal_some.length} holes selected:\n#{$journal_some.join(' ')}\n", mode: 'a')
-      pending_message "Wrote #{$journal_some.length} holes to #{$journal_file}"
+    if $ctl_mic[:journal_write]
+      $ctl_mic[:journal_write] = false
+      if $journal.length > 0
+        IO.write($journal_file, "\n\n#{Time.now} -- #{$journal.length} holes collected in comment journal:\n#{$journal.join(' ')}\n", mode: 'a')
+        pending_message "Wrote \e[0m#{$journal.length} holes\e[2m to #{$journal_file}"
+      else
+        pending_message "No holes in journal, that could be written to file"
+      end
     end
 
-    if $ctl_mic[:journal_some_clear]
-      $ctl_mic[:journal_some_clear] = false
-      $journal_some = Array.new
-      pending_message "Cleared journal"
+    if $ctl_mic[:journal_play]
+      $ctl_mic[:journal_play] = false
+      if $journal.length > 0
+        print_hom 'Playing journal, press any key to skip ...'
+        pending_message "Journal played"
+        $journal.each_with_index do |hole, idx|
+          lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
+          fit_into_comment lines
+          play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]))
+          if $ctl_kb_queue.length > 0
+            pending_message "Skipped to end of journal"
+            break
+          end
+        end
+        sleep 0.5
+        $ctl_kb_queue.clear
+        $freqs_queue.clear
+      else
+        pending_message "No holes in journal, that could be played"
+      end
     end
 
-    if $ctl_mic[:journal_some_edit]
-      $ctl_mic[:journal_some_edit] = false
-      edit_journal_some
+    if $ctl_mic[:journal_clear]
+      clear_area_comment
+      print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
+      print "\n\e[0m  'y' to clear, any other key to cancel ..."
+      $ctl_kb_queue.clear
+      char = $ctl_kb_queue.deq
+      clear_area_comment
+      $freqs_queue.clear
+      if char == 'y'
+        $journal = Array.new
+        pending_message "Cleared journal"
+      else
+        pending_message "Journal NOT cleared"
+      end
+      $ctl_mic[:journal_clear] = false
+    end
+
+    if $ctl_mic[:journal_edit]
+      $ctl_mic[:journal_edit] = false
+      edit_journal
       $freqs_queue.clear
       $ctl_mic[:redraw] = Set[:silent]
     end
 
     if $ctl_mic[:journal_all_toggle]
       $ctl_mic[:journal_all_toggle] = false
-      $journal_all_active = !$journal_all_active
-      if $journal_all_active
-        journal_start
-        $journal_all = Array.new
-      else
-        IO.write($journal_file, "All holes: #{$journal_all.join(' ')}\n", mode: 'a') if $journal_all.length > 0
-      end
-      ctl_response "Journal #{$journal_all_active ? ' ON' : 'OFF'}"
-      pending_message ( $journal_all_active  ?  "Appending to "  :  "Done with " ) + $journal_file
-    end
-
-    if $ctl_mic[:journal_all_to_some_toggle]
-      $ctl_mic[:journal_all_to_some_toggle] = false
-      $journal_all_to_some = !$journal_all_to_some
-      if !$journal_all_active
-        journal_start
-        $journal_all_active = true
-        $journal_all = Array.new
-      end
-      pending_message("Mirroring journal-all into journal-some (in comment-area) is " +
-                      ( $journal_all_to_some ? 'ON' : 'OFF' ))
-      ctl_response "Mirror #{$journal_all_to_some ? ' ON' : 'OFF'}"
+      $journal_all = !$journal_all
+      pending_message("journal-all is " +
+                      ( $journal_all ? 'ON' : 'OFF' ))
+      ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
 
     if $ctl_mic[:star_lick] && lambda_star_lick
@@ -505,7 +521,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; journal-all ' if $journal_all_active
+  text += '; journal-all ' if $journal_all
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
 end
 
@@ -659,9 +675,9 @@ def show_help
              "      K: play adjustable pitch and take it as new key",
              "      s: set scales                   S: rotate scales"]
   if $ctl_can[:next]
-    frames[-1] <<  "    j: journal-menu, only available in mode listen"
+    frames[-1] <<  "    j: journal-menu; only available in mode listen"
   else
-    frames[-1] <<  "      j: journal-menu"
+    frames[-1] <<  "      j: journal-menu to handle holes collected"
   end
     
   if $ctl_can[:switch_modes]
@@ -762,9 +778,9 @@ def max_warble_clause
 end
 
 
-def edit_journal_some
+def edit_journal
   tfile = Tempfile.new(File.basename($0))
-  tfile.write($journal_some.join(' '))
+  tfile.write($journal.join(' '))
   tfile.close
   if edit_file(tfile.path)
     catch (:invalid_hole) do
@@ -777,10 +793,10 @@ def edit_journal_some
           throw :invalid_hole
         end
       end
-      $journal_some = holes
-      pending_message 'Updated journal-some'
+      $journal = holes
+      pending_message 'Updated journal'
       return
     end
   end
-  pending_message 'journal-some remains unchanged'
+  pending_message 'journal remains unchanged'
 end

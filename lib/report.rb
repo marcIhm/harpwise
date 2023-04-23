@@ -116,7 +116,7 @@ def print_last_licks_from_journal licks
   puts "Last lick comes first:"
   puts
   cnt = 1
-  get_last_lick_idxs_from_journal(licks).each do |idx|
+  get_last_lick_idxs_from_trace(licks).each do |idx|
     print '  '
     if cnt == 1
       print ' l: '

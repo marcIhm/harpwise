@@ -378,7 +378,7 @@ def handle_kb_mic
       $ctl_mic[:next] = true
       text = 'Skip'
     elsif $opts[:comment] == :journal
-      $ctl_mic[:journal_some_current] = true
+      $ctl_mic[:journal_current] = true
       text = 'Add to journal'
     else
       text = get_text_invalid(char)
@@ -473,7 +473,7 @@ def handle_kb_mic
       $ctl_mic[:back] = true
       text = 'Skip back'
     elsif $opts[:comment] == :journal
-      $ctl_mic[:journal_some_delete] = true
+      $ctl_mic[:journal_delete] = true
       text = 'Delete from journal'
     else
       text = get_text_invalid(char)
@@ -944,9 +944,9 @@ end
 
 def report_error_wait_key etext
   clear_area_comment
-  print "\e[#{$lines[:comment_tall] + 1}H\e[J\n\e[0;101mAn error has happened:\e[0m\n"
+  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n\n"
   print etext
-  print "\n\e[2mPress any key to continue ... \e[K"
+  print "\n\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 end
@@ -954,42 +954,44 @@ end
 
 def journal_menu
   clear_area_comment
+  if $opts[:comment] != :journal
+    print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mjournal\e[2m ...\e[0m"
+    tag = 'switch to comment journal'
+    stime = $messages_seen[tag]  ?  0.5  :  1
+    $messages_seen[tag] = true
+    sleep stime
+    $opts[:comment] = :journal
+    clear_area_comment
+  end
   print "\e[#{$lines[:comment_tall]}H\e[J"
   print "\e[2m"
   puts
-  puts " There are two types of journals with their respective commands:"
-  puts "   journal-all, once activated it writes everything you play"
+  puts " There are two ways to add holes to the journal in the comment area:"
   print "\e[0m\e[32m"
-  puts "     j: toggle it on and off           m: also mirror it to journal-some"
-  print "\e[0m\e[2m"
-  puts "   journal-some, shows selected holes when comment is JOURNAL,"
-  puts "   (holes are added THERE by pressing RETURN, deleted by BACKSPACE)"
+  puts "   j,a: toggle on/off journaling of all notes played"
   print "\e[0m\e[32m"
-  puts "     w: write it to a dedicated file   c: clear journal (but keep file)"
-  puts "     e: invoke editor on this journal"
-  print "\n\e[0m\e[2m Type any of j,m,w,c,e or any other key to cancel ... \e[K"
+  puts "    Or\e[0m\e[2m, after leaving this menu (and when comment is journal) just press"
+  puts "       RETURN to add the note currently played or BACKSPACE to delete it."
+  puts " Within this menu again, operate on the current content of the journal:"
+  print "\e[0m\e[32m"
+  puts "     w: write to the journal file   p: play it"
+  puts "     c: clear the journal shown     e: invoke editor on the shown journal"
+  print "\e[0m\e[2m Type any of a,w,p,c,e or any other key to cancel ... \e[K"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   case char
-  when 'j'
+  when 'a', 'j'
     $ctl_mic[:journal_all_toggle] = true
-  when 'm'
-    $ctl_mic[:journal_all_to_some_toggle] = true
   when 'w'
-    $ctl_mic[:journal_some_write] = true
+    $ctl_mic[:journal_write] = true
+  when 'p'
+    $ctl_mic[:journal_play] = true
   when 'c'
-    clear_area_comment
-    print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
-    print "\n\e[0m  'y' to clear, any other key to cancel ..."
-    $ctl_kb_queue.clear
-    char = $ctl_kb_queue.deq
-    if char == 'y'
-      $ctl_mic[:journal_some_clear] = true
-    else
-      pending_message "Journal to comment NOT cleared"
-    end
+    $ctl_mic[:journal_clear] = true
   when 'e'
-    $ctl_mic[:journal_some_edit] = true
+    $ctl_mic[:journal_edit] = true
+  when 'q','x'
+    pending_message "Quit journal menu"
   else
     cdesc = if char.match?(/^[[:print:]]+$/)
               "'#{char}'"

@@ -100,7 +100,6 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
-  journal_stop if $journal_all_active
   write_dump 'end' if $testing
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current

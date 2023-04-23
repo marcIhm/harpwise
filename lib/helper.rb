@@ -148,37 +148,6 @@ def display_kb_help what, first_round, body
 end
 
 
-def write_hole_to_journal hole, since
-  IO.write($journal_file,
-           "%6.1f %8s %4s\n" % [ Time.now.to_f - since,
-                                 hole,
-                                 $harp[hole][:note]],
-           mode: 'a')
-  $journal_all << hole
-end
-
-
-def journal_start
-  text = if !$journal_all_active 
-           "\n;; Start journal at #{Time.now}, key of #{$key}\n" +
-             if $mode == :listen
-               ";; Columns: duration, hole, note\n\n"
-             else
-               "\n"
-             end
-         else
-           "\n;; Start #{Time.now.strftime('%T')}\n"
-         end
-  $journal_all_active = true
-  IO.write($journal_file, text, mode: 'a')
-end
-
-
-def journal_stop
-  IO.write($journal_file, "\n;; Stop journal at #{Time.now}\n\n", mode: 'a')
-end
-
-
 def truncate_colored_text text, len
   ttext = ''
   tlen = 0
@@ -400,11 +369,8 @@ def switch_modes
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
-  if $journal_all_active
-    journal_stop
-    $journal_all_active = false
-  end
   $journal_file, $trace_file  = get_files_journal_trace
+  $journal_all = false
   clear_area_comment
   print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
   do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
@@ -416,8 +382,8 @@ end
 
 def edit_file file, lno = nil
   print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing \e[0m\e[2m#{file} with: \e[0m#{$editor}\e[k"
-  stime = $editing_message_seen[file]  ?  0.5  :  1
-  $editing_message_seen[file] = true
+  stime = $messages_seen[file]  ?  0.5  :  1
+  $messages_seen[file] = true
   sleep stime
   print "\e[#{$lines[:message2]}H\e[K"
   make_term_cooked

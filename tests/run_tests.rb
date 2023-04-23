@@ -376,7 +376,7 @@ do_test 'id-5: check against et' do
   kill_session
 end
 
-do_test 'id-6: listen' do
+do_test 'id-6: listen without journal' do
   sound 8, 2
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
@@ -384,24 +384,20 @@ do_test 'id-6: listen' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'C'
   tms 'j'
-  tms :ENTER
-  tms 'j'
-  tms 'j'
+  tms 'q'
   sleep 1
-  expect(journal_file) { File.exist?(journal_file) }
+  expect(journal_file) { !File.exist?(journal_file) }
   kill_session
 end
 
 do_test 'id-6a: listen and change display and comment' do
-  sound 20, 2
   new_session
   tms 'harpwise listen a all --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
-  8.times do
+  10.times do
     tms 'd'
     tms 'c'
   end
@@ -409,6 +405,26 @@ do_test 'id-6a: listen and change display and comment' do
   tms 'q'
   sleep 1
   expect { screen[-3]['Terminating on user request'] }
+  kill_session
+end
+
+do_test 'id-6b: listen and change display and comment with menu' do
+  new_session
+  tms 'harpwise listen a all --ref +2'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'D'
+  sleep 1
+  tms 'ho'
+  tms :ENTER
+  sleep 1
+  expect { screen[-1]['Display is HOLE'] }
+  tms 'C'
+  sleep 1
+  tms :RIGHT
+  tms :ENTER
+  sleep 1
+  expect { screen[-1]['Comment is INTERVAL'] }
   kill_session
 end
 
@@ -601,7 +617,7 @@ do_test 'id-15: play a lick with recording' do
   kill_session
 end
 
-do_test 'id-15a: check journal from previous invocation of play' do
+do_test 'id-15a: check history from previous invocation of play' do
   new_session
   tms 'harpwise report hist'
   tms :ENTER
@@ -1441,36 +1457,41 @@ help_samples.keys.each_with_index do |cmd, idx|
   end
 end
 
-do_test 'id-58: listen with journal-some to journal-all' do
-  sound 8, 2
+do_test 'id-58: listen with journal' do
+  sound 16, 2
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
-  tms 'harpwise listen a all --comment journal'
+  tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
+  tms 'j'
+  sleep 2
+  tms 'q'
   tms :ENTER
   tms :ENTER
   tms :ENTER
   tms :BSPACE
   sleep 1
   expect { screen[-8] == '     -4     -4' }
-  tms 'J'
+  tms 'j'
+  sleep 2
   tms 'w'
   sleep 1
   expect { File.exist?(journal_file) }
-  tms 'J'
+  tms 'j'
+  sleep 2
   tms 'c'
   tms 'y'
   sleep 1
-  expect { screen[-7]['No on-request journal yet to show'] }
+  expect { screen[-7]['No journal yet to show'] }
   kill_session
 end
 
 do_test 'id-59: listen and edit journal-some' do
   ENV['EDITOR']='vi'
-  sound 8, 2
+  sound 16, 2
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
@@ -1486,13 +1507,12 @@ do_test 'id-59: listen and edit journal-some' do
   tms 'e'
   sleep 1
   tms 'i'
-  tms '+'
-  tms '1'
-  tms ':'
-  tms 'w'
-  tms 'q'
+  tms '+1 '
+  tms :ESCAPE
+  tms ':wq'
+  tms :ENTER
   sleep 1
-  expect { screen[-8] == '+1     -4     -4' }
+  expect { screen[-8] == '     +1     -4     -4' }
   kill_session
   ENV.delete('EDITOR')
 end
