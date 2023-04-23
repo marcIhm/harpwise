@@ -372,6 +372,7 @@ def switch_modes
   $journal_file, $trace_file  = get_files_journal_trace
   $journal_all = false
   clear_area_comment
+  clear_area_message
   print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
   do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
   sleep 1

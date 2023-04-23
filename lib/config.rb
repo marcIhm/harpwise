@@ -114,18 +114,18 @@ def set_global_vars_early
                            chart_intervals: 'Chart with intervals to ref'}
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
   $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal]
-  $comment_choices_desc = {holes_some: 'Some of the holes, you should play',
-                           holes_all: 'All holes, that you should play',
-                           holes_scales: 'Holes, you should play with abbreviated scales',
-                           holes_intervals: 'Holes, you should play with intervals between',
-                           holes_notes: 'Holes, you should play with notes',
+  $comment_choices_desc = {holes_some: 'Some of the holes to play; largest letters',
+                           holes_all: 'All holes to play; large letters',
+                           holes_scales: 'Holes to play with abbreviated scales',
+                           holes_intervals: 'Holes to play with intervals between',
+                           holes_notes: 'Holes to play with notes',
                            hole: 'Hole currently played',
                            note: 'Note currently played',
                            interval: 'Interval to previous hole',
                            cents_to_ref: 'Cents to ref',
                            gauge_to_ref: 'Instrument for freq diff to ref',
                            warbles: 'Counting warble speed',
-                           journal: 'Journal of selected notes, that you played'}
+                           journal: 'Journal of selected notes you played'}
 
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
