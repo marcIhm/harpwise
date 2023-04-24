@@ -94,6 +94,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       hole_since = Time.now.to_f 
       hole_was_for_since = hole
     end
+
+    # distinguish deliberate playing from sound-disturbance: compute
+    # hole_held
     if regular_hole?(hole)
       hole_held_was = hole_held if hole_held != hole_held_was
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
@@ -104,7 +107,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hole_held = hole
         if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
           $journal << hole_held
-          print_hom "#{$journal.length} holes"
+          print_hom "#{$journal.length} holes" if $opts[:comment] == :journal
         end
       end
     else
@@ -126,8 +129,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                  $perfctr[:lambda_good_done_was_good_call] += 1
                  lambda_good_done_was_good.call(hole, hole_since)
                end
-    # even if we do not track progress we need to return to forget
-    done = $ctl_mic[:forget] if $opts[:no_progress]
+
     if $ctl_mic[:done]
       good = done = true
       $ctl_mic[:done] = false
@@ -190,6 +192,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
     print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text) + "\e[K"
 
+    
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
       case $opts[:comment]
@@ -221,15 +224,18 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       return
     end
 
-    if lambda_hint && $opts[:comment] != :journal && Time.now.to_f - hints_refreshed_at > 0.5
+    
+    if lambda_hint && Time.now.to_f - hints_refreshed_at > 0.5
       if $message_shown_at
-        # triggers refresh of hint, once the current message has been elapsed
+        # A specific message has been shown, that overrides usual hint
+
+        # Make sure to refresh hint, once the current message has elapsed
         hints_old = nil
       else
         $perfctr[:lambda_hint_call] += 1
         hints = lambda_hint.call(hole)
         hints_refreshed_at = Time.now.to_f
-        if hints != hints_old
+        if hints && hints != hints_old
           $perfctr[:lambda_hint_reprint] += 1
           print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
           print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
@@ -280,7 +286,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hints_old = hints
       end
     end      
-
+    
     if $ctl_mic[:set_ref]
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
       print_hom "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole"
@@ -295,7 +301,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
-    
+
     if $ctl_mic[:change_display]
       if $ctl_mic[:change_display] == :choose
         choices = $display_choices.map(&:to_s)
@@ -358,99 +364,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
     end
 
-    if $ctl_mic[:journal_current]
-      $ctl_mic[:journal_current] = false
-      if hole_disp == '-'
-        case $journal[-1]
-        when '(-)'
-          $journal[-1] = '(+)'
-        when '(+)'
-          $journal[-1] = '(-)'
-        else
-          $journal << '(-)'
-        end
-      else
-        $journal << hole_disp
-      end
-      print_hom "#{$journal.length} holes"
-    end
-    
-    if $ctl_mic[:journal_delete]
-      $ctl_mic[:journal_delete] = false
-      $journal.pop
-    end
-    
-    if $ctl_mic[:journal_menu]
-      journal_menu
-      $ctl_mic[:redraw] = Set[:silent]
-      $freqs_queue.clear
-      $ctl_mic[:journal_menu] = false
-    end
-
-    if $ctl_mic[:journal_write]
-      $ctl_mic[:journal_write] = false
-      if $journal.length > 0
-        IO.write($journal_file, "\n\n#{Time.now} -- #{$journal.length} holes collected in comment journal:\n#{$journal.join(' ')}\n", mode: 'a')
-        pending_message "Wrote \e[0m#{$journal.length} holes\e[2m to #{$journal_file}"
-      else
-        pending_message "No holes in journal, that could be written to file"
-      end
-    end
-
-    if $ctl_mic[:journal_play]
-      $ctl_mic[:journal_play] = false
-      if $journal.length > 0
-        print_hom 'Playing journal, press any key to skip ...'
-        pending_message "Journal played"
-        $journal.each_with_index do |hole, idx|
-          lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
-          fit_into_comment lines
-          play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]))
-          if $ctl_kb_queue.length > 0
-            pending_message "Skipped to end of journal"
-            break
-          end
-        end
-        sleep 0.5
-        $ctl_kb_queue.clear
-        $freqs_queue.clear
-      else
-        pending_message "No holes in journal, that could be played"
-      end
-    end
-
-    if $ctl_mic[:journal_clear]
-      clear_area_comment
-      print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
-      print "\n\e[0m  'y' to clear, any other key to cancel ..."
-      $ctl_kb_queue.clear
-      char = $ctl_kb_queue.deq
-      clear_area_comment
-      $freqs_queue.clear
-      if char == 'y'
-        $journal = Array.new
-        pending_message "Cleared journal"
-      else
-        pending_message "Journal NOT cleared"
-      end
-      $ctl_mic[:journal_clear] = false
-    end
-
-    if $ctl_mic[:journal_edit]
-      $ctl_mic[:journal_edit] = false
-      edit_journal
-      $freqs_queue.clear
-      $ctl_mic[:redraw] = Set[:silent]
-    end
-
-    if $ctl_mic[:journal_all_toggle]
-      $ctl_mic[:journal_all_toggle] = false
-      $journal_all = !$journal_all
-      pending_message("journal-all is " +
-                      ( $journal_all ? 'ON' : 'OFF' ))
-      ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
-    end
-
     if $ctl_mic[:star_lick] && lambda_star_lick
       lambda_star_lick.call($ctl_mic[:star_lick] == :up  ?  +1  :  -1)
       $ctl_mic[:star_lick] = false
@@ -492,7 +405,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    return if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle].any? {|k| $ctl_mic[k]}
+      # we need to return, regardless of lambda_good_done_was_good;
+      # special case for mode listen handles the returned value
+      return {hole_disp: hole_disp}
+    end
 
     if $ctl_mic[:quit]
       print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
@@ -775,28 +692,4 @@ end
 
 def max_warble_clause
   "#{(1/(2*$opts[:time_slice])).to_i}; tune --time-slice to increase"
-end
-
-
-def edit_journal
-  tfile = Tempfile.new(File.basename($0))
-  tfile.write($journal.join(' '))
-  tfile.close
-  if edit_file(tfile.path)
-    catch (:invalid_hole) do
-      holes = Array.new
-      File.readlines(tfile.path).join(' ').split.each do |hole|
-        if musical_event?(hole) || $harp_holes.include?(hole)
-          holes << hole
-        else
-          report_error_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
-          throw :invalid_hole
-        end
-      end
-      $journal = holes
-      pending_message 'Updated journal'
-      return
-    end
-  end
-  pending_message 'journal remains unchanged'
 end

@@ -747,8 +747,8 @@ end
 def tabify_hl max_lines, holes, idx_hl = nil
   lines = Array.new
   lines << "\e[K"
-  max_cell_len = $harp_holes.map {|h| h.length}.max + 2
-  per_line = (($term_width * 0.9 - 4) / max_cell_len).truncate
+  cell_len = $harp_holes.map {|h| h.length}.max + 2
+  per_line = (($term_width * 0.9 - 4) / cell_len).truncate
   to_del = 0
   line = ''
   holes.each_with_index do |hole, idx|
@@ -759,7 +759,8 @@ def tabify_hl max_lines, holes, idx_hl = nil
     end
     line += ( ( hole['('] || idx_hl )  ?  "\e[2m"  :  "\e[0m" ) +
             ( idx == idx_hl  ?  "\e[0m\e[32m"  :  '') +
-            hole.rjust(max_cell_len) + "\e[0m"
+            hole.rjust(cell_len) +
+            "\e[0m"
   end
   lines << line + "\e[K"
   lines << "\e[K"
