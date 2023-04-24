@@ -52,18 +52,20 @@
   This will show examples and options for the four main operations of the
   wise: 
   
-  - listen: Listen to your playing, e.g. to monitor bends or scales
-  - quiz: Train your ear and musical memory
-  - licks: Learn licks (licks not included, but some pointers)
-  - play: Play scales, holes or licks
-  - report: Produce reports about licks and tags or a history of licks played
-  - tools: Some utilities, mostly related to basic harmonica theory
+  - listen: listen to your playing, e.g. to monitor bends or scales
+  - quiz: train your ear and musical memory
+  - licks: learn licks (licks not included, but some pointers)
+  - play: play scales, holes, licks or a reference pitch
+  - print: print them
+  - report: produce reports about licks and tags or a history of licks played
+  - tools: utilities (e.g. a position table), most of them related to
+    basic harmonica theory
   - calibrate: Generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
   wav-files will be kept in directory ~/.harpwise
 
-  To get started quickly you may use auto-calibration for
+  Or, to get started quickly you may use auto-calibration for
   machine-generated tones and frequencies.
 
   If you want to work with mode licks to learn and memorize licks (highly
@@ -72,9 +74,10 @@
 
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
-  this file is created on first invocation and filled with only a three
+  this file is created on first invocation and filled with only three
   sample-licks; however it contains extensive instructions on how to add
-  new licks and some pointers to sources for more (printed and online).
+  new licks and some pointers to sources for more (printed and online,
+  payed and free).
 
 * Some concepts
 ** Scales and Licks
@@ -83,7 +86,7 @@
 
    - scales, e.g. "blues" or "major pentatonic" and even "chord-i" (holes
      of the i-Chord)
-   - Licks, e.g. the opening lick of "Juke"
+   - licks, e.g. the opening lick of "Juke"
 
    play a central role for harpwise.
 
@@ -218,7 +221,15 @@
 
 * Configuration
 
-  See the README within directory config.
+  This is the user-modifyable configuration file, that will be create on
+  first invocation:
+
+  ~/.harpwise/config.ini
+
+  There you may override many settings from the programs default config.
+  The file is commented extensively so please read there for details.  See
+  also the usage-information, which lists all of the commandline option,
+  which (in many cases) mirror the settings from your config.ini.
 
 * Installation
 

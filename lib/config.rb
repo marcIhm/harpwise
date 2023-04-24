@@ -180,7 +180,7 @@ def find_and_check_dirs
       #
       #   #{$early_conf[:config_file]}
       #
-      # with every entry commented out.
+      # with every entry commented out (at least initially).
       #
       # The global config defines the defaults, which you may 
       # override here.
