@@ -167,6 +167,7 @@
     - Cents deviation of the current frequency to the reference
     - A frequency gauge, centered around the currently referenced note
     - Warbles with respect to the reference hole
+    - Journal of holes you have played; useful to write down musical ideas
 
 *** For quiz and licks
 
@@ -226,20 +227,31 @@
 
   ~/.harpwise/config.ini
 
-  There you may override many settings from the programs default config.
-  The file is commented extensively so please read there for details.  See
-  also the usage-information, which lists all of the commandline option,
-  which (in many cases) mirror the settings from your config.ini.
+  There you may override many settings from the programs default config
+  The file is commented extensively so please read there for details on
+  the various settings. Initially this config-file is a copy of the
+  programs central config-file.
+
+  See also the usage-information, which lists all of the commandline
+  option, which (in many cases) mirror the settings from your config.ini.
 
 * Installation
 
-  The program harpwise runs in the linux console (no graphical environment
-  needed); it runs directly from within the directory, which you need to
-  clone from github first. Vice versa it can simply be removed by deleting
-  the cloned directory. 
+  From 2023-04 on, harpwise can be found in the ubuntu repositories:
 
-  harpwise has a bunch of dependencies and one of the scripts in directory
-  install may be used to install them.
+  apt install harpwise
+
+  You need to read on, only if you want to install the latest version
+  directly from its repo.
+  
+  The program harpwise runs in the linux console, so no graphical
+  environment is needed. Harpwise is written in ruby and it runs directly
+  from within the directory, which you need to clone from github
+  first. Vice versa it can simply be removed by deleting the cloned
+  directory.
+
+  harpwise has a bunch of dependencies (ruby, aubiopitch, sox, gnuplot)
+  and one of the scripts in directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wsl2, which supports sound through the remote desktop protocol.
