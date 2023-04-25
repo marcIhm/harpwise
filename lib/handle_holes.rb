@@ -100,7 +100,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if regular_hole?(hole)
       hole_held_was = hole_held if hole_held != hole_held_was
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
-      if Time.now.to_f - hole_since < 0.1
+      if Time.now.to_f - hole_since < 0.15
         # too short, the current hole does not count as beeing held
         hole_held = nil
       else
