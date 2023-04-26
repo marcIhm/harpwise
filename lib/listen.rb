@@ -115,7 +115,7 @@ def do_listen
         if $opts[:comment] == :journal
           # the same hint as below is also produced right after each
           # hole within handle_holes
-          ["#{$journal.length} holes"]
+          ["#{$journal.length / 2} holes"]
         else
           ["\e[0m\e[2mHint: " +
            if $all_scales.length == 1 || $opts[:add_no_holes]

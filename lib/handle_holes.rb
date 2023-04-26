@@ -109,7 +109,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hole_held = hole
         if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
           $journal << hole_held
-          print_hom "#{$journal.length} holes" if $opts[:comment] == :journal
+          print_hom "#{($journal.length + 1)/ 2} holes" if $opts[:comment] == :journal
         end
       end
     else
