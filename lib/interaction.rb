@@ -968,7 +968,7 @@ def journal_menu
   puts
   puts " There are two ways to add holes to the journal in the comment area:"
   print "\e[0m\e[32m"
-  puts "   j,a: toggle on/off journaling of all notes played"
+  puts "   j,a: toggle on/off all notes played"
   print "\e[0m\e[32m"
   puts "    Or\e[0m\e[2m, after leaving this menu (and when comment is journal) just press"
   puts "       RETURN to add the note currently played or BACKSPACE to delete it."
@@ -976,12 +976,14 @@ def journal_menu
   print "\e[0m\e[32m"
   puts "     w: write to the journal file   p: play it"
   puts "     c: clear the journal shown     e: invoke editor on the shown journal"
-  print "\e[0m\e[2m Type any of a,w,p,c,e or any other key to cancel ... \e[K"
+  print "\e[0m\e[2m Type any of j,a,t,w,p,c,e or any other key to cancel ... \e[K"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   case char
   when 'a', 'j'
     $ctl_mic[:journal_all_toggle] = true
+  when 'w'
+    $ctl_mic[:journal_write] = true
   when 'w'
     $ctl_mic[:journal_write] = true
   when 'p'

@@ -155,6 +155,7 @@ def do_listen
     
     if $ctl_mic[:journal_delete]
       $ctl_mic[:journal_delete] = false
+      $journal.pop while musical_event?($journal[-1])
       $journal.pop
     end
     
@@ -181,10 +182,13 @@ def do_listen
       if $journal.length > 0
         print_hom 'Playing journal, press any key to skip ...'
         pending_message "Journal played"
-        $journal.each_with_index do |hole, idx|
+        [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
           lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
           fit_into_comment lines
-          play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]))
+          unless musical_event?(hole)
+            play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]),
+                       ((get_musical_duration(hole_next) || 1.0) * $conf[:sample_rate]).to_i)
+          end
           if $ctl_kb_queue.length > 0
             pending_message "Skipped to end of journal"
             break

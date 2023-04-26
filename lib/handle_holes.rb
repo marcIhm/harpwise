@@ -10,7 +10,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   longest_hole_name = $harp_holes.max_by(&:length)
   
   hole_start = Time.now.to_f
-  hole = hole_since = nil
+  hole = hole_since = hole_was_for_since = nil
 
   # Remark: $hole_was_for_disp needs to be persistant over invocations
   # and cannot be set here
@@ -19,7 +19,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   # sufficiently long; empty otherwise. hole_held_was and
   # hole_held_was_regular are previous values of hold_held, the latter
   # is guaranteed to by a regular hole
-  hole_held = hole_held_was = hole_held_was_regular = hole_was_for_since = nil
+  hole_held = hole_held_was = hole_held_was_regular = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
@@ -90,20 +90,22 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     # transform freq into hole
     hole, lbor, cntr, ubor = describe_freq(freq)
 
+    # give hole in chart the right color: compute hole_since
     if !hole_since || hole != hole_was_for_since
       hole_since = Time.now.to_f 
       hole_was_for_since = hole
     end
 
-    # distinguish deliberate playing from sound-disturbance: compute
-    # hole_held
+    # distinguish deliberate playing from noise: compute hole_held
     if regular_hole?(hole)
-      hole_held_was = hole_held if hole_held != hole_held_was
+      hole_held_was = hole_held
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
       if Time.now.to_f - hole_since < 0.15
         # too short, the current hole does not count as beeing held
         hole_held = nil
+        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held_since && regular_hole?($journal[-1]) && !musical_event?($journal[-1])
       else
+        hole_held_since = Time.now.to_f if hole && hole_held != hole
         hole_held = hole
         if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
           $journal << hole_held
@@ -112,6 +114,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       end
     else
       hole_held = nil
+      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held_since && regular_hole?($journal[-1]) && !musical_event?($journal[-1])
     end
 
     if $hole_ref && hole == $hole_ref && hole != hole_was_for_since

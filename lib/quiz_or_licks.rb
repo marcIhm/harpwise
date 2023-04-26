@@ -550,7 +550,7 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
           else
             "\e[2m(h for help) ... "
           end
-  holes.each_with_index do |hole, idx|
+  [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
     if terse
       print hole + ' '
     else
@@ -594,11 +594,11 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
         print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
       end
     end
-
+    
     if musical_event?(hole)
       sleep $opts[:fast]  ?  0.25  :  0.5
     else
-      play_hole_and_handle_kb hole
+      play_hole_and_handle_kb(hole, get_musical_duration(hole_next) || 1.0)
     end
 
     if $ctl_hole[:show_help]
@@ -749,6 +749,7 @@ def tabify_hl max_lines, holes, idx_hl = nil
   lines << "\e[K"
   cell_len = $harp_holes.map {|h| h.length}.max + 2
   per_line = (($term_width * 0.9 - 4) / cell_len).truncate
+  per_line -= 1 if per_line % 2 == 1
   to_del = 0
   line = ''
   holes.each_with_index do |hole, idx|

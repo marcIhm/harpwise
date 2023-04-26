@@ -212,8 +212,8 @@ def pipeline_catch_up
 end
 
 
-def play_hole_and_handle_kb hole
-  wait_thr = Thread.new { play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])) }
+def play_hole_and_handle_kb hole, duration = nil
+  wait_thr = Thread.new { play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]), (duration * $conf[:sample_rate]).to_i) }
   begin
     sleep 0.1
     handle_kb_play_holes

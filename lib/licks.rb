@@ -313,7 +313,18 @@ end
 
 
 def musical_event? hole_or_note
-  hole_or_note.match?(/^\(\S*\)$/) || hole_or_note.match?(/^\[\S*\]$/)
+  (hole_or_note[0] == '(' && hole_or_note[-1] == ')') ||
+    (hole_or_note[0] == '[' && hole_or_note[-1] == ']') 
+end
+
+
+def get_musical_duration hole_or_note
+  return nil unless musical_event?(hole_or_note)
+  begin
+    return Float(hole_or_note[1 .. -2])
+  rescue
+    return nil
+  end
 end
 
 
