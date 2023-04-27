@@ -245,12 +245,12 @@
   directly from its repo.
   
   The program harpwise runs in the linux console, so no graphical
-  environment is needed. Harpwise is written in ruby and it runs directly
-  from within the directory, which you need to clone from github
-  first. Vice versa it can simply be removed by deleting the cloned
+  environment is needed. Harpwise is written in ruby (no extra gems) and
+  it runs directly from within the directory, which you need to clone from
+  github first. Vice versa it can simply be removed by deleting the cloned
   directory.
 
-  harpwise has a bunch of dependencies (ruby, aubiopitch, sox, gnuplot)
+  harpwise has some dependencies (ruby, aubiopitch, sox, gnuplot, etc.)
   and one of the scripts in directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for

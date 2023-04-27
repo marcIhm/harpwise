@@ -105,7 +105,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hole_held = nil
         $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held_since && regular_hole?($journal[-1]) && !musical_event?($journal[-1])
       else
-        hole_held_since = Time.now.to_f if hole && hole_held != hole
+        hole_held_since = hole_since if hole && hole_held != hole
         hole_held = hole
         if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
           $journal << hole_held
