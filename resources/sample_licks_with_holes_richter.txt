@@ -134,6 +134,11 @@
 ##   # brackets; they may contain anything you choose and will not
 ##   # be played; neither will you be expected to play them.
 ##   #
+##   # Remark: An exception in beeing ignored would be a number
+##   #   in parens or brackets: If it follows a normal note,
+##   #   e.g. '+1 (0.4)', then harpwise would take it as a
+##   #   duration of 0.4 secs when playing the hole +1.
+##   #
 ##   # To give different meanings to parens and brackets, you may or
 ##   # may not adopt these simple convention:
 ##   #

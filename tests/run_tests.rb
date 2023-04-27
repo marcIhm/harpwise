@@ -1457,7 +1457,7 @@ help_samples.keys.each_with_index do |cmd, idx|
   end
 end
 
-do_test 'id-58: listen with journal' do
+do_test 'id-58: listen with journal on request' do
   sound 16, 2
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
@@ -1489,11 +1489,9 @@ do_test 'id-58: listen with journal' do
   kill_session
 end
 
-do_test 'id-59: listen and edit journal-some' do
+do_test 'id-59: listen and edit journal' do
   ENV['EDITOR']='vi'
   sound 16, 2
-  journal_file = "#{$dotdir_testing}/journal_richter.txt"
-  FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen a all --comment journal'
   tms :ENTER
@@ -1513,6 +1511,28 @@ do_test 'id-59: listen and edit journal-some' do
   tms :ENTER
   sleep 1
   expect { screen[-8] == '     +1     -4     -4' }
+  kill_session
+  ENV.delete('EDITOR')
+end
+
+do_test 'id-60: listen with auto journal' do
+  ENV['EDITOR']='vi'
+  two_sounds 4, 2, 16, 8
+  new_session
+  tms 'harpwise listen a all --comment journal'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms 'j'
+  sleep 1
+  tms 'j'
+  expect { screen[1]['journal-all'] }
+  sleep 6
+  # allow for varying duration
+  expect { (screen[-8]['-4  (1'] ||
+            screen[-8]['-4  (2'] ||
+            screen[-8]['-4  (3']) &&
+           screen[-8]['-6/'] }
   kill_session
   ENV.delete('EDITOR')
 end
