@@ -47,7 +47,7 @@ EOINTRO
   $harp_holes.each_with_index do |hole, idx|
     file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
     synth_sound hole, file, " (#{idx + 1} of #{$harp_holes.length})"
-    play_sound file, 12000
+    play_wave file, 0.25
     hole2freq[hole] = analyze_with_aubio(file)
   end
   write_freq_file hole2freq
@@ -122,9 +122,11 @@ end
 def record_and_review_hole hole
 
   recorded = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+  backup = "#{$sample_dir}/backup.wav"
   if File.exists?(recorded)
     puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     wave2data(recorded)
+    FileUtils.cp(recorded, backup)
   else
     puts "\nFile  #{recorded}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
   end
@@ -152,8 +154,8 @@ def record_and_review_hole hole
       end while Time.now.to_f - tstart_record < 0.1
       
       puts "\e[31mRECORDING\e[0m to #{recorded} ..."
-      record_sound 3, recorded
       wave2data(recorded)
+      record_sound 4, recorded
       
       puts "\e[32mdone\e[0m"
     end
@@ -161,23 +163,25 @@ def record_and_review_hole hole
     
     if File.exists?(recorded)  # normally true, can only be false on first iteration
       
-      if do_draw && !do_trim  # true on first iteration
-        draw_data($recorded_data, 0, 0)
-      end
+
+      # true on first iteration
+      draw_data(0, 0) if do_draw && !do_trim  
             
       if do_trim  # false on first iteration
         puts issue_before_trim if issue_before_trim
         issue_before_trim = false
-        result = trim_recording(hole, recorded)
+        result = trim_recorded(hole, recorded)
         if result == :redo
           do_record, do_draw, do_trim = [true, false, true]
           redo                         
         elsif result == :next || result == :cancel
+          FileUtils.mv(backup, recorded) if result == :cancel && File.exists?(backup)
+          FileUtils.rm(backup) if File.exists?(backup)
           return result, analyze_with_aubio(recorded)
         end
       end
       
-      freq = inspect_recording(hole, recorded)
+      freq = inspect_recorded(hole, recorded)
       
     end
 
@@ -187,7 +191,7 @@ def record_and_review_hole hole
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
                :frequency => [['f'], 'play frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
                :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown); then trim recording and remove initial silence and surplus length'],
-               :generate => [['g'], 'generate sound', 'generate a sound for the ET frequency of the hole'],
+               :generate => [['g'], 'generate sound', 'generate a sound (instead of recording it) for the ET frequency of the hole'],
                :back => [['b'], 'back to prev hole', 'jump back to previous hole']}
     
     choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exists?(recorded)
@@ -201,7 +205,7 @@ def record_and_review_hole hole
     when :play
       if File.exist?(recorded)
         print "\e[33mPlay\e[0m ... "
-        play_sound recorded
+        play_wave recorded, 0
         puts 'done'
       else
         print "\e[31mFile #{recorded} does not exist !\e[0m\n"
@@ -215,7 +219,7 @@ def record_and_review_hole hole
     when :frequency
       print "\e[33mGenerate\e[0m and analyse a sample sound:"
       synth_sound hole, $helper_wave
-      play_sound $helper_wave
+      play_wave $helper_wave, 0.25
       puts "Frequency: #{analyze_with_aubio($helper_wave)}"
     when :generate
       synth_sound hole, recorded

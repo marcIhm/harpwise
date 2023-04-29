@@ -260,7 +260,6 @@ def set_global_vars_late
   $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
-  $trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
 
   # Concepts: 'journaling' is writing holes, that are played by user,
   # 'tracing' (nothing to do with 'debugging') is writing holes, that

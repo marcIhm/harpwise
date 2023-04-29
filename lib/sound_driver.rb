@@ -9,14 +9,14 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "arecord -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:alsa_arecord_extra]} #{file}"
+    cmd = "arecord -f S16_LE -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:alsa_arecord_extra]} #{file}"
     system("#{cmd} #{output_clause}") or err "arecord failed: could not run: #{cmd}\n#{$alsa_arecord_fail_however}"
   end
 end
 
 
-def play_sound file, samples = nil
-  samples ||= $opts[:fast] ? 24000 : 0
+def play_wave file, secs = nil
+  samples = ( $conf[:sample_rate] * ( secs || ( $opts[:fast] ? 2 : 1 ) ) ).to_i
   sys("aplay #{file} -s #{samples} #{$conf[:alsa_aplay_extra]}", $alsa_aplay_fail_however) unless $testing
 end
 
@@ -26,16 +26,18 @@ def run_aubiopitch file, extra = nil
 end
 
 
-def trim_recording hole, recorded
-  duration = wave2data(recorded)
-  duration_trimmed = 1.0
+def trim_recorded hole, recorded
+  wave2data(recorded)
+  duration = sox_query(recorded, 'Length')
+  duration_trimmed = 2.0
   do_draw = true
-  play_from = find_onset($recorded_data)
-  trim_sound recorded, play_from, duration_trimmed, $trimmed_wave
+  trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
+  play_from = find_onset
+  trim_wave recorded, play_from, duration_trimmed, trimmed_wave
   loop do
     if do_draw
-      draw_data($recorded_data, play_from, play_from + duration_trimmed)
-      inspect_recording(hole, recorded)
+      draw_data(play_from, play_from + duration_trimmed)
+      inspect_recorded(hole, recorded)
       do_draw = false
     else
       puts
@@ -73,11 +75,11 @@ EOHELP
       
     elsif ['', ' ', 'p'].include?(choice)
       puts "\e[33mPlay\e[0m from %.2f ..." % play_from
-      play_sound $trimmed_wave
+      play_wave trimmed_wave, 0
     elsif choice == 'd'
       do_draw = true
     elsif choice == 'y' || choice == "\n"
-      FileUtils.cp $trimmed_wave, recorded
+      FileUtils.cp trimmed_wave, recorded
       wave2data(recorded)
       puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"
       return :next
@@ -88,7 +90,7 @@ EOHELP
     elsif choice == 'f'
       print "\e[33mSample\e[0m sound ..."
       synth_sound hole, $helper_wave
-      play_sound $helper_wave
+      play_wave $helper_wave
     elsif choice == 'r'
       puts "Redo recording and trim ..."
       return :redo
@@ -98,7 +100,7 @@ EOHELP
         raise ArgumentError.new('must be > 0') if val < 0
         raise ArgumentError.new("must be < duration #{duration}") if val >= duration
         play_from = val
-        trim_sound recorded, play_from, duration_trimmed, $trimmed_wave
+        trim_wave recorded, play_from, duration_trimmed, trimmed_wave
         do_draw = true
       rescue ArgumentError => e
         puts "Invalid Input '#{choice}': #{e.message}"
@@ -110,7 +112,7 @@ EOHELP
 end
 
 
-def trim_sound file, play_from, duration, trimmed
+def trim_wave file, play_from, duration, trimmed
   puts "Taking #{duration} seconds of original sound plus 0.2 fade out, starting at %.2f" % play_from
   sys "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + 0.2} gain -n -3 fade 0 -0 0.2"
 end
@@ -124,20 +126,19 @@ end
 def synth_sound hole, file, extra = ''
   puts "\nGenerating   hole \e[32m#{hole}\e[0m#{extra},   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
     
-  puts cmd = "sox -n #{file} synth 1 sawtooth %#{$harp[hole][:semi]} gain -n -3"
+  puts cmd = "sox -n #{file} synth 4 sawtooth %#{$harp[hole][:semi]} gain -n -3"
   sys cmd
 end
 
 
 def wave2data file
   sys "sox #{file} #{$recorded_data}"
-  sox_query(file, 'Length')
 end
 
 
-def find_onset data_file
+def find_onset
   max = 0
-  File.foreach(data_file) do |line|
+  File.foreach($recorded_data) do |line|
     next if line[0] == ';'
     max = [max, line.split[1].to_f].max
   end
@@ -145,7 +146,7 @@ def find_onset data_file
   max13 = max * 1.0/3
   max23 = max13 * 2
   t13 = t23 = nil
-  File.foreach(data_file) do |line|
+  File.foreach($recorded_data) do |line|
     next if line[0] == ';'
     t, v = line.split.map(&:to_f)
     t13 = t if !t13 && v >= max13
@@ -212,10 +213,14 @@ def pipeline_catch_up
 end
 
 
-def play_hole_and_handle_kb hole, duration = nil
-  wait_thr = Thread.new { play_sound(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]), (duration * $conf[:sample_rate]).to_i) }
+def play_hole_and_handle_kb hole, duration
+  wait_thr = Thread.new do
+    play_wave(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]),
+              duration)
+  end  
   begin
     sleep 0.1
+    # this sets $ctl_hole, which will be used by caller one level up
     handle_kb_play_holes
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread

@@ -319,11 +319,12 @@ end
 
 
 def get_musical_duration hole_or_note
-  return nil unless musical_event?(hole_or_note)
+  dura = ( $opts[:fast]  ?  0.5  :  1.0)
+  return dura unless musical_event?(hole_or_note)
   begin
     return Float(hole_or_note[1 .. -2])
   rescue
-    return nil
+    return dura
   end
 end
 

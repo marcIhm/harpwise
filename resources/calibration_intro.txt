@@ -23,3 +23,6 @@ that you will use for your practice later.
 The recorded samples will be used to determine the frequencies of your
 particular instrument and will be played back in mode 'quiz'.
 
+Remark: if you just want to get started with harpwise quickly, you may
+skip this process by starting calibrate with the option '--auto'.
+

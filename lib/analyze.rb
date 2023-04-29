@@ -121,7 +121,7 @@ def analyze_with_aubio file
 end
 
 
-def inspect_recording hole, file
+def inspect_recorded hole, file
   note = $harp[hole][:note]
   semi = note2semi(note)
   freq_et = semi2freq_et(semi)

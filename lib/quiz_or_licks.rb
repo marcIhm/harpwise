@@ -195,7 +195,7 @@ def do_quiz_or_licks
          ($opts[:holes] && !$ctl_mic[:ignore_holes])
         play_holes to_play[:all_wanted], oride_l_message2, false, to_play[:lick]
       else
-        play_recording to_play[:lick], oride_l_message2, to_play[:octave_shift]
+        play_recording_custom to_play[:lick], oride_l_message2, to_play[:octave_shift]
       end
 
       if $ctl_rec[:replay]
@@ -598,7 +598,8 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
     if musical_event?(hole)
       sleep $opts[:fast]  ?  0.25  :  0.5
     else
-      play_hole_and_handle_kb(hole, get_musical_duration(hole_next) || 1.0)
+      # this also handles kb input and sets $ctl_hole
+      play_hole_and_handle_kb(hole, get_musical_duration(hole_next))
     end
 
     if $ctl_hole[:show_help]
@@ -620,7 +621,7 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
 end
 
 
-def play_recording lick, oride_l_message2, octave_shift
+def play_recording_custom lick, oride_l_message2, octave_shift
 
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')

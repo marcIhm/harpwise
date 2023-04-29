@@ -545,8 +545,7 @@ def read_answer ans2chs_dsc
 end
 
 
-def draw_data file, marker1, marker2
-  sys "sox #{file} #{$dirs[:tmp]}/sound-to-plot.dat"
+def draw_data marker1, marker2
   cmds = <<EOGPL
 set term dumb #{$term_width - 2} #{$term_height - 2}
 set datafile commentschars ";"
@@ -555,7 +554,7 @@ set ylabel "sample value"
 set nokey
 %s
 %s
-plot "#{file}" using 1:2
+plot "#{$recorded_data}" using 1:2
 EOGPL
   IO.write "#{$dirs[:tmp]}/sound.gp", cmds % [marker1 > 0  ?  "set arrow from #{marker1}, graph 0 to #{marker1}, graph 1 nohead"  :  '',
                                            marker2 > 0  ?  "set arrow from #{marker2}, graph 0 to #{marker2}, graph 1 nohead"  :  '']
