@@ -11,6 +11,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_since = nil
+  hole_held_min = 0.1
 
   # Remark: $hole_was_for_disp needs to be persistant over invocations
   # and cannot be set here
@@ -100,21 +101,22 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if regular_hole?(hole)
       hole_held_was = hole_held
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
-      if Time.now.to_f - hole_since < 0.15
-        # too short, the current hole does not count as beeing held
+      if Time.now.to_f - hole_since < hole_held_min
+        # too short, the current hole can not count as beeing held
+        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && $journal.length > 0 && !musical_event?($journal[-1])
         hole_held = nil
-        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held_since && regular_hole?($journal[-1]) && !musical_event?($journal[-1])
       else
-        hole_held_since = hole_since if hole && hole_held != hole
         hole_held = hole
+        # adding  hole_held_min / 2 heuristacally to get audibly more plausible durations 
+        hole_held_since = hole_since + hole_held_min / 2
         if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
           $journal << hole_held
           print_hom "#{($journal.length + 1)/ 2} holes" if $opts[:comment] == :journal
         end
       end
     else
+      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && $journal.length > 0 && !musical_event?($journal[-1])
       hole_held = nil
-      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held_since && regular_hole?($journal[-1]) && !musical_event?($journal[-1])
     end
 
     if $hole_ref && hole == $hole_ref && hole != hole_was_for_since

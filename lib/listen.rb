@@ -169,12 +169,22 @@ def do_listen
     if $ctl_mic[:journal_write]
       $ctl_mic[:journal_write] = false
       if $journal.length > 0
-        IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length} holes from journal:\n\n" +
-                 + tabify_plain($journal) + "\n\n", mode: 'a')
-        pending_message "Wrote \e[0m#{$journal.length} holes\e[2m to #{$journal_file}"
+        make_term_cooked
+        clear_area_comment
+        puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
+        puts
+        print "\e[0mYour comment for these #{$journal.length/2} holes: "
+        comment = STDIN.gets.chomp.strip
+        make_term_immediate
+        clear_area_comment
+        IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes from journal:\n" +
+                                + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
+                                + tabify_plain($journal) + "\n\n", mode: 'a')
+        pending_message "Wrote \e[0m#{$journal.length/2} holes\e[2m to #{$journal_file}"
       else
         pending_message "No holes in journal, that could be written to file"
       end
+      $freqs_queue.clear
     end
 
     if $ctl_mic[:journal_play]
@@ -205,6 +215,7 @@ def do_listen
     if $ctl_mic[:journal_clear]
       clear_area_comment
       print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
+      print "\e[2m  You may consider writing it to file first.\n"
       print "\n\e[0m  'y' to clear, any other key to cancel ..."
       $ctl_kb_queue.clear
       char = $ctl_kb_queue.deq

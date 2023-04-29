@@ -1478,6 +1478,7 @@ do_test 'id-58: listen with journal on request' do
   tms 'j'
   sleep 2
   tms 'w'
+  tms :ENTER
   sleep 1
   expect { File.exist?(journal_file) }
   tms 'j'
