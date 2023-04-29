@@ -285,6 +285,9 @@ def set_global_vars_late
   end
   $pers_fingerprint = $pers_data.hash
 
+  # has splash screen been shown ?
+  $splashed = false
+  
   # different volumes for recordings and pitch; persistent only in single program run
   $vol_rec = Volume.new('recording', 0)
   $vol_pitch = Volume.new('pitch', -9)

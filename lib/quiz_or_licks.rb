@@ -17,12 +17,11 @@ def do_quiz_or_licks
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_can[:octave] = $ctl_can[:lick] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
-
+  
   to_play = PlayController.new
   oride_l_message2 = nil
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
-  splashed = false
   trace_text = nil
 
   loop do   # forever until ctrl-c, sequence after sequence
@@ -141,7 +140,7 @@ def do_quiz_or_licks
     end # handling $ctl-commands and calculating the next holes
 
     # Now that we are past possible commandline errors, we may initialize screen fully
-    if !$other_mode_saved[:conf] && !splashed
+    if !$other_mode_saved[:conf] && !$splashed
       # write banner, provide smooth animation
       animate_splash_line
       puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
@@ -160,7 +159,7 @@ def do_quiz_or_licks
       
       # complete term init
       make_term_immediate
-      splashed = true
+      $splashed = true
     end
 
     if oride_l_message2

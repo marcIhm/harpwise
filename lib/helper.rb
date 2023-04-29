@@ -375,7 +375,9 @@ def switch_modes
   clear_area_message
   print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
   do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
-  sleep 1
+  tag = "switch to #{$mode}"
+  sleep( $messages_seen[tag]  ?  0.5  :  1 )
+  $messages_seen[tag] = 1
   $mode_start = Time.now.to_f
   $freqs_queue.clear
 end

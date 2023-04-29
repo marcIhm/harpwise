@@ -9,7 +9,7 @@ def do_listen
   end
   $ctl_can[:next] = false
   $ctl_can[:loop] = false
-
+  
   system('clear')
   pipeline_catch_up
   $hole_was_for_disp = nil

@@ -23,6 +23,17 @@ def read_licks graceful = false
   vars = Hash.new
   lick = name = nil
 
+  # insert journal as lick
+  if $journal.length > 0
+    all_lick_names << 'journal'
+    lick = Hash.new
+    lick[:name] = 'journal'
+    lick[:lno] = 1
+    lick[:desc] = 'The current journal as a lick'
+    lick[:holes] = $journal.clone
+    lick[:tags] = ['journal']
+  end
+  
   (File.readlines(lfile) << '[default]').each_with_index do |line, idx|  # trigger checks for new lick even at end of file
     line.chomp!
     line.gsub!(/#.*/,'')

@@ -55,7 +55,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
-      animate_splash_line(single_line = true) if $mode == :listen
+      animate_splash_line(single_line = true) if $mode == :listen && !$splashed
       print "\e[2mWaiting for frequency pipeline ..."
     end
 
