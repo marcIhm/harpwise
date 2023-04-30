@@ -49,18 +49,18 @@
     ./harpwise
 
 
-  This will show examples and options for the four main operations of the
+  This will show examples and options for the main operations of the
   wise: 
   
   - listen: listen to your playing, e.g. to monitor bends or scales
   - quiz: train your ear and musical memory
   - licks: learn licks (licks not included, but some pointers)
-  - play: play scales, holes, licks or a reference pitch
+  - play: wise plays scales, holes, licks or a reference pitch
   - print: print them
   - report: produce reports about licks and tags or a history of licks played
-  - tools: utilities (e.g. a position table), most of them related to
-    basic harmonica theory
-  - calibrate: Generate samples for holes or record your own
+  - tools: utilities (e.g. a position table), mostly related to basic
+    harmonica theory
+  - calibrate: generate samples for holes or record your own
 
   As an initial step you will need to calibrate the program; the resulting
   wav-files will be kept in directory ~/.harpwise
