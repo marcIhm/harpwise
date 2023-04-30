@@ -24,14 +24,14 @@ def read_licks graceful = false
   lick = name = nil
 
   # insert journal as lick
-  if $journal.length > 0
+  if $journal.select {|h| !musical_event?(h)}.length > 0
     all_lick_names << 'journal'
     lick = Hash.new
     lick[:name] = 'journal'
     lick[:lno] = 1
-    lick[:desc] = 'The current journal as a lick'
+    lick[:desc] = "The current journal as a lick; see also #{$journal_file}"
     lick[:holes] = $journal.clone
-    lick[:tags] = ['journal']
+    lick[:tags] = ['journal', 'not-from-lickfile']
   end
   
   (File.readlines(lfile) << '[default]').each_with_index do |line, idx|  # trigger checks for new lick even at end of file

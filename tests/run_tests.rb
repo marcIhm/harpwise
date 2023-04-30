@@ -1484,7 +1484,7 @@ do_test 'id-58: listen with journal on request' do
   tms 'j'
   sleep 2
   tms 'c'
-  tms 'y'
+  tms 'c'
   sleep 1
   expect { screen[-7]['No journal yet to show'] }
   kill_session
@@ -1534,6 +1534,10 @@ do_test 'id-60: listen with auto journal' do
             screen[-8]['-4  (2'] ||
             screen[-8]['-4  (3']) &&
            screen[-8]['-6/'] }
+  tms 'm'
+  sleep 4
+  expect { screen[1]['licks(1,ran)'] }
+  expect { screen[-1]['journal'] }
   kill_session
   ENV.delete('EDITOR')
 end

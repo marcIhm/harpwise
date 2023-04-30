@@ -260,14 +260,12 @@ end
 def make_term_immediate
   prepare_term
   start_kb_handler
-  $term_immediate = true
 end
 
 
 def make_term_cooked
   sane_term
   stop_kb_handler
-  $term_immediate = false
 end
 
 
@@ -941,10 +939,19 @@ def chia_padded names
 end
 
 
-def report_error_wait_key etext
+def report_condition_wait_key text, condition = :error
   clear_area_comment
-  print "\e[#{$lines[:comment_tall]}H\e[J\n\e[0;101mAn error has happened:\e[0m\n\n"
-  print etext
+  print "\e[#{$lines[:comment_tall]}H\e[J\n"
+  case condition
+  when :error
+    print "\e[0;101mAn error has happened:"
+  when :info
+    print "\e[0m\e[2mPlease note:"
+  else
+    fail "Internal error invalid condition"
+  end
+  print "\e[0m\n\n"
+  print text
   print "\n\n\e[2mPress any key to continue ... \e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
@@ -956,9 +963,12 @@ def journal_menu
   if $opts[:comment] != :journal
     print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mjournal\e[2m ...\e[0m"
     tag = 'switch to comment journal'
-    stime = $messages_seen[tag]  ?  0.5  :  1
+    stime = $messages_seen[tag]  ?  0.1  :  0.2
     $messages_seen[tag] = true
-    sleep stime
+    5.times do
+      break if $ctl_kb_queue.length > 0
+      sleep stime
+    end
     $opts[:comment] = :journal
     clear_area_comment
   end
@@ -976,7 +986,6 @@ def journal_menu
   puts "     w: write to the journal file   p: play it"
   puts "     c: clear the journal shown     e: invoke editor on the shown journal"
   print "\e[0m\e[2m Type any of j,a,t,w,p,c,e or any other key to cancel ... \e[K"
-  $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   case char
   when 'a', 'j'

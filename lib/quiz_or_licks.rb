@@ -141,7 +141,6 @@ def do_quiz_or_licks
 
     # Now that we are past possible commandline errors, we may initialize screen fully
     if !$other_mode_saved[:conf] && !$splashed
-      # write banner, provide smooth animation
       animate_splash_line
       puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
            "key of #{$key}"
@@ -159,7 +158,6 @@ def do_quiz_or_licks
       
       # complete term init
       make_term_immediate
-      $splashed = true
     end
 
     if oride_l_message2
@@ -955,7 +953,7 @@ def read_and_set_partial
     select_and_calc_partial($harp_holes, 0, 1) if $opts[:partial] && !$opts[:partial].empty?
     $on_error_raise = false
   rescue ArgumentError => e
-    report_error_wait_key e
+    report_condition_wait_key e
     $opts[:partial] = old
   end
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
@@ -1042,11 +1040,15 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
 
   def edit_lick
-    if edit_file($lick_file, self[:lick][:lno])
-      if self[:lick_idx] && refresh_licks
-        self[:lick] = $licks[self[:lick_idx]]
-        self[:all_wanted] = self[:lick][:holes]
-        ctl_response 'Refreshed licks'
+    if self[:lick][:tags].include?('not-from-lickfile')
+      report_condition_wait_key "This lick (#{self[:lick][:name]}) is not from lick file; cannot edit here.\nRather switch to mode 'listen' to edit.", :info
+    else
+      if edit_file($lick_file, self[:lick][:lno])
+        if self[:lick_idx] && refresh_licks
+          self[:lick] = $licks[self[:lick_idx]]
+          self[:all_wanted] = self[:lick][:holes]
+          ctl_response 'Refreshed licks'
+        end
       end
     end
     $ctl_mic[:redraw] = Set[:silent, :clear]

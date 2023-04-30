@@ -262,6 +262,7 @@ end
 
 
 def animate_splash_line single_line = false
+  return if $splashed
   print "\e[J"
   puts unless single_line
   if $testing
@@ -290,6 +291,7 @@ def animate_splash_line single_line = false
   end
   puts unless single_line
   sleep 0.01
+  $splashed = true
 end
 
 
@@ -356,30 +358,58 @@ end
 
 def switch_modes
   $ctl_mic[:switch_modes] = false
+  mode_prev = $mode
   $mode = ($modes_for_switch - [$mode])[0]
-  if !$other_mode_saved[:conf]
-    # We are switching first time from licks or quiz to listen
+  $mode_switches += 1
+
+  if $mode_switches == 1
+    # switching the first time to a new mode so we need to save initial
+    # config; later we just switch back and forth between these configs
     $other_mode_saved[:conf] = $conf.clone
     $other_mode_saved[:opts] = $opts.clone
-    $other_mode_saved[:opts][:no_progress] = false
-    $other_mode_saved[:opts][:comment] = :note
   end
+
+  # switch configs
   $conf, $other_mode_saved[:conf] = $other_mode_saved[:conf], $conf
   $opts, $other_mode_saved[:opts] = $other_mode_saved[:opts], $opts
+
+  if $mode_switches == 1
+    # switching the first time to a new mode; make some guesses on its
+    # arguments, that could have never been given on the commandline
+    if $mode == :listen && [:quiz, :licks].include?(mode_prev)
+      $opts[:no_progress] = false
+      $opts[:comment] = :note
+    elsif $mode == :licks && [:listen].include?(mode_prev)
+      $opts[:comment] = :holes_notes
+      $opts[:iterate] = :random
+      $opts[:tags_any] = 'journal' if $journal.select {|h| !musical_event?(h)}.length > 0
+    else
+      err "Internal error: invalid mode switch #{mode_prev} to #{$mode}"
+    end
+  end
+
+  # Prepare conditions similar to program start; reset some flags and
+  # recalculate things, that are mode-dependant
+  
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
   $journal_file, $trace_file  = get_files_journal_trace
   $journal_all = false
+  
   clear_area_comment
   clear_area_message
+
+  # animate
   print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[#{$mode == :listen ? 34 : 32}m"
   do_figlet_unwrapped "> > >   #{$mode}", 'smblock'
   tag = "switch to #{$mode}"
   sleep( $messages_seen[tag]  ?  0.5  :  1 )
   $messages_seen[tag] = 1
+
   $mode_start = Time.now.to_f
   $freqs_queue.clear
+
 end
 
 

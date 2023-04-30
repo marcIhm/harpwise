@@ -55,7 +55,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
-      animate_splash_line(single_line = true) if $mode == :listen && !$splashed
+      animate_splash_line(single_line = true) if $mode == :listen
       print "\e[2mWaiting for frequency pipeline ..."
     end
 
@@ -504,7 +504,7 @@ def do_change_key
       $on_error_raise = true
       check_key_and_set_pref_sig(input)
     rescue ArgumentError => error
-      report_error_wait_key error
+      report_condition_wait_key error
     else
       $key = input
     ensure
@@ -597,16 +597,13 @@ def show_help
              "      K: play adjustable pitch and take it as new key",
              "      s: set scales                   S: rotate scales"]
   if $ctl_can[:next]
-    frames[-1] <<  "    j: journal-menu; only available in mode listen"
+    frames[-1] <<  "      j: journal-menu; only available in mode listen"
   else
     frames[-1] <<  "      j: journal-menu to handle holes collected"
   end
     
   if $ctl_can[:switch_modes]
     frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
-  elsif $mode == :listen
-    frames[-1].append(*["      m: switch between modes; not available now; rather start with modes",
-                        "         quiz or licks to be able to switch to listen and then back"])
   end
   frames[-1].append(*["      q: quit harpwise                h: this help",
                       ""])

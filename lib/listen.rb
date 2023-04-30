@@ -9,6 +9,8 @@ def do_listen
   end
   $ctl_can[:next] = false
   $ctl_can[:loop] = false
+  $ctl_can[:switch_modes] = true
+  $modes_for_switch ||= [:listen, :licks]
   
   system('clear')
   pipeline_catch_up
@@ -177,9 +179,7 @@ def do_listen
         comment = STDIN.gets.chomp.strip
         make_term_immediate
         clear_area_comment
-        IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes from journal:\n" +
-                                + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
-                                + tabify_plain($journal) + "\n\n", mode: 'a')
+        journal_write(comment)
         pending_message "Wrote \e[0m#{$journal.length/2} holes\e[2m to #{$journal_file}"
       else
         pending_message "No holes in journal, that could be written to file"
@@ -214,16 +214,19 @@ def do_listen
 
     if $ctl_mic[:journal_clear]
       clear_area_comment
-      print "\e[#{$lines[:comment_tall] + 2}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n"
-      print "\e[2m  You may consider writing it to file first.\n"
-      print "\n\e[0m  'y' to clear, any other key to cancel ..."
+      print "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n\n"
+      print "\e[0m  'c' to save and clear, 'C' (upcase) to clear without save,\n\n   \e[2many other key to cancel ...\e[0m"
       $ctl_kb_queue.clear
       char = $ctl_kb_queue.deq
       clear_area_comment
       $freqs_queue.clear
-      if char == 'y'
+      if char == 'c'
         $journal = Array.new
-        pending_message "Cleared journal"
+        journal_write("Automatic save before clearing journal")
+        pending_message "Saved and cleared journal"
+      elsif char == 'C'
+        $journal = Array.new
+        pending_message "Cleared journal without save"
       else
         pending_message "Journal NOT cleared"
       end
@@ -259,7 +262,7 @@ def edit_journal
         if musical_event?(hole) || $harp_holes.include?(hole)
           holes << hole
         else
-          report_error_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
+          report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
           throw :invalid_hole
         end
       end
@@ -281,4 +284,11 @@ def tabify_plain holes, dense = false
     end.join + (dense  ?  "\n"  :  "\n\n")
   end
   text
+end
+
+
+def journal_write(comment)
+  IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes from journal:\n" +
+                          + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
+                          + tabify_plain($journal) + "\n\n", mode: 'a')
 end

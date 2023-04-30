@@ -135,7 +135,6 @@ def set_global_vars_early
   $short2scale = Hash.new
   $scale2short_count = 0
   $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
-  $term_immediate = false
   $term_kb_handler = nil
 
   $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
@@ -287,6 +286,7 @@ def set_global_vars_late
 
   # has splash screen been shown ?
   $splashed = false
+  $mode_switches = 0
   
   # different volumes for recordings and pitch; persistent only in single program run
   $vol_rec = Volume.new('recording', 0)
