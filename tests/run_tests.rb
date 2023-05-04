@@ -89,7 +89,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 41
+num_exp = 43
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -309,7 +309,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [-8, 'your mileage may vary'],
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
-                     'play' => [2, 'because it does not need a computer'],
+                     'play' => [1, 'any of the given tags'],
                      'print' => [3, 'Just print a list of all known licks'],
                      'report' => [-6, 'on every invocation'],
                      'tools' => [2, 'Three charts, the third with intervals of each hole']}
@@ -585,12 +585,14 @@ do_test 'id-14a: play a lick reverse' do
   kill_session
 end
 
-do_test 'id-14b: check lick processing on tags.add and desc.add' do
+do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   new_session
   tms 'harpwise play a mape'
   tms :ENTER
   wait_for_end_of_harpwise
   dump = read_testing_dump('start')
+  lick = dump[:licks].find {|l| l[:name] == 'long'}
+  expect(lick) {lick[:rec_length] == '-1'}
   # use 'one' twice to make index match name
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 

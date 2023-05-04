@@ -230,11 +230,12 @@ end
 def play_recording_and_handle_kb recording, start, length, key, first_round = true, octave_shift = 0
 
   trim_clause = if start && length
+                  # for positive length this is different than written in the man page of sox ?!
                   "trim #{start} #{length}"
                 elsif start
                   "trim #{start}"
                 elsif length
-                  "trim 0.0 #{start}"
+                  "trim 0.0 #{length}"
                 else
                   ""
                 end

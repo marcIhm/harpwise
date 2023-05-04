@@ -17,6 +17,7 @@ def do_play to_play
 
   holes, lnames, snames, extra = partition_to_play_or_print(to_play, %w(pitch all-licks))
   extra = Set.new(extra).to_a
+  err "Option '--start-with' only useful when playing 'all-licks'" if $opts[:start_with] && !extra.include?('all-licks')
 
   #
   #  Actually play
@@ -39,9 +40,8 @@ def do_play to_play
 
     lnames.each do |lname|
       lick = $licks.find {|l| l[:name] == lname}
+      trace_lick(lick)
       play_and_print_lick lick
-      trace_text = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
-      IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
     end
 
   elsif extra.length > 0
@@ -50,7 +50,7 @@ def do_play to_play
     if extra[0] == 'pitch'
       play_adjustable_pitch
 
-    # extra is 'all'
+    # extra is 'all-licks'
     else
       if $opts[:iterate] == :random
         lick_idx = nil
@@ -61,12 +61,26 @@ def do_play to_play
           else
             lick_idx = rand($licks.length)
           end
+          trace_lick($licks[lick_idx])
           play_and_print_lick $licks[lick_idx]
           maybe_wait_for_key
         end
       else
+        sw = $opts[:start_with]
+        idx = if sw 
+                if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
+                  # start with lick from history
+                  get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
+                else
+                  (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
+                end
+              else
+                0
+              end
+      
         loop do
-          $licks.each do |lick|
+          $licks.rotate(idx).each do |lick|
+            trace_lick(lick)
             play_and_print_lick lick
             maybe_wait_for_key
           end
@@ -192,3 +206,10 @@ def maybe_wait_for_key
     puts
   end
 end
+
+
+def trace_lick lick
+  trace_text = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
+  IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
+end    
+  

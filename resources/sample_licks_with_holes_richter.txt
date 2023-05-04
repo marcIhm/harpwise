@@ -27,6 +27,7 @@
   # Next two lines are optional; useful if you only want to play
   # part of the recording
   rec.start = 0.0
+  # a negative value would count from the end of the recording
   rec.length = 10
 
   # This has the tags 'samples' and 'favorites', that can be used

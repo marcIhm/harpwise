@@ -54,7 +54,6 @@ def read_licks graceful = false
           # vars have already been assigned; nothing to do here
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
-
           # merge from star-file
           starred = if $starred.keys.include?(name)
                       if $starred[name] > 0
@@ -77,7 +76,6 @@ def read_licks graceful = false
             lick[:desc] += ' ' + default[:desc_add] 
           end
           lick[:desc].strip!
-
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
@@ -88,7 +86,7 @@ def read_licks graceful = false
 
       # start with new lick
       unless %w(default vars).include?(nname)
-        err "Lick '#{nname}' has already appeared before (#{lfile})" if all_lick_names.include?(name)
+        err "Lick '#{nname}' has already appeared before (#{lfile}, line #{idx + 1})" if all_lick_names.include?(name)
         all_lick_names << nname
       end
       lick = Hash.new
@@ -97,16 +95,16 @@ def read_licks graceful = false
 
     # [empty section]
     elsif line.match?(/^ *\[\] *$/)
-      err "Lick name [] cannot be empty (#{lfile})"
+      err "Lick name [] cannot be empty (#{lfile}, line #{idx + 1})"
 
     # [invalid section]
     elsif md = line.match(/^ *\[(.*)\] *$/)
-      err "Invalid lick name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile})"
+      err "Invalid lick name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile}, line #{idx + 1})"
 
     # $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(#{$word_re})$/)
       var, value = md[1..2]
-      err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile})" unless name == 'vars'
+      err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile}, line #{idx + 1})" unless name == 'vars'
       vars[var] = value
 
     # tags.add = value1 value2 ...
@@ -130,7 +128,7 @@ def read_licks graceful = false
         err("Hole '#{hole}' in lick #{name} from #{lfile} is not among holes of harp #{$harp_holes}") unless musical_event?(hole) || $harp_holes.include?(hole)
         hole
       end
-      err "Lick #{name} does not contain any holes (#{lfile})" unless lick[:holes].length > 0
+      err "Lick #{name} does not contain any holes (#{lfile}, line #{idx + 1})" unless lick[:holes].length > 0
       derived[-1] = "notes = " + holes.split.map do |hoe|
         musical_event?(hoe)  ?  hoe  :  $harp[hoe][:note]
       end.join(' ')
@@ -154,20 +152,29 @@ def read_licks graceful = false
       svar = var.gsub('.','_').to_sym
       err "Key '#{var}' (below [#{name}]) has already been defined" if lick[svar]
       lick[svar] = desc
-      
-    # key = value  (for remaining keys, e.g. rec)
-    elsif md = line.match(/^ *(#{$word_re}) *= *(#{$word_re})$/)
-      key, value = md[1..2]
 
+    elsif md = line.match(/^ *(#{$word_re}) *= *(-?#{$word_re})$/)
+      key, value = md[1..2]
       if name == 'default'
         # correct assignment has been handled before
         err "Default section only allows keys tags, tags.add, desc or desc.add ; not '#{key}'" 
       elsif name == 'vars'
         # correct assignments have been handled before
-        err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile})"
+        err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile}, line #{idx + 1})"
       # normal lick
       else
         # tags, holes and notes have already been handled above special
+        if %w(rec.start rec.length).include?(key)
+          begin
+            Float(value)
+          rescue ArgumentError
+            err "Value of #{key} is not a number: '#{value}' (#{lfile}, line #{idx + 1})"
+          end
+        end
+        if key == 'rec.start' && value.to_f < 0
+          err "Value of rec.start cannot be negative: '#{value}' (#{lfile}, line #{idx + 1})"
+        end
+        
         if all_keys.include?(key)
           skey = key.gsub('.','_').to_sym
           err "Key '#{key}' (below [#{name}]) has already been defined" if lick[skey]
@@ -183,7 +190,7 @@ def read_licks graceful = false
         end
       end
     else
-      err "Cannot parse this line: '#{line}' (#{lfile})"
+      err "Cannot parse this line: '#{line}' (#{lfile}, line #{idx + 1})"
     end
   end # end of processing lines in file
 

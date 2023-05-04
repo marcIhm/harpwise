@@ -619,7 +619,7 @@ end
 
 
 def play_recording_custom lick, oride_l_message2, octave_shift
-
+      
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])

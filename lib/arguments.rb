@@ -68,8 +68,9 @@ def parse_arguments
      [Set[:licks, :play], {
         holes: %w(--holes),
         iterate: %w(--iterate),
-        reverse: %w(--reverse)}],
-     [Set[:licks, :report], {
+        reverse: %w(--reverse),
+        start_with: %w(-s --start-with)}],
+     [Set[:licks, :report, :play], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
@@ -78,7 +79,6 @@ def parse_arguments
         min_holes: %w(--min-holes),
       }],
      [Set[:licks], {
-        start_with: %w(-s --start-with),
         partial: %w(-p --partial)}]]
 
   double_sets = modes2opts.map {|m2o| m2o[0]}

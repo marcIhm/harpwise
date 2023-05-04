@@ -32,9 +32,17 @@ USAGE BY EXAMPLES
 
     harpwise play all-licks --iterate cycle
 
+  Only play favorite licks (tag 'fav'):
+
+    harpwise play all-licks --tags-any fav
+
   Play an earlier lick:
 
     harpwise play 3l
+
+  To see a list of earlier licks:
+
+    harpwise report history
 
 
   The special keywords (e.g. 'iter' or 'rand') are the same, that
