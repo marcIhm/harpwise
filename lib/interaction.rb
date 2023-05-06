@@ -983,9 +983,10 @@ def journal_menu
   puts "       RETURN to add the note currently played or BACKSPACE to delete it."
   puts " Within this menu again, operate on the current content of the journal:"
   print "\e[0m\e[32m"
-  puts "     w: write to the journal file   p: play it"
-  puts "     c: clear the journal shown     e: invoke editor on the shown journal"
-  print "\e[0m\e[2m Type any of j,a,t,w,p,c,e or any other key to cancel ... \e[K"
+  puts "     p: play the journal shown, using durations (e.g. '(0.3)') if any"
+  puts "     e: invoke editor on it  c: clear it (offer saving before)"
+  puts "     w: write it to file     r: recall 100 lines from file into edit"
+  print "\e[0m\e[2m Type any of j,a,p,e,c,w,r or any other key to cancel ... \e[K"
   char = $ctl_kb_queue.deq
   case char
   when 'a', 'j'
@@ -1000,6 +1001,8 @@ def journal_menu
     $ctl_mic[:journal_clear] = true
   when 'e'
     $ctl_mic[:journal_edit] = true
+  when 'r'
+    $ctl_mic[:journal_recall] = true    
   when 'q','x'
     pending_message "Quit journal menu"
   else

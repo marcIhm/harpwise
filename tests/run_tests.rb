@@ -1286,7 +1286,6 @@ do_test 'id-49: edit lickfile' do
   sleep 1
   expect { screen[14]['[wade]'] }
   kill_session
-  ENV.delete('EDITOR')
 end
 
 do_test 'id-50: tools positions' do
@@ -1459,8 +1458,9 @@ help_samples.keys.each_with_index do |cmd, idx|
   end
 end
 
-do_test 'id-58: listen with journal on request' do
+do_test 'id-58: listen with journal on request, recall later' do
   sound 16, 2
+  ENV['EDITOR']='vi'
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
@@ -1489,6 +1489,11 @@ do_test 'id-58: listen with journal on request' do
   tms 'c'
   sleep 1
   expect { screen[-7]['No journal yet to show'] }
+  tms 'j'
+  sleep 2
+  tms 'r'
+  expect { screen[-7]['-- 2 holes in key of a'] }
+  ENV.delete('EDITOR')
   kill_session
 end
 

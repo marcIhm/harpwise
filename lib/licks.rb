@@ -24,7 +24,7 @@ def read_licks graceful = false
   lick = name = nil
 
   # insert journal as lick
-  if $journal.select {|h| !musical_event?(h)}.length > 0
+  if journal_length > 0
     all_lick_names << 'journal'
     lick = Hash.new
     lick[:name] = 'journal'

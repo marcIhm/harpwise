@@ -117,7 +117,7 @@ def do_listen
         if $opts[:comment] == :journal
           # the same hint as below is also produced right after each
           # hole within handle_holes
-          ["#{$journal.length / 2} holes"]
+          ["#{journal_length} holes"]
         else
           ["\e[0m\e[2mHint: " +
            if $all_scales.length == 1 || $opts[:add_no_holes]
@@ -152,7 +152,7 @@ def do_listen
       else
         $journal << hole_disp
       end
-      print_hom "#{$journal.length} holes"
+      print_hom "#{journal_length} holes"
     end
     
     if $ctl_mic[:journal_delete]
@@ -170,17 +170,17 @@ def do_listen
 
     if $ctl_mic[:journal_write]
       $ctl_mic[:journal_write] = false
-      if $journal.length > 0
+      if journal_length > 0
         make_term_cooked
         clear_area_comment
         puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
         puts
-        print "\e[0mYour comment for these #{$journal.length/2} holes: "
+        print "\e[0mYour comment for these #{journal_length} holes: "
         comment = STDIN.gets.chomp.strip
         make_term_immediate
         clear_area_comment
         journal_write(comment)
-        pending_message "Wrote \e[0m#{$journal.length/2} holes\e[2m to #{$journal_file}"
+        pending_message "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}"
       else
         pending_message "No holes in journal, that could be written to file"
       end
@@ -189,7 +189,7 @@ def do_listen
 
     if $ctl_mic[:journal_play]
       $ctl_mic[:journal_play] = false
-      if $journal.length > 0
+      if journal_length > 0
         print_hom 'Playing journal, press any key to skip ...'
         pending_message "Journal played"
         [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
@@ -240,6 +240,34 @@ def do_listen
       $ctl_mic[:redraw] = Set[:silent]
     end
 
+    if $ctl_mic[:journal_recall]
+      $ctl_mic[:journal_recall] = false
+      content = if File.exist?($journal_file) && File.size($journal_file) > 0
+                  head = <<~END
+                  ### 
+                  ###   Up to 100 lines from journal file
+                  ###
+                  ###      #{$journal_file}
+                  ###
+                  ###   all lines commented out.
+                  ###   Uncomment  (remove '#') any lines with holes,
+                  ###   that you want to add to the current journal.
+                  ###
+                  ###   The current journal (#{journal_length} holes, uncommented)
+                  ###   follows at the end of the file; so that just 
+                  ###   closing this editor does not change it.
+                  ###
+
+END
+                  head + File.readlines($journal_file).last(100).map {|l| '# ' + l}.join + "\n"
+                else
+                  nil
+                end
+      edit_journal content
+      $freqs_queue.clear
+      $ctl_mic[:redraw] = Set[:silent]
+    end
+
     if $ctl_mic[:journal_all_toggle]
       $ctl_mic[:journal_all_toggle] = false
       $journal_all = !$journal_all
@@ -251,19 +279,26 @@ def do_listen
 end
 
 
-def edit_journal
+def edit_journal initial_content = nil
   tfile = Tempfile.new(File.basename($0))
+  tfile.write(initial_content) if initial_content
+  tfile.write("\n###\n### The current journal:\n###\n\n")
   tfile.write(tabify_plain($journal, true))
   tfile.close
   if edit_file(tfile.path)
     catch (:invalid_hole) do
       holes = Array.new
-      File.readlines(tfile.path).join(' ').split.each do |hole|
-        if musical_event?(hole) || $harp_holes.include?(hole)
-          holes << hole
-        else
-          report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
-          throw :invalid_hole
+      File.readlines(tfile.path).each do |line|
+        line.gsub!(/#.*/,"\n")
+        line.strip!
+        next if line.empty?
+        line.split.each do |hole|
+          if musical_event?(hole) || $harp_holes.include?(hole)
+            holes << hole
+          else
+            report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
+            throw :invalid_hole
+          end
         end
       end
       $journal = holes
@@ -288,7 +323,11 @@ end
 
 
 def journal_write(comment)
-  IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes in key of #{$key}:\n" +
+  IO.write($journal_file, "\n\n\n#{Time.now} -- #{journal_length} holes in key of #{$key}:\n" +
                           + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
                           + tabify_plain($journal) + "\n\n", mode: 'a')
+end
+
+def journal_length
+  $journal.select {|h| !musical_event?(h)}.length
 end
