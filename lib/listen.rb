@@ -288,7 +288,7 @@ end
 
 
 def journal_write(comment)
-  IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes from journal:\n" +
+  IO.write($journal_file, "\n\n\n#{Time.now} -- #{$journal.length/2} holes in key of #{$key}:\n" +
                           + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
                           + tabify_plain($journal) + "\n\n", mode: 'a')
 end

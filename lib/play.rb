@@ -140,16 +140,16 @@ def partition_to_play_or_print to_p, extra_allowed = []
     end
     puts "\n- musical events in () or []"
     puts "\n- holes:"
-    print_in_columns $harp_holes
+    print_in_columns $harp_holes, 4
     puts "\n- notes:"
-    print_in_columns $harp_notes
+    print_in_columns $harp_notes, 4
     puts "\n- scales:"
-    print_in_columns all_snames
+    print_in_columns all_snames, 4
     puts "\n- licks:"
-    print_in_columns all_lnames
+    print_in_columns all_lnames, 4
     if extra_allowed.length > 0
       puts "\n- extra:"
-      print_in_columns extra_allowed
+      print_in_columns extra_allowed, 4
     end
     puts
     err 'See above'

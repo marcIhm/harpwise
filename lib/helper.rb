@@ -202,14 +202,14 @@ def print_mission text
 end
 
 
-def print_in_columns names
-  line = '  '
+def print_in_columns names, indent = 2
+  line = ' ' * indent
   names.
     map {|nm| nm + ' '}.
     map {|nm| nm + ' ' * (-nm.length % 8)}.each do |nm|
     if (line + nm).length > $term_width - 4
       puts line
-      line = '  '
+      line = ' ' * indent
     end
     line += nm
   end

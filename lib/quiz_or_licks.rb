@@ -870,7 +870,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   if fig_lines_all > fig_lines_max
     if fig_lines_inactive <= 1
     # This happens during begin of replay: need to show first
-    # inactive figlet-line, because it also contain active holes;
+    # inactive figlet-line, because it also contains active holes;
     # screen lines at bottom will be truncated below
     elsif fig_lines_all - fig_lines_inactive <= 1
       # This happens during end of replay: show the last two lines
@@ -963,13 +963,21 @@ end
 def comment_while_playing holes
   # Show all lines in case of immediate or if the comment would show them anyway
   if $opts[:comment] == :holes_scales
+    clear_area_comment
     holes_with_scales = scaleify(holes)
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, 0)
   elsif $opts[:comment] == :holes_intervals
+    clear_area_comment
     holes_with_intervals = intervalify(holes)
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, 0)
-  elsif $opts[:comment] == :holes_all || $opts[:immediate]
+  elsif $opts[:comment] == :holes_notes
+    clear_area_comment
+    holes_with_notes = noteify(holes)
+    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_notes, 0)
+  elsif $opts[:comment] == :holes_all
     wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
+  elsif $opts[:comment] == :holes_some && $opts[:immediate]
+    largify(holes, idx)
   else
     nil
   end

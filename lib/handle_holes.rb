@@ -98,7 +98,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     # distinguish deliberate playing from noise: compute hole_held
-    if regular_hole?(hole)
+    if regular_hole?(hole) && $journal_all
       hole_held_was = hole_held
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
       if Time.now.to_f - hole_since < hole_held_min
@@ -109,13 +109,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hole_held = hole
         # adding  hole_held_min / 2 heuristacally to get audibly more plausible durations 
         hole_held_since = hole_since + hole_held_min / 2
-        if hole_held != hole_held_was && regular_hole?(hole_held) && $journal_all
+        if hole_held != hole_held_was && regular_hole?(hole_held)
           $journal << hole_held
           print_hom "#{($journal.length + 1)/ 2} holes" if $opts[:comment] == :journal
         end
       end
     else
-      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && $journal.length > 0 && !musical_event?($journal[-1])
+      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && $journal.length > 0 && !musical_event?($journal[-1]) && $journal_all
       hole_held = nil
     end
 
