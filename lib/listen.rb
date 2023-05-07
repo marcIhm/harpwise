@@ -145,7 +145,21 @@ def do_listen
         when '(-)'
           $journal[-1] = '(+)'
         when '(+)'
-          $journal[-1] = '(-)'
+          make_term_cooked
+          clear_area_comment
+          puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
+          puts
+          print "\e[0mYour comment (20 chars cutoff): "
+          comment = STDIN.gets.chomp.strip
+          comment.gsub!('(','')
+          comment.gsub!(')','')
+          make_term_immediate
+          clear_area_comment
+          if comment.length > 0
+            $journal[-1] = comment[0 .. 19]
+          else
+            $journal[-1] = '(-)'
+          end
         else
           $journal << '(-)'
         end
@@ -157,7 +171,6 @@ def do_listen
     
     if $ctl_mic[:journal_delete]
       $ctl_mic[:journal_delete] = false
-      $journal.pop while musical_event?($journal[-1])
       $journal.pop
     end
     
