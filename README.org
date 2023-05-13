@@ -2,7 +2,7 @@
 
 * harpwise
 
-  [[images/harmonica.png]]
+  [[images/harmonica3.png]]
 
   harpwise is an interactive assistant that supports the daily practice of
   scales, licks, bends, warbles or intervals on a diatonic (richter) or
