@@ -548,14 +548,14 @@ def play_interval semi1, semi2
         semi2 = semi1 + delta_semi
         new_sound = true
       elsif $ctl_inter[:gap_inc] || $ctl_inter[:gap_dec]
-        gap +=  $ctl_inter[:gap_dec]  ?  -0.1  :  +0.1
+        gap +=  $ctl_inter[:gap_dec]  ?  -0.2  :  +0.2
         gap = 0 if gap < 0
         gap = 2 if gap > 2
         gap = gap.round(1)
         puts "\e[0m\e[2mGap is #{gap}sec\e[0m\n\n"
         new_sound = true
       elsif $ctl_inter[:len_inc] || $ctl_inter[:len_dec]
-        len +=  $ctl_inter[:len_dec]  ?  -0.2  :  +0.2
+        len +=  $ctl_inter[:len_dec]  ?  +1 : -1
         len = 0 if len < 0
         len = 8 if len > 8
         len = len.round(1)
