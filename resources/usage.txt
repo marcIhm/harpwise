@@ -19,7 +19,6 @@ and, perhaps less frequently used:
 
   - play: Wise plays scales, holes or licks, not asking you to play
     them back. All this makes sound.
-
   - print: print and annottate the holes of scales or licks from the
     commandline. This refers to data, that already comes with
     harpwise.
