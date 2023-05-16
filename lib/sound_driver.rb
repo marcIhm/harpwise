@@ -494,7 +494,9 @@ def play_interval semi1, semi2
   tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
   wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
   cmd = "play --combine mix #{tfiles[0]} #{tfiles[1]}"
-  synth_for_inter([semi1, semi2], tfiles, wfiles)
+  gap = 0.4
+  len = 3
+  synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
   semis_changed = true
   paused = false
   wait_thr = stdout_err = nil
@@ -510,9 +512,7 @@ def play_interval semi1, semi2
       end
     else
       if semis_changed || !wait_thr&.alive?
-        if wait_thr&.alive?
-          Process.kill('KILL',wait_thr.pid)
-        end
+        Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
         join_and_check_thread wait_thr, cmd
         IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
         _, stdout_err, wait_thr  = Open3.popen2e($testing  ?  'sleep 86400'  :  cmd)
@@ -547,12 +547,32 @@ def play_interval semi1, semi2
         delta_semi +=  $ctl_inter[:narrow]  ?  -1  :  +1
         semi2 = semi1 + delta_semi
         new_sound = true
+      elsif $ctl_inter[:gap_inc] || $ctl_inter[:gap_dec]
+        gap +=  $ctl_inter[:gap_dec]  ?  -0.1  :  +0.1
+        gap = 0 if gap < 0
+        gap = 2 if gap > 2
+        gap = gap.round(1)
+        puts "\e[0m\e[2mGap is #{gap}sec\e[0m\n\n"
+        new_sound = true
+      elsif $ctl_inter[:len_inc] || $ctl_inter[:len_dec]
+        len +=  $ctl_inter[:len_dec]  ?  -0.2  :  +0.2
+        len = 0 if len < 0
+        len = 8 if len > 8
+        len = len.round(1)
+        puts "\e[0m\e[2mLength is #{len}sec\e[0m\n\n"
+        new_sound = true
+      elsif $ctl_inter[:redo]
+        puts "\e[0m\e[2mReplay\e[0m\n\n"
+        new_sound = true        
       elsif $ctl_inter[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'an interval',true,
                         "   SPACE: pause/continue             ESC,x,q: quit\n" +
                         " +,right: widen interval by one semi  -,left: narrow by one semi\n" +
-                        "    >,up: move interval up one semi   <,down: move down\n"
+                        "    >,up: move interval up one semi   <,down: move down\n" +
+                        "       G: increase time gap                g: decrease\n" +
+                        "       L: increase length                  l: decrease\n" +
+                        "  RETURN: play again"
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
@@ -566,7 +586,7 @@ def play_interval semi1, semi2
       if new_sound
         Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
         join_and_check_thread wait_thr, cmd
-        synth_for_inter([semi1, semi2], tfiles, wfiles)
+        synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
         print_interval semi1, semi2
         new_sound = false
       end
@@ -577,11 +597,11 @@ def play_interval semi1, semi2
 end
 
 
-def synth_for_inter semis, files, wfiles
-  times = [0.1, 0.6]
+def synth_for_inter semis, files, wfiles, gap, len
+  times = [0.4, 0.4 + gap]
   files.zip(semis, times).each do |f, s, t|
     sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
-    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth 3 pluck %#{s+7}") 
+    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s}") 
     sys("sox -q #{$conf[:sox_play_extra]} #{wfiles[0]} #{wfiles[1]} #{f}") 
   end
 end

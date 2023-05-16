@@ -374,10 +374,20 @@ def handle_kb_play_inter
     $ctl_inter[:down] = true
   elsif char == '>' || char == 'up'
     $ctl_inter[:up] = true
+  elsif char == 'g'
+    $ctl_inter[:gap_dec] = true
+  elsif char == 'G'
+    $ctl_inter[:gap_inc] = true
+  elsif char == 'l'
+    $ctl_inter[:len_dec] = true
+  elsif char == 'L'
+    $ctl_inter[:len_inc] = true
   elsif char == 'h'
     $ctl_inter[:show_help] = true
-  elsif char == 'q' || char == 'x' || char == "\e" || char == "\n"
+  elsif char == 'q' || char == 'x' || char == "\e"
     $ctl_inter[:quit] = char
+  elsif char == "\n"
+    $ctl_inter[:redo] = true
   else
     $ctl_inter[:any] = false
   end
