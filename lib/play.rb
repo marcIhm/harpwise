@@ -15,7 +15,8 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  holes, lnames, snames, extra = partition_to_play_or_print(to_play, %w(pitch all-licks))
+  extra_allowed = %w(pitch all-licks inter interval)
+  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, true)
   extra = Set.new(extra).to_a
   err "Option '--start-with' only useful when playing 'all-licks'" if $opts[:start_with] && !extra.include?('all-licks')
 
@@ -46,12 +47,17 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    err "only one of 'pitch', 'all-licks' is allowed, not both" if extra.length > 1
+    err "only one of #{extra_allowed} is allowed" if extra.length > 1
     if extra[0] == 'pitch'
       play_adjustable_pitch
 
-    # extra is 'all-licks'
-    else
+    elsif extra[0] == 'interval' || extra[0] == 'inter'
+
+      s1, s2 = normalize_interval(args_for_extra)
+
+      play_interval s1, s2
+        
+    elsif extra[0] == 'all-licks'
       if $opts[:iterate] == :random
         lick_idx = nil
         loop do
@@ -86,6 +92,8 @@ def do_play to_play
           end
         end
       end
+    else
+      fail "Internal error"
     end
   else
     fail "Internal error"
@@ -93,23 +101,24 @@ def do_play to_play
 end
 
 
-def partition_to_play_or_print to_p, extra_allowed = []
+def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = false
 
   holes = []
   lnames = []
   snames = []
   extra = []
+  args_for_extra = []
   other = []
-
   all_lnames = $licks.map {|l| l[:name]}
   all_snames = scales_for_type($type)
-  
+  extra_seen = false
   to_p.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+
     if musical_event?(tp)
       holes << tp
-    elsif $harp_holes.include?(tp)
+    elsif $harp_holes.include?(tp) && !extra_seen
       holes << tp
-    elsif $harp_notes.include?(tp)
+    elsif $harp_notes.include?(tp) && !extra_seen
       holes << $note2hole[tp]
     elsif all_lnames.include?(tp)
       lnames << tp
@@ -119,6 +128,9 @@ def partition_to_play_or_print to_p, extra_allowed = []
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     elsif extra_allowed.include?(tp)
       extra << tp
+      extra_seen = true
+    elsif extra_seen && extra_takes_args
+      args_for_extra << tp
     else
       other << tp
     end
@@ -163,8 +175,101 @@ def partition_to_play_or_print to_p, extra_allowed = []
     err 'See above'
   end
 
-  [holes, lnames, snames, extra]
+  [holes, lnames, snames, extra, args_for_extra]
 
+end
+
+
+def hole_or_note_or_semi hns
+
+  types = Array.new
+  values = Array.new
+
+  # check if argument is interval or absolute note or hole or event
+  # many of them
+
+  # hole ?
+  if $harp_holes.include?(hns)
+    types << :abs
+    values << note2semi($hole2note[hns])
+  end
+
+  # note ?
+  begin
+    values << note2semi(hns)
+    types << :abs
+  rescue ArgumentError
+  end
+
+  # named interval ?
+  inters = Hash.new
+  $intervals.each do |k,vv|
+    vv.each do |v|
+      next if v[' ']
+      inters[v.downcase] = k
+    end
+  end
+  if inters[hns]
+    types << :diff
+    values << inters[hns].to_i
+  end
+
+  # interval in semitones ?
+  if hns.match(/^[+-]?\d+(st)?$/)
+    types << :diff
+    values << hns.to_i
+  end
+
+  fail "Internal error: #{types}" if types.length >= 3
+  
+  if types.length == 0
+    inters_desc = inters.keys.map {|nm| "#{nm}(=#{inters[nm]}st)"}.join(', ')
+    err "Given argument #{hns} is none of these:\n" +
+        "  - numeric interval\e[2m, e.g. 12st or -3\n" +
+        "\e[0m  - named interval\e[2m, i.e. one of: " + inters_desc + "\n" +
+        "\e[0m  - hole\e[2m, i.e. one of: " + $harp_holes.join(', ') + "\n" +
+        "\e[0m  - note\e[2m, e.g. c4 or d5\e[0m"
+  end
+
+  return types, values
+end
+
+
+def normalize_interval args
+
+  err "Need two arguments, to play or print an interval:\n" +
+      "  - a base-note or base-hole, e.g. 'c4' or '+2'\n" +
+      "  - a difference in semitones, either as a number or as a name, e.g. '12st' or 'oct'\n" unless args.length == 2
+
+  args.map!(&:downcase)
+      
+  tt = Array.new
+  vv = Array.new
+  args.each do |arg|
+    t, v = hole_or_note_or_semi(arg)
+    tt << t
+    vv << v
+  end
+  s1 = s2 = 0
+  case tt
+  when [[:abs, :diff], [:abs, :diff]]
+    err "Both arguments #{args} can be interpreted as note or hole or as a differences in semitones; please remove ambiguity by appending 'st' to the interval"
+  when [[:diff], [:diff]]
+    err "You specified two semitone-differences but no base note: #{args}"
+  when [[:abs, :diff], [:diff]], [[:abs], [:diff]]
+    s1 = vv[0][0]
+    s2 = s1 + vv[1][0]
+  when [[:diff], [:abs, :diff]], [[:diff], [:abs]]
+    s1 = vv[1][0]
+    s2 = s1 + vv[0][0]
+  when [[:abs], [:abs]]
+    s1 = vv[0][0]
+    s2 = vv[1][0]
+  else
+    fail "Internal error: #{types}"
+  end
+
+  return s1, s2
 end
 
 

@@ -83,13 +83,13 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d st-louis','report chromatic licks -t favorites','harpwise report chromatic licks']
+known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d st-louis','report chromatic licks -t favorites','harpwise report chromatic licks','harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # replace some, e.g. due to my different set of licks
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 43
+num_exp = 46
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -312,7 +312,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'play' => [1, 'any of the given tags'],
                      'print' => [3, 'Just print a list of all known licks'],
                      'report' => [-6, 'on every invocation'],
-                     'tools' => [2, 'Three charts, the third with intervals of each hole']}
+                     'tools' => [2, 'Print an interval']}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -1141,28 +1141,6 @@ do_test 'id-41: abbreviated scale' do
   kill_session
 end
 
-do_test 'id-45: star and unstar a lick' do
-  starred_file = Dir.home + '/dot_harpwise/licks/richter/starred.yaml'
-  FileUtils.rm starred_file if File.exist?(starred_file)  
-  new_session
-  tms 'harpwise licks a --start-with wade'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  5.times do
-    tms '*'
-    sleep 1
-  end
-  3.times do
-    tms '/'
-    sleep 1
-  end
-  tms 'q'
-  sleep 1
-  kill_session
-  stars = YAML.load_file(starred_file)
-  expect(stars) { stars['wade'] == 2 }
-end
-
 usage_examples.each_with_index do |ex,idx|
   do_test "id-41a%d: usage #{ex}" % idx do
     new_session
@@ -1220,6 +1198,28 @@ do_test 'id-44a: switch between modes quiz and listen' do
   sleep 4
   expect { screen[1]['quiz'] }
   kill_session
+end
+
+do_test 'id-45: star and unstar a lick' do
+  starred_file = Dir.home + '/dot_harpwise/licks/richter/starred.yaml'
+  FileUtils.rm starred_file if File.exist?(starred_file)  
+  new_session
+  tms 'harpwise licks a --start-with wade'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  5.times do
+    tms '*'
+    sleep 1
+  end
+  3.times do
+    tms '/'
+    sleep 1
+  end
+  tms 'q'
+  sleep 1
+  kill_session
+  stars = YAML.load_file(starred_file)
+  expect(stars) { stars['wade'] == 2 }
 end
 
 do_test 'id-46: show lick starred in previous invocation' do
@@ -1288,15 +1288,7 @@ do_test 'id-49: edit lickfile' do
   kill_session
 end
 
-do_test 'id-50: tools positions' do
-  new_session
-  tms 'harpwise tools positions'
-  tms :ENTER
-  expect { screen[1]['Af'] }
-  kill_session
-end
-
-do_test 'id-50a: tools key as alias for positions' do
+do_test 'id-50a: tools key' do
   new_session
   tms 'harpwise tools keys b'
   tms :ENTER
@@ -1547,6 +1539,40 @@ do_test 'id-60: listen with auto journal' do
   expect { screen[-1]['journal'] }
   kill_session
   ENV.delete('EDITOR')
+end
+
+do_test 'id-61: error on ambigous spec for play inter' do
+  new_session
+  tms 'harpwise play interval -1 -1'
+  tms :ENTER
+  sleep 1
+  expect { screen[5]['ERROR: Both arguments'] }
+  kill_session
+end
+
+do_test 'id-62: play interval' do
+  new_session
+  tms 'harpwise play inter c4 12st'
+  tms :ENTER
+  sleep 2
+  expect { screen[8]['from:  -9st |   +1 |   c4'] }
+  tms '>'
+  sleep 2
+  expect { screen[12]['from:  -8st |  -1/ |  df4'] }
+  expect { screen[13]['to:   4st |  -4/ |  df5'] }
+  tms '+'
+  sleep 2
+  expect { screen[17]['to:   5st |   -4 |   d5'] }
+  kill_session
+end
+
+do_test 'id-63: tool interval' do
+  new_session
+  tms 'harpwise tool inter d4 e5'
+  tms :ENTER
+  sleep 2
+  expect { screen[2]['Interval 14st'] }
+  kill_session
 end
 
 puts "\ndone.\n\n"

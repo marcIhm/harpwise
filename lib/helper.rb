@@ -134,7 +134,7 @@ def display_kb_help what, first_round, body
     clear_area_comment
     puts "\e[#{$lines[:help]}H\e[0m"
   end
-  puts "Keys available while playing a #{what}:\e[0m\e[32m\n"
+  puts "Keys available while playing #{what}:\e[0m\e[32m\n"
   body.lines.each {|l| puts '      ' + l.chomp + "\n"}
   print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear

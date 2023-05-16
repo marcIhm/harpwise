@@ -11,6 +11,7 @@ OVERVIEW
     - 'all-licks' for all licks
     - 'pitch' to play an interactive, adjustable pitch; this
       may help to find the key of a song by ear-comparison
+    - 'interval' play an interval specified on the commandline
     
   This mode needs no scale argument.
 
@@ -67,4 +68,23 @@ USAGE BY EXAMPLES
   center of the song to find its key. Which is the preferred method,
   because it does not need a computer; but this command may help to
   get you started anyway.
-  
+
+
+  Play an interval:
+
+    harpwise play inter c4 d4
+
+  while this is beeing played you may move it around or widen or
+  narrow it by semitones.
+
+  There are multiple ways to specify an interval:
+  - Either as two notes or holes
+  - Or as one note or hole plus one interval (named or as semitones)
+
+  So these are more ways to play an interval:
+
+    harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+
+    harpwise play inter +2 pf      ## Hole +2 and a perfect fifth
+
+  The error message (if any) will list valid values.

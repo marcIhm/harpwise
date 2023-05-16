@@ -34,4 +34,4 @@ USAGE BY EXAMPLES
   Just print a list of all known licks:
 
     harpwise print all-licks
-    
+      

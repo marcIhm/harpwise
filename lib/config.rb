@@ -33,6 +33,7 @@ def set_global_vars_early
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
   $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :any]
+  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -68,6 +69,10 @@ def set_global_vars_early
   # result of processing keys, while playing a pitch
   $ctl_pitch = Struct.new(*$conf_meta[:ctrls_play_pitch]).new
   $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
+
+  # result of processing keys, while playing an interval
+  $ctl_inter = Struct.new(*$conf_meta[:ctrls_play_inter]).new
+  $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}
 
   # result of processing keys, while a series of holes is played
   ks = [:skip, :show_help]

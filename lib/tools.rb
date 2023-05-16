@@ -4,13 +4,13 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(keys positions transpose chart chords print)
+  tools_allowed = %w(keys transpose chart chords inter interval)
   tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
     err "Argument for mode 'tools' must be one of #{choices}, not #{none}; #{$for_usage}"
   end
 
   case tool
-  when 'keys', 'positions'
+  when 'keys'
     tool_key_positions to_handle
   when 'transpose'
     tool_transpose to_handle
@@ -18,6 +18,10 @@ def do_tools to_handle
     tool_chords to_handle
   when 'chart'
     tool_chart to_handle
+  when 'inter', 'interval'
+    s1, s2 = normalize_interval(to_handle)
+    puts
+    print_interval s1, s2
   else
     err "Internal error: Unknown tool '#{tool}'"
   end

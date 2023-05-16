@@ -358,6 +358,32 @@ def handle_kb_play_pitch
 end
 
 
+def handle_kb_play_inter
+  return if $ctl_kb_queue.length == 0
+  char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+  $ctl_inter[:any] = true
+
+  if char == ' '
+    $ctl_inter[:pause_continue] = true
+  elsif char == '+' || char == 'right'
+    $ctl_inter[:widen] = true
+  elsif char == '-' || char == 'left'
+    $ctl_inter[:narrow] = true
+  elsif char == '<' || char == 'down'
+    $ctl_inter[:down] = true
+  elsif char == '>' || char == 'up'
+    $ctl_inter[:up] = true
+  elsif char == 'h'
+    $ctl_inter[:show_help] = true
+  elsif char == 'q' || char == 'x' || char == "\e" || char == "\n"
+    $ctl_inter[:quit] = char
+  else
+    $ctl_inter[:any] = false
+  end
+end
+
+
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq

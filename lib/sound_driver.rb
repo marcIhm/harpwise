@@ -292,7 +292,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
         print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        display_kb_help 'recording',first_round,
+        display_kb_help 'a recording',first_round,
                         "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
@@ -372,13 +372,15 @@ def play_adjustable_pitch embedded = false
   puts "\e[0m\e[2m(type 'h' for help)\e[0m"
   puts
   print_pitch_information(semi)
-  # loop forever until ctrl-c
+
+  # loop forever until ctrl-c; loop on every key and also when paused
   loop do
     duration_clause = ( wave == :pluck  ?  3  :  86400 )
+
     if paused
       if wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid)
-        wait_thr.join
+        join_and_check_thread wait_thr, cmd
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
@@ -387,12 +389,7 @@ def play_adjustable_pitch embedded = false
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
         end
-        wait_thr&.join
-        if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
-          puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
-          puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
-          err 'See above'
-        end
+        join_and_check_thread wait_thr, cmd
         if $testing
           IO.write($testing_log, cmd + "\n", mode: 'a')
           cmd = 'sleep 86400 ### ' + cmd
@@ -402,6 +399,7 @@ def play_adjustable_pitch embedded = false
       end
     end
 
+    # wait until sound has stopped or key pressed
     begin
       break if $ctl_pitch[:any]
       handle_kb_play_pitch
@@ -452,8 +450,7 @@ def play_adjustable_pitch embedded = false
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        [:semi_up, :semi_down, :octave_up, :octave_down, :change_wave, :vol_up, :vol_down, :show_help]
-        display_kb_help 'pitch',true,
+        display_kb_help 'a pitch',true,
                         "  SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
                         "      w: change waveform       W: change waveform back\n" + 
                         "      s: one semitone up       S: one semitone down\n" +
@@ -468,14 +465,9 @@ def play_adjustable_pitch embedded = false
         $ctl_pitch[:quit] = false
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
-          wait_thr.join
+          join_and_check_thread wait_thr, cmd
         end
         return new_key
-      end
-
-      if paused && !$ctl_pitch[:pause_continue]
-        paused = false
-        puts "\e[0m\e[2mgo\e[0m"
       end
 
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
@@ -493,10 +485,121 @@ def play_adjustable_pitch embedded = false
 end
 
 
+def play_interval semi1, semi2
+
+  puts "\e[0m\e[2mPlaying in loop.\n"
+  puts "(type 'h' for help)\e[0m\n\n"
+
+  delta_semi = semi2 - semi1
+  tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
+  wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
+  cmd = "play --combine mix #{tfiles[0]} #{tfiles[1]}"
+  synth_for_inter([semi1, semi2], tfiles, wfiles)
+  semis_changed = true
+  paused = false
+  wait_thr = stdout_err = nil
+    
+  # loop forever until ctrl-c; loop on every key and also when paused
+  loop do
+    print_interval(semi1, semi2) if semis_changed
+
+    if paused
+      if wait_thr&.alive?
+        Process.kill('KILL',wait_thr.pid)
+        join_and_check_thread wait_thr, cmd
+      end
+    else
+      if semis_changed || !wait_thr&.alive?
+        if wait_thr&.alive?
+          Process.kill('KILL',wait_thr.pid)
+        end
+        join_and_check_thread wait_thr, cmd
+        IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
+        _, stdout_err, wait_thr  = Open3.popen2e($testing  ?  'sleep 86400'  :  cmd)
+      end
+      semis_changed = false
+    end
+
+    # wait until sound has stopped or key pressed
+    begin
+      break if $ctl_inter[:any]
+      handle_kb_play_inter
+      sleep 0.1
+    end while wait_thr.alive?
+
+    # handle kb
+    if $ctl_inter[:any]
+      new_sound = false
+      if $ctl_inter[:pause_continue]
+        if paused
+          paused = false
+          puts "\e[0m\e[2mgo\e[0m"
+        else
+          paused = true
+          puts "\e[0m\e[2mSPACE to continue ...\e[0m"
+        end
+      elsif $ctl_inter[:up] || $ctl_inter[:down]
+        step =  $ctl_inter[:up]  ?  +1  :  -1
+        semi1 += step
+        semi2 += step
+        new_sound = true
+      elsif $ctl_inter[:narrow] || $ctl_inter[:widen]
+        delta_semi +=  $ctl_inter[:narrow]  ?  -1  :  +1
+        semi2 = semi1 + delta_semi
+        new_sound = true
+      elsif $ctl_inter[:show_help]
+        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+        display_kb_help 'an interval',true,
+                        "   SPACE: pause/continue             ESC,x,q: quit\n" +
+                        " +,right: widen interval by one semi  -,left: narrow by one semi\n" +
+                        "    >,up: move interval up one semi   <,down: move down\n"
+        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+      elsif $ctl_inter[:quit]
+        $ctl_inter[:quit] = false
+        if wait_thr&.alive?
+          Process.kill('KILL',wait_thr.pid)
+          join_and_check_thread wait_thr, cmd
+        end
+        return
+      end
+
+      if new_sound
+        Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
+        join_and_check_thread wait_thr, cmd
+        synth_for_inter([semi1, semi2], tfiles, wfiles)
+        print_interval semi1, semi2
+        new_sound = false
+      end
+
+      $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}
+    end
+  end
+end
+
+
+def synth_for_inter semis, files, wfiles
+  times = [0.1, 0.6]
+  files.zip(semis, times).each do |f, s, t|
+    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
+    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth 3 pluck %#{s+7}") 
+    sys("sox -q #{$conf[:sox_play_extra]} #{wfiles[0]} #{wfiles[1]} #{f}") 
+  end
+end
+
+
 def print_pitch_information semi, name = nil
   puts "\e[0m\e[2m#{name}\e[0m" if name
   puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi+7)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
   print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi + 7)[0..-2]
   print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts
+end
+
+def join_and_check_thread wait_thr, cmd
+  if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
+    wait_thr.join
+    puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
+    puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
+    err 'See above'
+  end
 end

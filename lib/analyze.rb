@@ -105,6 +105,17 @@ def describe_inter_keys key1, key2
 end
 
 
+def print_semis_as_abs h1, s1, h2, s2
+  hmax = $harp_holes.max_by(&:length).length
+  p1, p2 = [s1, s2].map {|s| ["#{s}st", $semi2hole[s], semi2note(s)]}
+  cl = [p1.length, p2.length].min
+  p1, p2 = [p1, p2].map {|p| p[0...cl]}
+  [[h1, p1], [h2, p2]].each do |h, p|
+    puts h + p.map {|x| (x || '--').rjust(hmax)}.join(' |')
+  end
+end
+
+
 def analyze_with_aubio file
   freqs = run_aubiopitch(file).lines.
             map {|line| line.split[1].to_i}.

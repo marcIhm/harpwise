@@ -7,9 +7,10 @@ def do_print to_print
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
   $ctl_rec[:lick_lick] = false
-  
+
   $all_licks, $licks = read_licks
-  holes, lnames, snames, extra = partition_to_play_or_print(to_print, %w(all-licks all-scales))
+  extra_allowed = %w(all-licks all-scales)
+  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed)
 
   puts "\nType is #{$type}, key of #{$key}."
   puts
@@ -42,7 +43,7 @@ def do_print to_print
 
   elsif extra.length > 0
 
-    err "only one of 'all-licks', 'all-scales' is allowed, not both" if extra.length > 1
+    err "only one of #{extra_allowed} is allowed" if extra.length > 1
     if extra[0] == 'all-licks'
       puts_underlined 'All licks:'
       puts ' (name : holes)'
@@ -53,7 +54,7 @@ def do_print to_print
       end
       puts
       puts "Total count: #{$all_licks.length}"
-    else
+    elsif extra[0] == 'all-scales'
       puts_underlined 'All scales:'
       puts ' (name : holes)'
       puts
@@ -64,6 +65,8 @@ def do_print to_print
       end
       puts
       puts "Total count: #{$all_scales.length}"
+    else
+      fail "Internal error"
     end
   end
 
@@ -95,3 +98,16 @@ def ins_dot_mb parts
     ( parts[2].strip.length > 0  ?  '.' + parts[2]  :  parts[2] )
 end
   
+
+def print_interval s1, s2
+  iname = $intervals[(s2 - s1).abs]
+  puts '  Interval ' +
+       if iname
+          iname[0] + " (#{s2 - s1}st)"
+        else
+          "#{s2 - s1}st"
+        end + ':'
+  print_semis_as_abs("    from: ", s1, "      to: ", s2)
+  puts
+end
+

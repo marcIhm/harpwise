@@ -15,6 +15,7 @@ OVERVIEW
     played in second position
   - chart: print harmonica chart with notes for the given key; specify
     a scale to see see it laid out on the harp (second chart)
+  - inter: print an interval with the given notes/holes/semitone-diff
   
 USAGE BY EXAMPLES
 
@@ -57,3 +58,9 @@ USAGE BY EXAMPLES
 
     harpwise tools chord-i chart --ref -4
     
+
+  Print an interval
+
+    harpwise tools interval c4 oct
+
+  (see mode 'play' for more details)
