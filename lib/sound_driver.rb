@@ -373,10 +373,11 @@ def play_adjustable_pitch embedded = false
   puts
   print_pitch_information(semi)
 
-  # loop forever until ctrl-c; loop on every key and also when paused
+  # loop forever until ctrl-c; loop on every key
   loop do
     duration_clause = ( wave == :pluck  ?  3  :  86400 )
 
+    # we also loop when paused
     if paused
       if wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid)
@@ -497,27 +498,33 @@ def play_interval semi1, semi2
   gap = 0.4
   len = 3
   synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
-  semis_changed = true
+  new_sound = true
   paused = false
   wait_thr = stdout_err = nil
     
-  # loop forever until ctrl-c; loop on every key and also when paused
+  # loop forever until ctrl-c; loop on every key
   loop do
-    print_interval(semi1, semi2) if semis_changed
 
+    # we also loop when paused
     if paused
       if wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid)
         join_and_check_thread wait_thr, cmd
       end
     else
-      if semis_changed || !wait_thr&.alive?
+      if new_sound || !wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
         join_and_check_thread wait_thr, cmd
+        if new_sound
+          synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
+          puts
+          print_interval semi1, semi2
+          puts "\e[0m\e[2m\n  Gap: #{gap}, length: #{len}\e[0m\n\n"
+          new_sound = false
+        end
         IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
         _, stdout_err, wait_thr  = Open3.popen2e($testing  ?  'sleep 86400'  :  cmd)
       end
-      semis_changed = false
     end
 
     # wait until sound has stopped or key pressed
@@ -552,14 +559,12 @@ def play_interval semi1, semi2
         gap = 0 if gap < 0
         gap = 2 if gap > 2
         gap = gap.round(1)
-        puts "\e[0m\e[2mGap is #{gap}sec\e[0m\n\n"
         new_sound = true
       elsif $ctl_inter[:len_inc] || $ctl_inter[:len_dec]
         len +=  $ctl_inter[:len_inc]  ?  +1 : -1
         len = 1 if len < 1
         len = 8 if len > 8
         len = len.round(1)
-        puts "\e[0m\e[2mLength is #{len}sec\e[0m\n\n"
         new_sound = true
       elsif $ctl_inter[:redo]
         puts "\e[0m\e[2mReplay\e[0m\n\n"
@@ -581,14 +586,6 @@ def play_interval semi1, semi2
           join_and_check_thread wait_thr, cmd
         end
         return
-      end
-
-      if new_sound
-        Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
-        join_and_check_thread wait_thr, cmd
-        synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
-        print_interval semi1, semi2
-        new_sound = false
       end
 
       $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}

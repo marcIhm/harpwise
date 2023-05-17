@@ -108,6 +108,5 @@ def print_interval s1, s2
           "#{s2 - s1}st"
         end + ':'
   print_semis_as_abs("    from: ", s1, "      to: ", s2)
-  puts
 end
 

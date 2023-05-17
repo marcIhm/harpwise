@@ -22,6 +22,7 @@ def do_tools to_handle
     s1, s2 = normalize_interval(to_handle)
     puts
     print_interval s1, s2
+    puts
   else
     err "Internal error: Unknown tool '#{tool}'"
   end

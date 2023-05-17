@@ -228,7 +228,7 @@ def hole_or_note_or_semi hns
         "  - numeric interval\e[2m, e.g. 12st or -3\n" +
         "\e[0m  - named interval\e[2m, i.e. one of: " + inters_desc + "\n" +
         "\e[0m  - hole\e[2m, i.e. one of: " + $harp_holes.join(', ') + "\n" +
-        "\e[0m  - note\e[2m, e.g. c4 or d5\e[0m"
+        "\e[0m  - note\e[2m, e.g. c4, df5, as3\e[0m"
   end
 
   return types, values
