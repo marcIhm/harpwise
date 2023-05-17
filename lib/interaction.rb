@@ -366,13 +366,13 @@ def handle_kb_play_inter
 
   if char == ' '
     $ctl_inter[:pause_continue] = true
-  elsif char == '+' || char == 'right'
+  elsif char == '+' || char == 'up'
     $ctl_inter[:widen] = true
-  elsif char == '-' || char == 'left'
+  elsif char == '-' || char == 'down'
     $ctl_inter[:narrow] = true
-  elsif char == '<' || char == 'down'
+  elsif char == '<' || char == 'left'
     $ctl_inter[:down] = true
-  elsif char == '>' || char == 'up'
+  elsif char == '>' || char == 'right'
     $ctl_inter[:up] = true
   elsif char == 'g'
     $ctl_inter[:gap_dec] = true

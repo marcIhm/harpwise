@@ -568,8 +568,8 @@ def play_interval semi1, semi2
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'an interval',true,
                         "   SPACE: pause/continue             ESC,x,q: quit\n" +
-                        " +,right: widen interval by one semi  -,left: narrow by one semi\n" +
-                        "    >,up: move interval up one semi   <,down: move down\n" +
+                        "    +,up: widen interval by one semi  -,down: narrow by one semi\n" +
+                        " >,right: move interval up one semi   <,left: move down\n" +
                         "       G: increase time gap                g: decrease\n" +
                         "       L: increase length                  l: decrease\n" +
                         "  RETURN: play again"
