@@ -6,6 +6,7 @@ def do_report to_report
 
   $all_licks, $licks = read_licks
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
+  err "Need at least one item to report" if to_report.length == 0
   to_report[0] = 'starred' if to_report[0] == 'stars'
   reports_allowed = %w(licks all-licks dump history-of-licks starred)
   to_report[0] = match_or(to_report[0], reports_allowed) do |none, choices|
