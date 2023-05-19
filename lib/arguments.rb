@@ -306,10 +306,10 @@ def parse_arguments
       scale = get_scale_from_sws('all:a')
     end
   when :print
-    # if there are tow args and the first remaining argument looks like a
+    # if there are tww args and the first remaining argument looks like a
     # scale, take it as such
-    scale = get_scale_from_sws(ARGV[0], true)
-    if scale && ARGV.length > 1
+    scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 1
+    if scale
       ARGV.shift
     else
       scale = get_scale_from_sws('all:a')
