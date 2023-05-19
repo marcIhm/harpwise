@@ -386,8 +386,10 @@ def handle_kb_play_inter
     $ctl_inter[:show_help] = true
   elsif char == 'q' || char == 'x' || char == "\e"
     $ctl_inter[:quit] = char
+  elsif char == 's'
+    $ctl_inter[:swap] = true
   elsif char == "\n"
-    $ctl_inter[:redo] = true
+    $ctl_inter[:replay] = true
   else
     $ctl_inter[:any] = false
   end

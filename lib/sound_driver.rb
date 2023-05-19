@@ -495,7 +495,7 @@ def play_interval semi1, semi2
   tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
   wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
   cmd = "play --combine mix #{tfiles[0]} #{tfiles[1]}"
-  gap = 0.4
+  gap = 0.2
   len = 3
   synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
   new_sound = true
@@ -566,7 +566,11 @@ def play_interval semi1, semi2
         len = 8 if len > 8
         len = len.round(1)
         new_sound = true
-      elsif $ctl_inter[:redo]
+      elsif $ctl_inter[:swap]
+        semi1, semi2 = semi2, semi1
+        delta_semi = -delta_semi
+        new_sound = true        
+      elsif $ctl_inter[:replay]
         puts "\e[0m\e[2mReplay\e[0m\n\n"
         new_sound = true        
       elsif $ctl_inter[:show_help]
@@ -577,7 +581,7 @@ def play_interval semi1, semi2
                         " >,right: move interval up one semi   <,left: move down\n" +
                         "       G: increase time gap                g: decrease\n" +
                         "       L: increase length                  l: decrease\n" +
-                        "  RETURN: play again"
+                        "       s: swap notes                  RETURN: play again"
         Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
@@ -595,7 +599,7 @@ end
 
 
 def synth_for_inter semis, files, wfiles, gap, len
-  times = [0.4, 0.4 + gap]
+  times = [0.3, 0.3 + gap]
   files.zip(semis, times).each do |f, s, t|
     sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
     sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s}") 

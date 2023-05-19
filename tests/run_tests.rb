@@ -1555,14 +1555,14 @@ do_test 'id-62: play interval' do
   tms 'harpwise play inter c4 12st'
   tms :ENTER
   sleep 2
-  expect { screen[8]['from:  -9st |   +1 |   c4'] }
+  expect { screen[9]['from:  -9st |   +1 |   c4'] }
   tms '>'
   sleep 2
-  expect { screen[12]['from:  -8st |  -1/ |  df4'] }
-  expect { screen[13]['to:   4st |  -4/ |  df5'] }
+  expect { screen[16]['from:  -8st |  -1/ |  df4'] }
+  expect { screen[17]['to:   4st |  -4/ |  df5'] }
   tms '+'
   sleep 2
-  expect { screen[17]['to:   5st |   -4 |   d5'] }
+  expect { screen[19]['to:   5st |   -4 |   d5'] }
   kill_session
 end
 

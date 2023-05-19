@@ -6,7 +6,7 @@ OVERVIEW
   If you specify a scale (optional) too, the scale-membership of the
   the notes will be shown.
 
-  Its arguments can be any of:
+  Its argument can be any of:
 
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
@@ -23,9 +23,9 @@ USAGE BY EXAMPLES
 
     harpwise print st-louis
     
-  Print holes and notes of a scale:
+  Print holes and notes of a scale (blues):
 
-    harpwise print blues blues
+    harpwise print blues
 
   Print the scales, each note belongs to too:
 
