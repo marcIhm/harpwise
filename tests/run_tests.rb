@@ -310,7 +310,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'quiz' => [-8, 'your mileage may vary'],
                      'licks' => [-8, 'plays nothing initially'],
                      'play' => [1, 'any of the given tags'],
-                     'print' => [3, 'Just print a list of all known licks'],
+                     'print' => [1, 'Just print a list of all known licks'],
                      'report' => [-6, 'on every invocation'],
                      'tools' => [2, 'Print an interval']}
     
@@ -1335,6 +1335,14 @@ do_test 'id-53a: print with scale' do
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
   expect { screen[12]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
+  kill_session
+end
+
+do_test 'id-53b: print with scale but terse' do
+  new_session
+  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
+  tms :ENTER
+  expect { screen[14] == '$' }
   kill_session
 end
 

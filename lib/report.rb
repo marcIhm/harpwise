@@ -10,7 +10,7 @@ def do_report to_report
   to_report[0] = 'starred' if to_report[0] == 'stars'
   reports_allowed = %w(licks all-licks dump history-of-licks starred)
   to_report[0] = match_or(to_report[0], reports_allowed) do |none, choices|
-    err "Argument for mode 'report' must be one of #{choices}, not #{none}; #{$for_usage}"
+    err "Argument for mode 'report' must be one of: #{choices}, not #{none}; #{$for_usage}"
   end
   report = to_report[0].o2sym
 

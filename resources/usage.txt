@@ -18,17 +18,15 @@ specifies the mode of operation; it can be one of:
 and, perhaps less frequently used:
 
   - play: Wise plays scales, holes or licks, not asking you to play
-    them back. All this makes sound.
-  - print: print and annottate the holes of scales or licks from the
-    commandline. This refers to data, that already comes with
-    harpwise.
+    them back
+  - print: print and annotate the holes of scales or licks given
+    on the commandline
   - report: Produce reports about licks and tags or a journal of licks
-    played. This is information you have added to harpwise one way or
-    the other.
+    played
   - tools: Some simple, non-interactive tools related to basic
-    harmonica theory. These tools mostly require arguments.
+    harmonica theory
   - calibrate: Wise generates samples for holes, or assists in
-    recording your own.
+    recording your own
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.

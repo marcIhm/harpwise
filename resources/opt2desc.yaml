@@ -173,11 +173,10 @@ time_slice:
     termination, that will allow to judge the situation.
   - SECONDS
 
-suggest_time_slice:
+terse:
 
   - |
-    Start an automatic assistant to suggest
-    a value for time slice, which you may use as an option or put into
-    your configuration. See Option '--time-slice' for details.
+    Be somewhat less verbose than usual. The exact effect (if any)
+    depends on the subcommand chosen.
   
 
