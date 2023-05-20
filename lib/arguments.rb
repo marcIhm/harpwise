@@ -65,6 +65,8 @@ def parse_arguments
      [Set[:calibrate], {
         auto: %w(--auto),
         hole: %w(--hole)}],
+     [Set[:print, :report], {
+        terse: %w(--terse)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
         iterate: %w(--iterate),

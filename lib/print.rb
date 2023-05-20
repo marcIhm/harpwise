@@ -78,6 +78,7 @@ def print_holes_and_more holes
   puts "Holes:"
   print_in_columns holes
   puts
+  return if $opts[:terse]
   if $used_scales[0] != 'all'
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
     puts "Holes with scales (#{scales_text}):"
