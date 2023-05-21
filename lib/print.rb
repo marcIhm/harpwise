@@ -88,8 +88,11 @@ def print_holes_and_more holes
   puts "Holes with notes:"
   print_in_columns(noteify(holes).map {|ps| ins_dot_mb(ps)})
   puts
-  puts "Holes with intervals:"
+  puts "Holes with intervals between:"
   print_in_columns(intervalify(holes).map {|ps| ins_dot_mb(ps)})
+  puts
+  puts "Holes with intervals to first:"
+  print_in_columns(intervalify_to_first(holes).map {|ps| ins_dot_mb(ps)})
   puts
 end
 

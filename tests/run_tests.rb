@@ -1324,9 +1324,10 @@ do_test 'id-53: print' do
   new_session
   tms 'harpwise print st-louis'
   tms :ENTER
-  expect { screen[11]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
-  expect { screen[15]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
-  expect { screen[19]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  expect { screen[8]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
+  expect { screen[12]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
+  expect { screen[16]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  expect { screen[20]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
   kill_session
 end
 
@@ -1334,7 +1335,7 @@ do_test 'id-53a: print with scale' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[12]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
+  expect { screen[8]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
   kill_session
 end
 

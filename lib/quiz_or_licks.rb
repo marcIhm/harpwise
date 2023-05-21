@@ -784,13 +784,28 @@ end
 
 
 def intervalify holes
-  holes_maxlen = holes.max_by(&:length).length
   inters = []
   holes.each_with_index do |hole,idx|
     j = idx - 1
     j = 0 if j < 0
     j -= 1 while j > 0 && musical_event?(holes[j])
     isemi ,_ ,itext, _ = describe_inter(hole, holes[j])
+    idesc = itext || isemi || ''
+    idesc.gsub!(' ','')
+    inters << idesc
+  end
+  holes_maxlen = holes.max_by(&:length).length
+  inters_maxlen = inters.max_by(&:length).length
+  holes.each.map do |hole|
+    [' ' * (holes_maxlen - hole.length), hole, inters.shift.ljust(inters_maxlen)]
+  end
+end
+
+
+def intervalify_to_first holes
+  inters = []
+  holes.each_with_index do |hole,idx|
+    isemi ,_ ,itext, _ = describe_inter(hole, holes[0])
     idesc = itext || isemi || ''
     idesc.gsub!(' ','')
     inters << idesc

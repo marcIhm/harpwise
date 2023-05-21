@@ -100,7 +100,11 @@ def expect *failinfo, &block
   
   puts
   source = block.source
-  pp screen if source['screen']
+  if source['screen']
+    screen.each_with_index do |line, idx|
+      puts "#{idx.to_s.rjust(3)}: #{line.inspect}"
+    end
+  end
   puts "\e[31mNOT Okay\e[0m"
   puts source
   pp failinfo if failinfo.length > 0
