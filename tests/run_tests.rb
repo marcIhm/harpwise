@@ -89,7 +89,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 46
+num_exp = 47
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -301,18 +301,18 @@ end
 usage_types.keys.each_with_index do |mode, idx|
   do_test "id-1h#{idx}: usage screen mode #{mode}" do
     new_session
-    tms "harpwise #{usage_types[mode][1]}"
+    tms "harpwise #{usage_types[mode][1]} | head -20"
     tms :ENTER
     sleep 2
-    expect_usage = { 'none' => [-15, 'Suggested reading'],
-                     'calibrate' => [-8, 'start with calibration'],
-                     'listen' => [-8, 'your mileage may vary'],
-                     'quiz' => [-8, 'your mileage may vary'],
-                     'licks' => [-8, 'plays nothing initially'],
-                     'play' => [1, 'any of the given tags'],
-                     'print' => [1, 'Just print a list of all known licks'],
-                     'report' => [-6, 'on every invocation'],
-                     'tools' => [2, 'Print an interval']}
+    expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
+                     'calibrate' => [4, 'The wise needs a set of audio-samples'],
+                     'listen' => [4, "The mode 'listen' shows information on the notes you play"],
+                     'quiz' => [4, "The mode 'quiz' (similar to the mode 'listen')"],
+                     'licks' => [4, "The mode 'licks' (similar to the mode 'quiz') is a game"],
+                     'play' => [4, "The mode 'play' picks from the command line"],
+                     'print' => [5, 'and prints their hole-content on the commandline'],
+                     'report' => [4, "The mode 'report' show helps to select licks by tags"],
+                     'tools' => [4, "The mode 'tools' offers some non-interactive"]}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -648,7 +648,7 @@ end
 
 do_test 'id-16b: cycle in play' do
   new_session
-  tms 'harpwise play a all-licks --iterate cycle'
+  tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
   expect { screen[4]['Lick wade'] }
@@ -1144,7 +1144,7 @@ end
 usage_examples.each_with_index do |ex,idx|
   do_test "id-41a%d: usage #{ex}" % idx do
     new_session
-    tms ex + ''
+    tms ex + " >#{$testing_output_file}"
     tms :ENTER
     sleep 1
     expect { screen.select {|l| l.downcase['error'] && !l.downcase['let the initial error messages be your guide']}.length == 0 }
@@ -1158,15 +1158,6 @@ do_test 'id-42: error on journal in play' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[16]['ERROR'] }
-  kill_session
-end
-
-do_test 'id-43: error on print in licks' do
-  new_session
-  tms 'harpwise licks --tags-any print'
-  tms :ENTER
-  wait_for_end_of_harpwise
-  expect { screen[2]['ERROR'] }
   kill_session
 end
 
@@ -1368,7 +1359,7 @@ end
 
 do_test 'id-54b: print list of all licks' do
   new_session
-  tms "harpwise print all-licks >#{$testing_output_file}"
+  tms "harpwise print list-all-licks >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
@@ -1381,9 +1372,29 @@ do_test 'id-54b: print list of all licks' do
 end
 
 
-do_test 'id-54c: print list of all scales' do
+do_test 'id-54c: print list of selected licks' do
   new_session
-  tms "harpwise print all-scales >#{$testing_output_file}"
+  tms "harpwise print list-licks --tags-any favorites"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[10] == ' st-louis    :   8' }
+  kill_session
+end
+
+
+do_test 'id-54d: print selected licks' do
+  new_session
+  tms "harpwise print licks --tags-any favorites"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[18] == 'Holes with intervals to first:' }
+  kill_session
+end
+
+
+do_test 'id-54e: print list of all scales' do
+  new_session
+  tms "harpwise print list-all-scales >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines

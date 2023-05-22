@@ -9,7 +9,11 @@ def do_print to_print
   $ctl_rec[:lick_lick] = false
 
   $all_licks, $licks = read_licks
-  extra_allowed = %w(all-licks all-scales)
+  extra_allowed = {'licks' => 'selected licks with their content',
+                   'list-licks' => 'list of selected licks with hole count',
+                   'list-all-licks' => 'list of all licks',
+                   'list-all-scales' => 'list of all scales with hole count'}
+  
   holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed)
 
   puts "\nType is #{$type}, key of #{$key}."
@@ -43,18 +47,33 @@ def do_print to_print
 
   elsif extra.length > 0
 
-    err "only one of #{extra_allowed} is allowed" if extra.length > 1
-    if extra[0] == 'all-licks'
-      puts_underlined 'All licks:'
+    err "only one of #{extra_allowed.keys} is allowed" if extra.length > 1
+    if extra[0] == 'licks'
+      puts_underlined 'Licks selected by tags and hole-count:'
+      $licks.each do |lick|
+        puts "#{lick[:name]}:"
+        puts '-' * (lick[:name].length + 1)
+        puts
+        print_holes_and_more lick[:holes]
+      end
+      puts "Total count: #{$licks.length}"
+    elsif extra[0] == 'list-all-licks' || extra[0] == 'list-licks'
+      if extra[0]['all']
+        puts_underlined 'All licks as a list:'
+        licks = $all_licks
+      else
+        puts_underlined 'Selected licks as a list:'
+        licks = $licks
+      end
       puts ' (name : holes)'
       puts
-      maxl = $all_licks.map {|l| l[:name].length}.max
-      $licks.each do |lick|
+      maxl = licks.map {|l| l[:name].length}.max
+      licks.each do |lick|
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
       puts
       puts "Total count: #{$all_licks.length}"
-    elsif extra[0] == 'all-scales'
+    elsif extra[0] == 'list-all-scales'
       puts_underlined 'All scales:'
       puts ' (name : holes)'
       puts

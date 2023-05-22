@@ -15,10 +15,14 @@ def do_play to_play
   puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
   puts
 
-  extra_allowed = %w(pitch all-licks inter interval)
+  extra_allowed = {'licks' => 'licks selected',
+                   'pitch' => 'interactive, adjustable pitch',
+                   'interval' => 'interactive, adjustable interval',
+                   'inter' => nil}
+  
   holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, true)
   extra = Set.new(extra).to_a
-  err "Option '--start-with' only useful when playing 'all-licks'" if $opts[:start_with] && !extra.include?('all-licks')
+  err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
 
   #
   #  Actually play
@@ -47,7 +51,7 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    err "only one of #{extra_allowed} is allowed" if extra.length > 1
+    err "only one of #{extra_allowed.keys} is allowed" if extra.length > 1
     if extra[0] == 'pitch'
       play_adjustable_pitch
 
@@ -57,7 +61,7 @@ def do_play to_play
 
       play_interval s1, s2
         
-    elsif extra[0] == 'all-licks'
+    elsif extra[0] == 'licks'
       if $opts[:iterate] == :random
         lick_idx = nil
         loop do
@@ -126,7 +130,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = fals
       snames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
-    elsif extra_allowed.include?(tp)
+    elsif extra_allowed.keys.include?(tp)
       extra << tp
       extra_seen = true
     elsif extra_seen && extra_takes_args
@@ -159,9 +163,12 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = fals
     print_in_columns all_snames, 4
     puts "\n- licks:"
     print_in_columns all_lnames, 4
-    if extra_allowed.length > 0
+    if extra_allowed.keys.length > 0
       puts "\n- extra:"
-      print_in_columns extra_allowed, 4
+      mklen = extra_allowed.keys.map(&:length).max
+      extra_allowed.each do |k,v|
+        puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
+      end
     end
     puts
     err 'See above'

@@ -1,7 +1,7 @@
 OVERVIEW
 
-  The mode 'print' takes its arguments (holes, notes or licks) and
-  prints their hole-content on the commandline.
+  The mode 'print' takes its arguments (holes, notes, licks or special
+  keywords) and prints their hole-content on the commandline.
 
   If you specify a scale (optional) too, the scale-membership of the
   the notes will be shown.
@@ -12,10 +12,14 @@ OVERVIEW
     - licks (e.g. 'st-louis')
     - keyword 'all-licks'
     - scales (e.g. 'chord-i')
-    - keyword 'all-scales'
+    - 'list-all-scales': a list of all scales
+    - 'list-all-licks': a list of all licks
+    - 'licks' details on all licks selected (e.g. by --tags-any)
 
-  To get some more detailed reports on licks and scales, especially on
-  how you use them, you may also try the mode: harpwise report
+  You may try 'harpwise print x' for an instructive error message.
+
+  And try 'harpwise report' to get some more detailed reports on licks
+  and scales.
   
 USAGE BY EXAMPLES
 
@@ -34,4 +38,8 @@ USAGE BY EXAMPLES
   Just print a list of all known licks:
 
     harpwise print all-licks
+
+  Print details for favorite licks:
+
+    harpwise print licks --tags-any favorite
       

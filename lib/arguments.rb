@@ -72,7 +72,7 @@ def parse_arguments
         iterate: %w(--iterate),
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
-     [Set[:licks, :report, :play], {
+     [Set[:licks, :report, :play, :print], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),

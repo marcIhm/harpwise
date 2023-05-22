@@ -1,18 +1,21 @@
 OVERVIEW
 
-  The mode 'play' picks from the command line: holes, notes or licks;
-  it may play multiple holes but cannot mix them with e.g. licks.
+  The mode 'play' picks from the command line: holes, notes, licks or
+  special keywords.  It may play multiple holes but cannot mix them
+  with e.g. licks.
 
   Its arguments can be any of:
 
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
-    - 'all-licks' for all licks
+    - 'licks' for selected licks
     - 'pitch' to play an interactive, adjustable pitch; this
       may help to find the key of a song by ear-comparison
     - 'interval' play an interval specified on the commandline
-    
+
+  You may try 'harpwise play x' for an instructive error message.
+
   This mode needs no scale argument.
 
 USAGE BY EXAMPLES
@@ -27,15 +30,15 @@ USAGE BY EXAMPLES
 
   Lick-Radio: Play all my licks in random order without end:
 
-    harpwise play all-licks
+    harpwise play licks
 
   or play them one after another:
 
-    harpwise play all-licks --iterate cycle
+    harpwise play licks --iterate cycle
 
   Only play favorite licks (tag 'fav'):
 
-    harpwise play all-licks --tags-any fav
+    harpwise play licks --tags-any fav
 
   Play an earlier lick:
 
