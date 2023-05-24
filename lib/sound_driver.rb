@@ -231,7 +231,7 @@ def play_semi_and_handle_kb semi
   cmd = if $testing
           "sleep 1"
         else
-          "play -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi+7} #{$vol_pitch.clause}"
+          "play -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi} #{$vol_pitch.clause}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
