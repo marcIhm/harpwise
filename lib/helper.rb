@@ -349,10 +349,10 @@ class Volume
 end
 
 
-def puts_underlined text
+def puts_underlined text, char = '='
   puts text
-  puts '=' * text.length
-  puts
+  puts char * text.length
+  puts if char == '='
 end
 
 

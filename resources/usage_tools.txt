@@ -9,13 +9,12 @@ OVERVIEW
 
   - transpose: transpose a sequence of notes from one key of harp
     to another
-  - keys (or positions): print a fixed chart with keys and positions,
+  - keys (or positions): print a chart with keys and positions,
     with optional arguments to mark key of harp and key of song
   - chords: print the chords i, iv and v for the given key of harp as
     played in second position
   - chart: print harmonica chart with notes for the given key; specify
     a scale to see see it laid out on the harp (second chart)
-  - inter: print an interval with the given notes/holes/semitone-diff
   
 USAGE BY EXAMPLES
 
@@ -59,8 +58,6 @@ USAGE BY EXAMPLES
     harpwise tools chord-i chart --ref -4
     
 
-  Print an interval
-
-    harpwise tools interval c4 oct
-
-  (see mode 'play' for more details)
+  Hint: To get a short list of tools, try 'harpwise tools x' for an
+  instructive error message.
+  

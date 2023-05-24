@@ -12,7 +12,8 @@ OVERVIEW
     - 'licks' for selected licks
     - 'pitch' to play an interactive, adjustable pitch; this
       may help to find the key of a song by ear-comparison
-    - 'interval' play an interval specified on the commandline
+    - 'interval': play an interval specified on the commandline
+    - 'progression': take a base and semitone diffs, then play it
 
   You may try 'harpwise play x' for an instructive error message.
 
@@ -91,3 +92,13 @@ USAGE BY EXAMPLES
     harpwise play inter +2 pf      ## Hole +2 and a perfect fifth
 
   The error message (if any) will list valid values.
+
+
+  Play a note progression:
+
+    harpwise play prog e3 7st 9st oct
+
+  this plays the classic box pattern interactively, you may loop it or
+  shift it by semitones. Holes for the harmonica (if any) are printed
+  along.
+  

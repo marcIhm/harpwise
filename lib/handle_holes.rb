@@ -115,7 +115,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         end
       end
     else
-      $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
+      $journal << ('(%.1fs)' % (Time.now.to_f - hole_held_since)) if hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
       hole_held = nil
     end
 
@@ -525,7 +525,7 @@ def do_change_key_to_pitch
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
-  $key = play_adjustable_pitch(embedded = true) || $key
+  $key = play_interactive_pitch(embedded = true) || $key
   pending_message(if key_was == $key
                   "Key of harp is still at"
                  else

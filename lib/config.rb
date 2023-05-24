@@ -18,12 +18,13 @@ def set_global_vars_early
 
   # expectations for config-file
   $conf_meta = Hash.new
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :general]
+  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :calibrate, :general]
   # update config ini if the below is extended
   $conf_meta[:sections_aliases] = {:report => :licks}
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
+    :calibrate => [:auto_synth_db],
     :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :alsa_arecord_extra, :alsa_aplay_extra, :sox_play_extra]
   }
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
@@ -33,7 +34,8 @@ def set_global_vars_early
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
   $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :any]
-  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap]
+  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down]
+  $conf_meta[:ctrls_play_semi] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :quit]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -73,6 +75,10 @@ def set_global_vars_early
   # result of processing keys, while playing an interval
   $ctl_inter = Struct.new(*$conf_meta[:ctrls_play_inter]).new
   $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}
+
+  # result of processing keys, while playing a sequence of semitones
+  $ctl_semi = Struct.new(*$conf_meta[:ctrls_play_semi]).new
+  $conf_meta[:ctrls_play_semi].each {|k| $ctl_semi[k] = false}
 
   # result of processing keys, while a series of holes is played
   ks = [:skip, :show_help]

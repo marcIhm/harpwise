@@ -4,9 +4,19 @@
 
 def do_tools to_handle
 
-  tools_allowed = %w(keys transpose chart chords inter interval)
-  tool = match_or(to_handle.shift, tools_allowed) do |none, choices|
-    err "Argument for mode 'tools' must be one of #{choices}, not #{none}; #{$for_usage}"
+  tools_allowed = {'transpose' => 'transpose a sequence of notes between keys',
+                   'keys' => 'print a chart with keys and positions',
+                   'chords' => 'print chords i, iv and v',
+                   'chart' => 'harmonica chart'}
+
+  tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
+    mklen = tools_allowed.keys.map(&:length).max
+    puts "\nArgument for mode 'tools' must be one of:\n\n"
+    tools_allowed.each do |k,v|
+      puts "    #{k.rjust(mklen)} : #{v}"
+    end
+    puts "\n,not #{none}; #{$for_usage}\n"
+    err 'See above'
   end
 
   case tool
@@ -18,11 +28,6 @@ def do_tools to_handle
     tool_chords to_handle
   when 'chart'
     tool_chart to_handle
-  when 'inter', 'interval'
-    s1, s2 = normalize_interval(to_handle)
-    puts
-    print_interval s1, s2
-    puts
   else
     err "Internal error: Unknown tool '#{tool}'"
   end

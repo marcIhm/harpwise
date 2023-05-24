@@ -18,9 +18,11 @@ def do_play to_play
   extra_allowed = {'licks' => 'licks selected',
                    'pitch' => 'interactive, adjustable pitch',
                    'interval' => 'interactive, adjustable interval',
-                   'inter' => nil}
+                   'inter' => nil,
+                   'progression' => 'take a base and semitone diffs, then play it',
+                   'prog' => nil}
   
-  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, true)
+  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog))
   extra = Set.new(extra).to_a
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
 
@@ -52,14 +54,15 @@ def do_play to_play
   elsif extra.length > 0
 
     err "only one of #{extra_allowed.keys} is allowed" if extra.length > 1
+
     if extra[0] == 'pitch'
-      play_adjustable_pitch
+      play_interactive_pitch
 
     elsif extra[0] == 'interval' || extra[0] == 'inter'
 
       s1, s2 = normalize_interval(args_for_extra)
 
-      play_interval s1, s2
+      play_interactive_interval s1, s2
         
     elsif extra[0] == 'licks'
       if $opts[:iterate] == :random
@@ -96,16 +99,23 @@ def do_play to_play
           end
         end
       end
+
+    elsif extra[0] == 'progression' || extra[0] == 'prog'
+      err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
+      prog = base_and_delta_to_semis(args_for_extra)
+      play_interactive_progression prog
+
     else
-      fail "Internal error"
+      fail "Internal error: #{extra}"
     end
+
   else
     fail "Internal error"
   end
 end
 
 
-def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = false
+def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
 
   holes = []
   lnames = []
@@ -133,7 +143,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = fals
     elsif extra_allowed.keys.include?(tp)
       extra << tp
       extra_seen = true
-    elsif extra_seen && extra_takes_args
+    elsif extra_seen && (extra_takes_args & extra).length > 0
       args_for_extra << tp
     else
       other << tp
@@ -187,12 +197,12 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = fals
 end
 
 
-def hole_or_note_or_semi hns
+def hole_or_note_or_semi hns, diff_allowed = true
 
   types = Array.new
   values = Array.new
 
-  # check if argument is interval or absolute note or hole or event
+  # check if argument is interval or absolute note or hole or event or
   # many of them
 
   # hole ?
@@ -232,8 +242,12 @@ def hole_or_note_or_semi hns
   if types.length == 0
     inters_desc = inters.keys.map {|nm| "#{nm}(=#{inters[nm]}st)"}.join(', ')
     err "Given argument #{hns} is none of these:\n" +
-        "  - numeric interval\e[2m, e.g. 12st or -3\n" +
-        "\e[0m  - named interval\e[2m, i.e. one of: " + inters_desc + "\n" +
+        if diff_allowed
+          "  - numeric interval\e[2m, e.g. 12st or -3\n" +
+            "\e[0m  - named interval\e[2m, i.e. one of: " + inters_desc + "\n"
+        else
+          ''
+        end +
         "\e[0m  - hole\e[2m, i.e. one of: " + $harp_holes.join(', ') + "\n" +
         "\e[0m  - note\e[2m, e.g. c4, df5, as3\e[0m"
   end
@@ -280,10 +294,24 @@ def normalize_interval args
 end
 
 
+def base_and_delta_to_semis base_and_delta
+  prog = Array.new
+  bt, bv = hole_or_note_or_semi(base_and_delta[0], false)
+  err "Progression should start with an absolute value (hole or note), but not with a semitone difference like #{base_and_delta[0]}" if bt == [:diff]
+  prog << bv[0]
+  base_and_delta[1 .. -1].each do |diff|
+    dt, dv = hole_or_note_or_semi(diff)
+    err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}" if dt == [:abs]
+    prog << prog[0] + dv[-1]
+  end
+  prog
+end
+
+
 def play_and_print_lick lick
   sleep 1 if $ctl_rec[:loop_loop]
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
-    puts "Lick #{lick[:name]} (h for help)\n" + lick[:holes].join(' ')
+    puts "Lick #{lick[:name]} \e[2m(h for help)\e[0m\n" + lick[:holes].join(' ')
     print "\e[0m\e[2m"
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
@@ -291,10 +319,10 @@ def play_and_print_lick lick
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
   else
     if $opts[:reverse]
-      puts "Lick #{lick[:name]} in reverse (h for help)"
+      puts "Lick #{lick[:name]} in reverse \e[2m(h for help)\e[0m"
       play_holes lick[:holes].reverse, true, true
     else
-      puts "Lick #{lick[:name]} (h for help)"
+      puts "Lick #{lick[:name]} \e[2m(h for help)\e[0m"
       play_holes lick[:holes], true, true
     end
   end

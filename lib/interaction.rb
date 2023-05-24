@@ -320,6 +320,38 @@ def handle_kb_play_recording
 end
 
 
+def handle_kb_play_semis
+  return if $ctl_kb_queue.length == 0
+  char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+
+  if char == ' '
+    $ctl_semi[:pause_continue] = true
+  elsif %w(0 1 2 3 4 5 6 7 8 9).include?(char)
+    $ctl_semi[:prefix] = '' unless $ctl_semi[:prefix]
+    $ctl_semi[:prefix] += char
+    print "\n\e[0m\e[2mprefix is #{$ctl_semi[:prefix]}\e[0m\n"
+  elsif char == "\e"
+    $ctl_semi[:prefix] = nil
+    print "\n\e[0m\e[2mprefix cleared\e[0m\n"
+  elsif char == 's' || char == '+'
+    $ctl_semi[:semi_up] = true
+  elsif char == 'S' || char == '-'
+    $ctl_semi[:semi_down] = true
+  elsif char == 'v'
+    $ctl_semi[:vol_down] = true
+  elsif char == 'V'
+    $ctl_semi[:vol_up] = true
+  elsif char == 'l'
+    $ctl_semi[:toggle_loop] = true
+  elsif char == 'h'
+    $ctl_semi[:show_help] = true
+  elsif char == 'q'
+    $ctl_semi[:quit] = true
+  end
+end
+
+
 def handle_kb_play_pitch
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
@@ -334,9 +366,9 @@ def handle_kb_play_pitch
     $ctl_pitch[:vol_up] = true
   elsif char == 'h'
     $ctl_pitch[:show_help] = true
-  elsif char == 's'
+  elsif char == 's' || char == '+'
     $ctl_pitch[:semi_up] = true
-  elsif char == 'S'
+  elsif char == 'S' || char == '-'
     $ctl_pitch[:semi_down] = true
   elsif char == 'o'
     $ctl_pitch[:octave_up] = true
@@ -366,13 +398,13 @@ def handle_kb_play_inter
 
   if char == ' '
     $ctl_inter[:pause_continue] = true
-  elsif char == '+' || char == 'up'
+  elsif char == '+'
     $ctl_inter[:widen] = true
-  elsif char == '-' || char == 'down'
+  elsif char == '-'
     $ctl_inter[:narrow] = true
-  elsif char == '<' || char == 'left'
+  elsif char == '<'
     $ctl_inter[:down] = true
-  elsif char == '>' || char == 'right'
+  elsif char == '>'
     $ctl_inter[:up] = true
   elsif char == 'g'
     $ctl_inter[:gap_dec] = true
@@ -388,6 +420,10 @@ def handle_kb_play_inter
     $ctl_inter[:quit] = char
   elsif char == 's'
     $ctl_inter[:swap] = true
+  elsif char == 'v'
+    $ctl_inter[:vol_down] = true
+  elsif char == 'V'
+    $ctl_inter[:vol_up] = true
   elsif char == "\n"
     $ctl_inter[:replay] = true
   else
@@ -1012,7 +1048,6 @@ def journal_menu
   end
   print "\e[#{$lines[:comment_tall]}H\e[J"
   print "\e[2m"
-  puts
   puts " There are two ways to add holes to the journal in the comment area:"
   print "\e[0m\e[32m"
   puts "   j,a: toggle on/off all notes played"

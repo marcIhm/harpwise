@@ -89,7 +89,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 47
+num_exp = 49
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -998,7 +998,7 @@ do_test 'id-36: display as chart with intervals' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
+  expect { screen[4]['pF   3st  REF  5st  fS   Oct'] }
   expect { screen[15]['-2.Ton  -3/.3st   -2.3st  -3/.3st   -2.3st   -2.Ton   -2.Ton'] }
   kill_session
 end
@@ -1008,7 +1008,7 @@ do_test 'id-36a: display as chart with notes' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
+  expect { screen[4]['pF   3st  REF  5st  fS   Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
@@ -1315,10 +1315,10 @@ do_test 'id-53: print' do
   new_session
   tms 'harpwise print st-louis'
   tms :ENTER
-  expect { screen[8]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
-  expect { screen[12]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
-  expect { screen[16]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
-  expect { screen[20]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
+  expect { screen[5]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
+  expect { screen[9]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
+  expect { screen[13]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  expect { screen[17]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
   kill_session
 end
 
@@ -1326,7 +1326,7 @@ do_test 'id-53a: print with scale' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[8]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
+  expect { screen[5]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
   kill_session
 end
 
@@ -1387,7 +1387,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[18] == 'Holes with intervals to first:' }
+  expect { screen[15] == 'With intervals to first:' }
+  expect { screen[18] == 'As absolute semitones:' }
   kill_session
 end
 
@@ -1549,10 +1550,10 @@ do_test 'id-60: listen with auto journal' do
   expect { screen[1]['journal-all'] }
   sleep 6
   # allow for varying duration
-  expect { (screen[-8]['-4  (1'] ||
-            screen[-8]['-4  (2'] ||
-            screen[-8]['-4  (3']) &&
-           screen[-8]['-6/'] }
+  expect { (screen[16]['-4 (1'] ||
+            screen[16]['-4 (2'] ||
+            screen[16]['-4 (3']) &&
+           screen[16]['-6/'] }
   tms 'm'
   sleep 4
   expect { screen[1]['licks(1,ran)'] }
@@ -1586,12 +1587,39 @@ do_test 'id-62: play interval' do
   kill_session
 end
 
-do_test 'id-63: tool interval' do
+do_test 'id-63: print interval' do
   new_session
-  tms 'harpwise tool inter d4 e5'
+  tms 'harpwise print inter d4 e5'
   tms :ENTER
   sleep 2
-  expect { screen[2]['Interval 14st'] }
+  expect { screen[5]['Interval 14st:'] }
+  kill_session
+end
+
+do_test 'id-64: print progression' do
+  new_session
+  tms 'harpwise print prog a3 5st 9st oct'
+  tms :ENTER
+  sleep 2
+  expect { screen[12]['a3      d4     gf4      a4'] }
+  expect { screen[20]['0       5       9      12'] }
+  kill_session
+end
+
+do_test 'id-65: play progression' do
+  new_session
+  tms 'harpwise play prog a3 5st 9st oct'
+  tms :ENTER
+  sleep 1
+  tms '5'
+  sleep 0.5
+  tms 's'
+  sleep 1
+  wait_for_end_of_harpwise
+  expect { screen[6]['|---------|---------|---------|---------|'] }
+  expect { screen[7]['|      -- |      a3 |     -12 |       0 |'] }
+  expect { screen[17]['|---------|---------|---------|---------|'] }
+  expect { screen[18]['|      -1 |      d4 |      -7 |       0 |'] }
   kill_session
 end
 

@@ -14,7 +14,10 @@ OVERVIEW
     - scales (e.g. 'chord-i')
     - 'list-all-scales': a list of all scales
     - 'list-all-licks': a list of all licks
-    - 'licks' details on all licks selected (e.g. by --tags-any)
+    - 'licks': details on all licks selected (e.g. by --tags-any)
+    - 'progression': take a base and semitone diffs, then spell it out
+    - 'interval': print an interval with the given
+       notes/holes/semitone-diff
 
   You may try 'harpwise print x' for an instructive error message.
 
@@ -43,3 +46,17 @@ USAGE BY EXAMPLES
 
     harpwise print licks --tags-any favorite
       
+
+  Print an interval
+
+    harpwise print interval c4 oct
+
+  Print a tone progression:
+
+    harpwise print prog e3 7st 9st oct
+    
+  (for prog and inter, see mode 'play' for more details)
+
+
+  You may also check out mode tools for some more helpers.
+  
