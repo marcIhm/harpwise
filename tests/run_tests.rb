@@ -31,7 +31,7 @@ $within = ARGV.length == 0
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(wade st-louis feeling-bad blues mape special one two three long)
+$all_testing_licks = %w(wade st-louis feeling-bad blues mape box-i box-iv box-v simple-turn special one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 
@@ -89,7 +89,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 49
+num_exp = 50
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -676,8 +676,8 @@ do_test 'id-17: mode licks with initial lickfile' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:licks]) { dump[:licks].length == 10 }
-  expect { screen[1]['licks(10,ran) richter a blues,1,4,5'] }
+  expect(dump[:licks]) { dump[:licks].length == 14 }
+  expect { screen[1]['licks(14,ran) richter a blues,1,4,5'] }
   kill_session
 end
 
@@ -725,7 +725,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   # See comments above for verification
-  expect(dump[:licks]) { dump[:licks].length == 8 }
+  expect(dump[:licks]) { dump[:licks].length == 12 }
   kill_session
 end
 
@@ -798,6 +798,10 @@ do_test 'id-23: print list of licks' do
   lines = File.read($testing_output_file).lines
   ["  wade,st-louis,feeling-bad ..... favorites,samples\n",
    "  blues,mape ..... scales,theory\n",
+   "  box-i ..... box,i-chord\n",
+   "  box-iv ..... box,iv-chord\n",
+   "  box-v ..... box,v-chord\n",
+   "  simple-turn ..... turn\n",
    "  special ..... advanced,samples\n",
    "  one ..... testing,x\n",
    "  two ..... y\n",
@@ -817,21 +821,26 @@ do_test 'id-23a: overview report for all licks' do
   ["  Tag                              Count\n",
    " -----------------------------------------\n",
    "  advanced                             1\n",
+   "  box                                  3\n",
    "  fav                                  1\n",
    "  favorites                            4\n",
+   "  i-chord                              1\n",
+   "  iv-chord                             1\n",
    "  samples                              4\n",
    "  scales                               2\n",
    "  testing                              3\n",
    "  theory                               2\n",
+   "  turn                                 1\n",
+   "  v-chord                              1\n",
    "  x                                    2\n",
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               21\n",
-   "  Total number of different tags:     10\n",
+   "  Total number of tags:               28\n",
+   "  Total number of different tags:     15\n",
    " -----------------------------------------\n",
-   "  Total number of licks:              10\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[10+idx] == exp }
+   "  Total number of licks:              14\n"].each_with_index do |exp,idx|
+    expect(lines[10+idx],exp,idx,lines) { lines[10+idx] == exp }
   end
   kill_session
 end
@@ -872,7 +881,7 @@ do_test 'id-27: cycle through licks from starting point' do
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
-    lickname = $all_testing_licks[(i + 5) % $all_testing_licks.length]
+    lickname = $all_testing_licks[(i + 9) % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
     sleep 4
@@ -998,7 +1007,7 @@ do_test 'id-36: display as chart with intervals' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  fS   Oct'] }
+  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
   expect { screen[15]['-2.Ton  -3/.3st   -2.3st  -3/.3st   -2.3st   -2.Ton   -2.Ton'] }
   kill_session
 end
@@ -1008,7 +1017,7 @@ do_test 'id-36a: display as chart with notes' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  fS   Oct'] }
+  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end

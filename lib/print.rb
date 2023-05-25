@@ -45,7 +45,7 @@ def do_print to_print
       puts_underlined "#{lname}:", '-'
       puts
       lick = $licks.find {|l| l[:name] == lname}
-      print_holes_and_more lick[:holes]
+      print_holes_and_more lick[:holes_wo_events]
     end
 
   elsif extra.length > 0
@@ -58,7 +58,7 @@ def do_print to_print
         puts "#{lick[:name]}:"
         puts '-' * (lick[:name].length + 1)
         puts
-        print_holes_and_more lick[:holes]
+        print_holes_and_more lick[:holes_wo_events]
       end
       puts "Total count: #{$licks.length}"
 
@@ -77,7 +77,7 @@ def do_print to_print
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
       puts
-      puts "Total count: #{$all_licks.length}"
+      puts "Total count: #{licks.length}"
 
     elsif extra[0] == 'list-all-scales'
       puts_underlined 'All scales:'

@@ -73,6 +73,33 @@
   tags = scales theory
 
 #
+# Ascending box pattern for i, iv and v
+# Semitone steps are: tonic 7st 10st octave
+#
+# See https://www.youtube.com/watch?v=cDRsdNGrkVI
+# for Adam Gussows rendition of this.
+#
+[box-i]
+  holes = -2 -4 -5 +6
+  tags = i-chord box
+
+[box-iv]
+  holes = +1 -2 -3/ +4
+  tags = iv-chord box
+
+[box-v]
+  holes = -1 -3// +4 -4
+  tags = v-chord box
+
+#
+# A simple trunaround
+#
+[simple-turn]
+  holes = -2 +2 -1 -1
+  desc = simple, standard turnaround
+  tags = turn
+
+#
 #  ***  ABOUT THE REST OF THIS FILE  ***
 
 #

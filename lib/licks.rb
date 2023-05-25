@@ -129,6 +129,7 @@ def read_licks graceful = false
         hole
       end
       err "Lick #{name} does not contain any holes (#{lfile}, line #{idx + 1})" unless lick[:holes].length > 0
+      lick[:holes_wo_events] = lick[:holes].reject {|h| musical_event?(h)}
       derived[-1] = "notes = " + holes.split.map do |hoe|
         musical_event?(hoe)  ?  hoe  :  $harp[hoe][:note]
       end.join(' ')

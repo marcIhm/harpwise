@@ -101,4 +101,21 @@ USAGE BY EXAMPLES
   this plays the classic box pattern interactively, you may loop it or
   shift it by semitones. Holes for the harmonica (if any) are printed
   along.
+
+  You may want to use the box pattern and the interactive features of
+  'harpwise play prog' to play (sort of) a full 12-bar blues: Start
+  with the progression above and let it repeat 4 times (i.e. for 4
+  bars); this is the i-chord. Then shift by 5 Semitones up (or 7
+  down), to get the iv-chord, and let this play another two times;
+  then 5 semitones down to get the i-chord again, etc., etc. until 12
+  bars have been played.
+
+  Alternatively, you may get a similar result by playing predefined
+  chords. As harpwise comes with prebuild licks of the 'box pattern'
+  for chords i, iv and v, you may ask the wise to play the base-line
+  of a 12-bar blues like this:
+
+  harpwise play box-i box-i box-i box-i box-iv box-iv box-i box-i box-v box-iv box-i simple-turn
+
+  which also uses the lick simple-turn at the end.
   
