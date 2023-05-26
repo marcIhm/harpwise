@@ -13,7 +13,10 @@ specifies the mode of operation; it can be one of:
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
   - quiz: Train your ear and musical memory
-  - licks: Learn licks (only licks three included, but some pointers)
+  - licks: Learn licks (only a few included, but some pointers)
+  - Three players for pitches, intervals and note progressions, that
+    support practical music theory (mode play)
+  - An adjustable chart for keys and positions (mode tools)
 
 and, perhaps less frequently used:
 

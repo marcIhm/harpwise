@@ -17,13 +17,14 @@
 
   - Internalize various scales
   - Analyze your playing regarding scales, chords and intervals
-  - Learn and memorize licks (which you need to collect before, however)
+  - Learn and memorize licks (a few sample-licks included)
   - Train your musical memory
   - Work on bends or warbles
 
   Other things that harpwise can do:
 
   - Help to find the key of a song (with an adjustable pitch)
+  - Interactively play intervals or note progressions
   - Help in writing down a sequence of holes (journal)
   - Transpose a sequence of holes from one key of harp to another,
     preserving the note-values
