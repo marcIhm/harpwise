@@ -386,6 +386,7 @@ def play_interactive_progression prog
   fmt = ' ' + '|%8s ' * 4 + '|'
   print "\e[0m\e[2m(type 'h' for help)\e[0m\n\n"
   loop = quit = change_semis = false
+  iteration = 1
   begin
     if change_semis
       prog.map! {|s| s += change_semis}
@@ -442,11 +443,12 @@ def play_interactive_progression prog
       elsif $ctl_semi[:quit]
         $ctl_semi[:quit] = false
         quit = true
-        print "\e[0m\e[2mquit after this iteration\e[0m\n"
+        print "\e[0m\e[2mQuit after this iteration\e[0m\n"
       end
     end
+    print "\e[0m\e[2mIteration #{iteration} done ...\e[0m\n\n" if loop || change_semis
     break if quit
-    print "\e[0m\e[2magain ...\e[0m\n\n" if loop || change_semis
+    iteration += 1
   end while loop || change_semis
   puts
 end

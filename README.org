@@ -5,12 +5,12 @@
   [[images/harmonica3.png]]
 
   harpwise is an interactive assistant that supports the daily practice of
-  scales, licks, bends, warbles or intervals on a diatonic (richter) or
-  chromatic harmonica for various keys. It uses your microphone and
-  speaker.
+  scales, licks, bends, warbles, intervals or note-progressions on a
+  diatonic (richter) or chromatic harmonica for all keys. It uses your
+  microphone and speaker.
 
-  As a limitation, note that harpwise plays and recognizes single notes
-  only and has no sense of chords or grooves.
+  Harpwise plays and recognizes single notes only and has no sense of
+  chords or grooves.
 
   The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
   these may help to:
@@ -19,6 +19,7 @@
   - Analyze your playing regarding scales, chords and intervals
   - Learn and memorize licks (a few sample-licks included)
   - Train your musical memory
+  - Train your ear
   - Work on bends or warbles
 
   Other things that harpwise can do:
