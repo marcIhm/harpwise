@@ -274,7 +274,8 @@ def normalize_interval args
   s1 = s2 = 0
   case tt
   when [[:abs, :diff], [:abs, :diff]]
-    err "Both arguments #{args} can be interpreted as note or hole or as a differences in semitones; please remove ambiguity by appending 'st' to the interval"
+    s1 = vv[0][0]
+    s2 = vv[1][0]
   when [[:diff], [:diff]]
     err "You specified two semitone-differences but no base note: #{args}"
   when [[:abs, :diff], [:diff]], [[:abs], [:diff]]
@@ -283,11 +284,11 @@ def normalize_interval args
   when [[:diff], [:abs, :diff]], [[:diff], [:abs]]
     s1 = vv[1][0]
     s2 = s1 + vv[0][0]
-  when [[:abs], [:abs]]
+  when [[:abs], [:abs]], [[:abs, :diff], [:abs]], [[:abs], [:abs, :diff]]
     s1 = vv[0][0]
     s2 = vv[1][0]
   else
-    fail "Internal error: #{types}"
+    fail "Internal error: unmatched: #{tt}"
   end
 
   return s1, s2
