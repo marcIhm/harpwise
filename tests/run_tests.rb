@@ -1324,10 +1324,11 @@ do_test 'id-53: print' do
   new_session
   tms 'harpwise print st-louis'
   tms :ENTER
-  expect { screen[5]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
-  expect { screen[9]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
-  expect { screen[13]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
-  expect { screen[17]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
+  expect { screen[3]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
+  expect { screen[7]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
+  expect { screen[11]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  expect { screen[15]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
+  expect { screen[20]['Description: St. Louis Blues'] }
   kill_session
 end
 
@@ -1335,7 +1336,7 @@ do_test 'id-53a: print with scale' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[5]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
+  expect { screen[3]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
   kill_session
 end
 
@@ -1571,12 +1572,12 @@ do_test 'id-60: listen with auto journal' do
   ENV.delete('EDITOR')
 end
 
-do_test 'id-61: error on ambigous spec for play inter' do
+do_test 'id-61: error on double diff spec for play inter' do
   new_session
-  tms 'harpwise play interval -1 -1'
+  tms 'harpwise play interval 2st 2st'
   tms :ENTER
   sleep 1
-  expect { screen[5]['ERROR: Both arguments'] }
+  expect { screen[5]['ERROR: You specified two semitone-differences but no base note'] }
   kill_session
 end
 
@@ -1629,6 +1630,15 @@ do_test 'id-65: play progression' do
   expect { screen[7]['|      -- |      a3 |     -12 |       0 |'] }
   expect { screen[17]['|---------|---------|---------|---------|'] }
   expect { screen[18]['|      -1 |      d4 |      -7 |       0 |'] }
+  kill_session
+end
+
+do_test 'id-66: tool search' do
+  new_session
+  tms 'harpwise tool search-in-licks +1 -1'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[7]['2 matches'] }
   kill_session
 end
 

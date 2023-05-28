@@ -7,13 +7,15 @@ def do_tools to_handle
   tools_allowed = {'transpose' => 'transpose a sequence of notes between keys',
                    'keys' => 'print a chart with keys and positions',
                    'chords' => 'print chords i, iv and v',
+                   'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
+                   'search' => nil,
                    'chart' => 'harmonica chart'}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
     puts "\nArgument for mode 'tools' must be one of:\n\n"
     tools_allowed.each do |k,v|
-      puts "    #{k.rjust(mklen)} : #{v}"
+      puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
     end
     puts "\n,not #{none}; #{$for_usage}\n"
     err 'See above'
@@ -26,6 +28,8 @@ def do_tools to_handle
     tool_transpose to_handle
   when 'chords'
     tool_chords to_handle
+  when 'search-in-licks', 'search'
+    tool_search to_handle
   when 'chart'
     tool_chart to_handle
   else
@@ -129,6 +133,41 @@ EOHEAD
   end
   puts
   puts
+end
+
+
+def tool_search to_handle
+
+  err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
+
+  to_handle.each do |hole|
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp" unless $harp_holes.include?(hole)
+  end
+  equivs = to_handle.map {|h| [h,$harp[h][:equiv]].flatten}
+  searches = equivs.inject([[]]) do |acc,vals|
+    acc.map do |a|
+      vals.map do |v|
+        a.clone.append(v)
+      end
+    end.flatten(1)
+  end.map do |search|
+    search.join(' ')
+  end
+
+  $all_licks, $licks = read_licks
+
+  puts "\nList of licks containing #{to_handle} or quivalents:\n\n"
+  count = 0
+  $licks.each do |lick|
+    searches.each do |search|
+      if lick[:holes].reject {|l| musical_event?(l)}.join(' ')[search]
+        puts '  ' + lick[:name]
+        count += 1
+        break
+      end
+    end
+  end
+  puts "\n#{count} matches\n\n"
 end
 
 

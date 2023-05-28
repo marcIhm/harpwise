@@ -46,6 +46,10 @@ def do_print to_print
       puts
       lick = $licks.find {|l| l[:name] == lname}
       print_holes_and_more lick[:holes_wo_events]
+      unless $opts[:terse]
+        puts "Description: #{lick[:desc]}"
+        puts "       Tags: #{lick[:tags].join(' ')}"
+      end
     end
 
   elsif extra.length > 0
