@@ -143,11 +143,14 @@ def tool_search to_handle
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
-  equivs = to_handle.map {|h| [h,$harp[h][:equiv]].flatten}
-  searches = equivs.inject([[]]) do |acc,vals|
-    acc.map do |a|
-      vals.map do |v|
-        a.clone.append(v)
+  # make each hole an array and add equivs (e.g. -2 becomes [-2, +3])
+  holes_with_equivs = to_handle.map {|h| [h,$harp[h][:equiv]].flatten}
+
+  # list_of_searches becomes a list of equivalent lists of holes to search
+  searches = holes_with_equivs.inject([[]]) do |list_of_searches, equivs|
+    list_of_searches.map do |search|
+      equivs.map do |hole|
+        search.clone.append(hole)
       end
     end.flatten(1)
   end.map do |search|
@@ -156,7 +159,7 @@ def tool_search to_handle
 
   $all_licks, $licks = read_licks
 
-  puts "\nList of licks containing #{to_handle} or quivalents:\n\n"
+  puts "\nList of licks containing   #{to_handle.join(', ')}   or equivalents:\n\n"
   count = 0
   $licks.each do |lick|
     searches.each do |search|
