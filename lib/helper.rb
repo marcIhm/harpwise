@@ -96,8 +96,14 @@ def puts_err_context
       val  ?  "#{var}=#{val}"  :  "#{var} is not set"  
   end.select(&:itself)
   puts
-  puts "(result of argument processing so far: #{clauses.join(', ')})" if clauses.length > 0
-  puts "(config from #{$early_conf[:config_file]} and #{$early_conf[:config_file_user]})" if $early_conf
+  print "\e[0m\e[2m"
+  print "(result of argument processing so far: #{clauses.length > 0  ?  clauses.join(', ')  :  'none'};\n"
+  if $early_conf
+    puts " config from #{$early_conf[:config_file]} and #{$early_conf[:config_file_user]})"
+  else
+    puts " early config has not yet been initialized)"
+  end
+  print "\e[0m"
 end
 
 

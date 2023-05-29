@@ -107,7 +107,7 @@ def tool_transpose to_handle
   key_other = to_handle.shift
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
   to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp" unless $harp_holes.include?(hole)
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
 
   dsemi = diff_semitones($key, key_other, :g_is_lowest)
@@ -141,7 +141,7 @@ def tool_search to_handle
   err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
   to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp" unless $harp_holes.include?(hole)
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
   equivs = to_handle.map {|h| [h,$harp[h][:equiv]].flatten}
   searches = equivs.inject([[]]) do |acc,vals|
