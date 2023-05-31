@@ -399,6 +399,7 @@ def play_interactive_progression prog
     holes.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
       line = fmt % [ho, no, as, rs]
 
+      print "\n\n\n\e[3A"
       print "\e[0m\e[32m#{line}\e[0m"
       play_semi_and_handle_kb as
       print "\r\e[0m#{line}\n"
@@ -413,6 +414,7 @@ def play_interactive_progression prog
                         "      v: decrease volume by 3db           V: increase volume\n" +
                         "      l: toggle looping of progression    q: quit after iteration"
         $ctl_semi[:show_help] = false
+        puts
       elsif $ctl_semi[:pause_continue]
         print "\n\e[0m\e[32mSPACE to continue ..."
         begin
