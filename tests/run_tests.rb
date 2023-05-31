@@ -1626,10 +1626,10 @@ do_test 'id-65: play progression' do
   tms 's'
   sleep 1
   wait_for_end_of_harpwise
-  expect { screen[6]['|---------|---------|---------|---------|'] }
-  expect { screen[7]['|      -- |      a3 |     -12 |       0 |'] }
-  expect { screen[17]['|---------|---------|---------|---------|'] }
-  expect { screen[18]['|      -1 |      d4 |      -7 |       0 |'] }
+  expect { screen[5]['|---------|---------|---------|---------|'] }
+  expect { screen[6]['|      -- |      a3 |     -12 |       0 |'] }
+  expect { screen[16]['|---------|---------|---------|---------|'] }
+  expect { screen[17]['|      -1 |      d4 |      -7 |       0 |'] }
   kill_session
 end
 

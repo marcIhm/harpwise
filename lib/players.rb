@@ -414,7 +414,6 @@ def play_interactive_progression prog
                         "      v: decrease volume by 3db           V: increase volume\n" +
                         "      l: toggle looping of progression    q: quit after iteration"
         $ctl_semi[:show_help] = false
-        puts
       elsif $ctl_semi[:pause_continue]
         print "\n\e[0m\e[32mSPACE to continue ..."
         begin
