@@ -302,7 +302,7 @@ def base_and_delta_to_semis base_and_delta
   prog << bv[0]
   base_and_delta[1 .. -1].each do |diff|
     dt, dv = hole_or_note_or_semi(diff)
-    err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}" if dt == [:abs]
+    err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}; remark: in case of ambiguities between holes and semitones add 'st' to semitones, like in '3st'" if dt.include?(:abs)
     prog << prog[0] + dv[-1]
   end
   prog
