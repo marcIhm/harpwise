@@ -78,7 +78,7 @@ def do_calibrate_assistant
 
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/calibration_intro.txt")).result(binding)
 
-  print "Press any key to start with the first hole\n"
+  print "\nPress any key to start with the first hole\n"
   print "  or type 's' to skip directly to summary: "
   char = one_char
   print "\n\n"
@@ -189,8 +189,8 @@ def record_and_review_hole hole
     puts "\e[93mReview and/or record\e[0m hole   \e[33m#{hole}\e[0m   (key of #{$key})"
     choices = {:play => [['p', 'SPACE'], 'play current recording', 'play recorded sound'],
                :draw => [['d'], 'draw sound', 'draw sound data (again)'],
-               :frequency => [['f'], 'play frequency sample', 'show and play the ET frequency of the hole by generating and analysing a sample sound; does not overwrite current recording'],
-               :record => [['r'], 'record and trim', 'record RIGHT AWAY (after countdown); then trim recording and remove initial silence and surplus length'],
+               :frequency => [['f'], 'play frequency sample', "show and play the ET frequency of the hole by generating and analysing a\n               sample sound; does not overwrite current recording"],
+               :record => [['r'], 'record and trim', "record RIGHT AWAY (after countdown); then trim recording and remove\n               initial silence and surplus length"],
                :generate => [['g'], 'generate sound', 'generate a sound (instead of recording it) for the ET frequency of the hole'],
                :back => [['b'], 'back to prev hole', 'jump back to previous hole']}
     
@@ -205,7 +205,7 @@ def record_and_review_hole hole
     when :play
       if File.exist?(recorded)
         print "\e[33mPlay\e[0m ... "
-        play_wave recorded, 0
+        play_wave recorded
         puts 'done'
       else
         print "\e[31mFile #{recorded} does not exist !\e[0m\n"

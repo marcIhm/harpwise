@@ -384,6 +384,8 @@ do_test 'id-6: listen without journal' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 1
+  expect { screen[12]['b4']}
   tms 'j'
   tms 'q'
   sleep 1

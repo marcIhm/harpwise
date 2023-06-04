@@ -65,13 +65,13 @@ linux-distributions or WSL2 under Windows
 * Configuration of your sound system (not covered)
 
   Please note, that after this installation you should be able to record
-  and play sound via alsa, e.g.:
+  and play sound via sox, e.g.:
 
-  - arecord -d 1 foo.wav
-  - aplay foo.wav
+  - rec -r 44100 -e signed-integer foo.wav trim 0 1
+  - play foo.wav
 
-  however, any configuration issues which might arise are beyond the
-  scope of this readme.
+  if this gives you errors or no audible result, you need to fix this
+  first (which is beyond the scope of this readme).
 
 * Uninstalling (only half covered)
 

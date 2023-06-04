@@ -3,20 +3,20 @@
 #
 
 def record_sound secs, file, **opts
-  duration_clause = secs < 1 ? "-s #{(secs.to_f * $conf[:sample_rate]).to_i}" : "-d #{secs}"
   output_clause = ( opts[:silent] ? '>/dev/null 2>&1' : '' )
   if $testing
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "arecord -f S16_LE -r #{$conf[:sample_rate]} #{duration_clause} #{$conf[:alsa_arecord_extra]} #{file}"
-    system("#{cmd} #{output_clause}") or err "arecord failed: could not run: #{cmd}\n#{$alsa_arecord_fail_however}"
+    cmd = "rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed #{file} trim 0 #{secs}"
+    system("#{cmd} #{output_clause}") or err "rec failed: could not run: #{cmd}\n#{$sox_rec_fail_however}"
   end
 end
 
 
 def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
-  sys("play #{file} trim 0 #{secs} #{$vol_synth.clause}", $sox_play_fail_however) unless $testing
+  cmd = "play #{file} trim 0 #{secs} #{$vol_synth.clause}"
+  sys(cmd, $sox_play_fail_however) unless $testing
 end
 
 
@@ -74,7 +74,7 @@ EOHELP
       
     elsif ['', ' ', 'p'].include?(choice)
       puts "\e[33mPlay\e[0m from %.2f ..." % play_from
-      play_wave trimmed_wave, 0
+      play_wave trimmed_wave, 5
     elsif choice == 'd'
       do_draw = true
     elsif choice == 'y' || choice == "\n"
@@ -113,7 +113,8 @@ end
 
 def trim_wave file, play_from, duration, trimmed
   puts "Taking #{duration} seconds of original sound plus 0.2 fade out, starting at %.2f" % play_from
-  sys "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + 0.2} gain -n -3 fade 0 -0 0.2"
+  cmd = "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + 0.2} gain -n -3 fade 0 -0 0.2"
+  sys cmd
 end
 
 
@@ -125,7 +126,7 @@ end
 def synth_sound hole, file, extra = ''
   puts "\nGenerating   hole \e[32m#{hole}\e[0m#{extra},   note \e[32m#{$harp[hole][:note]}\e[0m,   semi \e[32m#{$harp[hole][:semi]}\e[0m:"
     
-  puts cmd = "sox -n #{file} synth 4 sawtooth %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db]}db"
+  cmd = "sox -n #{file} synth 4 sawtooth %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db]}db"
   sys cmd
 end
 
@@ -168,26 +169,26 @@ end
 
 def start_collect_freqs
   num_samples = ($conf[:sample_rate] * $opts[:time_slice]).to_i
-  fifo = "#{$dirs[:tmp]}/fifo_arecord_aubiopitch"
+  fifo = "#{$dirs[:tmp]}/fifo_sox_rec_aubiopitch"
   File.mkfifo(fifo) unless File.exist?(fifo)
   err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != 'fifo'
 
-  Thread.new {arecord_to_fifo(fifo)}
+  Thread.new {sox_rec_to_fifo(fifo)}
   Thread.new {aubiopitch_to_queue(fifo, num_samples)}
 end
 
 
-def arecord_to_fifo fifo
-  arec_cmd = if $testing
-               # 7680 is the rate of our sox-generated file; we use 10 times as much ?
-               "pv -qL 76800 #{$test_wav}"
-             else
-               "arecord -r #{$conf[:sample_rate]} #{$conf[:alsa_arecord_extra]}" +
-                 ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
-             end
-  _, _, wait_thread  = Open3.popen2("#{arec_cmd} >#{fifo}")
+def sox_rec_to_fifo fifo
+  sox_rec_cmd = if $testing
+                  # 7680 is the rate of our sox-generated file; we use 10 times as much ?
+                  "pv -qL 76800 #{$test_wav}"
+                else
+                  "rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -" +
+                    ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
+                end
+  _, _, wait_thread  = Open3.popen2("#{sox_rec_cmd} >#{fifo}")
   wait_thread.join
-  err "command '#{arec_cmd}' terminated unexpectedly\n#{$alsa_arecord_fail_however}"
+  err "Command '#{sox_rec_cmd}' terminated unexpectedly\n#{$sox_rec_fail_however}"
   exit 1
 end
 

@@ -25,11 +25,9 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :calibrate => [:auto_synth_db],
-    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :alsa_arecord_extra, :sox_play_extra]
+    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :sox_play_extra, :sox_rec_extra]
   }
-  $conf_meta[:deprecated_keys] = {
-    :general => [:alsa_aplay_extra]
-  }
+  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
                               :pref_sig_def => :to_sym,
@@ -179,8 +177,8 @@ def find_and_check_dirs
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
-  $alsa_arecord_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to alsa_arecord_extra in #{$early_conf[:config_file_user]}"
-  $sox_play_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -t) to sox_play_extra in #{$early_conf[:config_file_user]}"
+  $sox_rec_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary to sox_rec_extra in #{$early_conf[:config_file_user]}"
+  $sox_play_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary to sox_play_extra in #{$early_conf[:config_file_user]}"
 
   unless File.exist?($early_conf[:config_file_user])
     File.open($early_conf[:config_file_user], 'w') do |cfu|
@@ -309,7 +307,7 @@ end
 
 def check_installation
   # check for some required programs
-  not_found = %w( figlet toilet arecord aplay aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
+  not_found = %w( figlet toilet aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
   # Check some sample dirs and files
@@ -388,14 +386,10 @@ def read_config_ini file, strict: true
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
+      err err_head + "Key '#{key.to_sym}' is no longer allowed; please remove it" if $conf_meta[:deprecated_keys].include?(key)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
-        deprecated = Set.new($conf_meta[:deprecated_keys][section])
-        if ! [:any_mode, :general].include?(section)
-          deprecated += Set.new($conf_meta[:deprecated_keys][:any_mode]) 
-          allowed += Set.new($conf_meta[:sections_keys][:any_mode])
-        end
-        err err_head + "Key '#{key.to_sym}' is deprecated in section '#{section}'; it is no longer allowed, so please remove it" if deprecated.include?(key)
+        allowed += Set.new($conf_meta[:sections_keys][:any_mode]) if ! [:any_mode, :general].include?(section)
         err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'" unless allowed.include?(key)
         conf[section][key] = value
       elsif section.nil?
