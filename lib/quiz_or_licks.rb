@@ -630,7 +630,7 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
 end
 
 
-def play_recording_quiz lick, at_line: at_line, octave_shift:
+def play_recording_quiz lick, at_line:, octave_shift:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
