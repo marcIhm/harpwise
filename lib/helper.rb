@@ -133,19 +133,19 @@ def describe_scales_maybe scales, type
   desc
 end
 
-def display_kb_help what, first_round, body
-  if first_round
+def display_kb_help what, scroll_allowed, body
+  if scroll_allowed
     puts "\n\n\e[0m"
   else
     clear_area_comment
     puts "\e[#{$lines[:help]}H\e[0m"
   end
   puts "Keys available while playing #{what}:\e[0m\e[32m\n"
-  body.lines.each {|l| puts '      ' + l.chomp + "\n"}
+  body.lines.each {|l| puts '    ' + l.chomp + "\n"}
   print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
-  if first_round
+  if scroll_allowed
     puts "\n\e[0m\e[2mcontinue\e[0m"
     puts
   else

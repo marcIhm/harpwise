@@ -15,9 +15,8 @@ def record_sound secs, file, **opts
 end
 
 
-def play_wave file, secs = nil
-  samples = ( $conf[:sample_rate] * ( secs || ( $opts[:fast] ? 1 : 2 ) ) ).to_i
-  sys("aplay #{file} -s #{samples} #{$conf[:alsa_aplay_extra]}", $alsa_aplay_fail_however) unless $testing
+def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
+  sys("play #{file} trim 0 #{secs} #{$vol_synth.clause}", $sox_play_fail_however) unless $testing
 end
 
 
@@ -231,7 +230,7 @@ def play_semi_and_handle_kb semi
   cmd = if $testing
           "sleep 1"
         else
-          "play -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi} #{$vol_pitch.clause}"
+          "play -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi} #{$vol_synth.clause}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
@@ -250,7 +249,7 @@ def synth_for_inter semis, files, wfiles, gap, len
   times = [0.3, 0.3 + gap]
   files.zip(semis, times).each do |f, s, t|
     sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
-    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s} #{$vol_pitch.clause}") 
+    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s} #{$vol_synth.clause}") 
     sys("sox -q #{$conf[:sox_play_extra]} #{wfiles[0]} #{wfiles[1]} #{f}") 
   end
 end

@@ -156,7 +156,7 @@ def play_interactive_pitch embedded = false
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
-      cmd = "play -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7} #{$vol_pitch.clause}"
+      cmd = "play -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7} #{$vol_synth.clause}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
@@ -189,11 +189,11 @@ def play_interactive_pitch embedded = false
           puts "\e[0m\e[2mSPACE to continue ...\e[0m"
         end
       elsif $ctl_pitch[:vol_up]
-        $vol_pitch.inc
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.inc
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
       elsif $ctl_pitch[:vol_down]
-        $vol_pitch.dec
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.dec
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
       elsif $ctl_pitch[:semi_up]
         semi += 1 if semi < max_semi
         print_pitch_information(semi, knm)
@@ -349,12 +349,12 @@ def play_interactive_interval semi1, semi2
         puts "\e[0m\e[2mReplay\e[0m\n\n"
         new_sound = true        
       elsif $ctl_inter[:vol_up]
-        $vol_pitch.inc
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.inc
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:vol_down]
-        $vol_pitch.dec
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.dec
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
@@ -431,12 +431,12 @@ def play_interactive_progression prog
         $ctl_semi[:semi_up] = $ctl_semi[:semi_down] = false
       elsif $ctl_semi[:vol_up]
         $ctl_semi[:vol_up] = false
-        $vol_pitch.inc
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.inc
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
       elsif $ctl_semi[:vol_down]
         $ctl_semi[:vol_down] = false
-        $vol_pitch.dec
-        puts "\e[0m\e[2m#{$vol_pitch.db}\e[0m"
+        $vol_synth.dec
+        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
       elsif $ctl_semi[:toggle_loop]
         $ctl_semi[:toggle_loop] = false
         loop = !loop

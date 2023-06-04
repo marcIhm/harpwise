@@ -275,14 +275,18 @@ def handle_kb_play_holes
   $ctl_kb_queue.clear
 
   if char == ' '
-    print "\e[0m\e[32m SPACE to continue ..."
+    print "\e[0m\e[32m SPACE to continue ... "
     begin
       char = $ctl_kb_queue.deq
     end until char == ' '
-    print "go"
+    print "go \[0m"
     sleep 0.5
   elsif char == "\t" || char == '+'
     $ctl_hole[:skip] = true
+  elsif char == 'v'
+    $ctl_hole[:vol_down] = true
+  elsif char == 'V'
+    $ctl_hole[:vol_up] = true
   elsif char == 'h'
     $ctl_hole[:show_help] = true
   end

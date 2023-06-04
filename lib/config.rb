@@ -25,7 +25,10 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :calibrate => [:auto_synth_db],
-    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :alsa_arecord_extra, :alsa_aplay_extra, :sox_play_extra]
+    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :alsa_arecord_extra, :sox_play_extra]
+  }
+  $conf_meta[:deprecated_keys] = {
+    :general => [:alsa_aplay_extra]
   }
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
@@ -81,7 +84,7 @@ def set_global_vars_early
   $conf_meta[:ctrls_play_semi].each {|k| $ctl_semi[k] = false}
 
   # result of processing keys, while a series of holes is played
-  ks = [:skip, :show_help]
+  ks = [:skip, :show_help, :vol_up, :vol_down]
   $ctl_hole = Struct.new(*ks).new
   ks.each {|k| $ctl_hole[k] = false}
 
@@ -177,7 +180,6 @@ def find_and_check_dirs
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
   $alsa_arecord_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to alsa_arecord_extra in #{$early_conf[:config_file_user]}"
-  $alsa_aplay_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -D) to alsa_aplay_extra in #{$early_conf[:config_file_user]}"
   $sox_play_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary (e.g. -t) to sox_play_extra in #{$early_conf[:config_file_user]}"
 
   unless File.exist?($early_conf[:config_file_user])
@@ -301,7 +303,7 @@ def set_global_vars_late
   
   # different volumes for recordings and pitch; persistent only in single program run
   $vol_rec = Volume.new('recording', 0)
-  $vol_pitch = Volume.new('pitch', -9)
+  $vol_synth = Volume.new('pitch', -9)
 end
 
 
@@ -388,7 +390,12 @@ def read_config_ini file, strict: true
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
-        allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
+        deprecated = Set.new($conf_meta[:deprecated_keys][section])
+        if ! [:any_mode, :general].include?(section)
+          deprecated += Set.new($conf_meta[:deprecated_keys][:any_mode]) 
+          allowed += Set.new($conf_meta[:sections_keys][:any_mode])
+        end
+        err err_head + "Key '#{key.to_sym}' is deprecated in section '#{section}'; it is no longer allowed, so please remove it" if deprecated.include?(key)
         err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'" unless allowed.include?(key)
         conf[section][key] = value
       elsif section.nil?

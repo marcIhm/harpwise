@@ -52,7 +52,7 @@ def parse_arguments
         display: %w(-d --display),
         comment: %w(-c --comment),
         time_slice: %w(--time-slice)}],
-     [Set[:quiz, :play], {
+     [Set[:quiz, :play, :licks], {
         fast: %w(--fast),
         no_fast: %w(--no-fast)}],
      [Set[:quiz, :licks], {

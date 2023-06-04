@@ -32,13 +32,13 @@ def do_play to_play
   
   if holes.length > 0
 
-    play_holes holes, true, true
+    play_holes holes
 
   elsif snames.length > 0
 
     snames.each do |sname|
       scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      play_holes scale_holes, true, true
+      play_holes scale_holes
       trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
       IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
     end
@@ -321,10 +321,10 @@ def play_and_print_lick lick
   else
     if $opts[:reverse]
       puts "Lick #{lick[:name]} in reverse \e[2m(h for help)\e[0m"
-      play_holes lick[:holes].reverse, true, true
+      play_holes lick[:holes].reverse, lick: lick
     else
       puts "Lick #{lick[:name]} \e[2m(h for help)\e[0m"
-      play_holes lick[:holes], true, true
+      play_holes lick[:holes], lick: lick
     end
   end
   puts

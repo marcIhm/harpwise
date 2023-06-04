@@ -190,9 +190,14 @@ def do_quiz_or_licks
       if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
          (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
          ($opts[:holes] && !$ctl_mic[:ignore_holes])
-        play_holes to_play[:all_wanted], oride_l_message2, false, to_play[:lick]
+        play_holes to_play[:all_wanted],
+                   at_line: oride_l_message2,
+                   verbose: true,
+                   lick: to_play[:lick]
       else
-        play_recording_custom to_play[:lick], oride_l_message2, to_play[:octave_shift]
+        play_recording_quiz to_play[:lick],
+                            at_line: oride_l_message2,
+                            octave_shift: to_play[:octave_shift]
       end
 
       if $ctl_rec[:replay]
@@ -531,7 +536,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes all_holes, oride_l_message2, terse = false, lick = nil
+def play_holes all_holes, at_line: nil, verbose: false, lick: nil
 
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
@@ -548,14 +553,14 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
             "\e[2m(h for help) ... "
           end
   [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
-    if terse
+    if ! verbose
       print hole + ' '
     else
       if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
         ltext = "\e[2m(h for help)  "
-        if oride_l_message2
-          print "\e[#{oride_l_message2}H\e[K"
-          print "\e[#{oride_l_message2-1}H\e[K"
+        if at_line
+          print "\e[#{at_line}H\e[K"
+          print "\e[#{at_line-1}H\e[K"
         else
           print "\e[#{$lines[:hint_or_message]}H\e[K"
           print "\e[#{$lines[:message2]}H\e[K"
@@ -583,9 +588,9 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
         ltext += part unless part == '()'
       end
 
-      if oride_l_message2
-        print "\e[#{oride_l_message2}H\e[K"
-        print "\e[#{oride_l_message2-1}H#{ltext.strip}\e[K"
+      if at_line
+        print "\e[#{at_line}H\e[K"
+        print "\e[#{at_line-1}H#{ltext.strip}\e[K"
       else
         print "\e[#{$lines[:message2]}H\e[K"
         print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
@@ -593,32 +598,39 @@ def play_holes all_holes, oride_l_message2, terse = false, lick = nil
     end
     
     if musical_event?(hole)
-      sleep $opts[:fast]  ?  0.25  :  0.5
+      sleep $opts[:fast]  ?  0.125  :  0.25
     else
       # this also handles kb input and sets $ctl_hole
       play_hole_and_handle_kb(hole, get_musical_duration(hole_next))
     end
 
     if $ctl_hole[:show_help]
-      display_kb_help 'series of holes', !!oride_l_message2,  <<~end_of_content
+      display_kb_help 'series of holes', verbose,  <<~end_of_content
         SPACE: pause/continue
         TAB,+: skip to end
+            v: decrease volume     V: increase volume by 3dB
       end_of_content
       # continue below help (first round only)
       print "\n\n"
-      oride_l_message2 = [oride_l_message2 + 10, $term_height].min if oride_l_message2
+      at_line = [at_line + 10, $term_height].min if at_line
       $ctl_hole[:show_help] = false
+    elsif $ctl_hole[:vol_up]
+      $vol_synth.inc
+      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
+    elsif $ctl_hole[:vol_down]
+      $vol_synth.dec
+      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
     elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"
       sleep 0.3
       break
     end
   end
-  puts if terse
+  puts unless verbose
 end
 
 
-def play_recording_custom lick, oride_l_message2, octave_shift
+def play_recording_quiz lick, at_line: at_line, octave_shift:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -628,13 +640,13 @@ def play_recording_custom lick, oride_l_message2, octave_shift
   end
 
   text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
-  if oride_l_message2
-    print "\e[#{oride_l_message2}H#{text} \e[K"
+  if at_line
+    print "\e[#{at_line}H#{text} \e[K"
   else
     print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], !!oride_l_message2, octave_shift)
+  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], !!at_line, octave_shift)
 
   print skipped ? " skip rest" : " done"
 end
