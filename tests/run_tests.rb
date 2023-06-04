@@ -95,6 +95,7 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 puts "\nPreparing data"
 # need a sound file
 system("sox -n /tmp/harpwise_testing.wav synth 1000.0 sawtooth 494")
+FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -1281,7 +1282,7 @@ end
 do_test 'id-49: edit lickfile' do
   ENV['EDITOR']='vi'
   new_session
-  tms 'harpwise licks blues --start-with wade'
+  tms 'EDITOR=vi harpwise licks blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'e'
@@ -1489,7 +1490,7 @@ do_test 'id-58: listen with journal on request, recall later' do
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
-  tms 'harpwise listen a all'
+  tms 'EDITOR=vi harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -1526,7 +1527,8 @@ do_test 'id-59: listen and edit journal' do
   ENV['EDITOR']='vi'
   sound 16, 2
   new_session
-  tms 'harpwise listen a all --comment journal'
+  # dont know why we need to set it here too (at least ubuntu)
+  tms 'EDITOR=vi harpwise listen a all --comment journal'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -1552,7 +1554,7 @@ do_test 'id-60: listen with auto journal' do
   ENV['EDITOR']='vi'
   two_sounds 4, 2, 16, 8
   new_session
-  tms 'harpwise listen a all --comment journal'
+  tms 'EDITOR=vi harpwise listen a all --comment journal'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
