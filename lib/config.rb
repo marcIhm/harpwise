@@ -318,9 +318,15 @@ def check_installation
   end
 
   # check fonts
-  font_dir = %x(figlet -I2).chomp
+  font_dirs = %w(figlet toilet).map {|prog| %x(#{prog} -I2).chomp}
   $early_conf[:figlet_fonts].each do |font|
-    err "Did not find font #{font} in #{font_dir}" unless %w(flf tlf).any? {|ending| File.exist?("#{font_dir}/#{font}.#{ending}")}
+    if ! font_dirs.any? do |dir|
+        %w(flf tlf).any? do |ending|
+          File.exist?("#{dir}/#{font}.#{ending}")
+        end
+      end
+      err "Did not find font #{font} in #{font_dirs}"
+    end
   end
 end
 
