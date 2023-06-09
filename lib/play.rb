@@ -159,9 +159,11 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
   if other.length > 0 || sources_count == 0
     puts
     if other.length == 0
-      puts 'Nothing to play or print; please specify any of:'
+      txt = 'Nothing to play or print'
+      puts txt + '; please specify any of:'
     else
-      puts "Cannot understand these arguments: #{other};"
+      txt = "Cannot understand these arguments: #{other}"
+      puts txt + ";"
       puts 'they are none of (exact match required):'
     end
     puts "\n- musical events in () or []"
@@ -181,7 +183,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
       end
     end
     puts
-    err 'See above'
+    err "#{txt}, see above"
   end
   
   if sources_count > 1
