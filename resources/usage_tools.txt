@@ -17,6 +17,7 @@ OVERVIEW
     a scale to see see it laid out on the harp (second chart)
   - search-in-licks: search given sequence of holes among licks,
     matching equivalent holes too
+  - edit-licks: a convenient way to edit your lick file
   
 USAGE BY EXAMPLES
 

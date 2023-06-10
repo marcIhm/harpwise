@@ -4,12 +4,14 @@
 
 def do_tools to_handle
 
+  $lick_file ||= get_lick_file
   tools_allowed = {'transpose' => 'transpose a sequence of notes between keys',
                    'keys' => 'print a chart with keys and positions',
                    'chords' => 'print chords i, iv and v',
                    'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
                    'search' => nil,
-                   'chart' => 'harmonica chart'}
+                   'chart' => 'harmonica chart',
+                   'edit-licks' => "invoke editor on your lickfile #{$lick_file}"}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -32,6 +34,8 @@ def do_tools to_handle
     tool_search to_handle
   when 'chart'
     tool_chart to_handle
+  when 'edit-licks'
+    tool_edit_licks to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
   end
@@ -225,4 +229,13 @@ def tool_chart to_handle
     puts
   end
   puts
+end
+
+
+def tool_edit_licks to_handle
+
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+
+  system($editor + ' ' + $lick_file)
+  puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
 end
