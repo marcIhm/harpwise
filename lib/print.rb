@@ -9,7 +9,7 @@ def do_print to_print
   $ctl_rec[:lick_lick] = false
 
   $all_licks, $licks = read_licks
-  extra_allowed = {'licks' => 'selected licks with their content',
+  extra_allowed = {'licks' => 'selected licks (e.g. by option -t) with their content',
                    'list-licks' => 'list of selected licks with hole count',
                    'list-all-licks' => 'list of all licks',
                    'list-all-scales' => 'list of all scales with hole count',
@@ -32,7 +32,7 @@ def do_print to_print
 
     puts_underlined 'Scales given as arguments:'
     snames.each do |sname|
-      puts " #{sname}:"
+      puts " \e[2m#{sname}:\e[0m"
       puts
       scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
       print_holes_and_more scale_holes
@@ -64,7 +64,7 @@ def do_print to_print
         puts
         print_holes_and_more lick[:holes_wo_events]
       end
-      puts "Total count: #{$licks.length}"
+      puts "\e[2mTotal count: #{$licks.length}\e[0m"
 
     elsif extra[0] == 'list-all-licks' || extra[0] == 'list-licks'
       if extra[0]['all']
@@ -81,11 +81,11 @@ def do_print to_print
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
       puts
-      puts "Total count: #{licks.length}"
+      puts "\e[2mTotal count: #{licks.length}\e[0m"
 
     elsif extra[0] == 'list-all-scales'
       puts_underlined 'All scales:'
-      puts ' (name : holes)'
+      puts " \e[2m(name : holes)\e[0m"
       puts
       maxs = $all_scales.map {|s| s.length}.max
       $all_scales.each do |sname|
@@ -93,7 +93,7 @@ def do_print to_print
         puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
       end
       puts
-      puts "Total count: #{$all_scales.length}"
+      puts "\e[2mTotal count: #{$all_scales.length}\e[0m"
 
     elsif extra[0] == 'interval' || extra[0] == 'inter'
       s1, s2 = normalize_interval(args_for_extra)
@@ -129,28 +129,28 @@ end
 
 
 def print_holes_and_more holes
-  puts "Holes:"
+  puts "\e[2mHoles:\e[0m"
   print_in_columns holes
   puts
   return if $opts[:terse]
   if $used_scales[0] != 'all'
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
-    puts "Holes with scales (#{scales_text}):"
+    puts "\e[2mHoles with scales (#{scales_text}):"
     print_in_columns(scaleify(holes).map {|ps| ins_dot_mb(ps)})
     puts
   end
-  puts "With notes:"
+  puts "\e[2mWith notes:\e[0m"
   print_in_columns(noteify(holes).map {|ps| ins_dot_mb(ps)})
   puts
-  puts "With intervals between:"
+  puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes).map {|ps| ins_dot_mb(ps)})
   puts
-  puts "With intervals to first:"
+  puts "\e[2mWith intervals to first:\e[0m"
   print_in_columns(intervalify_to_first(holes).map {|ps| ins_dot_mb(ps)})
   puts
-  puts "As absolute semitones:"
+  puts "\e[2mAs absolute semitones:\e[0m"
   print_in_columns(holes.map {|h| note2semi($hole2note[h]).to_s})
-  puts
+  puts 
 end
 
 

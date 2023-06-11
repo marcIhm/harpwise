@@ -357,8 +357,9 @@ end
 
 
 def puts_underlined text, char = '='
-  puts text
+  puts "\e[2m" + text
   puts char * text.length
+  print "\e[0m"
   puts if char == '='
 end
 
