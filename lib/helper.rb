@@ -356,11 +356,18 @@ class Volume
 end
 
 
-def puts_underlined text, char = '='
-  puts "\e[2m" + text
+def puts_underlined text, char = '=', dim: :auto, vspace: :auto
+  puts "\e[" +
+       if dim == :auto
+         char == '=' ? '0' : '2'
+       elsif dim
+         '2'
+       else
+         '0'
+       end + "m" + text
   puts char * text.length
   print "\e[0m"
-  puts if char == '='
+  puts if ( vspace == :auto && char == '=' ) || vspace == true
 end
 
 

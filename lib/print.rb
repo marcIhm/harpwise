@@ -20,7 +20,7 @@ def do_print to_print
   
   holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed, %w(progression prog interval inter))
 
-  puts "\nType is #{$type}, key of #{$key}."
+  puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
   
   if holes.length > 0
@@ -59,13 +59,10 @@ def do_print to_print
     if extra[0] == 'licks'
       puts_underlined 'Licks selected by tags and hole-count:'
       $licks.each do |lick|
-        puts "#{lick[:name]}:"
-        puts '-' * (lick[:name].length + 1)
-        puts
+        puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         print_holes_and_more lick[:holes_wo_events]
       end
       puts "\e[2mTotal count: #{$licks.length}\e[0m"
-
     elsif extra[0] == 'list-all-licks' || extra[0] == 'list-licks'
       if extra[0]['all']
         puts_underlined 'All licks as a list:'

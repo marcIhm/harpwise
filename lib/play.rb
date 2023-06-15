@@ -12,7 +12,7 @@ def do_play to_play
 
   make_term_immediate
 
-  puts "\nType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks."
+  puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks.\e[0m"
   puts
 
   extra_allowed = {'licks' => 'licks selected',
