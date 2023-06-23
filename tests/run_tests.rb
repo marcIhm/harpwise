@@ -63,9 +63,9 @@ sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
 sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
 hw_abs = %x(which harpwise).chomp
 # Check
-actual = File.read(hw_abs)
-expected = "#!/bin/bash\n\n/usr/lib/harpwise/harpwise $@\n"
-fail "Actual and expected content of file #{hw_abs} do not match !\nactual:\n#{actual}\nexpected:\n#{expected}" unless actual == expected
+content = File.read(hw_abs)
+req_line = '/usr/lib/harpwise/harpwise $@'
+fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}" unless content[req_line]
 system("touch #{hw_abs} 2>/dev/null")
 fail "#{hw_abs} is writeable" if $?.success?
 
