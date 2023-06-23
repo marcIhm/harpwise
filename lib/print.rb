@@ -158,7 +158,7 @@ end
   
 
 def print_interval s1, s2
-  iname = $intervals[(s2 - s1).abs]
+  iname = $intervals[s2 - s1]
   puts '  Interval ' +
        if iname
           iname[0] + " (#{s2 - s1}st)"

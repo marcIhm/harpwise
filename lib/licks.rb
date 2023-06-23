@@ -41,7 +41,7 @@ def read_licks graceful = false
     next if line == ''
     derived << line
 
-    # [start new lick or default]
+    # [start new lick or default or vars]
     if md = line.match(/^\[(#{$word_re})\]$/)
       derived.insert(-2,'') # empty line before in derived
       nname = md[1]
@@ -86,7 +86,7 @@ def read_licks graceful = false
 
       # start with new lick
       unless %w(default vars).include?(nname)
-        err "Lick '#{nname}' has already appeared before (#{lfile}, line #{idx + 1})" if all_lick_names.include?(name)
+        err "Lick '#{nname}' has already appeared before (#{lfile}, again on line #{idx + 1})" if all_lick_names.include?(name)
         all_lick_names << nname
       end
       lick = Hash.new

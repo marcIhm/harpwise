@@ -508,7 +508,13 @@ def read_and_set_musical_config
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exists?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
-
+  intervals.keys.to_a.each do |st|
+    intervals[-st] = intervals[st].clone
+    next if st == 0
+    # dont use prepend here
+    intervals[-st].map! {|inter| inter = '-' + inter}
+  end
+  
   [ harp,
     harp_holes,
     harp_notes,

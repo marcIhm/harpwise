@@ -53,7 +53,7 @@ end
 fail "Could not parse term size from lib/config.rb" unless $term_min_width && $term_min_height
 
 #
-# Create read-only mount
+# Create read-only copy
 #
 system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
 sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
@@ -61,8 +61,11 @@ sys('sudo chown -R root:root /usr/lib/harpwise')
 sys('sudo chmod -R 644 /usr/lib/harpwise')
 sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
 sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
-exit if $0['copy']
 hw_abs = %x(which harpwise).chomp
+# Check
+actual = File.read(hw_abs)
+expected = "#!/bin/bash\n\n/usr/lib/harpwise/harpwise $@\n"
+fail "Actual and expected content of file #{hw_abs} do not match !\nactual:\n#{actual}\nexpected:\n#{expected}" unless actual == expected
 system("touch #{hw_abs} 2>/dev/null")
 fail "#{hw_abs} is writeable" if $?.success?
 
@@ -113,7 +116,6 @@ do_test 'id-1: start without dot_harpwise' do
   new_session
   tms 'harpwise'
   tms :ENTER
-  sleep 2
   expect {File.directory?($dotdir_testing)}
   expect {File.exist?($config_ini_testing)}
   kill_session
@@ -1010,8 +1012,8 @@ do_test 'id-36: display as chart with intervals' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
-  expect { screen[15]['-2.Ton  -3/.3st   -2.3st  -3/.3st   -2.3st   -2.Ton   -2.Ton'] }
+  expect { screen[4]['-pF -3st  REF  5st  9st  Oct'] }
+  expect { screen[15]['-2.Ton   -3/.3st    -2.-3st  -3/.3st    -2.-3st   -2.Ton'] }
   kill_session
 end
 
@@ -1020,7 +1022,7 @@ do_test 'id-36a: display as chart with notes' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF   3st  REF  5st  9st  Oct'] }
+  expect { screen[4]['pF -3st  REF  5st  9st  Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
@@ -1329,7 +1331,7 @@ do_test 'id-53: print' do
   tms :ENTER
   expect { screen[3]['-1      +2      -2      -3/     +3      -3/     -3//    -2'] }
   expect { screen[7]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
-  expect { screen[11]['+3.3st         -3/.3st        -3//.1st          -2.2st'] }
+  expect { screen[11]['+3.-3st        -3/.3st        -3//.-1st         -2.-2st'] }
   expect { screen[15]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
   expect { screen[20]['Description: St. Louis Blues'] }
   kill_session

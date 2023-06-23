@@ -88,8 +88,8 @@ def describe_inter hole1, hole2
   # happens for pseudo holes low and high
   return [nil, nil, nil, nil] unless semi1 && semi2 
   dsemi = semi1 - semi2
-  inter = $intervals[dsemi.abs] || [nil, nil]
-  return ["#{dsemi.abs} st",
+  inter = $intervals[dsemi] || [nil, nil]
+  return ["#{dsemi} st",
           inter[0],
           inter[1],
           dsemi]
@@ -98,10 +98,9 @@ end
 
 def describe_inter_keys key1, key2
   dsemi = note2semi(key1 + '0') - note2semi(key2 + '0')
-  inter = $intervals[dsemi.abs] || [nil, nil]
-  return "#{dsemi.abs} semitones" + ' ' +
-         ( inter[0] ? "(#{inter[0]}) " : '' ) +
-         ( dsemi > 0 ? 'above' : 'below' )
+  inter = $intervals[dsemi] || [nil, nil]
+  return "#{dsemi} semitones" + ' ' +
+         ( inter[0] ? "(#{inter[0]}) " : '' )
 end
 
 
