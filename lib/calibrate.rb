@@ -123,7 +123,7 @@ def record_and_review_hole hole
 
   recorded = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
   backup = "#{$sample_dir}/backup.wav"
-  if File.exists?(recorded)
+  if File.exist?(recorded)
     puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     wave2data(recorded)
     FileUtils.cp(recorded, backup)
@@ -161,7 +161,7 @@ def record_and_review_hole hole
     end
 
     
-    if File.exists?(recorded)  # normally true, can only be false on first iteration
+    if File.exist?(recorded)  # normally true, can only be false on first iteration
       
 
       # true on first iteration
@@ -175,8 +175,8 @@ def record_and_review_hole hole
           do_record, do_draw, do_trim = [true, false, true]
           redo                         
         elsif result == :next || result == :cancel
-          FileUtils.mv(backup, recorded) if result == :cancel && File.exists?(backup)
-          FileUtils.rm(backup) if File.exists?(backup)
+          FileUtils.mv(backup, recorded) if result == :cancel && File.exist?(backup)
+          FileUtils.rm(backup) if File.exist?(backup)
           return result, analyze_with_aubio(recorded)
         end
       end
@@ -194,7 +194,7 @@ def record_and_review_hole hole
                :generate => [['g'], 'generate sound', 'generate a sound (instead of recording it) for the ET frequency of the hole'],
                :back => [['b'], 'back to prev hole', 'jump back to previous hole']}
     
-    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exists?(recorded)
+    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exist?(recorded)
     choices[:quit] = [['q'], 'quit calibration', 'exit from calibration']
     
     answer = read_answer(choices)

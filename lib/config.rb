@@ -506,7 +506,7 @@ def read_and_set_musical_config
   end
   
   # read from first available intervals file
-  ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exists?(f)}
+  ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
   intervals.keys.to_a.each do |st|
     intervals[-st] = intervals[st].clone
