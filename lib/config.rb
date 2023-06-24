@@ -283,7 +283,7 @@ def set_global_vars_late
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
-  File.delete($debug_log) if $opts && $opts[:debug] && File.exists?($debug_log)
+  File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type
 
