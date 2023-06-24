@@ -1,0 +1,3 @@
+#!/bin/bash
+
+HARPWISE_BREW_DIR/harpwise $@
