@@ -122,8 +122,8 @@ def tool_transpose to_handle
   | Hole for the Key of #{$key}
   |        | Note for this key
   |        |        | Hole for the Key of #{key_other}
-  |        |        |        | One Octave up
-  |        |        |        |        | One Octave down
+  |        |        |        | One octave UP
+  |        |        |        |        | One octave DOWN
 EOHEAD
   template = '  | %6s | %6s | %6s | %6s | %6s |'
   hline = '  |' + '-' * ( (template % Array.new(5)).length - 4 ) + '|'
@@ -131,7 +131,7 @@ EOHEAD
     puts hline
     puts template % [hole,
                      $harp[hole][:note],
-                     [0, -12, +12].map do |shift|
+                     [0, +12, -12].map do |shift|
                        $semi2hole[$harp[hole][:semi] + dsemi + shift] || '*'
                      end].flatten
   end
