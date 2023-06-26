@@ -119,14 +119,14 @@ def tool_transpose to_handle
   puts "The distance between keys #{$key} and #{key_other} is #{-dsemi} semitones."
   puts
   print <<EOHEAD
-  | Hole for the Key of #{$key}
+  | Hole for the Key of \e[32m#{$key}\e[0m
   |        | Note for this key
-  |        |        | Hole for the Key of #{key_other}
+  |        |        | Hole for the Key of \e[32m#{key_other}\e[0m
   |        |        |        | One octave UP
   |        |        |        |        | One octave DOWN
 EOHEAD
-  template = '  | %6s | %6s | %6s | %6s | %6s |'
-  hline = '  |' + '-' * ( (template % Array.new(5)).length - 4 ) + '|'
+  template = "  | \e[32m%6s\e[0m | \e[32m%6s\e[0m | \e[32m%6s\e[0m | \e[32m%6s\e[0m | \e[32m%6s\e[0m |"
+  hline = '  |' + '-' * ( (template % Array.new(5)).length - 49 ) + '|'
   to_handle.each do |hole|
     puts hline
     puts template % [hole,

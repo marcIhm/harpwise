@@ -270,10 +270,12 @@ def parse_arguments
        ARGV.length >= 2 && 'chart'.start_with?(ARGV[0]) && !$conf[:all_keys].include?(ARGV[0]))
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end
+
   # Handle special case: convert 'harpwise play pitch g'
   #                         into 'harpwise play g pitch'
+  # The mode (play) has already been removed from ARGV
   if mode == :play && $conf[:all_keys].include?(ARGV[1]) &&
-     ARGV.length >= 2 && 'pitch'.start_with?(ARGV[0]) && ARGV[0].length >= 3
+     ARGV.length >= 2 && 'pitch'.start_with?(ARGV[0])
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end
 
