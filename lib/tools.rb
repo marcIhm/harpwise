@@ -163,14 +163,27 @@ def tool_search to_handle
 
   $all_licks, $licks = read_licks
 
-  puts "\nList of licks containing   #{to_handle.join(', ')}   or equivalents:\n\n"
+  puts "\nList of licks containing   #{to_handle.join(', ')}   or equivalent:\n\n"
   count = 0
-  $licks.each do |lick|
-    searches.each do |search|
-      if lick[:holes].reject {|l| musical_event?(l)}.join(' ')[search]
-        puts '  ' + lick[:name]
-        count += 1
-        break
+  maxname = 0
+  [:max, :print].each do |what|
+    $licks.each do |lick|
+      searches.each do |search|
+        only_holes = lick[:holes].reject {|l| musical_event?(l)}.join(' ')
+        idx = only_holes.index(search)
+        if idx
+          case what
+          when :max
+            maxname = [maxname, lick[:name].length].max
+          when :print
+            puts '  ' + lick[:name].rjust(maxname) + ":  \e[2m" +
+                 only_holes[0, idx] + "\e[0m\e[32m" + 
+                 only_holes[idx, search.length] + "\e[0m\e[2m" +
+                 only_holes[idx + search.length + 1 ...] + "\e[0m" 
+            count += 1
+            break
+          end
+        end
       end
     end
   end
