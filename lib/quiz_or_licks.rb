@@ -737,6 +737,32 @@ end
 
 
 def noteify holes_or_notes
+  holes_maxlen, notes_maxlen = holeify_noteify_get_maxlens(holes_or_notes)
+  holes_or_notes.each.map do |hon|
+    [' ' * (holes_maxlen - hon.length), hon,
+     if musical_event?(hon)
+       ''
+     else
+       $harp.dig(hon, :note) || '-'
+     end.ljust(notes_maxlen)]
+  end
+end
+
+
+def holeify holes_or_notes
+  holes_maxlen, notes_maxlen = holeify_noteify_get_maxlens(holes_or_notes)
+  holes_or_notes.each.map do |hon|
+    [' ' * (holes_maxlen - hon.length), hon,
+     if musical_event?(hon)
+       ''
+     else
+       $note2hole[hon] || '-'
+     end.ljust(notes_maxlen)]
+  end
+end
+
+
+def holeify_noteify_get_maxlens holes_or_notes
   holes_maxlen = holes_or_notes.max_by(&:length).length
   notes_maxlen = holes_or_notes.map do |hon|
     if musical_event?(hon)
@@ -747,16 +773,7 @@ def noteify holes_or_notes
       hon
     end
   end.max_by(&:length).length
-  holes_or_notes.each.map do |hon|
-    [' ' * (holes_maxlen - hon.length), hon,
-     if musical_event?(hon)
-       ''
-     elsif $harp[hon]
-       $harp[hon][:note]
-     else
-       hon
-     end.ljust(notes_maxlen)]
-  end
+  return [holes_maxlen, notes_maxlen]
 end
 
 

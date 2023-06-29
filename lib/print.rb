@@ -124,18 +124,21 @@ end
 
 
 def print_holes_and_more holes_or_notes
-  puts "\e[2mHoles:\e[0m"
+  puts "\e[2mHoles or notes:\e[0m"
   print_in_columns holes_or_notes
   puts
   return if $opts[:terse]
   if $used_scales[0] != 'all'
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
-    puts "\e[2mHoles with scales (#{scales_text}):"
+    puts "\e[2mHoles with scales (#{scales_text}):\e[0m"
     print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
   end
   puts "\e[2mWith notes:\e[0m"
   print_in_columns(noteify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+  puts
+  puts "\e[2mWith holes:\e[0m"
+  print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
