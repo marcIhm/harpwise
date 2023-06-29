@@ -127,7 +127,7 @@ def tool_transpose to_handle
   puts
   puts
   cols = Array.new
-  cols << ['Hole', 'Note', 'new Hole', 'Oct up', 'Oct down']
+  cols << ['Holes', 'Notes', 'new Holes', 'Oct up', 'Oct down']
   to_handle.each do |hole|
     cols << [hole,
              $harp[hole][:note],
@@ -162,7 +162,7 @@ def tool_shift to_handle
   puts
   puts
   cols = Array.new
-  cols << ['Hole given', 'Note', 'Hole shifted', 'Note shifted', 'Oct up', 'Oct down']
+  cols << ['Holes given', 'Notes', 'Holes shifted', 'Notes shifted', 'Oct up', 'Oct down']
   to_handle.each do |hole|
     cols << [hole,
              $harp[hole][:note],
@@ -262,7 +262,7 @@ def tool_search to_handle
             puts '  ' + lick[:name].rjust(maxname) + ":  \e[2m" +
                  only_holes[0, idx] + "\e[0m\e[32m" + 
                  only_holes[idx, search.length] + "\e[0m\e[2m" +
-                 only_holes[idx + search.length + 1 ...] + "\e[0m" 
+                 ( only_holes[idx + search.length + 1 ...] || '') + "\e[0m" 
             count += 1
             break
           end

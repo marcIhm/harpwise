@@ -635,11 +635,11 @@ end
 
 do_test 'id-16: play some holes and notes' do
   new_session
-  # d1 does not correspond to any hole
-  tms 'harpwise play a -1 a5 +4 d1'
+  # d2 does not correspond to any hole
+  tms 'harpwise play a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[4]['-1 +7 +4'] }
+  expect { screen[6]['-1 a5 +4'] }
   kill_session
 end
 
@@ -934,7 +934,7 @@ do_test 'id-30: use option --partial' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise/licks/richter/recordings/wade.mp3  trim 0.0 1.0'] }
+  expect(tlog[-1]) { tlog[-1]["play --norm=0 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3  trim 0.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -944,7 +944,7 @@ do_test 'id-31: use option --partial' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]['play -q -V1 ' + Dir.home + '/dot_harpwise/licks/richter/recordings/st-louis.mp3  trim 3.0 1.0'] }
+  expect(tlog[-1]) { tlog[-1]["play --norm=0 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3  trim 3.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -1324,7 +1324,7 @@ do_test 'id-51: tools transpose' do
   new_session
   tms 'harpwise tools transpose c g -1'
   tms :ENTER
-  expect { screen[2]['c and g is -5'] }
+  expect { screen[10]['new Holes:   -2'] }
   kill_session
 end
 
@@ -1332,7 +1332,7 @@ do_test 'id-51a: tools shift' do
   new_session
   tms 'harpwise tools shift mt -1 +2'
   tms :ENTER
-  expect { screen[2]['?'] }
+  expect { screen[9]['Holes shifted:   -2/  -3///'] }
   kill_session
 end
 
@@ -1619,14 +1619,14 @@ do_test 'id-62: play interval' do
   tms 'harpwise play inter c4 12st'
   tms :ENTER
   sleep 2
-  expect { screen[9]['from:  -9st |   +1 |   c4'] }
+  expect { screen[10]['from:  -9st ,   +1 ,   c4'] }
   tms '>'
   sleep 2
-  expect { screen[16]['from:  -8st |  -1/ |  df4'] }
-  expect { screen[17]['to:   4st |  -4/ |  df5'] }
+  expect { screen[18]['from:  -8st ,  -1/ ,  df4'] }
+  expect { screen[19]['to:   4st ,  -4/ ,  df5'] }
   tms '+'
   sleep 2
-  expect { screen[19]['to:   5st |   -4 |   d5'] }
+  expect { screen[19]['to:   5st ,   -4 ,   d5'] }
   kill_session
 end
 
@@ -1635,7 +1635,7 @@ do_test 'id-63: print interval' do
   tms 'harpwise print inter d4 e5'
   tms :ENTER
   sleep 2
-  expect { screen[5]['Interval 14st:'] }
+  expect { screen[4]['Interval 14st:'] }
   kill_session
 end
 
@@ -1651,11 +1651,12 @@ end
 
 do_test 'id-64a: print some holes and notes' do
   new_session
-  # d1 does not correspond to any hole
-  tms 'harpwise print a -1 a5 +4 d1'
+  # d2 does not correspond to any hole
+  tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[4]['?'] }
+  expect { screen[11]['-1.b3   a5.a5   +4.a4   d2.d2'] }
+  expect { screen[17]['-1.Ton          a5.22st         +4.10st         d2.-21st'] }
   kill_session
 end
 

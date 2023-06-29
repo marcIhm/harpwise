@@ -15,7 +15,11 @@ end
 
 
 def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
-  cmd = "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
+  cmd = if $testing
+          "sleep #{secs}"
+        else    
+          "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
+        end
   sys(cmd, $sox_play_fail_however) unless $testing
 end
 
@@ -230,10 +234,14 @@ def play_hole_or_note_simple_and_handle_kb note, duration
   
   wfile = this_or_equiv("#{$sample_dir}/%s.wav", note)
   wait_thr = Thread.new do
-    if wfile
-      sys "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
+    if $testing
+      sys "sleep #{duration}"
     else
-      sys "play --norm=#{$vol_synth.to_db} -n #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+      if wfile
+        sys "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
+      else
+        sys "play --norm=#{$vol_synth.to_db} -n #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+      end
     end
   end  
   begin

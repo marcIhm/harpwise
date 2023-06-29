@@ -231,7 +231,7 @@ def hole_or_note_or_semi hns, diff_allowed = true
   # named interval ?
   if $intervals_inv[hns]
     types << :diff
-    values << inters[hns].to_i
+    values << $intervals_inv[hns].to_i
   end
 
   # interval in semitones ?
@@ -243,7 +243,7 @@ def hole_or_note_or_semi hns, diff_allowed = true
   fail "Internal error: #{types}" if types.length >= 3
   
   if types.length == 0
-    inters_desc = inters.keys.map {|nm| "#{nm}(=#{inters[nm]}st)"}.join(', ')
+    inters_desc = $intervals_inv.keys.join(', ')
     err "Given argument #{hns} is none of these:\n" +
         if diff_allowed
           "  - numeric interval\e[2m, e.g. 12st or -3\n\e[0m" +
