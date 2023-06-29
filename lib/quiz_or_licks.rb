@@ -536,100 +536,6 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_holes all_holes, at_line: nil, verbose: false, lick: nil
-
-  if $opts[:partial] && !$ctl_mic[:ignore_partial]
-    holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
-  else
-    holes = all_holes
-  end
-  
-  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $testing
-  
-  $ctl_hole[:skip] = false
-  ltext = if lick
-            "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "
-          else
-            "\e[2m(h for help) ... "
-          end
-  [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
-    if ! verbose
-      print hole + ' '
-    else
-      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-        ltext = "\e[2m(h for help)  "
-        if at_line
-          print "\e[#{at_line}H\e[K"
-          print "\e[#{at_line-1}H\e[K"
-        else
-          print "\e[#{$lines[:hint_or_message]}H\e[K"
-          print "\e[#{$lines[:message2]}H\e[K"
-        end
-      end
-      if idx > 0
-        if !musical_event?(hole) && !musical_event?(holes[idx - 1])
-          isemi, itext, _, _ = describe_inter(hole, holes[idx - 1])
-          ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
-        else
-          ltext += ' '
-        end
-      end
-      ltext += if musical_event?(hole)
-                 "\e[0m#{hole}\e[2m"
-               elsif $opts[:immediate]
-                 "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
-               else
-                 "\e[0m#{$harp[hole][:note]}\e[2m"
-               end
-      if $used_scales.length > 1
-        part = '(' +
-               $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
-               ')'
-        ltext += part unless part == '()'
-      end
-
-      if at_line
-        print "\e[#{at_line}H\e[K"
-        print "\e[#{at_line-1}H#{ltext.strip}\e[K"
-      else
-        print "\e[#{$lines[:message2]}H\e[K"
-        print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
-      end
-    end
-    
-    if musical_event?(hole)
-      sleep $opts[:fast]  ?  0.125  :  0.25
-    else
-      # this also handles kb input and sets $ctl_hole
-      play_hole_and_handle_kb(hole, get_musical_duration(hole_next))
-    end
-
-    if $ctl_hole[:show_help]
-      display_kb_help 'series of holes', verbose,  <<~end_of_content
-        SPACE: pause/continue
-        TAB,+: skip to end
-            v: decrease volume     V: increase volume by 3dB
-      end_of_content
-      # continue below help (first round only)
-      print "\n\n"
-      at_line = [at_line + 10, $term_height].min if at_line
-      $ctl_hole[:show_help] = false
-    elsif $ctl_hole[:vol_up]
-      $vol_synth.inc
-      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
-    elsif $ctl_hole[:vol_down]
-      $vol_synth.dec
-      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
-    elsif $ctl_hole[:skip]
-      print "\e[0m\e[32m skip to end\e[0m"
-      sleep 0.3
-      break
-    end
-  end
-  puts unless verbose
-end
-
-
 def play_recording_quiz lick, at_line:, octave_shift:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
@@ -795,21 +701,21 @@ def scaleify holes
 end
 
 
-def intervalify holes
+def intervalify holes_or_notes
   inters = []
-  holes.each_with_index do |hole,idx|
+  holes_or_notes.each_with_index do |hon, idx|
     j = idx - 1
     j = 0 if j < 0
-    j -= 1 while j > 0 && musical_event?(holes[j])
-    isemi ,_ ,itext, _ = describe_inter(hole, holes[j])
+    j -= 1 while j > 0 && musical_event?(holes_or_notes[j])
+    isemi ,_ ,itext, _ = describe_inter(hon, holes_or_notes[j])
     idesc = itext || isemi || ''
     idesc.gsub!(' ','')
     inters << idesc
   end
-  holes_maxlen = holes.max_by(&:length).length
+  hon_maxlen = holes_or_notes.max_by(&:length).length
   inters_maxlen = inters.max_by(&:length).length
-  holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole, inters.shift.ljust(inters_maxlen)]
+  holes_or_notes.each.map do |hon|
+    [' ' * (hon_maxlen - hon.length), hon, inters.shift.ljust(inters_maxlen)]
   end
 end
 
@@ -830,21 +736,25 @@ def intervalify_to_first holes
 end
 
 
-def noteify holes
-  holes_maxlen = holes.max_by(&:length).length
-  notes_maxlen = holes.map do |hole|
-    if musical_event?(hole)
+def noteify holes_or_notes
+  holes_maxlen = holes_or_notes.max_by(&:length).length
+  notes_maxlen = holes_or_notes.map do |hon|
+    if musical_event?(hon)
       ''
+    elsif $harp[hon]
+      $harp[hon][:note]
     else
-      $harp[hole][:note]
+      hon
     end
   end.max_by(&:length).length
-  holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole,
-     if musical_event?(hole)
+  holes_or_notes.each.map do |hon|
+    [' ' * (holes_maxlen - hon.length), hon,
+     if musical_event?(hon)
        ''
+     elsif $harp[hon]
+       $harp[hon][:note]
      else
-       $harp[hole][:note]
+       hon
      end.ljust(notes_maxlen)]
   end
 end

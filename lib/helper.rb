@@ -43,6 +43,7 @@ class String
   end
 end
 
+
 def match_or cand, choices
   return unless cand
   exact_matches = choices.select {|c| c == cand}
@@ -348,6 +349,10 @@ class Volume
 
   def db
     return "%+ddB" % @@vols[@tag]
+  end
+
+  def to_db
+    return @@vols[@tag]
   end
 
   def clause

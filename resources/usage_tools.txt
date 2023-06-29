@@ -8,9 +8,12 @@ OVERVIEW
   it can be one of:
 
   - transpose: transpose a sequence of notes from one key of harp
-    to another
+    to another, keeping notes and pitches
+  - shift: similar, but shift by given number of semitones (e.g. 12st)
+    or named interval
   - keys (or positions): print a chart with keys and positions,
     with optional arguments to mark key of harp and key of song
+  - intervals: print all known intervals with, semitones and names
   - chords: print the chords i, iv and v for the given key of harp as
     played in second position
   - chart: print harmonica chart with notes for the given key; specify
@@ -22,11 +25,13 @@ OVERVIEW
 USAGE BY EXAMPLES
 
   Transpose a sequence of notes (but specified by their hole) from
-  the key of c to g:
+  the key of c to g (keeping the notes/pitches constant):
 
     harpwise tools transpose c g -1 +2 -3
 
-  note, that no all notes maybe available on the harp of the new key.
+  or similar but actually shifting the notes/pitches:
+
+    harpwise tools transpose 12st -1 +2 -3
 
 
   Print a simple table of keys and positions:

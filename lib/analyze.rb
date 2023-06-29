@@ -32,9 +32,9 @@ def describe_freq freq
   return :high, nil, nil, nil
 end
 
-def note2semi note
-  note = note.downcase
-  raise ArgumentError.new("note '#{note}' should end with a single digit") unless ('0'..'9').include?(note[-1])
+def note2semi note, range = (0..9)
+  note = note.downcase 
+  raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
   idx = $notes_with_sharps.index(note[0 .. -2]) ||
         $notes_with_flats.index(note[0 .. -2]) or
     raise ArgumentError.new("non-digit part is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
@@ -83,10 +83,15 @@ def notes_equiv note
 end
 
 
-def describe_inter hole1, hole2
-  semi1, semi2 = [hole1, hole2].map {|h| $harp.dig(h, :semi)}
-  # happens for pseudo holes low and high
-  return [nil, nil, nil, nil] unless semi1 && semi2 
+def describe_inter hon1, hon2
+  return [nil, nil, nil, nil] if !hon1 || !hon2 || ([hon1, hon2] & [:low, :high]).length > 0
+  semi1, semi2 = [hon1, hon2].map do |hon|
+    if $harp_holes.include?(hon)
+      $harp[hon][:semi]
+    else
+      note2semi(hon)
+    end
+  end
   dsemi = semi1 - semi2
   inter = $intervals[dsemi] || [nil, nil]
   return ["#{dsemi} st",
@@ -98,9 +103,20 @@ end
 
 def describe_inter_keys key1, key2
   dsemi = note2semi(key1 + '0') - note2semi(key2 + '0')
+  return describe_inter_semis(dsemi)
+end
+
+
+def describe_inter_semis dsemi
   inter = $intervals[dsemi] || [nil, nil]
-  return "#{dsemi} semitones" + ' ' +
-         ( inter[0] ? "(#{inter[0]}) " : '' )
+  return "#{dsemi} semitones" +
+         if inter[0]
+           " (#{inter[0]})"
+         elsif inter[1]
+           " (#{inter[1]})"
+         else
+           ''
+         end
 end
 
 
@@ -110,7 +126,7 @@ def print_semis_as_abs h1, s1, h2, s2
   cl = [p1.length, p2.length].min
   p1, p2 = [p1, p2].map {|p| p[0...cl]}
   [[h1, p1], [h2, p2]].each do |h, p|
-    puts h + p.map {|x| (x || '--').rjust(hmax)}.join(' |')
+    puts h + p.map {|x| (x || '--').rjust(hmax)}.join(' ,')
   end
 end
 

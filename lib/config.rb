@@ -261,7 +261,8 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", $key.to_s)
+  $sample_dir = this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", $key.to_s) ||
+                "#{$dirs[:data]}/samples/#{$type}/key_of_#{$key}"
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
@@ -514,6 +515,15 @@ def read_and_set_musical_config
     # dont use prepend here
     intervals[-st].map! {|inter| inter = '-' + inter}
   end
+
+  # inverted
+  intervals_inv = Hash.new
+  intervals.each do |k,vv|
+    vv.each do |v|
+      next if v[' ']
+      intervals_inv[v.downcase] = k
+    end
+  end
   
   [ harp,
     harp_holes,
@@ -525,6 +535,7 @@ def read_and_set_musical_config
     h2s_shorts,
     semi2hole,
     intervals,
+    intervals_inv,
     hole_root]
 end
 
@@ -746,7 +757,7 @@ def set_global_musical_vars
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
   $scale_desc_maybe = describe_scales_maybe($all_scales, $type)
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $hole_root = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info

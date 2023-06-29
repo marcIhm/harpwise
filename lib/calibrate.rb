@@ -45,7 +45,7 @@ EOINTRO
   end
   hole2freq = Hash.new
   $harp_holes.each_with_index do |hole, idx|
-    file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
     synth_sound hole, file, " (#{idx + 1} of #{$harp_holes.length})"
     play_wave file, 0.5
     hole2freq[hole] = analyze_with_aubio(file)
@@ -121,7 +121,7 @@ end
 
 def record_and_review_hole hole
 
-  recorded = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+  recorded = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
   backup = "#{$sample_dir}/backup.wav"
   if File.exist?(recorded)
     puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"

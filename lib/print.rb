@@ -18,15 +18,15 @@ def do_print to_print
                    'progression' => 'take a base and semitone diffs, then spell it out',
                    'prog' => nil}
   
-  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed, %w(progression prog interval inter))
+  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed, %w(progression prog interval inter))
 
   puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
   
-  if holes.length > 0
+  if holes_or_notes.length > 0
 
     puts_underlined 'Holes or notes given as arguments:'
-    print_holes_and_more holes
+    print_holes_and_more holes_or_notes
 
   elsif snames.length > 0
 
@@ -94,9 +94,7 @@ def do_print to_print
 
     elsif extra[0] == 'interval' || extra[0] == 'inter'
       s1, s2 = normalize_interval(args_for_extra)
-      puts
       print_interval s1, s2
-      puts
       
     elsif extra[0] == 'progression' || extra[0] == 'prog'
       err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
@@ -125,28 +123,36 @@ def do_print to_print
 end
 
 
-def print_holes_and_more holes
+def print_holes_and_more holes_or_notes
   puts "\e[2mHoles:\e[0m"
-  print_in_columns holes
+  print_in_columns holes_or_notes
   puts
   return if $opts[:terse]
   if $used_scales[0] != 'all'
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
     puts "\e[2mHoles with scales (#{scales_text}):"
-    print_in_columns(scaleify(holes).map {|ps| ins_dot_mb(ps)})
+    print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
   end
   puts "\e[2mWith notes:\e[0m"
-  print_in_columns(noteify(holes).map {|ps| ins_dot_mb(ps)})
+  print_in_columns(noteify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals between:\e[0m"
-  print_in_columns(intervalify(holes).map {|ps| ins_dot_mb(ps)})
+  print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals to first:\e[0m"
-  print_in_columns(intervalify_to_first(holes).map {|ps| ins_dot_mb(ps)})
+  print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mAs absolute semitones:\e[0m"
-  print_in_columns(holes.map {|h| note2semi($hole2note[h]).to_s})
+  print_in_columns(holes_or_notes.map do |hon|
+                     note2semi(
+                       if $harp_holes.include?(hon)
+                         $hole2note[hon]
+                       else
+                         hon
+                       end
+                     ).to_s
+                   end)
   puts 
 end
 
@@ -164,7 +170,8 @@ def print_interval s1, s2
           iname[0] + " (#{s2 - s1}st)"
         else
           "#{s2 - s1}st"
-        end + ':'
+       end + ':'
+  puts
   print_semis_as_abs("    from: ", s1, "      to: ", s2)
 end
 

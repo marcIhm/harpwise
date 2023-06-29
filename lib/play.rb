@@ -22,17 +22,18 @@ def do_play to_play
                    'progression' => 'take a base and semitone diffs, then play it',
                    'prog' => nil}
   
-  holes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog))
+  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog))
   extra = Set.new(extra).to_a
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
 
   #
   #  Actually play
   #
-  
-  if holes.length > 0
 
-    play_holes holes
+  if holes_or_notes.length > 0
+
+    play_holes_or_notes_simple holes_or_notes
+    puts
 
   elsif snames.length > 0
 
@@ -117,7 +118,7 @@ end
 
 def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
 
-  holes = []
+  holes_or_notes = []
   lnames = []
   snames = []
   extra = []
@@ -128,23 +129,30 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
   extra_seen = false
   to_p.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
 
-    if musical_event?(tp)
-      holes << tp
+    is_note = false
+    begin
+      note2semi(tp, 2..8)
+      is_note = true
+    rescue ArgumentError
+    end
+
+    if extra_allowed.keys.include?(tp)
+      extra << tp
+      extra_seen = true
+    elsif extra_seen && (extra_takes_args & extra).length > 0
+      args_for_extra << tp
+    elsif musical_event?(tp)
+      holes_or_notes << tp
     elsif $harp_holes.include?(tp) && !extra_seen
-      holes << tp
-    elsif $harp_notes.include?(tp) && !extra_seen
-      holes << $note2hole[tp]
+      holes_or_notes << tp
+    elsif is_note
+      holes_or_notes << tp
     elsif all_lnames.include?(tp)
       lnames << tp
     elsif all_snames.include?(tp)
       snames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
-    elsif extra_allowed.keys.include?(tp)
-      extra << tp
-      extra_seen = true
-    elsif extra_seen && (extra_takes_args & extra).length > 0
-      args_for_extra << tp
     else
       other << tp
     end
@@ -154,7 +162,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
   # Check results for consistency
   # 
 
-  sources_count = [holes, lnames, snames, extra].select {|s| s.length > 0}.length
+  sources_count = [holes_or_notes, lnames, snames, extra].select {|s| s.length > 0}.length
 
   if other.length > 0 || sources_count == 0
     puts
@@ -170,7 +178,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
     puts "\n- holes:"
     print_in_columns $harp_holes, 4
     puts "\n- notes:"
-    print_in_columns $harp_notes, 4
+    puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
     puts "\n- scales:"
     print_in_columns all_snames, 4
     puts "\n- licks:"
@@ -187,14 +195,14 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
   end
   
   if sources_count > 1
-    puts "The following types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
-    puts "- holes (maybe converted from given notes): #{holes}" if holes.length > 0
+    puts "The following #{sources_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
+    puts "- holes (maybe converted from given notes): #{holes_or_notes}" if holes_or_notes.length > 0
     puts "- scales: #{snames}" if snames.length > 0
     puts "- licks: #{lnames}" if lnames.length > 0
     err 'See above'
   end
 
-  [holes, lnames, snames, extra, args_for_extra]
+  [holes_or_notes, lnames, snames, extra, args_for_extra]
 
 end
 
@@ -221,14 +229,7 @@ def hole_or_note_or_semi hns, diff_allowed = true
   end
 
   # named interval ?
-  inters = Hash.new
-  $intervals.each do |k,vv|
-    vv.each do |v|
-      next if v[' ']
-      inters[v.downcase] = k
-    end
-  end
-  if inters[hns]
+  if $intervals_inv[hns]
     types << :diff
     values << inters[hns].to_i
   end
@@ -245,8 +246,8 @@ def hole_or_note_or_semi hns, diff_allowed = true
     inters_desc = inters.keys.map {|nm| "#{nm}(=#{inters[nm]}st)"}.join(', ')
     err "Given argument #{hns} is none of these:\n" +
         if diff_allowed
-          "  - numeric interval\e[2m, e.g. 12st or -3\n" +
-            "\e[0m  - named interval\e[2m, i.e. one of: " + inters_desc + "\n"
+          "  - numeric interval\e[2m, e.g. 12st or -3\n\e[0m" +
+            "  - named interval\e[2m, i.e. one of: " + inters_desc + "\n"
         else
           ''
         end +

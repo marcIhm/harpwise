@@ -15,7 +15,7 @@ end
 
 
 def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
-  cmd = "play #{file} trim 0 #{secs} #{$vol_synth.clause}"
+  cmd = "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
   sys(cmd, $sox_play_fail_however) unless $testing
 end
 
@@ -162,7 +162,7 @@ def this_or_equiv template, note
     name = template % eq
     return name if File.exist?(name)
   end
-  return template % note
+  return nil
 end
 
 
@@ -226,11 +226,30 @@ def play_hole_and_handle_kb hole, duration
 end
 
 
+def play_hole_or_note_simple_and_handle_kb note, duration
+  
+  wfile = this_or_equiv("#{$sample_dir}/%s.wav", note)
+  wait_thr = Thread.new do
+    if wfile
+      sys "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
+    else
+      sys "play --norm=#{$vol_synth.to_db} -n #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+    end
+  end  
+  begin
+    sleep 0.1
+    # this sets $ctl_hole, which will be used by caller one level up
+    handle_kb_play_holes_or_notes_simple
+  end while wait_thr.alive?
+  wait_thr.join   # raises any errors from thread
+end
+
+
 def play_semi_and_handle_kb semi
   cmd = if $testing
           "sleep 1"
         else
-          "play -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi} #{$vol_synth.clause}"
+          "play --norm=#{$vol_synth.to_db} -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
@@ -249,7 +268,7 @@ def synth_for_inter semis, files, wfiles, gap, len
   times = [0.3, 0.3 + gap]
   files.zip(semis, times).each do |f, s, t|
     sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
-    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s} #{$vol_synth.clause}") 
+    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s}") 
     sys("sox -q #{$conf[:sox_play_extra]} #{wfiles[0]} #{wfiles[1]} #{f}") 
   end
 end
@@ -258,7 +277,7 @@ end
 def print_pitch_information semi, name = nil
   puts "\e[0m\e[2m#{name}\e[0m" if name
   puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi+7)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
-  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi + 7)[0..-2]
+  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi+7)[0..-2]
   print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts
 end

@@ -23,7 +23,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   # immediate controls triggered while it is playing
   begin
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    cmd = "play -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause} #{$vol_rec.clause}".strip
+    cmd = "play --norm=#{$vol_rec.to_db} -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     return false if $testing
     _, stdout_err, wait_thr  = Open3.popen2e(cmd)
@@ -156,7 +156,8 @@ def play_interactive_pitch embedded = false
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
-      cmd = "play -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7} #{$vol_synth.clause}"
+      # +7 because key of song, rather than key of harp is wanted
+      cmd = "play --norm=#{$vol_synth.to_db} -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
@@ -265,18 +266,19 @@ def play_interactive_interval semi1, semi2
   delta_semi = semi2 - semi1
   tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
   wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
-  cmd = if $testing
-          "sleep 1"
-        else
-          "play --combine mix #{tfiles[0]} #{tfiles[1]}"
-        end
   gap = 0.2
   len = 3
+  cmd_template = if $testing
+                   "sleep 1"
+                 else
+                   "play --norm=%s --combine mix #{tfiles[0]} #{tfiles[1]}"
+                 end
+  cmd = cmd_template % $vol_synth.to_db
   synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
   new_sound = true
   paused = false
   wait_thr = stdout_err = nil
-    
+
   # loop forever until ctrl-c; loop on every key
   loop do
 
@@ -291,6 +293,7 @@ def play_interactive_interval semi1, semi2
         Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
         join_and_check_thread wait_thr, cmd
         if new_sound
+          cmd = cmd_template % $vol_synth.to_db
           synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
           puts
           print_interval semi1, semi2
@@ -463,3 +466,140 @@ def join_and_check_thread wait_thr, cmd
     err 'See above'
   end
 end
+
+
+def play_holes_or_notes_simple holes_or_notes
+
+  puts "\e[2m(SPACE to pause, 'h' for help)\e[0m"
+  puts
+  $ctl_hole[:skip] = false
+  holes_or_notes.each do |hon|
+    print hon + ' '
+    if musical_event?(hon)
+      sleep $opts[:fast]  ?  0.125  :  0.25
+    else
+      duration = ( $opts[:fast] ? 0.5 : 1 )
+      note = $harp.dig(hon, :note) || hon
+      play_hole_or_note_simple_and_handle_kb note, duration
+    end
+        if $ctl_hole[:show_help]
+      display_kb_help 'series of holes or notes', true,  <<~end_of_content
+        SPACE: pause/continue
+        TAB,+: skip to end
+            v: decrease volume     V: increase volume by 3dB
+      end_of_content
+      # continue below help (first round only)
+      print "\n"
+      $ctl_hole[:show_help] = false
+    elsif $ctl_hole[:vol_up]
+      $vol_synth.inc
+      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
+    elsif $ctl_hole[:vol_down]
+      $vol_synth.dec
+      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
+    elsif $ctl_hole[:skip]
+      print "\e[0m\e[32m skip to end\e[0m"
+      sleep 0.3
+      break
+    end
+  end
+  puts
+end
+
+
+def play_holes all_holes, at_line: nil, verbose: false, lick: nil
+
+  if $opts[:partial] && !$ctl_mic[:ignore_partial]
+    holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
+  else
+    holes = all_holes
+  end
+  
+  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $testing
+  
+  $ctl_hole[:skip] = false
+  ltext = if lick
+            "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "
+          else
+            "\e[2m(h for help) ... "
+          end
+  [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+    if ! verbose
+      print hole + ' '
+    else
+      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
+        ltext = "\e[2m(h for help)  "
+        if at_line
+          print "\e[#{at_line}H\e[K"
+          print "\e[#{at_line-1}H\e[K"
+        else
+          print "\e[#{$lines[:hint_or_message]}H\e[K"
+          print "\e[#{$lines[:message2]}H\e[K"
+        end
+      end
+      if idx > 0
+        if !musical_event?(hole) && !musical_event?(holes[idx - 1])
+          isemi, itext, _, _ = describe_inter(hole, holes[idx - 1])
+          ltext += ' ' + ( itext || isemi ).tr(' ','') + ' '
+        else
+          ltext += ' '
+        end
+      end
+      ltext += if musical_event?(hole)
+                 "\e[0m#{hole}\e[2m"
+               elsif $opts[:immediate]
+                 "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"
+               else
+                 "\e[0m#{$harp[hole][:note]}\e[2m"
+               end
+      if $used_scales.length > 1
+        part = '(' +
+               $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
+               ')'
+        ltext += part unless part == '()'
+      end
+
+      if at_line
+        print "\e[#{at_line}H\e[K"
+        print "\e[#{at_line-1}H#{ltext.strip}\e[K"
+      else
+        print "\e[#{$lines[:message2]}H\e[K"
+        print "\e[#{$lines[:hint_or_message]}H#{ltext.strip}\e[K"
+      end
+    end
+    
+    if musical_event?(hole)
+      sleep $opts[:fast]  ?  0.125  :  0.25
+    else
+      # this also handles kb input and sets $ctl_hole
+      play_hole_and_handle_kb(hole, get_musical_duration(hole_next))
+    end
+
+    if $ctl_hole[:show_help]
+      display_kb_help 'series of holes', verbose,  <<~end_of_content
+        SPACE: pause/continue
+        TAB,+: skip to end
+            v: decrease volume     V: increase volume by 3dB
+      end_of_content
+      # continue below help (first round only)
+      print "\n\n"
+      at_line = [at_line + 10, $term_height].min if at_line
+      $ctl_hole[:show_help] = false
+    elsif $ctl_hole[:vol_up]
+      $vol_synth.inc
+      ltext += "\e[0m\e[32m #{$vol_synth.db}\e[0m "
+      $ctl_hole[:vol_up] = false
+    elsif $ctl_hole[:vol_down]
+      $vol_synth.dec
+      ltext += "\e[0m\e[32m #{$vol_synth.db}\e[0m "
+      $ctl_hole[:vol_down] = false
+    elsif $ctl_hole[:skip]
+      print "\e[0m\e[32m skip to end\e[0m"
+      sleep 0.3
+      break
+    end
+  end
+  puts unless verbose
+end
+
+

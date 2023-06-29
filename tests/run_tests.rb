@@ -92,7 +92,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 50
+num_exp = 51
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -526,14 +526,14 @@ do_test 'id-10: quiz' do
   kill_session
 end
 
-do_test 'id-10a: quiz' do
+do_test 'id-10a: displays and comments in quiz' do
   sound 20, 2
   new_session
   tms 'harpwise quiz 2 c all --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
-  8.times do
+  10.times do
     tms 'd'
     tms 'c'
   end
@@ -635,7 +635,8 @@ end
 
 do_test 'id-16: play some holes and notes' do
   new_session
-  tms 'harpwise play a -1 a5 +4'
+  # d1 does not correspond to any hole
+  tms 'harpwise play a -1 a5 +4 d1'
   tms :ENTER
   sleep 2
   expect { screen[4]['-1 +7 +4'] }
@@ -734,7 +735,25 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
-do_test 'id-19a: prepare and get history of licks' do
+do_test 'id-19a: displays and comments in licks ' do
+  sound 20, 2
+  new_session
+  tms 'harpwise licks c'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  # just cycle (more than once) through display and comments without errors
+  10.times do
+    tms 'd'
+    tms 'c'
+  end
+  sleep 1
+  tms 'q'
+  sleep 1
+  expect { screen[-3]['Terminating on user request'] }
+  kill_session
+end
+
+do_test 'id-19b: prepare and get history of licks' do
   trace_file = "#{$dotdir_testing}/trace_richter_modes_licks_and_play.txt"
   FileUtils.rm trace_file if File.exist?(trace_file)
   new_session
@@ -757,7 +776,7 @@ do_test 'id-19a: prepare and get history of licks' do
   kill_session
 end
 
-do_test 'id-19b: start with next to last lick' do
+do_test 'id-19c: start with next to last lick' do
   new_session
   tms 'harpwise licks --start-with 2l'
   tms :ENTER
@@ -1309,7 +1328,15 @@ do_test 'id-51: tools transpose' do
   kill_session
 end
 
-do_test 'id-51a: tools chords' do
+do_test 'id-51a: tools shift' do
+  new_session
+  tms 'harpwise tools shift mt -1 +2'
+  tms :ENTER
+  expect { screen[2]['?'] }
+  kill_session
+end
+
+do_test 'id-51b: tools chords' do
   new_session
   tms 'harpwise tools g chords'
   tms :ENTER
@@ -1619,6 +1646,16 @@ do_test 'id-64: print progression' do
   sleep 2
   expect { screen[12]['a3      d4     gf4      a4'] }
   expect { screen[20]['0       5       9      12'] }
+  kill_session
+end
+
+do_test 'id-64a: print some holes and notes' do
+  new_session
+  # d1 does not correspond to any hole
+  tms 'harpwise print a -1 a5 +4 d1'
+  tms :ENTER
+  sleep 2
+  expect { screen[4]['?'] }
   kill_session
 end
 
