@@ -1614,6 +1614,10 @@ do_test 'id-60a: set reference from sound' do
   sleep 1
   tms 'r'
   expect { screen[12]['Ref:   -6/'] }
+  tms 'D'
+  tms 'inter'
+  tms :ENTER
+  expect { screen[9]['-19st-14st-10st -pF       REF'] }
   kill_session
 end
 
