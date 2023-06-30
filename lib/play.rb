@@ -49,6 +49,7 @@ def do_play to_play
     lnames.each do |lname|
       lick = $licks.find {|l| l[:name] == lname}
       trace_lick(lick)
+      sleep ( $opts[:fast] ? 0.25 : 0.5 )
       play_and_print_lick lick
     end
 

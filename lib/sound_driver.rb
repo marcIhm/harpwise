@@ -240,7 +240,7 @@ def play_hole_or_note_simple_and_handle_kb note, duration
       if wfile
         sys "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
       else
-        sys "play --norm=#{$vol_synth.to_db} -n #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+        sys "play -n --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
       end
     end
   end  

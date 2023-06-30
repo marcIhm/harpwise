@@ -1605,6 +1605,18 @@ do_test 'id-60: listen with auto journal' do
   ENV.delete('EDITOR')
 end
 
+do_test 'id-60a: set reference from sound' do
+  sound 10, 8
+  new_session
+  tms 'harpwise listen a all'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms 'r'
+  expect { screen[12]['Ref:   -6/'] }
+  kill_session
+end
+
 do_test 'id-61: error on double diff spec for play inter' do
   new_session
   tms 'harpwise play interval 2st 2st'

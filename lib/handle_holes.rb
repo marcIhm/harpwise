@@ -19,7 +19,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   # hole_held (the hole beeing held) is the current hole if played
   # sufficiently long; empty otherwise. hole_held_was and
   # hole_held_was_regular are previous values of hold_held, the latter
-  # is guaranteed to by a regular hole
+  # is guaranteed to be a regular hole
   hole_held = hole_held_was = hole_held_was_regular = hole_held_since = nil
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
@@ -98,24 +98,25 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     # distinguish deliberate playing from noise: compute hole_held
-    if regular_hole?(hole) && $journal_all
+    if regular_hole?(hole)
       hole_held_was = hole_held
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
       if Time.now.to_f - hole_since < hole_held_min
+        # we will erase hole_held below, so now its the time to record duation
+        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
         # too short, the current hole can not count as beeing held
-        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if hole_held && journal_length > 0 && !musical_event?($journal[-1])
         hole_held = nil
       else
         hole_held = hole
         # adding  hole_held_min / 2 heuristacally to get audibly more plausible durations 
         hole_held_since = hole_since + hole_held_min / 2
-        if hole_held != hole_held_was && regular_hole?(hole_held)
+        if $journal_all && hole_held != hole_held_was && regular_hole?(hole_held)
           $journal << hole_held
           print_hom "#{journal_length} holes" if $opts[:comment] == :journal
         end
       end
     else
-      $journal << ('(%.1fs)' % (Time.now.to_f - hole_held_since)) if hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
+      $journal << ('(%.1fs)' % (Time.now.to_f - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
       hole_held = nil
     end
 
