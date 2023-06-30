@@ -151,6 +151,21 @@ def set_global_vars_early
 
   $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
   $messages_seen = Hash.new
+
+  $pers_file = "#{$dirs[:data]}/persistent_state.json"
+  begin
+    $pers_data = JSON.parse(File.read($pers_file))
+  rescue Errno::ENOENT, JSON::ParserError
+    $pers_data = Hash.new
+  end
+  $pers_fingerprint = $pers_data.hash
+
+  $splashed = false
+  $mode_switches = 0
+  
+  # different volumes for recordings and pitch
+  $vol_rec = Volume.new('recording', 0)
+  $vol_synth = Volume.new('pitch', -9)
 end
 
 
@@ -287,22 +302,6 @@ def set_global_vars_late
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type
-
-  $pers_file = "#{$dirs[:data]}/persistent_state.json"
-  begin
-    $pers_data = JSON.parse(File.read($pers_file))
-  rescue Errno::ENOENT, JSON::ParserError
-    $pers_data = Hash.new
-  end
-  $pers_fingerprint = $pers_data.hash
-
-  # has splash screen been shown ?
-  $splashed = false
-  $mode_switches = 0
-  
-  # different volumes for recordings and pitch; persistent only in single program run
-  $vol_rec = Volume.new('recording', 0)
-  $vol_synth = Volume.new('pitch', -9)
 end
 
 

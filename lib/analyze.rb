@@ -37,7 +37,7 @@ def note2semi note, range = (0..9)
   raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
   idx = $notes_with_sharps.index(note[0 .. -2]) ||
         $notes_with_flats.index(note[0 .. -2]) or
-    raise ArgumentError.new("non-digit part is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
+    raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
     return 12 * note[-1].to_i + idx - 57
 end
 
@@ -84,7 +84,7 @@ end
 
 
 def describe_inter hon1, hon2
-  return [nil, nil, nil, nil] if !hon1 || !hon2 || ([hon1, hon2] & [:low, :high]).length > 0
+  return [nil, nil, nil, nil] if !hon1 || !hon2 || ([hon1, hon2] & [:low, :high]).length > 0 || musical_event?(hon1) || musical_event?(hon2) 
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
       $harp[hon][:semi]

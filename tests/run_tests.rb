@@ -1703,5 +1703,18 @@ do_test 'id-66: tool search' do
   kill_session
 end
 
+do_test 'id-67: step through a lick with musical events' do
+  new_session
+  tms 'harpwise licks --start-with two --comment holes-notes'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  3.times {
+    tms '1'
+  }
+  sleep 1
+  expect { screen[15]['+1.c4  [ev1]      +1.c4     -1.d4  [ev2]     *+1.c4'] }
+  kill_session
+end
+
 puts "\ndone.\n\n"
 
