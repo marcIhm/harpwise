@@ -164,8 +164,7 @@ def set_global_vars_early
   $mode_switches = 0
   
   # different volumes for recordings and pitch
-  $vol_rec = Volume.new('recording', 0)
-  $vol_synth = Volume.new('pitch', -9)
+  $vol = Volume.new(-6)
 end
 
 

@@ -1454,7 +1454,7 @@ end
 do_test 'id-55: check persistence of volume' do
   pers_file = "#{$dotdir_testing}/persistent_state.json"
   FileUtils.rm pers_file if File.exist?(pers_file)
-  first_vol = -12
+  first_vol = -9
   new_session
   tms 'harpwise play pitch'
   tms :ENTER
@@ -1475,7 +1475,7 @@ do_test 'id-55: check persistence of volume' do
   tms 'q'
   sleep 2
   pers_data = JSON.parse(File.read(pers_file))
-  expect(pers_data) { pers_data['volume']['pitch'] == first_vol - 6 }
+  expect(pers_data) { pers_data['volume'] == first_vol - 6 }
   kill_session
 end
 

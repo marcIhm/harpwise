@@ -28,6 +28,3 @@ particular instrument and will be played back in mode 'quiz'.
 Remark: if you just want to get started with harpwise quickly, you may
 skip this process by starting calibrate with the option '--auto'; any
 later time you catch up.
-
-If you find the volume of the synth sounds from '--auto' too low or high,
-you may try to tweak the option auto_synth_db in your config.ini.

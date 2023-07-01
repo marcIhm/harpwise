@@ -320,44 +320,42 @@ end
 #
 
 class Volume
-  @@vols = nil
-  def initialize(tag, vol)
-    unless @@vols
-      $pers_data['volume'] ||= Hash.new
-      @@vols = $pers_data['volume']
-    end
-    @tag = tag
+  # we keep this class var to make this a singleton
+  @@vol = nil
+  def initialize(vol)
+    fail 'Internal error: Volume object has already been initialized' if @@vol
+    @@vol = $pers_data['volume']
+    # help for nil or for older formats (Hash)
+    @@vol = vol unless [Float, Integer].include?(@@vol.class)
     # keep volume from last run of harpwise, if it is lower than default
-    @@vols[@tag] = vol unless @@vols[@tag] && @@vols[@tag] < vol
+    @@vol = vol unless @@vol < vol
     confine
   end
 
   def confine
-     @@vols[@tag] = 12 if @@vols[@tag] >= 12
-     @@vols[@tag] = -24 if @@vols[@tag] <= -24
+     @@vol = 12 if @@vol >= 12
+     @@vol = -24 if @@vol <= -24
+     $pers_data['volume'] = @@vol
   end
 
   def inc
-    @@vols[@tag] += 3
+    @@vol += 3
     confine
   end
   
   def dec
-    @@vols[@tag] -= 3
+    @@vol -= 3
     confine
   end
 
-  def db
-    return "%+ddB" % @@vols[@tag]
+  def to_s
+    return "%+ddB" % @@vol
   end
 
-  def to_db
-    return @@vols[@tag]
+  def to_i
+    return @@vol
   end
 
-  def clause
-    return ( @@vols[@tag] == 0  ?  ''  :  ('vol %ddb' % @@vols[@tag]) )
-  end
 end
 
 

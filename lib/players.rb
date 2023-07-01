@@ -23,7 +23,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   # immediate controls triggered while it is playing
   begin
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    cmd = "play --norm=#{$vol_rec.to_db} -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
+    cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     return false if $testing
     _, stdout_err, wait_thr  = Open3.popen2e(cmd)
@@ -56,11 +56,11 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
         tempo += 0.1 if tempo < 2.0
         print "\e[0m\e[32mx%.1f \e[0m" % tempo
       elsif $ctl_rec[:vol_up]
-        $vol_rec.inc
-        print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
+        $vol.inc
+        print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:vol_down]
-        $vol_rec.dec
-        print "\e[0m\e[32m#{$vol_rec.db} \e[0m"
+        $vol.dec
+        print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
         display_kb_help 'a recording',first_round,
@@ -157,7 +157,7 @@ def play_interactive_pitch embedded = false
     else
       # sending stdout output to /dev/null makes this immune to killing ?
       # +7 because key of song, rather than key of harp is wanted
-      cmd = "play --norm=#{$vol_synth.to_db} -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7}"
+      cmd = "play --norm=#{$vol.to_i} -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7}"
       if cmd_was != cmd || !wait_thr&.alive?
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
@@ -190,11 +190,11 @@ def play_interactive_pitch embedded = false
           puts "\e[0m\e[2mSPACE to continue ...\e[0m"
         end
       elsif $ctl_pitch[:vol_up]
-        $vol_synth.inc
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.inc
+        puts "\e[0m\e[2m#{$vol}\e[0m"
       elsif $ctl_pitch[:vol_down]
-        $vol_synth.dec
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.dec
+        puts "\e[0m\e[2m#{$vol}\e[0m"
       elsif $ctl_pitch[:semi_up]
         semi += 1 if semi < max_semi
         print_pitch_information(semi, knm)
@@ -273,7 +273,7 @@ def play_interactive_interval semi1, semi2
                  else
                    "play --norm=%s --combine mix #{tfiles[0]} #{tfiles[1]}"
                  end
-  cmd = cmd_template % $vol_synth.to_db
+  cmd = cmd_template % $vol.to_i
   synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
   new_sound = true
   paused = false
@@ -293,7 +293,7 @@ def play_interactive_interval semi1, semi2
         Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
         join_and_check_thread wait_thr, cmd
         if new_sound
-          cmd = cmd_template % $vol_synth.to_db
+          cmd = cmd_template % $vol.to_i
           synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
           puts
           print_interval semi1, semi2
@@ -352,12 +352,12 @@ def play_interactive_interval semi1, semi2
         puts "\e[0m\e[2mReplay\e[0m\n\n"
         new_sound = true        
       elsif $ctl_inter[:vol_up]
-        $vol_synth.inc
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.inc
+        puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:vol_down]
-        $vol_synth.dec
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.dec
+        puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:show_help]
         Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
@@ -434,12 +434,12 @@ def play_interactive_progression prog
         $ctl_semi[:semi_up] = $ctl_semi[:semi_down] = false
       elsif $ctl_semi[:vol_up]
         $ctl_semi[:vol_up] = false
-        $vol_synth.inc
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.inc
+        puts "\e[0m\e[2m#{$vol}\e[0m"
       elsif $ctl_semi[:vol_down]
         $ctl_semi[:vol_down] = false
-        $vol_synth.dec
-        puts "\e[0m\e[2m#{$vol_synth.db}\e[0m"
+        $vol.dec
+        puts "\e[0m\e[2m#{$vol}\e[0m"
       elsif $ctl_semi[:toggle_loop]
         $ctl_semi[:toggle_loop] = false
         loop = !loop
@@ -492,11 +492,11 @@ def play_holes_or_notes_simple holes_or_notes
       print "\n"
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:vol_up]
-      $vol_synth.inc
-      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
+      $vol.inc
+      print "\e[0m\e[2m#{$vol}\e[0m "
     elsif $ctl_hole[:vol_down]
-      $vol_synth.dec
-      print "\e[0m\e[2m#{$vol_synth.db}\e[0m "
+      $vol.dec
+      print "\e[0m\e[2m#{$vol}\e[0m "
     elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"
       sleep 0.3
@@ -586,12 +586,12 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
       at_line = [at_line + 10, $term_height].min if at_line
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:vol_up]
-      $vol_synth.inc
-      ltext += "\e[0m\e[32m #{$vol_synth.db}\e[0m "
+      $vol.inc
+      ltext += "\e[0m\e[32m #{$vol}\e[0m "
       $ctl_hole[:vol_up] = false
     elsif $ctl_hole[:vol_down]
-      $vol_synth.dec
-      ltext += "\e[0m\e[32m #{$vol_synth.db}\e[0m "
+      $vol.dec
+      ltext += "\e[0m\e[32m #{$vol}\e[0m "
       $ctl_hole[:vol_down] = false
     elsif $ctl_hole[:skip]
       print "\e[0m\e[32m skip to end\e[0m"

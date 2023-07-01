@@ -18,7 +18,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   cmd = if $testing
           "sleep #{secs}"
         else    
-          "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
+          "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
         end
   sys(cmd, $sox_play_fail_however) unless $testing
 end
@@ -238,9 +238,9 @@ def play_hole_or_note_simple_and_handle_kb note, duration
       sys "sleep #{duration}"
     else
       if wfile
-        sys "play --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
+        sys "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
       else
-        sys "play -n --norm=#{$vol_synth.to_db} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+        sys "play -n --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
       end
     end
   end  
@@ -257,7 +257,7 @@ def play_semi_and_handle_kb semi
   cmd = if $testing
           "sleep 1"
         else
-          "play --norm=#{$vol_synth.to_db} -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
+          "play --norm=#{$vol.to_i} -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
