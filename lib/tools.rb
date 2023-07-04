@@ -262,7 +262,7 @@ def tool_search to_handle
             puts '  ' + lick[:name].rjust(maxname) + ":  \e[2m" +
                  only_holes[0, idx] + "\e[0m\e[32m" + 
                  only_holes[idx, search.length] + "\e[0m\e[2m" +
-                 ( only_holes[idx + search.length + 1 ...] || '') + "\e[0m" 
+                 ( only_holes[idx + search.length ...] || '') + "\e[0m" 
             count += 1
             break
           end
@@ -270,7 +270,7 @@ def tool_search to_handle
       end
     end
   end
-  puts "\n#{count} matches\n\n"
+  puts "\n#{count} matches.\n\n"
 end
 
 
