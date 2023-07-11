@@ -145,13 +145,9 @@ def tool_shift to_handle
   err "Need at least two additional arguments: a number of semitones at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
 
   inter = to_handle.shift
-  if dsemi = $intervals_inv[inter]
-    # desmi assigned above
-  elsif inter.match(/^[+-]?\d+(st)?$/)
-    dsemi = inter.to_i
-  else
-    err "Given argument is neither a named interval (one of: #{$intervals_inv.keys.join(',')}) nor a number of semitones (e.g. 12 or 12st)"
-  end
+  dsemi = $intervals_inv[inter] ||
+          inter.match(/^[+-]?\d+st?$/)&.to_i ||
+          err("Given argument is neither a named interval (one of: #{$intervals_inv.keys.join(',')}) nor a number of semitones (e.g. 12st)")
 
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)

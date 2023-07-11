@@ -147,7 +147,7 @@ def do_test text
   return unless $within
   puts
   [$testing_dump_template % 'start', $testing_dump_template % 'end', $testing_log_file].each do |file|
-    File.delete(file) if File.exists?(file)
+    File.delete(file) if File.exist?(file)
   end
   $memo_seen << text
   klens = $memo[:durations].keys.map(&:length).sort
@@ -182,7 +182,7 @@ end
 
 
 def ensure_config_ini_testing
-  FileUtils.rm $config_ini_testing if File.exists?($config_ini_testing)
+  FileUtils.rm $config_ini_testing if File.exist?($config_ini_testing)
   FileUtils.cp $config_ini_saved, $config_ini_testing
 end
 
