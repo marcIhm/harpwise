@@ -31,7 +31,10 @@ USAGE BY EXAMPLES
 
   or similar but actually shifting the notes/pitches:
 
-    harpwise tools transpose 12st -1 +2 -3
+    harpwise tools shift 12st -1 +2 -3
+
+  you may then let harpwise play the resulting notes, even if they
+  have no hole on the harp.
 
 
   Print a simple table of keys and positions:

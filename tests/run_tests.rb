@@ -934,7 +934,7 @@ do_test 'id-30: use option --partial' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play --norm=0 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3  trim 0.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play --norm=-6 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3  trim 0.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -944,7 +944,7 @@ do_test 'id-31: use option --partial' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play --norm=0 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3  trim 3.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play --norm=-6 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3  trim 3.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -1180,7 +1180,8 @@ usage_examples.each_with_index do |ex,idx|
     tms ex + " >#{$testing_output_file}"
     tms :ENTER
     sleep 1
-    expect { screen.select {|l| l.downcase['error'] && !l.downcase['let the initial error messages be your guide']}.length == 0 }
+    output = File.read($testing_output_file).lines
+    expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
     kill_session
   end
 end

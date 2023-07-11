@@ -10,7 +10,6 @@ OVERVIEW
 
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
-    - keyword 'all-licks'
     - scales (e.g. 'chord-i')
     - 'list-all-scales': a list of all scales
     - 'list-all-licks': a list of all licks
@@ -40,12 +39,14 @@ USAGE BY EXAMPLES
 
   Just print a list of all known licks:
 
-    harpwise print all-licks
+    harpwise print list-all-licks
 
   Print details for favorite licks:
 
-    harpwise print licks --tags-any favorite
-      
+    harpwise print licks --tags-any favorites
+
+  (if you have tagged some licks as favorites)
+ 
 
   Print an interval
 
