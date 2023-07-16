@@ -309,6 +309,10 @@ def check_installation
   not_found = %w( figlet toilet aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
+  # check, that sox understands mp3
+  %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
+    err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package")
+
   # Check some sample dirs and files
   %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3).each do |file|
     if !File.exist?($dirs[:install] + '/' + file)
