@@ -306,7 +306,7 @@ end
 
 def check_installation
   # check for some required programs
-  not_found = %w( figlet toilet aubiopitch sox gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
+  not_found = %w( figlet toilet aubiopitch sox rec play gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
   # check, that sox understands mp3
