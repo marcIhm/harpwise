@@ -65,7 +65,7 @@ hw_abs = %x(which harpwise).chomp
 # Check
 content = File.read(hw_abs)
 req_line = '/usr/lib/harpwise/harpwise $@'
-fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}" unless content[req_line]
+fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}\n(this is to make su, that the command 'harpwise' invokes the version from this directory)" unless content[req_line]
 system("touch #{hw_abs} 2>/dev/null")
 fail "#{hw_abs} is writeable" if $?.success?
 
@@ -1714,6 +1714,23 @@ do_test 'id-67: step through a lick with musical events' do
   }
   sleep 1
   expect { screen[15]['+1.c4  [ev1]      +1.c4     -1.d4  [ev2]     *+1.c4'] }
+  kill_session
+end
+
+do_test 'id-68: warbling' do
+  warble 60, 0.09, 3, 7
+  new_session
+  tms 'harpwise listen c --time-slice 0.02 --comment warbles --ref +4'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  two= ["▞▀▖",
+        " ▗▘",
+        "▗▘ ▗▖",
+        "▀▀▘▝▘"]
+  two.each_with_index do |slice, idx|
+    expect { screen[17+idx][slice] }
+  end
   kill_session
 end
 

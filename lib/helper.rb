@@ -76,7 +76,7 @@ def err text
   raise ArgumentError.new(text) if $on_error_raise
   sane_term
   puts
-  print "ERROR: #{text}"
+  print "\e[0mERROR: #{text}"
   puts ' !' unless text['!']
   puts_err_context
   puts

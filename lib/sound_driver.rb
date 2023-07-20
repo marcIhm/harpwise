@@ -25,7 +25,7 @@ end
 
 
 def run_aubiopitch file, extra = nil
-  %x(aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1)
+  sys "aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1"
 end
 
 
@@ -186,7 +186,7 @@ def sox_rec_to_fifo fifo
                   # 7680 is the rate of our sox-generated file; we use 10 times as much ?
                   "pv -qL 76800 #{$test_wav}"
                 else
-                  "rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -" +
+                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -" +
                     ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
                 end
   _, _, wait_thread  = Open3.popen2("#{sox_rec_cmd} >#{fifo}")
@@ -198,14 +198,20 @@ end
 
 def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
-  _, aubio_out = Open3.popen2(aubio_cmd)
-  ptouch = false
+  _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
+  touched = false
+  # wait up to 10 secs until we have output or error
+  IO.select([aubio_out, aubio_err], nil, nil, 10) || err("Command did not produce any output or error: #{aubio_cmd}")
+  # any error ?
+  if IO.select([aubio_err], nil, nil, 0)
+    err "Command terminated unexpectedly: #{aubio_cmd}\n" +
+        aubio_err.read.lines.map {|l| " >> #{l}"}.join
+  end
   loop do
-    fields = aubio_out.gets.split.map {|f| f.to_f}
-    $freqs_queue.enq fields[1]
-    if $testing && !ptouch
-      FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started") unless ptouch
-      ptouch = true
+    $freqs_queue.enq aubio_out.gets.split[1].to_f
+    if $testing && !touched
+      FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started")
+      touched = true
     end
   end
 end

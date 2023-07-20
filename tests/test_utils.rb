@@ -116,6 +116,10 @@ def sound secs, semi
     sys "sox -n /tmp/harpwise_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
 end
 
+def warble count, secs, semi1, semi2
+    sys("sox -n /tmp/harpwise_testing.wav " + Array.new(count, "synth #{secs} saw %#{semi1} : synth #{secs} saw %#{semi2}").join(' : '))
+end
+
 def two_sounds secs1, semi1, secs2, semi2
   sys "sox -n /tmp/harpwise_testing1.wav synth #{secs1} sawtooth %#{semi1} gain -n -3"
   sys "sox -n /tmp/harpwise_testing2.wav trim 0.0 0.5"

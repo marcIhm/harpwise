@@ -200,8 +200,8 @@ def parse_arguments
   rescue ArgumentError
     err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is not a floating point number"
   end
-  if opts[:time_slice] < 0.02 || opts[:time_slice] > 2
-    err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is outside of useful range 0.02 ... 2"
+  if opts[:time_slice] < 0.01 || opts[:time_slice] > 1
+    err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is outside of useful range 0.01 ... 1"
   end
 
   opts[:partial] = '0@b' if opts[:partial] == '0'

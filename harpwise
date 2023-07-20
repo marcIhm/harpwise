@@ -114,7 +114,7 @@ at_exit do
 
   if $opts && $opts[:debug] 
     print_debug_info
-    puts "Note: A debug log has been written: #{$debug_log}" if File.exists?($debug_log)
+    puts "Note: A debug log has been written: #{$debug_log}" if File.exist?($debug_log)
   end
     
   if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash

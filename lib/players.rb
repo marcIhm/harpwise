@@ -482,7 +482,7 @@ def play_holes_or_notes_simple holes_or_notes
       note = $harp.dig(hon, :note) || hon
       play_hole_or_note_simple_and_handle_kb note, duration
     end
-        if $ctl_hole[:show_help]
+    if $ctl_hole[:show_help]
       display_kb_help 'series of holes or notes', true,  <<~end_of_content
         SPACE: pause/continue
         TAB,+: skip to end

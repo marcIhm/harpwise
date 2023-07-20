@@ -91,6 +91,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     # transform freq into hole
     hole, lbor, cntr, ubor = describe_freq(freq)
 
+    # detect warbling before we overwrite hole_was_for_since
+    if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
+      now = Time.now.to_f
+      warbles << now
+      warbles.shift while now - warbles[0] > 2
+    end
+
     # give hole in chart the right color: compute hole_since
     if !hole_since || hole != hole_was_for_since
       hole_since = Time.now.to_f 
@@ -118,12 +125,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     else
       $journal << ('(%.1fs)' % (Time.now.to_f - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
       hole_held = nil
-    end
-
-    if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
-      now = Time.now.to_f
-      warbles << now
-      warbles.shift while now - warbles[0] > 2
     end
 
     was_was_good = was_good

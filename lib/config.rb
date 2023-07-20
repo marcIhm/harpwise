@@ -191,8 +191,8 @@ def find_and_check_dirs
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
-  $sox_rec_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary to sox_rec_extra in #{$early_conf[:config_file_user]}"
-  $sox_play_fail_however = "However, you may try to make this work on the commandline and add any additional options necessary to sox_play_extra in #{$early_conf[:config_file_user]}"
+  $sox_rec_fail_however = "However you may try to make things work on the commandline and add any additional options necessary to sox_rec_extra in #{$early_conf[:config_file_user]}"
+  $sox_play_fail_however = "However you may try to make this work on the commandline and add any additional options necessary to sox_play_extra in #{$early_conf[:config_file_user]}"
 
   unless File.exist?($early_conf[:config_file_user])
     File.open($early_conf[:config_file_user], 'w') do |cfu|
