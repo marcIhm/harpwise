@@ -186,7 +186,7 @@ def sox_rec_to_fifo fifo
                   # 7680 is the rate of our sox-generated file; we use 10 times as much ?
                   "pv -qL 76800 #{$test_wav}"
                 else
-                  "stdbuf -o0 rec -xxx -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -"
+                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -"
                 end
   _, rec_out, rec_err, wait_thread  = Open3.popen3("#{sox_rec_cmd} >#{fifo}")
   # any errors within 2 secs of startup ?
