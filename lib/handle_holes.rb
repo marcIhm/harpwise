@@ -95,7 +95,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
       now = Time.now.to_f
       warbles << now
-      warbles.shift while now - warbles[0] > 2
+      warbles.shift while now - warbles[0] > 1
     end
 
     # give hole in chart the right color: compute hole_since

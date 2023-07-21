@@ -186,13 +186,17 @@ def sox_rec_to_fifo fifo
                   # 7680 is the rate of our sox-generated file; we use 10 times as much ?
                   "pv -qL 76800 #{$test_wav}"
                 else
-                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -" +
-                    ( $opts[:debug]  ?  ""  :  " 2>/dev/null" )
+                  "stdbuf -o0 rec -xxx -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -"
                 end
-  _, _, wait_thread  = Open3.popen2("#{sox_rec_cmd} >#{fifo}")
+  _, rec_out, rec_err, wait_thread  = Open3.popen3("#{sox_rec_cmd} >#{fifo}")
+  # any errors within 2 secs of startup ?
+  if IO.select([rec_err], nil, nil, 2)
+    err "Command terminated unexpectedly: #{sox_rec_cmd}\n" +
+        rec_err.read.lines.map {|l| " >> #{l}"}.join
+  end
+  # now just weit indefinitily for any errors, that hopefully never happen
   wait_thread.join
   err "Command '#{sox_rec_cmd}' terminated unexpectedly\n#{$sox_rec_fail_however}"
-  exit 1
 end
 
 
