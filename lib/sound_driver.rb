@@ -184,19 +184,17 @@ end
 def sox_rec_to_fifo fifo
   sox_rec_cmd = if $testing
                   # 7680 is the rate of our sox-generated file; we use 10 times as much ?
-                  "pv -qL 76800 #{$test_wav}"
+                  "pv -qL 76800 #{$test_wav} >#{fifo}"
                 else
-                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav -"
+                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav #{fifo}"
                 end
-  _, rec_out, rec_err, wait_thread  = Open3.popen3("#{sox_rec_cmd} >#{fifo}")
-  # any errors within 2 secs of startup ?
-  if IO.select([rec_err], nil, nil, 2)
+  _, rec_out, rec_err, wait_thread  = Open3.popen3(sox_rec_cmd)
+  # wait for any errors or forever
+  if IO.select([rec_err], nil, nil)
     err "Command terminated unexpectedly: #{sox_rec_cmd}\n" +
-        rec_err.read.lines.map {|l| " >> #{l}"}.join
+        rec_err.read.lines.map {|l| " >> #{l}"}.join +
+        "#{$sox_rec_fail_however}"
   end
-  # now just weit indefinitily for any errors, that hopefully never happen
-  wait_thread.join
-  err "Command '#{sox_rec_cmd}' terminated unexpectedly\n#{$sox_rec_fail_however}"
 end
 
 
@@ -204,7 +202,8 @@ def aubiopitch_to_queue fifo, num_samples
   aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
   touched = false
-  # wait up to 10 secs until we have output or error
+  # wait up to 10 secs until we have output or error; normally this is
+  # much faster
   IO.select([aubio_out, aubio_err], nil, nil, 10) || err("Command did not produce any output or error: #{aubio_cmd}")
   # any error ?
   if IO.select([aubio_err], nil, nil, 0)
@@ -212,7 +211,13 @@ def aubiopitch_to_queue fifo, num_samples
         aubio_err.read.lines.map {|l| " >> #{l}"}.join
   end
   loop do
-    $freqs_queue.enq aubio_out.gets.split[1].to_f
+    line = aubio_out.gets
+    begin
+      $freqs_queue.enq Float(line.split(' ',2)[1])
+    rescue ArgumentError
+      err "Cannot understand below output of this command: #{aubio_cmd}\n" +
+          line.lines.map {|l| " >> #{l}"}.join
+    end
     if $testing && !touched
       FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started")
       touched = true

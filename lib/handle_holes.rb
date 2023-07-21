@@ -341,12 +341,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
       end
       clear_area_comment
-      warble_clause = if $opts[:comment] == :warbles
-                        ", max speed is " + max_warble_clause
-                      else
-                        ''
-                      end
-      print_hom "Comment is #{$opts[:comment].upcase}#{warble_clause}: #{$comment_choices_desc[$opts[:comment]]}"
+      print_hom "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}"
       $ctl_mic[:change_comment] = false
       $ctl_mic[:update_comment] = true
     end
@@ -695,5 +690,5 @@ end
 
 
 def max_warble_clause
-  "#{(1/(2*$opts[:time_slice])).to_i}; tune --time-slice to increase"
+  "#{(1/(2*$opts[:time_slice])).to_i}; to raise it, you may lower --time-slice (currently: #{$opts[:time_slice]})"
 end
