@@ -25,14 +25,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
   first_round = true
-  warbles = Array.new
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_started] = hole_start
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $ctl_response_default = 'SPACE to pause; h for help'
-
-  loop do   # until var done or skip
+  loop do   # over each new frequency from pipeline, until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
     $perfctr[:handle_holes_this_loops] += 1
@@ -62,15 +60,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
 
-    print_hom "Max warble speed is #{max_warble_clause}" if $opts[:comment] == :warbles && !$max_warble_shown
-
     return if lambda_skip && lambda_skip.call()
 
     pipeline_catch_up if handle_kb_mic
     
     behind = $freqs_queue.length * $opts[:time_slice]
     if behind > 0.5
-      now = Time.now.to_f
+      now = tntf
       if now - $mode_start > 10
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
@@ -90,17 +86,17 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     
     # transform freq into hole
     hole, lbor, cntr, ubor = describe_freq(freq)
+    sleep 2 if $testing_what == :lag
 
-    # detect warbling before we overwrite hole_was_for_since
-    if $hole_ref && hole == $hole_ref && hole != hole_was_for_since
-      now = Time.now.to_f
-      warbles << now
-      warbles.shift while now - warbles[0] > 1
+    # detect and update warbling before we overwrite hole_was_for_since
+    if $hole_ref && $opts[:comment] == :warbles
+      add_warble = ( hole == $hole_ref && hole != hole_was_for_since )
+      add_and_del_warbles(tntf, add_warble)
     end
 
     # give hole in chart the right color: compute hole_since
     if !hole_since || hole != hole_was_for_since
-      hole_since = Time.now.to_f 
+      hole_since = tntf
       hole_was_for_since = hole
     end
 
@@ -108,9 +104,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if regular_hole?(hole)
       hole_held_was = hole_held
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
-      if Time.now.to_f - hole_since < hole_held_min
+      if tntf - hole_since < hole_held_min
         # we will erase hole_held below, so now its the time to record duation
-        $journal << ('(%.1f)' % (Time.now.to_f - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
+        $journal << ('(%.1f)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
         # too short, the current hole can not count as beeing held
         hole_held = nil
       else
@@ -123,7 +119,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         end
       end
     else
-      $journal << ('(%.1fs)' % (Time.now.to_f - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
+      $journal << ('(%.1fs)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
       hole_held = nil
     end
 
@@ -131,7 +127,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     good,
     done,
     was_good = if $opts[:screenshot]
-                 [true, $ctl_can[:next] && Time.now.to_f - hole_start > 2, false]
+                 [true, $ctl_can[:next] && tntf - hole_start > 2, false]
                else
                  $perfctr[:lambda_good_done_was_good_call] += 1
                  lambda_good_done_was_good.call(hole, hole_since)
@@ -142,7 +138,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:done] = false
     end
 
-    was_good_since = Time.now.to_f if was_good && was_good != was_was_good
+    was_good_since = tntf if was_good && was_good != was_was_good
 
     #
     # Handle Frequency and gauge
@@ -206,9 +202,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       when :holes_scales, :holes_intervals, :holes_all, :holes_notes
         fit_into_comment lambda_comment.call
       when :journal
-        fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil, nil)
+        fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)
+      when :warbles
+        fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)
       else
-        # lambda may choose a different position
         color,
         text,
         line,
@@ -219,8 +216,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                             inter_text,
                             hole && $harp[hole] && $harp[hole][:note],
                             hole_disp,
-                            freq,
-                            warbles)
+                            freq)
         print "\e[#{line}H#{color}"
         do_figlet_unwrapped text, font, width_template
       end
@@ -232,7 +228,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     
-    if lambda_hint && Time.now.to_f - hints_refreshed_at > 0.5
+    if lambda_hint && tntf - hints_refreshed_at > 0.5
       if $message_shown_at
         # A specific message has been shown, that overrides usual hint
 
@@ -241,7 +237,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       else
         $perfctr[:lambda_hint_call] += 1
         hints = lambda_hint.call(hole)
-        hints_refreshed_at = Time.now.to_f
+        hints_refreshed_at = tntf
         if hints && hints != hints_old
           $perfctr[:lambda_hint_reprint] += 1
           print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
@@ -304,7 +300,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           print_chart
         end
       end
-      warbles = Array.new
+      clear_warbles 
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
@@ -329,6 +325,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
     
     if $ctl_mic[:change_comment]
+      clear_warbles
       if $ctl_mic[:change_comment] == :choose
         choices = $comment_choices[$mode].map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:comment]
@@ -407,7 +404,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_clear].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen handles the returned value
       return {hole_disp: hole_disp}
@@ -418,7 +415,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       exit 0
     end
 
-    if done || ( $message_shown_at && Time.now.to_f - $message_shown_at > 8 )
+    if done || ( $message_shown_at && tntf - $message_shown_at > 8 )
       print "\e[#{$lines[:hint_or_message]}H\e[K"
       $message_shown_at = false
     end
@@ -689,6 +686,41 @@ def show_help
 end
 
 
-def max_warble_clause
-  "#{(1/(2*$opts[:time_slice])).to_i}; to raise it, you may lower --time-slice (currently: #{$opts[:time_slice]})"
+def clear_warbles standby = false
+  $warbles = {short: {times: Array.new,
+                      val: 0.0,
+                      max: 0.0,
+                      window: 1},
+              long: {times: Array.new,
+                     val: 0.0,
+                     max: 0.0,
+                     window: 4},
+              scale: 10,
+              standby: standby}
+end
+
+
+def add_and_del_warbles tntf, add_warble
+
+  [:short, :long].each do |type|
+
+    $warbles[type][:times] << tntf if add_warble
+
+    # remove warbles, that are older than window
+    del_warble = ( $warbles[type][:times].length > 0 &&
+                   tntf - $warbles[type][:times][0] > $warbles[type][:window] )
+    $warbles[type][:times].shift if del_warble
+    
+    if ( add_warble || del_warble )
+      $warbles[type][:val] = if $warbles[type][:times].length > 0
+                               $warbles[type][:times].length / $warbles[type][:window].to_f
+                             else
+                               0
+                             end
+      $warbles[type][:max] = [ $warbles[type][:val],
+                               $warbles[type][:max] ].max
+      # maybe adjust scale
+      $warbles[:scale] += 5 while $warbles[:scale] < $warbles[type][:max]
+    end
+  end
 end

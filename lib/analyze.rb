@@ -32,6 +32,7 @@ def describe_freq freq
   return :high, nil, nil, nil
 end
 
+
 def note2semi note, range = (0..9)
   note = note.downcase 
   raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)

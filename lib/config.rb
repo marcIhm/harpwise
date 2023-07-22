@@ -56,7 +56,7 @@ def set_global_vars_early
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
         :switch_modes,
-        :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress,
+        :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_clear,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
@@ -117,7 +117,6 @@ def set_global_vars_early
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
-  $max_warble_shown = false
 
   $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
   $display_choices_desc = {hole: 'Hole currently played',
@@ -162,6 +161,8 @@ def set_global_vars_early
 
   $splashed = false
   $mode_switches = 0
+  # sets $warbles
+  clear_warbles
   
   # different volumes for recordings and pitch
   $vol = Volume.new(-6)
@@ -722,7 +723,7 @@ end
 
 def read_calibration
   unless File.exist?($freq_file)
-    puts "\nFrequency file #{$freq_file}\n does not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\n(this needs to be done only once for this key)\n\n"
+    puts "\nFrequency file #{$freq_file}\ndoes not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\n(this needs to be done only once for this key)\n\n"
     exit 1
   end
   hole2freq = yaml_parse($freq_file)

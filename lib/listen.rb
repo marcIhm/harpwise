@@ -34,7 +34,7 @@ def do_listen
 
       
       # lambda_comment
-      -> (hole_color, isemi, itext, note, hole_disp, freq, warbles) do
+      -> (hole_color, isemi, itext, note, hole_disp, freq) do
         color = "\e[0m" + hole_color
         witdh_template = nil
         line = $lines[:comment_low]
@@ -82,22 +82,36 @@ def do_listen
                    "set ref"
                  end
                when :warbles
-                 font = 'smblock'
-                 line += 2
                  if $hole_ref
-                   if warbles.length > 2
-                     color = "\e[0m\e[32m"
-                     '%.1f' % ( warbles.length / ( Time.now.to_f - warbles[0] ) )
+                   if $warbles[:short][:max] == 0 && $warbles[:long][:max] == 0 &&
+                      !$warbles[:standby]
+                     return ["\e[K",
+                             "   Please start warbling with ref hole #{$hole_ref};\e[K",
+                             "   clear with BACKSPACE\e[K",
+                             "\e[K",
+                             "   \e[2mMax warble speed is #{(1/(2*$opts[:time_slice])).to_i}; to raise this value, you may\e[K",
+                             "   lower option --time-slice (currently: #{$opts[:time_slice]})\e[K"]
                    else
-                     color = "\e[2m"
-                     '--'
+                     return ["\e[K",
+                             warble_comment(:short),
+                             "\e[K",
+                             warble_comment(:long)].flatten
                    end
                  else
-                   color = "\e[2m"
-                   "set ref"
+                   return ["\e[K",
+                           "\e[K",
+                           "\e[K",
+                           "   Reference hole is not set; please set it first.",
+                           "\e[K",
+                           "\e[K"]
                  end
                when :journal
-                 return ["\e[K", "\e[K", "   No journal yet to show.", "\e[K", "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove", "   \e[2mType 'j' for menu e.g. to switch on journal for all notes beeing played\e[0m"] if $journal.length == 0
+                 return ["\e[K",
+                         "\e[K",
+                         "   No journal yet to show.",
+                         "\e[K",
+                         "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
+                         "   \e[2mType 'j' for menu e.g. to switch on journal for all notes beeing played\e[0m"] if $journal.length == 0
                  if jlen_refresh_comment_cache != $journal.length || $ctl_mic[:update_comment]
                    jlen_refresh_comment_cache = $journal.length
                    comment_cache, to_del = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
@@ -288,6 +302,14 @@ END
                       ( $journal_all ? 'ON' : 'OFF' ))
       ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
+
+    #
+    # Handling controls for warbling
+    #
+    if $ctl_mic[:warbles_clear]
+      $ctl_mic[:warbles_clear] = false
+      clear_warbles(true)
+    end
   end
 end
 
@@ -341,6 +363,23 @@ def journal_write(comment)
                           + tabify_plain($journal) + "\n\n", mode: 'a')
 end
 
+
 def journal_length
   $journal.select {|h| !musical_event?(h)}.length
 end
+
+
+def warble_comment type
+  wb = $warbles[type]
+  sc = $warbles[:scale]
+  [val_with_meter("   #{wb[:window]}s avg", wb[:val], sc),
+   val_with_meter("  max avg", wb[:max], sc)]
+end
+
+
+def val_with_meter head, val, scale
+  meter = "\e[32m" + ( '=' * (($term_width - head.length - 4 - 2 - 2) * val / scale.to_f ).to_i)
+  meter = "\e[2m." if meter[-1] == 'm'
+  "\e[2m" + head + "\e[0m" + ( " %4.1f" % val ) + " " + meter + "\e[0m\e[K"
+end
+    

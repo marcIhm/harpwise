@@ -1161,7 +1161,7 @@ do_test 'id-40: handling a very long lick' do
   tms 'c'
   tms '1'
   sleep 2
-  expect { screen[-5]['-4.b15   -4.b15   -4.b15   -5.b     -5.b'] }
+  expect { screen[18]['-3.1     -3.1     -3.1     -3.1     -4.b15   -4.b15   -4.b15'] }
   kill_session
 end
 
@@ -1718,19 +1718,31 @@ do_test 'id-67: step through a lick with musical events' do
 end
 
 do_test 'id-68: warbling' do
-  warble 60, 0.09, 3, 7
+  warble 100, 0.1, 3, 7
   new_session
   tms 'harpwise listen c --time-slice 0.02 --comment warbles --ref +4'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
-  two= ["▞▀▖",
-        " ▗▘",
-        "▗▘ ▗▖",
-        "▀▀▘▝▘"]
-  two.each_with_index do |slice, idx|
-    expect { screen[17+idx][slice] }
+  {16 => [/^   1s avg  (\d.\d) =====/, (1 .. 3)],
+   17 => [/^  max avg  (\d.\d) =====/, (2 .. 4)],
+   19 => [/^   4s avg  (\d.\d) =====/, (1 .. 3)],
+   20 => [/^  max avg  (\d.\d) =====/, (1 .. 3)]}.each do |lno, rr|
+    regex, range = rr
+    expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
   end
+  kill_session
+end
+
+do_test 'id-69: detect lag' do
+  sound 12, 8
+  new_session
+  tms 'HARPWISE_TESTING=lag harpwise listen a'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 6
+  tms 'q'
+  expect { screen[10]['harpwise has been lagging behind at least once'] }
   kill_session
 end
 

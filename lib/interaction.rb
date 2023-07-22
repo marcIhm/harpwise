@@ -575,6 +575,9 @@ def handle_kb_mic
     elsif $opts[:comment] == :journal
       $ctl_mic[:journal_delete] = true
       text = 'Delete from journal'
+    elsif $opts[:comment] == :warbles
+      $ctl_mic[:warbles_clear] = true
+      text = 'Clear warbles'
     else
       text = get_text_invalid(char)
     end
