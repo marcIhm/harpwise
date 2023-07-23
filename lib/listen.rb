@@ -82,28 +82,19 @@ def do_listen
                    "set ref"
                  end
                when :warbles
-                 if $hole_ref
-                   if $warbles[:short][:max] == 0 && $warbles[:long][:max] == 0 &&
-                      !$warbles[:standby]
-                     return ["\e[K",
-                             "   Please start warbling with ref hole #{$hole_ref};\e[K",
-                             "   clear with BACKSPACE\e[K",
-                             "\e[K",
-                             "   \e[2mMax warble speed is #{(1/(2*$opts[:time_slice])).to_i}; to raise this value, you may\e[K",
-                             "   lower option --time-slice (currently: #{$opts[:time_slice]})\e[K"]
-                   else
-                     return ["\e[K",
-                             warble_comment(:short),
-                             "\e[K",
-                             warble_comment(:long)].flatten
-                   end
+                 if $warbles[:short][:max] == 0 && $warbles[:long][:max] == 0 &&
+                    !$warbles[:standby]
+                   return ["\e[K",
+                           "   Warbling between two holes; start slowly\e[K",
+                           "   to define them; clear with BACKSPACE\e[K",
+                           "\e[K",
+                           "   \e[2mMax warble speed is around #{(1/($opts[:time_slice])).to_i}; to raise this value,\e[K",
+                           "   you may lower option --time-slice (currently: #{$opts[:time_slice]})\e[K"]
                  else
                    return ["\e[K",
+                           warble_comment(:short),
                            "\e[K",
-                           "\e[K",
-                           "   Reference hole is not set; please set it first.",
-                           "\e[K",
-                           "\e[K"]
+                           warble_comment(:long)].flatten
                  end
                when :journal
                  return ["\e[K",

@@ -161,7 +161,7 @@ def set_global_vars_early
 
   $splashed = false
   $mode_switches = 0
-  # sets $warbles
+  # also sets $warbles and clears $warbles_other_hole
   clear_warbles
   
   # different volumes for recordings and pitch

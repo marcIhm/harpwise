@@ -199,7 +199,20 @@ end
 
 
 def aubiopitch_to_queue fifo, num_samples
-  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  #
+  # On the Parameters of aubiopitch:
+  #
+  # Deviding num_samples by 8 for hopsize gives significant better
+  # results for warbling; test id-68 is helpful for benchmarks.
+  #
+  # The current defaults of auiopitch are 2048 for bufsize and 256
+  # for hopsize; so hopsize is 1/8 of busize (for default).
+  #
+  # For harpwise, with sample_rate=48000 and time_slice=0.1 this gives
+  # num_samples=4800 and hopsize=600; the minimum value of time_slice
+  # is 0.05.
+  #
+  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/4} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
   touched = false
   # wait up to 10 secs until we have output or error; normally this is

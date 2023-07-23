@@ -24,6 +24,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
+  warbles_on_second_hole_was = false
+  warbles_announced = false
   first_round = true
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
@@ -89,9 +91,22 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     sleep 2 if $testing_what == :lag
 
     # detect and update warbling before we overwrite hole_was_for_since
-    if $hole_ref && $opts[:comment] == :warbles
-      add_warble = ( hole == $hole_ref && hole != hole_was_for_since )
-      add_and_del_warbles(tntf, add_warble)
+    if $opts[:comment] == :warbles
+      if regular_hole?(hole_held) && ( !$warbles_holes[0] || !$warbles_holes[1] )
+        $warbles_holes[0] = hole_held if !$warbles_holes[0] && hole_held != $warbles_holes[1]
+        $warbles_holes[1] = hole_held if !$warbles_holes[1] && hole_held != $warbles_holes[0]
+        if !warbles_announced && $warbles_holes[0] && $warbles_holes[1]
+          print_hom "Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"
+          warbles_announced = true
+        end
+      end
+      if hole == $warbles_holes[1]
+        warbles_on_second_hole_was = true
+      else
+        add_warble = ( hole == $warbles_holes[0] && warbles_on_second_hole_was)
+        add_and_del_warbles(tntf, add_warble)
+        warbles_on_second_hole_was = false if add_warble
+      end
     end
 
     # give hole in chart the right color: compute hole_since
@@ -406,7 +421,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_clear].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
-      # special case for mode listen handles the returned value
+      # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
     end
 
@@ -697,6 +712,7 @@ def clear_warbles standby = false
                      window: 4},
               scale: 10,
               standby: standby}
+  $warbles_holes = Array.new(2)
 end
 
 

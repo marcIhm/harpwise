@@ -8,6 +8,7 @@ OVERVIEW
     - Interval to previous note
     - Difference to a reference note, e.g. to practice bends
     - Membership of played note in various scales
+    - Speed of warbles
 
   When playing, you may switch on journal to get a simple
   transcription of the holes played.

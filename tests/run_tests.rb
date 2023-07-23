@@ -1718,16 +1718,16 @@ do_test 'id-67: step through a lick with musical events' do
 end
 
 do_test 'id-68: warbling' do
-  warble 100, 0.1, 3, 7
+  warble 400, 0.05, 3, 7
   new_session
-  tms 'harpwise listen c --time-slice 0.02 --comment warbles --ref +4'
+  tms 'harpwise listen c --comment warbles'
   tms :ENTER
   wait_for_start_of_pipeline
-  sleep 1
-  {16 => [/^   1s avg  (\d.\d) =====/, (1 .. 3)],
-   17 => [/^  max avg  (\d.\d) =====/, (2 .. 4)],
-   19 => [/^   4s avg  (\d.\d) =====/, (1 .. 3)],
-   20 => [/^  max avg  (\d.\d) =====/, (1 .. 3)]}.each do |lno, rr|
+  sleep 8
+  {16 => [/^   1s avg +(\d+\.\d) =====/, (4 .. 6)],
+   17 => [/^  max avg +(\d+\.\d) =====/, (4 .. 6)],
+   19 => [/^   4s avg +(\d+\.\d) =====/, (3 .. 5)],
+   20 => [/^  max avg +(\d+\.\d) =====/, (3 .. 5)]}.each do |lno, rr|
     regex, range = rr
     expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
   end
