@@ -117,7 +117,7 @@ def sound secs, semi
 end
 
 def warble count, secs, semi1, semi2
-    sys("sox -n /tmp/harpwise_testing.wav pad 20 synth 2 saw %#{semi1} : synth 2 saw %#{semi2} : " + Array.new(count, "synth #{secs} saw %#{semi1} : synth #{secs} saw %#{semi2}").join(' : '))
+    sys("sox -n /tmp/harpwise_testing.wav " + ( "synth 1 saw %#{semi1} : synth 1 saw %#{semi2} : " * 3 ) + Array.new(count, "synth #{secs} saw %#{semi1} : synth #{secs} saw %#{semi2}").join(' : '))
 end
 
 def two_sounds secs1, semi1, secs2, semi2

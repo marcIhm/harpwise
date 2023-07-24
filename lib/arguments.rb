@@ -51,7 +51,8 @@ def parse_arguments
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
         comment: %w(-c --comment),
-        time_slice: %w(--time-slice)}],
+        time_slice: %w(--time-slice),
+        values_per_slice: %w(--values-per-slice)}],
      [Set[:quiz, :play, :licks], {
         fast: %w(--fast),
         no_fast: %w(--no-fast)}],
@@ -123,6 +124,7 @@ def parse_arguments
     end
   end
   opts[:time_slice] ||= $conf[:time_slice]
+  opts[:values_per_slice] ||= $conf[:values_per_slice]
 
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
@@ -202,6 +204,15 @@ def parse_arguments
   end
   if opts[:time_slice] < 0.05 || opts[:time_slice] > 1
     err "Value '#{opts[:time_slice]}' of option '--time-slice' or config 'time_slice' is outside of useful range 0.05 ... 1"
+  end
+
+  begin
+    opts[:values_per_slice] = Integer(opts[:values_per_slice])
+  rescue ArgumentError
+    err "Value '#{opts[:values_per_slice]}' of option '--values-per-slice' or config 'values_per_slice' is not an integer number"
+  end
+  if opts[:values_per_slice] < 1 || opts[:values_per_slice] > 8
+    err "Value '#{opts[:values_per_slice]}' of option '--values-per-slice' or config 'values_per_slice' is outside of useful range 1 ... 8"
   end
 
   opts[:partial] = '0@b' if opts[:partial] == '0'

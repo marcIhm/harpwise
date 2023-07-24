@@ -1718,7 +1718,7 @@ do_test 'id-67: step through a lick with musical events' do
 end
 
 do_test 'id-68: warbling' do
-  warble 400, 0.05, 3, 7
+  warble 400, 0.2, 3, 7
   new_session
   tms 'harpwise listen c --comment warbles'
   tms :ENTER

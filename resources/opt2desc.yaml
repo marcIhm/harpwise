@@ -169,9 +169,22 @@ time_slice:
     played them; in such cases harpwise will issue a warning message
     now and then.
 
+    See also option --values-per-slice for a similar but inverse
+    effect.
+
     If lagging occurs, you will get a detailed message on program
     termination, that will allow to judge the situation.
   - SECONDS
+
+values_per_slice:
+
+  - |
+    number of frequency values measured by aubiopitch per time slice
+    (see also that option). Raising this value makes harpwise react
+    faster to your playing, e.g. during warbles, but raising it to far
+    might make lag-warnings appear, because harpwise would no longer
+    be able to follow.
+  - COUNT
 
 terse:
 

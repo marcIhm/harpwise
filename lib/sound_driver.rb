@@ -183,8 +183,9 @@ end
 
 def sox_rec_to_fifo fifo
   sox_rec_cmd = if $testing
-                  # 7680 is the rate of our sox-generated file; we use 10 times as much ?
-                  "pv -qL 76800 #{$test_wav} >#{fifo}"
+                  # 19200 = 48000 * 4 (sample rate, 32 Bit, 1 Chanel)
+                  # is the rate of our sox-generated testing-files
+                  "pv -qL 192000 #{$test_wav} >#{fifo}"
                 else
                   "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav #{fifo}"
                 end
@@ -208,11 +209,10 @@ def aubiopitch_to_queue fifo, num_samples
   # The current defaults of auiopitch are 2048 for bufsize and 256
   # for hopsize; so hopsize is 1/8 of busize (for default).
   #
-  # For harpwise, with sample_rate=48000 and time_slice=0.1 this gives
-  # num_samples=4800 and hopsize=600; the minimum value of time_slice
-  # is 0.05.
+  # This function gets passed num_samples, with which is simply
+  # sample_rate * time_slice
   #
-  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/4} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]}  --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
   touched = false
   # wait up to 10 secs until we have output or error; normally this is

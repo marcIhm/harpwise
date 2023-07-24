@@ -257,11 +257,12 @@ def print_lagging_info
 
          If you notice such a lag frequently and and want to reduce it, 
          you may try to increase option '--time-slice' or config
-         'time_slice' from its default of #{$opts[:time_slice]} to something larger.
+         'time_slice' (currently #{$opts[:time_slice]}),
+         or lower --values-per-slice (currently #{$opts[:values_per_slice]})
          (See config file #{$conf[:config_file_user]} 
           and usage info for more details.)
 
-         Note however, that increasing this value too far, may make
+         Note however, that changing these values too far, may make
          harpwise sluggish in sensing holes.
 
          end_of_content

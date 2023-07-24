@@ -25,7 +25,7 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :calibrate => [:auto_synth_db],
-    :general => [:time_slice, :sample_rate, :pref_sig_def, :pitch_detection, :sox_play_extra, :sox_rec_extra]
+    :general => [:time_slice, :values_per_slice, :sample_rate, :pref_sig_def, :pitch_detection, :sox_play_extra, :sox_rec_extra]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
