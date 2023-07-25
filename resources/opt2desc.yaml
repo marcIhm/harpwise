@@ -157,12 +157,12 @@ time_slice:
 
   - |
     time slice (in fractional seconds) for
-    sensing holes played. In each time slice only one hole can be
-    recognized. A typical value is 0.1 (seconds), but if your computer
-    is slow, a larger value (e.g. 0.2) might be more appropriate. If
-    your computer is fast a lower value (e.g. 0.05) might work too,
-    which will allow harpwise to follow your playing faster
-    (e.g. during warbles).
+    sensing holes played. In each time slice values_per_slice (see
+    below) holes can be recognized. A typical value is 0.1 (seconds),
+    but if your computer is slow, a larger value (e.g. 0.2) might be
+    more appropriate. If your computer is fast, a lower value
+    (e.g. 0.05) might work too, which will allow harpwise to follow
+    your playing faster (e.g. during warbles).
 
     However, if you choose a value that is lower than appropriate,
     harpwise will lag behind and show holes only (long) after you
@@ -179,11 +179,11 @@ time_slice:
 values_per_slice:
 
   - |
-    number of frequency values measured by aubiopitch per time slice
-    (see also that option). Raising this value makes harpwise react
-    faster to your playing, e.g. during warbles, but raising it to far
-    might make lag-warnings appear, because harpwise would no longer
-    be able to follow.
+    number of frequency values measured by 
+    aubiopitch per time slice (see also that option). Raising this
+    value makes harpwise react faster to your playing, e.g. during
+    warbles, but raising it to far might make lag-warnings appear,
+    because harpwise would no longer be able to follow.
   - COUNT
 
 terse:

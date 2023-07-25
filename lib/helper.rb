@@ -238,8 +238,8 @@ def print_debug_info
   puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
   puts '$quiz_sample_stats:'
   pp $quiz_sample_stats
-  if $perfctr[:handle_holes_this_loops] > 0
-    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_started] )
+  if $perfctr[:handle_holes_this_first_freq]
+    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_freq] )
   end
   puts '$perfctr:'
   pp $perfctr
@@ -251,20 +251,20 @@ def print_lagging_info
   puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
   puts
   puts <<~end_of_content
-
+\e[K
          harpwise has been lagging behind at least once;
          #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freqs} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freqs))} have been lost.
-
+\e[K
          If you notice such a lag frequently and and want to reduce it, 
          you may try to increase option '--time-slice' or config
          'time_slice' (currently #{$opts[:time_slice]}),
          or lower --values-per-slice (currently #{$opts[:values_per_slice]})
          (See config file #{$conf[:config_file_user]} 
           and usage info for more details.)
-
+\e[K
          Note however, that changing these values too far, may make
          harpwise sluggish in sensing holes.
-
+\e[K
          end_of_content
     puts
 end

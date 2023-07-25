@@ -527,7 +527,7 @@ do_test 'id-10: quiz' do
 end
 
 do_test 'id-10a: displays and comments in quiz' do
-  sound 20, 2
+  sound 40, 2
   new_session
   tms 'harpwise quiz 2 c all --ref +2'
   tms :ENTER
@@ -736,7 +736,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
 end
 
 do_test 'id-19a: displays and comments in licks ' do
-  sound 20, 2
+  sound 40, 2
   new_session
   tms 'harpwise licks c'
   tms :ENTER
@@ -1515,7 +1515,7 @@ help_samples.keys.each_with_index do |cmd, idx|
 end
 
 do_test 'id-58: listen with journal on request, recall later' do
-  sound 16, 2
+  sound 40, 2
   ENV['EDITOR']='vi'
   journal_file = "#{$dotdir_testing}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
@@ -1555,7 +1555,7 @@ end
 
 do_test 'id-59: listen and edit journal' do
   ENV['EDITOR']='vi'
-  sound 16, 2
+  sound 40, 2
   new_session
   # dont know why we need to set it here too (at least ubuntu)
   tms 'EDITOR=vi harpwise listen a all --comment journal'
@@ -1582,7 +1582,7 @@ end
 
 do_test 'id-60: listen with auto journal' do
   ENV['EDITOR']='vi'
-  two_sounds 4, 2, 16, 8
+  two_sounds 10, 2, 16, 8
   new_session
   tms 'EDITOR=vi harpwise listen a all --comment journal'
   tms :ENTER
@@ -1594,9 +1594,8 @@ do_test 'id-60: listen with auto journal' do
   expect { screen[1]['journal-all'] }
   sleep 6
   # allow for varying duration
-  expect { (screen[16]['-4 (1'] ||
-            screen[16]['-4 (2'] ||
-            screen[16]['-4 (3']) &&
+  expect { (screen[16]['-4 (3'] ||
+            screen[16]['-4 (4']) &&
            screen[16]['-6/'] }
   tms 'm'
   sleep 4
@@ -1718,16 +1717,16 @@ do_test 'id-67: step through a lick with musical events' do
 end
 
 do_test 'id-68: warbling' do
-  warble 400, 0.2, 3, 7
+  warble 400, 0.05, 3, 7
   new_session
   tms 'harpwise listen c --comment warbles'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 8
-  {16 => [/^   1s avg +(\d+\.\d) =====/, (4 .. 6)],
-   17 => [/^  max avg +(\d+\.\d) =====/, (4 .. 6)],
-   19 => [/^   4s avg +(\d+\.\d) =====/, (3 .. 5)],
-   20 => [/^  max avg +(\d+\.\d) =====/, (3 .. 5)]}.each do |lno, rr|
+  {16 => [/^   1s avg +(\d+\.\d) =====/, (8 .. 12)],
+   17 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)],
+   19 => [/^   4s avg +(\d+\.\d) =====/, (8 .. 12)],
+   20 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)]}.each do |lno, rr|
     regex, range = rr
     expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
   end
@@ -1742,8 +1741,26 @@ do_test 'id-69: detect lag' do
   wait_for_start_of_pipeline
   sleep 6
   tms 'q'
-  expect { screen[10]['harpwise has been lagging behind at least once'] }
+  expect { screen[9]['harpwise has been lagging behind at least once'] }
   kill_session
+end
+
+[['', (30 .. 50)],
+ [' --time-slice 0.05', (70 .. 90)],
+ [' --values-per-slice 2', (10 .. 30)]].each_with_index do |vals, idx|
+  extra_args, lpsrange = vals
+  do_test "id-70a#{idx}: check loops per sec in #{lpsrange} with #{extra_args == '' ? 'defaults' : extra_args}" do
+    sound 12, 8
+    new_session
+    tms 'harpwise listen a --debug ' + extra_args
+    tms :ENTER
+    wait_for_start_of_pipeline
+    sleep 6
+    tms 'q'
+    expect { ( md = screen[20].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
+             lpsrange.include?(md[1].to_f) }
+    kill_session
+  end
 end
 
 puts "\ndone.\n\n"

@@ -29,6 +29,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   first_round = true
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
+  $perfctr[:handle_holes_this_first_freq] = nil
   $perfctr[:handle_holes_this_started] = hole_start
   $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
   $ctl_response_default = 'SPACE to pause; h for help'
@@ -61,6 +62,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     $total_freqs += 1
+    $perfctr[:handle_holes_this_first_freq] ||= Time.now.to_f
 
     return if lambda_skip && lambda_skip.call()
 
