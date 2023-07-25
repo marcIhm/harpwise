@@ -711,7 +711,7 @@ def clear_warbles standby = false
               long: {times: Array.new,
                      val: 0.0,
                      max: 0.0,
-                     window: 4},
+                     window: 3},
               scale: 10,
               standby: standby}
   $warbles_holes = Array.new(2)

@@ -212,7 +212,7 @@ def aubiopitch_to_queue fifo, num_samples
   # This function gets passed num_samples, with which is simply
   # sample_rate * time_slice
   #
-  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]}  --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
   touched = false
   # wait up to 10 secs until we have output or error; normally this is

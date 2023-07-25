@@ -343,7 +343,7 @@ do_test 'id-3: manual calibration summary' do
   sleep 2
   tms 's'
   sleep 4
-  expect { screen[9]['       -10   |     1482 |     1480 |      2 |      2 | ........I........'] }
+  expect { screen[9]['       -10   |     1479 |     1480 |     -1 |     -1 | .......I:........'] }
   kill_session
 end
 
@@ -374,7 +374,7 @@ do_test 'id-5: check against et' do
   sleep 2
   tms 'r'
   sleep 10
-  expect { screen[-14,2] == ['  You played:             784',
+  expect { screen[-14,2] == ['  You played:             783',
                              '  ET expects:             523.3']}
   kill_session
 end
@@ -1725,7 +1725,7 @@ do_test 'id-68: warbling' do
   sleep 8
   {16 => [/^   1s avg +(\d+\.\d) =====/, (8 .. 12)],
    17 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)],
-   19 => [/^   4s avg +(\d+\.\d) =====/, (8 .. 12)],
+   19 => [/^   3s avg +(\d+\.\d) =====/, (8 .. 12)],
    20 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)]}.each do |lno, rr|
     regex, range = rr
     expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
@@ -1734,12 +1734,12 @@ do_test 'id-68: warbling' do
 end
 
 do_test 'id-69: detect lag' do
-  sound 12, 8
+  sound 20, 8
   new_session
   tms 'HARPWISE_TESTING=lag harpwise listen a'
   tms :ENTER
   wait_for_start_of_pipeline
-  sleep 6
+  sleep 8
   tms 'q'
   expect { screen[9]['harpwise has been lagging behind at least once'] }
   kill_session

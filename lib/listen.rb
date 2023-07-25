@@ -88,8 +88,8 @@ def do_listen
                            "   Warbling between two holes; start slowly to define them;\e[K",
                            "   clear with BACKSPACE\e[K",
                            "\e[K",
-                           "   \e[2mMax warble speed is approx #{($opts[:values_per_slice]/(2*$opts[:time_slice])).to_i}; if necessary you may try to raise this value\e[K",
-                           "   by lowering option --time-slice (#{$opts[:time_slice]}) or raising --values-per-slice (#{$opts[:values_per_slice]})\e[K"]
+                           "   \e[2mMax warble speed in theory is #{($opts[:values_per_slice]/(2*$opts[:time_slice])).to_i}; you may try to raise this by\e[K",
+                           "   lower option --time-slice (#{$opts[:time_slice]}) or raise --values-per-slice (#{$opts[:values_per_slice]})\e[K"]
                  else
                    return ["\e[K",
                            warble_comment(:short),
