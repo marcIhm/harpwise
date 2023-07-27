@@ -12,7 +12,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hole_start = Time.now.to_f
   hole = hole_since = hole_was_for_since = nil
   hole_held_min = 0.1
-
   # Remark: $hole_was_for_disp needs to be persistant over invocations
   # and cannot be set here
 
@@ -24,7 +23,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = Time.now.to_f - 1000.0
   hints = hints_old = nil
-  warbles_on_second_hole_was = false
+  warbles_first_hole_seen = false
   warbles_announced = false
   first_round = true
   $perfctr[:handle_holes_calls] += 1
@@ -102,13 +101,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
           warbles_announced = true
         end
       end
-      if hole == $warbles_holes[1]
-        warbles_on_second_hole_was = true
-      else
-        add_warble = ( hole == $warbles_holes[0] && warbles_on_second_hole_was)
-        add_and_del_warbles(tntf, add_warble)
-        warbles_on_second_hole_was = false if add_warble
+      add_warble = false
+      if hole == $warbles_holes[0]
+        warbles_first_hole_seen = true
+      elsif hole == $warbles_holes[1]
+        add_warble = warbles_first_hole_seen
+        warbles_first_hole_seen = false
       end
+      add_and_del_warbles(tntf, add_warble)
     end
 
     # give hole in chart the right color: compute hole_since
