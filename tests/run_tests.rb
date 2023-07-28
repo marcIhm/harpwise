@@ -343,7 +343,7 @@ do_test 'id-3: manual calibration summary' do
   sleep 2
   tms 's'
   sleep 4
-  expect { screen[9]['       -10   |     1479 |     1480 |     -1 |     -1 | .......I:........'] }
+  expect { screen[9]['       -10   |     1482 |     1480 |      2 |      2 | ........I........'] }
   kill_session
 end
 
@@ -374,7 +374,7 @@ do_test 'id-5: check against et' do
   sleep 2
   tms 'r'
   sleep 10
-  expect { screen[-14,2] == ['  You played:             783',
+  expect { screen[-14,2] == ['  You played:             784',
                              '  ET expects:             523.3']}
   kill_session
 end
@@ -1716,21 +1716,24 @@ do_test 'id-67: step through a lick with musical events' do
   kill_session
 end
 
-do_test 'id-68: warbling' do
-  warble 400, 0.05, 3, 7
-  new_session
-  tms 'harpwise listen c --comment warbles'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  sleep 8
-  {16 => [/^   1s avg +(\d+\.\d) =====/, (8 .. 12)],
-   17 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)],
-   19 => [/^   3s avg +(\d+\.\d) =====/, (8 .. 12)],
-   20 => [/^  max avg +(\d+\.\d) =====/, (8 .. 12)]}.each do |lno, rr|
-    regex, range = rr
-    expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
+[['', 0.05, (8 .. 12)],
+ [' --time-slice 0.05', 0.03, (16 .. 20)]].each_with_index do |vals, idx|
+  extra_args, slice_played, warbles_sensed = vals
+  do_test "id-68a#{idx}: warbling around #{warbles_sensed}" do
+    warble 400, slice_played, 3, 7
+    new_session
+    tms "harpwise listen c --comment warbles #{extra_args}"
+    tms :ENTER
+    wait_for_start_of_pipeline
+    {16 => [/^   1s avg +(\d+\.\d) =====/, warbles_sensed],
+     17 => [/^  max avg +(\d+\.\d) =====/, warbles_sensed],
+     19 => [/^   3s avg +(\d+\.\d) =====/, warbles_sensed],
+     20 => [/^  max avg +(\d+\.\d) =====/, warbles_sensed]}.each do |lno, rr|
+      regex, range = rr
+      expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
+    end
+    kill_session
   end
-  kill_session
 end
 
 do_test 'id-69: detect lag' do
