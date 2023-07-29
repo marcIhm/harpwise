@@ -1329,7 +1329,7 @@ do_test 'id-51: tools transpose' do
   kill_session
 end
 
-do_test 'id-51a: tools shift' do
+do_test 'id-51a: tools shift by interval' do
   new_session
   tms 'harpwise tools shift mt -1 +2'
   tms :ENTER
@@ -1337,7 +1337,15 @@ do_test 'id-51a: tools shift' do
   kill_session
 end
 
-do_test 'id-51b: tools chords' do
+do_test 'id-51b: tools shift by semitones' do
+  new_session
+  tms 'harpwise tools shift +7st -1 +2'
+  tms :ENTER
+  expect { screen[9]['  Holes shifted:   -3//  -3'] }
+  kill_session
+end
+
+do_test 'id-51c: tools chords' do
   new_session
   tms 'harpwise tools g chords'
   tms :ENTER
@@ -1716,19 +1724,20 @@ do_test 'id-67: step through a lick with musical events' do
   kill_session
 end
 
-[['', 0.05, (8 .. 12)],
- [' --time-slice 0.05', 0.03, (16 .. 20)]].each_with_index do |vals, idx|
-  extra_args, slice_played, warbles_sensed = vals
-  do_test "id-68a#{idx}: warbling around #{warbles_sensed}" do
-    warble 400, slice_played, 3, 7
+[['', 0.05, (8 .. 12), (8 .. 12)],
+ [' --time-slice 0.05', 0.03, (16 .. 20), (16 .. 20)]].each_with_index do |vals, idx|
+  extra_args, wplayed, wsensed_short, wsensed_long = vals
+  do_test "id-68a#{idx}: warbling at #{wsensed_short}, #{wsensed_long} with extra args '#{extra_args}'" do
+    warble 400, wplayed, 3, 7
     new_session
     tms "harpwise listen c --comment warbles #{extra_args}"
     tms :ENTER
     wait_for_start_of_pipeline
-    {16 => [/^   1s avg +(\d+\.\d) =====/, warbles_sensed],
-     17 => [/^  max avg +(\d+\.\d) =====/, warbles_sensed],
-     19 => [/^   3s avg +(\d+\.\d) =====/, warbles_sensed],
-     20 => [/^  max avg +(\d+\.\d) =====/, warbles_sensed]}.each do |lno, rr|
+    sleep 8
+    {16 => [/^   1s avg +(\d+\.\d) =====/, wsensed_short],
+     17 => [/^  max avg +(\d+\.\d) =====/, wsensed_short],
+     19 => [/^   3s avg +(\d+\.\d) =====/, wsensed_long],
+     20 => [/^  max avg +(\d+\.\d) =====/, wsensed_long]}.each do |lno, rr|
       regex, range = rr
       expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
     end

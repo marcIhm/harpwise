@@ -146,7 +146,7 @@ def tool_shift to_handle
 
   inter = to_handle.shift
   dsemi = $intervals_inv[inter] ||
-          inter.match(/^[+-]?\d+st?$/)&.to_i ||
+          ((md = inter.match(/^[+-]?\d+st?$/)) && md[0].to_i) ||
           err("Given argument is neither a named interval (one of: #{$intervals_inv.keys.join(',')}) nor a number of semitones (e.g. 12st)")
 
   to_handle.each do |hole|
