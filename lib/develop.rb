@@ -39,7 +39,7 @@ def task_diff
   srcs = [:usage, :man]
 
   # Modifications for usage
-  erase_line_usage_if_part = ['Version 3']
+  erase_line_usage_if_part = [/Version \d/]
 
   # Modifications for man
   seen_man = {:desc => [/^DESCRIPTION$/, false],
@@ -62,7 +62,7 @@ def task_diff
   lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/resources/usage.txt")).
                     result(binding).lines.
                     map do |l|
-                      erase_line_usage_if_part.any? {|e| l.strip[e]} ? nil : l
+                      erase_line_usage_if_part.any? {|rgx| l.match?(rgx)} ? nil : l
                     end.compact.
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
