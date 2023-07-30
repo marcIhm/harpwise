@@ -234,7 +234,8 @@ def do_quiz_or_licks
     min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
 
     holes_with_scales = scaleify(to_play[:all_wanted]) if $opts[:comment] == :holes_scales
-    holes_with_intervals = intervalify(to_play[:all_wanted]) if $opts[:comment] == :holes_intervals
+    holes_with_intervals = intervalify(to_play[:all_wanted], prefer_names: true) if $opts[:comment] == :holes_intervals
+    holes_with_inter_semis = intervalify(to_play[:all_wanted], prefer_names: false) if $opts[:comment] == :holes_inter_semis
     holes_with_notes = noteify(to_play[:all_wanted]) if $opts[:comment] == :holes_notes
 
     $hole_was_for_disp = nil
@@ -304,8 +305,11 @@ def do_quiz_or_licks
                   holes_with_scales ||= scaleify(to_play[:all_wanted])
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, idx)
                 when :holes_intervals
-                  holes_with_intervals ||= intervalify(to_play[:all_wanted])
+                  holes_with_intervals ||= intervalify(to_play[:all_wanted], prefer_names: true)
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, idx)
+                when :holes_inter_semis
+                  holes_with_inter_semis ||= intervalify(to_play[:all_wanted], prefer_names: false)
+                  tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_inter_semis, idx)
                 when :holes_notes
                   holes_with_notes ||= noteify(to_play[:all_wanted])
                   tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_notes, idx)
@@ -387,7 +391,7 @@ def do_quiz_or_licks
 
       if $ctl_mic[:forget]
         clear_area_comment
-        if [:holes_scales, :holes_intervals].include?($opts[:comment])
+        if [:holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
         else
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -396,7 +400,7 @@ def do_quiz_or_licks
         sleep 0.3
       else
         sleep 0.3
-        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals].include?($opts[:comment])
+        clear_area_comment if [:holes_all, :holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
         # update comment
         ctext = if $ctl_mic[:next]
                   'next'
@@ -418,7 +422,7 @@ def do_quiz_or_licks
                 end
         if ctext
           clear_area_comment
-          if [:holes_scales, :holes_intervals].include?($opts[:comment])
+          if [:holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
             puts "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   " + ctext
           else
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -701,14 +705,18 @@ def scaleify holes
 end
 
 
-def intervalify holes_or_notes
+def intervalify holes_or_notes, prefer_names: true
   inters = []
   holes_or_notes.each_with_index do |hon, idx|
     j = idx - 1
     j = 0 if j < 0
     j -= 1 while j > 0 && musical_event?(holes_or_notes[j])
     isemi ,_ ,itext, _ = describe_inter(hon, holes_or_notes[j])
-    idesc = itext || isemi || ''
+    idesc = if prefer_names
+              itext || isemi || ''
+            else
+              isemi || itext || ''
+            end
     idesc.gsub!(' ','')
     inters << idesc
   end
@@ -720,11 +728,15 @@ def intervalify holes_or_notes
 end
 
 
-def intervalify_to_first holes
+def intervalify_to_first holes, prefer_names: true
   inters = []
   holes.each_with_index do |hole,idx|
     isemi ,_ ,itext, _ = describe_inter(hole, holes[0])
-    idesc = itext || isemi || ''
+    idesc = if prefer_names
+              itext || isemi || ''
+            else
+              isemi || itext || ''
+            end
     idesc.gsub!(' ','')
     inters << idesc
   end
@@ -922,8 +934,12 @@ def comment_while_playing holes
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, 0)
   elsif $opts[:comment] == :holes_intervals
     clear_area_comment
-    holes_with_intervals = intervalify(holes)
+    holes_with_intervals = intervalify(holes, prefer_names: true)
     tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, 0)
+  elsif $opts[:comment] == :holes_inter_semis
+    clear_area_comment
+    holes_with_inter_semis = intervalify(holes, prefer_names: false)
+    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_inter_semis, 0)
   elsif $opts[:comment] == :holes_notes
     clear_area_comment
     holes_with_notes = noteify(holes)

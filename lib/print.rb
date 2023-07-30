@@ -125,7 +125,7 @@ end
 
 def print_holes_and_more holes_or_notes
   puts "\e[2mHoles or notes:\e[0m"
-  print_in_columns holes_or_notes
+  print_in_columns holes_or_notes, pad: :tabs
   puts
   return if $opts[:terse]
   if $used_scales[0] != 'all'
@@ -146,6 +146,9 @@ def print_holes_and_more holes_or_notes
   puts "\e[2mWith intervals to first:\e[0m"
   print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
+  puts "\e[2mWith intervals to first as semitones:\e[0m"
+  print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+  puts
   puts "\e[2mAs absolute semitones:\e[0m"
   print_in_columns(holes_or_notes.map do |hon|
                      note2semi(
@@ -155,7 +158,8 @@ def print_holes_and_more holes_or_notes
                          hon
                        end
                      ).to_s
-                   end)
+                   end,
+                   pad: :tabs)
   puts 
 end
 

@@ -177,13 +177,13 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
     end
     puts "\n- musical events in () or []"
     puts "\n- holes:"
-    print_in_columns $harp_holes, 4
+    print_in_columns $harp_holes, indent: 4, pad: :tabs
     puts "\n- notes:"
     puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
     puts "\n- scales:"
-    print_in_columns all_snames, 4
+    print_in_columns all_snames, indent: 4, pad: :tabs
     puts "\n- licks:"
-    print_in_columns all_lnames, 4
+    print_in_columns all_lnames, indent: 4, pad: :tabs
     if extra_allowed.keys.length > 0
       puts "\n- extra:"
       mklen = extra_allowed.keys.map(&:length).max

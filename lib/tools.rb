@@ -288,8 +288,8 @@ def tool_chords to_handle
       semi
     end.sort
     puts "chord-#{names[0]}:"
-    print_in_columns chord_st.map {|st| ( $semi2hole[$min_semi + st] || '--') + ' '}
-    print_in_columns chord_st.map {|st| semi2note($min_semi + st) + ' '}
+    print_in_columns chord_st.map {|st| ( $semi2hole[$min_semi + st] || '--')}, pad: :fill
+    print_in_columns chord_st.map {|st| semi2note($min_semi + st)}, pad: :fill
     puts
     names.shift
   end
@@ -306,8 +306,10 @@ def tool_chart to_handle
   to_print = [:chart_notes]
   to_print << :chart_scales if $used_scales[0] != 'all'
   if $opts[:ref]
-    to_print << :chart_intervals 
-    $charts[:chart_intervals] = get_chart_with_intervals
+    to_print << :chart_intervals
+    to_print << :chart_inter_semis 
+    $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+    $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
   to_print.each do |tp|
     puts tp.to_s + ':'

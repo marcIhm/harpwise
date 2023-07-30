@@ -118,21 +118,23 @@ def set_global_vars_early
 
   $first_round_ever_get_hole = true
 
-  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals]
+  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis]
   $display_choices_desc = {hole: 'Hole currently played',
                            chart_notes: 'Chart with notes',
                            chart_scales: 'Chart with abbreviated scales',
-                           chart_intervals: 'Chart with intervals to ref'}
-  $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_notes])
+                           chart_intervals: 'Chart with intervals to ref as names',
+                           chart_inter_semis: 'Chart with intervals to ref as semitones'}
+  $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_inter_semis, :holes_notes])
   $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal]
   $comment_choices_desc = {holes_some: 'Some of the holes to play; largest letters',
                            holes_all: 'All holes to play; large letters',
                            holes_scales: 'Holes to play with abbreviated scales',
-                           holes_intervals: 'Holes to play with intervals between',
+                           holes_intervals: 'Holes to play with named intervals between',
+                           holes_inter_semis: 'Holes to play with semitone intervals between',
                            holes_notes: 'Holes to play with notes',
                            hole: 'Hole currently played',
                            note: 'Note currently played',
-                           interval: 'Interval to previous hole',
+                           interval: 'Named interval to previous hole',
                            cents_to_ref: 'Cents to ref',
                            gauge_to_ref: 'Instrument for freq diff to ref',
                            warbles: 'Counting warble speed',
@@ -513,10 +515,10 @@ def read_and_set_musical_config
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
   intervals.keys.to_a.each do |st|
-    intervals[-st] = intervals[st].clone
-    next if st == 0
+    next if st == 0 || st - 12 < -12 || st - 12 >= 0
+    intervals[st-12] = intervals[st].clone
     # dont use prepend here
-    intervals[-st].map! {|inter| inter = '-' + inter}
+    intervals[st - 12].map! {|inter| inter = inter + '-O'}
   end
 
   # inverted
@@ -687,13 +689,14 @@ def read_chart
 
   [ {chart_notes: chart_with_notes,
      chart_scales: chart_with_scales,
-     chart_intervals: nil},
+     chart_intervals: nil,
+     chart_inter_semis: nil},
     hole2chart ]
 
 end
 
 
-def get_chart_with_intervals
+def get_chart_with_intervals prefer_names: true
   fail "Internal error: reference hole is not set" unless $hole_ref
   len = $chart_cell_len
   chart_with_holes_raw = $chart_with_holes_raw
@@ -708,7 +711,11 @@ def get_chart_with_intervals
           hole_padded[0,len]
         else
           isemi ,_ ,itext, dsemi = describe_inter(hole, $hole_ref)
-          idesc = itext || isemi
+          idesc = if prefer_names
+                    itext || isemi
+                  else
+                    isemi || itext
+                  end
           idesc.gsub!(' ','')
           idesc = 'REF' if dsemi == 0
           raise ArgumentError.new("hole '#{hole}' maps to interval description '#{idesc}' which is longer than given length '#{len}'") if idesc.length > len
@@ -762,7 +769,10 @@ def set_global_musical_vars
   $scale_desc_maybe = describe_scales_maybe($all_scales, $type)
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
-  $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
+  if $hole_ref
+    $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+    $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+  end
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
   $freq2hole = read_calibration unless [:calibrate, :report, :print, :tools].include?($mode)
   if $opts[:ref] 

@@ -210,18 +210,29 @@ def print_mission text
 end
 
 
-def print_in_columns names, indent = 2
-  line = ' ' * indent
-  names.
-    map {|nm| nm + ' '}.
-    map {|nm| nm + ' ' * (-nm.length % 8)}.each do |nm|
-    if (line + nm).length > $term_width - 4
-      puts line
-      line = ' ' * indent
+def print_in_columns names, indent: 2, pad: :space
+  head = ' ' * indent
+  line = ''
+  padded_names = case pad
+                 when :tabs
+                   names.map {|nm| ' ' + nm + ' '}.
+                     map {|nm| ' ' * (-nm.length % 4) + nm}
+                 when :space
+                   names.map {|nm| '  ' + nm}
+                 when :fill
+                   names_maxlen = names.max_by(&:length).length
+                   names.map {|nm| '  ' + ' ' * (names_maxlen - nm.length) + nm}
+                 else
+                   err "Internal error: #{pad}"
+                 end
+  padded_names.each do |nm|
+    if (head + line + nm).length > $term_width - 4
+      puts head + line.strip
+      line = ''
     end
     line += nm
   end
-  puts line unless line.strip.empty?
+  puts head + line.strip unless line.strip.empty?
 end
 
 

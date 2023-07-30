@@ -675,8 +675,8 @@ end
 
 def print_chart skip_hole = nil
   xoff, yoff, len = $conf[:chart_offset_xyl]
-  if $opts[:display] == :chart_intervals && !$hole_ref
-    print "\e[#{$lines[:display] + yoff + 4}H    Set ref"
+  if ( $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis ) && !$hole_ref
+    print "\e[0m\e[#{$lines[:display] + yoff + 4}H  You need to set a reference hole, before this chart can be displayed."
   else    
     print "\e[#{$lines[:display] + yoff}H"
     $charts[$opts[:display]].each_with_index do |row, ridx|
@@ -715,7 +715,7 @@ end
 
 
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
-  return if $opts[:display] == :chart_intervals && !$hole_ref
+  return if ( $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis ) && !$hole_ref
   # a hole can appear at multiple positions in the chart
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]

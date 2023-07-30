@@ -11,6 +11,12 @@
   - per Fifth
   - pF
   - fifth
+'9':
+  - Sixth
+  - Si
+'10':
+  - flat Seventh
+  - fSe
 '12':
   - Octave
   - Oct
@@ -19,12 +25,3 @@
   - O+T
 '19':
   - O+F
-'24':
-  - 2 Octaves
-  - 2O
-'36':
-  - 3 Octaves
-  - 3O
-'48':
-  - 4 Octaves
-  - 4O

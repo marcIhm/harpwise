@@ -199,11 +199,12 @@ def read_licks graceful = false
 
   # check for duplicate licks
   h2n = Hash.new {|h,k| h[k] = Array.new}
-  all_licks.each do |l|
-    h2n[l[:holes].reject {|h| musical_event?(h)}] << l[:name]
+  all_licks.each do |lick|
+    next if lick[:tags].include?('dup')
+    h2n[lick[:holes].reject {|h| musical_event?(h)}] << lick[:name]
   end
   h2n = h2n.to_a.select {|p| p[1].length > 1}.to_h
-  err "Some hole-sequences appear under more than one name: #{h2n.inspect}" if h2n.length > 0
+  err "Some hole-sequences appear under more than one name: #{h2n.inspect} ! (add tag 'dup' to avoid this error)" if h2n.length > 0
   
   # write derived lick file
   dfile = $derived_dir + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')

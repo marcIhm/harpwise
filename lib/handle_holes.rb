@@ -30,7 +30,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_freq] = nil
   $perfctr[:handle_holes_this_started] = hole_start
-  $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
+  if $hole_ref
+    $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+    $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+  end
   $ctl_response_default = 'SPACE to pause; h for help'
   loop do   # over each new frequency from pipeline, until var done or skip
 
@@ -43,7 +46,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
       ctl_response
       print "\e[#{$lines[:key]}H" + text_for_key
-      print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display]) && ( first_round || $ctl_mic[:redraw] )
+      print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display]) && ( first_round || $ctl_mic[:redraw] )
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         print_hom("Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
@@ -194,7 +197,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                  end
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $opts[:display]
-    when :chart_notes, :chart_scales, :chart_intervals
+    when :chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis
       update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
       $hole_was_for_disp = hole if hole
       update_chart(hole, :active, good, was_good, was_good_since)
@@ -216,7 +219,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
       case $opts[:comment]
-      when :holes_scales, :holes_intervals, :holes_all, :holes_notes
+      when :holes_scales, :holes_intervals, :holes_inter_semis, :holes_all, :holes_notes
         fit_into_comment lambda_comment.call
       when :journal
         fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)
@@ -311,11 +314,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $hole_ref = regular_hole?(hole_held) ? hole_held : nil
       print_hom "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole"
       if $hole_ref 
-        $charts[:chart_intervals] = get_chart_with_intervals
-        if $opts[:display] == :chart_intervals
-          clear_area_display
-          print_chart
-        end
+        $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+        $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+      end
+      if $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis 
+        clear_area_display
+        print_chart
       end
       clear_warbles 
       $ctl_mic[:set_ref] = false
@@ -334,9 +338,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         choices = [ $display_choices, $display_choices ].flatten
         $opts[:display] = choices[choices.index($opts[:display]) + 1]
       end
-      $charts[:chart_intervals] = get_chart_with_intervals if $hole_ref
+      if $hole_ref
+        $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+        $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+      end
       clear_area_display
-      print_chart if [:chart_notes, :chart_scales, :chart_intervals].include?($opts[:display])
+      print_chart if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       print_hom "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}"
       $ctl_mic[:change_display] = false
     end

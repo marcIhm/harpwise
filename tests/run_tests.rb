@@ -1026,22 +1026,32 @@ do_test 'id-35: comment with all holes' do
   kill_session
 end
 
-do_test 'id-36: display as chart with intervals' do
+do_test 'id-36: display as chart with intervals as names' do
   new_session
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['-pF -3st  REF  5st  9st  Oct'] }
-  expect { screen[15]['-2.Ton   -3/.3st    -2.-3st  -3/.3st    -2.-3st   -2.Ton'] }
+  expect { screen[4]['-7st Si-O  REF  5st  Si   Oct'] }
+  expect { screen[15]['-2.Ton   -3/.3st    -2.Si-O  -3/.3st    -2.Si-O   -2.Ton'] }
   kill_session
 end
 
-do_test 'id-36a: display as chart with notes' do
+do_test 'id-36a: display as chart with intervals as semitones' do
+  new_session
+  tms 'harpwise licks blues --display chart-inter-semis --comment holes-inter-semis --ref -2 --start-with wade'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[4]['-7st -3st  REF  5st  9st 12st'] }
+  expect { screen[15]['-2.0st   -3/.3st    -2.-3st  -3/.3st    -2.-3st   -2.0st'] }
+  kill_session
+end
+
+do_test 'id-36b: display as chart with notes' do
   new_session
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pF -3st  REF  5st  9st  Oct'] }
+  expect { screen[4]['-7st Si-O  REF  5st  Si   Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
@@ -1349,7 +1359,7 @@ do_test 'id-51c: tools chords' do
   new_session
   tms 'harpwise tools g chords'
   tms :ENTER
-  expect { screen[10]['g3      b3      d4'] }
+  expect { screen[10]['g3  b3  d4'] }
   kill_session
 end
 
@@ -1363,12 +1373,17 @@ end
 
 do_test 'id-53: print' do
   new_session
-  tms 'harpwise print st-louis'
+  tms "harpwise print st-louis >#{$testing_output_file}"
   tms :ENTER
-  expect { screen[3]['+3.g4          -3/.bf4        -3//.a4           -2.g4'] }
-  expect { screen[7]['+3.-           -3/.-          -3//.-            -2.-'] }
-  expect { screen[15]['+3.5st         -3/.8st        -3//.pF           -2.5st'] }
-  expect { screen[20]['Description: St. Louis Blues'] }
+  sleep 1
+  lines = File.read($testing_output_file).lines
+  expect { lines[13]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
+  expect { lines[17]['-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-'] }
+  expect { lines[21]['-1.Ton      +2.2st      -2.3st     -3/.3st      +3.Si-O'] }
+  expect { lines[25]['-1.Ton    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st'] }
+  expect { lines[29]['-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st'] }
+  expect { lines[33]['-7  -5  -2   1  -2   1   0  -2'] }
+  expect { lines[35]['Description: St. Louis Blues'] }
   kill_session
 end
 
@@ -1377,7 +1392,7 @@ do_test 'id-53a: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[14]['-1.15   +2.4    -2.14  -3/      +3.14  -3/    -3//.5    -2.14'] }
+  expect { screen[14]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1438,7 +1453,7 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[15] == 'With intervals to first:' }
+  expect { screen[12] == 'With intervals to first:' }
   expect { screen[18] == 'As absolute semitones:' }
   kill_session
 end
@@ -1614,7 +1629,7 @@ do_test 'id-60: listen with auto journal' do
 end
 
 do_test 'id-60a: set reference from sound' do
-  sound 10, 8
+  sound 16, 8
   new_session
   tms 'harpwise listen a all'
   tms :ENTER
@@ -1625,7 +1640,7 @@ do_test 'id-60a: set reference from sound' do
   tms 'D'
   tms 'inter'
   tms :ENTER
-  expect { screen[9]['-19st-14st-10st -pF       REF'] }
+  expect { screen[9]['-19st-14st-10st-7st       REF'] }
   kill_session
 end
 
@@ -1679,9 +1694,9 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[8]['-1.b3   a5.-    +4.a4   d2.-'] }
-  expect { screen[11]['-1.-    a5.+7   +4.-    d2.-'] }
-  expect { screen[17]['-1.Ton          a5.22st         +4.10st         d2.-21st'] }
+  expect { screen[5]['-1.b3  a5.-   +4.a4  d2.-'] }
+  expect { screen[8]['-1.-   a5.+7  +4.-   d2.-'] }
+  expect { screen[14]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
   kill_session
 end
 
