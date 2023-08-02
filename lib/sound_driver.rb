@@ -9,7 +9,7 @@ def record_sound secs, file, **opts
     sleep secs
   else
     cmd = "rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed #{file} trim 0 #{secs}"
-    system("#{cmd} #{output_clause}") or err "rec failed: could not run: #{cmd}\n#{$sox_rec_fail_however}"
+    system("#{cmd} #{output_clause}") or err "rec failed: could not run: #{cmd}\n#{$sox_fail_however}"
   end
 end
 
@@ -20,7 +20,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
         else    
           "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
         end
-  sys(cmd, $sox_play_fail_however) unless $testing
+  sys(cmd, $sox_fail_however) unless $testing
 end
 
 
@@ -194,7 +194,7 @@ def sox_rec_to_fifo fifo
   if IO.select([rec_err], nil, nil)
     err "Command terminated unexpectedly: #{sox_rec_cmd}\n" +
         rec_err.read.lines.map {|l| " >> #{l}"}.join +
-        "#{$sox_rec_fail_however}"
+        "#{$sox_fail_however}"
   end
 end
 
@@ -266,9 +266,9 @@ def play_hole_or_note_simple_and_handle_kb note, duration
       sys "sleep #{duration}"
     else
       if wfile
-        sys "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}"
+        sys "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}", $sox_fail_however
       else
-        sys "play -n --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}"
+        sys "play -n --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
       end
     end
   end  

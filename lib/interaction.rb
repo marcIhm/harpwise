@@ -84,7 +84,8 @@ end
 
 def sys cmd, failinfo = nil
   out, stat = Open3.capture2e(cmd)
-  stat.success? || err("Command '#{cmd}' failed with:\n#{out}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
+  cited = out.lines.map {|l| " >> #{l}"}.join
+  stat.success? || err("Command '#{cmd}' failed with:\n#{cited}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
   out
 end
 
@@ -93,10 +94,10 @@ $figlet_cache = Hash.new
 
 def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
-  cmd = "figlet -w 400 -f #{font} -l  -- \"#{text}\""
+  cmd = "figlet -w 400 -f #{font} -d #{$font2dir[font]} -l  -- \"#{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
-    out, _ = Open3.capture2e(cmd)
+    out = sys(cmd)
     $perfctr[:figlet_1] += 1
     lines = out.lines.map {|l| l.rstrip}
 
@@ -154,9 +155,9 @@ $figlet_wrap_cache = Hash.new
 
 def get_figlet_wrapped text, font
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
-  cmd = "figlet -w #{$term_width - 4} -f #{font} -l -- \"#{text}\""
+  cmd = "figlet -w #{$term_width - 4} -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\""
   unless $figlet_wrap_cache[cmd]
-    out, _ = Open3.capture2e(cmd)
+    out = sys(cmd)
     $perfctr[:figlet_2] += 1
     lines = out.lines.map {|l| l.rstrip}
 
@@ -176,7 +177,7 @@ end
 def figlet_char_height font
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
   # high and low chars
-  out, _ = Open3.capture2e("figlet -f #{font} -l Igq")
+  out = sys("figlet -f #{font} -d #{$font2dir[font]} -l Igq")
   $perfctr[:figlet_3] += 1
   out.lines.length
 end
@@ -186,7 +187,7 @@ $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
     fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
-    out, _ = Open3.capture2e("figlet -f #{font} -l -- \"#{text}\"")
+    out = sys("figlet -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\"")
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end

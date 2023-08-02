@@ -77,7 +77,6 @@ def err text
   sane_term
   puts
   print "\e[0mERROR: #{text}"
-  puts ' !' unless text['!']
   puts_err_context
   puts
   puts Thread.current.backtrace if $opts && $opts[:debug]

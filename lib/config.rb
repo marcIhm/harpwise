@@ -25,9 +25,9 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :calibrate => [:auto_synth_db],
-    :general => [:time_slice, :values_per_slice, :sample_rate, :pref_sig_def, :pitch_detection, :sox_play_extra, :sox_rec_extra]
+    :general => [:time_slice, :values_per_slice, :sample_rate, :pref_sig_def, :pitch_detection]
   }
-  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra]
+  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
                               :pref_sig_def => :to_sym,
@@ -194,8 +194,39 @@ def find_and_check_dirs
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
-  $sox_rec_fail_however = "However you may try to make things work on the commandline and add any additional options necessary to sox_rec_extra in #{$early_conf[:config_file_user]}"
-  $sox_play_fail_however = "However you may try to make this work on the commandline and add any additional options necessary to sox_play_extra in #{$early_conf[:config_file_user]}"
+  $sox_fail_however = <<~end_of_however
+
+  sox (or play or rec) did not start correctly; see above.
+  --------------------------------------------------------
+
+  However, you may try to make the command, that failed above, work on
+  the commandline. How this can be done, depends on the exact type of
+  error and cannot be described here. This applies to the commands
+  'sox' as well as its aliases 'play' and 'rec'.
+
+  To give a real-world example:
+
+  sox-Errors which mention "no default audio device" can often be
+  solved by setting (and exporting) the environment variable
+  AUDIODRIVER to a suitable value. sox shows possible values for this
+  when invoked without arguments; search for the line 'AUDIO DEVICE
+  DRIVERS'. Possible values might be 'alsa oss ossdsp pulseaudio'
+  (linux) or 'coreaudio' (macOS); so e.g. on linux setting and
+  exporting AUDIODRIVER=alsa might help.
+
+  If this is not enough to solve the (example) problem, you may also
+  set AUDIODEV to a suitable value, which however must be undertood by
+  your audio driver (as specified by AUDIODRIVER); as a linux-example
+  and for AUDIODRIVER=alsa, the setting AUDIODEV=hw:0 might
+  work. Note, that for macOS most surely different values will be
+  needed.
+
+  Other options necessary for sox might be passed through the
+  environmant variable SOX_OPTS. See the man-page of sox for details;
+  also see the documentation of your respective audio driver,
+  e.g. alsa (for linux) or coreaudio (for macOS).
+
+  end_of_however
 
   unless File.exist?($early_conf[:config_file_user])
     File.open($early_conf[:config_file_user], 'w') do |cfu|
@@ -298,7 +329,7 @@ def set_global_vars_late
   $journal_all = false
   # filenames; $journal_file contains both 'all' and 'some'
   $journal_file, $trace_file = get_files_journal_trace
-
+  
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
@@ -323,17 +354,21 @@ def check_installation
     end
   end
 
-  # check fonts
+  # check fonts and map fonts to figlet/toilet directory
+  $font2dir = Hash.new
   font_dirs = %w(figlet toilet).map {|prog| %x(#{prog} -I2).chomp}
   $early_conf[:figlet_fonts].each do |font|
-    if ! font_dirs.any? do |dir|
-        %w(flf tlf).any? do |ending|
-          File.exist?("#{dir}/#{font}.#{ending}")
+    font_dirs.each do |fdir|
+      %w(flf tlf).each do |ending|
+        if File.exist?("#{fdir}/#{font}.#{ending}")
+          $font2dir[font] = fdir
+          break 2
         end
       end
-      err "Did not find font #{font} in #{font_dirs}"
     end
   end
+  missing_fonts = $early_conf[:figlet_fonts] - $font2dir.keys
+  err "Could not find this fonts (neither in installation of figlet nor toilet): #{missing_fonts}" if missing_fonts.length > 0
 end
 
 
@@ -398,7 +433,7 @@ def read_config_ini file, strict: true
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
-      err err_head + "Key '#{key.to_sym}' is no longer allowed; please remove it" if $conf_meta[:deprecated_keys].include?(key)
+      err err_head + "Key '#{key.to_sym}' is deprecated; please edit the file and remove the key" if $conf_meta[:deprecated_keys].include?(key)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
         allowed += Set.new($conf_meta[:sections_keys][:any_mode]) if ! [:any_mode, :general].include?(section)

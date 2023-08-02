@@ -109,7 +109,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
     end
     wait_thr.join
     if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
-      puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
+      puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_fail_however}"
       puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
       err 'See above'
     end
@@ -461,7 +461,7 @@ end
 def join_and_check_thread wait_thr, cmd
   if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
     wait_thr.join
-    puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_play_fail_however}"
+    puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_fail_however}"
     puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
     err 'See above'
   end
