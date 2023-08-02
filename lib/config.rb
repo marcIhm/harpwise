@@ -338,21 +338,26 @@ def set_global_vars_late
 end
 
 
-def check_installation
+def check_installation verbose: false
   # check for some required programs
-  not_found = %w( figlet toilet aubiopitch sox rec play gnuplot stdbuf ).reject {|x| system("which #{x} >/dev/null 2>&1")}
+  needed_progs = %w( figlet toilet aubiopitch sox rec play gnuplot stdbuf )
+  not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
+  puts "Found needed programs: #{needed_progs}" if verbose
 
   # check, that sox understands mp3
   %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
     err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package")
+  puts "Sox is able to handle mp3" if verbose
 
   # Check some sample dirs and files
-  %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3).each do |file|
+  some_needed_files = %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3)
+  some_needed_files.each do |file|
     if !File.exist?($dirs[:install] + '/' + file)
       err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
     end
   end
+  puts "Some needed files are verified to exist: #{some_needed_files}" if verbose
 
   # check fonts and map fonts to figlet/toilet directory
   $font2dir = Hash.new
@@ -369,6 +374,7 @@ def check_installation
   end
   missing_fonts = $early_conf[:figlet_fonts] - $font2dir.keys
   err "Could not find this fonts (neither in installation of figlet nor toilet): #{missing_fonts}" if missing_fonts.length > 0
+  puts "All needed figlet fonts are verified to exist: #{$early_conf[:figlet_fonts]}" if verbose
 end
 
 

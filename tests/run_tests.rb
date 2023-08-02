@@ -1790,5 +1790,15 @@ end
   end
 end
 
+do_test 'id-71: selftest' do
+  new_session
+  tms 'harpwise develop selftest'
+  tms :ENTER
+  sleep 2
+  expect { $?.success? }
+  kill_session
+end
+
+
 puts "\ndone.\n\n"
 

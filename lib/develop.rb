@@ -4,7 +4,7 @@
 
 def do_develop to_handle
 
-  tasks_allowed = %w(man diff)
+  tasks_allowed = %w(man diff selftest)
   err "Can only do 1 task at a time, but not #{to_handle.length}; too many arguments: #{to_handle}" if to_handle.length > 1
   err "Unknown task #{to_handle[0]}, only these are allowed: #{tasks_allowed}" unless tasks_allowed.include?(to_handle[0])
 
@@ -13,8 +13,9 @@ def do_develop to_handle
     task_man
   when 'diff'
     task_diff
+  when 'selftest'
+    task_selftest
   end
-  
 end
 
 
@@ -122,4 +123,22 @@ def task_diff
       fail "#{srcs} differ; see above"
     end
   end
+end
+
+
+def task_selftest
+  puts
+  puts_underlined "Running selftest"
+  puts_underlined "Check installation"
+  check_installation verbose: true
+  puts
+  puts_underlined "Figlet output"
+  pp get_figlet_wrapped($early_conf[:figlet_fonts][0], $early_conf[:figlet_fonts][0])
+  puts
+  puts_underlined "Generating sound with sox"
+  synth_sound "+1", $helper_wave
+  system("ls -l #{$helper_wave}")
+  puts
+  puts "Result: Selftest Okay."
+  puts
 end
