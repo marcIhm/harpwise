@@ -1201,7 +1201,7 @@ do_test 'id-42: error on journal in play' do
   tms 'harpwise play journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['ERROR'] }
+  expect { screen[17]['ERROR'] }
   kill_session
 end
 
