@@ -8,7 +8,7 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed #{file} trim 0 #{secs}"
+    cmd = "rec -q -r #{$conf[:sample_rate]} -b 16 -e signed #{file} trim 0 #{secs}"
     system("#{cmd} #{output_clause}") or err "rec failed: could not run: #{cmd}\n#{$sox_fail_however}"
   end
 end
@@ -187,7 +187,7 @@ def sox_rec_to_fifo fifo
                   # is the rate of our sox-generated testing-files
                   "pv -qL 192000 #{$test_wav} >#{fifo}"
                 else
-                  "stdbuf -o0 rec -q #{$conf[:sox_rec_extra]} -r #{$conf[:sample_rate]} -b 16 -e signed -t wav #{fifo}"
+                  "stdbuf -o0 rec -q -r #{$conf[:sample_rate]} -b 16 -e signed -t wav #{fifo}"
                 end
   _, rec_out, rec_err, wait_thread  = Open3.popen3(sox_rec_cmd)
   # wait for any errors or forever
@@ -212,7 +212,7 @@ def aubiopitch_to_queue fifo, num_samples
   # This function gets passed num_samples, with which is simply
   # sample_rate * time_slice
   #
-  aubio_cmd = "stdbuf -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
+  aubio_cmd = "stdbuf -i0 -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
   _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
   touched = false
   # wait up to 10 secs until we have output or error; normally this is

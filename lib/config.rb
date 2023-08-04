@@ -215,9 +215,9 @@ def find_and_check_dirs
   exporting AUDIODRIVER=alsa might help.
 
   If this is not enough to solve the (example) problem, you may also
-  set AUDIODEV to a suitable value, which however must be undertood by
-  your audio driver (as specified by AUDIODRIVER); as a linux-example
-  and for AUDIODRIVER=alsa, the setting AUDIODEV=hw:0 might
+  set AUDIODEV to a suitable value, which however must be understood
+  by your audio driver (as specified by AUDIODRIVER); as a linux
+  example and for AUDIODRIVER=alsa, the setting AUDIODEV=hw:0 might
   work. Note, that for macOS most surely different values will be
   needed.
 
