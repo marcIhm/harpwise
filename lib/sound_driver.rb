@@ -203,10 +203,12 @@ def sox_to_aubiopitch_to_queue
     line = ppl_out.gets
     begin
       $freqs_queue.enq Float(line.split(' ',2)[1])
-      # check for jitter
+      # Check for jitter. This will not find any case of jitter, but
+      # if jitter repeats, it will be found eventually.
       iters += 1
       if iters == next_check_after_iters
         iters = 0
+        # check at random intervals
         next_check_after_iters = 100 + rand(100)
         delta_time = Float(line.split(' ',2)[0])
         now = Time.now.to_f

@@ -50,7 +50,8 @@ def parse_arguments
         no_add_holes: %w(--no-add-holes)}],
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
-        comment: %w(-c --comment),
+        comment: %w(-c --comment)}],
+     [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {
         fast: %w(--fast),

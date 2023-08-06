@@ -341,7 +341,7 @@ def set_global_vars_late
   $aubiopitch_sizes = { short: [3072, 512],
                         medium: [5120, 1024],
                         long: [10240, 2048] }
-  $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate]
+  $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 end
 
 
@@ -355,7 +355,7 @@ def check_installation verbose: false
   # check, that sox understands mp3
   %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
     err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package")
-  puts "Sox is able to handle mp3" if verbose
+  puts "Sox is able to handle mp3." if verbose
 
   # Check some sample dirs and files
   some_needed_files = %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3)
