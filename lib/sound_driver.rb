@@ -171,64 +171,55 @@ end
 
 
 def start_collect_freqs
-  num_samples = ($conf[:sample_rate] * $opts[:time_slice]).to_i
-  fifo = "#{$dirs[:tmp]}/fifo_sox_rec_aubiopitch"
-  File.mkfifo(fifo) unless File.exist?(fifo)
-  err "File #{fifo} already exists but is not a fifo, will not overwrite" if File.ftype(fifo) != 'fifo'
-
-  Thread.new {sox_rec_to_fifo(fifo)}
-  Thread.new {aubiopitch_to_queue(fifo, num_samples)}
+  Thread.new {sox_to_aubiopitch_to_queue}
 end
 
 
-def sox_rec_to_fifo fifo
-  sox_rec_cmd = if $testing
-                  # 19200 = 48000 * 4 (sample rate, 32 Bit, 1 Chanel)
-                  # is the rate of our sox-generated testing-files
-                  "pv -qL 192000 #{$test_wav} >#{fifo}"
-                else
-                  "stdbuf -o0 rec -q -r #{$conf[:sample_rate]} -b 16 -e signed -t wav #{fifo}"
-                end
-  _, rec_out, rec_err, wait_thread  = Open3.popen3(sox_rec_cmd)
-  # wait for any errors or forever
-  if IO.select([rec_err], nil, nil)
-    err "Command terminated unexpectedly: #{sox_rec_cmd}\n" +
-        rec_err.read.lines.map {|l| " >> #{l}"}.join +
-        "#{$sox_fail_however}"
-  end
-end
-
-
-def aubiopitch_to_queue fifo, num_samples
-  #
-  # On the Parameters of aubiopitch:
-  #
-  # Deviding num_samples by 8 for hopsize gives significant better
-  # results for warbling; test id-68 is helpful for benchmarks.
-  #
-  # The current defaults of auiopitch are 2048 for bufsize and 256
-  # for hopsize; so hopsize is 1/8 of busize (for default).
-  #
-  # This function gets passed num_samples, with which is simply
-  # sample_rate * time_slice
-  #
-  aubio_cmd = "stdbuf -i0 -o0 aubiopitch --bufsize #{num_samples} --hopsize #{num_samples/$opts[:values_per_slice]} --pitch #{$conf[:pitch_detection]} -i #{fifo}"
-  _, aubio_out, aubio_err = Open3.popen3(aubio_cmd)
+def sox_to_aubiopitch_to_queue
+  
+  cmd = if $testing
+          get_pipeline_cmd(:pv, $test_wav)
+        else
+          get_pipeline_cmd(:sox, '-d')
+        end
+  
+  _, ppl_out, ppl_err = Open3.popen3(cmd)
   touched = false
-  # wait up to 10 secs until we have output or error; normally this is
-  # much faster
-  IO.select([aubio_out, aubio_err], nil, nil, 10) || err("Command did not produce any output or error: #{aubio_cmd}")
-  # any error ?
-  if IO.select([aubio_err], nil, nil, 0)
-    err "Command terminated unexpectedly: #{aubio_cmd}\n" +
-        aubio_err.read.lines.map {|l| " >> #{l}"}.join
+  if !IO.select([ppl_out], nil, nil, 4)
+    err(
+      if IO.select([ppl_err], nil, nil, 2)
+        # we use sysread, because read block (?)
+        "Command terminated unexpectedly: #{cmd}\n" +
+          ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
+      else
+        "Command produced no output and no error message: #{cmd}"
+      end
+    ) 
   end
+  iters = 0
+  last_delta_time_at = last_delta_time = nil
+  next_check_after_iters = 100
   loop do
-    line = aubio_out.gets
+    line = ppl_out.gets
     begin
       $freqs_queue.enq Float(line.split(' ',2)[1])
+      # check for jitter
+      iters += 1
+      if iters == next_check_after_iters
+        iters = 0
+        next_check_after_iters = 100 + rand(100)
+        delta_time = Float(line.split(' ',2)[0])
+        now = Time.now.to_f
+        if last_delta_time
+          jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
+          $max_jitter = [jitter.abs, $max_jitter].max
+        end
+        last_delta_time = delta_time
+        last_delta_time_at = now
+        last_delta_time_at -= 2 if $testing_what == :jitter
+      end
     rescue ArgumentError
-      err "Cannot understand below output of this command: #{aubio_cmd}\n" +
+      err "Cannot understand below output of this command: #{ppl_cmd}\n" +
           line.lines.map {|l| " >> #{l}"}.join
     end
     if $testing && !touched
@@ -238,6 +229,26 @@ def aubiopitch_to_queue fifo, num_samples
   end
 end
 
+
+def get_pipeline_cmd(what, wav_from)
+
+  err "Internal error: #{what}" unless [:pv, :sox].include?(what)
+  # 19200 = 48000 * 4 (sample rate, 32 Bit, 1 Chanel)
+  # is the rate of our sox-generated testing-files
+  templates = [{pv: "pv -qL 192000 %s",
+                sox: "stdbuf -o0 sox %s -q -r #{$conf[:sample_rate]} -t wav -"},
+               "stdbuf -i0 -o0 aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
+
+  # The values below (first two pairs only) are dictated by a restriction
+  # of aubiopitch on macos for fft
+  args = [wav_from]
+  args << $aubiopitch_sizes[$opts[:time_slice]]
+  args.flatten!
+  args << $conf[:pitch_detection]
+  template = templates[0][what] + ' | ' + templates[1]
+  $freq_pipeline_cmd = template % args
+end
+  
 
 def pipeline_catch_up
   $freqs_queue.clear

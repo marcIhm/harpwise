@@ -127,17 +127,55 @@ end
 
 
 def task_selftest
+
   puts
   puts_underlined "Running selftest"
+
   puts_underlined "Check installation"
   check_installation verbose: true
+
   puts
   puts_underlined "Figlet output"
-  pp get_figlet_wrapped($early_conf[:figlet_fonts][0], $early_conf[:figlet_fonts][0])
+  expected_figlet_outputs = [ '▀▀ ▘▝ ▘▀▀  ▘▝▀ ▝▀ ▘ ▘',
+                              '  ████▄██▄   ▄████▄   ██▄████▄   ▄████▄      ██           ██',
+                              '  █ █ █  █▀ ▀█  █▀  █  █▀ ▀█  █▄  ▄█',
+                              Array.new(10,'???') ].flatten
+  $early_conf[:figlet_fonts].each do |font|
+    output = get_figlet_wrapped(font, font)
+    expected = expected_figlet_outputs.shift
+    found = output[3]
+    pp output
+    found[expected] or err("Unexpected figlet output for font #{font}: #{found} does not contain #{expected}")
+  end
+
   puts
   puts_underlined "Generating sound with sox"
   synth_sound "+1", $helper_wave
   system("ls -l #{$helper_wave}")
+
+  puts
+  puts_underlined "Frequency pipeline"
+  puts "Note: Some errors in first lines are expected (when tried codecs give up)."
+  puts
+  cmd = get_pipeline_cmd(:sox, "#{$dirs[:install]}/recordings/wade.mp3")
+  _, stdout_err, wait_thr  = Open3.popen2e(cmd)
+  output = Array.new
+  loop do
+    line = stdout_err.gets
+    output << line
+    if output.length == 10
+      begin
+        line or raise ArgumentError
+        line.split(' ',2).each {|f| Float(f)}
+      rescue ArgumentError
+        err "Unexpected output of: #{cmd}\n:#{output.compact}"
+      end
+      Process.kill('KILL',wait_thr.pid)
+      break
+    end
+  end
+  pp output
+
   puts
   puts "Result: Selftest Okay."
   puts

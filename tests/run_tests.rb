@@ -1763,12 +1763,26 @@ end
 do_test 'id-69: detect lag' do
   sound 20, 8
   new_session
-  tms 'HARPWISE_TESTING=lag harpwise listen a'
+  ENV['HARPWISE_TESTING']='lag'
+  tms 'harpwise listen a'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 8
   tms 'q'
   expect { screen[9]['harpwise has been lagging behind at least once'] }
+  kill_session
+end
+
+do_test 'id-69b: detect jitter' do
+  sound 20, 8
+  new_session
+  ENV['HARPWISE_TESTING']='jitter'
+  tms 'harpwise listen a'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 8
+  tms 'q'
+  expect { screen[9]['Jitter detected'] }
   kill_session
 end
 
@@ -1791,6 +1805,7 @@ end
 end
 
 do_test 'id-71: selftest' do
+  ENV.delete('HARPWISE_TESTING')
   new_session
   tms 'harpwise develop selftest'
   tms :ENTER

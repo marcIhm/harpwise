@@ -9,6 +9,8 @@ def set_global_vars_early
   $word_re ='[[:alnum:]][-_:/\.[:alnum:]]*'
   $lagging_freqs_message_ts = 0
   $lagging_freqs_lost = 0
+  $freq_pipeline_cmd = ''
+  $max_jitter = -1.0
   $total_freqs = 0
 
   # two more entries will be set in find_and_check_dirs
@@ -25,7 +27,7 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any],
     :calibrate => [:auto_synth_db],
-    :general => [:time_slice, :values_per_slice, :sample_rate, :pref_sig_def, :pitch_detection]
+    :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
@@ -335,6 +337,11 @@ def set_global_vars_late
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type
+
+  $aubiopitch_sizes = { short: [3072, 512],
+                        medium: [5120, 1024],
+                        long: [10240, 2048] }
+  $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate]
 end
 
 
@@ -357,7 +364,7 @@ def check_installation verbose: false
       err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
     end
   end
-  puts "Some needed files are verified to exist: #{some_needed_files}" if verbose
+  puts "Some needed files are verified to exist:\n#{some_needed_files}" if verbose
 
   # check fonts and map fonts to figlet/toilet directory
   $font2dir = Hash.new

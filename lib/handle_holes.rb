@@ -70,7 +70,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     pipeline_catch_up if handle_kb_mic
     
-    behind = $freqs_queue.length * $opts[:time_slice]
+    behind = $freqs_queue.length * $time_slice_secs
     if behind > 0.5
       now = tntf
       if now - $mode_start > 10

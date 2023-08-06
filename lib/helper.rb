@@ -257,26 +257,61 @@ def print_debug_info
   puts $freqs_queue.length    
 end
 
-def print_lagging_info
-  puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
-  puts
-  puts <<~end_of_content
-\e[K
+
+def print_afterthought
+
+  afterthought = ''
+
+  if $lagging_freqs_lost > 0 && $total_freqs > 0
+    afterthought += <<~end_of_content
+
+
+         Lagging detected !
+         ------------------
+
          harpwise has been lagging behind at least once;
          #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freqs} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freqs))} have been lost.
-\e[K
-         If you notice such a lag frequently and and want to reduce it, 
-         you may try to increase option '--time-slice' or config
-         'time_slice' (currently #{$opts[:time_slice]}),
-         or lower --values-per-slice (currently #{$opts[:values_per_slice]})
-         (See config file #{$conf[:config_file_user]} 
-          and usage info for more details.)
-\e[K
+
+         If you notice such a lag frequently and and want to reduce it, you
+         may try to set option '--time-slice' or config 'time_slice'
+         (currently '#{$opts[:time_slice]}') to 'medium' or 'long' (See config
+         file #{$conf[:config_file_user]} and usage info for more details.)
+
          Note however, that changing these values too far, may make
          harpwise sluggish in sensing holes.
-\e[K
+
+
          end_of_content
-    puts
+  end
+
+  if $max_jitter > 0.2
+    afterthought += <<~end_of_content
+
+
+         Jitter detected !
+         -----------------
+
+         The frequency pipeline
+
+         #{$freq_pipeline_cmd}
+
+         had a maximum jitter of #{$max_jitter}, which means
+         that your playing and its display by harpwise were out
+         of sync at least once.
+
+         This is out of control of harpwise and might be caused
+         by external factors, like system-load or simply by
+         hibernation of your computer.
+
+
+         end_of_content
+
+  end
+
+  if afterthought.length > 0
+    puts "\e[#{$lines[:message2]}H\e[0m\n" 
+    afterthought.lines.each {|line| puts line.chomp + "\e[K\n"}
+  end
 end
 
 
