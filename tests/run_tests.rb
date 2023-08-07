@@ -127,7 +127,6 @@ do_test 'id-1: start without dot_harpwise' do
   new_session
   tms 'harpwise'
   tms :ENTER
-  pp screen
   expect($dotdir_testing) {File.directory?($dotdir_testing)}
   expect($config_ini_testing) {File.exist?($config_ini_testing)}
   kill_session
