@@ -322,7 +322,7 @@ end
 usage_types.keys.each_with_index do |mode, idx|
   do_test "id-1h#{idx}: usage screen mode #{mode}" do
     new_session
-    tms "harpwise #{usage_types[mode][1]} | head -20"
+    tms "harpwise #{usage_types[mode][1]} 2>/dev/null | head -20"
     tms :ENTER
     sleep 2
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
