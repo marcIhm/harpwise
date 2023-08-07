@@ -72,8 +72,8 @@ if system("which harpwise >/dev/null 2 >&1")
   system("touch #{hw_abs} 2>/dev/null")
   fail "#{hw_abs} is writeable" if $?.success?
 else
-  puts "Adding ~/harpwise to path: #{ENV['PATH']}"
   ENV['PATH'] = "#{$installdir}/harpwise:" + ENV['PATH']
+  puts "Adding ~/harpwise to path: #{ENV['PATH']}"
 end
 
 #
