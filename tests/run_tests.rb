@@ -37,10 +37,9 @@ $installdir = "#{Dir.home}/harpwise"
 
 # locations for our test-data; these dirs will be created as full
 $dotdir_testing = "#{Dir.home}/dot_harpwise"
+FileUtils.rm_r($dotdir_testing) if File.directory?($dotdir_testing)
 $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
-# remove these to get clean even if we do not rebuild completely
-Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 # This will make harpwise look into $dotdir_testing
 ENV['HARPWISE_TESTING']='1'
 
