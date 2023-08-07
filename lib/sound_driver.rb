@@ -183,9 +183,9 @@ def sox_to_aubiopitch_to_queue
           get_pipeline_cmd(:sox, '-d')
         end
   
-  _, ppl_out, ppl_err = Open3.popen3(cmd)
+  _, ppl_out, ppl_err, wait_thr = Open3.popen3(cmd)
   touched = false
-  if !IO.select([ppl_out], nil, nil, 4)
+  if !IO.select([ppl_out], nil, nil, 4) || !wait_thr.alive?
     err(
       if IO.select([ppl_err], nil, nil, 2)
         # we use sysread, because read block (?)
@@ -196,34 +196,43 @@ def sox_to_aubiopitch_to_queue
       end
     ) 
   end
+  line = nil
   iters = 0
   last_delta_time_at = last_delta_time = nil
   next_check_after_iters = 100
   loop do
-    line = ppl_out.gets
-    begin
-      $freqs_queue.enq Float(line.split(' ',2)[1])
-      # Check for jitter. This will not find any case of jitter, but
-      # if jitter repeats, it will be found eventually.
-      iters += 1
-      if iters == next_check_after_iters
-        iters = 0
-        # check at random intervals
-        next_check_after_iters = 100 + rand(100)
-        delta_time = Float(line.split(' ',2)[0])
-        now = Time.now.to_f
-        if last_delta_time
-          jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
-          $max_jitter = [jitter.abs, $max_jitter].max
+    Timeout.timeout(5) do
+      # reduce (suspected) overhead ofr setting up timeout
+      100.times do
+        line = ppl_out.gets
+        $freqs_queue.enq Float(line.split(' ',2)[1])
+        # Check for jitter. This will not find any case of jitter, but
+        # if jitter repeats, it will be found eventually.
+        iters += 1
+        if iters == next_check_after_iters
+          begin
+            iters = 0
+            # next check at random interval
+            next_check_after_iters = 20 + rand(20)
+            delta_time = Float(line.split(' ',2)[0])
+            now = Time.now.to_f
+            if last_delta_time
+              jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
+              $max_jitter = [jitter.abs, $max_jitter].max
+            end
+            last_delta_time = delta_time
+            last_delta_time_at = now
+            last_delta_time_at -= 2 if $testing_what == :jitter
+          rescue ArgumentError
+            err "Cannot understand below output of this command: #{ppl_cmd}\n" +
+                line.lines.map {|l| " >> #{l}"}.join
+          end
         end
-        last_delta_time = delta_time
-        last_delta_time_at = now
-        last_delta_time_at -= 2 if $testing_what == :jitter
       end
-    rescue ArgumentError
-      err "Cannot understand below output of this command: #{ppl_cmd}\n" +
-          line.lines.map {|l| " >> #{l}"}.join
-    end
+    rescue Timeout::Error
+      err "No more output from: #{cmd}"
+    end     
+    
     if $testing && !touched
       FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started")
       touched = true

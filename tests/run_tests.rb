@@ -1286,7 +1286,7 @@ end
 
 do_test 'id-46a: verify persistent tag "starred"' do
   new_session
-  tms 'harpwise report licks | head -20'
+  tms 'harpwise report licks 2>/dev/null | head -20'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[-13]['wade ..... favorites,samples,starred'] }
