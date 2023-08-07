@@ -36,10 +36,12 @@ $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 
 # locations for our test-data; these dirs will be created as full
+# will be removed in test id-1
 $dotdir_testing = "#{Dir.home}/dot_harpwise"
-FileUtils.rm_r($dotdir_testing) if File.directory?($dotdir_testing)
 $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
+# remove these to get clean even if we do not rebuild completely
+Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 # This will make harpwise look into $dotdir_testing
 ENV['HARPWISE_TESTING']='1'
 
@@ -125,6 +127,7 @@ do_test 'id-1: start without dot_harpwise' do
   new_session
   tms 'harpwise'
   tms :ENTER
+  pp screen
   expect($dotdir_testing) {File.directory?($dotdir_testing)}
   expect($config_ini_testing) {File.exist?($config_ini_testing)}
   kill_session
