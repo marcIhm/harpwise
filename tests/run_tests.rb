@@ -72,9 +72,16 @@ if system("which harpwise >/dev/null 2 >&1")
   system("touch #{hw_abs} 2>/dev/null")
   fail "#{hw_abs} is writeable" if $?.success?
 else
-  ENV['PATH'] = "#{$installdir}/harpwise:" + ENV['PATH']
+  ENV['PATH'] = "#{$installdir}:" + ENV['PATH']
   puts "Adding ~/harpwise to path: #{ENV['PATH']}"
 end
+
+#
+# Check for needed progs
+#
+needed_progs = %w( tmux pv )
+not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}
+fail "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
 
 #
 # Collect usage examples and later check, that none of them produces an error
