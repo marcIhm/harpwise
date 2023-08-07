@@ -56,7 +56,7 @@ fail "Could not parse term size from lib/config.rb" unless $term_min_width && $t
 #
 # Create read-only copy
 #
-if system("which harpwise >/dev/null 2 >&1")
+if system("which harpwise >/dev/null 2>&1")
   puts "Found harpwise in path, syncing it"
   system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
   sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
