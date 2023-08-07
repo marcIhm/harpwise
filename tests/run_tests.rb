@@ -1757,8 +1757,8 @@ do_test 'id-67: step through a lick with musical events' do
   kill_session
 end
 
-[['', 0.05, (8 .. 12), (8 .. 12)],
- [' --time-slice 0.05', 0.03, (16 .. 20), (16 .. 20)]].each_with_index do |vals, idx|
+[['', 0.07, (7 .. 9), (6 .. 8)],
+ [' --time-slice short', 0.03, (16 .. 20), (16 .. 20)]].each_with_index do |vals, idx|
   extra_args, wplayed, wsensed_short, wsensed_long = vals
   do_test "id-68a#{idx}: warbling at #{wsensed_short}, #{wsensed_long} with extra args '#{extra_args}'" do
     warble 400, wplayed, 3, 7
@@ -1780,33 +1780,38 @@ end
 
 do_test 'id-69: detect lag' do
   sound 20, 8
-  new_session
+  # must be before new_session
   ENV['HARPWISE_TESTING']='lag'
+  new_session
   tms 'harpwise listen a'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 8
   tms 'q'
-  expect { screen[9]['harpwise has been lagging behind at least once'] }
+  ENV['HARPWISE_TESTING']='1'
+  expect { screen[11]['harpwise has been lagging behind at least once'] }
   kill_session
 end
 
 do_test 'id-69b: detect jitter' do
   sound 20, 8
-  new_session
+  # must be before new_session
   ENV['HARPWISE_TESTING']='jitter'
+  new_session
   tms 'harpwise listen a'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 8
   tms 'q'
-  expect { screen[9]['Jitter detected'] }
+  ENV['HARPWISE_TESTING']='1'
+  expect { screen[6]['Jitter detected'] }
   kill_session
 end
 
 [['', (30 .. 50)],
- [' --time-slice 0.05', (70 .. 90)],
- [' --values-per-slice 2', (10 .. 30)]].each_with_index do |vals, idx|
+ [' --time-slice medium', (30 .. 50)],
+ [' --time-slice short', (90 .. 110)],
+ [' --time-slice long', (10 .. 30)]].each_with_index do |vals, idx|
   extra_args, lpsrange = vals
   do_test "id-70a#{idx}: check loops per sec in #{lpsrange} with #{extra_args == '' ? 'defaults' : extra_args}" do
     sound 12, 8

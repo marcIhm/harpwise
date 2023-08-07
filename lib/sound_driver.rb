@@ -201,9 +201,10 @@ def sox_to_aubiopitch_to_queue
   last_delta_time_at = last_delta_time = nil
   next_check_after_iters = 100
   loop do
-    Timeout.timeout(5) do
-      # reduce (suspected) overhead ofr setting up timeout
-      100.times do
+    # gets (below) might block
+    Timeout.timeout(10) do
+      # reduce (suspected) overhead of setting up timeout
+      20.times do
         line = ppl_out.gets
         $freqs_queue.enq Float(line.split(' ',2)[1])
         # Check for jitter. This will not find any case of jitter, but

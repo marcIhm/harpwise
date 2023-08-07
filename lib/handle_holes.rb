@@ -92,7 +92,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     
     # transform freq into hole
     hole, lbor, cntr, ubor = describe_freq(freq)
-    sleep 2 if $testing_what == :lag
+    sleep 1 if $testing_what == :lag
 
     # detect and update warbling before we overwrite hole_was_for_since
     if $opts[:comment] == :warbles

@@ -49,7 +49,6 @@ if $testing && ! %w(1 true t yes y).include?(ENV["HARPWISE_TESTING"].downcase)
   tw_allowed = [:lag, :jitter]
   err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed} (case insensitive)" unless tw_allowed.include?($testing_what)
 end
-  
 
 # while testing, additionally make sure, that we do not use relative
 # paths; do this early, before we even have parsed options
