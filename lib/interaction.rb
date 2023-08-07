@@ -164,7 +164,7 @@ def get_figlet_wrapped text, font
     # strip common spaces at front in groups of four, known to be figlet line height
     lines = lines.each_slice(4).map do |lpl| # lines (terminal) per line (figlet)
       common = lpl.select {|l| l.lstrip.length > 0}.
-                 map {|l| l.length - l.lstrip.length}.min
+                 map {|l| l.length - l.lstrip.length}.min || 0
       lpl.map {|l| l[common .. -1] || ''}
     end.flatten
 

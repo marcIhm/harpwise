@@ -55,19 +55,25 @@ fail "Could not parse term size from lib/config.rb" unless $term_min_width && $t
 #
 # Create read-only copy
 #
-system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
-sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
-sys('sudo chown -R root:root /usr/lib/harpwise')
-sys('sudo chmod -R 644 /usr/lib/harpwise')
-sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
-sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
-hw_abs = %x(which harpwise).chomp
-# Check
-content = File.read(hw_abs)
-req_line = '/usr/lib/harpwise/harpwise $@'
-fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}\n(this is to make su, that the command 'harpwise' invokes the version from this directory)" unless content[req_line]
-system("touch #{hw_abs} 2>/dev/null")
-fail "#{hw_abs} is writeable" if $?.success?
+if system("which harpwise >/dev/null 2 >&1")
+  puts "Found harpwise in path, syncing it"
+  system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
+  sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
+  sys('sudo chown -R root:root /usr/lib/harpwise')
+  sys('sudo chmod -R 644 /usr/lib/harpwise')
+  sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
+  sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
+  hw_abs = %x(which harpwise).chomp
+  # Check
+  content = File.read(hw_abs)
+  req_line = '/usr/lib/harpwise/harpwise $@'
+  fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}\n(this is to make su, that the command 'harpwise' invokes the version from this directory)" unless content[req_line]
+  system("touch #{hw_abs} 2>/dev/null")
+  fail "#{hw_abs} is writeable" if $?.success?
+else
+  puts "Adding ~/harpwise to path"
+  ENV['PATH'] = ENV['HOME'] + '/harpwise:' + ENV['PATH']
+end
 
 #
 # Collect usage examples and later check, that none of them produces an error
