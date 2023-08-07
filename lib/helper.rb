@@ -274,8 +274,9 @@ def print_afterthought
 
          If you notice such a lag frequently and and want to reduce it, you
          may try to set option '--time-slice' or config 'time_slice'
-         (currently '#{$opts[:time_slice]}') to 'medium' or 'long' (See config
-         file #{$conf[:config_file_user]} and usage info for more details.)
+         (currently '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
+         #{$conf[:config_file_user]}
+         and usage info of harpwise for more details.
 
          Note however, that changing these values too far, may make
          harpwise sluggish in sensing holes.

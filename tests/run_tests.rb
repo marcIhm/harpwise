@@ -1789,7 +1789,7 @@ do_test 'id-69: detect lag' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[11]['harpwise has been lagging behind at least once'] }
+  expect { screen[10]['harpwise has been lagging behind at least once'] }
   kill_session
 end
 
