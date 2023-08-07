@@ -126,8 +126,8 @@ do_test 'id-1: start without dot_harpwise' do
   new_session
   tms 'harpwise'
   tms :ENTER
-  expect {File.directory?($dotdir_testing)}
-  expect {File.exist?($config_ini_testing)}
+  expect($dotdir_testing) {File.directory?($dotdir_testing)}
+  expect($config_ini_testing) {File.exist?($config_ini_testing)}
   kill_session
   # now we have a user config
   FileUtils.rm $config_ini_saved if File.exist?($config_ini_saved)
