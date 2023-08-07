@@ -72,7 +72,7 @@ if system("which harpwise >/dev/null 2 >&1")
   fail "#{hw_abs} is writeable" if $?.success?
 else
   puts "Adding ~/harpwise to path"
-  ENV['PATH'] = ENV['HOME'] + '/harpwise:' + ENV['PATH']
+  ENV['PATH'] = "#{$installdir}/harpwise:" + ENV['PATH']
 end
 
 #
@@ -111,7 +111,10 @@ system("killall aubiopitch >/dev/null 2>&1")
 puts "Testing"
 puts "\n\e[32mTo restart with a failed test use: '#{File.basename($0)} .'\e[0m\n"
 do_test 'id-0: man-page should process without errors' do
-  cmd = "man -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null"
+  FileUtils.mkdir "#{$installdir}/man/man1" unless File.directory?("#{$installdir}/man/man1")
+  FileUtils.cp "#{$installdir}/man/harpwise.1", "#{$installdir}/man/man1/harpwise.1"
+  ENV['MANPATH'] = "#{$installdir}/harpwise/man:" + ( ENV['MANPATH'] || '' )
+  cmd = "man harpwise 2>&1 >/dev/null"
   ste = sys(cmd)
   expect(cmd, ste) {ste == ''}
 end
