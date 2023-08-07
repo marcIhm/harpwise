@@ -36,6 +36,7 @@ end
 def sys cmd
   out, stat = Open3.capture2e(cmd)
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
+  out
 end
   
 
