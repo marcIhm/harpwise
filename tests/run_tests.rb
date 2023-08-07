@@ -111,8 +111,9 @@ system("killall aubiopitch >/dev/null 2>&1")
 puts "Testing"
 puts "\n\e[32mTo restart with a failed test use: '#{File.basename($0)} .'\e[0m\n"
 do_test 'id-0: man-page should process without errors' do
-  ste = %x(man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null)
-  expect(ste) {ste == ''}
+  cmd = "man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$installdir}/man/harpwise.1 2>&1 >/dev/null"
+  ste = %x(cmd)
+  expect(cmd, ste) {ste == ''}
 end
 
 # Prepare test-data through harpwise and then some
