@@ -177,7 +177,7 @@ def find_and_check_dirs
   $dirs = Hash.new
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
   $dirs[:install_devel] = if $testing || !File.directory?(File.expand_path('~') + '/harpwise')
-                            '/DOES_NOT_EXIST'
+                            '/TESTING_SO_DIR_HARPWISE_DEVEL_SHOULD_NOT_EXIST'
                           else
                             File.realpath(File.expand_path('~') + '/harpwise')
                           end
