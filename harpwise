@@ -82,7 +82,9 @@ check_screen if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $testing
 
-Thread.report_on_exception = false
+# We need this to be true, because otherwise exceptions in started
+# threads go unnoticed and may stall the hole program
+Thread.report_on_exception = true
 
 Signal.trap('SIGINT') do
   print "\e[#{$lines[:message2]}H" if $move_down_on_exit

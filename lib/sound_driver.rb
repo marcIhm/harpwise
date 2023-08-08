@@ -197,18 +197,32 @@ def sox_to_aubiopitch_to_queue
     ) 
   end
   line = nil
+  no_gets = 0
   iters = 0
   last_delta_time_at = last_delta_time = nil
   next_check_after_iters = 100
+  #
+  # Remark: The code below checks for several conditions, we have
+  # encountered when porting to homebrew / macos; or when switching to
+  # the one-piece pipeline. Read the comments twice, before
+  # streamlining.
+  #
   loop do
-    # gets (below) might block
+    # gets (below) might block, so guard it by timeout
     Timeout.timeout(10) do
-      # reduce (suspected) overhead of setting up timeout
+      # loop to reduce (suspected) overhead of setting up timeout
       20.times do
-        line = ppl_out.gets
+        line = nil
+        # gets might return nil for unknown reasons (e.g. in an
+        # unpatched homebrew-setup)
+        while !(line = ppl_out.gets)
+          sleep 0.5
+          no_gets += 1
+          err "No output (10 times within more than 5 secs) from: #{cmd}" if no_gets > 10
+        end
         $freqs_queue.enq Float(line.split(' ',2)[1])
-        # Check for jitter. This will not find any case of jitter, but
-        # if jitter repeats, it will be found eventually.
+        # Check for jitter. This will not find every case of jitter,
+        # but if jitter repeats, it will be found eventually.
         iters += 1
         if iters == next_check_after_iters
           begin
@@ -231,7 +245,7 @@ def sox_to_aubiopitch_to_queue
         end
       end
     rescue Timeout::Error
-      err "No more output from: #{cmd}"
+      err "No output from: #{cmd}"
     end     
     
     if $testing && !touched
@@ -245,8 +259,13 @@ end
 def get_pipeline_cmd(what, wav_from)
 
   err "Internal error: #{what}" unless [:pv, :sox].include?(what)
-  # 19200 = 48000 * 4 (sample rate, 32 Bit, 1 Chanel)
-  # is the rate of our sox-generated testing-files
+  #
+  # Regarding "pv" below: 19200 = 48000 * 4 (sample rate, 32 Bit, 1
+  # Chanel) is the rate of our sox-generated testing-files
+  #
+  # Regarding "sox" below: We tried "rec" instead of "sox -d" but this
+  # did not work within a pipeline for unknown reasons
+  #
   templates = [{pv: "pv -qL 192000 %s",
                 sox: "stdbuf -o0 sox %s -q -r #{$conf[:sample_rate]} -t wav -"},
                "stdbuf -i0 -o0 aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
