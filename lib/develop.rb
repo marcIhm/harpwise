@@ -175,7 +175,7 @@ def task_selftest
     end
   end
   pp output
-  puts "Remark: this may compare with time-slice of #{$time_slice_secs}"
+  puts "Remark: this may compare with the time-slice of #{$time_slice_secs}"
 
   puts
   puts "Final Result: Selftest Okay."

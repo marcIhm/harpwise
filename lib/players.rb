@@ -152,7 +152,7 @@ def play_interactive_pitch embedded = false
     if paused
       if wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid)
-        join_and_check_thread wait_thr, cmd
+        join_and_check_thread wait_thr, cmd, stdout_err
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
@@ -162,7 +162,7 @@ def play_interactive_pitch embedded = false
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
         end
-        join_and_check_thread wait_thr, cmd
+        join_and_check_thread wait_thr, cmd, stdout_err
         if $testing
           IO.write($testing_log, cmd + "\n", mode: 'a')
           cmd = 'sleep 86400 ### ' + cmd
@@ -238,7 +238,7 @@ def play_interactive_pitch embedded = false
         $ctl_pitch[:quit] = false
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
-          join_and_check_thread wait_thr, cmd
+          join_and_check_thread wait_thr, cmd, stdout_err
         end
         return new_key
       end
@@ -286,12 +286,12 @@ def play_interactive_interval semi1, semi2
     if paused
       if wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid)
-        join_and_check_thread wait_thr, cmd
+        join_and_check_thread wait_thr, cmd, stdout_err
       end
     else
       if new_sound || !wait_thr&.alive?
         Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
-        join_and_check_thread wait_thr, cmd
+        join_and_check_thread wait_thr, cmd, stdout_err
         if new_sound
           cmd = cmd_template % $vol.to_i
           synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
@@ -374,7 +374,7 @@ def play_interactive_interval semi1, semi2
         $ctl_inter[:quit] = false
         if wait_thr&.alive?
           Process.kill('KILL',wait_thr.pid)
-          join_and_check_thread wait_thr, cmd
+          join_and_check_thread wait_thr, cmd, stdout_err
         end
         return
       end
@@ -458,7 +458,7 @@ def play_interactive_progression prog
 end
 
 
-def join_and_check_thread wait_thr, cmd
+def join_and_check_thread wait_thr, cmd, stdout_err
   if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
     wait_thr.join
     puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_fail_however}"
