@@ -1,3 +1,7 @@
+#
+# Playing under user control
+#
+
 def play_recording_and_handle_kb recording, start, length, key, first_round = true, octave_shift = 0
 
   trim_clause = if start && length
@@ -10,6 +14,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
                 else
                   ""
                 end
+
   dsemi = diff_semitones($key, key, :g_is_lowest) + octave_shift * 12
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
@@ -23,10 +28,15 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
   # immediate controls triggered while it is playing
   begin
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{$conf[:sox_play_extra]} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
+    cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
-    return false if $testing
-    _, stdout_err, wait_thr  = Open3.popen2e(cmd)
+    if $testing_what == :player
+      cmd = 'sleep 600'
+    elsif $testing
+      sleep 4
+      return false
+    end
+    pplayer = PausablePlayer.new(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
     started = Time.now.to_f
     duration = 0.0
@@ -39,12 +49,10 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         if paused
-          Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
-          paused = false
+          paused = pplayer.continue
           print "\e[0m\e[32mgo \e[0m"
         else
-          Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-          paused = true
+          paused = pplayer.pause
           duration += Time.now.to_f - started
           started = Time.now.to_f
           printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", duration
@@ -62,8 +70,8 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
         $vol.dec
         print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:show_help]
-        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
-        display_kb_help 'a recording',first_round,
+        pplayer.pause
+        display_kb_help 'a recording', first_round,
                         "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
@@ -72,7 +80,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
                         ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
                         ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless first_round
-        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+        pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
         print "\e[0m\e[32mreplay \e[0m"
@@ -101,18 +109,84 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
 
       # need to go leave this loop and play again if any immediate
       # controls have been triggered
-    end while wait_thr.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
+    end while pplayer.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
     
     $ctl_rec[:loop] = false if $ctl_rec[:skip]
-    if wait_thr.alive?
-      Process.kill('KILL',wait_thr.pid)
+    pplayer.kill
+    pplayer.check
+
+  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
+  $ctl_rec[:skip]
+
+end
+
+
+def play_recording_and_handle_kb_simple recording, scroll_allowed
+
+  imm_ctrls_again = [:replay, :vol_up, :vol_down]
+  loop_message_printed = false
+  
+  # loop as long as the recording needs to be played again due to
+  # immediate controls triggered while it is playing
+  begin
+
+    cmd = "play --norm=#{$vol.to_i} -q -V1 #{recording}".strip
+    IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
+    if $testing_what == :player
+      cmd = 'sleep 100'
+    elsif $testing
+      sleep 4
+      return false
     end
-    wait_thr.join
-    if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
-      puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_fail_however}"
-      puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
-      err 'See above'
-    end
+    pplayer = PausablePlayer.new(cmd)
+    paused = false
+    
+    # loop to check repeatedly while the recording is beeing played
+    begin
+      sleep 0.1
+      handle_kb_play_recording_simple
+      if $ctl_rec[:pause_continue]
+        $ctl_rec[:pause_continue] = false
+        if paused
+          paused = pplayer.continue
+          print "\e[0m\e[32mgo \e[0m"
+        else
+          paused = pplayer.pause
+          printf "\e[0m\e[32m SPACE to continue ... \e[0m"
+        end
+      elsif $ctl_rec[:vol_up]
+        $vol.inc
+        print "\e[0m\e[32m#{$vol} \e[0m"
+      elsif $ctl_rec[:vol_down]
+        $vol.dec
+        print "\e[0m\e[32m#{$vol} \e[0m"
+      elsif $ctl_rec[:show_help]
+        pplayer.pause
+        display_kb_help 'a recording', true, scroll_allowed,
+                        "  SPACE: pause/continue\n" + 
+                        "      +: jump to end           -: jump to start\n" +
+                        "      v: decrease volume       V: increase volume by 3dB\n" +
+                          "      l: loop over recording   "
+        print "\e[#{$lines[:hint_or_message]}H" unless first_round
+        pplayer.continue
+        $ctl_rec[:show_help] = false
+      elsif $ctl_rec[:replay]
+        print "\e[0m\e[32mreplay \e[0m"
+      elsif $ctl_rec[:skip]
+        print "\e[0m\e[32mjump to end \e[0m"
+      end
+
+      if $ctl_rec[:loop] && !loop_message_printed
+        print "\e[0m\e[32mloop (+ to end)\e[0m"
+        loop_message_printed = true
+      end
+
+      # need to go leave this loop and play again if any immediate
+      # controls have been triggered
+    end while pplayer.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
+
+    pplayer.kill
+    pplayer.check
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
   $ctl_rec[:skip]
 end
@@ -125,7 +199,7 @@ def play_interactive_pitch embedded = false
   min_semi = -24
   max_semi = 24
   paused = false
-  wait_thr = stdout_err = nil
+  pplayer = nil
   cmd = cmd_was = nil
 
   sleep 0.1 if embedded
@@ -150,25 +224,23 @@ def play_interactive_pitch embedded = false
 
     # we also loop when paused
     if paused
-      if wait_thr&.alive?
-        Process.kill('KILL',wait_thr.pid)
-        join_and_check_thread wait_thr, cmd, stdout_err
+      if pplayer&.alive
+        pplayer.kill
+        pplayer.check
       end
     else
       # sending stdout output to /dev/null makes this immune to killing ?
       # +7 because key of song, rather than key of harp is wanted
-      cmd = "play --norm=#{$vol.to_i} -q -n #{$conf[:sox_play_extra]} synth #{duration_clause} #{wave} %#{semi+7}"
-      if cmd_was != cmd || !wait_thr&.alive?
-        if wait_thr&.alive?
-          Process.kill('KILL',wait_thr.pid)
-        end
-        join_and_check_thread wait_thr, cmd, stdout_err
+      cmd = "play --norm=#{$vol.to_i} -q -n synth #{duration_clause} #{wave} %#{semi+7}"
+      if cmd_was != cmd || !pplayer&.alive?
+        pplayer.kill if pplayer&.alive?
+        pplayer&.check
         if $testing
           IO.write($testing_log, cmd + "\n", mode: 'a')
-          cmd = 'sleep 86400 ### ' + cmd
+          cmd = 'sleep 600 ### ' + cmd
         end
         cmd_was = cmd
-        _, stdout_err, wait_thr  = Open3.popen2e(cmd)
+        pplayer = PausablePlayer.new(cmd)
       end
     end
 
@@ -177,7 +249,7 @@ def play_interactive_pitch embedded = false
       break if $ctl_pitch[:any]
       handle_kb_play_pitch
       sleep 0.1
-    end while wait_thr.alive?
+    end while pplayer.alive?
 
     if $ctl_pitch[:any]
       knm = $conf_meta[:ctrls_play_pitch].select {|k| $ctl_pitch[k] && k != :any}[0].to_s.gsub('_',' ')
@@ -222,7 +294,7 @@ def play_interactive_pitch embedded = false
                end
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:show_help]
-        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+        pplayer.pause
         display_kb_help 'a pitch',true,
                         "  SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
                         "      w: change waveform       W: change waveform back\n" + 
@@ -231,14 +303,14 @@ def play_interactive_pitch embedded = false
                         "      f: one fifth up          F: one fifth down\n" +
                         "      v: decrease volume       V: increase volume by 3dB" +
                         ( embedded  ?  "\n RETURN: accept"  :  '')
-        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+        pplayer.continue
         print_pitch_information(semi)
       elsif $ctl_pitch[:quit]
         new_key =  ( $ctl_pitch[:quit] == "\n"  ?  semi2note(semi)[0..-2]  :  nil)
         $ctl_pitch[:quit] = false
-        if wait_thr&.alive?
-          Process.kill('KILL',wait_thr.pid)
-          join_and_check_thread wait_thr, cmd, stdout_err
+        if pplayer&.alive?
+          pplayer.kill
+          pplayer.check
         end
         return new_key
       end
@@ -277,21 +349,21 @@ def play_interactive_interval semi1, semi2
   synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
   new_sound = true
   paused = false
-  wait_thr = stdout_err = nil
+  pplayer = nil
 
   # loop forever until ctrl-c; loop on every key
   loop do
 
     # we also loop when paused
     if paused
-      if wait_thr&.alive?
-        Process.kill('KILL',wait_thr.pid)
-        join_and_check_thread wait_thr, cmd, stdout_err
+      if pplayer&.alive?
+        pplayer.kill
+        pplayer.check
       end
     else
-      if new_sound || !wait_thr&.alive?
-        Process.kill('KILL',wait_thr.pid) if wait_thr&.alive?
-        join_and_check_thread wait_thr, cmd, stdout_err
+      if new_sound || !pplayer&.alive?
+        pplayer.kill
+        pplayer.check
         if new_sound
           cmd = cmd_template % $vol.to_i
           synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
@@ -300,8 +372,11 @@ def play_interactive_interval semi1, semi2
           puts "\e[0m\e[2m\n  Gap: #{gap}, length: #{len}\e[0m\n\n"
           new_sound = false
         end
-        IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
-        _, stdout_err, wait_thr  = Open3.popen2e($testing  ?  'sleep 86400'  :  cmd)
+        if $testing
+          IO.write($testing_log, cmd + "\n", mode: 'a')
+          cmd = 'sleep 600 ### ' + cmd
+        end
+        pplayer = PausablePlayer.new(cmd)
       end
     end
 
@@ -310,7 +385,7 @@ def play_interactive_interval semi1, semi2
       break if $ctl_inter[:any]
       handle_kb_play_inter
       sleep 0.1
-    end while wait_thr.alive?
+    end while pplayer.alive?
 
     # handle kb
     if $ctl_inter[:any]
@@ -360,7 +435,7 @@ def play_interactive_interval semi1, semi2
         puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:show_help]
-        Process.kill('TSTP',wait_thr.pid) if wait_thr.alive?
+        pplayer.pause
         display_kb_help 'an interval',true,
                         "   SPACE: pause/continue             ESC,x,q: quit\n" +
                         "       +: widen interval by one semi       -: narrow by one semi\n" +
@@ -369,12 +444,12 @@ def play_interactive_interval semi1, semi2
                         "       L: increase length                  l: decrease\n" +
                         "       v: decrease volume by 3db           V: increase volume\n" +
                         "       s: swap notes                  RETURN: play again"
-        Process.kill('CONT',wait_thr.pid) if wait_thr.alive?
+        pplayer.continue
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
-        if wait_thr&.alive?
-          Process.kill('KILL',wait_thr.pid)
-          join_and_check_thread wait_thr, cmd, stdout_err
+        if pplayer&.alive?
+          pplayer.kill
+          pplayer.check
         end
         return
       end
@@ -396,7 +471,7 @@ def play_interactive_progression prog
       change_semis = false
     end
     holes, notes, abs_semis, rel_semis = get_progression_views(prog)
-      
+    
     puts fmt % ['Holes', 'Notes', 'abs st', 'rel st']
     puts ' ' + '|---------' * 4 + '|'
     holes.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
@@ -455,16 +530,6 @@ def play_interactive_progression prog
     iteration += 1
   end while loop || change_semis
   puts
-end
-
-
-def join_and_check_thread wait_thr, cmd, stdout_err
-  if wait_thr && wait_thr.value && wait_thr.value.exitstatus && wait_thr.value.exitstatus != 0
-    wait_thr.join
-    puts "Command failed with #{wait_thr.value.exitstatus}: #{cmd}\n#{$sox_fail_however}"
-    puts stdout_err.read.lines.map {|l| '   >>  ' + l}.join
-    err 'See above'
-  end
 end
 
 
@@ -603,3 +668,42 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
 end
 
 
+class PausablePlayer
+
+  def initialize cmd
+    @cmd = cmd
+    _, @stdout_err, @wait_thr  = Open3.popen2e(cmd)
+  end
+  
+  def pause
+    Process.kill('TSTP', @wait_thr.pid) if @wait_thr.alive?
+    return true
+  end
+
+  def continue
+    Process.kill('CONT', @wait_thr.pid) if @wait_thr.alive?
+    return false
+  end
+  
+  def kill
+    Process.kill('KILL',@wait_thr.pid) if alive?
+    @wait_thr.join
+  end
+  
+  def alive?
+    @wait_thr.alive?
+  end
+
+  def check
+    exst = @wait_thr&.value&.exitstatus
+    if exst && exst != 0
+      @wait_thr.join
+      puts "Command:\n  #{@cmd}\nfailed with rc #{exst} and output:\n"
+      out = @stdout_err.read.lines.map {|l| '   >>  ' + l}.join
+      puts ( out.length > 0  ?  out  :  '<no output>' )
+      puts $sox_fail_however
+      err 'See above'
+    end
+  end
+  
+end

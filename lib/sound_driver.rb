@@ -8,8 +8,8 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "rec -q -r #{$conf[:sample_rate]} -b 16 -e signed #{file} trim 0 #{secs}"
-    system("#{cmd} #{output_clause}") or err "rec failed: could not run: #{cmd}\n#{$sox_fail_however}"
+    cmd = "rec -q -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
+    sys "#{cmd} #{output_clause}", $sox_fail_however
   end
 end
 
@@ -18,7 +18,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   cmd = if $testing
           "sleep #{secs}"
         else    
-          "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{file} trim 0 #{secs}"
+          "play --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
         end
   sys(cmd, $sox_fail_however) unless $testing
 end
@@ -308,9 +308,9 @@ def play_hole_or_note_simple_and_handle_kb note, duration
       sys "sleep #{duration}"
     else
       if wfile
-        sys "play --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} #{wfile} trim 0 #{duration}", $sox_fail_however
+        sys "play --norm=#{$vol.to_i} #{wfile} trim 0 #{duration}", $sox_fail_however
       else
-        sys "play -n --norm=#{$vol.to_i} #{$conf[:sox_play_extra]} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
+        sys "play -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
       end
     end
   end  
@@ -327,7 +327,7 @@ def play_semi_and_handle_kb semi
   cmd = if $testing
           "sleep 1"
         else
-          "play --norm=#{$vol.to_i} -q -n #{$conf[:sox_play_extra]} synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
+          "play --norm=#{$vol.to_i} -q -n synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
@@ -345,9 +345,9 @@ end
 def synth_for_inter semis, files, wfiles, gap, len
   times = [0.3, 0.3 + gap]
   files.zip(semis, times).each do |f, s, t|
-    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[0]} trim 0.0 #{t}")
-    sys("sox -q -n #{$conf[:sox_play_extra]} #{wfiles[1]} synth #{len} pluck %#{s}") 
-    sys("sox -q #{$conf[:sox_play_extra]} #{wfiles[0]} #{wfiles[1]} #{f}") 
+    sys("sox -q -n #{wfiles[0]} trim 0.0 #{t}")
+    sys("sox -q -n #{wfiles[1]} synth #{len} pluck %#{s}") 
+    sys("sox -q #{wfiles[0]} #{wfiles[1]} #{f}") 
   end
 end
 
@@ -358,4 +358,99 @@ def print_pitch_information semi, name = nil
   print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi+7)[0..-2]
   print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts
+end
+
+
+class UserLickRecording
+
+  include Singleton
+
+  attr_accessor :first_hole_good_at
+  
+  def initialize
+    @active = false
+    @file_raw1 = "#{$dirs[:tmp]}/usr_lick_rec_raw1.wav"
+    @file_raw2 = "#{$dirs[:tmp]}/usr_lick_rec_raw2.wav"
+    @file_trimmed = "#{$dirs[:data]}/usr_lick_rec.wav"
+    @file_prev = "#{$dirs[:data]}/usr_lick_rec_previous.wav"
+    @sign_text = ' REC '
+
+    @first_hole_good_at = nil
+    @rec_started_at = nil
+    @rec_pid = nil
+    @has_rec = false
+  end
+
+  def sign_column
+    ( $term_width - @sign_text.length ) / 2
+  end
+  
+  def print_rec_sign_mb
+    print "\e[#{$lines[:mission]};#{sign_column}H" +
+          if active?
+            "\e[0;101m" + @sign_text + "\e[0m"
+          else
+            ' ' * @sign_text.length
+          end
+  end
+  
+  def active?
+    @active
+  end
+  
+  def has_rec?
+    @has_rec
+  end
+  
+  def toggle_active
+    @active = !@active
+    ensure_end_rec unless @active
+  end
+
+  def ensure_end_rec
+    if @rec_pid
+      stop_rec
+      process_rec if @first_hole_good_at
+    end
+  end
+  
+  def start_rec
+    stop_rec if @rec_pid
+    cmd = "sox %s -q -r #{$conf[:sample_rate]} #{@file_raw1}" %
+          ( $testing  ?  $test_wav  :  '-d' )
+    @rec_pid = Process.spawn "rec -q -r #{$conf[:sample_rate]} #{@file_raw1}"
+    @first_hole_good_at = nil
+    @rec_started_at = Time.now.to_f
+    @has_rec = false
+  end
+
+  def stop_rec
+    fail 'Internal error: no pid set' unless @rec_pid
+    Process.kill('HUP', @rec_pid)
+    Process.wait(@rec_pid)
+    @rec_pid = nil
+  end
+  
+  def process_rec
+    trim_secs = @first_hole_good_at - @rec_started_at - 2
+    if trim_secs > 0
+      sys "sox #{@file_raw1} #{@file_raw2} trim #{'%.1f' % trim_secs}"
+    else
+      FileUtils.mv @file_raw1, @file_raw2
+    end
+    FileUtils.mv @file_trimmed, @file_prev if File.exist?(@file_trimmed)
+    sys "sox #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
+    @first_hole_good_at = nil
+    @has_rec = true
+  end
+
+  def play_rec
+    fail 'Internal error: no rec' unless @has_rec
+    play_recording_and_handle_kb_simple @file_trimmed, false
+  end
+
+  def rec_file
+    @file_trimmed
+  end
+  
 end

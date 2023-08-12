@@ -206,6 +206,7 @@ end
 
 def print_mission text
   print "\e[#{$lines[:mission]}H\e[0m#{text.ljust($term_width - $ctl_response_width)}\e[0m"
+  $ulrec.print_rec_sign_mb
 end
 
 
@@ -361,6 +362,7 @@ def get_files_journal_trace
           end
   return ["#{$dirs[:data]}/journal_#{$type}.txt", trace]
 end
+
 
 #
 # Volumes for sox

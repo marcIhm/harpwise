@@ -20,7 +20,9 @@ def do_play to_play
                    'interval' => 'interactive, adjustable interval',
                    'inter' => nil,
                    'progression' => 'take a base and semitone diffs, then play it',
-                   'prog' => nil}
+                   'prog' => nil,
+                   'user-lick-recording' => 'play last recording of you playing a lick (if any)',
+                   'user' => nil}
   
   holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog))
   extra = Set.new(extra).to_a
@@ -107,6 +109,17 @@ def do_play to_play
       prog = base_and_delta_to_semis(args_for_extra)
       play_interactive_progression prog
 
+    elsif extra[0] == 'user-lick-recording' || extra[0] == 'user'
+
+      rfile = $ulrec.rec_file
+      if File.exist?(rfile)
+        puts "Playing \e[32m#{rfile}\e[0m ..."
+        puts "\e[2m(h for help)"
+        play_recording_and_handle_kb_simple rfile, true
+        puts
+      else
+        puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it"
+      end
     else
       fail "Internal error: #{extra}"
     end

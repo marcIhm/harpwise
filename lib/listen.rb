@@ -22,7 +22,7 @@ def do_listen
     result = handle_holes(
       
       # lambda_mission
-      -> () {"\e[0mPlay notes from the scale to get \e[32mgreen\e[0m"},   
+      -> () {"\e[0mPlay from the scale to get \e[32mgreen\e[0m"},   
 
 
       # lambda_good_done_was_good

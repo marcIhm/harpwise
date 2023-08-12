@@ -57,7 +57,7 @@ def set_global_vars_early
         :loop, :start_loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
-        :switch_modes,
+        :switch_modes, :record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_clear,
         :set_ref]
   $ctl_mic = Struct.new(*ks).new
@@ -91,17 +91,20 @@ def set_global_vars_early
   # capabilities available (or not) when processing keyboard
   ks = [:next, :back, :loop, :loop_loop, :lick_lick, :lick, :octave, :switch_modes, :no_progress]
   $ctl_can = Struct.new(*ks).new
-  ks.each {|k| $ctl_can[k] = false} 
-  
+  ks.each {|k| $ctl_can[k] = false}
+
   # These are related to the ctl_response function, which allows
   # reactions on user actions immediately from within the keyboard handler
   $ctl_reponse_default = ''
-  $ctl_response_width = 36
+  $ctl_response_width = 32
   $ctl_response_non_def_ts = nil
 
   $all_licks = $licks = nil
 
   find_and_check_dirs
+
+  # vars for recording user in mode licks
+  $ulrec = UserLickRecording.instance
 
   $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
   fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0

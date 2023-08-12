@@ -84,8 +84,10 @@ end
 
 def sys cmd, failinfo = nil
   out, stat = Open3.capture2e(cmd)
-  cited = out.lines.map {|l| " >> #{l}"}.join
-  stat.success? || err("Command '#{cmd}' failed with:\n#{cited}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
+  if !stat.success?
+    cited = out.lines.map {|l| " >> #{l}"}.join
+    err("Command '#{cmd}' failed with:\n#{cited}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
+  end
   out
 end
 
@@ -349,6 +351,32 @@ def handle_kb_play_recording
 end
 
 
+def handle_kb_play_recording_simple
+  return if $ctl_kb_queue.length == 0
+  char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+
+  if char == ' '
+    $ctl_rec[:pause_continue] = true
+  elsif char == 'v'
+    $ctl_rec[:vol_down] = true
+    $ctl_rec[:replay] = true
+  elsif char == 'V'
+    $ctl_rec[:vol_up] = true
+    $ctl_rec[:replay] = true
+  elsif char == 'l'
+    $ctl_rec[:loop] = true
+  elsif char == 'h'
+    $ctl_rec[:show_help] = true
+    $ctl_rec[:replay] = true
+  elsif char == '-'
+    $ctl_rec[:replay] = true
+  elsif char == "\t" || char == '+'
+    $ctl_rec[:skip] = true
+  end
+end
+
+
 def handle_kb_play_semis
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
@@ -496,6 +524,9 @@ def handle_kb_mic
   elsif char == 'R' && $ctl_can[:lick]
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'
+  elsif char.ord == 18 && $ctl_can[:lick]
+    $ctl_mic[:record_user] = true
+    text = 'Record user'
   elsif char == '>' && $ctl_can[:octave]
     $ctl_mic[:octave] = :up
     text = 'Octave up'
@@ -1126,11 +1157,13 @@ def get_text_invalid char
   cdesc = if char.match?(/^[[:print:]]+$/)
             char
           elsif char.ord == 10
-            "RETURN"
+            'RETURN'
           elsif char.ord == 9
-            "TAB"
+            'TAB'
           elsif char.ord == 127
-            "BACKSPACE"
+            'BACKSPACE'
+          elsif char.ord == 18
+            'CTRL-R'
           else
             "? (#{char.ord})"
           end
