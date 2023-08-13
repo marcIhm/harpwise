@@ -1143,13 +1143,14 @@ end
 
 do_test 'id-37d: change partial' do
   new_session
-  tms 'harpwise lick blues --start-with st-louis'
+  tms '/home/ihm/harpwise/harpwise lick blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   tms '@'
   tms '1@e'
+  pp screen
   tms :ENTER
-  sleep 2
+  sleep 1
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')

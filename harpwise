@@ -113,6 +113,9 @@ at_exit do
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current
   end
+
+  # a user recording could still be going on
+  $ulrec&.stop_rec
   
   # notice for lagging or jitter if appropriate
   print_afterthought
@@ -141,6 +144,7 @@ semi2note(0) == 'a4' or fail 'Internal error'
 $other_mode_saved = Hash.new
 begin
 
+  $ulrec&.stop_rec
   switch_modes if $ctl_mic[:switch_modes]
 
   case $mode

@@ -425,7 +425,7 @@ class UserLickRecording
   end
 
   def stop_rec
-    fail 'Internal error: no pid set' unless @rec_pid
+    return unless @rec_pid
     Process.kill('HUP', @rec_pid)
     Process.wait(@rec_pid)
     @rec_pid = nil

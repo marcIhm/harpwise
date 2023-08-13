@@ -598,8 +598,6 @@ end
 
 
 def select_and_calc_partial all_holes, start_s, length_s
-  start = start_s.to_f
-  length = length_s.to_f
   if md = $opts[:partial].match(/^1\/(\d)@(b|x|e)$/)
     numh = (all_holes.length/md[1].to_f).round
     pl = length / md[1].to_f
@@ -926,12 +924,14 @@ def read_and_set_partial
   clear_area_comment
   puts "\e[#{$lines[:comment_tall]}H\e[0m\e[32mPlease enter new value for option '--partial'."
   puts
-  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0"
-  puts " Just type RETURN to unset"
+  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0,"
+  puts " type RETURN to unset"
   puts " Current value is '#{$opts[:partial]}'"
   puts
   print "\e[0mYour input: "
   input = STDIN.gets.chomp
+  5.times {pp input, :qux}
+  exit
   old = $opts[:partial]
   $opts[:partial] = if input.strip.empty?
                       nil
