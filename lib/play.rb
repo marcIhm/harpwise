@@ -113,7 +113,8 @@ def do_play to_play
 
       rfile = $ulrec.rec_file
       if File.exist?(rfile)
-        puts "Playing \e[32m#{rfile}\e[0m ..."
+        duration = '%.1fs' % sox_query(rfile, 'Length')
+        puts "Playing \e[32m#{rfile}\e[0m, #{duration} ..."
         puts "\e[2m(h for help)"
         play_recording_and_handle_kb_simple rfile, true
         puts

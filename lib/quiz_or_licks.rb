@@ -257,7 +257,7 @@ def do_quiz_or_licks
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet_unwrapped 'what  you  played ...', 'smblock'
           sleep 0.5
-          print_hom "See #{$ulrec.rec_file} ... (h for help)"
+          print_hom "See #{$ulrec.rec_file}, #{'%.1fs' % $ulrec.duration} ... (h for help)"
           $ulrec.play_rec
         end
         $ulrec.start_rec
@@ -598,6 +598,8 @@ end
 
 
 def select_and_calc_partial all_holes, start_s, length_s
+  start = start_s.to_f
+  length = length_s.to_f
   if md = $opts[:partial].match(/^1\/(\d)@(b|x|e)$/)
     numh = (all_holes.length/md[1].to_f).round
     pl = length / md[1].to_f
@@ -930,8 +932,6 @@ def read_and_set_partial
   puts
   print "\e[0mYour input: "
   input = STDIN.gets.chomp
-  5.times {pp input, :qux}
-  exit
   old = $opts[:partial]
   $opts[:partial] = if input.strip.empty?
                       nil

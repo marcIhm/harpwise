@@ -27,13 +27,15 @@ $fromon_id_regex = '^(id-[a-z0-9]+):'
 if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
   $fromon_id = md[1]
 end
-$within = ARGV.length == 0
+$within = ( ARGV.length == 0 )
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(wade st-louis feeling-bad blues mape box-i box-iv box-v simple-turn special one two three long)
+$persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
+$started_at = Time.now.to_f
 
 # locations for our test-data; these dirs will be created as full
 # will be removed in test id-1
@@ -1129,26 +1131,25 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
-  2.times {tms :RIGHT}
+  3.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
   tms :ENTER
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'samples'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'advanced'}
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'random'}
   kill_session
 end
 
 do_test 'id-37d: change partial' do
   new_session
-  tms '/home/ihm/harpwise/harpwise lick blues --start-with st-louis'
+  tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   tms '@'
   tms '1@e'
-  pp screen
   tms :ENTER
   sleep 1
   tms 'q'
@@ -1495,8 +1496,7 @@ end
 
 
 do_test 'id-55: check persistence of volume' do
-  pers_file = "#{$dotdir_testing}/persistent_state.json"
-  FileUtils.rm pers_file if File.exist?(pers_file)
+  FileUtils.rm $persistent_state_file if File.exist?($persistent_state_file)
   first_vol = -9
   new_session
   tms 'harpwise play pitch'
@@ -1517,7 +1517,7 @@ do_test 'id-55: check persistence of volume' do
   expect { screen[-2]["#{first_vol - 6}dB"] }
   tms 'q'
   sleep 2
-  pers_data = JSON.parse(File.read(pers_file))
+  pers_data = JSON.parse(File.read($persistent_state_file))
   expect(pers_data) { pers_data['volume'] == first_vol - 6 }
   kill_session
 end
@@ -1637,7 +1637,9 @@ do_test 'id-60: listen with auto journal' do
   sleep 6
   # allow for varying duration
   expect { (screen[16]['-4 (3'] ||
-            screen[16]['-4 (4']) &&
+            screen[16]['-4 (4'] ||
+            screen[16]['-4 (5'] ||
+            screen[16]['-4 (6']) &&
            screen[16]['-6/'] }
   tms 'm'
   sleep 4
@@ -1840,8 +1842,8 @@ end
 
 ENV['HARPWISE_TESTING']='1'
 
-do_test 'id-72: record user licks' do
-  rfile = "#{$dotdir_testing}/user_lick_rec.wav"
+do_test 'id-72: record user in licks' do
+  rfile = "#{$dotdir_testing}/usr_lick_rec.wav"
   FileUtils.rm(rfile) if File.exist?(rfile)
   sound 40, 2
   new_session
@@ -1849,45 +1851,60 @@ do_test 'id-72: record user licks' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms :C_R
-  5.times {
+  expect { screen[0]['REC'] }
+  6.times {
     tms '1'
+    sleep 1
   }
   sleep 1
-  expect { screen[-8]['replay'] }
   expect(rfile) { File.exist?(rfile) }
+  expect { screen[-2]["#{rfile} ... (h for help)"] }
   kill_session
 end
 
 ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-73: advance in licks by played sound' do
-  sound 40, 2
+  sound 40, -5
   new_session
   tms 'harpwise licks a --start-with mape'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
-  expect { screen[1]['at 2 of 5 notes'] }
+  expect { screen[0]['at 2 of 6 notes'] }
 end
 
 ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-74: player for licks' do
+  FileUtils.rm $persistent_state_file if File.exist?($persistent_state_file)
   sound 40, 2
   ENV['HARPWISE_TESTING']='player'
   new_session
-  tms 'harpwise licks a --start-with mape'
+  tms 'harpwise licks a --start-with wade'
   tms :ENTER
-  wait_for_start_of_pipeline
   sleep 1
   tms ' '
-  expect { screen[1]['paused'] }
   sleep 1
+  expect { screen[8]['SPACE'] && screen[9] == ' to continue ...' }
   tms ' '
-  expect { screen[1]['go'] }
   sleep 1
+  expect { screen[9]['go'] }
+  tms '-'
+  sleep 1
+  expect { screen[9]['go replay'] }
+  tms 'v'
+  sleep 1
+  expect { screen[9]['go replay -24dB'] }
+  tms '<'
+  sleep 1
+  expect { screen[9]['x0.9'] }
+  tms 'h'
+  sleep 1
+  expect { screen[12]['Keys available while playing a recording:'] }
   tms 'q'
-  expect { screen[1]['testing player'] }
+  sleep 1
+  expect { screen[20]['continue'] }
 end
 
 ENV['HARPWISE_TESTING']='1'
@@ -1897,21 +1914,24 @@ do_test 'id-75: player for user recording' do
   new_session
   tms 'harpwise play user'
   tms :ENTER
-  wait_for_start_of_pipeline
   sleep 1
   tms ' '
-  expect { screen[1]['paused'] }
   sleep 1
+  expect { screen[6] == ' SPACE to continue ...' }
   tms ' '
-  expect { screen[1]['go'] }
   sleep 1
-  tms 'q'
+  expect { screen[6]['SPACE to continue ... go'] }
+  tms 'h'
+  sleep 1
+  expect { screen[1]['testing player'] }
+  tms 'x'
+  sleep 1
   expect { screen[1]['testing player'] }
 end
 
 ENV['HARPWISE_TESTING']='1'
 
-do_test 'id-75: player for pitch' do
+do_test 'id-76: player for pitch' do
   ENV['HARPWISE_TESTING']='player'
   new_session
   tms 'harpwise play pitch'
@@ -1930,7 +1950,7 @@ end
 
 ENV['HARPWISE_TESTING']='1'
 
-do_test 'id-76: player for interval' do
+do_test 'id-77: player for interval' do
   ENV['HARPWISE_TESTING']='player'
   new_session
   tms 'harpwise play interval'

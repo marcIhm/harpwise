@@ -26,6 +26,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   warbles_first_hole_seen = false
   warbles_announced = false
   first_round = true
+  for_testing_touched = false
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_freq] = nil
@@ -63,6 +64,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
+    if $testing && !for_testing_touched
+      FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started")
+      for_testing_touched = true
+    end
+
     $total_freqs += 1
     $perfctr[:handle_holes_this_first_freq] ||= Time.now.to_f
 

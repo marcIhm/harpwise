@@ -184,7 +184,6 @@ def sox_to_aubiopitch_to_queue
         end
   
   _, ppl_out, ppl_err, wait_thr = Open3.popen3(cmd)
-  touched = false
   if !IO.select([ppl_out], nil, nil, 4) || !wait_thr.alive?
     err(
       if IO.select([ppl_err], nil, nil, 2)
@@ -207,6 +206,7 @@ def sox_to_aubiopitch_to_queue
   # the one-piece pipeline. Read the comments twice, before
   # streamlining.
   #
+  # loop forever one frequency after the other
   loop do
     # gets (below) might block, so guard it by timeout
     Timeout.timeout(10) do
@@ -221,8 +221,13 @@ def sox_to_aubiopitch_to_queue
           err "No output (10 times within more than 5 secs) from: #{cmd}" if no_gets > 10
         end
         $freqs_queue.enq Float(line.split(' ',2)[1])
-        # Check for jitter. This will not find every case of jitter,
-        # but if jitter repeats, it will be found eventually.
+
+        # Check for jitter now and then. This will not find every case
+        # of jitter, but if jitter repeats, it will be found
+        # eventually.
+        #
+        # At the same time (now and then), we check more throughly for
+        # output of pipeline.
         iters += 1
         if iters == next_check_after_iters
           begin
@@ -241,18 +246,14 @@ def sox_to_aubiopitch_to_queue
           rescue ArgumentError
             err "Cannot understand below output of this command: #{ppl_cmd}\n" +
                 line.lines.map {|l| " >> #{l}"}.join
-          end
-        end
+          end  # check for invalid output
+        end  # check for jitter (now and then)
       end
     rescue Timeout::Error
       err "No output from: #{cmd}"
-    end     
+    end  # check for timeout in gets    
     
-    if $testing && !touched
-      FileUtils.touch("/tmp/#{File.basename($0)}_pipeline_started")
-      touched = true
-    end
-  end
+  end  # one frequency after the other
 end
 
 
@@ -372,7 +373,7 @@ class UserLickRecording
     @file_raw1 = "#{$dirs[:tmp]}/usr_lick_rec_raw1.wav"
     @file_raw2 = "#{$dirs[:tmp]}/usr_lick_rec_raw2.wav"
     @file_trimmed = "#{$dirs[:data]}/usr_lick_rec.wav"
-    @file_prev = "#{$dirs[:data]}/usr_lick_rec_previous.wav"
+    @file_prev = "#{$dirs[:data]}/usr_lick_rec_prev.wav"
     @sign_text = ' REC '
 
     @first_hole_good_at = nil
@@ -442,6 +443,7 @@ class UserLickRecording
     sys "sox #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
     @first_hole_good_at = nil
     @has_rec = true
+    @duration = sox_query(@file_trimmed, 'Length')
   end
 
   def play_rec

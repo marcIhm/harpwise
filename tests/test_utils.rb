@@ -170,6 +170,10 @@ end
 
 def read_testing_dump marker
   file = $testing_dump_template % marker
+  unless File.exist?(file)
+    pp screen
+    fail "Testing dump #{file} does not exist"
+  end
   dump = JSON.parse(File.read(file), symbolize_names: true)
   dump[:file_from] = file
   dump

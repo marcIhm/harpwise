@@ -162,12 +162,12 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
         print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:show_help]
         pplayer.pause
-        display_kb_help 'a recording', true, scroll_allowed,
+        display_kb_help 'a recording', scroll_allowed,
                         "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                           "      l: loop over recording   "
-        print "\e[#{$lines[:hint_or_message]}H" unless first_round
+        print "\e[#{$lines[:hint_or_message]}H"
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
@@ -362,8 +362,10 @@ def play_interactive_interval semi1, semi2
       end
     else
       if new_sound || !pplayer&.alive?
-        pplayer.kill
-        pplayer.check
+        if pplayer
+          pplayer.kill
+          pplayer.check
+        end
         if new_sound
           cmd = cmd_template % $vol.to_i
           synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
@@ -553,7 +555,7 @@ def play_holes_or_notes_simple holes_or_notes
         TAB,+: skip to end
             v: decrease volume     V: increase volume by 3dB
       end_of_content
-      # continue below help (first round only)
+      # continue below help
       print "\n"
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:vol_up]
@@ -647,7 +649,7 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
             v: decrease volume     V: increase volume by 3dB
       end_of_content
       # continue below help (first round only)
-      print "\n\n"
+      print "\n"
       at_line = [at_line + 10, $term_height].min if at_line
       $ctl_hole[:show_help] = false
     elsif $ctl_hole[:vol_up]
