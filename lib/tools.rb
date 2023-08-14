@@ -16,7 +16,8 @@ def do_tools to_handle
                    'edit-licks' => "invoke editor on your lickfile #{$lick_file}",
                    'el' => nil,
                    'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
-                   'ec' => nil}
+                   'ec' => nil,
+                   'transcribe' => 'try to transcribe given lick or music-file'}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -47,6 +48,8 @@ def do_tools to_handle
     tool_edit_licks to_handle
   when 'edit-config', 'ec'
     tool_edit_config to_handle
+  when 'transcribe'
+    tool_transcribe to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
   end
@@ -346,4 +349,55 @@ def tool_edit_config to_handle
 
   sys($editor + ' ' + $early_conf[:config_file_user])
   puts "\nEdited \e[0m\e[32m#{$early_conf[:config_file_user]}\e[0m\n\n"
+end
+
+
+def tool_transcribe to_handle
+
+  err "need a single argument" if to_handle.length == 0
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 1
+
+  $all_licks, $licks = read_licks
+
+  to_play = if File.exist?(to_handle[0])
+              puts "Assuming this file is in key of #{$key}"
+              to_handle[0]
+            elsif lick = $all_licks.find {|l| l[:name] == to_handle[0]}
+              err "This lick is in key of #{lick[:rec_key]}, but this program operates in #{$key}; please specify the key '#{lick[:rec_key]}' on the commandline explicitly" if lick[:rec_key] != $key
+              "#{$lick_dir}/recordings/#{lick[:rec]}"
+            else
+              err "Given agument '#{to_handle}' is neither a file to play nor the name of a lick"
+            end
+
+  puts "\nScanning #{to_play} ...\n"
+  cmd = get_pipeline_cmd(:sox, to_play)
+  _, ppl_out_err, wait_thr = Open3.popen2e(cmd)
+  good_lines = Array.new
+  bad_lines = Array.new
+  while wait_thr.alive?
+    line = ppl_out_err.gets
+    next unless line
+    begin
+      good_lines << line.split(' ',2).map {|f| Float(f)}
+    rescue ArgumentError
+      bad_lines << line
+    end
+  end
+  exst = wait_thr.value.exitstatus
+  if good_lines.length == 0 || ( exst && exst != 0 )
+    err "Command returnd #{exst} and produced no usable output:\n#{cmd}\n" +
+        if bad_lines.length 
+          bad_lines.map {|l| " >> #{l}"}.join
+        else
+          ''
+        end
+  end
+  $freq2hole = read_calibration
+  good_lines.each do |time, freq|
+    hole = describe_freq(freq)[0]
+    pp time, hole
+  end
+  # minimum number of consecutive equal samples needed
+  mincons = [10, 0.25 / $time_slice_secs].max.to_i
+  pp mincons
 end

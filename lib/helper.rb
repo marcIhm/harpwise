@@ -97,7 +97,7 @@ def puts_err_context
   end.select(&:itself)
   puts
   print "\e[0m\e[2m"
-  print "(result of argument processing so far: #{clauses.length > 0  ?  clauses.join(', ')  :  'none'};\n"
+  print "\n(result of argument processing so far: #{clauses.length > 0  ?  clauses.join(', ')  :  'none'};\n"
   if $early_conf
     puts " config from #{$early_conf[:config_file]} and #{$early_conf[:config_file_user]})"
   else

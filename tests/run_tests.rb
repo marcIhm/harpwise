@@ -622,9 +622,9 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 
   end
-  expect(licks[1]) { licks[1][:tags] == %w(testing x) }
-  expect(licks[2]) { licks[2][:tags] == %w(y) }
-  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z) }
+  expect(licks[1]) { licks[1][:tags] == %w(testing x no_rec) }
+  expect(licks[2]) { licks[2][:tags] == %w(y no_rec) }
+  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no_rec) }
   expect(licks[1]) { licks[1][:desc] == 'a b' }
   expect(licks[2]) { licks[2][:desc] == 'c b' }
   expect(licks[3]) { licks[3][:desc] == 'a d' }
@@ -856,12 +856,12 @@ do_test 'id-23: print list of licks' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["  wade,st-louis,feeling-bad ..... favorites,samples\n",
-   "  blues,mape ..... scales,theory\n",
-   "  box-i ..... box,i-chord\n",
-   "  box-iv ..... box,iv-chord\n",
-   "  box-v ..... box,v-chord\n",
-   "  simple-turn ..... turn\n",
+  ["  wade,st-louis,feeling-bad ..... favorites,samples,has_rec\n",
+   "  blues,mape ..... scales,theory,no_rec\n",
+   "  box-i ..... box,i-chord,no_rec\n",
+   "  box-iv ..... box,iv-chord,no_rec\n",
+   "  box-v ..... box,v-chord,no_rec\n",
+   "  simple-turn ..... turn,no_rec\n",
    "  special ..... advanced,samples\n",
    "  one ..... testing,x\n",
    "  two ..... y\n",

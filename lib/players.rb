@@ -38,9 +38,6 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
     end
     pplayer = PausablePlayer.new(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
-    started = Time.now.to_f
-    duration = 0.0
-    paused = false
 
     # loop to check repeatedly while the recording is beeing played
     begin
@@ -48,14 +45,12 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       handle_kb_play_recording
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
-        if paused
-          paused = pplayer.continue
+        if pplayer.paused?
+          pplayer.continue
           print "\e[0m\e[32mgo \e[0m"
         else
-          paused = pplayer.pause
-          duration += Time.now.to_f - started
-          started = Time.now.to_f
-          printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", duration
+          pplayer.pause
+          printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", pplayer.time_played
         end
       elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
@@ -140,7 +135,6 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
       return false
     end
     pplayer = PausablePlayer.new(cmd)
-    paused = false
     
     # loop to check repeatedly while the recording is beeing played
     begin
@@ -148,11 +142,11 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
       handle_kb_play_recording_simple
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
-        if paused
-          paused = pplayer.continue
+        if pplayer.paused
+          pplayer.continue
           print "\e[0m\e[32mgo \e[0m"
         else
-          paused = pplayer.pause
+          pplayer.pause
           printf "\e[0m\e[32m SPACE to continue ... \e[0m"
         end
       elsif $ctl_rec[:vol_up]
@@ -676,21 +670,37 @@ class PausablePlayer
   def initialize cmd
     @cmd = cmd
     _, @stdout_err, @wait_thr  = Open3.popen2e(cmd)
+    @started_at = Time.now.to_f
+    @sum_pauses = 0.0
+    @paused_at = nil
   end
   
   def pause
     Process.kill('TSTP', @wait_thr.pid) if @wait_thr.alive?
+    @paused_at ||= Time.now.to_f
     return true
   end
 
   def continue
     Process.kill('CONT', @wait_thr.pid) if @wait_thr.alive?
+    if @paused_at
+      @sum_pauses += Time.now.to_f - @paused_at
+      @paused_at = nil
+    end
     return false
+  end
+
+  def time_played
+    Time.now.to_f - @started_at - @sum_pauses
   end
   
   def kill
     Process.kill('KILL',@wait_thr.pid) if alive?
     @wait_thr.join
+  end
+
+  def paused?
+    !!@paused_at
   end
   
   def alive?
