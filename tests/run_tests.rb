@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 51
+num_exp = 52
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -693,6 +693,22 @@ do_test 'id-16c: play pitch' do
   tms 'F'
   sleep 2
   expect { screen[-3]['key of song: c  ,  matches key of harp: f'] }
+  tms ' '
+  sleep 1
+  expect { screen[22] == 'SPACE to continue ...' }
+  tms ' '
+  sleep 1
+  expect { screen[22]['go'] }
+  tms 'h'
+  sleep 1
+  expect { screen[16] == 'Keys available while playing a pitch:'}
+  tms 'x'
+  sleep 1
+  expect { screen[19]['continue'] }
+  # still alive after help ?
+  tms ' '
+  sleep 1
+  expect { screen[22] == 'SPACE to continue ...' }
   kill_session
 end
 
@@ -1687,7 +1703,22 @@ do_test 'id-62: play interval' do
   tms '+'
   sleep 2
   expect { screen[19]['to:   5st ,   -4 ,   d5'] }
-  kill_session
+  tms ' '
+  sleep 1
+  expect { screen[22] == 'SPACE to continue ...' }
+  tms ' '
+  sleep 1
+  expect { screen[22]['go'] }
+  tms 'h'
+  sleep 1
+  expect { screen[15]['Keys available while playing an interval:'] }
+  tms 'x'
+  sleep 1
+  expect { screen[21] == 'continue' }
+  # still alive after help ?
+  tms ' '
+  sleep 1
+  expect { screen[22] == 'SPACE to continue ...' }
 end
 
 do_test 'id-63: print interval' do
@@ -1851,7 +1882,7 @@ do_test 'id-72: record user in licks' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms :C_R
-  expect { screen[0]['REC'] }
+  expect { screen[0]['-REC-'] }
   6.times {
     tms '1'
     sleep 1
@@ -1923,49 +1954,15 @@ do_test 'id-75: player for user recording' do
   expect { screen[6]['SPACE to continue ... go'] }
   tms 'h'
   sleep 1
-  expect { screen[1]['testing player'] }
+  expect { screen[8] == 'Keys available while playing a recording:' }
   tms 'x'
   sleep 1
-  expect { screen[1]['testing player'] }
+  expect { screen[14]['continue'] }
+  # still alive after help ?
+  tms ' '
+  sleep 1
+  expect { screen[16] == ' SPACE to continue ...' }
 end
 
 ENV['HARPWISE_TESTING']='1'
-
-do_test 'id-76: player for pitch' do
-  ENV['HARPWISE_TESTING']='player'
-  new_session
-  tms 'harpwise play pitch'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  sleep 1
-  tms ' '
-  expect { screen[1]['paused'] }
-  sleep 1
-  tms ' '
-  expect { screen[1]['go'] }
-  sleep 1
-  tms 'q'
-  expect { screen[1]['testing player'] }
-end
-
-ENV['HARPWISE_TESTING']='1'
-
-do_test 'id-77: player for interval' do
-  ENV['HARPWISE_TESTING']='player'
-  new_session
-  tms 'harpwise play interval'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  sleep 1
-  tms ' '
-  expect { screen[1]['paused'] }
-  sleep 1
-  tms ' '
-  expect { screen[1]['go'] }
-  sleep 1
-  tms 'q'
-  expect { screen[1]['testing player'] }
-end
-
-puts "\ndone.\n\n"
 

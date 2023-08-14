@@ -374,7 +374,7 @@ class UserLickRecording
     @file_raw2 = "#{$dirs[:tmp]}/usr_lick_rec_raw2.wav"
     @file_trimmed = "#{$dirs[:data]}/usr_lick_rec.wav"
     @file_prev = "#{$dirs[:data]}/usr_lick_rec_prev.wav"
-    @sign_text = ' REC '
+    @sign_text = '-REC-'
 
     @first_hole_good_at = nil
     @rec_started_at = nil

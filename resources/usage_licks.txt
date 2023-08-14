@@ -33,7 +33,14 @@ USAGE BY EXAMPLES
   
     harpwise licks c
 
-  The same, but only choose from licks with tags 'fav' or 'scales'
+  Similar, but only choose from licks with tags 'fav' and 'has_rec'
+
+    harpwise licks c --tags-all fav,has_rec
+
+  This employs the automatic tag 'has_rec', which is added to each
+  lick, that has a recording. The opposite is 'no_rec'.
+  
+  Similar, but only choose from licks with tags 'fav' or 'scales'
 
     harpwise licks c --tags-any fav,scales
 

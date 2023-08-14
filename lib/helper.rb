@@ -135,7 +135,7 @@ end
 
 def display_kb_help what, scroll_allowed, body
   if scroll_allowed
-    puts "\n\n\e[0m"
+    puts "\n\e[0m"
   else
     clear_area_comment
     puts "\e[#{$lines[:help]}H\e[0m"

@@ -2,7 +2,7 @@
 # Playing under user control
 #
 
-def play_recording_and_handle_kb recording, start, length, key, first_round = true, octave_shift = 0
+def play_recording_and_handle_kb recording, start, length, key, scroll_allowed = true, octave_shift = 0
 
   trim_clause = if start && length
                   # for positive length this is different than written in the man page of sox ?!
@@ -31,7 +31,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
     cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
-      cmd = 'sleep 600'
+      cmd = 'sleep 600 ### ' + cmd
     elsif $testing
       sleep 4
       return false
@@ -71,7 +71,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
         print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:show_help]
         pplayer.pause
-        display_kb_help 'a recording', first_round,
+        display_kb_help 'a recording', scroll_allowed,
                         "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
@@ -79,7 +79,7 @@ def play_recording_and_handle_kb recording, start, length, key, first_round = tr
                         "      l: loop over recording   " +
                         ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
                         ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
-        print "\e[#{$lines[:hint_or_message]}H" unless first_round
+        print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
@@ -130,6 +130,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
   # immediate controls triggered while it is playing
   begin
 
+    imm_ctrls_again.each {|k| $ctl_rec[k] = false}
     cmd = "play --norm=#{$vol.to_i} -q -V1 #{recording}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
@@ -166,8 +167,8 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
                         "  SPACE: pause/continue\n" + 
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
-                          "      l: loop over recording   "
-        print "\e[#{$lines[:hint_or_message]}H"
+                        "      l: loop over recording"
+        print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
@@ -224,7 +225,7 @@ def play_interactive_pitch embedded = false
 
     # we also loop when paused
     if paused
-      if pplayer&.alive
+      if pplayer&.alive?
         pplayer.kill
         pplayer.check
       end

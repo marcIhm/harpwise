@@ -68,6 +68,7 @@ def read_licks graceful = false
                                       [lick[:tags_add] || default[:tags_add]] +
                                       starred
                                      ).flatten.select(&:itself),name).sort.uniq
+          lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
 
           lick[:desc] = lick[:desc] || default[:desc] || ''
           if lick[:desc_add] && lick[:desc_add].length > 0
@@ -236,7 +237,7 @@ def read_licks graceful = false
     end
   end
 
-  tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
+  tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec)}.flatten.sort_by(&:to_s))
   [['--tags-any', keep_any],
    ['--tags-all', keep_all],
    ['--no-tags-any', discard_any],

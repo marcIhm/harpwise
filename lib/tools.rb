@@ -13,7 +13,10 @@ def do_tools to_handle
                    'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
                    'search' => nil,
                    'chart' => 'harmonica chart',
-                   'edit-licks' => "invoke editor on your lickfile #{$lick_file}"}
+                   'edit-licks' => "invoke editor on your lickfile #{$lick_file}",
+                   'el' => nil,
+                   'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
+                   'ec' => nil}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -40,8 +43,10 @@ def do_tools to_handle
     tool_search to_handle
   when 'chart'
     tool_chart to_handle
-  when 'edit-licks'
+  when 'edit-licks', 'el'
     tool_edit_licks to_handle
+  when 'edit-config', 'ec'
+    tool_edit_config to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
   end
@@ -330,6 +335,15 @@ def tool_edit_licks to_handle
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
 
-  system($editor + ' ' + $lick_file)
+  sys($editor + ' ' + $lick_file)
   puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
+end
+
+
+def tool_edit_config to_handle
+
+  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+
+  sys($editor + ' ' + $early_conf[:config_file_user])
+  puts "\nEdited \e[0m\e[32m#{$early_conf[:config_file_user]}\e[0m\n\n"
 end
