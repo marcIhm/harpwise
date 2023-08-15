@@ -338,7 +338,7 @@ def tool_edit_licks to_handle
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
 
-  sys($editor + ' ' + $lick_file)
+  system($editor + ' ' + $lick_file)
   puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
 end
 
@@ -347,7 +347,7 @@ def tool_edit_config to_handle
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
 
-  sys($editor + ' ' + $early_conf[:config_file_user])
+  system($editor + ' ' + $early_conf[:config_file_user])
   puts "\nEdited \e[0m\e[32m#{$early_conf[:config_file_user]}\e[0m\n\n"
 end
 
@@ -359,17 +359,24 @@ def tool_transcribe to_handle
 
   $all_licks, $licks = read_licks
 
+  puts
   to_play = if File.exist?(to_handle[0])
-              puts "Assuming this file is in key of #{$key}"
+              puts "Assuming this file is in key of #{$key}; please specify\ncorrect key on commandline if not."
               to_handle[0]
             elsif lick = $all_licks.find {|l| l[:name] == to_handle[0]}
-              err "This lick is in key of #{lick[:rec_key]}, but this program operates in #{$key}; please specify the key '#{lick[:rec_key]}' on the commandline explicitly" if lick[:rec_key] != $key
+              err "Lick #{lick[:name]} has no recording" unless lick[:rec]
+              puts "Lick is in key of #{lick[:rec_key]}."
+              if lick[:rec_key] != $key
+                $key = lick[:rec_key]
+                set_global_vars_late
+                set_global_musical_vars
+              end
               "#{$lick_dir}/recordings/#{lick[:rec]}"
             else
               err "Given agument '#{to_handle}' is neither a file to play nor the name of a lick"
             end
 
-  puts "\nScanning #{to_play} ...\n"
+  puts "\n\e[2mScanning #{to_play} with aubiopitch ...\e[0m"
   cmd = get_pipeline_cmd(:sox, to_play)
   _, ppl_out_err, wait_thr = Open3.popen2e(cmd)
   good_lines = Array.new
@@ -392,12 +399,56 @@ def tool_transcribe to_handle
           ''
         end
   end
+  puts "\e[2mdone.\e[0m"
+
+  # we do not require a calibration for tools generally; so do it late here
   $freq2hole = read_calibration
+
+  # form batches with he same note
+  batched = [[[0, :low]]]
   good_lines.each do |time, freq|
     hole = describe_freq(freq)[0]
-    pp time, hole
+    if hole == batched[-1][-1][1]
+      batched[-1] << [time, hole]
+    else
+      batched << [[time, hole]]
+    end
   end
+
   # minimum number of consecutive equal samples needed
-  mincons = [10, 0.25 / $time_slice_secs].max.to_i
-  pp mincons
+  mincons = [5, 0.2 / $time_slice_secs].max.to_i
+
+  # keep only these batches, that are notes and played long enough
+  lasting = Array.new
+  batched.each do |batch|
+    if regular_hole?(batch[0][1]) && batch.length > mincons
+      lasting << [batch[0], batch[-1][0] - batch[0][0]].flatten
+    end
+  end
+
+  puts "\n\nHoles found at secs:"
+  puts
+  ts_with_holes = Array.new
+  line = '  '
+  line_len = 2
+  lasting.each_with_index do |th, idx|
+    sketch = " %s#{'%3.1f' % th[0]}:%s #{th[1]}  %s"
+    field = sketch % ["\e[2m", "\e[0m\e[32m", "\e[0m"]
+    ts_with_holes << [th[0], field]
+    field_len = (sketch % ['', '', '']).length
+    if line_len + field_len > $term_width - 2 
+      puts line
+      line = '  ' + field
+      line_len = 2 + field_len
+    else
+      line += field
+      line_len += field_len
+    end
+  end
+  puts line
+
+  print "\nPlaying:\n\n  "
+  play_recording_and_handle_kb_simple to_play, true, ts_with_holes
+  puts "\n\n\n"
+
 end

@@ -32,7 +32,7 @@
 
   # This has the tags 'samples' and 'favorites', that can be used
   # to select among a larger number of licks
-  tags = samples favorites
+  tags = samples favorites fav
 
   # Key of 'c' is the default key, use this if the recording
   # is done with a different harmonica

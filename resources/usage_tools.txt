@@ -21,6 +21,9 @@ OVERVIEW
   - search-in-licks: search given sequence of holes among licks,
     matching equivalent holes too
   - edit-licks: a convenient way to edit your lick file
+  - edit-config: edit your personal configuration
+  - transcribe: estimate a sequence of holes, that matches the given
+    lick or music-file
   
 USAGE BY EXAMPLES
 

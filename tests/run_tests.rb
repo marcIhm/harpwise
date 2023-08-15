@@ -32,7 +32,6 @@ $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
 $all_testing_licks = %w(wade st-louis feeling-bad blues mape box-i box-iv box-v simple-turn special one two three long)
-$persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
@@ -42,6 +41,7 @@ $started_at = Time.now.to_f
 $dotdir_testing = "#{Dir.home}/dot_harpwise"
 $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
+$persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 # remove these to get clean even if we do not rebuild completely
 Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 # This will make harpwise look into $dotdir_testing
@@ -835,7 +835,7 @@ do_test 'id-21: mode licks with --start-with' do
   tms 'harpwise licks --start-with wade a'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['wade | favorites,samples'] }
+  expect { screen[-2]['wade | fav,favorites,samples'] }
   expect { screen[-1]['Wade in the Water'] }
   kill_session
 end
@@ -846,7 +846,7 @@ do_test 'id-22: print list of tags' do
   tms :ENTER
   sleep 2
   # for licks that match this tag
-  expect { screen[14]['Total number of licks:   4'] }
+  expect { screen[15]['Total number of licks:   4'] }
   kill_session
 end
 
@@ -856,17 +856,18 @@ do_test 'id-23: print list of licks' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["  wade,st-louis,feeling-bad ..... favorites,samples,has_rec\n",
+  ["  wade ..... fav,favorites,samples,has_rec\n",
+   "  st-louis,feeling-bad ..... favorites,samples,has_rec\n",
    "  blues,mape ..... scales,theory,no_rec\n",
    "  box-i ..... box,i-chord,no_rec\n",
    "  box-iv ..... box,iv-chord,no_rec\n",
    "  box-v ..... box,v-chord,no_rec\n",
    "  simple-turn ..... turn,no_rec\n",
-   "  special ..... advanced,samples\n",
-   "  one ..... testing,x\n",
-   "  two ..... y\n",
-   "  three ..... fav,favorites,testing,z\n",
-   "  long ..... testing,x\n"].each_with_index do |exp,idx|
+   "  special ..... advanced,samples,no_rec\n",
+   "  one ..... testing,x,no_rec\n",
+   "  two ..... y,no_rec\n",
+   "  three ..... fav,favorites,testing,z,no_rec\n",
+   "  long ..... testing,x,has_rec\n"].each_with_index do |exp,idx|
     expect(lines,exp,idx) { lines[10+idx] == exp }
   end
   kill_session
@@ -882,10 +883,12 @@ do_test 'id-23a: overview report for all licks' do
    " -----------------------------------------\n",
    "  advanced                             1\n",
    "  box                                  3\n",
-   "  fav                                  1\n",
+   "  fav                                  2\n",
    "  favorites                            4\n",
+   "  has_rec                              4\n",
    "  i-chord                              1\n",
    "  iv-chord                             1\n",
+   "  no_rec                              10\n",
    "  samples                              4\n",
    "  scales                               2\n",
    "  testing                              3\n",
@@ -896,8 +899,8 @@ do_test 'id-23a: overview report for all licks' do
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               28\n",
-   "  Total number of different tags:     15\n",
+   "  Total number of tags:               43\n",
+   "  Total number of different tags:     17\n",
    " -----------------------------------------\n",
    "  Total number of licks:              14\n"].each_with_index do |exp,idx|
     expect(lines[10+idx],exp,idx,lines) { lines[10+idx] == exp }
@@ -1147,7 +1150,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
-  3.times {tms :RIGHT}
+  4.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
   tms :ENTER
@@ -1237,7 +1240,7 @@ do_test 'id-42: error on journal in play' do
   tms 'harpwise play journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[17]['ERROR'] }
+  expect { screen[16]['ERROR'] }
   kill_session
 end
 
@@ -1307,7 +1310,7 @@ do_test 'id-46a: verify persistent tag "starred"' do
   tms 'harpwise report licks 2>/dev/null | head -20'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[-13]['wade ..... favorites,samples,starred'] }
+  expect { screen[-13]['wade ..... fav,favorites,samples,starred,has_rec'] }
   kill_session
 end
 
@@ -1877,6 +1880,7 @@ do_test 'id-72: record user in licks' do
   rfile = "#{$dotdir_testing}/usr_lick_rec.wav"
   FileUtils.rm(rfile) if File.exist?(rfile)
   sound 40, 2
+  ENV['HARPWISE_TESTING']='player'
   new_session
   tms 'harpwise licks a --start-with mape'
   tms :ENTER
@@ -1887,9 +1891,9 @@ do_test 'id-72: record user in licks' do
     tms '1'
     sleep 1
   }
-  sleep 1
+  sleep 2
   expect(rfile) { File.exist?(rfile) }
-  expect { screen[-2]["#{rfile} ... (h for help)"] }
+  expect { screen[-2]["#{rfile}"] }
   kill_session
 end
 
@@ -1903,6 +1907,7 @@ do_test 'id-73: advance in licks by played sound' do
   wait_for_start_of_pipeline
   sleep 1
   expect { screen[0]['at 2 of 6 notes'] }
+  kill_session
 end
 
 ENV['HARPWISE_TESTING']='1'
@@ -1926,16 +1931,17 @@ do_test 'id-74: player for licks' do
   expect { screen[9]['go replay'] }
   tms 'v'
   sleep 1
-  expect { screen[9]['go replay -24dB'] }
+  expect { screen[9]['go replay -9dB'] }
   tms '<'
   sleep 1
   expect { screen[9]['x0.9'] }
   tms 'h'
   sleep 1
-  expect { screen[12]['Keys available while playing a recording:'] }
+  expect { screen[11]['Keys available while playing a recording:'] }
   tms 'q'
   sleep 1
-  expect { screen[20]['continue'] }
+  expect { screen[19]['continue'] }
+  kill_session
 end
 
 ENV['HARPWISE_TESTING']='1'
@@ -1962,7 +1968,22 @@ do_test 'id-75: player for user recording' do
   tms ' '
   sleep 1
   expect { screen[16] == ' SPACE to continue ...' }
+  kill_session
 end
 
 ENV['HARPWISE_TESTING']='1'
 
+do_test 'id-76: transcribe a lick' do
+  ENV['HARPWISE_TESTING']='player'
+  new_session
+  tms 'harpwise tools transcribe wade'
+  tms :ENTER
+  sleep 5
+  expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2'] }
+  expect { screen[16]['0.7: -2   1.9: -3/   2.8: -2'] }
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
+
+puts

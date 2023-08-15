@@ -2,9 +2,9 @@
 # Utilities for testing with run.rb
 #
 
-def new_session x = $term_min_width, y = $term_min_height
+def new_session x = $term_min_width, y = $term_min_height  
   kill_session 
- #
+  #
   # The simple command below does not work because of a bug in tmux 3.2a:
   # (use 'tmux -V' to get version)
   #

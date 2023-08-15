@@ -171,7 +171,7 @@ def set_global_vars_early
   # also sets $warbles and clears $warbles_other_hole
   clear_warbles
   
-  # different volumes for recordings and pitch
+  # The same volume for recordings and pitch
   $vol = Volume.new(-6)
 end
 

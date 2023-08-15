@@ -355,7 +355,6 @@ def handle_kb_play_recording_simple
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
-
   if char == ' '
     $ctl_rec[:pause_continue] = true
   elsif char == 'v'

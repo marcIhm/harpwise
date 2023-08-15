@@ -366,7 +366,7 @@ class UserLickRecording
 
   include Singleton
 
-  attr_accessor :first_hole_good_at
+  attr_accessor :first_hole_good_at, :duration
   
   def initialize
     @active = false

@@ -116,11 +116,11 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
 end
 
 
-def play_recording_and_handle_kb_simple recording, scroll_allowed
+def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comments = nil
 
   imm_ctrls_again = [:replay, :vol_up, :vol_down]
   loop_message_printed = false
-  
+
   # loop as long as the recording needs to be played again due to
   # immediate controls triggered while it is playing
   begin
@@ -142,7 +142,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
       handle_kb_play_recording_simple
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
-        if pplayer.paused
+        if pplayer.paused?
           pplayer.continue
           print "\e[0m\e[32mgo \e[0m"
         else
@@ -171,6 +171,13 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed
         print "\e[0m\e[32mjump to end \e[0m"
       end
 
+      if timed_comments && timed_comments.length > 0
+        if pplayer.time_played > timed_comments[0][0]
+          print timed_comments[0][1]
+          timed_comments.shift
+        end
+      end
+
       if $ctl_rec[:loop] && !loop_message_printed
         print "\e[0m\e[32mloop (+ to end)\e[0m"
         loop_message_printed = true
@@ -196,7 +203,6 @@ def play_interactive_pitch embedded = false
   paused = false
   pplayer = nil
   cmd = cmd_was = nil
-
   sleep 0.1 if embedded
   puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is playing at the same time."
   puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
