@@ -230,6 +230,8 @@ def do_quiz_or_licks
     end
     full_seq_shown = false
 
+    $ulrec.reset_rec
+    
     # precompute some values, that do not change during sequence
     min_sec_hold =  $mode == :licks  ?  0.0  :  0.1
 

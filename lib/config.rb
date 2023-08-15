@@ -25,7 +25,7 @@ def set_global_vars_early
   $conf_meta[:sections_aliases] = {:report => :licks}
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
-    :licks => [:tags_any],
+    :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
     :calibrate => [:auto_synth_db],
     :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
   }

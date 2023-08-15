@@ -405,7 +405,7 @@ class UserLickRecording
   
   def toggle_active
     @active = !@active
-    ensure_end_rec unless @active
+    reset_rec if !@active
   end
 
   def ensure_end_rec
@@ -446,6 +446,14 @@ class UserLickRecording
     @duration = sox_query(@file_trimmed, 'Length')
   end
 
+  def reset_rec
+    stop_rec
+    @first_hole_good_at = nil
+    @rec_started_at = nil
+    @has_rec = false
+    @rec_pid = nil
+  end
+  
   def play_rec
     fail 'Internal error: no rec' unless @has_rec
     play_recording_and_handle_kb_simple @file_trimmed, false
