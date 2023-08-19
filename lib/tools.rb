@@ -17,7 +17,8 @@ def do_tools to_handle
                    'el' => nil,
                    'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
                    'ec' => nil,
-                   'transcribe' => 'try to transcribe given lick or music-file'}
+                   'transcribe' => 'transcribe given lick or music-file approximately',
+                   'trans' => nil}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -48,7 +49,7 @@ def do_tools to_handle
     tool_edit_licks to_handle
   when 'edit-config', 'ec'
     tool_edit_config to_handle
-  when 'transcribe'
+  when 'transcribe', 'trans'
     tool_transcribe to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
@@ -365,9 +366,10 @@ def tool_transcribe to_handle
               to_handle[0]
             elsif lick = $all_licks.find {|l| l[:name] == to_handle[0]}
               err "Lick #{lick[:name]} has no recording" unless lick[:rec]
-              puts "Lick is in key of #{lick[:rec_key]}."
+              puts "Lick is for harp key of #{lick[:rec_key]}."
               if lick[:rec_key] != $key
                 $key = lick[:rec_key]
+                # change $key, etc
                 set_global_vars_late
                 set_global_musical_vars
               end
@@ -428,27 +430,33 @@ def tool_transcribe to_handle
 
   puts "\n\nHoles found at secs:"
   puts
-  ts_with_holes = Array.new
+  # construct this alongside and use it later
+  ts_with_holes_durations = Array.new
   line = '  '
   line_len = 2
-  lasting.each_with_index do |th, idx|
-    sketch = " %s#{'%3.1f' % th[0]}:%s #{th[1]}  %s"
-    field = sketch % ["\e[2m", "\e[0m\e[32m", "\e[0m"]
-    ts_with_holes << [th[0], field]
-    field_len = (sketch % ['', '', '']).length
-    if line_len + field_len > $term_width - 2 
+  lasting.each_with_index do |thl, idx| # thl = timestamp, hole, length
+
+    sketch_du = " %s#{thl[1]} %s(#{'%.1f' % thl[2]})  %s"
+    field_du = sketch_du % ["\e[0m\e[32m", "\e[0m\e[2m", "\e[0m"]
+    ts_with_holes_durations << [thl[0], field_du]
+
+    sketch_ts = " %s#{'%3.1f' % thl[0]}:%s #{thl[1]}  %s"
+    field_ts = sketch_ts % ["\e[0m\e[2m", "\e[0m\e[32m", "\e[0m"]
+    field_ts_len = (sketch_ts % ['', '', '']).length
+    if line_len + field_ts_len > $term_width - 2 
       puts line
-      line = '  ' + field
-      line_len = 2 + field_len
+      line = '  ' + field_ts
+      line_len = 2 + field_ts_len
     else
-      line += field
-      line_len += field_len
+      line += field_ts
+      line_len += field_ts_len
     end
   end
   puts line
 
-  print "\nPlaying:\n\n  "
-  play_recording_and_handle_kb_simple to_play, true, ts_with_holes
+  # if necessary we have changed our key to match the lick
+  print "\nPlaying \e[2m(as recorded, for a #{$key}-harp)\e[0m:"
+  play_recording_and_handle_kb_simple to_play, true, ts_with_holes_durations
   puts "\n\n\n"
 
 end

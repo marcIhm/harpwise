@@ -330,7 +330,14 @@ end
 def play_and_print_lick lick
   sleep 1 if $ctl_rec[:loop_loop]
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
-    puts "Lick #{lick[:name]} \e[2m(h for help)\e[0m\n" + lick[:holes].join(' ')
+    puts "Lick #{lick[:name]}\e[2m" +
+         if lick[:rec_key] == $key
+           ", recorded and played on a #{$key}-harp"
+         else
+           ", recorded with a #{lick[:rec_key]}-harp, shifted for #{$key}"
+         end +
+         " (h for help)\e[0m\n" +
+         lick[:holes].join(' ')
     print "\e[0m\e[2m"
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?

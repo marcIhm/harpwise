@@ -1979,8 +1979,8 @@ do_test 'id-76: transcribe a lick' do
   tms 'harpwise tools transcribe wade'
   tms :ENTER
   sleep 5
-  expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2'] }
-  expect { screen[16]['0.7: -2   1.9: -3/   2.8: -2'] }
+  expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2   3.4: -2'] }
+  expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.3)   -3/ (0.3)   -2 (0.4)'] }
   kill_session
 end
 
