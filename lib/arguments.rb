@@ -367,11 +367,12 @@ def get_scale_from_sws scale_w_short, graceful = false   # get_scale_from_scale_
       nil
     else
       scale_glob = $scale_files_template % [$type, '*', '*']
-      err "Scale (%s) must be one of #{choices}, i.e. scales matching #{scale_glob}; not #{none}" %
+      err "Scale (%s) must be one of #{choices}, i.e. scales matching #{scale_glob}; not #{none}%s" %
           if scale == $scale
-            'main scale'
+            ['main scale', '']
           else
-            'given in option --add-scales'
+            ["given in option --add-scales or in configuration files",
+             ", Hint: use '--add-scaless -' to ignore the value from the config-files"]
           end
     end
   end

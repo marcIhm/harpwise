@@ -135,8 +135,8 @@ def print_holes_and_more holes_or_notes
     print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
   end
-  puts "\e[2mWith notes:\e[0m"
-  print_in_columns(noteify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+  puts "\e[2mNotes:\e[0m"
+  print_in_columns(holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon})
   puts
   puts "\e[2mWith holes:\e[0m"
   print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})

@@ -1416,13 +1416,15 @@ do_test 'id-53: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect { lines[13]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
-  expect { lines[17]['-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-'] }
-  expect { lines[21]['-1.Ton      +2.2st      -2.3st     -3/.3st      +3.Si-O'] }
-  expect { lines[25]['-1.Ton    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st'] }
-  expect { lines[29]['-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st'] }
-  expect { lines[33]['-7  -5  -2   1  -2   1   0  -2'] }
-  expect { lines[35]['Description: St. Louis Blues'] }
+  {13 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
+   16 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
+   20 => '-1.Ton      +2.2st      -2.3st     -3/.3st      +3.Si-O',
+   24 => '-1.Ton    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   28 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   32 => '-7  -5  -2   1  -2   1   0  -2',
+   34 => 'Description: St. Louis Blues'}.each do |lno, exp|
+    expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
+  end
   kill_session
 end
 
@@ -1749,7 +1751,7 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-1.b3  a5.-   +4.a4  d2.-'] }
+  expect { screen[5]['b3  a5  a4  d2'] }
   expect { screen[8]['-1.-   a5.+7  +4.-   d2.-'] }
   expect { screen[14]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
   kill_session
@@ -1985,5 +1987,14 @@ do_test 'id-76: transcribe a lick' do
 end
 
 ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-77: print for chromatic' do
+  new_session
+  tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
+  tms :ENTER
+  sleep 1
+  expect { screen[8]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
+  kill_session
+end
 
 puts
