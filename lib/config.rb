@@ -825,7 +825,7 @@ def set_global_musical_vars
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
-  $freq2hole = read_calibration unless [:calibrate, :report, :print, :tools].include?($mode)
+  $freq2hole = read_calibration unless [:calibrate, :report, :print, :tools, :develop].include?($mode)
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]

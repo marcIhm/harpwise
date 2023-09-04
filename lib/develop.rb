@@ -129,13 +129,13 @@ end
 def task_selftest
 
   puts
-  puts_underlined "Running selftest"
+  puts_underlined "Performing selftest"
 
-  puts_underlined "Check installation"
+  puts_underlined "Check installation", '-', dim: false
   check_installation verbose: true
 
   puts
-  puts_underlined "Figlet output"
+  puts_underlined "Figlet output", '-', dim: false
   expected_figlet_outputs = [ '▀▀ ▘▝ ▘▀▀  ▘▝▀ ▝▀ ▘ ▘',
                               '  ████▄██▄   ▄████▄   ██▄████▄   ▄████▄      ██           ██',
                               '  █ █ █  █▀ ▀█  █▀  █  █▀ ▀█  █▄  ▄█',
@@ -148,25 +148,28 @@ def task_selftest
     found[expected] or err("Unexpected figlet output for font #{font}: #{found} does not contain #{expected}")
   end
 
+  test_hole = '+1'
   puts
-  puts_underlined "Generating sound with sox"
-  synth_sound "+1", $helper_wave
+  puts_underlined "Generating sound with sox", '-', dim: false
+  synth_sound test_hole, $helper_wave
   system("ls -l #{$helper_wave}")
 
   puts
-  puts_underlined "Frequency pipeline"
-  puts "Note: Some errors in first lines are expected (when tried codecs give up)."
+  puts_underlined "Frequency pipeline from previously generated sound", '-', dim: false
+  cmd = get_pipeline_cmd(:sox, $helper_wave)
+  puts "Command is: #{cmd}"
   puts
-  cmd = get_pipeline_cmd(:sox, "#{$dirs[:install]}/recordings/wade.mp3")
+  puts "Note: Some errors in first lines are expected, because\n      multiple codecs are tried and some of them give up."
+  puts
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
   output = Array.new
   loop do
     line = stdout_err.gets
     output << line
-    if output.length == 10
+    if output.length == 40
       begin
         line or raise ArgumentError
-        line.split(' ',2).each {|f| Float(f)}
+        line.split(' ', 2).each {|f| Float(f)}
       rescue ArgumentError
         err "Unexpected output of: #{cmd}\n:#{output.compact}"
       end
@@ -174,10 +177,16 @@ def task_selftest
       break
     end
   end
-  pp output
-  puts "Remark: this may compare with the time-slice of #{$time_slice_secs}"
+  puts 'Some samples from the middle of the interval:'
+  mid = output.length / 2
+  pp output[mid - 5 .. mid + 5]
+  puts
+  puts "Remark: this may be compared with"
+  puts " - Time-slice of #{$time_slice_secs}"
+  puts " - Frequency (et) for test-hole #{test_hole} of #{semi2freq_et($harp[test_hole][:semi])}"
 
   puts
-  puts "Final Result: Selftest Okay."
+  puts
+  puts "Selftest done."
   puts
 end
