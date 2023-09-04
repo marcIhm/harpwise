@@ -150,18 +150,22 @@ def print_holes_and_more holes_or_notes
   puts "\e[2mWith intervals to first as semitones:\e[0m"
   print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
   puts
-  puts "\e[2mAs absolute semitones:\e[0m"
-  print_in_columns(holes_or_notes.map do |hon|
-                     note2semi(
-                       if $harp_holes.include?(hon)
-                         $hole2note[hon]
-                       else
-                         hon
-                       end
-                     ).to_s
-                   end,
-                   pad: :tabs)
+  puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
+  print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
   puts 
+  puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
+  print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+end
+
+
+def hon2semi hon
+  note2semi(
+    if $harp_holes.include?(hon)
+      $hole2note[hon]
+    else
+      hon
+    end
+  ).to_s
 end
 
 
