@@ -163,30 +163,45 @@ def task_selftest
   puts
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)
   output = Array.new
+  to_test = Array.new
   loop do
     line = stdout_err.gets
     output << line
-    if output.length == 40
+    if output.length > 10
       begin
         line or raise ArgumentError
-        line.split(' ', 2).each {|f| Float(f)}
+        to_test << line.split(' ', 2).map {|f| Float(f)}
       rescue ArgumentError
         err "Unexpected output of: #{cmd}\n:#{output.compact}"
       end
+    end
+    if output.length == 40
       Process.kill('KILL',wait_thr.pid)
       break
     end
   end
   puts 'Some samples from the middle of the interval:'
-  mid = output.length / 2
-  pp output[mid - 5 .. mid + 5]
+  mid = to_test.length / 2
+  to_test = to_test[mid - 5 .. mid + 5]
+  pp to_test
   puts
-  puts "Remark: this may be compared with"
-  puts " - Time-slice of #{$time_slice_secs}"
-  puts " - Frequency (et) for test-hole #{test_hole} of #{semi2freq_et($harp[test_hole][:semi])}"
+  
+  max_pct = 5
+  to_test.each_cons(2) do |a, b|
+    tss = b[0] - a[0]
+    pct = ( 100 * ( tss - $time_slice_secs ) / $time_slice_secs ).abs.round(2)
+    fail "Actual time slice #{b[0]} - #{a[0]} = #{tss} is too different from expected value #{$time_slice_secs}: #{pct}% percent > #{max_pct}%" if pct > max_pct
+  end
+  puts "Test Okay: time differences are near expected time-slice #{$time_slice_secs}"
+  freq = semi2freq_et($harp[test_hole][:semi])
+  to_test.each do |tf|
+    pct = ( 100 * ( tf[1] - freq ) / freq ).abs.round(2)
+    err "Actual frequency #{tf[1]} is too different from expected value #{freq}: #{pct}% percent > #{max_pct}%" if pct > max_pct
+  end
+  puts "Test Okay: detected frequencies are near expected frequency #{freq}"
 
   puts
-  fail "Internal error: no user config directory yet: #{$dirs[:data]}" unless File.exist?($dirs[:data])
+  err "Internal error: no user config directory yet: #{$dirs[:data]}" unless File.exist?($dirs[:data])
   if $dirs_data_created
     puts "Remark: user config directory has been created: #{$dirs[:data]}"
   else
