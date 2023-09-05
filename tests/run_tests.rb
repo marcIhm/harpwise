@@ -1422,7 +1422,7 @@ do_test 'id-53: print' do
    24 => '-1.Ton    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    28 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    32 => '-7  -5  -2   1  -2   1   0  -2',
-   34 => 'Description: St. Louis Blues'}.each do |lno, exp|
+   36 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1433,7 +1433,7 @@ do_test 'id-53a: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[14]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[13]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1494,8 +1494,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[12] == 'With intervals to first:' }
-  expect { screen[18] == 'As absolute semitones:' }
+  expect { screen[10] == 'With intervals to first:' }
+  expect { screen[16] == 'As absolute semitones (a4 = 0):' }
   kill_session
 end
 
@@ -1751,9 +1751,9 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[5]['b3  a5  a4  d2'] }
-  expect { screen[8]['-1.-   a5.+7  +4.-   d2.-'] }
-  expect { screen[14]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
+  expect { screen[3]['b3  a5  a4  d2'] }
+  expect { screen[6]['-1.-   a5.+7  +4.-   d2.-'] }
+  expect { screen[12]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
   kill_session
 end
 
@@ -1993,7 +1993,7 @@ do_test 'id-77: print for chromatic' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[8]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
+  expect { screen[6]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
   kill_session
 end
 
