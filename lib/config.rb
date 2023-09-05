@@ -178,6 +178,7 @@ end
 
 def find_and_check_dirs
   $dirs = Hash.new
+  $dirs_data_created = false
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
   $dirs[:install_devel] = if $testing || !File.directory?(File.expand_path('~') + '/harpwise')
                             '/TESTING_SO_DIR_HARPWISE_DEVEL_SHOULD_NOT_EXIST'
@@ -195,6 +196,7 @@ def find_and_check_dirs
     err "Directory #{$dirs[:data]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[:data]} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?($dirs[:data])
   else
     FileUtils.mkdir_p($dirs[:data])
+    $dirs_data_created = true
   end
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"

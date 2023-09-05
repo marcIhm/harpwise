@@ -129,6 +129,18 @@ do_test 'id-0: man-page should process without errors' do
   expect(cmd, ste) {ste == ''}
 end
 
+do_test 'id-0a: selftest' do
+  FileUtils.rm_r $dotdir_testing if File.exist?($dotdir_testing)
+  new_session
+  tms 'harpwise develop selftest'
+  tms :ENTER
+  sleep 2
+  expect { $?.success? }
+  expect { screen[18]['user config directory has been created'] }
+  expect { screen[21]['Selftest done.'] }
+  kill_session
+end
+
 # Prepare test-data through harpwise and then some
 do_test 'id-1: start without dot_harpwise' do
   # keep this within test, so that we only remove, if we also try to recreate
@@ -1865,18 +1877,6 @@ end
     kill_session
   end
 end
-
-do_test 'id-71: selftest' do
-  ENV.delete('HARPWISE_TESTING')
-  new_session
-  tms 'harpwise develop selftest'
-  tms :ENTER
-  sleep 2
-  expect { $?.success? }
-  kill_session
-end
-
-ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-72: record user in licks' do
   rfile = "#{$dotdir_testing}/usr_lick_rec.wav"

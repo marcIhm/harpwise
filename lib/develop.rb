@@ -186,6 +186,14 @@ def task_selftest
   puts " - Frequency (et) for test-hole #{test_hole} of #{semi2freq_et($harp[test_hole][:semi])}"
 
   puts
+  fail "Internal error: no user config directory yet: #{$dirs[:data]}" unless File.exist?($dirs[:data])
+  if $dirs_data_created
+    puts "Remark: user config directory has been created: #{$dirs[:data]}"
+  else
+    puts "Remark: user config directory already existed: #{$dirs[:data]}"
+  end
+
+  puts
   puts
   puts "Selftest done."
   puts
