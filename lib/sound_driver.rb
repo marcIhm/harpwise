@@ -8,7 +8,7 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
-    cmd = "rec -q -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
+    cmd = "rec -q -c 1 -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
     sys "#{cmd} #{output_clause}", $sox_fail_however
   end
 end
@@ -45,7 +45,7 @@ def trim_recorded hole, recorded
     else
       puts
     end
-    puts "\e[93mTrimming\e[0m #{File.basename(recorded)} for hole   \e[33m#{hole}\e[0m   play from %.2f" % play_from
+    puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole   \e[33m#{hole}\e[0m   play from %.2f" % play_from
     puts 'Choices: <secs-start> | d:raw | p:play (SPC) | y:es (RET)'
     puts '                        f:req | r:ecord      | c:ancel'
     print "Your choice (h for help): "
@@ -116,8 +116,9 @@ end
 
 
 def trim_wave file, play_from, duration, trimmed
-  puts "Taking #{duration} seconds of original sound plus 0.2 fade out, starting at %.2f" % play_from
-  cmd = "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + 0.2} gain -n -3 fade 0 -0 0.2"
+  fade_out = 0.2
+  puts "Taking \e[32m%.2f\e[0m .. \e[34m%.2f\e[0m \e[2m(= #{duration} + #{fade_out} fade-out)\e[0m" % [play_from, play_from + duration + fade_out]
+  cmd = "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + fade_out} gain -n -3 fade 0 -0 #{fade_out}"
   sys cmd
 end
 

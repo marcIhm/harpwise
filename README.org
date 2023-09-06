@@ -252,8 +252,8 @@
   github first. Vice versa it can simply be removed by deleting the cloned
   directory.
 
-  harpwise has some dependencies (ruby, aubiopitch, sox, gnuplot, etc.)
-  and one of the scripts in directory install may be used to install them.
+  harpwise has some dependencies (ruby, aubio, sox, etc.) and one of the
+  scripts in directory install may be used to install them.
 
   For MS Windows, version 11, you may use the latest windows-Subsystem for
   Linux wsl2, which supports sound through the remote desktop protocol.

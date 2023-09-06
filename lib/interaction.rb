@@ -680,19 +680,111 @@ end
 
 
 def draw_data marker1, marker2
-  cmds = <<EOGPL
-set term dumb #{$term_width - 2} #{$term_height - 2}
-set datafile commentschars ";"
-set xlabel "time (s)"
-set ylabel "sample value"
-set nokey
-%s
-%s
-plot "#{$recorded_data}" using 1:2
-EOGPL
-  IO.write "#{$dirs[:tmp]}/sound.gp", cmds % [marker1 > 0  ?  "set arrow from #{marker1}, graph 0 to #{marker1}, graph 1 nohead"  :  '',
-                                           marker2 > 0  ?  "set arrow from #{marker2}, graph 0 to #{marker2}, graph 1 nohead"  :  '']
-  system "gnuplot #{$dirs[:tmp]}/sound.gp"
+
+  # area accessible for plot. right and left border might be plotted
+  # over, but top and bottom line not
+  plot_width = ( $term_width * 0.9 ).to_i
+  plot_height = ( $term_height * 0.4 ).to_i
+  if !$recorded_data_ts ||
+     $recorded_data_ts < File.mtime($recorded_data) ||
+     $term_width != $recorded_processed[:term_width] ||
+     $term_height != $recorded_processed[:term_height]
+    $recorded_processed, $recorded_data_ts = process_recorded_data(plot_width)
+  end
+  rec_proc = $recorded_processed
+
+  # frame
+  buf = Array.new
+  buf << '+' + '-' * ( plot_width - 2 ) + '+'
+  plot_height.times { buf << '|' + ' ' * ( plot_width - 2 ) + '|' }
+
+  # x-axis
+  buf << '+' + '-' * ( plot_width - 2 ) + '+'
+  minx = rec_proc[:vals_norm][0][0]
+  maxx = rec_proc[:vals_norm][-1][0]
+  # leftmost and rightmost tick
+  txt = '%.1f' % minx
+  buf << txt + ' ' * ( plot_width - txt.length )
+  txt = '%.1f' % maxx
+  buf[-1][-txt.length .. -1] = txt
+
+  # middle ticks
+  parts = [-0.1, 0.2, -0.3, 0.4, -0.5, 0.6, -0.7, 0.8, -0.9]
+  parts = parts.map {|p| p.abs} if $term_width > 90
+  parts.each do |prt|
+    tick_only = ( prt < 0)
+    prt = prt.abs
+    txt = '%.1f' % ( minx + prt * ( maxx - minx ))
+    mid = (plot_width * prt).to_i
+    buf[-2][mid] = '+'
+    buf[-1][mid - txt.length / 2 .. mid + txt.length / 2] = txt unless tick_only
+  end
+
+  # data
+  px = 0
+  # we do not plat all data
+  rec_proc[:vals_norm][1 .. -2].each do |x, y|
+    py = plot_height * y
+    ((-2 - py).to_i .. -3).each {|y| buf[y][px + 1] = '*'}
+    px += 1
+  end
+
+  # markers
+  unless marker1 == 0 && marker2 == 0
+    # marker2 is guaranteed to be higher than marker1
+    [[marker2, "\e[34m"], [marker1,"\e[32m"]].each do |x, col|
+      px = plot_width * (x - minx) / ( maxx - minx)
+      (1 .. 1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"} unless px > plot_width
+    end
+  end
+
+  # output
+  print "\e[0m"
+  buf[0 .. -1].each {|line| puts '  ' + line}
+end
+
+
+def process_recorded_data plot_width
+  rec_proc = {term_width: $term_width,
+              term_height: $term_height,
+              vals_norm: Array.new}
+  # first two lines are comments
+  num_lines = sys("wc -l #{$recorded_data}").to_i - 2
+  lines_per_bin = num_lines / plot_width
+  fail "Internal error: no lines per bin" if lines_per_bin < 1
+
+  # read file and put data into bins
+  lines_this_bin = 0
+  sum_secs_this_bin = 0
+  sum_vals_this_bin = 0
+  line_count = 0
+  binned = Array.new
+  File.open($recorded_data) do |data|
+    2.times { data.gets }
+    while line = data.gets
+      fields = line.chomp.split.map {|x| Float(x)}
+      fail "Internal error: #{line.chomp.split}" unless fields.length == 2
+      sum_secs_this_bin += fields[0]
+      sum_vals_this_bin += fields[1].abs
+      lines_this_bin += 1
+      if lines_this_bin == lines_per_bin
+        binned << [ sum_secs_this_bin / lines_per_bin,
+                    sum_vals_this_bin / lines_per_bin ]
+        lines_this_bin = 0
+        sum_secs_this_bin = 0
+        sum_vals_this_bin = 0
+      end
+    end
+  end
+  
+  # get max
+  max = binned.map {|b| b[1]}.max
+  rec_proc[:vals_norm] = if max == 0
+                           binned.map {|b| [b[0], 0]}
+                         else
+                           binned.map {|b| [b[0], b[1]/max]}
+                         end
+  [ rec_proc, File.mtime($recorded_data) ]
 end
 
 

@@ -326,6 +326,8 @@ def set_global_vars_late
   $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
+  $recorded_data_ts = nil
+  $recorded_processed = Struct.new(:start, :end, :vals_norm, :term_width, :term_height, :plot_width, :plot_height).new
 
   # Concepts: 'journaling' is writing holes, that are played by user,
   # 'tracing' (nothing to do with 'debugging') is writing holes, that
@@ -352,7 +354,7 @@ end
 
 def check_installation verbose: false
   # check for some required programs
-  needed_progs = %w( figlet toilet aubiopitch sox rec play gnuplot stdbuf )
+  needed_progs = %w( figlet toilet aubiopitch sox rec play stdbuf )
   not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
   puts "Found needed programs: #{needed_progs}" if verbose

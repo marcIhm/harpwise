@@ -67,7 +67,7 @@ linux-distributions or WSL2 under Windows
   Please note, that after this installation you should be able to record
   and play sound via sox, e.g.:
 
-  - rec -r 44100 -e signed-integer foo.wav trim 0 1
+  - rec foo.wav trim 0 1
   - play foo.wav
 
   if this gives you errors or no audible result, you need to fix this
