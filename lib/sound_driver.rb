@@ -45,7 +45,7 @@ def trim_recorded hole, recorded
     else
       puts
     end
-    puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole   \e[33m#{hole}\e[0m   play from %.2f" % play_from
+    puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole   \e[32m#{hole}\e[0m   play from %.2f" % play_from
     puts 'Choices: <secs-start> | d:raw | p:play (SPC) | y:es (RET)'
     puts '                        f:req | r:ecord      | c:ancel'
     print "Your choice (h for help): "
@@ -77,7 +77,7 @@ Full Help:
 EOHELP
       
     elsif ['', ' ', 'p'].include?(choice)
-      puts "\e[33mPlay\e[0m from %.2f ..." % play_from
+      puts "\e[34mPlay\e[0m from %.2f ..." % play_from
       play_wave trimmed_wave, 5
     elsif choice == 'd'
       do_draw = true
@@ -91,7 +91,7 @@ EOHELP
       puts "\nEdit\e[0m canceled, continue with current hole.\n\n"
       return :cancel
     elsif choice == 'f'
-      print "\e[33mSample\e[0m sound ..."
+      print "\e[34mSample\e[0m sound ..."
       synth_sound hole, $helper_wave
       play_wave $helper_wave
     elsif choice == 'r'
@@ -117,7 +117,7 @@ end
 
 def trim_wave file, play_from, duration, trimmed
   fade_out = 0.2
-  puts "Taking \e[32m%.2f\e[0m .. \e[34m%.2f\e[0m \e[2m(= #{duration} + #{fade_out} fade-out)\e[0m" % [play_from, play_from + duration + fade_out]
+  puts "Taking \e[32m%.2f\e[0m .. %.2f \e[2m(= \e[0m\e[34m#{duration}\e[0m\e[2m + #{fade_out} fade-out)\e[0m" % [play_from, play_from + duration + fade_out]
   cmd = "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + fade_out} gain -n -3 fade 0 -0 #{fade_out}"
   sys cmd
 end

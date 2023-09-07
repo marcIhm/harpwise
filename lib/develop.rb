@@ -210,6 +210,6 @@ def task_selftest
 
   puts
   puts
-  puts "Selftest done."
+  puts "Selftest okay."
   puts
 end

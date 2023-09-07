@@ -137,7 +137,7 @@ do_test 'id-0a: selftest' do
   sleep 2
   expect { $?.success? }
   expect { screen[18]['user config directory has been created'] }
-  expect { screen[21]['Selftest done.'] }
+  expect { screen[21]['Selftest okay.'] }
   kill_session
 end
 

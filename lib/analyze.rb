@@ -158,7 +158,7 @@ def inspect_recorded hole, file
   freq_et = semi2freq_et(semi)
   freq_et_p1 = semi2freq_et(semi + 1)
   freq_et_m1 = semi2freq_et(semi - 1)
-  puts "\e[33mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
+  puts "\e[0m\e[34mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
   freq = analyze_with_aubio(file)
   note2semi($harp[hole][:note])
   dots, _ = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}
@@ -166,7 +166,7 @@ def inspect_recorded hole, file
   too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
   too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs
   if too_low || too_high
-    puts "\n\e[0;101mWARNING:\e[0m\nThe frequency recorded for \e[33m#{hole}\e[0m (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
+    puts "\n\e[0;101mWARNING:\e[0m\nThe frequency recorded for  \e[32m#{hole}\e[0m  (note #{$harp[hole][:note]}, semi #{semi}) is too different from ET tuning:"
     puts "  You played:             #{freq}"
     puts "  ET expects:             #{freq_et.round(1)}"
     puts "  Difference:             #{(freq - freq_et).round(1)}"

@@ -732,9 +732,22 @@ def draw_data marker1, marker2
   # markers
   unless marker1 == 0 && marker2 == 0
     # marker2 is guaranteed to be higher than marker1
-    [[marker2, "\e[34m"], [marker1,"\e[32m"]].each do |x, col|
+    [[marker2, "\e[34m", 'to:'], [marker1,"\e[32m", 'from:']].each do |x, col, desc|
       px = plot_width * (x - minx) / ( maxx - minx)
-      (1 .. 1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"} unless px > plot_width
+      if px <= plot_width
+        (1 .. 1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"} 
+        txt = desc + '%.1f' % x 
+        txt_col = col + txt + "\e[0m"
+        # put exact position in first line
+        if px < 3
+          buf[0][0 ... txt.length] = txt_col
+        elsif px > plot_width - 2
+          buf[0][-txt.length .. -1] = txt_col
+        else
+          xs = ( px - txt.length / 2 ).to_i
+          buf[0][xs ... xs + txt.length] = txt_col
+        end
+      end
     end
   end
 
