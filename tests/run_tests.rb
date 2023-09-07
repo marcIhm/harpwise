@@ -392,7 +392,7 @@ do_test 'id-4: manual calibration starting at hole' do
   sleep 2
   tms 'r'
   sleep 8
-  expect { screen[9]['The frequency recorded for -4/ (note bf4, semi 1) is too different from ET'] }
+  expect { screen[9]['The frequency recorded for  -4/  (note bf4, semi 1) is too different from'] }
   expect { screen[13]['  Difference:             -271.2'] }
   kill_session
 end

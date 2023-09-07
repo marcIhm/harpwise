@@ -4,7 +4,11 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y
 RUN apt-get install -y sudo
 RUN apt-get install -y ca-certificates
+RUN apt-get install -y locales locales-all
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
 COPY harpwise /harpwise
 WORKDIR /harpwise
 RUN bash ./install/install-dependencies-on-ubuntu.sh
-ENTRYPOINT ["./harpwise"]
+ENTRYPOINT ["./harpwise", "develop", "selftest"]

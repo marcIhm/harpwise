@@ -1,33 +1,28 @@
-Testing the scripts from the top-level directory "install" is done via docker.
+Testing the scripts from the top-level directory "install" is done via podman.
 
-* Build a docker image
+* Build a podman image
 
   (in harpwise/tests/installer)
 
-    docker build -f dockerfile.ubuntu --progress=plain \
-                 --no-cache -t harpwise_ubuntu:latest $HOME
+    podman build -f podman.ubuntu --no-cache -t harpwise_ubuntu:latest $HOME
 
   or 
 
-    docker build -f dockerfile.fedora --progress=plain \
-                 --no-cache -t harpwise_fedora:latest $HOME
+    podman build -f podman.fedora --no-cache -t harpwise_fedora:latest $HOME
 
 * Run the image 
 
-  and verify the usage information:
+  and verify selftest:
 
-    docker run -it harpwise_ubuntu:latest
+    podman run -it harpwise_ubuntu:latest
 
   or
 
-    docker run -it harpwise_fedora:latest
+    podman run -it harpwise_fedora:latest
 
 
-  As the script tests all (?) its dependencies on each invocation, a
-  successfull usage-information already proves, that the scripts for
-  installing dependencies from directory install do work.
-
-  (add '--entrypoint /bin/bash' to investigate, if not)
+  The selftest will output 'Selftest okay.' as its final line.
+  If not, add '--entrypoint /bin/bash' to investigate.
 
 * However
 

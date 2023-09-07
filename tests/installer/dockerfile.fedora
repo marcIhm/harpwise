@@ -1,8 +1,0 @@
-FROM fedora:34
-MAINTAINER Marc Ihm (marc@ihm.name)
-ENV DEBIAN_FRONTEND noninteractive
-RUN yum install -y sudo which ca-certificates
-COPY harpwise /harpwise
-WORKDIR /harpwise
-RUN bash ./install/install-dependencies-on-fedora.sh
-ENTRYPOINT ["./harpwise"]
