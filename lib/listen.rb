@@ -88,9 +88,18 @@ def do_listen
                            "   Warbling between two holes; start slowly to define them;\e[K",
                            "   clear with BACKSPACE\e[K",
                            "\e[K",
-                           # The stated limit 10 is what we get from test id-68
-                           "   \e[2mMax warble speed is tested around 10, but you may try to\e[K",
-                           "   raise this e.g. by modifying option --time-slice (#{$opts[:time_slice]})\e[K"]
+                           case $opts[:time_slice]
+                           when :short
+                             ["   \e[2mMax warble speed is above 10; this is already the highest\e[K",
+                              "   value, that can be realized with option --time-slice\e[K"]
+                           when :medium
+                             # The stated limit 10 is what we get from test id-68
+                             ["   \e[2mMax warble speed is around 10, but you may try to\e[K",
+                              "   raise this by giving option '--time-slice short'\e[K"]
+                           when :long
+                             ["   \e[2mMax warble speed is below 10, but you may try to\e[K",
+                              "   raise this by giving option '--time-slice medium'\e[K"]
+                           end].flatten
                  else
                    return ["\e[K",
                            warble_comment(:short),
