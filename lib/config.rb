@@ -345,9 +345,18 @@ def set_global_vars_late
 
   $star_file = $star_file_template % $type
 
-  $aubiopitch_sizes = { short: [3072, 512],
-                        medium: [5120, 1024],
-                        long: [10240, 2048] }
+  # Remark: The bufsizes below are powers of 2; if not (e.g. bufsize = 5120),
+  # this may lead to aubio aborting with this error-message:
+  #
+  #   AUBIO ERROR: fft: can only create with sizes power of two, requested 5120, try recompiling aubio with --enable-fftw3
+  #
+  # so having a bufsize as a power of two makes harpwise more robust.
+  #
+  
+  # Format: [bufsize, hopsize]
+  $aubiopitch_sizes = { short: [2048, 512],
+                        medium: [4096, 1024],
+                        long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 end
 

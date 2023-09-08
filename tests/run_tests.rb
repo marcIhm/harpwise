@@ -129,7 +129,7 @@ do_test 'id-0: man-page should process without errors' do
   expect(cmd, ste) {ste == ''}
 end
 
-do_test 'id-0a: selftest' do
+do_test 'id-0a: selftest without user dir' do
   FileUtils.rm_r $dotdir_testing if File.exist?($dotdir_testing)
   new_session
   tms 'harpwise develop selftest'
@@ -1983,7 +1983,7 @@ do_test 'id-76: transcribe a lick' do
   tms :ENTER
   sleep 5
   expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2   3.4: -2'] }
-  expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.3)   -3/ (0.3)   -2 (0.4)'] }
+  expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.2)   -3/ (0.3)   -2 (0.4)'] }
   kill_session
 end
 
