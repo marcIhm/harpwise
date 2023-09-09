@@ -49,11 +49,11 @@ ENV['HARPWISE_TESTING']='1'
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
 # get termsize
-File.readlines('lib/config.rb').each do |line|
+File.readlines('libexec/config.rb').each do |line|
   $term_min_width ||= line.match(/^\s*conf\[:term_min_width\]\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
   $term_min_height ||= line.match(/^\s*conf\[:term_min_height\]\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
 end
-fail "Could not parse term size from lib/config.rb" unless $term_min_width && $term_min_height
+fail "Could not parse term size from libexec/config.rb" unless $term_min_width && $term_min_height
 
 #
 # Create read-only copy
