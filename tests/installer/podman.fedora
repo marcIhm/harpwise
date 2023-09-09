@@ -1,6 +1,5 @@
 FROM fedora:38
 MAINTAINER Marc Ihm (marc@ihm.name)
-RUN yum list available langpacks*
 RUN yum install -y sudo which ca-certificates langpacks-*
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
