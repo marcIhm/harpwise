@@ -32,7 +32,7 @@ require_relative 'libexec/calibrate'
 require_relative 'libexec/tools'
 require_relative 'libexec/develop'
 
-$mode_start = Time.now.to_f
+$program_start = $mode_start = Time.now.to_f
 $on_error_raise = false
 # grep .rb-files for 'debug' to see choices, e.g. :check_screen. Still
 # need to give '--debug' to switch it on

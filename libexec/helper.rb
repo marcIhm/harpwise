@@ -293,17 +293,15 @@ def print_afterthought
          Jitter detected !
          -----------------
 
-         The frequency pipeline
+         The frequency pipeline had a maximum jitter of #{'%.2f' % $max_jitter} secs, which
+         happened #{(Time.now.to_f - $max_jitter_at).to_i} seconds ago, #{($max_jitter_at - $program_start).to_i} secs after program start.
 
-         #{$freq_pipeline_cmd}
+         As a result your playing and its display by harpwise were out of sync
+         at least once.
 
-         had a maximum jitter of #{$max_jitter}, which means
-         that your playing and its display by harpwise were out
-         of sync at least once.
-
-         This is out of control of harpwise and might be caused
-         by external factors, like system-load or simply by
-         hibernation of your computer.
+         This is probably out of control of harpwise and might be caused by
+         external factors, like system-load or simply by hibernation of your
+         computer.
 
 
          end_of_content

@@ -239,7 +239,10 @@ def sox_to_aubiopitch_to_queue
             now = Time.now.to_f
             if last_delta_time
               jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
-              $max_jitter = [jitter.abs, $max_jitter].max
+              if jitter.abs > $max_jitter
+                $max_jitter = jitter.abs
+                $max_jitter_at = now
+              end
             end
             last_delta_time = delta_time
             last_delta_time_at = now

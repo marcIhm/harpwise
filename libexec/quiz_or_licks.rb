@@ -1055,6 +1055,11 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       if edit_file($lick_file, self[:lick][:lno])
         if self[:lick_idx] && refresh_licks
           self[:lick] = $licks[self[:lick_idx]]
+          unless self[:lick]
+            # rare edge case, e.g. when we remove tag 'fav' from last lick
+            self[:lick_idx] = 0
+            self[:lick] = $licks[self[:lick_idx]]
+          end
           self[:all_wanted] = self[:lick][:holes]
           ctl_response 'Refreshed licks'
         end
