@@ -99,7 +99,7 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
   cmd = "figlet -w 400 -f #{font} -d #{$font2dir[font]} -l  -- \"#{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
-    out = sys(cmd)
+    out = sys(cmd).force_encoding('UTF-8')
     $perfctr[:figlet_1] += 1
     lines = out.lines.map {|l| l.rstrip}
 
@@ -159,7 +159,7 @@ def get_figlet_wrapped text, font
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
   cmd = "figlet -w #{$term_width - 4} -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\""
   unless $figlet_wrap_cache[cmd]
-    out = sys(cmd)
+    out = sys(cmd).force_encoding('UTF-8')
     $perfctr[:figlet_2] += 1
     lines = out.lines.map {|l| l.rstrip}
 
@@ -189,7 +189,7 @@ $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
     fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
-    out = sys("figlet -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\"")
+    out = sys("figlet -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\"").force_encoding('UTF-8')
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
   end

@@ -35,6 +35,7 @@ def read_licks graceful = false
   end
   
   (File.readlines(lfile) << '[default]').each_with_index do |line, idx|  # trigger checks for new lick even at end of file
+    err "Line #{idx} from #{lfile} is not in a valid encoding for current locale (consider using UTF-8): '#{line}'" unless line.valid_encoding?
     line.chomp!
     line.gsub!(/#.*/,'')
     line.strip!

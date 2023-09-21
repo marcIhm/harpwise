@@ -135,21 +135,19 @@ def task_selftest
   check_installation verbose: true
 
   puts
-  puts_underlined "Checking character encoding", '-', dim: false
-  enc = (sys('locale').lines.find {|l| l['LANG=']} || '.unknown').split('.')[-1].chomp
-  if enc == 'UTF-8'
-    puts "#{enc} is okay"
-  else
-    puts "Warning: encoding #{enc} will not allow figlet output to be processed !\nConsider using UTF-8 instead: try setting and exporting LANG accordingly."
-  end
-  
-  puts
-  puts_underlined "Invoking figlet for teststring '1234' on all fonts", '-', dim: false
+  puts_underlined "Invoking figlet for fontname on all fonts", '-', dim: false
   # Remark: output of figlet is suppressed to allow selftest to pass
   # even in non-utf8 environments. See test for encoding above
+  expected = {'smblock' => [2, '▝▀▖▌▐ ▌▌ ▌▐ ▌ ▌▌ ▖▛▚'],
+              'mono12' => [4, ' ██ ██ ██  ██▀  ▀██  ██▀   ██  ██▀  ▀██     ██         ▄█▀'],
+              'mono9' => [4, '█ █ █  █   █  █   █  █   █   ▀▀▀ █']}
+              
   $early_conf[:figlet_fonts].each do |font|
-    output = get_figlet_wrapped('1234', font)
-    puts "#{font}: #{output.length} lines"
+    output = get_figlet_wrapped(font, font)
+    puts output
+    line = expected[font][0]
+    text = expected[font][1]
+    err "Line #{line} from text above '#{output[line]}' does not match expected: '#{text}'" unless output[line][text]
   end
 
   test_hole = '+1'

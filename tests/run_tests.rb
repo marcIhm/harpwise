@@ -134,9 +134,21 @@ do_test 'id-0a: selftest without user dir' do
   new_session
   tms 'harpwise develop selftest'
   tms :ENTER
+  tms 'echo \$?'
+  tms :ENTER
   sleep 2
-  expect { $?.success? }
-  expect { screen[18]['user config directory has been created'] }
+  expect { screen[16]['user config directory has been created'] }
+  expect { screen[19]['Selftest okay.'] }
+  expect { screen[21]['echo $?'] }
+  expect { screen[22]['0'] }
+  kill_session
+end
+
+do_test 'id-0b: selftest with restricted locale' do
+  new_session
+  tms 'LANG=C.ASCII harpwise develop selftest'
+  tms :ENTER
+  sleep 2
   expect { screen[21]['Selftest okay.'] }
   kill_session
 end
