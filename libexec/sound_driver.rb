@@ -239,7 +239,7 @@ def sox_to_aubiopitch_to_queue
             now = Time.now.to_f
             if last_delta_time
               jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
-              if jitter.abs > $max_jitter
+              if jitter.abs > $max_jitter && now > $program_start + 4
                 $max_jitter = jitter.abs
                 $max_jitter_at = now
               end
@@ -380,20 +380,22 @@ class UserLickRecording
     @file_prev = "#{$dirs[:data]}/usr_lick_rec_prev.wav"
     @sign_text = '-REC-'
 
+    # see reset_rec, which does the same and a bit more
     @first_hole_good_at = nil
     @rec_started_at = nil
-    @rec_pid = nil
     @has_rec = false
+    @rec_pid = nil
   end
 
-  def sign_column
-    ( $term_width - @sign_text.length ) / 2
-  end
-  
   def print_rec_sign_mb
-    print "\e[#{$lines[:mission]};#{sign_column}H" +
+    sign_column = ( $term_width - @sign_text.length ) / 2
+    print "\e[#{$lines[:mission]};#{sign_column}H\e[0;101m" +
           if active?
-            "\e[0;101m" + @sign_text + "\e[0m"
+            if first_hole_good_at && @rec_pid
+              @sign_text
+            else
+              @sign_text.downcase
+            end + "\e[0m"
           else
             ' ' * @sign_text.length
           end
@@ -409,7 +411,7 @@ class UserLickRecording
   
   def toggle_active
     @active = !@active
-    reset_rec if !@active
+    reset_rec
   end
 
   def ensure_end_rec
@@ -427,6 +429,7 @@ class UserLickRecording
     @first_hole_good_at = nil
     @rec_started_at = Time.now.to_f
     @has_rec = false
+    $perfctr[:start_rec] += 1
   end
 
   def stop_rec
@@ -434,8 +437,9 @@ class UserLickRecording
     Process.kill('HUP', @rec_pid)
     Process.wait(@rec_pid)
     @rec_pid = nil
+    $perfctr[:stop_rec] += 1
   end
-  
+
   def process_rec
     trim_secs = @first_hole_good_at - @rec_started_at - 2
     if trim_secs > 0

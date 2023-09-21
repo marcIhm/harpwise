@@ -78,9 +78,9 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
-        print "\e[0m\e[32mreplay \e[0m"
+        print "\e[0m\e[32m replay \e[0m"
       elsif $ctl_rec[:skip]
-        print "\e[0m\e[32mjump to end \e[0m"
+        print "\e[0m\e[32m jump to end \e[0m"
       end
 
       if $ctl_rec[:lick_lick] != lick_lick_was
@@ -125,7 +125,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
   # immediate controls triggered while it is playing
   begin
 
-    imm_ctrls_again.each {|k| $ctl_rec[k] = false}
+    (imm_ctrls_again + [:skip]).each {|k| $ctl_rec[k] = false}
     cmd = "play --norm=#{$vol.to_i} -q -V1 #{recording}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
@@ -166,9 +166,9 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
-        print "\e[0m\e[32mreplay \e[0m"
+        print "\e[0m\e[32m replay \e[0m"
       elsif $ctl_rec[:skip]
-        print "\e[0m\e[32mjump to end \e[0m"
+        print "\e[0m\e[32m jump to end \e[0m"
       end
 
       if timed_comments && timed_comments.length > 0
@@ -190,7 +190,6 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
     pplayer.kill
     pplayer.check
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
-  $ctl_rec[:skip]
 end
 
 

@@ -246,7 +246,7 @@ def do_quiz_or_licks
     #  Now listen for user to play the sequence back correctly
     #
 
-    begin   # while looping over one sequence
+    begin   # while looping over the same sequence again and again
 
       round_start = Time.now.to_f
       idx_refresh_comment_cache = comment_cache = nil
@@ -255,12 +255,15 @@ def do_quiz_or_licks
       if $ulrec.active? && !$ctl_mic[:forget]
         $ulrec.ensure_end_rec
         if $ulrec.has_rec?
+          $ulrec.print_rec_sign_mb
           clear_area_comment
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet_unwrapped 'what  you  played ...', 'smblock'
           sleep 0.5
           print_hom "See #{$ulrec.rec_file}, #{'%.1fs' % $ulrec.duration} ... (h for help)"
           $ulrec.play_rec
+          # try not to record, what we just played
+          sleep 0.5 
         end
         $ulrec.start_rec
       end
@@ -268,7 +271,7 @@ def do_quiz_or_licks
       $ctl_mic[:forget] = false
       
       # iterate over notes in sequence, i.e. one iteration while
-      # looping over sequence again and again
+      # looping over the same sequence again and again
       to_play[:all_wanted].each_with_index do |wanted, idx|  
 
         hole_start = Time.now.to_f
@@ -406,6 +409,7 @@ def do_quiz_or_licks
       #
 
       if $ctl_mic[:forget]
+        $ulrec.ensure_end_rec
         clear_area_comment
         if [:holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
           print "\e[#{$lines[:comment] + 2}H\e[0m\e[32m   again"
