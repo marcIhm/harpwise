@@ -194,13 +194,13 @@ def task_selftest
     pct = ( 100 * ( tss - $time_slice_secs ) / $time_slice_secs ).abs.round(2)
     fail "Actual time slice #{b[0]} - #{a[0]} = #{tss} is too different from expected value #{$time_slice_secs}: #{pct}% percent > #{max_pct}%" if pct > max_pct
   end
-  puts "Test Okay: time differences are near expected time-slice #{$time_slice_secs}"
+  puts "Test Okay: time differences are near expected time-slice #{'%.6f' % $time_slice_secs} secs"
   freq = semi2freq_et($harp[test_hole][:semi])
   to_test.each do |tf|
     pct = ( 100 * ( tf[1] - freq ) / freq ).abs.round(2)
     err "Actual frequency #{tf[1]} is too different from expected value #{freq}: #{pct}% percent > #{max_pct}%" if pct > max_pct
   end
-  puts "Test Okay: detected frequencies are near expected frequency #{freq}"
+  puts "Test Okay: detected frequencies are near expected frequency #{'%.2f' % freq}"
 
   puts
   err "Internal error: no user config directory yet: #{$dirs[:data]}" unless File.exist?($dirs[:data])

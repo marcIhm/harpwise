@@ -132,7 +132,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
       if tntf - hole_since < hole_held_min
         # we will erase hole_held below, so now its the time to record duation
-        $journal << ('(%.1f)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
+        $journal << ('(%.1fs)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
         # too short, the current hole can not count as beeing held
         hole_held = nil
       else

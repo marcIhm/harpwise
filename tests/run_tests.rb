@@ -1868,7 +1868,7 @@ do_test 'id-69b: detect jitter' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[6]['Jitter detected'] }
+  expect { screen[9]['Jitter detected'] }
   kill_session
 end
 
@@ -1901,8 +1901,11 @@ do_test 'id-72: record user in licks' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms :C_R
+  expect { screen[0]['-rec-'] }
+  tms '1'
+  sleep 1
   expect { screen[0]['-REC-'] }
-  6.times {
+  5.times {
     tms '1'
     sleep 1
   }
@@ -1943,10 +1946,10 @@ do_test 'id-74: player for licks' do
   expect { screen[9]['go'] }
   tms '-'
   sleep 1
-  expect { screen[9]['go replay'] }
+  expect { screen[9]['go  replay'] }
   tms 'v'
   sleep 1
-  expect { screen[9]['go replay -9dB'] }
+  expect { screen[9]['go  replay -9dB'] }
   tms '<'
   sleep 1
   expect { screen[9]['x0.9'] }

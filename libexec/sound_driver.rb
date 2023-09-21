@@ -389,8 +389,9 @@ class UserLickRecording
 
   def print_rec_sign_mb
     sign_column = ( $term_width - @sign_text.length ) / 2
-    print "\e[#{$lines[:mission]};#{sign_column}H\e[0;101m" +
+    print "\e[#{$lines[:mission]};#{sign_column}H" +
           if active?
+            "\e[0;101m" +
             if first_hole_good_at && @rec_pid
               @sign_text
             else
