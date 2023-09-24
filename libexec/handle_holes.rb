@@ -35,7 +35,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
-  $ctl_response_default = 'SPACE to pause; h for help'
   loop do   # over each new frequency from pipeline, until var done or skip
 
     $perfctr[:handle_holes_loops] += 1
@@ -393,6 +392,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_mission(get_mission_override || lambda_mission.call)
     end
 
+    if $ctl_mic[:auto_replay]
+      $opts[:auto_replay] = !$opts[:auto_replay]
+      $ctl_mic[:auto_replay] = false
+      print_hom "Auto replay is: " + ( $opts[:auto_replay] ? 'ON' : 'OFF' )
+    end
+
     if $ctl_mic[:star_lick] && lambda_star_lick
       lambda_star_lick.call($ctl_mic[:star_lick] == :up  ?  +1  :  -1)
       $ctl_mic[:star_lick] = false
@@ -434,7 +439,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_clear, :record_user].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_clear, :toggle_record_user].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -606,9 +611,10 @@ end
 
 
 def show_help
-  lines_offset = ( $term_height - $conf[:term_min_height] ) / 2 + 4
-  max_lines_per_frame = $conf[:term_min_height] - lines_offset - 2
-
+  max_lines_per_frame = 20
+  fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
+  lines_offset = (( $term_height - max_lines_per_frame ) * 4 / 5.0).to_i
+  
   frames = Array.new
   frames << [" Help on keys (invoke 'harpwise' without args for more info):",
              " \e[0m\e[2mVersion #{$version}\e[0m\e[32m",
@@ -638,8 +644,9 @@ def show_help
     frames << [" More help on keys (special for modes licks and quiz):",
                "",
                " RETURN: next sequence or lick     BACKSPACE: previous sequence",
-               "      .: replay current                    ,: replay, holes only",
+               "     .:: replay current                   ,;: replay, holes only",
                "    :;p: replay but ignore '--partial', i.e. play all",
+               "      P: toggle automatic replay when looping over a sequence",
                "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      #: toggle tracking progress in seq   R: play holes reversed"]
@@ -647,15 +654,14 @@ def show_help
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags_any (aka -t)",
                           "      <: shift lick down by one octave     >: shift lick up",
-                          "    @,P: change option --partial",
+                          "      @: change option --partial",
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
                           ""])
     else
       frames[-1] << ""
     end
-    frames[-1].append(*["",
-                        " Note, that other keys (and help) apply when harpwise plays itself."])
+    frames[-1].append(*[" Note, that other keys (and help) apply when harpwise plays itself."])
   end
 
   # add prompt to frames, so that it can be tested below

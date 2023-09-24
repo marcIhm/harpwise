@@ -524,7 +524,7 @@ def handle_kb_mic
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'
   elsif char.ord == 18 && $ctl_can[:lick]
-    $ctl_mic[:record_user] = true
+    $ctl_mic[:toggle_record_user] = true
     text = 'Record user'
   elsif char == '>' && $ctl_can[:octave]
     $ctl_mic[:octave] = :up
@@ -532,7 +532,7 @@ def handle_kb_mic
   elsif char == '<' && $ctl_can[:octave]
     $ctl_mic[:octave] = :down
     text = 'Octave down'
-  elsif ( char == '@' || char == 'P' ) && $ctl_can[:lick]
+  elsif char == '@' && $ctl_can[:lick]
     $ctl_mic[:change_partial] = true
     text = 'Partial'
   elsif char == '*' && $ctl_can[:lick]
@@ -592,6 +592,9 @@ def handle_kb_mic
     $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
     $ctl_mic[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
     text = 'Replay'
+  elsif char == 'P' && $ctl_can[:next]
+    $ctl_mic[:auto_replay] = :true
+    text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'
   elsif (char == '0' || char == '-') && $ctl_can[:next]
     $ctl_mic[:forget] = true
     text = 'Forget'

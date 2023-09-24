@@ -175,6 +175,7 @@ def do_quiz_or_licks
     #
     IO.write($trace_file, "#{trace_text}\n", mode: 'a') if trace_text
     trace_text = nil
+    seq_played_recently = false
     if !zero_partial? || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
@@ -187,18 +188,8 @@ def do_quiz_or_licks
         fit_into_comment(lines) if lines
       end
 
-      if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
-         (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
-         ($opts[:holes] && !$ctl_mic[:ignore_holes])
-        play_holes to_play[:all_wanted],
-                   at_line: oride_l_message2,
-                   verbose: true,
-                   lick: to_play[:lick]
-      else
-        play_recording_quiz to_play[:lick],
-                            at_line: oride_l_message2,
-                            octave_shift: to_play[:octave_shift]
-      end
+      play_rec_or_holes to_play, oride_l_message2
+      seq_played_recently = true
 
       if $ctl_rec[:replay]
         $ctl_mic[:replay] = true
@@ -252,9 +243,9 @@ def do_quiz_or_licks
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
 
-      if $ulrec.active? && !$ctl_mic[:forget]
+      if $ulrec.active?
         $ulrec.ensure_end_rec
-        if $ulrec.has_rec?
+        if $ulrec.has_rec? && !$ctl_mic[:forget]
           $ulrec.print_rec_sign_mb
           clear_area_comment
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
@@ -268,9 +259,17 @@ def do_quiz_or_licks
         $ulrec.start_rec
       end
 
+      if $opts[:auto_replay] && !seq_played_recently
+        clear_area_comment
+        print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+        do_figlet_unwrapped 'listen ...', 'smblock'
+        play_rec_or_holes to_play, oride_l_message2
+        seq_played_recently = true
+      end
+
       $ctl_mic[:forget] = false
       
-      # iterate over notes in sequence, i.e. one iteration while
+      # iterate over holes in sequence, i.e. one iteration while
       # looping over the same sequence again and again
       to_play[:all_wanted].each_with_index do |wanted, idx|  
 
@@ -400,14 +399,14 @@ def do_quiz_or_licks
           return
         end
 
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :record_user].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
-      
+
       #
       #  Finally judge result and handle display
       #
-
+      
       if $ctl_mic[:forget]
         $ulrec.ensure_end_rec
         clear_area_comment
@@ -435,7 +434,7 @@ def do_quiz_or_licks
                   'octave down'
                 elsif $ctl_mic[:reverse_holes] == :down
                   'octave down'
-                elsif $ctl_mic[:record_user]
+                elsif $ctl_mic[:toggle_record_user]
                   if $ulrec.active?
                     ccol = 2
                     'REC  -off-'
@@ -448,6 +447,7 @@ def do_quiz_or_licks
                   nil
                 else
                   full_seq_shown ? 'Yes ' : 'Great ! '
+                  seq_played_recently = false
                 end
         if ctext
           clear_area_comment
@@ -462,7 +462,7 @@ def do_quiz_or_licks
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :record_user].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -470,13 +470,16 @@ def do_quiz_or_licks
         sleep 0.5 if ctext
       end
 
+      sleep 0.5 if $ulrec.recording? # record some more
+
       # handle user recording during lick
-      if $ctl_mic[:record_user]
+      if $ctl_mic[:toggle_record_user]
         $ulrec.toggle_active
-        $ctl_mic[:record_user] = false
+        seq_just_played_initially = true
+        $ctl_mic[:toggle_record_user] = false
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget]) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}  # looping over one sequence
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
@@ -985,6 +988,22 @@ def comment_while_playing holes
     largify(holes, idx)
   else
     nil
+  end
+end
+
+
+def play_rec_or_holes to_play, oride_l_message2
+  if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
+     (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
+     ($opts[:holes] && !$ctl_mic[:ignore_holes])
+    play_holes to_play[:all_wanted],
+               at_line: oride_l_message2,
+               verbose: true,
+               lick: to_play[:lick]
+  else
+    play_recording_quiz to_play[:lick],
+                        at_line: oride_l_message2,
+                        octave_shift: to_play[:octave_shift]
   end
 end
 

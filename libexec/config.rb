@@ -58,9 +58,9 @@ def set_global_vars_early
         :loop, :start_loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes,
-        :switch_modes, :record_user,
+        :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_clear,
-        :set_ref]
+        :set_ref, :auto_replay]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
 
@@ -169,6 +169,7 @@ def set_global_vars_early
 
   $splashed = false
   $mode_switches = 0
+  $ctl_response_default = 'SPACE to pause; h for help'
   # also sets $warbles and clears $warbles_other_hole
   clear_warbles
   

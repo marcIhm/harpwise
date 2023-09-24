@@ -1575,17 +1575,17 @@ do_test 'id-56: forward and back in help' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[6]['pause and continue'] }
+  expect { screen[5]['pause and continue'] }
   tms :ENTER 
-  expect { screen[5]['next sequence or lick'] }
+  expect { screen[4]['next sequence or lick'] }
   tms :BSPACE
-  expect { screen[6]['pause and continue'] }
+  expect { screen[5]['pause and continue'] }
   kill_session
 end
 
-help_samples = {'harpwise listen d' => [[10,'change key of harp']],
-                'harpwise quiz 3 a' => [[10,'change key of harp'],[9,'forget holes played']],
-                'harpwise licks c' => [[10,'change key of harp'],[16,'select them later by tag']]}
+help_samples = {'harpwise listen d' => [[9,'change key of harp']],
+                'harpwise quiz 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
+                'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do

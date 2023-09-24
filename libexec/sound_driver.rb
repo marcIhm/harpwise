@@ -441,6 +441,10 @@ class UserLickRecording
     $perfctr[:stop_rec] += 1
   end
 
+  def recording?
+    @rec_pid
+  end
+  
   def process_rec
     trim_secs = @first_hole_good_at - @rec_started_at - 2
     if trim_secs > 0
