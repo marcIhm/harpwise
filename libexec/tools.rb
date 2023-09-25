@@ -407,7 +407,7 @@ def tool_transcribe to_handle
   $freq2hole = read_calibration
 
   # form batches with he same note
-  batched = [[[0, :low]]]
+  batched = [[[0, nil]]]
   good_lines.each do |time, freq|
     hole = describe_freq(freq)[0]
     if hole == batched[-1][-1][1]
@@ -423,7 +423,7 @@ def tool_transcribe to_handle
   # keep only these batches, that are notes and played long enough
   lasting = Array.new
   batched.each do |batch|
-    if regular_hole?(batch[0][1]) && batch.length > mincons
+    if batch[0][1] && batch.length > mincons
       lasting << [batch[0], batch[-1][0] - batch[0][0]].flatten
     end
   end

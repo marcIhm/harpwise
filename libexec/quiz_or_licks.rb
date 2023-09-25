@@ -901,7 +901,7 @@ end
 
 def read_tags_and_refresh_licks curr_lick
   all_tags = if curr_lick[:tags].length > 0
-               [';OF-CURR-LICK->', curr_lick[:tags], ';ALL-BUT->']
+               [';OF-CURR-LICK->', curr_lick[:tags], ';ALL-OTHER->']
              else
                []
              end
@@ -1021,7 +1021,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
 
     old_licks = get_last_lick_idxs_from_trace($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
     choices = if old_licks.length > 0
-                [';RECENT->', old_licks[0 .. 3], ';ALL-BUT->']
+                [';RECENT->', old_licks[0 .. 3], ';ALL-OTHER->']
               else
                 []
               end

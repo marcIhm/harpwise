@@ -2013,4 +2013,15 @@ do_test 'id-77: print for chromatic' do
   kill_session
 end
 
+do_test 'id-78: detect interval' do
+  warble 40, 2, 3, 7
+  new_session
+  tms "harpwise listen c"
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 4
+  expect { screen[14]['Interval:   +4  to   +5  is -4 st'] }
+  kill_session
+end
+
 puts

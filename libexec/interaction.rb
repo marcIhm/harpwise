@@ -874,7 +874,7 @@ end
 
 # a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
-  if !regular_hole?(hole)
+  if hole
     2
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
     if $hole2flags[hole].include?(:main)

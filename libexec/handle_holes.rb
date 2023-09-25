@@ -8,29 +8,32 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
+  tntf = Time.now.to_f
   
-  hole_start = Time.now.to_f
-  hole = hole_since = hole_was_for_since = nil
-  hole_held_min = 0.1
   # Remark: $hole_was_for_disp needs to be persistant over invocations
   # and cannot be set here
 
-  # hole_held (the hole beeing held) is the current hole if played
-  # sufficiently long; empty otherwise. hole_held_was and
-  # hole_held_was_regular are previous values of hold_held, the latter
-  # is guaranteed to be a regular hole
-  hole_held = hole_held_was = hole_held_was_regular = hole_held_since = nil
+  hole = nil
+  hole_since = tntf
+
+  # if this is set shorter, the journal will pick up spurious notes
+  hole_held_min = 0.1
+  hole_held_min_nil = 0.05
+  hole_held = hole_journal = hole_journal_since = nil
+  hole_held_since = tntf
+
   was_good = was_was_good = was_good_since = nil
-  hints_refreshed_at = Time.now.to_f - 1000.0
+  hints_refreshed_at = tntf - 1000.0
   hints = hints_old = nil
+
   warbles_first_hole_seen = false
   warbles_announced = false
+
   first_round = true
   for_testing_touched = false
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_freq] = nil
-  $perfctr[:handle_holes_this_started] = hole_start
   if $hole_ref
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
@@ -96,12 +99,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     handle_win_change if $ctl_sig_winch
     
     # transform freq into hole
+    hole_was = hole
     hole, lbor, cntr, ubor = describe_freq(freq)
+    hole_since = tntf if hole_was != hole
     sleep 1 if $testing_what == :lag
 
     # detect and update warbling before we overwrite hole_was_for_since
     if $opts[:comment] == :warbles
-      if regular_hole?(hole_held) && ( !$warbles_holes[0] || !$warbles_holes[1] )
+      if hole_held && ( !$warbles_holes[0] || !$warbles_holes[1] )
         $warbles_holes[0] = hole_held if !$warbles_holes[0] && hole_held != $warbles_holes[1]
         $warbles_holes[1] = hole_held if !$warbles_holes[1] && hole_held != $warbles_holes[0]
         if !warbles_announced && $warbles_holes[0] && $warbles_holes[1]
@@ -119,36 +124,38 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       add_and_del_warbles(tntf, add_warble)
     end
 
-    # give hole in chart the right color: compute hole_since
-    if !hole_since || hole != hole_was_for_since
-      hole_since = tntf
-      hole_was_for_since = hole
-    end
-
     # distinguish deliberate playing from noise: compute hole_held
-    if regular_hole?(hole)
-      hole_held_was = hole_held
-      hole_held_was_regular = hole_held_was if regular_hole?(hole_held_was)
-      if tntf - hole_since < hole_held_min
-        # we will erase hole_held below, so now its the time to record duation
-        $journal << ('(%.1fs)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1])
-        # too short, the current hole can not count as beeing held
-        hole_held = nil
-      else
-        hole_held = hole
-        # adding  hole_held_min / 2 heuristacally to get audibly more plausible durations 
-        hole_held_since = hole_since + hole_held_min / 2
-        if $journal_all && hole_held != hole_held_was && regular_hole?(hole_held)
-          $journal << hole_held
-          print_hom "#{journal_length} holes" if $opts[:comment] == :journal
+    # remember old value to allow detecting change below
+    held_min = ( hole ? hole_held_min : hole_held_min_nil )
+    hole_held_was = hole_held
+    hole_held = hole if tntf - hole_since >= held_min
+    hole_held_since = hole_since if hole_held_was != hole_held
+
+    # update journal if hole_held has changed
+    if $journal_all && hole_held_was != hole_held
+      if hole_held
+        if hole_journal && hole_journal != hole_held
+          $journal << ('(%.1fs)' % (tntf - hole_journal_since)) if journal_length > 0 && !musical_event?($journal[-1])
         end
+        hole_journal = hole_held
+        $journal << hole_held
+        hole_journal_since = hole_since 
+        print_hom "#{journal_length} holes" if $opts[:comment] == :journal
+      else
+        $journal << ('(%.1fs)' % (tntf - hole_journal_since)) if journal_length > 0 && !musical_event?($journal[-1])
       end
-    else
-      $journal << ('(%.1fs)' % (tntf - hole_held_since)) if $journal_all && hole_held && journal_length > 0 && !musical_event?($journal[-1]) && $journal_all
-      hole_held = nil
     end
 
-    was_was_good = was_good
+    # $hole_held_inter should never be nil and different from current hole_held
+    if !$hole_held_inter || (hole_held && $hole_held_inter != hole_held)
+      # the same condition below and above, only with different vars
+      # btw: this is not a stack
+      if !$hole_held_inter_was || ($hole_held_inter && $hole_held_inter_was != $hole_held_inter)
+        $hole_held_inter_was = $hole_held_inter
+      end
+      $hole_held_inter = hole_held
+    end
+    
     good,
     done,
     was_good = if $opts[:screenshot]
@@ -171,7 +178,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     print "\e[2m\e[#{$lines[:frequency]}HFrequency:  "
     just_dots_short = '.........:.........'
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
-    if regular_hole?(hole)
+    if hole
       dots, in_range = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|in_range, marker| in_range ? "\e[0m#{marker}\e[2m" : marker}
       cents = cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
@@ -182,13 +189,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     #
     # Handle intervals
     #
-    hfi = $hole_ref || hole_held_was_regular
-    hole_for_inter = regular_hole?(hfi)  ?  hfi  :  nil
-    inter_semi, inter_text, _, _ = describe_inter(hole_held, hole_for_inter)
+    hole_for_inter = $hole_ref || $hole_held_inter_was
+    inter_semi, inter_text, _, _ = describe_inter($hole_held_inter, hole_for_inter)
     if inter_semi
-      print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to #{hole_held.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
-    elsif hole_for_inter
-      print "\e[#{$lines[:interval]}HInterval: #{hole_for_inter.rjust(4)}  to   --  is   --  \e[K"
+      print "\e[#{$lines[:interval]}HInterval: #{$hole_held_inter.rjust(4)}  to #{hole_for_inter.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
       # let old interval be visible
     end
@@ -215,7 +219,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     text = "Hole: %#{longest_hole_name.length}s, Note: %4s" %
-           (regular_hole?(hole)  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
+           (hole  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
     text += ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
     print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text) + "\e[K"
@@ -316,7 +320,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end      
     
     if $ctl_mic[:set_ref]
-      $hole_ref = regular_hole?(hole_held) ? hole_held : nil
+      $hole_ref = hole_held
       print_hom "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole"
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
@@ -474,11 +478,6 @@ def text_for_key
   end
   text += '; journal-all ' if $journal_all
   truncate_colored_text(text, $term_width - 2 ) + "\e[K"
-end
-
-
-def regular_hole? hole
-  hole && hole != :low && hole != :high
 end
 
 

@@ -21,7 +21,7 @@ def describe_freq freq
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
-    return :low, nil, nil, nil if (freq < lb)
+    return nil, nil, nil, nil if (freq < lb)
     if (freq >= lb) and (freq < ub)
       $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
       $desc_freq_cache_lb = lb
@@ -29,7 +29,7 @@ def describe_freq freq
       return $desc_freq_cache
     end
   end
-  return :high, nil, nil, nil
+  return nil, nil, nil, nil
 end
 
 
@@ -85,7 +85,7 @@ end
 
 
 def describe_inter hon1, hon2
-  return [nil, nil, nil, nil] if !hon1 || !hon2 || ([hon1, hon2] & [:low, :high]).length > 0 || musical_event?(hon1) || musical_event?(hon2) 
+  return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2) 
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
       $harp[hon][:semi]

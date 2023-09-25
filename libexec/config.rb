@@ -330,6 +330,8 @@ def set_global_vars_late
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
   $recorded_data_ts = nil
   $recorded_processed = Struct.new(:start, :end, :vals_norm, :term_width, :term_height, :plot_width, :plot_height).new
+  # these need (?) to be global vars, as the should persist over invocations
+  $hole_held_inter = $hole_held_inter_was = nil
 
   # Concepts: 'journaling' is writing holes, that are played by user,
   # 'tracing' (nothing to do with 'debugging') is writing holes, that
