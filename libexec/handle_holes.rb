@@ -15,12 +15,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
   hole = nil
   hole_since = tntf
+  hole_since_ticks = $total_freq_ticks
 
-  # if this is set shorter, the journal will pick up spurious notes
-  hole_held_min = 0.1
-  hole_held_min_nil = 0.05
+  # Use ticks (e.g. cycles in handle_holes), because this is
+  # potentially more precise than time-spans.  If this is set shorter,
+  # the journal will pick up spurious notes
+  #
+  hole_held_min_ticks = 3
+  hole_held_min_ticks_nil = 2
   hole_held = hole_journal = hole_journal_since = nil
-  hole_held_since = tntf
 
   was_good = was_was_good = was_good_since = nil
   hints_refreshed_at = tntf - 1000.0
@@ -38,9 +41,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
+  
   loop do   # over each new frequency from pipeline, until var done or skip
 
-    $perfctr[:handle_holes_loops] += 1
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
     
@@ -71,7 +74,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       for_testing_touched = true
     end
 
-    $total_freqs += 1
+    $total_freq_ticks += 1
     $perfctr[:handle_holes_this_first_freq] ||= Time.now.to_f
 
     return if lambda_skip && lambda_skip.call()
@@ -101,12 +104,16 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     # transform freq into hole
     hole_was = hole
     hole, lbor, cntr, ubor = describe_freq(freq)
-    hole_since = tntf if hole_was != hole
+    if hole_was != hole
+      hole_since = tntf
+      hole_since_ticks = $total_freq_ticks
+    end
     sleep 1 if $testing_what == :lag
 
-    # detect and update warbling before we overwrite hole_was_for_since
+    # detect and update warbling
     if $opts[:comment] == :warbles
       if hole_held && ( !$warbles_holes[0] || !$warbles_holes[1] )
+        # defining warbel holes
         $warbles_holes[0] = hole_held if !$warbles_holes[0] && hole_held != $warbles_holes[1]
         $warbles_holes[1] = hole_held if !$warbles_holes[1] && hole_held != $warbles_holes[0]
         if !warbles_announced && $warbles_holes[0] && $warbles_holes[1]
@@ -126,10 +133,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     # distinguish deliberate playing from noise: compute hole_held
     # remember old value to allow detecting change below
-    held_min = ( hole ? hole_held_min : hole_held_min_nil )
+    held_min_ticks = ( hole ? hole_held_min_ticks : hole_held_min_ticks_nil )
     hole_held_was = hole_held
-    hole_held = hole if tntf - hole_since >= held_min
-    hole_held_since = hole_since if hole_held_was != hole_held
+    hole_held = hole if $total_freq_ticks - hole_since_ticks >= held_min_ticks
 
     # update journal if hole_held has changed
     if $journal_all && hole_held_was != hole_held

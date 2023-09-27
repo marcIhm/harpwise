@@ -263,7 +263,7 @@ def print_afterthought
 
   afterthought = ''
 
-  if $lagging_freqs_lost > 0 && $total_freqs > 0
+  if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
     afterthought += <<~end_of_content
 
 
@@ -271,7 +271,7 @@ def print_afterthought
          ------------------
 
          harpwise has been lagging behind at least once;
-         #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freqs} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freqs))} have been lost.
+         #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))} have been lost.
 
          If you notice such a lag frequently and and want to reduce it, you
          may try to set option '--time-slice' or config 'time_slice'

@@ -12,7 +12,7 @@ def set_global_vars_early
   $freq_pipeline_cmd = ''
   $max_jitter = -1.0
   $max_jitter_at = 0
-  $total_freqs = 0
+  $total_freq_ticks = 0
 
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
