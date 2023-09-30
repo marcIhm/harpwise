@@ -497,7 +497,7 @@ do_test 'id-7a: change scale of harp' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 's'
+  tms 'S'
   sleep 1
   tms 'blues'
   tms :ENTER
@@ -512,7 +512,7 @@ do_test 'id-7b: rotate scale of harp' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'S'
+  tms 's'
   sleep 1
   expect { screen[1]['listen richter a chord-i'] }
   kill_session
@@ -2022,6 +2022,21 @@ do_test 'id-78: detect interval' do
   sleep 4
   expect { screen[14]['Interval:   +4  to   +5  is -4 st'] }
   kill_session
+end
+
+[[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"],
+ [-2, 4, "\e[34m c4   e4  \e[7m\e[92m g4"]].each_with_index do |vals, idx|
+  semi, line, text = vals
+  do_test "id-79a#{idx}: check against semitone played #{semi}" do
+    sound 10, semi
+    new_session
+    tms 'harpwise listen c chord-i --add-scales chord-iv,chord-v --display chart-notes'
+    tms :ENTER
+    wait_for_start_of_pipeline
+    sleep 1
+    expect { screen_with_colours[line][text] }
+    kill_session
+  end
 end
 
 puts

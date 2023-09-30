@@ -630,7 +630,7 @@ def show_help
              "      r: set reference to hole played (not freq played)",
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
-             "      s: set scales                   S: rotate scales"]
+             "      s: rotate current scales        S: set scales"]
   if $ctl_can[:next]
     frames[-1] <<  "      j: journal-menu; only available in mode listen"
     frames[-1] <<  " ctrl-r: record and play user (mode licks only)"

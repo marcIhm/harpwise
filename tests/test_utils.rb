@@ -57,6 +57,11 @@ def screen
 end
 
 
+def screen_with_colours
+  %x(tmux capture-pane -e -t harpwise -p).lines.map!(&:chomp)
+end
+
+
 def wait_for_start_of_pipeline
   20.times do
     if File.exist?($pipeline_started)
@@ -101,7 +106,11 @@ def expect *failinfo, &block
   
   puts
   source = block.source
-  if source['screen']
+  if source['screen_with_colours']
+    screen_with_colours.each_with_index do |line, idx|
+      puts "#{idx.to_s.rjust(3)}: #{line.inspect}"
+    end
+  elsif source['screen']
     screen.each_with_index do |line, idx|
       puts "#{idx.to_s.rjust(3)}: #{line.inspect}"
     end

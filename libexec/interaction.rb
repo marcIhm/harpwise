@@ -550,10 +550,10 @@ def handle_kb_mic
   elsif char == 'k'
     $ctl_mic[:change_key] = true
     text = nil
-  elsif char == 'S'
+  elsif char == 's'
     $ctl_mic[:rotate_scale] = true
     text = nil
-  elsif char == 's'
+  elsif char == 'S'
     $ctl_mic[:change_scale] = true
     text = nil
   elsif char == 'K'
@@ -874,7 +874,7 @@ end
 
 # a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
-  if hole
+  if !hole
     2
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
     if $hole2flags[hole].include?(:main)
