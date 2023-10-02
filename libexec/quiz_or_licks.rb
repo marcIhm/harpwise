@@ -913,7 +913,7 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  input = choose_interactive("Choose new tag for --tags_any, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
+  input = choose_interactive("Choose new tag for --tags-any, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
     if tag2licks[tag]
       "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
     else

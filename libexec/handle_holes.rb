@@ -657,7 +657,7 @@ def show_help
                "      #: toggle tracking progress in seq   R: play holes reversed"]
     if $ctl_can[:lick]
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
-                          "      t: change option --tags_any (aka -t)",
+                          "      t: change option --tags-any (aka -t)",
                           "      <: shift lick down by one octave     >: shift lick up",
                           "      @: change option --partial",
                           "     */: Add or remove Star from current lick persistently;",

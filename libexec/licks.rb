@@ -283,15 +283,18 @@ def create_initial_lick_library lfile
       FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
     end
     puts
-    puts "\n\e[32mGO AHEAD\e[0m\n\n"
-    puts 'Now you may try again with three predefined licks'
-    puts "from 'Wade in the Water', 'St. Louis Blues' and"
-    puts "'Going down that road feeling bad' !"
-    puts "(all in my own, rather imperfect recording)"
+    puts "\n\e[32mGO AHEAD, some sample licks have been created.\e[0m\n\n"
+    puts 'Now you may try again with three predefined licks:'
+    puts
+    puts ' - Wade in the Water'
+    puts ' - St. Louis Blues'
+    puts ' - Going down that road feeling bad'
+    puts
+    puts "(all in my own, rather imperfect recording...)"
     puts "If you like this mode and want to make it more useful,"
     puts "then consider adding more licks to:"
     puts "#{lfile}"
-    puts "(where you may also reread these suggestions)"
+    puts "(where you may also reread these and more suggestions)"
     puts
   else
     puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !\n\n"

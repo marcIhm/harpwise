@@ -176,7 +176,7 @@ do_test 'id-9b: mode licks to create simple lick file' do
   tms 'harpwise licks a'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[-8]['road'] }
+  expect { screen[15]['Going down that road feeling bad'] }
   expect(lick_file) { File.exist?(lick_file) }
   kill_session
   # more test data
@@ -796,7 +796,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
-do_test 'id-19a: displays and comments in licks ' do
+do_test 'id-19a: cacle through displays and comments in licks ' do
   sound 40, 2
   new_session
   tms 'harpwise licks c'
@@ -1443,8 +1443,8 @@ do_test 'id-53: print' do
   lines = File.read($testing_output_file).lines
   {13 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
    16 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   20 => '-1.Ton      +2.2st      -2.3st     -3/.3st      +3.Si-O',
-   24 => '-1.Ton    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   20 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
+   24 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
    28 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    32 => '-7  -5  -2   1  -2   1   0  -2',
    36 => 'Description: St. Louis Blues'}.each do |lno, exp|
@@ -1707,7 +1707,7 @@ do_test 'id-60a: set reference from sound' do
   tms 'D'
   tms 'inter'
   tms :ENTER
-  expect { screen[9]['-19st-14st-10st-7st       REF'] }
+  expect { screen[9]['-19st-14stfT-O -7st       REF'] }
   kill_session
 end
 

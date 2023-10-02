@@ -3,10 +3,18 @@
   - Tonica
   - Ton
   - first
+'2':
+  - flat Third
+  - fT
+  - third
 '4':
   - maj Third
   - mT
   - third
+'6':
+  - flat Fifth
+  - fF
+  - tritone
 '7':
   - per Fifth
   - pF
