@@ -21,10 +21,10 @@ def do_play to_play
                    'inter' => nil,
                    'progression' => 'take a base and semitone diffs, then play it',
                    'prog' => nil,
-                   'user-lick-recording' => 'play last recording of you playing a lick (if any)',
-                   'user' => nil}
+                   'chord' => 'play the given holes or notes as a chord',
+                   'user' => 'play last recording of you playing a lick (if any)'}
   
-  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog))
+  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog chord))
   extra = Set.new(extra).to_a
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
 
@@ -109,6 +109,23 @@ def do_play to_play
       prog = base_and_delta_to_semis(args_for_extra)
       play_interactive_progression prog
 
+    elsif extra[0] == 'chord'
+      semis = args_for_extra.map do |hon|
+        if $harp_holes.include?(hon)
+          $harp[hon][:semi]
+        elsif semi = begin
+                       note2semi(hon, 2..8)
+                     rescue ArgumentError
+                       nil
+                     end
+          semi
+        else
+          err "Can only play holes or notes, but not this: #{hon}"
+        end
+      end
+      err "Need at least two holes or notes to play a chord" unless semis.length >= 1
+      play_interactive_chord semis, args_for_extra
+
     elsif extra[0] == 'user-lick-recording' || extra[0] == 'user'
 
       rfile = $ulrec.rec_file
@@ -119,7 +136,8 @@ def do_play to_play
         play_recording_and_handle_kb_simple rfile, true
         puts
       else
-        puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it"
+        puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it."
+        puts
       end
     else
       fail "Internal error: #{extra}"

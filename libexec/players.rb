@@ -220,8 +220,6 @@ def play_interactive_pitch embedded = false
 
   # loop forever until ctrl-c; loop on every key
   loop do
-    duration_clause = ( wave == :pluck  ?  3  :  86400 )
-
     # we also loop when paused
     if paused
       if pplayer&.alive?
@@ -229,9 +227,8 @@ def play_interactive_pitch embedded = false
         pplayer.check
       end
     else
-      # sending stdout output to /dev/null makes this immune to killing ?
-      # +7 because key of song, rather than key of harp is wanted
-      cmd = "play --norm=#{$vol.to_i} -q -n synth #{duration_clause} #{wave} %#{semi+7}"
+      # semi+7 because key of song, rather than key of harp is wanted
+      cmd = "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} %#{semi+7}"
       if cmd_was != cmd || !pplayer&.alive?
         pplayer.kill if pplayer&.alive?
         pplayer&.check
@@ -285,13 +282,13 @@ def play_interactive_pitch embedded = false
       elsif $ctl_pitch[:fifth_down]
         semi -= 7 if semi > min_semi
         print_pitch_information(semi, knm)
-      elsif $ctl_pitch[:wave_up] || $ctl_pitch[:wave_down]
+      elsif $ctl_pitch[:wave_up]
         wave_was = wave
-        wave = if $ctl_pitch[:wave_up]
-                 all_waves[(all_waves.index(wave) + 1) % all_waves.length]
-               else
-                 all_waves[(all_waves.index(wave) -1) % all_waves.length]
-               end
+        wave = rotate_among(wave, :up, all_waves)
+        puts "\e[0m\e[2m#{wave}\e[0m"
+      elsif $ctl_pitch[:wave_down]
+        wave_was = wave
+        wave = rotate_among(wave, :down, all_waves)
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:show_help]
         pplayer.pause
@@ -301,18 +298,17 @@ def play_interactive_pitch embedded = false
                         "    s,+: one semitone up     S,-: one semitone down\n" +
                         "      o: one octave up         O: one octave down\n" +
                         "      f: one fifth up          F: one fifth down\n" +
-                        "      v: decrease volume       V: increase volume by 3dB" +
-                        ( embedded  ?  "\n RETURN: accept"  :  '')
+                        "      v: decrease volume       V: increase volume by 3dB\n" +
+                        ( embedded  ?  ' RETURN: accept'  :  ' RETURN: play again')
         pplayer.continue
         print_pitch_information(semi)
-      elsif $ctl_pitch[:quit]
-        new_key =  ( $ctl_pitch[:quit] == "\n"  ?  semi2note(semi)[0..-2]  :  nil)
-        $ctl_pitch[:quit] = false
+      elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
+        new_key =  ( $ctl_pitch[:accept_or_repeat]  ?  semi2note(semi)[0..-2]  :  nil)
         if pplayer&.alive?
           pplayer.kill
           pplayer.check
         end
-        return new_key
+        return new_key if $ctl_pitch[:quit] || embedded 
       end
 
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
@@ -338,15 +334,15 @@ def play_interactive_interval semi1, semi2
   delta_semi = semi2 - semi1
   tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
   wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
-  gap = 0.2
-  len = 3
+  gap = ConfinedValue.new(0.2, 0.2, 0, 2)
+  len = ConfinedValue.new(3, 1, 1, 8)
   cmd_template = if $testing
                    "sleep 1"
                  else
                    "play --norm=%s --combine mix #{tfiles[0]} #{tfiles[1]}"
                  end
   cmd = cmd_template % $vol.to_i
-  synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
+  synth_for_inter_or_chord([semi1, semi2], tfiles, wfiles, gap.val, len.val)
   new_sound = true
   paused = false
   pplayer = nil
@@ -368,10 +364,10 @@ def play_interactive_interval semi1, semi2
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          synth_for_inter([semi1, semi2], tfiles, wfiles, gap, len)
+          synth_for_inter_or_chord([semi1, semi2], tfiles, wfiles, gap.val, len.val)
           puts
           print_interval semi1, semi2
-          puts "\e[0m\e[2m\n  Gap: #{gap}, length: #{len}\e[0m\n\n"
+          puts "\e[0m\e[2m\n  Gap: #{gap.val}, length: #{len.val}\e[0m\n\n"
           new_sound = false
         end
         if $testing
@@ -409,17 +405,17 @@ def play_interactive_interval semi1, semi2
         delta_semi +=  $ctl_inter[:narrow]  ?  -1  :  +1
         semi2 = semi1 + delta_semi
         new_sound = true
-      elsif $ctl_inter[:gap_inc] || $ctl_inter[:gap_dec]
-        gap +=  $ctl_inter[:gap_dec]  ?  -0.2  :  +0.2
-        gap = 0 if gap < 0
-        gap = 2 if gap > 2
-        gap = gap.round(1)
+      elsif $ctl_inter[:gap_inc]
+        gap.inc
         new_sound = true
-      elsif $ctl_inter[:len_inc] || $ctl_inter[:len_dec]
-        len +=  $ctl_inter[:len_inc]  ?  +1 : -1
-        len = 1 if len < 1
-        len = 8 if len > 8
-        len = len.round(1)
+      elsif $ctl_inter[:gap_dec]
+        gap.dec
+        new_sound = true
+      elsif $ctl_inter[:len_inc]
+        len.inc
+        new_sound = true
+      elsif $ctl_inter[:len_dec]
+        len.dec
         new_sound = true
       elsif $ctl_inter[:swap]
         semi1, semi2 = semi2, semi1
@@ -439,13 +435,13 @@ def play_interactive_interval semi1, semi2
       elsif $ctl_inter[:show_help]
         pplayer.pause
         display_kb_help 'an interval',true,
-                        "   SPACE: pause/continue             ESC,x,q: quit\n" +
-                        "       +: widen interval by one semi       -: narrow by one semi\n" +
-                        "       >: move interval up one semi        <: move down\n" +
-                        "       G: increase time gap                g: decrease\n" +
-                        "       L: increase length                  l: decrease\n" +
-                        "       v: decrease volume by 3db           V: increase volume\n" +
-                        "       s: swap notes                  RETURN: play again"
+                        "   SPACE: pause/continue          ESC,x,q: quit\n" +
+                        "       +: widen interval by one semi    -: narrow by one semi\n" +
+                        "       >: move interval up one semi     <: move down\n" +
+                        "       g: decrease time gap             G: increase\n" +
+                        "       l: decrease length               L: increase\n" +
+                        "       v: decrease volume by 3db        V: increase volume\n" +
+                        "       s: swap notes               RETURN: play again"
         pplayer.continue
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
@@ -457,6 +453,139 @@ def play_interactive_interval semi1, semi2
       end
 
       $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}
+    end
+  end
+end
+
+
+def play_interactive_chord semis, args_orig
+
+  puts "\e[0m\e[2mPlaying in loop.\n"
+  puts "(type 'h' for help)\e[0m\n\n"
+
+  tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/chord_semi#{i}.wav"}
+  wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
+  all_waves = [:pluck, :sawtooth, :square, :sine]
+  wave = :sawtooth
+  gap = ConfinedValue.new(0.2, 0.1, 0, 2)
+  len = ConfinedValue.new(6, 1, 1, 16)
+  # chord dscription and sound description
+  cdesc = semis.zip(args_orig).map {|s,o| "#{o} (#{s}st)"}.join('  ')
+  sdesc = get_sound_description(wave, gap.val, len.val)
+  cmd_template = if $testing
+                   "sleep 1"
+                 else
+                   "play --norm=%s --combine mix #{tfiles.join(' ')}"
+                 end
+  cmd = cmd_template % $vol.to_i
+  synth_for_inter_or_chord(semis, tfiles, wfiles, gap.val, len.val, wave)
+  new_sound = false
+  paused = false
+  pplayer = nil
+  puts "\e[0m#{cdesc}\e[2m\n^^^ given notes or holes with st diff to a4\e[0m\n#{sdesc}"
+  puts
+
+  # loop forever until ctrl-c; loop on every key
+  loop do
+    # we also loop when paused
+    if paused
+      if pplayer&.alive?
+        pplayer.kill
+        pplayer.check
+      end
+    else
+      if new_sound || !pplayer&.alive?
+        if pplayer
+          pplayer.kill
+          pplayer.check
+        end
+        if new_sound
+          cmd = cmd_template % $vol.to_i
+          synth_for_inter_or_chord(semis, tfiles, wfiles, gap.val, len.val, wave)
+          sdesc = get_sound_description(wave, gap.val, len.val)
+          new_sound = false
+        end
+        if $testing
+          IO.write($testing_log, cmd + "\n", mode: 'a')
+          cmd = 'sleep 600 ### ' + cmd
+        end
+        pplayer = PausablePlayer.new(cmd)
+      end
+    end
+
+    # wait until sound has stopped or key pressed
+    begin
+      break if $ctl_chord[:any]
+      handle_kb_play_chord
+      sleep 0.1
+    end while pplayer.alive?
+
+    # handle_kb
+    if $ctl_chord[:any]
+      new_sound = false
+      if $ctl_chord[:pause_continue]
+        if paused
+          paused = false
+          puts "\e[0m\e[2mgo\e[0m"
+          puts "#{cdesc}"
+        else
+          paused = true
+          puts "\e[0m\e[2mSPACE to continue ...\e[0m"
+        end
+      elsif $ctl_chord[:vol_up]
+        $vol.inc
+        puts "\e[0m\e[2m#{$vol}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:vol_down]
+        $vol.dec
+        puts "\e[0m\e[2m#{$vol}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:wave_up]
+        wave = rotate_among(wave, :up, all_waves)
+        new_sound = true
+        puts "\e[0m\e[2m#{wave}\e[0m"
+      elsif $ctl_chord[:wave_down]
+        wave = rotate_among(wave, :down, all_waves)
+        new_sound = true
+        puts "\e[0m\e[2m#{wave}\e[0m"
+      elsif $ctl_chord[:gap_inc]
+        gap.inc
+        puts "\e[0m\e[2mGap: #{gap.val}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:gap_dec]
+        gap.dec
+        puts "\e[0m\e[2mGap: #{gap.val}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:len_inc]
+        len.inc
+        puts "\e[0m\e[2mLen: #{len.val}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:len_dec]
+        len.dec
+        puts "\e[0m\e[2mLen: #{len.val}\e[0m"
+        new_sound = true
+      elsif $ctl_chord[:replay]
+        puts "\e[0m\e[2mReplay\e[0m"
+        new_sound = true        
+      elsif $ctl_chord[:show_help]
+        pplayer.pause
+        display_kb_help 'a chord',true,
+                        "  SPACE: pause/continue  ESC,x,q: quit\n" +
+                        "      w: change waveform       W: change waveform back\n" +
+                        "      g: decrease time gap     G: increase\n" +
+                        "      l: decrease length       L: increase\n" +
+                        "      v: decrease volume       V: increase volume by 3dB" +
+                        " RETURN: play again"
+        pplayer.continue
+        puts "\e[0m#{cdesc}"
+      elsif $ctl_chord[:quit]
+        if pplayer&.alive?
+          pplayer.kill
+          pplayer.check
+        end
+        exit
+      end
+      $conf_meta[:ctrls_play_chord].each {|k| $ctl_chord[k] = false}
     end
   end
 end
@@ -484,7 +613,7 @@ def play_interactive_progression prog
       play_semi_and_handle_kb as
       print "\r\e[0m#{line}\n"
 
-      if $ctl_semi[:show_help]
+      if $ctl_prog[:show_help]
         display_kb_help 'a semitone progression', true,
                         "  SPACE: pause/continue\n" +
                         "    0-9: add to prefix for semitone step\n" +
@@ -493,8 +622,8 @@ def play_interactive_progression prog
                         "    S,-: shift whole progression down\n" +
                         "      v: decrease volume by 3db           V: increase volume\n" +
                         "      l: toggle looping of progression    q: quit after iteration"
-        $ctl_semi[:show_help] = false
-      elsif $ctl_semi[:pause_continue]
+        $ctl_prog[:show_help] = false
+      elsif $ctl_prog[:pause_continue]
         print "\n\e[0m\e[32mSPACE to continue ..."
         begin
           char = $ctl_kb_queue.deq
@@ -502,27 +631,27 @@ def play_interactive_progression prog
         print " go\e[0m\n"
         puts
         sleep 0.5
-        $ctl_semi[:pause_continue] = false
-      elsif $ctl_semi[:semi_up] || $ctl_semi[:semi_down]
+        $ctl_prog[:pause_continue] = false
+      elsif $ctl_prog[:semi_up] || $ctl_prog[:semi_down]
         # things happen at start if outside loop
-        change_semis = ( $ctl_semi[:prefix] || '1').to_i * ( $ctl_semi[:semi_up]  ?  +1  :  -1 )
-        $ctl_semi[:prefix] = nil
-        print "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones #{$ctl_semi[:semi_up] ? 'UP' : 'DOWN'}\e[0m\n"
-        $ctl_semi[:semi_up] = $ctl_semi[:semi_down] = false
-      elsif $ctl_semi[:vol_up]
-        $ctl_semi[:vol_up] = false
+        change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up]  ?  +1  :  -1 )
+        $ctl_prog[:prefix] = nil
+        print "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones #{$ctl_prog[:semi_up] ? 'UP' : 'DOWN'}\e[0m\n"
+        $ctl_prog[:semi_up] = $ctl_prog[:semi_down] = false
+      elsif $ctl_prog[:vol_up]
+        $ctl_prog[:vol_up] = false
         $vol.inc
         puts "\e[0m\e[2m#{$vol}\e[0m"
-      elsif $ctl_semi[:vol_down]
-        $ctl_semi[:vol_down] = false
+      elsif $ctl_prog[:vol_down]
+        $ctl_prog[:vol_down] = false
         $vol.dec
         puts "\e[0m\e[2m#{$vol}\e[0m"
-      elsif $ctl_semi[:toggle_loop]
-        $ctl_semi[:toggle_loop] = false
+      elsif $ctl_prog[:toggle_loop]
+        $ctl_prog[:toggle_loop] = false
         loop = !loop
         print "\e[0m\e[2mloop: #{loop ? 'ON' : 'OFF'}\e[0m\n"
-      elsif $ctl_semi[:quit]
-        $ctl_semi[:quit] = false
+      elsif $ctl_prog[:quit]
+        $ctl_prog[:quit] = false
         quit = true
         print "\e[0m\e[2mQuit after this iteration\e[0m\n"
       end
@@ -724,4 +853,41 @@ class PausablePlayer
     end
   end
   
+end
+
+
+class ConfinedValue
+
+  def initialize value, step, lowest, highest
+    @value = value
+    @step = step
+    @lowest = lowest
+    @highest = highest
+  end
+
+  def val
+    @value
+  end
+
+  def confine
+    @value = @lowest if @value < @lowest
+    @value = @highest if @value > @highest
+    @value = @value.round(1)
+    @value
+  end
+
+  def inc
+    @value += @step
+    confine
+  end
+
+  def dec
+    @value -= @step
+    confine
+  end
+end
+
+
+def get_sound_description wave, gap, len
+  "Wave: #{wave}, Gap: #{gap}, Len: #{len}"
 end

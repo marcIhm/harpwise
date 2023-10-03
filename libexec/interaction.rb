@@ -382,28 +382,28 @@ def handle_kb_play_semis
   $ctl_kb_queue.clear
 
   if char == ' '
-    $ctl_semi[:pause_continue] = true
+    $ctl_prog[:pause_continue] = true
   elsif %w(0 1 2 3 4 5 6 7 8 9).include?(char)
-    $ctl_semi[:prefix] = '' unless $ctl_semi[:prefix]
-    $ctl_semi[:prefix] += char
-    print "\n\e[0m\e[2mprefix is #{$ctl_semi[:prefix]}\e[0m\n"
+    $ctl_prog[:prefix] = '' unless $ctl_prog[:prefix]
+    $ctl_prog[:prefix] += char
+    print "\n\e[0m\e[2mprefix is #{$ctl_prog[:prefix]}\e[0m\n"
   elsif char == "\e"
-    $ctl_semi[:prefix] = nil
+    $ctl_prog[:prefix] = nil
     print "\n\e[0m\e[2mprefix cleared\e[0m\n"
   elsif char == 's' || char == '+'
-    $ctl_semi[:semi_up] = true
+    $ctl_prog[:semi_up] = true
   elsif char == 'S' || char == '-'
-    $ctl_semi[:semi_down] = true
+    $ctl_prog[:semi_down] = true
   elsif char == 'v'
-    $ctl_semi[:vol_down] = true
+    $ctl_prog[:vol_down] = true
   elsif char == 'V'
-    $ctl_semi[:vol_up] = true
+    $ctl_prog[:vol_up] = true
   elsif char == 'l'
-    $ctl_semi[:toggle_loop] = true
+    $ctl_prog[:toggle_loop] = true
   elsif char == 'h'
-    $ctl_semi[:show_help] = true
+    $ctl_prog[:show_help] = true
   elsif char == 'q'
-    $ctl_semi[:quit] = true
+    $ctl_prog[:quit] = true
   end
 end
 
@@ -438,8 +438,10 @@ def handle_kb_play_pitch
     $ctl_pitch[:wave_up] = true
   elsif char == 'w'
     $ctl_pitch[:wave_down] = true
-  elsif char == 'q' || char == 'x' || char == "\e" || char == "\n"
-    $ctl_pitch[:quit] = char
+  elsif char == 'q' || char == 'x' || char == "\e"
+    $ctl_pitch[:quit] = true
+  elsif char == "\n"
+    $ctl_pitch[:accept_or_repeat] = true
   else
     $ctl_pitch[:any] = false
   end
@@ -484,6 +486,42 @@ def handle_kb_play_inter
     $ctl_inter[:replay] = true
   else
     $ctl_inter[:any] = false
+  end
+end
+
+
+def handle_kb_play_chord
+  return if $ctl_kb_queue.length == 0
+  char = $ctl_kb_queue.deq
+  $ctl_kb_queue.clear
+  $ctl_chord[:any] = true
+
+  if char == ' '
+    $ctl_chord[:pause_continue] = true
+  elsif char == 'g'
+    $ctl_chord[:gap_dec] = true
+  elsif char == 'G'
+    $ctl_chord[:gap_inc] = true
+  elsif char == 'l'
+    $ctl_chord[:len_dec] = true
+  elsif char == 'L'
+    $ctl_chord[:len_inc] = true
+  elsif char == 'v'
+    $ctl_chord[:vol_down] = true
+  elsif char == 'V'
+    $ctl_chord[:vol_up] = true
+  elsif char == 'W'
+    $ctl_chord[:wave_up] = true
+  elsif char == 'w'
+    $ctl_chord[:wave_down] = true
+  elsif char == 'h'
+    $ctl_chord[:show_help] = true
+  elsif char == "\n"
+    $ctl_chord[:replay] = true
+  elsif char == 'q' || char == 'x' || char == "\e"
+    $ctl_chord[:quit] = char
+  else
+    $ctl_chord[:any] = false
   end
 end
 

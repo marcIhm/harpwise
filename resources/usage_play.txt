@@ -11,9 +11,13 @@ OVERVIEW
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
     - 'licks' for selected licks
     - 'pitch' to play an interactive, adjustable pitch; this
-      may help to find the key of a song by ear-comparison
-    - 'interval': play an interval specified on the commandline
+       may help to find the key of a song by ear-comparison
+    - 'interval' to play an interval specified on the commandline
     - 'progression': take a base and semitone diffs, then play it
+    - 'chord': play any holes or notes from the commandline
+       simultanously as a chord
+    - 'user': play back, what (if any) you (the user) have recorded
+       in mode 'licks' before
 
   You may try 'harpwise play x' for an instructive error message.
 
@@ -120,3 +124,16 @@ USAGE BY EXAMPLES
 
   which also uses the simple-turn lick at the end.
   
+
+  harpwise play user
+
+  plays what you have recorded before in mode 'licks' (where you need to
+  trigger the recording explicitly).
+
+
+  harpwise play chord +1 +2 +3 -3/
+
+  plays the given holes (or notes, if you wish) simultanously; the given example
+  is (by the way) a flat-seventh-chord, what you may find out by using print:
+
+  harpwise print +1 +2 +3 -3/

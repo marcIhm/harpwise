@@ -109,6 +109,7 @@ end
 
 at_exit do
   sane_term if STDIN.isatty
+  print "\e[0m"
   write_dump 'end' if $testing
   Thread.list.each do |thread|
     thread.exit unless thread == Thread.current

@@ -57,7 +57,7 @@ def screen
 end
 
 
-def screen_with_colours
+def screen_col
   %x(tmux capture-pane -e -t harpwise -p).lines.map!(&:chomp)
 end
 
@@ -106,8 +106,8 @@ def expect *failinfo, &block
   
   puts
   source = block.source
-  if source['screen_with_colours']
-    screen_with_colours.each_with_index do |line, idx|
+  if source['screen_col']
+    screen_col.each_with_index do |line, idx|
       puts "#{idx.to_s.rjust(3)}: #{line.inspect}"
     end
   elsif source['screen']

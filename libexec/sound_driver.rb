@@ -340,18 +340,22 @@ def play_semi_and_handle_kb semi
   # loop to check repeatedly while the semitone is beeing played
   begin
     sleep 0.1
-    # this sets $ctl_semi, which will be used by caller one level up
+    # this sets $ctl_prog, which will be used by caller one level up
     handle_kb_play_semis
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread
 end
 
 
-def synth_for_inter semis, files, wfiles, gap, len
-  times = [0.3, 0.3 + gap]
+def synth_for_inter_or_chord semis, files, wfiles, gap, len, wave = :pluck
+  fail 'Internal error: unequal param len' unless semis.length == files.length
+  times = (0 ... semis.length).map {|i| 0.3 + i*gap}
   files.zip(semis, times).each do |f, s, t|
+    # create file with silence of given length
     sys("sox -q -n #{wfiles[0]} trim 0.0 #{t}")
-    sys("sox -q -n #{wfiles[1]} synth #{len} pluck %#{s}") 
+    # create actual file with requested frequency
+    sys("sox -q -n #{wfiles[1]} synth #{len} #{wave} %#{s}")
+    # append those two
     sys("sox -q #{wfiles[0]} #{wfiles[1]} #{f}") 
   end
 end

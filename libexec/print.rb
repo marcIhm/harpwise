@@ -129,7 +129,10 @@ def print_holes_and_more holes_or_notes
   print_in_columns holes_or_notes, pad: :tabs
   puts
   return if $opts[:terse]
-  if $used_scales[0] != 'all'
+  if $used_scales[0] == 'all'
+    puts "\e[2mHoles with scales omitted, because no scale specified.\e[0m"
+    puts
+  else
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
     puts "\e[2mHoles with scales (#{scales_text}):\e[0m"
     print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})

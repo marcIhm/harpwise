@@ -513,3 +513,14 @@ def pending_message text
   $message_shown_at = Time.now.to_f
   text
 end
+
+
+def rotate_among value, direction, all_values
+  if direction == :up
+    all_values[(all_values.index(value) + 1) % all_values.length]
+  elsif direction == :down
+    all_values[(all_values.index(value) - 1) % all_values.length]
+  else
+    fail "Internal error: unknown direction '#{direction}'"
+  end
+end

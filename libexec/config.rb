@@ -37,9 +37,10 @@ def set_global_vars_early
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
-  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :any]
+  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any]
+  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any]
   $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down]
-  $conf_meta[:ctrls_play_semi] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :quit]
+  $conf_meta[:ctrls_play_prog] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :repeat, :quit]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -80,9 +81,13 @@ def set_global_vars_early
   $ctl_inter = Struct.new(*$conf_meta[:ctrls_play_inter]).new
   $conf_meta[:ctrls_play_inter].each {|k| $ctl_inter[k] = false}
 
+  # result of processing keys, while playing a chord
+  $ctl_chord = Struct.new(*$conf_meta[:ctrls_play_chord]).new
+  $conf_meta[:ctrls_play_chord].each {|k| $ctl_chord[k] = false}
+
   # result of processing keys, while playing a sequence of semitones
-  $ctl_semi = Struct.new(*$conf_meta[:ctrls_play_semi]).new
-  $conf_meta[:ctrls_play_semi].each {|k| $ctl_semi[k] = false}
+  $ctl_prog = Struct.new(*$conf_meta[:ctrls_play_prog]).new
+  $conf_meta[:ctrls_play_prog].each {|k| $ctl_prog[k] = false}
 
   # result of processing keys, while a series of holes is played
   ks = [:skip, :show_help, :vol_up, :vol_down]

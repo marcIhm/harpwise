@@ -350,8 +350,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         end || $opts[:display]).to_sym
         $freqs_queue.clear
       else
-        choices = [ $display_choices, $display_choices ].flatten
-        $opts[:display] = choices[choices.index($opts[:display]) + 1]
+        $opts[:display] = rotate_among($opts[:display], :up, $display_choices)
       end
       if $hole_ref
         $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
@@ -373,8 +372,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                            end || $opts[:comment]).to_sym
         $freqs_queue.clear
       else
-        choices = [ $comment_choices[$mode], $comment_choices[$mode] ].flatten
-        $opts[:comment] = choices[choices.index($opts[:comment]) + 1]
+        $opts[:comment] = rotate_among($opts[:comment], :up, $comment_choices[$mode])
       end
       clear_area_comment
       print_hom "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}"

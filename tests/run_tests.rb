@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 52
+num_exp = 55
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -227,6 +227,7 @@ end
   end
 end
 
+ensure_config_ini_testing
 puts "\n\n\e[32mNow we should have complete data ...\e[0m"
 
 do_test 'id-1a: config.ini, user prevails' do
@@ -726,10 +727,10 @@ do_test 'id-16c: play pitch' do
   expect { screen[22]['go'] }
   tms 'h'
   sleep 1
-  expect { screen[16] == 'Keys available while playing a pitch:'}
+  expect { screen[15] == 'Keys available while playing a pitch:'}
   tms 'x'
   sleep 1
-  expect { screen[19]['continue'] }
+  expect { screen[18]['continue'] }
   # still alive after help ?
   tms ' '
   sleep 1
@@ -1441,13 +1442,13 @@ do_test 'id-53: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  {13 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
-   16 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   20 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
-   24 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
-   28 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   32 => '-7  -5  -2   1  -2   1   0  -2',
-   36 => 'Description: St. Louis Blues'}.each do |lno, exp|
+  {15 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
+   18 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
+   22 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
+   26 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
+   30 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   34 => '-7  -5  -2   1  -2   1   0  -2',
+   38 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1911,11 +1912,21 @@ do_test 'id-72: record user in licks' do
   }
   sleep 2
   expect(rfile) { File.exist?(rfile) }
-  expect { screen[-2]["#{rfile}"] }
+  expect { screen[-2][rfile] }
   kill_session
 end
 
 ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-72a: play user recording' do
+  rfile = "#{$dotdir_testing}/usr_lick_rec.wav"
+  new_session
+  tms 'harpwise play user'
+  tms :ENTER
+  sleep 2
+  expect { screen[4]["Playing #{rfile}"] }
+  kill_session
+end
 
 do_test 'id-73: advance in licks by played sound' do
   sound 40, -5
@@ -2034,9 +2045,31 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 1
-    expect { screen_with_colours[line][text] }
+    expect { screen_col[line][text] }
     kill_session
   end
+end
+
+do_test 'id-80: play chord' do
+  new_session
+  tms 'harpwise play chord +1 +2 +3 -3/'
+  tms :ENTER
+  sleep 2
+  expect { screen[7]['+1 (-9st)  +2 (-5st)  +3 (-2st)  -3/ (1st)'] }
+  expect { screen[9]['Wave: sawtooth, Gap: 0.2, Len: 6'] }
+  tms 'w'
+  sleep 2
+  expect { screen[11]['pluck'] }
+  tms 'L'
+  sleep 2
+  expect { screen[12]['Len: 7'] }
+  tms 'G'
+  sleep 2
+  expect { screen[13]['Gap: 0.3'] }
+  tms 'h'
+  sleep 2
+  expect { screen[16]['Keys available while playing a chord'] }
+  kill_session
 end
 
 puts
