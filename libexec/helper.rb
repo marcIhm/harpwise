@@ -46,6 +46,7 @@ end
 
 def match_or cand, choices
   return unless cand
+  cand = cand.to_s
   exact_matches = choices.select {|c| c == cand}
   return exact_matches[0] if exact_matches.length == 1
   matches = choices.select {|c| c.start_with?(cand)}

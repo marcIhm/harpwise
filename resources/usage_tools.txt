@@ -27,17 +27,21 @@ OVERVIEW
   
 USAGE BY EXAMPLES
 
-  Transpose a sequence of notes (but specified by their hole) from
+  Transpose a sequence of notes (but specified as holes) from
   the key of c to g (keeping the notes/pitches constant):
 
     harpwise tools transpose c g -1 +2 -3
 
-  or similar but actually shifting the notes/pitches:
+
+  Shift a sequence of notes by a given number of semitones:
 
     harpwise tools shift 12st -1 +2 -3
 
-  you may then let harpwise play the resulting notes, even if they
-  have no hole on the harp.
+  (this is different from transposing the notes/pitches as given
+  before, as it changes the pitches of the notes)
+
+  You may then let harpwise play the resulting notes, even if they
+  have no hole on the harp (more play)
 
 
   Print a simple table of keys and positions:
@@ -66,8 +70,8 @@ USAGE BY EXAMPLES
 
     harpwise tools g chord-i chart --add-scales -
 
-  Three charts, the third with intervals of each hole to the given
-  reference:
+  Four charts, the third and fourth with intervals of each hole to the
+  given reference:
 
     harpwise tools chord-i chart --ref -4
     

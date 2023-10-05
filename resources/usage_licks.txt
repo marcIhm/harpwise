@@ -1,11 +1,10 @@
 OVERVIEW
 
-  The mode 'licks' (similar to the mode 'quiz') is a game of challenge
-  (the wise) and response (you).  Typically it plays a random lick
-  from your collection and asks you to play it back note by note. If
-  successful, the next lick will be challenged.
+  The mode 'licks' helps to learn and memorize licks.  Typically it
+  plays a random lick from your collection and asks you to play it
+  back, note by note. If successful, the next lick will be asked for.
 
-  This mode helps to learn and memorize licks.
+  This mode 
 
   For harpwise, a 'lick' is a short musical phrase with a sequence of
   holes and an mp3-recording. It will be transposed as necessary.
@@ -67,8 +66,9 @@ USAGE BY EXAMPLES
         --display chart-scales --comment holes-all
 
   However, if you find yourself using these options for mode licks
-  over and over again, you may move them to your config.ini and
-  shorten the above command line to:
+  over and over again, and if you do not want to set them
+  interactively, once the wise is running, you may move them to your
+  config.ini and shorten the above command line to:
 
     harpwise licks blues
 

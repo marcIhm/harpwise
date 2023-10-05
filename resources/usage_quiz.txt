@@ -1,9 +1,8 @@
 OVERVIEW
 
-  The mode 'quiz' (similar to the mode 'listen') is a game of
-  challenge (the wise) and response (you).  Typically it plays a
-  random sequence of holes and asks you to play it back. If
-  successful, the next sequence will be chosen.
+  The mode 'quiz' is a game of challenge (the wise) and response
+  (you).  Typically it plays a random sequence of holes and asks you
+  to play it back. If successful, the next sequence will be chosen.
 
   This mode helps to train your musical memory.
 

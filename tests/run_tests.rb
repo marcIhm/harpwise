@@ -355,8 +355,8 @@ usage_types.keys.each_with_index do |mode, idx|
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
                      'calibrate' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' (similar to the mode 'listen')"],
-                     'licks' => [4, "The mode 'licks' (similar to the mode 'quiz') is a game"],
+                     'quiz' => [4, "The mode 'quiz' is a game of challenge (the wise) and response"],
+                     'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
                      'report' => [4, "The mode 'report' show helps to select licks by tags"],
@@ -1252,11 +1252,21 @@ end
 usage_examples.each_with_index do |ex,idx|
   do_test "id-41a%d: usage #{ex}" % idx do
     new_session
-    tms ex + " >#{$testing_output_file}"
+    ex.gsub!(/#.*/,'')
+    tms ex + " >#{$testing_output_file} 2>&1"
     tms :ENTER
     sleep 1
     output = File.read($testing_output_file).lines
-    expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
+    # if the program keeps running, than it had no errors; otherwise
+    # test its return code and scan its output
+    if wait_for_end_of_harpwise(4)
+      tms 'clear'
+      tms :ENTER
+      tms 'echo \$?'
+      tms :ENTER
+      expect { screen[1]['0'] }
+      expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
+    end
     kill_session
   end
 end

@@ -6,7 +6,7 @@ OVERVIEW
   
   The samples are used to:
   
-  - play a series of wholes, that you should remember (e.g. for mode quiz)
+  - play a series of holes, e.g. for modes play or quiz
   - judge the frequencies of your playing against the frequencies of the
     samples to find out, which note you are actually playing
 
@@ -33,14 +33,15 @@ USAGE BY EXAMPLES
   directory; frequencies will be extracted to the file frequencies.yaml.
 
 
-  For automatic calibration (you will not need to play, sounds will be
-  synthesized; but results may be inaccurate) you may use:
+  Automatic calibration is the fastest way to get your set of samples:
+  The wise creates all the audio samples (using sox) for you; however
+  this cannot match the characteristics of your own harp and your own
+  playing style, but gives a good quick start.  To use auto
+  calibration, type:
 
     harpwise calibrate c --auto
 
-  which will get you started with harpwise quickly.
 
-
-  To calibrate a single hole only (for key a):
+  To calibrate a single hole only (for key of a):
 
     harpwise calibrate a --hole -3//

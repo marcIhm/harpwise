@@ -32,4 +32,4 @@ USAGE BY EXAMPLES
   If you find harpwise sluggish or if you get a warning on lagging and
   lost samples, you may want to experiment with --time-slice:
 
-    harpwise listen c --time-slice 0.1
+    harpwise listen c --time-slice short

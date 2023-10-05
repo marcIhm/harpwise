@@ -2,34 +2,32 @@ harpwise ('wise' for short) supports the daily practice of bends,
 scales, intervals or licks on a diatonic (richter) or chromatic
 harmonica for various keys.
 
-The wise is limited to play and recognize single notes only; it has no
-sense of chords or grooves. So from the three ingredients of music,
-melody, harmony and rhythm, it can help you with the melody only.
-
+The wise recognizes single notes, that you play and it may play chords
+for you (but does not recognize your chords); rhythm is out of its
+scope entirely.
 
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
 
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
+  - licks: Learn licks (only a few included, but some pointers for you
+    to add more)
   - quiz: Train your ear and musical memory
-  - licks: Learn licks (only a few included, but some pointers)
-  - Three players for pitches, intervals and note progressions, that
-    support practical music theory (mode play)
-  - An adjustable chart for keys and positions (mode tools)
 
-and, perhaps less frequently used:
+And with a less interactive interface and not using your microphone:
 
   - play: Wise plays scales, holes or licks, not asking you to play
     them back
-  - print: print and annotate the holes of scales or licks given
+  - print: Print and annotate the holes of scales or licks given
     on the commandline
   - report: Produce reports about licks and tags or a journal of licks
     played
   - tools: Some simple, non-interactive tools related to basic
     harmonica theory
   - calibrate: Wise generates samples for holes, or assists in
-    recording your own
+    recording your own; this is a prereq to using many other modes;
+    you will be asked to invoke it, when necessary
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.
@@ -55,7 +53,9 @@ An example using all these arguments would be:
 
 ,which (relying on defaults), could also be written as:
 
-  harpwise listen blues   
+  harpwise listen blues
+
+(listen to your playing, while marking notes from the blues-scale)
 
 
 The possible scales depend on the chosen type of harmonica:

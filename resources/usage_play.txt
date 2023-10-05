@@ -21,7 +21,6 @@ OVERVIEW
 
   You may try 'harpwise play x' for an instructive error message.
 
-  This mode needs no scale argument.
 
 USAGE BY EXAMPLES
 
@@ -54,11 +53,6 @@ USAGE BY EXAMPLES
     harpwise report history
 
 
-  The special keywords (e.g. 'iter' or 'rand') are the same, that
-  may appear in option --start-with in mode (e.g.) licks; see there
-  for more examples.
-  
-
   Play an interactive, adjusable pitch:
 
     harpwise play pitch
@@ -72,8 +66,8 @@ USAGE BY EXAMPLES
   explicit. This will actually start of playing g, the root note in
   second position (cross-harp).
 
-  Note: As an alternative, you may try to humm the root note or tonal
-  center of the song to find its key. Which is the preferred method,
+  Note: As an alternative, you may try to hum the root note (or tonal
+  center) of the song to find its key. Which is the preferred method,
   because it does not need a computer; but this command may help to
   get you started anyway.
 
@@ -133,7 +127,8 @@ USAGE BY EXAMPLES
 
   harpwise play chord +1 +2 +3 -3/
 
-  plays the given holes (or notes, if you wish) simultanously; the given example
-  is (by the way) a flat-seventh-chord, what you may find out by using print:
+  plays the given holes (notes may be given too) simultanously; the
+  given example is (by the way) a flat-seventh-chord, what you may
+  find out by using print:
 
   harpwise print +1 +2 +3 -3/

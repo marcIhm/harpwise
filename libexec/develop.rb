@@ -42,12 +42,17 @@ def task_diff
   # Modifications for usage
   erase_line_usage_if_part = [/Version \d/]
 
-  # Modifications for man
-  seen_man = {:desc => [/^DESCRIPTION$/, false],
-              :prim_start => [/The primary documentation/, false],
-              :prim_end => [/not available as man-pages/, false],
-              :exa_start => [/^EXAMPLES$/, false],
-              :exa_end => [/^COPYRIGHT$/, false]}
+  # Modifications for man; element seen: will be modified
+  man_sections = {:desc => {rx: /^DESCRIPTION$/,
+                            seen: false},
+                  :prim_start => {rx: /The primary documentation/,
+                                  seen: false},
+                  :prim_end => {rx: /not available as man-pages/,
+                                seen: false},
+                  :exa_start => {rx: /^EXAMPLES$/,
+                                 seen: false},
+                  :exa_end => {rx: /^COPYRIGHT$/,
+                               seen: false}}
   
   erase_part_man = ['<hy>', '<beginning of page>']
   erase_line_man = %w(MODE ARGUMENTS OPTIONS)
@@ -59,7 +64,7 @@ def task_diff
   # applying modifications
   #
 
-  # only a simple modification
+  # handling usage is simpler, because it does not contain formatting commands
   lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/resources/usage.txt")).
                     result(binding).lines.
                     map do |l|
@@ -68,36 +73,38 @@ def task_diff
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
 
-  # long modification pipeline
+  # Man pages are more formal and need more processing
   lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install_devel]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
-                  # use only some sections of lines
+                  # use only some sections of man page
                   map do |l|
-                    newly_seen = false
-                    seen_man.each do |k,v|
-                      if l.strip.match?(v[0])
-                        v[1] = true
-                        newly_seen = true
+                    on_section_head = false
+                    man_sections.each do |nm, sec|
+                      if l.strip.match?(sec[:rx])
+                        sec[:seen] = true
+                        on_section_head = true
                       end
                     end
-                    if newly_seen
+                    # omit lines based on our position within man page
+                    if on_section_head
                       nil
-                    elsif !seen_man[:desc][1]
+                    elsif !man_sections[:desc][:seen]
                       nil
-                    elsif seen_man[:prim_start][1] && !seen_man[:prim_end][1]
+                    elsif man_sections[:prim_start][:seen] && !man_sections[:prim_end][:seen]
                       nil
-                    elsif seen_man[:exa_start][1] && !seen_man[:exa_end][1]
+                    elsif man_sections[:exa_start][:seen] && !man_sections[:exa_end][:seen]
                       nil
                     else
                       l
                     end
                   end.compact.
-                  # erase and replace
                   map do |l|
+                    # erase parts of lines
                     erase_part_man.each {|e| l.gsub!(e,'')}
                     l
                   end.
                   map do |l|
+                    # erase whole lines
                     erase_line_man.any? {|e| e == l.strip} ? nil : l
                   end.compact.
                   map {|l| replaces_man[l] || l}.
@@ -106,7 +113,8 @@ def task_diff
   srcs.each {|s| line[s] = lines[s].shift}
 
   last_common = Array.new
-  
+
+  # compare results by eating up usage and man against each other
   while srcs.all? {|s| lines[s].length > 0}
     clen = 0
     clen += 1 while line[:usage][clen] && line[:usage][clen] == line[:man][clen]
@@ -118,9 +126,13 @@ def task_diff
         line[s] = lines[s].shift.strip if line[s].empty?
       end
     else
+      puts "\nLast two pairs of common lines or line-fragments between usage and man:"
       pp last_common[-2 .. -1]
+      puts "\nThe first pair of lines or line-fragments, that differ:"
       pp [line[:usage], line[:man]]
-      fail "#{srcs} differ; see above"
+      puts "\nError: #{srcs} differ; see above"
+      puts
+      exit 1
     end
   end
 end

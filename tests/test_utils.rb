@@ -75,10 +75,10 @@ def wait_for_start_of_pipeline
 end
 
 
-def wait_for_end_of_harpwise
+def wait_for_end_of_harpwise numrep = 20
   hw_full_name = %x(which harpwise).chomp
   fail 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
-  20.times do
+  numrep.times do
     still_running = false
     IO.popen('ps -ef').each_line do |line|
       fields = line.chomp.split(' ',8)
@@ -86,10 +86,11 @@ def wait_for_end_of_harpwise
     end
     if !still_running
       sleep 1
-      return
+      return true
     end
     sleep 1
   end
+  return false if numrep < 20
   pp screen
   fail 'harpwise did not come to an end'
 end

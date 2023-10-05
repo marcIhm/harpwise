@@ -15,8 +15,6 @@ OVERVIEW
       of stars
     - dump, dump all the licks in json-format (for advanced use)
     
-  This mode needs no scale argument.
-
   To get content of individual licks or scales or simply a list of
   their names, you may also try the mode: harpwise print
 

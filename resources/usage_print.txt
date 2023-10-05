@@ -47,7 +47,6 @@ USAGE BY EXAMPLES
 
   (if you have tagged some licks as favorites)
  
-
   Print an interval
 
     harpwise print interval c4 oct
