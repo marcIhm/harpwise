@@ -24,9 +24,9 @@
 scales, intervals or licks on a diatonic (richter) or chromatic
 harmonica for various keys.
 
-The wise is limited to play and recognize single notes only; it has no
-sense of chords or grooves. So from the three ingredients of music,
-melody, harmony and rhythm, it can help you with the melody only.
+The wise recognizes single notes, that you play and it may play chords
+for you (but does not recognize your chords); rhythm is out of its
+scope entirely.
 
 The primary documentation of harpwise is its usage information, that
 can be retrieved by calling it without arguments:
@@ -47,20 +47,14 @@ specifies the mode of operation; it can be one of:
 .B listen:
 The wise listens to your playing, e.g. to monitor bends or scales
 .IP -
+.B licks: 
+Learn licks (only a few included, but pointers to find more)
+.IP -
 .B quiz: 
 Train your ear and musical memory
-.IP -
-.B licks: 
-Learn licks (only a few included, but some pointers)
-.IP -
-Three players for pitches, intervals and note progressions, that
-support practical music theory (mode play)
-.IP -
-An adjustable chart for keys and positions (mode tools)
 .RE
 
-and, perhaps less frequently used:
-
+And with a less interactive interface and not using your microphone:
 
 .IP - 2
 .B play: 
@@ -75,8 +69,10 @@ Produce reports about licks and tags or a journal of licks played
 .B tools: 
 Some simple, non-interactive tools related to basic harmonica theory		
 .IP -
-.B calibrate: 
-Wise generates samples for holes, or assists in recording your own
+.B calibrate:
+Wise generates samples for holes, or assists in recording your own;
+this is a prereq to using many other modes; you will be asked
+to invoke it, when necessary
 .RE
 
 to read more details, usage examples and options for the individual
@@ -111,6 +107,8 @@ harpwise listen richter c blues
 .IP
 harpwise listen blues   
 .RE
+
+(listen to your playing, while marking notes from the blues-scale)
 
 The possible scales depend on the chosen type of harmonica:
 

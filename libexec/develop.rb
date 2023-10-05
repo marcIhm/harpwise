@@ -8,6 +8,9 @@ def do_develop to_handle
   err "Can only do 1 task at a time, but not #{to_handle.length}; too many arguments: #{to_handle}" if to_handle.length > 1
   err "Unknown task #{to_handle[0]}, only these are allowed: #{tasks_allowed}" unless tasks_allowed.include?(to_handle[0])
 
+  $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
+  $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
+
   case to_handle[0]
   when 'man'
     task_man
@@ -20,20 +23,25 @@ end
 
 
 def task_man
+
+  # needed in erb
   types_with_scales = get_types_with_scales
-  File.write("#{$dirs[:install_devel]}/man/harpwise.1",
-             ERB.new(IO.read("#{$dirs[:install_devel]}/resources/harpwise.man.erb")).result(binding).chomp)
+
+  File.write($man_result, ERB.new(IO.read($man_template)).result(binding).chomp)
 
   puts
-  system("ls -l #{$dirs[:install_devel]}/man/harpwise.1")
+  system("ls -l #{$man_template} #{$man_result}")
   puts "\nTo read it:\n\n  man -l #{$dirs[:install_devel]}/man/harpwise.1\n\n"
   puts "\nRedirect stdout to see any errors:\n\n  man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$dirs[:install_devel]}/man/harpwise.1 >/dev/null\n\n"
 end
 
 
 def task_diff
+
+  abort("\nFile #{$man_result} is older than #{$man_template} ! Probably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
+
+  # needed in erb
   types_with_scales = get_types_with_scales
-  seen = false
 
   lines = Hash.new
   line = Hash.new

@@ -11,8 +11,7 @@ specifies the mode of operation; it can be one of:
 
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
-  - licks: Learn licks (only a few included, but some pointers for you
-    to add more)
+  - licks: Learn licks (only a few included, but pointers to find more)
   - quiz: Train your ear and musical memory
 
 And with a less interactive interface and not using your microphone:
@@ -56,7 +55,6 @@ An example using all these arguments would be:
   harpwise listen blues
 
 (listen to your playing, while marking notes from the blues-scale)
-
 
 The possible scales depend on the chosen type of harmonica:
 
