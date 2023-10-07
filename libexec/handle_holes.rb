@@ -65,7 +65,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
       animate_splash_line(single_line = true) if $mode == :listen
-      print "\e[2mWaiting for frequency pipeline ..."
     end
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
@@ -273,7 +272,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $perfctr[:lambda_hint_call] += 1
         hints = lambda_hint.call(hole)
         hints_refreshed_at = tntf
-        if hints && hints != hints_old
+        if hints && hints[0] && hints != hints_old
           $perfctr[:lambda_hint_reprint] += 1
           print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
           print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"

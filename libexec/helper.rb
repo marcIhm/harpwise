@@ -315,8 +315,8 @@ def print_afterthought
   end
 end
 
+def animate_splash_line single_line = false, as_string: false
 
-def animate_splash_line single_line = false
   return if $splashed
   print "\e[J"
   puts unless single_line
@@ -329,14 +329,14 @@ def animate_splash_line single_line = false
     end
     sleep 0.3
   else
+    version_clause = "\e[2m#{$version}\e[0m"
     print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
-    '~HARPWISE~'.each_char do
-      |c| print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+    '~HARPWISE~'.each_char do |c|
+      print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
       sleep 0.04
     end
     puts unless single_line
     sleep 0.01
-    version_clause = "\e[2m#{$version}\e[0m"
     if single_line
       print '  ' + version_clause + '  '
     else

@@ -129,18 +129,22 @@ def do_listen
       
       # lambda_hint
       -> (hole) do
-        if $opts[:comment] == :journal
-          # the same hint as below is also produced right after each
-          # hole within handle_holes
-          ["#{journal_length} holes"]
+        if Time.now.to_f - $program_start < 3
+          []
         else
-          ["\e[0m\e[2mHint: " +
-           if $all_scales.length == 1 || $opts[:add_no_holes]
-             "Scale has"
-           else
-             "Combined Scales have"
-           end +
-           " #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
+          if $opts[:comment] == :journal
+            # the same hint as below is also produced right after each
+            # hole within handle_holes
+            ["#{journal_length} holes"]
+          else
+            ["\e[0m\e[2mHint: " +
+             if $all_scales.length == 1 || $opts[:add_no_holes]
+               "Scale has"
+             else
+               "Combined Scales have"
+             end +
+             " #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
+          end
         end
       end,
 
