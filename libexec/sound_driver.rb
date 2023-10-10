@@ -185,10 +185,12 @@ def sox_to_aubiopitch_to_queue
         end
   
   _, ppl_out, ppl_err, wait_thr = Open3.popen3(cmd)
+  # cmd may need some time to terminate on startup problems
+  sleep 0.5
   if !IO.select([ppl_out], nil, nil, 4) || !wait_thr.alive?
     err(
       if IO.select([ppl_err], nil, nil, 2)
-        # we use sysread, because read block (?)
+        # we use sysread, because read would block (?)
         "Command terminated unexpectedly: #{cmd}\n" +
           ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
       else
