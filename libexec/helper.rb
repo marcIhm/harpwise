@@ -96,13 +96,27 @@ def puts_err_context
             else
               nil
             end
-      val  ?  "#{var}=#{val}"  :  "#{var} is not set"  
+      if val
+        "#{var} = #{val} (#{$source_of[var] || 'commandline'})"
+      else
+        "#{var} is not set"
+      end
+                                 
+                                  
   end.select(&:itself)
   puts
   print "\e[0m\e[2m"
-  print "\n(result of argument processing so far: #{clauses.length > 0  ?  clauses.join(', ')  :  'none'};\n"
+  print "\n(result of argument processing so far: "
+  if clauses.length == 0
+    puts 'none'
+  else
+    puts
+    clauses.each_slice(2) do |slice|
+      puts '  ' + slice.map {|x| '%-32s' % x}.join.strip
+    end
+  end
   if $early_conf
-    puts " config from #{$early_conf[:config_file]} and #{$early_conf[:config_file_user]})"
+    puts " config from #{$early_conf[:config_file]}\n         and #{$early_conf[:config_file_user]})"
   else
     puts " early config has not yet been initialized)"
   end

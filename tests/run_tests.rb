@@ -797,7 +797,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   kill_session
 end
 
-do_test 'id-19a: cacle through displays and comments in licks ' do
+do_test 'id-19a: cycle through displays and comments in licks ' do
   sound 40, 2
   new_session
   tms 'harpwise licks c'
@@ -1276,7 +1276,7 @@ do_test 'id-42: error on journal in play' do
   tms 'harpwise play journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['ERROR'] }
+  expect { screen[15]['ERROR: Cannot understand these arguments: ["journal"], see above'] }
   kill_session
 end
 

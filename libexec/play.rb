@@ -203,7 +203,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
       txt = 'Nothing to play or print'
       puts txt + '; please specify any of:'
     else
-      txt = "Cannot understand these arguments: #{other}"
+      txt = "Cannot understand these arguments: #{other}#{not_any_source_of}"
       puts txt + ";"
       puts 'they are none of (exact match required):'
     end

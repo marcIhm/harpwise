@@ -22,11 +22,11 @@ def do_tools to_handle
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
-    puts "\nArgument for mode 'tools' must be one of:\n\n"
+    puts "\nArgument for mode 'tools' must be one of those listed below,\nnot #{none}#{not_any_source_of}\n\n"
     tools_allowed.each do |k,v|
       puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
     end
-    puts "\n,not #{none}; #{$for_usage}\n"
+    puts "\n" + $for_usage
     err 'See above'
   end
 

@@ -19,6 +19,10 @@ def parse_arguments
     print_usage_info
     exit
   end
+
+  # source of mode, type, scale, key for better diagnostic
+  $source_of = {mode: nil, type: nil, key: nil, scale: nil}
+
   # get mode
   err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
@@ -239,15 +243,18 @@ def parse_arguments
   # type and key are taken from front of args only if they match the
   # predefined set of choices; otherwise they come from config
 
+  type = nil
   if ARGV.length > 0 && ARGV[0].length > 1
-    type = [$conf[:all_types].select {|c| c == ARGV[0]} ,
-            $conf[:all_types].select {|c| c.start_with?(ARGV[0])}].
-             find {|matches| matches.length == 1}&.at(0)
-    ARGV.shift if type
+    type = $conf[:all_types].find {|c| c == ARGV[0]}
+    type ||= $conf[:all_types].find {|c| c.start_with?(ARGV[0])}
   end
-  type ||= $conf[:type]
+  if type
+    ARGV.shift
+  else
+    type = $conf[:type]
+    $source_of[:type] = 'config'
+  end
   $type = type
-
   
   # prefetch some musical config before they are set regularly (in
   # processing of config)
@@ -285,7 +292,10 @@ def parse_arguments
 
   # pick key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-  key ||= $conf[:key]
+  if !key
+    key = $conf[:key]
+    $source_of[:key] = 'config'
+  end
   check_key_and_set_pref_sig(key)
   
 
@@ -312,6 +322,7 @@ def parse_arguments
       $adhoc_holes = holes
     else
       scale = get_scale_from_sws($conf[:scale])
+      $source_of[:scale] = 'config'
     end
   when :tools
     # if the first remaining argument looks like a scale, take it as such
@@ -320,6 +331,7 @@ def parse_arguments
       ARGV.shift
     else
       scale = get_scale_from_sws('all:a')
+      $source_of[:scale] = 'implicit'
     end
   when :print
     # if there are two args and the first remaining argument looks like a
@@ -329,12 +341,15 @@ def parse_arguments
       ARGV.shift
     else
       scale = get_scale_from_sws('all:a')
+      $source_of[:scale] = 'implicit'
     end
   when :play, :print, :report, :develop, :tools
     scale = get_scale_from_sws('all:a')
+    $source_of[:scale] = 'implicit'
   when :calibrate
-    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}; #{$for_usage}") if ARGV.length > 0
+    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}#{not_any_source_of}; #{$for_usage}") if ARGV.length == 1 && all_scales.include?(ARGV[0])
     scale = get_scale_from_sws('all:a')
+    $source_of[:scale] = 'implicit'
   else
     fail "Internal error"
   end
@@ -350,7 +365,7 @@ def parse_arguments
 
   
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}; #{$for_usage}" if ARGV.length > 0
+  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
   $err_binding = nil
 
   # Commandline processing is complete here
@@ -490,8 +505,21 @@ def partition_into_scales_and_holes args, all_scales, all_holes
       end
     end
   end
-  err "Some arguments from commandline are neither scales nor holes: #{other}#{hint}" if other.length > 0
+  if other.length > 0
+    err "Some arguments from commandline are neither scales nor holes: #{other}" +
+        not_any_source_of + hint
+  end
   err "Commandline specified scales (#{scales}) as well as holes (#{holes}); this cannot be handled#{hint}" if scales.length > 0 && holes.length > 0
   err "commandline contains more than one scale (#{scales}), but only one can be handled#{hint}" if scales.length > 1
   return scales, holes
+end
+
+
+def not_any_source_of
+  not_any = $source_of.to_a.select {|x,y| y}.map {|x,y| x}.map(&:to_s)
+  if not_any.length > 0
+      " (and could not process it as #{not_any.join(', ')} either)"
+  else
+    ''
+  end
 end
