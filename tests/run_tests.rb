@@ -121,10 +121,10 @@ system("killall aubiopitch >/dev/null 2>&1")
 puts "Testing"
 puts "\n\e[32mTo restart with a failed test use: '#{File.basename($0)} .'\e[0m\n"
 do_test 'id-0: man-page should process without errors' do
-  FileUtils.mkdir "#{$installdir}/man/man1" unless File.directory?("#{$installdir}/man/man1")
-  FileUtils.cp "#{$installdir}/man/harpwise.1", "#{$installdir}/man/man1/harpwise.1"
-  ENV['MANPATH'] = "#{$installdir}/harpwise/man:" + ( ENV['MANPATH'] || '' )
-  cmd = "man harpwise 2>&1 >/dev/null"
+  mandir = "/tmp/harpwise_man/man1"
+  FileUtils.mkdir_p mandir unless File.directory?(mandir)
+  FileUtils.cp "#{$installdir}/man/harpwise.1", mandir
+  cmd = "MANPATH=#{mandir}/../ man harpwise 2>&1 >/dev/null"
   ste = sys(cmd)
   expect(cmd, ste) {ste == ''}
 end

@@ -95,7 +95,7 @@ key of harp, e.g. 'c' or 'g' or 'af' (a flat) or 'ds' (d sharp). If
 omitted, this defaults to 'c'.
 .IP -
 .B SCALE:
-scale on which you want to concentrate, e.g. 'blues', 'major_pentatonic' or 'all'. No default.
+scale on which you want to concentrate, e.g. 'blues', 'major_pentatonic' or 'all'. No default. As a special case and only for modes listen, quiz and licks you may give a set of holes (e.g. +1 +2 +3) as an adhoc scale.
 .RE
 
 An example using all these arguments would be:
@@ -109,6 +109,12 @@ harpwise listen blues
 .RE
 
 (listen to your playing, while marking notes from the blues-scale)
+
+  harpwise listen -2 -3 +4
+
+(listen especially for the first three notes of the blues-scale, given
+ as arguments as an adhoc scale)
+
 
 The possible scales depend on the chosen type of harmonica:
 
