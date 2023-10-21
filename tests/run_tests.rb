@@ -1276,7 +1276,7 @@ do_test 'id-42: error on journal in play' do
   tms 'harpwise play journal'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[15]['ERROR: Cannot understand these arguments: ["journal"], see above'] }
+  expect { screen[14]['ERROR: Cannot understand these arguments: ["journal"]'] }
   kill_session
 end
 
