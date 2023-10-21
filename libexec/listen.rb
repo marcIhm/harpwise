@@ -137,13 +137,13 @@ def do_listen
             # hole within handle_holes
             ["#{journal_length} holes"]
           else
-            ["\e[0m\e[2mHint: " +
+            ["\e[0m\e[2mRemark: " +
              if $all_scales.length == 1 || $opts[:add_no_holes]
                "Scale has"
              else
                "Combined Scales have"
              end +
-             " #{$scale_holes.length} holes: #{$scale_holes.join(' ')}"]
+             " #{$scale_holes.length} of #{$harp_holes.length} holes"]
           end
         end
       end,

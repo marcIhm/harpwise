@@ -508,6 +508,7 @@ end
 
 
 def read_and_set_musical_config
+
   $hole2note_read = yaml_parse($holes_file)
   $dsemi_harp = diff_semitones($key, 'c')
   harp = Hash.new
@@ -553,7 +554,7 @@ def read_and_set_musical_config
     h2s_shorts = Hash.new('')
     $used_scales.each_with_index do |sname, idx|
       # read scale
-      sc_ho, h2rem = read_and_parse_scale(sname)
+      sc_ho, h2rem = read_and_parse_scale(sname, harp)
       # build resulting scale
       holes_remove.each {|h| sc_ho.delete(h)}
       scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
@@ -574,6 +575,7 @@ def read_and_set_musical_config
       end
     end
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
+
     scale_notes = scale_holes.map {|h| $hole2note[h]}
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            
@@ -602,7 +604,7 @@ def read_and_set_musical_config
       intervals_inv[v.downcase] = k
     end
   end
-  
+
   [ harp,
     harp_holes,
     harp_notes,
@@ -618,9 +620,9 @@ def read_and_set_musical_config
 end
 
 
-def read_and_parse_scale sname
+def read_and_parse_scale sname, harp = nil
   
-  scale_holes, hole2rem, all_props, sfile = read_and_parse_scale_simple(sname)
+  scale_holes, hole2rem, all_props, sfile = read_and_parse_scale_simple(sname, harp)
 
   # get properties of scale; currently only :short
   props = Hash.new
@@ -654,7 +656,16 @@ def read_and_parse_scale sname
 end
 
 
-def read_and_parse_scale_simple sname
+def read_and_parse_scale_simple sname, harp = nil
+
+  hole2rem = Hash.new
+
+  # shortcut for scale given on commandline
+  if sname == 'adhoc'
+    $adhoc_holes.map! {|h| $note2hole[harp[h][:note]]}
+    $adhoc_holes.each {|h| hole2rem[h] = nil}
+    return [$adhoc_holes, hole2rem, [{'short' => 'h'}], 'commandline']
+  end
   
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
   glob = $scale_files_template % [$type, sname, '{holes,notes}']
@@ -670,7 +681,6 @@ def read_and_parse_scale_simple sname
   all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
 
   scale_holes = Array.new
-  hole2rem = Hash.new
 
   # For convenience we have both $hole2note and $hole2note_read; they only differ,
   # if key does not equal c; the following relation always holds true:
@@ -696,7 +706,7 @@ def read_and_parse_scale_simple sname
       scale_holes << hole
     end
   end
-  
+
   [scale_holes, hole2rem, all_props, sfile]
 end
 
@@ -716,7 +726,7 @@ def read_chart
     # check for completeness
     chart_holes = Set.new(chart_with_holes_raw.map {|r| r[0 .. -2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
     # Beware of false friends: $harp.keys has nothing to do with the
-    # musical key of the harp ...
+    # musical key of the harp
     harp_holes = Set.new($harp.keys)
     raise ArgumentError.new("holes from chart is not the same set as holes from harp; missing in chart: #{harp_holes - chart_holes}, extra in chart: #{chart_holes - harp_holes}") if chart_holes != harp_holes
     

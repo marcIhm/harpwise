@@ -14,7 +14,7 @@ def check_screen graceful: false
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
-      raise ArgumentError.new("Terminal is too small:\n[width, height] = [#{$term_width}, #{$term_height}] (actual) < [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (configured minimum)")
+      raise ArgumentError.new("Terminal is too small:\n[#{$term_width}, #{$term_height}] (actual)  <  [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (configured minimum)")
     end
 
     # check if enough room between lines for various fonts
@@ -65,8 +65,9 @@ def check_screen graceful: false
     end
     
   rescue ArgumentError => e
-    puts "[width, height] = [#{$term_width}, #{$term_height}]"
-    pp $lines
+    puts "\n[width, height] = [#{$term_width}, #{$term_height}]"
+    puts
+    pp $lines if $debug
     err e.to_s unless graceful
     puts "\e[0m#{e}"
     return false

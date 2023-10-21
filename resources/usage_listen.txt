@@ -29,6 +29,11 @@ USAGE BY EXAMPLES
 
     harpwise listen blues --add-scales chord-i --display chart-scales
 
+  Using the forst five notes of the one-chord as an adhoc scale:
+
+    harpwise listen -1 -2 -3 -4 +6
+    
+
   If you find harpwise sluggish or if you get a warning on lagging and
   lost samples, you may want to experiment with --time-slice:
 

@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 55
+num_exp = 57
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2079,6 +2079,26 @@ do_test 'id-80: play chord' do
   tms 'h'
   sleep 2
   expect { screen[16]['Keys available while playing a chord'] }
+  kill_session
+end
+
+do_test "id-81: listen with adhoc scale" do
+  new_session
+  tms 'harpwise listen c +1 +2 +3'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  expect { screen_col[4]["\e[32m h4   h4   h14 \e[34m"] }
+  expect { screen_col[8]["\e[32m h14 \e[7m\e[94m"] }
+  kill_session
+end
+
+do_test "id-82: screen too small" do
+  new_session 60,20
+  tms 'harpwise listen c'
+  tms :ENTER
+  sleep 1
+  expect { screen[5]['ERROR: Terminal is too small'] }
   kill_session
 end
 

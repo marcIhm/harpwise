@@ -143,13 +143,10 @@ def parse_arguments
     if matching.keys.length > 1
       err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
     elsif matching.keys.length == 0
-      if ![:play, :print, :report, :tools].include?(mode)
-         err "Argument '#{ARGV[i]}' matches none of the available options (#{opts_all.values.map {|od| od[0]}.flatten.join(', ')}); #{$for_usage}"
-       else
-         i += 1
-       end
+      # this is not an option, so process it later
+      i += 1
     else
-      # put into central hash of options
+      # exact match, so put into hash of options
       osym = matching.keys[0]
       odet = opts_all[matching.keys[0]]
       ARGV.delete_at(i)
@@ -162,7 +159,7 @@ def parse_arguments
         opts[osym] = true
       end
     end
-  end
+  end  ## loop over argv
 
   # clear options with special value '-'
   opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
@@ -226,10 +223,6 @@ def parse_arguments
   # scale, which is normally the only remaining argument.
   #
 
-  # check for unprocessed args, that look like options
-  other_opts = ARGV.select {|arg| arg.start_with?('-')}
-  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 && ![:play, :print, :report, :tools].include?(mode)
-
 
   # In any case, mode quiz requires a numeric argument right after the
   # mode-argument; so process it even before type and key
@@ -254,6 +247,21 @@ def parse_arguments
   end
   type ||= $conf[:type]
   $type = type
+
+  
+  # prefetch some musical config before they are set regularly (in
+  # processing of config)
+  
+  all_scales = scales_for_type($type)
+  # string below duplicates the definition of $holes_file
+  all_holes = yaml_parse("#{$dirs[:install]}/config/#{$type}/holes.yaml").keys
+  
+
+  # check for unprocessed args, that look like options and are not holes
+  
+  other_opts = ARGV.select {|arg| arg.start_with?('-') && !all_holes.include?(arg)}
+  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 
+
 
   # Handle special cases; e.g convert / swap 'harpwise tools transpose c g'
   #                                     into 'harpwise tools c transpose g'
@@ -293,11 +301,15 @@ def parse_arguments
   
   # Get scale which must be the only remaining argument (if any);
   # modes that do not need a scale get scale 'all'
-
   case mode
   when :listen, :quiz, :licks
-    if ARGV.length > 0
-      scale = get_scale_from_sws(ARGV.shift)
+    scales, holes = partition_into_scales_and_holes(ARGV, all_scales, all_holes)
+    ARGV.clear
+    if scales.length > 0
+      scale = get_scale_from_sws(scales[0])
+    elsif holes.length > 0
+      scale = get_scale_from_sws('adhoc:h')
+      $adhoc_holes = holes
     else
       scale = get_scale_from_sws($conf[:scale])
     end
@@ -310,7 +322,7 @@ def parse_arguments
       scale = get_scale_from_sws('all:a')
     end
   when :print
-    # if there are tww args and the first remaining argument looks like a
+    # if there are two args and the first remaining argument looks like a
     # scale, take it as such
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 1
     if scale
@@ -349,7 +361,7 @@ def parse_arguments
 end
 
 
-def get_scale_from_sws scale_w_short, graceful = false   # get_scale_from_scale_with_short
+def get_scale_from_sws scale_w_short, graceful = false, added = false   # get_scale_from_scale_with_short
   scale = nil
 
   if md = scale_w_short.match(/^(.*?):(.*)$/)
@@ -361,18 +373,19 @@ def get_scale_from_sws scale_w_short, graceful = false   # get_scale_from_scale_
     # $scale2short will be set when actually reading scale
     scale = scale_w_short
   end
-
+  return scale if scale == 'adhoc'
+  
   match_or(scale, scales_for_type($type)) do |none, choices|
     if graceful
       nil
     else
       scale_glob = $scale_files_template % [$type, '*', '*']
       err "Scale (%s) must be one of #{choices}, i.e. scales matching #{scale_glob}; not #{none}%s" %
-          if scale == $scale
-            ['main scale', '']
-          else
+          if added
             ["given in option --add-scales or in configuration files",
              ", Hint: use '--add-scaless -' to ignore the value from the config-files"]
+          else
+            ['main scale', '']
           end
     end
   end
@@ -383,7 +396,7 @@ def get_used_scales scales_w_shorts
   scales = [$scale]
   if scales_w_shorts
     scales_w_shorts.split(',').each do |sws|
-      sc = get_scale_from_sws(sws)
+      sc = get_scale_from_sws(sws, false, true)
       scales << sc unless scales.include?(sc)
     end
   end
@@ -450,4 +463,35 @@ def get_types_with_scales
     end
     txt.chomp(', ')
   end.compact.join("\n  ")
+end
+
+
+def partition_into_scales_and_holes args, all_scales, all_holes
+  scales = Array.new
+  holes = Array.new
+  other = Array.new
+  
+  hint = "\n\n\e[2mHint: The commandline for modes listen, quiz and licks might contain a single scale or alternatively a set of holes, which then make up an adhoc-scale.\nScales are: #{all_scales}\nHoles are: #{all_holes}\e[0m"
+  
+  args.each do |arg|
+    arg_woc = arg.gsub(/:.*/,'')
+    err "Scale 'adhoc' is only the temporary name for the holes given on commandline; there is no such permanent scale however" if arg.downcase == 'adhoc'
+    found = match_or(arg_woc, all_scales) do |none, choices, matches|
+      err "Argument from commandline #{none} should be unique among the known scales, but it matches more than one: #{matches}#{hint}" if matches.length > 1
+    end
+    if found
+      scales << found
+    else
+      found = all_holes.find {|x| x == arg}
+      if found
+        holes << found
+      else
+        other << arg
+      end
+    end
+  end
+  err "Some arguments from commandline are neither scales nor holes: #{other}#{hint}" if other.length > 0
+  err "Commandline specified scales (#{scales}) as well as holes (#{holes}); this cannot be handled#{hint}" if scales.length > 0 && holes.length > 0
+  err "commandline contains more than one scale (#{scales}), but only one can be handled#{hint}" if scales.length > 1
+  return scales, holes
 end

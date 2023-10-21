@@ -49,9 +49,11 @@ def match_or cand, choices
   cand = cand.to_s
   exact_matches = choices.select {|c| c == cand}
   return exact_matches[0] if exact_matches.length == 1
-  matches = choices.select {|c| c.start_with?(cand)}
-  yield "'#{cand}'", choices.join(', ') + ' (or abbreviated uniquely)' if matches.length != 1
-  matches[0]
+  head_matches = choices.select {|c| c.start_with?(cand)}
+  yield("'#{cand}'",
+        choices.join(', ') + ' (or abbreviated uniquely)',
+        head_matches) if head_matches.length != 1
+  head_matches[0]
 end
 
 
