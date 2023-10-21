@@ -97,7 +97,7 @@ def puts_err_context
               nil
             end
       if val
-        "#{var} = #{val} (#{$source_of[var] || 'commandline'})"
+        "%-5s = #{val} (#{$source_of[var] || 'commandline'})" % var
       else
         "#{var} is not set"
       end
