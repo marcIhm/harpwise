@@ -80,7 +80,7 @@ Also note, that for most modes, the behaviour (e.g. the kind of
 display) of the wise can be changed interactively; type 'h' to see
 help on this.
 
-Suggested reading:
+Suggested Reading:
 
   - Usage information for the individual modes
   - The top level file README.org, also available at:
@@ -90,7 +90,7 @@ User Configuration:
 
   ~/.harpwise/config.ini
 
-Quick start:
+Quick Start:
 
   harpwise listen c
 
