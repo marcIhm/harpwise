@@ -38,7 +38,7 @@ end
 
 def task_diff
 
-  abort("\nFile #{$man_result} is older than #{$man_template} ! Probably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
+  abort("\nFile\n\n  #{$man_result}\n\nis older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
 
   # needed in erb
   types_with_scales = get_types_with_scales
@@ -65,7 +65,8 @@ def task_diff
   erase_part_man = ['<hy>', '<beginning of page>']
   erase_line_man = %w(MODE ARGUMENTS OPTIONS)
   replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
-                  'USER CONFIGURATION' => 'USER CONFIGURATION:'}
+                  'USER CONFIGURATION' => 'USER CONFIGURATION:',
+                  'QUICK START' => 'QUICK START:'}
 
   #
   # Bring usage information and man page into canonical form by
@@ -139,6 +140,8 @@ def task_diff
       puts "\nThe first pair of lines or line-fragments, that differ:"
       pp [line[:usage], line[:man]]
       puts "\nError: #{srcs} differ; see above"
+      puts
+      puts "Hint: Make sure to edit the file\n  #{$man_template}\ninstead of the processed man page"
       puts
       exit 1
     end

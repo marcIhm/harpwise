@@ -90,6 +90,13 @@ User Configuration:
 
   ~/.harpwise/config.ini
 
+Quick start:
+
+  harpwise listen c
+
+then blow your harp and come back later to learn about other modes.
+
+
 Version <%=$version%>
 Copyright (c) 2021-2023 by Marc Ihm (marc@ihm.name) 
 This program is subject to the MIT License.
