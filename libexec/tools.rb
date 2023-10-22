@@ -472,14 +472,14 @@ def tool_notes to_handle
   err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(harp_key)
 
   puts
-  puts "Notes of major scale starting at #{harp_key} (with semitone \e[2mdiffs\e[0m and \e[32mfifth\e[0m):"
+  puts "Notes of major scale starting at \e[32m#{harp_key}\e[0m \e[2m(with semi diffs and \e[0m\e[32mf\e[0m\e[2mifth):\e[0m"
   puts
   ssemi = note2semi(harp_key + '4')
   steps = [0,2,4,5,7,9,11,12]
   print '  '
   notes = steps.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0 ... -1]}
   notes.each_with_index do |n,idx|
-    print "\e[32m" if idx == 4
+    print "\e[32m" if idx == 0 || idx == 4
     print n + "\e[0m   "
   end
   puts
