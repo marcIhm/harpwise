@@ -24,6 +24,7 @@ OVERVIEW
   - edit-config: edit your personal configuration
   - transcribe: estimate a sequence of holes, that matches the given
     lick or music-file
+  - notes: print the notes of the major scale with some decorations
   
 USAGE BY EXAMPLES
 
@@ -74,8 +75,13 @@ USAGE BY EXAMPLES
   given reference:
 
     harpwise tools chord-i chart --ref -4
-    
 
-  Hint: To get a short list of tools, try 'harpwise tools x' for an
-  instructive error message.
+
+  The notes of the major scale starting at g:
+
+    harpwise tools notes g
+
+
+  Hint: To get a short list of tools, try 'harpwise tools x' which
+  gives an instructive error message.
   

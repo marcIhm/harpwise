@@ -21,7 +21,7 @@ USAGE BY EXAMPLES
 
     harpwise listen ri c blues
 
-  The same, but relying on the defaults:
+  The same, but relying on the defaults for type and key:
 
     harpwise listen blues
 

@@ -180,10 +180,12 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
       holes_or_notes << tp
     elsif is_note
       holes_or_notes << tp
-    elsif all_lnames.include?(tp)
+    elsif all_lnames.include?(tp) && !$opts[:scale_over_lick]
       lnames << tp
     elsif all_snames.include?(tp)
       snames << tp
+    elsif all_lnames.include?(tp)
+      lnames << tp
     elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     else

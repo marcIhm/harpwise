@@ -13,7 +13,7 @@ def do_print to_print
                    'list-licks' => 'list of selected licks with hole count',
                    'list-all-licks' => 'list of all licks',
                    'list-all-scales' => 'list of all scales with hole count',
-                   'interval' => 'interactive, adjustable interval',
+                   'interval' => 'interval between two notes',
                    'inter' => nil,
                    'progression' => 'take a base and semitone diffs, then spell it out',
                    'prog' => nil}

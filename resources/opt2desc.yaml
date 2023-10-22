@@ -25,14 +25,18 @@ no_add_holes:
     colors and scale-name from the additional scales; but 
     do not add any new holes
     
-transpose_scale_to:
+transpose_scale:
 
   - |
-    transpose the scale to another key (e.g. d).
-    This would be helpful, if you want to practice e.g. the d-major
-    scale on a chromatic harmonica of key c. For a diatonic harmonica,
-    however, your mileage may vary, as not all notes are available
-  - KEY
+    transpose the scale to key (e.g. d) 
+    or by semitones (e.g. 12st).  This would be helpful, if you want
+    to practice e.g. the d-major scale on a chromatic harmonica of key
+    c. Or if you want to play e.g. in third position, you may
+    transpose by 7st (= perfect fifth), as the scales are genarally
+    written in second position.  In any case: for a diatonic
+    harmonica, however, your mileage may vary, as not all notes are
+    available
+  - KEY_OR_SEMITONES
 
 display:
   - "initial display, ARG can be one of:\n
@@ -156,12 +160,12 @@ partial:
 time_slice:
 
   - |
-    time slice (one of short, medium, long) for sensing holes
-    played. In each time slice a predefined number of holes can be
-    recognized. The default value is 'medium', but if your computer is
-    slow, 'long' might be more appropriate. If your computer is fast,
-    'short' might work too, which will allow harpwise to follow your
-    playing faster (e.g. during warbles).
+    time slice (one of short, medium, long)
+    for sensing holes played. In each time slice a predefined number
+    of holes can be recognized. The default value is 'medium', but if
+    your computer is slow, 'long' might be more appropriate. If your
+    computer is fast, 'short' might work too, which will allow
+    harpwise to follow your playing faster (e.g. during warbles).
 
     However, if you choose 'short' and your computer cannot keep up,
     harpwise will lag behind and show holes only (long) after you have
@@ -178,4 +182,11 @@ terse:
     Be somewhat less verbose than usual. The exact effect (if any)
     depends on the subcommand chosen.
   
+scale_over_lick:
+
+  - |
+    For modes play and print: interpret a given name
+    as a scale if it is known as a scale as well as a lick.
+    Note, that by default such a name would be treated as
+    a lick.
 

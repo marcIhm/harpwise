@@ -686,7 +686,11 @@ def read_and_parse_scale_simple sname, harp = nil
   # if key does not equal c; the following relation always holds true:
   # note2semi($hole2note[h]) - note2semi($hole2note_read[h]) == note2semi($key) - note2semi('c') =: $dsemi_harp
   # Note, that below we transpose the scale, regardless if it is written as notes or as holes.
-  dsemi_scale = note2semi(($opts[:transpose_scale_to] || 'c') + '0') - note2semi('c0')
+  dsemi_scale = if $opts[:transpose_scale].is_a?(Integer)
+                  $opts[:transpose_scale]
+                else
+                  note2semi(($opts[:transpose_scale] || 'c') + '0') - note2semi('c0')
+                end
   scale_read.each do |fields|
     hole_or_note, rem = fields.split(nil,2)
     err "Internal error: hole or note #{hole_or_note}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hole_or_note]
@@ -696,8 +700,8 @@ def read_and_parse_scale_simple sname, harp = nil
       hole = $note2hole[note]
       hole2rem[hole] = rem&.strip
       err(
-        if $opts[:transpose_scale_to]
-          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale_to]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose_scale_to or another type of harmonica"
+        if $opts[:transpose_scale]
+          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose_scale or another type of harmonica"
         else
           "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files"
         end %

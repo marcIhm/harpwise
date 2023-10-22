@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 57
+num_exp = 59
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -592,7 +592,7 @@ end
 
 do_test 'id-11: transpose scale works on zero shift' do
   new_session
-  tms 'harpwise listen a blues --transpose-scale-to c'
+  tms 'harpwise listen a blues --transpose-scale c'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[0]['Play from the scale to get green'] }
@@ -601,7 +601,7 @@ end
 
 do_test 'id-12: transpose scale works on non-zero shift' do
   new_session
-  tms 'harpwise listen a blues --transpose-scale-to g'
+  tms 'harpwise listen a blues --transpose-scale g'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
@@ -611,10 +611,20 @@ end
 
 do_test 'id-13: transpose scale not working in some cases' do
   new_session
-  tms 'harpwise listen a blues --transpose-scale-to b'
+  tms 'harpwise listen a blues --transpose-scale b'
   tms :ENTER
   sleep 2
   expect { screen[2]['ERROR: Transposing scale blues from key of c to b results in hole -2'] }
+  kill_session
+end
+
+do_test 'id-13a: transpose scale by 7 of semitones' do
+  new_session
+  tms 'harpwise listen a blues --transpose-scale +7st'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect { dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
   kill_session
 end
 
@@ -2013,13 +2023,22 @@ end
 ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-76: transcribe a lick' do
-  ENV['HARPWISE_TESTING']='player'
   new_session
   tms 'harpwise tools transcribe wade'
   tms :ENTER
   sleep 5
   expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2   3.4: -2'] }
   expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.2)   -3/ (0.3)   -2 (0.4)'] }
+  kill_session
+end
+
+do_test 'id-76a: print notes of scale g major' do
+  new_session
+  tms 'harpwise tools notes g'
+  tms :ENTER
+  sleep 5
+  expect { screen[4]['g   a   b   c   d   e   gf   g'] }
+  expect { screen[5]['2   2   1   2   2   2    1'] }
   kill_session
 end
 

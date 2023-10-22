@@ -66,7 +66,7 @@ def parse_arguments
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
      [Set[:listen, :quiz], {
-        transpose_scale_to: %w(--transpose-scale-to)}],
+        transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
         auto: %w(--auto),
         hole: %w(--hole)}],
@@ -83,8 +83,9 @@ def parse_arguments
         no_tags_any: %w(-nt --no-tags-any),
         no_tags_all: %w(--no-tags-all),
         max_holes: %w(--max-holes),
-        min_holes: %w(--min-holes),
-      }],
+        min_holes: %w(--min-holes)}],
+     [Set[:play, :print], {
+        scale_over_lick: %w(--scale-over-lick)}],
      [Set[:licks], {
         partial: %w(-p --partial)}]]
 
@@ -121,7 +122,7 @@ def parse_arguments
     $conf[mode_for_conf].each {|k,v| $conf[k] = v}
   end
   
-  # preset some options from config (maybe overriden later)
+  # preset some options e.g. from config (maybe overriden later)
   $conf_meta[:keys_for_modes].each do |k|
     if opts_all[k]
       opts[k] ||= $conf[k]
@@ -192,8 +193,14 @@ def parse_arguments
   opts[:fast] = false if opts[:no_fast]
   opts[:loop] = false if opts[:no_loop]
 
-  if opts[:transpose_scale_to]
-    err "Option '--transpose_scale_to' can only be one on #{$conf[:all_keys].join(', ')}, not #{opts[:transpose_scale_to]}; #{$for_usage}" unless $conf[:all_keys].include?(opts[:transpose_scale_to])
+  if opts[:transpose_scale]
+    if opts[:transpose_scale].to_s.match?(/(\+|-)?\d+st/)
+      opts[:transpose_scale] = opts[:transpose_scale].to_i
+    elsif $conf[:all_keys].include?(opts[:transpose_scale])
+      # do nothing
+    else
+      err "Option '--transpose_scale' can only be one on #{$conf[:all_keys].join(', ')} or a semitone value (e.g. 5st, -3st), not #{opts[:transpose_scale]}; #{$for_usage}"
+    end
     opts[:add_scales] = nil
   end
 
@@ -215,6 +222,7 @@ def parse_arguments
     print_usage_info(mode, opts_all) 
     exit 1
   end
+
 
   # used to issue current state of processing in error messages
   $err_binding = binding
@@ -264,9 +272,11 @@ def parse_arguments
   all_holes = yaml_parse("#{$dirs[:install]}/config/#{$type}/holes.yaml").keys
   
 
-  # check for unprocessed args, that look like options and are not holes
+  # check for unprocessed args, that look like options and are neither holes not semitones
   
-  other_opts = ARGV.select {|arg| arg.start_with?('-') && !all_holes.include?(arg)}
+  other_opts = ARGV.select do |arg|
+    arg.start_with?('-') && !all_holes.include?(arg) && !arg.match?(/(\+|-)?\d+st/)
+  end
   err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 
 
 

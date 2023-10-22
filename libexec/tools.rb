@@ -18,7 +18,8 @@ def do_tools to_handle
                    'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
                    'ec' => nil,
                    'transcribe' => 'transcribe given lick or music-file approximately',
-                   'trans' => nil}
+                   'trans' => nil,
+                   'notes' => 'print notes of major scale for given key'}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -51,6 +52,8 @@ def do_tools to_handle
     tool_edit_config to_handle
   when 'transcribe', 'trans'
     tool_transcribe to_handle
+  when 'notes'
+    tool_notes to_handle
   else
     err "Internal error: Unknown tool '#{tool}'"
   end
@@ -151,12 +154,12 @@ end
 
 def tool_shift to_handle
 
-  err "Need at least two additional arguments: a number of semitones at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
+  err "Need at least two additional arguments: a number of semitones and at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
 
   inter = to_handle.shift
   dsemi = $intervals_inv[inter] ||
           ((md = inter.match(/^[+-]?\d+st?$/)) && md[0].to_i) ||
-          err("Given argument is neither a named interval (one of: #{$intervals_inv.keys.join(',')}) nor a number of semitones (e.g. 12st)")
+          err("Given argument #{inter} is neither a named interval (one of: #{$intervals_inv.keys.join(',')}) nor a number of semitones (e.g. 12st)")
 
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
@@ -460,3 +463,39 @@ def tool_transcribe to_handle
   puts "\n\n\n"
 
 end
+
+
+def tool_notes to_handle
+
+  err "Tool 'notes' needs a key as an additional argument" if to_handle.length != 1
+  harp_key = to_handle[0].downcase
+  err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(harp_key)
+
+  puts
+  puts "Notes of major scale starting at #{harp_key} (with semitone \e[2mdiffs\e[0m and \e[32mfifth\e[0m):"
+  puts
+  ssemi = note2semi(harp_key + '4')
+  steps = [0,2,4,5,7,9,11,12]
+  print '  '
+  notes = steps.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0 ... -1]}
+  notes.each_with_index do |n,idx|
+    print "\e[32m" if idx == 4
+    print n + "\e[0m   "
+  end
+  puts
+
+  diffs = []
+  steps.each_cons(2) {|x,y| diffs << y - x}
+  print "\e[2m  "
+  notes.each do |n|
+    print ' ' * n.length
+    print ' '
+    print diffs.shift
+    print ' '
+  end
+  puts "\e[0m"
+  puts
+  
+end
+
+
