@@ -716,12 +716,12 @@ def read_and_parse_scale_simple sname, harp = nil
                     "to #{$opts[:transpose_scale]}"
                   end
         hon_read_desc = if sfile['holes']
-                          "hole #{hon_read}, note #{note}"
+                          "hole #{hon_read} (note #{note_read}, semi #{semi_read})"
                         else
-                          "note #{hon_read}"
+                          "note #{hon_read} (semi #{semi_read})"
                         end
         if $opts[:transpose_scale]
-          err("Transposing scale #{sname} from key of c #{tr_desc} for #{hon_read_desc} results in #{note} (semi = #{semi}), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose-scale or another type of harmonica")
+          err("Transposing scale #{sname} from key of c #{tr_desc} fails for #{hon_read_desc}: it results in #{note} (semi = #{semi}), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose-scale")
         else
           err("#{sfile} has #{hon_read_desc}, which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files")
         end
