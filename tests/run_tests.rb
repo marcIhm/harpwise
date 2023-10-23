@@ -2040,8 +2040,9 @@ do_test 'id-76a: print notes of scale g major' do
   tms 'harpwise tools notes g'
   tms :ENTER
   sleep 5
-  expect { screen[4]['g   a   b   c   d   e   gf   g'] }
-  expect { screen[5]['2   2   1   2   2   2    1'] }
+  expect { screen[5]['c   d   e   f   g   a   b   c'] }
+  expect { screen[10]['g   a   b   c   d   e   gf   g'] }
+  expect { screen[11]['2   2   1   2   2   2    1'] }
   kill_session
 end
 
