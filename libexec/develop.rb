@@ -143,6 +143,8 @@ def task_diff
       puts
       puts "Hint: Make sure to edit the file\n  #{$man_template}\ninstead of the processed man page"
       puts
+      puts "Hint: A common problem would be a line of text starting with a single quote (') in, which would be misinterpreted by man."
+      puts
       exit 1
     end
   end

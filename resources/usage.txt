@@ -44,7 +44,7 @@ arguments may be given:
     'ds' (d sharp). If omitted, this defaults to 'c'.
 
   - scale: scale on which you want to concentrate, e.g. 'blues',
-    'major_pentatonic' or 'all'. No default. Note that all scales are
+    'major_pentatonic' or 'all'. No default. Note, that all scales are
     notated in second position (e.g. key of g for a c-harp); you may
     use the option --transpose-scale to change this. Finally, as a
     special case (and only for modes listen, quiz and licks) you may
@@ -59,7 +59,7 @@ blues-scale.  And, relying on defaults, this could also be written as:
 
   harpwise listen blues
 
-This example woult listen especially for the first three notes of the
+This example would listen especially for the first three notes of the
 blues-scale, which are given as arguments as an adhoc scale
 
   harpwise listen -2 -3 +4
