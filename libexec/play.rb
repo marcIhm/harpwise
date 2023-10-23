@@ -41,7 +41,9 @@ def do_play to_play
 
     snames.each do |sname|
       scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      play_holes scale_holes
+      puts "Scale #{sname}"
+      play_holes_or_notes_simple scale_holes
+      puts
       trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
       IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
     end

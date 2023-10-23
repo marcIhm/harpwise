@@ -65,7 +65,7 @@ def parse_arguments
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
-     [Set[:listen, :quiz, :print], {
+     [Set[:listen, :quiz, :play, :print], {
         transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
         auto: %w(--auto),
@@ -309,11 +309,11 @@ def parse_arguments
   check_key_and_set_pref_sig(key)
   
 
-  # For modes play and report, all the remaining arguments (after processing
-  # type and key) are things to play or keywords; a scale is not allowed,
-  # so we do this before processing the scale
+  # For modes play, report and develop, all the remaining arguments (after
+  # processing type and key) are things to play or keywords; a scale is
+  # not allowed, so we do this before processing the scale
 
-  if [:play, :report, :develop].include?(mode)
+  if [:report, :develop].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
@@ -343,7 +343,7 @@ def parse_arguments
       scale = get_scale_from_sws('all:a')
       $source_of[:scale] = 'implicit'
     end
-  when :print
+  when :play, :print
     # if there are two args and the first remaining argument looks like a
     # scale, take it as such; this allows e.g. harpwise print mape
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
@@ -353,7 +353,7 @@ def parse_arguments
       scale = get_scale_from_sws('all:a')
       $source_of[:scale] = 'implicit'
     end
-  when :play, :print, :report, :develop, :tools
+  when :report, :develop, :tools
     scale = get_scale_from_sws('all:a')
     $source_of[:scale] = 'implicit'
   when :calibrate
@@ -368,7 +368,7 @@ def parse_arguments
 
   # now, as a possible scale argument has been recognized, all the rest is
   # to handle for mode tools or print; others see above
-  if [:tools, :print].include?(mode)
+  if [:tools, :play, :print].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
