@@ -37,7 +37,20 @@ USAGE BY EXAMPLES
 
     harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
 
-  Just print a list of all known licks:
+  Print the major pentatonic scale but shift it down by 7 semitones;
+  prepare for the case, that there might be a lick with the same name:
+
+    harpwise print mape --transpose-scale -7st --scale-over-lick
+
+  nearly the same result can be achieved by
+
+    harpwise print mape
+
+  and then take these holes as input for tools:
+
+    harpwise tools shift -7st -2 -3// -3 -4 +5 +6
+
+  just print a list of all known licks:
 
     harpwise print list-all-licks
 

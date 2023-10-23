@@ -696,21 +696,36 @@ def read_and_parse_scale_simple sname, harp = nil
                   note2semi(($opts[:transpose_scale] || 'c') + '0') - note2semi('c0')
                 end
   scale_read.each do |fields|
-    hole_or_note, rem = fields.split(nil,2)
-    err "Internal error: hole or note #{hole_or_note}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hole_or_note]
-    semi = $dsemi_harp + dsemi_scale + ( sfile['holes']  ?  note2semi($hole2note_read[hole_or_note])  :  note2semi(hole_or_note) )
+    hon_read, rem = fields.split(nil,2)
+    err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hon_read]
+    semi_read = if sfile['holes']
+                  note2semi($hole2note_read[hon_read])
+                else
+                  note2semi(hon_read)
+                end
+    note_read = semi2note(semi_read)
+    semi = $dsemi_harp + dsemi_scale + semi_read
     if semi >= $min_semi && semi <= $max_semi
       note = semi2note(semi)
       hole = $note2hole[note]
       hole2rem[hole] = rem&.strip
-      err(
+      if !hole
+        tr_desc = if $opts[:transpose_scale].is_a?(Integer)
+                    "by #{$opts[:transpose_scale]}st"
+                  else
+                    "to #{$opts[:transpose_scale]}"
+                  end
+        hon_read_desc = if sfile['holes']
+                          "hole #{hon_read}, note #{note}"
+                        else
+                          "note #{hon_read}"
+                        end
         if $opts[:transpose_scale]
-          "Transposing scale #{sname} from key of c to #{$opts[:transpose_scale]} results in %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose_scale or another type of harmonica"
+          err("Transposing scale #{sname} from key of c #{tr_desc} for #{hon_read_desc} results in #{note} (semi = #{semi}), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose-scale or another type of harmonica")
         else
-          "#{sfile} has %s (semi = %d), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files"
-        end %
-        [sfile['holes']  ?  "hole #{hole_or_note}, note #{note}"  :  "note #{hole_or_note}", semi]
-      ) unless hole
+          err("#{sfile} has #{hon_read_desc}, which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files")
+        end
+      end
       scale_holes << hole
     end
   end

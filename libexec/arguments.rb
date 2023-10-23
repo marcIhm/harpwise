@@ -65,7 +65,7 @@ def parse_arguments
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
-     [Set[:listen, :quiz], {
+     [Set[:listen, :quiz, :print], {
         transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
         auto: %w(--auto),
@@ -345,10 +345,10 @@ def parse_arguments
     end
   when :print
     # if there are two args and the first remaining argument looks like a
-    # scale, take it as such
-    scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 1
+    # scale, take it as such; this allows e.g. harpwise print mape
+    scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
-      ARGV.shift
+      ARGV.shift unless ARGV.length == 1
     else
       scale = get_scale_from_sws('all:a')
       $source_of[:scale] = 'implicit'
