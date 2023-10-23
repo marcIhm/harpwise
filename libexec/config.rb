@@ -180,6 +180,10 @@ def set_global_vars_early
   
   # The same volume for recordings and pitch
   $vol = Volume.new(-6)
+
+  # characterize the major scale by semitones
+  $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
+  $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 end
 
 

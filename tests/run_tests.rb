@@ -2023,6 +2023,7 @@ end
 ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-76: transcribe a lick' do
+  ENV['HARPWISE_TESTING']='player'
   new_session
   tms 'harpwise tools transcribe wade'
   tms :ENTER
@@ -2031,6 +2032,8 @@ do_test 'id-76: transcribe a lick' do
   expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.2)   -3/ (0.3)   -2 (0.4)'] }
   kill_session
 end
+
+ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-76a: print notes of scale g major' do
   new_session

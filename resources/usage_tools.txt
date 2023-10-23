@@ -24,7 +24,8 @@ OVERVIEW
   - edit-config: edit your personal configuration
   - transcribe: estimate a sequence of holes, that matches the given
     lick or music-file
-  - notes: print the notes of the major scale with some decorations
+  - notes-major: print the notes of the major scale with some
+    additional information
   
 USAGE BY EXAMPLES
 

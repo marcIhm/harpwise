@@ -15,7 +15,7 @@ def do_print to_print
                    'list-all-scales' => 'list of all scales with hole count',
                    'interval' => 'interval between two notes',
                    'inter' => nil,
-                   'progression' => 'take a base and semitone diffs, then spell it out',
+                   'progression' => 'take a base and some semitone diffs, then spell them out',
                    'prog' => nil}
   
   holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed, %w(progression prog interval inter))

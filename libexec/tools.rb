@@ -19,7 +19,8 @@ def do_tools to_handle
                    'ec' => nil,
                    'transcribe' => 'transcribe given lick or music-file approximately',
                    'trans' => nil,
-                   'notes' => 'print notes of major scale for given key'}
+                   'notes-major' => 'print notes of major scale for given key',
+                   'notes' => nil}
 
   tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
     mklen = tools_allowed.keys.map(&:length).max
@@ -287,15 +288,15 @@ def tool_chords to_handle
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
 
   puts "\nChords for harp in key of #{$key} played in second position:\n\n"
-  # offset of notes of major scale against base note; computed from
-  # whole- and half-note steps
-  scale_semi_tones = [2, 2, 1, 2, 2, 2, 1, 2].inject([0]) {|memo, elem| memo << memo[-1] + elem; memo}
   # offset for playing in second position i.e. for staring with the fifth note
-  offset = scale_semi_tones[5-1]
+  st_abs = $maj_sc_st_abs.clone
+  # chord-v wraps to next octave, so we need to extend scale
+  st_abs << $maj_sc_st_abs[-1] + $maj_sc_st_diff[0]
+  offset = st_abs[5-1]
   names = %w(i iv v)
   [[1, 3, 5], [4, 6, 8], [5, 7, 9]].each do |chord|
     chord_st = chord.map do |i|
-      semi = offset + scale_semi_tones[i-1]
+      semi = offset + st_abs[i-1]
       semi -= 12 if $semi2hole[$min_semi + semi - 12]
       semi
     end.sort
@@ -475,17 +476,15 @@ def tool_notes to_handle
   puts "Notes of major scale starting at \e[32m#{harp_key}\e[0m \e[2m(with semi diffs and \e[0m\e[32mf\e[0m\e[2mifth):\e[0m"
   puts
   ssemi = note2semi(harp_key + '4')
-  steps = [0,2,4,5,7,9,11,12]
   print '  '
-  notes = steps.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0 ... -1]}
+  notes = $maj_sc_st_abs.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0 ... -1]}
   notes.each_with_index do |n,idx|
     print "\e[32m" if idx == 0 || idx == 4
     print n + "\e[0m   "
   end
   puts
 
-  diffs = []
-  steps.each_cons(2) {|x,y| diffs << y - x}
+  diffs = $maj_sc_st_diff.clone
   print "\e[2m  "
   notes.each do |n|
     print ' ' * n.length
