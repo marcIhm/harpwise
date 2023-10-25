@@ -4,9 +4,9 @@
 
 def do_develop to_handle
 
-  tasks_allowed = %w(man diff selftest)
   err "Can only do 1 task at a time, but not #{to_handle.length}; too many arguments: #{to_handle}" if to_handle.length > 1
-  err "Unknown task #{to_handle[0]}, only these are allowed: #{tasks_allowed}" unless tasks_allowed.include?(to_handle[0])
+  err "Need at least one argument for develop" if to_handle.length == 0
+  err_if_unknown_extra(:develop, to_handle[0])
 
   $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"

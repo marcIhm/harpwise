@@ -562,6 +562,15 @@ do_test 'id-9a: error on ambigous option' do
   kill_session
 end
 
+do_test 'id-9d: error on ambigous scale' do
+  new_session
+  tms 'harpwise listen a chord'
+  tms :ENTER
+  sleep 1
+  expect { screen[2]["ERROR: Argument from commandline 'chord' should be unique"] }
+  kill_session
+end
+
 do_test 'id-10: quiz' do
   sound 12, 3
   new_session
@@ -614,7 +623,7 @@ do_test 'id-13: transpose scale not working in some cases' do
   tms 'harpwise listen a blues --transpose-scale b'
   tms :ENTER
   sleep 2
-  expect { screen[2]['ERROR: Transposing scale blues from key of c to b results in hole -2'] }
+  expect { screen[2]['Transposing scale blues from key of c to b fails for hole -2'] }
   kill_session
 end
 
@@ -682,7 +691,7 @@ end
 
 do_test 'id-15a: check history from previous invocation of play' do
   new_session
-  tms 'harpwise report hist'
+  tms 'harpwise report history'
   tms :ENTER
   sleep 2
   expect { screen[9][' l: wade'] }
@@ -836,7 +845,7 @@ do_test 'id-19b: prepare and get history of licks' do
     tms 'q'
     sleep 1
   end
-  tms "harpwise report hist >#{$testing_output_file}"
+  tms "harpwise report history >#{$testing_output_file}"
   tms :ENTER
   wait_for_start_of_pipeline
   lines = File.read($testing_output_file).lines
@@ -1003,7 +1012,7 @@ do_test 'id-29: back one lick' do
   kill_session
 end
 
-do_test 'id-30: use option --partial' do
+do_test 'id-30: use option --partial for wade' do
   new_session
   tms 'harpwise licks --start-with wade --partial 1@b'
   tms :ENTER
@@ -1013,7 +1022,7 @@ do_test 'id-30: use option --partial' do
   kill_session
 end
 
-do_test 'id-31: use option --partial' do
+do_test 'id-31: use option --partial for st-louis' do
   new_session
   tms 'harpwise licks --start-with st-louis --partial 1@e'
   tms :ENTER
@@ -1223,12 +1232,21 @@ do_test 'id-38: error on ambigous mode' do
   kill_session
 end
 
-do_test 'id-39: error on mode memorize' do
+do_test 'id-39: error on unknown extra argument' do
   new_session
-  tms 'harpwise memo blues'
+  tms 'harpwise report hi'
   tms :ENTER
   sleep 2
-  expect { screen[2]['Mode \'memorize\' is now \'licks\''] }
+  expect { screen[2]["Argument for mode 'report' must be one of"] }
+  kill_session
+end
+
+do_test 'id-39a: report okay for a known abbreviation of history' do
+  new_session
+  tms 'harpwise report hist'
+  tms :ENTER
+  sleep 2
+  expect { screen[0]['List of most recent licks played'] }
   kill_session
 end
 
@@ -1408,7 +1426,7 @@ do_test 'id-49: edit lickfile' do
   kill_session
 end
 
-do_test 'id-50a: tools key' do
+do_test 'id-50a: tools keys' do
   new_session
   tms 'harpwise tools keys b'
   tms :ENTER
@@ -2050,10 +2068,19 @@ ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-77: print for chromatic' do
   new_session
-  tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
+  tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
   expect { screen[6]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
+  kill_session
+end
+
+do_test 'id-77a: error on abbreviated type' do
+  new_session
+  tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
+  tms :ENTER
+  sleep 1
+  expect { screen[14]['ERROR: Cannot understand these arguments: ["chrom"]'] }
   kill_session
 end
 

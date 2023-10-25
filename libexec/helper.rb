@@ -541,3 +541,17 @@ def rotate_among value, direction, all_values
     fail "Internal error: unknown direction '#{direction}'"
   end
 end
+
+
+def err_if_unknown_extra mode, arg
+  if !$extra[mode].has_key?(arg)
+    mklen = $extra[mode].keys.map(&:length).max
+    puts
+    puts "Argument for mode '#{mode}' must be one of:\n" 
+    $extra[mode].each do |k,v|
+      puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
+    end
+    puts "but not '#{arg}'#{not_any_source_of}; #{$for_usage}"
+    err "See above"
+  end
+end

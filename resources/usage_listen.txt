@@ -15,13 +15,13 @@ OVERVIEW
 
 USAGE BY EXAMPLES
 
-  The wise listens, while your are playing a richter (abbreviated as
-  'ri') harp of key c and it shows the holes, that you played; green
-  if from the scale, red otherwise:
+  The wise listens, while your are playing a richter harp of key c and
+  it shows the holes, that you played; green if from the scale, red
+  otherwise:
 
-    harpwise listen ri c blues
+    harpwise listen richter c blues
 
-  The same, but relying on the defaults for type and key:
+  The same, but relying on the defaults for type (richter) and key (c):
 
     harpwise listen blues
 

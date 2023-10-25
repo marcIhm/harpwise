@@ -5,32 +5,9 @@
 def do_tools to_handle
 
   $lick_file ||= get_lick_file
-  tools_allowed = {'transpose' => 'transpose a sequence of notes between keys',
-                   'shift' => 'shift a sequence of notes by the given number of semitones',
-                   'keys' => 'print a chart with keys and positions',
-                   'intervals' => 'print all known intervals',
-                   'chords' => 'print chords i, iv and v',
-                   'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
-                   'search' => nil,
-                   'chart' => 'harmonica chart',
-                   'edit-licks' => "invoke editor on your lickfile #{$lick_file}",
-                   'el' => nil,
-                   'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
-                   'ec' => nil,
-                   'transcribe' => 'transcribe given lick or music-file approximately',
-                   'trans' => nil,
-                   'notes-major' => 'print notes of major scale for given key',
-                   'notes' => nil}
 
-  tool = match_or(to_handle.shift, tools_allowed.keys) do |none, choices|
-    mklen = tools_allowed.keys.map(&:length).max
-    puts "\nArgument for mode 'tools' must be one of those listed below,\nnot #{none}#{not_any_source_of}\n\n"
-    tools_allowed.each do |k,v|
-      puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
-    end
-    puts "\n" + $for_usage
-    err 'See above'
-  end
+  err_if_unknown_extra(:tools, to_handle[0])
+  tool = to_handle.shift
 
   case tool
   when 'keys'

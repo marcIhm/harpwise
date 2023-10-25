@@ -53,11 +53,11 @@ USAGE BY EXAMPLES
   Center the semitone-column around a specific key of harp (bf) and
   mark it in the table:
 
-    harpwise tools key bf
+    harpwise tools keys bf
 
   The same and mark a key of song (d) too:
 
-    harpwise tools key bf d
+    harpwise tools keys bf d
     
 
   Print a harmonica chart for the key of g:

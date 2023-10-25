@@ -9,16 +9,8 @@ def do_print to_print
   $ctl_rec[:lick_lick] = false
 
   $all_licks, $licks = read_licks
-  extra_allowed = {'licks' => 'selected licks (e.g. by option -t) with their content',
-                   'list-licks' => 'list of selected licks with hole count',
-                   'list-all-licks' => 'list of all licks',
-                   'list-all-scales' => 'list of all scales with hole count',
-                   'interval' => 'interval between two notes',
-                   'inter' => nil,
-                   'progression' => 'take a base and some semitone diffs, then spell them out',
-                   'prog' => nil}
-  
-  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, extra_allowed, %w(progression prog interval inter))
+
+  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, $extra[:print], %w(progression prog interval inter))
 
   puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
@@ -55,7 +47,7 @@ def do_print to_print
 
   elsif extra.length > 0
 
-    err "only one of #{extra_allowed.keys} is allowed" if extra.length > 1
+    err "only one of #{$extra[:print].keys} is allowed" if extra.length > 1
 
     if extra[0] == 'licks'
       puts_underlined 'Licks selected by tags and hole-count:'

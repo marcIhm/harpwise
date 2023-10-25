@@ -7,28 +7,22 @@ def do_report to_report
   $all_licks, $licks = read_licks
   err "Can only do 1 report at a time, but not #{to_report.length}; too many arguments: #{to_report}" if to_report.length > 1
   err "Need at least one item to report" if to_report.length == 0
-  to_report[0] = 'starred' if to_report[0] == 'stars'
-  reports_allowed = %w(licks all-licks dump history-of-licks starred)
-  to_report[0] = match_or(to_report[0], reports_allowed) do |none, choices|
-    err "Argument for mode 'report' must be one of: #{choices}, not #{none}#{not_any_source_of}; #{$for_usage}"
-  end
-  report = to_report[0].o2sym
-
+  err_if_unknown_extra(:report, to_report[0])
   puts
 
-  case report
-  when :licks
+  case to_report[0]
+  when 'licks'
     print_licks_by_tags $licks
-  when :all_licks
+  when 'all-licks'
     print_lick_and_tag_info $all_licks
-  when :history_of_licks
+  when 'history', 'hist'
     print_last_licks_from_journal $all_licks
-  when :starred
+  when 'starred'
     print_starred_licks
-  when :dump
+  when 'dump'
     pp $all_licks
   else
-    err "Internal error: Unknown report '#{report}'"
+    err "Internal error: Unknown report '#{to_report[0]}'"
   end
 end
 

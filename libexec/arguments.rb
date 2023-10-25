@@ -24,7 +24,6 @@ def parse_arguments
   $source_of = {mode: nil, type: nil, key: nil, scale: nil}
 
   # get mode
-  err "Mode 'memorize' is now 'licks'; please change your first argument" if ARGV[0] && 'memorize'.start_with?(ARGV[0])
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
     err "First argument can be one of #{choices}, not #{none}.\n\n    Please invoke without argument for general usage information !\n\n(note, that mode 'develop' is only useful for the maintainer or developer of harpwise.)"
   end.to_sym
@@ -248,17 +247,12 @@ def parse_arguments
   end
 
 
-  # type and key are taken from front of args only if they match the
-  # predefined set of choices; otherwise they come from config
+  # type and key (further down below) are taken from front of args only if
+  # they match the predefined set of choices; otherwise they come from
+  # config
 
-  type = nil
-  if ARGV.length > 0 && ARGV[0].length > 1
-    type = $conf[:all_types].find {|c| c == ARGV[0]}
-    type ||= $conf[:all_types].find {|c| c.start_with?(ARGV[0])}
-  end
-  if type
-    ARGV.shift
-  else
+  type = ARGV.shift if $conf[:all_types].include?(ARGV[0])
+  if !type
     type = $conf[:type]
     $source_of[:type] = 'config'
   end
@@ -271,7 +265,6 @@ def parse_arguments
   # string below duplicates the definition of $holes_file
   all_holes = yaml_parse("#{$dirs[:install]}/config/#{$type}/holes.yaml").keys
   
-
   # check for unprocessed args, that look like options and are neither holes not semitones
   
   other_opts = ARGV.select do |arg|
@@ -280,8 +273,9 @@ def parse_arguments
   err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 
 
 
-  # Handle special cases; e.g convert / swap 'harpwise tools transpose c g'
-  #                                     into 'harpwise tools c transpose g'
+  # Handle special cases; e.g:
+  #  convert / swap 'harpwise tools transpose c g'
+  #            into 'harpwise tools c transpose g'
   #  or     'harpwise tools chart c'
   #  into   'harpwise tools c chart'
   #
@@ -298,31 +292,22 @@ def parse_arguments
   if mode == :play && $conf[:all_keys].include?(ARGV[1]) &&
      ARGV.length >= 2 && 'pitch'.start_with?(ARGV[0])
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
+
   end
 
-  # pick key
+  # Get key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   if !key
     key = $conf[:key]
     $source_of[:key] = 'config'
   end
   check_key_and_set_pref_sig(key)
-  
-
-  # For modes play, report and develop, all the remaining arguments (after
-  # processing type and key) are things to play or keywords; a scale is
-  # not allowed, so we do this before processing the scale
-
-  if [:report, :develop].include?(mode)
-    to_handle = []
-    to_handle << ARGV.shift while !ARGV.empty?
-  end
 
   
-  # Get scale which must be the only remaining argument (if any);
-  # modes that do not need a scale get scale 'all'
+  # Get scale
   case mode
   when :listen, :quiz, :licks
+    # these modes dont take an extra arg
     scales, holes = partition_into_scales_and_holes(ARGV, all_scales, all_holes)
     ARGV.clear
     if scales.length > 0
@@ -330,56 +315,88 @@ def parse_arguments
     elsif holes.length > 0
       scale = get_scale_from_sws('adhoc:h')
       $adhoc_holes = holes
+      $source_of[:scale] = 'adhoc'
     else
       scale = get_scale_from_sws($conf[:scale])
       $source_of[:scale] = 'config'
     end
-  when :tools
+  when :play, :print, :tools
     # if the first remaining argument looks like a scale, take it as such
-    scale = get_scale_from_sws(ARGV[0], true)
-    if scale
-      ARGV.shift
-    else
-      scale = get_scale_from_sws('all:a')
-      $source_of[:scale] = 'implicit'
-    end
-  when :play, :print
-    # if there are two args and the first remaining argument looks like a
-    # scale, take it as such; this allows e.g. harpwise print mape
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
-      ARGV.shift unless ARGV.length == 1
+      # for modes play and print: if the scale is our only argument, keep it for to_handle
+      # for mode tools: remove the recognized scale in any case
+      ARGV.shift if ARGV.length > 1 || $mode == :tools
     else
       scale = get_scale_from_sws('all:a')
       $source_of[:scale] = 'implicit'
     end
-  when :report, :develop, :tools
-    scale = get_scale_from_sws('all:a')
-    $source_of[:scale] = 'implicit'
-  when :calibrate
-    err("Mode 'calibrate' does not need a scale argument; can not handle: #{ARGV[0]}#{not_any_source_of}; #{$for_usage}") if ARGV.length == 1 && all_scales.include?(ARGV[0])
+  when :report, :develop, :calibrate
+    # no explicit scale, ever
     scale = get_scale_from_sws('all:a')
     $source_of[:scale] = 'implicit'
   else
     fail "Internal error"
   end
-  
-  err "Given scale '#{scale}' is none of the known scales for type '#{type}': #{scales_for_type(type)}; #{$for_usage}" unless !$scale || scales_for_type(type).include?(scale)
 
-  # now, as a possible scale argument has been recognized, all the rest is
-  # to handle for mode tools or print; others see above
-  if [:tools, :play, :print].include?(mode)
+  
+  # now that a possible scale argument has been recognized, the remaining
+  # arguments are to_handle by mode; this includes the extra (if any)
+  if [:play, :print, :tools, :report, :develop].include?(mode)
     to_handle = []
     to_handle << ARGV.shift while !ARGV.empty?
   end
 
-  
-  # do this check late, because we have more specific error messages before
+  # do these checks late, because we have more specific error messages before
   err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
+
+  # Some modes accept extra arguments, which are processed later and
+  # individually for each mode
+  $extra = {play: {'licks' => 'licks selected',
+                   'pitch' => 'interactive, adjustable pitch',
+                   'interval' => 'interactive, adjustable interval',
+                   'inter' => nil,
+                   'progression' => 'take a base and semitone diffs, then play it',
+                   'prog' => nil,
+                   'chord' => 'play the given holes or notes as a chord',
+                   'user' => 'play last recording of you playing a lick (if any)'},
+            print: {'licks' => 'selected licks (e.g. by option -t) with their content',
+                    'list-licks' => 'list of selected licks with hole count',
+                    'list-all-licks' => 'list of all licks',
+                    'list-all-scales' => 'list of all scales with hole count',
+                    'interval' => 'interval between two notes',
+                    'inter' => nil,
+                    'progression' => 'take a base and some semitone diffs, then spell them out',
+                    'prog' => nil},
+            tools: {'transpose' => 'transpose a sequence of notes between keys',
+                    'shift' => 'shift a sequence of notes by the given number of semitones',
+                    'keys' => 'print a chart with keys and positions',
+                    'intervals' => 'print all known intervals',
+                    'chords' => 'print chords i, iv and v',
+                    'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
+                    'search' => nil,
+                    'chart' => 'harmonica chart',
+                    'edit-licks' => "invoke editor on your lickfile #{$lick_file}",
+                    'el' => nil,
+                    'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
+                    'ec' => nil,
+                    'transcribe' => 'transcribe given lick or music-file approximately',
+                    'trans' => nil,
+                    'notes-major' => 'print notes of major scale for given key',
+                    'notes' => nil},
+            report: {'licks' => 'show and group licks and tags according to the various tag-options',
+                     'all-licks' => 'statistical overview for all known licks',
+                     'history' => 'show, which licks you played recently',
+                     'hist' => nil,
+                     'starred' => 'show all starred licks',
+                     'dump' => 'dump all the licks in json-format'},
+            develop: {'man' => 'produce man page from erb-template',
+                      'diff' => 'compare produced man page with usage',
+                      'selftest' => 'perform selftest'}}
+
+  
   $err_binding = nil
 
-  # Commandline processing is complete here
-  
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
   [ mode, type, key, scale, opts, to_handle]
@@ -399,8 +416,10 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false   # get_sc
     scale = scale_w_short
   end
   return scale if scale == 'adhoc'
-  
-  match_or(scale, scales_for_type($type)) do |none, choices|
+
+  if scales_for_type($type).include?(scale)
+    scale
+  else
     if graceful
       nil
     else

@@ -371,6 +371,13 @@ def set_global_vars_late
                         medium: [4096, 1024],
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
+
+  # check, that the names of those extra args do not collide with scales
+  scales = scales_for_type($type)
+  $extra.each do |mode, extra|
+    double = extra.keys & scales
+    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra.keys}" if double.length > 0
+  end
 end
 
 

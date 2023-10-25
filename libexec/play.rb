@@ -7,7 +7,7 @@ def do_play to_play
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
   $ctl_rec[:lick_lick] = false
-  
+
   trace_text = nil
 
   make_term_immediate
@@ -15,16 +15,7 @@ def do_play to_play
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks.\e[0m"
   puts
 
-  extra_allowed = {'licks' => 'licks selected',
-                   'pitch' => 'interactive, adjustable pitch',
-                   'interval' => 'interactive, adjustable interval',
-                   'inter' => nil,
-                   'progression' => 'take a base and semitone diffs, then play it',
-                   'prog' => nil,
-                   'chord' => 'play the given holes or notes as a chord',
-                   'user' => 'play last recording of you playing a lick (if any)'}
-  
-  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, extra_allowed, %w(pitch interval inter progression prog chord))
+  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, $extra[:play], %w(pitch interval inter progression prog chord))
   extra = Set.new(extra).to_a
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
 
@@ -59,7 +50,7 @@ def do_play to_play
 
   elsif extra.length > 0
 
-    err "only one of #{extra_allowed.keys} is allowed" if extra.length > 1
+    err "only one of #{$extra[:play].keys} is allowed" if extra.length > 1
 
     if extra[0] == 'pitch'
       play_interactive_pitch
@@ -151,7 +142,7 @@ def do_play to_play
 end
 
 
-def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
+def partition_to_play_or_print to_p, extra_all, extra_takes_args
 
   holes_or_notes = []
   lnames = []
@@ -171,7 +162,7 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
     rescue ArgumentError
     end
 
-    if extra_allowed.keys.include?(tp)
+    if extra_all.keys.include?(tp)
       extra << tp
       extra_seen = true
     elsif extra_seen && (extra_takes_args & extra).length > 0
@@ -220,10 +211,10 @@ def partition_to_play_or_print to_p, extra_allowed = [], extra_takes_args = []
     print_in_columns all_snames, indent: 4, pad: :tabs
     puts "\n- licks:"
     print_in_columns all_lnames, indent: 4, pad: :tabs
-    if extra_allowed.keys.length > 0
+    if extra_all.keys.length > 0
       puts "\n- extra:"
-      mklen = extra_allowed.keys.map(&:length).max
-      extra_allowed.each do |k,v|
+      mklen = extra_all.keys.map(&:length).max
+      extra_all.each do |k,v|
         puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
       end
     end
