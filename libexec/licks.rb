@@ -238,7 +238,7 @@ def read_licks graceful = false
     end
   end
 
-  tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec)}.flatten.sort_by(&:to_s))
+  tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec starred)}.flatten.sort_by(&:to_s))
   [['--tags-any', keep_any],
    ['--tags-all', keep_all],
    ['--no-tags-any', discard_any],

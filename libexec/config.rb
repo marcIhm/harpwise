@@ -17,13 +17,12 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks play print report calibrate tools develop)
+  $early_conf[:modes] = %w(listen quiz licks play print calibrate tools develop)
 
   # expectations for config-file
   $conf_meta = Hash.new
   $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :calibrate, :general]
   # update config ini if the below is extended
-  $conf_meta[:sections_aliases] = {:report => :licks}
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
@@ -184,6 +183,7 @@ def set_global_vars_early
   # characterize the major scale by semitones
   $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
+
 end
 
 
@@ -334,7 +334,6 @@ def set_global_vars_late
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
-  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
   $recorded_data = "#{$dirs[:tmp]}/recorded.dat"
   $recorded_data_ts = nil
@@ -351,7 +350,7 @@ def set_global_vars_late
   $journal_all = false
   # filenames; $journal_file contains both 'all' and 'some'
   $journal_file, $trace_file = get_files_journal_trace
-  
+
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
@@ -372,12 +371,6 @@ def set_global_vars_late
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 
-  # check, that the names of those extra args do not collide with scales
-  scales = scales_for_type($type)
-  $extra.each do |mode, extra|
-    double = extra.keys & scales
-    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra.keys}" if double.length > 0
-  end
 end
 
 
@@ -477,7 +470,6 @@ def read_config_ini file, strict: true
     if md = line.match(/^\[(#{$word_re})\]$/)
       # new section
       section = md[1].o2sym
-      err err_head + "Section #{section.o2str} is not allowed, rather use section #{$conf_meta[:sections_aliases][section].o2str}, which is used by both modes" if $conf_meta[:sections_aliases].include?(section)
       err err_head + "Section #{section.o2str} is none of allowed #{$conf_meta[:sections].map(&:o2str)}" unless $conf_meta[:sections].include?(section)
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
@@ -515,6 +507,12 @@ def read_config_ini file, strict: true
   conf[:general].each {|k,v| conf[k] = v}
 
   conf
+end
+
+
+def read_and_set_musical_bootstrap_config
+  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
+  return [scales_for_type($type), yaml_parse($holes_file).keys]
 end
 
 
@@ -704,7 +702,11 @@ def read_and_parse_scale_simple sname, harp = nil
                 end
   scale_read.each do |fields|
     hon_read, rem = fields.split(nil,2)
-    err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hon_read]
+    if sfile['holes']
+      err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hon_read]
+    else
+      err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read.values.include?(hon_read)
+    end
     semi_read = if sfile['holes']
                   note2semi($hole2note_read[hon_read])
                 else
@@ -886,8 +888,8 @@ def set_global_musical_vars
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
-  $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :info
-  $freq2hole = read_calibration unless [:calibrate, :report, :print, :tools, :develop].include?($mode)
+  $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :print
+  $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode)
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]

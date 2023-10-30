@@ -88,7 +88,7 @@ fail "These programs are needed but cannot be found: \n  #{not_found.join("\n  "
 #
 # Collect usage examples and later check, that none of them produces an error
 #
-usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :print, :report, :tools].map do |t|
+usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :print, :tools, :develop].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -102,13 +102,13 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily','chrom a major_pentatonic','harpwise play d st-louis','report chromatic licks -t favorites','harpwise report chromatic licks','harpwise licks a -t starred']
+known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # replace some, e.g. due to my different set of licks
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 62
+num_exp = 73
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -237,7 +237,7 @@ do_test 'id-1a: config.ini, user prevails' do
   end_of_content
   new_session
   # any invocation would be okay too
-  tms 'harpwise report history'
+  tms 'harpwise print licks-history'
   tms :ENTER
   sleep 2
   ensure_config_ini_testing
@@ -359,8 +359,8 @@ usage_types.keys.each_with_index do |mode, idx|
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
-                     'report' => [4, "The mode 'report' show helps to select licks by tags"],
-                     'tools' => [4, "The mode 'tools' offers some non-interactive"]}
+                     'tools' => [4, "The mode 'tools' offers some non-interactive"],
+                     'develop' => [4, "This mode is useful only for the maintainer or developer"]}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     kill_session
@@ -627,7 +627,7 @@ do_test 'id-13: transpose scale not working in some cases' do
   kill_session
 end
 
-do_test 'id-13a: transpose scale by 7 of semitones' do
+do_test 'id-13a: transpose scale by 7 semitones' do
   new_session
   tms 'harpwise listen a blues --transpose-scale +7st'
   tms :ENTER
@@ -691,10 +691,10 @@ end
 
 do_test 'id-15a: check history from previous invocation of play' do
   new_session
-  tms 'harpwise report history'
+  tms 'harpwise print licks-history'
   tms :ENTER
   sleep 2
-  expect { screen[9][' l: wade'] }
+  expect { screen[11][' l: wade'] }
   kill_session
 end
 
@@ -704,7 +704,7 @@ do_test 'id-16: play some holes and notes' do
   tms 'harpwise play a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[6]['-1 a5 +4'] }
+  expect { screen[7]['-1 a5 +4'] }
   kill_session
 end
 
@@ -845,14 +845,14 @@ do_test 'id-19b: prepare and get history of licks' do
     tms 'q'
     sleep 1
   end
-  tms "harpwise report history >#{$testing_output_file}"
+  tms "harpwise print licks-history >#{$testing_output_file}"
   tms :ENTER
   wait_for_start_of_pipeline
   lines = File.read($testing_output_file).lines
   ["   l: blues\n",
    "  2l: mape\n",
    "  3l: wade\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[8+idx] == exp }
+    expect(lines,exp,idx) { lines[10+idx] == exp }
   end
   kill_session
 end
@@ -885,19 +885,19 @@ do_test 'id-21: mode licks with --start-with' do
   kill_session
 end
 
-do_test 'id-22: print list of tags' do
+do_test 'id-22: print list of some licks with tags' do
   new_session
-  tms 'harpwise report --tags-any favorites licks'
+  tms 'harpwise print --tags-any favorites licks-with-tags'
   tms :ENTER
   sleep 2
   # for licks that match this tag
-  expect { screen[15]['Total number of licks:   4'] }
+  expect { screen[17]['Total number of licks:   4'] }
   kill_session
 end
 
-do_test 'id-23: print list of licks' do
+do_test 'id-23: print list of licks with tags' do
   new_session
-  tms "harpwise report licks >#{$testing_output_file}"
+  tms "harpwise print licks-with-tags >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
@@ -913,14 +913,14 @@ do_test 'id-23: print list of licks' do
    "  two ..... y,no_rec\n",
    "  three ..... fav,favorites,testing,z,no_rec\n",
    "  long ..... testing,x,has_rec\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[10+idx] == exp }
+    expect(lines,exp,idx) { lines[12+idx] == exp }
   end
   kill_session
 end
 
-do_test 'id-23a: overview report for all licks' do
+do_test 'id-23a: overview for all licks' do
   new_session
-  tms "harpwise report all-licks >#{$testing_output_file}"
+  tms "harpwise print licks-tags-stats >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
@@ -948,7 +948,7 @@ do_test 'id-23a: overview report for all licks' do
    "  Total number of different tags:     17\n",
    " -----------------------------------------\n",
    "  Total number of licks:              14\n"].each_with_index do |exp,idx|
-    expect(lines[10+idx],exp,idx,lines) { lines[10+idx] == exp }
+    expect(lines[10+idx],exp,idx,lines) { lines[12+idx] == exp }
   end
   kill_session
 end
@@ -1234,19 +1234,10 @@ end
 
 do_test 'id-39: error on unknown extra argument' do
   new_session
-  tms 'harpwise report hi'
+  tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[2]["Argument for mode 'report' must be one of"] }
-  kill_session
-end
-
-do_test 'id-39a: report okay for a known abbreviation of history' do
-  new_session
-  tms 'harpwise report hist'
-  tms :ENTER
-  sleep 2
-  expect { screen[0]['List of most recent licks played'] }
+  expect { screen[13]["First argument for mode print should be one of those listed above"] }
   kill_session
 end
 
@@ -1274,37 +1265,6 @@ do_test 'id-41: abbreviated scale' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['middle'] }
-  kill_session
-end
-
-usage_examples.each_with_index do |ex,idx|
-  do_test "id-41a%d: usage #{ex}" % idx do
-    new_session
-    ex.gsub!(/#.*/,'')
-    tms ex + " >#{$testing_output_file} 2>&1"
-    tms :ENTER
-    sleep 1
-    output = File.read($testing_output_file).lines
-    # if the program keeps running, than it had no errors; otherwise
-    # test its return code and scan its output
-    if wait_for_end_of_harpwise(4)
-      tms 'clear'
-      tms :ENTER
-      tms 'echo \$?'
-      tms :ENTER
-      expect { screen[1]['0'] }
-      expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
-    end
-    kill_session
-  end
-end
-
-do_test 'id-42: error on journal in play' do
-  new_session
-  tms 'harpwise play journal'
-  tms :ENTER
-  wait_for_end_of_harpwise
-  expect { screen[14]['ERROR: Cannot understand these arguments: ["journal"]'] }
   kill_session
 end
 
@@ -1360,22 +1320,45 @@ do_test 'id-45: star and unstar a lick' do
   expect(stars) { stars['wade'] == 2 }
 end
 
+# start at test before if rerun
 do_test 'id-46: show lick starred in previous invocation' do
   new_session
-  tms 'harpwise report starred'
+  tms 'harpwise print licks-starred'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[4]['wade:    2'] }
+  expect { screen[6]['wade:    2'] }
   kill_session
 end
 
 do_test 'id-46a: verify persistent tag "starred"' do
   new_session
-  tms 'harpwise report licks 2>/dev/null | head -20'
+  tms 'harpwise print licks-with-tags 2>/dev/null | head -20'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[-13]['wade ..... fav,favorites,samples,starred,has_rec'] }
+  expect { screen[13]['wade ..... fav,favorites,samples,starred,has_rec'] }
   kill_session
+end
+
+usage_examples.each_with_index do |ex,idx|
+  do_test "id-41a%d: usage #{ex}" % idx do
+    new_session
+    ex.gsub!(/#.*/,'')
+    tms ex + " >#{$testing_output_file} 2>&1"
+    tms :ENTER
+    sleep 1
+    output = File.read($testing_output_file).lines
+    # if the program keeps running, than it had no errors; otherwise
+    # test its return code and scan its output
+    if wait_for_end_of_harpwise(4)
+      tms 'clear'
+      tms :ENTER
+      tms 'echo \$?'
+      tms :ENTER
+      expect { screen[1]['0'] }
+      expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
+    end
+    kill_session
+  end
 end
 
 do_test 'id-48: chromatic in c; listen' do
@@ -1394,7 +1377,7 @@ end
 do_test 'id-48a: chromatic in a; listen' do
   sound 8, 2
   new_session 92, 30
-  tms 'harpwise listen chromatic a all --add-scales - --display chart-notes'
+  tms 'harpwise listen chromatic a all --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
@@ -1402,15 +1385,18 @@ do_test 'id-48a: chromatic in a; listen' do
   kill_session
 end
 
-do_test 'id-48b: chromatic in a, scale blues; listen' do
+do_test 'id-48b: chromatic in a, scale blues; listen; creation of derived' do
   sound 8, 2
+  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_chord-i_with_holes.yaml"
+  FileUtils.rm derived if File.exist?(derived)
   new_session 92, 30
-  tms 'harpwise listen chromatic a blues --add-scales - --display chart-scales'
+  tms 'harpwise listen chromatic a blues --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
-  expect { screen[4][' b   -   b   b   b   -   b   b   b   -   b   b'] }
+  expect { screen[4]['b4  4  b14  b4  b4  4  b14  b4'] }
   expect { screen[8]['==1===2===3===4===5===6===7===8===9==10==11==12========'] }
+  expect(derived) { File.exist?(derived) }
   kill_session
 end
 
@@ -1530,7 +1516,7 @@ end
 
 do_test 'id-54b: print list of all licks' do
   new_session
-  tms "harpwise print list-all-licks >#{$testing_output_file}"
+  tms "harpwise print licks-list-all >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
@@ -1545,7 +1531,7 @@ end
 
 do_test 'id-54c: print list of selected licks' do
   new_session
-  tms "harpwise print list-licks --tags-any favorites"
+  tms "harpwise print licks-list --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[10] == ' st-louis    :   8' }
@@ -1555,7 +1541,7 @@ end
 
 do_test 'id-54d: print selected licks' do
   new_session
-  tms "harpwise print licks --tags-any favorites"
+  tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[10] == 'With intervals to first:' }
@@ -1566,7 +1552,7 @@ end
 
 do_test 'id-54e: print list of all scales' do
   new_session
-  tms "harpwise print list-all-scales >#{$testing_output_file}"
+  tms "harpwise print scales >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
@@ -1790,22 +1776,22 @@ do_test 'id-62: play interval' do
   expect { screen[22] == 'SPACE to continue ...' }
 end
 
-do_test 'id-63: print interval' do
+do_test 'id-63: calculate interval' do
   new_session
-  tms 'harpwise print inter d4 e5'
+  tms 'harpwise tools inter d4 e5'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Interval 14st:'] }
+  expect { screen[2]['Interval 14st:'] }
   kill_session
 end
 
-do_test 'id-64: print progression' do
+do_test 'id-64: calculate progression' do
   new_session
-  tms 'harpwise print prog a3 5st 9st oct'
+  tms 'harpwise tools prog a3 5st 9st oct'
   tms :ENTER
   sleep 2
-  expect { screen[12]['a3      d4     gf4      a4'] }
-  expect { screen[20]['0       5       9      12'] }
+  expect { screen[10]['a3      d4     gf4      a4'] }
+  expect { screen[18]['0       5       9      12'] }
   kill_session
 end
 
@@ -2066,6 +2052,15 @@ end
 
 ENV['HARPWISE_TESTING']='1'
 
+do_test 'id-76b: helpful error message on unknown tool' do
+  new_session
+  tms 'harpwise tools x'
+  tms :ENTER
+  sleep 5
+  expect { screen[13]['First argument for mode tools should be one of those listed above'] }
+  kill_session
+end
+
 do_test 'id-77: print for chromatic' do
   new_session
   tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
@@ -2080,7 +2075,7 @@ do_test 'id-77a: error on abbreviated type' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[14]['ERROR: Cannot understand these arguments: ["chrom"]'] }
+  expect { screen[14]["ot 'chrom'"] }
   kill_session
 end
 
@@ -2115,17 +2110,17 @@ do_test 'id-80: play chord' do
   tms 'harpwise play chord +1 +2 +3 -3/'
   tms :ENTER
   sleep 2
-  expect { screen[7]['+1 (-9st)  +2 (-5st)  +3 (-2st)  -3/ (1st)'] }
-  expect { screen[9]['Wave: sawtooth, Gap: 0.2, Len: 6'] }
+  expect { screen[8]['+1 (-9st)  +2 (-5st)  +3 (-2st)  -3/ (1st)'] }
+  expect { screen[10]['Wave: sawtooth, Gap: 0.2, Len: 6'] }
   tms 'w'
   sleep 2
-  expect { screen[11]['pluck'] }
+  expect { screen[12]['pluck'] }
   tms 'L'
   sleep 2
-  expect { screen[12]['Len: 7'] }
+  expect { screen[13]['Len: 7'] }
   tms 'G'
   sleep 2
-  expect { screen[13]['Gap: 0.3'] }
+  expect { screen[14]['Gap: 0.3'] }
   tms 'h'
   sleep 2
   expect { screen[16]['Keys available while playing a chord'] }

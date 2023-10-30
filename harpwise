@@ -27,7 +27,6 @@ require_relative 'libexec/listen'
 require_relative 'libexec/quiz_or_licks'
 require_relative 'libexec/play'
 require_relative 'libexec/print'
-require_relative 'libexec/report'
 require_relative 'libexec/calibrate'
 require_relative 'libexec/tools'
 require_relative 'libexec/develop'
@@ -61,13 +60,16 @@ check_installation
 
 $conf = read_technical_config
 
+# neede for usage
+initialize_extra_vars
+
 # get debug info early to help e.g. for error messages
 $opts = {debug: true} if ARGV.include?('--debug')
-$mode, $type, $key, $scale, $opts, to_handle = parse_arguments
+$mode, $type, $key, $scale, $opts = parse_arguments_early
 
 IO.popen('ps -ef').each_line do |line|
   fields = line.chomp.split(' ',8)
-  err "An instance of this program is already running: pid: #{fields[1]}, commandline: '#{fields[-1]}'" if ![:report, :develop, :tools, :print].include?($mode) && Process.pid != fields[1].to_i && fields[-1][File.basename($0)] && fields[-1]['ruby']
+  err "An instance of this program is already running: pid: #{fields[1]}, commandline: '#{fields[-1]}'" if ![:develop, :tools, :print].include?($mode) && Process.pid != fields[1].to_i && fields[-1][File.basename($0)] && fields[-1]['ruby']
 end
 
 # we need to have mode for this, so calculate it late
@@ -78,6 +80,8 @@ $perfctr = Hash.new {|h,k| h[k] = 0}
 set_global_vars_late
 
 set_global_musical_vars
+
+to_handle = parse_arguments_late
 
 check_screen if [:listen, :quiz, :licks].include?($mode)
 
@@ -159,8 +163,6 @@ begin
     do_play to_handle
   when :print
     do_print to_handle
-  when :report
-    do_report to_handle
   when :calibrate
     if $opts[:auto]
       do_calibrate_auto

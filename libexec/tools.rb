@@ -6,34 +6,66 @@ def do_tools to_handle
 
   $lick_file ||= get_lick_file
 
-  err_if_unknown_extra(:tools, to_handle[0])
-  tool = to_handle.shift
+  # common error checking
+  err "'harpwise tools #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if %w(chart edit-licks edit-config chords).include?($extra) && to_handle.length > 0
 
-  case tool
-  when 'keys'
-    tool_key_positions to_handle
+  case $extra
   when 'transpose'
+
     tool_transpose to_handle
+
   when 'shift'
+
     tool_shift to_handle
-  when 'intervals'
-    tool_intervals to_handle
-  when 'chords'
-    tool_chords to_handle
+
+  when 'keys'
+    
+    tool_key_positions to_handle
+
   when 'search-in-licks', 'search'
+
     tool_search to_handle
+
   when 'chart'
-    tool_chart to_handle
-  when 'edit-licks', 'el'
-    tool_edit_licks to_handle
-  when 'edit-config', 'ec'
-    tool_edit_config to_handle
+
+    tool_chart
+
+  when 'edit-licks'
+
+    system($editor + ' ' + $lick_file)
+    puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
+    
+  when 'edit-config'
+
+    tool_edit_config
+
   when 'transcribe', 'trans'
+
     tool_transcribe to_handle
-  when 'notes'
+
+  when 'notes-major', 'notes'
+    
     tool_notes to_handle
+
+  when 'interval', 'inter'
+
+    puts
+    s1, s2 = normalize_interval(to_handle)
+    print_interval s1, s2
+    puts
+      
+  when 'progression', 'prog'
+
+    tool_progression to_handle
+      
+  when 'chords'
+
+    tool_chords
+
   else
-    err "Internal error: Unknown tool '#{tool}'"
+
+    fail "Internal error: unknown extra '#{extra}'"
+
   end
 
 end
@@ -194,21 +226,6 @@ def print_transposed cols, emphasis
 end
 
 
-def tool_intervals to_handle
-
-  err "Tool 'intervals' does not allow additional arguments" if to_handle.length > 0
-
-  puts
-  puts "Known intervals: semitones and various names"
-  puts
-  $intervals.each do |st, names|
-    puts " %3dst: #{names.join(', ')}" % st
-  end
-  puts
-  
-end
-
-
 def tool_search to_handle
 
   err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
@@ -260,9 +277,29 @@ def tool_search to_handle
 end
 
 
-def tool_chords to_handle
+def tool_progression to_handle
+  err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless to_handle.length >= 1
+  
+  puts_underlined 'Progression:'
+  prog = base_and_delta_to_semis(to_handle)
+  holes, notes, abs_semis, rel_semis = get_progression_views(prog)
+  
+  puts_underlined 'Holes:', '-'
+  print_progression_view holes
+  
+  puts_underlined 'Notes:', '-'
+  print_progression_view notes
+  
+  puts_underlined 'Absolute Semitones (a4 = 0):', '-'
+  print_progression_view abs_semis
+  
+  puts_underlined 'Relative Semitones to first:', '-'
+  print_progression_view rel_semis
 
-  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+end
+
+
+def tool_chords
 
   puts "\nChords for harp in key of #{$key} played in second position:\n\n"
   # offset for playing in second position i.e. for staring with the fifth note
@@ -287,9 +324,7 @@ def tool_chords to_handle
 end
 
 
-def tool_chart to_handle
-
-  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
+def tool_chart
 
   puts
   puts
@@ -313,15 +348,6 @@ def tool_chart to_handle
     puts
   end
   puts
-end
-
-
-def tool_edit_licks to_handle
-
-  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
-
-  system($editor + ' ' + $lick_file)
-  puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
 end
 
 

@@ -4,20 +4,25 @@
 
 def do_develop to_handle
 
-  err "Can only do 1 task at a time, but not #{to_handle.length}; too many arguments: #{to_handle}" if to_handle.length > 1
-  err "Need at least one argument for develop" if to_handle.length == 0
-  err_if_unknown_extra(:develop, to_handle[0])
+  # common error checking
+  err "'harpwise develop #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if to_handle.length > 0
 
   $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
 
-  case to_handle[0]
+  case $extra
   when 'man'
+
     task_man
+
   when 'diff'
+
     task_diff
+
   when 'selftest'
+
     task_selftest
+
   end
 end
 

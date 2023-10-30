@@ -44,15 +44,16 @@ USAGE BY EXAMPLES
     harpwise licks c --tags-any fav,scales
 
   Show the licks selected by the previous example, employing the
-  mode 'report':
+  mode 'print':
 
-    harpwise report licks --tags-any fav,scales
+    harpwise print licks-list --tags-any fav,scales
 
-  Select licks, that have been starred:
+  Select licks, that have been starred (if any) by pressing '*' while
+  it was beeing played:
 
     harpwise licks a -t starred
 
-  use mode report to see details about starred licks.
+  and use mode print to see details about starred licks.
   
   There are some more options to *filter* the set of available licks
   (see below); see also the lick-file created initially on more

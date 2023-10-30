@@ -9,17 +9,11 @@ OVERVIEW
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
-    - 'licks' for selected licks
-    - 'pitch' to play an interactive, adjustable pitch; this
-       may help to find the key of a song by ear-comparison
-    - 'interval' to play an interval specified on the commandline
-    - 'progression': take a base and semitone diffs, then play it
-    - 'chord': play any holes or notes from the commandline
-       simultanously as a chord
-    - 'user': play back, what (if any) you (the user) have recorded
-       in mode 'licks' before
 
-  You may try 'harpwise play x' for an instructive error message.
+  or one of the known extra arguments (that themselves might require
+  additional arguments):
+
+<%= get_extra_desc(true).join("\n") %>
 
 
 USAGE BY EXAMPLES
@@ -31,6 +25,15 @@ USAGE BY EXAMPLES
   Play the lick 'wade'; transpose it to d:
   
     harpwise play d wade
+
+  Play an earlier lick:
+
+    harpwise play 3l
+
+  To see a list of earlier licks:
+
+    harpwise print licks-history
+
 
   Lick-Radio: Play all my licks in random order without end:
 
@@ -44,16 +47,8 @@ USAGE BY EXAMPLES
 
     harpwise play licks --tags-any fav
 
-  Play an earlier lick:
 
-    harpwise play 3l
-
-  To see a list of earlier licks:
-
-    harpwise report history
-
-
-  Play an interactive, adjusable pitch:
+  Play an interactive, adjustable pitch:
 
     harpwise play pitch
 
@@ -117,12 +112,6 @@ USAGE BY EXAMPLES
   harpwise play box-i box-i box-i box-i box-iv box-iv box-i box-i box-v box-iv box-i simple-turn
 
   which also uses the simple-turn lick at the end.
-  
-
-  harpwise play user
-
-  plays what you have recorded before in mode 'licks' (where you need to
-  trigger the recording explicitly).
 
 
   harpwise play chord +1 +2 +3 -3/
@@ -132,3 +121,10 @@ USAGE BY EXAMPLES
   find out by using print:
 
   harpwise print +1 +2 +3 -3/
+
+
+  harpwise play user
+
+  plays what you have recorded before in mode 'licks' (where you need to
+  trigger the recording explicitly).
+

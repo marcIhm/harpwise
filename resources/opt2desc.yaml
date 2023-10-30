@@ -28,24 +28,26 @@ no_add_holes:
 transpose_scale:
 
   - |
-    transpose the scale to key (e.g. d) 
-    or by semitones (e.g. 12st).  This would be helpful, if you want
-    to practice e.g. the d-major scale on a chromatic harmonica of key
-    c. Or if you want to play e.g. in third position, you may
-    transpose by 7st (= perfect fifth), as the scales are genarally
-    written in second position.  In any case: for a diatonic
+    transpose the scale to
+    key (e.g. d) or by semitones (e.g. 12st).  This would be helpful,
+    if you want to practice e.g. the d-major scale on a chromatic
+    harmonica of key c. Or if you want to play e.g. in third position,
+    you may transpose by 7st (= perfect fifth), as the scales are
+    genarally written in second position.  In any case: for a diatonic
     harmonica, however, your mileage may vary, as not all notes are
     available
   - KEY_OR_SEMITONES
 
 display:
   - "initial display, ARG can be one of:\n
-    <%=$display_choices.map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
+    <%=$display_choices[0..3].map {|c| c.to_s.gsub('_','-')}.join(', ')%>\n
+    <%=$display_choices[4..-1].map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
   - ARG
 
 comment:
   - "initial comment, ARG can be one of one of:\n
-    <%=$comment_choices[$mode].map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
+    <%=$comment_choices[$mode][0..3].map {|c| c.to_s.gsub('_','-')}.join(', ')%>,\n
+    <%=$comment_choices[$mode][4..-1].map {|c| c.to_s.gsub('_','-')}.join(', ')%>"
   - ARG
   
 ref:
@@ -84,28 +86,45 @@ hole:
 
 tags_any:
 
-  - "filter licks and keep those having\nany of the given tags (example: --tags-any scales,classic).\nThe special tag 'starred' is carried by all licks, that have\nbeen starred at some moment in the past, see e.g.\n<%=$star_file_template % 'richter'%>"
+  - |
+    filter licks and keep those
+    having any of the given tags (example: --tags-any scales,classic).
+    The special tag 'starred' is carried by all licks, that have
+    been starred at some moment in the past, see e.g.
+    <%=$star_file_template % 'richter'%>
   - TAG1,TAG2,...
     
 tags_all:
   
-  - "filter licks and keep those having\nall of the given tags. For a single tag, this option has the\nsame effect as --tags-any"
+  - |
+    filter licks and keep those
+    having all of the given tags. For a single tag, this option
+    has the same effect as --tags-any
   - TAG1,TAG2,...
 
 no_tags_any:
-  - "filter licks and discard those having\nany of the given tags"
+  - |
+    filter licks and discard those
+    having any of the given tags
   - TAG1,TAG2,...
 
 no_tags_all:
-  - "filter licks and discard those having\nall of the given tags. For a single tag, this option has the\nsame effect as --no-tags-any"
+  - |
+    filter licks and discard those having
+    all of the given tags. For a single tag, this option has the
+    same effect as --no-tags-any
   - TAG1,TAG2,...
 
 max_holes:
-  - "filter licks and keep those, that have at maximum\nthis number of holes"
+  - |
+    filter licks and keep those, that have
+    at maximum this number of holes
   - NUMBER
 
 min_holes:
-  - "filter licks and keep those, that have at minimum\nthis number of holes"
+  - |
+    filter licks and keep those, that have
+    at minimum this number of holes
   - NUMBER
   
 holes:
@@ -130,18 +149,18 @@ start_with:
 iterate:
 
   - |
-    how to iterate through all selected licks; this can be
-    either 'random' (pick licks at random) or 'cycle'
-    (one lick after the other and then again). Both can be
+    how to iterate through all
+    selected licks; this can be either 'random' (pick licks at random)
+    or 'cycle' (one lick after the other and then again). Both can be
     abbreviated, the default is 'random'.
   - RANDOM_OR_CYCLE
 
 partial:
 
   - |
-    to make the mode 'licks' more *challenging*
-    and to improve the learning result, you may let only parts of the
-    recording be played.
+    to make the mode 'licks' more
+    *challenging* and to improve the learning result, you may let only
+    parts of the recording be played.
 
     Examples for this option are:
 
@@ -160,12 +179,13 @@ partial:
 time_slice:
 
   - |
-    time slice (one of short, medium, long)
-    for sensing holes played. In each time slice a predefined number
-    of holes can be recognized. The default value is 'medium', but if
-    your computer is slow, 'long' might be more appropriate. If your
-    computer is fast, 'short' might work too, which will allow
-    harpwise to follow your playing faster (e.g. during warbles).
+    time slice (one of short,
+    medium, long) for sensing holes played. In each time slice a
+    predefined number of holes can be recognized. The default value is
+    'medium', but if your computer is slow, 'long' might be more
+    appropriate. If your computer is fast, 'short' might work too,
+    which will allow harpwise to follow your playing faster
+    (e.g. during warbles).
 
     However, if you choose 'short' and your computer cannot keep up,
     harpwise will lag behind and show holes only (long) after you have
@@ -179,8 +199,8 @@ time_slice:
 terse:
 
   - |
-    Be somewhat less verbose than usual. The exact effect (if any)
-    depends on the subcommand chosen.
+    Be somewhat less verbose than usual. The exact effect
+    (if any) depends on the subcommand chosen.
   
 scale_over_lick:
 

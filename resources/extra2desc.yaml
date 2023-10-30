@@ -1,0 +1,72 @@
+# See https://yaml-multiline.info for various types of quotes
+# Some processing on multiline strings happens in arguments.rb too
+
+play:
+  licks: |
+    all licks selected (e.g. by option -t)
+  pitch: |
+    play an interactive, adjustable pitch; this may help to find the
+    key of a song by ear-comparison
+  interval, inter: |
+    interactive, adjustable interval given as arguments
+  progression, prog: |
+    take a base and some semitone diffs, then play it
+  chord: |
+    play the given holes or notes simultanously as a chord
+  user: |
+    play back (if any), what you (the user) have recorded in mode
+    'licks' before
+print:
+  licks-details: |
+    all licks currently selected (e.g. by option -t) with details
+  licks-list: |
+    terse list of selected licks (e.g. by option -t) with hole count
+  licks-list-all: |
+    terse list of all licks (disregarding e.g option -t)
+  licks-with-tags: |
+    list licks (wach with its tags) according to the various tag-options
+  licks-tags-stats: |
+    statistics for all known licks and their tags
+  licks-history: |
+    show, which licks you played recently
+  licks-starred: |
+    show all starred licks
+  licks-dump: |
+    dump all the licks in json-format
+  scales: |
+    list of all scales with hole count
+  intervals: |
+    print all known intervals
+tools:
+  transpose: |
+    transpose a sequence of notes between keys
+  shift: |
+    shift a sequence of notes by the given number of semitones
+  keys: |
+    print a chart with keys and positions centered around current key
+  chart: |
+    various harmonica charts for current key
+  notes-major, notes : |
+    print notes of major scale for given key
+  progression, prog: |
+    take a base and some semitone diffs, then spell them out
+  interval, inter: |
+    calculate and print interval between two notes
+  chords: |
+    print chords i, iv and v for current key
+  transcribe: |
+    transcribe given audio-file approximately
+  search-in-licks, search: |
+    search given sequence of holes (or equiv) among licks
+  edit-licks: |
+    invoke editor on your lickfile 
+  edit-config: |
+    invoke editor on your personal config file
+    <%= $early_conf[:config_file_user] %>
+develop:
+  man: |
+    produce man page from erb-template
+  diff: |
+    compare produced man page with usage
+  selftest: |
+    perform selftest

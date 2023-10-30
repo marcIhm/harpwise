@@ -3,6 +3,9 @@ OVERVIEW
   The mode 'print' takes its arguments (holes, notes, licks or special
   keywords) and prints their hole-content on the commandline.
 
+  In addition it produces various reports about the licks that you
+  have supplied or the scales and intervals that come with harpwise.
+
   If you specify a scale (optional) too, the scale-membership of the
   the notes will be shown.
 
@@ -11,17 +14,12 @@ OVERVIEW
     - holes (e.g. '-1')
     - licks (e.g. 'st-louis')
     - scales (e.g. 'chord-i')
-    - 'list-all-scales': a list of all scales
-    - 'list-all-licks': a list of all licks
-    - 'licks': details on all licks selected (e.g. by --tags-any)
-    - 'progression': take a base and semitone diffs, then spell it out
-    - 'interval': print an interval with the given
-       notes/holes/semitone-diff
 
-  You may try 'harpwise print x' for an instructive error message.
+  or one of the known extra arguments (that themselves might require
+  additional arguments):
 
-  And try 'harpwise report' to get some more detailed reports on licks
-  and scales.
+<%= get_extra_desc(true).join("\n") %>
+
   
 USAGE BY EXAMPLES
 
@@ -50,25 +48,67 @@ USAGE BY EXAMPLES
 
     harpwise tools shift -7st -2 -3// -3 -4 +5 +6
 
-  just print a list of all known licks:
 
-    harpwise print list-all-licks
+  Print all details for favorite licks:
 
-  Print details for favorite licks:
-
-    harpwise print licks --tags-any favorites
+    harpwise print licks-details --tags-any favorites
 
   (if you have tagged some licks as favorites)
- 
-  Print an interval
 
-    harpwise print interval c4 oct
 
-  Print a tone progression:
+  Print a list of licks (only those selected e.g. by -t)
 
-    harpwise print prog e3 7st 9st oct
-    
-  (for prog and inter, see mode 'play' for more details)
+    harpwise print licks-list
+
+  A longer list of all known licks:
+
+    harpwise print licks-list-all
+
+
+  A report showing licks with stats regarding tags:
+
+    harpwise print licks-with-tags
+
+  (which might help to find underused or duplicate tags)
+
+
+  Print licks with tags 'fav' first, and then all
+
+    harpwise print licks-tags-stats -t fav
+
+  which is (by using defaults) the same as:
+  
+    harpwise print richter licks-tags-stats -t fav
+
+  If you have collected licks for the chromatic harmonica, you may
+  also use:
+
+    harpwise print chromatic licks-tags-stats
+
+
+  Show the licks you played recently along with their shortcuts 'l',
+  '2l', ...
+  
+    harpwise print licks-history
+
+
+  List all the licks, that you have starred (press '*' in mode licks,
+  while it is beeing played):
+
+    harpwise print licks-starred
+
+  Remark: In other modes you may access these licks through the
+  tag 'starred', which they get assigned automatically.
+
+
+  Show all known scales:
+
+    harpwise print scales
+
+
+  Show the names of all known intervals:
+
+    harpwise print intervals
 
 
   You may also check out mode tools for some more helpers.

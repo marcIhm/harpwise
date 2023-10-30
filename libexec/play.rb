@@ -3,6 +3,7 @@
 #
 
 def do_play to_play
+
   $all_licks, $licks = read_licks
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
@@ -15,102 +16,81 @@ def do_play to_play
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks.\e[0m"
   puts
 
-  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_play, $extra[:play], %w(pitch interval inter progression prog chord))
-  extra = Set.new(extra).to_a
-  err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !extra.include?('licks')
+  if $extra
+    args_for_extra = to_play
+  else
+    holes_or_notes, lnames, snames = partition_to_play_or_print(to_play)
+  end
 
-  #
-  #  Actually play
-  #
+  # common error checking
+  err "'harpwise play #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if %w(pitch licks user).include?($extra) && args_for_extra.length > 0
+  err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
-  if holes_or_notes.length > 0
 
-    play_holes_or_notes_simple holes_or_notes
-    puts
+  if !$extra 
 
-  elsif snames.length > 0
+    if holes_or_notes.length > 0
 
-    snames.each do |sname|
-      scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      puts "Scale #{sname}"
-      play_holes_or_notes_simple scale_holes
+      puts "Some holes or notes"
+      play_holes_or_notes_simple holes_or_notes
       puts
-      trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
-      IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
-    end
       
-  elsif lnames.length > 0
+    elsif snames.length > 0
+      
+      snames.each do |sname|
+        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        puts "Scale #{sname}"
+        play_holes_or_notes_simple scale_holes
+        puts
+        trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
+        IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
+      end
+      
+    elsif lnames.length > 0
+      
+      lnames.each do |lname|
+        lick = $licks.find {|l| l[:name] == lname}
+        trace_lick(lick)
+        sleep ( $opts[:fast] ? 0.25 : 0.5 )
+        play_and_print_lick lick
+      end
 
-    lnames.each do |lname|
-      lick = $licks.find {|l| l[:name] == lname}
-      trace_lick(lick)
-      sleep ( $opts[:fast] ? 0.25 : 0.5 )
-      play_and_print_lick lick
+    else
+
+      fail 'Internal error'
+
     end
 
-  elsif extra.length > 0
+  else
 
-    err "only one of #{$extra[:play].keys} is allowed" if extra.length > 1
+    case $extra
+    when 'pitch'
 
-    if extra[0] == 'pitch'
       play_interactive_pitch
 
-    elsif extra[0] == 'interval' || extra[0] == 'inter'
+    when 'interval', 'inter'
 
       s1, s2 = normalize_interval(args_for_extra)
 
       play_interactive_interval s1, s2
         
-    elsif extra[0] == 'licks'
-      if $opts[:iterate] == :random
-        lick_idx = nil
-        loop do
-          # avoid playing the same lick twice in a row
-          if lick_idx
-            lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
-          else
-            lick_idx = rand($licks.length)
-          end
-          trace_lick($licks[lick_idx])
-          play_and_print_lick $licks[lick_idx]
-          maybe_wait_for_key
-        end
-      else
-        sw = $opts[:start_with]
-        idx = if sw 
-                if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
-                  # start with lick from history
-                  get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
-                else
-                  (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
-                end
-              else
-                0
-              end
-      
-        loop do
-          $licks.rotate(idx).each do |lick|
-            trace_lick(lick)
-            play_and_print_lick lick
-            maybe_wait_for_key
-          end
-        end
-      end
+    when 'licks'
 
-    elsif extra[0] == 'progression' || extra[0] == 'prog'
+      do_play_licks
+      
+    when 'progression', 'prog'
+      
       err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
       prog = base_and_delta_to_semis(args_for_extra)
       play_interactive_progression prog
 
-    elsif extra[0] == 'chord'
+    when 'chord'
+
+      puts "A chord"
       semis = args_for_extra.map do |hon|
         if $harp_holes.include?(hon)
           $harp[hon][:semi]
-        elsif semi = begin
-                       note2semi(hon, 2..8)
-                     rescue ArgumentError
-                       nil
-                     end
+        elsif semi = note2semi(hon, 2..8, true)
           semi
         else
           err "Can only play holes or notes, but not this: #{hon}"
@@ -119,7 +99,7 @@ def do_play to_play
       err "Need at least two holes or notes to play a chord" unless semis.length >= 1
       play_interactive_chord semis, args_for_extra
 
-    elsif extra[0] == 'user-lick-recording' || extra[0] == 'user'
+    when 'user'
 
       rfile = $ulrec.rec_file
       if File.exist?(rfile)
@@ -132,57 +112,42 @@ def do_play to_play
         puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it."
         puts
       end
+
     else
-      fail "Internal error: #{extra}"
+
+      fail "Internal error: unknown extra '#{extra}'"
+
     end
 
-  else
-    fail "Internal error"
   end
+  puts
+  
 end
 
 
-def partition_to_play_or_print to_p, extra_all, extra_takes_args
+def partition_to_play_or_print to_handle
 
   holes_or_notes = []
   lnames = []
   snames = []
-  extra = []
-  args_for_extra = []
   other = []
-  all_lnames = $licks.map {|l| l[:name]}
-  all_snames = scales_for_type($type)
-  extra_seen = false
-  to_p.join(' ').split.each do |tp| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
 
-    is_note = false
-    begin
-      note2semi(tp, 2..8)
-      is_note = true
-    rescue ArgumentError
-    end
+  to_handle.join(' ').split.each do |th| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
 
-    if extra_all.keys.include?(tp)
-      extra << tp
-      extra_seen = true
-    elsif extra_seen && (extra_takes_args & extra).length > 0
-      args_for_extra << tp
-    elsif musical_event?(tp)
-      holes_or_notes << tp
-    elsif $harp_holes.include?(tp) && !extra_seen
-      holes_or_notes << tp
-    elsif is_note
-      holes_or_notes << tp
-    elsif all_lnames.include?(tp) && !$opts[:scale_over_lick]
-      lnames << tp
-    elsif all_snames.include?(tp)
-      snames << tp
-    elsif all_lnames.include?(tp)
-      lnames << tp
-    elsif (md = tp.match(/^(\dlast|\dl)$/)) || tp == 'last' || tp == 'l'
+    what = recognize_among(th, $amongs_play_or_print)
+    if [:semi_note, :hole, :note].include?(what)
+      holes_or_notes << th
+    elsif what == :lick && !$opts[:scale_over_lick]
+      lnames << th
+    elsif what == :scale
+      snames << th
+    elsif what == :lick
+      lnames << th
+    elsif :last
+      md = th.match(/^(\dlast|\dl)$/)
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     else
-      other << tp
+      other << th
     end
   end
 
@@ -190,47 +155,37 @@ def partition_to_play_or_print to_p, extra_all, extra_takes_args
   # Check results for consistency
   # 
 
-  sources_count = [holes_or_notes, lnames, snames, extra].select {|s| s.length > 0}.length
+  types_count = [holes_or_notes, lnames, snames].select {|x| x.length > 0}.length
 
-  if other.length > 0 || sources_count == 0
+  if other.length > 0  ## other is only filled, if $extra == ''
     puts
-    if other.length == 0
-      txt = 'Nothing to play or print'
-      puts txt + '; please specify any of:'
-    else
-      txt = "Cannot understand these arguments: #{other}#{not_any_source_of}"
-      puts txt + ";"
-      puts 'they are none of (exact match required):'
-    end
-    puts "\n- musical events in () or []"
-    puts "\n- holes:"
-    print_in_columns $harp_holes, indent: 4, pad: :tabs
-    puts "\n- notes:"
-    puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
-    puts "\n- scales:"
-    print_in_columns all_snames, indent: 4, pad: :tabs
-    puts "\n- licks:"
-    print_in_columns all_lnames, indent: 4, pad: :tabs
-    if extra_all.keys.length > 0
-      puts "\n- extra:"
-      mklen = extra_all.keys.map(&:length).max
-      extra_all.each do |k,v|
-        puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
-      end
-    end
+    puts "Cannot understand these arguments: #{other}#{not_any_source_of};"
+    puts 'they are none of (exact match required):'
+    print_amongs($amongs_play_or_print)
     puts
-    err "#{txt}, see above"
+    puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
+    print_amongs(:extra)
+    err 'See above'
   end
   
-  if sources_count > 1
-    puts "The following #{sources_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at a time:"
-    puts "- holes (maybe converted from given notes): #{holes_or_notes}" if holes_or_notes.length > 0
-    puts "- scales: #{snames}" if snames.length > 0
-    puts "- licks: #{lnames}" if lnames.length > 0
+  if $extra == '' && types_count == 0
+    puts
+    puts "Nothing to #{$mode}; please specify any of:"
+    print_amongs([$amongs_play_or_print, :extra])
+    err 'See above'
+  end
+  
+  if types_count > 1
+    puts "The following #{types_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at the same time:"
+    puts
+    puts " Holes or Notes: #{holes_or_notes.join(' ')}" if holes_or_notes.length > 0
+    puts "          Licks: #{lnames.join(' ')}" if lnames.length > 0
+    puts "         Scales: #{snames.join(' ')}" if snames.length > 0
+    puts
     err 'See above'
   end
 
-  [holes_or_notes, lnames, snames, extra, args_for_extra]
+  return [holes_or_notes, lnames, snames]
 
 end
 
@@ -243,27 +198,18 @@ def hole_or_note_or_semi hns, diff_allowed = true
   # check if argument is interval or absolute note or hole or event or
   # many of them
 
-  # hole ?
-  if $harp_holes.include?(hns)
+  what = recognize_among(hns, [:hole, :note, :inter, :semi_note])
+  case what
+  when :hole
     types << :abs
     values << note2semi($hole2note[hns])
-  end
-
-  # note ?
-  begin
+  when :note
     values << note2semi(hns)
     types << :abs
-  rescue ArgumentError
-  end
-
-  # named interval ?
-  if $intervals_inv[hns]
+  when :inter
     types << :diff
     values << $intervals_inv[hns].to_i
-  end
-
-  # interval in semitones ?
-  if hns.match(/^[+-]?\d+(st)?$/)
+  when :semi_note
     types << :diff
     values << hns.to_i
   end
@@ -271,16 +217,11 @@ def hole_or_note_or_semi hns, diff_allowed = true
   fail "Internal error: #{types}" if types.length >= 3
   
   if types.length == 0
+    amongs = [:hole, :note]
+    amongs.append(:semi_inter, :inter) if diff_allowed
+    print_amongs(*amongs)
     inters_desc = $intervals_inv.keys.join(', ')
-    err "Given argument #{hns} is none of these:\n" +
-        if diff_allowed
-          "  - numeric interval\e[2m, e.g. 12st or -3\n\e[0m" +
-            "  - named interval\e[2m, i.e. one of: " + inters_desc + "\n"
-        else
-          ''
-        end +
-        "\e[0m  - hole\e[2m, i.e. one of: " + $harp_holes.join(', ') + "\n" +
-        "\e[0m  - note\e[2m, e.g. c4, df5, as3\e[0m"
+    err "Given argument #{hns} is none those given above"
   end
 
   return types, values
@@ -289,7 +230,7 @@ end
 
 def normalize_interval args
 
-  err "Need two arguments, to play or print an interval:\n" +
+  err "Need two arguments, to #{$mode} an interval (not #{args}):\n" +
       "  - a base-note or base-hole, e.g. 'c4' or '+2'\n" +
       "  - a difference in semitones, either as a number or as a name, e.g. '12st' or 'oct'\n" unless args.length == 2
 
@@ -392,3 +333,42 @@ def trace_lick lick
   IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
 end    
   
+
+def do_play_licks
+
+  if $opts[:iterate] == :random
+    lick_idx = nil
+    loop do
+      # avoid playing the same lick twice in a row
+      if lick_idx
+        lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
+          else
+            lick_idx = rand($licks.length)
+      end
+      trace_lick($licks[lick_idx])
+      play_and_print_lick $licks[lick_idx]
+      maybe_wait_for_key
+    end
+  else
+    sw = $opts[:start_with]
+    idx = if sw 
+            if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
+              # start with lick from history
+              get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
+            else
+              (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
+            end
+          else
+            0
+          end
+    
+    loop do
+      $licks.rotate(idx).each do |lick|
+        trace_lick(lick)
+        play_and_print_lick lick
+        maybe_wait_for_key
+      end
+    end
+  end
+  
+end

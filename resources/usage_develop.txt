@@ -4,12 +4,8 @@ OVERVIEW
   harpwise; it is therefore not listed in the general usage
   information.
 
-  Its single argument specifies the task to perform and can be any of
-  these:
-  
-  - man, process harpwise.man.erb into harpwise.1 and show it as a man
-    page
+  The required additional argument specifies a task needed; it can be
+  one of:
 
-  - diff, compare the man page produced above with the plain usage
-    info. This is needed, as they are maintained separately. Result
-    can be useful in git-hooks
+<%= get_extra_desc(true).join("\n") %>
+  

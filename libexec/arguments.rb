@@ -4,7 +4,7 @@
 # Parse arguments from commandline
 #
 
-def parse_arguments
+def parse_arguments_early
   
   # General idea of processing commandline:
   #
@@ -21,7 +21,7 @@ def parse_arguments
   end
 
   # source of mode, type, scale, key for better diagnostic
-  $source_of = {mode: nil, type: nil, key: nil, scale: nil}
+  $source_of = {mode: nil, type: nil, key: nil, scale: nil, extra: nil}
 
   # get mode
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
@@ -29,8 +29,8 @@ def parse_arguments
   end.to_sym
   ARGV.shift
   num_args_after_mode = ARGV.length
-
-  # needed for other modes too
+  
+  # needed for error messages
   $for_usage = "Invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage"
 
 
@@ -41,10 +41,10 @@ def parse_arguments
   opts = Hash.new
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :report, :develop, :tools], {
+    [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
-     [Set[:calibrate, :listen, :quiz, :licks, :play, :print, :report], {
+     [Set[:calibrate, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks, :tools, :print], {
         add_scales: %w(-a --add-scales ),
@@ -69,14 +69,14 @@ def parse_arguments
      [Set[:calibrate], {
         auto: %w(--auto),
         hole: %w(--hole)}],
-     [Set[:print, :report], {
+     [Set[:print], {
         terse: %w(--terse)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
         iterate: %w(--iterate),
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
-     [Set[:licks, :report, :play, :print], {
+     [Set[:licks, :play, :print], {
         tags_any: %w(-t --tags-any),
         tags_all: %w(--tags-all),
         no_tags_any: %w(-nt --no-tags-any),
@@ -116,9 +116,8 @@ def parse_arguments
   # now, that we have the mode, we can finish $conf by promoting values
   # from the active mode-section to toplevel
   $conf[:any_mode].each {|k,v| $conf[k] = v}
-  mode_for_conf = $conf_meta[:sections_aliases][mode] || mode
-  if $conf_meta[:sections].include?(mode_for_conf)
-    $conf[mode_for_conf].each {|k,v| $conf[k] = v}
+  if $conf_meta[:sections].include?(mode)
+    $conf[mode].each {|k,v| $conf[k] = v}
   end
   
   # preset some options e.g. from config (maybe overriden later)
@@ -216,12 +215,12 @@ def parse_arguments
     opts[:iterate] ||= :random
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
-  
+
+  # usage info specific for mode
   if opts[:help] || num_args_after_mode == 0
     print_usage_info(mode, opts_all) 
     exit 1
-  end
-
+  end  
 
   # used to issue current state of processing in error messages
   $err_binding = binding
@@ -258,17 +257,12 @@ def parse_arguments
   end
   $type = type
   
-  # prefetch some musical config before they are set regularly (in
-  # processing of config)
+  # prefetch a very small subset of musical config
+  $all_scales, $harp_holes = read_and_set_musical_bootstrap_config
   
-  all_scales = scales_for_type($type)
-  # string below duplicates the definition of $holes_file
-  all_holes = yaml_parse("#{$dirs[:install]}/config/#{$type}/holes.yaml").keys
-  
-  # check for unprocessed args, that look like options and are neither holes not semitones
-  
+  # check for unprocessed args, that look like options and are neither holes not semitones  
   other_opts = ARGV.select do |arg|
-    arg.start_with?('-') && !all_holes.include?(arg) && !arg.match?(/(\+|-)?\d+st/)
+    arg.start_with?('-') && !$harp_holes.include?(arg) && !arg.match?(/(\+|-)?\d+st/)
   end
   err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 
 
@@ -308,7 +302,7 @@ def parse_arguments
   case mode
   when :listen, :quiz, :licks
     # these modes dont take an extra arg
-    scales, holes = partition_into_scales_and_holes(ARGV, all_scales, all_holes)
+    scales, holes = partition_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
     ARGV.clear
     if scales.length > 0
       scale = get_scale_from_sws(scales[0])
@@ -324,82 +318,91 @@ def parse_arguments
     # if the first remaining argument looks like a scale, take it as such
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
-      # for modes play and print: if the scale is our only argument, keep it for to_handle
+      # for modes play and print: if the scale is our only argument, keep it for later
       # for mode tools: remove the recognized scale in any case
       ARGV.shift if ARGV.length > 1 || $mode == :tools
     else
       scale = get_scale_from_sws('all:a')
       $source_of[:scale] = 'implicit'
     end
-  when :report, :develop, :calibrate
+  when :develop, :calibrate
     # no explicit scale, ever
     scale = get_scale_from_sws('all:a')
     $source_of[:scale] = 'implicit'
   else
     fail "Internal error"
   end
-
-  
-  # now that a possible scale argument has been recognized, the remaining
-  # arguments are to_handle by mode; this includes the extra (if any)
-  if [:play, :print, :tools, :report, :develop].include?(mode)
-    to_handle = []
-    to_handle << ARGV.shift while !ARGV.empty?
-  end
-
-  # do these checks late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
-
-  # Some modes accept extra arguments, which are processed later and
-  # individually for each mode
-  $extra = {play: {'licks' => 'licks selected',
-                   'pitch' => 'interactive, adjustable pitch',
-                   'interval' => 'interactive, adjustable interval',
-                   'inter' => nil,
-                   'progression' => 'take a base and semitone diffs, then play it',
-                   'prog' => nil,
-                   'chord' => 'play the given holes or notes as a chord',
-                   'user' => 'play last recording of you playing a lick (if any)'},
-            print: {'licks' => 'selected licks (e.g. by option -t) with their content',
-                    'list-licks' => 'list of selected licks with hole count',
-                    'list-all-licks' => 'list of all licks',
-                    'list-all-scales' => 'list of all scales with hole count',
-                    'interval' => 'interval between two notes',
-                    'inter' => nil,
-                    'progression' => 'take a base and some semitone diffs, then spell them out',
-                    'prog' => nil},
-            tools: {'transpose' => 'transpose a sequence of notes between keys',
-                    'shift' => 'shift a sequence of notes by the given number of semitones',
-                    'keys' => 'print a chart with keys and positions',
-                    'intervals' => 'print all known intervals',
-                    'chords' => 'print chords i, iv and v',
-                    'search-in-licks' => 'search given sequence of holes (or equiv) among licks',
-                    'search' => nil,
-                    'chart' => 'harmonica chart',
-                    'edit-licks' => "invoke editor on your lickfile #{$lick_file}",
-                    'el' => nil,
-                    'edit-config' => "invoke editor on your personal config file #{$early_conf[:config_file_user]}",
-                    'ec' => nil,
-                    'transcribe' => 'transcribe given lick or music-file approximately',
-                    'trans' => nil,
-                    'notes-major' => 'print notes of major scale for given key',
-                    'notes' => nil},
-            report: {'licks' => 'show and group licks and tags according to the various tag-options',
-                     'all-licks' => 'statistical overview for all known licks',
-                     'history' => 'show, which licks you played recently',
-                     'hist' => nil,
-                     'starred' => 'show all starred licks',
-                     'dump' => 'dump all the licks in json-format'},
-            develop: {'man' => 'produce man page from erb-template',
-                      'diff' => 'compare produced man page with usage',
-                      'selftest' => 'perform selftest'}}
-
   
   $err_binding = nil
 
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
-  [ mode, type, key, scale, opts, to_handle]
+  return [ mode, type, key, scale, opts]
+
+end
+
+
+def initialize_extra_vars
+     
+  exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
+  $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
+  $extra_kws = Hash.new {|h,k| h[k] = Hash.new}
+  $extra_desc.each do |key, val|
+    $extra_desc[key].each do |kk,vv|
+      $extra_desc[key][kk] = ERB.new(vv).result(binding)
+      $extra_desc[key][kk].lines.each do |l|
+        err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width]}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
+        kk.split(',').map(&:strip).each {|k| $extra_kws[key][k] = true}
+      end
+    end
+  end
+  
+  # check, that the names of those extra args do not collide with scales
+  scales = scales_for_type($type)
+  $extra_kws.each do |mode, extra|
+    double = extra.keys & scales
+    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra.keys}" if double.length > 0
+  end
+
+end
+
+
+def parse_arguments_late
+
+  $amongs_play_or_print = if $opts[:scale_over_lick]
+                            [:semi_note, :hole, :note, :scale, :lick, :last]
+                          else
+                            [:semi_note, :hole, :note, :lick, :scale, :last]
+                          end
+
+  $extra = nil
+  if $extra_desc[$mode]
+    if [:play, :print].include?($mode)
+      what = recognize_among(ARGV[0], [$amongs_play_or_print, :extra])
+      $extra = ARGV.shift if what == :extra
+      if !what
+        print_amongs($amongs_play_or_print, :extra)
+        err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'"
+      end
+    else
+      $extra = ARGV.shift if recognize_among(ARGV[0], :extra) == :extra
+      if !$extra
+        print_amongs(:extra)
+        err "First argument for mode #{$mode} should be one of those listed above, not #{ARGV[0]}"
+      end
+    end
+  end
+  
+  if [:play, :print, :tools, :develop].include?($mode)
+    to_handle = ARGV.clone
+    ARGV.clear
+  end
+
+  # do these checks late, because we have more specific error messages before
+  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
+
+  return to_handle
+
 end
 
 
@@ -417,17 +420,18 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false   # get_sc
   end
   return scale if scale == 'adhoc'
 
-  if scales_for_type($type).include?(scale)
+  scales = scales_for_type($type)
+  if scales.include?(scale)
     scale
   else
     if graceful
       nil
     else
       scale_glob = $scale_files_template % [$type, '*', '*']
-      err "Scale (%s) must be one of #{choices}, i.e. scales matching #{scale_glob}; not #{none}%s" %
+      err "Scale (%s) must be one of #{scales}, i.e. scales matching #{scale_glob}; not #{scale}%s" %
           if added
             ["given in option --add-scales or in configuration files",
-             ", Hint: use '--add-scaless -' to ignore the value from the config-files"]
+             ", Hint: use '--add-scales -' to ignore the value from the config-files"]
           else
             ['main scale', '']
           end
@@ -473,23 +477,18 @@ def print_usage_info mode = nil, opts = nil
   
   if opts
     puts "\nAVAILABLE OPTIONS\n\n"
-    nprinted = 0
-    opts.values.each do |odet|
-      next unless odet[2]
-      nprinted += 1
-      print "\e[0m\e[32m"
-      print '  ' + odet[0].join(', ')
-      print(' ' + odet[1]) if odet[1]
-      print "\e[0m"
-      print ' : '
-      lines = odet[2].chomp.lines
-      print lines[0]
-      lines[1..-1].each {|l| print '    ' + l}
-      puts
+    # check for maximum length; for performance, do this only on usage info (which is among tests)
+    pieces = opt_desc_text(opts, false)
+    pieces.join.lines.each do |line|
+      err "Internal error: line from opt2desc too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width] - 2
     end
-    if nprinted == 0
+      
+    # now produce again (with color) and print
+    pieces = opt_desc_text(opts)
+    if pieces.length == 0
       puts '  none'
     else
+      pieces.each {|p| print p}
       puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
     end
   end
@@ -551,4 +550,27 @@ def not_any_source_of
   else
     ''
   end
+end
+
+
+def opt_desc_text opts, with_color = true
+  pieces = []
+  opts.values.each do |odet|
+    next unless odet[2]
+    pieces << "\e[0m\e[32m" if with_color
+    pieces << '  ' + odet[0].join(', ')
+    pieces << ' ' + odet[1] if odet[1]
+    pieces << "\e[0m" if with_color
+    pieces << ' : '
+    lines = odet[2].chomp.lines
+    pieces << lines[0]
+    lines[1..-1].each {|l| pieces << '    ' + l}
+    pieces << "\n"
+  end
+  return pieces
+end
+
+
+def find_extra
+
 end

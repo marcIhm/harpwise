@@ -7,43 +7,29 @@ OVERVIEW
   The required additional argument specifies the tool to run;
   it can be one of:
 
-  - transpose: transpose a sequence of notes from one key of harp
-    to another, keeping notes and pitches
-  - shift: similar, but shift by given number of semitones (e.g. 12st)
-    or named interval
-  - keys (or positions): print a chart with keys and positions,
-    with optional arguments to mark key of harp and key of song
-  - intervals: print all known intervals with, semitones and names
-  - chords: print the chords i, iv and v for the given key of harp as
-    played in second position
-  - chart: print harmonica chart with notes for the given key; specify
-    a scale to see see it laid out on the harp (second chart)
-  - search-in-licks: search given sequence of holes among licks,
-    matching equivalent holes too
-  - edit-licks: a convenient way to edit your lick file
-  - edit-config: edit your personal configuration
-  - transcribe: estimate a sequence of holes, that matches the given
-    lick or music-file
-  - notes-major: print the notes of the major scale with some
-    additional information
+<%= get_extra_desc(true).join("\n") %>
   
+
 USAGE BY EXAMPLES
 
-  Transpose a sequence of notes (but specified as holes) from
+  Transpose a sequence of notes (some specified as holes) from
   the key of c to g (keeping the notes/pitches constant):
 
     harpwise tools transpose c g -1 +2 -3
 
+  when playing the result on the g-harp you will have the exact same
+  pitches as on the original c-harp.
 
-  Shift a sequence of notes by a given number of semitones:
+
+  Shift a sequence of holes up 12 semitones:
 
     harpwise tools shift 12st -1 +2 -3
 
-  (this is different from transposing the notes/pitches as given
-  before, as it changes the pitches of the notes)
+  This is different from transposing the notes/pitches as given
+  before, as it changes the pitches of the notes.
 
   You may then let harpwise play the resulting notes, even if they
-  have no hole on the harp (more play)
+  have no hole on the harp (with mode play)
 
 
   Print a simple table of keys and positions:
@@ -58,6 +44,11 @@ USAGE BY EXAMPLES
   The same and mark a key of song (d) too:
 
     harpwise tools keys bf d
+
+  If you have a g-harp and want to know what song-keys and positions
+  are available:
+
+    harpwise tools keys g g
     
 
   Print a harmonica chart for the key of g:
@@ -68,7 +59,7 @@ USAGE BY EXAMPLES
 
     harpwise tools g chart
     
-  Two charts, the second with scale-content
+  Two charts, the second with scale-content (chord-i)
 
     harpwise tools g chord-i chart --add-scales -
 
@@ -78,11 +69,38 @@ USAGE BY EXAMPLES
     harpwise tools chord-i chart --ref -4
 
 
-  The notes of the major scale starting at g:
+  The notes of the major scale starting at c:
 
-    harpwise tools notes g
+    harpwise tools notes c
+
+  this also gives the notes of the major scale one fifth down,
+  i.e. starting at f, so that you may follow the circle of fifths in
+  both directions if you wish.
 
 
-  Hint: To get a short list of tools, try 'harpwise tools x' which
-  gives an instructive error message.
-  
+  Print a note progression:
+
+    harpwise tools prog e3 7st 9st oct
+
+  which will give you all the notes starting at e3 and the 7, 9, 12
+  semitones up.
+    
+
+  Print the interval over the base note:
+
+    harpwise tools interval c4 oct
+
+    harpwise tools interval c4 +12st
+
+
+  print the chords i, iv and v for the current key:
+
+    harpwise tools chords
+
+
+  Transcribe and audio-file given on the commandline approximately:
+
+    harpwise tools transcribe wade.mp3
+
+  for simple harmonica content this will give you sequence of holes
+  played in lick wade.mp3 (from current working dir)

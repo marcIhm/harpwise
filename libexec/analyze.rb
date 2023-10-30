@@ -33,13 +33,18 @@ def describe_freq freq
 end
 
 
-def note2semi note, range = (0..9)
-  note = note.downcase 
-  raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
-  idx = $notes_with_sharps.index(note[0 .. -2]) ||
-        $notes_with_flats.index(note[0 .. -2]) or
-    raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
+def note2semi note, range = (0..9), graceful = false
+  note = note.downcase
+  begin
+    raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
+    idx = $notes_with_sharps.index(note[0 .. -2]) ||
+          $notes_with_flats.index(note[0 .. -2]) or
+      raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
     return 12 * note[-1].to_i + idx - 57
+  rescue ArgumentError
+    return nil if graceful
+    raise
+  end
 end
 
 

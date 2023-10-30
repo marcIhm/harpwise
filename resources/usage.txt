@@ -19,9 +19,8 @@ And with a less interactive interface and not using your microphone:
   - play: Wise plays scales, holes or licks, not asking you to play
     them back
   - print: Print and annotate the holes of scales or licks given
-    on the commandline
-  - report: Produce reports about licks and tags or a journal of licks
-    played
+    on the commandline. Also print various informationo about licks,
+    scales and much more
   - tools: Some simple, non-interactive tools related to basic
     harmonica theory
   - calibrate: Wise generates samples for holes, or assists in
@@ -99,7 +98,16 @@ User Configuration:
 
 Quick Start:
 
-  harpwise listen c
+
+  # Prepare your personal config with sound samples:
+
+  harpwise calibrate c --auto    
+
+
+  # Feedback on what you are playing:
+  
+  harpwise listen c              
+
 
 then blow your harp and come back later to learn about other modes.
 

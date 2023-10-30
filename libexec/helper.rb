@@ -88,7 +88,7 @@ end
 
 
 def puts_err_context
-  clauses = [:mode, :type, :key, :scale].map do |var|
+  clauses = [:mode, :type, :key, :scale, :extra].map do |var|
       val = if $err_binding && eval("defined?(#{var})",$err_binding)
               eval("#{var}", $err_binding)
             elsif eval("defined?($#{var})")
@@ -133,8 +133,9 @@ end
 
 
 def scales_for_type type
-  Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file,type)}.sort
+  Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file, type)}.sort
 end
+
 
 def describe_scales_maybe scales, type
   desc = Hash.new
@@ -367,7 +368,7 @@ end
 
 
 def get_files_journal_trace
-  trace = if $mode == :licks || $mode == :play || $mode == :report
+  trace = if $mode == :licks || $mode == :play || $mode == :print
           # modes licks and play both play random licks and report needs to read them
             "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
           elsif $mode == :quiz
@@ -543,15 +544,86 @@ def rotate_among value, direction, all_values
 end
 
 
-def err_if_unknown_extra mode, arg
-  if !$extra[mode].has_key?(arg)
-    mklen = $extra[mode].keys.map(&:length).max
-    puts
-    puts "Argument for mode '#{mode}' must be one of:\n" 
-    $extra[mode].each do |k,v|
-      puts "    #{k.rjust(mklen)} : #{v || 'the same'}"
+$among_all_lnames = nil
+
+def recognize_among val, choices
+ 
+  return nil unless val
+  choices = [choices].flatten
+  choices.each do |choice|
+    # keys must be the same as in print_amongs
+    if choice == :hole
+      return choice if $harp_holes.include?(val)
+    elsif choice == :note
+      return choice if note2semi(val, 2..8, true)
+    elsif [:semi_note, :semi_inter].include?(choice)
+      return choice if val.match(/^[+-]?\d+st$/)
+    elsif choice == :scale
+      return choice if $all_scales.include?(val)
+    elsif choice == :lick
+      $among_all_lnames ||= $licks.map {|l| l[:name]}
+      return choice if $among_all_lnames.include?(val)
+    elsif choice == :extra
+      return choice if $extra_kws[$mode][val]
+    elsif choice == :inter
+      return choice if $intervals_inv[val]
+    elsif choice == :last
+      return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
+    else
+      fail "Internal error: Unknown among-choice #{choice}" 
     end
-    puts "but not '#{arg}'#{not_any_source_of}; #{$for_usage}"
-    err "See above"
   end
+  return false
 end
+
+
+def print_amongs *choices
+  choices.flatten.each do |choice|
+    case choice
+    # keys must be the same set of values as in recognize_among
+    when :hole
+      puts "\n- musical events in () or []\n    e.g. comments like '(warble)' or '[123]'"
+      puts "\n- holes:"
+      print_in_columns $harp_holes, indent: 4, pad: :tabs
+    when :note
+      puts "\n- notes:"
+      puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
+    when :semi_note
+      puts "\n- Semitones (as note values):"
+      puts '    e.g. 12st, -2st, +3st'
+    when :semi_inter
+      puts "\n- Semitones (as intervals):"
+      puts '    e.g. 12st, -2st, +3st'
+    when :scale
+      puts "\n- scales:"
+      print_in_columns $all_scales, indent: 4, pad: :tabs
+    when :extra
+      puts "\n- extra arguments:"
+      puts get_extra_desc.join("\n")
+    when :inter
+      puts "\n- named interval, i.e. one of: "
+      print_in_columns $intervals_inv.keys, indent: 4, pad: :tabs
+    when :lick
+      all_lnames = $licks.map {|l| l[:name]}
+      puts "\n- licks:"
+      print_in_columns all_lnames, indent: 4, pad: :tabs
+    when :last
+      puts "\n- A symbolic name for one of the last licks"
+      puts '    e.g. l, 2l, last'
+    else
+      fail "Internal error: Unknown choice #{choice}" 
+    end
+  end  
+end
+
+
+def get_extra_desc for_usage = false
+  lines = []
+  $extra_desc[$mode].each do |k,v|
+    lines << (for_usage ? '  ' : '') + "  - #{k}:"
+    lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
+  end
+  lines
+end
+
+

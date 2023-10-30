@@ -1,8 +1,9 @@
 #
-# Play from the commandline
+# Print from the commandline
 #
 
 def do_print to_print
+
   $all_licks, $licks = read_licks
   $ctl_can[:loop_loop] = true
   $ctl_can[:lick_lick] = true
@@ -10,54 +11,74 @@ def do_print to_print
 
   $all_licks, $licks = read_licks
 
-  holes_or_notes, lnames, snames, extra, args_for_extra = partition_to_play_or_print(to_print, $extra[:print], %w(progression prog interval inter))
-
   puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
+
+  if $extra
+    args_for_extra = to_print
+  else
+    holes_or_notes, lnames, snames = partition_to_play_or_print(to_print)
+  end
+
+  # common error checking
+  err "'harpwise print #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if $extra && args_for_extra.length > 0
+
   
-  if holes_or_notes.length > 0
+  if !$extra
 
-    puts_underlined 'Holes or notes given as arguments:'
-    print_holes_and_more holes_or_notes
-
-  elsif snames.length > 0
-
-    puts_underlined 'Scales given as arguments:'
-    snames.each do |sname|
-      puts " \e[2m#{sname}:\e[0m"
-      puts
-      scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
-      print_holes_and_more scale_holes
-    end
+    if holes_or_notes.length > 0
       
-  elsif lnames.length > 0
-
-    puts_underlined 'Licks given as arguments:'
-    lnames.each do |lname|
-      puts_underlined "#{lname}:", '-'
-      puts
-      lick = $licks.find {|l| l[:name] == lname}
-      print_holes_and_more lick[:holes_wo_events]
-      unless $opts[:terse]
-        puts " Description: #{lick[:desc]}"
-        puts "        Tags: #{lick[:tags].join(' ')}"
-        puts "Rec harp-key: #{lick[:rec_key]}"
+      puts_underlined 'Holes or notes given as arguments:'
+      print_holes_and_more holes_or_notes
+      
+    elsif snames.length > 0
+      
+      puts_underlined 'Scales given as arguments:'
+      snames.each do |sname|
+        puts "\e[2m#{sname}:\e[0m"
+        puts
+        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        print_holes_and_more scale_holes
       end
+      
+    elsif lnames.length > 0
+      
+      puts_underlined 'Licks given as arguments:'
+      lnames.each do |lname|
+        puts_underlined "#{lname}:", '-'
+        puts
+        lick = $licks.find {|l| l[:name] == lname}
+        print_holes_and_more lick[:holes_wo_events]
+        unless $opts[:terse]
+          puts " Description: #{lick[:desc]}"
+          puts "        Tags: #{lick[:tags].join(' ')}"
+          puts "Rec harp-key: #{lick[:rec_key]}"
+        end
+      end
+
+    else
+
+      fail 'Internal error'
+
     end
 
-  elsif extra.length > 0
+  else
+    
+    case $extra
 
-    err "only one of #{$extra[:print].keys} is allowed" if extra.length > 1
+    when 'licks-details'
 
-    if extra[0] == 'licks'
       puts_underlined 'Licks selected by tags and hole-count:'
       $licks.each do |lick|
+        puts
         puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         print_holes_and_more lick[:holes_wo_events]
       end
       puts "\e[2mTotal count: #{$licks.length}\e[0m"
-    elsif extra[0] == 'list-all-licks' || extra[0] == 'list-licks'
-      if extra[0]['all']
+
+    when 'licks-list', 'licks-list-all'
+
+      if $extra['all']
         puts_underlined 'All licks as a list:'
         licks = $all_licks
       else
@@ -73,7 +94,28 @@ def do_print to_print
       puts
       puts "\e[2mTotal count: #{licks.length}\e[0m"
 
-    elsif extra[0] == 'list-all-scales'
+    when 'licks-with-tags'
+
+      print_licks_by_tags $licks
+      
+    when 'licks-tags-stats'
+
+      print_lick_and_tag_stats $all_licks
+
+    when 'licks-history'
+
+      print_last_licks_from_journal $all_licks
+
+    when 'licks-starred'
+
+      print_starred_licks
+
+    when 'dump'
+
+      pp $all_licks
+      
+    when 'scales'
+
       puts_underlined 'All scales:'
       puts " \e[2m(name : holes)\e[0m"
       puts
@@ -85,34 +127,25 @@ def do_print to_print
       puts
       puts "\e[2mTotal count: #{$all_scales.length}\e[0m"
 
-    elsif extra[0] == 'interval' || extra[0] == 'inter'
-      s1, s2 = normalize_interval(args_for_extra)
-      print_interval s1, s2
-      
-    elsif extra[0] == 'progression' || extra[0] == 'prog'
-      err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
-      puts_underlined 'Progression:'
-      prog = base_and_delta_to_semis(args_for_extra)
-      holes, notes, abs_semis, rel_semis = get_progression_views(prog)
-      
-      puts_underlined 'Holes:', '-'
-      print_progression_view holes
+    when 'intervals'
 
-      puts_underlined 'Notes:', '-'
-      print_progression_view notes
-
-      puts_underlined 'Absolute Semitones (a4 = 0):', '-'
-      print_progression_view abs_semis
-
-      puts_underlined 'Relative Semitones to first:', '-'
-      print_progression_view rel_semis
+      puts
+      puts "Known intervals: semitones and various names"
+      puts
+      $intervals.each do |st, names|
+        puts " %3dst: #{names.join(', ')}" % st
+      end
+      puts
 
     else
-      fail "Internal error"
-    end
-  end
 
+      fail "Internal error: unknown extra '#{$extra}'"
+
+    end
+
+  end
   puts
+
 end
 
 
@@ -189,9 +222,151 @@ def print_progression_view prog
   puts "\n\n"
 end
 
+
 def get_progression_views prog
   [prog.map {|s| $semi2hole[s] || '--'},
    prog.map {|s| semi2note(s) || '--'},
    prog,
    prog.map.with_index {|s,idx| idx == 0  ?  0  :  (s - prog[0])}]
 end
+
+
+def print_lick_and_tag_stats licks
+
+  puts "\n(read from #{$lick_file})\n\n"
+  
+  puts_underlined "\nStatistics for all licks and tags"
+
+  # stats for tags
+  puts "All tags and the count of licks they appear in:\n\n"
+  counts = Hash.new {|h,k| h[k] = 0}
+  licks.each do |lick|
+    lick[:tags].each {|tag| counts[tag] += 1}
+  end
+  long_text = 'Total number of different tags:'
+  maxlen = [long_text.length,counts.keys.max_by(&:length).length].max
+  format = "  %-#{maxlen}s %6s\n"
+  line = ' ' + '-' * (maxlen + 10)
+  printf format,'Tag','Count'
+  puts line
+  counts.keys.sort.each {|k| printf format,k,counts[k]}
+  puts line
+  printf format, 'Total number of tags:', counts.values.sum
+  printf format, long_text, counts.keys.length
+  puts line
+  printf format, 'Total number of licks: ',licks.length
+
+  # stats for lick lengths
+  puts "\nCounting licks by number of holes:\n"  
+  format = "  %2d ... %2d     %3d\n"
+  line = "  ----------    ---------------"
+  puts "\n  Hole Range    Number of Licks"
+  puts line
+  by_len = licks.group_by {|l| l[:holes].length}
+  cnt = 0
+  lens = []
+  by_len.keys.sort.each_with_index do |len,idx|
+    cnt += by_len[len].length
+    lens << len
+    if cnt > licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
+      printf format % [lens[0],lens[-1],cnt]
+      cnt = 0
+      lens = []
+    end
+  end
+  printf format % [lens[0],lens[-1],cnt] if lens.length > 0
+  puts line
+  puts format % [by_len.keys.minmax, licks.length].flatten
+  puts
+end
+
+
+def get_last_lick_idxs_from_trace licks, graceful = false
+  lnames = []
+  if !File.exist?($trace_file)
+    return [] if graceful
+    err "Expected trace-file #{$trace_file} could not be found"
+  end
+  File.readlines($trace_file).each do |line|
+    md = line.match(/^Lick +([^, :\/]+):/)
+    lnames << md[1] if md
+    lnames.shift if lnames.length > 100
+  end
+  if lnames.length == 0
+    return [] if graceful
+    err "Did not find any licks in #{$trace_file}"
+  end
+  idxs = lnames.map do |ln|
+    licks.index {|l| l[:name] == ln }
+  end.select(&:itself)
+  if idxs.length == 0
+    return [] if graceful
+    err "Could not find any of the lick names #{lnames} from trace-fie #{$trace_file} among current set of licks #{licks.map {|l| l[:name]}}"
+  end
+  idxs.reverse.uniq[0..16]
+end
+
+
+def print_last_licks_from_journal licks
+  puts "\nList of most recent licks played:"
+  puts "  - abbrev (e.g. '2l') for '--start-with'"
+  puts "  - name of lick"
+  puts
+  puts "Last lick comes first:"
+  puts
+  cnt = 1
+  get_last_lick_idxs_from_trace(licks).each do |idx|
+    print '  '
+    if cnt == 1
+      print ' l: '
+    elsif cnt <= 9
+      print cnt.to_s + 'l: '
+    else
+      print '    '
+    end
+    cnt += 1
+    puts licks[idx][:name]
+    
+  end
+  puts
+  puts "(from #{$trace_file})"
+  puts
+end
+
+
+def print_licks_by_tags licks
+
+  puts "\n(read from #{$lick_file})\n\n"
+
+  puts_underlined "\nReporting for licks selected by tags and hole-count only"
+  
+  ltags = tags = nil
+  puts "Licks with their tags:"
+  puts
+  print '  '
+  licks.each do |lick|
+    tags = lick[:tags].join(',')
+    if ltags && ltags != tags
+      print " ..... #{ltags}\n  "
+    else
+      print ',' if ltags
+    end
+    print lick[:name]
+    ltags = tags
+  end
+  puts " ..... #{ltags}"
+  puts "\n  Total number of licks:   #{licks.length}"
+  puts
+end
+
+
+def print_starred_licks
+  print "Licks with stars:\n\n"
+  maxlen = $starred.keys.map(&:length).max
+  $starred.keys.sort {|x,y| $starred[x] <=> $starred[y]}.each do |lname|
+    print "  %-#{maxlen}s: %4d\n" % [lname, $starred[lname]]
+  end
+  print "\nTotal number of starred licks: %4d\n" % $starred.keys.length
+  print "Total number of stars:       %6d\n" % $starred.values.sum
+  print "Stars from: #{$star_file}\n\n"
+end      
