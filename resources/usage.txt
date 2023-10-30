@@ -99,12 +99,12 @@ User Configuration:
 Quick Start:
 
 
-  # Prepare your personal config with sound samples:
+Prepare your personal config with sound samples:
 
   harpwise calibrate c --auto    
 
 
-  # Feedback on what you are playing:
+Feedback on what you are playing:
   
   harpwise listen c              
 
