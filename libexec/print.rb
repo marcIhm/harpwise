@@ -32,13 +32,20 @@ def do_print to_print
       print_holes_and_more holes_or_notes
       
     elsif snames.length > 0
-      
+
       puts_underlined 'Scales given as arguments:'
-      snames.each do |sname|
+      snames.each do |sn|
+        sname = get_scale_from_sws(sn)
         puts "\e[2m#{sname}:\e[0m"
         puts
-        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        scale_holes, _ = read_and_parse_scale(sname)
         print_holes_and_more scale_holes
+        if $scale2desc[sname] || $scale2short[sname]
+          puts
+          print "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
+          print "\e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+          puts
+        end
       end
       
     elsif lnames.length > 0
@@ -121,8 +128,13 @@ def do_print to_print
       puts
       maxs = $all_scales.map {|s| s.length}.max
       $all_scales.each do |sname|
-        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        scale_holes, _ = read_and_parse_scale(sname)
         puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
+        if $scale2desc[sname] || $scale2short[sname]
+          print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
+          print "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+          puts 
+        end
       end
       puts
       puts "\e[2mTotal count: #{$all_scales.length}\e[0m"
@@ -171,6 +183,9 @@ def print_holes_and_more holes_or_notes
   puts
   puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+  puts
+  puts "\e[2mWith intervals between as semitones:\e[0m"
+  print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals to first:\e[0m"
   print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})

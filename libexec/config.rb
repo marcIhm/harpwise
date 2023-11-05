@@ -117,8 +117,8 @@ def set_global_vars_early
   # will be created by test-driver
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
   
-  # is only used in handle_holes, but needs to persist between invocations
-  $message_shown_at = false
+  # for messages in hande_holes
+  $msgbuf = MsgBuf.new
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
@@ -156,10 +156,10 @@ def set_global_vars_early
   # will be populated along with $scale and $used_scales
   $scale2short = Hash.new
   $short2scale = Hash.new
+  $scale2desc = Hash.new
   $scale2short_count = 0
-  $scale2short_err_text = "Shortname '%s' has already been used for scale '%s'; cannot reuse it for scale '%s'; maybe you need to provide an explicit shortname for scale on the commandline like 'scale:short'"
   $term_kb_handler = nil
-
+  
   $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
   $messages_seen = Hash.new
 
@@ -533,8 +533,7 @@ def read_and_set_musical_config
     hole_root ||= hole if semi % 12 == 0
   end
   $hole2note_read.each do |hole, _|
-    all_holes = 
-    harp[hole][:equiv] = semi2holes[harp[hole][:semi]].reject {|h| h == hole}
+    all_holes = harp[hole][:equiv] = semi2holes[harp[hole][:semi]].reject {|h| h == hole}
   end
   semis = harp.map {|hole, hash| hash[:semi]}
   $min_semi = semis.min
@@ -636,8 +635,9 @@ def read_and_parse_scale sname, harp = nil
   # get properties of scale; currently only :short
   props = Hash.new
   all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
-  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' is supported" unless Set.new(props.keys).subset?(Set[:short])
+  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' and 'desc' are supported" unless Set.new(props.keys).subset?(Set[:short, :desc])
   props[:short] = props[:short].to_s if props[:short]
+  $scale2desc[sname] = props[:desc].to_s if props[:desc]
   
   unless $scale2short[sname]
     # No short name given on commandline: use from scale properties or make one up
@@ -647,8 +647,7 @@ def read_and_parse_scale sname, harp = nil
       short = ('Q'.ord + $scale2short_count).chr
       $scale2short_count += 1
     end
-
-    err($scale2short_err_text % [short, $short2scale[short], sname]) if $short2scale[short]
+    warn_if_double_short(short, sname)
     $short2scale[short] = sname
     $scale2short[sname] = short
   end
@@ -899,4 +898,18 @@ end
 
 def for_automatic_calibration
   "For automatic calibration use:\n\n  #{$0} calibrate #{$type} #{$key} --auto"
+end
+
+
+def warn_if_double_short short, long
+  if $short2scale[short] && long != $short2scale[short]
+    txt = ["Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}'",
+           "consider explicit shortname with ':' (see usage)"]
+    if [:listen, :quiz, :licks].include?($mode)
+      $msgbuf.print "... #{txt[1]}", 10, 10, later: true
+      $msgbuf.print "#{txt[0]} ...", 10, 10
+    else
+      print "\n\e[0mWARNING: #{txt[0]} #{txt[1]}\n\n"
+    end
+  end
 end

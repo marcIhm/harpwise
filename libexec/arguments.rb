@@ -410,9 +410,9 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false   # get_sc
   scale = nil
 
   if md = scale_w_short.match(/^(.*?):(.*)$/)
+    warn_if_double_short md[2], md[1]
     scale = md[1]
     $scale2short[md[1]] = md[2]
-    err($scale2short_err_text % [md[2], $short2scale[md[2]], md[1]]) if $short2scale[md[2]]
     $short2scale[md[2]] = md[1]
   else
     # $scale2short will be set when actually reading scale
@@ -568,9 +568,4 @@ def opt_desc_text opts, with_color = true
     pieces << "\n"
   end
   return pieces
-end
-
-
-def find_extra
-
 end

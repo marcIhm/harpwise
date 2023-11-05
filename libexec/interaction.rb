@@ -201,13 +201,13 @@ end
 def prepare_term
   system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
   # hide cursor
-  print "\e[?25l"  
+  Kernel::print "\e[?25l"  
 end
 
 
 def sane_term
   system("stty sane")
-  print "\e[?25h"  # show cursor
+  Kernel::print "\e[?25h"  # show cursor
 end
 
 
@@ -1286,14 +1286,14 @@ def journal_menu
   when 'r'
     $ctl_mic[:journal_recall] = true    
   when 'q','x'
-    pending_message "Quit journal menu"
+    $msgbuf.print "Quit journal menu", 0, 5
   else
     cdesc = if char.match?(/^[[:print:]]+$/)
               "'#{char}'"
             else
               "? (#{char.ord})"
             end
-    pending_message "Invalid char #{cdesc} for journal menu"
+    $msgbuf.print "Invalid char #{cdesc} for journal menu", 0, 2
   end
   clear_area_comment
 end

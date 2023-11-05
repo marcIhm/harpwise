@@ -8,6 +8,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
+  # we cash time for (assumed) performance reasons
   tntf = Time.now.to_f
   
   # Remark: $hole_was_for_disp needs to be persistant over invocations
@@ -41,6 +42,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
+  $msgbuf.ready
   
   loop do   # over each new frequency from pipeline, until var done or skip
 
@@ -55,16 +57,18 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
-        print_hom("Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]")
+        $msgbuf.print "Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]", 2, 5, :term
       end
-      print "\e[#{$lines[:hint_or_message]}H\e[2m#{$pending_message_after_redraw}\e[0m\e[K" if $pending_message_after_redraw
-      $pending_message_after_redraw = nil
+      $msgbuf.update(refresh: true)
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
-      animate_splash_line(single_line = true) if $mode == :listen
+      if $mode == :listen
+        animate_splash_line(single_line = true)
+        $msgbuf.print nil, 5, 5
+      end
     end
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
@@ -87,7 +91,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
         if now - $lagging_freqs_message_ts > 120 
-          print_hom "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c)."
+          $msgbuf.print "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c).", 5, 5
           $lagging_freqs_message_ts = now
         end
       else
@@ -116,7 +120,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $warbles_holes[0] = hole_held if !$warbles_holes[0] && hole_held != $warbles_holes[1]
         $warbles_holes[1] = hole_held if !$warbles_holes[1] && hole_held != $warbles_holes[0]
         if !warbles_announced && $warbles_holes[0] && $warbles_holes[1]
-          print_hom "Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"
+          $msgbuf.print "Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}", 5, 5, :warble
           warbles_announced = true
         end
       end
@@ -145,7 +149,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         hole_journal = hole_held
         $journal << hole_held
         hole_journal_since = hole_since 
-        print_hom "#{journal_length} holes" if $opts[:comment] == :journal
+        $msgbuf.print("#{journal_length} holes", 2, 5, :journal) if $opts[:comment] == :journal
       else
         $journal << ('(%.1fs)' % (tntf - hole_journal_since)) if journal_length > 0 && !musical_event?($journal[-1])
       end
@@ -261,72 +265,68 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       return
     end
 
-    
-    if lambda_hint && tntf - hints_refreshed_at > 0.5
-      if $message_shown_at
-        # A specific message has been shown, that overrides usual hint
-
-        # Make sure to refresh hint, once the current message has elapsed
-        hints_old = nil
-      else
-        $perfctr[:lambda_hint_call] += 1
-        hints = lambda_hint.call(hole)
-        hints_refreshed_at = tntf
-        if hints && hints[0] && hints != hints_old
-          $perfctr[:lambda_hint_reprint] += 1
-          print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
-          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
-          # Using truncate_colored_text might be too slow here
-          if hints.length == 1
-            # for mode quiz
-            print truncate_text(hints[0]) + "\e[K"
-          elsif hints.length == 4 && $lines[:message2] > 0
-            # for mode licks
-            
-            # hints:
-            #  0 = name of lick,
-            #  1 = tags,
-            #  2 = hint (if any)
-            #  3 = description of lick
-            if hints[3] == ''
-              # no description, put name of lick and tags on own line
-              print truncate_text(hints[2]) + "\e[K"
-              message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
-              print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
-            else
-              # hints[0 .. 2] are on first line, hints[3] on the second
-              # if necessary, we truncate or omit hints[1] (tags)
-              maxl_h1 = $term_width - 10 - hints[0].length - hints[2].length
-              hint_or_message = 
-                if maxl_h1 >= 12
-                  # enough space to show at least something
-                  [hints[0],
-                   if maxl_h1 > hints[1].length
-                     hints[1]
-                   else
-                     hints[1][0,maxl_h1 - 3] + '...'
-                   end,
-                   hints[2]]
-                else
-                  # we omit hints[1] altogether
-                  [hints[0], '...', hints[2]]
-                end.select {|x| x && x.length > 0}.join(' | ') + "\e[K"
-              print hint_or_message
-              print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-              print truncate_text(hints[3]) + "\e[K"
-            end
+    if $msgbuf.update(tntf)
+      # A specific message has been shown, that overrides usual hint
+      hints_old = nil
+    elsif lambda_hint && tntf - hints_refreshed_at > 0.5
+      # Make sure to refresh hint, once the current message has elapsed
+      $perfctr[:lambda_hint_call] += 1
+      hints = lambda_hint.call(hole)
+      hints_refreshed_at = tntf
+      if hints && hints[0] && hints != hints_old
+        $perfctr[:lambda_hint_reprint] += 1
+        print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
+        print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
+        # Using truncate_colored_text might be too slow here
+        if hints.length == 1
+          # for mode quiz
+          print truncate_text(hints[0]) + "\e[K"
+        elsif hints.length == 4 && $lines[:message2] > 0
+          # for mode licks
+          
+          # hints:
+          #  0 = name of lick,
+          #  1 = tags,
+          #  2 = hint (if any)
+          #  3 = description of lick
+          if hints[3] == ''
+            # no description, put name of lick and tags on own line
+            print truncate_text(hints[2]) + "\e[K"
+            message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
+            print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
           else
-            fail "Internal error"
+            # hints[0 .. 2] are on first line, hints[3] on the second
+            # if necessary, we truncate or omit hints[1] (tags)
+            maxl_h1 = $term_width - 10 - hints[0].length - hints[2].length
+            hint_or_message = 
+              if maxl_h1 >= 12
+                # enough space to show at least something
+                [hints[0],
+                 if maxl_h1 > hints[1].length
+                   hints[1]
+                 else
+                   hints[1][0,maxl_h1 - 3] + '...'
+                 end,
+                 hints[2]]
+              else
+                # we omit hints[1] altogether
+                [hints[0], '...', hints[2]]
+              end.select {|x| x && x.length > 0}.join(' | ') + "\e[K"
+            print hint_or_message
+            print "\e[#{$lines[:message2]}H\e[0m\e[2m"
+            print truncate_text(hints[3]) + "\e[K"
           end
-          print "\e[0m\e[2m"
+        else
+          fail "Internal error"
         end
-        hints_old = hints
+        print "\e[0m\e[2m"
       end
-    end      
-    
+      hints_old = hints
+    end
+                                                                                                   
     if $ctl_mic[:set_ref]
       $hole_ref = hole_held
-      print_hom "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole"
+      $msgbuf.print "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole", 2, 5, :ref
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
         $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
@@ -357,7 +357,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       end
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
-      print_hom "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}"
+      $msgbuf.print "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}", 2, 5, :display
       $ctl_mic[:change_display] = false
     end
     
@@ -374,7 +374,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $opts[:comment] = rotate_among($opts[:comment], :up, $comment_choices[$mode])
       end
       clear_area_comment
-      print_hom "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}"
+      $msgbuf.print "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}", 2, 5, :comment
       $ctl_mic[:change_comment] = false
       $ctl_mic[:update_comment] = true
     end
@@ -402,7 +402,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if $ctl_mic[:auto_replay]
       $opts[:auto_replay] = !$opts[:auto_replay]
       $ctl_mic[:auto_replay] = false
-      print_hom "Auto replay is: " + ( $opts[:auto_replay] ? 'ON' : 'OFF' )
+      $msgbuf.print("Auto replay is: " + ( $opts[:auto_replay] ? 'ON' : 'OFF' ), 2, 5, :replay)
     end
 
     if $ctl_mic[:star_lick] && lambda_star_lick
@@ -457,10 +457,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       exit 0
     end
 
-    if done || ( $message_shown_at && tntf - $message_shown_at > 8 )
-      print "\e[#{$lines[:hint_or_message]}H\e[K"
-      $message_shown_at = false
-    end
+    $msgbuf.clear if done
     first_round = $first_round_ever_get_hole = false
   end  # loop until var done or skip
 end
@@ -542,8 +539,7 @@ def do_change_key
       $on_error_raise = false
     end
   end while error
-  $message_shown_at = Time.now.to_f
-  pending_message "Changed key of harp to \e[0m#{$key}"
+  $msgbuf.print "Changed key of harp to \e[0m#{$key}", 2, 5, :key
 end
 
 
@@ -557,11 +553,11 @@ def do_change_key_to_pitch
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
   $key = play_interactive_pitch(embedded = true) || $key
-  pending_message(if key_was == $key
-                  "Key of harp is still at"
-                 else
-                   "Changed key of harp to"
-                  end + " \e[0m#{$key}")
+  $msgbuf.print(if key_was == $key
+                "Key of harp is still at"
+               else
+                 "Changed key of harp to"
+                end + " \e[0m#{$key}", 2, 5, :key)
 end
 
 
@@ -571,7 +567,7 @@ def do_change_scale_add_scales
   end
   $scale = input if input
   unless input
-    pending_message "Did not change scale of harp."
+    $msgbuf.print "Did not change scale of harp.", 0, 5, :key
     return
   end
   
@@ -595,7 +591,7 @@ def do_change_scale_add_scales
     $opts[:add_scales] = add_scales.join(',')
   end
 
-  pending_message "Changed scale of harp to \e[0m\e[32m#{$scale}"
+  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 5, :scale
 end
 
 
@@ -603,7 +599,7 @@ def do_rotate_scale_add_scales
   $used_scales.rotate!
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
-  pending_message "Changed scale of harp to \e[0m\e[32m#{$scale}"
+  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 0, 5, :scale
 end
 
 
@@ -764,4 +760,78 @@ def add_and_del_warbles tntf, add_warble
       $warbles[:scale] += 5 while $warbles[:scale] < $warbles[type][:max]
     end
   end
+end
+
+
+# Hint or message buffer for main loop in handle holes. Makes sure, that all
+# messages are shown long enough
+class MsgBuf
+  @@lines_durations = Array.new
+  @@printed_at = nil
+  @@ready = false
+  @@printed = Array.new
+
+  def print text, min, max, group = nil, later: false
+    # remove any outdated stuff
+    if group
+      # of each group there should only be one elemnt in messages;
+      # older ones are removed. group is only useful, if min > 0
+      idx = @@lines_durations.each_with_index.find {|x| x[0] == group}&.at(1)
+      @@lines_durations.delete_at(idx) if idx
+    end
+      
+    @@lines_durations.pop if @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
+    @@lines_durations << [text, min, max]
+    if text && @@ready && !later
+      Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K"
+      @@printed.push([text, min, max]) if $testing
+    end
+    @@printed_at = Time.now.to_f
+    @@lines_durations << [text, min, max] unless @@lines_durations[-1][0] == text
+  end
+
+  # return true, if there is message content left
+  def update tntf = nil, refresh: false
+    tntf ||= Time.now.to_f
+    return false if @@lines_durations.length == 0
+    if @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
+      # current message is old
+      @@lines_durations.pop if @@lines_durations.length > 0
+      if @@lines_durations.length > 0
+        # display new topmist message
+        if @@ready
+          Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
+          @@printed.push(@@lines_durations[-1]) if $testing
+        end
+        @@printed_at = Time.now.to_f
+        return true
+      else
+        # no current message
+        @@printed_at = nil
+        return false
+      end
+    else
+      # current message is still valid
+      if @@ready && refresh
+        Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
+        @@printed_at = Time.now.to_f
+      end
+      return true
+    end
+  end
+
+  def ready
+    @@ready = true
+  end
+
+  def clear
+    @@lines_durations = Array.new
+    @@printed_at = nil
+    print "\e[#{$lines[:hint_or_message]}H\e[K"
+  end
+
+  def printed
+    @@printed
+  end
+
 end

@@ -11,7 +11,7 @@ def do_listen
   $ctl_can[:loop] = false
   $ctl_can[:switch_modes] = true
   $modes_for_switch ||= [:listen, :licks]
-  
+
   system('clear')
   pipeline_catch_up
   $hole_was_for_disp = nil
@@ -185,7 +185,7 @@ def do_listen
       else
         $journal << hole_disp
       end
-      print_hom "#{journal_length} holes"
+      $msgbuf.print "#{journal_length} holes", 0, 5
     end
     
     if $ctl_mic[:journal_delete]
@@ -212,9 +212,9 @@ def do_listen
         make_term_immediate
         clear_area_comment
         journal_write(comment)
-        pending_message "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}"
+        $msgbuf.print "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}", 2, 5, :journal
       else
-        pending_message "No holes in journal, that could be written to file"
+        $msgbuf.print "No holes in journal, that could be written to file", 2, 5, :journal
       end
       $freqs_queue.clear
     end
@@ -222,8 +222,8 @@ def do_listen
     if $ctl_mic[:journal_play]
       $ctl_mic[:journal_play] = false
       if journal_length > 0
-        print_hom 'Playing journal, press any key to skip ...'
-        pending_message "Journal played"
+        $msgbuf.print 'Journal played', 0, 5, later: true
+        $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
         [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
           lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
           fit_into_comment lines
@@ -232,7 +232,7 @@ def do_listen
                       get_musical_duration(hole_next))
           end
           if $ctl_kb_queue.length > 0
-            pending_message "Skipped to end of journal"
+            $msgbuf.print "Skipped to end of journal", 2, 5, :journal
             break
           end
         end
@@ -240,7 +240,7 @@ def do_listen
         $ctl_kb_queue.clear
         $freqs_queue.clear
       else
-        pending_message "No holes in journal, that could be played"
+        $msgbuf.print "No holes in journal, that could be played", 2, 5, :journal
       end
     end
 
@@ -255,12 +255,12 @@ def do_listen
       if char == 'c'
         $journal = Array.new
         journal_write("Automatic save before clearing journal")
-        pending_message "Saved and cleared journal"
+        $msgbuf.print "Saved and cleared journal", 2, 5, :journal
       elsif char == 'C'
         $journal = Array.new
-        pending_message "Cleared journal without save"
+        $msgbuf.print "Cleared journal without save", 2, 5, :journal
       else
-        pending_message "Journal NOT cleared"
+        $msgbuf.print "Journal NOT cleared", 2, 5, :journal
       end
       $ctl_mic[:journal_clear] = false
     end
@@ -303,8 +303,8 @@ END
     if $ctl_mic[:journal_all_toggle]
       $ctl_mic[:journal_all_toggle] = false
       $journal_all = !$journal_all
-      pending_message("journal-all is " +
-                      ( $journal_all ? 'ON' : 'OFF' ))
+      $msgbuf.print "journal-all is " +
+                    ( $journal_all ? 'ON' : 'OFF' ), 2, 5, :journal
       ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
 
@@ -342,11 +342,11 @@ def edit_journal initial_content = nil
         end
       end
       $journal = holes
-      pending_message 'Updated journal'
+      $msgbuf.print 'Updated journal', 2, 5, :journal
       return
     end
   end
-  pending_message 'journal remains unchanged'
+  $msgbuf.print 'journal remains unchanged', 2, 5, :journal
 end
 
 

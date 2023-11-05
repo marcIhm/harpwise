@@ -89,7 +89,7 @@ def do_quiz_or_licks
 
     elsif $ctl_mic[:change_partial]
       read_and_set_partial
-      print_hom "Partial is \e[0m'#{$opts[:partial]}'"
+      $msgbuf.print "Partial is \e[0m'#{$opts[:partial]}'", 2, 5, :partial
 
     else
       # most general case: $ctl_mic[:next] or no $ctl-command;
@@ -251,7 +251,7 @@ def do_quiz_or_licks
           print "\e[#{$lines[:comment]}H\e[0m\e[32m"
           do_figlet_unwrapped 'what  you  played ...', 'smblock'
           sleep 0.5
-          print_hom "See #{$ulrec.rec_file}, #{'%.1fs' % $ulrec.duration} ... (h for help)"
+          $msgbuf.print "See #{$ulrec.rec_file}, #{'%.1fs' % $ulrec.duration} ... (h for help)", 2, 5
           $ulrec.play_rec
           # try not to record, what we just played
           sleep 0.5 
@@ -383,7 +383,7 @@ def do_quiz_or_licks
               to_play[:lick][:tags] << startag if startag
               $starred.delete([to_play[:lick][:name]]) if $starred[to_play[:lick][:name]] == 0
               File.write($star_file, YAML.dump($starred))
-              print_hom "Wrote #{$star_file}"
+              $msgbuf.print "Wrote #{$star_file}", 2, 5, :star
             end
           else
             nil
@@ -1128,7 +1128,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       self[:octave_shift] = self[:octave_shift_was]
       sleep 2
     else
-      print_hom "Octave shift \e[0m#{self[:octave_shift]}"
+      $msgbuf.print "Octave shift \e[0m#{self[:octave_shift]}", 2, 5, :octave
     end
   end
 

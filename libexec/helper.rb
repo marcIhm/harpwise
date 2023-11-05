@@ -206,9 +206,10 @@ def truncate_text text, len = $term_width - 5
 end
 
 
-def dbg # prepare byebug
+# prepare byebug
+def dbg 
   make_term_cooked
-  print "\e[0m"
+  Kernel::print "\e[0m"
   require 'byebug'
   byebug
 end
@@ -217,7 +218,7 @@ end
 def write_dump marker
   dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
   File.delete(dumpfile) if File.exist?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, }
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed}
   File.write(dumpfile, JSON.pretty_generate(structure))
 end
 
@@ -332,6 +333,7 @@ def print_afterthought
   end
 end
 
+
 def animate_splash_line single_line = false, as_string: false
 
   return if $splashed
@@ -420,7 +422,6 @@ class Volume
   def to_i
     return @@vol
   end
-
 end
 
 
@@ -519,20 +520,6 @@ def edit_file file, lno = nil
 end
 
 
-def print_hom text, line = $lines[:hint_or_message]
-  print "\e[#{line}H\e[2m#{text}\e[0m\e[K"
-  $message_shown_at = Time.now.to_f
-  text
-end
-
-
-def pending_message text
-  $pending_message_after_redraw = text
-  $message_shown_at = Time.now.to_f
-  text
-end
-
-
 def rotate_among value, direction, all_values
   if direction == :up
     all_values[(all_values.index(value) + 1) % all_values.length]
@@ -559,7 +546,8 @@ def recognize_among val, choices
     elsif [:semi_note, :semi_inter].include?(choice)
       return choice if val.match(/^[+-]?\d+st$/)
     elsif choice == :scale
-      return choice if $all_scales.include?(val)
+      sc = get_scale_from_sws(val, true)
+      return choice if $all_scales.include?(sc)
     elsif choice == :lick
       $among_all_lnames ||= $licks.map {|l| l[:name]}
       return choice if $among_all_lnames.include?(val)

@@ -39,9 +39,9 @@ print:
     print all known intervals
 tools:
   transpose: |
-    transpose a sequence of notes between keys
+    transpose a sequence of holes between keys
   shift: |
-    shift a sequence of notes by the given number of semitones
+    shift a sequence of holes by the given number of semitones
   keys: |
     print a chart with keys and positions centered around current key
   chart: |

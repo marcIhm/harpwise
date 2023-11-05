@@ -29,12 +29,49 @@ USAGE BY EXAMPLES
 
     harpwise listen blues --add-scales chord-i --display chart-scales
 
-  Using the forst five notes of the one-chord as an adhoc scale:
 
-    harpwise listen -1 -2 -3 -4 +6
-    
+  As an advanced example, assume that you would like to play the minor
+  pentatonic scale in fourth position. However, harpwise only knows it
+  in second position (i.e. starting on -2).
 
-  If you find harpwise sluggish or if you get a warning on lagging and
-  lost samples, you may want to experiment with --time-slice:
+  How would you move this scale from second to fourth position ?
+
+  The first step would be to get the notes of the minor-pentatonic
+  scale:
+
+    harpwise print mipe
+
+  then take those notes and shift them from second to fourth position
+  by moving up two fifths up in the circle of fifths.
+
+  And because a fifth is 7 semitones (you may check this via: harpwise
+  print intervals), this would be 2 * 7 = 14 semitones.
+
+  In addition one would move one ocatve (= 12 semitones) down to reach
+  the lower end of the harp (for more expressiveness): 14 - 12 = 2
+  semitones.
+
+  So we would have to shift the notes of the minor pentatonic scale by
+  2 semitones to get from second to fourth position:
+
+    harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
+
+  Using the resulting holes as an adhoc scale for listen, we would be
+  able to tell harpwise, that we want to play the minor pentatonic in
+  fourth position:
+
+    harpwise listen -3// +4 -4 +5 +6 -6
+
+  However, you could get the same effect more easily like this:
+
+    harpwise listen mipe --transpose-scale +2st
+
+  which uses the fact (as explained above), that moving two positions
+  up are just two semitones.
+
+
+  Finally, as a quite technical note: If you find harpwise sluggish or
+  if you get a warning on lagging and lost samples, you may want to
+  experiment with --time-slice:
 
     harpwise listen c --time-slice short

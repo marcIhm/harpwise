@@ -174,7 +174,7 @@ def tool_shift to_handle
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
-
+  
   puts
   puts "Shifting holes and notes by #{describe_inter_semis(dsemi)}:"
   puts

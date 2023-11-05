@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 repl = {'harpwise play c wade' => 'harpwise play c easy'}
 usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 73
+num_exp = 76
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -1051,12 +1051,15 @@ do_test 'id-33: display as chart with scales' do
   kill_session
 end
 
-do_test 'id-33a: error with double shortname for scales' do
+do_test 'id-33a: warning with double shortname for scales' do
   new_session
   tms 'harpwise listen blues:b --add-scales chord-i:b --display chart-scales'
   tms :ENTER
-  sleep 2
-  expect { screen[2]['ERROR: Shortname \'b\' has already been used'] }
+  sleep 10
+  tms 'q'
+  wait_for_end_of_harpwise
+  dump = read_testing_dump('end')
+  expect { dump[:messages_printed][0][0]["Shortname 'b' is used for two scales"]}
   kill_session
 end
 
@@ -1469,10 +1472,11 @@ do_test 'id-53: print' do
   {15 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
    18 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
    22 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
-   26 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
-   30 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   34 => '-7  -5  -2   1  -2   1   0  -2',
-   38 => 'Description: St. Louis Blues'}.each do |lno, exp|
+   26 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   30 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
+   34 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   38 => '-7  -5  -2   1  -2   1   0  -2',
+   42 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1483,7 +1487,7 @@ do_test 'id-53a: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[13]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[10]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1557,9 +1561,13 @@ do_test 'id-54e: print list of all scales' do
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
   [" all              :  32\n",
+   "   \e[2mShort: a\e[0m\n",
    " blues            :  18\n",
+   "   \e[2mShort: b\e[0m\n",
    " blues-middle     :   7\n",
-   " chord-i          :   8\n"].each_with_index do |exp,idx|
+   "   \e[2mShort: bm\e[0m\n",
+   " chord-i          :   8\n",
+   "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
     expect(lines,exp,idx) { lines[8+idx] == exp }
   end
   kill_session
@@ -1801,8 +1809,8 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[3]['b3  a5  a4  d2'] }
-  expect { screen[6]['-1.-   a5.+7  +4.-   d2.-'] }
+  expect { screen[0]['b3  a5  a4  d2'] }
+  expect { screen[3]['-1.-   a5.+7  +4.-   d2.-'] }
   expect { screen[12]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
   kill_session
 end
@@ -2066,7 +2074,7 @@ do_test 'id-77: print for chromatic' do
   tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[6]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
+  expect { screen[3]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
   kill_session
 end
 
