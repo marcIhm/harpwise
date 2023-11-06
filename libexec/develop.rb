@@ -12,22 +12,20 @@ def do_develop to_handle
 
   case $extra
   when 'man'
-
-    task_man
-
+    do_man
   when 'diff'
-
-    task_diff
-
-  when 'selftest'
-
-    task_selftest
-
+    do_diff
+  when 'selftest', 'st'
+    do_selftest
+  when 'unittest', 'ut'
+    do_unittest
+  else
+    fail "Internal error: unknown extra '#{$extra}'"
   end
 end
 
 
-def task_man
+def do_man
 
   # needed in erb
   types_with_scales = get_types_with_scales
@@ -41,7 +39,7 @@ def task_man
 end
 
 
-def task_diff
+def do_diff
 
   abort("\nFile\n\n  #{$man_result}\n\nis older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
 
@@ -156,7 +154,7 @@ def task_diff
 end
 
 
-def task_selftest
+def do_selftest
 
   puts
   puts_underlined "Performing selftest"
@@ -244,4 +242,52 @@ def task_selftest
   puts
   puts "Selftest okay."
   puts
+end
+
+
+def do_unittest
+  puts
+  puts_underlined 'Testing $msgbuf'
+
+  # we do not set $msgbuf ready, so we dont get any output
+  $msgbuf.print 'a', 1, 3, later: true
+  $msgbuf.print 'b', 1, 3
+  # one :foo should overwrite the other
+  $msgbuf.print 'c', 1, 3, :foo
+  $msgbuf.print 'd', 1, 3, :foo
+  found = $msgbuf.get_lines_durations
+  expected = [["a", 1, 3, nil],
+              ["b", 1, 3, nil],
+              ["d", 1, 3, :foo]] 
+  found == expected or uterr('Symbols override', found, expected)
+
+  $msgbuf.clear
+  $msgbuf.print 'd', 1, 3
+  sleep 2
+  found = $msgbuf.update
+  expected = true
+  found == expected or uterr('Update', found, expected)
+  
+  found = $msgbuf.get_lines_durations
+  expected = [["d", 1, 3, nil]]
+  found == expected or uterr('Not age away for hint', found, expected)
+
+  $msgbuf.print 'e', 1, 3
+  found = $msgbuf.get_lines_durations
+  expected = [["e", 1, 3, nil]]
+  found == expected or uterr('Age away for message', found, expected)
+  
+  sleep 4
+  $msgbuf.update
+  found = $msgbuf.get_lines_durations
+  expected = []
+  found == expected or uterr('Age away for hint', found, expected)
+  puts
+  puts "All unittests okay."
+  puts
+end
+
+
+def uterr desc, found, expected
+  fail "\n#{desc}:\n  found = #{found}\n  expected = #{expected}\n"
 end

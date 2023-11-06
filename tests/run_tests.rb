@@ -136,7 +136,7 @@ do_test 'id-0a: selftest without user dir' do
   tms :ENTER
   tms 'echo \$?'
   tms :ENTER
-  sleep 2
+  sleep 1
   expect { screen[16]['user config directory has been created'] }
   expect { screen[19]['Selftest okay.'] }
   expect { screen[21]['echo $?'] }
@@ -2154,5 +2154,15 @@ do_test "id-82: screen too small" do
   expect { screen[5]['ERROR: Terminal is too small'] }
   kill_session
 end
+
+do_test 'id-83: unittest' do
+  new_session
+  tms 'harpwise develop unittest'
+  tms :ENTER
+  sleep 8
+  expect { screen[6]['All unittests okay.'] }
+  kill_session
+end
+
 
 puts

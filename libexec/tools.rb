@@ -11,63 +11,36 @@ def do_tools to_handle
 
   case $extra
   when 'transpose'
-
     tool_transpose to_handle
-
   when 'shift'
-
     tool_shift to_handle
-
   when 'keys'
-    
     tool_key_positions to_handle
-
   when 'search-in-licks', 'search'
-
     tool_search to_handle
-
   when 'chart'
-
     tool_chart
-
   when 'edit-licks'
-
     system($editor + ' ' + $lick_file)
     puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
-    
   when 'edit-config'
-
     tool_edit_config
-
   when 'transcribe', 'trans'
-
     tool_transcribe to_handle
-
   when 'notes-major', 'notes'
-    
     tool_notes to_handle
-
   when 'interval', 'inter'
-
     puts
     s1, s2 = normalize_interval(to_handle)
     print_interval s1, s2
     puts
-      
   when 'progression', 'prog'
-
     tool_progression to_handle
-      
   when 'chords'
-
     tool_chords
-
   else
-
     fail "Internal error: unknown extra '#{extra}'"
-
   end
-
 end
 
 

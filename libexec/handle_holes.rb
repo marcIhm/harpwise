@@ -59,7 +59,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         $msgbuf.print "Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]", 2, 5, :term
       end
-      $msgbuf.update(refresh: true)
+      # updates and returns true, if hint is allowed
+      hints_old = nil if $msgbuf.update(refresh: true)
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
@@ -67,7 +68,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
         animate_splash_line(single_line = true)
-        $msgbuf.print nil, 5, 5
+        $msgbuf.print nil, 0, 2
       end
     end
 
@@ -265,6 +266,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       return
     end
 
+    # updates and returns true, if hint is allowed
     if $msgbuf.update(tntf)
       # A specific message has been shown, that overrides usual hint
       hints_old = nil
@@ -279,11 +281,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
         # Using truncate_colored_text might be too slow here
         if hints.length == 1
-          # for mode quiz
+          # for mode quiz and listen
           print truncate_text(hints[0]) + "\e[K"
         elsif hints.length == 4 && $lines[:message2] > 0
           # for mode licks
-          
           # hints:
           #  0 = name of lick,
           #  1 = tags,
@@ -294,11 +295,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
             print truncate_text(hints[2]) + "\e[K"
             message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
             print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
+            print message2
           else
             # hints[0 .. 2] are on first line, hints[3] on the second
             # if necessary, we truncate or omit hints[1] (tags)
             maxl_h1 = $term_width - 10 - hints[0].length - hints[2].length
-            hint_or_message = 
+            hint_all = 
               if maxl_h1 >= 12
                 # enough space to show at least something
                 [hints[0],
@@ -312,7 +314,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                 # we omit hints[1] altogether
                 [hints[0], '...', hints[2]]
               end.select {|x| x && x.length > 0}.join(' | ') + "\e[K"
-            print hint_or_message
+            print hint_all
             print "\e[#{$lines[:message2]}H\e[0m\e[2m"
             print truncate_text(hints[3]) + "\e[K"
           end
@@ -776,30 +778,32 @@ class MsgBuf
     if group
       # of each group there should only be one elemnt in messages;
       # older ones are removed. group is only useful, if min > 0
-      idx = @@lines_durations.each_with_index.find {|x| x[0] == group}&.at(1)
+      idx = @@lines_durations.each_with_index.find {|x| x[0][3] == group}&.at(1)
       @@lines_durations.delete_at(idx) if idx
     end
-      
-    @@lines_durations.pop if @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
-    @@lines_durations << [text, min, max]
-    if text && @@ready && !later
+
+    # use min duration for check
+    @@lines_durations.pop if @@lines_durations.length > 0 && @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
+    @@lines_durations << [text, min, max, group] if @@lines_durations.length == 0 || @@lines_durations[-1][0] != text
+    if @@ready && text && !later
       Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K"
-      @@printed.push([text, min, max]) if $testing
+      @@printed.push([text, min, max, group]) if $testing
     end
     @@printed_at = Time.now.to_f
-    @@lines_durations << [text, min, max] unless @@lines_durations[-1][0] == text
   end
 
   # return true, if there is message content left
   def update tntf = nil, refresh: false
     tntf ||= Time.now.to_f
     return false if @@lines_durations.length == 0
-    if @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
+
+    # use max duration for check
+    if @@printed_at && @@printed_at + @@lines_durations[-1][2] < Time.now.to_f
       # current message is old
-      @@lines_durations.pop if @@lines_durations.length > 0
+      @@lines_durations.pop
       if @@lines_durations.length > 0
-        # display new topmist message
-        if @@ready
+        # display new topmost message
+        if @@ready && @@lines_durations[-1][0]
           Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
           @@printed.push(@@lines_durations[-1]) if $testing
         end
@@ -808,12 +812,14 @@ class MsgBuf
       else
         # no current message
         @@printed_at = nil
-        return false
+        # just became empty, return true one more time
+        return true
       end
     else
       # current message is still valid
-      if @@ready && refresh
+      if @@ready && @@lines_durations[-1][0] && refresh
         Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
+        @@printed.push(@@lines_durations[-1]) if $testing
         @@printed_at = Time.now.to_f
       end
       return true
@@ -827,11 +833,18 @@ class MsgBuf
   def clear
     @@lines_durations = Array.new
     @@printed_at = nil
-    print "\e[#{$lines[:hint_or_message]}H\e[K"
+    Kernel::print "\e[#{$lines[:hint_or_message]}H\e[K" if @@ready
   end
 
   def printed
     @@printed
   end
 
+  def empty?
+    return @@lines_durations.length > 0
+  end
+
+  def get_lines_durations
+    @@lines_durations
+  end
 end
