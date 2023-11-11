@@ -219,7 +219,7 @@ def parse_arguments_early
   # usage info specific for mode
   if opts[:help] || num_args_after_mode == 0
     print_usage_info(mode, opts_all) 
-    exit 1
+    exit 0
   end  
 
   # used to issue current state of processing in error messages

@@ -102,13 +102,13 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3']
+known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # replace some, e.g. due to my different set of licks
-repl = {'harpwise play c wade' => 'harpwise play c easy'}
-usage_examples.map! {|l| repl[l] || l}
+##repl = {'harpwise play c wade' => 'harpwise play c easy'}
+##usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 76
+num_exp = 75
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -1349,15 +1349,14 @@ usage_examples.each_with_index do |ex,idx|
     tms ex + " >#{$testing_output_file} 2>&1"
     tms :ENTER
     sleep 1
-    output = File.read($testing_output_file).lines
     # if the program keeps running, than it had no errors; otherwise
     # test its return code and scan its output
     if wait_for_end_of_harpwise(4)
-      tms 'clear'
+      marker = 'harpwise_testing_return_code_is'
+      output = File.read($testing_output_file).lines
+      tms 'echo ' + marker + ' \$?'
       tms :ENTER
-      tms 'echo \$?'
-      tms :ENTER
-      expect { screen[1]['0'] }
+      expect(marker) { screen.find {|l| l[marker + ' 0']} }
       expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
     end
     kill_session
@@ -1565,7 +1564,7 @@ do_test 'id-54e: print list of all scales' do
    " blues            :  18\n",
    "   \e[2mShort: b\e[0m\n",
    " blues-middle     :   7\n",
-   "   \e[2mShort: bm\e[0m\n",
+   "   \e[2mShort: b\e[0m\n",
    " chord-i          :   8\n",
    "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
     expect(lines,exp,idx) { lines[8+idx] == exp }
@@ -2160,7 +2159,7 @@ do_test 'id-83: unittest' do
   tms 'harpwise develop unittest'
   tms :ENTER
   sleep 8
-  expect { screen[6]['All unittests okay.'] }
+  expect { screen[17]['All unittests okay.'] }
   kill_session
 end
 

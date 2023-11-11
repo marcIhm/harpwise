@@ -247,7 +247,7 @@ end
 
 def do_unittest
   puts
-  puts_underlined 'Testing $msgbuf'
+  puts_underlined '$msgbuf'
 
   # we do not set $msgbuf ready, so we dont get any output
   $msgbuf.print 'a', 1, 3, later: true
@@ -259,35 +259,51 @@ def do_unittest
   expected = [["a", 1, 3, nil],
               ["b", 1, 3, nil],
               ["d", 1, 3, :foo]] 
-  found == expected or uterr('Symbols override', found, expected)
+  utreport('Symbols override', found, expected)
 
   $msgbuf.clear
   $msgbuf.print 'd', 1, 3
   sleep 2
   found = $msgbuf.update
   expected = true
-  found == expected or uterr('Update', found, expected)
+  utreport('Update', found, expected)
   
   found = $msgbuf.get_lines_durations
   expected = [["d", 1, 3, nil]]
-  found == expected or uterr('Not age away for hint', found, expected)
+  utreport('Not age away for hint', found, expected)
 
   $msgbuf.print 'e', 1, 3
   found = $msgbuf.get_lines_durations
   expected = [["e", 1, 3, nil]]
-  found == expected or uterr('Age away for message', found, expected)
+  utreport('Age away for message', found, expected)
   
   sleep 4
   $msgbuf.update
   found = $msgbuf.get_lines_durations
   expected = []
-  found == expected or uterr('Age away for hint', found, expected)
+  utreport('Age away for hint', found, expected)
+
+  puts
+  puts_underlined 'Semitone calculations'
+  found = note2semi('a4')
+  expected = 0
+  utreport('note2semi', found, expected)
+
+  found = semi2note(0)
+  expected = 'a4'
+  utreport('semi2note', found, expected)
   puts
   puts "All unittests okay."
   puts
 end
 
 
-def uterr desc, found, expected
-  fail "\n#{desc}:\n  found = #{found}\n  expected = #{expected}\n"
+def utreport desc, found, expected
+  print desc.ljust(30) + ' ... '
+  if found == expected
+    puts "\e[32mOkay\e[0m"
+  else
+    puts "\e[31mError\e[0m\n  found = #{found}\n  expected = #{expected}\n"
+    exit 1
+  end
 end

@@ -143,7 +143,7 @@ def do_listen
              else
                "Combined Scales have"
              end +
-             " #{$scale_holes.length} of #{$harp_holes.length} holes"]
+             " #{$scale_holes_w_equiv.length} of #{$harp_holes.length} holes"]
           end
         end
       end,

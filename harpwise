@@ -32,6 +32,7 @@ require_relative 'libexec/tools'
 require_relative 'libexec/develop'
 
 $program_start = $mode_start = Time.now.to_f
+$initialized = false
 $on_error_raise = false
 # grep .rb-files for 'debug' to see choices, e.g. :check_screen. Still
 # need to give '--debug' to switch it on
@@ -83,7 +84,7 @@ set_global_musical_vars
 
 to_handle = parse_arguments_late
 
-check_screen if [:listen, :quiz, :licks].include?($mode)
+check_screen(warn_on_huge: true) if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $testing
 
@@ -140,11 +141,7 @@ at_exit do
     File.write($pers_file, JSON.pretty_generate($pers_data))
   end
 end
-
-
-# some regression tests
-note2semi('a4') == 0 or fail 'Internal error'
-semi2note(0) == 'a4' or fail 'Internal error'
+$initialized = true
 
 $other_mode_saved = Hash.new
 begin

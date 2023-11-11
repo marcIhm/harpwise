@@ -563,9 +563,11 @@ def read_and_set_musical_config
     $used_scales.each_with_index do |sname, idx|
       # read scale
       sc_ho, h2rem = read_and_parse_scale(sname, harp)
-      # build resulting scale
       holes_remove.each {|h| sc_ho.delete(h)}
+      # build final scale as sum of multiple single scales
       scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
+      # construct remarks to be shown amd flags to be used while
+      # handling holes
       h2rem.each_key do |h|
         next if holes_remove.include?(h)
         if idx == 0
@@ -582,7 +584,9 @@ def read_and_set_musical_config
         hole2rem[h][1] << h2rem[h]&.split(/, /)
       end
     end
+    # omit equivalent holes
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
+    $scale_holes_w_equiv = ( scale_holes.map {|h| harp[h][:equiv]}.flatten + scale_holes ).sort_by {|h| harp[h][:semi]}.uniq
 
     scale_notes = scale_holes.map {|h| $hole2note[h]}
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
@@ -906,9 +910,10 @@ def warn_if_double_short short, long
     txt = ["Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}'",
            "consider explicit shortname with ':' (see usage)"]
     if [:listen, :quiz, :licks].include?($mode)
-      $msgbuf.print "... #{txt[1]}", 10, 10, later: true
-      $msgbuf.print "#{txt[0]} ...", 10, 10
+      $msgbuf.print "... #{txt[1]}", 5, 5, later: true
+      $msgbuf.print "#{txt[0]} ...", 5, 5
     else
+      return if $initialized
       print "\n\e[0mWARNING: #{txt[0]} #{txt[1]}\n\n"
     end
   end
