@@ -84,7 +84,7 @@ set_global_musical_vars
 
 to_handle = parse_arguments_late
 
-check_screen(warn_on_huge: true) if [:listen, :quiz, :licks].include?($mode)
+check_screen(hint_on_large_term: true) if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $testing
 

@@ -10,7 +10,7 @@ def prepare_screen
 end
 
 
-def check_screen graceful: false, warn_on_huge: false
+def check_screen graceful: false, hint_on_large_term: false
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
@@ -81,8 +81,8 @@ def check_screen graceful: false, warn_on_huge: false
     $ctl_kb_queue.clear
   end
 
-  if warn_on_huge && ( $term_width > 1.5 * $conf[:term_min_width] || $term_height > 1.5 * $conf[:term_min_height] )
-    $msgbuf.print "... consider shrinking it for a better look", 5, 5, later: true
+  if hint_on_large_term && ( $term_width > 1.5 * $conf[:term_min_width] || $term_height > 1.5 * $conf[:term_min_height] )
+    $msgbuf.print "... consider adjusting it for better readability", 5, 5, later: true
     $msgbuf.print "This terminal [#{$term_width}, #{$term_height}] is much larger than needed [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] ...", 5, 5
   end
   
