@@ -1874,6 +1874,21 @@ end
   end
 end
 
+do_test 'id-68b: set warble holes explicitly' do
+  new_session
+  tms 'harpwise listen --comment warbles'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'w'
+  tms :ENTER
+  sleep 2
+  tms :RIGHT
+  tms :ENTER
+  sleep 4
+  expect { screen[23]['Warbling between holes +1 and -1/'] }
+  kill_session
+end
+
 do_test 'id-69: detect lag' do
   sound 20, 8
   # must be before new_session

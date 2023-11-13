@@ -593,6 +593,9 @@ def handle_kb_mic
   elsif char == 'j' && !$ctl_can[:next]
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
+  elsif char == 'w' && !$ctl_can[:next]
+    $ctl_mic[:warbles_prepare] = true
+    text = 'Prepare warbles'
   elsif char == 'k'
     $ctl_mic[:change_key] = true
     text = nil
@@ -1011,7 +1014,7 @@ def choose_interactive prompt, names
     if key == '?'
       clear_area_comment
       clear_area_message
-      print "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[0m"
+      print "\e[#{$lines[:comment_tall] + 1}H\e[0m"
       puts "Help on selecting: Just type.\e[32m"
       puts
       puts " - any char adds to search, which narrows choices"
@@ -1303,6 +1306,29 @@ def journal_menu
     $msgbuf.print "Invalid char #{cdesc} for journal menu", 0, 2
   end
   clear_area_comment
+end
+
+
+def prepare_warbles
+  clear_area_comment
+  if $opts[:comment] != :warbles
+    print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mwarble\e[2m ...\e[0m"
+    tag = 'switch to comment warble'
+    stime = $messages_seen[tag]  ?  0.1  :  0.2
+    $opts[:comment] = :warbles
+  else
+    $warbles_holes = Array.new(2)
+    [0, 1].each do |idx|
+      $warbles_holes[idx] = choose_interactive("Please set warble hole   -- #{idx+1} --  ", $harp_holes)
+      clear_area_comment
+      print "\e[0m\e[32m"
+      do_figlet_unwrapped $warbles_holes[idx], 'mono12'
+      print "\e[0m"
+      sleep 0.7
+    end
+    $warbles[:standby] = true
+    $freqs_queue.clear
+  end
 end
 
 

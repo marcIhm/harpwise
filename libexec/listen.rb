@@ -85,8 +85,8 @@ def do_listen
                  if $warbles[:short][:max] == 0 && $warbles[:long][:max] == 0 &&
                     !$warbles[:standby]
                    return ["\e[K",
-                           "   Warbling between two holes; start slowly to define them;\e[K",
-                           "   clear with BACKSPACE\e[K",
+                           "   Warbling between two holes; start slow to define them\e[K",
+                           "   or type 'w' to set directly. Clear with BACKSPACE\e[K",
                            "\e[K",
                            case $opts[:time_slice]
                            when :short
@@ -136,6 +136,8 @@ def do_listen
             # the same hint as below is also produced right after each
             # hole within handle_holes
             ["#{journal_length} holes"]
+          elsif $opts[:comment] == :warbles && $warbles_holes[0] && $warbles_holes[1]
+            ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
           else
             ["\e[0m\e[2mRemark: " +
              if $all_scales.length == 1 || $opts[:add_no_holes]
@@ -311,9 +313,15 @@ END
     #
     # Handling controls for warbling
     #
+    if $ctl_mic[:warbles_prepare]
+      $ctl_mic[:warbles_prepare] = false
+      prepare_warbles
+    end
+
     if $ctl_mic[:warbles_clear]
       $ctl_mic[:warbles_clear] = false
       clear_warbles(true)
+      $msgbuf.print 'Cleared warbles', 2, 5
     end
   end
 end
