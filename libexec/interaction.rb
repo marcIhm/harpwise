@@ -1319,13 +1319,15 @@ def prepare_warbles
   else
     $warbles_holes = Array.new(2)
     [0, 1].each do |idx|
-      $warbles_holes[idx] = choose_interactive("Please set warble hole   -- #{idx+1} --  ", $harp_holes)
+      $warbles_holes[idx] = choose_interactive("Please set   \e[32m#{%w(FIRST SECOND)[idx]}\e[0m   warble hole: ", $harp_holes)
       clear_area_comment
       print "\e[0m\e[32m"
-      do_figlet_unwrapped $warbles_holes[idx], 'mono12'
+      do_figlet_unwrapped $warbles_holes[idx] || '-', 'mono9'
       print "\e[0m"
       sleep 0.7
+      break unless $warbles_holes[idx]
     end
+    $warbles_holes = Array.new(2) if $warbles_holes.any?(:nil?)
     $warbles[:standby] = true
     $freqs_queue.clear
   end

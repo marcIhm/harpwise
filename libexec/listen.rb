@@ -86,7 +86,7 @@ def do_listen
                     !$warbles[:standby]
                    return ["\e[K",
                            "   Warbling between two holes; start slow to define them\e[K",
-                           "   or type 'w' to set directly. Clear with BACKSPACE\e[K",
+                           "   or type 'w' to set directly. Clear with BACKSPACE.\e[K",
                            "\e[K",
                            case $opts[:time_slice]
                            when :short
