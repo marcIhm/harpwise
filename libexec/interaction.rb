@@ -1322,12 +1322,16 @@ def prepare_warbles
       $warbles_holes[idx] = choose_interactive("Please set   \e[32m#{%w(FIRST SECOND)[idx]}\e[0m   warble hole: ", $harp_holes)
       clear_area_comment
       print "\e[0m\e[32m"
+      puts
       do_figlet_unwrapped $warbles_holes[idx] || '-', 'mono9'
       print "\e[0m"
       sleep 0.7
       break unless $warbles_holes[idx]
     end
-    $warbles_holes = Array.new(2) if $warbles_holes.any?(:nil?)
+    if $warbles_holes.any?(:nil?) || $warbles_holes[0] == $warbles_holes[1]
+      $warbles_holes = Array.new(2)
+      $msgbuf.print "Warbling canceled", 2, 4
+    end
     $warbles[:standby] = true
     $freqs_queue.clear
   end
