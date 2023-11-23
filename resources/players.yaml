@@ -7,7 +7,7 @@
   - You're So Fine
   - My Babe
   - Blues With a Feeling
-  misc:
+  notes:
   - Inducted into The Rock and Roll Hall of Fame in 2008
   - Joined Muddy Waters' band in 1948
   - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
@@ -21,7 +21,7 @@
   - Help Me
   - Checkin' Up on My Baby
   - Bring It On Home
-  misc:
+  notes:
   - Played the 'King Biscuit Time' show
   - Toured Europe several times in the early 1960s
   - Married Howlin' Wolf's half-sister Mae
@@ -36,42 +36,48 @@
   - Orange Dude Blues
   - Nothin' but the devil
   - Little Dog
-  misc:
+  notes:
   - '"Annie Raines has some of the biggest tone out there, period"'
   - (quote by Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
 - name: Big Mama Thornton
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Big Walter Horton
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Charlie Mccoy
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Charlie Musselwhite
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Dick Salwitz aka Magic Dick
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Gary Primich
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: George 'Harmonica' Smith
-  bio: []
-  songs: []
-  misc: []
+  bio:
+  - April 22, 1924 – October 2, 1983
+  - American electric blues harmonica player
+  songs:
+  - Last Night
+  - Teardrops Falling
+  notes:
+  - Backing both Muddy Waters and Big Mama Thornton
+  - Influenced William Clarke and Rod Piazza
 - name: Howard Levy
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Chester Arthur Burnett aka Howlin' Wolf
   bio:
   - June 10, 1910 – January 10, 1976
@@ -81,7 +87,7 @@
   - Spoonfull
   - The Red Rooster
   - Killing Floor
-  misc:
+  notes:
   - Regarded as one of the most influential blues musicians of all time
   - Inducted in the Blues Hall of Fame in 1980
   - and the Rock and Roll Hall of Fame in 1991
@@ -89,67 +95,67 @@
 - name: James Cotton
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: James Harman
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Jason Ricci
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Jimmy Reed
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Junior Wells
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Kim Wilson
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Lee Oskar
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Mark Hummel
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Paul Butterfield
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Paul Delay
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Phil Wiggins
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Rick Estrin
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Rod Piazza
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Son of Dave
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Sonny Boy Williamson
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: Sonny Terry
   bio: []
   songs: []
-  misc: []
+  notes: []
 - name: William Clarke
   bio:
   - March 29, 1951 – November 2, 1996
@@ -158,9 +164,9 @@
   - Must Be Jelly
   - Lonesome Bedroom Blues
   - That Ain't the Way to Do it
-  misc:
+  notes:
   - '"one of the best harp players out there,"'
-  - '"with maybe the biggest tone, "'
+  - '"with maybe the biggest tone,"'
   - '"a bluesman with as much soul and swing in his music"'
   - (quote by Dick Shurman)
   - Played regularly with George 'Harmonica' Smith

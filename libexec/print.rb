@@ -402,9 +402,9 @@ def print_players args
     puts "  l,last: last player (if any) featured in listen\n\n"
     puts "players, which have no details yet, are dimmed\e[0m"
     puts
-    puts "#{$players.all.length} players. Specify a single name (or part of) to read details."
+    puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
   elsif args.length == 1 && 'random'.start_with?(args[0])
-    print_player $players.structured[$players.all_with_info.sample]
+    print_player $players.structured[$players.all_with_details.sample]
   elsif args.length == 1 && 'last'.start_with?(args[0])
     if File.exist?($players_file)
       name = IO.read($players_file).lines[0].chomp
@@ -454,7 +454,7 @@ end
 
 def print_player player
   puts_underlined player['name']
-  if $players.has_info?[player['name']]
+  if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
       next if group == 'name' || player[group].length == 0
       puts "\e[32m#{group}:\e[0m"

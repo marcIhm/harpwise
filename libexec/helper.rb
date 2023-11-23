@@ -627,19 +627,19 @@ class FamousPlayers
     @structured = Hash.new
     @printable = Hash.new
     @names = Array.new
-    @has_info = Hash.new
-    @with_info = Array.new
-    @all_groups = %w(name bio songs misc)
+    @has_details = Hash.new
+    @with_details = Array.new
+    @all_groups = %w(name bio songs notes)
     raw.each do |info|
       name = info['name']
       fail "Internal error: No 'name' given for #{info}" unless name
       fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
       pplayer = [name]
-      @has_info[name] = false
+      @has_details[name] = false
       info.each do |group, lines|
         fail "Internal error: Group '#{group}' is unknown; only these are allowed: #{@all_groups}" unless @all_groups.include?(group)
         next if group == 'name'
-        @has_info[name] = true if lines.length > 0
+        @has_details[name] = true if lines.length > 0
         pplayer.append(* lines.map {|l| "#{group}: #{l}"})
       end
       if pplayer.length == 1
@@ -653,7 +653,7 @@ class FamousPlayers
       end
       @structured[name] = info
       @printable[name] = pplayer
-      @with_info << name if @has_info[name]
+      @with_details << name if @has_details[name]
       @names << name
     end
   end
@@ -670,16 +670,16 @@ class FamousPlayers
     @names
   end
 
-  def all_with_info
-    @with_info
+  def all_with_details
+    @with_details
   end
   
-  def has_info?
-    @has_info
+  def has_details?
+    @has_details
   end
 
   def dimfor name
-    if @has_info[name]
+    if @has_details[name]
       "\e[0m"
     else
       "\e[2m"
@@ -694,7 +694,7 @@ class FamousPlayers
         # more weight; if all players have info, this does no harm either
         names = @names.clone
         while names.length < 4 * @names.length
-          names.append(*@with_info)
+          names.append(*@with_details)
         end
         names.shuffle.each do |name|
           @lines_pool << nil
@@ -708,7 +708,7 @@ class FamousPlayers
       if !@lines_pool_last
         # remember last player
         name = @lines_pool.shift
-        File.write($players_file, name) if @has_info[name]
+        File.write($players_file, name) if @has_details[name]
         @lines_pool_last = @lines_pool.shift
       end
       @lines_pool_when = Time.now.to_f
