@@ -16,7 +16,8 @@ def do_listen
   pipeline_catch_up
   $hole_was_for_disp = nil
   jlen_refresh_comment_cache = comment_cache = nil
-
+  $players = FamousPlayers.new
+  
   while !$ctl_mic[:switch_modes] do
     
     result = handle_holes(
@@ -139,13 +140,7 @@ def do_listen
           elsif $opts[:comment] == :warbles && $warbles_holes[0] && $warbles_holes[1]
             ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
           else
-            ["\e[0m\e[2mRemark: " +
-             if $all_scales.length == 1 || $opts[:add_no_holes]
-               "Scale has"
-             else
-               "Combined Scales have"
-             end +
-             " #{$scale_holes_w_equiv.length} of #{$harp_holes.length} holes"]
+            [$players.line_stream_current]
           end
         end
       end,

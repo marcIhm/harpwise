@@ -37,6 +37,9 @@ print:
     list of all scales with hole count
   intervals: |
     print all known intervals
+  player, players: |
+    print details about players matching argument or a list of all
+    known players
 tools:
   transpose: |
     transpose a sequence of holes between keys
@@ -46,7 +49,7 @@ tools:
     print a chart with keys and positions centered around current key
   chart: |
     various harmonica charts for current key
-  notes-major, notes : |
+  notes-major, notes: |
     print notes of major scale for given key
   progression, prog: |
     take a base and some semitone diffs, then spell them out

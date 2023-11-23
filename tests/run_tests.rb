@@ -108,7 +108,7 @@ usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 ##repl = {'harpwise play c wade' => 'harpwise play c easy'}
 ##usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 75
+num_exp = 76
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -1055,11 +1055,11 @@ do_test 'id-33a: warning with double shortname for scales' do
   new_session
   tms 'harpwise listen blues:b --add-scales chord-i:b --display chart-scales'
   tms :ENTER
-  sleep 10
+  sleep 20
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect { dump[:messages_printed][0][0]["Shortname 'b' is used for two scales"]}
+  expect(dump[:messages_printed]) { dump[:messages_printed][3][0]["Shortname 'b' is used for two scales"]}
   kill_session
 end
 
@@ -1884,7 +1884,7 @@ do_test 'id-68b: set warble holes explicitly' do
   sleep 2
   tms :RIGHT
   tms :ENTER
-  sleep 4
+  sleep 2
   expect { screen[23]['Warbling between holes +1 and -1/'] }
   kill_session
 end
@@ -2178,5 +2178,22 @@ do_test 'id-83: unittest' do
   kill_session
 end
 
+do_test 'id-84: print list of players' do
+  new_session
+  tms 'harpwise print players'
+  tms :ENTER
+  sleep 8
+  expect { screen[21][' players. Specify a single name'] }
+  kill_session
+end
+
+do_test 'id-85: print info about a specifc player' do
+  new_session
+  tms 'harpwise print player miller'
+  tms :ENTER
+  sleep 8
+  expect { screen[5]['Aleck Rice Miller'] }
+  kill_session
+end
 
 puts

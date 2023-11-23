@@ -369,7 +369,7 @@ def animate_splash_line single_line = false, as_string: false
 end
 
 
-def get_files_journal_trace
+def get_files_journal_trace_players
   trace = if $mode == :licks || $mode == :play || $mode == :print
           # modes licks and play both play random licks and report needs to read them
             "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
@@ -378,7 +378,7 @@ def get_files_journal_trace
           else
             nil
           end
-  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace]
+  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace,"#{$dirs[:data]}/players_last.txt"]
 end
 
 
@@ -478,7 +478,7 @@ def switch_modes
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
-  $journal_file, $trace_file  = get_files_journal_trace
+  $journal_file, $trace_file, $players_file = get_files_journal_trace_players
   $journal_all = false
   
   clear_area_comment
@@ -615,3 +615,104 @@ def get_extra_desc for_usage = false
 end
 
 
+class FamousPlayers
+
+  attr_reader :structured, :printable, :all_groups
+
+  def initialize
+    raw = YAML.load_file("#{$dirs[:install]}/resources/players.yaml")
+    @lines_pool = ['Notes about famous players will be drifting by ...']
+    @lines_pool_last = nil
+    @lines_pool_when = Time.now.to_f - 1000
+    @structured = Hash.new
+    @printable = Hash.new
+    @names = Array.new
+    @has_info = Hash.new
+    @with_info = Array.new
+    @all_groups = %w(name bio songs misc)
+    raw.each do |info|
+      name = info['name']
+      fail "Internal error: No 'name' given for #{info}" unless name
+      fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
+      pplayer = [name]
+      @has_info[name] = false
+      info.each do |group, lines|
+        fail "Internal error: Group '#{group}' is unknown; only these are allowed: #{@all_groups}" unless @all_groups.include?(group)
+        next if group == 'name'
+        @has_info[name] = true if lines.length > 0
+        pplayer.append(* lines.map {|l| "#{group}: #{l}"})
+      end
+      if pplayer.length == 1
+        pplayer[0] = "Not yet featured: #{name}"
+      else
+        pplayer[0] = "Featuring: #{name}"
+        pplayer << "Done for: #{name}"
+      end
+      pplayer.each do |line|
+        fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width] - 1}: '#{line}'" if line.length >= $conf[:term_min_width]
+      end
+      @structured[name] = info
+      @printable[name] = pplayer
+      @with_info << name if @has_info[name]
+      @names << name
+    end
+  end
+
+  def select parts
+    result = []
+    @names.each do |name|
+      result << name if parts.all? {|p| name.downcase[p.downcase]}
+    end
+    result
+  end
+
+  def all
+    @names
+  end
+
+  def all_with_info
+    @with_info
+  end
+  
+  def has_info?
+    @has_info
+  end
+
+  def dimfor name
+    if @has_info[name]
+      "\e[0m"
+    else
+      "\e[2m"
+    end
+  end
+
+  def line_stream_current
+    if Time.now.to_f - @lines_pool_when > 12
+      if @lines_pool.length == 0
+        @lines_pool << ['', '']
+        # We add those players, which have info multiple times to give them
+        # more weight; if all players have info, this does no harm either
+        names = @names.clone
+        while names.length < 4 * @names.length
+          names.append(*@with_info)
+        end
+        names.shuffle.each do |name|
+          @lines_pool << nil
+          @lines_pool << name
+          @lines_pool << @printable[name]
+          @lines_pool << ['', '']
+        end
+        @lines_pool.flatten!
+      end
+      @lines_pool_last = @lines_pool.shift
+      if !@lines_pool_last
+        # remember last player
+        name = @lines_pool.shift
+        File.write($players_file, name) if @has_info[name]
+        @lines_pool_last = @lines_pool.shift
+      end
+      @lines_pool_when = Time.now.to_f
+    end
+    @lines_pool_last
+  end
+end

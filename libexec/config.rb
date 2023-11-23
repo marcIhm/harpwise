@@ -349,7 +349,7 @@ def set_global_vars_late
   # is journaling of all holes played ongoing ?
   $journal_all = false
   # filenames; $journal_file contains both 'all' and 'some'
-  $journal_file, $trace_file = get_files_journal_trace
+  $journal_file, $trace_file, $players_file = get_files_journal_trace_players
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
@@ -586,7 +586,6 @@ def read_and_set_musical_config
     end
     # omit equivalent holes
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
-    $scale_holes_w_equiv = ( scale_holes.map {|h| harp[h][:equiv]}.flatten + scale_holes ).sort_by {|h| harp[h][:semi]}.uniq
 
     scale_notes = scale_holes.map {|h| $hole2note[h]}
     semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h

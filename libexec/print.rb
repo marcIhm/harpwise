@@ -21,7 +21,7 @@ def do_print to_print
   end
 
   # common error checking
-  err "'harpwise print #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if $extra && args_for_extra.length > 0
+  err "'harpwise print #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if $extra && !%w(player players).include?($extra) && args_for_extra.length > 0
 
   
   if !$extra
@@ -149,6 +149,11 @@ def do_print to_print
       end
       puts
 
+    when 'player', 'players'
+
+      $players = FamousPlayers.new
+      print_players args_for_extra
+      
     else
 
       fail "Internal error: unknown extra '#{$extra}'"
@@ -385,3 +390,77 @@ def print_starred_licks
   print "Total number of stars:       %6d\n" % $starred.values.sum
   print "Stars from: #{$star_file}\n\n"
 end      
+
+
+def print_players args
+  puts
+  if args.length == 0
+    puts_underlined "All players known to harpwise"
+    $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
+    puts
+    puts "\e[2m  r,random: pick one of these at random"
+    puts "  l,last: last player (if any) featured in listen\n\n"
+    puts "players, which have no details yet, are dimmed\e[0m"
+    puts
+    puts "#{$players.all.length} players. Specify a single name (or part of) to read details."
+  elsif args.length == 1 && 'random'.start_with?(args[0])
+    print_player $players.structured[$players.all_with_info.sample]
+  elsif args.length == 1 && 'last'.start_with?(args[0])
+    if File.exist?($players_file)
+      name = IO.read($players_file).lines[0].chomp
+      player = $players.structured[name]
+      if player
+        print_player player
+      else
+        puts "Name '#{name}' from '#{$players_file}' is unknown"
+      end
+    else
+      puts "Players file '#{$players_file}' does not exist (yet);\ninvoke mode listen first"
+    end
+  else
+    selected = $players.select(args)
+    if selected.length == 0
+      puts "No player matches your input; invoke without arguments to see a complete list"
+    elsif selected.length == 1
+      print_player $players.structured[selected[0]]
+    else
+      puts "Multiple players match your input:\n"
+      puts
+      if selected.length <= 9
+        selected.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+        make_term_immediate
+        $ctl_kb_queue.clear
+        puts
+        print "Please type one of (1..#{selected.length}) to read details: "
+        char = $ctl_kb_queue.deq
+        make_term_cooked
+        if (1 .. selected.length).map {|i| i.to_s}.include?(char)
+          puts char
+          puts "\n----------------------\n\n"
+          print_player $players.structured[selected[char.to_i - 1]]
+        else
+          print "Invalid input: #{char}"
+        end
+      else
+        selected.each {|p,i| puts "  " + p}
+        puts
+        puts "Too many matches (#{selected.length}); please be more specific"
+      end
+    end
+    puts
+  end
+end
+
+
+def print_player player
+  puts_underlined player['name']
+  if $players.has_info?[player['name']]
+    $players.all_groups.each do |group|
+      next if group == 'name' || player[group].length == 0
+      puts "\e[32m#{group}:\e[0m"
+      player[group].each {|l| puts "  #{l}"}
+    end
+  else
+    puts "\n\e[2mNo details known yet.\e[0m"
+  end
+end

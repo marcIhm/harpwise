@@ -113,3 +113,15 @@ USAGE BY EXAMPLES
 
   You may also check out mode tools for some more helpers.
   
+
+  Harpwise comes with a short list of famous players and information
+  about them; you may request this list to be printed:
+
+    harpwise print players
+
+  Or details for a specific player:
+
+    harpwie print player miller
+
+  This is the same information, that is printed line by line in mode
+  listen.
