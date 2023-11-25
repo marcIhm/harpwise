@@ -68,7 +68,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
         animate_splash_line(single_line = true)
-        $msgbuf.print nil, 0, 2
+        $msgbuf.print nil, 0, 6
       end
     end
 

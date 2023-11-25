@@ -40,10 +40,20 @@
   - '"Annie Raines has some of the biggest tone out there, period"'
   - (quote by Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
-- name: Big Mama Thornton
-  bio: []
-  songs: []
-  notes: []
+- name: Willie Mae Thornton aka Big Mama Thornton
+  bio:
+  - December 11, 1926 – July 25, 1984
+  - American singer and songwriter of the blues and R&B
+  songs:
+  - First to record Leiber and Stoller's "Hound Dog", in 1952
+  - Wrote "Ball and Chain"
+  notes:
+  - Her father was a minister in a Baptist church, her mother a singer.
+  - Toured with the American Folk Blues Festival in Europe in 1965.
+  - She was given her nickname, "Big Mama," because of her 
+  - strong voice, size, and personality.
+  - Thornton has been praised for subverting traditional
+  - roles of African-American women.
 - name: Big Walter Horton
   bio: []
   songs: []
@@ -53,10 +63,6 @@
   songs: []
   notes: []
 - name: Charlie Musselwhite
-  bio: []
-  songs: []
-  notes: []
-- name: Dick Salwitz aka Magic Dick
   bio: []
   songs: []
   notes: []
@@ -105,9 +111,22 @@
   songs: []
   notes: []
 - name: Jimmy Reed
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - September 6, 1925 – August 29, 1976
+  - American blues musician and songwriter
+  songs:
+  - Big Boss Man
+  - Baby What You Want Me to Do
+  - Bright Lights, Big City
+  notes:
+  - Inducted into the Blues Hall of Fame in 1980
+  - and the Rock and Roll Hall of Fame in 1991
+  - Reed influenced other musicians, such as Elvis Presley,
+  - Hank Williams Jr., and the Rolling Stones, who recorded his songs.
+  - Toured Europe with the American Folk Blues Festival in 1968.
+  - '"Perhaps the most influential bluesman of all,"'
+  - due to his easily accessible style.
+  - (quote by Cub Koda)
 - name: Junior Wells
   bio: []
   songs: []
@@ -129,17 +148,51 @@
   songs: []
   notes: []
 - name: Paul Delay
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - January 31, 1952 – March 7, 2007
+  - American blues vocalist and harmonicist
+  songs:
+  - Love on a Roll
+  - I'm Gonna Miss Talkin to You
+  - I Know You Got Another Man
+  - Wealthy Man
+  notes:
+  - '"If the world were a hipper place, Paul deLay would have"'
+  - '"been a superstar."'
+  - (quote by Rick Estrin)
+  - His work on the chromatic harp is considered
+  - by many to be unrivaled.
 - name: Phil Wiggins
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - May 8, 1954 -
+  - American harmonica player, Piedmont blues
+  songs:
+  - Goin' Down the Road Feelin' Bad
+  - Broke and Hungry
+  notes:
+  - Formed the duo Cephas & Wiggins with John Cephas
+  - They toured the USA, as well as Africa, Asia,
+  - South and Central America, and the Soviet Union.
+  - Known for his "blistering harmonica solos"
+  - National Heritage Fellow
 - name: Rick Estrin
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - October 5, 1949 -
+  - Lead singer, songwriter and harmonica player
+  songs:
+  - The Blues Ain't Going Nowhere
+  - My Next Ex-Wife
+  - Nothing but love
+  notes:
+  - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
+  - '"One of the great characters in blues - a sharp-dressing,"'
+  - '"smooth talking harmonica-playing hep-cat. He’s also a"'
+  - '"deceptively subtle writer who can cloak pointed or "'
+  - '"sobering messages within the band’s good-time vibe."'
+  - (The Philadelphia Inquirer)
+  - Played around the world with his band Rick Estrin & The Nightcats.
+  - Muddy Waters tried to hire Estrin as a sideman but Estrin did
+  - not receive the phone call.
 - name: Rod Piazza
   bio: []
   songs: []
@@ -153,9 +206,21 @@
   songs: []
   notes: []
 - name: Sonny Terry
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - October 24, 1911 – March 11, 1986
+  - American Piedmont blues and folk musician
+  songs:
+  - Old Jabo
+  - Lost John
+  - Diggin' My Potatoes
+  - Changed the Lock On My Door
+  notes:
+  - Known for his energetic blues harmonica style,
+  - which frequently included vocal whoops and hollers
+  - and occasionally imitations of trains and fox hunts
+  - Recorded numerous songs with Brownie McGhee
+  - Inducted into the Blues Hall of Fame in 1986
+  - Went blind at the age of 16
 - name: William Clarke
   bio:
   - March 29, 1951 – November 2, 1996

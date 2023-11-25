@@ -621,7 +621,9 @@ class FamousPlayers
 
   def initialize
     raw = YAML.load_file("#{$dirs[:install]}/resources/players.yaml")
-    @lines_pool = ['Notes about famous players will be drifting by ...']
+    @lines_pool = ['',
+                   'Notes about famous players will be drifting by ...',
+                   '(use "print players" to read them on their own)']
     @lines_pool_last = nil
     @lines_pool_when = Time.now.to_f - 1000
     @structured = Hash.new
@@ -687,9 +689,9 @@ class FamousPlayers
   end
 
   def line_stream_current
-    if Time.now.to_f - @lines_pool_when > 12
+    if Time.now.to_f - @lines_pool_when > 8
       if @lines_pool.length == 0
-        @lines_pool << ['', '']
+        @lines_pool << ['']
         # We add those players, which have info multiple times to give them
         # more weight; if all players have info, this does no harm either
         names = @names.clone
@@ -700,7 +702,7 @@ class FamousPlayers
           @lines_pool << nil
           @lines_pool << name
           @lines_pool << @printable[name]
-          @lines_pool << ['', '']
+          @lines_pool << ( @has_details[name]  ?  ['', '']  :  [''] )
         end
         @lines_pool.flatten!
       end

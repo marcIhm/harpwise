@@ -904,8 +904,10 @@ def for_automatic_calibration
 end
 
 
+$warned_for_double_short = Hash.new
 def warn_if_double_short short, long
-  if $short2scale[short] && long != $short2scale[short]
+  if $short2scale[short] && long != $short2scale[short] && !$warned_for_double_short[short]
+    $warned_for_double_short[short] = true
     txt = ["Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}'",
            "consider explicit shortname with ':' (see usage)"]
     if [:listen, :quiz, :licks].include?($mode)

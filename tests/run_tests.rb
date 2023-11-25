@@ -1059,7 +1059,7 @@ do_test 'id-33a: warning with double shortname for scales' do
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:messages_printed]) { dump[:messages_printed][3][0]["Shortname 'b' is used for two scales"]}
+  expect(dump[:messages_printed]) { dump[:messages_printed][0][0]["Shortname 'b' is used for two scales"]}
   kill_session
 end
 
@@ -2183,7 +2183,7 @@ do_test 'id-84: print list of players' do
   tms 'harpwise print players'
   tms :ENTER
   sleep 8
-  expect { screen[21][' players. Specify a single name'] }
+  expect { screen[20][' players with details. Specify a single name'] }
   kill_session
 end
 

@@ -457,7 +457,7 @@ def print_player player
   if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
       next if group == 'name' || player[group].length == 0
-      puts "\e[32m#{group}:\e[0m"
+      puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
   else
