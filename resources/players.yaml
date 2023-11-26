@@ -132,9 +132,19 @@
   songs: []
   notes: []
 - name: Kim Wilson
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - January 6, 1951 -
+  - American blues singer and harmonica player
+  songs:
+  - Tiger Man
+  - You Upset my Mind
+  - Searched All Over
+  - Mean Old Frisco
+  notes:
+  - Performs up to 300 concert dates per year
+  - In 2016 he won a Blues Music Award in the
+  - category Instrumentalist - Harmonica.
+  - 'Founder of the "The Fabulous Thunderbirds"'
 - name: Lee Oskar
   bio: []
   songs: []
@@ -197,10 +207,21 @@
   bio: []
   songs: []
   notes: []
-- name: Son of Dave
-  bio: []
-  songs: []
-  notes: []
+- name: Benjamin Darvill aka Son of Dave
+  bio:
+  - January 4, 1967 -
+  - Canadian musician and singer–songwriter
+  songs:
+  - Shake A Bone
+  - Voodoo Doll
+  - Devil Take My Soul
+  - Squat That Rabbit
+  - Whole Lotta Rosie
+  notes:
+  - Was a member of the Crash Test Dummies
+  - Moved to London in 1998
+  - Combines Beat-Boxing with harmonica
+  - '"A one-man party, a true Maverick Bluesman"'
 - name: Sonny Boy Williamson
   bio: []
   songs: []
