@@ -21,12 +21,13 @@ def set_global_vars_early
 
   # expectations for config-file
   $conf_meta = Hash.new
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :calibrate, :general]
+  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :print, :calibrate, :general]
   # update config ini if the below is extended
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
     :calibrate => [:auto_synth_db],
+    :print => [:viewer],
     :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]
@@ -202,12 +203,15 @@ def find_and_check_dirs
                  else
                    "#{Dir.home}/.#{File.basename($0)}"
                  end
+  $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
 
-  if File.exist?($dirs[:data])
-    err "Directory #{$dirs[:data]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[:data]} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?($dirs[:data])
-  else
-    FileUtils.mkdir_p($dirs[:data])
-    $dirs_data_created = true
+  [:data, :players_pictures].each do |dirsym|
+    if File.exist?($dirs[dirsym])
+      err "Directory #{$dirs[dirsym]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[dirsym]} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?($dirs[dirsym])
+    else
+      FileUtils.mkdir_p($dirs[dirsym])
+      $dirs_data_created = true if dirsym == :data
+    end
   end
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"

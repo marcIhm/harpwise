@@ -399,7 +399,9 @@ def print_players args
     $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
     puts
     puts "\e[2m  r,random: pick one of these at random"
-    puts "  l,last: last player (if any) featured in listen\n\n"
+    puts "  l,last: last player (if any) featured in listen"
+    puts "  a,all: all players in a loop\n\n"
+    puts "Remark: you may add your own pictures of players to subdirs of\n#{$dirs[:players_pictures]}\n\n"
     puts "players, which have no details yet, are dimmed\e[0m"
     puts
     puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
@@ -412,11 +414,19 @@ def print_players args
       if player
         print_player player
       else
-        puts "Name '#{name}' from '#{$players_file}' is unknown"
+        puts "Name '#{name}' from '#{$players_file}' is unknown (?)"
       end
     else
       puts "Players file '#{$players_file}' does not exist (yet);\ninvoke mode listen first"
     end
+  elsif args.length == 1 && 'all'.start_with?(args[0])
+    $players.all_with_details.each do |name|
+      puts
+      puts
+      print_player $players.structured[name]
+    end
+    puts
+    puts "#{$players.all_with_details.length} players with their details."
   else
     selected = $players.select(args)
     if selected.length == 0
@@ -460,6 +470,7 @@ def print_player player
       puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
+    $players.view_picture(player['image'][0]) if player['image'][0]
   else
     puts "\n\e[2mNo details known yet.\e[0m"
   end

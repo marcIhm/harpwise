@@ -70,7 +70,8 @@ def parse_arguments_early
         auto: %w(--auto),
         hole: %w(--hole)}],
      [Set[:print], {
-        terse: %w(--terse)}],
+        terse: %w(--terse),
+        viewer: %w(--viewer)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
         iterate: %w(--iterate),
@@ -127,6 +128,7 @@ def parse_arguments_early
     end
   end
   opts[:time_slice] ||= $conf[:time_slice]
+  opts[:viewer] ||= $conf[:viewer]
 
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
@@ -188,6 +190,13 @@ def parse_arguments_early
     opts[:min_holes] = opts[:min_holes].to_i
   end
 
+  if opts[:viewer]
+    vchoices = %w(none feh chafa)
+    err "Option '--viewer' can be any of #{vchoices}, not '#{opts[:viewer]}'" unless vchoices.include?(opts[:viewer])
+  else
+    opts[:viewer] = 'none'
+  end
+  
   opts[:fast] = false if opts[:no_fast]
   opts[:loop] = false if opts[:no_loop]
 

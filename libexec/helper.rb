@@ -631,18 +631,19 @@ class FamousPlayers
     @names = Array.new
     @has_details = Hash.new
     @with_details = Array.new
-    @all_groups = %w(name bio songs notes)
+    @all_groups = %w(name bio songs notes url)
     raw.each do |info|
       name = info['name']
       fail "Internal error: No 'name' given for #{info}" unless name
       fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
       pplayer = [name]
-      @has_details[name] = false
+      @has_details[name] = false      
       info.each do |group, lines|
         fail "Internal error: Group '#{group}' is unknown; only these are allowed: #{@all_groups}" unless @all_groups.include?(group)
         next if group == 'name'
         @has_details[name] = true if lines.length > 0
-        pplayer.append(* lines.map {|l| "#{group}: #{l}"})
+        info[group] = lines = [lines] if lines.is_a?(String)
+        pplayer.append(* lines.map {|l| "#{group}: #{l}"}) unless group == 'image'
       end
       if pplayer.length == 1
         pplayer[0] = "Not yet featured: #{name}"
@@ -653,6 +654,11 @@ class FamousPlayers
       pplayer.each do |line|
         fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width] - 1}: '#{line}'" if line.length >= $conf[:term_min_width]
       end
+      # handle dir for pics
+      pic_dir = $dirs[:players_pictures] + '/' + name.gsub(/[^\w\s_-]+/,'').gsub(/\s+/,'_')
+      FileUtils.mkdir(pic_dir) unless File.directory?(pic_dir)
+      info['image'] = [Dir[pic_dir + '/*'].sample]
+      
       @structured[name] = info
       @printable[name] = pplayer
       @with_details << name if @has_details[name]
@@ -716,5 +722,33 @@ class FamousPlayers
       @lines_pool_when = Time.now.to_f
     end
     @lines_pool_last
+  end
+
+  def view_picture file
+    needed = []
+    puts "\e[32mImage:\e[0m"
+    case $opts[:viewer]
+    when 'none'
+      puts "\e[2m  (to view the image, set option or config '--viewer')\e[0m"
+      return
+    when 'feh'
+      needed = %w(feh)
+    when 'chafa'
+      needed = %w(chafa)
+    else
+      err "Internal error: Unknown viewer: '#{$opts[:viewer]}'"
+    end
+    not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
+    err "These programs are needed to view player images but cannot be found: #{not_found}" if not_found.length > 0
+
+    if $opts[:viewer] == 'feh'
+      puts "\e[2m  #{file}\e[0m" 
+      puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m" 
+      sys "feh --geometry -0+0 #{file}"
+    else
+      puts
+      puts "\e[2m  #{file}\e[0m" 
+      puts sys("chafa #{file}")
+    end
   end
 end

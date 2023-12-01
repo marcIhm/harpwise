@@ -42,6 +42,7 @@ $dotdir_testing = "#{Dir.home}/dot_harpwise"
 $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
 $persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
+$players_pictures = "#{$dotdir_testing}/players_pictures"
 # remove these to get clean even if we do not rebuild completely
 Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 # This will make harpwise look into $dotdir_testing
@@ -130,7 +131,7 @@ do_test 'id-0: man-page should process without errors' do
 end
 
 do_test 'id-0a: selftest without user dir' do
-  FileUtils.rm_r $dotdir_testing if File.exist?($dotdir_testing)
+  FileUtils.rm_r($dotdir_testing) if File.exist?($dotdir_testing)
   new_session
   tms 'harpwise develop selftest'
   tms :ENTER
@@ -156,7 +157,7 @@ end
 # Prepare test-data through harpwise and then some
 do_test 'id-1: start without dot_harpwise' do
   # keep this within test, so that we only remove, if we also try to recreate
-  FileUtils.rm_r $dotdir_testing if File.exist?($dotdir_testing)
+  FileUtils.rm_r($dotdir_testing) if File.exist?($dotdir_testing)
   new_session
   tms 'harpwise'
   tms :ENTER
@@ -2179,20 +2180,33 @@ do_test 'id-83: unittest' do
 end
 
 do_test 'id-84: print list of players' do
+  FileUtils.rm_r($players_pictures) if File.exist?($players_pictures)
   new_session
   tms 'harpwise print players'
   tms :ENTER
   sleep 8
   expect { screen[20][' players with details. Specify a single name'] }
+  expect($players_pictures) {File.directory?($players_pictures)}
   kill_session
 end
 
 do_test 'id-85: print info about a specifc player' do
   new_session
-  tms 'harpwise print player miller'
+  tms 'harpwise print player sonny'
+  tms :ENTER
+  sleep 2
+  tms '1'
+  sleep 2
+  expect { screen[7]['Aleck Rice Miller'] }
+  kill_session
+end
+
+do_test 'id-86: print details of players' do
+  new_session
+  tms 'harpwise print players all'
   tms :ENTER
   sleep 8
-  expect { screen[5]['Aleck Rice Miller'] }
+  expect { screen[21]['players with their details'] }
   kill_session
 end
 

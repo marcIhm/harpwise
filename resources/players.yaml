@@ -12,9 +12,11 @@
   - Joined Muddy Waters' band in 1948
   - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
   - Pioneered amplified harmonica
-- name: Aleck Rice Miller aka Sonny Boy Williamson II
+  url: https://en.wikipedia.org/wiki/Little_Walter
+- name: Sonny Boy Williamson II
   bio:
   - December 5, 1912 - May 24, 1965
+  - Born as Aleck Rice Miller
   - American blues harmonica player, singer and songwriter
   songs:
   - Don't Start Me Talkin'
@@ -26,6 +28,7 @@
   - Toured Europe several times in the early 1960s
   - Married Howlin' Wolf's half-sister Mae
   - Showed Wolf how to play harmonica
+  url: https://en.wikipedia.org/wiki/Sonny_Boy_Williamson_II
 - name: Annie Raines
   bio:
   - July 3, 1969 -
@@ -40,9 +43,11 @@
   - '"Annie Raines has some of the biggest tone out there, period"'
   - (quote by Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
-- name: Willie Mae Thornton aka Big Mama Thornton
+  url: []
+- name: Big Mama Thornton
   bio:
   - December 11, 1926 – July 25, 1984
+  - Born as Willie Mae Thornton
   - American singer and songwriter of the blues and R&B
   songs:
   - First to record Leiber and Stoller's "Hound Dog", in 1952
@@ -55,6 +60,7 @@
   - Thornton has been praised for subverting traditional
   - roles of African-American women.
   - Inducted into the Blues Hall of Fame in 1982
+  url: []
 - name: '"Big" Walter Horton'
   bio:
   - April 6, 1921 – December 8, 1981
@@ -71,10 +77,12 @@
   - Known for his unique tongue-blocking techniques and tone.
   - Toured extensively in places such as Germany, Finland, and England
   - Accompanied John Lee Hooker in the 1980 film The Blues Brothers
+  url: []
 - name: Charlie Mccoy
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Charlie Musselwhite
   bio:
   - January 31, 1944 -
@@ -89,10 +97,12 @@
   - Fifty years of nonstop touring, released over 20 albums
   - Inducted into the Blues Hall of Fame in 2010
   - Reportedly the inspiration for Elwood Blues
+  url: []
 - name: Gary Primich
   bio: []
   songs: []
   notes: []
+  url: []
 - name: George 'Harmonica' Smith
   bio:
   - April 22, 1924 – October 2, 1983
@@ -103,13 +113,16 @@
   notes:
   - Backing both Muddy Waters and Big Mama Thornton
   - Influenced William Clarke and Rod Piazza
+  url: []
 - name: Howard Levy
   bio: []
   songs: []
   notes: []
-- name: Chester Arthur Burnett aka Howlin' Wolf
+  url: []
+- name: Howlin' Wolf
   bio:
   - June 10, 1910 – January 10, 1976
+  - Born as Chester Arthur Burnett
   - American blues singer and guitarist
   songs:
   - Smokestack Lightning
@@ -121,18 +134,31 @@
   - Inducted in the Blues Hall of Fame in 1980
   - and the Rock and Roll Hall of Fame in 1991
   - Known for his booming voice and imposing physical presence
+  url: []
 - name: James Cotton
   bio: []
   songs: []
   notes: []
+  url: []
 - name: James Harman
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Jason Ricci
-  bio: []
-  songs: []
-  notes: []
+  bio:
+  - February 3, 1974 -
+  - American harmonica player and singer
+  songs:
+  - I'm a New Man
+  - Can't believe it's this Good
+  - Nobody's Fault but Mine
+  - Black Limousine
+  notes:
+  - 'Won the Blues Music Award for "Best Harmonica Player" in 2010'
+  - '"I am convinced he ... is one of the best harmonica players"'
+  - '"of his generation." (quote by Adam Gussow)'
+  url: []
 - name: Jimmy Reed
   bio:
   - September 6, 1925 – August 29, 1976
@@ -150,10 +176,12 @@
   - '"Perhaps the most influential bluesman of all,"'
   - due to his easily accessible style.
   - (quote by Cub Koda)
+  url: []
 - name: Junior Wells
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Kim Wilson
   bio:
   - January 6, 1951 -
@@ -168,18 +196,22 @@
   - In 2016 he won a Blues Music Award in the
   - category Instrumentalist - Harmonica.
   - 'Founder of the "The Fabulous Thunderbirds"'
+  url: []
 - name: Lee Oskar
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Mark Hummel
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Paul Butterfield
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Paul Delay
   bio:
   - January 31, 1952 – March 7, 2007
@@ -195,6 +227,7 @@
   - (quote by Rick Estrin)
   - His work on the chromatic harp is considered
   - by many to be unrivaled.
+  url: []
 - name: Phil Wiggins
   bio:
   - May 8, 1954 -
@@ -208,6 +241,7 @@
   - South and Central America, and the Soviet Union.
   - Known for his "blistering harmonica solos"
   - National Heritage Fellow
+  url: []
 - name: Rick Estrin
   bio:
   - October 5, 1949 -
@@ -226,13 +260,16 @@
   - Played around the world with his band Rick Estrin & The Nightcats.
   - Muddy Waters tried to hire Estrin as a sideman but Estrin did
   - not receive the phone call.
+  url: []
 - name: Rod Piazza
   bio: []
   songs: []
   notes: []
-- name: Benjamin Darvill aka Son of Dave
+  url: []
+- name: Son of Dave
   bio:
   - January 4, 1967 -
+  - Born as Benjamin Darvill
   - Canadian musician and singer–songwriter
   songs:
   - Shake A Bone
@@ -245,10 +282,12 @@
   - Moved to London in 1998
   - Combines Beat-Boxing with harmonica
   - '"A one-man party, a true Maverick Bluesman"'
+  url: []
 - name: Sonny Boy Williamson
   bio: []
   songs: []
   notes: []
+  url: []
 - name: Sonny Terry
   bio:
   - October 24, 1911 – March 11, 1986
@@ -265,6 +304,7 @@
   - Recorded numerous songs with Brownie McGhee
   - Inducted into the Blues Hall of Fame in 1986
   - Went blind at the age of 16
+  url: []
 - name: William Clarke
   bio:
   - March 29, 1951 – November 2, 1996
@@ -279,3 +319,10 @@
   - '"a bluesman with as much soul and swing in his music"'
   - (quote by Dick Shurman)
   - Played regularly with George 'Harmonica' Smith
+  url: []
+  url: []
+- name: John Popper
+  bio: []
+  songs: []
+  notes: []
+  url: []
