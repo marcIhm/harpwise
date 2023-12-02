@@ -631,7 +631,7 @@ class FamousPlayers
     @names = Array.new
     @has_details = Hash.new
     @with_details = Array.new
-    @all_groups = %w(name bio songs notes url)
+    @all_groups = %w(name bio songs notes source)
     raw.each do |info|
       name = info['name']
       fail "Internal error: No 'name' given for #{info}" unless name
@@ -724,7 +724,7 @@ class FamousPlayers
     @lines_pool_last
   end
 
-  def view_picture file
+  def view_picture name, file
     needed = []
     puts "\e[32mImage:\e[0m"
     case $opts[:viewer]
@@ -732,7 +732,7 @@ class FamousPlayers
       puts "\e[2m  (to view the image, set option or config '--viewer')\e[0m"
       return
     when 'feh'
-      needed = %w(feh)
+      needed = %w(xwininfo feh)
     when 'chafa'
       needed = %w(chafa)
     else
@@ -743,10 +743,12 @@ class FamousPlayers
 
     if $opts[:viewer] == 'feh'
       puts "\e[2m  #{file}\e[0m" 
-      puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m" 
-      x,y = sys("feh -l #{file}").lines[1].split.slice(2,2).map(&:to_i)
-      scale = $conf[:viewer_scale_to].to_f / ( x > y ? y : x )
-      sys "feh -Z --borderless --geometry #{(x*scale).to_i}x#{(y*scale).to_i}-0+0 #{file}"
+      puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m"
+      sys("xwininfo -root")
+      sw = sys("xwininfo -root").lines.find {|l| l["Width"]}.scan(/\d+/)[0].to_i
+      pw, ph = sys("feh -l #{file}").lines[1].split.slice(2,2).map(&:to_i)
+      scale = $conf[:viewer_scale_to].to_f / ( pw > ph ? pw : ph )
+      sys "feh -Z --title \"#{name}\" --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
     else
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")

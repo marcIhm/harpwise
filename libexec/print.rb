@@ -424,6 +424,14 @@ def print_players args
       puts
       puts
       print_player $players.structured[name]
+      if !$players.structured[name]['image'][0] || $opts[:viewer] != 'feh'
+        make_term_immediate
+        puts
+        puts "\e[2mPress any key for next player ...\e[0m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        make_term_cooked
+      end
     end
     puts
     puts "#{$players.all_with_details.length} players with their details."
@@ -470,7 +478,7 @@ def print_player player
       puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
-    $players.view_picture(player['image'][0]) if player['image'][0]
+    $players.view_picture(player['name'], player['image'][0]) if player['image'][0]
   else
     puts "\n\e[2mNo details known yet.\e[0m"
   end
