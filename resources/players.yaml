@@ -2,13 +2,13 @@
   bio:
   - May 1, 1930 – February 15, 1968
   - American blues musician, singer, and songwriter
+  - Inducted into The Rock and Roll Hall of Fame in 2008
   songs:
   - Juke
   - You're So Fine
   - My Babe
   - Blues With a Feeling
   notes:
-  - Inducted into The Rock and Roll Hall of Fame in 2008
   - Joined Muddy Waters' band in 1948
   - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
   - Pioneered amplified harmonica
@@ -49,6 +49,7 @@
   - December 11, 1926 – July 25, 1984
   - Born as Willie Mae Thornton
   - American singer and songwriter of the blues and R&B
+  - Inducted into the Blues Hall of Fame in 1982
   songs:
   - First to record Leiber and Stoller's "Hound Dog", in 1952
   - Wrote "Ball and Chain"
@@ -59,8 +60,7 @@
   - strong voice, size, and personality.
   - Thornton has been praised for subverting traditional
   - roles of African-American women.
-  - Inducted into the Blues Hall of Fame in 1982
-  url: []
+  url: https://en.wikipedia.org/wiki/Big_Mama_Thornton
 - name: '"Big" Walter Horton'
   bio:
   - April 6, 1921 – December 8, 1981
@@ -77,16 +77,26 @@
   - Known for his unique tongue-blocking techniques and tone.
   - Toured extensively in places such as Germany, Finland, and England
   - Accompanied John Lee Hooker in the 1980 film The Blues Brothers
-  url: []
+  url: https://en.wikipedia.org/wiki/Big_Walter_Horton
 - name: Charlie Mccoy
-  bio: []
-  songs: []
-  notes: []
-  url: []
+  bio:
+  - March 28, 1941 -
+  - American session musician, harmonica player,
+  - and multi-instrumentalist
+  - Inducted into the Country Music Hall of Fame in 2009
+  songs:
+  - Orange Blossom Special
+  - You were always on my Mind
+  notes:
+  - His playing is heard on recordings by Elvis Presley, Bob Dylan,
+  - Johnny Cash, Chet Atkins, Waylon Jennings, Roy Orbison,
+  - Leon Russell, and Loretta Lynn
+  url: https://en.wikipedia.org/wiki/Charlie_McCoy
 - name: Charlie Musselwhite
   bio:
   - January 31, 1944 -
   - American blues harmonica player and bandleader
+  - Inducted into the Blues Hall of Fame in 2010
   songs:
   - Baby Will You Please Help Me
   - If I Should Have Bad Luck 
@@ -95,14 +105,20 @@
   - Journey through the blues from his birth in Mississippi
   - to Memphis, Chicago and California.
   - Fifty years of nonstop touring, released over 20 albums
-  - Inducted into the Blues Hall of Fame in 2010
   - Reportedly the inspiration for Elwood Blues
-  url: []
+  url: https://en.wikipedia.org/wiki/Charlie_Musselwhite
 - name: Gary Primich
-  bio: []
-  songs: []
-  notes: []
-  url: []
+  bio:
+  - April 20, 1958 – September 23, 2007
+  - American blues harmonica player, singer, guitarist and songwriter
+  songs:
+  - Bad Poker Hand
+  - Goodbye Little Girl
+  - Hoo Doo Ball
+  notes:
+  - Released an instructional double CD, Blues Harmonica:
+  - The Blues And Beyond
+  url: https://en.wikipedia.org/wiki/Gary_Primich
 - name: George 'Harmonica' Smith
   bio:
   - April 22, 1924 – October 2, 1983
@@ -124,6 +140,8 @@
   - June 10, 1910 – January 10, 1976
   - Born as Chester Arthur Burnett
   - American blues singer and guitarist
+  - Inducted in the Blues Hall of Fame in 1980
+  - and the Rock and Roll Hall of Fame in 1991
   songs:
   - Smokestack Lightning
   - Spoonfull
@@ -131,8 +149,6 @@
   - Killing Floor
   notes:
   - Regarded as one of the most influential blues musicians of all time
-  - Inducted in the Blues Hall of Fame in 1980
-  - and the Rock and Roll Hall of Fame in 1991
   - Known for his booming voice and imposing physical presence
   url: []
 - name: James Cotton
@@ -163,13 +179,13 @@
   bio:
   - September 6, 1925 – August 29, 1976
   - American blues musician and songwriter
+  - Inducted into the Blues Hall of Fame in 1980
+  - and the Rock and Roll Hall of Fame in 1991
   songs:
   - Big Boss Man
   - Baby What You Want Me to Do
   - Bright Lights, Big City
   notes:
-  - Inducted into the Blues Hall of Fame in 1980
-  - and the Rock and Roll Hall of Fame in 1991
   - Reed influenced other musicians, such as Elvis Presley,
   - Hank Williams Jr., and the Rolling Stones, who recorded his songs.
   - Toured Europe with the American Folk Blues Festival in 1968.
@@ -292,6 +308,7 @@
   bio:
   - October 24, 1911 – March 11, 1986
   - American Piedmont blues and folk musician
+  - Inducted into the Blues Hall of Fame in 1986
   songs:
   - Old Jabo
   - Lost John
@@ -302,7 +319,6 @@
   - which frequently included vocal whoops and hollers
   - and occasionally imitations of trains and fox hunts
   - Recorded numerous songs with Brownie McGhee
-  - Inducted into the Blues Hall of Fame in 1986
   - Went blind at the age of 16
   url: []
 - name: William Clarke

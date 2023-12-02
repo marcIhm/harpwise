@@ -27,7 +27,7 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast],
     :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
     :calibrate => [:auto_synth_db],
-    :print => [:viewer],
+    :print => [:viewer, :viewer_scale_to],
     :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]

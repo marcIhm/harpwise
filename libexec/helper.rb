@@ -745,12 +745,8 @@ class FamousPlayers
       puts "\e[2m  #{file}\e[0m" 
       puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m" 
       x,y = sys("feh -l #{file}").lines[1].split.slice(2,2).map(&:to_i)
-      scale = if x > y
-                400.0/y
-              else
-                400.0/x
-              end
-      sys "feh -Z --geometry #{(x*scale).to_i}x#{(y*scale).to_i}-0+0 #{file}"
+      scale = $conf[:viewer_scale_to].to_f / ( x > y ? y : x )
+      sys "feh -Z --borderless --geometry #{(x*scale).to_i}x#{(y*scale).to_i}-0+0 #{file}"
     else
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")
