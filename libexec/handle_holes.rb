@@ -421,7 +421,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $ctl_mic[:redraw] = Set[:clear, :silent]
         $freqs_queue.clear
       else
-        $msgbuf.print("No player featured currently", 2, 5, :replay)
+        $msgbuf.print("Featuring players not yet started, please stand by", 2, 5, :replay)
       end
     end
 
