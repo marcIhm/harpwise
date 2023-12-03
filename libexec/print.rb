@@ -400,9 +400,10 @@ def print_players args
     puts
     puts "\e[2m  r,random: pick one of these at random"
     puts "  l,last: last player (if any) featured in listen"
-    puts "  a,all: all players in a loop\n\n"
-    puts "Remark: you may add your own pictures of players to subdirs of\n#{$dirs[:players_pictures]}\n\n"
-    puts "players, which have no details yet, are dimmed\e[0m"
+    puts "  a,all: all players shuffled in a loop\n\n"
+    puts "Remark: Most information is take from Wikipedia. Links to source are provided."
+    puts "Remark: You may add your own pictures of players to subdirs of\n  #{$dirs[:players_pictures]}"
+    puts "Remark: Players, which have no details yet, are dimmed\e[0m"
     puts
     puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
   elsif args.length == 1 && 'random'.start_with?(args[0])
@@ -420,17 +421,23 @@ def print_players args
       puts "Players file '#{$players_file}' does not exist (yet);\ninvoke mode listen first"
     end
   elsif args.length == 1 && 'all'.start_with?(args[0])
-    $players.all_with_details.each do |name|
+    # the only way to end this loop prematurely is to press ctrl-c;
+    # with feh, this gives errors otherwise
+    Thread.report_on_exception = false
+    make_term_immediate
+    $players.all_with_details.shuffle.each do |name|
       puts
       puts
-      print_player $players.structured[name]
-      if !$players.structured[name]['image'][0] || $opts[:viewer] != 'feh'
-        make_term_immediate
-        puts
-        puts "\e[2mPress any key for next player ...\e[0m"
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-        make_term_cooked
+      print_player $players.structured[name], true
+      if $opts[:viewer] == 'feh'
+        if !$players.structured[name]['image'][0]
+          puts
+          puts "\e[2mPress any key for next Player ...\e[0m"
+          $ctl_kb_queue.clear
+          $ctl_kb_queue.deq
+        else
+          puts "\e[2mPress ctrl-c in this terminal to quit ...\e[0m"
+        end
       end
     end
     puts
@@ -470,7 +477,7 @@ def print_players args
 end
 
 
-def print_player player
+def print_player player, in_loop = false
   puts_underlined player['name']
   if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
@@ -478,7 +485,7 @@ def print_player player
       puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
-    $players.view_picture(player['name'], player['image'][0]) if player['image'][0]
+    $players.view_picture(player['image'][0], in_loop) if player['image'][0]
   else
     puts "\n\e[2mNo details known yet.\e[0m"
   end

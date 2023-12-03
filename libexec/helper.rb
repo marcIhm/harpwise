@@ -620,7 +620,8 @@ class FamousPlayers
   attr_reader :structured, :printable, :all_groups
 
   def initialize
-    raw = YAML.load_file("#{$dirs[:install]}/resources/players.yaml")
+    pfile = "#{$dirs[:install]}/resources/players.yaml"
+    raw = YAML.load_file(pfile)
     @lines_pool = ['',
                    'Notes about famous players will be drifting by ...',
                    '(use "print players" to read them on their own)']
@@ -631,18 +632,22 @@ class FamousPlayers
     @names = Array.new
     @has_details = Hash.new
     @with_details = Array.new
-    @all_groups = %w(name bio songs notes source)
+    @all_groups = %w(name bio notes source songs)
     raw.each do |info|
-      name = info['name']
+      sorted_info = Hash.new
+      name = sorted_info['name'] = info['name']
       fail "Internal error: No 'name' given for #{info}" unless name
       fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
       pplayer = [name]
-      @has_details[name] = false      
-      info.each do |group, lines|
-        fail "Internal error: Group '#{group}' is unknown; only these are allowed: #{@all_groups}" unless @all_groups.include?(group)
+      @has_details[name] = false
+      fail "Internal error: Set of allowed Groups #{@all_groups.sort} is different from set of groups for #{name} in #{pfile}: #{info.keys.sort}" unless @all_groups.sort == info.keys.sort 
+      # print information in order given by @all_groups
+      @all_groups.each do |group|
+        lines = info[group]
         next if group == 'name'
         @has_details[name] = true if lines.length > 0
-        info[group] = lines = [lines] if lines.is_a?(String)
+        sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
+        lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
         pplayer.append(* lines.map {|l| "#{group}: #{l}"}) unless group == 'image'
       end
       if pplayer.length == 1
@@ -654,12 +659,13 @@ class FamousPlayers
       pplayer.each do |line|
         fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width] - 1}: '#{line}'" if line.length >= $conf[:term_min_width]
       end
-      # handle dir for pics
+
+      # handle pictures
       pic_dir = $dirs[:players_pictures] + '/' + name.gsub(/[^\w\s_-]+/,'').gsub(/\s+/,'_')
       FileUtils.mkdir(pic_dir) unless File.directory?(pic_dir)
-      info['image'] = [Dir[pic_dir + '/*'].sample]
+      sorted_info['image'] = [Dir[pic_dir + '/*'].sample]
       
-      @structured[name] = info
+      @structured[name] = sorted_info
       @printable[name] = pplayer
       @with_details << name if @has_details[name]
       @names << name
@@ -724,7 +730,7 @@ class FamousPlayers
     @lines_pool_last
   end
 
-  def view_picture name, file
+  def view_picture file, in_loop
     needed = []
     puts "\e[32mImage:\e[0m"
     case $opts[:viewer]
@@ -742,13 +748,17 @@ class FamousPlayers
     err "These programs are needed to view player images but cannot be found: #{not_found}" if not_found.length > 0
 
     if $opts[:viewer] == 'feh'
-      puts "\e[2m  #{file}\e[0m" 
-      puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m"
+      puts "\e[2m  #{file}\e[0m"
+      if in_loop
+        puts "\e[2m  Viewing image with feh, type 'q' for next, type ctrl-c in terminal to quit\e[0m"
+      else
+        puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m"
+      end
       sys("xwininfo -root")
       sw = sys("xwininfo -root").lines.find {|l| l["Width"]}.scan(/\d+/)[0].to_i
       pw, ph = sys("feh -l #{file}").lines[1].split.slice(2,2).map(&:to_i)
-      scale = $conf[:viewer_scale_to].to_f / ( pw > ph ? pw : ph )
-      sys "feh -Z --title \"#{name}\" --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
+      scale = $conf[:viewer_scale_to].to_f / ( pw > ph ? ph : pw )
+      sys "feh -Z --borderless --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
     else
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")

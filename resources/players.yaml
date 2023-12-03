@@ -3,56 +3,59 @@
   - May 1, 1930 – February 15, 1968
   - American blues musician, singer, and songwriter
   - Inducted into The Rock and Roll Hall of Fame in 2008
-  songs:
-  - Juke
-  - You're So Fine
-  - My Babe
-  - Blues With a Feeling
   notes:
   - Joined Muddy Waters' band in 1948
   - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
   - Pioneered amplified harmonica
   source: https://en.wikipedia.org/wiki/Little_Walter
+  songs:
+  - Juke
+  - You're So Fine
+  - My Babe
+  - Blues With a Feeling
+
+
 - name: Sonny Boy Williamson II
   bio:
   - December 5, 1912 - May 24, 1965
   - Born as Aleck Rice Miller
   - American blues harmonica player, singer and songwriter
-  songs:
-  - Don't Start Me Talkin'
-  - Help Me
-  - Checkin' Up on My Baby
-  - Bring It On Home
   notes:
   - Played the 'King Biscuit Time' show
   - Toured Europe several times in the early 1960s
   - Married Howlin' Wolf's half-sister Mae
   - Showed Wolf how to play harmonica
   source: https://en.wikipedia.org/wiki/Sonny_Boy_Williamson_II
+  songs:
+  - Don't Start Me Talkin'
+  - Help Me
+  - Checkin' Up on My Baby
+  - Bring It On Home
+
+
 - name: Annie Raines
   bio:
   - July 3, 1969 -
   - American blues harmonica player
   - Started as a professional musician at the age of 17
-  songs:
-  - Looking Good
-  - Orange Dude Blues
-  - Nothin' but the devil
-  - Little Dog
   notes:
   - '"Annie Raines has some of the biggest tone out there, period"'
   - (quote by Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
   source: https://en.wikipedia.org/wiki/Annie_Raines
+  songs:
+  - Looking Good
+  - Orange Dude Blues
+  - Nothin' but the devil
+  - Little Dog
+
+
 - name: Big Mama Thornton
   bio:
   - December 11, 1926 – July 25, 1984
   - Born as Willie Mae Thornton
   - American singer and songwriter of the blues and R&B
   - Inducted into the Blues Hall of Fame in 1982
-  songs:
-  - First to record Leiber and Stoller's "Hound Dog", in 1952
-  - Wrote "Ball and Chain"
   notes:
   - Her father was a minister in a Baptist church, her mother a singer.
   - Toured with the American Folk Blues Festival in Europe in 1965.
@@ -61,14 +64,15 @@
   - Thornton has been praised for subverting traditional
   - roles of African-American women.
   source: https://en.wikipedia.org/wiki/Big_Mama_Thornton
+  songs:
+  - First to record Leiber and Stoller's "Hound Dog", in 1952
+  - Wrote "Ball and Chain"
+
+
 - name: '"Big" Walter Horton'
   bio:
   - April 6, 1921 – December 8, 1981
   - American blues harmonica player
-  songs:
-  - Easy
-  - Walking By Myself
-  - Walter's Boogie
   notes:
   - Robert Palmer named him as
   - '"one of the three great harmonica soloists of modern blues"'
@@ -78,63 +82,93 @@
   - Toured extensively in places such as Germany, Finland, and England
   - Accompanied John Lee Hooker in the 1980 film The Blues Brothers
   source: https://en.wikipedia.org/wiki/Big_Walter_Horton
+  songs:
+  - Easy
+  - Walking By Myself
+  - Walter's Boogie
+
+
 - name: Charlie Mccoy
   bio:
   - March 28, 1941 -
   - American session musician, harmonica player,
   - and multi-instrumentalist
   - Inducted into the Country Music Hall of Fame in 2009
-  songs:
-  - Orange Blossom Special
-  - You were always on my Mind
   notes:
   - His playing is heard on recordings by Elvis Presley, Bob Dylan,
   - Johnny Cash, Chet Atkins, Waylon Jennings, Roy Orbison,
   - Leon Russell, and Loretta Lynn
   source: https://en.wikipedia.org/wiki/Charlie_McCoy
+  songs:
+  - Orange Blossom Special
+  - You were always on my Mind
+
+
 - name: Charlie Musselwhite
   bio:
   - January 31, 1944 -
   - American blues harmonica player and bandleader
   - Inducted into the Blues Hall of Fame in 2010
-  songs:
-  - Baby Will You Please Help Me
-  - If I Should Have Bad Luck 
-  - Christo Redemptor
   notes:
   - Journey through the blues from his birth in Mississippi
   - to Memphis, Chicago and California.
   - Fifty years of nonstop touring, released over 20 albums
   - Reportedly the inspiration for Elwood Blues
   source: https://en.wikipedia.org/wiki/Charlie_Musselwhite
+  songs:
+  - Baby Will You Please Help Me
+  - If I Should Have Bad Luck 
+  - Christo Redemptor
+
+
 - name: Gary Primich
   bio:
   - April 20, 1958 – September 23, 2007
   - American blues harmonica player, singer, guitarist and songwriter
+  notes:
+  - "Released an instructional double CD, Blues Harmonica:"
+  - "The Blues And Beyond"
+  source: https://en.wikipedia.org/wiki/Gary_Primich
   songs:
   - Bad Poker Hand
   - Goodbye Little Girl
   - Hoo Doo Ball
-  notes:
-  - Released an instructional double CD, Blues Harmonica:
-  - The Blues And Beyond
-  source: https://en.wikipedia.org/wiki/Gary_Primich
+
+
 - name: George 'Harmonica' Smith
   bio:
   - April 22, 1924 – October 2, 1983
   - American electric blues harmonica player
-  songs:
-  - Last Night
-  - Teardrops Falling
   notes:
   - Backing both Muddy Waters and Big Mama Thornton
   - Influenced William Clarke and Rod Piazza
-  source: []
+  source: https://en.wikipedia.org/wiki/George_%22Harmonica%22_Smith
+  songs:
+  - Last Night
+  - Teardrops Falling
+
+
 - name: Howard Levy
-  bio: []
-  songs: []
-  notes: []
-  source: []
+  bio:
+  - July 31, 1951 -
+  - American multi-instrumentalist, keyboardist and virtuoso
+  - harmonica player
+  - Grammy Award for Best Pop Instrumental
+  - Grammy Award for Best Instrumental Composition
+  notes:
+  - "plays in many genres: jazz, classical, rock, folk, Latin,"
+  - blues, country, and world music
+  - Discovered the overblow and overdraw techniques for
+  - chromatic playing in 1970
+  - '"has been realistically presented as one of the most important"'
+  - '"and radical harmonica innovators of the twentieth century."'
+  - (quote from https://www.allmusic.com)
+  source: https://en.wikipedia.org/wiki/Howard_Levy
+  songs:
+  - Harmonia Mundi Suite for Harmonica and Chamber Ensemble
+  - The Tritate Boogie
+
+
 - name: Howlin' Wolf
   bio:
   - June 10, 1910 – January 10, 1976
@@ -142,49 +176,53 @@
   - American blues singer and guitarist
   - Inducted in the Blues Hall of Fame in 1980
   - and the Rock and Roll Hall of Fame in 1991
+  notes:
+  - Regarded as one of the most influential blues musicians of all time
+  - Known for his booming voice and imposing physical presence
+  source: https://en.wikipedia.org/wiki/Howlin%27_Wolf
   songs:
   - Smokestack Lightning
   - Spoonfull
   - The Red Rooster
   - Killing Floor
-  notes:
-  - Regarded as one of the most influential blues musicians of all time
-  - Known for his booming voice and imposing physical presence
-  source: []
+
+
 - name: James Cotton
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: James Harman
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Jason Ricci
   bio:
   - February 3, 1974 -
   - American harmonica player and singer
+  notes:
+  - 'Won the Blues Music Award for "Best Harmonica Player" in 2010'
+  - '"I am convinced he ... is one of the best harmonica players"'
+  - '"of his generation." (quote by Adam Gussow)'
+  source: https://en.wikipedia.org/wiki/Jason_Ricci
   songs:
   - I'm a New Man
   - Can't believe it's this Good
   - Nobody's Fault but Mine
   - Black Limousine
-  notes:
-  - 'Won the Blues Music Award for "Best Harmonica Player" in 2010'
-  - '"I am convinced he ... is one of the best harmonica players"'
-  - '"of his generation." (quote by Adam Gussow)'
-  source: []
+
+
 - name: Jimmy Reed
   bio:
   - September 6, 1925 – August 29, 1976
   - American blues musician and songwriter
   - Inducted into the Blues Hall of Fame in 1980
   - and the Rock and Roll Hall of Fame in 1991
-  songs:
-  - Big Boss Man
-  - Baby What You Want Me to Do
-  - Bright Lights, Big City
   notes:
   - Reed influenced other musicians, such as Elvis Presley,
   - Hank Williams Jr., and the Rolling Stones, who recorded his songs.
@@ -192,80 +230,96 @@
   - '"Perhaps the most influential bluesman of all,"'
   - due to his easily accessible style.
   - (quote by Cub Koda)
-  source: []
+  source: https://en.wikipedia.org/wiki/Jimmy_Reed
+  songs:
+  - Big Boss Man
+  - Baby What You Want Me to Do
+  - Bright Lights, Big City
+
+
 - name: Junior Wells
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Kim Wilson
   bio:
   - January 6, 1951 -
   - American blues singer and harmonica player
-  songs:
-  - Tiger Man
-  - You Upset my Mind
-  - Searched All Over
-  - Mean Old Frisco
   notes:
   - Performs up to 300 concert dates per year
   - In 2016 he won a Blues Music Award in the
   - category Instrumentalist - Harmonica.
   - 'Founder of the "The Fabulous Thunderbirds"'
-  source: []
+  source: https://de.wikipedia.org/wiki/Kim_Wilson
+  songs:
+  - Tiger Man
+  - You Upset my Mind
+  - Searched All Over
+  - Mean Old Frisco
+
+
 - name: Lee Oskar
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Mark Hummel
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Paul Butterfield
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Paul Delay
   bio:
   - January 31, 1952 – March 7, 2007
   - American blues vocalist and harmonicist
-  songs:
-  - Love on a Roll
-  - I'm Gonna Miss Talkin to You
-  - I Know You Got Another Man
-  - Wealthy Man
   notes:
   - '"If the world were a hipper place, Paul deLay would have"'
   - '"been a superstar."'
   - (quote by Rick Estrin)
   - His work on the chromatic harp is considered
   - by many to be unrivaled.
-  source: []
+  source: https://en.wikipedia.org/wiki/Paul_deLay
+  songs:
+  - Love on a Roll
+  - I'm Gonna Miss Talkin to You
+  - I Know You Got Another Man
+  - Wealthy Man
+
+
 - name: Phil Wiggins
   bio:
   - May 8, 1954 -
   - American harmonica player, Piedmont blues
-  songs:
-  - Goin' Down the Road Feelin' Bad
-  - Broke and Hungry
   notes:
   - Formed the duo Cephas & Wiggins with John Cephas
   - They toured the USA, as well as Africa, Asia,
   - South and Central America, and the Soviet Union.
   - Known for his "blistering harmonica solos"
   - National Heritage Fellow
-  source: []
+  source: https://en.wikipedia.org/wiki/Cephas_%26_Wiggins
+  songs:
+  - Goin' Down the Road Feelin' Bad
+  - Broke and Hungry
+
+
 - name: Rick Estrin
   bio:
   - October 5, 1949 -
   - Lead singer, songwriter and harmonica player
-  songs:
-  - The Blues Ain't Going Nowhere
-  - My Next Ex-Wife
-  - Nothing but love
   notes:
   - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
   - '"One of the great characters in blues - a sharp-dressing,"'
@@ -276,69 +330,84 @@
   - Played around the world with his band Rick Estrin & The Nightcats.
   - Muddy Waters tried to hire Estrin as a sideman but Estrin did
   - not receive the phone call.
-  source: []
+  source: https://en.wikipedia.org/wiki/Rick_Estrin_%26_The_Nightcats
+  songs:
+  - The Blues Ain't Going Nowhere
+  - My Next Ex-Wife
+  - Nothing but love
+
+
 - name: Rod Piazza
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Son of Dave
   bio:
   - January 4, 1967 -
   - Born as Benjamin Darvill
   - Canadian musician and singer–songwriter
+  notes:
+  - Was a member of the Crash Test Dummies
+  - Moved to London in 1998
+  - Combines Beat-Boxing with harmonica
+  - '"A one-man party, a true Maverick Bluesman"'
+  source: https://en.wikipedia.org/wiki/Son_of_Dave
   songs:
   - Shake A Bone
   - Voodoo Doll
   - Devil Take My Soul
   - Squat That Rabbit
   - Whole Lotta Rosie
-  notes:
-  - Was a member of the Crash Test Dummies
-  - Moved to London in 1998
-  - Combines Beat-Boxing with harmonica
-  - '"A one-man party, a true Maverick Bluesman"'
-  source: []
+
+
 - name: Sonny Boy Williamson
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
+
+
 - name: Sonny Terry
   bio:
   - October 24, 1911 – March 11, 1986
   - American Piedmont blues and folk musician
   - Inducted into the Blues Hall of Fame in 1986
-  songs:
-  - Old Jabo
-  - Lost John
-  - Diggin' My Potatoes
-  - Changed the Lock On My Door
   notes:
   - Known for his energetic blues harmonica style,
   - which frequently included vocal whoops and hollers
   - and occasionally imitations of trains and fox hunts
   - Recorded numerous songs with Brownie McGhee
   - Went blind at the age of 16
-  source: []
+  source: https://en.wikipedia.org/wiki/Sonny_Terry
+  songs:
+  - Old Jabo
+  - Lost John
+  - Diggin' My Potatoes
+  - Changed the Lock On My Door
+
+
 - name: William Clarke
   bio:
   - March 29, 1951 – November 2, 1996
   - American blues harmonica player and singer
-  songs:
-  - Must Be Jelly
-  - Lonesome Bedroom Blues
-  - That Ain't the Way to Do it
   notes:
   - '"one of the best harp players out there,"'
   - '"with maybe the biggest tone,"'
   - '"a bluesman with as much soul and swing in his music"'
   - (quote by Dick Shurman)
   - Played regularly with George 'Harmonica' Smith
-  source: []
-  source: []
+  source: https://en.wikipedia.org/wiki/William_Clarke_(musician)
+  songs:
+  - Must Be Jelly
+  - Lonesome Bedroom Blues
+  - That Ain't the Way to Do it
+
+
 - name: John Popper
   bio: []
-  songs: []
   notes: []
   source: []
+  songs: []
