@@ -642,8 +642,10 @@ def handle_kb_mic
     $ctl_mic[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
     text = 'Replay'
   elsif char == 'P' && $ctl_can[:next]
-    $ctl_mic[:auto_replay] = :true
+    $ctl_mic[:auto_replay] = true
     text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'
+  elsif char == 'p'
+    $ctl_mic[:player_details] = true
   elsif (char == '0' || char == '-') && $ctl_can[:next]
     $ctl_mic[:forget] = true
     text = 'Forget'

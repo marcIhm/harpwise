@@ -407,6 +407,24 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $msgbuf.print("Auto replay is: " + ( $opts[:auto_replay] ? 'ON' : 'OFF' ), 2, 5, :replay)
     end
 
+    if $ctl_mic[:player_details]
+      $ctl_mic[:player_details] = false
+      if $players.stream_current
+        system('clear')
+        puts
+        print_player($players.structured[$players.stream_current])
+        if $opts[:viewer] != 'feh' || !$players.structured[$players.stream_current]['image'][0]
+          puts "\n\e[0m\e[2m  Press any key to go back to mode '#{$mode}' ...\e[0m"
+          $ctl_kb_queue.clear
+          $ctl_kb_queue.deq
+        end
+        $ctl_mic[:redraw] = Set[:clear, :silent]
+        $freqs_queue.clear
+      else
+        $msgbuf.print("No player featured currently", 2, 5, :replay)
+      end
+    end
+
     if $ctl_mic[:star_lick] && lambda_star_lick
       lambda_star_lick.call($ctl_mic[:star_lick] == :up  ?  +1  :  -1)
       $ctl_mic[:star_lick] = false
@@ -632,7 +650,7 @@ def show_help
   else
     frames[-1] <<  "      j: journal-menu to handle holes collected"
     frames[-1] <<  "      w: switch comment to warble and prepare"
-    frames[-1] <<  " ctrl-r: record and play user-licks automatically"
+    frames[-1] <<  "      p: print details about current player"
   end
     
   if $ctl_can[:switch_modes]

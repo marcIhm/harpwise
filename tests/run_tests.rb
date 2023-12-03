@@ -2210,4 +2210,15 @@ do_test 'id-86: print details of players' do
   kill_session
 end
 
+do_test 'id-87: player info in listen' do
+  new_session
+  tms 'harpwise listen c'
+  tms :ENTER
+  sleep 60
+  tms 'p'
+  sleep 1
+  expect { screen.any? {|l| l["Press any key to go back to mode 'listen'"] }}
+  kill_session
+end
+
 puts

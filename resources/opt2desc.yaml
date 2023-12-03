@@ -198,9 +198,9 @@ time_slice:
 
 viewer:
   - |
-    Viewer for images (e.g. of players); can be 'none' or one of the
-    external programs 'feh' or 'chafa' which need to be installed
-    first.
+    Viewer for images (e.g. of players); can be
+    'none' or one of the external programs 'feh' or 'chafa'
+    which need to be installed first.
   - NONE_FEH_CHAFA
   
 terse:

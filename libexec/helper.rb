@@ -617,16 +617,17 @@ end
 
 class FamousPlayers
 
-  attr_reader :structured, :printable, :all_groups
+  attr_reader :structured, :printable, :all_groups, :stream_current
 
   def initialize
     pfile = "#{$dirs[:install]}/resources/players.yaml"
     raw = YAML.load_file(pfile)
     @lines_pool = ['',
                    'Notes about famous players will be drifting by ...',
-                   '(use "print players" to read them on their own)']
+                   '(use "p" or "print players" to read them on their own)']
     @lines_pool_last = nil
     @lines_pool_when = Time.now.to_f - 1000
+    @stream_current = nil
     @structured = Hash.new
     @printable = Hash.new
     @names = Array.new
@@ -648,7 +649,7 @@ class FamousPlayers
         @has_details[name] = true if lines.length > 0
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
         lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
-        pplayer.append(* lines.map {|l| "#{group}: #{l}"}) unless group == 'image'
+        pplayer.append(* lines.map {|l| "#{group.capitalize}: #{l}"}) unless group == 'image'
       end
       if pplayer.length == 1
         pplayer[0] = "Not yet featured: #{name}"
@@ -721,7 +722,7 @@ class FamousPlayers
       @lines_pool_last = @lines_pool.shift
       if !@lines_pool_last
         # remember last player
-        name = @lines_pool.shift
+        @stream_current = name = @lines_pool.shift
         File.write($players_file, name) if @has_details[name]
         @lines_pool_last = @lines_pool.shift
       end
@@ -746,7 +747,6 @@ class FamousPlayers
     end
     not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
     err "These programs are needed to view player images but cannot be found: #{not_found}" if not_found.length > 0
-
     if $opts[:viewer] == 'feh'
       puts "\e[2m  #{file}\e[0m"
       if in_loop

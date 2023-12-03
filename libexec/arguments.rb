@@ -70,7 +70,8 @@ def parse_arguments_early
         auto: %w(--auto),
         hole: %w(--hole)}],
      [Set[:print], {
-        terse: %w(--terse),
+        terse: %w(--terse)}],
+     [Set[:listen, :print], {
         viewer: %w(--viewer)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
