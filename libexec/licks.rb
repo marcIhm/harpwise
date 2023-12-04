@@ -228,8 +228,6 @@ def read_licks graceful = false
   discard_any = Set.new($opts[:no_tags_any]&.split(','))
   discard_all = Set.new($opts[:no_tags_all]&.split(','))
 
-  all_tag_opts = [$opts[:tags_any], $opts[:tags_all], $opts[:no_tags_any], $opts[:no_tags_all]]
-
   if (keep_all).intersection(discard_any).any?
     if graceful
       return [[],[]]
@@ -259,8 +257,17 @@ def read_licks graceful = false
             reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
             select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
             select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
-  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying options '--tags-any', '--tags-all', '--no-tags-any', '--no-tags-all', '--max-holes' and '--min-holes'") if licks.length == 0
-
+  if licks.length == 0
+    effective = [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].map do |opt|
+      if $opts[opt] && $opts[opt].to_s.length > 0
+        "\n  --" + opt.o2str + ' ' + $opts[opt].to_s
+      else
+        ''
+      end
+    end.join
+    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{effective}\n(some of these values may also come from config)") 
+  end
+    
   [all_licks, licks]
 end
 

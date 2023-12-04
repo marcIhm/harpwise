@@ -1562,6 +1562,8 @@ do_test 'id-54e: print list of all scales' do
   lines = File.read($testing_output_file).lines
   [" all              :  32\n",
    "   \e[2mShort: a\e[0m\n",
+   " arabic           :  15\n",
+   "   \e[2mShort: a\e[0m\n",   
    " blues            :  18\n",
    "   \e[2mShort: b\e[0m\n",
    " blues-middle     :   7\n",
