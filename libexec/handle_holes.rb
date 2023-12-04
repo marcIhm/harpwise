@@ -294,8 +294,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
             # no description, put name of lick and tags on own line
             print truncate_text(hints[2]) + "\e[K"
             message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
-            print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}"
-            print message2
+            print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}\e[K"
           else
             # hints[0 .. 2] are on first line, hints[3] on the second
             # if necessary, we truncate or omit hints[1] (tags)
