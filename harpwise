@@ -96,6 +96,8 @@ Signal.trap('SIGINT') do
   print "\e[#{$lines[:message2]}H" if $move_down_on_exit
   fail "\n\n\n\e[0mexit on ctrl-c" if $opts[:debug]
   puts "\n\n\n\e[0mexit on ctrl-c"
+  puts "\e[K"
+  print "\e[K"
   exit 1
 end
 
