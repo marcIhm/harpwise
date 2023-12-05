@@ -1158,7 +1158,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     when 1
       self[:lick_idx] = $licks.index {|l| l[:name][start_with]}
     when 0
-      err "Unknown lick: '#{start_with}' (after applying options '--tags' and '--no-tags' and '--max-holes')"
+      err "Unknown lick: '#{start_with}' after applying these options:#{desc_lick_select_opts}"
     else
       exact = $licks.map {|l| l[:name]}.select {|n| n == start_with}
       if exact.length == 1

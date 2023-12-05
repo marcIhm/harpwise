@@ -258,14 +258,7 @@ def read_licks graceful = false
             select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
             select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
   if licks.length == 0
-    effective = [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].map do |opt|
-      if $opts[opt] && $opts[opt].to_s.length > 0
-        "\n  --" + opt.o2str + ' ' + $opts[opt].to_s
-      else
-        ''
-      end
-    end.join
-    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{effective}\n(some of these values may also come from config)") 
+    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") 
   end
     
   [all_licks, licks]
@@ -373,3 +366,12 @@ def replace_vars vars, words, name
   end
 end
 
+def desc_lick_select_opts
+  effective = [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].map do |opt|
+    if $opts[opt] && $opts[opt].to_s.length > 0
+      "\n  --" + opt.o2str + ' ' + $opts[opt].to_s
+    else
+      ''
+    end
+  end.join + "\n(some of these values may also come from config)\n"
+end
