@@ -188,10 +188,20 @@
 
 
 - name: James Cotton
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - July 1, 1935 – March 16, 2017
+  - American blues harmonica player, singer and songwriter
+  - Inducted into the Blues Hall of Fame in 2006
+  notes:
+  - Muddy Waters bandleader until 1965
+  - Played the harp in Howlin' Wolfs band
+  - Toured with Janis Joplin
+  source: https://en.wikipedia.org/wiki/James_Cotton
+  songs:
+  - Cotton Mouth Man
+  - When the Levee Breaks
+  - Play With Your Poodle
+  - Superharp
 
 
 - name: James Harman
