@@ -330,6 +330,14 @@ def parse_arguments_early
     if scale
       # for modes play and print: if the scale is our only argument, keep it for later
       # for mode tools: remove the recognized scale in any case
+      #
+      # These cases should all be treated as described:
+      #   Take chord-i as scale-argument and print chord-iv and chord-v:
+      #     harpwise print chord-i chord-iv chord-v
+      #   Take chord-i as scale-argument and print it:
+      #     harpwise print chord-i
+      #   Take chord-i as scale-argument and show table of keys:
+      #     harpwise tools chord-i keys
       ARGV.shift if ARGV.length > 1 || $mode == :tools
     else
       scale = get_scale_from_sws('all:a')

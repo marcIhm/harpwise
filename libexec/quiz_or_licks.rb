@@ -744,6 +744,15 @@ def scaleify holes
 end
 
 
+def remarkify holes
+  holes_maxlen = holes.max_by(&:length).length
+  remarks_maxlen = holes.map {|hole| $hole2rem[hole] || ''}.max_by(&:length).length
+  holes.each.map do |hole|
+    [' ' * (holes_maxlen - hole.length), hole, ($hole2rem[hole] || '').ljust(remarks_maxlen)]
+  end
+end
+
+
 def intervalify holes_or_notes, prefer_names: true
   inters = []
   holes_or_notes.each_with_index do |hon, idx|

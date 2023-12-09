@@ -143,7 +143,7 @@ def partition_to_play_or_print to_handle
       snames << th
     elsif what == :lick
       lnames << th
-    elsif :last
+    elsif what == :last
       md = th.match(/^(\dlast|\dl)$/)
       lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
     else

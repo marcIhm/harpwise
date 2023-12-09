@@ -36,7 +36,7 @@ def do_print to_print
       puts_underlined 'Scales given as arguments:'
       snames.each do |sn|
         sname = get_scale_from_sws(sn)
-        puts "\e[2m#{sname}:\e[0m"
+        puts_underlined "#{sname}:", '-', dim: false
         puts
         scale_holes, _ = read_and_parse_scale(sname)
         print_holes_and_more scale_holes
@@ -46,13 +46,16 @@ def do_print to_print
           print "\e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
           puts
         end
+        puts
+        puts if snames.length > 1
       end
+      puts "#{snames.length} scales printed." if snames.length > 1
       
     elsif lnames.length > 0
       
       puts_underlined 'Licks given as arguments:'
       lnames.each do |lname|
-        puts_underlined "#{lname}:", '-'
+        puts_underlined "#{lname}:", '-', dim: false
         puts
         lick = $licks.find {|l| l[:name] == lname}
         print_holes_and_more lick[:holes_wo_events]
@@ -185,6 +188,9 @@ def print_holes_and_more holes_or_notes
   puts
   puts "\e[2mWith holes:\e[0m"
   print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+  puts
+  puts "\e[2mWith holes and remarks:\e[0m"
+  print_in_columns(remarkify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})

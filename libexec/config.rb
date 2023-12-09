@@ -583,8 +583,16 @@ def read_and_set_musical_config
         h2s_shorts[h] += $scale2short[sname]
         harp[h][:equiv].each {|h| h2s_shorts[h] += $scale2short[sname]}
         hole2rem[h] ||= [[],[]]
-        hole2rem[h][0] << sname if $used_scales.length > 1
-        hole2rem[h][1] << h2rem[h]&.split(/, /)
+        hole2rem[h][0] << ( $scale2short[sname] || sname ) if sname != 'all' && $used_scales.length > 1
+        if h2rem[h]
+          h2rem[h].split(/, /).each do |r|
+            if %w( root rt ).include?(r) && $used_scales.length > 0
+              hole2rem[h][1] << "rt(#{( $scale2short[sname] || sname )})"
+            else
+              hole2rem[h][1] << r
+            end
+          end
+        end
       end
     end
     # omit equivalent holes
@@ -599,7 +607,6 @@ def read_and_set_musical_config
   hole2rem.each_key do |h|
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
-  
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
@@ -631,6 +638,7 @@ def read_and_set_musical_config
     intervals,
     intervals_inv,
     hole_root]
+
 end
 
 
