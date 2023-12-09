@@ -1,6 +1,6 @@
 - name: Little Walter
   bio:
-  - May 1, 1930 – February 15, 1968
+  - May 1, 1930 - February 15, 1968
   - American blues musician, singer, and songwriter
   - Inducted into The Rock and Roll Hall of Fame in 2008
   notes:
@@ -52,7 +52,7 @@
 
 - name: Big Mama Thornton
   bio:
-  - December 11, 1926 – July 25, 1984
+  - December 11, 1926 - July 25, 1984
   - Born as Willie Mae Thornton
   - American singer and songwriter of the blues and R&B
   - Inducted into the Blues Hall of Fame in 1982
@@ -71,7 +71,7 @@
 
 - name: '"Big" Walter Horton'
   bio:
-  - April 6, 1921 – December 8, 1981
+  - April 6, 1921 - December 8, 1981
   - American blues harmonica player
   notes:
   - Robert Palmer named him as
@@ -123,7 +123,7 @@
 
 - name: Gary Primich
   bio:
-  - April 20, 1958 – September 23, 2007
+  - April 20, 1958 - September 23, 2007
   - American blues harmonica player, singer, guitarist and songwriter
   notes:
   - "Released an instructional double CD, Blues Harmonica:"
@@ -137,7 +137,7 @@
 
 - name: George 'Harmonica' Smith
   bio:
-  - April 22, 1924 – October 2, 1983
+  - April 22, 1924 - October 2, 1983
   - American electric blues harmonica player
   notes:
   - Backing both Muddy Waters and Big Mama Thornton
@@ -162,7 +162,7 @@
   - chromatic playing in 1970
   - '"has been realistically presented as one of the most important"'
   - '"and radical harmonica innovators of the twentieth century."'
-  - (quote from https://www.allmusic.com)
+  - "(quote from https://www.allmusic.com)"
   source: https://en.wikipedia.org/wiki/Howard_Levy
   songs:
   - Harmonia Mundi Suite for Harmonica and Chamber Ensemble
@@ -171,7 +171,7 @@
 
 - name: Howlin' Wolf
   bio:
-  - June 10, 1910 – January 10, 1976
+  - June 10, 1910 - January 10, 1976
   - Born as Chester Arthur Burnett
   - American blues singer and guitarist
   - Inducted in the Blues Hall of Fame in 1980
@@ -189,7 +189,7 @@
 
 - name: James Cotton
   bio:
-  - July 1, 1935 – March 16, 2017
+  - July 1, 1935 - March 16, 2017
   - American blues harmonica player, singer and songwriter
   - Inducted into the Blues Hall of Fame in 2006
   notes:
@@ -205,10 +205,21 @@
 
 
 - name: James Harman
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - June 8, 1946 - May 23, 2021
+  - American blues harmonica player, singer, and songwriter
+  notes:
+  - Began taking piano lessons at the age of four
+  - Has been compared with Raymond Chandler
+  - (for the story in his songs)
+  - "Harman had one of the tightest bands anywhere,"
+  - (quote by Mary Katherine Aldin)
+  source: https://en.wikipedia.org/wiki/James_Harman
+  songs:
+  - Bonetime
+  - Big Boned Girl
+  - Blue Stretchmark Tattoo
+  - Ain't it crazy
 
 
 - name: Jason Ricci
@@ -229,7 +240,7 @@
 
 - name: Jimmy Reed
   bio:
-  - September 6, 1925 – August 29, 1976
+  - September 6, 1925 - August 29, 1976
   - American blues musician and songwriter
   - Inducted into the Blues Hall of Fame in 1980
   - and the Rock and Roll Hall of Fame in 1991
@@ -294,7 +305,7 @@
 
 - name: Paul Delay
   bio:
-  - January 31, 1952 – March 7, 2007
+  - January 31, 1952 - March 7, 2007
   - American blues vocalist and harmonicist
   notes:
   - '"If the world were a hipper place, Paul deLay would have"'
@@ -333,16 +344,17 @@
   notes:
   - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
   - '"One of the great characters in blues - a sharp-dressing,"'
-  - '"smooth talking harmonica-playing hep-cat. He’s also a"'
+  - '"smooth talking harmonica-playing hep-cat. He''s also a"'
   - '"deceptively subtle writer who can cloak pointed or "'
-  - '"sobering messages within the band’s good-time vibe."'
+  - '"sobering messages within the band''s good-time vibe."'
   - (The Philadelphia Inquirer)
-  - Played around the world with his band Rick Estrin & The Nightcats.
+  - Played around the world with his band
+  - '"Rick Estrin & The Nightcats".'
   - Muddy Waters tried to hire Estrin as a sideman but Estrin did
   - not receive the phone call.
   source: https://en.wikipedia.org/wiki/Rick_Estrin_%26_The_Nightcats
   songs:
-  - The Blues Ain't Going Nowhere
+  - The Blues Ain\'t Going Nowhere
   - My Next Ex-Wife
   - Nothing but love
 
@@ -358,7 +370,7 @@
   bio:
   - January 4, 1967 -
   - Born as Benjamin Darvill
-  - Canadian musician and singer–songwriter
+  - Canadian musician and singer-songwriter
   notes:
   - Was a member of the Crash Test Dummies
   - Moved to London in 1998
@@ -382,7 +394,7 @@
 
 - name: Sonny Terry
   bio:
-  - October 24, 1911 – March 11, 1986
+  - October 24, 1911 - March 11, 1986
   - American Piedmont blues and folk musician
   - Inducted into the Blues Hall of Fame in 1986
   notes:
@@ -401,7 +413,7 @@
 
 - name: William Clarke
   bio:
-  - March 29, 1951 – November 2, 1996
+  - March 29, 1951 - November 2, 1996
   - American blues harmonica player and singer
   notes:
   - '"one of the best harp players out there,"'
