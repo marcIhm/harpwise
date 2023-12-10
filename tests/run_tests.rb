@@ -1476,7 +1476,7 @@ do_test 'id-53: print' do
    34 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
    38 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    42 => '-7  -5  -2   1  -2   1   0  -2',
-   46 => 'Description: St. Louis Blues'}.each do |lno, exp|
+   47 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1487,7 +1487,7 @@ do_test 'id-53a: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[6]['-1.15    +2.4     -2.14   -3/.4     +3.14   -3/.4   -3//.5     -2.14'] }
+  expect { screen[3]['-1.15    +2.4     -2.14   -3/.4     +3.14   -3/.4   -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1495,14 +1495,15 @@ do_test 'id-53b: print with scales but terse' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
   tms :ENTER
-  expect { screen[14] == '$' }
+  sleep 1
+  expect { screen[15] == '$' }
   kill_session
 end
 
-do_test 'id-53c: print two scales but terse' do
+do_test 'id-53c: print two scales' do
   new_session
   # chord-i is taken as scale and only chord-iv and chord-v are handled
-  tms 'harpwise print chord-i chord-iv chord-v --add-scales chord-iv,chord-v --terse'
+  tms 'harpwise print chord-i chord-iv chord-v --add-scales chord-iv,chord-v'
   tms :ENTER
   expect { screen[21]['2 scales printed.'] }
   kill_session

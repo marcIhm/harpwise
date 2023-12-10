@@ -49,7 +49,7 @@ def do_print to_print
         puts
         puts if snames.length > 1
       end
-      puts "#{snames.length} scales printed." if snames.length > 1
+      puts "#{snames.length} scales printed." unless $opts[:terse]
       
     elsif lnames.length > 0
       
@@ -60,11 +60,15 @@ def do_print to_print
         lick = $licks.find {|l| l[:name] == lname}
         print_holes_and_more lick[:holes_wo_events]
         unless $opts[:terse]
+          puts
           puts " Description: #{lick[:desc]}"
           puts "        Tags: #{lick[:tags].join(' ')}"
           puts "Rec harp-key: #{lick[:rec_key]}"
         end
+        puts
+        puts if lnames.length > 1
       end
+      puts "#{lnames.length} licks printed." unless $opts[:terse]
 
     else
 
@@ -407,9 +411,10 @@ def print_players args
     puts "\e[2m  r,random: pick one of these at random"
     puts "  l,last: last player (if any) featured in listen"
     puts "  a,all: all players shuffled in a loop\n\n"
-    puts "Remark: Most information is take from Wikipedia. Links to source are provided."
-    puts "Remark: You may add your own pictures of players to subdirs of\n  #{$dirs[:players_pictures]}"
-    puts "Remark: Players, which have no details yet, are dimmed\e[0m"
+    puts "Remarks:"
+    puts "- Most information is taken from Wikipedia; source is provided."
+    puts "- You may add your own pictures of players to subdirs of\n    #{$dirs[:players_pictures]}"
+    puts "- Players, which have no details yet, are dimmed\e[0m"
     puts
     puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
   elsif args.length == 1 && 'random'.start_with?(args[0])
