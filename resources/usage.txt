@@ -91,7 +91,8 @@ help on this.
 
 Suggested Reading:
 
-  - Usage information for the individual modes
+  - Usage information for the individual modes, e.g.
+    harpwise listen
   - The top level file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
@@ -101,18 +102,17 @@ User Configuration:
 
 Quick Start:
 
+  Prepare your personal config with sound samples:
 
-Prepare your personal config with sound samples:
-
-  harpwise calibrate c --auto    
+    harpwise calibrate c --auto    
 
 
-Feedback on what you are playing:
+  Feedback on what you are playing:
   
-  harpwise listen c              
+    harpwise listen c              
 
 
-then blow your harp and come back later to learn about other modes.
+  then blow your harp and come back later to learn about other modes.
 
 
 Version <%=$version%>
