@@ -260,10 +260,18 @@
 
 
 - name: Junior Wells
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - December 9, 1934 – January 15, 1998
+  - American singer, harmonica player, and recording artist
+  notes:
+  - Played in Muddy Waters Band
+  - Toured with the Rolling Stones
+  - Was tought by Sonny Boy Williamson II
+  source: https://en.wikipedia.org/wiki/Junior_Wells
+  songs:
+  - Messin' with the kid
+  - In My Younger Days
+  - Hoodoo Man Blues
 
 
 - name: Kim Wilson
