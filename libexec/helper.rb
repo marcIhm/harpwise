@@ -643,18 +643,25 @@ class FamousPlayers
       @has_details[name] = false
       fail "Internal error: Set of allowed Groups #{@all_groups.sort} is different from set of groups for #{name} in #{pfile}: #{info.keys.sort}" unless @all_groups.sort == info.keys.sort 
       # print information in order given by @all_groups
+      lcount = 0
       @all_groups.each do |group|
         lines = info[group]
         next if group == 'name'
         @has_details[name] = true if lines.length > 0
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
         lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
-        pplayer.append(* lines.map {|l| "#{group.capitalize}: #{l}"}) unless group == 'image'
+        next if group == 'image'
+        lines.map {|l| "#{group.capitalize}: #{l}"}.each do |l|
+          lcount += 1
+          pplayer << "(about #{info['name']})" if lcount % 4 == 0
+          pplayer.append(l)
+        end
       end
       if pplayer.length == 1
         pplayer[0] = "Not yet featured: #{name}"
       else
         pplayer[0] = "Featuring: #{name}"
+        pplayer.unshift pplayer[0]
         pplayer << "Done for: #{name}"
       end
       pplayer.each do |line|
