@@ -50,8 +50,8 @@ arguments may be given:
     g for a c-harp); you may use the option --transpose-scale to
     change this.
 
-    Finally, as a special case (and only for modes listen, recall and
-    licks) you may specify a set of holes (e.g. +1 +2 +3) as an adhoc
+    Finally, as a special case (and only for modes listen, licks and
+    recall) you may specify a set of holes (e.g. +1 +2 +3) as an adhoc
     scale.
 
     See the usage of mode 'listen' for an advanced example involving
