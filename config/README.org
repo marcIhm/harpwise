@@ -31,7 +31,7 @@
   
     On each line, after the note (and a space), you may add arbitrary text,
     that will be displayed as a remark (see the section on display); the
-    special word 'root' marks a root note, which will be favored in quiz.
+    special word 'root' marks a root note, which will be favored in recall.
 
   - scales_SCALE_with_notes.yaml :: List of notes for scale SCALE. Accepts a
     remark too.

@@ -6,7 +6,7 @@ OVERVIEW
   
   The samples are used to:
   
-  - play a series of holes, e.g. for modes play or quiz
+  - play a series of holes, e.g. for modes play or recall
   - judge the frequencies of your playing against the frequencies of the
     samples to find out, which note you are actually playing
 

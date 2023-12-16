@@ -41,30 +41,31 @@ def parse_arguments_early
   opts = Hash.new
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
+    [[Set[:calibrate, :listen, :licks, :recall, :play, :print, :develop, :tools], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage)}],
-     [Set[:calibrate, :listen, :quiz, :licks, :play, :print], {
+     [Set[:calibrate, :listen, :licks, :recall, :play, :print], {
         screenshot: %w(--screenshot)}],
-     [Set[:listen, :quiz, :licks, :tools, :print], {
+     [Set[:listen, :licks, :recall, :tools, :print], {
         add_scales: %w(-a --add-scales ),
         ref: %w(-r --reference ),
         remove_scales: %w(--remove-scales),
         no_add_holes: %w(--no-add-holes)}],
-     [Set[:listen, :quiz, :licks], {
+     [Set[:listen, :licks, :recall], {
         display: %w(-d --display),
-        comment: %w(-c --comment)}],
-     [Set[:listen, :quiz, :licks, :develop], {
+        comment: %w(-c --comment),
+        read_fifo: %w(--read-fifo)}],
+     [Set[:listen, :licks, :develop, :recall], {
         time_slice: %w(--time-slice)}],
-     [Set[:quiz, :play, :licks], {
+     [Set[:recall, :play, :licks], {
         fast: %w(--fast),
         no_fast: %w(--no-fast)}],
-     [Set[:quiz, :licks], {
+     [Set[:recall, :licks], {
         immediate: %w(--immediate),
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
-     [Set[:listen, :quiz, :play, :print], {
+     [Set[:listen, :recall, :play, :print], {
         transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
         auto: %w(--auto),
@@ -244,13 +245,13 @@ def parse_arguments_early
   #
 
 
-  # In any case, mode quiz requires a numeric argument right after the
+  # In any case, mode recall requires a numeric argument right after the
   # mode-argument; so process it even before type and key
 
-  if mode == :quiz
-    $num_quiz = ARGV[0].to_i
-    if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'; #{$for_usage}"
+  if mode == :recall
+    $num_recall = ARGV[0].to_i
+    if $num_recall.to_s != ARGV[0] || $num_recall < 1
+      err "Argument after mode 'recall' must be an integer starting at 1, not '#{ARGV[0]}'; #{$for_usage}"
     end
     ARGV.shift
   end
@@ -310,7 +311,7 @@ def parse_arguments_early
   
   # Get scale
   case mode
-  when :listen, :quiz, :licks
+  when :listen, :recall, :licks
     # these modes dont take an extra arg
     scales, holes = partition_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
     ARGV.clear
@@ -532,7 +533,7 @@ def partition_into_scales_and_holes args, all_scales, all_holes
   holes = Array.new
   other = Array.new
   
-  hint = "\n\n\e[2mHint: The commandline for modes listen, quiz and licks might contain a single scale or alternatively a set of holes, which then make up an adhoc-scale.\nScales are: #{all_scales}\nHoles are: #{all_holes}\e[0m"
+  hint = "\n\n\e[2mHint: The commandline for modes listen, licks and recall might contain a single scale or alternatively a set of holes, which then make up an adhoc-scale.\nScales are: #{all_scales}\nHoles are: #{all_holes}\e[0m"
   
   args.each do |arg|
     arg_woc = arg.gsub(/:.*/,'')

@@ -6,7 +6,7 @@
 
   In full screen with: stty size = 25 78
 
-  ./harpwise listen richter c blues --add-scales chord-v --screenshot
+  ./harpwise listen richter c blues --add-scales chord-v --display chart-notes --comment holes-some --screenshot
 
-  ./harpwise quiz 5 richter c blues --add-scales chord-v --screenshot
+  ./harpwise recall 5 richter c blues --add-scales chord-v --display chart-notes --screenshot
 

@@ -8,7 +8,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
-  # we cash time for (assumed) performance reasons
+  # we cache time for (assumed) performance reasons
   tntf = Time.now.to_f
   
   # Remark: $hole_was_for_disp needs to be persistant over invocations
@@ -169,7 +169,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     good,
     done,
     was_good = if $opts[:screenshot]
-                 [true, $ctl_can[:next] && tntf - hole_start > 2, false]
+                 [true, $ctl_can[:next] && tntf - hole_since > 2, false]
                else
                  $perfctr[:lambda_good_done_was_good_call] += 1
                  lambda_good_done_was_good.call(hole, hole_since)
@@ -281,7 +281,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
         # Using truncate_colored_text might be too slow here
         if hints.length == 1
-          # for mode quiz and listen
+          # for mode recall and listen
           print truncate_text(hints[0]) + "\e[K"
         elsif hints.length == 4 && $lines[:message2] > 0
           # for mode licks
@@ -659,7 +659,7 @@ def show_help
                       ""])
   
   if $ctl_can[:next]
-    frames << [" More help on keys (special for modes licks and quiz):",
+    frames << [" More help on keys (special for modes licks and recall):",
                "",
                " RETURN: next sequence or lick     BACKSPACE: previous sequence",
                "     .:: replay current                   ,;: replay, holes only",

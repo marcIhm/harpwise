@@ -217,3 +217,10 @@ scale_over_lick:
     lick.  Note, that by default such a name would be treated as a
     lick.
 
+read_fifo:
+
+  - |
+    For mode listen, licks, recall: when in the main
+    interactive view, read keys from fifo /tmp/harpwise_fifo too.
+    This can be useful when automizing certain aspects of its
+    operation. The name of the fifo is fixed.

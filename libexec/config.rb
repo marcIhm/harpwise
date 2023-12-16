@@ -17,11 +17,11 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks play print calibrate tools develop)
+  $early_conf[:modes] = %w(listen recall licks play print calibrate tools develop)
 
   # expectations for config-file
   $conf_meta = Hash.new
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :print, :calibrate, :general]
+  $conf_meta[:sections] = [:any_mode, :listen, :recall, :licks, :print, :calibrate, :general]
   # update config ini if the below is extended
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to],
@@ -293,7 +293,7 @@ def calculate_screen_layout
   stretch += 1 if $term_height > 36
   squeeze = 1 if $term_height < 27
   lines_extra = $term_height - $conf[:term_min_height]
-  need_message2 = ( $mode == :quiz || $mode == :licks )
+  need_message2 = ( $mode == :recall || $mode == :licks )
   lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
   lines = Hash.new
   lines[:mission] = 1
@@ -312,11 +312,11 @@ def calculate_screen_layout
   if need_message2
     lines[:comment_low] += 1
     if lines_extra > 0
-      # font for quiz is fairly small, so we may leave some space
+      # font for modes recall and licks is fairly small, so we may leave some space
       lines[:comment_low] += 1
       lines[:comment] += 1
     end
-    # only needed for quiz and licks
+    # only needed for recall and licks
     lines[:message2] = lines[:hint_or_message] + 1
   else
     # we do not need a second line for mode :listen
@@ -921,7 +921,7 @@ def warn_if_double_short short, long
     $warned_for_double_short[short] = true
     txt = ["Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}'",
            "consider explicit shortname with ':' (see usage)"]
-    if [:listen, :quiz, :licks].include?($mode)
+    if [:listen, :recall, :licks].include?($mode)
       $msgbuf.print "... #{txt[1]}", 5, 5, later: true
       $msgbuf.print "#{txt[0]} ...", 5, 5
     else

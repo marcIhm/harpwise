@@ -89,7 +89,7 @@ fail "These programs are needed but cannot be found: \n  #{not_found.join("\n  "
 #
 # Collect usage examples and later check, that none of them produces an error
 #
-usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :print, :tools, :develop].map do |t|
+usage_types = [nil, :calibrate, :listen, :recall, :licks, :play, :print, :tools, :develop].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -105,11 +105,8 @@ usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
-# replace some, e.g. due to my different set of licks
-##repl = {'harpwise play c wade' => 'harpwise play c easy'}
-##usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 76
+num_exp = 77
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -251,64 +248,64 @@ end
 
 do_test 'id-1b: config.ini, mode prevails' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     key = a    
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise recall 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:key] == 'c' }
   expect(dump[:conf_system]) { dump[:conf_system][:key] == nil }
-  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:key] == 'a' }
+  expect(dump[:conf_user]) { dump[:conf_user][:recall][:key] == 'a' }
   expect(dump[:key]) { dump[:conf][:key] == 'a' }
   kill_session
 end
 
 do_test 'id-1c: config.ini, set loop (example for boolean)' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     loop = false
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise recall 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
   expect(dump[:conf_system]) { dump[:conf_system][:loop] == nil }
-  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == false }
+  expect(dump[:conf_user]) { dump[:conf_user][:recall][:loop] == false }
   expect(dump[:conf]) { dump[:conf][:loop] == false }
   kill_session
 end
 
 do_test 'id-1d: config.ini, unset loop with option' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     loop = true
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop'
+  tms 'harpwise recall 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
   dump = read_testing_dump('start')
   expect(dump[:conf_system]) { dump[:conf_system][:any_mode][:loop] == true }
-  expect(dump[:conf_user]) { dump[:conf_user][:quiz][:loop] == true }
+  expect(dump[:conf_user]) { dump[:conf_user][:recall][:loop] == true }
   expect(dump[:opts]) { dump[:opts][:loop] == false }
   kill_session
 end
 
 do_test 'id-1e: config.ini, take default key from config' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     key = a
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop'
+  tms 'harpwise recall 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -319,7 +316,7 @@ end
 
 do_test 'id-1f: config.ini, take key from commandline' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     key = c
   end_of_content
   new_session
@@ -334,11 +331,11 @@ end
 
 do_test 'id-1g: config.ini, set value in config and clear again on commandline' do
   File.write $config_ini_testing, <<~end_of_content
-  [quiz]
+  [recall]
     add_scales = major_pentatonic
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop --add-scales -'
+  tms 'harpwise recall 3 blues --no-loop --add-scales -'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -356,7 +353,7 @@ usage_types.keys.each_with_index do |mode, idx|
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
                      'calibrate' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' is a game of challenge (the wise) and response"],
+                     'recall' => [4, "The mode 'recall' is a game of challenge (the wise) and response"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
@@ -572,20 +569,20 @@ do_test 'id-9d: error on ambigous scale' do
   kill_session
 end
 
-do_test 'id-10: quiz' do
+do_test 'id-10: recall' do
   sound 12, 3
   new_session
-  tms 'harpwise quiz 2 c blues'
+  tms 'harpwise recall 2 c blues'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['b4    4   b14  b45   4   b14'] }
   kill_session
 end
 
-do_test 'id-10a: displays and comments in quiz' do
+do_test 'id-10a: displays and comments in recall' do
   sound 40, 2
   new_session
-  tms 'harpwise quiz 2 c all --ref +2'
+  tms 'harpwise recall 2 c all --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
@@ -1287,18 +1284,18 @@ do_test 'id-44: switch between modes licks and listen' do
   kill_session
 end
 
-do_test 'id-44a: switch between modes quiz and listen' do
+do_test 'id-44a: switch between modes recall and listen' do
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise recall 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[1]['quiz'] }
+  expect { screen[1]['recall'] }
   tms 'm'
   sleep 4
   expect { screen[1]['listen'] }
   tms 'm'
   sleep 4
-  expect { screen[1]['quiz'] }
+  expect { screen[1]['recall'] }
   kill_session
 end
 
@@ -1629,7 +1626,7 @@ do_test 'id-56: forward and back in help' do
 end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
-                'harpwise quiz 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
+                'harpwise recall 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
                 'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
@@ -2229,6 +2226,17 @@ do_test 'id-87: player info in listen' do
   tms 'p'
   sleep 1
   expect { screen.any? {|l| l["Press any key to go back to mode 'listen'"] }}
+  kill_session
+end
+
+do_test 'id-88: read from fifo' do
+  new_session
+  tms 'harpwise listen c --read-fifo'
+  tms :ENTER
+  sleep 2
+  File.write('/tmp/harpwise_fifo', 'q')
+  sleep 1
+  expect { screen.any? {|l| l['Terminating on user request'] }}
   kill_session
 end
 

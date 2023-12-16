@@ -12,7 +12,7 @@
   Harpwise plays and recognizes single notes only and has no sense of
   chords or grooves.
 
-  The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
+  The main operation modes of harpwise are 'listen', 'licks' and 'recall';
   these may help to:
 
   - Internalize various scales
@@ -39,10 +39,10 @@
   
   [[images/screenshot_listen.png]]
 
-  The second screenshot is from mode 'quiz': The program has played five
+  The second screenshot is from mode 'recall': The program has played five
   notes initially and now challenges to play them back.
   
-  [[images/screenshot_quiz.png]]
+  [[images/screenshot_recall.png]]
 
 * Usage and Overview
 
@@ -55,8 +55,8 @@
   wise: 
   
   - listen: listen to your playing, e.g. to monitor bends or scales
-  - quiz: train your ear and musical memory
   - licks: learn licks (licks not included, but some pointers)
+  - recall: train your ear and musical memory
   - play: wise plays scales, holes, licks or a reference pitch
   - print: print them
   - report: produce reports about licks and tags or a history of licks played
@@ -159,7 +159,7 @@
 
 ** The lower half of the screen, the "comment"
 
-   This shows whatever comment is appropriate for listen or quiz and licks.
+   This shows whatever comment is appropriate for listen or licks or recall.
 
 *** For listen this may be one of
 
@@ -171,13 +171,13 @@
     - Warbles with respect to the reference hole
     - Journal of holes you have played; useful to write down musical ideas
 
-*** For quiz and licks
+*** For licks and recall
 
     the comment gives information about the sequence of holes, the wise
     expects you to play. There are multiple layouts showing the holes
     small and large and with associated scales, intervals or notes.
 
-    If you are doing quiz you may choose a comment, that does not show
+    If you are doing recall you may choose a comment, that does not show
     you, what you are supposed to remember.
    
 ** The middle part of the screen
