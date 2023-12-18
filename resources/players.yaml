@@ -310,10 +310,20 @@
 
 
 - name: Mark Hummel
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - December 15, 1955 -
+  - American blues harmonica player, vocalist, songwriter
+  - Won two Blues Music Awards in 2014
+  notes:
+  - Was introduced by his babysitters to black music
+  - Long-time bandleader of "the Blues Survivors"
+  - Has produced the Blues Harmonica Blowout tour
+  - Produces Mark Hummel's Harmonica Party
+  source: https://en.wikipedia.org/wiki/Mark_Hummel
+  songs:
+  - Play with Your Poodle
+  - You Got Me Wrong
+  - 7 Nights to Rock
 
 
 - name: Paul Butterfield
