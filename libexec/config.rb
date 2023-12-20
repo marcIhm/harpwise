@@ -179,6 +179,10 @@ def set_global_vars_early
   $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
+  $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
+    [subclass.to_s.underscore.tr('_', '-'), subclass]
+  end.to_h
+  %w(random ran rand replay play-scale).each {|f| $quiz_flavour2class[f] = nil}
 end
 
 

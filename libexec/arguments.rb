@@ -245,18 +245,6 @@ def parse_arguments_early
   #
 
 
-  # In any case, mode quiz requires a numeric argument right after the
-  # mode-argument; so process it even before type and key
-
-  if mode == :quiz
-    $num_quiz = ARGV[0].to_i
-    if $num_quiz.to_s != ARGV[0] || $num_quiz < 1
-      err "Argument after mode 'quiz' must be an integer starting at 1, not '#{ARGV[0]}'; #{$for_usage}"
-    end
-    ARGV.shift
-  end
-
-
   # type and key (further down below) are taken from front of args only if
   # they match the predefined set of choices; otherwise they come from
   # config
@@ -311,7 +299,7 @@ def parse_arguments_early
   
   # Get scale
   case mode
-  when :listen, :quiz, :licks
+  when :listen, :licks
     # these modes dont take an extra arg
     scales, holes = partition_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
     ARGV.clear
@@ -325,7 +313,7 @@ def parse_arguments_early
       scale = get_scale_from_sws($conf[:scale])
       $source_of[:scale] = 'config'
     end
-  when :play, :print, :tools
+  when :play, :print, :tools, :quiz
     # if the first remaining argument looks like a scale, take it as such
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
@@ -365,13 +353,13 @@ def initialize_extra_vars
      
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
   $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
-  $extra_kws = Hash.new {|h,k| h[k] = Hash.new}
+  $extra_kws = Hash.new {|h,k| h[k] = Set.new}
   $extra_desc.each do |key, val|
     $extra_desc[key].each do |kk,vv|
       $extra_desc[key][kk] = ERB.new(vv).result(binding)
       $extra_desc[key][kk].lines.each do |l|
         err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width]}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
-        kk.split(',').map(&:strip).each {|k| $extra_kws[key][k] = true}
+        kk.split(',').map(&:strip).each {|k| $extra_kws[key] << k}
       end
     end
   end
@@ -379,8 +367,8 @@ def initialize_extra_vars
   # check, that the names of those extra args do not collide with scales
   scales = scales_for_type($type)
   $extra_kws.each do |mode, extra|
-    double = extra.keys & scales
-    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra.keys}" if double.length > 0
+    double = extra & scales
+    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra}" if double.length > 0
   end
 
 end
@@ -401,18 +389,20 @@ def parse_arguments_late
       $extra = ARGV.shift if what == :extra
       if !what
         print_amongs($amongs_play_or_print, :extra)
+        err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
         err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'"
       end
     else
       $extra = ARGV.shift if recognize_among(ARGV[0], :extra) == :extra
       if !$extra
         print_amongs(:extra)
-        err "First argument for mode #{$mode} should be one of those listed above, not #{ARGV[0]}"
+        err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
+        err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'"
       end
     end
   end
   
-  if [:play, :print, :tools, :develop].include?($mode)
+  if [:play, :print, :quiz, :tools, :develop].include?($mode)
     to_handle = ARGV.clone
     ARGV.clear
   end

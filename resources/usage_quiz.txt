@@ -1,31 +1,48 @@
 OVERVIEW
 
-  The mode 'quiz' is a game of challenge (the wise) and response
-  (you).  Typically it plays a random sequence of holes and asks you
-  to play it back. If successful, the next sequence will be chosen.
+  The mode 'quiz' is a quiz on music theory and musical memory and
+  comes in different flavours. It issues questions and asks for an
+  answer. Some flavours involve holes beeing played either as part of
+  the question or the answer.
 
-  This mode helps to train your musical memory.
+  Every time you invoke harpwise with mode 'quiz', a flavour is
+  chosen; to try another flavour, just restart harpwise.  For a chosen
+  flavour, questions are posed in an endless loop.
 
-  The mode requires an additional argument at second place, stating
-  the length of the sequence.
+  The known flavours are:
 
+<%= get_extra_desc(true).join("\n") %>
+  
 USAGE BY EXAMPLES
 
-  The Wise plays 3 notes from the scale major_pentatonic for a
+  The wise chooses a quiz-flavour at random (key of c):
+
+    harpwise quiz c random
+
+  this is the preferred way to get used to this mode.
+  
+
+  Wise plays 3 notes from the scale major_pentatonic for a
   chromatic harmonica of key a and then asks you to play them
   back (then repeat):
 
-    harpwise quiz 3 chromatic a blues
+    harpwise quiz replay 5 chromatic a blues
 
   In the examples above, the type of harmonica (e.g. richter or
   chromatic) and, in addition, the key (e.g. c or a) may be omitted
   and are then taken from the config; so
 
-    harpwise q 3 major
+    harpwise q replay 5 major
 
   is valid as well (but would choose a richter harp).
 
-  This example removes drawbends from all notes:
+  This example removes drawbends from the scale 'all':
 
-    harpwise quiz 3 all --remove-scales drawbends
+    harpwise quiz all replay 5 --remove-scales drawbends
 
+  this example also relies on the default of 5 holes to be played.
+
+
+  Wise shuffles and plays a scale and asks you for its name:
+
+    harpwise quit scale-shuffled
