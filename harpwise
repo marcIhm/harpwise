@@ -24,7 +24,7 @@ require_relative 'libexec/analyze'
 require_relative 'libexec/licks'
 require_relative 'libexec/handle_holes'
 require_relative 'libexec/listen'
-require_relative 'libexec/licks_or_recall'
+require_relative 'libexec/quiz_or_licks'
 require_relative 'libexec/play'
 require_relative 'libexec/print'
 require_relative 'libexec/calibrate'
@@ -84,7 +84,7 @@ set_global_musical_vars
 
 to_handle = parse_arguments_late
 
-check_screen(hint_on_large_term: true) if [:listen, :licks, :recall].include?($mode)
+check_screen(hint_on_large_term: true) if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $testing
 
@@ -102,7 +102,7 @@ Signal.trap('SIGINT') do
 end
 
 
-if [:listen, :licks, :recall].include?($mode)
+if [:listen, :quiz, :licks].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true
   end
@@ -152,12 +152,12 @@ begin
   switch_modes if $ctl_mic[:switch_modes]
 
   case $mode
+  when :quiz
+    do_quiz_or_licks
+  when :licks
+    do_quiz_or_licks
   when :listen
     do_listen
-  when :licks
-    do_licks_or_recall
-  when :recall
-    do_licks_or_recall
   when :play
     do_play to_handle
   when :print

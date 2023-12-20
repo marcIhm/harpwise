@@ -23,7 +23,7 @@ The harp, that you are going to use for calbration, should be the one,
 that you will use for your later practice.
 
 The recorded samples will be used to determine the frequencies of your
-particular instrument and will be played back e.g. in mode 'recall'.
+particular instrument and will be played back in mode 'quiz'.
 
 Remark: if you just want to get started with harpwise quickly, you may
 skip this process by starting calibrate with the option '--auto'; any
