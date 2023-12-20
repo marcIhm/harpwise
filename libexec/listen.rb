@@ -7,9 +7,6 @@ def do_listen
     make_term_immediate
     start_collect_freqs
   end
-  $ctl_can[:next] = false
-  $ctl_can[:loop] = false
-  $ctl_can[:switch_modes] = true
   $modes_for_switch ||= [:listen, :licks]
 
   system('clear')

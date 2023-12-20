@@ -169,7 +169,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     good,
     done,
     was_good = if $opts[:screenshot]
-                 [true, $ctl_can[:next] && tntf - hole_since > 2, false]
+                 [true, [:quiz, :licks].include?($mode) && tntf - hole_since > 2, false]
                else
                  $perfctr[:lambda_good_done_was_good_call] += 1
                  lambda_good_done_was_good.call(hole, hole_since)
@@ -388,7 +388,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if $ctl_can[:loop] && $ctl_mic[:start_loop]
+    if $ctl_mic[:start_loop]
       $ctl_mic[:loop] = true
       $ctl_mic[:start_loop] = false
       print_mission(get_mission_override || lambda_mission.call)
@@ -643,7 +643,7 @@ def show_help
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
              "      s: rotate current scales        S: set scales"]
-  if $ctl_can[:next]
+  if [:quiz, :licks].include?($mode)
     frames[-1] <<  "      j: journal-menu; only available in mode listen"
     frames[-1] <<  " ctrl-r: record and play user (mode licks only)"
   else
@@ -652,13 +652,13 @@ def show_help
     frames[-1] <<  "      p: print details about current player"
   end
     
-  if $ctl_can[:switch_modes]
+  if [:listen, :quiz, :licks].include?($mode)
     frames[-1] << "      m: switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}"
   end
   frames[-1].append(*["      q: quit harpwise                h: this help",
                       ""])
   
-  if $ctl_can[:next]
+  if [:quiz, :licks].include?($mode)
     frames << [" More help on keys (special for modes licks and quiz):",
                "",
                " RETURN: next sequence or lick     BACKSPACE: previous sequence",
@@ -668,7 +668,7 @@ def show_help
                "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      #: toggle tracking progress in seq   R: play holes reversed"]
-    if $ctl_can[:lick]
+    if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags-any (aka -t)",
                           "      <: shift lick down by one octave     >: shift lick up",

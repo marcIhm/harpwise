@@ -93,11 +93,6 @@ def set_global_vars_early
   $ctl_hole = Struct.new(*ks).new
   ks.each {|k| $ctl_hole[k] = false}
 
-  # capabilities available (or not) when processing keyboard
-  ks = [:next, :back, :loop, :loop_loop, :lick_lick, :lick, :octave, :switch_modes, :no_progress]
-  $ctl_can = Struct.new(*ks).new
-  ks.each {|k| $ctl_can[k] = false}
-
   # These are related to the ctl_response function, which allows
   # reactions on user actions immediately from within the keyboard handler
   $ctl_reponse_default = ''

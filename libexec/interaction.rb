@@ -369,9 +369,9 @@ def handle_kb_play_recording
     $ctl_rec[:vol_up] = true
   elsif char == 'l'
     $ctl_rec[:loop] = true
-  elsif char == 'L' && $ctl_can[:loop_loop]
+  elsif char == 'L' && [:play, :print].include?($mode)
     $ctl_rec[:loop] = $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] 
-  elsif char == 'c' && $ctl_can[:lick_lick]
+  elsif char == 'c' && [:play, :print].include?($mode)
     $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] 
   elsif char == 'h'
     $ctl_rec[:show_help] = true
@@ -570,7 +570,7 @@ def handle_kb_mic
     ctl_response 'continue', hl: true
     waited = true
   elsif char == "\n"
-    if $ctl_can[:next]
+    if [:quiz, :licks].include?($mode)
       $ctl_mic[:next] = true
       text = 'Skip'
     elsif $opts[:comment] == :journal
@@ -579,43 +579,43 @@ def handle_kb_mic
     else
       text = get_text_invalid(char)
     end
-  elsif char == 'l' && $ctl_can[:lick]
+  elsif char == 'l' && $mode == :licks
     $ctl_mic[:change_lick] = true
     text = 'Named'
-  elsif char == 'e' && $ctl_can[:lick]
+  elsif char == 'e' && $mode == :licks
     $ctl_mic[:edit_lick_file] = true
     text = 'Edit'
-  elsif char == 't' && $ctl_can[:lick]
+  elsif char == 't' && $mode == :licks
     $ctl_mic[:change_tags] = true
     text = 'Tags'
-  elsif char == 'R' && $ctl_can[:lick]
+  elsif char == 'R' && $mode == :licks
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'
-  elsif char.ord == 18 && $ctl_can[:lick]
+  elsif char.ord == 18 && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Record user'
-  elsif char == '>' && $ctl_can[:octave]
+  elsif char == '>' && $mode == :licks
     $ctl_mic[:octave] = :up
     text = 'Octave up'
-  elsif char == '<' && $ctl_can[:octave]
+  elsif char == '<' && $mode == :licks
     $ctl_mic[:octave] = :down
     text = 'Octave down'
-  elsif char == '@' && $ctl_can[:lick]
+  elsif char == '@' && $mode == :licks
     $ctl_mic[:change_partial] = true
     text = 'Partial'
-  elsif char == '*' && $ctl_can[:lick]
+  elsif char == '*' && $mode == :licks
     $ctl_mic[:star_lick] = :up
     text = 'Star this lick up'
-  elsif char == '/' && $ctl_can[:lick]
+  elsif char == '/' && $mode == :licks
     $ctl_mic[:star_lick] = :down
     text = 'Star this lick down'
-  elsif char == 'm' && $ctl_can[:switch_modes]
+  elsif char == 'm' && [:listen, :quiz, :licks].include?($mode)
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
-  elsif char == 'j' && !$ctl_can[:next]
+  elsif char == 'j' && $mode == :listen
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
-  elsif char == 'w' && !$ctl_can[:next]
+  elsif char == 'w' && $mode == :listen
     $ctl_mic[:warbles_prepare] = true
     text = 'Prepare warbles'
   elsif char == 'k'
@@ -657,26 +657,26 @@ def handle_kb_mic
   elsif char == 'C'
     $ctl_mic[:change_comment] = :choose
     text = 'Choose comment'
-  elsif %w(. : , ; p).include?(char) && $ctl_can[:next]
+  elsif %w(. : , ; p).include?(char) && [:quiz, :licks].include?($mode)
     $ctl_mic[:replay] = true
     $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
     $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
     $ctl_mic[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
     text = 'Replay'
-  elsif char == 'P' && $ctl_can[:next]
+  elsif char == 'P' && [:quiz, :licks].include?($mode)
     $ctl_mic[:auto_replay] = true
     text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'
   elsif char == 'p'
     $ctl_mic[:player_details] = true
-  elsif (char == '0' || char == '-') && $ctl_can[:next]
+  elsif (char == '0' || char == '-') && [:quiz, :licks].include?($mode)
     $ctl_mic[:forget] = true
     text = 'Forget'
-  elsif char == '#' && $ctl_can[:no_progress]
+  elsif char == '#' && [:quiz, :licks].include?($mode)
     $ctl_mic[:toggle_progress] = true
     # $opts[:no_progress] will be toggled later
     text = $opts[:no_progress]  ?  'Track progress'  :  'Do not track progress'
   elsif char.ord == 127
-    if $ctl_can[:next]
+    if [:quiz, :licks].include?($mode)
       $ctl_mic[:back] = true
       text = 'Skip back'
     elsif $opts[:comment] == :journal
@@ -695,7 +695,7 @@ def handle_kb_mic
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
     $ctl_mic[:redraw] = Set[:silent] if $opts[:comment] == :holes_some
-  elsif char == 'L' && $ctl_can[:loop] && $ctl_can[:next]
+  elsif char == 'L' && [:quiz, :licks].include?($mode)
     $ctl_mic[:start_loop] = true
     text = 'Loop started'
   elsif char == '&'

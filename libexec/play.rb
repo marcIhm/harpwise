@@ -5,9 +5,6 @@
 def do_play to_play
 
   $all_licks, $licks = read_licks
-  $ctl_can[:loop_loop] = true
-  $ctl_can[:lick_lick] = true
-  $ctl_rec[:lick_lick] = false
 
   trace_text = nil
 

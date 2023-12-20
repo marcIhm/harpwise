@@ -72,8 +72,8 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                         "      <: decrease speed        >: increase speed\n" +
                         "      l: loop over recording   " +
-                        ( $ctl_can[:loop_loop]  ?  "L: loop over next recording too\n"  :  "\n" ) +
-                        ( $ctl_can[:lick_lick]  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
+                        ( $mode == :play  ?  "L: loop over next recording too\n"  :  "\n" ) +
+                        ( $mode == :play  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
