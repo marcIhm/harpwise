@@ -105,11 +105,8 @@ usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
-# replace some, e.g. due to my different set of licks
-##repl = {'harpwise play c wade' => 'harpwise play c easy'}
-##usage_examples.map! {|l| repl[l] || l}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 76
+num_exp = 77
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"

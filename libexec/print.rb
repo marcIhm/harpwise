@@ -5,11 +5,6 @@
 def do_print to_print
 
   $all_licks, $licks = read_licks
-  $ctl_can[:loop_loop] = true
-  $ctl_can[:lick_lick] = true
-  $ctl_rec[:lick_lick] = false
-
-  $all_licks, $licks = read_licks
 
   puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts

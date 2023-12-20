@@ -10,12 +10,7 @@ def do_quiz_or_licks
     prepare_term
     start_collect_freqs
   end
-  $ctl_can[:next] = true
-  $ctl_can[:loop] = true
-  $ctl_can[:switch_modes] = true
-  $ctl_can[:no_progress] = true
   $modes_for_switch = [:listen, $mode.to_sym]
-  $ctl_can[:octave] = $ctl_can[:lick] = ( $mode == :licks )
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   
   to_play = PlayController.new
