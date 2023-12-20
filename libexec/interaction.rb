@@ -268,37 +268,15 @@ def stop_kb_handler
 end
 
 
-def start_fifo_handler
-  fifo = '/tmp/harpwise_fifo'
-  File.mkfifo(fifo) unless File.exist?(fifo)
-  ftype = File.ftype(fifo)
-  err "Fifo '#{fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
-
-  fifo = File.open(fifo, 'r+')
-  $term_fifo_handler = Thread.new do
-    loop do
-      $ctl_kb_queue.enq fifo.getc
-    end
-  end
-end
-
-
-def stop_fifo_handler
-  $term_fifo_handler.kill if $term_fifo_handler
-end
-
-
 def make_term_immediate
   prepare_term
   start_kb_handler
-  start_fifo_handler if $opts[:read_fifo]
 end
 
 
 def make_term_cooked
   sane_term
-  stop_kb_handler 
-  stop_fifo_handler if $opts[:read_fifo]
+  stop_kb_handler
 end
 
 

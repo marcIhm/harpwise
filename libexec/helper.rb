@@ -266,8 +266,8 @@ end
 
 def print_debug_info
   puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
-  puts '$recall_sample_stats:'
-  pp $recall_sample_stats
+  puts '$quiz_sample_stats:'
+  pp $quiz_sample_stats
   if $perfctr[:handle_holes_this_first_freq]
     $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_freq] )
   end
@@ -373,8 +373,8 @@ def get_files_journal_trace_players
   trace = if $mode == :licks || $mode == :play || $mode == :print
           # modes licks and play both play random licks and report needs to read them
             "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
-          elsif $mode == :recall
-            "#{$dirs[:data]}/trace_#{$type}_mode_recall.txt"
+          elsif $mode == :quiz
+            "#{$dirs[:data]}/trace_#{$type}_mode_quiz.txt"
           else
             nil
           end
@@ -460,7 +460,7 @@ def switch_modes
   if $mode_switches == 1
     # switching the first time to a new mode; make some guesses on its
     # arguments, that could have never been given on the commandline
-    if $mode == :listen && [:recall, :licks].include?(mode_prev)
+    if $mode == :listen && [:quiz, :licks].include?(mode_prev)
       $opts[:no_progress] = false
       $opts[:comment] = :note
     elsif $mode == :licks && [:listen].include?(mode_prev)

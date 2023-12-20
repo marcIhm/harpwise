@@ -292,21 +292,10 @@
 
 
 - name: Lee Oskar
-  bio:
-  - March 24, 1948 -
-  - Danish harmonica player vocalist and harmonica manufacturer
-  notes:
-  - Moved to New York at the age of 18 with little more than a
-  - harmonica in his pocket
-  - Together wir Eric Burdon formed the crossover band "War"
-  - where he formed a horn section together with the saxophone
-  - '"...among the best rock-blues-soul harmonica players"'
-  - (quote by Bill Snyder)
-  - His company sells harmonicas in many different tunings
-  source: https://en.wikipedia.org/wiki/Lee_Oskar
-  songs:
-  - Before the Rain
-  - Up All Night
+  bio: []
+  notes: []
+  source: []
+  songs: []
 
 
 - name: Mark Hummel

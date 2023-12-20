@@ -1,8 +1,8 @@
 #
-# Perform recall or licks
+# Perform quiz or licks
 #
 
-def do_licks_or_recall
+def do_quiz_or_licks
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -60,7 +60,7 @@ def do_licks_or_recall
       to_play[:lick_idx_before] = nil
 
     elsif $other_mode_saved[:all_wanted]
-      # mode is recall
+      # mode is quiz
       to_play[:all_wanted] = $other_mode_saved[:all_wanted]
       $other_mode_saved[:all_wanted] = nil
 
@@ -100,8 +100,8 @@ def do_licks_or_recall
       to_play[:octave_shift] = 0
 
       # figure out holes to play
-      if $mode == :recall
-        to_play[:all_wanted] = get_sample($num_recall)
+      if $mode == :quiz
+        to_play[:all_wanted] = get_sample($num_quiz)
         jrc_text = to_play[:all_wanted].join(' ')
 
       else # $mode == :licks
@@ -284,7 +284,7 @@ def do_licks_or_recall
             if $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else
-              if $num_recall == 1 
+              if $num_quiz == 1 
                 "Play the note you have heard !"
               else
                 "Play note \e[32m#{idx+1}\e[0m of" +
@@ -315,7 +315,7 @@ def do_licks_or_recall
           -> (*_) do
             if idx != idx_refresh_comment_cache || $ctl_mic[:update_comment]
               idx_refresh_comment_cache = idx
-              $perfctr[:lambda_comment_recall_call] += 1
+              $perfctr[:lambda_comment_quiz_call] += 1
               comment_cache = 
                 case $opts[:comment]
                 when :holes_some
@@ -488,7 +488,7 @@ def do_licks_or_recall
 end
 
 
-$recall_sample_stats = Hash.new {|h,k| h[k] = 0}
+$quiz_sample_stats = Hash.new {|h,k| h[k] = 0}
 
 def get_sample num
   # construct chains of holes within scale and added scale
@@ -552,7 +552,7 @@ def get_sample num
       holes[i] = $scale_holes.sample
       what[i] = :middle_end_fallback
     end
-    $recall_sample_stats[what[i]] += 1
+    $quiz_sample_stats[what[i]] += 1
   end
 
   holes
@@ -579,7 +579,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_recording_recall lick, at_line:, octave_shift:
+def play_recording_quiz lick, at_line:, octave_shift:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -839,7 +839,7 @@ end
 
 def largify holes, idx
   line = $lines[:comment_low]
-  if $num_recall == 1
+  if $num_quiz == 1
     [ "\e[2m", '...', line, 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
     hidden_holes = if idx > 6
@@ -1002,7 +1002,7 @@ end
 
 
 def play_rec_or_holes to_play, oride_l_message2
-  if $mode == :recall || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
+  if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
      (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
      ($opts[:holes] && !$ctl_mic[:ignore_holes])
     play_holes to_play[:all_wanted],
@@ -1010,7 +1010,7 @@ def play_rec_or_holes to_play, oride_l_message2
                verbose: true,
                lick: to_play[:lick]
   else
-    play_recording_recall to_play[:lick],
+    play_recording_quiz to_play[:lick],
                         at_line: oride_l_message2,
                         octave_shift: to_play[:octave_shift]
   end
