@@ -1,8 +1,8 @@
 #
-# Perform quiz or licks
+# Handle mode licks or mode quiz, flavour recall
 #
 
-def do_quiz_or_licks
+def do_licks
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor

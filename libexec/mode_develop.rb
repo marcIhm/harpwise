@@ -292,6 +292,13 @@ def do_unittest
   found = semi2note(0)
   expected = 'a4'
   utreport('semi2note', found, expected)
+
+  puts
+  puts_underlined 'Subclasses of QuizFlavour'
+  found = Set.new($quiz_flavour2class.keys).to_a.sort
+  expected = $extra_kws[:quiz].to_a.sort
+  utreport('subclasses and extra', found, expected)
+
   puts
   puts "All unittests okay."
   puts

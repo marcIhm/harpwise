@@ -14,7 +14,7 @@ require 'erb'
 require 'timeout'
 require 'tempfile'
 require 'singleton'
-require_relative 'libexec/helper'
+require_relative 'libexec/utils'
 require_relative 'libexec/arguments'
 require_relative 'libexec/config'
 require_relative 'libexec/interaction'
@@ -23,13 +23,14 @@ require_relative 'libexec/sound_driver'
 require_relative 'libexec/analyze'
 require_relative 'libexec/licks'
 require_relative 'libexec/handle_holes'
-require_relative 'libexec/listen'
-require_relative 'libexec/quiz_or_licks'
-require_relative 'libexec/play'
-require_relative 'libexec/print'
-require_relative 'libexec/calibrate'
-require_relative 'libexec/tools'
-require_relative 'libexec/develop'
+require_relative 'libexec/mode_listen'
+require_relative 'libexec/mode_licks'
+require_relative 'libexec/mode_play'
+require_relative 'libexec/mode_print'
+require_relative 'libexec/mode_calibrate'
+require_relative 'libexec/mode_tools'
+require_relative 'libexec/mode_quiz'
+require_relative 'libexec/mode_develop'
 
 $program_start = $mode_start = Time.now.to_f
 $initialized = false
@@ -153,9 +154,9 @@ begin
 
   case $mode
   when :quiz
-    do_quiz_or_licks
+    do_quiz to_handle
   when :licks
-    do_quiz_or_licks
+    do_licks
   when :listen
     do_listen
   when :play

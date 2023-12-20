@@ -12,7 +12,7 @@ specifies the mode of operation; it can be one of:
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
   - licks: Learn licks (only a few included, but pointers to find more)
-  - quiz: Train your ear and musical memory
+  - quiz: Train your ear, memory and knowledge of music theory
 
 And with a less interactive interface and not using your microphone:
 

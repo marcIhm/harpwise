@@ -41,6 +41,15 @@ class String
       return self
     end
   end
+
+  def underscore
+    self.gsub(/::/, '/').
+      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+      gsub(/([a-z\d])([A-Z])/,'\1_\2').
+      tr("-", "_").
+      downcase
+  end
+
 end
 
 
@@ -552,7 +561,7 @@ def recognize_among val, choices
       $among_all_lnames ||= $licks.map {|l| l[:name]}
       return choice if $among_all_lnames.include?(val)
     elsif choice == :extra
-      return choice if $extra_kws[$mode][val]
+      return choice if $extra_kws[$mode].include?(val)
     elsif choice == :inter
       return choice if $intervals_inv[val]
     elsif choice == :last
