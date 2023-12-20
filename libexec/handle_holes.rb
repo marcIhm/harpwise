@@ -8,7 +8,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   samples = Array.new
   $move_down_on_exit = true
   longest_hole_name = $harp_holes.max_by(&:length)
-  # we cash time for (assumed) performance reasons
+  # we cache time for (assumed) performance reasons
   tntf = Time.now.to_f
   
   # Remark: $hole_was_for_disp needs to be persistant over invocations
@@ -169,7 +169,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     good,
     done,
     was_good = if $opts[:screenshot]
-                 [true, $ctl_can[:next] && tntf - hole_start > 2, false]
+                 [true, $ctl_can[:next] && tntf - hole_since > 2, false]
                else
                  $perfctr[:lambda_good_done_was_good_call] += 1
                  lambda_good_done_was_good.call(hole, hole_since)

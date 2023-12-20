@@ -53,7 +53,8 @@ def parse_arguments_early
         no_add_holes: %w(--no-add-holes)}],
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
-        comment: %w(-c --comment)}],
+        comment: %w(-c --comment),
+        read_fifo: %w(--read-fifo}],
      [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {

@@ -2232,4 +2232,15 @@ do_test 'id-87: player info in listen' do
   kill_session
 end
 
+do_test 'id-88: read from fifo' do
+  new_session
+  tms 'harpwise listen c --read-fifo'
+  tms :ENTER
+  sleep 2
+  File.write('/tmp/harpwise_fifo', 'q')
+  sleep 1
+  expect { screen.any? {|l| l['Terminating on user request'] }}
+  kill_session
+end
+
 puts
