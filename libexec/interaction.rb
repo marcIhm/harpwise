@@ -269,12 +269,11 @@ end
 
 
 def start_fifo_handler
-  fifo = '/tmp/harpwise_fifo'
-  File.mkfifo(fifo) unless File.exist?(fifo)
-  ftype = File.ftype(fifo)
-  err "Fifo '#{fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
+  File.mkfifo($control_fifo) unless File.exist?($control_fifo)
+  ftype = File.ftype($control_fifo)
+  err "Fifo '#{$control_fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
 
-  fifo = File.open(fifo, 'r+')
+  fifo = File.open($control_fifo, 'r+')
   $term_fifo_handler = Thread.new do
     loop do
       $ctl_kb_queue.enq fifo.getc

@@ -2234,7 +2234,7 @@ do_test 'id-88: read from fifo' do
   tms 'harpwise listen c --read-fifo'
   tms :ENTER
   sleep 2
-  File.write('/tmp/harpwise_fifo', 'q')
+  File.write("#{$dotdir_testing}/control_fifo", 'q')
   sleep 1
   expect { screen.any? {|l| l['Terminating on user request'] }}
   kill_session

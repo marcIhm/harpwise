@@ -179,6 +179,7 @@ def set_global_vars_early
   $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
+  $control_fifo = "#{$dirs[:data]}/control_fifo"
 end
 
 
