@@ -2,7 +2,7 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks
+def do_licks_or_quiz quiz_scale_name = nil
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -14,11 +14,13 @@ def do_licks
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   
   to_play = PlayController.new
+  # below stands for override for line_message2
   oride_l_message2 = nil
+  first_round = true
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   trace_text = nil
-
+  
   loop do   # forever until ctrl-c, sequence after sequence
 
     #
@@ -55,20 +57,23 @@ def do_licks
       to_play[:lick_idx_before] = nil
 
     elsif $other_mode_saved[:all_wanted]
-      # mode is quiz
+      # happens only for mode quiz
       to_play[:all_wanted] = $other_mode_saved[:all_wanted]
       $other_mode_saved[:all_wanted] = nil
 
+    #
+    # Many of the cases below are only possible for mode licks
+    #
     elsif $ctl_mic[:back]
       to_play.back_one_lick
       
-    elsif $ctl_mic[:change_lick]  # can only happen for mode licks
+    elsif $ctl_mic[:change_lick] 
       trace_text = to_play.read_name_change_lick(to_play[:lick])
       
-    elsif $ctl_mic[:edit_lick_file]  # can only happen for mode licks
+    elsif $ctl_mic[:edit_lick_file] 
       to_play.edit_lick
 
-    elsif $ctl_mic[:change_tags]  # can only happen in licks
+    elsif $ctl_mic[:change_tags]  
       to_play.change_tags
 
     elsif $ctl_mic[:reverse_holes]
@@ -87,18 +92,40 @@ def do_licks
       $msgbuf.print "Partial is \e[0m'#{$opts[:partial]}'", 2, 5, :partial
 
     else
-      # most general case: $ctl_mic[:next] or no $ctl-command;
-      # go to the next lick or sequence of holes
+      # most general case: $ctl_mic[:next] or
+      # $ctl_mic[:change_num_quiz_replay] or no $ctl-command; go to
+      # the next lick or sequence of holes
 
       to_play[:all_wanted_before] = to_play[:all_wanted]
       to_play[:lick_idx_before] = to_play[:lick_idx]
       to_play[:octave_shift] = 0
 
+      
       # figure out holes to play
       if $mode == :quiz
-        to_play[:all_wanted] = get_sample($num_quiz)
-        jrc_text = to_play[:all_wanted].join(' ')
+        case $extra
+        when 'replay'
+          if $ctl_mic[:change_num_quiz_replay]
+            read_and_set_num_quiz_replay
+            $msgbuf.print "Number of holes to replay is \e[0m'#{$num_quiz_replay}'", 2, 5, :replay
+            $ctl_mic[:change_num_quiz_replay] = false
+          end
+          to_play[:all_wanted] = get_quiz_sample($num_quiz_replay)
+        when 'play-scale'
+          unless first_round
+            quiz_scale_name = $all_scales.sample
+            clear_area_comment
+            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            do_figlet_unwrapped quiz_scale_name, 'smblock'
+            sleep 1
+          end
+          to_play[:all_wanted], _, _, _ = read_and_parse_scale_simple(quiz_scale_name, $harp)
 
+          sleep 1
+        else
+          err "Internal error: #{$extra}"
+        end
+        
       else # $mode == :licks
 
         if start_with
@@ -135,14 +162,16 @@ def do_licks
     end # handling $ctl-commands and calculating the next holes
 
     # Now that we are past possible commandline errors, we may initialize screen fully
-    if !$other_mode_saved[:conf] && !$splashed
-      animate_splash_line
-      puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
-           "key of #{$key}"
-      sleep 0.01
-      3.times do
-        puts
+    if !$other_mode_saved[:conf] && first_round
+      if !$splashed
+        animate_splash_line
+        puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+             "key of #{$key}"
         sleep 0.01
+        3.times do
+          puts
+          sleep 0.01
+        end
       end
 
       # get current cursor line, will be used as bottom of two lines for messages
@@ -171,7 +200,7 @@ def do_licks
     IO.write($trace_file, "#{trace_text}\n", mode: 'a') if trace_text
     trace_text = nil
     seq_played_recently = false
-    if !zero_partial? || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
+    if ( !quiz_scale_name && !zero_partial? ) || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
 
@@ -276,10 +305,12 @@ def do_licks
           
           # lambda_mission
           -> () do
-            if $ctl_mic[:loop]
+            if quiz_scale_name
+              "Play scale #{quiz_scale_name}"
+            elsif $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else
-              if $num_quiz == 1 
+              if $num_quiz_replay == 1 
                 "Play the note you have heard !"
               else
                 "Play note \e[32m#{idx+1}\e[0m of" +
@@ -343,7 +374,7 @@ def do_licks
             hole_passed = Time.now.to_f - hole_start
             round_passed = Time.now.to_f - round_start
             hole_hint = if hole_passed > 6
-                          "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}"
+                          "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m\e[2m ; type '.' for replay"
                         else
                           if idx > 0
                             isemi, itext, _, _ = describe_inter(wanted, to_play[:all_wanted][idx - 1])
@@ -384,6 +415,7 @@ def do_licks
             nil
           end
         )  # end of handle_holes
+
         
         if $ctl_mic[:switch_modes]
           if $mode == :licks
@@ -394,7 +426,7 @@ def do_licks
           return
         end
 
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -437,7 +469,7 @@ def do_licks
                     ccol = 31
                     'REC   -ON-'
                   end
-                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial].any? {|k| $ctl_mic[k]}
+                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
                   # these will issue their own message
                   nil
                 else
@@ -457,7 +489,7 @@ def do_licks
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -474,10 +506,11 @@ def do_licks
         $ctl_mic[:toggle_record_user] = false
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
+    first_round = false
 
   end # forever sequence after sequence
 end
@@ -485,7 +518,7 @@ end
 
 $quiz_sample_stats = Hash.new {|h,k| h[k] = 0}
 
-def get_sample num
+def get_quiz_sample num
   # construct chains of holes within scale and added scale
   holes = Array.new
   what = Array.new(num)
@@ -834,7 +867,7 @@ end
 
 def largify holes, idx
   line = $lines[:comment_low]
-  if $num_quiz == 1
+  if $num_quiz_replay == 1
     [ "\e[2m", '...', line, 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
     hidden_holes = if idx > 6
@@ -939,7 +972,7 @@ def read_and_set_partial
   clear_area_comment
   puts "\e[#{$lines[:comment_tall]}H\e[0m\e[32mPlease enter new value for option '--partial'."
   puts
-  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0,"
+  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0"
   puts " type RETURN to unset"
   puts " Current value is '#{$opts[:partial]}'"
   puts
@@ -964,6 +997,23 @@ def read_and_set_partial
     report_condition_wait_key e
     $opts[:partial] = old
   end
+  print "\e[#{$lines[:comment]}H\e[0m\e[J"
+end
+
+
+def read_and_set_num_quiz_replay
+  make_term_cooked
+  clear_area_comment
+  puts "\e[#{$lines[:comment_tall] + 1}H\e[0m\e[32mPlease enter new number of holes to be replayed."
+  puts
+  puts "\e[0m\e[2m Any integer number larger zero is allowed (e.g. 2, 3, 10)"
+  puts " anything invalid keeps the current value of: #{$num_quiz_replay}"
+  puts
+  print "\e[0mYour input: "
+  input = STDIN.gets.chomp
+  new = input.to_i
+  $num_quiz_replay = new if new > 0
+  make_term_immediate
   print "\e[#{$lines[:comment]}H\e[0m\e[J"
 end
 

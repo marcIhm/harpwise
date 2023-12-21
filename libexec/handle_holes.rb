@@ -465,7 +465,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -487,6 +487,7 @@ def text_for_key
   if $mode == :licks
     text += "(#{$licks.length},#{$opts[:iterate][0..2]})"
   end
+  text += " \e[0m#{$extra}\e[2m" if $extra
   text += " #{$type} \e[0m#{$key}"
   if $used_scales.length > 1
     text += "\e[0m"
@@ -667,7 +668,7 @@ def show_help
                "      P: toggle automatic replay when looping over a sequence",
                "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
-               "      #: toggle tracking progress in seq   R: play holes reversed"]
+               "      t: toggle tracking progress in seq   R: play holes reversed"]
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags-any (aka -t)",
@@ -676,6 +677,9 @@ def show_help
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
                           ""])
+    elsif $mode == :quiz && $extra == 'replay'
+      frames[-1] << "      n: change number of holes to be replayed"
+      frames[-1] << ""
     else
       frames[-1] << ""
     end
