@@ -252,7 +252,7 @@ do_test 'id-1b: config.ini, mode prevails' do
     key = a    
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise quiz replay 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -270,7 +270,7 @@ do_test 'id-1c: config.ini, set loop (example for boolean)' do
     loop = false
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise quiz replay 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -288,7 +288,7 @@ do_test 'id-1d: config.ini, unset loop with option' do
     loop = true
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop'
+  tms 'harpwise quiz replay 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -305,7 +305,7 @@ do_test 'id-1e: config.ini, take default key from config' do
     key = a
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop'
+  tms 'harpwise quiz replay 3 blues --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -335,7 +335,7 @@ do_test 'id-1g: config.ini, set value in config and clear again on commandline' 
     add_scales = major_pentatonic
   end_of_content
   new_session
-  tms 'harpwise quiz 3 blues --no-loop --add-scales -'
+  tms 'harpwise quiz replay 3 blues --no-loop --add-scales -'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -572,7 +572,7 @@ end
 do_test 'id-10: quiz' do
   sound 12, 3
   new_session
-  tms 'harpwise quiz 2 c blues'
+  tms 'harpwise quiz replay 2 c blues'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['b4    4   b14  b45   4   b14'] }
@@ -582,7 +582,7 @@ end
 do_test 'id-10a: displays and comments in quiz' do
   sound 40, 2
   new_session
-  tms 'harpwise quiz 2 c all --ref +2'
+  tms 'harpwise quiz replay 2 c all --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
@@ -1286,7 +1286,7 @@ end
 
 do_test 'id-44a: switch between modes quiz and listen' do
   new_session
-  tms 'harpwise quiz 3 blues'
+  tms 'harpwise quiz replay 3 blues'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['quiz'] }
@@ -1626,7 +1626,7 @@ do_test 'id-56: forward and back in help' do
 end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
-                'harpwise quiz 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
+                'harpwise quiz replay 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
                 'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
@@ -2237,6 +2237,15 @@ do_test 'id-88: read from fifo' do
   File.write("#{$dotdir_testing}/control_fifo", 'q')
   sleep 1
   expect { screen.any? {|l| l['Terminating on user request'] }}
+  kill_session
+end
+
+do_test 'id-89: quiz-flavour play-scale' do
+  new_session
+  tms 'harpwise quiz play-scale'
+  tms :ENTER
+  sleep 3
+  expect { screen[0]['Play scale'] }
   kill_session
 end
 

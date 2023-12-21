@@ -9,30 +9,41 @@ def do_quiz to_handle
 
   err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if $extra != 'replay' && to_handle.length > 0
 
-  flavours_random = %w(random ran rand)
-  $extra = ($quiz_flavour2class.keys - flavours_random).sample if flavours_random.include?($extra)
-
   if $extra == 'replay'
     err "'harpwise quiz replay' requires exactly one integer argument, not: #{to_handle}" unless to_handle.length == 1 && to_handle[0].match(/^\d+$/)
     $num_quiz_replay = to_handle[0].to_i
   end
 
+  flavours_random = %w(random ran rand)
+  random = flavours_random.include?($extra)
+  $extra = ($quiz_flavour2class.keys - flavours_random).sample if random
+  $num_quiz_replay = 5 if $extra == 'replay'
+
+  animate_splash_line
+  
   puts
+  puts "Quiz Flavour is: #{$extra}"
   puts
-  do_figlet_unwrapped $extra, 'smblock'
+  puts "Description is:"
   puts
+  puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
   puts
+  if random
+    print "\e[32mpress RETURN to continue ... \e[0m"
+    STDIN.gets
+    puts
+  end
   
   if $extra == 'replay'
     do_licks_or_quiz
   elsif $extra == 'play-scale'
     $opts[:comment] = :holes_some
     quiz_scale_name = $all_scales.sample
+    puts "\e[32mScale to play is:"
+    puts
     do_figlet_unwrapped quiz_scale_name, 'smblock'
     puts
     puts
-    animate_splash_line
-    sleep 1
     do_licks_or_quiz quiz_scale_name
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
     flavour = $quiz_flavour2class[$extra].new
