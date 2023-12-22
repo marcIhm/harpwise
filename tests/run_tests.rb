@@ -106,7 +106,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 77
+num_exp = 79
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -252,7 +252,7 @@ do_test 'id-1b: config.ini, mode prevails' do
     key = a    
   end_of_content
   new_session
-  tms 'harpwise quiz replay 3 blues'
+  tms 'harpwise quiz blues replay 3'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -270,7 +270,7 @@ do_test 'id-1c: config.ini, set loop (example for boolean)' do
     loop = false
   end_of_content
   new_session
-  tms 'harpwise quiz replay 3 blues'
+  tms 'harpwise quiz blues replay 3'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -288,7 +288,7 @@ do_test 'id-1d: config.ini, unset loop with option' do
     loop = true
   end_of_content
   new_session
-  tms 'harpwise quiz replay 3 blues --no-loop'
+  tms 'harpwise quiz blues replay 3 --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -305,7 +305,7 @@ do_test 'id-1e: config.ini, take default key from config' do
     key = a
   end_of_content
   new_session
-  tms 'harpwise quiz replay 3 blues --no-loop'
+  tms 'harpwise quiz blues replay 3 --no-loop'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -335,7 +335,7 @@ do_test 'id-1g: config.ini, set value in config and clear again on commandline' 
     add_scales = major_pentatonic
   end_of_content
   new_session
-  tms 'harpwise quiz replay 3 blues --no-loop --add-scales -'
+  tms 'harpwise quiz blues replay 3 --no-loop --add-scales -'
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -353,7 +353,7 @@ usage_types.keys.each_with_index do |mode, idx|
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
                      'calibrate' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' is a game of challenge (the wise) and response"],
+                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory and musical memory and"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
@@ -572,7 +572,7 @@ end
 do_test 'id-10: quiz' do
   sound 12, 3
   new_session
-  tms 'harpwise quiz replay 2 c blues'
+  tms 'harpwise quiz c blues replay 2'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['b4    4   b14  b45   4   b14'] }
@@ -582,7 +582,7 @@ end
 do_test 'id-10a: displays and comments in quiz' do
   sound 40, 2
   new_session
-  tms 'harpwise quiz replay 2 c all --ref +2'
+  tms 'harpwise quiz c all replay 2 --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
@@ -850,7 +850,7 @@ do_test 'id-19b: prepare and get history of licks' do
   ["   l: blues\n",
    "  2l: mape\n",
    "  3l: wade\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[10+idx] == exp }
+    expect(lines.each_with_index.map {|l,i| [i,l]}, exp, idx) { lines[10+idx] == exp }
   end
   kill_session
 end
@@ -1286,7 +1286,7 @@ end
 
 do_test 'id-44a: switch between modes quiz and listen' do
   new_session
-  tms 'harpwise quiz replay 3 blues'
+  tms 'harpwise quiz blues replay 3'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['quiz'] }
@@ -1626,7 +1626,7 @@ do_test 'id-56: forward and back in help' do
 end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
-                'harpwise quiz replay 3 a' => [[9,'change key of harp'],[9,'forget holes played']],
+                'harpwise quiz a replay 3' => [[9,'change key of harp'],[9,'forget holes played']],
                 'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
@@ -2183,7 +2183,7 @@ do_test 'id-83: unittest' do
   tms 'harpwise develop unittest'
   tms :ENTER
   sleep 8
-  expect { screen[17]['All unittests okay.'] }
+  expect { screen[21]['All unittests okay.'] }
   kill_session
 end
 
@@ -2240,12 +2240,31 @@ do_test 'id-88: read from fifo' do
   kill_session
 end
 
-do_test 'id-89: quiz-flavour play-scale' do
+do_test 'id-89: quiz-flavour random' do
+  new_session
+  tms 'harpwise quiz random'
+  tms :ENTER
+  sleep 3
+  expect { screen.any? {|l| l['Quiz Flavour is:'] }}
+  expect { screen[13]['press RETURN to continue'] }
+  kill_session
+end
+
+do_test 'id-90: quiz-flavour play-scale' do
   new_session
   tms 'harpwise quiz play-scale'
   tms :ENTER
   sleep 3
   expect { screen[0]['Play scale'] }
+  kill_session
+end
+
+do_test 'id-91: quiz-flavour play-inter' do
+  new_session
+  tms 'harpwise quiz play-inter'
+  tms :ENTER
+  sleep 3
+  expect { screen[0]['Play inter'] }
   kill_session
 end
 

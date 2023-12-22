@@ -378,16 +378,16 @@ def animate_splash_line single_line = false, as_string: false
 end
 
 
-def get_files_journal_trace_players
+def get_files_journal_trace
   trace = if $mode == :licks || $mode == :play || $mode == :print
-          # modes licks and play both play random licks and report needs to read them
+            # modes licks and play both play random licks and report needs to read them
             "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
           elsif $mode == :quiz
             "#{$dirs[:data]}/trace_#{$type}_mode_quiz.txt"
           else
             nil
           end
-  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace,"#{$dirs[:data]}/players_last.txt"]
+  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace]
 end
 
 
@@ -487,7 +487,7 @@ def switch_modes
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
-  $journal_file, $trace_file, $players_file = get_files_journal_trace_players
+  $journal_file, $trace_file = get_files_journal_trace
   $journal_all = false
   
   clear_area_comment
@@ -739,7 +739,7 @@ class FamousPlayers
       if !@lines_pool_last
         # remember last player
         @stream_current = name = @lines_pool.shift
-        File.write($players_file, name) if @has_details[name]
+        $pers_data['players_last'] = name if @has_details[name]
         @lines_pool_last = @lines_pool.shift
       end
       @lines_pool_when = Time.now.to_f

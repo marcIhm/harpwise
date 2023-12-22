@@ -415,16 +415,15 @@ def print_players args
   elsif args.length == 1 && 'random'.start_with?(args[0])
     print_player $players.structured[$players.all_with_details.sample]
   elsif args.length == 1 && 'last'.start_with?(args[0])
-    if File.exist?($players_file)
-      name = IO.read($players_file).lines[0].chomp
-      player = $players.structured[name]
+    if $pers_data['players_last']
+      player = $players.structured[$pers_data['players_last']]
       if player
         print_player player
       else
-        puts "Name '#{name}' from '#{$players_file}' is unknown (?)"
+        puts "Name '#{name}' from '#{$pers_file}' is unknown (?)"
       end
     else
-      puts "Players file '#{$players_file}' does not exist (yet);\ninvoke mode listen first"
+      puts "No player recorded in '#{$pers_file}'\ninvoke mode listen first"
     end
   elsif args.length == 1 && 'all'.start_with?(args[0])
     # the only way to end this loop prematurely is to press ctrl-c;

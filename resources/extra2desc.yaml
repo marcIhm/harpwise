@@ -72,13 +72,15 @@ quiz:
   replay: |
     harpwise plays a sequence of holes and you should play it back
   play-scale: |
-    harpwise gives you the name of a scale and asks to play it back
-  find-scale-shuffled: |
-    harpwise plays the holes of a scale (shuffled) and asks you for
-    its name
-  find-scale-ordered: |
+    gives you the name of a scale and asks to play it
+  play-inter: |
+    names a hole and an interval which, resolves to a hole and asks
+    to play back both holes
+  hear-scale: |
     harpwise plays the holes of a scale (in order) and asks you for
     its name
+  hear-inter: |
+    plays an interval and asks for its name
 develop:
   man: |
     produce man page from erb-template

@@ -20,19 +20,22 @@ USAGE BY EXAMPLES
     harpwise quiz c random
 
   this is the preferred way to get used to this mode.
+
+
+  Some examples that choose a quiz flavour explicitly:
   
 
   Wise plays 3 notes from the scale major_pentatonic for a
   chromatic harmonica of key a and then asks you to play them
   back (then repeat):
 
-    harpwise quiz replay 5 chromatic a blues
+    harpwise quiz chromatic a blues replay 5
 
   In the examples above, the type of harmonica (e.g. richter or
-  chromatic) and, in addition, the key (e.g. c or a) may be omitted
-  and are then taken from the config; so
+  chromatic), the key (e.g. c or a) or the number of holes may be
+  omitted and are then taken from the config or defaults; so
 
-    harpwise q replay 5 major
+    harpwise q major replay
 
   is valid as well (but would choose a richter harp).
 
@@ -43,6 +46,6 @@ USAGE BY EXAMPLES
   this example also relies on the default of 5 holes to be played.
 
 
-  Wise shuffles and plays a scale and asks you for its name:
+  Wise plays a scale and asks you for its name:
 
-    harpwise quit scale-shuffled
+    harpwise quiz hear-scale

@@ -2,7 +2,7 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks_or_quiz quiz_scale_name = nil
+def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -117,11 +117,18 @@ def do_licks_or_quiz quiz_scale_name = nil
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_scale_name, 'smblock'
-            sleep 1
+            sleep 2
           end
           to_play[:all_wanted], _, _, _ = read_and_parse_scale_simple(quiz_scale_name, $harp)
-
-          sleep 1
+        when 'play-inter'
+          unless first_round
+            quiz_holes_inter = get_random_interval
+            clear_area_comment
+            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            do_figlet_unwrapped quiz_holes_inter[-1], 'smblock'
+            sleep 2
+          end
+          to_play[:all_wanted] = quiz_holes_inter[0..1]
         else
           err "Internal error: #{$extra}"
         end
@@ -200,7 +207,8 @@ def do_licks_or_quiz quiz_scale_name = nil
     IO.write($trace_file, "#{trace_text}\n", mode: 'a') if trace_text
     trace_text = nil
     seq_played_recently = false
-    if ( !quiz_scale_name && !zero_partial? ) || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
+    if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
+       $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
 
@@ -306,7 +314,9 @@ def do_licks_or_quiz quiz_scale_name = nil
           # lambda_mission
           -> () do
             if quiz_scale_name
-              "Play scale #{quiz_scale_name}"
+              "Play scale #{quiz_scale_name}, #{to_play[:all_wanted][0]} and on"
+            elsif quiz_holes_inter
+              "Play inter #{quiz_holes_inter[-1]}"
             elsif $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else

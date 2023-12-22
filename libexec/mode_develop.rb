@@ -295,7 +295,7 @@ def do_unittest
 
   puts
   puts_underlined 'Subclasses of QuizFlavour'
-  found = Set.new($quiz_flavour2class.keys).to_a.sort
+  found = $quiz_flavour2class.keys.to_a.sort
   expected = $extra_kws[:quiz].to_a.sort
   utreport('subclasses and extra', found, expected)
 

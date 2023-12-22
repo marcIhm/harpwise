@@ -11,6 +11,7 @@
   - maj Third
   - mT
   - third
+  - fav
 '6':
   - flat Fifth
   - fF
@@ -19,15 +20,18 @@
   - per Fifth
   - pF
   - fifth
+  - fav
 '9':
   - Sixth
   - Si
 '10':
   - flat Seventh
   - fSe
+  - fav
 '12':
   - Octave
   - Oct
+  - fav
 '16':
   - Oct + Thrd
   - O+T

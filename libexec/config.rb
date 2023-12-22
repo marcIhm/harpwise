@@ -184,7 +184,7 @@ def set_global_vars_early
   $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  %w(random ran rand replay play-scale).each {|f| $quiz_flavour2class[f] = nil}
+  %w(random ran rand replay play-scale play-inter).each {|f| $quiz_flavour2class[f] = nil}
 end
 
 
@@ -352,8 +352,8 @@ def set_global_vars_late
   $journal = Array.new
   # is journaling of all holes played ongoing ?
   $journal_all = false
-  # filenames; $journal_file contains both 'all' and 'some'
-  $journal_file, $trace_file, $players_file = get_files_journal_trace_players
+  # filenames for user-readable persistant data
+  $journal_file, $trace_file = get_files_journal_trace
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
@@ -608,10 +608,16 @@ def read_and_set_musical_config
   hole2rem.each_key do |h|
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
+
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
+  $intervals_fav = Array.new
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
-  intervals.keys.to_a.each do |st|
+  intervals.keys.each do |st|
+    if intervals[st].include?('fav')
+      $intervals_fav << st
+      intervals[st].delete('fav')
+    end
     next if st == 0 || st - 12 < -12 || st - 12 >= 0
     intervals[st-12] = intervals[st].clone
     # dont use prepend here
