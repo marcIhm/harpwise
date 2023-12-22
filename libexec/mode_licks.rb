@@ -113,7 +113,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
           to_play[:all_wanted] = get_quiz_sample($num_quiz_replay)
         when 'play-scale'
           unless first_round
-            quiz_scale_name = $all_scales.sample
+            quiz_scale_name = $shorter_scales.sample
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_scale_name, 'smblock'
@@ -314,7 +314,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
           # lambda_mission
           -> () do
             if quiz_scale_name
-              "Play scale #{quiz_scale_name}, #{to_play[:all_wanted][0]} and on"
+              "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
             elsif quiz_holes_inter
               "Play inter #{quiz_holes_inter[-1]}"
             elsif $ctl_mic[:loop]

@@ -148,16 +148,18 @@ end
 
 def describe_scales_maybe scales, type
   desc = Hash.new
+  count = Hash.new
   scales.each do |scale|
     sfile = $scale_files_template % [type, scale, 'holes']
     begin 
       _, holes_rem = YAML.load_file(sfile).partition {|x| x.is_a?(Hash)}
       holes = holes_rem.map {|hr| hr.split[0]}
       desc[scale] = "holes #{holes.join(',')}"
+      count[scale] = holes.length
     rescue Errno::ENOENT, Psych::SyntaxError
     end
   end
-  desc
+  [desc, count]
 end
 
 def display_kb_help what, scroll_allowed, body

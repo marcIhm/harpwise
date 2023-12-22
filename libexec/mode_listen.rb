@@ -326,7 +326,7 @@ def edit_journal initial_content = nil
   tfile.write(tabify_plain($journal, true))
   tfile.close
   if edit_file(tfile.path)
-    catch (:invalid_hole) do
+    catch :invalid_hole do
       holes = Array.new
       File.readlines(tfile.path).each do |line|
         line.gsub!(/#.*/,"\n")

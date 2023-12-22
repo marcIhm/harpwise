@@ -901,7 +901,8 @@ def set_global_musical_vars
   $used_scales = get_used_scales($opts[:add_scales])
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
-  $scale_desc_maybe = describe_scales_maybe($all_scales, $type)
+  $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
+  $shorter_scales = $scale2count.keys.select {|s| $scale2count[s] < $harp_holes.length / 2}
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   if $hole_ref

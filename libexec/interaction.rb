@@ -1019,13 +1019,13 @@ def choose_interactive prompt, names
   names.uniq!
   clear_area_comment
   clear_area_message
-  # keep screen-line as a variable to alow redraw
+
+  total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[J"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
   $chia_loc_cache = nil
   $chia_no_matches = nil
-  total_chars = chia_padded(names).join.length
   print help_template % ( $lines[:comment_tall] + 2 )
   idx_hl = 0
   idx_hl += 1 while names[idx_hl][0] == ';'

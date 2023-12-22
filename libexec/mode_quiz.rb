@@ -45,8 +45,9 @@ def do_quiz to_handle
   puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
   puts
   if is_random
-    print "\e[32mpress RETURN to continue ... \e[0m"
-    STDIN.gets
+    print "\e[32mPress any key to continue ... \e[0m"
+    one_char
+    puts
     puts
   end
   
@@ -54,7 +55,7 @@ def do_quiz to_handle
     do_licks_or_quiz
   elsif $extra == 'play-scale'
     $opts[:comment] = :holes_some
-    scale_name = $all_scales.sample
+    scale_name = $shorter_scales.sample
     puts "\e[32mScale to play is:"
     puts
     do_figlet_unwrapped scale_name, 'smblock'
@@ -73,41 +74,115 @@ def do_quiz to_handle
     sleep 2
     do_licks_or_quiz(quiz_holes_inter: holes_inter)
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
-    flavour = $quiz_flavour2class[$extra].new
+    first_round = true
+    loop do  ## every new question
+      catch :next do
+        puts
+        puts '  *** Next Question ***' unless first_round
+        puts
+        first_round = false
+        flavour = $quiz_flavour2class[$extra].new
+        loop do  ## repeats of question
+          catch :reissue do
+            flavour.issue_question
+            loop do  ## repeats of asking for answer
+              catch :reask do
+                throw flavour.get_and_check_answer
+              end
+            end
+          end
+        end
+      end
+    end
   else
     err "Internal error: #{$extra}, #{$quiz_flavour2class}"
   end
 end
 
+
 class QuizFlavour
-  def err_this_is_abstract
-    err 'Internal error: this is an abstract method, that needs to be overridden'
+
+  def get_and_check_answer
+    make_term_immediate
+    ($term_height - $lines[:comment_tall] + 1).times { puts }
+    answer = choose_interactive(@prompt, [@choices, ';OR->', 'SKIP', 'AGAIN', 'RESOLVE', 'HELP'].flatten) do |tag|
+      {'SKIP' => 'Skip to next question',
+       'RESOLVE' => 'Give solution and go to next question',
+       'AGAIN' => 'Ask same question again',
+       'HELP' => 'Remove some solutions, leaving less choices',
+      }[tag] || "#{@help_head} #{tag}"
+    end
+    clear_area_comment
+    clear_area_message
+    make_term_cooked
+    print "\e[#{$lines[:comment_tall]}H"
+    if answer == @solution
+      stand_out "Yes, '#{answer}' is RIGHT !\n\nSkipping to next question.", green: true
+      puts
+      return :next
+    end
+    if answer == 'SKIP'
+      stand_out 'Skipping to next question.'
+      puts
+      return :next
+    end
+    if answer == 'AGAIN'
+      stand_out 'Asking again.'
+      puts
+      return :reissue
+    end
+    if answer == 'RESOLVE'
+      stand_out "The correct answer is:\n\n    #{@solution}\n\nSkipping to next question."
+      sleep 1
+      puts
+      return :next
+    end
+    if answer == 'HELP'
+      if @choices.length > 1
+        stand_out 'Removing some choices to make it easier'
+        orig_len = @choices.length 
+        while @choices.length > orig_len / 2
+          idx = rand(@choices.length)
+          next if @choices[idx] == @solution
+          @choices.delete_at(idx)
+        end
+      else
+        stand_out "There is only one choice left;\nit should be pretty easy by now ..."
+      end
+      return :reask
+    end
+    stand_out "Sorry, your answer '#{answer}' is wrong;\nplease try again ..."
+    @choices.delete(answer)
+    return :reask
   end
 
-  # explain the hole concept of this flavour
-  def explain
-    err_this_is_abstract
-  end
-
-  # pose a query
-  def query
-    err_this_is_abstract
-  end
-
-  # check answer
-  def check answer
-    err_this_is_abstract
-  end
 end
 
-
+  
 class HearScale < QuizFlavour
+
+  def initialize
+    @choices = $shorter_scales.clone
+    @solution = @choices.sample
+    @prompt = 'Choose the scale you have heard !'
+    @help_head = 'Scale '
+  end
+
+  def issue_question
+    puts
+    puts "Playing a scale ..."
+    puts
+    holes, _, _, _ = read_and_parse_scale_simple(@solution, $harp)
+    make_term_immediate
+    play_holes_or_notes_simple holes
+    make_term_cooked
+  end
+
 end
 
 
 class HearInter < QuizFlavour
 end
-
 
 def get_random_interval
   # favour lower holes
@@ -124,4 +199,16 @@ def get_random_interval
       end
     end
   end
+end
+
+
+def stand_out text, green: false
+  print "\e[32m" if green
+  puts
+  lines = text.lines.map(&:chomp)
+  maxl = lines.map(&:length).max
+  puts '  + ' + ( '-' * maxl ) + ' +'
+  lines.each {|l| puts '  | ' + ("%-#{maxl}s" % l) + ' |'}
+  puts '  + ' + ( '-' * maxl ) + ' +'
+  print "\e[0m"
 end
