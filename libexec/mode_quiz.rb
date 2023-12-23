@@ -48,7 +48,6 @@ def do_quiz to_handle
     print "\e[32mPress any key to continue ... \e[0m"
     one_char
     puts
-    puts
   end
   
   if $extra == 'replay'
@@ -78,8 +77,10 @@ def do_quiz to_handle
     loop do  ## every new question
       catch :next do
         puts
-        puts '  *** Next Question ***' unless first_round
-        puts
+        if !first_round
+          puts
+          puts_underlined 'Next Question'
+        end
         first_round = false
         flavour = $quiz_flavour2class[$extra].new
         loop do  ## repeats of question
@@ -102,12 +103,13 @@ end
 
 class QuizFlavour
 
+  @@prev_solutions = Array.new
+
   def get_and_check_answer
     make_term_immediate
     ($term_height - $lines[:comment_tall] + 1).times { puts }
-    answer = choose_interactive(@prompt, [@choices, ';OR->', 'SKIP', 'AGAIN', 'RESOLVE', 'HELP'].flatten) do |tag|
-      {'SKIP' => 'Skip to next question',
-       'RESOLVE' => 'Give solution and go to next question',
+    answer = choose_interactive(@prompt, [@choices, ';OR->', 'SOLVE', 'AGAIN', 'HELP'].flatten) do |tag|
+      {'SOLVE' => 'Give solution and go to next question',
        'AGAIN' => 'Ask same question again',
        'HELP' => 'Remove some solutions, leaving less choices',
       }[tag] || "#{@help_head} #{tag}"
@@ -117,23 +119,22 @@ class QuizFlavour
     make_term_cooked
     print "\e[#{$lines[:comment_tall]}H"
     if answer == @solution
-      stand_out "Yes, '#{answer}' is RIGHT !\n\nSkipping to next question.", green: true
-      puts
-      return :next
-    end
-    if answer == 'SKIP'
-      stand_out 'Skipping to next question.'
+      stand_out "Yes, '#{answer}' is RIGHT !\n\nSkipping to next question.", all_green: true
       puts
       return :next
     end
     if answer == 'AGAIN'
-      stand_out 'Asking again.'
+      stand_out 'Asking question again.'
       puts
       return :reissue
     end
-    if answer == 'RESOLVE'
-      stand_out "The correct answer is:\n\n    #{@solution}\n\nSkipping to next question."
+    if answer == 'SOLVE'
+      stand_out "The correct answer is:\n\n    #{@solution}\n"
       sleep 1
+      after_solve if self.respond_to?(:after_solve)
+      puts
+      print "\e[32mPress any key to continue ... \e[0m"
+      one_char
       puts
       return :next
     end
@@ -147,11 +148,11 @@ class QuizFlavour
           @choices.delete_at(idx)
         end
       else
-        stand_out "There is only one choice left;\nit should be pretty easy by now ..."
+        stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
       end
       return :reask
     end
-    stand_out "Sorry, your answer '#{answer}' is wrong;\nplease try again ..."
+    stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
     @choices.delete(answer)
     return :reask
   end
@@ -163,18 +164,33 @@ class HearScale < QuizFlavour
 
   def initialize
     @choices = $shorter_scales.clone
-    @solution = @choices.sample
+    begin
+      @solution = @choices.sample
+    end while @@prev_solutions.include?(@solution)
+    @@prev_solutions << @solution
+    @@prev_solutions.shift if @@prev_solutions.length > 2
+    @holes, _, _, _ = read_and_parse_scale_simple(@solution, $harp)
     @prompt = 'Choose the scale you have heard !'
     @help_head = 'Scale '
   end
 
+  def after_solve
+    puts
+    puts "Playing solution again ..."
+    puts
+    _play_scale
+  end
+  
   def issue_question
     puts
-    puts "Playing a scale ..."
+    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}, with #{@holes.length} holes\e[0m ..."
     puts
-    holes, _, _, _ = read_and_parse_scale_simple(@solution, $harp)
+    _play_scale
+  end
+
+  def _play_scale
     make_term_immediate
-    play_holes_or_notes_simple holes
+    play_holes_or_notes_simple @holes
     make_term_cooked
   end
 
@@ -183,6 +199,7 @@ end
 
 class HearInter < QuizFlavour
 end
+
 
 def get_random_interval
   # favour lower holes
@@ -202,13 +219,20 @@ def get_random_interval
 end
 
 
-def stand_out text, green: false
-  print "\e[32m" if green
+def stand_out text, all_green: false, turn_red: nil
+  print "\e[32m" if all_green
   puts
   lines = text.lines.map(&:chomp)
   maxl = lines.map(&:length).max
   puts '  + ' + ( '-' * maxl ) + ' +'
-  lines.each {|l| puts '  | ' + ("%-#{maxl}s" % l) + ' |'}
+  lines.each do |l|
+    if turn_red && md = l.match(/^(.*)(\b#{turn_red}\b)(.*)$/)
+      ll = md[1] + "\e[31m" + md[2] + "\e[0m" + md[3] + (' ' * (maxl - l.length))
+    else
+      ll = ( "%-#{maxl}s" % l )
+    end
+    puts "  | #{ll} |"
+  end
   puts '  + ' + ( '-' * maxl ) + ' +'
   print "\e[0m"
 end

@@ -77,7 +77,7 @@ quiz:
     names a hole and an interval which, resolves to a hole and asks
     to play back both holes
   hear-scale: |
-    harpwise plays the holes of a scale (in order) and asks you for
+    harpwise plays the holes of a scale (in order) and asks for
     its name
   hear-inter: |
     plays an interval and asks for its name

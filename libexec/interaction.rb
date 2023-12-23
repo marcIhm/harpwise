@@ -1226,7 +1226,7 @@ def chia_move_loc idx_old, dir, idx_last_shown, idx_min
     if line_old < line_max
       # there is one line below, so try it
       line_new = line_old + 1
-      # idx in loop below stats at 0
+      # idx in loop below starts at 0
       $chia_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
         column_of_this, line_of_this = pos
         idx_of_this = idx_old + idx
@@ -1245,6 +1245,7 @@ def chia_move_loc idx_old, dir, idx_last_shown, idx_min
     end
   end
   # make sure to be in range
+  idx_new = idx_last_shown if idx_new < 0
   idx_new = [idx_new, idx_min].max
   idx_new = [idx_new, idx_last_shown ].min
 
