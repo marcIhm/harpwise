@@ -78,6 +78,7 @@ def do_quiz to_handle
       catch :next do
         puts
         if !first_round
+          sleep 1
           puts
           puts_underlined 'Next Question'
         end
@@ -103,42 +104,51 @@ end
 
 class QuizFlavour
 
-  @@prev_solutions = Array.new
+  @@prevs = Array.new
 
   def get_and_check_answer
     make_term_immediate
     ($term_height - $lines[:comment_tall] + 1).times { puts }
-    answer = choose_interactive(@prompt, [@choices, ';OR->', 'SOLVE', 'AGAIN', 'HELP'].flatten) do |tag|
-      {'SOLVE' => 'Give solution and go to next question',
-       'AGAIN' => 'Ask same question again',
-       'HELP' => 'Remove some solutions, leaving less choices',
-      }[tag] || "#{@help_head} #{tag}"
+    all_choices = [@choices, ';OR->', 'SOLVE', 'AGAIN', 'HELP'].flatten
+    choices_desc = {'SOLVE' => 'Give solution and go to next question',
+                    'AGAIN' => 'Ask same question again',
+                    'HELP' => 'Remove some solutions, leaving less choices'}
+    if help2_desc
+      all_choices << 'HELP2'
+      choices_desc['HELP2'] = help2_desc
+    end
+    answer = choose_interactive(@prompt, all_choices) do |tag|
+      choices_desc[tag] || "#{@help_head} #{tag}"
     end
     clear_area_comment
     clear_area_message
     make_term_cooked
     print "\e[#{$lines[:comment_tall]}H"
     if answer == @solution
-      stand_out "Yes, '#{answer}' is RIGHT !\n\nSkipping to next question.", all_green: true
+      stand_out "Yes, '#{answer}' is RIGHT !\n\nMoving to next question.", all_green: true
       puts
+      after_right
+      sleep 1
       return :next
     end
-    if answer == 'AGAIN'
+    case answer
+    when 'AGAIN'
       stand_out 'Asking question again.'
       puts
       return :reissue
-    end
-    if answer == 'SOLVE'
+    when 'SOLVE'
       stand_out "The correct answer is:\n\n    #{@solution}\n"
       sleep 1
-      after_solve if self.respond_to?(:after_solve)
+      if self.respond_to?(:after_solve)
+        after_solve
+        sleep 1
+      end
       puts
       print "\e[32mPress any key to continue ... \e[0m"
       one_char
       puts
       return :next
-    end
-    if answer == 'HELP'
+    when 'HELP'
       if @choices.length > 1
         stand_out 'Removing some choices to make it easier'
         orig_len = @choices.length 
@@ -151,12 +161,29 @@ class QuizFlavour
         stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
       end
       return :reask
+    when 'HELP2'
+      help2
+      return :reask
+    else
+      stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
+      @choices.delete(answer)
+      return :reask
     end
-    stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
-    @choices.delete(answer)
-    return :reask
   end
 
+  def play_holes hide_hole: nil
+    make_term_immediate
+    play_holes_or_notes_simple @holes, hide_hole: hide_hole
+    make_term_cooked
+  end
+
+  def help2_desc
+    nil
+  end
+
+  def after_right
+  end
+  
 end
 
   
@@ -166,38 +193,103 @@ class HearScale < QuizFlavour
     @choices = $shorter_scales.clone
     begin
       @solution = @choices.sample
-    end while @@prev_solutions.include?(@solution)
-    @@prev_solutions << @solution
-    @@prev_solutions.shift if @@prev_solutions.length > 2
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
     @holes, _, _, _ = read_and_parse_scale_simple(@solution, $harp)
     @prompt = 'Choose the scale you have heard !'
-    @help_head = 'Scale '
+    @help_head = 'Scale'
   end
 
   def after_solve
     puts
-    puts "Playing solution again ..."
+    puts "Playing scale again ..."
     puts
-    _play_scale
+    play_holes
   end
   
   def issue_question
     puts
-    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}, with #{@holes.length} holes\e[0m ..."
+    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes\e[0m ..."
     puts
-    _play_scale
-  end
-
-  def _play_scale
-    make_term_immediate
-    play_holes_or_notes_simple @holes
-    make_term_cooked
+    play_holes
   end
 
 end
 
 
 class HearInter < QuizFlavour
+
+  def initialize
+    @choices = $intervals_fav.map {|i| $intervals[i][0]}
+    begin
+      @inter = get_random_interval
+      @holes = @inter[0..1]
+      @holes.rotate! if rand > 0.7
+      @solution = $intervals[@inter[2]][0]
+    end while @@prevs.include?(@holes)
+    @@prevs << @holes
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = 'Choose the Interval you have heard !'
+    @help_head = 'Interval'
+  end
+
+  def after_solve
+    puts
+    puts "Playing interval ..."
+    puts
+    play_holes
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mPlaying an interval\e[0m \e[2m; one out of #{@choices.length}\e[0m ..."
+    puts
+    play_holes
+  end
+
+end
+
+
+class AddInter < QuizFlavour
+
+  def initialize
+    @choices = $harp_holes.clone
+    begin
+      @inter = get_random_interval
+      @holes = @inter[0..1]
+      @holes.rotate! if rand > 0.7
+      @solution = @holes[1]
+    end while @@prevs.include?(@holes)
+    @@prevs << @holes
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = 'Add the given starting hole and interval and add them !'
+    @help_head = 'Hole'
+  end
+
+  def after_solve
+    puts
+    puts "Playing interval ..."
+    puts
+    play_holes
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mTake hole #{@holes[0]} and add interval '#{$intervals[@inter[2]][0]}' ...\e[0m"
+  end
+
+  def help2
+    play_holes hide_hole: @holes[1]
+  end
+
+  def help2_desc
+    'Play interval'
+  end
+
+  def after_right
+    after_solve
+  end
 end
 
 

@@ -1245,7 +1245,8 @@ def chia_move_loc idx_old, dir, idx_last_shown, idx_min
     end
   end
   # make sure to be in range
-  idx_new = idx_last_shown if idx_new < 0
+  idx_new = idx_last_shown if idx_new < idx_min
+  idx_new = idx_min if idx_new > idx_last_shown
   idx_new = [idx_new, idx_min].max
   idx_new = [idx_new, idx_last_shown ].min
 

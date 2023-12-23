@@ -664,13 +664,13 @@ def play_interactive_progression prog
 end
 
 
-def play_holes_or_notes_simple holes_or_notes
+def play_holes_or_notes_simple holes_or_notes, hide_hole: nil
 
   puts "\e[2m(SPACE to pause, 'h' for help)\e[0m"
   puts
   $ctl_hole[:skip] = false
   holes_or_notes.each do |hon|
-    print hon + ' '
+    print(( hon == hide_hole ? '?' : hon ) + ' ')
     if musical_event?(hon)
       sleep $opts[:fast]  ?  0.125  :  0.25
     else

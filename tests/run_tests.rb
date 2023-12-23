@@ -2246,7 +2246,7 @@ do_test 'id-89: quiz-flavour random' do
   tms :ENTER
   sleep 3
   expect { screen.any? {|l| l['Quiz Flavour is:'] }}
-  expect { screen[13]['press RETURN to continue'] }
+  expect { screen.any? {|l| l['Press any key to continue'] }}
   kill_session
 end
 
@@ -2265,6 +2265,41 @@ do_test 'id-91: quiz-flavour play-inter' do
   tms :ENTER
   sleep 3
   expect { screen[0]['Play inter'] }
+  kill_session
+end
+
+do_test 'id-92: quiz-flavour hear-scale' do
+  new_session
+  tms 'harpwise quiz hear-scale'
+  tms :ENTER
+  sleep 0.5
+  tms '+'
+  sleep 2
+  expect { screen[16]['Choose the scale you have heard !'] }
+  tms 'HELP'
+  tms :ENTER
+  expect { screen[12]['Removing some choices to make it easier'] }
+  kill_session
+end
+
+do_test 'id-93: quiz-flavour hear-inter' do
+  new_session
+  tms 'harpwise quiz hear-inter'
+  tms :ENTER
+  sleep 2
+  expect { screen[16]['Choose the Interval you have heard !'] }
+  tms 'SOLVE'
+  tms :ENTER
+  expect { screen[17]['Playing interval'] }
+  kill_session
+end
+
+do_test 'id-94: quiz-flavour add-inter' do
+  new_session
+  tms 'harpwise quiz add-inter'
+  tms :ENTER
+  sleep 2
+  expect { screen[13]['and add interval'] }
   kill_session
 end
 
