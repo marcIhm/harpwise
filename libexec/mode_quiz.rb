@@ -258,12 +258,16 @@ class AddInter < QuizFlavour
     begin
       @inter = get_random_interval
       @holes = @inter[0..1]
-      @holes.rotate! if rand > 0.7
+      @verb = 'add'
+      if rand > 0.7
+        @holes.rotate!
+        @verb = 'subtract'
+      end
       @solution = @holes[1]
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
-    @prompt = 'Add the given starting hole and interval and add them !'
+    @prompt = "Whats the result of #{@verb}ing hole and interval ?"
     @help_head = 'Hole'
   end
 
@@ -276,7 +280,7 @@ class AddInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mTake hole #{@holes[0]} and add interval '#{$intervals[@inter[2]][0]}' ...\e[0m"
+    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{$intervals[@inter[2]][0]}' ...\e[0m"
   end
 
   def help2

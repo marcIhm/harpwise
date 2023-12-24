@@ -883,8 +883,14 @@ end
 def one_char
   prepare_term
   char = STDIN.getc
+  # drain any remaining chars (e.g. after pressing cursor keys)
+  system("stty -echo -icanon min 0 time 0")
+  begin
+  end while STDIN.getc
+  system("stty min 1")
   sane_term
-  char
+  return char if " \n\t".chars.include?(char)
+  char && char.gsub(/[^[:print:]]/,'?')
 end  
 
 
@@ -1090,6 +1096,7 @@ def choose_interactive prompt, names
       else
         clear_area_comment
         clear_area_message
+        print "\e[0m"
         return matching[idx_hl]
       end
     elsif key.ord == 12 # ctrl-l
@@ -1101,6 +1108,7 @@ def choose_interactive prompt, names
     elsif key == "\e"
       clear_area_comment
       clear_area_message
+      print "\e[0m"
       return nil
     elsif key == "\t"
       if idx_last_shown + frame_start < matching.length - 1

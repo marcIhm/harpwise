@@ -2299,7 +2299,26 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms 'harpwise quiz add-inter'
   tms :ENTER
   sleep 2
-  expect { screen[13]['and add interval'] }
+  expect { screen[13]['and add interval'] || screen[13]['and subtract interval'] }
+  kill_session
+end
+
+do_test 'id-95: widgets' do
+  new_session
+  tms 'harpwise dev wt'
+  tms :ENTER
+  sleep 1
+  tms :RIGHT
+  expect { screen[7]['Input #1: -?-'] }
+  tms :ENTER
+  expect { screen[8]['Input #2: -RETURN (translated)-'] }
+  tms 'q'
+  sleep 1
+  tms :TAB
+  tms :LEFT
+  tms :RIGHT
+  tms :ENTER
+  expect { screen[15]['Answer: 2'] }
   kill_session
 end
 

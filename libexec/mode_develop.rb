@@ -19,6 +19,8 @@ def do_develop to_handle
     do_selftest
   when 'unittest', 'ut'
     do_unittest
+  when 'widgets', 'wt'
+    do_widgets
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
@@ -302,6 +304,38 @@ def do_unittest
   puts
   puts "All unittests okay."
   puts
+end
+
+
+def do_widgets
+  puts_underlined "Excercising widgets"
+  puts_underlined "one_char", '-', dim: false
+  puts "Echoing input, type 'q' to quit"
+  cnt = 0
+  begin
+    char = one_char
+    cnt += 1
+    char = case char
+           when "\n"
+             'RETURN (translated)'
+           when "\t"
+             'TAB (translated)'
+           else
+             char
+           end
+    puts "Input ##{cnt}: -#{char}-"
+  end while char != 'q'
+  puts "#{cnt} chars read."
+
+  puts_underlined "choose_interactive", '-', dim: false
+  make_term_immediate
+  ($term_height - $lines[:comment_tall] + 1).times { puts }
+  answer = choose_interactive('testprompt', (1..1000).to_a.map(&:to_s))
+  clear_area_comment
+  clear_area_message
+  make_term_cooked
+  print "\e[#{$lines[:comment_tall]}H"
+  puts "Answer: #{answer}"
 end
 
 

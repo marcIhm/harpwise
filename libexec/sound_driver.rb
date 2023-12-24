@@ -55,10 +55,10 @@ def trim_recorded hole, recorded
       choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += STDIN.gets.chomp.downcase.strip
-      number = true
+      is_number = true
     else
       puts choice
-      number = false
+      is_number = false
     end
     if choice == '?' || choice == 'h'
       puts <<EOHELP
@@ -97,7 +97,7 @@ EOHELP
     elsif choice == 'r'
       puts "Redo recording and trim ..."
       return :redo
-    elsif number
+    elsif is_number
       begin
         val = choice.to_f
         raise ArgumentError.new('must be > 0') if val < 0

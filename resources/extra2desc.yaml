@@ -92,4 +92,6 @@ develop:
     perform selftest with special regard to the environment
   unittest, ut: |
     unittest for features, that cannot easily be tested within the
-    main program
+    main test program
+  widgets, wt: |
+    excercise selected widgets to be tested
