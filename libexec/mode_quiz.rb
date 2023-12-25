@@ -40,8 +40,10 @@ def do_quiz to_handle
   puts
   puts "Quiz Flavour is: #{$extra}"
   puts
+  sleep 0.05
   puts "Description is:"
   puts
+  sleep 0.05
   puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
   puts
   if is_random
@@ -76,17 +78,19 @@ def do_quiz to_handle
     first_round = true
     loop do  ## every new question
       catch :next do
+        sleep 0.1
         puts
         if !first_round
-          sleep 1
           puts
           puts_underlined 'Next Question'
+          sleep 0.1
         end
         first_round = false
         flavour = $quiz_flavour2class[$extra].new
         loop do  ## repeats of question
           catch :reissue do
             flavour.issue_question
+            sleep 0.1
             loop do  ## repeats of asking for answer
               catch :reask do
                 throw flavour.get_and_check_answer
@@ -108,7 +112,10 @@ class QuizFlavour
 
   def get_and_check_answer
     make_term_immediate
-    ($term_height - $lines[:comment_tall] + 1).times { puts }
+    ($term_height - $lines[:comment_tall] + 1).times do
+      sleep 0.01
+      puts
+    end
     all_choices = [@choices, ';OR->', 'SOLVE', 'AGAIN', 'HELP'].flatten
     choices_desc = {'SOLVE' => 'Give solution and go to next question',
                     'AGAIN' => 'Ask same question again',
@@ -204,6 +211,7 @@ class HearScale < QuizFlavour
   def after_solve
     puts
     puts "Playing scale again ..."
+    sleep 0.1
     puts
     play_holes
   end
@@ -237,6 +245,7 @@ class HearInter < QuizFlavour
   def after_solve
     puts
     puts "Playing interval ..."
+    sleep 0.1
     puts
     play_holes
   end
@@ -244,6 +253,7 @@ class HearInter < QuizFlavour
   def issue_question
     puts
     puts "\e[34mPlaying an interval\e[0m \e[2m; one out of #{@choices.length}\e[0m ..."
+    sleep 0.1
     puts
     play_holes
   end
@@ -274,6 +284,7 @@ class AddInter < QuizFlavour
   def after_solve
     puts
     puts "Playing interval ..."
+    sleep 0.1
     puts
     play_holes
   end
@@ -322,6 +333,7 @@ def stand_out text, all_green: false, turn_red: nil
   maxl = lines.map(&:length).max
   puts '  + ' + ( '-' * maxl ) + ' +'
   lines.each do |l|
+    sleep 0.05
     if turn_red && md = l.match(/^(.*)(\b#{turn_red}\b)(.*)$/)
       ll = md[1] + "\e[31m" + md[2] + "\e[0m" + md[3] + (' ' * (maxl - l.length))
     else
@@ -330,5 +342,6 @@ def stand_out text, all_green: false, turn_red: nil
     puts "  | #{ll} |"
   end
   puts '  + ' + ( '-' * maxl ) + ' +'
+  sleep 0.05
   print "\e[0m"
 end

@@ -82,7 +82,8 @@ quiz:
   hear-inter: |
     plays an interval and asks for its name
   add-inter: |
-    gives a hole and an interval and asks for the resulting hole
+    gives a hole and an interval and asks for the resulting hole,
+    which is obtained by either adding or subtracting
 develop:
   man: |
     produce man page from erb-template
