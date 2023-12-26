@@ -65,6 +65,8 @@ def parse_arguments_early
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
+     [Set[:quiz], {
+        difficulty: %w(--difficulty)}],
      [Set[:listen, :quiz, :play, :print], {
         transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
@@ -130,6 +132,7 @@ def parse_arguments_early
     end
   end
   opts[:time_slice] ||= $conf[:time_slice]
+  opts[:dificulty] ||= $conf[:difficulty]
   opts[:viewer] ||= $conf[:viewer]
 
   # match command-line arguments one after the other against available
@@ -213,9 +216,13 @@ def parse_arguments_early
     opts[:add_scales] = nil
   end
 
-  opts[:time_slice] = match_or(opts[:time_slice], ['short', 'medium', 'long']) do |none, choices|
+  opts[:time_slice] = match_or(opts[:time_slice], %w(short medium long)) do |none, choices|
     err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
   end.to_sym
+
+  opts[:difficulty] = match_or(opts[:difficulty], %w(easy hard)) do |none, choices|
+    err "Value #{none} of option '--difficulty' or config 'difficulty' is none of #{choices}"
+  end&.to_sym
 
   opts[:partial] = '0@b' if opts[:partial] == '0'
 

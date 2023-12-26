@@ -7,31 +7,33 @@
   - flat Third
   - fT
   - third
+  - quiz_hard
 '4':
   - maj Third
   - mT
   - third
-  - fav
+  - quiz_easy
 '6':
   - flat Fifth
   - fF
   - tritone
+  - quiz_hard
 '7':
   - per Fifth
   - pF
   - fifth
-  - fav
+  - quiz_easy
 '9':
   - Sixth
   - Si
 '10':
   - flat Seventh
   - fSe
-  - fav
+  - quiz_easy
 '12':
   - Octave
   - Oct
-  - fav
+  - quiz_easy
 '16':
   - Oct + Thrd
   - O+T

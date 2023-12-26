@@ -361,6 +361,13 @@ usage_types.keys.each_with_index do |mode, idx|
                      'develop' => [4, "This mode is useful only for the maintainer or developer"]}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
+    marker = 'harpwise_testing_return_code_is'
+    tms "harpwise #{usage_types[mode][1]}"
+    tms :ENTER
+    sleep 2
+    tms 'echo ' + marker + ' \$?'
+    tms :ENTER
+    expect(marker) { screen.find {|l| l[marker + ' 0']} }
     kill_session
   end
 end
@@ -2268,17 +2275,41 @@ do_test 'id-91: quiz-flavour play-inter' do
   kill_session
 end
 
-do_test 'id-92: quiz-flavour hear-scale' do
+do_test 'id-92: quiz-flavour hear-scale easy' do
   new_session
-  tms 'harpwise quiz hear-scale'
+  tms 'harpwise quiz hear-scale --difficulty easy'
+  tms :ENTER
+  sleep 0.5
+  tms '+'
+  sleep 2
+  expect { screen[5]["difficulty is 'easy', taking 5 scales out of 19"] }
+  expect { screen[16]['Choose the scale you have heard !'] }  
+  tms 'HELP'
+  tms :ENTER
+  expect { screen[12]['Removing some choices to make it easier'] }
+  kill_session
+end
+
+do_test 'id-92a: quiz-flavour hear-scale hard' do
+  new_session
+  tms 'harpwise quiz hear-scale --difficulty hard'
+  tms :ENTER
+  sleep 0.5
+  tms '+'
+  sleep 2
+  expect { screen[5]["difficulty is 'hard', taking 9 scales out of 19"] }
+  expect { screen[16]['Choose the scale you have heard !'] }
+  kill_session
+end
+
+do_test 'id-92b: quiz-flavour chromatic hear-scale' do
+  new_session
+  tms 'harpwise quiz chromatic hear-scale'
   tms :ENTER
   sleep 0.5
   tms '+'
   sleep 2
   expect { screen[16]['Choose the scale you have heard !'] }
-  tms 'HELP'
-  tms :ENTER
-  expect { screen[12]['Removing some choices to make it easier'] }
   kill_session
 end
 

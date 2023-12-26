@@ -27,6 +27,7 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to],
     :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
     :calibrate => [:auto_synth_db],
+    :quiz => [:difficulty],
     :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]
@@ -611,12 +612,14 @@ def read_and_set_musical_config
 
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
-  $intervals_fav = Array.new
+  $intervals_quiz = Array.new
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
   intervals.keys.each do |st|
-    if intervals[st].include?('fav')
-      $intervals_fav << st
-      intervals[st].delete('fav')
+    if intervals[st].include?('quiz_easy') ||
+       ( $opts[:difficulty] == :hard && intervals[st].include?('quiz_hard') )
+      $intervals_quiz << st
+      intervals[st].delete('quiz_easy')
+      intervals[st].delete('quiz_hard')
     end
     next if st == 0 || st - 12 < -12 || st - 12 >= 0
     intervals[st-12] = intervals[st].clone
@@ -902,7 +905,13 @@ def set_global_musical_vars
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
   $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
-  $shorter_scales = $scale2count.keys.select {|s| $scale2count[s] < $harp_holes.length / 2}
+  all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
+  fail "Internal error: #{all_quiz_scales}" unless all_quiz_scales.is_a?(Hash) && all_quiz_scales.keys == [:easy, :hard]
+  [:easy, :hard].each do |dicu|
+    fail "Internal error: #{$all_scales}, #{all_quiz_scales[dicu]}" unless all_quiz_scales[dicu] - $all_scales == []
+  end
+  all_quiz_scales[:hard].append(*all_quiz_scales[:easy]).uniq!
+  $quiz_scales = all_quiz_scales[$opts[:difficulty]]
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   if $hole_ref

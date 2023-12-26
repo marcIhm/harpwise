@@ -16,6 +16,7 @@ def do_quiz to_handle
     elsif to_handle.length > 1
       err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
     end
+    $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]]
   end
 
   flavours_random = %w(random ran rand)
@@ -33,7 +34,6 @@ def do_quiz to_handle
     flavours_last.shift if flavours_last.length > 2
     $pers_data['quiz_flavours_last'] = flavours_last
   end
-  $num_quiz_replay = 5 if $extra == 'replay'
 
   animate_splash_line
   
@@ -45,18 +45,35 @@ def do_quiz to_handle
   puts
   sleep 0.05
   puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
+
+  print "  \e[2m("
+  if $extra == 'replay'
+    print "number of notes to replay is #{$num_quiz_replay}"
+  elsif $extra == 'play-scale'
+    HearScale.describe_difficulty
+  elsif $extra == 'play-inter'
+    AddInter.describe_difficulty
+  elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
+    $quiz_flavour2class[$extra].describe_difficulty
+  else
+    err "Internal error: #{$extra}, #{$quiz_flavour2class}"
+  end
+  puts ")\e[0m"
+  sleep 0.1
+
   puts
   if is_random
     print "\e[32mPress any key to continue ... \e[0m"
     one_char
     puts
   end
-  
+
+  # actually start quiz
   if $extra == 'replay'
     do_licks_or_quiz
   elsif $extra == 'play-scale'
     $opts[:comment] = :holes_some
-    scale_name = $shorter_scales.sample
+    scale_name = $quiz_scales.sample
     puts "\e[32mScale to play is:"
     puts
     do_figlet_unwrapped scale_name, 'smblock'
@@ -178,6 +195,10 @@ class QuizFlavour
     end
   end
 
+  def self.difficulty_head
+    "difficulty is '#{$opts[:difficulty]}'"
+  end
+  
   def play_holes hide_hole: nil
     make_term_immediate
     play_holes_or_notes_simple @holes, hide_hole: hide_hole
@@ -197,7 +218,7 @@ end
 class HearScale < QuizFlavour
 
   def initialize
-    @choices = $shorter_scales.clone
+    @choices = $quiz_scales.clone
     begin
       @solution = @choices.sample
     end while @@prevs.include?(@solution)
@@ -208,6 +229,11 @@ class HearScale < QuizFlavour
     @help_head = 'Scale'
   end
 
+  def self.describe_difficulty
+    print QuizFlavour.difficulty_head
+    print ", taking #{$quiz_scales.length} scales out of #{$all_scales.length}"
+  end
+  
   def after_solve
     puts
     puts "Playing scale again ..."
@@ -229,7 +255,7 @@ end
 class HearInter < QuizFlavour
 
   def initialize
-    @choices = $intervals_fav.map {|i| $intervals[i][0]}
+    @choices = $intervals_quiz.map {|i| $intervals[i][0]}
     begin
       @inter = get_random_interval
       @holes = @inter[0..1]
@@ -240,6 +266,10 @@ class HearInter < QuizFlavour
     @@prevs.shift if @@prevs.length > 2
     @prompt = 'Choose the Interval you have heard !'
     @help_head = 'Interval'
+  end
+
+  def self.describe_difficulty
+    AddInter.describe_difficulty
   end
 
   def after_solve
@@ -281,6 +311,11 @@ class AddInter < QuizFlavour
     @help_head = 'Hole'
   end
 
+  def self.describe_difficulty
+    print QuizFlavour.difficulty_head
+    print ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
+  end
+
   def after_solve
     puts
     puts "Playing interval ..."
@@ -314,7 +349,7 @@ def get_random_interval
   loop do
     err "Internal error: no more holes to try" if all_holes.length == 0
     holes_inter = [all_holes.shift, nil]
-    $intervals_fav.clone.shuffle.each do |inter|
+    $intervals_quiz.clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
       if holes_inter[1]
         holes_inter << inter

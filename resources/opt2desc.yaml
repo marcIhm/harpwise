@@ -224,3 +224,11 @@ read_fifo:
     interactive view, read keys from fifo /tmp/harpwise_fifo too.
     This can be useful when automizing certain aspects of its
     operation. The name of the fifo is fixed.
+
+difficulty:
+  - |
+    For mode quiz: Difficulty of questions
+    asked; if you should identify or reproduce one of a set of choices
+    (e.g. when hearing intervals), the difficulty usually gives the
+    size of the set.  Defaults to 'easy'.
+  - EASY_OR_HARD
