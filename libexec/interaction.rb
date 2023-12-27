@@ -208,7 +208,7 @@ end
 def prepare_term
   system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
   # hide cursor
-  Kernel::print "\e[?25l"  
+  Kernel::print "\e[?25l"
 end
 
 
@@ -1025,7 +1025,7 @@ def choose_interactive prompt, names
   names.uniq!
   clear_area_comment
   clear_area_message
-
+  
   total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[J"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
@@ -1086,7 +1086,7 @@ def choose_interactive prompt, names
                              idx_last_shown, frame_start > 0 ? 1 : 0) if idx_last_shown >= 0
     elsif key == "\n"
       if matching.length == 0
-        $chia_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input or type ESC to abort !"
+        $chia_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input above or type ESC to abort !"
       elsif matching[idx_hl][0] == ';'
         clear_area_comment(2)
         clear_area_message
@@ -1103,7 +1103,7 @@ def choose_interactive prompt, names
       print "\e[2J"
       handle_win_change
       print prompt_template % [$lines[:comment_tall] + 1, prompt]
-      print "\e[0m\e[32m#{input}\e[0m\e[K"
+      print "\e[0m\e[92m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
     elsif key == "\e"
       clear_area_comment
@@ -1124,7 +1124,7 @@ def choose_interactive prompt, names
       end
     end
     print prompt_template % [$lines[:comment_tall] + 1, prompt]
-    print "\e[0m\e[32m#{input}\e[0m\e[K"
+    print "\e[0m\e[92m#{input}\e[0m\e[K"
     print help_template % ( $lines[:comment_tall] + 2 )
     idx_last_shown = chia_print_in_columns(chia_framify(matching, frame_start), idx_hl, total_chars)
     print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given? && matching[idx_hl]
@@ -1142,7 +1142,7 @@ def chia_print_in_columns names, idx_hl, total_chars
   idx_last_shown = names.length - 1
   if names.length == 0
     clear_area_comment(2)
-    lines[0] = "  " + ( $chia_no_matches || 'No matches, please shorten input ...' )
+    lines[0] = "  " + ( $chia_no_matches || "\e[0mNO MATCHES for input above, please shorten ..." )
   else
     lines_count = 0
     line = '  '

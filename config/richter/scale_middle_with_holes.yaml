@@ -1,5 +1,6 @@
 ---
 - short: m
+- desc: middle octave of major
 - "+4"
 - "-4"
 - "+5"

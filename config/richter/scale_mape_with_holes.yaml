@@ -1,5 +1,6 @@
 ---
 - short: P
+- desc: major pentatonic
 - "-2 root"
 - "-3//"
 - "-3"

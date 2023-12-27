@@ -1,5 +1,6 @@
 ---
 - short: b
+- desc: middle octave of the blues scale
 - "-2"
 - "-3/"
 - "+4"

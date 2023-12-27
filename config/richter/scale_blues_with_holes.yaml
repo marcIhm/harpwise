@@ -1,5 +1,6 @@
 ---
 - short: b
+- desc: the full blues scales over all octaves
 - "+1"
 - "-1/"
 - "-1"

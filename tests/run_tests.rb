@@ -1579,12 +1579,12 @@ do_test 'id-54e: print list of all scales' do
    " arabic           :  15\n",
    "   \e[2mShort: a\e[0m\n",   
    " blues            :  18\n",
-   "   \e[2mShort: b\e[0m\n",
+   "   \e[2mShort: b\e[0m   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
    " blues-middle     :   7\n",
-   "   \e[2mShort: b\e[0m\n",
+   "   \e[2mShort: b\e[0m   \e[2mDesc: middle octave of the blues scale\e[0m\n",
    " chord-i          :  11\n",
    "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[8+idx] == exp }
+    expect(lines.each_with_index.map {|l,i| [i,l]}, exp, idx) { lines[8+idx] == exp }
   end
   kill_session
 end
@@ -2282,8 +2282,8 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[5]["difficulty is 'easy', taking 5 scales out of 19"] }
-  expect { screen[16]['Choose the scale you have heard !'] }  
+  expect { screen[5]["difficulty is 'easy', taking 4 scales out of 19"] }
+  expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
   expect { screen[12]['Removing some choices to make it easier'] }
@@ -2297,8 +2297,8 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[5]["difficulty is 'hard', taking 9 scales out of 19"] }
-  expect { screen[16]['Choose the scale you have heard !'] }
+  expect { screen[5]["difficulty is 'hard', taking 10 scales out of 19"] }
+  expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
 
@@ -2309,7 +2309,7 @@ do_test 'id-92b: quiz-flavour chromatic hear-scale' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[16]['Choose the scale you have heard !'] }
+  expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
 
@@ -2318,7 +2318,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms 'harpwise quiz hear-inter'
   tms :ENTER
   sleep 2
-  expect { screen[16]['Choose the Interval you have heard !'] }
+  expect { screen[16]['Choose the Interval you have heard:'] }
   tms 'SOLVE'
   tms :ENTER
   expect { screen[17]['Playing interval'] }

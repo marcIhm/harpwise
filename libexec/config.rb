@@ -522,7 +522,6 @@ end
 
 
 def read_and_set_musical_config
-
   $hole2note_read = yaml_parse($holes_file)
   $dsemi_harp = diff_semitones($key, 'c')
   harp = Hash.new
@@ -654,14 +653,7 @@ end
 
 def read_and_parse_scale sname, harp = nil
   
-  scale_holes, hole2rem, all_props, sfile = read_and_parse_scale_simple(sname, harp)
-
-  # get properties of scale; currently only :short
-  props = Hash.new
-  all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
-  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' and 'desc' are supported" unless Set.new(props.keys).subset?(Set[:short, :desc])
-  props[:short] = props[:short].to_s if props[:short]
-  $scale2desc[sname] = props[:desc].to_s if props[:desc]
+  scale_holes, hole2rem, props, sfile = read_and_parse_scale_simple(sname, harp)
   
   unless $scale2short[sname]
     # No short name given on commandline: use from scale properties or make one up
@@ -688,7 +680,7 @@ def read_and_parse_scale sname, harp = nil
 end
 
 
-def read_and_parse_scale_simple sname, harp = nil
+def read_and_parse_scale_simple sname, harp = nil, desc_only: false
 
   hole2rem = Hash.new
 
@@ -711,6 +703,18 @@ def read_and_parse_scale_simple sname, harp = nil
 
   # Actually read the file
   all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
+
+  # get properties of scale; currently only :short and :desc
+  props = Hash.new
+  all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
+  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' and 'desc' are supported" unless Set.new(props.keys).subset?(Set[:short, :desc])
+  props[:short] = props[:short].to_s if props[:short]
+  $scale2desc[sname] = props[:desc].to_s if props[:desc]
+
+  if desc_only
+    $scale2desc[sname] = props[:desc] if props[:desc]
+    return
+  end
 
   scale_holes = Array.new
 
@@ -762,9 +766,8 @@ def read_and_parse_scale_simple sname, harp = nil
     end
   end
 
-  [scale_holes, hole2rem, all_props, sfile]
+  [scale_holes, hole2rem, props, sfile]
 end
-
 
 $chart_with_holes_raw = nil
 $chart_cell_len = nil
@@ -904,6 +907,8 @@ def set_global_musical_vars
   $used_scales = get_used_scales($opts[:add_scales])
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
+  # set global var $scale2desc for all known scales, e.g. for quiz
+  $all_scales.each {|s| read_and_parse_scale_simple(s, desc_only: true)}
   $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
   all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
   fail "Internal error: #{all_quiz_scales}" unless all_quiz_scales.is_a?(Hash) && all_quiz_scales.keys == [:easy, :hard]

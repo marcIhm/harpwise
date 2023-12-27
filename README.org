@@ -9,17 +9,20 @@
   diatonic (richter) or chromatic harmonica for all keys. It uses your
   microphone and speaker.
 
-  Harpwise plays and recognizes single notes only and has no sense of
-  chords or grooves.
+  Harpwise runs on the commandline of Linux, Mac and Windows (wsl2).
+  
+  It plays and recognizes single notes and can play chords (but can not
+  recognize them).
 
   The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
   these may help to:
 
-  - Internalize various scales
+  - Internalize various scales and intervals
   - Analyze your playing regarding scales, chords and intervals
   - Learn and memorize licks (a few sample-licks included)
   - Train your musical memory
   - Train your ear
+  - Help to gather and learn a collection of licks
   - Work on bends or warbles
 
   Other things that harpwise can do:
@@ -32,6 +35,7 @@
   - Provide an overview table of positions, keys of songs and keys of harps
   - Print the notes layed out on a harmonica chart
   - Print chords i, iv, v
+  - Show full help on its capabilities
 
     
   The first screenshot is from mode 'listen': The program has recognized a
@@ -58,8 +62,7 @@
   - quiz: train your ear and musical memory
   - licks: learn licks (licks not included, but some pointers)
   - play: wise plays scales, holes, licks or a reference pitch
-  - print: print them
-  - report: produce reports about licks and tags or a history of licks played
+  - print: print above or produce various reports
   - tools: utilities (e.g. a position table), mostly related to basic
     harmonica theory
   - calibrate: generate samples for holes or record your own

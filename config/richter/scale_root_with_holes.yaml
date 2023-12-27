@@ -1,5 +1,6 @@
 ---
 - short: r
+- desc: root-notes for all chords
 - "-1 chord-v"
 - "+1 chord-iv"
 - "-2 chord-i"

@@ -128,7 +128,9 @@ class QuizFlavour
   @@prevs = Array.new
 
   def get_and_check_answer
+    prepare_term
     make_term_immediate
+    $ctl_kb_queue.clear
     ($term_height - $lines[:comment_tall] + 1).times do
       sleep 0.01
       puts
@@ -142,7 +144,9 @@ class QuizFlavour
       choices_desc['HELP2'] = help2_desc
     end
     answer = choose_interactive(@prompt, all_choices) do |tag|
-      choices_desc[tag] || "#{@help_head} #{tag}"
+      choices_desc[tag] ||
+        ( tag_desc(tag) && "#{@help_head} #{tag_desc(tag)}" ) ||
+        "#{@help_head} #{tag}"
     end
     clear_area_comment
     clear_area_message
@@ -188,6 +192,9 @@ class QuizFlavour
     when 'HELP2'
       help2
       return :reask
+    when nil
+      stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
+      return :reask
     else
       stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
       @choices.delete(answer)
@@ -209,6 +216,10 @@ class QuizFlavour
     nil
   end
 
+  def tag_desc tag
+    nil
+  end
+
   def after_right
   end
   
@@ -224,8 +235,8 @@ class HearScale < QuizFlavour
     end while @@prevs.include?(@solution)
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
-    @holes, _, _, _ = read_and_parse_scale_simple(@solution, $harp)
-    @prompt = 'Choose the scale you have heard !'
+    @holes, _, _, _ = read_and_parse_scale(@solution, $harp)
+    @prompt = 'Choose the scale you have heard:'
     @help_head = 'Scale'
   end
 
@@ -244,9 +255,13 @@ class HearScale < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes\e[0m ..."
+    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
     puts
     play_holes
+  end
+
+  def tag_desc tag
+    $scale2desc[tag]
   end
 
 end
@@ -264,7 +279,7 @@ class HearInter < QuizFlavour
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
-    @prompt = 'Choose the Interval you have heard !'
+    @prompt = 'Choose the Interval you have heard:'
     @help_head = 'Interval'
   end
 
@@ -307,7 +322,7 @@ class AddInter < QuizFlavour
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
-    @prompt = "Whats the result of #{@verb}ing hole and interval ?"
+    @prompt = "Enter the result of #{@verb}ing hole and interval:"
     @help_head = 'Hole'
   end
 

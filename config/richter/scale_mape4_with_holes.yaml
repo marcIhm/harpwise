@@ -1,5 +1,6 @@
 ---
 - short: P4
+- desc: major pentatonic for the iv-chord
 - "+4 root"
 - "-4"
 - "+5"
