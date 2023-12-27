@@ -16,7 +16,6 @@ def do_quiz to_handle
     elsif to_handle.length > 1
       err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
     end
-    $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]]
   end
 
   flavours_random = %w(random ran rand)
@@ -35,10 +34,12 @@ def do_quiz to_handle
     $pers_data['quiz_flavours_last'] = flavours_last
   end
 
+  $num_quiz_replay ||= {easy: 5, hard: 12}[$opts[:difficulty]] if $extra == 'replay'
+
   animate_splash_line
   
   puts
-  puts "Quiz Flavour is: #{$extra}"
+  puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
   puts
   sleep 0.05
   puts "Description is:"
