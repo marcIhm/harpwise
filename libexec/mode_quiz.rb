@@ -175,11 +175,9 @@ class QuizFlavour
       puts
       return :reissue
     when '.SOLVE'
-      sleep 1
       if self.respond_to?(:after_solve)
         stand_out "The correct answer is:\n\n    #{@solution}\n\nSome extra info below."
         after_solve
-        sleep 1
       end
       puts
       print "\e[32mPress any key to move to next question ... \e[0m"
@@ -216,9 +214,9 @@ class QuizFlavour
     "difficulty is '#{$opts[:difficulty]}'"
   end
   
-  def play_holes hide_hole: nil
+  def play_holes hide_hole: nil, reverse: false
     make_term_immediate
-    play_holes_or_notes_simple @holes, hide_hole: hide_hole
+    play_holes_or_notes_simple(reverse ? @holes.rotate : @holes, hide_hole: hide_hole)
     make_term_cooked
   end
 
@@ -289,10 +287,10 @@ class HearInter < QuizFlavour
   def initialize
     @choices = $intervals_quiz.map {|i| $intervals[i][0]}
     begin
-      @inter = get_random_interval
-      @holes = @inter[0..1]
-      @dsemi = @inter[2]
-      @solution = @inter[3]
+      inter = get_random_interval
+      @holes = inter[0..1]
+      @dsemi = inter[2]
+      @solution = inter[3]
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
@@ -316,6 +314,15 @@ class HearInter < QuizFlavour
     play_holes
   end
 
+  def help2
+    puts "Playing interval reversed:"
+    play_holes reverse: true
+  end
+
+  def help2_desc
+    'Play interval reversed'
+  end
+
 end
 
 
@@ -324,10 +331,10 @@ class AddInter < QuizFlavour
   def initialize
     @choices = $harp_holes.clone
     begin
-      @inter = get_random_interval
-      @holes = @inter[0..1]
-      @dsemi = @inter[2]
-      @verb = @inter[2] > 0 ? 'add' : 'subtract'
+      inter = get_random_interval
+      @holes = inter[0..1]
+      @dsemi = inter[2]
+      @verb = inter[2] > 0 ? 'add' : 'subtract'
       @solution = @holes[1]
     end while @@prevs.include?(@holes)
     @@prevs << @holes
@@ -347,7 +354,7 @@ class AddInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{@inter[3]}'\e[0m"
+    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{$intervals[@dsemi.abs][0]}'\e[0m"
   end
 
   def help2
