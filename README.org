@@ -1,5 +1,14 @@
 # -*- fill-column: 74 -*-
 
+** Table of Contents :TOC_1:
+- [[#harpwise][harpwise]]
+- [[#usage-and-overview][Usage and Overview]]
+- [[#installation][Installation]]
+- [[#invocation][Invocation]]
+- [[#configuration][Configuration]]
+- [[#some-concepts][Some concepts]]
+- [[#a-closer-look-at-the-display][A closer look at the display]]
+
 * harpwise
 
   [[images/harmonica3.png]]
