@@ -138,13 +138,13 @@ class QuizFlavour
       sleep 0.01
       puts
     end
-    all_choices = [@choices, ';OR->', 'SOLVE', 'AGAIN', 'HELP'].flatten
-    choices_desc = {'SOLVE' => 'Give solution and go to next question',
-                    'AGAIN' => 'Ask same question again',
-                    'HELP' => 'Remove some solutions, leaving less choices'}
+    all_choices = [@choices, ';OR->', '.AGAIN', '.SOLVE', '.HELP'].flatten
+    choices_desc = {'.AGAIN' => 'Ask same question again',
+                    '.SOLVE' => 'Give solution and go to next question',
+                    '.HELP' => 'Remove some solutions, leaving less choices'}
     if help2_desc
-      all_choices << 'HELP2'
-      choices_desc['HELP2'] = help2_desc
+      all_choices << '.HELP2'
+      choices_desc['.HELP2'] = help2_desc
     end
     answer = choose_interactive(@prompt, all_choices) do |tag|
       choices_desc[tag] ||
@@ -170,11 +170,11 @@ class QuizFlavour
       return :next
     end
     case answer
-    when 'AGAIN'
+    when '.AGAIN'
       stand_out 'Asking question again.'
       puts
       return :reissue
-    when 'SOLVE'
+    when '.SOLVE'
       sleep 1
       if self.respond_to?(:after_solve)
         stand_out "The correct answer is:\n\n    #{@solution}\n\nSome extra info below."
@@ -186,7 +186,7 @@ class QuizFlavour
       one_char
       puts
       return :next
-    when 'HELP'
+    when '.HELP'
       if @choices.length > 1
         stand_out 'Removing some choices to make it easier'
         orig_len = @choices.length 
@@ -199,7 +199,7 @@ class QuizFlavour
         stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
       end
       return :reask
-    when 'HELP2'
+    when '.HELP2'
       help2
       return :reask
     when nil
@@ -310,7 +310,7 @@ class HearInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mPlaying an interval\e[0m \e[2m; one out of #{@choices.length}\e[0m ..."
+    puts "\e[34mPlaying an interval\e[0m\e[2m; one out of #{@choices.length} ...\e[0m"
     sleep 0.1
     puts
     play_holes
@@ -347,7 +347,7 @@ class AddInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{@inter[3]}'"
+    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{@inter[3]}'\e[0m"
   end
 
   def help2
