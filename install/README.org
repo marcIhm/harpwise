@@ -1,3 +1,13 @@
+** Table of Contents  :TOC_1:
+- [[#installing-wsl2-on-windows][Installing wsl2 on Windows]]
+- [[#a-shorter-way-for-linux-ubuntu][A shorter way for Linux (ubuntu)]]
+- [[#downloading-harpwise][Downloading harpwise]]
+- [[#installing-dependencies-on-linux][Installing dependencies on Linux]]
+- [[#installing-dependencies-on-macos][Installing dependencies on MacOS]]
+- [[#testing-your-sound-system][Testing your sound system]]
+- [[#uninstalling][Uninstalling]]
+- [[#testing-the-installer-scripts][Testing the installer-scripts]]
+
 * Installing wsl2 on Windows
 
   wsl2 this gives you a great installation of Linux within windows.
@@ -86,16 +96,16 @@
   - cd ~/harpwise/install
   - . ./install-dependencies-on-macos.sh
   
-* Configuring your sound system (not covered)
+* Testing your sound system
 
   Please note, that after this installation you should be able to record
-  and play sound via sox, e.g.:
+  and then play sound via sox, e.g.:
 
-  - rec foo.wav trim 0 1
+  - rec foo.wav trim 0 1  ## maybe count "1,2,3" to get something recorded
   - play foo.wav
 
   if this gives you errors or no audible result, you need to fix this
-  first (which is beyond the scope of this readme).
+  first, which however is beyond the scope of this readme.
 
 * Uninstalling
 
