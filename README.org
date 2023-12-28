@@ -74,8 +74,8 @@
 
   harpwise
 
-  In any case you will get usage information to get you started quickly or
-  read below.
+  In any case you will get usage information to get you started quickly.
+  Or read below.
 
 * Getting started
 
@@ -100,11 +100,13 @@
   wav-files will be kept in directory ~/.harpwise
 
   Or, to get started quickly you may use auto-calibration for
-  machine-generated tones and frequencies.
+  machine-generated tones and frequencies:
+
+  harpwise calibrate c --auto
 
   If you want to work with mode licks to learn and memorize licks (highly
-  recommended !), you will need to add new licks very soon.  Add them to
-  your own lick-file, which is typically located at
+  recommended !), you will need to add new licks soon.  Add them to your
+  own lick-file, which is typically located at
 
   ~/.harpwise/licks/richter/licks_with_holes.txt
 
