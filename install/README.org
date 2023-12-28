@@ -1,8 +1,34 @@
-Scripts to install dependencies for harpwise for different
-linux-distributions or WSL2 under Windows
+* Installing wsl2 on Windows
 
+  wsl2 this gives you a great installation of Linux within windows.
+
+  wsl2 is a very useful and interesting system by itself alone, but it
+  will take some time to get used to. Do not fear the commandline !
+
+  The internet has many guides that explain this process ("install
+  wsl2") in detail; please refer to them.
+
+  After that you essentially have a linux-system (ubuntu) under
+  windows, so that you may open the wsl2 commandline and proceed with
+  the general and linux-specific instructions (downloading,
+  dependencies, or the sorter way)
+
+* A shorter way for Linux (ubuntu)
+
+  As harpwise is part of the ubuntu repositories, you may only need do
+  this:
+
+  - sudo apt install harpwise
+
+  and simply start it by typing: harpwise
+
+  Downloading harpwise and installing its dependencies, can then be
+  skipped.
+  
 * Downloading harpwise
 
+  This is the same process for linux, windows and macos
+  
   You may either clone the repo OR just download the zip-file from
   github.
 
@@ -29,40 +55,38 @@ linux-distributions or WSL2 under Windows
    - unzip harpwise-main.zip
    - rm harpwise-main.zip
    - mv harpwise-main harpwise
-  
-* Installing dependencies
-
-  Remark: All dependencies are runtime-only, as there is no
-  build-process for harpwise (beeing a ruby-script, not depending on
-  any binary gems).
+     
+* Installing dependencies on Linux
 
   For Ubuntu and thus WSL2 under Windows:
 
-    - cd install
-    - ./install-dependencies-on-ubuntu.sh 2>&1 | tee ~/harpwise/install.log
+  - cd ~/harpwise/install
+  - . ./install-dependencies-on-ubuntu.sh  
+  
+  
+  For fedora, redhat, centos, etc.:
 
-  may be suitable for other debian-based systems too (which use apt to
-  install software).
-
-
-  For fedora, redhat, centos:
-
-    - cd install
-    - ./install-dependencies-on-fedora.sh 2>&1 | tee ~/harpwise/install.log
-
-  might also work on systems derived from fedora (which use yum to
-  install software).
+  - cd ~/harpwise/install
+  - . ./install-dependencies-on-fedora.sh
 
 
   Both scripts are fairly simple and you are invited to inspect them
   before running.
 
+* Installing dependencies on MacOS
 
-  As suggested, you may capture the output of the script; this is
-  helpful, if you have problems during installation, as you may send
-  me (marc@ihm.name) the install.log
+  This requires homebrew, which is an excellent system with many
+  programs e.g. for the commandline.
 
-* Configuration of your sound system (not covered)
+  The internet is full of guides on how to install Homebrew; please
+  refer to them.
+
+  After that you may proceed:
+
+  - cd ~/harpwise/install
+  - . ./install-dependencies-on-macos.sh
+  
+* Configuring your sound system (not covered)
 
   Please note, that after this installation you should be able to record
   and play sound via sox, e.g.:
@@ -73,30 +97,35 @@ linux-distributions or WSL2 under Windows
   if this gives you errors or no audible result, you need to fix this
   first (which is beyond the scope of this readme).
 
-* Uninstalling (only half covered)
+* Uninstalling
 
 ** Uninstalling harpwise itself
 
    Just remove the directory ~/harpwise which you downloaded
    initially.
 
-   The data of harpwise (samples for calibration and
-   journal.txt) is kept in the hidden directory ~/.harpwise,
-   which you may or may not want to remove too.
+   The data of harpwise (samples, licks, journal and much more) is
+   kept in the hidden directory ~/.harpwise, which you may or may not
+   want to remove too.
 
 ** Uninstalling dependencies 
 
    There is no uninstaller for the dependencies.
 
-   To uninstall manually, you need to review the logfile from the
-   installation and remove those packages, that have not been present
-   on your system initially.
+   To uninstall manually, you need to remove the packages by hand, e.g.
+
+   - sudo apt remove figlet   ## ubuntu and wsl2 (windows)
+   - sudo yum remove figlet   ## fedora
+   - brew remove figlet       ## MacOS
+
+   and the same for the handful of other packages that were installed
+   as dependencis of harpwise (see the install script).
 
    However, in general, the number of packages installed as
    dependencies and their disk-usage is fairly low, so there is not
-   much pressure to remove those dependencies.
+   much pressure to remove them.
 
-* Testing the installer
+* Testing the installer-scripts
 
   As a maintainer, see tests/installer for a way to test these scripts
   in a container.
