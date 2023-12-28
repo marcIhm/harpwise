@@ -2,9 +2,9 @@
 
 *** Table of Contents                                                 :TOC_1:
 - [[#harpwise---an-introduction][harpwise - an introduction]]
-- [[#usage-and-overview][Usage and Overview]]
 - [[#installation][Installation]]
 - [[#invocation][Invocation]]
+- [[#getting-started][Getting started]]
 - [[#configuration][Configuration]]
 - [[#some-concepts][Some concepts]]
 - [[#a-closer-look-at-the-display][A closer look at the display]]
@@ -57,11 +57,31 @@
   
   [[images/screenshot_quiz.png]]
 
-* Usage and Overview
+* Installation
+
+  Please see the README within subdirectory install.
+   
+* Invocation
+
+  On the commandline.
+
+  If you have downloaded from github
+
+  cd ~/harpwise
+  ./harpwise
+
+  or if you installed harpwise from the ubuntu repositories, just type:
+
+  harpwise
+
+  In any case you will get usage information to get you started quickly or
+  read below.
+
+* Getting started
 
   Get usage information by invoking without arguments:
   
-    ./harpwise
+  ./harpwise
 
 
   This will show examples and options for the main operations of the
@@ -93,24 +113,6 @@
   new licks and some pointers to sources for more (printed and online,
   payed and free).
 
-* Installation
-
-  Please see the README within subdirectory install.
-   
-* Invocation
-
-  On the commandline.
-
-  If you have downloaded from github
-
-  cd ~/harpwise
-  ./harpwise
-
-  or if you installed harpwise from the ubuntu repositories, just type:
-
-  harpwise
-
-  In any case you will get usage information to get you started quickly.
   
 * Configuration
 
