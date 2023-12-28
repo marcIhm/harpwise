@@ -87,7 +87,7 @@ def do_quiz to_handle
     holes_inter = get_random_interval
     puts "\e[32mInterval to play is:"
     puts
-    do_figlet_unwrapped holes_inter[-1], 'smblock'
+    do_figlet_unwrapped holes_inter[4], 'smblock'
     puts
     puts
     sleep 2
@@ -100,7 +100,9 @@ def do_quiz to_handle
         puts
         if !first_round
           puts
-          puts_underlined 'Next Question'
+          puts_underlined 'Next Question', vspace: false
+          puts "\e[2m#{$extra}\e[0m"
+          puts
           sleep 0.1
         end
         first_round = false
@@ -154,10 +156,17 @@ class QuizFlavour
     make_term_cooked
     print "\e[#{$lines[:comment_tall]}H"
     if answer == @solution
-      stand_out "Yes, '#{answer}' is RIGHT !\n\nMoving to next question.", all_green: true
+      if self.respond_to?(:after_solve)
+        stand_out "Yes, '#{answer}' is RIGHT !\n\nSome extra info below.", all_green: true
+        puts
+        after_solve
+      else
+        stand_out "Yes, '#{answer}' is RIGHT !", all_green: true
+      end
       puts
-      after_right
-      sleep 1
+      print "\e[32mPress any key to move to next question ... \e[0m"
+      one_char
+      puts
       return :next
     end
     case answer
@@ -166,14 +175,14 @@ class QuizFlavour
       puts
       return :reissue
     when 'SOLVE'
-      stand_out "The correct answer is:\n\n    #{@solution}\n"
       sleep 1
       if self.respond_to?(:after_solve)
+        stand_out "The correct answer is:\n\n    #{@solution}\n\nSome extra info below."
         after_solve
         sleep 1
       end
       puts
-      print "\e[32mPress any key to continue ... \e[0m"
+      print "\e[32mPress any key to move to next question ... \e[0m"
       one_char
       puts
       return :next
@@ -221,7 +230,14 @@ class QuizFlavour
     nil
   end
 
-  def after_right
+  def after_solve_interval
+    puts
+    print "\e[2mHoles as notes:   "
+    print @holes.map {|h| "#{h} = #{$hole2note[h]}"}.join(',   ')
+    puts "\e[0m"
+    puts
+    printf "Playing interval of %+dst:\n", @dsemi
+    play_holes
   end
   
 end
@@ -248,7 +264,7 @@ class HearScale < QuizFlavour
   
   def after_solve
     puts
-    puts "Playing scale again ..."
+    puts "Playing scale #{@solution} ..."
     sleep 0.1
     puts
     play_holes
@@ -275,8 +291,8 @@ class HearInter < QuizFlavour
     begin
       @inter = get_random_interval
       @holes = @inter[0..1]
-      @holes.rotate! if rand > 0.7
-      @solution = $intervals[@inter[2]][0]
+      @dsemi = @inter[2]
+      @solution = @inter[3]
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
@@ -289,11 +305,7 @@ class HearInter < QuizFlavour
   end
 
   def after_solve
-    puts
-    puts "Playing interval ..."
-    sleep 0.1
-    puts
-    play_holes
+    after_solve_interval
   end
   
   def issue_question
@@ -314,11 +326,8 @@ class AddInter < QuizFlavour
     begin
       @inter = get_random_interval
       @holes = @inter[0..1]
-      @verb = 'add'
-      if rand > 0.7
-        @holes.rotate!
-        @verb = 'subtract'
-      end
+      @dsemi = @inter[2]
+      @verb = @inter[2] > 0 ? 'add' : 'subtract'
       @solution = @holes[1]
     end while @@prevs.include?(@holes)
     @@prevs << @holes
@@ -333,19 +342,16 @@ class AddInter < QuizFlavour
   end
 
   def after_solve
-    puts
-    puts "Playing interval ..."
-    sleep 0.1
-    puts
-    play_holes
+    after_solve_interval
   end
   
   def issue_question
     puts
-    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{$intervals[@inter[2]][0]}' ...\e[0m"
+    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{@inter[3]}'"
   end
 
   def help2
+    puts "Playing interval:"
     play_holes hide_hole: @holes[1]
   end
 
@@ -353,9 +359,6 @@ class AddInter < QuizFlavour
     'Play interval'
   end
 
-  def after_right
-    after_solve
-  end
 end
 
 
@@ -368,8 +371,21 @@ def get_random_interval
     $intervals_quiz.clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
       if holes_inter[1]
-        holes_inter << inter
-        holes_inter << "#{holes_inter[0]} ... #{$intervals[inter][0]}"
+        if rand > 0.7
+          holes_inter.rotate!
+          holes_inter << -inter
+        else
+          holes_inter << inter
+        end
+        holes_inter << $intervals[inter][0]
+        # some compositions for consistency and convenience
+        holes_inter << holes_inter[0] +
+                       ' .. ' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + ' .. ' +
+                       holes_inter[3]
+        # 0,1: holes,
+        #   2: numerical interval with sign
+        #   3: interval long name
+        #   4: e.g. '+1 ... up ... maj Third'
         return holes_inter
       end
     end

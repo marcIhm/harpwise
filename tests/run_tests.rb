@@ -852,7 +852,7 @@ do_test 'id-19b: prepare and get history of licks' do
   end
   tms "harpwise print licks-history >#{$testing_output_file}"
   tms :ENTER
-  wait_for_start_of_pipeline
+  wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
   ["   l: blues\n",
    "  2l: mape\n",
@@ -2321,7 +2321,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   expect { screen[16]['Choose the Interval you have heard:'] }
   tms 'SOLVE'
   tms :ENTER
-  expect { screen[17]['Playing interval'] }
+  expect { screen[18]['Playing interval of'] }
   kill_session
 end
 

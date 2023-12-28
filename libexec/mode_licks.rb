@@ -125,7 +125,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
             quiz_holes_inter = get_random_interval
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-            do_figlet_unwrapped quiz_holes_inter[-1], 'smblock'
+            do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
             sleep 2
           end
           to_play[:all_wanted] = quiz_holes_inter[0..1]
@@ -316,7 +316,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
             if quiz_scale_name
               "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
             elsif quiz_holes_inter
-              "Play inter #{quiz_holes_inter[-1]}"
+              "Play inter #{quiz_holes_inter[3]} " + ( quiz_holes_inter[2] > 0 ? 'up' : 'down' )
             elsif $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else
