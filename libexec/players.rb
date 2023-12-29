@@ -50,7 +50,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
           print "\e[0m\e[32mgo \e[0m"
         else
           pplayer.pause
-          printf "\e[0m\e[32m %.1fs SPACE to continue ... \e[0m", pplayer.time_played
+          printf "\e[0m\e[32m%.1fs SPACE to continue ... \e[0m", pplayer.time_played
         end
       elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
@@ -78,9 +78,9 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
         pplayer.continue
         $ctl_rec[:show_help] = false
       elsif $ctl_rec[:replay]
-        print "\e[0m\e[32m replay \e[0m"
+        print "\e[0m\e[32mreplay \e[0m"
       elsif $ctl_rec[:skip]
-        print "\e[0m\e[32m jump to end \e[0m"
+        print "\e[0m\e[32mjump to end \e[0m"
       end
 
       if $ctl_rec[:lick_lick] != lick_lick_was
@@ -720,14 +720,14 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
             "\e[2m(h for help) ... "
           end
   [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
-    if ! verbose
+    if !verbose
       print hole + ' '
     else
-      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7 
-        ltext = "\e[2m(h for help)  "
+      if ltext.length - 4 * ltext.count("\e") > $term_width * 1.7
+        ltext = "\e[2m(h for help) "
         if at_line
           print "\e[#{at_line}H\e[K"
-          print "\e[#{at_line-1}H\e[K"
+          print "\e[#{at_line - 1}H\e[K"
         else
           print "\e[#{$lines[:hint_or_message]}H\e[K"
           print "\e[#{$lines[:message2]}H\e[K"

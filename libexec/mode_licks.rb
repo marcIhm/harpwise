@@ -626,7 +626,14 @@ def play_recording_quiz lick, at_line:, octave_shift:
     start, length = lick[:rec_start], lick[:rec_length]
   end
 
-  text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... " + lick[:holes].join(' ')
+  text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... "
+  lick[:holes].each do |hole|
+    text += hole + ' '
+    if text.length - 4 * text.count("\e") > $term_width * 1.5
+      text[-1] = '...'
+      break
+    end
+  end           
   if at_line
     print "\e[#{at_line}H#{text} \e[K"
   else
