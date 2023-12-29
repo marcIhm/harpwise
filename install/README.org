@@ -10,33 +10,31 @@
 
 * Installing wsl2 on Windows
 
-  wsl2 this gives you a great installation of Linux within windows.
+  wsl2 gives you a great installation of Linux within windows.
 
-  wsl2 is a very useful and interesting system by itself and it will
-  take some time to get used to. The small set of commands, that is
-  required to install and use harpwise however, is spelled out below
-  in detail.
-
+  It is a very useful and interesting system by itself and it might
+  take some time to master it. The small set of commands however, that
+  is required to install and use harpwise however, is spelled out
+  below in detail.
 
   The internet has many guides that explain the process of installing
-  wsl2 in detail; please refer to them, e.g.:
+  wsl2 in detail; please refer to them for instructions, e.g.:
   https://learn.microsoft.com/en-us/windows/wsl/install
 
-  After that you have a full Linux system (Ubuntu) under windows, so
+  After that you have a full Linux system (Ubuntu) under Windows, so
   that you can open the wsl2 commandline and proceed with the general
-  and linux-specific instructions (downloading, dependencies, or the
-  "shorter way" via apt)
+  and Linux-specific instructions below (downloading, dependencies, or
+  the 'shorter way' via apt)
 
 * A shorter way for Linux (Ubuntu)
 
-  As harpwise is contained in the Ubuntu repositories, it suffices to
-  do this:
+  As harpwise is part of the Ubuntu repositories, it suffices to type:
 
-  - sudo apt install harpwise
+  sudo apt install harpwise
 
   and simply start harpwise by typing:
 
-  - harpwise
+  harpwise
 
   Downloading harpwise and installing its dependencies (see below),
   can then be skipped. However, the version from the repositories is
@@ -56,14 +54,14 @@
 
    Within your home directory type:
 
-   - git clone https://github.com/marcIhm/harpwise.git
+   git clone https://github.com/marcIhm/harpwise.git
 
    This will give you the full repository with its history and will make
    it easier to contribute (e.g. new scales or harmonica types).
 
    The advantage (over downloading just the zip as described below) is
    that you will easily be able to update to newer versions by typing
-   "git pull" within ~/harpwise.
+   'git pull' within ~/harpwise.
 
 ** Alternative: Download the zip-file 
 
@@ -88,16 +86,16 @@
   - . ./install-dependencies-on-fedora.sh
 
 
-  Both scripts are fairly simple and you are invited to inspect them
-  before running.
+  Both scripts are fairly simple and you are invited to inspect them.
 
 * Installing dependencies on MacOS
 
   This requires homebrew, which is an excellent system by itself with
-  many useful programs for the commandline (and with a gui).
+  many useful programs for the commandline (and more).
 
   The internet is full of guides on how to install Homebrew; please
-  refer to them, e.g. https://docs.brew.sh/Installation
+  refer to them for instructions,
+  e.g. https://docs.brew.sh/Installation
 
   After that you may proceed:
 
@@ -109,7 +107,7 @@
   Please note, that after installing the dependencies (see above) you
   should be able to record and then play sound via sox, e.g.:
 
-  - rec foo.wav trim 0 1   ## maybe count "1,2,3" to get something recorded
+  - rec foo.wav trim 0 1   ## maybe count '1,2,3' to get something recorded
   - play foo.wav
 
   if this gives you errors or no audible result, you need to fix this

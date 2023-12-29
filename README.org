@@ -40,11 +40,10 @@
   - Help to find the key of a song (with an adjustable pitch)
   - Interactively play intervals or note progressions
   - Help in writing down a sequence of holes (journal)
-  - Transpose a sequence of holes from one key of harp to another,
-    preserving the note-values
-  - Provide an overview table of positions, keys of songs and keys of harps
-  - Print the notes layed out on a harmonica chart
-  - Print chords i, iv, v
+  - Transpose a sequence of holes from one key of harp to another
+  - Provide an overview table of positions, keys of songs and keys
+  - Print notes layed out on a harmonica chart
+  - Print or play chords or scales
   - Show full help on its capabilities
 
     
@@ -53,8 +52,8 @@
   
   [[images/screenshot_listen.png]]
 
-  The second screenshot is from mode 'quiz': The program has played five
-  notes initially and now challenges to play them back.
+  The second screenshot is from mode 'quiz', flavour 'recall': The program
+  has played five notes initially and now challenges to play them back.
   
   [[images/screenshot_quiz.png]]
 
@@ -64,12 +63,12 @@
    
 * Invocation
 
-  On the commandline.
+  Once you have installed harpwise, go to the commandline and type:
 
-  If you have downloaded from Github:
+  if you have downloaded from Github:
 
-  cd ~/harpwise
-  ./harpwise
+  - cd ~/harpwise
+  - ./harpwise
 
   or if you installed harpwise from the Ubuntu repositories:
 
@@ -100,7 +99,7 @@
   wav-files will be kept in directory ~/.harpwise
 
   Or, to get started quickly you may use auto-calibration for
-  machine-generated tones and frequencies (for the key of c):
+  machine-generated tones and frequencies (e.g. for the key of c):
 
   harpwise calibrate c --auto
 
@@ -125,18 +124,19 @@
   may also open a github-issue.
 
   However, harpwise already comes with a number of help sources, that you
-  may try too:
+  may try:
 
   - This README gives some general background and context information
-  - The program harpwise will issue a usage information, if invoked with
-    wrong or too few arguments. This contains lots of examples and
-    descriptions for invoking harpwise and for the form of its arguments.
+  - The program harpwise will issue a usage information, if invoked wrong
+    or with too few arguments. This usage screens contain lots of
+    examples and descriptions for invoking harpwise and for the form of
+    its arguments and options.
   - When harpwise is running, especially in its main interactive screen
-    (see screenshots), you can press "h" to get a short overview of all
+    (see screenshots), you can press 'h' to get a short overview of all
     available keys.
-  - The main menu facility of harpwise (which covers the lower half of the
-    screen and allows to choose between various items) often shows
-    one-line descriptions of its items at the bottom.
+  - The main menu facility of harpwise (which, at times, covers the lower
+    half of the screen and offers to choose between various items) often
+    shows one-line descriptions of its items at the bottom.
   
 * Configuration
 
@@ -145,18 +145,18 @@
 
   ~/.harpwise/config.ini
 
-  There you may override many settings from the programs default config
+  There you may override many settings from the programs default config.
   The file is commented extensively, so please read there for details on
   the various settings. Initially this config-file is a copy of the
   programs central config-file.
 
-  See also the usage-information, which lists all of the commandline
+  See also the usage-information, which lists all of the command line
   option, which (in many cases) mirror the settings from your config.ini.
 
 * Some musical concepts
 ** Scales
 
-   Scales, e.g. "blues" or "major pentatonic" or "chord-i" are central for
+   Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
    playing the harmonica. E.g. when improvising, you may stick to a
    specific scale.
 
@@ -167,20 +167,29 @@
    For this to work best, you may:
 
    - Give the name of your favorite scale as an argument when starting
-     harpwise. The default is often "blues", but you may also use
-     e.g. "mape" (for major pentatonic). Use "harpwise print scales" to
-     learn about scales.
+     harpwise. The default is often 'blues', but you may also use
+     e.g. 'mape' (for major pentatonic). Use 'harpwise print scales' to
+     learn about the available scales.
    - To include other scales beyound the main scale, you may add the
-     option --add-scales on the commandline, e.g.  "--add-scales
-     chord-i,chord-iv,chord-v" In many modes of harpwise you may rotate
+     option --add-scales on the commandline, e.g.  '--add-scales
+     chord-i,chord-iv,chord-v' In many modes of harpwise you may rotate
      among scales by pressing 's'.
+
+
+   So a typical invocation would be:
+
+   harpwise listen c blues --add-scales chord-i,chord-iv,chord-v
+
+   which shows, which of the four given scales the notes you play belong
+   to respectively. This command line may be shortend by moving the option
+   --add-scale to your configuration.
 
 ** Licks
 
    Licks help you to grasp the style and ideas of other players. Harpwise
-   allows to build and organize a whole collection of licks. For ech lick
-   there is a recording, hopefully played by a master, and the sequence of
-   holes that (mostly) make it up.
+   allows to build and organize a whole collection of licks. For each lick
+   there is a recording and the sequence of holes that (mostly) make it
+   up.
 
    Out of the factory, harpwise only has a few older licks with expired
    copyright and amateur recordings (by me); an example would be a lick
@@ -195,25 +204,24 @@
 * Some technical concepts
 ** The reference hole
 
-   The wise can remember a hole you have played to refer to it; this is
-   useful e.g. to show the interval between the currently played hole and
-   the reference, or to show the deviation from the currently played
+   The wise can remember a hole that you have played and later refer to
+   it; this is useful e.g. to show the interval between the current hole
+   and the reference, or to show the deviation from the currently played
    frequency to the nominal frequency of the hole, e.g. when practicing
    bends.
 
    To set the reference, you simply play the desired note and hit the key
-   "r" at the same time. To clear the reference you just hit "r" when not
+   'r' at the same time. To clear the reference you just hit 'r' when not
    playing anything.
 
 ** When multiple holes produce the same note
 
    Many harps produce identical notes on certain holes; e.g. the diatonic
-   harmonica on holes -2 and +3; there are many more cases e.g. for a
+   harmonica on holes -2 and +3. There are even more cases e.g. for a
    chromatic harmonica.
 
-   Harpwise cannot distinguish between them either and therefore simply
-   prints the first hole when in doubt. In the usual harmonica chart, both
-   holes are marked.
+   Harpwise cannot distinguish between such holes either and treats them
+   alike in all aspects (display, quiz, notation).
 
    For writing down licks however, you are free to use any of those
    multiple holes.
@@ -221,60 +229,61 @@
 ** Tuning
 
    The harp wise does not make assumptions about the tuning of your
-   harmonica; e.g. it works equally well with "equal temperament" (ET) or
-   "just intonation" tuning.  Simply because, it asks you to play your own
-   harp to generate samples (whatever its tuning might be). It then
-   computes frequency values from these samples. (Remark: for a quick
-   start you may have skipped this step using auto calibration)
+   harmonica; e.g. it works equally well with 'equal temperament' (ET) or
+   'just intonation'.  Simply because, it asks you to play your own harp
+   to generate samples (whatever its tuning might be). It then computes
+   frequency values from these samples. (Remark: for a quick start you may
+   have skipped this step using auto calibration)
   
    However, sometimes harpwise has to choose one tuning, e.g. when doing
    auto calibration, or when your samples need to be judged against some
-   standard. In such cases it generally uses "equal temperament" (ET for
+   standard. In such cases it generally uses 'equal temperament' (ET for
    short).
 
 * A closer look at the Screen
 
   Please note, that the wise tries to adapt itself to different screen
-  (terminal) sizes by inserting blank lines in its display.  If your
-  terminal window supports changing the screen size, then harpwise will
-  react accordingly and you do not need to restart it.
+  (terminal) sizes. If your terminal window supports changing the screen
+  size, then harpwise will react accordingly and you do not need to
+  restart it.
 
   You probaby get the best experience if you use a larger font and a
   terminal with a modest size, e.g. 80 cloumns and 25 rows.
 
   Also note, that harpwise uses figlet to display some information in
   large letters. The optical result of this may vary, and you may get a
-  smoother appearance by choosing another font; personally I use "Lucida
-  Console" (at least under windows).
+  smoother appearance by choosing another font; personally I use 'Lucida
+  Console' (at least under windows).
 
   Now if you start harpwise e.g. in mode listen, or licks or some flavours
   of quiz, you get a screen as shown in the screenshots above.
 
   Its structure is as follows (top to bottom):
 
-  - Header: the topmost 2 lines 
-  - The (so called) "display": a larger area taking up most of the upper
-    half of the screen
+  - Header: topmost 2 lines 
+  - The 'display': a larger area taking up most of the upper half of the
+    screen
   - The middle part of the screen, three lines in the middle of the screen
-  - The (so called) "comment": a larger area taking up most of the lower
-    half of the screen
+  - The 'comment': a larger area taking up most of the lower half of the
+    screen
   - Footer: the bottommost 2 Lines
 
 ** The header
 
    Two topmost two lines, that show e.g.
    - The current mission, i.e. what you are supposed to do
-   - Immediate feedback on keys beeing pressed or a hint on how to get help
+   - Immediate feedback on keys beeing pressed or a hint on how to get
+     help
    - A summary of the settings mode, type, key and scales
 
-** The "display"
+** The 'display'
 
    This part of the screen (i.e. most of its upper half) shows different
    versions of a harmonica chart as known from textbooks. In addition, the
    holes, that you are playing are highlighted in colours, e.g. according
    to the scale.
 
-   To change the display type "d" repeatedly or type "D" to get a menu
+   To change the display type 'd' repeatedly or type 'D' to get a menu
    with descriptions.
 
 ** The middle part of the screen
@@ -282,19 +291,19 @@
    The three middle lines of the screen show:
 
    - The hole and note, that you are playing and the reference hole, if
-     set. In addtion ("Rem") the scales the hole belongs to
+     set. In addtion ('Rem') the scales the hole belongs to
    - The Frequency you are playing; featuring a small frequncy gauge
    - The interval of the current hole to the reference hole or to the last
      hole played
         
-** The "comment"
+** The 'comment'
 
    This part of the screen (i.e. most of its lower half) shows comments;
    e.g. when in mode licks, harpwise expects you to play a sequence of
    holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
 
-   To change the comment type "c" repeatedly or type "C" to get a menu
+   To change the comment type 'c' repeatedly or type 'C' to get a menu
    with one-line descriptions.
 
 ** The footer
