@@ -1,6 +1,6 @@
 ** Table of Contents  :TOC_1:
 - [[#installing-wsl2-on-windows][Installing wsl2 on Windows]]
-- [[#a-shorter-way-for-linux-ubuntu][A shorter way for Linux (ubuntu)]]
+- [[#a-shorter-way-for-linux-ubuntu][A shorter way for Linux (Ubuntu)]]
 - [[#downloading-harpwise][Downloading harpwise]]
 - [[#installing-dependencies-on-linux][Installing dependencies on Linux]]
 - [[#installing-dependencies-on-macos][Installing dependencies on MacOS]]
@@ -12,35 +12,43 @@
 
   wsl2 this gives you a great installation of Linux within windows.
 
-  wsl2 is a very useful and interesting system by itself alone, but it
-  will take some time to get used to. Do not fear the commandline !
+  wsl2 is a very useful and interesting system by itself and it will
+  take some time to get used to. The small set of commands, that is
+  required to install and use harpwise however, is spelled out below
+  in detail.
 
-  The internet has many guides that explain this process ("install
-  wsl2") in detail; please refer to them.
 
-  After that you essentially have a linux-system (ubuntu) under
-  windows, so that you may open the wsl2 commandline and proceed with
-  the general and linux-specific instructions (downloading,
-  dependencies, or the sorter way)
+  The internet has many guides that explain the process of installing
+  wsl2 in detail; please refer to them, e.g.:
+  https://learn.microsoft.com/en-us/windows/wsl/install
 
-* A shorter way for Linux (ubuntu)
+  After that you have a full Linux system (Ubuntu) under windows, so
+  that you can open the wsl2 commandline and proceed with the general
+  and linux-specific instructions (downloading, dependencies, or the
+  "shorter way" via apt)
 
-  As harpwise is part of the ubuntu repositories, you may only need do
-  this:
+* A shorter way for Linux (Ubuntu)
+
+  As harpwise is contained in the Ubuntu repositories, it suffices to
+  do this:
 
   - sudo apt install harpwise
 
-  and simply start it by typing: harpwise
+  and simply start harpwise by typing:
 
-  Downloading harpwise and installing its dependencies, can then be
-  skipped.
+  - harpwise
+
+  Downloading harpwise and installing its dependencies (see below),
+  can then be skipped. However, the version from the repositories is
+  not always the most recent, so that you may miss out the latest
+  features and bugfixes this way.
   
 * Downloading harpwise
 
-  This is the same process for linux, windows and macos
+  This is the same process for Linux, Windows and MacOS
   
   You may either clone the repo OR just download the zip-file from
-  github.
+  Github (see below).
 
   In either case, you will end up with a directory ~/harpwise
 
@@ -53,9 +61,9 @@
    This will give you the full repository with its history and will make
    it easier to contribute (e.g. new scales or harmonica types).
 
-   The advantage (over downloading just the zip as described below, is
-   that you will easily be able tu update to newer versions by typing
-   "git pull" within ~/harpwise)
+   The advantage (over downloading just the zip as described below) is
+   that you will easily be able to update to newer versions by typing
+   "git pull" within ~/harpwise.
 
 ** Alternative: Download the zip-file 
 
@@ -74,7 +82,7 @@
   - . ./install-dependencies-on-ubuntu.sh  
   
   
-  For fedora, redhat, centos, etc.:
+  For Fedora, RedHat, Centos, etc.:
 
   - cd ~/harpwise/install
   - . ./install-dependencies-on-fedora.sh
@@ -85,11 +93,11 @@
 
 * Installing dependencies on MacOS
 
-  This requires homebrew, which is an excellent system with many
-  programs e.g. for the commandline.
+  This requires homebrew, which is an excellent system by itself with
+  many useful programs for the commandline (and with a gui).
 
   The internet is full of guides on how to install Homebrew; please
-  refer to them.
+  refer to them, e.g. https://docs.brew.sh/Installation
 
   After that you may proceed:
 
@@ -98,10 +106,10 @@
   
 * Testing your sound system
 
-  Please note, that after this installation you should be able to record
-  and then play sound via sox, e.g.:
+  Please note, that after installing the dependencies (see above) you
+  should be able to record and then play sound via sox, e.g.:
 
-  - rec foo.wav trim 0 1  ## maybe count "1,2,3" to get something recorded
+  - rec foo.wav trim 0 1   ## maybe count "1,2,3" to get something recorded
   - play foo.wav
 
   if this gives you errors or no audible result, you need to fix this
@@ -122,14 +130,15 @@
 
    There is no uninstaller for the dependencies.
 
-   To uninstall manually, you need to remove the packages by hand, e.g.
+   To uninstall manually, you need to remove the packages by hand,
+   e.g. for the package 'figlet':
 
-   - sudo apt remove figlet   ## ubuntu and wsl2 (windows)
-   - sudo yum remove figlet   ## fedora
+   - sudo apt remove figlet   ## Ubuntu and wsl2 (Windows)
+   - sudo yum remove figlet   ## Fedora
    - brew remove figlet       ## MacOS
 
    and the same for the handful of other packages that were installed
-   as dependencis of harpwise (see the install script).
+   as dependencies of harpwise (see the install script).
 
    However, in general, the number of packages installed as
    dependencies and their disk-usage is fairly low, so there is not
@@ -137,5 +146,5 @@
 
 * Testing the installer-scripts
 
-  As a maintainer, see tests/installer for a way to test these scripts
-  in a container.
+  As a maintainer, see tests/installer for a way to test the install
+  scripts in a container.
