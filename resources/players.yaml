@@ -327,10 +327,19 @@
 
 
 - name: Paul Butterfield
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - December 17, 1942 – May 4, 1987
+  - American blues harmonica player, singer and bandleader
+  - Inducted into the Blues Hall of Fame in 2006
+  notes:
+  - Born in Chicago, met Muddy Waters and other blues greats
+  - Combined electric Chicago blues with a rock urgency and jazz fusion
+  - Formed one of the first racially integrated blues groups
+  - Played at Fillmore, Monterey and Woodstock
+  source: https://en.wikipedia.org/wiki/Paul_Butterfield
+  songs:
+  - Born in Chicago
+  - Shake your Money-Maker
 
 
 - name: Paul Delay

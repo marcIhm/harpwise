@@ -76,7 +76,7 @@ def check_screen graceful: false, hint_on_large_term: false
   if $opts[:debug] && $debug_what.include?(:check_screen) && $debug_state[:kb_handler_started]
     puts "[width, height] = [#{$term_width}, #{$term_height}]"
     pp $lines
-    puts "press any key to continue"
+    puts "Press any key to continue ..."
     $ctl_kb_queue.deq
     $ctl_kb_queue.clear
   end
@@ -1048,14 +1048,14 @@ def choose_interactive prompt, names
       clear_area_comment
       clear_area_message
       print "\e[#{$lines[:comment_tall] + 1}H\e[0m"
-      puts "Help on selecting: Just type.\e[32m"
-      puts
-      puts " - any char adds to search, which narrows choices"
-      puts " - cursor keys move selection, ctrl-l redraws"
+      puts "Help on selecting: Just type or use cursor keys.\e[32m"
+      puts " - Any char adds to search, which narrows choices"
+      puts " - Cursor keys move selection, ctrl-l redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
+      puts "\e[0mBottom line shows descriptions of choices."
       puts
-      puts "\e[0m\e[2m(any key to continue)\e[0m"
+      puts "\e[0m\e[2mPress any key to continue ...\e[0m"
       $ctl_kb_queue.deq
       clear_area_comment(2)        
 
