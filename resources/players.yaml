@@ -399,10 +399,16 @@
 
 
 - name: Rod Piazza
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - December 18, 1947 -
+  - American blues harmonica player and singer
+  notes:
+  - With his wife Honey, forms The Mighty Flyers
+  - Born in California, started with guitar at age of 6 or 7
+  - Has toured US, Canada and Europe
+  source: https://en.wikipedia.org/wiki/Rod_Piazza
+  songs:
+  - Southern Lady
 
 
 - name: Son of Dave
