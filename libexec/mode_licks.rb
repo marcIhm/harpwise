@@ -103,14 +103,19 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
       
       # figure out holes to play
       if $mode == :quiz
+        unless first_round
+          $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? 'easy' : 'hard')
+          $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+        end
         case $extra
         when 'replay'
           if $ctl_mic[:change_num_quiz_replay]
             read_and_set_num_quiz_replay
-            $msgbuf.print "Number of holes to replay is \e[0m'#{$num_quiz_replay}'", 2, 5, :replay
+            $num_quiz_replay_explicit = true
             $ctl_mic[:change_num_quiz_replay] = false
           end
           to_play[:all_wanted] = get_quiz_sample($num_quiz_replay)
+          $msgbuf.print Replay.describe_difficulty, 2, 5
         when 'play-scale'
           unless first_round
             quiz_scale_name = $quiz_scales.sample
@@ -120,6 +125,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
             sleep 2
           end
           to_play[:all_wanted], _, _, _ = read_and_parse_scale_simple(quiz_scale_name, $harp)
+          $msgbuf.print HearScale.describe_difficulty, 2, 5
         when 'play-inter'
           unless first_round
             quiz_holes_inter = get_random_interval
@@ -129,6 +135,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
             sleep 2
           end
           to_play[:all_wanted] = quiz_holes_inter[0..1]
+          $msgbuf.print AddInter.describe_difficulty, 2, 5
         else
           err "Internal error: #{$extra}"
         end

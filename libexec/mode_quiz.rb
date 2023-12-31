@@ -6,13 +6,15 @@ def do_quiz to_handle
 
   print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
-
+  
   err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if $extra != 'replay' && to_handle.length > 0
 
+  $num_quiz_replay_explicit = false
   if $extra == 'replay'
     if to_handle.length == 1
       err "'harpwise quiz replay' requires an integer argument, not: #{to_handle[0]}" unless to_handle[0].match(/^\d+$/)
       $num_quiz_replay = to_handle[0].to_i
+      $num_quiz_replay_explicit = true
     elsif to_handle.length > 1
       err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
     end
@@ -34,12 +36,11 @@ def do_quiz to_handle
     $pers_data['quiz_flavours_last'] = flavours_last
   end
 
-  $num_quiz_replay ||= {easy: 5, hard: 12}[$opts[:difficulty]] if $extra == 'replay'
-
   animate_splash_line
   
   puts
   puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
+  puts "\e[2m1 out of #{($quiz_flavour2class.keys - flavours_random).length}\e[0m" if is_random
   puts
   sleep 0.05
   puts "Description is:"
@@ -47,15 +48,18 @@ def do_quiz to_handle
   sleep 0.05
   puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
 
+  $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+
+  # print difficulty
   print "  \e[2m("
   if $extra == 'replay'
-    print "number of notes to replay is #{$num_quiz_replay}"
+    print Replay.describe_difficulty
   elsif $extra == 'play-scale'
-    HearScale.describe_difficulty
+    print HearScale.describe_difficulty
   elsif $extra == 'play-inter'
-    AddInter.describe_difficulty
+    print AddInter.describe_difficulty
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
-    $quiz_flavour2class[$extra].describe_difficulty
+    print $quiz_flavour2class[$extra].describe_difficulty
   else
     err "Internal error: #{$extra}, #{$quiz_flavour2class}"
   end
@@ -95,13 +99,14 @@ def do_quiz to_handle
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
     first_round = true
     loop do  ## every new question
+      $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? 'easy' : 'hard') unless first_round
       catch :next do
         sleep 0.1
         puts
         if !first_round
           puts
           puts_underlined 'Next Question', vspace: false
-          puts "\e[2m#{$extra}\e[0m"
+          puts "\e[2m#{$extra}, #{$quiz_flavour2class[$extra].describe_difficulty}\e[0m"
           puts
           sleep 0.1
         end
@@ -176,8 +181,10 @@ class QuizFlavour
       return :reissue
     when '.SOLVE'
       if self.respond_to?(:after_solve)
-        stand_out "The correct answer is:\n\n    #{@solution}\n\nSome extra info below."
+        stand_out "The correct answer is:\n\n        #{@solution}\n\nSome extra info below."
         after_solve
+      else
+        stand_out "The correct answer is:\n\n        #{@solution}\n"
       end
       puts
       print "\e[32mPress any key to move to next question ... \e[0m"
@@ -186,7 +193,7 @@ class QuizFlavour
       return :next
     when '.HELP'
       if @choices.length > 1
-        stand_out 'Removing some choices to make it easier'
+        stand_out 'Removing some choices.'
         orig_len = @choices.length 
         while @choices.length > orig_len / 2
           idx = rand(@choices.length)
@@ -214,9 +221,9 @@ class QuizFlavour
     "difficulty is '#{$opts[:difficulty]}'"
   end
   
-  def play_holes hide_hole: nil, reverse: false
+  def play_holes hide: nil, reverse: false
     make_term_immediate
-    play_holes_or_notes_simple(reverse ? @holes.rotate : @holes, hide_hole: hide_hole)
+    play_holes_or_notes_simple(reverse ? @holes.rotate : @holes, hide: hide)
     make_term_cooked
   end
 
@@ -240,7 +247,18 @@ class QuizFlavour
   
 end
 
-  
+
+class Replay < QuizFlavour
+  def self.describe_difficulty
+    if $num_quiz_replay_explicit
+      "number of notes to replay is #{$num_quiz_replay} (explicitly set)"
+    else
+      QuizFlavour.difficulty_head + ", number of notes to replay is #{$num_quiz_replay}"
+    end
+  end
+end
+
+
 class HearScale < QuizFlavour
 
   def initialize
@@ -256,8 +274,8 @@ class HearScale < QuizFlavour
   end
 
   def self.describe_difficulty
-    print QuizFlavour.difficulty_head
-    print ", taking #{$quiz_scales.length} scales out of #{$all_scales.length}"
+    QuizFlavour.difficulty_head +
+    ", taking #{$quiz_scales.length} scales out of #{$all_scales.length}"
   end
   
   def after_solve
@@ -344,8 +362,8 @@ class AddInter < QuizFlavour
   end
 
   def self.describe_difficulty
-    print QuizFlavour.difficulty_head
-    print ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
+    QuizFlavour.difficulty_head +
+    ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
   end
 
   def after_solve
@@ -359,11 +377,79 @@ class AddInter < QuizFlavour
 
   def help2
     puts "Playing interval:"
-    play_holes hide_hole: @holes[1]
+    play_holes hide: @holes[1]
   end
 
   def help2_desc
     'Play interval'
+  end
+
+end
+
+
+class KeyHarpSong < QuizFlavour
+
+  def initialize
+
+    harp2song = if $opts[:difficulty] == :easy
+                  {'G' => 'D',
+                   'A' => 'E',
+                   'C' => 'G',
+                   'D' => 'A'}
+                else
+                  # some duplicates with above, but keeps keys in order
+                  {'G' => 'D',
+                   'Af' => 'Ef',
+                   'A' => 'E',
+                   'Bf' => 'F',
+                   'B' => 'Gf',
+                   'C' => 'G',
+                   'Df' => 'Af',
+                   'D' => 'A',
+                   'Ef' => 'Bf',
+                   'E' => 'B',
+                   'F' => 'C',
+                   'Gf' => 'Df'}
+                end
+
+    @qdesc, @adesc, qi2ai = if rand > 0.5
+                              ['harp', 'song', harp2song]
+                            else
+                              ['song', 'harp', harp2song.invert]
+                            end
+    @choices = qi2ai.values    
+    begin
+      @qitem = qi2ai.keys.sample
+    end while @@prevs.include?(@qitem)
+    @solution = qi2ai[@qitem]
+    @@prevs << @qitem
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = "Key of #{@adesc}:"
+    @help_head = "#{@adesc} with key of".capitalize
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+    ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
+  end
+
+  def issue_question
+    puts
+    puts "\e[34mGiven a #{@qdesc} with key of '#{@qitem}', name the matching key for the #{@adesc}\n(2nd position)\e[0m"
+  end
+
+  def help2
+    semi = note2semi(@solution.downcase + '4')
+    semi += 12 if semi < note2semi('gf4')
+    note = semi2note(semi)
+    puts "Playing note (octave #{note[-1]}) for answer-key of #{@adesc}:"
+    make_term_immediate
+    play_holes_or_notes_simple [note], hide: note
+    make_term_cooked
+  end
+
+  def help2_desc
+    "Play note for answer-key of #{@adesc}"
   end
 
 end

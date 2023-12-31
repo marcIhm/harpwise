@@ -220,10 +220,16 @@ def parse_arguments_early
     err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
   end.to_sym
 
+  if opts[:difficulty].is_a?(Numeric)
+    dicu = opts[:difficulty].to_i
+    err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)
+    opts[:difficulty] = (rand(100) > dicu ? 'easy' : 'hard')
+  end
   opts[:difficulty] = match_or(opts[:difficulty], %w(easy hard)) do |none, choices|
-    err "Value #{none} of option '--difficulty' or config 'difficulty' is none of #{choices}"
+    err "Value #{none} of option '--difficulty' or config 'difficulty' is none of #{choices} or a number between 0 and 100"
   end&.to_sym
-
+  opts[:difficulty_numeric] ||= ( opts[:difficulty] == :easy ? 0 : 100 )
+  
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
   if opts_all[:iterate]

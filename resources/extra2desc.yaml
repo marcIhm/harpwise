@@ -84,6 +84,12 @@ quiz:
   add-inter: |
     gives a hole and an interval and asks for the resulting hole,
     which is obtained by either adding or subtracting
+  key-harp-song: |
+    gives a key of harmonica and asks for the matching
+    key of song (2nd position) or vise vers
+  hear-key: |
+    plays sequence of notes based on a random key; asks for this key
+    (but not for the matching harmonica)
 develop:
   man: |
     produce man page from erb-template

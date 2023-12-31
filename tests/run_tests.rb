@@ -2334,7 +2334,29 @@ do_test 'id-94: quiz-flavour add-inter' do
   kill_session
 end
 
-do_test 'id-95: widgets' do
+do_test 'id-95: quiz-flavour key-harp-song' do
+  new_session
+  tms 'harpwise quiz key-harp-song'
+  tms :ENTER
+  sleep 2
+  expect { screen[12]['Given a harp with key of'] || screen[12]['Given a song with key of'] }
+  sleep 1
+  tms 'help2'
+  tms :ENTER
+  expect { screen[10]['for answer-key of'] }  
+  kill_session
+end
+
+do_test 'id-96: quiz-flavour hear-key' do
+  new_session
+  tms 'harpwise quiz hear-key'
+  tms :ENTER
+  sleep 2
+  expect { screen[13]['?'] }
+  kill_session
+end
+
+do_test 'id-97: widgets' do
   new_session
   tms 'harpwise dev wt'
   tms :ENTER
