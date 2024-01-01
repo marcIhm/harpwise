@@ -428,7 +428,7 @@ class KeyHarpSong < QuizFlavour
 
   def issue_question
     puts
-    puts "\e[34mGiven a #{@qdesc} with key of '#{@qitem}', name the matching key for the #{@adesc}\n(2nd position)\e[0m"
+    puts "\e[34mGiven a #{@qdesc.upcase} with key of '#{@qitem}', name the matching key for the #{@adesc}\n(2nd position)\e[0m"
   end
 
   def help2
@@ -510,7 +510,7 @@ class HearKey < QuizFlavour
     ia_key_harp = play_interactive_pitch explain: false, start_key: ia_key_harp, return_accepts: true
     make_term_cooked
     @ia_key = harp2song[ia_key_harp]
-    puts "\nPlease note, that this key '#{@ia_key}' is not among possible solutions !\n" unless @choices.include?(@ia_key.upcase)
+    puts "\nPlease note, that this key '#{@ia_key}' is not among possible solutions !\n" unless @choices.map(&:downcase).include?(@ia_key)
     puts "\nNow compare key '#{@ia_key}' back to sequence:"
     issue_question silent: true
   end
@@ -521,7 +521,7 @@ class HearKey < QuizFlavour
 
   def after_solve
     puts
-    puts "Playing key (of song) #{@solution}"
+    puts "Playing key (of sequence) #{@solution}"
     sleep 0.1
     puts
     make_term_immediate
