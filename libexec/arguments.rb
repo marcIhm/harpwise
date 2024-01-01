@@ -132,7 +132,7 @@ def parse_arguments_early
     end
   end
   opts[:time_slice] ||= $conf[:time_slice]
-  opts[:dificulty] ||= $conf[:difficulty]
+  opts[:difficulty] ||= $conf[:difficulty]
   opts[:viewer] ||= $conf[:viewer]
 
   # match command-line arguments one after the other against available
@@ -223,6 +223,7 @@ def parse_arguments_early
   if opts[:difficulty].is_a?(Numeric)
     dicu = opts[:difficulty].to_i
     err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)
+    opts[:difficulty_numeric] = opts[:difficulty]
     opts[:difficulty] = (rand(100) > dicu ? 'easy' : 'hard')
   end
   opts[:difficulty] = match_or(opts[:difficulty], %w(easy hard)) do |none, choices|

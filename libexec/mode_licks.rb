@@ -104,7 +104,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
       # figure out holes to play
       if $mode == :quiz
         unless first_round
-          $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? 'easy' : 'hard')
+          $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
         end
         case $extra

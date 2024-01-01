@@ -227,11 +227,12 @@ read_fifo:
 
 difficulty:
   - |
-    For mode quiz: Difficulty of questions asked; if you should
-    identify or reproduce one of a set of choices (e.g. when hearing
-    intervals), the difficulty usually gives the size of the set. A
-    percentage value between 0 an 100, chooses easy or hard at random,
-    with e.g. 20 meaning one time out of five 'hard' and 'easy'
-    otherwise; so larger numbers are harder (100 would be all
-    'hard'). This option defaults to 'easy'.
+    For mode quiz: Difficulty of
+    questions asked; if you should identify or reproduce one of a set
+    of choices (e.g. when hearing intervals), the difficulty usually
+    gives the size of the set. A percentage value between 0 an 100,
+    chooses easy or hard at random, with e.g. 20 meaning one time in
+    five (i.e. at a rate of 20%) 'hard' and four times 'easy'; so
+    larger numbers are harder and 100 would be all 'hard'. This option
+    defaults to 'easy'.
   - EASY_OR_HARD_OR_PERCENT

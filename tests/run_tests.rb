@@ -2019,10 +2019,10 @@ do_test 'id-74: player for licks' do
   expect { screen[9]['go'] }
   tms '-'
   sleep 1
-  expect { screen[9]['go  replay'] }
+  expect { screen[9]['go replay'] }
   tms 'v'
   sleep 1
-  expect { screen[9]['go  replay -9dB'] }
+  expect { screen[9]['go replay -9dB'] }
   tms '<'
   sleep 1
   expect { screen[9]['x0.9'] }
@@ -2286,7 +2286,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
-  expect { screen[12]['Removing some choices to make it easier'] }
+  expect { screen[12]['Removing some choices'] }
   kill_session
 end
 
@@ -2349,10 +2349,23 @@ end
 
 do_test 'id-96: quiz-flavour hear-key' do
   new_session
-  tms 'harpwise quiz hear-key'
+  tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
-  sleep 2
-  expect { screen[13]['?'] }
+  sleep 1
+  expect { screen[11]['plays sequence of notes starting from a random key'] }
+  sleep 10
+  tms 'help2'
+  tms :ENTER
+  expect { screen[16]['Sequence of notes changed'] }  
+  sleep 10
+  tms 'help3'
+  tms :ENTER
+  sleep 1
+  tms '+'
+  tms 'q'
+  sleep 1
+  expect { screen[18]['Please note, that this key'] }  
+  expect { screen[20]['Now compare key'] }  
   kill_session
 end
 

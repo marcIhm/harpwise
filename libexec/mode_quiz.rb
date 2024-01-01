@@ -99,7 +99,7 @@ def do_quiz to_handle
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
     first_round = true
     loop do  ## every new question
-      $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? 'easy' : 'hard') unless first_round
+      $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard) unless first_round
       catch :next do
         sleep 0.1
         puts
@@ -150,6 +150,10 @@ class QuizFlavour
     if help2_desc
       all_choices << '.HELP2'
       choices_desc['.HELP2'] = help2_desc
+    end
+    if help3_desc
+      all_choices << '.HELP3'
+      choices_desc['.HELP3'] = help3_desc
     end
     answer = choose_interactive(@prompt, all_choices) do |tag|
       choices_desc[tag] ||
@@ -207,6 +211,9 @@ class QuizFlavour
     when '.HELP2'
       help2
       return :reask
+    when '.HELP3'
+      help3
+      return :reask
     when nil
       stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
@@ -223,11 +230,16 @@ class QuizFlavour
   
   def play_holes hide: nil, reverse: false
     make_term_immediate
+    $ctl_kb_queue.clear
     play_holes_or_notes_simple(reverse ? @holes.rotate : @holes, hide: hide)
     make_term_cooked
   end
 
   def help2_desc
+    nil
+  end
+
+  def help3_desc
     nil
   end
 
@@ -391,26 +403,7 @@ class KeyHarpSong < QuizFlavour
 
   def initialize
 
-    harp2song = if $opts[:difficulty] == :easy
-                  {'G' => 'D',
-                   'A' => 'E',
-                   'C' => 'G',
-                   'D' => 'A'}
-                else
-                  # some duplicates with above, but keeps keys in order
-                  {'G' => 'D',
-                   'Af' => 'Ef',
-                   'A' => 'E',
-                   'Bf' => 'F',
-                   'B' => 'Gf',
-                   'C' => 'G',
-                   'Df' => 'Af',
-                   'D' => 'A',
-                   'Ef' => 'Bf',
-                   'E' => 'B',
-                   'F' => 'C',
-                   'Gf' => 'Df'}
-                end
+    harp2song = get_harp2song(basic_set: $opts[:difficulty] == :easy)
 
     @qdesc, @adesc, qi2ai = if rand > 0.5
                               ['harp', 'song', harp2song]
@@ -439,11 +432,10 @@ class KeyHarpSong < QuizFlavour
   end
 
   def help2
-    semi = note2semi(@solution.downcase + '4')
-    semi += 12 if semi < note2semi('gf4')
-    note = semi2note(semi)
+    note = semi2note(key2semi(@solution.downcase))
     puts "Playing note (octave #{note[-1]}) for answer-key of #{@adesc}:"
     make_term_immediate
+    $ctl_kb_queue.clear
     play_holes_or_notes_simple [note], hide: note
     make_term_cooked
   end
@@ -452,6 +444,92 @@ class KeyHarpSong < QuizFlavour
     "Play note for answer-key of #{@adesc}"
   end
 
+end
+
+
+class HearKey < QuizFlavour
+
+  @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
+            [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
+            [[0, 4, 0, 7, 10, 12, 0], 'chord and octave'],
+            [[0, 0, 0], 'key only']]
+             
+  def initialize
+    @@seqs.rotate!(rand(@@seqs.length).to_i)
+    @seq = @@seqs[0][0]
+    @nick = @@seqs[0][1]
+    @ia_key = nil
+    harp2song = get_harp2song(basic_set: $opts[:difficulty] == :easy)
+    @choices = harp2song.keys 
+    begin
+      @solution = @choices.sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = "Key of sequence that has been played:"
+    @help_head = "Key"
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+    ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
+  end
+
+  def issue_question silent: false
+    unless silent
+      puts
+      puts "\e[34mHear a sequence of notes '#{@nick}' and name its key\e[0m"
+    end
+    isemi = key2semi(@solution.downcase)
+    notes = @seq.map {|s| semi2note(isemi + s)}
+    make_term_immediate
+    $ctl_kb_queue.clear
+    play_holes_or_notes_simple notes, hide: semi2note(isemi)
+    make_term_cooked
+  end
+
+  def help2
+    @@seqs.rotate!
+    @seq = @@seqs[0][0]
+    @nick = @@seqs[0][1]
+    puts "\nSequence of notes changed to '#{@nick}'."
+    issue_question silent: true
+  end
+
+  def help2_desc
+    "Choose a different sequence of notes"
+  end
+
+  def help3
+    puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence"
+    make_term_immediate
+    $ctl_kb_queue.clear
+    harp2song = get_harp2song(downcase: true, basic_set: false)
+    song2harp = harp2song.invert
+    ia_key_harp = ( @ia_key && song2harp[@ia_key] )
+    ia_key_harp = play_interactive_pitch explain: false, start_key: ia_key_harp, return_accepts: true
+    make_term_cooked
+    @ia_key = harp2song[ia_key_harp]
+    puts "\nPlease note, that this key '#{@ia_key}' is not among possible solutions !\n" unless @choices.include?(@ia_key.upcase)
+    puts "\nNow compare key '#{@ia_key}' back to sequence:"
+    issue_question silent: true
+  end
+
+  def help3_desc
+    "Play an adjustable pitch to compare"
+  end
+
+  def after_solve
+    puts
+    puts "Playing key (of song) #{@solution}"
+    sleep 0.1
+    puts
+    make_term_immediate
+    $ctl_kb_queue.clear
+    play_holes_or_notes_simple [semi2note(key2semi(@solution))]
+    make_term_cooked
+  end
+    
 end
 
 
@@ -504,4 +582,31 @@ def stand_out text, all_green: false, turn_red: nil
   puts '  + ' + ( '-' * maxl ) + ' +'
   sleep 0.05
   print "\e[0m"
+end
+
+
+def get_harp2song downcase: false, basic_set: false
+  harps = if basic_set
+            %w(G A C D)
+          else
+            if $conf[:pref_sig] == :flat
+              %w(G Af A Bf B C Df D Ef E F Gf)
+            else
+              %w(G Gs A As B C Cs D Ds E F Fs)
+            end
+          end
+  harps.map!(&:downcase) if downcase
+  harp2song = Hash.new
+  harps.each do |harp|
+    harp2song[harp] = semi2note(note2semi(harp + '4') + 7)[0..-2].capitalize
+    harp2song[harp].downcase! if downcase
+  end
+  harp2song
+end
+
+
+def key2semi note
+  semi = note2semi(note.downcase + '4')
+  semi += 12 if semi < note2semi('gf4')
+  semi
 end

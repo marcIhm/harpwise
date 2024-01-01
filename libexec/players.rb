@@ -193,8 +193,8 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
 end
 
 
-def play_interactive_pitch embedded = false
-  semi = note2semi($key + '4')
+def play_interactive_pitch embedded = false, explain: true, start_key: nil, return_accepts: false
+  semi = note2semi((start_key || $key) + '4')
   all_waves = [:pluck, :sawtooth, :square, :sine]
   wave = wave_was = :pluck
   min_semi = -24
@@ -203,15 +203,19 @@ def play_interactive_pitch embedded = false
   pplayer = nil
   cmd = cmd_was = nil
   sleep 0.1 if embedded
-  puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is playing at the same time."
-  puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
+  if explain
+    puts "\e[0m\e[32mPlaying an adjustable pitch, that you may compare\nwith a song, that is playing at the same time."
+    puts "\n\e[0m\e[2mPrinted are the key of the song and the key of the harp\nthat matches when played in second position."
+  end
 
   sleep 0.1 if embedded
-  puts
-  puts "\e[0m\e[2mSuggested procedure: Play the song in the background and"
-  puts "step by semitones until you hear a good match; then try a fifth"
-  puts "up and down, to check if those may match even better. Step by octaves,"
-  puts "if your pitch is far above or below the song."
+  if explain
+    puts
+    puts "\e[0m\e[2mSuggested procedure: Play the song in the background and"
+    puts "step by semitones until you hear a good match; then try a fifth"
+    puts "up and down, to check if those may match even better. Step by octaves,"
+    puts "if your pitch is far above or below the song."
+  end
   sleep 0.1 if embedded
   puts
   puts "\e[0m\e[2m(type 'h' for help)\e[0m"
@@ -295,7 +299,7 @@ def play_interactive_pitch embedded = false
         display_kb_help 'a pitch',true,
                         "  SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
                         "      w: change waveform       W: change waveform back\n" + 
-                        "    s,+: one semitone up     S,-: one semitone down\n" +
+                        " s,+,up: one semi up    S,-,down: one semitone down\n" +
                         "      o: one octave up         O: one octave down\n" +
                         "      f: one fifth up          F: one fifth down\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
@@ -303,12 +307,19 @@ def play_interactive_pitch embedded = false
         pplayer.continue
         print_pitch_information(semi)
       elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
-        new_key =  ( $ctl_pitch[:accept_or_repeat]  ?  semi2note(semi)[0..-2]  :  nil)
+        new_key =  if $ctl_pitch[:accept_or_repeat] || return_accepts
+                     semi2note(semi)[0..-2]
+                   else
+                     nil
+                   end
         if pplayer&.alive?
           pplayer.kill
           pplayer.check
         end
-        return new_key if $ctl_pitch[:quit] || embedded 
+        if $ctl_pitch[:quit] || ($ctl_pitch[:accept_or_repeat] && return_accepts) || embedded
+          $ctl_pitch[:quit] = $ctl_pitch[:accept_or_repeat] = false
+          return new_key
+        end
       end
 
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}

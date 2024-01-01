@@ -451,9 +451,9 @@ def handle_kb_play_pitch
     $ctl_pitch[:vol_up] = true
   elsif char == 'h'
     $ctl_pitch[:show_help] = true
-  elsif char == 's' || char == '+'
+  elsif char == 's' || char == '+' || char == 'up'
     $ctl_pitch[:semi_up] = true
-  elsif char == 'S' || char == '-'
+  elsif char == 'S' || char == '-' || char == 'down'
     $ctl_pitch[:semi_down] = true
   elsif char == 'o'
     $ctl_pitch[:octave_up] = true
@@ -882,6 +882,7 @@ end
 
 def one_char
   prepare_term
+  # wait for char
   char = STDIN.getc
   # drain any remaining chars (e.g. after pressing cursor keys)
   system("stty -echo -icanon min 0 time 0")
