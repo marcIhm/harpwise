@@ -89,7 +89,7 @@ quiz:
     key of song (2nd position) or vise vers
   hear-key: |
     plays sequence of notes starting from a random key; asks for this key
-    (but not for the matching harmonica)
+    (rather than for the matching harmonica)
 develop:
   man: |
     produce man page from erb-template

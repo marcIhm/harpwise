@@ -37,7 +37,10 @@ def do_quiz to_handle
   end
 
   animate_splash_line
-  
+
+  # dont show solution immediately
+  $opts[:comment] = :holes_some
+
   puts
   puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
   puts "\e[2m1 out of #{($quiz_flavour2class.keys - flavours_random).length}\e[0m" if is_random
@@ -51,7 +54,7 @@ def do_quiz to_handle
   $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
 
   # print difficulty
-  print "  \e[2m("
+  print "  \e[2m"
   if $extra == 'replay'
     print Replay.describe_difficulty
   elsif $extra == 'play-scale'
@@ -63,7 +66,7 @@ def do_quiz to_handle
   else
     err "Internal error: #{$extra}, #{$quiz_flavour2class}"
   end
-  puts ")\e[0m"
+  puts "\e[0m"
   sleep 0.1
 
   puts
@@ -77,7 +80,6 @@ def do_quiz to_handle
   if $extra == 'replay'
     do_licks_or_quiz
   elsif $extra == 'play-scale'
-    $opts[:comment] = :holes_some
     scale_name = $quiz_scales.sample
     puts "\e[32mScale to play is:"
     puts
@@ -87,7 +89,6 @@ def do_quiz to_handle
     sleep 2
     do_licks_or_quiz(quiz_scale_name: scale_name)
   elsif $extra == 'play-inter'
-    $opts[:comment] = :holes_some
     holes_inter = get_random_interval
     puts "\e[32mInterval to play is:"
     puts
@@ -100,6 +101,7 @@ def do_quiz to_handle
     first_round = true
     loop do  ## every new question
       $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard) unless first_round
+      $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
       catch :next do
         sleep 0.1
         puts
@@ -452,7 +454,7 @@ class HearKey < QuizFlavour
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
             [[0, 4, 0, 7, 10, 12, 0], 'chord and octave'],
-            [[0, 0, 0], 'key only']]
+            [[0, 0, 0], 'key repeated']]
              
   def initialize
     @@seqs.rotate!(rand(@@seqs.length).to_i)
