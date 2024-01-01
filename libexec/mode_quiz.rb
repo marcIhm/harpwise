@@ -20,13 +20,12 @@ def do_quiz to_handle
     end
   end
 
-  flavours_random = %w(random ran rand)
   # make sure, we do not reuse flavours too often
   flavours_last = $pers_data['quiz_flavours_last'] || []
-  is_random = flavours_random.include?($extra)
+  is_random = $quiz_flavours_random.include?($extra)
   if is_random
     $extra = nil
-    extras = ($quiz_flavour2class.keys - flavours_random).shuffle
+    extras = ($quiz_flavour2class.keys - $quiz_flavours_random).shuffle
     loop do
       $extra = extras.shift
       break if !flavours_last.include?($extra) || extras.length == 0
@@ -43,7 +42,7 @@ def do_quiz to_handle
 
   puts
   puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
-  puts "\e[2m1 out of #{($quiz_flavour2class.keys - flavours_random).length}\e[0m" if is_random
+  puts "\e[2m1 out of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
   puts
   sleep 0.05
   puts "Description is:"
@@ -53,21 +52,15 @@ def do_quiz to_handle
 
   $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
 
-  # print difficulty
-  print "  \e[2m"
-  if $extra == 'replay'
-    print Replay.describe_difficulty
-  elsif $extra == 'play-scale'
-    print HearScale.describe_difficulty
-  elsif $extra == 'play-inter'
-    print AddInter.describe_difficulty
-  elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
+  # only for those classes where it will not already be done in
+  # issue_question
+  unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
+    puts
+    print "  \e[2m"
     print $quiz_flavour2class[$extra].describe_difficulty
-  else
-    err "Internal error: #{$extra}, #{$quiz_flavour2class}"
+    puts "\e[0m"
+    sleep 0.1
   end
-  puts "\e[0m"
-  sleep 0.1
 
   puts
   if is_random
@@ -80,7 +73,7 @@ def do_quiz to_handle
   if $extra == 'replay'
     do_licks_or_quiz
   elsif $extra == 'play-scale'
-    scale_name = $quiz_scales.sample
+    scale_name = $all_quiz_scales[$opts[:difficulty]].sample
     puts "\e[32mScale to play is:"
     puts
     do_figlet_unwrapped scale_name, 'smblock'
@@ -108,7 +101,7 @@ def do_quiz to_handle
         if !first_round
           puts
           puts_underlined 'Next Question', vspace: false
-          puts "\e[2m#{$extra}, #{$quiz_flavour2class[$extra].describe_difficulty}\e[0m"
+          puts "\e[2m#{$extra}\e[0m"
           puts
           sleep 0.1
         end
@@ -166,7 +159,8 @@ class QuizFlavour
     clear_area_message
     make_term_cooked
     print "\e[#{$lines[:comment_tall]}H"
-    if answer == @solution
+    # @solution might be string or array
+    if [@solution].flatten.include?(answer)
       if self.respond_to?(:after_solve)
         stand_out "Yes, '#{answer}' is RIGHT !\n\nSome extra info below.", all_green: true
         puts
@@ -186,11 +180,16 @@ class QuizFlavour
       puts
       return :reissue
     when '.SOLVE'
+      sol_text = if @solution.is_a?(Array) && @solution.length > 1
+                   "  any of #{@solution}"
+                 else
+                   "        #{[@solution].flatten[0]}"
+                 end
       if self.respond_to?(:after_solve)
-        stand_out "The correct answer is:\n\n        #{@solution}\n\nSome extra info below."
+        stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
         after_solve
       else
-        stand_out "The correct answer is:\n\n        #{@solution}\n"
+        stand_out "The correct answer is:\n\n#{sol_text}\n"
       end
       puts
       print "\e[32mPress any key to move to next question ... \e[0m"
@@ -261,6 +260,8 @@ class QuizFlavour
   
 end
 
+# The three classes below are implemented within do_licks, so the
+# classes are not complete
 
 class Replay < QuizFlavour
   def self.describe_difficulty
@@ -273,10 +274,24 @@ class Replay < QuizFlavour
 end
 
 
+class PlayScale < QuizFlavour
+  def self.describe_difficulty
+    HearScale.describe_difficulty
+  end
+end
+
+
+class PlayInter < QuizFlavour
+  def self.describe_difficulty
+    AddInter.describe_difficulty
+  end
+end
+
+
 class HearScale < QuizFlavour
 
   def initialize
-    @choices = $quiz_scales.clone
+    @choices = $all_quiz_scales[$opts[:difficulty]].clone
     begin
       @solution = @choices.sample
     end while @@prevs.include?(@solution)
@@ -289,7 +304,7 @@ class HearScale < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$quiz_scales.length} scales out of #{$all_scales.length}"
+    ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
   end
   
   def after_solve
@@ -303,6 +318,7 @@ class HearScale < QuizFlavour
   def issue_question
     puts
     puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     puts
     play_holes
   end
@@ -341,6 +357,7 @@ class HearInter < QuizFlavour
   def issue_question
     puts
     puts "\e[34mPlaying an interval\e[0m\e[2m; one out of #{@choices.length} ...\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     puts
     play_holes
@@ -367,7 +384,7 @@ class AddInter < QuizFlavour
       @holes = inter[0..1]
       @dsemi = inter[2]
       @verb = inter[2] > 0 ? 'add' : 'subtract'
-      @solution = @holes[1]
+      @solution = [@holes[1], $harp[@holes[1]][:equiv]].flatten.uniq
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
@@ -387,6 +404,7 @@ class AddInter < QuizFlavour
   def issue_question
     puts
     puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{$intervals[@dsemi.abs][0]}'\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
   def help2
@@ -431,6 +449,7 @@ class KeyHarpSong < QuizFlavour
   def issue_question
     puts
     puts "\e[34mGiven a #{@qdesc.upcase} with key of '#{@qitem}', name the matching key for the #{@adesc}\n(2nd position)\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
   def help2
@@ -481,6 +500,7 @@ class HearKey < QuizFlavour
     unless silent
       puts
       puts "\e[34mHear a sequence of notes '#{@nick}' and name its key\e[0m"
+      puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     end
     isemi = key2semi(@solution.downcase)
     notes = @seq.map {|s| semi2note(isemi + s)}

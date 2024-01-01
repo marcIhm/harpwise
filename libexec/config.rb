@@ -185,7 +185,8 @@ def set_global_vars_early
   $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  %w(random ran rand replay play-scale play-inter).each {|f| $quiz_flavour2class[f] = nil}
+  $quiz_flavours_random = %w(ran rand random)
+  $quiz_flavours_random.each {|f| $quiz_flavour2class[f] = nil}
 end
 
 
@@ -910,13 +911,12 @@ def set_global_musical_vars
   # set global var $scale2desc for all known scales, e.g. for quiz
   $all_scales.each {|s| read_and_parse_scale_simple(s, desc_only: true)}
   $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
-  all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
-  fail "Internal error: #{all_quiz_scales}" unless all_quiz_scales.is_a?(Hash) && all_quiz_scales.keys == [:easy, :hard]
+  $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
+  fail "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == [:easy, :hard]
   [:easy, :hard].each do |dicu|
-    fail "Internal error: #{$all_scales}, #{all_quiz_scales[dicu]}" unless all_quiz_scales[dicu] - $all_scales == []
+    fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
-  all_quiz_scales[:hard].append(*all_quiz_scales[:easy]).uniq!
-  $quiz_scales = all_quiz_scales[$opts[:difficulty]]
+  $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   if $hole_ref

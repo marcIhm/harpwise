@@ -103,6 +103,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
       
       # figure out holes to play
       if $mode == :quiz
+        quiz_prevs ||= Array.new
         unless first_round
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
@@ -115,27 +116,35 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
             $ctl_mic[:change_num_quiz_replay] = false
           end
           to_play[:all_wanted] = get_quiz_sample($num_quiz_replay)
-          $msgbuf.print Replay.describe_difficulty, 2, 5
+          $msgbuf.print Replay.describe_difficulty, 2, 5, :dicu
         when 'play-scale'
           unless first_round
-            quiz_scale_name = $quiz_scales.sample
+            begin 
+              quiz_scale_name = $all_quiz_scales[$opts[:difficulty]].sample
+            end while quiz_prevs.include?(quiz_scale_name)
+            quiz_prevs << quiz_scale_name
+            quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_scale_name, 'smblock'
             sleep 2
           end
           to_play[:all_wanted], _, _, _ = read_and_parse_scale_simple(quiz_scale_name, $harp)
-          $msgbuf.print HearScale.describe_difficulty, 2, 5
+          $msgbuf.print HearScale.describe_difficulty, 2, 5, :dicu
         when 'play-inter'
           unless first_round
-            quiz_holes_inter = get_random_interval
+            begin 
+              quiz_holes_inter = get_random_interval
+            end while quiz_prevs.include?(quiz_holes_inter)
+            quiz_prevs << quiz_holes_inter
+            quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
             sleep 2
           end
           to_play[:all_wanted] = quiz_holes_inter[0..1]
-          $msgbuf.print AddInter.describe_difficulty, 2, 5
+          $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
         else
           err "Internal error: #{$extra}"
         end

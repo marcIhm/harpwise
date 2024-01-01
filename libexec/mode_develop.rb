@@ -300,6 +300,9 @@ def do_unittest
   found = $quiz_flavour2class.keys.to_a.sort
   expected = $extra_kws[:quiz].to_a.sort
   utreport('subclasses and extra', found, expected)
+  found = $quiz_flavour2class.keys.select {|f| $quiz_flavour2class[f].respond_to?(:describe_difficulty)}.sort
+  expected = ($extra_kws[:quiz].to_a.sort - $quiz_flavours_random).sort
+  utreport('describe_difficulty implemented', found, expected)  
 
   puts
   puts "All unittests okay."
@@ -340,7 +343,7 @@ end
 
 
 def utreport desc, found, expected
-  print desc.ljust(30) + ' ... '
+  print desc.ljust(34) + ' ... '
   if found == expected
     puts "\e[32mOkay\e[0m"
   else
