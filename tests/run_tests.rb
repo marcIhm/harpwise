@@ -2282,7 +2282,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[5]["difficulty is 'easy', taking 4 scales out of 19"] }
+  expect { screen[9]["difficulty is 'easy', taking 4 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
@@ -2297,7 +2297,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[5]["difficulty is 'hard', taking 10 scales out of 19"] }
+  expect { screen[9]["difficulty is 'hard', taking 10 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2330,7 +2330,7 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms 'harpwise quiz add-inter'
   tms :ENTER
   sleep 2
-  expect { screen[13]['and add interval'] || screen[13]['and subtract interval'] }
+  expect { screen[12]['and add interval'] || screen[12]['and subtract interval'] }
   kill_session
 end
 
@@ -2339,7 +2339,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms 'harpwise quiz key-harp-song'
   tms :ENTER
   sleep 2
-  expect { screen[12]['Given a harp with key of'] || screen[12]['Given a song with key of'] }
+  expect { screen[11]['Given a HARP with key of'] || screen[11]['Given a SONG with key of'] }
   sleep 1
   tms 'help2'
   tms :ENTER
