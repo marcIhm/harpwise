@@ -473,8 +473,8 @@ class HearKey < QuizFlavour
 
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
-            [[0, 4, 0, 7, 10, 12, 0], 'chord and octave'],
-            [[0, 0, 0], 'key repeated']]
+            [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
+            [[0, 0, 0], 'repeated']]
              
   def initialize
     @@seqs.rotate!(rand(@@seqs.length).to_i)
@@ -500,7 +500,7 @@ class HearKey < QuizFlavour
   def issue_question silent: false
     unless silent
       puts
-      puts "\e[34mHear a sequence of notes '#{@nick}' and name its key\e[0m"
+      puts "\e[34mHear the sequence of notes '#{@nick}' and name its key\e[0m"
       puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     end
     isemi = key2semi(@solution.downcase)
