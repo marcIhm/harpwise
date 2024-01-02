@@ -207,14 +207,13 @@ end
 
 def prepare_term
   system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
-  # hide cursor
-  Kernel::print "\e[?25l"
+  Kernel::print "\e[?25l"  ## hide cursor
 end
 
 
 def sane_term
   system("stty sane")
-  Kernel::print "\e[?25h"  # show cursor
+  Kernel::print "\e[?25h" # # show cursor
 end
 
 

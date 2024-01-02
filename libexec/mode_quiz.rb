@@ -35,6 +35,7 @@ def do_quiz to_handle
     $pers_data['quiz_flavours_last'] = flavours_last
   end
 
+  print "\e[?25l"  ## hide cursor
   animate_splash_line
 
   # dont show solution immediately
