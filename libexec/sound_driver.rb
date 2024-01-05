@@ -349,16 +349,17 @@ def play_semi_and_handle_kb semi
 end
 
 
-def synth_for_inter_or_chord semis, files, wfiles, gap, len, wave = :pluck
+def synth_for_inter_or_chord semis, files, gap, len, wave = :pluck
   fail 'Internal error: unequal param len' unless semis.length == files.length
+  im_files = [1, 2].map {|i| "#{$dirs[:tmp]}/intermediate_#{i}.wav"}
   times = (0 ... semis.length).map {|i| 0.3 + i*gap}
   files.zip(semis, times).each do |f, s, t|
     # create file with silence of given length
-    sys("sox -q -n #{wfiles[0]} trim 0.0 #{t}")
+    sys("sox -q -n #{im_files[0]} trim 0.0 #{t}")
     # create actual file with requested frequency
-    sys("sox -q -n #{wfiles[1]} synth #{len} #{wave} %#{s}")
+    sys("sox -q -n #{im_files[1]} synth #{len} #{wave} %#{s}")
     # append those two
-    sys("sox -q #{wfiles[0]} #{wfiles[1]} #{f}") 
+    sys("sox -q #{im_files[0]} #{im_files[1]} #{f}") 
   end
 end
 

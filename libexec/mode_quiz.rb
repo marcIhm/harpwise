@@ -474,7 +474,8 @@ class HearKey < QuizFlavour
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
-            [[0, 0, 0], 'repeated']]
+            [[0, 0, 0], 'repeated'],
+            [:chord, 'chord']]
              
   def initialize
     @@seqs.rotate!(rand(@@seqs.length).to_i)
@@ -490,6 +491,7 @@ class HearKey < QuizFlavour
     @@prevs.shift if @@prevs.length > 2
     @prompt = "Key of sequence that has been played:"
     @help_head = "Key"
+    @wavs_created = false
   end
 
   def self.describe_difficulty
@@ -504,10 +506,22 @@ class HearKey < QuizFlavour
       puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     end
     isemi = key2semi(@solution.downcase)
-    notes = @seq.map {|s| semi2note(isemi + s)}
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple notes, hide: semi2note(isemi)
+    if @seq == :chord
+      semis = [0, 4, 7].map {|s| isemi + s}
+      tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
+      unless @wavs_created
+        synth_for_inter_or_chord(semis, tfiles, 0.2, 2, :sawtooth)
+        @wavs_created = true
+      end
+      play_recording_and_handle_kb_simple tfiles, true
+    elsif @seq.is_a?(Array)
+      notes = @seq.map {|s| semi2note(isemi + s)}
+      play_holes_or_notes_simple notes, hide: semi2note(isemi)
+    else
+      err "Internal error: #{seq}"
+    end
     make_term_cooked
   end
 

@@ -126,7 +126,11 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
   begin
 
     (imm_ctrls_again + [:skip]).each {|k| $ctl_rec[k] = false}
-    cmd = "play --norm=#{$vol.to_i} -q -V1 #{recording}".strip
+    if recording.is_a?(Array)
+      cmd = "play --norm=#{$vol.to_i} -q -V1 --combine mix #{recording.join(' ')}".strip
+    else
+      cmd = "play --norm=#{$vol.to_i} -q -V1 #{recording}".strip
+    end
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
       cmd = 'sleep 100'
@@ -343,8 +347,7 @@ def play_interactive_interval semi1, semi2
   puts "(type 'h' for help)\e[0m\n\n"
 
   delta_semi = semi2 - semi1
-  tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_semi#{i}.wav"}
-  wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
+  tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   gap = ConfinedValue.new(0.2, 0.2, 0, 2)
   len = ConfinedValue.new(3, 1, 1, 8)
   cmd_template = if $testing
@@ -353,7 +356,7 @@ def play_interactive_interval semi1, semi2
                    "play --norm=%s --combine mix #{tfiles[0]} #{tfiles[1]}"
                  end
   cmd = cmd_template % $vol.to_i
-  synth_for_inter_or_chord([semi1, semi2], tfiles, wfiles, gap.val, len.val)
+  synth_for_inter_or_chord([semi1, semi2], tfiles, gap.val, len.val)
   new_sound = true
   paused = false
   pplayer = nil
@@ -375,7 +378,7 @@ def play_interactive_interval semi1, semi2
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          synth_for_inter_or_chord([semi1, semi2], tfiles, wfiles, gap.val, len.val)
+          synth_for_inter_or_chord([semi1, semi2], tfiles, gap.val, len.val)
           puts
           print_interval semi1, semi2
           puts "\e[0m\e[2m\n  Gap: #{gap.val}, length: #{len.val}\e[0m\n\n"
@@ -474,8 +477,7 @@ def play_interactive_chord semis, args_orig
   puts "\e[0m\e[2mPlaying in loop.\n"
   puts "(type 'h' for help)\e[0m\n\n"
 
-  tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/chord_semi#{i}.wav"}
-  wfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/interval_work#{i}.wav"}
+  tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   all_waves = [:pluck, :sawtooth, :square, :sine]
   wave = :sawtooth
   gap = ConfinedValue.new(0.2, 0.1, 0, 2)
@@ -489,7 +491,7 @@ def play_interactive_chord semis, args_orig
                    "play --norm=%s --combine mix #{tfiles.join(' ')}"
                  end
   cmd = cmd_template % $vol.to_i
-  synth_for_inter_or_chord(semis, tfiles, wfiles, gap.val, len.val, wave)
+  synth_for_inter_or_chord(semis, tfiles, gap.val, len.val, wave)
   new_sound = false
   paused = false
   pplayer = nil
@@ -512,7 +514,7 @@ def play_interactive_chord semis, args_orig
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          synth_for_inter_or_chord(semis, tfiles, wfiles, gap.val, len.val, wave)
+          synth_for_inter_or_chord(semis, tfiles, gap.val, len.val, wave)
           sdesc = get_sound_description(wave, gap.val, len.val)
           new_sound = false
         end
@@ -594,7 +596,7 @@ def play_interactive_chord semis, args_orig
           pplayer.kill
           pplayer.check
         end
-        exit
+        return
       end
       $conf_meta[:ctrls_play_chord].each {|k| $ctl_chord[k] = false}
     end

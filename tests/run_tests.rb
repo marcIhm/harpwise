@@ -2363,9 +2363,9 @@ do_test 'id-96: quiz-flavour hear-key' do
   sleep 1
   tms '+'
   tms 'q'
-  sleep 1
-  expect { screen[18]['Please note, that this key'] }  
-  expect { screen[20]['Now compare key'] }  
+  sleep 4
+  expect { screen.any? {|l| l['Please note, that this key'] }}
+  expect { screen.any? {|l| l['Now compare key'] }}
   kill_session
 end
 
