@@ -86,7 +86,7 @@ quiz:
     which is obtained by either adding or subtracting
   key-harp-song: |
     gives a key of harmonica and asks for the matching
-    key of song (2nd position) or vise vers
+    key of song (2nd position) or vice versa
   hear-key: |
     plays sequence of notes starting from a random key; asks for this key
     (rather than for the matching harmonica)
