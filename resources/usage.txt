@@ -106,11 +106,9 @@ Quick Start:
 
     harpwise calibrate c --auto    
 
-
   Feedback on what you are playing:
   
     harpwise listen c              
-
 
   then blow your harp and come back later to learn about other modes.
 

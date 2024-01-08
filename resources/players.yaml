@@ -431,10 +431,21 @@
 
 
 - name: Sonny Boy Williamson
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - March 30, 1914 – June 1, 1948
+  - American blues harmonica player, singer and songwriter
+  - Born as John Lee Curtis Williamson
+  notes:
+  - One of the most recorded blues musicians of the 1930s and 1940s
+  - Was a mentor to blue musicians in the chicago area,
+  - including Muddy Waters
+  - Has been called "the father of modern blues harp"
+  source: https://en.wikipedia.org/wiki/Sonny_Boy_Williamson_I
+  songs:
+  - Good Morning School Girl
+  - Sugar Mama
+  - Early in the Morning
+  - Stop Breaking down
 
 
 - name: Sonny Terry
