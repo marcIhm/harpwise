@@ -136,7 +136,7 @@
   - Hoo Doo Ball
 
 
-- name: George 'Harmonica' Smith
+- name: George "Harmonica" Smith
   bio:
   - April 22, 1924 - October 2, 1983
   - American electric blues harmonica player
@@ -476,7 +476,7 @@
   - '"with maybe the biggest tone,"'
   - '"a bluesman with as much soul and swing in his music"'
   - (quote by Dick Shurman)
-  - Played regularly with George 'Harmonica' Smith
+  - Played regularly with George "Harmonica" Smith
   source: https://en.wikipedia.org/wiki/William_Clarke_(musician)
   songs:
   - Must Be Jelly
@@ -485,7 +485,20 @@
 
 
 - name: John Popper
-  bio: []
-  notes: []
-  source: []
-  songs: []
+  bio:
+  - March 29, 1967 -
+  - American musician and songwriter
+  - Grammy award for his song "Run-Around"
+  notes:
+  - Co-founder, lead vocalist, and frontman of the
+  - rock band Blues Traveler
+  - Known for switching keys several times within a song
+  - On stage uses a special Microphone with switches
+  - for the audio effects
+  - Hat with band of flattened Harmonica cover plates
+  source: https://en.wikipedia.org/wiki/John_Popper
+  songs:
+  - Hook
+  - But Anyway
+  - Harmonica Musings
+  - No Woman No Cry
