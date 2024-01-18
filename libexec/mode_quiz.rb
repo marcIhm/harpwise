@@ -170,10 +170,7 @@ class QuizFlavour
         stand_out "Yes, '#{answer}' is RIGHT !", all_green: true
       end
       puts
-      print "\e[32mPress any key to move to next question ... \e[0m"
-      one_char
-      puts
-      return :next
+      return next_or_reask
     end
     case answer
     when '.AGAIN'
@@ -193,10 +190,7 @@ class QuizFlavour
         stand_out "The correct answer is:\n\n#{sol_text}\n"
       end
       puts
-      print "\e[32mPress any key to move to next question ... \e[0m"
-      one_char
-      puts
-      return :next
+      return next_or_reask
     when '.HELP'
       if @choices.length > 1
         stand_out 'Removing some choices.'
@@ -229,6 +223,10 @@ class QuizFlavour
   def self.difficulty_head
     "difficulty is '#{$opts[:difficulty]}'"
   end
+
+  def reset_choices
+    @choices = @choices_orig.clone
+  end
   
   def play_holes hide: nil, reverse: false
     make_term_immediate
@@ -257,6 +255,18 @@ class QuizFlavour
     puts
     printf "Playing interval of %+dst:\n", @dsemi
     play_holes
+  end
+
+  def next_or_reask
+    print "\e[32mPress any key for next question or BACKSPACE to re-ask this one ... \e[0m"
+    char = one_char
+    puts
+    if char == 'BACKSPACE'
+      puts "\nSame question again ..."
+      @choices = @choices_orig.clone
+      return :reask
+    end
+    return :next  
   end
   
 end
@@ -293,6 +303,7 @@ class HearScale < QuizFlavour
 
   def initialize
     @choices = $all_quiz_scales[$opts[:difficulty]].clone
+    @choices_orig = @choices.clone
     begin
       @solution = @choices.sample
     end while @@prevs.include?(@solution)
@@ -335,6 +346,7 @@ class HearInter < QuizFlavour
 
   def initialize
     @choices = $intervals_quiz.map {|i| $intervals[i][0]}
+    @choices_orig = @choices.clone    
     begin
       inter = get_random_interval
       @holes = inter[0..1]
@@ -380,6 +392,7 @@ class AddInter < QuizFlavour
 
   def initialize
     @choices = $harp_holes.clone
+    @choices_orig = @choices.clone
     begin
       inter = get_random_interval
       @holes = inter[0..1]
@@ -432,6 +445,7 @@ class KeyHarpSong < QuizFlavour
                               ['song', 'harp', harp2song.invert]
                             end
     @choices = qi2ai.values    
+    @choices_orig = @choices.clone
     begin
       @qitem = qi2ai.keys.sample
     end while @@prevs.include?(@qitem)
@@ -484,6 +498,7 @@ class HearKey < QuizFlavour
     @ia_key = nil
     harp2song = get_harp2song(basic_set: $opts[:difficulty] == :easy)
     @choices = harp2song.keys 
+    @choices_orig = @choices.clone
     begin
       @solution = @choices.sample
     end while @@prevs.include?(@solution)
@@ -566,7 +581,7 @@ class HearKey < QuizFlavour
     play_holes_or_notes_simple [semi2note(key2semi(@solution))]
     make_term_cooked
   end
-    
+
 end
 
 

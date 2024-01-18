@@ -40,7 +40,7 @@ EOINTRO
   print "\n\n"
 
   if char != 'y'
-    puts 'Calibration aborted on user request.'
+    puts "Calibration aborted on user request ('#{char}')."
     exit 0
   end
   hole2freq = Hash.new

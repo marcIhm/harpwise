@@ -81,7 +81,7 @@ EOHELP
       play_wave trimmed_wave, 5
     elsif choice == 'd'
       do_draw = true
-    elsif choice == 'y' || choice == "\n"
+    elsif choice == 'y' || choice == 'RETURN'
       FileUtils.cp trimmed_wave, recorded
       wave2data(recorded)
       puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"

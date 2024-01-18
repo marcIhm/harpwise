@@ -1363,6 +1363,9 @@ usage_examples.each_with_index do |ex,idx|
       tms :ENTER
       expect(marker) { screen.find {|l| l[marker + ' 0']} }
       expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
+    else
+      # just create an OKAY-marker
+      expect {true}
     end
     kill_session
   end
@@ -2344,6 +2347,11 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms 'help2'
   tms :ENTER
   expect { screen[10]['for answer-key of'] }  
+  tms 'solve'
+  tms :ENTER
+  sleep 1
+  tms :BSPACE
+  expect { screen[13]['Same question again'] }  
   kill_session
 end
 
@@ -2377,7 +2385,11 @@ do_test 'id-97: widgets' do
   tms :RIGHT
   expect { screen[7]['Input #1: -?-'] }
   tms :ENTER
-  expect { screen[8]['Input #2: -RETURN (translated)-'] }
+  expect { screen[8]['Input #2: -RETURN-'] }
+  tms :TAB
+  expect { screen[9]['Input #3: -TAB-'] }
+  tms :BSPACE
+  expect { screen[10]['Input #4: -BACKSPACE-'] }
   tms 'q'
   sleep 1
   tms :TAB

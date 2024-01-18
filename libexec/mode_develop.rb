@@ -318,14 +318,6 @@ def do_widgets
   begin
     char = one_char
     cnt += 1
-    char = case char
-           when "\n"
-             'RETURN (translated)'
-           when "\t"
-             'TAB (translated)'
-           else
-             char
-           end
     puts "Input ##{cnt}: -#{char}-"
   end while char != 'q'
   puts "#{cnt} chars read."

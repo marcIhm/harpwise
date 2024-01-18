@@ -229,6 +229,7 @@ def start_kb_handler
   $term_kb_handler = Thread.new do
     loop do
       key = STDIN.getc
+      # handle escape
       if key == "\e"
         # try to read cursor keys and some
         begin
@@ -738,7 +739,7 @@ def read_answer ans2chs_dsc
   begin
     print "\nYour choice (h for help): "
     char = one_char
-    char = {' ' => 'SPACE', "\n" => 'RETURN'}[char] || char
+    char = 'SPACE' if char == ' '
     puts char
     answer = nil
     ans2chs_dsc.each do |ans, chs_dsc|
@@ -889,8 +890,12 @@ def one_char
   end while STDIN.getc
   system("stty min 1")
   sane_term
-  return char if " \n\t".chars.include?(char)
-  char && char.gsub(/[^[:print:]]/,'?')
+  return 'RETURN' if char == "\n"
+  return 'TAB' if char == "\t"
+  # lump together ctrl-h and backspace
+  return 'BACKSPACE' if [8, 127].include?(char.ord)
+  # cannot be condensed to char&.gsub!
+  return char && char.gsub(/[^[:print:]]/,'?')
 end  
 
 
@@ -1382,7 +1387,7 @@ def get_text_invalid char
             'RETURN'
           elsif char.ord == 9
             'TAB'
-          elsif char.ord == 127
+          elsif char.ord == 127 || char.org == 8
             'BACKSPACE'
           elsif char.ord == 18
             'CTRL-R'
