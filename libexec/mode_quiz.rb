@@ -20,56 +20,66 @@ def do_quiz to_handle
     end
   end
 
-  # make sure, we do not reuse flavours too often
-  flavours_last = $pers_data['quiz_flavours_last'] || []
   is_random = $quiz_flavours_random.include?($extra)
-  if is_random
-    $extra = nil
-    extras = ($quiz_flavour2class.keys - $quiz_flavours_random).shuffle
-    loop do
-      $extra = extras.shift
-      break if !flavours_last.include?($extra) || extras.length == 0
+  flavour_accepted = true
+  # for random flavour loop until chosen flavour is accepted
+  begin
+    # make sure, we do not reuse flavours too often
+    flavours_last = $pers_data['quiz_flavours_last'] || []
+    if is_random
+      $extra = nil
+      extras = ($quiz_flavour2class.keys - $quiz_flavours_random).shuffle
+      loop do
+        $extra = extras.shift
+        break if !flavours_last.include?($extra) || extras.length == 0
+      end
+      flavours_last << $extra
+      flavours_last.shift if flavours_last.length > 4
+      $pers_data['quiz_flavours_last'] = flavours_last
     end
-    flavours_last << $extra
-    flavours_last.shift if flavours_last.length > 2
-    $pers_data['quiz_flavours_last'] = flavours_last
-  end
 
-  print "\e[?25l"  ## hide cursor
-  animate_splash_line
+    print "\e[?25l"  ## hide cursor
+    animate_splash_line
 
-  # dont show solution immediately
-  $opts[:comment] = :holes_some
+    # dont show solution immediately
+    $opts[:comment] = :holes_some
 
-  puts
-  puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
-  puts "\e[2m1 out of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
-  puts
-  sleep 0.05
-  puts "Description is:"
-  puts
-  sleep 0.05
-  puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
-
-  $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
-
-  # only for those classes where it will not already be done in
-  # issue_question
-  unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
     puts
-    print "  \e[2m"
-    print $quiz_flavour2class[$extra].describe_difficulty
-    puts "\e[0m"
-    sleep 0.1
-  end
-
-  puts
-  if is_random
-    print "\e[32mPress any key to continue ... \e[0m"
-    one_char
+    puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
+    puts "\e[2m1 out of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
     puts
-  end
+    sleep 0.05
+    puts "Description is:"
+    puts
+    sleep 0.05
+    puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
 
+    $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+
+    # only for those classes where it will not already be done in
+    # issue_question
+    unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
+      puts
+      print "  \e[2m"
+      print $quiz_flavour2class[$extra].describe_difficulty
+      puts "\e[0m"
+      sleep 0.1
+    end
+
+    puts
+    if is_random
+      print "\e[32mPress any key to continue or BACKSPACE for another flavour ... \e[0m"
+      char = one_char
+      if char == 'BACKSPACE'
+        puts "\nChoosing another flavour ..."
+        flavour_accepted = false
+      else
+        flavour_accepted = true
+      end
+      puts
+    end
+  end until flavour_accepted
+  
   # actually start quiz
   if $extra == 'replay'
     do_licks_or_quiz
@@ -170,7 +180,7 @@ class QuizFlavour
         stand_out "Yes, '#{answer}' is RIGHT !", all_green: true
       end
       puts
-      return next_or_reask
+      return next_or_reissue
     end
     case answer
     when '.AGAIN'
@@ -190,7 +200,7 @@ class QuizFlavour
         stand_out "The correct answer is:\n\n#{sol_text}\n"
       end
       puts
-      return next_or_reask
+      return next_or_reissue
     when '.HELP'
       if @choices.length > 1
         stand_out 'Removing some choices.'
@@ -257,14 +267,14 @@ class QuizFlavour
     play_holes
   end
 
-  def next_or_reask
+  def next_or_reissue
     print "\e[32mPress any key for next question or BACKSPACE to re-ask this one ... \e[0m"
     char = one_char
     puts
     if char == 'BACKSPACE'
       puts "\nSame question again ..."
       @choices = @choices_orig.clone
-      return :reask
+      return :reissue
     end
     return :next  
   end
