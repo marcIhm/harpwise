@@ -719,7 +719,7 @@ def ctl_response text = nil, **opts
     return if $ctl_response_non_def_ts && Time.now.to_f - $ctl_response_non_def_ts < 3
     text = $ctl_response_default
   end
-  fail "Internal error text '#{text}' is longer (#{text.length} chars) than #{$ctl_response_width}" if text.length > $ctl_response_width
+  text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
   print "\e[1;#{$term_width - $ctl_response_width}H\e[0m\e[#{opts[:hl] ? 32 : 2}m#{text.rjust($ctl_response_width)}\e[0m"
 end
   
@@ -1387,13 +1387,14 @@ def get_text_invalid char
             'RETURN'
           elsif char.ord == 9
             'TAB'
-          elsif char.ord == 127 || char.org == 8
+          elsif char.ord == 127 || char.ord == 8
             'BACKSPACE'
           elsif char.ord == 18
             'CTRL-R'
           else
             "? (#{char.ord})"
           end
-  "Invalid char #{cdesc}, h for help"
+  
+  "Invalid key #{cdesc}" + ( cdesc.length > 5  ?  ''  :  ", h for help" )
 end
 

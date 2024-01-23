@@ -2351,7 +2351,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms :ENTER
   sleep 1
   tms :BSPACE
-  expect { screen[13]['Same question again'] }  
+  expect { screen[9]['Same question again'] }  
   kill_session
 end
 
