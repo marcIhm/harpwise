@@ -343,12 +343,12 @@ def parse_arguments_early
       #     harpwise tools chord-i keys
       ARGV.shift if ARGV.length > 1 || $mode == :tools
     else
-      scale = get_scale_from_sws('all:a')
+      scale = get_scale_from_sws($conf[:scale] || 'all:a')
       $source_of[:scale] = 'implicit'
     end
   when :develop, :calibrate
     # no explicit scale, ever
-    scale = get_scale_from_sws('all:a')
+    scale = get_scale_from_sws($conf[:scale] || 'all:a')
     $source_of[:scale] = 'implicit'
   else
     fail "Internal error"
