@@ -1088,7 +1088,7 @@ do_test 'id-34: comment with scales and octave shifts' do
   expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   tms '>'
   sleep 2
-  expect { screen[15]['-4.b1  (*)    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
+  expect { screen[15]['-4.b1   +5    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
   tms '<'
   sleep 2
   tms '<'
@@ -1434,7 +1434,7 @@ do_test 'id-51: tools transpose' do
   new_session
   tms 'harpwise tools transpose c g -1'
   tms :ENTER
-  expect { screen[10]['new Holes:   -2'] }
+  expect { screen[11]['Holes transposed:   -2'] }
   kill_session
 end
 
@@ -1466,7 +1466,7 @@ do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
   tms :ENTER
-  expect { screen[6]['g3   b3   d4   g4   b4   d5'] }
+  expect { screen[1]['g3   b3   d4   g4   b4   d5'] }
   kill_session
 end
 
@@ -1476,14 +1476,14 @@ do_test 'id-53: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  {15 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
-   18 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   26 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
-   30 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   34 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
-   38 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   42 => '-7  -5  -2   1  -2   1   0  -2',
-   47 => 'Description: St. Louis Blues'}.each do |lno, exp|
+  {17 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
+   20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
+   29 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
+   33 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   37 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
+   41 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   45 => '-7  -5  -2   1  -2   1   0  -2',
+   50 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1578,7 +1578,7 @@ do_test 'id-54e: print list of all scales' do
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
   [" all              :  32\n",
-   "   \e[2mShort: a\e[0m\n",
+   "   \e[2mShort: A\e[0m\n",
    " arabic           :  15\n",
    "   \e[2mShort: a\e[0m\n",   
    " blues            :  18\n",
@@ -1587,7 +1587,7 @@ do_test 'id-54e: print list of all scales' do
    "   \e[2mShort: b\e[0m   \e[2mDesc: middle octave of the blues scale\e[0m\n",
    " chord-i          :  11\n",
    "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
-    expect(lines.each_with_index.map {|l,i| [i,l]}, exp, idx) { lines[8+idx] == exp }
+    expect(lines.each_with_index.map {|l,i| [i,l]}, idx+8, exp) { lines[8+idx] == exp }
   end
   kill_session
 end
@@ -2285,7 +2285,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[9]["difficulty is 'easy', taking 4 scales out of 19"] }
+  expect { screen[9]["difficulty is 'EASY', taking 4 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
@@ -2300,7 +2300,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[9]["difficulty is 'hard', taking 10 scales out of 19"] }
+  expect { screen[9]["difficulty is 'HARD', taking 10 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2344,7 +2344,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   sleep 2
   expect { screen[11]['Given a HARP with key of'] || screen[11]['Given a SONG with key of'] }
   sleep 1
-  tms 'help2'
+  tms 'help-play-answer'
   tms :ENTER
   expect { screen[10]['for answer-key of'] }  
   tms 'solve'
@@ -2360,13 +2360,13 @@ do_test 'id-96: quiz-flavour hear-key' do
   tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
   sleep 1
-  expect { screen[11]['plays sequence of notes starting from a random key'] }
+  expect { screen[3]['Plays a sequence of notes starting from a random key'] }
   sleep 10
-  tms 'help2'
+  tms 'help-other-seq'
   tms :ENTER
   expect { screen[16]['Sequence of notes changed'] }  
   sleep 10
-  tms 'help3'
+  tms 'help-pitch'
   tms :ENTER
   sleep 1
   tms '+'

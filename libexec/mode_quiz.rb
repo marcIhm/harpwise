@@ -52,7 +52,7 @@ def do_quiz to_handle
     puts "Description is:"
     puts
     sleep 0.05
-    puts $extra_desc[:quiz][$extra].lines.map {|l| '  ' + l}.join
+    puts $extra_desc[:quiz][$extra].capitalize.lines.map {|l| '  ' + l}.join.chomp + ".\n"
 
     $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
 
@@ -149,17 +149,17 @@ class QuizFlavour
       sleep 0.01
       puts
     end
-    all_choices = [@choices, ';OR->', '.AGAIN', '.SOLVE', '.HELP'].flatten
+    all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
+    all_choices = [@choices, ';OR->', '.AGAIN', '.SOLVE', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
                     '.SOLVE' => 'Give solution and go to next question',
-                    '.HELP' => 'Remove some solutions, leaving less choices'}
-    if help2_desc
-      all_choices << '.HELP2'
-      choices_desc['.HELP2'] = help2_desc
-    end
-    if help3_desc
-      all_choices << '.HELP3'
-      choices_desc['.HELP3'] = help3_desc
+                    all_helps[0] => 'Remove some solutions, leaving less choices'}
+    
+    [help2_desc, help3_desc].each_with_index do |desc, idx|
+      next unless desc
+      all_choices << desc[0]
+      choices_desc[desc[0]] = desc[1]
+      all_helps[idx + 1] = desc[0]
     end
     answer = choose_interactive(@prompt, all_choices) do |tag|
       choices_desc[tag] ||
@@ -201,7 +201,7 @@ class QuizFlavour
       end
       puts
       return next_or_reissue
-    when '.HELP'
+    when all_helps[0]
       if @choices.length > 1
         stand_out 'Removing some choices.'
         orig_len = @choices.length 
@@ -214,10 +214,10 @@ class QuizFlavour
         stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
       end
       return :reask
-    when '.HELP2'
+    when all_helps[1]
       help2
       return :reask
-    when '.HELP3'
+    when all_helps[2]
       help3
       return :reask
     when nil
@@ -231,7 +231,7 @@ class QuizFlavour
   end
 
   def self.difficulty_head
-    "difficulty is '#{$opts[:difficulty]}'"
+    "difficulty is '#{$opts[:difficulty].upcase}'"
   end
 
   def reset_choices
@@ -392,7 +392,7 @@ class HearInter < QuizFlavour
   end
 
   def help2_desc
-    'Play interval reversed'
+    ['.HELP-REVERSE', 'Play interval reversed']
   end
 
 end
@@ -437,7 +437,7 @@ class AddInter < QuizFlavour
   end
 
   def help2_desc
-    'Play interval'
+    ['.HELP-PLAY-INTER', 'Play interval']
   end
 
 end
@@ -487,7 +487,7 @@ class KeyHarpSong < QuizFlavour
   end
 
   def help2_desc
-    "Play note for answer-key of #{@adesc}"
+    ['.HELP-PLAY-ANSWER', "Play note for answer-key of #{@adesc}"]
   end
 
 end
@@ -559,7 +559,7 @@ class HearKey < QuizFlavour
   end
 
   def help2_desc
-    "Choose a different sequence of notes"
+    ['.HELP-OTHER-SEQ', "Choose a different sequence of notes"]
   end
 
   def help3
@@ -578,7 +578,7 @@ class HearKey < QuizFlavour
   end
 
   def help3_desc
-    "Play an adjustable pitch to compare"
+    ['.HELP-PITCH', "Play an adjustable pitch to compare"]
   end
 
   def after_solve
@@ -597,7 +597,7 @@ end
 
 def get_random_interval
   # favour lower holes
-  all_holes = ($harp_holes + Array.new(3, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
+  all_holes = ($harp_holes + Array.new(4, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
   loop do
     err "Internal error: no more holes to try" if all_holes.length == 0
     holes_inter = [all_holes.shift, nil]

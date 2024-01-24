@@ -248,6 +248,41 @@ end
 
 
 def do_unittest
+
+  puts
+  puts_underlined 'Semitone calculations'
+  found = note2semi('a4')
+  expected = 0
+  utreport('note2semi', found, expected)
+
+  found = semi2note(0)
+  expected = 'a4'
+  utreport('semi2note', found, expected)
+
+  [[['c', 'g', :g_is_lowest], 5],
+   [['c', 'g', :minimum_distance], 5],
+   [['g', 'c', :g_is_lowest], -5],
+   [['g', 'c', :minimum_distance], -5],
+   [['c', 'a', :g_is_lowest], 3],
+   [['c', 'a', :minimum_distance], 3],
+   [['a', 'c', :g_is_lowest], -3],
+   [['a', 'c', :minimum_distance], -3],
+   [['c', 'd', :g_is_lowest], -2],
+   [['c', 'd', :minimum_distance], -2],
+   [['d', 'c', :g_is_lowest], 2],
+   [['d', 'c', :minimum_distance], 2],
+   [['a', 'g', :g_is_lowest], 2],
+   [['a', 'g', :minimum_distance], 2],
+   [['g', 'a', :g_is_lowest], -2],
+   [['g', 'a', :minimum_distance], -2],
+   [['g', 'd', :g_is_lowest], -7],
+   [['g', 'd', :minimum_distance], 5]].each do |params, expected|
+   
+    found = diff_semitones(params[0], params[1], strategy: params[2])
+    utreport("diff_semitones,#{params[0]},#{params[1]},#{params[2]}", found, expected)
+
+  end
+
   puts
   puts_underlined '$msgbuf'
 
@@ -284,16 +319,6 @@ def do_unittest
   found = $msgbuf.get_lines_durations
   expected = []
   utreport('Age away for hint', found, expected)
-
-  puts
-  puts_underlined 'Semitone calculations'
-  found = note2semi('a4')
-  expected = 0
-  utreport('note2semi', found, expected)
-
-  found = semi2note(0)
-  expected = 'a4'
-  utreport('semi2note', found, expected)
 
   puts
   puts_underlined 'Subclasses of QuizFlavour'
@@ -335,7 +360,7 @@ end
 
 
 def utreport desc, found, expected
-  print desc.ljust(34) + ' ... '
+  print desc.ljust(38) + ' ... '
   if found == expected
     puts "\e[32mOkay\e[0m"
   else

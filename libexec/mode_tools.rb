@@ -111,18 +111,19 @@ def tool_transpose to_handle
 
   key_other = to_handle.shift
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
-  dsemi = diff_semitones($key, key_other, :g_is_lowest)
+  dsemi = diff_semitones($key, key_other, strategy: :g_is_lowest)
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
 
   puts
-  puts "Transposing holes and notes from key #{$key} to #{key_other} by #{describe_inter_semis(-dsemi)};"
-  puts "holes change but notes and pitch stay the same:"
+  puts "Transposing holes and notes from key #{$key} to #{key_other};"
+  puts "difference between harps is #{describe_inter_semis(dsemi)};"
+  puts "holes change but notes stay the same:"
   puts
   puts
   cols = Array.new
-  cols << ['Holes', 'Notes', 'new Holes', 'Oct up', 'Oct down']
+  cols << ['Holes given', 'Notes', 'Holes transposed', 'Oct up', 'Oct down']
   to_handle.each do |hole|
     cols << [hole,
              $harp[hole][:note],

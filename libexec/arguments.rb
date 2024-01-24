@@ -372,7 +372,7 @@ def initialize_extra_vars
     $extra_desc[key].each do |kk,vv|
       $extra_desc[key][kk] = ERB.new(vv).result(binding)
       $extra_desc[key][kk].lines.each do |l|
-        err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width]}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
+        err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
         kk.split(',').map(&:strip).each {|k| $extra_kws[key] << k}
       end
     end

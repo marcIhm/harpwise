@@ -524,21 +524,21 @@ end
 
 def read_and_set_musical_config
   $hole2note_read = yaml_parse($holes_file)
-  $dsemi_harp = diff_semitones($key, 'c')
+  $dsemi_harp = diff_semitones($key, 'c', strategy: :minimum_distance)
   harp = Hash.new
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
-  semi2holes = Hash.new {|h,k| h[k] = Array.new}
+  semi2hole_sc = Hash.new {|h,k| h[k] = Array.new}
   hole_root = nil
   $hole2note_read.each do |hole, note|
     semi = note2semi(note) + $dsemi_harp
     harp[hole] = [[:note, semi2note(semi)],
                   [:semi, semi]].to_h
-    semi2holes[semi] << hole
+    semi2hole_sc[semi] << hole
     hole_root ||= hole if semi % 12 == 0
   end
   $hole2note_read.each do |hole, _|
-    all_holes = harp[hole][:equiv] = semi2holes[harp[hole][:semi]].reject {|h| h == hole}
+    all_holes = harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
   end
   semis = harp.map {|hole, hash| hash[:semi]}
   $min_semi = semis.min
@@ -601,11 +601,14 @@ def read_and_set_musical_config
     scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
 
     scale_notes = scale_holes.map {|h| $hole2note[h]}
-    semi2hole = scale_holes.map {|hole| [harp[hole][:semi], hole]}.to_h
   else            
-    semi2hole = scale_holes = scale_notes = nil
+    scale_holes = scale_notes = nil
   end
 
+  # semi2hole is independent of scale
+  # "reverse" below to make the first hole (e.g. -2) prevail
+  semi2hole = harp_holes.map {|hole| [harp[hole][:semi], hole]}.reverse.to_h
+  
   hole2rem.each_key do |h|
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end

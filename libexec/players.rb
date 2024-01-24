@@ -15,7 +15,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
                   ""
                 end
 
-  dsemi = diff_semitones($key, key, :g_is_lowest) + octave_shift * 12
+  dsemi = diff_semitones($key, key, strategy: :minimum_distance) + octave_shift * 12
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
   $ctl_rec[:loop] = $ctl_rec[:loop_loop]

@@ -184,14 +184,20 @@ def inspect_recorded hole, file
 end
 
 
-def diff_semitones key1, key2, strategy = :minimum_distance
+def diff_semitones key1, key2, strategy: nil
+  # map keys to notes in octave 0
   semis = [key1, key2].map {|k| note2semi(k.to_s + '0')}
   @semi_for_g ||= note2semi('g0')
   if strategy == :minimum_distance
+    # effectively move first note/semi an octave lower or higher, if
+    # this gives smaller distance
     dsemi = semis[0] - semis[1]
     dsemi -= 12 if dsemi > 6
     dsemi += 12 if dsemi < -6
   elsif strategy == :g_is_lowest
+    # move notes/semis up until they are above g0. This strategy is
+    # useful for comparing keys of harps, where the g harp is normally
+    # the lowest
     semis.map! {|s| s < @semi_for_g ? s + 12 : s}
     dsemi = semis[0] - semis[1]
   else
