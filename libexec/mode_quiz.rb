@@ -20,7 +20,18 @@ def do_quiz to_handle
     end
   end
 
+  print "\e[?25l"  ## hide cursor
+  animate_splash_line
+
   is_random = $quiz_flavours_random.include?($extra)
+
+  if is_random
+    puts
+    puts "\e[2mChoosing flavour at random: 1 from #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m"
+    puts
+    sleep 0.1
+  end
+
   flavour_accepted = true
   # for random flavour loop until chosen flavour is accepted
   begin
@@ -38,18 +49,12 @@ def do_quiz to_handle
       $pers_data['quiz_flavours_last'] = flavours_last
     end
 
-    print "\e[?25l"  ## hide cursor
-    animate_splash_line
-
     # dont show solution immediately
     $opts[:comment] = :holes_some
-
     puts
-    puts "Quiz Flavour is: \e[34m#{$extra}\e[0m"
-    puts "\e[2m1 out of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
-    puts
+    puts "Quiz Flavour is:   \e[34m#{$extra}\e[0m"
+    puts "\e[2mswitches to full listen-display\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
     sleep 0.05
-    puts "Description is:"
     puts
     sleep 0.05
     puts $extra_desc[:quiz][$extra].capitalize.lines.map {|l| '  ' + l}.join.chomp + ".\n"
@@ -61,7 +66,7 @@ def do_quiz to_handle
     unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
       puts
       print "  \e[2m"
-      print $quiz_flavour2class[$extra].describe_difficulty
+      print 'First ' + $quiz_flavour2class[$extra].describe_difficulty
       puts "\e[0m"
       sleep 0.1
     end
@@ -71,7 +76,8 @@ def do_quiz to_handle
       print "\e[32mPress any key to continue or BACKSPACE for another flavour ... \e[0m"
       char = one_char
       if char == 'BACKSPACE'
-        puts "\nChoosing another flavour ..."
+        puts "\n\e[2mChoosing another flavour ...\e[0m"
+        sleep 0.1
         flavour_accepted = false
       else
         flavour_accepted = true
@@ -340,7 +346,7 @@ class HearScale < QuizFlavour
   def issue_question
     puts
     puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
-    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    puts "\e[2mThis " + self.class.describe_difficulty + "\e[0m"
     puts
     play_holes
   end
