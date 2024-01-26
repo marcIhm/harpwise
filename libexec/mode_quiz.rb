@@ -26,7 +26,6 @@ def do_quiz to_handle
   is_random = $quiz_flavours_random.include?($extra)
 
   if is_random
-    puts
     puts "\e[2mChoosing flavour at random: 1 from #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m"
     puts
     sleep 0.1
