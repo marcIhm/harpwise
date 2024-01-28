@@ -465,7 +465,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -669,6 +669,9 @@ def show_help
                "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
                "      t: toggle tracking progress in seq   R: play holes reversed"]
+    if $mode == :quiz
+      frames[-1] << "      H: hints for quiz-flavour #{$extra}"
+    end
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags-any (aka -t)",
@@ -807,6 +810,9 @@ class MsgBuf
     # use min duration for check
     @@lines_durations.pop if @@lines_durations.length > 0 && @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
     @@lines_durations << [text, min, max, group] if @@lines_durations.length == 0 || @@lines_durations[-1][0] != text
+    # later should be used for batches of messages, where print is
+    # invoke multiple times in a row; the last one should be called
+    # without setting later
     if @@ready && text && !later
       Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K"
       @@printed.push([text, min, max, group]) if $testing

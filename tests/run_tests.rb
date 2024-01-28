@@ -2360,7 +2360,7 @@ do_test 'id-96: quiz-flavour hear-key' do
   tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
   sleep 1
-  expect { screen[3]['Plays a sequence of notes starting from a random key'] }
+  expect { screen[9]['Plays a sequence of notes starting from a random key'] }
   sleep 10
   tms 'help-other-seq'
   tms :ENTER
@@ -2377,7 +2377,21 @@ do_test 'id-96: quiz-flavour hear-key' do
   kill_session
 end
 
-do_test 'id-97: widgets' do
+do_test 'id-97: hint in quiz-flavour replay' do
+  new_session
+  tms 'harpwise quiz replay --difficulty easy'
+  tms :ENTER
+  sleep 4
+  tms 'H'
+  sleep 1
+  tms 'solve-print'
+  tms :ENTER
+  sleep 1
+  expect { screen[19].split.length == 5 }
+  kill_session
+end
+
+do_test 'id-98: widgets' do
   new_session
   tms 'harpwise dev wt'
   tms :ENTER

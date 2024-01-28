@@ -578,6 +578,9 @@ def handle_kb_mic
     else
       text = get_text_invalid(char)
     end
+  elsif char == 'H' && $mode == :quiz
+    $ctl_mic[:quiz_hint] = true
+    text = 'Quiz Hints'
   elsif char == 'l' && $mode == :licks
     $ctl_mic[:change_lick] = true
     text = 'Named'

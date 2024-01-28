@@ -87,7 +87,12 @@ def do_quiz to_handle
   
   # actually start quiz
   if $extra == 'replay'
-    do_licks_or_quiz
+    puts
+    do_licks_or_quiz(lambda_quiz_hint: -> (holes = nil) do
+                       solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
+                                    "\e[32m       #{holes.join('  ')}"
+                       quiz_hint_in_handle_holes(solve_text, holes, :all)
+                     end)
   elsif $extra == 'play-scale'
     scale_name = $all_quiz_scales[$opts[:difficulty]].sample
     puts "\e[32mScale to play is:"
@@ -96,16 +101,29 @@ def do_quiz to_handle
     puts
     puts
     sleep 2
-    do_licks_or_quiz(quiz_scale_name: scale_name)
+    do_licks_or_quiz(quiz_scale_name: scale_name,
+                     lambda_quiz_hint: -> (holes = nil) do
+                       solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
+                                    "\e[32m       #{holes.join('  ')}"
+                       quiz_hint_in_handle_holes(solve_text, holes, :all)
+                     end)
   elsif $extra == 'play-inter'
     holes_inter = get_random_interval
     puts "\e[32mInterval to play is:"
+    puts
     puts
     do_figlet_unwrapped holes_inter[4], 'smblock'
     puts
     puts
     sleep 2
-    do_licks_or_quiz(quiz_holes_inter: holes_inter)
+    $msgbuf.print "Type 'H' for quiz-hints, or RETURN for next question", 3, 5, :quiz
+    do_licks_or_quiz(quiz_holes_inter: holes_inter,
+                     lambda_quiz_hint: -> (holes = nil) do
+                       solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
+                                    "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
+                       holes = holes_inter[0..1]
+                       quiz_hint_in_handle_holes(solve_text, holes, holes[-1])
+                     end)
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
     first_round = true
     loop do  ## every new question
@@ -286,15 +304,15 @@ class QuizFlavour
   
 end
 
-# The three classes below are implemented within do_licks, so the
-# classes are not complete
+# The three classes below are mostly done within do_licks, so the
+# classes here are not complete
 
 class Replay < QuizFlavour
   def self.describe_difficulty
     if $num_quiz_replay_explicit
-      "number of notes to replay is #{$num_quiz_replay} (explicitly set)"
+      "number of holes to replay is #{$num_quiz_replay} (explicitly set)"
     else
-      QuizFlavour.difficulty_head + ", number of notes to replay is #{$num_quiz_replay}"
+      QuizFlavour.difficulty_head + ", number of holes to replay is #{$num_quiz_replay}"
     end
   end
 end
@@ -676,4 +694,29 @@ def key2semi note
   semi = note2semi(note.downcase + '4')
   semi += 12 if semi < note2semi('gf4')
   semi
+end
+
+
+def quiz_hint_in_handle_holes solve_text, holes, hide
+  choices2desc = {'SOLVE-PRINT' => 'Solve: Print interval, but keep current question',
+                  'HELP-PLAY' => 'Play interval, so that you may replay it'}
+  answer = choose_interactive("Available hints for quiz-flavour #{$extra}:",
+                              choices2desc.keys) {|tag| choices2desc[tag]}
+  clear_area_comment
+  clear_area_message
+  case answer
+  when 'SOLVE-PRINT'
+    puts "\e[#{$lines[:comment_tall]}H"
+    print solve_text
+    puts "\n\n\n\e[0m\e[2mAny char to continue ..."
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+  when 'HELP-PLAY'
+    puts "\e[#{$lines[:comment] + 1}H"
+    $ctl_kb_queue.clear
+    play_holes_or_notes_simple(holes, hide: hide)
+    sleep 1
+  end
+  clear_area_comment
+  clear_area_message
 end

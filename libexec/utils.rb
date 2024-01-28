@@ -162,6 +162,7 @@ def describe_scales_maybe scales, type
   [desc, count]
 end
 
+
 def display_kb_help what, scroll_allowed, body
   if scroll_allowed
     puts "\n\e[0m"

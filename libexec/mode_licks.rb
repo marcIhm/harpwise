@@ -2,7 +2,7 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
+def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hint: nil
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -452,7 +452,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
           return
         end
 
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -515,7 +515,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           full_seq_shown = true
           sleep 0.5 unless ctext
@@ -530,6 +530,11 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil
         $ulrec.toggle_active
         seq_just_played_initially = true
         $ctl_mic[:toggle_record_user] = false
+      end
+
+      if $ctl_mic[:quiz_hint]
+        lambda_quiz_hint.call(to_play[:all_wanted])
+        $ctl_mic[:quiz_hint] = false
       end
       
     end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again

@@ -683,7 +683,7 @@ def play_holes_or_notes_simple holes_or_notes, hide: nil
   puts
   $ctl_hole[:skip] = false
   holes_or_notes.each do |hon|
-    print(( hon == hide ? '?' : hon ) + ' ')
+    print(( (hon == hide || hide == :all)  ?  '?'  :  hon ) + ' ')
     if musical_event?(hon)
       sleep $opts[:fast]  ?  0.125  :  0.25
     else
@@ -761,12 +761,6 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
                else
                  "\e[0m#{$harp[hole][:note]}\e[2m"
                end
-      if $used_scales.length > 1
-        part = '(' +
-               $hole2flags[hole].map {|f| {added: 'a', root: 'r'}[f]}.compact.join(',') +
-               ')'
-        ltext += part unless part == '()'
-      end
 
       if at_line
         print "\e[#{at_line}H\e[K"
