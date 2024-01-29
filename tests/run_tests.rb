@@ -2359,9 +2359,8 @@ do_test 'id-96: quiz-flavour hear-key' do
   new_session
   tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
-  sleep 1
-  expect { screen[9]['Plays a sequence of notes starting from a random key'] }
-  sleep 10
+  sleep 6
+  expect { screen[3]['Plays a sequence of notes starting from a random key'] }
   tms 'help-other-seq'
   tms :ENTER
   expect { screen[16]['Sequence of notes changed'] }  
@@ -2391,7 +2390,19 @@ do_test 'id-97: hint in quiz-flavour replay' do
   kill_session
 end
 
-do_test 'id-98: widgets' do
+do_test 'id-98: loop via sigquit' do
+  new_session
+  tms 'harpwise quiz ran'
+  tms :ENTER
+  sleep 2
+  pid = %x(ps -ef).lines.find {|l| l['harpwise'] && l['ruby']}.split[1]
+  system("kill -s SIGQUIT #{pid}")
+  sleep 2
+  expect { screen.any? {|l| l['Starting over with a different flavour'] }}
+  kill_session
+end
+
+do_test 'id-99: widgets' do
   new_session
   tms 'harpwise dev wt'
   tms :ENTER

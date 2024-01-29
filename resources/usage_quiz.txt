@@ -21,6 +21,9 @@ USAGE BY EXAMPLES
 
   this is the preferred way to get used to this mode.
 
+  To switch to a different, random mode, issue sigquit by typing
+  e.g. ctrl-\ or ctrl-4.
+
 
   Some examples that choose a quiz flavour explicitly:
   

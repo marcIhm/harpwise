@@ -40,10 +40,11 @@ $on_error_raise = false
 $debug_what = Set.new([])
 # store (ad-hoc) state for debugging
 $debug_state = {}
+$full_commandline = $0 + ' ' + ARGV.join(' ')
 
 $term_height, $term_width = prepare_screen 
 
-# check this early, beause it is used during initialization
+# check this early, because it is used during initialization
 $testing = !!ENV["HARPWISE_TESTING"]
 $testing_what = nil
 if $testing && ! %w(1 true t yes y).include?(ENV["HARPWISE_TESTING"].downcase)
