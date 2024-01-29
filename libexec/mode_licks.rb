@@ -533,7 +533,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       end
 
       if $ctl_mic[:quiz_hint]
-        lambda_quiz_hint.call(to_play[:all_wanted])
+        lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name)
         $ctl_mic[:quiz_hint] = false
       end
       

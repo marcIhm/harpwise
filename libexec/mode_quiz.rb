@@ -110,7 +110,7 @@ def do_quiz to_handle
   if $extra == 'replay'
     puts
     msgbuf_quiz_listen_perspective is_random
-    do_licks_or_quiz(lambda_quiz_hint: -> (holes = nil) do
+    do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _) do
                        solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes(solve_text, holes, :all)
@@ -125,7 +125,7 @@ def do_quiz to_handle
     sleep 2
     msgbuf_quiz_listen_perspective is_random
     do_licks_or_quiz(quiz_scale_name: scale_name,
-                     lambda_quiz_hint: -> (holes = nil) do
+                     lambda_quiz_hint: -> (holes, _, scale_name) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes(solve_text, holes, :all)
@@ -141,10 +141,9 @@ def do_quiz to_handle
     sleep 2
     msgbuf_quiz_listen_perspective is_random
     do_licks_or_quiz(quiz_holes_inter: holes_inter,
-                     lambda_quiz_hint: -> (holes = nil) do
+                     lambda_quiz_hint: -> (holes, holes_inter, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       holes = holes_inter[0..1]
                        quiz_hint_in_handle_holes(solve_text, holes, holes[-1])
                      end)
   elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
