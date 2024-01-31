@@ -29,6 +29,7 @@ def do_quiz to_handle
     ENV['HARPWISE_RESTARTED_AFTER_SIGQUIT'] = 'yes'
     # do some actions of at_exit-handler here
     sane_term
+    print "\e[?25l\e[2mstart over ..."  ## hide cursor
     if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
       File.write($pers_file, JSON.pretty_generate($pers_data))
     end
@@ -47,7 +48,7 @@ def do_quiz to_handle
     end
   else
     puts "\e[2mChoosing flavour at random: 1 from #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
-    puts "\e[2mIssue sigquit (e.g. via ctrl-\\ or ctrl-4) to start over.\e[0m"
+    puts "\e[2mIssue sigquit (via e.g. ctrl-\\ or ctrl-4) to start over.\e[0m"
     puts
     sleep 0.1
   end
@@ -73,7 +74,7 @@ def do_quiz to_handle
     $opts[:comment] = :holes_some
     puts
     puts "Quiz Flavour is:   \e[34m#{$extra}\e[0m"
-    puts "\e[2mswitches to full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
+    puts "switches \e[2mto full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
     sleep 0.05
     puts
     sleep 0.05
@@ -746,5 +747,5 @@ end
 
 def msgbuf_quiz_listen_perspective is_random
   $msgbuf.print("or issue sigquit for a different flavour", 3, 5, later: true) if is_random
-  $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question", 3, 5, :quiz
+  $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question" + (is_random ? ',' : ''), 3, 5, :quiz
 end
