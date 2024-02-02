@@ -693,11 +693,16 @@ class FamousPlayers
   end
 
   def select parts
-    result = []
+    result_in_names = []
+    result_in_printable = []
     @names.each do |name|
-      result << name if parts.all? {|p| name.downcase[p.downcase]}
+      result_in_names << name if parts.all? {|p| name.downcase[p.downcase]}
     end
-    result
+    @with_details.each do |name|
+      result_in_printable << name if parts.all? {|pa| @printable[name].any? {|pr| pr.downcase[pa]}}
+    end
+    result_in_printable = result_in_printable - result_in_names
+    [result_in_names, result_in_printable]
   end
 
   def all

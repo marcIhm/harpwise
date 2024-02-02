@@ -448,23 +448,34 @@ def print_players args
     puts
     puts "#{$players.all_with_details.length} players with their details."
   else
-    selected = $players.select(args)
-    if selected.length == 0
-      puts "No player matches your input; invoke without arguments to see a complete list"
-    elsif selected.length == 1
-      print_player $players.structured[selected[0]]
+    selected_name, selected_content = $players.select(args)
+    selected = [selected_name, selected_content].flatten
+    total = selected.length
+    if total == 0
+      puts "No player matches your input; invoke without arguments to see a complete list of players"
+    elsif selected_name.length == 1
+      print_player $players.structured[selected_name[0]]
+    elsif selected_name.length == 0 && selected_content.length == 1
+      print_player $players.structured[selected_content[0]]
     else
       puts "Multiple players match your input:\n"
       puts
-      if selected.length <= 9
-        selected.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+      if total <= 9
+        if selected_name.length > 0
+          puts "\e[2mMatches in name:\e[0m"
+          selected_name.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+        end
+        if selected_content.length > 0
+          puts "\e[2mMatches in content:\e[0m"
+          selected_content.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+        end
         make_term_immediate
         $ctl_kb_queue.clear
         puts
-        print "Please type one of (1..#{selected.length}) to read details: "
+        print "Please type one of (1..#{total}) to read details: "
         char = $ctl_kb_queue.deq
         make_term_cooked
-        if (1 .. selected.length).map {|i| i.to_s}.include?(char)
+        if (1 .. total).map(&:to_s).include?(char)
           puts char
           puts "\n----------------------\n\n"
           print_player $players.structured[selected[char.to_i - 1]]
@@ -472,7 +483,10 @@ def print_players args
           print "Invalid input: #{char}"
         end
       else
-        selected.each {|p,i| puts "  " + p}
+        puts "\e[2mMatches in name:\e[0m"
+        selected_name.each {|p,i| puts "  " + p}
+        puts "\e[2mMatches in content:\e[0m"
+        selected_content.each {|p,i| puts "  " + p}
         puts
         puts "Too many matches (#{selected.length}); please be more specific"
       end
