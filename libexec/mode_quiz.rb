@@ -734,6 +734,7 @@ def quiz_hint_in_handle_holes solve_text, holes, hide
     puts "\n\n\n\e[0m\e[2mAny char to continue ..."
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
+    $msgbuf.print 'Solution:   ' + holes.join('  '), 6, 8, :quiz_solution
   when 'HELP-PLAY'
     puts "\e[#{$lines[:comment] + 1}H"
     $ctl_kb_queue.clear

@@ -108,6 +108,10 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
         end
+
+        # erase previous solution if any
+        $msgbuf.print '', 1, 1, :quiz_solution
+
         case $extra
         when 'replay'
           if $ctl_mic[:change_num_quiz_replay]
@@ -516,7 +520,12 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
-          print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
+          if $mode == :quiz
+            print "\e[0m\e[32m \e[7m Yes, \e[0m\e[32m you played the RIGHT answer !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K"
+            sleep 0.5
+          else
+            print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
+          end
           full_seq_shown = true
           sleep 0.5 unless ctext
         end
