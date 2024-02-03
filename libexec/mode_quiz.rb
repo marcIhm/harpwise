@@ -72,6 +72,7 @@ def do_quiz to_handle
 
     # dont show solution immediately
     $opts[:comment] = :holes_some
+    $opts[:immediate] = false
     puts
     puts "Quiz Flavour is:   \e[34m#{$extra}\e[0m"
     puts "switches \e[2mto full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
@@ -110,6 +111,8 @@ def do_quiz to_handle
   # actually start quiz
   if $extra == 'replay'
     puts
+    puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
+    puts "\n\n\n"
     msgbuf_quiz_listen_perspective is_random
     do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _) do
                        solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
@@ -118,7 +121,7 @@ def do_quiz to_handle
                      end)
   elsif $extra == 'play-scale'
     scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-    puts "\e[32mScale to play is:"
+    puts "\e[34mScale to play is:\e[0m\e[2m"
     puts
     do_figlet_unwrapped scale_name, 'smblock'
     puts
@@ -133,7 +136,7 @@ def do_quiz to_handle
                      end)
   elsif $extra == 'play-inter'
     holes_inter = get_random_interval
-    puts "\e[32mInterval to play is:"
+    puts "\e[34mInterval to play is:\e[0m\e[2m"
     puts
     puts
     do_figlet_unwrapped holes_inter[4], 'smblock'

@@ -14,7 +14,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   
   to_play = PlayController.new
-  # below stands for override for line_message2
+  # below stands for override for line_message2 and is set during
+  # initial play, i.e. before builtup of listen-perspective
   oride_l_message2 = nil
   first_round = true
   $all_licks, $licks = read_licks
@@ -235,10 +236,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       $ctl_mic[:ignore_partial] = true if zero_partial? && $ctl_mic[:replay]
 
       # show later comment already while playing
-      unless oride_l_message2
-        lines = comment_while_playing(to_play[:all_wanted])
-        fit_into_comment(lines) if lines
-      end
+      print_comment_adhoc(to_play[:all_wanted]) unless oride_l_message2
 
       play_rec_or_holes to_play, oride_l_message2
       seq_played_recently = true
@@ -521,7 +519,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
-            print "\e[0m\e[32m \e[7m Yes, \e[0m\e[32m you played the RIGHT answer !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K"
+            print "\e[0m\e[32mYes, you played the RIGHT answer !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K"
+            color, text, line, font, width_template =
+            print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true)
             sleep 0.5
           else
             print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
@@ -1065,31 +1065,43 @@ def read_and_set_num_quiz_replay
 end
 
 
-def comment_while_playing holes
-  # Show all lines in case of immediate or if the comment would show them anyway
-  if $opts[:comment] == :holes_scales
-    clear_area_comment
-    holes_with_scales = scaleify(holes)
-    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_scales, 0)
-  elsif $opts[:comment] == :holes_intervals
-    clear_area_comment
-    holes_with_intervals = intervalify(holes, prefer_names: true)
-    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_intervals, 0)
-  elsif $opts[:comment] == :holes_inter_semis
-    clear_area_comment
-    holes_with_inter_semis = intervalify(holes, prefer_names: false)
-    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_inter_semis, 0)
-  elsif $opts[:comment] == :holes_notes
-    clear_area_comment
-    holes_with_notes = noteify(holes)
-    tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall], holes_with_notes, 0)
-  elsif $opts[:comment] == :holes_all
-    wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], holes, 0)
-  elsif $opts[:comment] == :holes_some && $opts[:immediate]
-    largify(holes, idx)
-  else
-    nil
-  end
+def print_comment_adhoc holes, quiz_and_after: false
+  # this is either used during initial play (e.g. in mode lick) or as
+  # confirmation in quiz
+  idx = ( quiz_and_after  ?  holes.length  :  0 )
+  lines = if $opts[:comment] == :holes_scales
+            clear_area_comment
+            holes_with_scales = scaleify(holes)
+            tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall],
+                            holes_with_scales, idx)
+          elsif $opts[:comment] == :holes_intervals
+            clear_area_comment
+            holes_with_intervals = intervalify(holes, prefer_names: true)
+            tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall],
+                            holes_with_intervals, idx)
+          elsif $opts[:comment] == :holes_inter_semis
+            clear_area_comment
+            holes_with_inter_semis = intervalify(holes, prefer_names: false)
+            tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall],
+                            holes_with_inter_semis, idx)
+          elsif $opts[:comment] == :holes_notes
+            clear_area_comment
+            holes_with_notes = noteify(holes)
+            tabify_colorize($lines[:hint_or_message] - $lines[:comment_tall],
+                            holes_with_notes, idx)
+          elsif $opts[:comment] == :holes_all
+            wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall],
+                                holes, idx)
+          elsif $opts[:comment] == :holes_some && ( quiz_and_after || $opts[:immediate] )
+            color, text, line, font, width_template = largify(holes, idx)
+            color = "\e[32m" if quiz_and_after
+            print "\e[#{line}H#{color}"
+            do_figlet_unwrapped text, font, width_template
+            nil
+          else
+            nil
+          end
+  fit_into_comment(lines) if lines
 end
 
 
