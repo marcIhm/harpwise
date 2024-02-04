@@ -104,6 +104,24 @@ Signal.trap('SIGINT') do
 end
 
 
+Signal.trap('TSTP') do
+  print "\e[#{$lines[:message2]}H" if $move_down_on_exit
+  puts "\n\n\n\e[0mThis signal is only handled in mode quiz with flavour random; exiting ..."
+  puts "\e[K"
+  print "\e[K"
+  exit 1
+end
+
+
+Signal.trap('QUIT') do
+  print "\e[#{$lines[:message2]}H" if $move_down_on_exit
+  puts "\n\n\n\e[0mExiting on sigquit ..."
+  puts "\e[K"
+  print "\e[K"
+  exit 1
+end
+
+
 if [:listen, :quiz, :licks].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true

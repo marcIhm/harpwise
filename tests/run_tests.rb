@@ -2396,7 +2396,7 @@ do_test 'id-98: loop via sigquit' do
   tms :ENTER
   sleep 2
   pid = %x(ps -ef).lines.find {|l| l['harpwise'] && l['ruby']}.split[1]
-  system("kill -s SIGQUIT #{pid}")
+  system("kill -s SIGTSTP #{pid}")
   sleep 2
   expect { screen.any? {|l| l['Starting over with a different flavour'] }}
   kill_session

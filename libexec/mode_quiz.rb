@@ -23,20 +23,20 @@ def do_quiz to_handle
   print "\e[?25l"  ## hide cursor
 
   is_random = $quiz_flavours_random.include?($extra)
-  animate_splash_line unless ENV['HARPWISE_RESTARTED_AFTER_SIGQUIT'] == 'yes'
+  animate_splash_line unless ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
   
-  Signal.trap('QUIT') do
-    ENV['HARPWISE_RESTARTED_AFTER_SIGQUIT'] = 'yes'
+  Signal.trap('TSTP') do
+    ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
     # do some actions of at_exit-handler here
     sane_term
-    print "\e[?25l\e[2mstart over ..."  ## hide cursor
+    print "\e[?25l\e[2m... start over ..."  ## hide cursor
     if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
       File.write($pers_file, JSON.pretty_generate($pers_data))
     end
     exec($full_commandline)
   end
 
-  if ENV['HARPWISE_RESTARTED_AFTER_SIGQUIT'] == 'yes'
+  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
     ($term_height - $lines[:comment_tall] + 1).times do
       sleep 0.01
       puts
@@ -47,8 +47,8 @@ def do_quiz to_handle
       puts "\e[0mStarting over ...\n\n\n"
     end
   else
-    puts "\e[2mChoosing flavour at random: 1 from #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
-    puts "\e[2mIssue sigquit (via e.g. ctrl-\\ or ctrl-4) to start over.\e[0m"
+    puts "\e[2mChoosing flavour at random: 1 of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
+    puts "\e[2mIssue signal ctrl-z to start over.\e[0m"
     puts
     sleep 0.1
   end
@@ -75,7 +75,7 @@ def do_quiz to_handle
     $opts[:immediate] = false
     puts
     puts "Quiz Flavour is:   \e[34m#{$extra}\e[0m"
-    puts "switches \e[2mto full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
+    puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
     sleep 0.05
     puts
     sleep 0.05
@@ -750,6 +750,6 @@ end
 
 
 def msgbuf_quiz_listen_perspective is_random
-  $msgbuf.print("or issue sigquit for a different flavour", 3, 5, later: true) if is_random
+  $msgbuf.print("or issue signal ctrl-z for another flavour", 3, 5, later: true) if is_random
   $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question" + (is_random ? ',' : ''), 3, 5, :quiz
 end
