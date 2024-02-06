@@ -107,7 +107,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         quiz_prevs ||= Array.new
         unless first_round
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
-          $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+          $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
         end
 
         # erase previous solution if any

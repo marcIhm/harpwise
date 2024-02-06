@@ -37,6 +37,7 @@ def do_quiz to_handle
   end
 
   if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
+    $splashed = true
     puts
     ttxt = 'quiz...'
     txt = ttxt + ttxt
@@ -44,7 +45,7 @@ def do_quiz to_handle
     nlines = ($term_height - $lines[:comment_tall] - 1)
     nlines.times do
       sleep 0.02
-      puts "\e[2m\e[34m#{txt}\e[0m"
+      puts "\e[2m\e[34m#{txt}\e[0m\e[K"
       txt = ttxt[ttxt.length - i - 1] + txt
       txt.chomp!(ttxt) if txt.length > nlines / 2 + 2 * ttxt.length
       i = (i + 1) % ttxt.length
@@ -90,7 +91,7 @@ def do_quiz to_handle
     sleep 0.05
     puts $extra_desc[:quiz][$extra].capitalize.lines.map {|l| '  ' + l}.join.chomp + ".\n"
 
-    $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+    $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
 
     # only for those classes where it will not already be done in
     # issue_question
@@ -163,7 +164,7 @@ def do_quiz to_handle
     first_round = true
     loop do  ## every new question
       $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard) unless first_round
-      $num_quiz_replay = {easy: 5, hard: 12}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+      $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
       catch :next do
         sleep 0.1
         puts
