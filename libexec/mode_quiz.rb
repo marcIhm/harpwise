@@ -29,7 +29,7 @@ def do_quiz to_handle
     ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
     # do some actions of at_exit-handler here
     sane_term
-    print "\e[?25l\e[2m... start over ..."  ## hide cursor
+    print "\e[?25l\e[2m\e[34m... quiz start over ...\e[0m"  ## hide cursor
     if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
       File.write($pers_file, JSON.pretty_generate($pers_data))
     end
@@ -37,14 +37,23 @@ def do_quiz to_handle
   end
 
   if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
-    ($term_height - $lines[:comment_tall] + 1).times do
-      sleep 0.01
-      puts
+    puts
+    ttxt = 'quiz...'
+    txt = ttxt + ttxt
+    i = 0
+    nlines = ($term_height - $lines[:comment_tall] - 1)
+    nlines.times do
+      sleep 0.02
+      puts "\e[2m\e[34m#{txt}\e[0m"
+      txt = ttxt[ttxt.length - i - 1] + txt
+      txt.chomp!(ttxt) if txt.length > nlines / 2 + 2 * ttxt.length
+      i = (i + 1) % ttxt.length
     end
+    puts
     if is_random
-      puts "\e[0mStarting over with a different flavour ...\n\n\n"
+      puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"
     else
-      puts "\e[0mStarting over ...\n\n\n"
+      puts "\e[0m\e[2mStarting over ...\e[0m\n\n"
     end
   else
     puts "\e[2mChoosing flavour at random: 1 of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
