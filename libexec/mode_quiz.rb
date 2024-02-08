@@ -38,7 +38,7 @@ def do_quiz to_handle
 
   if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
     $splashed = true
-    puts
+    puts "\e[K"
     ttxt = 'quiz...'
     txt = ttxt + ttxt
     i = 0
@@ -50,7 +50,7 @@ def do_quiz to_handle
       txt.chomp!(ttxt) if txt.length > nlines / 2 + 2 * ttxt.length
       i = (i + 1) % ttxt.length
     end
-    puts
+    puts "\e[K"
     if is_random
       puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"
     else
