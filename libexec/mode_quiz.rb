@@ -22,8 +22,12 @@ def do_quiz to_handle
 
   print "\e[?25l"  ## hide cursor
 
-  is_random = $quiz_flavours_random.include?($extra)
-  animate_splash_line unless ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
+  is_random = if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
+                true
+              else
+                animate_splash_line
+                is_random = $quiz_flavours_random.include?($extra)
+              end
   
   Signal.trap('TSTP') do
     ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
@@ -39,16 +43,20 @@ def do_quiz to_handle
   if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
     $splashed = true
     puts "\e[K"
-    ttxt = 'quiz...'
-    txt = ttxt + ttxt
-    i = 0
+    info = 'quiz'
+    dots = '...'
+    push_front = dots + info
+    shift_back = info + dots
+    txt = dots + info + dots + info + dots
+    ilen = txt.length
     nlines = ($term_height - $lines[:comment_tall] - 1)
     nlines.times do
       sleep 0.02
+      len = push_front.length
+      txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
       puts "\e[2m\e[34m#{txt}\e[0m\e[K"
-      txt = ttxt[ttxt.length - i - 1] + txt
-      txt.chomp!(ttxt) if txt.length > nlines / 2 + 2 * ttxt.length
-      i = (i + 1) % ttxt.length
+      txt.prepend(' ')
+      txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
     end
     puts "\e[K"
     if is_random

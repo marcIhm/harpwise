@@ -519,7 +519,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
-            print "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K"
+            print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
             print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true)
             sleep 0.5
