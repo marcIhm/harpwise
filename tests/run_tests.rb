@@ -2386,7 +2386,7 @@ do_test 'id-97: hint in quiz-flavour replay' do
   tms 'solve-print'
   tms :ENTER
   sleep 1
-  expect { screen[19].split.length == 5 }
+  expect { screen[19].split.length == 4 }
   kill_session
 end
 

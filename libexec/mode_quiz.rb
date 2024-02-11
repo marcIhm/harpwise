@@ -51,14 +51,15 @@ def do_quiz to_handle
     ilen = txt.length
     nlines = ($term_height - $lines[:comment_tall] - 1)
     nlines.times do
-      sleep 0.02
       len = push_front.length
       txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
       puts "\e[2m\e[34m#{txt}\e[0m\e[K"
+      sleep 0.02
       txt.prepend(' ')
       txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
     end
     puts "\e[K"
+    sleep 0.05
     if is_random
       puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"
     else
