@@ -30,8 +30,8 @@
   - Internalize various scales and intervals
   - Analyze your playing regarding scales, chords and intervals
   - Learn and memorize licks (a few sample-licks included)
-  - Train your musical memory
-  - Train your ear
+  - Train your ear and musical memory
+  - Learn related music theory by the way of quiz
   - Help to gather and learn a collection of licks
   - Work on bends or warbles
 
@@ -87,15 +87,14 @@
   This will show examples and options for its main operations:
   
   - listen: listen to your playing, e.g. to monitor bends or scales
-  - quiz: train your ear and musical memory; with different quiz-flavours
-  - licks: learn licks (a few included and some pointers to more)
+  - quiz: train your ear and musical knowledge with eight flavours
+  - licks: learn licks; a few are included and some pointers to more
   - play: wise plays scales, holes, licks or a reference pitch
   - print: print above or produce various reports
-  - tools: utilities (e.g. a position table), mostly related to basic
-    harmonica theory
+  - tools: utilities, mostly related to basic harmonica theory
   - calibrate: generate samples for holes or record your own
 
-  As an initial step you will need to calibrate the program; the resulting
+  As an optional step you may want to calibrate the program; the resulting
   wav-files will be kept in directory ~/.harpwise
 
   Or, to get started quickly you may use auto-calibration for
@@ -117,21 +116,20 @@
 
 * Getting help
 
-  If you have problems, questions or just want to give feedback, you can
+  If you have problems, questions or just want to give feedback, please
   drop me a note: marc@ihm.name
 
   If you have a github-account and prefer a more structured approach, you
   may also open a github-issue.
 
-  However, harpwise already comes with a number of help sources, that you
-  may try:
+  In addition harpwise comes with a number of help sources:
 
   - This README gives some general background and context information
   - The program harpwise will issue a usage information, if invoked wrong
     or with too few arguments. This usage screens contain lots of
     examples and descriptions for invoking harpwise and for the form of
     its arguments and options.
-  - When harpwise is running, especially in its main interactive screen
+  - When harpwise is running, especially in its main listen-perspective
     (see screenshots), you can press 'h' to get a short overview of all
     available keys.
   - The main menu facility of harpwise (which, at times, covers the lower
@@ -140,18 +138,18 @@
   
 * Configuration
 
-  This is the user-modifyable configuration file, that will be create on
+  This is the user-modifyable configuration file, that will be created on
   first invocation:
 
   ~/.harpwise/config.ini
 
-  There you may override many settings from the programs default config.
-  The file is commented extensively, so please read there for details on
-  the various settings. Initially this config-file is a copy of the
-  programs central config-file.
+  There you may override many settings and programs default.  The file is
+  commented extensively, so please read there for details on the various
+  settings. Initially this config-file is a copy of the programs central
+  config-file.
 
   See also the usage-information, which lists all of the command line
-  option, which (in many cases) mirror the settings from your config.ini.
+  options, which in many cases mirror the settings from your config.ini.
 
 * Some musical concepts
 ** Scales
@@ -192,8 +190,8 @@
    up.
 
    Out of the factory, harpwise only has a few older licks with expired
-   copyright and amateur recordings (by me); an example would be a lick
-   from the St-Louis blues.
+   copyright and amateur recordings; an example would be a lick from the
+   St-Louis blues.
 
    To work fruitfully with licks, you should record your own or buy some
    decent lick collections (me beeing not connected with any of those).
@@ -253,7 +251,7 @@
   Also note, that harpwise uses figlet to display some information in
   large letters. The optical result of this may vary, and you may get a
   smoother appearance by choosing another font; personally I use 'Lucida
-  Console' (at least under windows).
+  Console' (at least under windows wsl2).
 
   Now if you start harpwise e.g. in mode listen, or licks or some flavours
   of quiz, you get a screen as shown in the screenshots above.
