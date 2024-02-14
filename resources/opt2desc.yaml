@@ -28,7 +28,7 @@ no_add_holes:
 transpose_scale:
 
   - |
-    transpose the scale to
+    transpose the scale to given
     key (e.g. d) or by semitones (e.g. 12st).  This would be helpful,
     if you want to practice e.g. the d-major scale on a chromatic
     harmonica of key c. Or if you want to play e.g. in third position,
@@ -236,3 +236,12 @@ difficulty:
     larger numbers are harder and 100 would be all 'hard'. This option
     defaults to 'easy'.
   - EASY_OR_HARD_OR_PERCENT
+
+sharps:
+  - |
+    When printing notes, prefer sharps (e.g. as)
+    
+flats:
+  - |
+    When printing notes, prefer flats (e.g. bf)
+    

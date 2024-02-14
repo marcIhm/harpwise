@@ -530,36 +530,28 @@ end
 
 
 def do_change_key
-  begin
-    keys = if $key[-1] == 's'
-             $notes_with_sharps
-           elsif $key[-1] == 'f'
-             $notes_with_sharps
-           elsif $conf[:pref_sig_def] == :flats
-             $notes_with_flats
-           else
-             $notes_with_sharps
-           end
-    input = choose_interactive("Available keys (current is #{$key}): ", keys) do |key|
-      if key == $key
-        "The current key"
-      else
-        "#{describe_inter_keys(key, $key)} the current key #{$key}"
-      end
-    end || $key
-    error = nil
-    begin
-      $on_error_raise = true
-      check_key_and_set_pref_sig(input)
-    rescue ArgumentError => error
-      report_condition_wait_key error
+  key_was = $key
+  keys = if $key[-1] == 's'
+           $notes_with_sharps
+         elsif $key[-1] == 'f'
+           $notes_with_sharps
+         elsif $opts[:sharps_or_flats] == :flats
+           $notes_with_flats
+         else
+           $notes_with_sharps
+         end
+  $key = choose_interactive("Available keys (current is #{$key}): ", keys) do |key|
+    if key == $key
+      "The current key"
     else
-      $key = input
-    ensure
-      $on_error_raise = false
+      "#{describe_inter_keys(key, $key)} the current key #{$key}"
     end
-  end while error
-  $msgbuf.print "Changed key of harp to \e[0m#{$key}", 2, 5, :key
+  end || $key
+  if $key == key_was
+    $msgbuf.print "Key of harp unchanged \e[0m#{$key}", 2, 5, :key
+  else
+    $msgbuf.print "Changed key of harp to \e[0m#{$key}", 2, 5, :key
+  end
 end
 
 

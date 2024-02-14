@@ -48,16 +48,22 @@ def note2semi note, range = (0..9), graceful = false
 end
 
 
-def semi2note semi, sharp_or_flat = $conf[:pref_sig]
+def semi2note semi, sharps_or_flats = $opts[:sharps_or_flats]
   semi += 57  # value for a4
-  case sharp_or_flat
-  when :flat
+  case sharps_or_flats
+  when :flats
     $notes_with_flats[semi % 12] + (semi / 12).to_s
-  when :sharp
+  when :sharps
     $notes_with_sharps[semi % 12] + (semi / 12).to_s
   else
-    fail "Internal error: #{sharp_or_flat}"
+    fail "Internal error: #{sharps_or_flats}"
   end
+end
+
+
+# normalize to sharp or flat depending on $opts[:sharps_or_flats]
+def sf_norm note
+  return semi2note(note2semi(note))
 end
 
 
@@ -76,8 +82,8 @@ def notes_equiv note
   no_digit = !note[-1].match?(/[0-9]/)
   note += '0' if no_digit
   semi = note2semi(note)
-  ns = semi2note(semi, :sharp)
-  nf = semi2note(semi, :flat)
+  ns = semi2note(semi, :sharps)
+  nf = semi2note(semi, :flats)
   if no_digit
     ns = ns[0 .. -2]
     nf = nf[0 .. -2]

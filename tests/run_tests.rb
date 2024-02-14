@@ -1466,17 +1466,33 @@ do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
   tms :ENTER
-  expect { screen[1]['g3   b3   d4   g4   b4   d5'] }
+  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  kill_session
+end
+
+do_test 'id-52a: tools chart, explicit flat' do
+  new_session
+  tms 'harpwise tools chart g --flat'
+  tms :ENTER
+  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  kill_session
+end
+
+do_test 'id-52b: tools chart, explicit sharp' do
+  new_session
+  tms 'harpwise tools chart g --sharp'
+  tms :ENTER
+  expect { screen[5]['a3   d4   fs4  a4   c5   e5   fs5  a5   c6   e6'] }
   kill_session
 end
 
 do_test 'id-53: print' do
   new_session
-  tms "harpwise print st-louis >#{$testing_output_file}"
+  tms "harpwise print st-louis --sharps >#{$testing_output_file}"
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  {17 => 'd4  e4  g4  bf4  g4  bf4  a4  g4',
+  {17 => 'd4  e4  g4  as4  g4  as4  a4  g4',
    20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
    29 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
    33 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
@@ -1489,7 +1505,36 @@ do_test 'id-53: print' do
   kill_session
 end
 
-do_test 'id-53a: print with scale' do
+do_test 'id-53a: print' do
+  new_session
+  tms "harpwise print st-louis --flats>#{$testing_output_file}"
+  tms :ENTER
+  sleep 1
+  lines = File.read($testing_output_file).lines
+  expect(17, lines) {lines[17]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
+  kill_session
+end
+
+do_test 'id-53b: print' do
+  new_session
+  tms "harpwise print st-louis >#{$testing_output_file}"
+  tms :ENTER
+  sleep 1
+  lines = File.read($testing_output_file).lines
+  expect(17, lines) {lines[17]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
+  kill_session
+end
+
+do_test 'id-53c: print' do
+  new_session
+  tms "harpwise print a4 b4 c4 >#{$testing_output_file}"
+  tms :ENTER
+  lines = File.read($testing_output_file).lines
+  expect(lines) {lines[10]['a4.5   b4.1   c4.b4']}
+  kill_session
+end
+
+do_test 'id-53d: print with scale' do
   # need some content that would otherwise scroll out of screen
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
@@ -1498,16 +1543,15 @@ do_test 'id-53a: print with scale' do
   kill_session
 end
 
-do_test 'id-53b: print with scales but terse' do
+do_test 'id-53e: print with scales but terse' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
   tms :ENTER
-  sleep 1
   expect { screen[15] == '$' }
   kill_session
 end
 
-do_test 'id-53c: print two scales' do
+do_test 'id-53f: print with multiple scales' do
   new_session
   # chord-i is taken as scale and only chord-iv and chord-v are handled
   tms 'harpwise print chord-i chord-iv chord-v --add-scales chord-iv,chord-v'
@@ -1589,6 +1633,28 @@ do_test 'id-54e: print list of all scales' do
    "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]}, idx+8, exp) { lines[8+idx] == exp }
   end
+  kill_session
+end
+
+
+do_test 'id-54f: print scale with sharps' do
+  new_session
+  tms "harpwise print blues --sharp >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['g4  as4  c5  cs5  d5  f5  g5']}
+  kill_session
+end
+
+
+do_test 'id-54g: print scale with flats' do
+  new_session
+  tms "harpwise print blues --flats >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['g4  bf4  c5  df5  d5  f5  g5']}
   kill_session
 end
 

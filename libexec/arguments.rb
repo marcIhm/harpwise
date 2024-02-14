@@ -43,7 +43,9 @@ def parse_arguments_early
   modes2opts = 
     [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
         debug: %w(--debug),
-        help: %w(-h --help -? --usage)}],
+        help: %w(-h --help -? --usage),
+        sharps: %w(--sharps),
+        flats: %w(--flats)}],
      [Set[:calibrate, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks, :tools, :print], {
@@ -113,6 +115,7 @@ def parse_arguments_early
       end
       fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
       opts_all[osym] = [oabbrevs]
+      fail "Internal error, not defined: opt2desc[#{osym}]" unless opt2desc[osym]
       opts_all[osym] << opt2desc[osym][1]
       opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
     end
@@ -134,6 +137,7 @@ def parse_arguments_early
   opts[:time_slice] ||= $conf[:time_slice]
   opts[:difficulty] ||= $conf[:difficulty]
   opts[:viewer] ||= $conf[:viewer]
+  opts[:sharps_or_flats] ||= $conf[:sharps_or_flats]
 
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
@@ -201,6 +205,10 @@ def parse_arguments_early
   else
     opts[:viewer] = 'none'
   end
+
+  err "Options '--sharps' and '--flats' may not be given at the same time" if opts[:sharps] && opts[:flats]
+  opts[:sharps_or_flats] = :flats if opts[:flats]
+  opts[:sharps_or_flats] = :sharps if opts[:sharps]
   
   opts[:fast] = false if opts[:no_fast]
   opts[:loop] = false if opts[:no_loop]
@@ -308,8 +316,7 @@ def parse_arguments_early
     key = $conf[:key]
     $source_of[:key] = 'config'
   end
-  check_key_and_set_pref_sig(key)
-
+  err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
   
   # Get scale
   case mode
@@ -472,22 +479,6 @@ def get_used_scales scales_w_shorts
     end
   end
   scales
-end
-
-
-def check_key_and_set_pref_sig key
-  $conf[:pref_sig] = if key.length == 2
-                       if key[-1] == 'f'
-                         :flat
-                       else
-                         :sharp
-                       end
-                     else
-                       $conf[:pref_sig_def]
-                     end
-
-    nil
-    err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
 end
 
 

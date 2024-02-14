@@ -53,9 +53,8 @@ def do_quiz to_handle
     nlines.times do
       len = push_front.length
       txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
-      print "\e[0m\e[34m#{txt}\e[0m\e[K"
-      sleep 0.03
-      puts "\e[G\e[2m\e[34m#{txt}\e[0m\e[K"
+      puts "\e[2m\e[34m#{txt}\e[0m\e[K"
+      sleep 0.02
       txt.prepend(' ')
       txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
     end
@@ -720,7 +719,7 @@ def get_harp2song downcase: false, basic_set: false
   harps = if basic_set
             %w(G A C D)
           else
-            if $conf[:pref_sig] == :flat
+            if $opts[:sharps_or_flats] == :flats
               %w(G Af A Bf B C Df D Ef E F Gf)
             else
               %w(G Gs A As B C Cs D Ds E F Fs)

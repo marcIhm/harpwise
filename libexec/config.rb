@@ -28,12 +28,12 @@ def set_global_vars_early
     :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
-    :general => [:time_slice, :pref_sig_def, :pitch_detection, :sample_rate]
+    :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
   }
-  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra]
+  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
-  $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym, :sharp_or_flat => :to_sym,
-                              :pref_sig_def => :to_sym,
+  $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym,
+                              :sharps_or_flats => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :tags_any => :to_str,
                               :add_scales => :empty2nil}
@@ -454,6 +454,12 @@ def read_technical_config
   conf[:term_min_width] = 75
   conf[:term_min_height] = 24
 
+  # Handle some special cases
+  # gracefully handle common plural/singular-mingling
+  conf[:sharps_or_flats] = :sharps if conf[:sharps_or_flats] == :sharp
+  conf[:sharps_or_flats] = :flats if conf[:sharps_or_flats] == :flat
+  err err_head + "Config 'sharps_or_flats' can only be 'flats' or 'sharps' not '#{conf[:sharps_or_flats]}'" unless [:sharps, :flats].include?(conf[:sharps_or_flats])
+  
   conf
 end
 
@@ -480,7 +486,7 @@ def read_config_ini file, strict: true
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
       value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
-      err err_head + "Key '#{key.to_sym}' is deprecated; please edit the file and remove the key" if $conf_meta[:deprecated_keys].include?(key)
+      err err_head + "Key '#{key.to_sym}' is deprecated; please edit the file and remove or rename it" if $conf_meta[:deprecated_keys].include?(key)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
         allowed += Set.new($conf_meta[:sections_keys][:any_mode]) if ! [:any_mode, :general].include?(section)

@@ -810,20 +810,20 @@ def tabify_hl max_lines, holes, idx_hl = nil
 end
 
 
-def scaleify holes
-  holes_maxlen = holes.max_by(&:length).length
-  shorts_maxlen = holes.map {|hole| $hole2scale_shorts[hole]}.max_by(&:length).length
-  holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole, $hole2scale_shorts[hole].ljust(shorts_maxlen)]
+def scaleify holes_or_notes
+  hon_maxlen = holes_or_notes.max_by(&:length).length
+  shorts_maxlen = holes_or_notes.map {|hon| $hole2scale_shorts[$note2hole[hon] || hon]}.max_by(&:length).length
+  holes_or_notes.each.map do |hon|
+    [' ' * (hon_maxlen - hon.length), hon, $hole2scale_shorts[$note2hole[hon] || hon].ljust(shorts_maxlen)]
   end
 end
 
 
-def remarkify holes
-  holes_maxlen = holes.max_by(&:length).length
-  remarks_maxlen = holes.map {|hole| $hole2rem[hole] || ''}.max_by(&:length).length
-  holes.each.map do |hole|
-    [' ' * (holes_maxlen - hole.length), hole, ($hole2rem[hole] || '').ljust(remarks_maxlen)]
+def remarkify holes_or_notes
+  hon_maxlen = holes_or_notes.max_by(&:length).length
+  remarks_maxlen = holes_or_notes.map {|hon| $hole2rem[$note2hole[hon] || hon] || ''}.max_by(&:length).length
+  holes_or_notes.each.map do |hon|
+    [' ' * (hon_maxlen - hon.length), hon, ($hole2rem[$note2hole[hon] || hon] || '').ljust(remarks_maxlen)]
   end
 end
 

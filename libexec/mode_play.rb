@@ -132,7 +132,9 @@ def partition_to_play_or_print to_handle
   to_handle.join(' ').split.each do |th| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
 
     what = recognize_among(th, $amongs_play_or_print)
-    if [:semi_note, :hole, :note].include?(what)
+    if what == :note
+      holes_or_notes << sf_norm(th)
+    elsif [:semi_note, :hole].include?(what)
       holes_or_notes << th
     elsif what == :lick && !$opts[:scale_over_lick]
       lnames << th
