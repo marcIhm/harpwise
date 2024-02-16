@@ -469,8 +469,6 @@ end
 class AddInter < QuizFlavour
 
   def initialize
-    @choices = $harp_holes.clone
-    @choices_orig = @choices.clone
     begin
       inter = get_random_interval
       @holes = inter[0..1]
@@ -480,6 +478,14 @@ class AddInter < QuizFlavour
     end while @@prevs.include?(@holes)
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
+    @choices = []
+    $intervals_quiz.each do |inter|
+      [inter, -inter].each do |int|
+        @choices << $semi2hole[$harp[@holes[0]][:semi] + int]
+      end
+    end
+    @choices.compact!
+    @choices_orig = @choices.clone
     @prompt = "Enter the result of #{@verb}ing hole and interval:"
     @help_head = 'Hole'
   end
