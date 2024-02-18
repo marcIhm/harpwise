@@ -79,6 +79,10 @@ quiz:
   hear-scale: |
     harpwise plays the holes of a scale (in order) and asks for
     its name
+  match-scale: |
+    plays a random sequence of holes, that are either a subset of one
+    or many scales and asks for the name of the single or sortest
+    scale containing all these holes
   hear-inter: |
     plays an interval and asks for its name
   add-inter: |

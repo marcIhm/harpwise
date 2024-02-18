@@ -1035,7 +1035,7 @@ def choose_interactive prompt, names
   clear_area_message
   
   total_chars = chia_padded(names).join.length
-  prompt_template = "\e[%dH\e[0m%s \e[J"
+  prompt_template = "\e[%dH\e[0m%s \e[K"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
   $chia_loc_cache = nil
@@ -1130,7 +1130,7 @@ def choose_interactive prompt, names
         frame_start = frame_start_was.pop || 0
         idx_hl = ( frame_start > 0  ?  1  :  0 )
       end
-    end
+    end    
     print prompt_template % [$lines[:comment_tall] + 1, prompt]
     print "\e[0m\e[92m#{input}\e[0m\e[K"
     print help_template % ( $lines[:comment_tall] + 2 )

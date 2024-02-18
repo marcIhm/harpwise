@@ -210,13 +210,7 @@ class QuizFlavour
   @@prevs = Array.new
 
   def get_and_check_answer
-    prepare_term
-    make_term_immediate
-    $ctl_kb_queue.clear
-    ($term_height - $lines[:comment_tall] + 1).times do
-      sleep 0.01
-      puts
-    end
+    choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
     all_choices = [@choices, ';OR->', '.AGAIN', '.SOLVE', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
@@ -234,10 +228,7 @@ class QuizFlavour
         ( tag_desc(tag) && "#{@help_head} #{tag_desc(tag)}" ) ||
         "#{@help_head} #{tag}"
     end
-    clear_area_comment
-    clear_area_message
-    make_term_cooked
-    print "\e[#{$lines[:comment_tall]}H"
+    choose_clean_up
     # @solution might be string or array
     if [@solution].flatten.include?(answer)
       if self.respond_to?(:after_solve)
@@ -306,10 +297,11 @@ class QuizFlavour
     @choices = @choices_orig.clone
   end
   
-  def play_holes hide: nil, reverse: false
+  def play_holes hide: nil, reverse: false, holes: nil
+    holes ||= @holes
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple(reverse ? @holes.rotate : @holes, hide: hide)
+    play_holes_or_notes_simple(reverse ? holes.rotate : holes, hide: hide)
     make_term_cooked
   end
 
@@ -346,7 +338,23 @@ class QuizFlavour
     end
     return :next  
   end
-  
+
+  def choose_clean_up
+    clear_area_comment
+    clear_area_message
+    make_term_cooked
+    print "\e[#{$lines[:comment_tall]}H"
+  end
+
+  def choose_prepare_for
+    prepare_term
+    make_term_immediate
+    $ctl_kb_queue.clear
+    ($term_height - $lines[:comment_tall] + 1).times do
+      sleep 0.01
+      puts
+    end
+  end
 end
 
 # The three classes below are mostly done within do_licks, so the
@@ -407,14 +415,154 @@ class HearScale < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mPlaying a scale\e[0m \e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
-    puts "\e[2mThis " + self.class.describe_difficulty + "\e[0m"
+    puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
+    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
     play_holes
   end
 
   def tag_desc tag
     $scale2desc[tag]
+  end
+
+end
+
+
+class MatchScale < QuizFlavour
+
+  def initialize
+    scales = $all_quiz_scales[$opts[:difficulty]]
+    @choices = scales.clone 
+    @choices_orig = @choices.clone
+    @scales_holes = scales.map do |scale|
+      holes, _, _, _ = read_and_parse_scale(scale, $harp)
+      [scale, holes]
+    end.to_h
+    # General goal: for every scale try to find a sequence of holes,
+    # that has this scale as its shortest superset. Later we pick one
+    # of the scales with equal probability
+    pool = Hash.new
+    others = Hash.new
+    # having duplicates in all_holes emperically has a higher chance
+    # for finding examples even for exotic scales
+    all_holes = @scales_holes.values.flatten
+    rounds = 0
+    # loop until: we have a sequence for every scale and
+    until ( pool.keys.length == scales.length &&
+            # all scales are the only superset of their sequences or
+            pool.values.map {|v| v[1]}.uniq == ['single'] ) ||
+          # we have tried often enough
+          rounds > 1000
+      rounds += 1
+      # random length of sequence
+      holes = all_holes.sample(6 + rand(5).to_i)
+      superset_scales = scales.
+                          # must be superset, i.e. contain all holes;
+                          # subtracting arrays does work, even if
+                          # holes has duplicates (which it has)
+                          select {|sc| (holes - @scales_holes[sc]).length == 0}.
+                          # group by length, so that we know, if two
+                          # or more scales with the same length are
+                          # superset; we do not want this, because it
+                          # would be ambigous. The result of group_by.to_a
+                          # has this form (e.g.):
+                          # [[len1,[sc1,sc2]],[len2,[sc3]]]
+                          group_by {|sc| @scales_holes[sc].length}.to_a.
+                          # sort by length, so that the shortest scale
+                          # comes first
+                          sort_by {|g1, g2| g1[0] <=> g2[0]}
+      # if there are any matching scales, take shortest but only if it
+      # is not ambigous
+      if superset_scales.length > 0 && superset_scales[0][1].length == 1
+        scale = superset_scales[0][1][0]
+        # do not overwrite a single match
+        if !pool[scale] || others[scale] 
+          pool[scale] = holes
+          os = superset_scales.map {|ssc| ssc[1]}.flatten.uniq - [scale]
+          others[scale] = ( os.length > 0  ?  os  :  nil )
+        end
+      end
+    end
+    begin
+      @solution = pool.keys.sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
+    @holes = pool[@solution]
+    @others = others[@solution]
+    @holes_scale = @scales_holes[@solution]
+    @prompt = "Choose the #{@others ? 'SHORTEST' : 'single'} scale, that contains the holes in question:"
+    @help_head = 'Scale'
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+    ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
+  end
+  
+  def after_solve
+    if @others
+      puts
+      puts "\e[2mThe other, but longer scales are:  #{@others.join(', ')}\e[0m"
+      puts
+      sleep 0.2
+    end
+    puts
+    puts "Playing solution scale #{@solution} ..."
+    sleep 0.2
+    puts
+    play_holes holes: @holes_scale
+    puts
+    sleep 0.5
+    puts "Playing the holes in question ..."
+    sleep 0.2
+    puts
+    play_holes
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'} ...\e[0m"
+    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
+    puts
+    play_holes
+  end
+
+  def tag_desc tag
+    holes = @scales_holes[tag]
+    return nil unless holes
+    "Scale #{tag} (#{holes.length} holes)"
+  end
+
+  def help2
+    puts "For help, choose one of the answer-scales to be played:"
+    choose_prepare_for
+    answer = choose_interactive("Scale to compare:", @choices) do |tag|
+      "#{@help_head} #{tag_desc(tag)}" 
+    end
+    choose_clean_up
+    if answer
+      play_holes(holes: @scales_holes[answer])
+    else
+      puts "\nNo scale selected to play.\n\n"
+    end
+  end
+
+  def help2_desc
+    ['.HELP-PLAY', 'Select a scale and play it for comparison']
+  end
+
+  def help3
+    puts "\n\e[2mPrinting all scales with their holes.\n\n"
+    maxl = @scales_holes.keys.max_by(&:length).length
+    @scales_holes.each do |k, v|
+      puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join(' ')}\e[0m"
+    end
+    puts "\n\e[2mTotal of #{@choices.length} scales.\n"
+  end
+
+  def help3_desc
+    ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
   end
 
 end

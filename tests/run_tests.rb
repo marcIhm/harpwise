@@ -2442,6 +2442,19 @@ do_test 'id-96: quiz-flavour hear-key' do
   kill_session
 end
 
+do_test 'id-96b: quiz-flavour match-scale' do
+  new_session
+  tms 'harpwise quiz match-scale --difficulty easy'
+  tms :ENTER
+  sleep 6
+  expect { screen[2]['Plays a random sequence of holes, that are either a subset of one'] }
+  tms 'help-print-scales'
+  tms :ENTER
+  expect { screen[9]['mipe:   -2 -3/ +4 -4 -5 +6'] }  
+  sleep 10
+  kill_session
+end
+
 do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
