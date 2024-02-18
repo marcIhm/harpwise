@@ -531,7 +531,7 @@ class MatchScale < QuizFlavour
   def tag_desc tag
     holes = @scales_holes[tag]
     return nil unless holes
-    "Scale #{tag} (#{holes.length} holes)"
+    "#{tag} (#{holes.length} holes)"
   end
 
   def help2
@@ -556,7 +556,7 @@ class MatchScale < QuizFlavour
     puts "\n\e[2mPrinting all scales with their holes.\n\n"
     maxl = @scales_holes.keys.max_by(&:length).length
     @scales_holes.each do |k, v|
-      puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join(' ')}\e[0m"
+      puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join('  ')}\e[0m"
     end
     puts "\n\e[2mTotal of #{@choices.length} scales.\n"
   end
