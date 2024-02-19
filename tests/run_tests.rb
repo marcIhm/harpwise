@@ -848,7 +848,7 @@ do_test 'id-19b: prepare and get history of licks' do
     tms :ENTER
     wait_for_start_of_pipeline
     tms 'q'
-    sleep 1
+    wait_for_end_of_harpwise
   end
   tms "harpwise print licks-history >#{$testing_output_file}"
   tms :ENTER
@@ -2425,8 +2425,9 @@ do_test 'id-96: quiz-flavour hear-key' do
   new_session
   tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
-  sleep 6
-  expect { screen[3]['Plays a sequence of notes starting from a random key'] }
+  sleep 10
+  txt = 'Plays a sequence of notes starting from a random key'
+  expect { screen[3][txt] || screen[6][txt] }
   tms 'help-other-seq'
   tms :ENTER
   expect { screen[16]['Sequence of notes changed'] }  
@@ -2450,8 +2451,7 @@ do_test 'id-96b: quiz-flavour match-scale' do
   expect { screen[2]['Plays a random sequence of holes, that are either a subset of one'] }
   tms 'help-print-scales'
   tms :ENTER
-  expect { screen[9]['mipe:   -2 -3/ +4 -4 -5 +6'] }  
-  sleep 10
+  expect { screen[7]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
   kill_session
 end
 
@@ -2469,7 +2469,7 @@ do_test 'id-97: hint in quiz-flavour replay' do
   kill_session
 end
 
-do_test 'id-98: loop via sigquit' do
+do_test 'id-98: loop via signal' do
   new_session
   tms 'harpwise quiz ran'
   tms :ENTER

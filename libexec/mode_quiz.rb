@@ -209,6 +209,11 @@ class QuizFlavour
 
   @@prevs = Array.new
 
+  def initialize
+    @state = Hash.new
+    @state_orig = @state.clone
+  end
+  
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
@@ -217,7 +222,7 @@ class QuizFlavour
                     '.SOLVE' => 'Give solution and go to next question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
-    [help2_desc, help3_desc].each_with_index do |desc, idx|
+    [help2_desc, help3_desc, help4_desc].each_with_index do |desc, idx|
       next unless desc
       all_choices << desc[0]
       choices_desc[desc[0]] = desc[1]
@@ -279,6 +284,9 @@ class QuizFlavour
     when all_helps[2]
       help3
       return :reask
+    when all_helps[3]
+      help4
+      return :reask
     when nil
       stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
@@ -293,10 +301,6 @@ class QuizFlavour
     "difficulty is '#{$opts[:difficulty].upcase}'"
   end
 
-  def reset_choices
-    @choices = @choices_orig.clone
-  end
-  
   def play_holes hide: nil, reverse: false, holes: nil
     holes ||= @holes
     make_term_immediate
@@ -310,6 +314,10 @@ class QuizFlavour
   end
 
   def help3_desc
+    nil
+  end
+
+  def help4_desc
     nil
   end
 
@@ -334,6 +342,7 @@ class QuizFlavour
     if char == 'BACKSPACE'
       puts "\nSame question again ..."
       @choices = @choices_orig.clone
+      @state = @state_orig.clone
       return :reissue
     end
     return :next  
@@ -388,6 +397,7 @@ end
 class HearScale < QuizFlavour
 
   def initialize
+    super
     @choices = $all_quiz_scales[$opts[:difficulty]].clone
     @choices_orig = @choices.clone
     begin
@@ -431,9 +441,13 @@ end
 class MatchScale < QuizFlavour
 
   def initialize
+    super
     scales = $all_quiz_scales[$opts[:difficulty]]
     @choices = scales.clone 
     @choices_orig = @choices.clone
+    @state = Hash.new
+    @state[:hide_holes] = :all
+    @state_orig = @state.clone
     @scales_holes = scales.map do |scale|
       holes, _, _, _ = read_and_parse_scale(scale, $harp)
       [scale, holes]
@@ -511,13 +525,13 @@ class MatchScale < QuizFlavour
     puts "Playing solution scale #{@solution} ..."
     sleep 0.2
     puts
-    play_holes holes: @holes_scale
+    play_holes holes: @holes_scale, hide: @state[:hide_holes]
     puts
     sleep 0.5
     puts "Playing the holes in question ..."
     sleep 0.2
     puts
-    play_holes
+    play_holes hide: @state[:hide_holes]
   end
   
   def issue_question
@@ -525,7 +539,7 @@ class MatchScale < QuizFlavour
     puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'} ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
-    play_holes
+    play_holes hide: @state[:hide_holes]
   end
 
   def tag_desc tag
@@ -542,7 +556,7 @@ class MatchScale < QuizFlavour
     end
     choose_clean_up
     if answer
-      play_holes(holes: @scales_holes[answer])
+      play_holes(holes: @scales_holes[answer], hide: @state[:hide_holes])
     else
       puts "\nNo scale selected to play.\n\n"
     end
@@ -553,15 +567,26 @@ class MatchScale < QuizFlavour
   end
 
   def help3
+    puts "Showing all holes played (this question only)."
+    @state[:hide_holes] = nil
+    play_holes hide: @state[:hide_holes]
+  end
+
+  def help3_desc
+    ['.HELP-SHOW-HOLES', 'Show the holes played']
+  end
+
+  def help4
     puts "\n\e[2mPrinting all scales with their holes.\n\n"
     maxl = @scales_holes.keys.max_by(&:length).length
     @scales_holes.each do |k, v|
       puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join('  ')}\e[0m"
     end
-    puts "\n\e[2mTotal of #{@choices.length} scales.\n"
+    puts "\n\e[2m#{@choices.length} scales\n\n"
+    puts "\e[2mAnd the holes in question:\e[0m\e[32m   #{@holes.join('  ')}\e[0m"
   end
 
-  def help3_desc
+  def help4_desc
     ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
   end
 
@@ -571,6 +596,7 @@ end
 class HearInter < QuizFlavour
 
   def initialize
+    super
     @choices = $intervals_quiz.map {|i| $intervals[i][0]}
     @choices_orig = @choices.clone    
     begin
@@ -617,6 +643,7 @@ end
 class AddInter < QuizFlavour
 
   def initialize
+    super
     begin
       inter = get_random_interval
       @holes = inter[0..1]
@@ -668,7 +695,7 @@ end
 class KeyHarpSong < QuizFlavour
 
   def initialize
-
+    super
     harp2song = get_harp2song(basic_set: $opts[:difficulty] == :easy)
 
     @qdesc, @adesc, qi2ai = if rand > 0.5
@@ -724,6 +751,7 @@ class HearKey < QuizFlavour
             [:chord, 'chord']]
              
   def initialize
+    super
     @@seqs.rotate!(rand(@@seqs.length).to_i)
     @seq = @@seqs[0][0]
     @nick = @@seqs[0][1]
