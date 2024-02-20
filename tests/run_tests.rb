@@ -2366,7 +2366,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[9]["difficulty is 'HARD', taking 10 scales out of 19"] }
+  expect { screen[9]["The difficulty is 'HARD', taking 7 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2421,6 +2421,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   kill_session
 end
 
+# screen looks different, if a chord is played or a sequence of notes
 do_test 'id-96: quiz-flavour hear-key' do
   new_session
   tms 'harpwise quiz hear-key --difficulty easy'

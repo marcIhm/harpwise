@@ -33,7 +33,7 @@ def do_quiz to_handle
     ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
     # do some actions of at_exit-handler here
     sane_term
-    print "\e[?25l\e[2m\e[34m... quiz start over ...\e[0m"  ## hide cursor
+    print "\e[?25l\e[2m\e[34m ... quiz start over ... \e[0m"  ## hide cursor
     if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
       File.write($pers_file, JSON.pretty_generate($pers_data))
     end
@@ -448,7 +448,7 @@ class MatchScale < QuizFlavour
     @state = Hash.new
     @state[:hide_holes] = :all
     @state_orig = @state.clone
-    @scales_holes = scales.map do |scale|
+    @scale2holes = scales.map do |scale|
       holes, _, _, _ = read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
@@ -457,9 +457,11 @@ class MatchScale < QuizFlavour
     # of the scales with equal probability
     pool = Hash.new
     others = Hash.new
+    unique = Hash.new
     # having duplicates in all_holes emperically has a higher chance
-    # for finding examples even for exotic scales
-    all_holes = @scales_holes.values.flatten
+    # for finding examples even for exotic scales. In addition, this
+    # algorithm gives nicer, up-and-down sequences
+    all_holes = @scale2holes.values.flatten
     rounds = 0
     # loop until: we have a sequence for every scale and
     until ( pool.keys.length == scales.length &&
@@ -474,17 +476,17 @@ class MatchScale < QuizFlavour
                           # must be superset, i.e. contain all holes;
                           # subtracting arrays does work, even if
                           # holes has duplicates (which it has)
-                          select {|sc| (holes - @scales_holes[sc]).length == 0}.
+                          select {|sc| (holes - @scale2holes[sc]).length == 0}.
                           # group by length, so that we know, if two
                           # or more scales with the same length are
                           # superset; we do not want this, because it
                           # would be ambigous. The result of group_by.to_a
                           # has this form (e.g.):
                           # [[len1,[sc1,sc2]],[len2,[sc3]]]
-                          group_by {|sc| @scales_holes[sc].length}.to_a.
+                          group_by {|sc| @scale2holes[sc].length}.to_a.
                           # sort by length, so that the shortest scale
                           # comes first
-                          sort_by {|g1, g2| g1[0] <=> g2[0]}
+                          sort {|g1, g2| g1[0] <=> g2[0]}
       # if there are any matching scales, take shortest but only if it
       # is not ambigous
       if superset_scales.length > 0 && superset_scales[0][1].length == 1
@@ -494,6 +496,18 @@ class MatchScale < QuizFlavour
           pool[scale] = holes
           os = superset_scales.map {|ssc| ssc[1]}.flatten.uniq - [scale]
           others[scale] = ( os.length > 0  ?  os  :  nil )
+          unique[scale] = holes -
+                          @scale2holes.keys.select {|s| s != scale}.
+                            map {|s| @scale2holes[s]}.flatten
+          unique[scale] = nil if unique[scale].length == 0
+          ( ierr = if unique[scale] && (unique[scale] - @scale2holes[scale]).length > 0
+                     "unique holes #{unique[scale]} not all in chosen scale"
+                   elsif others[scale] && unique[scale]
+                     "other scales and unique holes at once"
+                   else
+                     nil
+                   end ) && 
+            err("Internal error:\n  scale = #{scale}\n  holes = #{holes}\n  scale2holes = #{@scale2holes}\n\n#{ierr}")
         end
       end
     end
@@ -504,7 +518,8 @@ class MatchScale < QuizFlavour
     @@prevs.shift if @@prevs.length > 2
     @holes = pool[@solution]
     @others = others[@solution]
-    @holes_scale = @scales_holes[@solution]
+    @unique = unique[@solution]
+    @holes_scale = @scale2holes[@solution]
     @prompt = "Choose the #{@others ? 'SHORTEST' : 'single'} scale, that contains the holes in question:"
     @help_head = 'Scale'
   end
@@ -515,23 +530,28 @@ class MatchScale < QuizFlavour
   end
   
   def after_solve
-    if @others
-      puts
-      puts "\e[2mThe other, but longer scales are:  #{@others.join(', ')}\e[0m"
-      puts
-      sleep 0.2
-    end
     puts
     puts "Playing solution scale #{@solution} ..."
     sleep 0.2
     puts
-    play_holes holes: @holes_scale, hide: @state[:hide_holes]
+    play_holes holes: @holes_scale
     puts
     sleep 0.5
     puts "Playing the holes in question ..."
     sleep 0.2
     puts
-    play_holes hide: @state[:hide_holes]
+    play_holes
+    puts "\n\e[2m"
+    if @others
+      puts "The other, but longer scales are:  #{@others.join(', ')}"
+    elsif @unique
+      puts "These holes make this sequence a\nunique fit for scale #{@solution} only:  #{@unique.join(', ')}"
+    else
+      puts "The sequence shares all its holes with two or more scales,\nbut only with #{@solution} it shares them all."
+    end
+    puts "\nChoice of scale was among:   #{@choices_orig.join('  ')}"
+    puts "\e[0m"
+    sleep 0.2
   end
   
   def issue_question
@@ -543,9 +563,9 @@ class MatchScale < QuizFlavour
   end
 
   def tag_desc tag
-    holes = @scales_holes[tag]
+    holes = @scale2holes[tag]
     return nil unless holes
-    "#{tag} (#{holes.length} holes)"
+    "#{$scale2desc[tag]} (#{holes.length} holes)"
   end
 
   def help2
@@ -556,7 +576,7 @@ class MatchScale < QuizFlavour
     end
     choose_clean_up
     if answer
-      play_holes(holes: @scales_holes[answer], hide: @state[:hide_holes])
+      play_holes(holes: @scale2holes[answer], hide: @state[:hide_holes])
     else
       puts "\nNo scale selected to play.\n\n"
     end
@@ -578,8 +598,8 @@ class MatchScale < QuizFlavour
 
   def help4
     puts "\n\e[2mPrinting all scales with their holes.\n\n"
-    maxl = @scales_holes.keys.max_by(&:length).length
-    @scales_holes.each do |k, v|
+    maxl = @scale2holes.keys.max_by(&:length).length
+    @scale2holes.each do |k, v|
       puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join('  ')}\e[0m"
     end
     puts "\n\e[2m#{@choices.length} scales\n\n"
