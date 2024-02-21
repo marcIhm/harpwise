@@ -222,7 +222,7 @@ class QuizFlavour
                     '.SOLVE' => 'Give solution and go to next question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
-    [help2_desc, help3_desc, help4_desc].each_with_index do |desc, idx|
+    [help2_desc, help3_desc, help4_desc, help5_desc].each_with_index do |desc, idx|
       next unless desc
       all_choices << desc[0]
       choices_desc[desc[0]] = desc[1]
@@ -287,6 +287,9 @@ class QuizFlavour
     when all_helps[3]
       help4
       return :reask
+    when all_helps[4]
+      help5
+      return :reask
     when nil
       stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
@@ -318,6 +321,10 @@ class QuizFlavour
   end
 
   def help4_desc
+    nil
+  end
+
+  def help5_desc
     nil
   end
 
@@ -608,6 +615,16 @@ class MatchScale < QuizFlavour
 
   def help4_desc
     ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
+  end
+
+  def help5
+    puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
+    play_holes hide: @state[:hide_holes],
+               holes: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
+  end
+
+  def help5_desc
+    ['.HELP-PLAY-SORTED', 'Play holes of sequence in ascending order']
   end
 
 end
