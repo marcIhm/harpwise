@@ -1,15 +1,17 @@
 OVERVIEW
 
-  The mode 'quiz' is a quiz on music theory and musical memory and
-  comes in different flavours. It issues questions and asks for an
-  answer. Some flavours involve holes beeing played either as part of
-  the question or the answer.
+  The mode 'quiz' is a quiz on music theory and musical memory. It is
+  meant as a fun way to increase your musical abilities. Quiz comes in
+  different flavours. It issues questions and asks for an answer. Most
+  flavours involve holes beeing played either as part of the question
+  or the answer.
 
   Every time you invoke harpwise with mode 'quiz', a flavour is
-  chosen; to try another flavour, just restart harpwise.  For a chosen
-  flavour, questions are posed in an endless loop.
+  chosen; to try another flavour, just restart harpwise, e.g. by
+  pressing ctrl-z.  For a chosen flavour, questions of this flavour
+  are asked in an endless loop.
 
-  The known flavours are:
+  The available flavours are:
 
 <%= get_extra_desc(true).join("\n") %>
   

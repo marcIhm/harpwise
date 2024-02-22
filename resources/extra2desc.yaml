@@ -70,9 +70,9 @@ quiz:
   random, ran, rand: |
     choose one quiz flavour at random
   replay: |
-    harpwise plays a sequence of holes and you should play it back
+    harpwise plays a sequence of holes and you asks to play it back
   play-scale: |
-    gives you the name of a scale and asks to play it
+    gives the name of a scale and asks to play it
   play-inter: |
     names a hole and an interval which resolves to a hole; then asks
     to play back both holes
@@ -81,7 +81,7 @@ quiz:
     its name
   match-scale: |
     plays a random sequence of holes, that are either a subset of one
-    or many scales and asks for the name of the single or sortest
+    or many scales and asks for the name of the single or shortest
     scale containing all these holes
   hear-inter: |
     plays an interval and asks for its name
@@ -92,9 +92,9 @@ quiz:
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa
   hear-key: |
-    plays a sequence of notes starting from a random key
-    (i.e. its base-note); asks for this key
-    (rather than for the matching harmonica)
+    plays a sequence of notes starting from a random key (i.e. its
+    base-note); asks for this key (rather than for the matching
+    harmonica)
 develop:
   man: |
     produce man page from erb-template
