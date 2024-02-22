@@ -578,32 +578,43 @@ class MatchScale < QuizFlavour
   def help2
     puts "For help, choose one of the answer-scales to be played:"
     choose_prepare_for
-    answer = choose_interactive("Scale to compare:", @choices) do |tag|
+    answer = choose_interactive("Scale to compare:", @choices.map {|s| "compare-#{s}"}) do |tag|
       "#{@help_head} #{tag_desc(tag)}" 
     end
     choose_clean_up
     if answer
-      play_holes(holes: @scale2holes[answer], hide: @state[:hide_holes])
+      play_holes(holes: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
     else
       puts "\nNo scale selected to play.\n\n"
     end
+    puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
   end
 
   def help2_desc
-    ['.HELP-PLAY', 'Select a scale and play it for comparison']
+    ['.HELP-PLAY-COMPARE', 'Select a scale and play it for comparison']
   end
 
   def help3
+    puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
+    play_holes hide: @state[:hide_holes],
+               holes: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
+  end
+
+  def help3_desc
+    ['.HELP-PLAY-ASCENDING', 'Play holes-in-question in ascending order']
+  end
+
+  def help4
     puts "Showing all holes played (this question only)."
     @state[:hide_holes] = nil
     play_holes hide: @state[:hide_holes]
   end
 
-  def help3_desc
+  def help4_desc
     ['.HELP-SHOW-HOLES', 'Show the holes played']
   end
 
-  def help4
+  def help5
     puts "\n\e[2mPrinting all scales with their holes.\n\n"
     maxl = @scale2holes.keys.max_by(&:length).length
     @scale2holes.each do |k, v|
@@ -613,18 +624,8 @@ class MatchScale < QuizFlavour
     puts "\e[2mAnd the holes in question:\e[0m\e[32m   #{@holes.join('  ')}\e[0m"
   end
 
-  def help4_desc
-    ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
-  end
-
-  def help5
-    puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
-    play_holes hide: @state[:hide_holes],
-               holes: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
-  end
-
   def help5_desc
-    ['.HELP-PLAY-SORTED', 'Play holes of sequence in ascending order']
+    ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
   end
 
 end
