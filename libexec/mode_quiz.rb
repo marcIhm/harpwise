@@ -247,6 +247,9 @@ class QuizFlavour
       return next_or_reissue
     end
     case answer
+    when nil
+      stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
+      return :reask
     when '.AGAIN'
       stand_out 'Asking question again.'
       puts
@@ -289,9 +292,6 @@ class QuizFlavour
       return :reask
     when all_helps[4]
       help5
-      return :reask
-    when nil
-      stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
     else
       stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
