@@ -21,6 +21,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   trace_text = nil
+  quiz_prevs ||= Array.new
   
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -104,7 +105,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       
       # figure out holes to play
       if $mode == :quiz
-        quiz_prevs ||= Array.new
         unless first_round
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'

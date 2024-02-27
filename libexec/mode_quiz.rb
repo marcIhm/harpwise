@@ -359,17 +359,18 @@ class QuizFlavour
     clear_area_comment
     clear_area_message
     make_term_cooked
-    print "\e[#{$lines[:comment_tall]}H"
+    print "\e[#{$lines[:comment_tall] - 1}H\e[K"
   end
 
   def choose_prepare_for
     prepare_term
     make_term_immediate
     $ctl_kb_queue.clear
-    ($term_height - $lines[:comment_tall] + 1).times do
+    ($term_height - $lines[:comment_tall] + 3).times do
       sleep 0.01
       puts
     end
+    print "\e[#{$lines[:comment_tall] - 1}H\e[2m" + ( '-' * ( $term_width * 0.5 )) + "\e[0m"
   end
 end
 

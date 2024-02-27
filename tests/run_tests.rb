@@ -353,7 +353,7 @@ usage_types.keys.each_with_index do |mode, idx|
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
                      'calibrate' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory and musical memory and"],
+                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory and musical memory"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
@@ -2351,11 +2351,11 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[9]["difficulty is 'EASY', taking 4 scales out of 19"] }
+  expect { screen[7]["difficulty is 'EASY', taking 4 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
-  expect { screen[12]['Removing some choices'] }
+  expect { screen[10]['Removing some choices'] }
   kill_session
 end
 
@@ -2366,7 +2366,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 0.5
   tms '+'
   sleep 2
-  expect { screen[9]["The difficulty is 'HARD', taking 7 scales out of 19"] }
+  expect { screen[7]["The difficulty is 'HARD', taking 7 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2399,7 +2399,7 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms 'harpwise quiz add-inter'
   tms :ENTER
   sleep 2
-  expect { screen[12]['and add interval'] || screen[12]['and subtract interval'] }
+  expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
   kill_session
 end
 
@@ -2408,16 +2408,16 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms 'harpwise quiz key-harp-song'
   tms :ENTER
   sleep 2
-  expect { screen[11]['Given a HARP with key of'] || screen[11]['Given a SONG with key of'] }
+  expect { screen[9]['Given a HARP with key of'] || screen[9]['Given a SONG with key of'] }
   sleep 1
   tms 'help-play-answer'
   tms :ENTER
-  expect { screen[10]['for answer-key of'] }  
+  expect { screen[8]['for answer-key of'] }  
   tms 'solve'
   tms :ENTER
   sleep 1
   tms :BSPACE
-  expect { screen[9]['Same question again'] }  
+  expect { screen[7]['Same question again'] }  
   kill_session
 end
 
@@ -2428,10 +2428,11 @@ do_test 'id-96: quiz-flavour hear-key' do
   tms :ENTER
   sleep 10
   txt = 'Plays a sequence of notes starting from a random key'
-  expect { screen[3][txt] || screen[6][txt] }
+  expect { screen[1][txt] || screen[4][txt] }
   tms 'help-other-seq'
   tms :ENTER
-  expect { screen[16]['Sequence of notes changed'] }  
+  txt = 'Sequence of notes changed'
+  expect { screen[8][txt] || screen[11][txt] }  
   sleep 10
   tms 'help-pitch'
   tms :ENTER
@@ -2449,10 +2450,10 @@ do_test 'id-96b: quiz-flavour match-scale' do
   tms 'harpwise quiz match-scale --difficulty easy'
   tms :ENTER
   sleep 6
-  expect { screen[2]['Plays a random sequence of holes, that are either a subset of one'] }
+  expect { screen[0]['Plays a random sequence of holes, that are either a subset of one'] }
   tms 'help-print-scales'
   tms :ENTER
-  expect { screen[7]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
+  expect { screen[5]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
   kill_session
 end
 
