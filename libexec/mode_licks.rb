@@ -21,7 +21,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   trace_text = nil
-  quiz_prevs ||= Array.new
+  quiz_prevs = Array.new
   
   loop do   # forever until ctrl-c, sequence after sequence
 
@@ -130,7 +130,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
             quiz_prevs << quiz_scale_name
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
-            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            print "\e[#{$lines[:comment]}H\e[0m\e[34m"
             do_figlet_unwrapped quiz_scale_name, 'smblock'
             sleep 2
           end

@@ -140,10 +140,11 @@ def do_quiz to_handle
                      end)
   elsif $extra == 'play-scale'
     scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-    puts "\e[34mScale to play is:\e[0m\e[2m"
+    puts
+    puts "\e[34mScale to play is:\n-----------------"
     puts
     do_figlet_unwrapped scale_name, 'smblock'
-    puts
+    puts "\e[0m"
     puts
     sleep 2
     msgbuf_quiz_listen_perspective is_random
