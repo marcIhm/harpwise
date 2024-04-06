@@ -619,6 +619,9 @@ def read_and_set_musical_config
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
 
+  # e.g. for quiz keep-tempo
+  typical_hole = harp_holes.include?('-2') ? '-2' : harp_holes[0]
+  
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
   $intervals_quiz = Array.new
@@ -656,7 +659,8 @@ def read_and_set_musical_config
     semi2hole,
     intervals,
     intervals_inv,
-    hole_root]
+    hole_root,
+    typical_hole]
 
 end
 
@@ -926,7 +930,7 @@ def set_global_musical_vars
     fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole = read_and_set_musical_config
   $charts, $hole2chart = read_chart
   if $hole_ref
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)

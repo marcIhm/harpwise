@@ -95,6 +95,11 @@ quiz:
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching
     harmonica)
+  keep-tempo: |
+    plays a number of beats defining a certain tempo; then some
+    silence and then some final beats. You are expected to play along
+    and keep the given tempo throughout; harpwise records your playing
+    and checks, how well you kept the tempo
 develop:
   man: |
     produce man page from erb-template
