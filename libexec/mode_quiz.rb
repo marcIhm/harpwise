@@ -923,10 +923,11 @@ class KeepTempo < QuizFlavour
   end
   
   def set_params
+    # dont go faster, because precision of record and play does not allow
     @tempo = 50 + 5 * rand(5)
-    @beats_intro = 4
+    @beats_intro = 6
     @beats_keep = if $opts[:difficulty] == :easy
-                    4 + 2 * rand(4)
+                    2 + 2 * rand(4)
                   else
                     8 + 2 * rand(6)
                   end
@@ -1048,10 +1049,9 @@ class KeepTempo < QuizFlavour
     # check lengths
     len_tempo = sox_query(@template, 'Length')
     len_rec = ( @warned  ?  len_tempo  :  sox_query(@recording, 'Length') )
-    puts "\e[2m(length of played template = #{len_tempo} sec, length of untrimmed recording = #{len_rec})\e[0m" 
+    puts "\e[2m  Length of played template = %.2f sec, length of untrimmed recording = %.2f\e[0m" % [len_tempo, len_rec]
 
-    subdivs = 4.0
-    @warned = if (len_tempo - len_rec).abs > @slice / subdivs
+    @warned = if (len_tempo - len_rec).abs > @slice / 4
                 puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec} !\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n  \e[32m    But you can still trust your ear !\e[0m\n\n  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"
                 true
               else
@@ -1059,15 +1059,33 @@ class KeepTempo < QuizFlavour
               end
 
     # Extract solo-part of user audio
-    
+
+    # Each beat is less than half silent (see its generation), so the
+    # stretch where sound is expected is @beats_keep - 0.5. We also
+    # have ensured, that overall jitter is not more than 0.25 beats
+    # (see above); so we should be safe, if we extend start by 0.25
+    # beats to the left and extend end by 0.25 beats to the right
+    # (hence duration by 0.5 beats)
+
+    # Example for steady playing throught intro, keep and outro
+    # beats_intro == beats_outro == 1
+    # beats_keep == 3
+    # 
+    #         ####    ####    ####    ####    ####            sound
+    #             ....    ....    ....    ....    ....        silence
+    #               rrrrrrrrrrrrrrrrrrrrrrrr                  record
+    #
+
     # for calculation below we assume, that recording starts after
     # playing and that both end at the same time, but this is only a
     # guess. Later we will assume, that the first beat is on time
+    
     total_len = 60.0 * (@beats_intro + @beats_keep + @beats_outro) / @tempo
     start = [0.0,
-             (total_len - len_rec) + 60.0 * (@beats_intro - 1 / subdivs) / @tempo].max
-    duration = 60.0 * (@beats_keep + 2 / subdivs) / @tempo
-
+             (total_len - len_rec) + 60.0 * (@beats_intro - 0.25) / @tempo].max
+    duration = 60.0 * @beats_keep / @tempo
+    puts "\e[2m  Analysis start = %.2f sec, duration = %.2f\e[0m" % [start, duration]
+    
     sys "sox #{@recording} #{@trimmed} trim #{start} #{duration}"
 
     # get frequency content
@@ -1101,9 +1119,10 @@ class KeepTempo < QuizFlavour
     maxchars = ($term_width - 30) * 0.8
     scale = maxchars / @beats_expected[-1]
     puts
+    puts "\e[2mTimestamps:"
     [['E', "\e[0m\e[34m  Expected:", @beats_expected],
      ['Y', "\e[0m\e[32mYou played:", @beats_found]].each do |char, label, beats|
-      print " #{label}  "
+      print "  #{label}  "
       nchars = 0
       # this could be done simpler, but then rounding-errors may add up
       beats.each do |beat|
@@ -1114,8 +1133,7 @@ class KeepTempo < QuizFlavour
         print char
         nchars += 1
       end
-      print '.' * (maxchars - nchars) if maxchars > nchars
-      print "    \e[0m\e[2m(%.1f s)" % beats[-1] if beats.length > 1
+      print "    \e[0m\e[2m(%.2f s)" % beats[-1] if beats.length > 1
       puts "\e[0m"
     end
   end
