@@ -919,6 +919,10 @@ class KeepTempo < QuizFlavour
   @@explained = false
   @@history = Array.new
 
+  def self.describe_difficulty
+    # implement this for unit-test only
+  end
+  
   def clear_history
     @@history = Array.new
   end
@@ -928,12 +932,16 @@ class KeepTempo < QuizFlavour
     @tempo = 50 + 5 * rand(5)
     @beats_intro = 6
     @beats_keep = if $opts[:difficulty] == :easy
-                    2 + 2 * rand(4)
+                    4 + 2 * rand(4)
                   else
                     8 + 2 * rand(6)
                   end
     @beats_outro = 4
 
+    if $testing
+      @beats_intro = @beats_keep = @beats_outro = 2
+    end
+    
     @slice = 60.0 / @tempo
     @template = @markers = nil
 
@@ -986,35 +994,42 @@ class KeepTempo < QuizFlavour
     puts
     puts "\e[2m#{@tempo} bpm\e[0m\n\n"
     
-    print "\e[0m\e[2mDraining recording pipeline ... "
+    print "\e[0m\e[2mPreparing ... "
     # wake up (?) and drain sound system to ensure prompt reaction
     if $testing
       sleep 3
+      rec_pid = Process.spawn "sleep 1000"
     else
       # trigger sox error up front instead of after recording
       sys "play --norm=#{$vol.to_i} -q #{silence}", $sox_fail_however
       # record and throw away all stuff that might be in the recording pipeline
       rec_pid = Process.spawn "sox -d -q -r #{$conf[:sample_rate]} #{@recording}"
-      [3,2,1].each do |x|
-        print "#{x} ... "
-        sleep 1
-      end
-      Process.kill('HUP', rec_pid)
-      Process.wait(rec_pid)
-      puts "\e[0mGO !\n\n"
     end
+    [3,2,1].each do |x|
+      print "#{x} ... "
+      sleep 1
+    end
+    Process.kill('HUP', rec_pid)
+    Process.wait(rec_pid)
+    puts "\e[0mGO !\n\n"
 
     # play and record
     wait_thr = Thread.new do
-      cmd = if $testing
-              sleep 1
-            else
-              "play --norm=#{$vol.to_i} -q #{@template}"
-            end  
+      cmd_play = if $testing
+                   "sleep 5"
+                 else
+                   "play --norm=#{$vol.to_i} -q #{@template}"
+                 end  
+      cmd_rec = if $testing
+                  FileUtils.cp $test_wav, @recording
+                  "sleep 1000"
+                else
+                  "sox -d -q -r #{$conf[:sample_rate]} #{@recording}"
+                end  
       # start play and record as close together as possible
-      rec_pid = Process.spawn "sox -d -q -r #{$conf[:sample_rate]} #{@recording}"
-      # play intro, silence and outro
-      sys cmd, $sox_fail_however
+      rec_pid = Process.spawn cmd_rec
+      # play intro, silence and outro synchronously
+      sys cmd_play, $sox_fail_however
       # stop recording
       Process.kill('HUP', rec_pid)
       Process.wait(rec_pid)
@@ -1121,7 +1136,7 @@ class KeepTempo < QuizFlavour
     maxchars = ($term_width - 30) * 0.8
     scale = maxchars / @beats_expected[-1]
     puts
-    puts "\e[2mTimestamps:"
+    puts "\e[2mTimestamps:\n\n"
     [['E', "\e[0m\e[34m  Expected:", @beats_expected],
      ['Y', "\e[0m\e[32mYou played:", @beats_found]].each do |char, label, beats|
       print "  #{label}  "
@@ -1136,8 +1151,8 @@ class KeepTempo < QuizFlavour
         nchars += 1
       end
       print "    \e[0m\e[2m(%.2f s)" % beats[-1] if beats.length > 1
-      print "no input" if beats.length == 0
-      puts "\e[0m"
+      print "... no beats found ..." if beats.length == 0
+      puts "\e[0m\n"
     end
   end
 
@@ -1202,7 +1217,7 @@ class HearTempo < QuizFlavour
 
   def issue_question
     puts
-    puts "\e[34mPlaying #{@num_beats} beats of Tempo in question\e[0m"
+    puts "\e[34mPlaying #{@num_beats} beats of Tempo to find\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     puts

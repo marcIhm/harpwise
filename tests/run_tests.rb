@@ -2457,6 +2457,34 @@ do_test 'id-96b: quiz-flavour match-scale' do
   kill_session
 end
 
+do_test 'id-96c: quiz-flavour keep-tempo' do
+  new_session
+  sound 8, 2
+  tms 'harpwise quiz keep-tempo --difficulty easy'
+  tms :ENTER
+  sleep 2
+  expect { screen[21]['Ready to play ?'] }
+  tms :ENTER
+  sleep 12
+  expect { screen[6]['no beats found'] }
+  kill_session
+end
+
+do_test 'id-96d: quiz-flavour hear-tempo' do
+  new_session
+  tms 'harpwise quiz hear-tempo --difficulty easy'
+  tms :ENTER
+  sleep 6
+  expect { screen[9]['Playing 6 beats of Tempo to find'] }
+  tms 'compare'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 4
+  expect { screen[11]['Done with compare, BACK to original question.'] }  
+  kill_session
+end
+
 do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
