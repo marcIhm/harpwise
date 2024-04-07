@@ -100,6 +100,8 @@ quiz:
     silence and then some final beats. You are expected to play along
     and keep the given tempo throughout; harpwise records your playing
     and checks, how well you kept the tempo
+  hear-tempo: |
+    plays a tempo and asks for its bpm
 develop:
   man: |
     produce man page from erb-template

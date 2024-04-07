@@ -6,7 +6,7 @@ def do_quiz to_handle
 
   print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
-  
+
   err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if $extra != 'replay' && to_handle.length > 0
 
   $num_quiz_replay_explicit = false
@@ -185,6 +185,7 @@ def do_quiz to_handle
         puts "\e[0mWhat's next ?"
         puts
         puts "\e[0m\e[32mPress any key to retry with current parameters or\n      BACKSPACE to try a new set ... \e[0m"
+        drain_chars
         char = one_char
         if char == 'BACKSPACE'
           puts "\n\e[2mChoosing new set of parameters ...\e[0m"
@@ -1018,7 +1019,8 @@ class KeepTempo < QuizFlavour
       Process.kill('HUP', rec_pid)
       Process.wait(rec_pid)
     end
-    
+
+    puts "\e[2m(no help or pause, while playing this)\e[0m\n\n"
     # issue (and consume) markers in parallel to play and record
     loops_per_slice = 40
     started = Time.now.to_f
@@ -1134,6 +1136,7 @@ class KeepTempo < QuizFlavour
         nchars += 1
       end
       print "    \e[0m\e[2m(%.2f s)" % beats[-1] if beats.length > 1
+      print "no input" if beats.length == 0
       puts "\e[0m"
     end
   end
@@ -1171,6 +1174,69 @@ class KeepTempo < QuizFlavour
   
 end
 
+
+class HearTempo < QuizFlavour
+
+  @@choices = {:easy => %w(70 90 110 130),
+               :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160)}
+  
+  def initialize
+    super
+    @choices = @@choices[$opts[:difficulty]].clone
+    @choices_orig = @choices.clone
+    @num_beats = 6
+    begin
+      @solution = @choices.sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = 'Choose the Tempo you have heard:'
+    @help_head = 'Tempo'
+    @sample = quiz_generate_tempo('s', Integer(@solution), @num_beats, 0, 0)
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+    ", one tempo out of #{@@choices[$opts[:difficulty]].length}"
+  end
+
+  def issue_question
+    puts
+    puts "\e[34mPlaying #{@num_beats} beats of Tempo in question\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    sleep 0.1
+    puts
+    make_term_immediate
+    $ctl_kb_queue.clear    
+    play_recording_and_handle_kb_simple @sample, true
+    make_term_cooked
+  end
+
+  def help2
+    puts "For help, choose one of the answer-tempos to be played:"
+    choose_prepare_for
+    answer = choose_interactive("Tempo to compare:", @choices.map {|x| "compare-#{x}"}) do |tag|
+      "compare with #{@help_head} #{tag_desc(tag)}" 
+    end
+    choose_clean_up
+    if answer
+      help = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0, 0)
+      puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
+      make_term_immediate
+      $ctl_kb_queue.clear    
+      play_recording_and_handle_kb_simple help, true
+      make_term_cooked
+    else
+      puts "\nNo Tempo selected to play.\n\n"
+    end
+    puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
+  end
+
+  def help2_desc
+    ['.HELP-COMPARE', 'Play one of the choices']
+  end
+
+end
 
 
 def get_random_interval

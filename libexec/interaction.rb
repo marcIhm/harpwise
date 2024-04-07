@@ -883,6 +883,17 @@ def process_recorded_data plot_width
 end
 
 
+def drain_chars
+  prepare_term
+  # drain any already pending chars
+  system("stty -echo -icanon min 0 time 0")
+  begin
+  end while STDIN.getc
+  system("stty min 1")
+  sane_term  
+end
+
+
 def one_char
   prepare_term
   # wait for char
