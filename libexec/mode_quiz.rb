@@ -184,16 +184,16 @@ def do_quiz to_handle
         puts
         puts "\e[0mWhat's next ?"
         puts
-        puts "\e[0m\e[32mPress any key to retry with current parameters or\n      BACKSPACE to try a new set ... \e[0m"
+        puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
         drain_chars
         char = one_char
         if char == 'BACKSPACE'
+          puts "\n\e[2mAgain with the same set of parameters ...\e[0m"
+        else
           puts "\n\e[2mChoosing new set of parameters ...\e[0m"
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           keep.set_params
           keep.clear_history
-        else
-          puts "\n\e[2mAgain with the same set of parameters ...\e[0m"
         end
         sleep 0.2
       end
@@ -954,7 +954,7 @@ class KeepTempo < QuizFlavour
 
     if @@explained
       puts
-      puts "\e[2mParameters:"
+      puts "\e[2mParameters (#{QuizFlavour.difficulty_head}):"
       puts "  Tempo:          #{@tempo} bpm"
       puts "  PICK-UP-TEMPO:  #{@beats_intro} beats"
       puts "  KEEP-TEMPO:     #{@beats_keep}"
