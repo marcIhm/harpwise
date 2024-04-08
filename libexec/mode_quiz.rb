@@ -470,7 +470,7 @@ class HearScale < QuizFlavour
   end
 
   def tag_desc tag
-    $scale2desc[tag]
+    $scale2desc[tag] || tag
   end
 
 end
@@ -603,7 +603,7 @@ class MatchScale < QuizFlavour
   def tag_desc tag
     holes = @scale2holes[tag]
     return nil unless holes
-    "#{$scale2desc[tag]} (#{holes.length} holes)"
+    "#{$scale2desc[tag] || tag} (#{holes.length} holes)"
   end
 
   def help2
