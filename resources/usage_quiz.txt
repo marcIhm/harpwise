@@ -11,7 +11,7 @@ OVERVIEW
   pressing ctrl-z.  For a chosen flavour, questions of this flavour
   are asked in an endless loop.
 
-  The available flavours are:
+  The available <%= $extra_desc[:quiz].length %> flavours are:
 
 <%= get_extra_desc(true).join("\n") %>
   
