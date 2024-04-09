@@ -929,7 +929,11 @@ class KeepTempo < QuizFlavour
   
   def set_params
     # dont go faster, because precision of record and play does not allow
-    @tempo = 50 + 5 * rand(5)
+    @tempo = if $opts[:difficulty] == :easy
+               60 + 5 * rand(3)
+             else
+               50 + 5 * rand(5)
+             end
     @beats_intro = 6
     @beats_keep = if $opts[:difficulty] == :easy
                     4 + 2 * rand(4)

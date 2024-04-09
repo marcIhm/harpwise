@@ -11,9 +11,9 @@ specifies the mode of operation; it can be one of:
 
   - listen: The wise listens to your playing, e.g. to monitor bends or
     scales
-  - licks: Learn licks (only a few included, but pointers to find more)
   - quiz: Train your ear, memory and knowledge of music theory. This
     is actually fun and a great way to start with harpwise.
+  - licks: Learn licks (only a few included, but pointers to find more)
 
 And with a less interactive interface and not using your microphone:
 
@@ -125,7 +125,13 @@ Quick Start:
   
     harpwise listen c              
 
-  then blow your harp and come back later to learn about other modes.
+  then blow your harp and get feedback.
+
+  Or
+
+    harpwise quiz random
+
+  for a fun way to improve you musical skills.
 
 
 Version <%=$version%>
