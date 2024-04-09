@@ -101,6 +101,20 @@ User Configuration:
 
   ~/.harpwise/config.ini
 
+Diagnosis:
+
+  Harpwise uses the excellent program sox (aka play, aka rec) to
+  interact with your sound system. Sox handles all playing and
+  recording of sounds.
+
+  However, sometimes, sox might not be configured correctly out of the
+  box. If you feel, that sox (and therefore harpwise) has problems
+  with sounds or if you see spurious error messages, you may invoke:
+
+     harpwise tools diag
+
+  to execute two basic tests and get some advice.
+
 Quick Start:
 
   Prepare your personal config with sound samples:

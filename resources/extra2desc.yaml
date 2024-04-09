@@ -66,6 +66,8 @@ tools:
   edit-config: |
     invoke editor on your personal config file
     <%= $early_conf[:config_file_user] %>
+  diag: |
+    help with diagnosing problems with your sound system
 quiz:
   random, ran, rand: |
     choose one quiz flavour at random

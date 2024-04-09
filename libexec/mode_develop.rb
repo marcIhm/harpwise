@@ -71,6 +71,7 @@ def do_diff
   erase_line_man = %w(MODE ARGUMENTS OPTIONS)
   replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
                   'USER CONFIGURATION' => 'USER CONFIGURATION:',
+                  'DIAGNOSIS' => 'DIAGNOSIS:',
                   'QUICK START' => 'QUICK START:'}
 
   #

@@ -220,35 +220,14 @@ def find_and_check_dirs
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
   $sox_fail_however = <<~end_of_however
 
-  sox (or play or rec) did not start correctly; see above.
-  --------------------------------------------------------
+  sox (or play or rec) did work start correctly; see error-message above.
+  -----------------------------------------------------------------------
 
-  However, you may try to make the command, that failed above, work on
-  the commandline. How this can be done, depends on the exact type of
-  error and cannot be described here. This applies to the commands
-  'sox' as well as its aliases 'play' and 'rec'.
+  Please try:
 
-  To give a real-world example:
+    harpwise tools diag
 
-  sox-Errors which mention "no default audio device" can often be
-  solved by setting (and exporting) the environment variable
-  AUDIODRIVER to a suitable value. sox shows possible values for this
-  when invoked without arguments; search for the line 'AUDIO DEVICE
-  DRIVERS'. Possible values might be 'alsa oss ossdsp pulseaudio'
-  (linux) or 'coreaudio' (macOS); so e.g. on linux setting and
-  exporting AUDIODRIVER=alsa might help.
-
-  If this is not enough to solve the (example) problem, you may also
-  set AUDIODEV to a suitable value, which however must be understood
-  by your audio driver (as specified by AUDIODRIVER); as a linux
-  example and for AUDIODRIVER=alsa, the setting AUDIODEV=hw:0 might
-  work. Note, that for macOS most surely different values will be
-  needed.
-
-  Other options necessary for sox might be passed through the
-  environmant variable SOX_OPTS. See the man-page of sox for details;
-  also see the documentation of your respective audio driver,
-  e.g. alsa (for linux) or coreaudio (for macOS).
+  which will execute a simple test, that can be diagnosed more easily.
 
   end_of_however
 

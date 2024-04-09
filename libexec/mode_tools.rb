@@ -38,6 +38,8 @@ def do_tools to_handle
     tool_progression to_handle
   when 'chords'
     tool_chords
+  when 'diag'
+    tool_diag
   else
     fail "Internal error: unknown extra '#{extra}'"
   end
@@ -478,3 +480,132 @@ def tool_notes to_handle
 end
 
 
+def tool_diag
+  puts "\n\n"
+  puts_underlined 'Some help with diagnosing sound-problems'
+
+  puts <<~end_of_intro
+  Harpwise uses the excellent program sox (aka rec aka play) under the
+  hood.  Normally, sox works just great, but on some system the
+  configuration of sox might have flaws.
+
+  Therefore, this assistant will invoke sox (or rec or play, both are
+  links to sox) in a typical way, giving you a chance to:
+
+    - Verify that sox (and therefore harpwise) can reord and play
+      sounds
+    - Easily spot any warnings or error messages, that might appear;
+      these will probably be \e[0;101min color\e[0m
+
+  end_of_intro
+
+  file = "/tmp/harpwise.wav"
+  FileUtils.rm file if File.exist?(file)
+  print "\e[?25l"  ## hide cursor
+
+  puts_underlined 'Recording sound', '-'
+  cmd_rec = if $testing
+              "sleep 100"
+            else
+              "sox -d -q -r #{$conf[:sample_rate]} #{file}"
+            end
+
+  puts <<~end_of_intro_rec
+  This will invoke:
+
+    #{cmd_rec}
+
+  to record any sound from your microphone.
+  The recording will be stopped after 3 seconds.
+
+  You should:
+
+    - Make some sound (e.g. play on your harmonica), that can be
+      recorded
+    - Look out for any extra output e.g. WARNINGS or ERRORS that may
+      appear
+
+  end_of_intro_rec
+
+  puts "Press any key to start: "
+  drain_chars
+  one_char
+  print "Recording started for 3 secs.\n\e[0;101m"
+  rec_pid = Process.spawn cmd_rec
+  sleep 3
+  puts "\e[0m\e[K\nDone.\n\n"
+  Process.kill('HUP', rec_pid)
+  Process.wait(rec_pid)
+
+  puts_underlined 'Replaying sound', '-'
+  cmd_play = if $testing
+              "sleep 3"
+            else
+              "play -q #{file}"
+            end
+
+  puts <<~end_of_intro_play
+  This will invoke:
+
+    #{cmd_play}
+
+  replay the sound, that has just been recorded.
+
+  You should:
+
+    - Listen and check, if you hear, what has been recorded previously
+    - Look out for any extra output e.g. WARNINGS or ERRORS that may
+      appear
+
+  end_of_intro_play
+
+  puts "Press any key to start: "
+  drain_chars
+  one_char
+  print "Replay started, 3 secs expected.\n\e[0;101m"
+  rec_pid = Process.spawn cmd_play
+  Process.wait(rec_pid)
+  puts "\e[0m\e[K\nDone.\n\n"
+
+  puts_underlined 'Some hints on troubleshooting'
+  puts "If you noticed any problems or errors or warnings,\nthere are some hints, that might help."
+  puts "Type 'y' to read those hints (and anything else to end): "
+  drain_chars
+  if one_char == 'y'
+    puts <<~end_of_guide
+
+    sox-Errors, which mention "no default audio device" or "encode
+    0-bit Unknown or not applicable" can sometimes be solved by
+    setting and exporting the environment variable AUDIODRIVER to a
+    suitable value.
+
+    sox shows possible values for this when invoked without arguments;
+    just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
+    might be 'alsa oss ossdsp pulseaudio' (linux) or 'coreaudio'
+    (macOS).
+
+    So e.g. on linux setting and exporting AUDIODRIVER=alsa might
+    help.
+
+
+    If this is not enough to solve the problem, you may also set
+    AUDIODEV to a suitable value, which however must be understood by
+    your audio driver (as specified by AUDIODRIVER).
+
+    As a linux example lets assume, that you have set AUDIODRIVER=alsa
+    above. Then, setting AUDIODEV=hw:0 in addition (which will inform
+    alsa about the device to use) might work. Note, that for macOS
+    most surely different values will be needed.
+
+
+    Other options necessary for sox might be passed through the
+    environment variable SOX_OPTS. See the man-page of sox for
+    details; also see the documentation of your respective audio
+    driver, e.g. alsa (for linux) or coreaudio (for macOS).
+
+    end_of_guide
+  end
+  
+  puts "\nDiagnosis done.\n\n"  
+  
+end

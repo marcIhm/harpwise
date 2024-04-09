@@ -106,7 +106,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 79
+num_exp = 80
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2531,6 +2531,21 @@ do_test 'id-99: widgets' do
   tms :RIGHT
   tms :ENTER
   expect { screen[15]['Answer: 2'] }
+  kill_session
+end
+
+do_test 'id-100: tool diagnosis' do
+  new_session
+  tms 'harpwise tool diag'
+  tms :ENTER
+  sleep 2
+  expect { screen[17]['Make some sound'] }
+  tms :ENTER
+  sleep 5
+  expect { screen[18]['Listen and check'] }
+  tms :ENTER
+  sleep 5
+  expect { screen[17]['Some hints on troubleshooting'] }
   kill_session
 end
 
