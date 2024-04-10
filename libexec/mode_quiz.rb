@@ -373,7 +373,12 @@ class QuizFlavour
   end
 
   def next_or_reissue
-    print "\e[32mPress any key for next question or BACKSPACE to re-ask this one ... \e[0m"
+    puts
+    puts "\e[2m" + ( '-' * ( $term_width * 0.5 ))
+    puts
+    puts "\e[0mWhat's next ?"
+    puts
+    puts "\e[32mPress any key for next question or BACKSPACE to re-ask this one ... \e[0m"
     char = one_char
     puts
     if char == 'BACKSPACE'
@@ -958,19 +963,19 @@ class KeepTempo < QuizFlavour
 
     if @@explained
       puts
-      puts "\e[2mParameters (#{QuizFlavour.difficulty_head}):"
-      puts "  Tempo:          #{@tempo} bpm"
-      puts "  PICK-UP-TEMPO:  #{@beats_intro} beats"
-      puts "  KEEP-TEMPO:     #{@beats_keep}"
-      puts "  TOGETHER-AGAIN: #{@beats_outro}"
+      puts "\e[2mParameters (#{$opts[:difficulty]}):"
+      puts "  Tempo:           #{@tempo} bpm"
+      puts "  PICK-UP-TEMPO:   %2s beats" % @beats_intro.to_s
+      puts "  KEEP-TEMPO:      %2s" % @beats_keep.to_s
+      puts "  TOGETHER-AGAIN:  %2s" % @beats_outro.to_s
       puts "\e[0m\n\n"
     else
       puts
       puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@tempo}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
-      puts " \e[0mPICK-UP-TEMPO\e[2m: Harpwise plays a stretch of \e[0m#{@beats_intro}\e[2m beats and you are invited\n   to join with the same tempo and hole '#{$typical_hole}'"
-      puts " \e[0mKEEP-TEMPO\e[2m: Playing pauses for \e[0m#{@beats_keep}\e[2m beats, but you should continue\n   on your own; this will be recorded for later analysis"
-      puts " \e[0mTOGETHER-AGAIN\e[2m: The wise plays again for \e[0m#{@beats_outro}\e[2m beats and in time with the\n    initial stretch, so that you may hear, if you are still on the beat"
-      puts " \e[0mANALYSIS\e[2m: The recording will be analysed and the result displayed"
+      puts " \e[0mPICK-UP-TEMPO:  %2s\e[2m ; Harpwise plays a stretch of #{@beats_intro} beats and you are\n    invited to join with the same tempo and hole '#{$typical_hole}'" % @beats_intro.to_s
+      puts " \e[0mKEEP-TEMPO:     %2s\e[2m ; Playing pauses for #{@beats_keep} beats, but you should\n   continue on your own; this will be recorded for later analysis" % @beats_keep
+      puts " \e[0mTOGETHER-AGAIN: %2s\e[2m ; The wise plays again for #{@beats_outro} beats and in time with the\n    initial stretch, so that you can hear, if you are still on the beat" % @beats_outro
+      puts " \e[0mANALYSIS:\e[2m The recording will be analysed and the result displayed"
       puts "\n(and then repeat with same or with changed params)\n\n"
       @@explained = true
     end
@@ -996,8 +1001,13 @@ class KeepTempo < QuizFlavour
     puts
     print "\e[?25l"
     puts
-    puts "\e[2m#{@tempo} bpm\e[0m\n\n"
-    
+    puts "\e[2m#{@tempo} bpm; no help or pause, while playing this.\e[0m\n\n"
+
+    12.times do
+      puts
+      sleep 0.05
+    end
+    print "\e[12A"
     print "\e[0m\e[2mPreparing ... "
     # wake up (?) and drain sound system to ensure prompt reaction
     if $testing
@@ -1039,24 +1049,25 @@ class KeepTempo < QuizFlavour
       Process.wait(rec_pid)
     end
 
-    puts "\e[2m(no help or pause, while playing this)\e[0m\n\n"
     # issue (and consume) markers in parallel to play and record
     loops_per_slice = 40
     started = Time.now.to_f
     begin
       beatno = ((Time.now.to_f - started) / @slice).to_i
       if beatno >= @markers[0][0] && @markers.length > 1 && beatno < @markers[1][0]
-        puts @markers[0][1]
+        print @markers[0][1]
         @markers.shift
+        if @markers.length == 1
+          sleep 1
+          print "  \e[0m\e[2m   ... Still in time ?\e[0m"
+        end
+        puts
       end
       sleep(@slice / loops_per_slice) if @markers.length == 1
     end while wait_thr.alive?
     # wait for end of thread
     wait_thr.join
 
-    puts "\n\e[32mHave you still been   \e[34mIN TIME\e[32m   at the end ?\n\n"
-    sleep 0.5
-    print "\e[0m\e[2mSee below for programmatic analysis ...\e[0m"
     sleep 0.5
     puts
   end
@@ -1064,7 +1075,7 @@ class KeepTempo < QuizFlavour
   
   def extract_beats
 
-    puts "\n\n"
+    puts
     puts @markers[0][1]
 
     # check lengths
@@ -1073,7 +1084,7 @@ class KeepTempo < QuizFlavour
     puts "\e[2m  Length of played template = %.2f sec, length of untrimmed recording = %.2f\e[0m" % [len_tempo, len_rec]
 
     @warned = if (len_tempo - len_rec).abs > @slice / 4
-                puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec} !\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n  \e[32m    But you can still trust your ear !\e[0m\n\n  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"
+                puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec} !\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n      \e[32mBut you can still judge by ear !\n\n      Have you still been   \e[34mIN TIME\e[32m   at the end ?\n\n\e[0m  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"                
                 true
               else
                 false
@@ -1162,7 +1173,7 @@ class KeepTempo < QuizFlavour
 
   
   def judge_result
-    puts "\n\n"
+    puts
     if @@history.length > 0
       puts "History of results with the current set of parameters so far:\e[2m"
       @@history.each {|h| puts "  #{h}"}
@@ -1173,19 +1184,20 @@ class KeepTempo < QuizFlavour
     puts "\e[0m"
     
     if @warned
-      puts "Unfortunately, further analysis is   NOT POSSIBLE   due to the warning above.\n\nPlease try again."
+      stand_out "Unfortunately, further analysis is NOT POSSIBLE\ndue to the warning above.\n\nPlease try again.", turn_red: 'NOT POSSIBLE'
       @@history << 'analysis-not-possible'
     elsif @beats_found.length != @beats_keep
-      what = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' )
-      puts "You played #{(@beats_keep - @beats_found.length).abs} beats   #{what} THAN EXPECTED   (#{@beats_found.length} instead of #{@beats_keep}) !\n\n\e[2mYou need to get this right, before further analysis is possible.\n\n\e[0mPlease try again."
+      what = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' ) + '  than expected'
+      stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep}) !\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
             @@history << 'you-played-' + what.downcase + '-than-expected'
 
     else
       avg_diff = @beats_found.zip(@beats_expected).
                    map {|x, y| (x - y).abs}.sum / @beats_keep
       deviation = '%.1f' % ( 100.0 * avg_diff / @slice )
-      puts "\e[32mNumber of beats matches.\e[0m\n\n"
-      puts "The avarage deviation for all #{@beats_keep} beats is %.3f sec\nfor a time-slice of %3.1f sec (the inverse of #{@tempo} bpm).\n\nThis amounts to   \e[32m#{deviation} percent average deviation\e[0m" % [avg_diff, @slice]
+      stand_out "Number of beats matches.\n\n#{deviation} percent average deviation", all_green: true
+      puts "\n\e[2mAverage deviation for #{@beats_keep} beats is %.3f sec, time-slice %3.1f sec.\e[0m" % [avg_diff, @slice]
+
       @@history << "#{deviation}-percent-deviation"
     end
     puts

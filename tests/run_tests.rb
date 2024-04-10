@@ -106,7 +106,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 80
+num_exp = 81
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2466,7 +2466,7 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   expect { screen[21]['Ready to play ?'] }
   tms :ENTER
   sleep 12
-  expect { screen[6]['no beats found'] }
+  expect { screen[4]['no beats found'] }
   kill_session
 end
 
