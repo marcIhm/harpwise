@@ -1005,7 +1005,7 @@ class KeepTempo < QuizFlavour
 
     12.times do
       puts
-      sleep 0.05
+      sleep 0.02
     end
     print "\e[12A"
     print "\e[0m\e[2mPreparing ... "
@@ -1187,9 +1187,10 @@ class KeepTempo < QuizFlavour
       stand_out "Unfortunately, further analysis is NOT POSSIBLE\ndue to the warning above.\n\nPlease try again.", turn_red: 'NOT POSSIBLE'
       @@history << 'analysis-not-possible'
     elsif @beats_found.length != @beats_keep
-      what = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' ) + '  than expected'
+      lom = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' )
+      what = lom + '  than expected'
       stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep}) !\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
-            @@history << 'you-played-' + what.downcase + '-than-expected'
+            @@history << 'you-played-' + lom.downcase + '-than-expected'
 
     else
       avg_diff = @beats_found.zip(@beats_expected).
