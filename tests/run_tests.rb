@@ -1930,7 +1930,7 @@ do_test 'id-66a: tool search-in-scales' do
   tms 'harpwise tool search-in-scales wade'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[9]['all   blues   minor    minor-pentatonic'] }
+  expect { screen[10]['all   blues   minor    minor-pentatonic'] }
   kill_session
 end
 
@@ -2399,7 +2399,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   expect { screen[16]['Choose the Interval you have heard:'] }
   tms 'SOLVE'
   tms :ENTER
-  expect { screen[18]['Playing interval of'] }
+  expect { screen[12]['Playing interval of'] }
   kill_session
 end
 

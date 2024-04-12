@@ -211,42 +211,34 @@ def tool_search_in_licks to_handle
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
-  # make each hole an array and add equivs (e.g. -2 becomes [-2, +3])
-  holes_with_equivs = to_handle.map {|h| [h,$harp[h][:equiv]].flatten}
 
-  # list_of_searches becomes a list of equivalent lists of holes to search
-  searches = holes_with_equivs.inject([[]]) do |list_of_searches, equivs|
-    list_of_searches.map do |search|
-      equivs.map do |hole|
-        search.clone.append(hole)
-      end
-    end.flatten(1)
-  end.map do |search|
-    search.join(' ')
-  end
+  search_canon = to_handle.map {|h| $harp[h][:canonical]}
 
-  $all_licks, $licks = read_licks
-
-  puts "\nList of licks containing   #{to_handle.join(', ')}   or equivalent:\n\n"
+  puts "\nList of licks containing   \e[0m\e[32m#{to_handle.join(' ')}\e[0m   or equivalent:\n\n"
   count = 0
-  maxname = 0
+  maxlen = 0
+  _, $licks, _ = read_licks
+
   [:max, :print].each do |what|
     $licks.each do |lick|
-      searches.each do |search|
-        only_holes = lick[:holes].reject {|l| musical_event?(l)}.join(' ')
-        idx = only_holes.index(search)
-        if idx
-          case what
-          when :max
-            maxname = [maxname, lick[:name].length].max
-          when :print
-            puts '  ' + lick[:name].rjust(maxname) + ":  \e[2m" +
-                 only_holes[0, idx] + "\e[0m\e[32m" + 
-                 only_holes[idx, search.length] + "\e[0m\e[2m" +
-                 ( only_holes[idx + search.length ...] || '') + "\e[0m" 
-            count += 1
-            break
-          end
+      lick_holes = lick[:holes].reject {|nh| musical_event?(nh)}
+      lick_canon = lick_holes.map {|h| $harp[h][:canonical]}
+      # check if our search appears within lick
+      idx = (0 .. lick_canon.length - search_canon.length).
+              find {|ix| lick_canon[ix, search_canon.length] == search_canon}
+      if idx
+        case what
+        when :max
+          maxlen = [maxlen, lick[:name].length].max
+        when :print
+          puts '  ' + lick[:name].rjust(maxlen) + ":\e[2m" +
+               # extra padding for non-edge-case
+               (idx == 0  ?  ''  :  '  ') +
+               [lick_holes[0 ... idx], ["\e[0m\e[32m "],
+                lick_holes[idx, search_canon.length], [" \e[0m\e[2m"],
+                lick_holes[idx + search_canon.length ..]].
+                 flatten.join(' ').strip + "\e[0m" 
+          count += 1
         end
       end
     end
@@ -287,17 +279,21 @@ def tool_search_in_scales to_handle
   end
   
 
-  puts "Unique holes: #{holes.join(' ')}"
+  puts "these unique: #{holes.join(' ')}"
   puts
   puts "Scales containing all given holes:"
   print_in_columns(mt_scales_all, pad: :tabs)
   puts
+  puts "Removing each of the given holes to get matches with more scales:"
+  cnt = 0
   holes.each do |hole|
     mt_scales = sc_hls.keys.select {|s| (holes - [hole] - sc_hls[s]).empty?}
     next if mt_scales == mt_scales_all
     puts "Scales containing all given holes but #{hole}:"
     print_in_columns(mt_scales, pad: :tabs)
+    cnt += 1
   end
+  puts "Nothing found." if cnt == 0
   puts
 end
 

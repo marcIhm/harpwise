@@ -209,7 +209,7 @@ def do_quiz to_handle
         puts
         if !first_round
           puts
-          puts_underlined 'Next Question', vspace: false
+          puts_underlined 'Next Question', '-', dim: false, vspace: false
           puts "\e[2m#{$extra}\e[0m"
           puts
           sleep 0.1

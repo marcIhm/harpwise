@@ -60,9 +60,11 @@ tools:
   transcribe: |
     transcribe given audio-file approximately
   search-in-licks: |
-    search given sequence of holes (or equiv) among licks
+    search given sequence of holes (or equiv) among licks; the same
+    ordering of holes is required
   search-in-scales: |
-    search given lick or sequence of holes (or equiv) among scales
+    search given lick or sequence of holes (or equiv) among scales;
+    ordering of holes is not important
   edit-licks: |
     invoke editor on your lickfile 
   edit-config: |
