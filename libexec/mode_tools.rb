@@ -16,8 +16,10 @@ def do_tools to_handle
     tool_shift to_handle
   when 'keys'
     tool_key_positions to_handle
-  when 'search-in-licks', 'search'
-    tool_search to_handle
+  when 'search-in-licks'
+    tool_search_in_licks to_handle
+  when 'search-in-scales'
+    tool_search_in_scales to_handle
   when 'chart'
     tool_chart
   when 'edit-licks'
@@ -202,7 +204,7 @@ def print_transposed cols, emphasis
 end
 
 
-def tool_search to_handle
+def tool_search_in_licks to_handle
 
   err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
@@ -250,6 +252,53 @@ def tool_search to_handle
     end
   end
   puts "\n#{count} matches.\n\n"
+end
+
+
+def tool_search_in_scales to_handle
+
+  err "Need at least one lick-name or hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
+
+  holes = if to_handle.length == 1
+            $all_licks, _ = read_licks
+            lick = $all_licks.find {|l| l[:name] == to_handle[0]}
+            err "Given single argument '#{to_handle[0]}' is not the name of a lick" unless lick
+            lick[:holes_wo_events]
+          else
+            to_handle.each do |hole|
+              err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+            end
+            to_handle
+          end
+  puts
+  puts " Given holes: #{holes.join(' ')}"
+
+  holes = holes.map {|h| $harp[h][:canonical]}.uniq.
+            sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+  
+  # match against scales
+  mt_scales_all = Array.new
+  sc_hls = Hash.new
+  $all_scales.each do |scale|
+    hls, _, _, _ = read_and_parse_scale(scale, $harp)
+    sc_hls[scale] = hls.map {|h| $harp[h][:canonical]}.uniq.
+                      sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+    mt_scales_all << scale if (holes - sc_hls[scale]).empty?
+  end
+  
+
+  puts "Unique holes: #{holes.join(' ')}"
+  puts
+  puts "Scales containing all given holes:"
+  print_in_columns(mt_scales_all, pad: :tabs)
+  puts
+  holes.each do |hole|
+    mt_scales = sc_hls.keys.select {|s| (holes - [hole] - sc_hls[s]).empty?}
+    next if mt_scales == mt_scales_all
+    puts "Scales containing all given holes but #{hole}:"
+    print_in_columns(mt_scales, pad: :tabs)
+  end
+  puts
 end
 
 

@@ -1916,12 +1916,21 @@ do_test 'id-65: play progression' do
   kill_session
 end
 
-do_test 'id-66: tool search' do
+do_test 'id-66: tool search-in-licks' do
   new_session
   tms 'harpwise tool search-in-licks +1 -1'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[7]['2 matches'] }
+  kill_session
+end
+
+do_test 'id-66a: tool search-in-scales' do
+  new_session
+  tms 'harpwise tool search-in-scales wade'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[9]['all   blues   minor    minor-pentatonic'] }
   kill_session
 end
 

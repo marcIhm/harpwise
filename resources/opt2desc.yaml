@@ -214,8 +214,7 @@ scale_over_lick:
   - |
     For modes play and print: interpret
     a given name as a scale if it is known as a scale as well as a
-    lick.  Note, that by default such a name would be treated as a
-    lick.
+    lick.  By default such a name would be treated as a lick.
 
 read_fifo:
 

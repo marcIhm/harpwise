@@ -522,8 +522,12 @@ def read_and_set_musical_config
     semi2hole_sc[semi] << hole
     hole_root ||= hole if semi % 12 == 0
   end
+  # :equiv and :canonical are useful when doing set operations with
+  # holws; eg for scales and licks
   $hole2note_read.each do |hole, _|
-    all_holes = harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
+    harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
+    equiv = harp[harp[hole][:equiv][0]] 
+    harp[hole][:canonical] = ( equiv && equiv[:canonical]  ?  equiv[:canonical]  :  hole)
   end
   semis = harp.map {|hole, hash| hash[:semi]}
   $min_semi = semis.min
