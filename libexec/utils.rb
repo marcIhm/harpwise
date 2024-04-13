@@ -220,7 +220,7 @@ end
 
 # prepare byebug
 def dbg 
-  make_term_cooked
+  make_term_cooked if $opts
   Kernel::print "\e[0m"
   require 'byebug'
   byebug

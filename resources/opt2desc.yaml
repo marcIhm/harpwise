@@ -244,3 +244,6 @@ flats:
   - |
     When printing notes, prefer flats (e.g. bf)
     
+options:
+  - |
+    show full list of mode specific options

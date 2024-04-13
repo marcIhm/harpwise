@@ -106,7 +106,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 81
+num_exp = 82
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -361,6 +361,34 @@ usage_types.keys.each_with_index do |mode, idx|
                      'develop' => [4, "This mode is useful only for the maintainer or developer"]}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
+    marker = 'harpwise_testing_return_code_is'
+    tms "harpwise #{usage_types[mode][1]}"
+    tms :ENTER
+    sleep 2
+    tms 'echo ' + marker + ' \$?'
+    tms :ENTER
+    expect(marker) { screen.find {|l| l[marker + ' 0']} }
+    kill_session
+  end
+end
+
+usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
+  do_test "id-1i#{idx}: options mode #{mode}" do
+    new_session
+    tms "harpwise #{usage_types[mode][1]} -o 2>/dev/null | tail -20"
+    tms :ENTER
+    sleep 2
+    expect_opts = { 'none' => [2, '???'],
+                    'calibrate' => [4, 'prefer sharps'],
+                    'listen' => [16, 'on every invocation'],
+                    'quiz' => [7, '--transpose-scale KEY_OR_SEMITONES'],
+                    'licks' => [5, '--partial 1/3@b, 1/4@x or 1/2@e'],
+                    'play' => [8, '--max-holes NUMBER'],
+                    'print' => [12, '--scale-over-lick : For modes play'],
+                    'tools' => [8, '--reference HOLE'],
+                    'develop' => [13, 'If lagging occurs']}
+    
+    expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     marker = 'harpwise_testing_return_code_is'
     tms "harpwise #{usage_types[mode][1]}"
     tms :ENTER

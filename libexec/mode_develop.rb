@@ -72,6 +72,7 @@ def do_diff
   replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
                   'USER CONFIGURATION' => 'USER CONFIGURATION:',
                   'DIAGNOSIS' => 'DIAGNOSIS:',
+                  'COMMANDLINE OPTIONS' => 'COMMANDLINE OPTIONS:',
                   'QUICK START' => 'QUICK START:'}
 
   #

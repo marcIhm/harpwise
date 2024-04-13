@@ -17,9 +17,9 @@ def parse_arguments_early
   # produce general usage, if appropriate
   if ARGV.length == 0 || %w(-h --help -? ? help usage --usage).any? {|w| w.start_with?(ARGV[0])}
     print_usage_info
-    exit
+    exit 0
   end
-
+  
   # source of mode, type, scale, key for better diagnostic
   $source_of = {mode: nil, type: nil, key: nil, scale: nil, extra: nil}
 
@@ -45,7 +45,8 @@ def parse_arguments_early
         debug: %w(--debug),
         help: %w(-h --help -? --usage),
         sharps: %w(--sharps),
-        flats: %w(--flats)}],
+        flats: %w(--flats),
+        options: %w(--show-options -o)}],
      [Set[:calibrate, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks, :tools, :print], {
@@ -181,6 +182,12 @@ def parse_arguments_early
   #
   # Special handling for some options
   #
+
+  if opts && opts[:options]
+    print_options opts_all
+    exit 0
+  end
+
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
     err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
   end&.o2sym
@@ -251,7 +258,7 @@ def parse_arguments_early
 
   # usage info specific for mode
   if opts[:help] || num_args_after_mode == 0
-    print_usage_info(mode, opts_all) 
+    print_usage_info mode
     exit 0
   end  
 
@@ -482,29 +489,37 @@ def get_used_scales scales_w_shorts
 end
 
 
-def print_usage_info mode = nil, opts = nil
+def print_usage_info mode = nil
+
   # get content of all harmonica-types to be inserted
   types_with_scales = get_types_with_scales
 
   puts
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/\n+\Z/,'')
+
+  if $mode
+    puts "\nCOMMANDLINE OPTIONS\n\n"
+    puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
+  end
+  puts
+end
+
+
+def print_options opts
+  puts "\nCommandline options for mode #{$mode}:\n\n"
+  # check for maximum length; for performance, do this only on usage info (which is among tests)
+  pieces = opt_desc_text(opts, false)
+  pieces.join.lines.each do |line|
+    err "Internal error: line from opt2desc.yml too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width] - 2
+  end
   
-  if opts
-    puts "\nAVAILABLE OPTIONS\n\n"
-    # check for maximum length; for performance, do this only on usage info (which is among tests)
-    pieces = opt_desc_text(opts, false)
-    pieces.join.lines.each do |line|
-      err "Internal error: line from opt2desc too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width] - 2
-    end
-      
-    # now produce again (with color) and print
-    pieces = opt_desc_text(opts)
-    if pieces.length == 0
-      puts '  none'
-    else
-      pieces.each {|p| print p}
-      puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
-    end
+  # now produce again (with color) and print
+  pieces = opt_desc_text(opts)
+  if pieces.length == 0
+    puts '  none'
+  else
+    pieces.each {|p| print p}
+    puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
   end
   puts
 end

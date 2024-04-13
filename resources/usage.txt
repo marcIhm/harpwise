@@ -101,6 +101,14 @@ User Configuration:
 
   ~/.harpwise/config.ini
 
+Commandline Options:
+
+  Options are specific for each mode; as an example you may type
+
+    harpwise listen -o
+
+  to read options for mode 'listen' (e.g.).
+
 Diagnosis:
 
   Harpwise uses the excellent program sox (aka play, aka rec) to
