@@ -187,14 +187,16 @@ def do_quiz to_handle
         puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
         drain_chars
         char = one_char
+        puts
         if char == 'BACKSPACE'
-          puts "\n\e[2mAgain with the same set of parameters ...\e[0m"
+          puts "Same parameters \e[2magain.\e[0m"
         else
-          puts "\n\e[2mChoosing new set of parameters ...\e[0m"
+          puts "New parameters."
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
           keep.set_params
           keep.clear_history
         end
+        puts
         sleep 0.2
       end
       
@@ -208,11 +210,9 @@ def do_quiz to_handle
         sleep 0.1
         puts
         if !first_round
+          puts "Next question\e[2m, flavour   #{$extra}.\e[0m"
           puts
-          puts_underlined 'Next Question', '-', dim: false, vspace: false
-          puts "\e[2m#{$extra}\e[0m"
-          puts
-          sleep 0.1
+          sleep 0.2
         end
         first_round = false
         flavour = $quiz_flavour2class[$extra].new
@@ -382,7 +382,9 @@ class QuizFlavour
     char = one_char
     puts
     if char == 'BACKSPACE'
-      puts "\nSame question again ..."
+      puts "Same question \e[2magain.\e[0m"
+      puts
+      sleep 0.2
       @choices = @choices_orig.clone
       @state = @state_orig.clone
       return :reissue
