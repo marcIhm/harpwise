@@ -334,14 +334,19 @@ class QuizFlavour
     "difficulty is '#{$opts[:difficulty].upcase}'"
   end
 
-  def play_holes hide: nil, reverse: false, holes: nil
-    holes ||= @holes
+  def play_hons hide: nil, reverse: false, hons: nil
+    hons ||= @holes
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple(reverse ? holes.rotate : holes, hide: hide)
+    play_holes_or_notes_simple(reverse ? hons.rotate : hons, hide: hide)
     make_term_cooked
   end
 
+  def recharge
+    @choices = @choices_orig.clone
+    @state = @state_orig.clone
+  end
+  
   def help2_desc
     nil
   end
@@ -385,8 +390,7 @@ class QuizFlavour
       puts "Same question \e[2magain.\e[0m"
       puts
       sleep 0.2
-      @choices = @choices_orig.clone
-      @state = @state_orig.clone
+      recharge
       return :reissue
     end
     return :next  
@@ -579,7 +583,7 @@ class MatchScale < QuizFlavour
     puts "Playing solution scale #{@solution} ..."
     sleep 0.2
     puts
-    play_holes holes: @holes_scale
+    play_hons hons: @holes_scale
     puts
     sleep 0.5
     puts "Playing the holes in question ..."
@@ -604,7 +608,7 @@ class MatchScale < QuizFlavour
     puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'} ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
-    play_holes hide: @state[:hide_holes]
+    play_hons hide: @state[:hide_holes]
   end
 
   def tag_desc tag
@@ -621,7 +625,7 @@ class MatchScale < QuizFlavour
     end
     choose_clean_up
     if answer
-      play_holes(holes: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
+      play_holes(hons: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
     else
       puts "\nNo scale selected to play.\n\n"
     end
@@ -634,8 +638,8 @@ class MatchScale < QuizFlavour
 
   def help3
     puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
-    play_holes hide: @state[:hide_holes],
-               holes: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
+    play_hons hide: @state[:hide_holes],
+               hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
   end
 
   def help3_desc
@@ -645,7 +649,7 @@ class MatchScale < QuizFlavour
   def help4
     puts "Showing all holes played (this question only)."
     @state[:hide_holes] = nil
-    play_holes hide: @state[:hide_holes]
+    play_hons hide: @state[:hide_holes]
   end
 
   def help4_desc
@@ -706,7 +710,7 @@ class HearInter < QuizFlavour
 
   def help2
     puts "Playing interval reversed:"
-    play_holes reverse: true
+    play_hons reverse: true
   end
 
   def help2_desc
@@ -758,7 +762,7 @@ class AddInter < QuizFlavour
 
   def help2
     puts "Playing interval:"
-    play_holes hide: @holes[1]
+    play_hons hide: @holes[1]
   end
 
   def help2_desc
@@ -1270,6 +1274,84 @@ class HearTempo < QuizFlavour
     ['.HELP-COMPARE', 'Play one of the choices']
   end
 
+end
+
+
+class NotInScale < QuizFlavour
+
+  def initialize
+    super
+    @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
+    @scale_holes, _, _, _ = read_and_parse_scale(@scale_name, $harp)
+    holes = @scale_holes - [@scale_holes.sample]
+    # choose one harp-hole, which is not in scale but within range or nearby
+    holes_notin = $harp_holes - @scale_holes
+    # Remove holes above and below scale
+    # neighbours; calculate in semis to catch equivs
+    holes_notin.shift while holes_notin.length > 0 &&
+                            $harp[holes_notin[0]][:semi] <= $harp[@scale_holes[0]][:semi]
+    holes_notin.pop while holes_notin.length > 0 &&
+                          $harp[holes_notin[-1]][:semi] >= $harp[@scale_holes[-1]][:semi]
+    @hole_notin = holes_notin.sample
+    holes << @hole_notin
+    holes.shuffle!
+
+    # convert some things to notes
+    @scale_notes = @scale_holes.map {|h| $hole2note[h]}
+    @notes = holes.map {|h| $hole2note[h]}
+    @notes_orig = @notes.clone
+    @choices = @notes.clone
+    @choices_orig = @choices.clone
+    @solution = $hole2note[@hole_notin]
+    @prompt = "Which note does not belong to scale #{@scale_name} ?"
+    @help_head = 'Note'
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+    ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales with one note replaced by a foreign one"
+  end
+  
+  def after_solve
+    puts
+    puts "Playing the foreign note #{@solution}, hole #{@hole_notin} ..."
+    sleep 0.1
+    puts
+    play_hons(hons: [@hole_notin])
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mPlaying scale #{@scale_name} with one note replaced by a foreign one\e[0m"
+    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
+    puts
+    play_hons(hons: @notes)
+  end
+
+  def recharge
+    super
+    @notes = @notes_orig.clone
+  end
+  
+  def help2
+    puts "Sorting notes:"
+    @notes.sort! {|a,b| note2semi(a) <=> note2semi(b)}
+    @choices.sort! {|a,b| note2semi(a) <=> note2semi(b)}
+    play_hons(hons: @notes)
+  end
+
+  def help2_desc
+    ['.HELP-SORT', 'Sort notes in ascending order']
+  end
+
+  def help3
+    puts "Playing complete scale without the foreign note:"
+    play_hons(hons: @scale_notes, hide: :all)
+  end
+
+  def help3_desc
+    ['.HELP-PLAY-SCALE', 'Play scale without foreign note']
+  end
 end
 
 

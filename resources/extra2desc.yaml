@@ -73,34 +73,41 @@ tools:
   diag: |
     help with diagnosing problems with your sound system
 quiz:
-  random, ran, rand: |
+  all, random, ran, rand: |
     choose one quiz flavour at random
-  replay: |
-    harpwise plays a sequence of holes and you asks to play it back
-  play-scale: |
-    gives the name of a scale and asks to play it
-  play-inter: |
-    names a hole and an interval which resolves to a hole; then asks
-    to play back both holes
+  scale, scales: |
+    choose one quiz flavour related with scales at random
   hear-scale: |
     harpwise plays the holes of a scale (in order) and asks for
     its name
+  not-in-scale: |
+    harpwise chooses a scale at random and plays the notes from it,
+    replacing one of the note (but not the heighest and not the
+    lowest) with a foreign one, finally shuffling the result; your
+    part then is to find this foreign note. This flavour operates on
+    notes instead of holes to challenge your ear, rather than your
+    memory of hole-sequences
   match-scale: |
     plays a random sequence of holes, that are either a subset of one
     or many scales and asks for the name of the single or shortest
     scale containing all these holes
+  play-scale: |
+    gives the name of a scale and asks to play it
   hear-inter: |
     plays an interval and asks for its name
   add-inter: |
     gives a hole and an interval and asks for the resulting hole,
     which is obtained by either adding or subtracting
-  key-harp-song: |
-    gives a key of harmonica and asks for the matching
-    key of song (2nd position) or vice versa
+  play-inter: |
+    names a hole and an interval which resolves to a hole; then asks
+    to play back both holes
   hear-key: |
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching
     harmonica)
+  key-harp-song: |
+    gives a key of harmonica and asks for the matching
+    key of song (2nd position) or vice versa
   keep-tempo: |
     plays a number of beats defining a certain tempo; then some
     silence and then some final beats. You are expected to play along
@@ -108,6 +115,8 @@ quiz:
     and checks, how well you kept the tempo
   hear-tempo: |
     plays a tempo and asks for its bpm
+  replay: |
+    harpwise plays a sequence of holes and you asks to play it back    
 develop:
   man: |
     produce man page from erb-template
