@@ -353,7 +353,7 @@ usage_types.keys.each_with_index do |mode, idx|
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
                      'calibrate' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory and musical memory"],
+                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [4, "The mode 'play' picks from the command line"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
@@ -2454,7 +2454,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms :ENTER
   sleep 1
   tms :BSPACE
-  expect { screen[7]['Same question again'] }  
+  expect { screen[6]['Same question again'] }  
   kill_session
 end
 
@@ -2522,6 +2522,21 @@ do_test 'id-96d: quiz-flavour hear-tempo' do
   kill_session
 end
 
+do_test 'id-96e: quiz-flavour not-in-scale' do
+  new_session
+  tms 'harpwise quiz not-in-scale --difficulty easy'
+  tms :ENTER
+  sleep 6
+  expect { screen[16]['Which note does not belong to'] }
+  tms 'sort'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 4
+  expect { screen[8]['Sorting and playing notes'] }  
+  kill_session
+end
+
 do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
@@ -2582,7 +2597,10 @@ do_test 'id-100: tool diagnosis' do
   expect { screen[18]['Listen and check'] }
   tms :ENTER
   sleep 5
-  expect { screen[17]['Some hints on troubleshooting'] }
+  expect { screen[12]['Get hints on troubleshooting sox ?'] }
+  tms 'y'
+  sleep 2
+  expect { screen[16]['Other options necessary for sox might be'] }
   kill_session
 end
 

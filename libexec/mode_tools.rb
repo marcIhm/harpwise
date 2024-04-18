@@ -23,6 +23,7 @@ def do_tools to_handle
   when 'chart'
     tool_chart
   when 'edit-licks'
+    Signal.trap('TSTP', 'DEFAULT')
     system($editor + ' ' + $lick_file)
     puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
   when 'edit-config'

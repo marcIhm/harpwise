@@ -325,7 +325,7 @@ def do_unittest
   puts
   puts_underlined 'Subclasses of QuizFlavour'
   found = $quiz_flavour2class.keys.to_a.sort
-  expected = $extra_kws[:quiz].to_a.sort
+  expected = $extra_kws[:quiz].to_a.sort - $quiz_flavours_random
   utreport('subclasses and extra', found, expected)
   found = $quiz_flavour2class.keys.select {|f| $quiz_flavour2class[f].respond_to?(:describe_difficulty)}.sort
   expected = ($extra_kws[:quiz].to_a.sort - $quiz_flavours_random).sort

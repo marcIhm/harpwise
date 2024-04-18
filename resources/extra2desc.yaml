@@ -73,20 +73,19 @@ tools:
   diag: |
     help with diagnosing problems with your sound system
 quiz:
-  all, random, ran, rand: |
+  all, ran, random: |
     choose one quiz flavour at random
-  scale, scales: |
+  scales: |
     choose one quiz flavour related with scales at random
   hear-scale: |
     harpwise plays the holes of a scale (in order) and asks for
     its name
   not-in-scale: |
-    harpwise chooses a scale at random and plays the notes from it,
-    replacing one of the note (but not the heighest and not the
-    lowest) with a foreign one, finally shuffling the result; your
-    part then is to find this foreign note. This flavour operates on
-    notes instead of holes to challenge your ear, rather than your
-    memory of hole-sequences
+    harpwise chooses a scale at random and plays the shuffled notes
+    from it, replacing one of the notes (neither the heighest nor the
+    lowest) with a foreign one; your should find this foreign
+    note. This flavour operates on notes instead of holes to challenge
+    your ear, rather than your memory of hole-sequences
   match-scale: |
     plays a random sequence of holes, that are either a subset of one
     or many scales and asks for the name of the single or shortest

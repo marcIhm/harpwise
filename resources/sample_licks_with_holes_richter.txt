@@ -92,7 +92,7 @@
   tags = v-chord box
 
 #
-# A simple trunaround
+# A simple turnaround
 #
 [simple-turn]
   holes = -2 +2 -1 -1

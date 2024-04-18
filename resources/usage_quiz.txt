@@ -1,10 +1,10 @@
 OVERVIEW
 
-  The mode 'quiz' is a quiz on music theory and musical ear and
-  memory. It is meant as a fun way to increase your musical
-  abilities. Quiz comes in different flavours. It issues questions and
-  asks for an answer. Most flavours involve holes beeing played either
-  as part of the question or the answer.
+  The mode 'quiz' is a quiz on music theory, ear and memory. It is
+  meant as a fun way to increase your musical abilities. Quiz comes in
+  different flavours. It issues questions and asks for an answer. Most
+  flavours involve holes beeing played either as part of the question
+  or the answer.
 
   Every time you invoke harpwise with mode 'quiz', a flavour is
   chosen; to try another flavour, just restart harpwise, e.g. by

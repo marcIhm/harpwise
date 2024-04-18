@@ -26,8 +26,15 @@ def do_quiz to_handle
                 true
               else
                 animate_splash_line
-                is_random = $quiz_flavours_random.include?($extra)
+                $quiz_flavours_random.include?($extra)
               end
+  if is_random
+    random_choices = if $extra == 'scales'
+                       $quiz_flavours_scales
+                     else
+                       $quiz_flavour2class.keys - $quiz_flavours_random
+                     end
+  end
   
   Signal.trap('TSTP') do
     ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
@@ -66,8 +73,8 @@ def do_quiz to_handle
       puts "\e[0m\e[2mStarting over ...\e[0m\n\n"
     end
   else
-    puts "\e[2mChoosing flavour at random: 1 of #{($quiz_flavour2class.keys - $quiz_flavours_random).length}\e[0m" if is_random
-    puts "\e[2mIssue signal ctrl-z to start over.\e[0m"
+    print "\e[2mChoosing flavour at random, 1 out of #{random_choices.length}.  " if is_random
+    puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
     puts
     sleep 0.1
   end
@@ -79,7 +86,7 @@ def do_quiz to_handle
     flavours_last = $pers_data['quiz_flavours_last'] || []
     if is_random
       $extra = nil
-      extras = ($quiz_flavour2class.keys - $quiz_flavours_random).shuffle
+      extras = random_choices.shuffle
       loop do
         $extra = extras.shift
         break if !flavours_last.include?($extra) || extras.length == 0
@@ -374,7 +381,7 @@ class QuizFlavour
     puts "\e[0m"
     puts
     printf "Playing interval of %+dst:\n", @dsemi
-    play_holes
+    play_hons
   end
 
   def next_or_reissue
@@ -415,6 +422,14 @@ class QuizFlavour
   end
 end
 
+
+# Shallow superclass of all scale-related flavours
+# only needed to select the
+
+class QuizFlavourScales < QuizFlavour
+end
+
+
 # The three classes below are mostly done within do_licks, so the
 # classes here are not complete
 
@@ -429,7 +444,7 @@ class Replay < QuizFlavour
 end
 
 
-class PlayScale < QuizFlavour
+class PlayScale < QuizFlavourScales
   def self.describe_difficulty
     HearScale.describe_difficulty
   end
@@ -443,7 +458,7 @@ class PlayInter < QuizFlavour
 end
 
 
-class HearScale < QuizFlavour
+class HearScale < QuizFlavourScales
 
   def initialize
     super
@@ -454,7 +469,9 @@ class HearScale < QuizFlavour
     end while @@prevs.include?(@solution)
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
-    @holes, _, _, _ = read_and_parse_scale(@solution, $harp)
+    @sorted, _, _, _ = read_and_parse_scale(@solution, $harp)
+    @holes = @sorted.clone.shuffle
+    @holes_orig = @holes.clone
     @prompt = 'Choose the scale you have heard:'
     @help_head = 'Scale'
   end
@@ -469,7 +486,7 @@ class HearScale < QuizFlavour
     puts "Playing scale #{@solution} ..."
     sleep 0.1
     puts
-    play_holes
+    play_hons hons: @sorted
   end
   
   def issue_question
@@ -477,17 +494,33 @@ class HearScale < QuizFlavour
     puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
-    play_holes
+    play_hons hide: :all
   end
 
   def tag_desc tag
     $scale2desc[tag] || tag
   end
 
+  def recharge
+    super
+    @holes = @holes_orig.clone
+  end
+  
+
+  def help2
+    puts "Playing sorted holes for scale:"
+    play_hons(hons: @sorted, hide: :all)
+  end
+
+  def help2_desc
+    ['.HELP-PLAY-SORTED', 'Play holes in ascending order']
+  end
+
+  
 end
 
 
-class MatchScale < QuizFlavour
+class MatchScale < QuizFlavourScales
 
   def initialize
     super
@@ -589,7 +622,7 @@ class MatchScale < QuizFlavour
     puts "Playing the holes in question ..."
     sleep 0.2
     puts
-    play_holes
+    play_hons
     puts "\n\e[2m"
     if @others
       puts "The other, but longer scales are:  #{@others.join(', ')}"
@@ -625,7 +658,7 @@ class MatchScale < QuizFlavour
     end
     choose_clean_up
     if answer
-      play_holes(hons: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
+      play_hons(hons: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
     else
       puts "\nNo scale selected to play.\n\n"
     end
@@ -705,7 +738,7 @@ class HearInter < QuizFlavour
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     puts
-    play_holes
+    play_hons
   end
 
   def help2
@@ -1277,7 +1310,7 @@ class HearTempo < QuizFlavour
 end
 
 
-class NotInScale < QuizFlavour
+class NotInScale < QuizFlavourScales
 
   def initialize
     super
@@ -1303,7 +1336,7 @@ class NotInScale < QuizFlavour
     @choices = @notes.clone
     @choices_orig = @choices.clone
     @solution = $hole2note[@hole_notin]
-    @prompt = "Which note does not belong to scale #{@scale_name} ?"
+    @prompt = "Which note does not belong to scale '#{@scale_name}' ?"
     @help_head = 'Note'
   end
 
@@ -1334,7 +1367,7 @@ class NotInScale < QuizFlavour
   end
   
   def help2
-    puts "Sorting notes:"
+    puts "Sorting and playing notes for scale '#{@scale_name}':"
     @notes.sort! {|a,b| note2semi(a) <=> note2semi(b)}
     @choices.sort! {|a,b| note2semi(a) <=> note2semi(b)}
     play_hons(hons: @notes)

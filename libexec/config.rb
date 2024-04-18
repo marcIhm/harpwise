@@ -181,12 +181,6 @@ def set_global_vars_early
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
   $control_fifo = "#{$dirs[:data]}/control_fifo"
-
-  $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
-    [subclass.to_s.underscore.tr('_', '-'), subclass]
-  end.to_h
-  $quiz_flavours_random = %w(ran rand random)
-  $quiz_flavours_random.each {|f| $quiz_flavour2class[f] = nil}
 end
 
 
@@ -356,6 +350,11 @@ def set_global_vars_late
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 
+  $quiz_flavour2class = [QuizFlavour.subclasses - [QuizFlavourScales], QuizFlavourScales.subclasses].flatten.map do |subclass|
+    [subclass.to_s.underscore.tr('_', '-'), subclass]
+  end.to_h
+  $quiz_flavours_random = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  $quiz_flavours_scales = QuizFlavourScales.subclasses.map {|c| c.to_s.underscore.tr('_', '-')}
 end
 
 
