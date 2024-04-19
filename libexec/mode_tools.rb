@@ -301,7 +301,8 @@ end
 
 def tool_progression to_handle
   err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless to_handle.length >= 1
-  
+
+  puts
   puts_underlined 'Progression:'
   prog = base_and_delta_to_semis(to_handle)
   holes, notes, abs_semis, rel_semis = get_progression_views(prog)

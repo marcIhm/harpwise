@@ -31,7 +31,7 @@ $within = ( ARGV.length == 0 )
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(wade st-louis feeling-bad blues mape box-i box-iv box-v simple-turn special one two three long)
+$all_testing_licks = %w(wade st-louis feeling-bad blues mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
@@ -106,7 +106,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 82
+num_exp = 86
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -796,8 +796,8 @@ do_test 'id-17: mode licks with initial lickfile' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:licks]) { dump[:licks].length == 14 }
-  expect { screen[1]['licks(14,ran) richter a blues,1,4,5'] }
+  expect(dump[:licks], dump[:licks].length) { dump[:licks].length == 20 }
+  expect { screen[1]['licks(20,ran) richter a blues,1,4,5'] }
   kill_session
 end
 
@@ -834,7 +834,7 @@ do_test 'id-18a: mode licks with licks with tags_all' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   # See comments above for verification
-  expect(dump[:licks]) { dump[:licks].length == 2 }
+  expect(dump[:licks], dump[:licks].length) { dump[:licks].length == 2 }
   kill_session
 end
 
@@ -845,7 +845,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   # See comments above for verification
-  expect(dump[:licks]) { dump[:licks].length == 12 }
+  expect(dump[:licks], dump[:licks].length) { dump[:licks].length == 18 }
   kill_session
 end
 
@@ -937,16 +937,21 @@ do_test 'id-23: print list of licks with tags' do
   ["  wade ..... fav,favorites,samples,has_rec\n",
    "  st-louis,feeling-bad ..... favorites,samples,has_rec\n",
    "  blues,mape ..... scales,theory,no_rec\n",
-   "  box-i ..... box,i-chord,no_rec\n",
-   "  box-iv ..... box,iv-chord,no_rec\n",
-   "  box-v ..... box,v-chord,no_rec\n",
+   "  box1-i ..... box,box1,i-chord,no_rec\n",
+   "  box1-iv ..... box,box1,iv-chord,no_rec\n",
+   "  box1-v ..... box,box1,v-chord,no_rec\n",
+   "  box2-i ..... box,box2,i-chord,no_rec\n",
+   "  box2-iv ..... box,box2,iv-chord,no_rec\n",
+   "  box2-v ..... box,box2,v-chord,no_rec\n",
+   "  boogie-i ..... boogie,i-chord,no_rec\n",
+   "  boogie-iv,boogie-v ..... boogie,v-chord,no_rec\n",
    "  simple-turn ..... turn,no_rec\n",
    "  special ..... advanced,samples,no_rec\n",
    "  one ..... testing,x,no_rec\n",
    "  two ..... y,no_rec\n",
    "  three ..... fav,favorites,testing,z,no_rec\n",
    "  long ..... testing,x,has_rec\n"].each_with_index do |exp,idx|
-    expect(lines,exp,idx) { lines[12+idx] == exp }
+    expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx) { lines[12+idx] == exp }
   end
   kill_session
 end
@@ -960,27 +965,30 @@ do_test 'id-23a: overview for all licks' do
   ["  Tag                              Count\n",
    " -----------------------------------------\n",
    "  advanced                             1\n",
-   "  box                                  3\n",
+   "  boogie                               3\n",
+   "  box                                  6\n",
+   "  box1                                 3\n",
+   "  box2                                 3\n",
    "  fav                                  2\n",
    "  favorites                            4\n",
    "  has_rec                              4\n",
-   "  i-chord                              1\n",
-   "  iv-chord                             1\n",
-   "  no_rec                              10\n",
+   "  i-chord                              3\n",
+   "  iv-chord                             2\n",
+   "  no_rec                              16\n",
    "  samples                              4\n",
    "  scales                               2\n",
    "  testing                              3\n",
    "  theory                               2\n",
    "  turn                                 1\n",
-   "  v-chord                              1\n",
+   "  v-chord                              4\n",
    "  x                                    2\n",
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               43\n",
-   "  Total number of different tags:     17\n",
+   "  Total number of tags:               67\n",
+   "  Total number of different tags:     20\n",
    " -----------------------------------------\n",
-   "  Total number of licks:              14\n"].each_with_index do |exp,idx|
+   "  Total number of licks:              20\n"].each_with_index do |exp,idx|
     expect(lines[10+idx],exp,idx,lines) { lines[12+idx] == exp }
   end
   kill_session
@@ -1022,7 +1030,7 @@ do_test 'id-27: cycle through licks from starting point' do
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
-    lickname = $all_testing_licks[(i + 9) % $all_testing_licks.length]
+    lickname = $all_testing_licks[(i + 15) % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
     sleep 4
@@ -1911,8 +1919,8 @@ do_test 'id-64: calculate progression' do
   tms 'harpwise tools prog a3 5st 9st oct'
   tms :ENTER
   sleep 2
-  expect { screen[10]['a3      d4     gf4      a4'] }
-  expect { screen[18]['0       5       9      12'] }
+  expect { screen[11]['a3      d4     gf4      a4'] }
+  expect { screen[19]['0       5       9      12'] }
   kill_session
 end
 

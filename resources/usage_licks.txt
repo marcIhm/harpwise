@@ -49,10 +49,15 @@ USAGE BY EXAMPLES
   Select 3 licks of type box-pattern from chords i, iv and v (second
   position):
 
-    harpwise licks c -t box
+    harpwise licks c -t box1
 
   knowing these licks in and out would allow for basic accompaniment
   of e.g. a 12-bar blues.
+
+  There is also a quite similar set box2, or boogie as another
+  interval-based lick:
+
+    harpwise licks c -t boogie
 
 
   Show the licks selected by the previous example, employing the

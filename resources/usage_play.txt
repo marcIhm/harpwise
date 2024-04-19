@@ -89,11 +89,16 @@ USAGE BY EXAMPLES
 
   Play a note progression:
 
-    harpwise play prog e3 7st 9st oct
+    harpwise play prog e3 7st 10st oct
 
   this plays the classic box pattern interactively, you may loop it or
   shift it by semitones. Holes for the harmonica (if any) are printed
   along.
+
+  A similar progression would be:
+
+    harpwise play prog +1 5st 7st 10st
+
 
   Building on the above, you may want to use the box pattern and the
   interactive features of 'harpwise play prog' to play (sort of) a
@@ -109,21 +114,31 @@ USAGE BY EXAMPLES
   i, iv and v, you may ask the wise to play the bass-line of a 12-bar
   blues like this:
 
-  harpwise play box-i box-i box-i box-i box-iv box-iv box-i box-i box-v box-iv box-i simple-turn
+    harpwise play box1-i box1-i box1-i box1-i box1-iv box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
 
-  which also uses the simple-turn lick at the end.
+  which also uses the simple-turn lick at the end; you may also
+  replace 'box1' with 'box2' for a variant.
 
 
-  harpwise play chord +1 +2 +3 -3/
+    harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+
+  which might be a starting point for improvisation.
+
+
+  Another way of playing would be:
+
+    harpwise play chord +1 +2 +3 -3/
 
   plays the given holes (notes may be given too) simultanously; the
   given example is (by the way) a flat-seventh-chord, what you may
   find out by using print:
 
-  harpwise print +1 +2 +3 -3/
+    harpwise print +1 +2 +3 -3/
 
 
-  harpwise play user
+  If you record yourself during lick-practice,
+
+    harpwise play user
 
   plays what you have recorded before in mode 'licks' (where you need to
   trigger the recording explicitly).
