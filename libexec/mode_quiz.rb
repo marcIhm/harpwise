@@ -789,7 +789,7 @@ class AddInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mTake hole #{@holes[0]} and #{@verb} interval '#{$intervals[@dsemi.abs][0]}'\e[0m"
+    puts "\e[34mTake hole \e[94m#{@holes[0]}\e[34m and #{@verb} interval '\e[94m#{$intervals[@dsemi.abs][0]}\e[34m'\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
@@ -835,7 +835,7 @@ class KeyHarpSong < QuizFlavour
 
   def issue_question
     puts
-    puts "\e[34mGiven a #{@qdesc.upcase} with key of '#{@qitem}', name the matching key for the #{@adesc}\n(2nd position)\e[0m"
+    puts "\e[34mGiven a \e[94m#{@qdesc.upcase}\e[34m with key of '\e[94m#{@qitem}\e[34m', name the matching key for the \e[94m#{@adesc}\e[34m\n(2nd position)\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
@@ -1355,7 +1355,7 @@ class NotInScale < QuizFlavourScales
   
   def issue_question
     puts
-    puts "\e[34mPlaying scale #{@scale_name} with one note replaced by a foreign one\e[0m"
+    puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m with one note replaced by a foreign one\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
     play_hons(hons: @notes)
