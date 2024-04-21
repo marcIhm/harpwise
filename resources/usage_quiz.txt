@@ -13,7 +13,7 @@ OVERVIEW
 
   The available <%= $extra_desc[:quiz].length %> flavours are:
 
-<%= get_extra_desc(true).join("\n") %>
+<%= get_extra_desc(for_usage: true).join("\n") %>
   
 USAGE BY EXAMPLES
 

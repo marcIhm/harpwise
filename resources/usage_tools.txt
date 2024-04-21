@@ -7,7 +7,7 @@ OVERVIEW
   The required additional argument specifies the tool to run;
   it can be one of:
 
-<%= get_extra_desc(true).join("\n") %>
+<%= get_extra_desc(for_usage: true).join("\n") %>
   
 
 USAGE BY EXAMPLES

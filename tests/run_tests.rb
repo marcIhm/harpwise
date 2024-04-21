@@ -254,6 +254,8 @@ do_test 'id-1b: config.ini, mode prevails' do
   new_session
   tms 'harpwise quiz blues replay 3'
   tms :ENTER
+  sleep 2
+  tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
   dump = read_testing_dump('start')
@@ -271,6 +273,8 @@ do_test 'id-1c: config.ini, set loop (example for boolean)' do
   end_of_content
   new_session
   tms 'harpwise quiz blues replay 3'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -290,6 +294,8 @@ do_test 'id-1d: config.ini, unset loop with option' do
   new_session
   tms 'harpwise quiz blues replay 3 --no-loop'
   tms :ENTER
+  sleep 2
+  tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
   dump = read_testing_dump('start')
@@ -306,6 +312,8 @@ do_test 'id-1e: config.ini, take default key from config' do
   end_of_content
   new_session
   tms 'harpwise quiz blues replay 3 --no-loop'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -336,6 +344,8 @@ do_test 'id-1g: config.ini, set value in config and clear again on commandline' 
   end_of_content
   new_session
   tms 'harpwise quiz blues replay 3 --no-loop --add-scales -'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
   ensure_config_ini_testing
@@ -609,6 +619,8 @@ do_test 'id-10: quiz' do
   new_session
   tms 'harpwise quiz c blues replay 2'
   tms :ENTER
+  sleep 2
+  tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[4]['b4    4   b14  b45   4   b14'] }
   kill_session
@@ -618,6 +630,8 @@ do_test 'id-10a: displays and comments in quiz' do
   sound 40, 2
   new_session
   tms 'harpwise quiz c all replay 2 --ref +2'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
@@ -1331,6 +1345,8 @@ do_test 'id-44a: switch between modes quiz and listen' do
   new_session
   tms 'harpwise quiz blues replay 3'
   tms :ENTER
+  sleep 2
+  tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['quiz'] }
   tms 'm'
@@ -1746,6 +1762,10 @@ help_samples.keys.each_with_index do |cmd, idx|
     new_session
     tms cmd
     tms :ENTER
+    if idx == 1
+      sleep 2
+      tms :ENTER
+    end
     wait_for_start_of_pipeline
     tms 'h'
     help_samples[cmd].each do |line,text|
@@ -2365,9 +2385,9 @@ do_test 'id-89: quiz-flavour random' do
   new_session
   tms 'harpwise quiz random'
   tms :ENTER
-  sleep 3
+  sleep 2
   expect { screen.any? {|l| l['Quiz Flavour is:'] }}
-  expect { screen.any? {|l| l['Press any key to continue'] }}
+  expect { screen.any? {|l| l['Press any key to accept'] }}
   kill_session
 end
 
@@ -2376,7 +2396,7 @@ do_test 'id-90: quiz-flavour play-scale' do
   tms 'harpwise quiz play-scale'
   tms :ENTER
   sleep 3
-  expect { screen[0]['Play scale'] }
+  expect { screen[9]['Quiz Flavour is:   play-scale'] }
   kill_session
 end
 
@@ -2385,7 +2405,7 @@ do_test 'id-91: quiz-flavour play-inter' do
   tms 'harpwise quiz play-inter'
   tms :ENTER
   sleep 3
-  expect { screen[0]['Play inter'] }
+  expect { screen[9]['Quiz Flavour is:   play-inter'] }
   kill_session
 end
 
@@ -2393,8 +2413,8 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   new_session
   tms 'harpwise quiz hear-scale --difficulty easy'
   tms :ENTER
-  sleep 0.5
-  tms '+'
+  sleep 2
+  tms :ENTER
   sleep 2
   expect { screen[7]["difficulty is 'EASY', taking 4 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
@@ -2408,10 +2428,10 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   new_session
   tms 'harpwise quiz hear-scale --difficulty hard'
   tms :ENTER
-  sleep 0.5
-  tms '+'
   sleep 2
-  expect { screen[7]["The difficulty is 'HARD', taking 7 scales out of 19"] }
+  tms :ENTER
+  sleep 2
+  expect { screen[18]["The difficulty is 'HARD', taking 7 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2420,9 +2440,9 @@ do_test 'id-92b: quiz-flavour chromatic hear-scale' do
   new_session
   tms 'harpwise quiz chromatic hear-scale'
   tms :ENTER
-  sleep 0.5
-  tms '+'
   sleep 2
+  tms :ENTER
+  sleep 12
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2430,6 +2450,8 @@ end
 do_test 'id-93: quiz-flavour hear-inter' do
   new_session
   tms 'harpwise quiz hear-inter'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   sleep 2
   expect { screen[16]['Choose the Interval you have heard:'] }
@@ -2444,6 +2466,7 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms 'harpwise quiz add-inter'
   tms :ENTER
   sleep 2
+  tms :ENTER
   expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
   kill_session
 end
@@ -2453,6 +2476,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms 'harpwise quiz key-harp-song'
   tms :ENTER
   sleep 2
+  tms :ENTER
   expect { screen[9]['Given a HARP with key of'] || screen[9]['Given a SONG with key of'] }
   sleep 1
   tms 'help-play-answer'
@@ -2471,13 +2495,15 @@ do_test 'id-96: quiz-flavour hear-key' do
   new_session
   tms 'harpwise quiz hear-key --difficulty easy'
   tms :ENTER
+  sleep 2
+  tms :ENTER
   sleep 10
-  txt = 'Plays a sequence of notes starting from a random key'
-  expect { screen[1][txt] || screen[4][txt] }
+  txt = 'asks for this key'
+  expect { screen.any? {|l| l[txt] }}
   tms 'help-other-seq'
   tms :ENTER
   txt = 'Sequence of notes changed'
-  expect { screen[8][txt] || screen[11][txt] }  
+  expect { screen.any? {|l| l[txt] }}
   sleep 10
   tms 'help-pitch'
   tms :ENTER
@@ -2494,8 +2520,10 @@ do_test 'id-96b: quiz-flavour match-scale' do
   new_session
   tms 'harpwise quiz match-scale --difficulty easy'
   tms :ENTER
-  sleep 6
-  expect { screen[0]['Plays a random sequence of holes, that are either a subset of one'] }
+  sleep 2
+  tms :ENTER
+  sleep 2
+  expect { screen[16]['that contains the holes in question'] }
   tms 'help-print-scales'
   tms :ENTER
   expect { screen[5]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
@@ -2508,7 +2536,8 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   tms 'harpwise quiz keep-tempo --difficulty easy'
   tms :ENTER
   sleep 2
-  expect { screen[21]['Ready to play ?'] }
+  tms :ENTER
+  expect { screen[20]['Ready to play ?'] }
   tms :ENTER
   sleep 12
   expect { screen[4]['no beats found'] }
@@ -2519,7 +2548,8 @@ do_test 'id-96d: quiz-flavour hear-tempo' do
   new_session
   tms 'harpwise quiz hear-tempo --difficulty easy'
   tms :ENTER
-  sleep 6
+  sleep 2
+  tms :ENTER
   expect { screen[9]['Playing 6 beats of Tempo to find'] }
   tms 'compare'
   tms :ENTER
@@ -2534,7 +2564,8 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   new_session
   tms 'harpwise quiz not-in-scale --difficulty easy'
   tms :ENTER
-  sleep 6
+  sleep 2
+  tms :ENTER
   expect { screen[16]['Which note does not belong to'] }
   tms 'sort'
   tms :ENTER
@@ -2549,7 +2580,9 @@ do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
   tms :ENTER
-  sleep 4
+  sleep 2
+  tms :ENTER
+  sleep 1
   tms 'H'
   sleep 1
   tms 'solve-print'
@@ -2562,6 +2595,8 @@ end
 do_test 'id-98: loop via signal' do
   new_session
   tms 'harpwise quiz ran'
+  tms :ENTER
+  sleep 2
   tms :ENTER
   sleep 2
   pid = %x(ps -ef).lines.find {|l| l['harpwise'] && l['ruby']}.split[1]
@@ -2611,5 +2646,32 @@ do_test 'id-100: tool diagnosis' do
   expect { screen[16]['Other options necessary for sox might be'] }
   kill_session
 end
+
+do_test 'id-101: change quiz flavour via TAB' do
+  new_session
+  tms 'harpwise quiz hear-key'
+  tms :ENTER
+  sleep 2
+  tms :TAB
+  sleep 1
+  tms 'hear-inter'
+  tms :ENTER
+  expect { screen[17]['Quiz Flavour is:   hear-inter'] }
+  kill_session
+end
+
+do_test 'id-102: help on flavours via TAB' do
+  new_session
+  tms 'harpwise quiz hear-key'
+  tms :ENTER
+  sleep 2
+  tms :TAB
+  sleep 1
+  tms 'describe-all'
+  tms :ENTER
+  expect { screen[20]['harpwise plays a sequence'] }
+  kill_session
+end
+
 
 puts

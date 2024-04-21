@@ -77,9 +77,10 @@ quiz:
     choose one quiz flavour at random
   scales: |
     choose one quiz flavour related with scales at random
+  choose: |
+    choose one quiz flavour from a list
   hear-scale: |
-    harpwise plays the holes of a scale (in order) and asks for
-    its name
+    harpwise plays the holes of a scale and asks for its name
   not-in-scale: |
     harpwise chooses a scale at random and plays the shuffled notes
     from it, replacing one of the notes (neither the heighest nor the

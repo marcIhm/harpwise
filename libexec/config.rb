@@ -353,7 +353,7 @@ def set_global_vars_late
   $quiz_flavour2class = [QuizFlavour.subclasses - [QuizFlavourScales], QuizFlavourScales.subclasses].flatten.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  $quiz_flavours_random = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  $quiz_flavours_meta = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
   $quiz_flavours_scales = QuizFlavourScales.subclasses.map {|c| c.to_s.underscore.tr('_', '-')}
 end
 

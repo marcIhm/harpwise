@@ -107,13 +107,13 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       if $mode == :quiz
         unless first_round
           $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
-          $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+          $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $quiz_flavour == 'replay'
         end
 
         # erase previous solution if any
         $msgbuf.print '', 1, 1, :quiz_solution
 
-        case $extra
+        case $quiz_flavour
         when 'replay'
           if $ctl_mic[:change_num_quiz_replay]
             read_and_set_num_quiz_replay
@@ -151,7 +151,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           to_play[:all_wanted] = quiz_holes_inter[0..1]
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
         else
-          err "Internal error: #{$extra}"
+          err "Internal error: #{$quiz_flavour}"
         end
         
       else # $mode == :licks

@@ -16,6 +16,7 @@ def parse_arguments_early
 
   # produce general usage, if appropriate
   if ARGV.length == 0 || %w(-h --help -? ? help usage --usage).any? {|w| w.start_with?(ARGV[0])}
+    initialize_extra_vars
     print_usage_info
     exit 0
   end
@@ -373,12 +374,10 @@ def parse_arguments_early
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
   return [ mode, type, key, scale, opts]
-
 end
 
 
-def initialize_extra_vars
-     
+def initialize_extra_vars 
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
   $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
@@ -399,6 +398,12 @@ def initialize_extra_vars
     err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra}" if double.length > 0
   end
 
+  $quiz_flavour2class = [QuizFlavour.subclasses - [QuizFlavourScales], QuizFlavourScales.subclasses].flatten.map do |subclass|
+    [subclass.to_s.underscore.tr('_', '-'), subclass]
+  end.to_h
+  $quiz_flavours_meta = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  $quiz_flavours_scales = QuizFlavourScales.subclasses.map {|c| c.to_s.underscore.tr('_', '-')}
+
 end
 
 
@@ -411,23 +416,27 @@ def parse_arguments_late
                           end
 
   $extra = nil
+  okay = true
   if $extra_desc[$mode]
     if [:play, :print].include?($mode)
       what = recognize_among(ARGV[0], [$amongs_play_or_print, :extra])
       $extra = ARGV.shift if what == :extra
       if !what
         print_amongs($amongs_play_or_print, :extra)
-        err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
-        err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'"
+        okay = false
       end
     else
       $extra = ARGV.shift if recognize_among(ARGV[0], :extra) == :extra
       if !$extra
         print_amongs(:extra)
-        err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
-        err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'"
+        okay = false
       end
     end
+  end
+  if !okay
+    err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
+    rem = ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' )
+    err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'#{rem}"
   end
   
   if [:play, :print, :quiz, :tools, :develop].include?($mode)
@@ -437,9 +446,7 @@ def parse_arguments_late
 
   # do these checks late, because we have more specific error messages before
   err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
-
   return to_handle
-
 end
 
 

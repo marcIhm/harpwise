@@ -4,11 +4,41 @@
 
 def do_quiz to_handle
 
-  print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
-  puts
+  unless $other_mode_saved[:conf]
+    print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
+    puts "\e[?25l"  ## hide cursor
+  end
 
-  err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if $extra != 'replay' && to_handle.length > 0
+  flavour = nil
 
+  
+  #
+  # Handle Signals
+  #
+  Signal.trap('TSTP') do
+    ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
+    # do some actions of at_exit-handler here
+    sane_term
+    puts "\e[#{$lines[:message_bottom]}H\e[0m\e[K"
+    puts "\e[2m\e[34m ... quiz start over ... \e[0m\e[K"
+    puts "\e[K"    
+    if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+      File.write($pers_file, JSON.pretty_generate($pers_data))
+    end
+    exec($full_commandline)
+  end
+
+  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
+    do_restart_animation
+    puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"    
+  else
+    animate_splash_line
+  end
+
+  
+  #
+  # process any arguments passed in as to_handle
+  #
   $num_quiz_replay_explicit = false
   if $extra == 'replay'
     if to_handle.length == 1
@@ -18,135 +48,47 @@ def do_quiz to_handle
     elsif to_handle.length > 1
       err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
     end
-  end
-
-  print "\e[?25l"  ## hide cursor
-
-  is_random = if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
-                true
-              else
-                animate_splash_line
-                $quiz_flavours_random.include?($extra)
-              end
-  if is_random
-    random_choices = if $extra == 'scales'
-                       $quiz_flavours_scales
-                     else
-                       $quiz_flavour2class.keys - $quiz_flavours_random
-                     end
-  end
-  
-  Signal.trap('TSTP') do
-    ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
-    # do some actions of at_exit-handler here
-    sane_term
-    print "\e[?25l\e[2m\e[34m ... quiz start over ... \e[0m"  ## hide cursor
-    if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-      File.write($pers_file, JSON.pretty_generate($pers_data))
-    end
-    exec($full_commandline)
-  end
-
-  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
-    $splashed = true
-    puts "\e[K"
-    info = 'quiz'
-    dots = '...'
-    push_front = dots + info
-    shift_back = info + dots
-    txt = dots + info + dots + info + dots
-    ilen = txt.length
-    nlines = ($term_height - $lines[:comment_tall] - 1)
-    nlines.times do
-      len = push_front.length
-      txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
-      puts "\e[2m\e[34m#{txt}\e[0m\e[K"
-      sleep 0.02
-      txt.prepend(' ')
-      txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
-    end
-    puts "\e[K"
-    sleep 0.03
-    if is_random
-      puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"
-    else
-      puts "\e[0m\e[2mStarting over ...\e[0m\n\n"
-    end
   else
-    print "\e[2mChoosing flavour at random, 1 out of #{random_choices.length}.  " if is_random
-    puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
-    puts
-    sleep 0.1
+    err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if to_handle.length > 0
   end
-    
-  flavour_accepted = true
-  # for random flavour loop until chosen flavour is accepted
-  begin
-    # make sure, we do not reuse flavours too often
-    flavours_last = $pers_data['quiz_flavours_last'] || []
-    if is_random
-      $extra = nil
-      extras = random_choices.shuffle
-      loop do
-        $extra = extras.shift
-        break if !flavours_last.include?($extra) || extras.length == 0
-      end
-      flavours_last << $extra
-      flavours_last.shift if flavours_last.length > 4
-      $pers_data['quiz_flavours_last'] = flavours_last
-    end
+  $num_quiz_replay ||= {easy: 4, hard: 8}[$opts[:difficulty]]
 
-    # dont show solution immediately
-    $opts[:comment] = :holes_some
-    $opts[:immediate] = false
-    puts
-    puts "Quiz Flavour is:   \e[34m#{$extra}\e[0m"
-    puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
-    sleep 0.05
-    puts
-    sleep 0.05
-    puts $extra_desc[:quiz][$extra].capitalize.lines.map {|l| '  ' + l}.join.chomp + ".\n"
 
-    $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+  #
+  # Get Flavour
+  #
+  $quiz_flavour = get_accepted_flavour_from_extra unless  $other_mode_saved[:conf]
 
-    # only for those classes where it will not already be done in
-    # issue_question
-    unless $quiz_flavour2class[$extra].method_defined?(:issue_question)
-      puts
-      print "  \e[2m"
-      print 'First ' + $quiz_flavour2class[$extra].describe_difficulty
-      puts "\e[0m"
-      sleep 0.1
-    end
-
-    puts
-    if is_random
-      print "\e[32mPress any key to continue or BACKSPACE for another flavour ... \e[0m"
-      char = one_char
-      if char == 'BACKSPACE'
-        puts "\n\e[2mChoosing another flavour ...\e[0m"
-        sleep 0.1
-        flavour_accepted = false
-      else
-        flavour_accepted = true
-      end
-      puts
-    end
-  end until flavour_accepted
   
-  # actually start quiz
-  if $extra == 'replay'
+  # for listen-perspective, dont show solution immediately
+  $opts[:comment] = :holes_some
+  $opts[:immediate] = false
+  
+
+  #
+  # Actually start different quiz cases; all contain their own
+  # infinite loop
+  #
+  # First some special flavours
+  #
+  if $quiz_flavour == 'replay'
+
+    back_to_comment_after_mode_switch
     puts
     puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
     puts "\n\n\n"
-    msgbuf_quiz_listen_perspective is_random
+    prepare_listen_perspective_for_quiz
     do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _) do
                        solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes(solve_text, holes, :all)
                      end)
-  elsif $extra == 'play-scale'
+
+    
+  elsif $quiz_flavour == 'play-scale'
+
     scale_name = $all_quiz_scales[$opts[:difficulty]].sample
+    back_to_comment_after_mode_switch
     puts
     puts "\e[34mScale to play is:\n-----------------"
     puts
@@ -154,15 +96,19 @@ def do_quiz to_handle
     puts "\e[0m"
     puts
     sleep 2
-    msgbuf_quiz_listen_perspective is_random
+    prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_scale_name: scale_name,
                      lambda_quiz_hint: -> (holes, _, scale_name) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes(solve_text, holes, :all)
                      end)
-  elsif $extra == 'play-inter'
+
+    
+  elsif $quiz_flavour == 'play-inter'
+
     holes_inter = get_random_interval
+    back_to_comment_after_mode_switch
     puts "\e[34mInterval to play is:\e[0m\e[2m"
     puts
     puts
@@ -170,14 +116,17 @@ def do_quiz to_handle
     puts
     puts
     sleep 2
-    msgbuf_quiz_listen_perspective is_random
+    prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_holes_inter: holes_inter,
                      lambda_quiz_hint: -> (holes, holes_inter, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
                        quiz_hint_in_handle_holes(solve_text, holes, holes[-1])
                      end)
-  elsif $extra == 'keep-tempo'
+
+    
+  elsif $quiz_flavour == 'keep-tempo'
+
     loop do
       keep = KeepTempo.new
       keep.set_params
@@ -187,7 +136,7 @@ def do_quiz to_handle
         keep.extract_beats
         keep.judge_result
         puts
-        puts "\e[2m" + ( '-' * ( $term_width * 0.5 ))
+        puts get_dim_hline
         puts
         puts "\e[0mWhat's next ?"
         puts
@@ -205,24 +154,27 @@ def do_quiz to_handle
         end
         puts
         sleep 0.2
-      end
-      
+      end  
     end
-  elsif $quiz_flavour2class.keys.include?($extra) && $quiz_flavour2class[$extra]
+
+    
+  elsif $quiz_flavour2class[$quiz_flavour]
+    # Generic flavour
+    
     first_round = true
     loop do  ## every new question
       $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard) unless first_round
-      $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $extra == 'replay'
+      $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $quiz_flavour == 'replay'
       catch :next do
         sleep 0.1
         puts
         if !first_round
-          puts "Next question\e[2m, flavour   #{$extra}.\e[0m"
+          puts "Next question\e[2m, flavour   #{$quiz_flavour}.\e[0m"
           puts
           sleep 0.2
         end
         first_round = false
-        flavour = $quiz_flavour2class[$extra].new
+        flavour = $quiz_flavour2class[$quiz_flavour].new
         loop do  ## repeats of question
           catch :reissue do
             flavour.issue_question
@@ -236,8 +188,11 @@ def do_quiz to_handle
         end
       end
     end
+
   else
-    err "Internal error: #{$extra}, #{$quiz_flavour2class}"
+
+    err "Internal error: #{$quiz_flavour}, #{$quiz_flavour2class}"
+
   end
 end
 
@@ -254,7 +209,7 @@ class QuizFlavour
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
-    all_choices = [@choices, ';OR->', '.AGAIN', '.SOLVE', all_helps[0]].flatten
+    all_choices = ['.AGAIN', @choices, ';OR->', '.SOLVE', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
                     '.SOLVE' => 'Give solution and go to next question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
@@ -386,7 +341,7 @@ class QuizFlavour
 
   def next_or_reissue
     puts
-    puts "\e[2m" + ( '-' * ( $term_width * 0.5 ))
+    puts get_dim_hline
     puts
     puts "\e[0mWhat's next ?"
     puts
@@ -403,23 +358,6 @@ class QuizFlavour
     return :next  
   end
 
-  def choose_clean_up
-    clear_area_comment
-    clear_area_message
-    make_term_cooked
-    print "\e[#{$lines[:comment_tall] - 1}H\e[K"
-  end
-
-  def choose_prepare_for
-    prepare_term
-    make_term_immediate
-    $ctl_kb_queue.clear
-    ($term_height - $lines[:comment_tall] + 3).times do
-      sleep 0.01
-      puts
-    end
-    print "\e[#{$lines[:comment_tall] - 1}H\e[2m" + ( '-' * ( $term_width * 0.5 )) + "\e[0m"
-  end
 end
 
 
@@ -478,7 +416,7 @@ class HearScale < QuizFlavourScales
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
+      ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
   end
   
   def after_solve
@@ -608,7 +546,7 @@ class MatchScale < QuizFlavourScales
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
+      ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
   end
   
   def after_solve
@@ -672,7 +610,7 @@ class MatchScale < QuizFlavourScales
   def help3
     puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
     play_hons hide: @state[:hide_holes],
-               hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
+              hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
   end
 
   def help3_desc
@@ -780,7 +718,7 @@ class AddInter < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
+      ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
   end
 
   def after_solve
@@ -830,7 +768,7 @@ class KeyHarpSong < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
+      ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
   end
 
   def issue_question
@@ -862,7 +800,7 @@ class HearKey < QuizFlavour
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
             [[0, 0, 0], 'repeated'],
             [:chord, 'chord']]
-             
+  
   def initialize
     super
     @@seqs.rotate!(rand(@@seqs.length).to_i)
@@ -884,7 +822,7 @@ class HearKey < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
+      ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
   end
 
   def issue_question silent: false
@@ -1018,7 +956,7 @@ class KeepTempo < QuizFlavour
       puts "\n(and then repeat with same or with changed params)\n\n"
       @@explained = true
     end
-      
+    
     # These descriptive markers will be used (and consumed) in
     # play_and_record; the labels should be the same as above
     @markers = [[0, "\e[32mPICK-UP-TEMPO    \e[0m\e[2m" + ('%2d' % @beats_intro) + " beats\e[0m"],
@@ -1034,7 +972,7 @@ class KeepTempo < QuizFlavour
     silence = quiz_generate_tempo('s', 120, 0, 1, 0)
     @template = quiz_generate_tempo('t', @tempo, @beats_intro, @beats_keep, @beats_outro)
 
-    print "\e[2K\r\e[0mReady to play ?\n\n\e[2mThen press any key, wait for count-down and start playing in sync ...\e[0m"
+    puts "\e[2K\r\e[0mReady to play ?\n\n\e[2mThen press any key, wait for count-down and start playing in sync ...\e[0m"
     print "\e[?25l"  ## hide cursor
     one_char
     puts
@@ -1229,7 +1167,7 @@ class KeepTempo < QuizFlavour
       lom = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' )
       what = lom + '  than expected'
       stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep}) !\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
-            @@history << 'you-played-' + lom.downcase + '-than-expected'
+      @@history << 'you-played-' + lom.downcase + '-than-expected'
 
     else
       avg_diff = @beats_found.zip(@beats_expected).
@@ -1268,7 +1206,7 @@ class HearTempo < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", one tempo out of #{@@choices[$opts[:difficulty]].length}"
+      ", one tempo out of #{@@choices[$opts[:difficulty]].length}"
   end
 
   def issue_question
@@ -1342,7 +1280,7 @@ class NotInScale < QuizFlavourScales
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-    ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales with one note replaced by a foreign one"
+      ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales with one note replaced by a foreign one"
   end
   
   def after_solve
@@ -1384,6 +1322,15 @@ class NotInScale < QuizFlavourScales
 
   def help3_desc
     ['.HELP-PLAY-SCALE', 'Play scale without foreign note']
+  end
+
+  def help4
+    puts "Play and show complete scale without the foreign note:"
+    play_hons(hons: @scale_notes)
+  end
+
+  def help4_desc
+    ['.HELP-PLAY-SHOW-SCALE', 'Play and show scale without foreign note']
   end
 end
 
@@ -1470,7 +1417,7 @@ end
 def quiz_hint_in_handle_holes solve_text, holes, hide
   choices2desc = {'SOLVE-PRINT' => 'Solve: Print interval, but keep current question',
                   'HELP-PLAY' => 'Play interval, so that you may replay it'}
-  answer = choose_interactive("Available hints for quiz-flavour #{$extra}:",
+  answer = choose_interactive("Available hints for quiz-flavour #{$quiz_flavour}:",
                               choices2desc.keys) {|tag| choices2desc[tag]}
   clear_area_comment
   clear_area_message
@@ -1493,9 +1440,9 @@ def quiz_hint_in_handle_holes solve_text, holes, hide
 end
 
 
-def msgbuf_quiz_listen_perspective is_random
-  $msgbuf.print("or issue signal ctrl-z for another flavour", 3, 5, later: true) if is_random
-  $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question" + (is_random ? ',' : ''), 3, 5, :quiz
+def prepare_listen_perspective_for_quiz
+  $msgbuf.print "or issue signal ctrl-z for another flavour", 3, 5, later: true
+  $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question,", 3, 5, :quiz
 end
 
 
@@ -1520,4 +1467,192 @@ def quiz_generate_tempo prefix, bpm, num_intro, num_silence, num_outro
   sys "sox #{files.join(' ')} #{result}", $sox_fail_however
 
   result
+end
+
+
+def choose_clean_up
+  clear_area_comment
+  clear_area_message
+  make_term_cooked
+  print "\e[#{$lines[:comment_tall] - 1}H\e[K"
+end
+
+
+def choose_prepare_for
+  prepare_term
+  make_term_immediate
+  $ctl_kb_queue.clear
+  ($term_height - $lines[:comment_tall] + 3).times do
+    sleep 0.01
+    puts
+  end
+  print "\e[#{$lines[:comment_tall] - 1}H" + get_dim_hline + "\e[0m"
+end
+
+
+def choose_flavour flavour_choices
+  flavour = nil
+  loop do
+    choose_prepare_for
+    flavour = choose_interactive('Please choose flavour:', [flavour_choices, 'describe-all', 'random'].flatten) do |tag|
+      if tag == 'describe-all'
+        'Describe all flavours in detail'
+      elsif tag == 'random'
+        'Choose a flavour at random'
+      else
+        "Flavour #{tag}"
+      end
+    end
+    choose_clean_up
+    if !flavour
+      puts "\e[0mNo flavour chosen, please try again."
+      puts "\e[2mPress any key to continue ...\e[0m"
+      one_char
+      redo
+    elsif flavour == "describe-all"
+      puts get_extra_desc(exclude_meta: true).join("\n")
+      puts
+      puts "\e[2mPress any key to choose again ...\e[0m"
+      one_char
+      redo
+    elsif flavour == 'random'
+      flavour = get_random_flavour(flavour_choices)
+    end
+    break
+  end
+  flavour
+end
+
+
+def do_restart_animation
+
+  puts "\e[?25l"  ## hide cursor
+  $splashed = true
+  info = 'quiz'
+  dots = '...'
+  push_front = dots + info
+  shift_back = info + dots
+  txt = dots + info + dots + info + dots
+  ilen = txt.length
+  nlines = ($term_height - $lines[:comment_tall] - 1)
+  nlines.times do
+    len = push_front.length
+    txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
+    puts "\e[2m\e[34m#{txt}\e[0m\e[K"
+    sleep 0.02
+    txt.prepend(' ')
+    txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
+  end
+  puts "\e[K"
+  sleep 0.03
+end
+
+
+# extra may contain meta-keywords like 'choose'; flavour only real
+# flavours like 'hear-scale'
+def get_accepted_flavour_from_extra
+
+  # get either a flavour already or at least flavour_choices
+  flavour, flavour_choices = if $quiz_flavours_meta.include?($extra)
+                               if $extra == 'scales'
+                                 [nil, $quiz_flavours_scales]
+                               else
+                                 [nil, $quiz_flavour2class.keys - $quiz_flavours_meta]
+                               end
+                             else
+                               [$extra, $quiz_flavour2class.keys - $quiz_flavours_meta]
+                             end
+
+  print "\e[2mChoosing flavour at random, 1 out of #{flavour_choices.length}.  " if !flavour && $extra != 'choose'
+  puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
+  puts
+  sleep 0.1
+
+  # for random flavour loop until chosen flavour is accepted
+  first_iteration = true
+  loop do  ## endless loop, left via return
+    
+    # we need to get a flavour first
+    if !flavour
+      if $extra == 'choose'
+        flavour = choose_flavour(flavour_choices)
+      elsif flavour_choices
+        flavour = get_random_flavour(flavour_choices, true)
+      end
+    end
+
+    # now we have a valid flavour, so inform user and get confirmation
+    has_issue_question = $quiz_flavour2class[flavour].method_defined?(:issue_question)
+    puts
+    unless first_iteration
+      puts get_dim_hline
+      puts
+    end
+    puts "Quiz Flavour is:   \e[34m#{flavour}\e[0m"
+    puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless has_issue_question
+    sleep 0.05
+    puts
+    sleep 0.05
+    puts $extra_desc[:quiz][flavour].capitalize.lines.map {|l| '  ' + l}.join.chomp.rstrip + ".\n"
+
+    if has_issue_question
+      # describe_difficulty will be done in issue_question
+    else
+      # these flavours will switch to listen perspective
+      puts
+      print "  \e[2m"
+      print 'First ' + $quiz_flavour2class[flavour].describe_difficulty
+      puts "\e[0m"
+      sleep 0.1
+    end
+    puts
+
+    # ask for user feedback
+    puts "\e[32mPress any key to accept\e[0m\e[2m, BACKSPACE for another random flavour\nor TAB to choose one explicitly ...\e[0m"
+    char = one_char
+
+    if char == 'BACKSPACE'
+      flavour = get_random_flavour(flavour_choices)
+    elsif char == 'TAB'
+      flavour = choose_flavour(flavour_choices)
+    else
+      return flavour
+    end
+    puts
+    first_iteration = false
+    # next loop iteration
+  end
+end
+
+
+def get_random_flavour flavour_choices, silent = false
+  # choose a random flavour that has not been used recently
+  unless silent
+    puts "\e[2mChoosing a random flavour ...\e[0m"
+    sleep 0.1
+  end
+  flavours_last = $pers_data['quiz_flavours_last'] || []
+  try_flavour = nil
+  choices = flavour_choices.shuffle
+  loop do
+    try_flavour = choices.shift
+    break if !flavours_last.include?(try_flavour) || choices.length == 0
+  end
+  flavours_last << try_flavour
+  flavours_last.shift if flavours_last.length > 4
+  $pers_data['quiz_flavours_last'] = flavours_last
+  try_flavour
+end
+
+
+def get_dim_hline
+  "\e[2m" + ( '-' * ( $term_width * 0.5 )) + "\e[0m"
+end
+
+
+def back_to_comment_after_mode_switch
+  if $other_mode_saved[:conf]
+    clear_area_comment
+    puts "\e[#{$lines[:comment_tall]}H"
+  end
 end
