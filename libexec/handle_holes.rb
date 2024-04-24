@@ -646,7 +646,7 @@ def show_help
   end
     
   if [:listen, :quiz, :licks].include?($mode)
-    frames[-1] << "      m: switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}"
+    frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
   end
   frames[-1].append(*["      q: quit harpwise                h: this help",
                       ""])
@@ -721,7 +721,9 @@ def show_help
       print "\e[0m"
       print frames[curr_frame][0]
       print "\e[0m\e[32m\n"
-      frames[curr_frame][1 .. -2].each {|line| puts line}
+      frames[curr_frame][1 .. -2].each do |line|
+        puts line.gsub(/(\S+): /, "\e[92m\\1\e[32m: ")
+      end
       print "\e[\e[0m"
       print frames[curr_frame][-1]
       print "\e[0m\e[32m"

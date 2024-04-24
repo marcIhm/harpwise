@@ -171,7 +171,9 @@ def display_kb_help what, scroll_allowed, body
     puts "\e[#{$lines[:help]}H\e[0m"
   end
   puts "Keys available while playing #{what}:\e[0m\e[32m\n"
-  body.lines.each {|l| puts '    ' + l.chomp + "\n"}
+  body.lines.each do |l|
+    puts '    ' + l.gsub(/(\S+): /, "\e[92m\\1\e[32m: ").chomp + "\n"
+  end
   print "\e[0mPress any key to continue ..."
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq

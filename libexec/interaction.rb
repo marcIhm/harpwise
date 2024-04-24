@@ -735,7 +735,7 @@ def read_answer ans2chs_dsc
   maxlen = klists.map {|k,v| v.length}.max
   i = 0
   ans2chs_dsc.each do |ans, chs_dsc|
-    print "  %*s :  %-22s" % [maxlen, klists[ans], chs_dsc[1]]
+    print "  %*s:  %-22s" % [maxlen, klists[ans], chs_dsc[1]]
     puts if (i += 1) % 2 == 0
   end
 
@@ -753,7 +753,7 @@ def read_answer ans2chs_dsc
     if answer == :help
       puts "Full Help:\n\n"
       ans2chs_dsc.each do |ans, chs_dsc|
-        puts '  %*s :  %s' % [maxlen, klists[ans], chs_dsc[2]]
+        puts '  %*s:  %s' % [maxlen, klists[ans], chs_dsc[2]]
       end
     end
   end while !answer || answer == :help

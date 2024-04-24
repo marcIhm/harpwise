@@ -450,7 +450,7 @@ class HearScale < QuizFlavourScales
   end
 
   def help2_desc
-    ['.HELP-PLAY-SORTED', 'Play holes in ascending order']
+    ['.HELP-PLAY-ASCENDING', 'Play holes in ascending order']
   end
 
   
