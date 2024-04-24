@@ -82,11 +82,11 @@ quiz:
   hear-scale: |
     harpwise plays the holes of a scale and asks for its name
   not-in-scale: |
-    harpwise chooses a scale at random and plays the shuffled notes
-    from it, replacing one of the notes (neither the heighest nor the
-    lowest) with a foreign one; your should find this foreign
-    note. This flavour operates on notes instead of holes to challenge
-    your ear, rather than your memory of hole-sequences
+    harpwise chooses a scale at random and modifies it: holes are
+    shuffled and one is replaced with a foreign hole; this modified
+    scale is played and you should find the foreign hole. The holes
+    are disguised as h1, h2, and so on. Help allows to compare the
+    modified scale with the original, either shuffled or ascending
   match-scale: |
     plays a random sequence of holes, that are either a subset of one
     or many scales and asks for the name of the single or shortest

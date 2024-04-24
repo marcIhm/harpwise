@@ -683,7 +683,11 @@ def play_holes_or_notes_simple holes_or_notes, hide: nil
   puts
   $ctl_hole[:skip] = false
   holes_or_notes.each do |hon|
-    print(( (hon == hide || hide == :all)  ?  '?'  :  hon ) + ' ')
+    if hide && hide.is_a?(Hash)
+      print((hide[hon] || hon) + ' ')
+    else
+      print(( (hon == hide || hide == :all)  ?  '?'  :  hon ) + ' ')
+    end
     if musical_event?(hon)
       sleep $opts[:fast]  ?  0.125  :  0.25
     else

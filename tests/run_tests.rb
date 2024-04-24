@@ -2430,8 +2430,8 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  sleep 2
-  expect { screen[18]["The difficulty is 'HARD', taking 7 scales out of 19"] }
+  sleep 6
+  expect { screen[7]["The difficulty is 'HARD', taking 7 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2566,13 +2566,14 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[16]['Which note does not belong to'] }
-  tms 'sort'
+  expect { screen[11]['h1 h2 h3 h4'] }
+  expect { screen[16]['Which hole does not belong to'] }
+  tms 'show'
   tms :ENTER
   sleep 1
   tms :ENTER
   sleep 4
-  expect { screen[8]['Sorting and playing notes'] }  
+  expect { screen[8]['Play and show original scale shuffled'] }  
   kill_session
 end
 

@@ -209,7 +209,7 @@ class QuizFlavour
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
-    all_choices = ['.AGAIN', @choices, ';OR->', '.SOLVE', all_helps[0]].flatten
+    all_choices = ['.AGAIN', @choices, '.SOLVE', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
                     '.SOLVE' => 'Give solution and go to next question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
@@ -444,7 +444,6 @@ class HearScale < QuizFlavourScales
     @holes = @holes_orig.clone
   end
   
-
   def help2
     puts "Playing sorted holes for scale:"
     play_hons(hons: @sorted, hide: :all)
@@ -1254,33 +1253,32 @@ class NotInScale < QuizFlavourScales
     super
     @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
     @scale_holes, _, _, _ = read_and_parse_scale(@scale_name, $harp)
-    holes = @scale_holes - [@scale_holes.sample]
     # choose one harp-hole, which is not in scale but within range or nearby
     holes_notin = $harp_holes - @scale_holes
     # Remove holes above and below scale
     # neighbours; calculate in semis to catch equivs
     holes_notin.shift while holes_notin.length > 0 &&
-                            $harp[holes_notin[0]][:semi] <= $harp[@scale_holes[0]][:semi]
+                            $harp[holes_notin[0]][:semi] < $harp[@scale_holes[0]][:semi]
     holes_notin.pop while holes_notin.length > 0 &&
-                          $harp[holes_notin[-1]][:semi] >= $harp[@scale_holes[-1]][:semi]
+                          $harp[holes_notin[-1]][:semi] > $harp[@scale_holes[-1]][:semi]
     @hole_notin = holes_notin.sample
-    holes << @hole_notin
-    holes.shuffle!
+    @holes = @scale_holes.shuffle
+    @scale_holes_shuffled = @holes.clone
+    @holes[rand(@holes.length)] = @hole_notin
 
-    # convert some things to notes
-    @scale_notes = @scale_holes.map {|h| $hole2note[h]}
-    @notes = holes.map {|h| $hole2note[h]}
-    @notes_orig = @notes.clone
-    @choices = @notes.clone
+    # hide holes as x1, x2, ...
+    @hide = @holes.each_with_index.map {|h,i| [h, "h#{i+1}"]}.to_h
+    @hide[(@scale_holes - @holes)[0]] = 'h0'
+    @choices = @holes.map {|h| @hide[h]}
     @choices_orig = @choices.clone
-    @solution = $hole2note[@hole_notin]
-    @prompt = "Which note does not belong to scale '#{@scale_name}' ?"
-    @help_head = 'Note'
+    @solution = @hide[@hole_notin]
+    @prompt = "Which hole does not belong to scale '#{@scale_name}' ?"
+    @help_head = 'Hole (in disguise)'
   end
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales with one note replaced by a foreign one"
+      ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales"
   end
   
   def after_solve
@@ -1293,45 +1291,50 @@ class NotInScale < QuizFlavourScales
   
   def issue_question
     puts
-    puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m with one note replaced by a foreign one\e[0m"
+    puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m modified: shuffled and one note replaced by a foreign one\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
-    play_hons(hons: @notes)
+    play_hons(hons: @holes, hide: @hide)
   end
 
-  def recharge
-    super
-    @notes = @notes_orig.clone
-  end
-  
   def help2
-    puts "Sorting and playing notes for scale '#{@scale_name}':"
-    @notes.sort! {|a,b| note2semi(a) <=> note2semi(b)}
-    @choices.sort! {|a,b| note2semi(a) <=> note2semi(b)}
-    play_hons(hons: @notes)
+    puts "Play notes of modified scale in ascending order:"
+    @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}
+    play_hons(hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]},
+              hide: @hide)
   end
 
   def help2_desc
-    ['.HELP-SORT', 'Sort notes in ascending order']
+    ['.HELP-MOD-ASC', 'Play holes of modified scale in ascending order']
   end
-
+  
   def help3
-    puts "Playing complete scale without the foreign note:"
-    play_hons(hons: @scale_notes, hide: :all)
+    puts "Playing original scale in ascending order:"
+    play_hons(hons: @scale_holes, hide: :all)
   end
 
   def help3_desc
-    ['.HELP-PLAY-SCALE', 'Play scale without foreign note']
+    ['.HELP-ORIG-ASC', 'Play original scale ascending']
   end
 
   def help4
-    puts "Play and show complete scale without the foreign note:"
-    play_hons(hons: @scale_notes)
+    puts "Playing original scale shuffled, just like the question:"
+    play_hons(hons: @scale_holes_shuffled, hide: :all)
   end
 
   def help4_desc
-    ['.HELP-PLAY-SHOW-SCALE', 'Play and show scale without foreign note']
+    ['.HELP-ORIG-SHUF', 'Play original scale shuffled']
   end
+
+  def help5
+    puts "Play and show original scale shuffled ('h0' is the foreign hole):"
+    play_hons(hons: @scale_holes_shuffled, hide: @hide)
+  end
+
+  def help5_desc
+    ['.HELP-SHOW-ORIG-SHUF', 'Kind of solve: Play and show original scale shuffled']
+  end
+
 end
 
 
@@ -1553,7 +1556,8 @@ end
 def get_accepted_flavour_from_extra
 
   # get either a flavour already or at least flavour_choices
-  flavour, flavour_choices = if $quiz_flavours_meta.include?($extra)
+  flavour, flavour_choices = if $quiz_flavours_meta.include?($extra) ||
+                                ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
                                if $extra == 'scales'
                                  [nil, $quiz_flavours_scales]
                                else
@@ -1593,8 +1597,10 @@ def get_accepted_flavour_from_extra
     sleep 0.05
     puts
     sleep 0.05
-    puts $extra_desc[:quiz][flavour].capitalize.lines.map {|l| '  ' + l}.join.chomp.rstrip + ".\n"
-
+    puts $extra_desc[:quiz][flavour].rstrip.sub(/\S/, &:upcase).
+           lines.map {|l| '  ' + l}.
+           join.chomp +
+         ".\n"
     if has_issue_question
       # describe_difficulty will be done in issue_question
     else
