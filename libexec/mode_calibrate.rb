@@ -16,33 +16,28 @@ This will generate all needed samples for holes:
 
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
-Letting harpwise generate your samples is a good way to get started
-quickly. The notes will be in "equal temperament" tuning.
+Harmonica type #{$type}, key of #{$key}; other keys or types will require
+their own calibration, but only once.
 
-However, the generated notes and their frequencies cannot match those of
-your own special harp or style of playing very well. Therefore, later, you
-may want to repeat the calibration by playing yourself (i.e. without
-option '--auto').
+Letting harpwise generate your samples is the preferred way to get
+started.  The frequencies will be in "equal temperament" tuning.
 
-
-If, on the other hand, you already have samples, recorded by yourself, in
-
-  #{$sample_dir}
-
-they will be overwritten in this process !
-
-So, in that case, consider to \e[32mBACK UP\e[0m such samples before !
-
+Please note, that the generated notes and their frequencies cannot match
+those of your own special harp or style of playing very well. Therefore,
+later, you may want to repeat the calibration by playing yourself
+(i.e. without option '--auto').
 EOINTRO
 
-  print "\nType 'y' to generate and play all samples for \e[32mkey of #{$key}\e[0m in a single run: "
+  puts "\nNow, type 'y' to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m"
   char = one_char
-  print "\n\n"
+  puts
 
   if char != 'y'
     puts "Calibration aborted on user request ('#{char}')."
+    puts
     exit 0
   end
+  puts
   hole2freq = Hash.new
   $harp_holes.each_with_index do |hole, idx|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
