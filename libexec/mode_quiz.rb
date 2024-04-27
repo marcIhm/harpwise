@@ -412,6 +412,11 @@ class HearScale < QuizFlavourScales
     @holes_orig = @holes.clone
     @prompt = 'Choose the scale you have heard:'
     @help_head = 'Scale'
+    @scale2holes = @choices.map do |scale|
+      holes, _, _, _ = read_and_parse_scale(scale, $harp)
+      [scale, holes]
+    end.to_h
+
   end
 
   def self.describe_difficulty
@@ -429,7 +434,7 @@ class HearScale < QuizFlavourScales
   
   def issue_question
     puts
-    puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with #{@holes.length} holes ...\e[0m"
+    puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     puts
     play_hons hide: :all
@@ -451,6 +456,14 @@ class HearScale < QuizFlavourScales
 
   def help2_desc
     ['.HELP-PLAY-ASCENDING', 'Play holes in ascending order']
+  end
+
+  def help3
+    choose_and_play_answer_scale
+  end
+
+  def help3_desc
+    ['.HELP-PLAY-COMPARE', 'Select a scale and play it for comparison']
   end
 
   
@@ -539,7 +552,7 @@ class MatchScale < QuizFlavourScales
     @others = others[@solution]
     @unique = unique[@solution]
     @holes_scale = @scale2holes[@solution]
-    @prompt = "Choose the #{@others ? 'SHORTEST' : 'single'} scale, that contains the holes in question:"
+    @prompt = "Choose the #{@others ? 'SHORTEST' : 'single'} scale, that contains all the holes:"
     @help_head = 'Scale'
   end
 
@@ -588,18 +601,7 @@ class MatchScale < QuizFlavourScales
   end
 
   def help2
-    puts "For help, choose one of the answer-scales to be played:"
-    choose_prepare_for
-    answer = choose_interactive("Scale to compare:", @choices.map {|s| "compare-#{s}"}) do |tag|
-      "#{@help_head} #{tag_desc(tag)}" 
-    end
-    choose_clean_up
-    if answer
-      play_hons(hons: @scale2holes[answer.gsub('compare-','')], hide: @state[:hide_holes])
-    else
-      puts "\nNo scale selected to play.\n\n"
-    end
-    puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
+    choose_and_play_answer_scale
   end
 
   def help2_desc
@@ -1661,4 +1663,23 @@ def back_to_comment_after_mode_switch
     clear_area_comment
     puts "\e[#{$lines[:comment_tall]}H"
   end
+end
+
+
+def choose_and_play_answer_scale
+  puts "For help, choose one of the answer-scales to be played:"
+  choose_prepare_for
+  answer = choose_interactive("Scale to compare:", @choices.map {|s| "compare-#{s}"}) do |tag|
+    "#{@help_head} #{tag_desc(tag)}" 
+  end
+  choose_clean_up
+  if answer
+    scale = answer.gsub('compare-','')
+    puts "\e[2mPlaying scale \e[0m\e[34m#{scale}\e[0m\e[2m with \e[0m\e[34m#{@scale2holes[scale].length}\e[0m\e[2m holes."
+    puts
+    play_hons(hons: @scale2holes[scale], hide: @state[:hide_holes])
+  else
+    puts "\nNo scale selected to play.\n\n"
+  end
+  puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
 end
