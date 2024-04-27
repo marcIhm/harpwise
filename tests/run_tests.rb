@@ -2523,7 +2523,7 @@ do_test 'id-96b: quiz-flavour match-scale' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[16]['that contains the holes in question'] }
+  expect { screen[16]['that contains all the holes'] }
   tms 'help-print-scales'
   tms :ENTER
   expect { screen[5]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
@@ -2566,6 +2566,7 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   tms :ENTER
   sleep 2
   tms :ENTER
+  sleep 2
   expect { screen[11]['h1 h2 h3 h4'] }
   expect { screen[16]['Which hole does not belong to'] }
   tms 'show'
