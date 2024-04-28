@@ -2449,12 +2449,16 @@ end
 
 do_test 'id-93: quiz-flavour hear-inter' do
   new_session
-  tms 'harpwise quiz hear-inter'
+  tms 'harpwise quiz hear-inter --difficulty 0'
   tms :ENTER
   sleep 2
   tms :ENTER
   sleep 2
   expect { screen[16]['Choose the Interval you have heard:'] }
+  tms 'PLAY-ALL'
+  tms :ENTER
+  sleep 8
+  expect { screen[8]['Octave'] }
   tms 'SOLVE'
   tms :ENTER
   expect { screen[12]['Playing interval of'] }

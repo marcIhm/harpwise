@@ -139,7 +139,7 @@ def do_quiz to_handle
         puts get_dim_hline
         puts
         puts "\e[0mWhat's next ?"
-        puts
+        puts 
         puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
         drain_chars
         char = one_char
@@ -169,7 +169,7 @@ def do_quiz to_handle
         sleep 0.1
         puts
         if !first_round
-          puts "Next question\e[2m, flavour   #{$quiz_flavour}.\e[0m"
+          puts "Next question."
           puts
           sleep 0.2
         end
@@ -345,11 +345,11 @@ class QuizFlavour
     puts
     puts "\e[0mWhat's next ?"
     puts
-    puts "\e[32mPress any key for next question or BACKSPACE to re-ask this one ... \e[0m"
+    puts "\e[32mPress any key for next #{$quiz_flavour} or BACKSPACE to re-ask this one ... \e[0m"
     char = one_char
     puts
     if char == 'BACKSPACE'
-      puts "Same question \e[2magain.\e[0m"
+      puts "Same question again."
       puts
       sleep 0.2
       recharge
@@ -677,16 +677,33 @@ class HearInter < QuizFlavour
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     puts
-    play_hons
+    play_hons hide: :all
   end
 
   def help2
     puts "Playing interval reversed:"
-    play_hons reverse: true
+    play_hons reverse: true, hide: :all
   end
 
   def help2_desc
     ['.HELP-REVERSE', 'Play interval reversed']
+  end
+
+  def help3
+    puts "Playing all intervals:"
+    puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
+    $intervals_quiz.each do |inter|
+      sleep 0.5
+      note_inter = semi2note($harp[@holes[0]][:semi] + inter * (@dsemi <=> 0))
+      puts
+      puts "\e[32m#{$intervals[inter][0]}\e[0m"
+      play_hons hons: [@holes[0], note_inter], hide: :all
+    end
+    sleep 0.5
+  end
+
+  def help3_desc
+    ['.HELP-PLAY-ALL', 'Play all intervals over first note']
   end
 
 end
@@ -1515,6 +1532,8 @@ def choose_flavour flavour_choices
       one_char
       redo
     elsif flavour == "describe-all"
+      puts "The #{$quiz_flavour2class.keys.length} available flavours:"
+      puts
       puts get_extra_desc(exclude_meta: true).join("\n")
       puts
       puts "\e[2mPress any key to choose again ...\e[0m"
@@ -1563,10 +1582,10 @@ def get_accepted_flavour_from_extra
                                if $extra == 'scales'
                                  [nil, $quiz_flavours_scales]
                                else
-                                 [nil, $quiz_flavour2class.keys - $quiz_flavours_meta]
+                                 [nil, $quiz_flavour2class.keys]
                                end
                              else
-                               [$extra, $quiz_flavour2class.keys - $quiz_flavours_meta]
+                               [$extra, $quiz_flavour2class.keys]
                              end
 
   print "\e[2mChoosing flavour at random, 1 out of #{flavour_choices.length}.  " if !flavour && $extra != 'choose'
@@ -1616,7 +1635,7 @@ def get_accepted_flavour_from_extra
     puts
 
     # ask for user feedback
-    puts "\e[32mPress any key to accept\e[0m\e[2m, BACKSPACE for another random flavour\nor TAB to choose one explicitly ...\e[0m"
+    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour\nor TAB to choose one explicitly ...\e[0m"
     char = one_char
 
     if char == 'BACKSPACE'
