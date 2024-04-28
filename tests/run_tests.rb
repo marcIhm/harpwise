@@ -2387,7 +2387,7 @@ do_test 'id-89: quiz-flavour random' do
   tms :ENTER
   sleep 2
   expect { screen.any? {|l| l['Quiz Flavour is:'] }}
-  expect { screen.any? {|l| l['Press any key to accept'] }}
+  expect { screen.any? {|l| l['Press any key to start'] }}
   kill_session
 end
 
@@ -2396,7 +2396,7 @@ do_test 'id-90: quiz-flavour play-scale' do
   tms 'harpwise quiz play-scale'
   tms :ENTER
   sleep 3
-  expect { screen[9]['Quiz Flavour is:   play-scale'] }
+  expect { screen[11]['Quiz Flavour is:   play-scale'] }
   kill_session
 end
 
@@ -2405,7 +2405,7 @@ do_test 'id-91: quiz-flavour play-inter' do
   tms 'harpwise quiz play-inter'
   tms :ENTER
   sleep 3
-  expect { screen[9]['Quiz Flavour is:   play-inter'] }
+  expect { screen[11]['Quiz Flavour is:   play-inter'] }
   kill_session
 end
 
@@ -2416,7 +2416,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[7]["difficulty is 'EASY', taking 4 scales out of 19"] }
+  expect { screen[8]["difficulty is 'EASY', taking 4 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
@@ -2431,7 +2431,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 2
   tms :ENTER
   sleep 6
-  expect { screen[7]["The difficulty is 'HARD', taking 7 scales out of 19"] }
+  expect { screen[8]["The difficulty is 'HARD', taking 7 scales out of 19"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2455,13 +2455,19 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms :ENTER
   sleep 2
   expect { screen[16]['Choose the Interval you have heard:'] }
+  tms 'SKIP'
+  tms :ENTER
+  sleep 1
+  expect { screen[12]['The correct answer is'] }
+  tms :ENTER
+  sleep 1
   tms 'PLAY-ALL'
   tms :ENTER
   sleep 8
-  expect { screen[8]['Octave'] }
+  expect { screen[11]['Octave'] }
   tms 'SOLVE'
   tms :ENTER
-  expect { screen[12]['Playing interval of'] }
+  expect { screen[13]['Playing interval of'] }
   kill_session
 end
 
@@ -2472,6 +2478,9 @@ do_test 'id-94: quiz-flavour add-inter' do
   sleep 2
   tms :ENTER
   expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
+  tms 'SHOW-SEMIS'
+  tms :enter
+  expect { screen[8]['-5st  REF  4st'] }
   kill_session
 end
 
@@ -2485,7 +2494,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   sleep 1
   tms 'help-play-answer'
   tms :ENTER
-  expect { screen[8]['for answer-key of'] }  
+  expect { screen[9]['for answer-key of'] }  
   tms 'solve'
   tms :ENTER
   sleep 1
@@ -2541,7 +2550,7 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[20]['Ready to play ?'] }
+  expect { screen[19]['Ready to play ?'] }
   tms :ENTER
   sleep 12
   expect { screen[4]['no beats found'] }
@@ -2578,7 +2587,7 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   sleep 1
   tms :ENTER
   sleep 4
-  expect { screen[8]['Play and show original scale shuffled'] }  
+  expect { screen[9]['Play and show original scale shuffled'] }  
   kill_session
 end
 

@@ -33,6 +33,7 @@ def do_quiz to_handle
     puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"    
   else
     animate_splash_line
+    puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"    
   end
 
   
@@ -128,33 +129,40 @@ def do_quiz to_handle
   elsif $quiz_flavour == 'keep-tempo'
 
     loop do
-      keep = KeepTempo.new
-      keep.set_params
-      loop do
-        keep.issue_question
-        keep.play_and_record
-        keep.extract_beats
-        keep.judge_result
-        puts
-        puts get_dim_hline
-        puts
-        puts "\e[0mWhat's next ?"
-        puts 
-        puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
-        drain_chars
-        char = one_char
-        puts
-        if char == 'BACKSPACE'
-          puts "Same parameters \e[2magain.\e[0m"
-        else
-          puts "New parameters."
-          $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
-          keep.set_params
-          keep.clear_history
+      catch :NEW_PARAMS do
+        keep = KeepTempo.new
+        keep.set_params
+        loop do
+          keep.issue_question
+          unless keep.play_and_record
+            puts
+            puts get_dim_hline
+            puts "\nChoosing new parameters."
+            throw :NEW_PARAMS
+          end
+          keep.extract_beats
+          keep.judge_result
+          puts
+          puts get_dim_hline
+          puts
+          puts "\e[0mWhat's next ?"
+          puts 
+          puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
+          drain_chars
+          char = one_char
+          puts
+          if char == 'BACKSPACE'
+            puts "Same parameters \e[2magain.\e[0m"
+          else
+            puts "New parameters."
+            $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
+            keep.set_params
+            keep.clear_history
+          end
+          puts
+          sleep 0.2
         end
-        puts
-        sleep 0.2
-      end  
+      end
     end
 
     
@@ -209,9 +217,10 @@ class QuizFlavour
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
-    all_choices = ['.AGAIN', @choices, '.SOLVE', all_helps[0]].flatten
+    all_choices = ['.AGAIN', @choices, '.SOLVE', '.SKIP', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
                     '.SOLVE' => 'Give solution and go to next question',
+                    '.SKIP' => 'Show solution and Skip to next question without extra info',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
     [help2_desc, help3_desc, help4_desc, help5_desc].each_with_index do |desc, idx|
@@ -246,13 +255,13 @@ class QuizFlavour
       stand_out 'Asking question again.'
       puts
       return :reissue
-    when '.SOLVE'
+    when '.SOLVE', '.SKIP'
       sol_text = if @solution.is_a?(Array) && @solution.length > 1
                    "  any of #{@solution}"
                  else
                    "        #{[@solution].flatten[0]}"
                  end
-      if self.respond_to?(:after_solve)
+      if answer != '.SKIP' && self.respond_to?(:after_solve)
         stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
         after_solve
       else
@@ -296,11 +305,12 @@ class QuizFlavour
     "difficulty is '#{$opts[:difficulty].upcase}'"
   end
 
-  def play_hons hide: nil, reverse: false, hons: nil
+  def play_hons hide: nil, reverse: false, hons: nil, newline: true
     hons ||= @holes
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple(reverse ? hons.rotate : hons, hide: hide)
+    puts if newline
+    play_holes_or_notes_simple(reverse ? hons.rotate : hons, hide: [hide, :help])
     make_term_cooked
   end
 
@@ -621,7 +631,7 @@ class MatchScale < QuizFlavourScales
   def help4
     puts "Showing all holes played (this question only)."
     @state[:hide_holes] = nil
-    play_hons hide: @state[:hide_holes]
+    play_hons hide: [@state[:hide_holes], :help]
   end
 
   def help4_desc
@@ -677,7 +687,7 @@ class HearInter < QuizFlavour
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     puts
-    play_hons hide: :all
+    play_hons hide: [:help, :all]
   end
 
   def help2
@@ -692,12 +702,13 @@ class HearInter < QuizFlavour
   def help3
     puts "Playing all intervals:"
     puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
+    puts
+    maxlen = $intervals_quiz.map {$intervals[_1][0].length}.max
     $intervals_quiz.each do |inter|
       sleep 0.5
       note_inter = semi2note($harp[@holes[0]][:semi] + inter * (@dsemi <=> 0))
-      puts
-      puts "\e[32m#{$intervals[inter][0]}\e[0m"
-      play_hons hons: [@holes[0], note_inter], hide: :all
+      print "\e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % $intervals[inter][0]
+      play_hons hons: [@holes[0], note_inter], hide: :all, newline: false
     end
     sleep 0.5
   end
@@ -730,8 +741,7 @@ class AddInter < QuizFlavour
     end
     @choices.compact!
     @choices_orig = @choices.clone
-    @prompt = "Enter the result of #{@verb}ing hole and interval:"
-    @help_head = 'Hole'
+    @prompt = "Enter the result of #{@verb}ing hole #{@holes[0]} and interval #{$intervals[@dsemi.abs][0]}:"
   end
 
   def self.describe_difficulty
@@ -756,6 +766,35 @@ class AddInter < QuizFlavour
 
   def help2_desc
     ['.HELP-PLAY-INTER', 'Play interval']
+  end
+
+  def help3
+    puts "Show holes as semitones:"
+    chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        print cell
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end
+  end
+
+  def help3_desc
+    ['.HELP-SHOW-SEMIS', 'Show holes as semitones']
+  end
+
+  def help4
+    puts "Printing intervals semitones and names:"
+    puts "\e[2m"
+    $intervals_quiz.each do |st|
+      puts "  %3dst: #{$intervals[st][0]}" % st
+    end
+    puts "\e[0m"
+  end
+
+  def help4_desc
+    ['.HELP-SHOW-INTERVALS', 'Show intervals and semitones']
   end
 
 end
@@ -800,7 +839,8 @@ class KeyHarpSong < QuizFlavour
     puts "Playing note (octave #{note[-1]}) for answer-key of #{@adesc}:"
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple [note], hide: note
+    puts
+    play_holes_or_notes_simple [note], hide: [note, :help]
     make_term_cooked
   end
 
@@ -862,7 +902,8 @@ class HearKey < QuizFlavour
       play_recording_and_handle_kb_simple tfiles, true
     elsif @seq.is_a?(Array)
       notes = @seq.map {|s| semi2note(isemi + s)}
-      play_holes_or_notes_simple notes, hide: semi2note(isemi)
+      puts
+      play_holes_or_notes_simple notes, hide: [semi2note(isemi), :help]
     else
       err "Internal error: #{seq}"
     end
@@ -907,7 +948,8 @@ class HearKey < QuizFlavour
     puts
     make_term_immediate
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple [semi2note(key2semi(@solution))]
+    puts
+    play_holes_or_notes_simple [semi2note(key2semi(@solution))], hide: :help
     make_term_cooked
   end
 
@@ -958,12 +1000,12 @@ class KeepTempo < QuizFlavour
 
     if @@explained
       puts
-      puts "\e[2mParameters (#{$opts[:difficulty]}):"
+      puts "\e[0mParameters (#{$opts[:difficulty]}):"
       puts "  Tempo:           #{@tempo} bpm"
       puts "  PICK-UP-TEMPO:   %2s beats" % @beats_intro.to_s
       puts "  KEEP-TEMPO:      %2s" % @beats_keep.to_s
       puts "  TOGETHER-AGAIN:  %2s" % @beats_outro.to_s
-      puts "\e[0m\n\n"
+      puts "\n\n"
     else
       puts
       puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@tempo}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
@@ -990,9 +1032,10 @@ class KeepTempo < QuizFlavour
     silence = quiz_generate_tempo('s', 120, 0, 1, 0)
     @template = quiz_generate_tempo('t', @tempo, @beats_intro, @beats_keep, @beats_outro)
 
-    puts "\e[2K\r\e[0mReady to play ?\n\n\e[2mThen press any key, wait for count-down and start playing in sync ...\e[0m"
+    puts "\e[2K\r\e[0mReady to play ?\n\nThen press any key, wait for count-down and start playing in sync ..."
+    puts "\e[2mOr press BACKSPACE to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
-    one_char
+    return false if one_char == 'BACKSPACE'
     puts
     print "\e[?25l"
     puts
@@ -1065,6 +1108,7 @@ class KeepTempo < QuizFlavour
 
     sleep 0.5
     puts
+    return true
   end
 
   
@@ -1302,7 +1346,7 @@ class NotInScale < QuizFlavourScales
   
   def after_solve
     puts
-    puts "Playing the foreign note #{@solution}, hole #{@hole_notin} ..."
+    puts "Playing note #{@solution}, hole #{@hole_notin}, that was foreign in scale #{@scale_name} ..."
     sleep 0.1
     puts
     play_hons(hons: [@hole_notin])
@@ -1359,14 +1403,14 @@ end
 
 def get_random_interval
   # favour lower holes
-  all_holes = ($harp_holes + Array.new(4, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
+  all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
   loop do
     err "Internal error: no more holes to try" if all_holes.length == 0
     holes_inter = [all_holes.shift, nil]
     $intervals_quiz.clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
       if holes_inter[1]
-        if rand > 0.7
+        if rand > 0.8
           holes_inter.rotate!
           holes_inter << -inter
         else
@@ -1378,9 +1422,9 @@ def get_random_interval
                        ' .. ' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + ' .. ' +
                        holes_inter[3]
         # 0,1: holes,
-        #   2: numerical interval with sign
+        #   2: numerical semitone-interval with sign
         #   3: interval long name
-        #   4: e.g. '+1 ... up ... maj Third'
+        #   4: description, e.g. '+1 ... up ... maj Third'
         return holes_inter
       end
     end
@@ -1454,7 +1498,8 @@ def quiz_hint_in_handle_holes solve_text, holes, hide
   when 'HELP-PLAY'
     puts "\e[#{$lines[:comment] + 1}H"
     $ctl_kb_queue.clear
-    play_holes_or_notes_simple(holes, hide: hide)
+    puts
+    play_holes_or_notes_simple(holes, hide: [hide, :help])
     sleep 1
   end
   clear_area_comment

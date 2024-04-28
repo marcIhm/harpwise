@@ -833,8 +833,8 @@ def read_chart
 end
 
 
-def get_chart_with_intervals prefer_names: true
-  fail "Internal error: reference hole is not set" unless $hole_ref
+def get_chart_with_intervals prefer_names: true, ref: nil
+  ref ||= $hole_ref || $typical_hole
   len = $chart_cell_len
   chart_with_holes_raw = $chart_with_holes_raw
   chart_with_intervals = []
@@ -847,7 +847,7 @@ def get_chart_with_intervals prefer_names: true
         if comment_in_chart?(hole_padded)
           hole_padded[0,len]
         else
-          isemi ,_ ,itext, dsemi = describe_inter(hole, $hole_ref)
+          isemi ,_ ,itext, dsemi = describe_inter(hole, ref)
           idesc = if prefer_names
                     itext || isemi
                   else

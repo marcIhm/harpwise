@@ -48,7 +48,8 @@ tools:
   keys: |
     print a chart with keys and positions centered around current key
   chart: |
-    various harmonica charts for current key
+    various harmonica charts for current key; add option --ref for
+    more charts
   notes-major, notes: |
     print notes of major scale for given key
   progression, prog: |

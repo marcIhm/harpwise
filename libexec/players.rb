@@ -679,15 +679,21 @@ end
 
 def play_holes_or_notes_simple holes_or_notes, hide: nil
 
-  puts "\e[2m(SPACE to pause, 'h' for help)\e[0m"
-  puts
+  # allow hide to be a single value, a hash or an array (maybe with hashes)
+  hide = [hide].flatten
+  hide.compact!
+  hides, simples = hide.partition {_1.is_a?(Hash)}
+  hide = Hash.new
+  hides.each {hide.merge!(_1)}
+  simples.each {hide[_1] = '?'}
+  
+  unless hide[:help]
+    puts "\e[2m(SPACE to pause, 'h' for help)\e[0m"
+    puts
+  end
   $ctl_hole[:skip] = false
   holes_or_notes.each do |hon|
-    if hide && hide.is_a?(Hash)
-      print((hide[hon] || hon) + ' ')
-    else
-      print(( (hon == hide || hide == :all)  ?  '?'  :  hon ) + ' ')
-    end
+    print((hide[hon] || hide[:all] || hon) + ' ')
     if musical_event?(hon)
       sleep $opts[:fast]  ?  0.125  :  0.25
     else
