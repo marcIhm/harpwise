@@ -707,7 +707,7 @@ class HearInter < QuizFlavour
     $intervals_quiz.each do |inter|
       sleep 0.5
       note_inter = semi2note($harp[@holes[0]][:semi] + inter * (@dsemi <=> 0))
-      print "\e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % $intervals[inter][0]
+      print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % $intervals[inter][0]
       play_hons hons: [@holes[0], note_inter], hide: :all, newline: false
     end
     sleep 0.5
@@ -856,6 +856,7 @@ class HearKey < QuizFlavour
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
+            [[0, 0, 8, 8, 6, 6, 3, 3], 'box'],
             [[0, 0, 0], 'repeated'],
             [:chord, 'chord']]
   
