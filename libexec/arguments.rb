@@ -85,7 +85,7 @@ def parse_arguments_early
         iterate: %w(--iterate),
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
-     [Set[:licks, :play, :print], {
+     [Set[:licks, :play, :print, :tools], {
         tags_any: %w(--tags-any),
         tags_all: %w(-t --tags-all),
         no_tags_any: %w(-nt --no-tags-any),

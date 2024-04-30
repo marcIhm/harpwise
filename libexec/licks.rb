@@ -18,6 +18,7 @@ def read_licks graceful = false
   all_licks = []
   licks = nil
   derived = []
+  adhoc_licks = []
   all_lick_names = Set.new
   default = Hash.new
   vars = Hash.new
@@ -42,11 +43,22 @@ def read_licks graceful = false
     next if line == ''
     derived << line
 
-    # [start new lick or default or vars]
-    if md = line.match(/^\[(#{$word_re})\]$/)
+
+    # adding adhoc to licks
+    if md = line.match(/^ *add.adhoc.to *= *(.*)$/)
+      if name
+        err "Variable 'add.adhoc.to' may only appear before first group"
+      else
+        adhoc_licks = md[1].split(' ').map(&:strip)
+      end
+      
+
+    # start new lick or default or vars
+    elsif md = line.match(/^\[(#{$word_re})\]$/)
       derived.insert(-2,'') # empty line before in derived
       nname = md[1]
 
+      
       # Do final processing of previous lick: merging with default and replacement of vars
       if lick
         if name == 'default'
@@ -70,7 +82,8 @@ def read_licks graceful = false
                                       starred
                                      ).flatten.select(&:itself),name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-
+          lick[:tags] << 'adhoc' if adhoc_licks.include?(name)
+          
           lick[:desc] = lick[:desc] || default[:desc] || ''
           if lick[:desc_add] && lick[:desc_add].length > 0
             lick[:desc] += ' ' + lick[:desc_add] 
@@ -95,20 +108,24 @@ def read_licks graceful = false
       lick[:name] = nname
       lick[:lno] = idx + 1
 
+      
     # [empty section]
     elsif line.match?(/^ *\[\] *$/)
       err "Lick name [] cannot be empty (#{lfile}, line #{idx + 1})"
 
+      
     # [invalid section]
     elsif md = line.match(/^ *\[(.*)\] *$/)
       err "Invalid lick name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile}, line #{idx + 1})"
 
+      
     # $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(#{$word_re})$/)
       var, value = md[1..2]
       err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile}, line #{idx + 1})" unless name == 'vars'
       vars[var] = value
 
+      
     # tags.add = value1 value2 ...
     # tags = value1 value2 ...
     elsif (md = line.match(/^ *(tags.add) *= *(.*?) *$/))||
@@ -121,6 +138,7 @@ def read_licks graceful = false
         err "Tags must consist of word characters; '#{tag}' (below [#{name}]) does not" unless tag.match?(/^#{$word_re}$/) || tag.match?(/^\$#{$word_re}$/) 
       end
 
+      
     # holes = value1 value2 ...
     elsif md = line.match(/^ *holes *= *(.*?) *$/)
       err "Key 'holes' (below [#{name}]) has already been defined" if lick[:holes]
@@ -136,6 +154,7 @@ def read_licks graceful = false
         musical_event?(hoe)  ?  hoe  :  $harp[hoe][:note]
       end.join(' ')
 
+      
     # notes = value1 value2 ...
     elsif md = line.match(/^ *notes *= *(.*?) *$/)
       err "Key 'notes' (below [#{name}]) has already been defined" if lick[:notes]
@@ -147,6 +166,7 @@ def read_licks graceful = false
       end
       derived[-1] = "  holes = " + lick['holes'].join(' ')
 
+      
     # desc.add = multi word description
     # desc = multi word description
     elsif (md = line.match(/^ *(desc.add) *= *(.*?) *$/)) ||
@@ -156,11 +176,13 @@ def read_licks graceful = false
       err "Key '#{var}' (below [#{name}]) has already been defined" if lick[svar]
       lick[svar] = desc
 
+
+    # assignment
     elsif md = line.match(/^ *(#{$word_re}) *= *(-?#{$word_re})$/)
       key, value = md[1..2]
       if name == 'default'
         # correct assignment has been handled before
-        err "Default section only allows keys tags, tags.add, desc or desc.add ; not '#{key}'" 
+        err "Default section only allows keys tags, tags.add, desc or desc.add ; not '#{key}'"
       elsif name == 'vars'
         # correct assignments have been handled before
         err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile}, line #{idx + 1})"
@@ -192,9 +214,12 @@ def read_licks graceful = false
           err "Unknown key '#{value}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(value)
         end
       end
+
+
     else
       err "Cannot parse this line: '#{line}' (#{lfile}, line #{idx + 1})"
     end
+
   end # end of processing lines in file
 
   err("No licks found in #{lfile}") unless all_licks.length > 0 

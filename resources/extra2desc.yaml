@@ -66,6 +66,8 @@ tools:
   search-in-scales: |
     search given lick or sequence of holes (or equiv) among scales;
     ordering of holes is not important
+  search-scale-in-licks: |
+    search given scale in all licks (selected e.g. by -t)
   edit-licks: |
     invoke editor on your lickfile 
   edit-config: |

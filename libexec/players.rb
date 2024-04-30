@@ -97,7 +97,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
 
       if $ctl_rec[:loop] && !loop_message_printed
         print "\e[0m\e[32mloop (+ to end) " + 
-              ( $ctl_rec[:loop_loop]  ?  'and loop after loop (L to end)'  :  '' ) +
+              ( $ctl_rec[:loop_loop]  ?  'and loop after loop (L to end) '  :  '' ) +
               "\e[0m"
         loop_message_printed = true
       end

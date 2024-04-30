@@ -45,11 +45,18 @@ def do_play to_play
       
     elsif lnames.length > 0
       
+      $ctl_rec[:lick_lick] = false
+      $ctl_rec[:loop_loop] = false
+      
       lnames.each do |lname|
         lick = $licks.find {|l| l[:name] == lname}
         trace_lick(lick)
         sleep ( $opts[:fast] ? 0.25 : 0.5 )
-        play_and_print_lick lick
+        loop do
+          play_and_print_lick lick
+          break if lnames.length == 1
+          maybe_wait_for_key_and_decide_replay  ?  redo  :  break
+        end
       end
 
     else
@@ -308,21 +315,24 @@ def play_and_print_lick lick
   puts
 end
 
-def maybe_wait_for_key
+def maybe_wait_for_key_and_decide_replay
   if $ctl_rec[:lick_lick]
     puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
     sleep 0.5
+    return false
   else
     puts "\e[0m\e[2m" +
-         "Press any key for next lick, especially:\n" +
-         "  c: continue without further questions\n" +
-         "  L: loop over next and all licks until pressed again " +
+         "Press:    r: to replay this lick\n" +
+         "any other key for next, especially:\n" +
+         "          c: continue without further questions\n" +
+         "          L: loop over next licks until pressed again " +
          ( $ctl_rec[:loop_loop]  ?  "(already ON)"  :  "(currently OFF)" ) +
          "\e[0m"
     char = $ctl_kb_queue.deq
     $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] if char == 'c'
     $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] if char == 'L'
     puts
+    return char == 'r'
   end
 end
 
@@ -345,8 +355,10 @@ def do_play_licks
             lick_idx = rand($licks.length)
       end
       trace_lick($licks[lick_idx])
-      play_and_print_lick $licks[lick_idx]
-      maybe_wait_for_key
+      loop do
+        play_and_print_lick $licks[lick_idx]
+        maybe_wait_for_key_and_decide_replay  ?  redo  :  break
+      end
     end
   else
     sw = $opts[:start_with]
@@ -364,8 +376,10 @@ def do_play_licks
     loop do
       $licks.rotate(idx).each do |lick|
         trace_lick(lick)
-        play_and_print_lick lick
-        maybe_wait_for_key
+        loop do
+          play_and_print_lick lick
+          maybe_wait_for_key_and_decide_replay  ?  redo  :  break
+        end
       end
     end
   end

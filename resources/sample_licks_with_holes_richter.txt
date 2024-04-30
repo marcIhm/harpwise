@@ -9,6 +9,14 @@
 # Empty lines and comments are ignored.
 #
 
+# An advanced feature right away: Before the first section, there
+# can be a special variable, that allows to put the tag 'adhoc'
+# on the given licks. This can be useful, if you have a lot of
+# licks and want to address them at once e.g. via '-t' without
+# having to edit each one individually. An example would be:
+#
+# add.adhoc.to = lick1 lick2
+
 #
 # A lick (e.g. 'wade') can be defined like this:
 #

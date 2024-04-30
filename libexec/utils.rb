@@ -89,7 +89,11 @@ def err text
   sane_term
   puts
   print "\e[0mERROR: #{text}"
-  puts_err_context unless $initialized
+  if $initialized
+    puts
+  else
+    puts_err_context
+  end
   puts
   puts Thread.current.backtrace if $opts && $opts[:debug]
   exit 1

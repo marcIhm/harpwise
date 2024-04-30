@@ -395,7 +395,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'licks' => [5, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
-                    'tools' => [8, '--reference HOLE'],
+                    'tools' => [1, 'starred at some moment in the past'],
                     'develop' => [13, 'If lagging occurs']}
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
@@ -745,6 +745,17 @@ do_test 'id-15a: check history from previous invocation of play' do
   kill_session
 end
 
+do_test 'id-15b: play licks with controls between' do
+  new_session
+  tms 'harpwise play a wade st-louis feeling-bad'
+  tms :ENTER
+  sleep 2
+  expect { screen[4]['Lick wade'] }
+  sleep 4
+  expect { screen[10]['any other key for next'] }
+  kill_session
+end
+
 do_test 'id-16: play some holes and notes' do
   new_session
   # d2 does not correspond to any hole
@@ -772,7 +783,7 @@ do_test 'id-16b: cycle in play' do
   expect { screen[4]['Lick wade'] }
   tms :ENTER
   sleep 2
-  expect { screen[13]['Lick st-louis'] }
+  expect { screen[14]['Lick st-louis'] }
   kill_session
 end
 
@@ -1470,7 +1481,7 @@ do_test 'id-49: edit lickfile' do
   wait_for_start_of_pipeline
   tms 'e'
   sleep 1
-  expect { screen[14]['[wade]'] }
+  expect { screen[17]['[wade]'] }
   kill_session
 end
 
@@ -1581,6 +1592,7 @@ do_test 'id-53c: print' do
   new_session
   tms "harpwise print a4 b4 c4 >#{$testing_output_file}"
   tms :ENTER
+  sleep 1
   lines = File.read($testing_output_file).lines
   expect(lines) {lines[10]['a4.5   b4.1   c4.b4']}
   kill_session
@@ -2480,7 +2492,7 @@ do_test 'id-94: quiz-flavour add-inter' do
   expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
   tms 'SHOW-SEMIS'
   tms :enter
-  expect { screen[8]['-5st  REF  4st'] }
+  expect { screen[6]['--1----2----3--'] }
   kill_session
 end
 
@@ -2688,5 +2700,15 @@ do_test 'id-102: help on flavours via TAB' do
   kill_session
 end
 
+do_test 'id-103: tool search-scale-in-licks' do
+  new_session
+  tms 'harpwise tool search-scale-in-licks blues-middle'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[16]['blues  box1-i  box2-i'] }
+  expect { screen[20]['feeling-bad  box1-iv  box2-iv  three'] }
+  kill_session
+end
 
+puts
 puts

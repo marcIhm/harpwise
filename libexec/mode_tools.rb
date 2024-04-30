@@ -20,6 +20,8 @@ def do_tools to_handle
     tool_search_in_licks to_handle
   when 'search-in-scales'
     tool_search_in_scales to_handle
+  when 'search-scale-in-licks'
+    tool_search_scale_in_licks to_handle
   when 'chart'
     tool_chart
   when 'edit-licks'
@@ -296,6 +298,89 @@ def tool_search_in_scales to_handle
   end
   puts "Nothing found." if cnt == 0
   puts
+end
+
+def tool_search_scale_in_licks to_handle
+
+  err "Need the name of a scale (e.g. '#{$all_scales[-1]}') as a single argument" unless to_handle.length == 1
+  scale = to_handle[0]
+  err "Given argument #{scale} is not the name of a scale (any of: #{$all_scales.join(', ')})" unless $all_scales.include?(scale)
+  
+  holes, _, _, _ = read_and_parse_scale(scale, $harp)
+  scale_holes = holes.map {|h| $harp[h][:canonical]}.uniq.
+                  sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+  
+  prev_not = false
+  licks_all = Array.new
+  licks_but_one = Array.new
+  puts
+  
+  _, $licks = read_licks
+  $licks.each do |lick|
+
+    lick_holes = lick[:holes_wo_events]
+
+    lick_holes = lick_holes.map {|h| $harp[h][:canonical]}.uniq.
+                   sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+  
+    contains_all = (lick_holes - scale_holes).empty?
+
+    contains_but_one = Array.new
+    unless contains_all
+      lick_holes.each do |hole|
+        contains_but_one << hole if (lick_holes - [hole] - scale_holes).empty?
+      end
+    end
+
+    if !contains_all && contains_but_one.length == 0
+      if prev_not
+        print "\e[2m#{lick[:name]}\e[0m "
+      else
+        print "\e[2mScale does not contain at least two holes of lick(s):\n  #{lick[:name]}\e[0m "
+      end
+      prev_not = true
+    else
+      if prev_not
+        puts 
+        puts
+      end
+      puts "Scale contains lick #{lick[:name]} with holes: #{lick_holes.join(' ')}"
+      if contains_all
+        puts " ,with all its holes."
+        licks_all << lick[:name]
+      else
+        puts " ,when removing any of these holes: #{contains_but_one.join(' ')}"
+        licks_but_one << lick[:name]
+      end
+      puts
+      prev_not = false
+    end
+  end
+  if prev_not
+    puts 
+    puts
+  end
+  puts
+  puts_underlined "Summary for Scale #{scale}", '-', dim: false
+  puts
+  puts "Total number of licks checked: #{$licks.length}"
+  puts
+  puts 'Licks that are fully contained:'
+  if licks_all.length == 0
+    puts '  none'
+  else
+    print_in_columns licks_all
+    puts " count: #{licks_all.length}"
+  end
+  puts
+  puts 'Licks that are contained but one hole:'
+  if licks_but_one.length == 0
+    puts '  none'
+  else
+    print_in_columns licks_but_one
+    puts " count: #{licks_but_one.length}"
+  end
+  puts 
 end
 
 
