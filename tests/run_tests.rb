@@ -780,7 +780,7 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick wade'] }
+  expect { screen[6]['Lick wade'] }
   tms :ENTER
   sleep 2
   expect { screen[14]['Lick st-louis'] }
@@ -1158,13 +1158,13 @@ do_test 'id-34: comment with scales and octave shifts' do
   kill_session
 end
 
-do_test 'id-34b: comment with reverted scale' do
+do_test 'id-34b: comment with reverted lick' do
   new_session
   tms 'harpwise licks --comment holes-scales --add-scales - --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-2.b  -3/.b   -2.b  -3/.b   -2.b   -2.b   -2.b  -2/    -1.b'] }
-  tms 'R'
+  tms '!'
   sleep 2
   expect { screen[15]['-2.b  -2/    -1.b  -2/    -2.b   -2.b   -2.b  -3/.b   -2.b'] }
   kill_session

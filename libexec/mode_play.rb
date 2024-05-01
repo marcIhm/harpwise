@@ -287,14 +287,14 @@ def base_and_delta_to_semis base_and_delta
 end
 
 
-def play_and_print_lick lick
+def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_rec[:loop_loop]
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "Lick #{lick[:name]}\e[2m" +
          if lick[:rec_key] == $key
-           ", recorded and played on a #{$key}-harp"
+           "#{extra}, recorded and played on a #{$key}-harp"
          else
-           ", recorded with a #{lick[:rec_key]}-harp, shifted for #{$key}"
+           "#{extra}, recorded with a #{lick[:rec_key]}-harp, shifted for #{$key}"
          end +
          " (h for help)\e[0m\n" +
          lick[:holes].join(' ')
@@ -347,6 +347,8 @@ def do_play_licks
 
   if $opts[:iterate] == :random
     lick_idx = nil
+    puts "\e[2mA random walk through licks.\e[0m"
+    puts
     loop do
       # avoid playing the same lick twice in a row
       if lick_idx
@@ -361,6 +363,8 @@ def do_play_licks
       end
     end
   else
+    puts "\e[2mOne lick after the other.\e[0m"
+    puts
     sw = $opts[:start_with]
     idx = if sw 
             if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
@@ -374,10 +378,10 @@ def do_play_licks
           end
     
     loop do
-      $licks.rotate(idx).each do |lick|
+      $licks.rotate(idx).each_with_index do |lick, idx|
         trace_lick(lick)
         loop do
-          play_and_print_lick lick
+          play_and_print_lick lick, " (#{idx+1} of #{$licks.length})"
           maybe_wait_for_key_and_decide_replay  ?  redo  :  break
         end
       end

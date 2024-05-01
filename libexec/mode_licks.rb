@@ -80,6 +80,17 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
     elsif $ctl_mic[:reverse_holes]
       to_play[:all_wanted] = to_play[:all_wanted].reverse
+      if to_play[:lick][:rec]
+        $msgbuf.print 'Holes reverted, ignoring recording', 2, 5, :holes
+        $ctl_mic[:ignore_recording] = true
+      end
+
+    elsif $ctl_mic[:shuffle_holes]
+      to_play[:all_wanted] = to_play[:all_wanted].shuffle
+      if to_play[:lick][:rec]
+        $msgbuf.print 'Holes shuffled, ignoring recording', 2, 5, :holes
+        $ctl_mic[:ignore_recording] = true
+      end
 
     elsif $ctl_mic[:replay]      
     # nothing to do here, (re)playing will happen further down
@@ -238,8 +249,13 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       # show later comment already while playing
       print_comment_adhoc(to_play[:all_wanted]) unless oride_l_message2
 
+      pstart = Time.now.to_f
+
       play_rec_or_holes to_play, oride_l_message2
+
       seq_played_recently = true
+      pend = Time.now.to_f
+      $msgbuf.borrowed(pend - pstart)
 
       if $ctl_rec[:replay]
         $ctl_mic[:replay] = true
@@ -252,7 +268,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     end
 
     # reset controls before listening
-    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:reverse_holes] = $ctl_mic[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -454,7 +470,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           return
         end
 
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -487,8 +503,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
                   'octave up'
                 elsif $ctl_mic[:octave] == :down
                   'octave down'
-                elsif $ctl_mic[:reverse_holes] == :down
-                  'octave down'
                 elsif $ctl_mic[:toggle_record_user]
                   if $ulrec.active?
                     ccol = 2
@@ -497,7 +511,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
                     ccol = 31
                     'REC   -ON-'
                   end
-                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
                   # these will issue their own message
                   nil
                 else
@@ -517,7 +531,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
@@ -546,7 +560,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         $ctl_mic[:quiz_hint] = false
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil

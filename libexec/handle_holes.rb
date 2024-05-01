@@ -27,6 +27,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hole_held = hole_journal = hole_journal_since = nil
 
   was_good = was_was_good = was_good_since = nil
+  $msgbuf.update(tntf, refresh: true)
   hints_refreshed_at = tntf - 1000.0
   hints = hints_old = nil
 
@@ -48,9 +49,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
-    
-    system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
+
     if first_round || $ctl_mic[:redraw]
+      system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       print_mission(get_mission_override || lambda_mission.call)
       ctl_response
       print "\e[#{$lines[:key]}H" + text_for_key
@@ -59,8 +60,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         $msgbuf.print "Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]", 2, 5, :term
       end
-      # updates and returns true, if hint is allowed
-      hints_old = nil if $msgbuf.update(refresh: true)
+      # updates messages and returns true, if hint is allowed
+      hints_old = nil if $msgbuf.update(tntf, refresh: true)
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
@@ -268,9 +269,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     # updates and returns true, if hint is allowed
     if $msgbuf.update(tntf)
-      # A specific message has been shown, that overrides usual hint
+      # A specific message has been shown, that overrides usual hint,
+      # so trigger redisplay of hint when message is expired
       hints_old = nil
-    elsif lambda_hint && tntf - hints_refreshed_at > 0.5
+    elsif lambda_hint && tntf - hints_refreshed_at > 1
       # Make sure to refresh hint, once the current message has elapsed
       $perfctr[:lambda_hint_call] += 1
       hints = lambda_hint.call(hole)
@@ -326,7 +328,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
                                                                                                    
     if $ctl_mic[:set_ref]
-      $hole_ref = hole_held
+      if $ctl_mic[:set_ref] == :played
+        $hole_ref = hole_held
+      else
+        choices = $harp_holes
+        $hole_ref = choose_interactive("Choose the new reference hole: ", choices) do |choice|
+          "Hole #{choice}"
+        end 
+        $freqs_queue.clear        
+      end
       $msgbuf.print "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole", 2, 5, :ref
       if $hole_ref 
         $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
@@ -465,7 +475,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -544,7 +554,7 @@ def do_change_key
     if key == $key
       "The current key"
     else
-      "#{describe_inter_keys(key, $key)} the current key #{$key}"
+      "#{describe_inter_keys(key, $key)} to the current key #{$key}"
     end
   end || $key
   if $key == key_was
@@ -632,7 +642,7 @@ def show_help
              "  SPACE: pause and continue      ctrl-l: redraw screen",
              "    d,D: change display (upper part of screen)",
              "    c,C: change comment (in lower part of screen)",
-             "      r: set reference to hole played (not freq played)",
+             "    r,R: set reference to hole played or chosen",
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
              "      s: rotate current scales        S: set scales"]
@@ -660,7 +670,7 @@ def show_help
                "      P: toggle automatic replay when looping over a sequence",
                "      i: toggle '--immediate'              L: loop current sequence",
                "    0,-: forget holes played               +: skip rest of sequence",
-               "      t: toggle tracking progress in seq   R: play holes reversed"]
+               "      t: toggle tracking progress in seq"]
     if $mode == :quiz
       frames[-1] << "      H: hints for quiz-flavour #{$extra}"
     end
@@ -671,6 +681,7 @@ def show_help
                           "      @: change option --partial",
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
+                          "      !: play holes reversed               &: shuffle holes",
                           ""])
     elsif $mode == :quiz && $extra == 'replay'
       frames[-1] << "      n: change number of holes to be replayed"
@@ -805,7 +816,7 @@ class MsgBuf
     @@lines_durations.pop if @@lines_durations.length > 0 && @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
     @@lines_durations << [text, min, max, group] if @@lines_durations.length == 0 || @@lines_durations[-1][0] != text
     # later should be used for batches of messages, where print is
-    # invoke multiple times in a row; the last one should be called
+    # invoked multiple times in a row; the last one should be called
     # without setting later
     if @@ready && text && !later
       Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K"
@@ -814,9 +825,13 @@ class MsgBuf
     @@printed_at = Time.now.to_f
   end
 
-  # return true, if there is message content left
+  # return true, if there is message content left, i.e. if
+  # message-line should not be used e.g. for hints
   def update tntf = nil, refresh: false
+
     tntf ||= Time.now.to_f
+
+    # we keep elements in @@lines_durations until they are expired
     return false if @@lines_durations.length == 0
 
     # use max duration for check
@@ -868,5 +883,11 @@ class MsgBuf
 
   def get_lines_durations
     @@lines_durations
+  end
+
+  def borrowed secs
+    # correct for secs where lines have been borrowed something else
+    # (e.g. playing the licka)
+    @@printed_at += @@printed_at if @@printed_at
   end
 end

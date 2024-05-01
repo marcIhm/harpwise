@@ -32,7 +32,7 @@ def parse_arguments_early
   num_args_after_mode = ARGV.length
   
   # needed for error messages
-  $for_usage = "Invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage"
+  $for_usage = "Invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage."
 
 
   #
@@ -167,7 +167,7 @@ def parse_arguments_early
       odet = opts_all[matching.keys[0]]
       ARGV.delete_at(i)
       if odet[1]
-        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} (#{ARGV[i]}) requires an argument, but none is given; #{$for_usage}")
+        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
         # convert options as described for configs
         opts[osym] = opts[osym].send($conf_meta[:conversions][osym] || :num_or_str) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)

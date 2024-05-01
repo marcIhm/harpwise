@@ -590,9 +590,12 @@ def handle_kb_mic
   elsif char == 't' && $mode == :licks
     $ctl_mic[:change_tags] = true
     text = 'Tags'
-  elsif char == 'R' && $mode == :licks
+  elsif char == '!' && $mode == :licks
     $ctl_mic[:reverse_holes] = :all
     text = 'Reverse'
+  elsif char == '&' && $mode == :licks
+    $ctl_mic[:shuffle_holes] = true
+    text = 'Shuffle'    
   elsif char.ord == 18 && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Record user'
@@ -650,8 +653,8 @@ def handle_kb_mic
   elsif char == 'D'
     $ctl_mic[:change_display] = :choose
     text = 'Choose display'
-  elsif char == 'r'
-    $ctl_mic[:set_ref] = true
+  elsif char == 'r' || char == 'R'
+    $ctl_mic[:set_ref] = ( char == 'r'  ?  :played  :  :choose )
     text = 'Set reference'
   elsif char == 'c'
     $ctl_mic[:change_comment] = true
@@ -704,7 +707,7 @@ def handle_kb_mic
   elsif char == 'L' && [:quiz, :licks].include?($mode)
     $ctl_mic[:start_loop] = true
     text = 'Loop started'
-  elsif char == '&'
+  elsif char == '§'
     $opts[:debug] = true
     text = 'Debug is ON'
   elsif char.length > 0
