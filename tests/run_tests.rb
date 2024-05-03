@@ -714,9 +714,9 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 
   end
-  expect(licks[1]) { licks[1][:tags] == %w(testing x no_rec) }
-  expect(licks[2]) { licks[2][:tags] == %w(y no_rec) }
-  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no_rec) }
+  expect(licks[1]) { licks[1][:tags] == %w(testing x no_rec shift_fifth shift_oct) }
+  expect(licks[2]) { licks[2][:tags] == %w(y no_rec shift_fifth shift_oct) }
+  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no_rec shift_fifth shift_oct) }
   expect(licks[1]) { licks[1][:desc] == 'a b' }
   expect(licks[2]) { licks[2][:desc] == 'c b' }
   expect(licks[3]) { licks[3][:desc] == 'a d' }
@@ -938,7 +938,12 @@ do_test 'id-21: mode licks with --start-with' do
   tms 'harpwise licks --start-with wade a'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['wade | fav,favorites,samples'] }
+  # the waitin below needs to be somewhat in sync with timed rotation
+  # of lick_hints, which has a period of 10 secs
+  expect { screen[-1]['wade'] }
+  sleep 8
+  expect { screen[-1]['samples'] }
+  sleep 8
   expect { screen[-1]['Wade in the Water'] }
   kill_session
 end
@@ -949,7 +954,7 @@ do_test 'id-22: print list of some licks with tags' do
   tms :ENTER
   sleep 2
   # for licks that match this tag
-  expect { screen[17]['Total number of licks:   4'] }
+  expect { screen[18]['Total number of licks:   4'] }
   kill_session
 end
 
@@ -959,22 +964,25 @@ do_test 'id-23: print list of licks with tags' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["  wade ..... fav,favorites,samples,has_rec\n",
-   "  st-louis,feeling-bad ..... favorites,samples,has_rec\n",
-   "  blues,mape ..... scales,theory,no_rec\n",
-   "  box1-i ..... box,box1,i-chord,no_rec\n",
-   "  box1-iv ..... box,box1,iv-chord,no_rec\n",
-   "  box1-v ..... box,box1,v-chord,no_rec\n",
-   "  box2-i ..... box,box2,i-chord,no_rec\n",
-   "  box2-iv ..... box,box2,iv-chord,no_rec\n",
-   "  box2-v ..... box,box2,v-chord,no_rec\n",
-   "  boogie-i ..... boogie,i-chord,no_rec\n",
-   "  boogie-iv,boogie-v ..... boogie,v-chord,no_rec\n",
-   "  simple-turn ..... turn,no_rec\n",
-   "  special ..... advanced,samples,no_rec\n",
-   "  one ..... testing,x,no_rec\n",
-   "  two ..... y,no_rec\n",
-   "  three ..... fav,favorites,testing,z,no_rec\n",
+  ["  wade ..... fav,favorites,samples,has_rec,shift_fifth\n",
+   "  st-louis ..... favorites,samples,has_rec,shift_fifth\n",
+   "  feeling-bad ..... favorites,samples,has_rec,shift_fifth,shift_oct\n",
+   "  blues ..... scales,theory,no_rec,shift_fifth\n",
+   "  mape ..... scales,theory,no_rec,shift_oct\n",
+   "  box1-i ..... box,box1,i-chord,no_rec,shift_fifth,shift_oct\n",
+   "  box1-iv ..... box,box1,iv-chord,no_rec,shift_fifth\n",
+   "  box1-v ..... box,box1,v-chord,no_rec,shift_fifth,shift_oct\n",
+   "  box2-i ..... box,box2,i-chord,no_rec,shift_fifth,shift_oct\n",
+   "  box2-iv ..... box,box2,iv-chord,no_rec,shift_fifth\n",
+   "  box2-v ..... box,box2,v-chord,no_rec,shift_fifth,shift_oct\n",
+   "  boogie-i ..... boogie,i-chord,no_rec,shift_oct\n",
+   "  boogie-iv ..... boogie,v-chord,no_rec,shift_fifth\n",
+   "  boogie-v ..... boogie,v-chord,no_rec\n",
+   "  simple-turn ..... turn,no_rec,shift_fifth,shift_oct\n",
+   "  special ..... advanced,samples,no_rec,shift_fifth,shift_oct\n",
+   "  one ..... testing,x,no_rec,shift_fifth,shift_oct\n",
+   "  two ..... y,no_rec,shift_fifth,shift_oct\n",
+   "  three ..... fav,favorites,testing,z,no_rec,shift_fifth,shift_oct\n",
    "  long ..... testing,x,has_rec\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx) { lines[12+idx] == exp }
   end
@@ -1002,6 +1010,8 @@ do_test 'id-23a: overview for all licks' do
    "  no_rec                              16\n",
    "  samples                              4\n",
    "  scales                               2\n",
+   "  shift_fifth                         16\n",
+   "  shift_oct                           12\n",   
    "  testing                              3\n",
    "  theory                               2\n",
    "  turn                                 1\n",
@@ -1010,11 +1020,11 @@ do_test 'id-23a: overview for all licks' do
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               67\n",
-   "  Total number of different tags:     20\n",
+   "  Total number of tags:               95\n",
+   "  Total number of different tags:     22\n",
    " -----------------------------------------\n",
    "  Total number of licks:              20\n"].each_with_index do |exp,idx|
-    expect(lines[10+idx],exp,idx,lines) { lines[12+idx] == exp }
+    expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx,) { lines[12+idx] == exp }
   end
   kill_session
 end
@@ -1024,13 +1034,13 @@ do_test 'id-24: cycle through licks' do
   tms 'harpwise licks --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect($all_testing_licks[0]) { screen[-2][$all_testing_licks[0]] }
+  expect($all_testing_licks[0]) { screen[-1][$all_testing_licks[0]] }
   tms :ENTER
   sleep 4
-  expect { screen[-2][$all_testing_licks[1]] }
+  expect { screen[-1][$all_testing_licks[1]] }
   tms :ENTER
   sleep 4
-  expect { screen[-2][$all_testing_licks[2]] }
+  expect { screen[-1][$all_testing_licks[2]] }
   tms :ENTER
   kill_session
 end
@@ -1065,16 +1075,16 @@ end
 
 do_test 'id-29: back one lick' do
   new_session
-  tms 'harpwise licks --start-with st-louis'
+  tms 'harpwise licks --start-with st-louis --iter cycle'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['st-louis'] }
+  expect { screen[-1]['st-louis'] }
   tms :ENTER
-  sleep 4
-  expect { !screen[-2]['st-louis'] }
+  sleep 2
+  expect { screen[-1]['feeling-bad'] }
   tms :BSPACE
-  sleep 4
-  expect { screen[-2]['st-louis'] }
+  sleep 2
+  expect { screen[-1]['st-louis'] }
   kill_session
 end
 
@@ -1218,12 +1228,12 @@ do_test 'id-37: change lick by name' do
   tms 'harpwise lick blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['wade'] }
+  expect { screen[-1]['wade'] }
   tms 'l'
   tms 'special'
   tms :ENTER
-  sleep 2
-  expect { screen[-2]['special |'] }
+  sleep 1
+  expect { screen[-1]['special'] }
   kill_session
 end
 
@@ -1232,13 +1242,12 @@ do_test 'id-37a: change lick by name with cursor keys' do
   tms 'harpwise lick blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-2]['wade'] }
+  expect { screen[-1]['wade'] }
   tms 'l'
-  tms :RIGHT
   tms :RIGHT
   tms :ENTER
   sleep 2
-  expect { screen[-2]['st-louis |'] }
+  expect { screen[-1]['special'] }
   kill_session
 end
 
@@ -1268,7 +1277,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
-  4.times {tms :RIGHT}
+  5.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
   tms :ENTER
@@ -1771,7 +1780,7 @@ end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
                 'harpwise quiz a replay 3' => [[9,'change key of harp'],[9,'forget holes played']],
-                'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
+                'harpwise licks c' => [[9,'change key of harp'],[15,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do

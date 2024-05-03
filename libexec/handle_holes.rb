@@ -285,40 +285,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         if hints.length == 1
           # for mode quiz and listen
           print truncate_text(hints[0]) + "\e[K"
-        elsif hints.length == 4 && $lines[:message2] > 0
+        elsif hints.length == 2 && $lines[:message2] > 0
           # for mode licks
           # hints:
-          #  0 = name of lick,
-          #  1 = tags,
-          #  2 = hint (if any)
-          #  3 = description of lick
-          if hints[3] == ''
-            # no description, put name of lick and tags on own line
-            print truncate_text(hints[2]) + "\e[K"
-            message2 = [hints[0], hints[1]].select {|x| x && x.length > 0}.join(' | ')
-            print "\e[#{$lines[:message2]}H\e[0m\e[2m#{message2}\e[K"
-          else
-            # hints[0 .. 2] are on first line, hints[3] on the second
-            # if necessary, we truncate or omit hints[1] (tags)
-            maxl_h1 = $term_width - 10 - hints[0].length - hints[2].length
-            hint_all = 
-              if maxl_h1 >= 12
-                # enough space to show at least something
-                [hints[0],
-                 if maxl_h1 > hints[1].length
-                   hints[1]
-                 else
-                   hints[1][0,maxl_h1 - 3] + '...'
-                 end,
-                 hints[2]]
-              else
-                # we omit hints[1] altogether
-                [hints[0], '...', hints[2]]
-              end.select {|x| x && x.length > 0}.join(' | ') + "\e[K"
-            print hint_all
-            print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-            print truncate_text(hints[3]) + "\e[K"
-          end
+          #  0 = hole_hint
+          #  1 = lick_hint (rotates through name, tags and desc)
+          print truncate_text(hints[0]) + "\e[K"
+          print "\e[#{$lines[:message2]}H\e[0m\e[2m"
+          print truncate_text(hints[1]) + "\e[K"
         else
           fail "Internal error"
         end

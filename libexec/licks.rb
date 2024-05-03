@@ -94,7 +94,7 @@ def read_licks graceful = false
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
-          [[7, 'shift-fifth'], [12, 'shift-oct']].each do |st, tag|
+          [[7, 'shift_fifth'], [12, 'shift_oct']].each do |st, tag|
             num_shiftable = lick[:holes].inject(0) do |sum, hole|
               sum + ( musical_event?(hole)  ?  1  :
                         ( $harp[hole][:shifted_by][st]  ?  1  :  0 ) )

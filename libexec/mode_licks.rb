@@ -31,8 +31,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
     # check, if lick-file has changed
     if to_play[:lick_idx] && refresh_licks
-      to_play[:lick] = $licks[to_play[:lick_idx]]
-      to_play[:all_wanted] = to_play[:lick][:holes]
+      to_play.set_lick_and_others_from_idx
       ctl_response 'Refreshed licks'
     end
 
@@ -52,11 +51,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     
     if $other_mode_saved[:lick_idx]
       # mode is licks
-      to_play[:lick_idx] = $other_mode_saved[:lick_idx]
-      to_play[:lick] = $licks[to_play[:lick_idx]]
-      to_play[:all_wanted] = to_play[:lick][:holes]
-      $other_mode_saved[:lick_idx] = nil
+      to_play.set_lick_and_others_from_idx($other_mode_saved[:lick_idx])
       to_play[:lick_idx_before] = nil
+      $other_mode_saved[:lick_idx] = nil
 
     elsif $other_mode_saved[:all_wanted]
       # happens only for mode quiz
@@ -104,13 +101,10 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
     else
       # most general case: $ctl_mic[:next] or
-      # $ctl_mic[:change_num_quiz_replay] or no $ctl-command; go to
-      # the next lick or sequence of holes
+      # $ctl_mic[:change_num_quiz_replay] or no $ctl-command at all;
+      # go to the next lick or sequence of holes
 
       to_play[:all_wanted_before] = to_play[:all_wanted]
-      to_play[:lick_idx_before] = to_play[:lick_idx]
-      to_play[:shift_inter] = 0
-
       
       # figure out holes to play
       if $mode == :quiz
@@ -163,7 +157,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           err "Internal error: #{$quiz_flavour}"
         end
         
-      else # $mode == :licks
+      else ## $mode == :licks
+
+        to_play[:shift_inter] = 0
 
         if start_with
           if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
@@ -176,23 +172,26 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           start_with = nil
 
         elsif $opts[:iterate] == :cycle
+
           if to_play[:lick_idx]
             # ongoing cycle
+            to_play[:lick_idx_before] = to_play[:lick_idx] 
             to_play.continue_with_cycle
           else
             # start cycle
             to_play[:lick_idx] = 0
+            to_play[:lick_idx_before] = nil
           end
           
         else # $opts[:iterate] == :random
+          to_play[:lick_idx_before] = to_play[:lick_idx] 
           to_play.choose_random_lick
           
         end
 
-        to_play[:lick] = $licks[to_play[:lick_idx]]
-        to_play[:all_wanted] = to_play[:lick][:holes]
+        to_play.set_lick_and_others_from_idx
         trace_text = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
-      end
+      end   ## figure out holes to play
 
       $ctl_mic[:loop] = $opts[:loop]
 
@@ -301,9 +300,11 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     #  Now listen for user to play the sequence back correctly
     #
 
+    hints_rotated_at = Time.now.to_f + 4 ## give first hint some extra time
+    hints_rotations = 0
+    
     begin   # while looping over the same sequence again and again
 
-      round_start = Time.now.to_f
       idx_refresh_comment_cache = comment_cache = nil
       clear_area_comment
 
@@ -332,7 +333,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       end
 
       $ctl_mic[:forget] = false
-      
+
       # iterate over holes in sequence, i.e. one iteration while
       # looping over the same sequence again and again
       to_play[:all_wanted].each_with_index do |wanted, idx|  
@@ -413,8 +414,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           
           # lambda_hint
           -> (_) do
-            hole_passed = Time.now.to_f - hole_start
-            round_passed = Time.now.to_f - round_start
+            tntf = Time.now.to_f
+            hole_passed = tntf - hole_start
             hole_hint = if hole_passed > 6
                           "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m\e[2m ; type '.' for replay"
                         else
@@ -426,13 +427,15 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
                           end
                         end
             if $mode == :licks
-              [ to_play[:lick][:name],
-                to_play[:lick][:tags].map do |t|
-                  t == 'starred'  ?  "#{$starred[to_play[:lick][:name]] || 0}*#{t}"  :  t
-                end.join(','),
-                hole_hint,
-                to_play[:lick][:desc] ]
-            else
+              if tntf - hints_rotated_at > ( hints_rotations < to_play[:lick_hints].length  ?  6  :  12 )
+                to_play[:lick_hints].rotate!
+                hints_rotations += 1
+                hints_rotated_at = tntf
+              end
+              [ hole_hint,
+                to_play[:lick_hints][0] ]
+              # every few secs show different parts of hint              
+            else  ## $mode == :quiz
               [ hole_hint ]
             end
           end,
@@ -1129,7 +1132,7 @@ def play_rec_or_holes to_play, oride_l_message2
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :shift_inter)
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_hints, :shift_inter)
 
   def initialize
     self[:shift_inter] = 0
@@ -1159,10 +1162,8 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     
     new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]
     if self[:lick_idx] != new_idx
-      self[:lick_idx_before] = self[:lick_idx] 
-      self[:lick_idx] = new_idx
-      self[:lick] = $licks[new_idx]
-      self[:all_wanted] = self[:lick][:holes]
+      self[:lick_idx_before] = self[:lick_idx]
+      self.set_lick_and_others_from_idx(new_idx)
       trace_text = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
     end
     
@@ -1176,9 +1177,8 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         print "\e[G\e[0m\e[32mNo previous lick; replay\e[K"
         sleep 1
       else
-        self[:lick_idx] = self[:lick_idx_before]
-        self[:lick] = $licks[self[:lick_idx]]
-        self[:all_wanted] = self[:lick][:holes]
+        self.set_lick_and_others_from_idx(self[:lick_idx_before])
+        self[:lick_idx_before] = nil
       end
     else
       if !self[:all_wanted_before] || self[:all_wanted_before] == self[:all_wanted]
@@ -1198,13 +1198,9 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     else
       if edit_file($lick_file, self[:lick][:lno])
         if self[:lick_idx] && refresh_licks
-          self[:lick] = $licks[self[:lick_idx]]
-          unless self[:lick]
-            # rare edge case, e.g. when we remove tag 'fav' from last lick
-            self[:lick_idx] = 0
-            self[:lick] = $licks[self[:lick_idx]]
-          end
-          self[:all_wanted] = self[:lick][:holes]
+          # rare edge case, e.g. when we remove tag 'fav' from last lick
+          self[:lick_idx] = 0 if !$licks[self[:lick_idx]] 
+          self.set_lick_and_others_from_idx
           ctl_response 'Refreshed licks'
         end
       end
@@ -1217,13 +1213,9 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   def change_tags
     start_new_iteration = read_tags_and_refresh_licks(self[:lick])
     if start_new_iteration
-      if $opts[:iteration] == :cycle
-        self[:lick_idx_before] = self[:lick_idx] = 0
-      else
-        self[:lick_idx_before] = self[:lick_idx] = rand($licks.length)
-      end
-      self[:lick] = $licks[self[:lick_idx]]
-      self[:all_wanted] = self[:lick][:holes]
+      self[:lick_idx] = ( $opts[:iteration] == :cycle  ?  0  :  rand($licks.length) )
+      self[:lick_idx_before] = nil
+      self.set_lick_and_others_from_idx
     end
     $ctl_mic[:change_tags] = false
     print "\e[#{$lines[:key]}H\e[k" + text_for_key
@@ -1312,5 +1304,15 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
       end
     end
   end
-  
+
+
+  def set_lick_and_others_from_idx idx = nil
+    self[:lick_idx] = idx || self[:lick_idx]
+    self[:lick] = $licks[self[:lick_idx]]
+    self[:all_wanted] = self[:lick][:holes]
+    self[:lick_hints] = ['Lick Name: ' + self[:lick][:name],
+                         'Tags: ' + self[:lick][:tags].join(',')]
+    self[:lick_hints] << 'Desc: ' + self[:lick][:desc] if self[:lick][:desc] != ''
+  end
+
 end
