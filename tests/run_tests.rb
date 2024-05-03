@@ -1141,20 +1141,24 @@ do_test 'id-33b: display chart where -2 equals +3' do
   kill_session
 end
 
-do_test 'id-34: comment with scales and octave shifts' do
+do_test 'id-34: comment with scales and octave shift' do
   new_session
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
-  tms '>'
+  tms '%'
+  sleep 1
+  tms 'octave up'
+  tms :ENTER
   sleep 2
   expect { screen[15]['-4.b1   +5    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
-  tms '<'
+  tms '%'
+  sleep 1
+  tms 'no shift'
+  tms :ENTER
   sleep 2
-  tms '<'
-  sleep 2
-  expect { screen[-2]['Shifting lick by (one more) octave does not produce any playable notes.'] }
+  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   kill_session
 end
 

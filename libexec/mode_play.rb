@@ -226,7 +226,6 @@ def hole_or_note_or_semi hns, diff_allowed = true
     amongs = [:hole, :note]
     amongs.append(:semi_inter, :inter) if diff_allowed
     print_amongs(*amongs)
-    inters_desc = $intervals_inv.keys.join(', ')
     err "Given argument #{hns} is none those given above"
   end
 

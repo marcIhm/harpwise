@@ -599,12 +599,9 @@ def handle_kb_mic
   elsif char.ord == 18 && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Record user'
-  elsif char == '>' && $mode == :licks
-    $ctl_mic[:octave] = :up
-    text = 'Octave up'
-  elsif char == '<' && $mode == :licks
-    $ctl_mic[:octave] = :down
-    text = 'Octave down'
+  elsif char == '%' && $mode == :licks
+    $ctl_mic[:shift_inter] = true
+    text = 'Shift interval'
   elsif char == '@' && $mode == :licks
     $ctl_mic[:change_partial] = true
     text = 'Partial'

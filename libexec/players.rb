@@ -2,7 +2,7 @@
 # Playing under user control
 #
 
-def play_recording_and_handle_kb recording, start, length, key, scroll_allowed = true, octave_shift = 0
+def play_recording_and_handle_kb recording, start, length, key, scroll_allowed = true, shift_inter = 0
 
   trim_clause = if start && length
                   # for positive length this is different than written in the man page of sox ?!
@@ -15,7 +15,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
                   ""
                 end
 
-  dsemi = diff_semitones($key, key, strategy: :minimum_distance) + octave_shift * 12
+  dsemi = diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
   $ctl_rec[:loop] = $ctl_rec[:loop_loop]

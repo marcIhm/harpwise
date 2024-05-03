@@ -608,7 +608,7 @@ def print_amongs *choices
       puts get_extra_desc.join("\n")
     when :inter
       puts "\n- named interval, i.e. one of: "
-      print_in_columns $intervals_inv.keys, indent: 4, pad: :tabs
+      print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
       puts "\n- licks:"

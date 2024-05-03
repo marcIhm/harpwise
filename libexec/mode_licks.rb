@@ -95,10 +95,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     elsif $ctl_mic[:replay]      
     # nothing to do here, (re)playing will happen further down
 
-    elsif $ctl_mic[:octave]
-      to_play[:octave_shift_was] = to_play[:octave_shift]
-      to_play[:octave_shift] += ( $ctl_mic[:octave] == :up  ?  +1  :  -1 )
-      to_play.change_octave
+    elsif $ctl_mic[:shift_inter]
+      to_play.read_and_shift_inter
 
     elsif $ctl_mic[:change_partial]
       read_and_set_partial
@@ -111,7 +109,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
       to_play[:all_wanted_before] = to_play[:all_wanted]
       to_play[:lick_idx_before] = to_play[:lick_idx]
-      to_play[:octave_shift] = 0
+      to_play[:shift_inter] = 0
 
       
       # figure out holes to play
@@ -240,7 +238,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     trace_text = nil
     seq_played_recently = false
     if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
-       $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]
+       $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
 
@@ -268,7 +266,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     end
 
     # reset controls before listening
-    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:octave] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -378,7 +376,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           end, 
           
           # lambda_skip
-          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:octave] || $ctl_mic[:change_partial]},  
+          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]},  
 
           
           # lambda_comment; this one needs no arguments at all
@@ -470,7 +468,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           return
         end
 
-        break if [:next, :back, :replay, :octave, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :shift_inter, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -492,46 +490,42 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         sleep 0.3
         clear_area_comment if [:holes_all, :holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
         # update comment
-        ccol = 32
-        ctext = if $ctl_mic[:next]
-                  'next'
-                elsif $ctl_mic[:back]
-                  'jump back'
-                elsif $ctl_mic[:replay]
-                  'replay'
-                elsif $ctl_mic[:octave] == :up
-                  'octave up'
-                elsif $ctl_mic[:octave] == :down
-                  'octave down'
-                elsif $ctl_mic[:toggle_record_user]
-                  if $ulrec.active?
-                    ccol = 2
-                    'REC  -off-'
-                  else
-                    ccol = 31
-                    'REC   -ON-'
-                  end
-                elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
-                  # these will issue their own message
-                  nil
-                else
-                  full_seq_shown ? 'Yes ' : 'Great ! '
-                  seq_played_recently = false
-                end
-        if ctext
+        cmnt_col = 32
+        cmnt_text = if $ctl_mic[:next]
+                      'next'
+                    elsif $ctl_mic[:back]
+                      'jump back'
+                    elsif $ctl_mic[:replay]
+                      'replay'
+                    elsif $ctl_mic[:toggle_record_user]
+                      if $ulrec.active?
+                        cmnt_col = 2
+                        'REC  -off-'
+                      else
+                        cmnt_col = 31
+                        'REC   -ON-'
+                      end
+                    elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shift_inter, :shuffle_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+                      # these will issue their own message
+                      nil
+                    else
+                      full_seq_shown ? 'Yes ' : 'Great ! '
+                      seq_played_recently = false
+                    end
+        if cmnt_text
           clear_area_comment
           if [:holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
-            puts "\e[#{$lines[:comment] + 2}H\e[0m\e[#{ccol}m   " + ctext
+            puts "\e[#{$lines[:comment] + 2}H\e[0m\e[#{cmnt_col}m   " + cmnt_text
           else
-            print "\e[#{$lines[:comment]}H\e[0m\e[#{ccol}m"
-            do_figlet_unwrapped ctext, 'smblock'
+            print "\e[#{$lines[:comment]}H\e[0m\e[#{cmnt_col}m"
+            do_figlet_unwrapped cmnt_text, 'smblock'
           end
           print "\e[0m"
         end # updating display
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :octave, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        unless [:replay, :shift_inter, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
@@ -541,9 +535,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
             print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
           end
           full_seq_shown = true
-          sleep 0.5 unless ctext
+          sleep 0.5 unless cmnt_text
         end
-        sleep 0.5 if ctext
+        sleep 0.5 if cmnt_text
       end
 
       sleep 0.5 if $ulrec.recording? # record some more
@@ -560,7 +554,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         $ctl_mic[:quiz_hint] = false
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :octave, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :shift_inter, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
@@ -602,9 +596,9 @@ def get_quiz_sample num
     else
       what[i] = :middle_interval
       begin
-        # semitone distances 4,7 and 12 are major third, perfect fifth
-        # and octave respectively
-        try_semi = $harp[holes[i-1]][:semi] + [4,7,12].sample * [-1,1].sample
+        # semitone distances 4,7,10 and 12 are major third, perfect
+        # fifth, flat seventh and octave respectively
+        try_semi = $harp[holes[i-1]][:semi] + $std_semi_shifts.sample
         tries += 1
         break if tries > 100
       end until $semi2hole[try_semi]
@@ -661,7 +655,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_recording_quiz lick, at_line:, octave_shift:
+def play_recording_quiz lick, at_line:, shift_inter:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -684,7 +678,7 @@ def play_recording_quiz lick, at_line:, octave_shift:
     print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], !!at_line, octave_shift)
+  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], !!at_line, shift_inter)
 
   print skipped ? " skip rest" : " done"
 end
@@ -1033,7 +1027,7 @@ def read_and_set_partial
   clear_area_comment
   puts "\e[#{$lines[:comment_tall]}H\e[0m\e[32mPlease enter new value for option '--partial'."
   puts
-  puts "\e[0m\e[2m Examples would be: 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x 0"
+  puts "\e[0m\e[2m Examples would be: 0 1/3@b 1/4@x 1/2@e 1@b 1@e 2@x"
   puts " type RETURN to unset"
   puts " Current value is '#{$opts[:partial]}'"
   puts
@@ -1130,15 +1124,15 @@ def play_rec_or_holes to_play, oride_l_message2
   else
     play_recording_quiz to_play[:lick],
                         at_line: oride_l_message2,
-                        octave_shift: to_play[:octave_shift]
+                        shift_inter: to_play[:shift_inter]
   end
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :octave_shift, :octave_shift_was)
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :shift_inter)
 
   def initialize
-    self[:octave_shift] = 0
+    self[:shift_inter] = 0
   end
 
   
@@ -1236,26 +1230,49 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
   end
 
 
-  def change_octave
-    all_wanted_was = self[:all_wanted]
-    self[:all_wanted] = self[:lick][:holes].map do |hole|
-      if musical_event?(hole) || self[:octave_shift] == 0
-        hole
-      else
-        $semi2hole[$harp[hole][:semi] + 12 * self[:octave_shift]] || '(*)'
-      end
+  def read_and_shift_inter
+    num_holes_playable = [0, $std_semi_shifts].flatten.map do |shift|
+      [shift,
+       self[:lick][:holes].inject(0) do |sum, hole|
+         sum + ( musical_event?(hole)  ?  0  :
+                   ( $harp[hole][:shifted_by][shift]  ?  1  :  0 ) )
+       end]
+    end.to_h
+    choices_desc = Hash.new
+    choices_desc['no shift'] = 'use original, unshifted lick'
+    $std_semi_shifts.each do |shift|
+      choices_desc[$intervals[shift.abs][0] + ' ' + ( shift > 0  ?  'UP'  :  'DOWN' )] =
+        "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
-    if self[:all_wanted].reject {|h| musical_event?(h)}.length == 0
-      print "\e[#{$lines[:hint_or_message]}H\e[0;101mShifting lick by (one more) octave does not produce any playable notes.\e[0m\e[K"
-      print "\e[#{$lines[:message2]}HPress any key to continue ... "
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      print "\e[#{$lines[:hint_or_message]}H\e[K\e[#{$lines[:message2]}H\e[K"
-      self[:all_wanted] = all_wanted_was
-      self[:octave_shift] = self[:octave_shift_was]
-      sleep 2
+    
+    answer = choose_interactive('Choose interval to shift original, unshifted lick:', choices_desc.keys) do |inter|
+      choices_desc[inter] 
+    end&.strip
+
+    self[:shift_inter] = 0
+    self[:all_wanted] = self[:lick][:holes]
+    
+    if answer
+      shift = $intervals_inv[answer.downcase] || 0
+      if num_holes_playable[shift] > 0
+        self[:shift_inter] = shift
+        self[:all_wanted] = self[:lick][:holes].map do |hole|
+          if musical_event?(hole) 
+            hole
+          else
+            $harp[hole][:shifted_by][shift] || '(*)'
+          end
+        end
+        if shift == 0
+          $msgbuf.print "Holes not shifted", 2, 5, :shift
+        else
+          $msgbuf.print "Shifted holes by '#{answer}'", 2, 5, :shift
+        end
+      else
+        $msgbuf.print "Shifting by '#{answer}' does not produce any playable holes; holes not shifted", 2, 5, :shift
+      end
     else
-      $msgbuf.print "Octave shift \e[0m#{self[:octave_shift]}", 2, 5, :octave
+      $msgbuf.print "No interval chosen, holes not shifted", 2, 5, :shift
     end
   end
 

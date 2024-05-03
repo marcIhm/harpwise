@@ -58,7 +58,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
-        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes,
+        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :shift_inter,
         :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
         :set_ref, :auto_replay, :player_details]
@@ -596,7 +596,7 @@ def read_and_set_musical_config
   # semi2hole is independent of scale
   # "reverse" below to make the first hole (e.g. -2) prevail
   semi2hole = harp_holes.map {|hole| [harp[hole][:semi], hole]}.reverse.to_h
-  
+
   hole2rem.each_key do |h|
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
@@ -621,13 +621,24 @@ def read_and_set_musical_config
     intervals[st - 12].map! {|inter| inter = inter + '-O'}
   end
 
-  # inverted
+  # intervals inverted
   intervals_inv = Hash.new
   intervals.each do |k,vv|
     vv.each do |v|
-      next if v[' ']
       intervals_inv[v.downcase] = k
+      # add some common variations
+      intervals_inv[v.downcase+ ' up'] = k
+      intervals_inv[v.downcase+ ' down'] = -k
     end
+  end
+
+  # precalculate some hole shifting
+  harp.each_key do |hole|
+    harp[hole][:shifted_by] = $std_semi_shifts.flatten.map do |shift|
+      [shift, semi2hole[harp[hole][:semi] + shift]]
+    end.to_h.compact
+    # do not mix up equivalent holes
+    harp[hole][:shifted_by][0] = hole
   end
 
   [ harp,
@@ -912,12 +923,15 @@ def set_global_musical_vars
     fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
+  $std_semi_shifts = [-12, -10, -7, -4, 4, 7, 10, 12]
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole = read_and_set_musical_config
+
   $charts, $hole2chart = read_chart
   if $hole_ref
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
+  
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :print
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode)
   if $opts[:ref] 

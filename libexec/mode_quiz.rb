@@ -1287,7 +1287,7 @@ class HearTempo < QuizFlavour
   def help2
     puts "For help, choose one of the answer-tempos to be played:"
     choose_prepare_for
-    answer = choose_interactive("Tempo to compare:", @choices.map {|x| "compare-#{x}"}) do |tag|
+    answer = choose_interactive('Tempo to compare:', @choices.map {|x| "compare-#{x}"}) do |tag|
       "compare with #{@help_head} #{tag_desc(tag)}" 
     end
     choose_clean_up
