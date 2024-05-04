@@ -117,6 +117,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         $msgbuf.print '', 1, 1, :quiz_solution
 
         case $quiz_flavour
+
         when 'replay'
           if $ctl_mic[:change_num_quiz_replay]
             read_and_set_num_quiz_replay
@@ -125,12 +126,14 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           end
           to_play[:all_wanted] = get_quiz_sample($num_quiz_replay)
           $msgbuf.print Replay.describe_difficulty, 2, 5, :dicu
+
         when 'play-scale'
           unless first_round
+            # this already has a value, so push it first
+            quiz_prevs << quiz_scale_name
             begin 
               quiz_scale_name = $all_quiz_scales[$opts[:difficulty]].sample
             end while quiz_prevs.include?(quiz_scale_name)
-            quiz_prevs << quiz_scale_name
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[34m"
@@ -139,12 +142,13 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           end
           to_play[:all_wanted], _, _, _ = read_and_parse_scale_simple(quiz_scale_name, $harp)
           $msgbuf.print HearScale.describe_difficulty, 2, 5, :dicu
+
         when 'play-inter'
           unless first_round
+            quiz_prevs << quiz_holes_inter
             begin 
               quiz_holes_inter = get_random_interval
             end while quiz_prevs.include?(quiz_holes_inter)
-            quiz_prevs << quiz_holes_inter
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
