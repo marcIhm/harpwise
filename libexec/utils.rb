@@ -253,14 +253,14 @@ def print_in_columns names, indent: 2, pad: :space
   padded_names = case pad
                  when :tabs
                    names.map {|nm| ' ' + nm + ' '}.
-                     map {|nm| ' ' * (-nm.length % 4) + nm}
+                     map {|nm| nm + ' ' * (-nm.length % 4)}
                  when :space
                    names.map {|nm| '  ' + nm}
                  when :fill
                    names_maxlen = names.max_by(&:length).length
                    names.map {|nm| '  ' + ' ' * (names_maxlen - nm.length) + nm}
                  else
-                   err "Internal error: #{pad}"
+                   err "Internal error, unknown padding type: #{pad}"
                  end
   padded_names.each do |nm|
     if (head + line + nm).length > $term_width - 4

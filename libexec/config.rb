@@ -640,7 +640,7 @@ def read_and_set_musical_config
     # do not mix up equivalent holes
     harp[hole][:shifted_by][0] = hole
   end
-
+  
   [ harp,
     harp_holes,
     harp_notes,
@@ -923,7 +923,7 @@ def set_global_musical_vars
     fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
-  $std_semi_shifts = [-12, -10, -7, -4, 4, 7, 10, 12]
+  $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole = read_and_set_musical_config
 
   $charts, $hole2chart = read_chart

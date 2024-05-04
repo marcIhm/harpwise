@@ -82,7 +82,7 @@ USAGE BY EXAMPLES
 
     harpwise play inter c4 12st    ## Note c4 and 12 Semitones
 
-    harpwise play inter +2 pf      ## Hole +2 and a perfect fifth
+    harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
 
   The error message (if any) will list valid values.
 

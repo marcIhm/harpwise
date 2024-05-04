@@ -369,7 +369,7 @@ def tool_search_scale_in_licks to_handle
   if licks_all.length == 0
     puts '  none'
   else
-    print_in_columns licks_all
+    print_in_columns licks_all, pad: :tabs
     puts " count: #{licks_all.length}"
   end
   puts
@@ -377,7 +377,7 @@ def tool_search_scale_in_licks to_handle
   if licks_but_one.length == 0
     puts '  none'
   else
-    print_in_columns licks_but_one
+    print_in_columns licks_but_one, pad: :tabs
     puts " count: #{licks_but_one.length}"
   end
   puts 

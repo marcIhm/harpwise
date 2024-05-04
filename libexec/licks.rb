@@ -18,7 +18,7 @@ def read_licks graceful = false
   all_licks = []
   licks = nil
   derived = []
-  adhoc_licks = []
+  adhoc_licks = Hash.new
   all_lick_names = Set.new
   default = Hash.new
   vars = Hash.new
@@ -44,12 +44,13 @@ def read_licks graceful = false
     derived << line
 
 
-    # adding adhoc to licks
-    if md = line.match(/^ *add.adhoc.to *= *(.*)$/)
+    # adding adhoc tags to licks
+    if md = line.match(/^ *add.tag.to *= *(.*)$/)
       if name
-        err "Variable 'add.adhoc.to' may only appear before first group"
+        err "Variable 'add.add.to' may only appear before first group"
       else
-        adhoc_licks = md[1].split(' ').map(&:strip)
+        words = md[1].split(' ').map(&:strip)
+        adhoc_licks[words[0]] = words[1 ...]
       end
       
 
@@ -82,7 +83,9 @@ def read_licks graceful = false
                                       starred
                                      ).flatten.select(&:itself),name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-          lick[:tags] << 'adhoc' if adhoc_licks.include?(name)
+          adhoc_licks.keys.each do |tag| 
+            lick[:tags] << tag if adhoc_licks[tag].include?(name)
+          end
           
           lick[:desc] = lick[:desc] || default[:desc] || ''
           if lick[:desc_add] && lick[:desc_add].length > 0
@@ -94,7 +97,7 @@ def read_licks graceful = false
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
-          [[7, 'shift_fifth'], [12, 'shift_oct']].each do |st, tag|
+          [[5, 'shifts_four'], [7, 'shifts_five'], [12, 'shifts_eight']].each do |st, tag|
             num_shiftable = lick[:holes].inject(0) do |sum, hole|
               sum + ( musical_event?(hole)  ?  1  :
                         ( $harp[hole][:shifted_by][st]  ?  1  :  0 ) )
@@ -278,7 +281,9 @@ def read_licks graceful = false
       if graceful
         return [[],[]]
       else
-        err "Among tags #{tags.to_a} in option #{opt}, there are some, which are not in lick file #{lfile} #{tags_licks.to_a}; unknown in options are: #{(tags - tags_licks).to_a}"
+        print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
+        print_in_columns tags_licks.to_a.sort, pad: :tabs
+        err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
       end
     end
   end

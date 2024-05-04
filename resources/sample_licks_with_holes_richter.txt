@@ -10,12 +10,14 @@
 #
 
 # An advanced feature right away: Before the first section, there
-# can be a special variable, that allows to put the tag 'adhoc'
-# on the given licks. This can be useful, if you have a lot of
-# licks and want to address them at once e.g. via '-t' without
-# having to edit each one individually. An example would be:
-#
-# add.adhoc.to = lick1 lick2
+# can be a special variable, that allows to put the given tag
+# (first word after '=') on the given licks (remaining
+# words). This can be useful, if you have a lot of licks and want
+# to address them at once e.g. via '-t' without having to edit
+# the lick individually. This can be rpeated. An example would be:
+
+# add.tag.to = mytag1 lick1 lick2
+# add.tag.to = mytag2 lick3 lick4
 
 #
 # A lick (e.g. 'wade') can be defined like this:

@@ -43,6 +43,8 @@ $config_ini_saved = $dotdir_testing + '/config_ini_saved'
 $config_ini_testing = $dotdir_testing + '/config.ini'
 $persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 $players_pictures = "#{$dotdir_testing}/players_pictures"
+$lickfile_testing = "#{$dotdir_testing}/licks/richter/licks_with_holes.txt"
+
 # remove these to get clean even if we do not rebuild completely
 Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 # This will make harpwise look into $dotdir_testing
@@ -714,9 +716,9 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 
   end
-  expect(licks[1]) { licks[1][:tags] == %w(testing x no_rec shift_fifth shift_oct) }
-  expect(licks[2]) { licks[2][:tags] == %w(y no_rec shift_fifth shift_oct) }
-  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no_rec shift_fifth shift_oct) }
+  expect(licks[1]) { licks[1][:tags] == %w(testing x no_rec shifts_four shifts_five shifts_eight) }
+  expect(licks[2]) { licks[2][:tags] == %w(y no_rec shifts_four shifts_five shifts_eight) }
+  expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no_rec shifts_four shifts_five shifts_eight) }
   expect(licks[1]) { licks[1][:desc] == 'a b' }
   expect(licks[2]) { licks[2][:desc] == 'c b' }
   expect(licks[3]) { licks[3][:desc] == 'a d' }
@@ -929,7 +931,7 @@ do_test 'id-20: error on unknown names in --tags' do
   tms 'harpwise licks --tags-any unknown a'
   tms :ENTER
   sleep 2
-  expect { screen[2]['ERROR: Among tags ["unknown"] in option --tags-any, there are some'] }
+  expect { screen[11]['ERROR: Among tags from option --tags-any (unknown)'] }
   kill_session
 end
 
@@ -954,7 +956,7 @@ do_test 'id-22: print list of some licks with tags' do
   tms :ENTER
   sleep 2
   # for licks that match this tag
-  expect { screen[18]['Total number of licks:   4'] }
+  expect { screen[20]['Total number of licks:   4'] }
   kill_session
 end
 
@@ -964,25 +966,25 @@ do_test 'id-23: print list of licks with tags' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["  wade ..... fav,favorites,samples,has_rec,shift_fifth\n",
-   "  st-louis ..... favorites,samples,has_rec,shift_fifth\n",
-   "  feeling-bad ..... favorites,samples,has_rec,shift_fifth,shift_oct\n",
-   "  blues ..... scales,theory,no_rec,shift_fifth\n",
-   "  mape ..... scales,theory,no_rec,shift_oct\n",
-   "  box1-i ..... box,box1,i-chord,no_rec,shift_fifth,shift_oct\n",
-   "  box1-iv ..... box,box1,iv-chord,no_rec,shift_fifth\n",
-   "  box1-v ..... box,box1,v-chord,no_rec,shift_fifth,shift_oct\n",
-   "  box2-i ..... box,box2,i-chord,no_rec,shift_fifth,shift_oct\n",
-   "  box2-iv ..... box,box2,iv-chord,no_rec,shift_fifth\n",
-   "  box2-v ..... box,box2,v-chord,no_rec,shift_fifth,shift_oct\n",
-   "  boogie-i ..... boogie,i-chord,no_rec,shift_oct\n",
-   "  boogie-iv ..... boogie,v-chord,no_rec,shift_fifth\n",
-   "  boogie-v ..... boogie,v-chord,no_rec\n",
-   "  simple-turn ..... turn,no_rec,shift_fifth,shift_oct\n",
-   "  special ..... advanced,samples,no_rec,shift_fifth,shift_oct\n",
-   "  one ..... testing,x,no_rec,shift_fifth,shift_oct\n",
-   "  two ..... y,no_rec,shift_fifth,shift_oct\n",
-   "  three ..... fav,favorites,testing,z,no_rec,shift_fifth,shift_oct\n",
+  ["  wade ..... fav,favorites,samples,has_rec,shifts_five\n",
+   "  st-louis ..... favorites,samples,has_rec,shifts_five\n",
+   "  feeling-bad ..... favorites,samples,has_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  blues ..... scales,theory,no_rec,shifts_five\n",
+   "  mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
+   "  box1-i ..... box,box1,i-chord,no_rec,shifts_five,shifts_eight\n",
+   "  box1-iv ..... box,box1,iv-chord,no_rec,shifts_five\n",
+   "  box1-v ..... box,box1,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  box2-i ..... box,box2,i-chord,no_rec,shifts_five,shifts_eight\n",
+   "  box2-iv ..... box,box2,iv-chord,no_rec,shifts_five\n",
+   "  box2-v ..... box,box2,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  boogie-i ..... boogie,i-chord,no_rec,shifts_eight\n",
+   "  boogie-iv ..... boogie,v-chord,no_rec,shifts_five\n",
+   "  boogie-v ..... boogie,v-chord,no_rec,shifts_four\n",
+   "  simple-turn ..... turn,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  special ..... advanced,samples,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  one ..... testing,x,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  two ..... y,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  three ..... fav,favorites,testing,z,no_rec,shifts_four,shifts_five,shifts_eight\n",
    "  long ..... testing,x,has_rec\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx) { lines[12+idx] == exp }
   end
@@ -1010,8 +1012,9 @@ do_test 'id-23a: overview for all licks' do
    "  no_rec                              16\n",
    "  samples                              4\n",
    "  scales                               2\n",
-   "  shift_fifth                         16\n",
-   "  shift_oct                           12\n",   
+   "  shifts_eight                        12\n",   
+   "  shifts_five                         16\n",
+   "  shifts_four                         10\n",   
    "  testing                              3\n",
    "  theory                               2\n",
    "  turn                                 1\n",
@@ -1020,8 +1023,8 @@ do_test 'id-23a: overview for all licks' do
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:               95\n",
-   "  Total number of different tags:     22\n",
+   "  Total number of tags:              105\n",
+   "  Total number of different tags:     23\n",
    " -----------------------------------------\n",
    "  Total number of licks:              20\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx,) { lines[12+idx] == exp }
@@ -1198,7 +1201,7 @@ do_test 'id-36: display as chart with intervals as names' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['-7st Si-O  REF  5st  Si   Oct'] }
+  expect { screen[4]['pFo-OSi-O  REF  pFo  Si   Oct'] }
   expect { screen[15]['-2.Ton   -3/.3st    -2.Si-O  -3/.3st    -2.Si-O   -2.Ton'] }
   kill_session
 end
@@ -1218,7 +1221,7 @@ do_test 'id-36b: display as chart with notes' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['-7st Si-O  REF  5st  Si   Oct'] }
+  expect { screen[4]['pFo-OSi-O  REF  pFo  Si   Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
@@ -1572,9 +1575,9 @@ do_test 'id-53: print' do
    20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
    29 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
    33 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   37 => '-1.Ton    +2.fT     -2.5st   -3/.8st    +3.5st   -3/.8st',
+   37 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
    41 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   45 => '-7  -5  -2   1  -2   1   0  -2',
+   45 => '-7  -5  -2  1   -2  1   0   -2',
    50 => 'Description: St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
@@ -1906,7 +1909,7 @@ do_test 'id-60a: set reference from sound' do
   tms 'D'
   tms 'inter'
   tms :ENTER
-  expect { screen[9]['-19st-14stfT-O -7st       REF'] }
+  expect { screen[9]['-19st-14stfT-O pFo-O'] }
   kill_session
 end
 
@@ -2011,7 +2014,7 @@ do_test 'id-66a: tool search-in-scales' do
   tms 'harpwise tool search-in-scales wade'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['all   blues   minor    minor-pentatonic'] }
+  expect { screen[10]['all     blues   minor   minor-pentatonic'] }
   kill_session
 end
 
@@ -2718,8 +2721,36 @@ do_test 'id-103: tool search-scale-in-licks' do
   tms 'harpwise tool search-scale-in-licks blues-middle'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['blues  box1-i  box2-i'] }
-  expect { screen[20]['feeling-bad  box1-iv  box2-iv  three'] }
+  expect { screen[16]['blues   box1-i  box2-i'] }
+  expect { screen[20]['feeling-bad     box1-iv     box2-iv     three'] }
+  kill_session
+end
+
+do_test 'id-104: add.tag.to for licks' do
+  new_session
+  saved = "#{$lickfile_testing}_saved"
+  FileUtils.cp $lickfile_testing, saved unless File.exist?(saved)
+  # prepend
+  File.write($lickfile_testing,
+             ["add.tag.to = mytag1 wade st-louis\n",
+              "add.tag.to = mytag2 st-louis feeling-bad\n",
+              File.read($lickfile_testing).lines].flatten.join)
+
+  tms 'harpwise print licks-list -t mytag1'
+  tms :ENTER
+  expect { screen[9]['wade'] }
+  expect { screen[10]['st-louis'] }
+  expect { screen[12]['Total count: 2'] }
+  wait_for_end_of_harpwise
+
+  tms 'harpwise print licks-list -t mytag2'
+  tms :ENTER
+  expect { screen[18]['st-louis'] }
+  expect { screen[19]['feeling-bad'] }
+  expect { screen[21]['Total count: 2'] }
+  wait_for_end_of_harpwise
+
+  FileUtils.mv saved, $lickfile_testing
   kill_session
 end
 
