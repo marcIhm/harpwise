@@ -1783,7 +1783,7 @@ end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
                 'harpwise quiz a replay 3' => [[9,'change key of harp'],[9,'forget holes played']],
-                'harpwise licks c' => [[9,'change key of harp'],[15,'select them later by tag']]}
+                'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do
@@ -2751,6 +2751,19 @@ do_test 'id-104: add.tag.to for licks' do
   wait_for_end_of_harpwise
 
   FileUtils.mv saved, $lickfile_testing
+  kill_session
+end
+
+do_test 'id-105: lick in shift circle' do
+  new_session
+  tms 'harpwise licks --comment holes-scales --start-with st-louis'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[15]['-1.b15    +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
+  tms '>'
+  sleep 4
+  expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45'] }
+  expect { screen[22]['Holes shifted by perfect Fourth'] }
   kill_session
 end
 

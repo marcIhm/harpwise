@@ -652,6 +652,7 @@ def show_help
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option --tags-any (aka -t)",
                           "      %: shift lick by chosen interval     @: change option --partial",
+                          "     <>: shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
                           "      !: play holes reversed               &: shuffle holes",

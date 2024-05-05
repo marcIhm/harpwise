@@ -539,9 +539,9 @@ end
 
 
 def rotate_among value, direction, all_values
-  if direction == :up
+  if direction == :up || direction == :next
     all_values[(all_values.index(value) + 1) % all_values.length]
-  elsif direction == :down
+  elsif direction == :down || direction == :prev
     all_values[(all_values.index(value) - 1) % all_values.length]
   else
     fail "Internal error: unknown direction '#{direction}'"

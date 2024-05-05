@@ -95,6 +95,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     elsif $ctl_mic[:shift_inter]
       to_play.read_and_shift_inter
 
+    elsif $ctl_mic[:shift_inter_circle]
+      to_play.shift_inter_circle($ctl_mic[:shift_inter_circle])
+
     elsif $ctl_mic[:change_partial]
       read_and_set_partial
       $msgbuf.print "Partial is \e[0m'#{$opts[:partial]}'", 2, 5, :partial
@@ -164,6 +167,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       else ## $mode == :licks
 
         to_play[:shift_inter] = 0
+        to_play[:shift_inter_circle_pos] = 0
 
         if start_with
           if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
@@ -241,7 +245,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     trace_text = nil
     seq_played_recently = false
     if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
-       $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]
+       $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:shift_inter_circle] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
 
@@ -269,7 +273,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
     end
 
     # reset controls before listening
-    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:shift_inter_circle] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
 
     # these controls are only used during play, but can be set during
     # listening and play
@@ -381,7 +385,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           end, 
           
           # lambda_skip
-          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]},  
+          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:shift_inter_circle] || $ctl_mic[:change_partial]},  
 
           
           # lambda_comment; this one needs no arguments at all
@@ -475,7 +479,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           return
         end
 
-        break if [:next, :back, :replay, :shift_inter, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -512,7 +516,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
                         cmnt_col = 31
                         'REC   -ON-'
                       end
-                    elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shift_inter, :shuffle_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
+                    elsif [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shift_inter, :shift_inter_circle, :shuffle_holes, :change_partial, :change_num_quiz_replay].any? {|k| $ctl_mic[k]}
                       # these will issue their own message
                       nil
                     else
@@ -532,7 +536,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :shift_inter, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        unless [:replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
@@ -561,7 +565,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         $ctl_mic[:quiz_hint] = false
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :shift_inter, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :shift_inter, :shift_inter_circle, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
@@ -662,7 +666,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_recording_quiz lick, at_line:, shift_inter:
+def play_recording_quiz lick, at_line:, shift_inter:, holes:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -672,7 +676,7 @@ def play_recording_quiz lick, at_line:, shift_inter:
   end
 
   text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... "
-  lick[:holes].each do |hole|
+  (holes || lick[:holes]).each do |hole|
     text += hole + ' '
     if text.length - 4 * text.count("\e") > $term_width * 1.5
       text[-1] = '...'
@@ -1131,15 +1135,17 @@ def play_rec_or_holes to_play, oride_l_message2
   else
     play_recording_quiz to_play[:lick],
                         at_line: oride_l_message2,
-                        shift_inter: to_play[:shift_inter]
+                        shift_inter: to_play[:shift_inter],
+                        holes: to_play[:all_wanted]
   end
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_hints, :shift_inter)
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_hints, :shift_inter, :shift_inter_circle_pos)
 
   def initialize
     self[:shift_inter] = 0
+    self[:shift_inter_circle_pos] = 0
   end
 
   
@@ -1246,6 +1252,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     end&.strip
 
     self[:shift_inter] = 0
+    self[:shift_inter_circle_pos] = 0
     self[:all_wanted] = self[:lick][:holes]
     
     if answer
@@ -1270,6 +1277,31 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     else
       $msgbuf.print "No interval chosen, holes not shifted", 2, 5, :shift
     end
+  end
+
+
+  def shift_inter_circle direction
+
+    shifts = $licks_semi_shifts.keys
+    self[:shift_inter_circle_pos] += ( direction == :next  ?  +1  :  -1 )
+    self[:shift_inter_circle_pos] %= shifts.length
+    self[:shift_inter] = shift = shifts[self[:shift_inter_circle_pos]]
+    self[:all_wanted] = self[:lick][:holes].map do |hole|
+      $harp[hole][:shifted_by][shift] || '(*)'
+    end
+
+    max_playable, num_playable = [self[:lick][:holes], self[:all_wanted]].map do |holes|
+      holes.map do |hole|
+        musical_event?(hole)  ?  0  :  1
+      end.sum
+    end
+
+    if shift == 0
+      $msgbuf.print 'Holes not shifted', 2, 5, :shift
+    else
+      $msgbuf.print "Holes shifted by #{$intervals[shift][0]} (#{shift} st), #{num_playable}/#{max_playable} playable holes", 2, 5, :shift
+    end
+    ctl_response "Shift by #{shift} st"
   end
 
 

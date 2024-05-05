@@ -58,7 +58,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
-        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :shift_inter,
+        :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :shift_inter, :shift_inter_circle,
         :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
         :set_ref, :auto_replay, :player_details]
@@ -925,6 +925,9 @@ def set_global_musical_vars
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole = read_and_set_musical_config
+  # semitone shifts that will be tagged and can be traversed
+  $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
+                        7 => 'shifts_five', 12 => 'shifts_eight'}
 
   $charts, $hole2chart = read_chart
   if $hole_ref
