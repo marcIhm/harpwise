@@ -273,33 +273,45 @@ def read_licks graceful = false
     end
   end
 
-  tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec starred)}.flatten.sort_by(&:to_s))
-  [['--tags-any', keep_any],
-   ['--tags-all', keep_all],
-   ['--no-tags-any', discard_any],
-   ['--no-tags-all', discard_all]].each do |opt, tags|
-    if !tags.subset?(tags_licks)
-      if graceful
-        return [[],[]]
-      else
-        print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
-        print_in_columns tags_licks.to_a.sort, pad: :tabs
-        err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
+  
+  if $opts[:licks]
+
+    lick_names = $opts[:licks].split(',')
+    licks = all_licks.select {|lick| lick_names.include?(lick[:name])}
+    if licks.length != lick_names.length
+      err("These licks given in via '--licks' could not be found in #{lfile}: " +
+          (lick_names - licks.map {|l| l[:name]}).join(','))
+    end
+  else
+    
+    tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec starred shifts_four shifts_five shifts_eight)}.flatten.sort_by(&:to_s))
+    [['--tags-any', keep_any],
+     ['--tags-all', keep_all],
+     ['--no-tags-any', discard_any],
+     ['--no-tags-all', discard_all]].each do |opt, tags|
+      if !tags.subset?(tags_licks)
+        if graceful
+          return [[],[]]
+        else
+          print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
+          print_in_columns tags_licks.to_a.sort, pad: :tabs
+          err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
+        end
       end
     end
-  end
 
-  licks = all_licks.
-            select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
-            select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
-            reject {|lick| discard_any.any? && (discard_any.to_a & lick[:tags]).any?}.
-            reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
-            select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
-            select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
-  if licks.length == 0
-    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") 
+    licks = all_licks.
+              select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
+              select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
+              reject {|lick| discard_any.any? && (discard_any.to_a & lick[:tags]).any?}.
+              reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
+              select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
+              select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
+    if licks.length == 0
+      err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") 
+    end
   end
-    
+  
   [all_licks, licks]
 end
 

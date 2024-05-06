@@ -90,6 +90,7 @@ def parse_arguments_early
         tags_all: %w(-t --tags-all),
         no_tags_any: %w(-nt --no-tags-any),
         no_tags_all: %w(--no-tags-all),
+        licks: %w(--licks),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes)}],
      [Set[:play, :print], {
@@ -502,7 +503,7 @@ def print_usage_info mode = nil
   types_with_scales = get_types_with_scales
 
   puts
-  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/\n+\Z/,'')
+  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'')
 
   if $mode
     puts "\nCOMMANDLINE OPTIONS\n\n"

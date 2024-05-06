@@ -604,10 +604,10 @@ def handle_kb_mic
     text = 'Choose shift interval'
   elsif char == '>' && $mode == :licks
     $ctl_mic[:shift_inter_circle] = :next
-    text = 'Next shift interval'
+    text = 'Shift Next'
   elsif char == '<' && $mode == :licks
     $ctl_mic[:shift_inter_circle] = :prev
-    text = 'Prev shift interval'
+    text = 'Shift prev'
   elsif char == '@' && $mode == :licks
     $ctl_mic[:change_partial] = true
     text = 'Partial'

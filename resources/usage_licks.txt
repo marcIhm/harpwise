@@ -39,6 +39,20 @@ USAGE BY EXAMPLES
 
   this employs the automatic tag 'has_rec', which is added to each
   lick, that has a recording. The opposite is 'no_rec'.
+
+
+  Another automatic tag is 'shifts_four', which is added to each lick,
+  which, when shifted by a major fourth, can still be played on the
+  chosen harmonica. Similar tags are 'shifts_five' and 'shifts_eight'.
+
+  So
+
+    harpwise licks a -t shifts_four,shifts_five
+
+  selects all licks, that can be shifted by four and notes without
+  loosing any holes; these licks may therefore accompany a
+  blues-progression. The keys used (<,>,%) to actually shift those
+  licks, are described in help-screen (type 'h').
   
 
   Similar, but only choose from licks with tags 'fav' or 'scales'
@@ -91,5 +105,3 @@ USAGE BY EXAMPLES
   config.ini and shorten the above command line to:
 
     harpwise licks blues
-
-  

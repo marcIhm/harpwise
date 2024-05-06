@@ -108,8 +108,8 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 86
-fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}:\n#{usage_examples}" unless usage_examples.length == num_exp
+num_exp = 87
+fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
 # need a sound file
@@ -397,7 +397,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'licks' => [5, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
-                    'tools' => [1, 'starred at some moment in the past'],
+                    'tools' => [1, 'has the same effect as'],
                     'develop' => [13, 'If lagging occurs']}
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
@@ -2764,6 +2764,16 @@ do_test 'id-105: lick in shift circle' do
   sleep 4
   expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45'] }
   expect { screen[22]['Holes shifted by perfect Fourth'] }
+  kill_session
+end
+
+do_test 'id-106: mode licks with list of licks' do
+  new_session
+  tms 'harpwise licks --licks wade,st-louis a'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect(dump[:licks]) { dump[:licks].length == 2 }
   kill_session
 end
 
