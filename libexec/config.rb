@@ -783,7 +783,6 @@ def read_chart
   $chart_file = "#{$dirs[:install]}/config/#{$type}/chart.yaml"
   chart_with_holes_raw = yaml_parse($chart_file)
   len = chart_with_holes_raw.shift
-  $markers_for_difficult_hole = chart_with_holes_raw.shift.strip
   chart_with_holes_raw.map! {|r| r.split('|')}
   hole2chart = Hash.new {|h,k| h[k] = Array.new}
   # first two elements will be set when checking for terminal size

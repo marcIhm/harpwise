@@ -856,13 +856,25 @@ class HoleNote < QuizFlavour
   def initialize
     super
 
-    harp_holes = if $opts[:difficulty] == :easy
-                   rejecting = $markers_for_difficult_hole.chars
-                   $harp_holes.select {|h| (h.chars & rejecting).length == 0}
-                 else
-                   $harp_holes.clone
-                 end
-    hole2note = harp_holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
+    # if our harp has lines with different count of holes, we assume
+    # that those lines with the maximum count are also easy to
+    # play. If all lines have the same number of holes, they are all
+    # assumed to be alike playable
+    line2count = $hole2chart.values.map {|pairs| pairs.map {|pair| pair[1]}}.flatten.tally
+    maxcount = line2count.values.max
+    lines_w_maxcount = line2count.keys.select {|l| line2count[l] == maxcount}
+    
+    @@diffi_matters = ( lines_w_maxcount.length != line2count.keys.length )
+    holes = if !@@diffi_matters || $opts[:difficulty] == :hard
+              $harp_holes
+            else
+              $hole2chart.select do |hole,cls|
+                cls.any? do |c,l|
+                  lines_w_maxcount.include?(l)
+                end
+              end.map {|hole,cls| hole}
+            end
+    hole2note = holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
     note2hole = hole2note.inject(Hash.new {|h,k| h[k] = Array.new}) do |memo, hn|
       memo[hn[1]] << hn[0]
       memo
@@ -870,10 +882,10 @@ class HoleNote < QuizFlavour
 
     q_is_hole = ( rand > 0.5 )
     @qdesc, @adesc, qi2ai = if q_is_hole
-                            ['hole', 'note', hole2note]
-                          else
-                            ['note', 'hole', note2hole]
-                          end
+                              ['hole', 'note', hole2note]
+                            else
+                              ['note', 'hole', note2hole]
+                            end
 
     @choices = qi2ai.values    
     @choices_orig = @choices.clone
@@ -885,22 +897,27 @@ class HoleNote < QuizFlavour
     @@prevs.shift if @@prevs.length > 2
 
     @mark_in_chart = if q_is_hole
-                       @solution
+                       hole2note[@qitem]
                      else
-                       @qitem[0]
+                       @qitem
                      end
+    
     @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
     @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
     @help_head = "#{@adesc} with key of".capitalize
   end
 
   def self.describe_difficulty
-    QuizFlavour.difficulty_head + ' taking ' +
-      if $opts[:difficulty] == :easy
-        'only holes, that are easy to play'
-      else
-        'even holes, that are hard to play'
-      end
+    if @@diffi_matters
+      QuizFlavour.difficulty_head + ', taking ' +
+        if $opts[:difficulty] == :easy
+          'only simple holes (e.g. without bends)'
+        else
+          'even not-so-simple holes (e.g. with bends)'
+        end
+    else
+      QuizFlavour.difficulty_head + '; but that makes no difference for this quiz-flavour and type of harp'
+    end
   end
 
   def issue_question

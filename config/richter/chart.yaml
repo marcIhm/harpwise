@@ -11,15 +11,11 @@
 # The fields below have equal length to help editing; actual length
 # is given by first element, the single number.
 #
-# The second line has chars, which mark a hole, that is difficult to
-# play, e.g via bends
-# 
 # The number of columns below should match the harp; the
 # number of rows however can be chosen as needed.
 #
 ---
 - 5
-- "/"
 - "     |     |     |     |     |     |     |     |     |+10//|   full bend"
 - "     |     |     |     |     |     |     | +8/ | +9/ |+10/ |   half bend"
 - " +1  | +2  | +3  | +4  | +5  | +6  | +7  | +8  | +9  |+10  |   blow"
