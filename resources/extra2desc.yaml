@@ -111,6 +111,8 @@ quiz:
   key-harp-song: |
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa
+  hole-note: |
+    gives a hole and asks for the note or vice versa
   keep-tempo: |
     plays a number of beats defining a certain tempo; then some
     silence and then some final beats. You are expected to play along

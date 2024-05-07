@@ -257,7 +257,7 @@ class QuizFlavour
       return :reissue
     when '.SOLVE', '.SKIP'
       sol_text = if @solution.is_a?(Array) && @solution.length > 1
-                   "  any of #{@solution}"
+                   "  any of  #{@solution.join(',')}"
                  else
                    "        #{[@solution].flatten[0]}"
                  end
@@ -846,6 +846,88 @@ class KeyHarpSong < QuizFlavour
 
   def help2_desc
     ['.HELP-PLAY-ANSWER', "Play note for answer-key of #{@adesc}"]
+  end
+
+end
+
+
+class HoleNote < QuizFlavour
+
+  def initialize
+    super
+
+    harp_holes = if $opts[:difficulty] == :easy
+                   rejecting = $markers_for_difficult_hole.chars
+                   $harp_holes.select {|h| (h.chars & rejecting).length == 0}
+                 else
+                   $harp_holes.clone
+                 end
+    hole2note = harp_holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
+    note2hole = hole2note.inject(Hash.new {|h,k| h[k] = Array.new}) do |memo, hn|
+      memo[hn[1]] << hn[0]
+      memo
+    end
+
+    q_is_hole = ( rand > 0.5 )
+    @qdesc, @adesc, qi2ai = if q_is_hole
+                            ['hole', 'note', hole2note]
+                          else
+                            ['note', 'hole', note2hole]
+                          end
+
+    @choices = qi2ai.values    
+    @choices_orig = @choices.clone
+    begin
+      @qitem = qi2ai.keys.sample
+    end while @@prevs.include?(@qitem)
+    @solution = qi2ai[@qitem]
+    @@prevs << @qitem
+    @@prevs.shift if @@prevs.length > 2
+
+    @mark_in_chart = if q_is_hole
+                       @solution
+                     else
+                       @qitem[0]
+                     end
+    @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
+    @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
+    @help_head = "#{@adesc} with key of".capitalize
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head + ' taking ' +
+      if $opts[:difficulty] == :easy
+        'only holes, that are easy to play'
+      else
+        'even holes, that are hard to play'
+      end
+  end
+
+  def issue_question
+    puts
+    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m', name the matching \e[94m#{@adesc}\e[34m #{@any_clause}\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+  end
+
+  def help2
+    puts "Printing chart with notes:"
+    chart = $charts[:chart_notes]
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        if cell.gsub(/\d+/,'').strip == @mark_in_chart
+          print "\e[34m#{cell}\e[0m"
+        else
+          print cell
+        end
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end
+    
+  end
+
+  def help2_desc
+    ['.HELP-PRINT-CHART', "Print harmonica chart with notes"]
   end
 
 end

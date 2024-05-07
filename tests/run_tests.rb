@@ -2777,5 +2777,19 @@ do_test 'id-106: mode licks with list of licks' do
   kill_session
 end
 
+do_test 'id-107: quiz-flavour hole-note' do
+  new_session
+  tms 'harpwise quiz hole-note --difficulty easy'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  expect { screen[10]['Given the HOLE'] || screen[10]['Given the NOTE'] }
+  sleep 1
+  tms 'help-print-chart'
+  tms :ENTER
+  expect { screen[1]['Printing chart with notes'] }  
+  kill_session
+end
+
 puts
 puts
