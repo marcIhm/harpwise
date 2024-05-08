@@ -606,15 +606,13 @@ def read_and_set_musical_config
   
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
-  $intervals_quiz = Array.new
+  $intervals_quiz = {easy: [], hard: []}
   intervals = yaml_parse(ifile).transform_keys!(&:to_i)
   intervals.keys.each do |st|
-    if intervals[st].include?('quiz_easy') ||
-       ( $opts[:difficulty] == :hard && intervals[st].include?('quiz_hard') )
-      $intervals_quiz << st
-      intervals[st].delete('quiz_easy')
-      intervals[st].delete('quiz_hard')
-    end
+    $intervals_quiz[:easy] << st if intervals[st].include?('quiz_easy')
+    $intervals_quiz[:hard] << st
+    intervals[st].delete('quiz_easy')
+    intervals[st].delete('quiz_hard')
     next if st == 0 || st - 12 < -12 || st - 12 >= 0
     intervals[st-12] = intervals[st].clone
     # dont use prepend here

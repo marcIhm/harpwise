@@ -82,6 +82,9 @@ quiz:
     choose one quiz flavour related with scales at random
   choose: |
     choose one quiz flavour from a list
+  players: |
+    harpwise shows details about a famous player and asks for his or
+    her name
   hear-scale: |
     harpwise plays the holes of a scale and asks for its name
   not-in-scale: |
@@ -104,6 +107,8 @@ quiz:
   play-inter: |
     names a hole and an interval which resolves to a hole; then asks
     to play back both holes
+  tell-inter: |
+    wise names two holes and asks for the interval between
   hear-key: |
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching

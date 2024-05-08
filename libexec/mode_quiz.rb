@@ -659,7 +659,7 @@ class HearInter < QuizFlavour
 
   def initialize
     super
-    @choices = $intervals_quiz.map {|i| $intervals[i][0]}
+    @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]}
     @choices_orig = @choices.clone    
     begin
       inter = get_random_interval
@@ -703,8 +703,8 @@ class HearInter < QuizFlavour
     puts "Playing all intervals:"
     puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
     puts
-    maxlen = $intervals_quiz.map {$intervals[_1][0].length}.max
-    $intervals_quiz.each do |inter|
+    maxlen = $intervals_quiz[$opts[:difficulty]].map {$intervals[_1][0].length}.max
+    $intervals_quiz[$opts[:difficulty]].each do |inter|
       sleep 0.5
       note_inter = semi2note($harp[@holes[0]][:semi] + inter * (@dsemi <=> 0))
       print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % $intervals[inter][0]
@@ -734,7 +734,7 @@ class AddInter < QuizFlavour
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
     @choices = []
-    $intervals_quiz.each do |inter|
+    $intervals_quiz[$opts[:difficulty]].each do |inter|
       [inter, -inter].each do |int|
         @choices << $semi2hole[$harp[@holes[0]][:semi] + int]
       end
@@ -746,7 +746,7 @@ class AddInter < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", taking #{$intervals_quiz.length} intervals out of #{$intervals.length}"
+      ", taking #{$intervals_quiz[$opts[:difficulty]].length} intervals out of #{$intervals.length}"
   end
 
   def after_solve
@@ -781,13 +781,13 @@ class AddInter < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-SHOW-SEMIS', 'Show holes as semitones']
+    ['.HELP-CHART-SEMIS', 'Show chart with holes as semitones']
   end
 
   def help4
     puts "Printing intervals semitones and names:"
     puts "\e[2m"
-    $intervals_quiz.each do |st|
+    $intervals_quiz[$opts[:difficulty]].each do |st|
       puts "  %3dst: #{$intervals[st][0]}" % st
     end
     puts "\e[0m"
@@ -795,6 +795,124 @@ class AddInter < QuizFlavour
 
   def help4_desc
     ['.HELP-SHOW-INTERVALS', 'Show intervals and semitones']
+  end
+
+end
+
+
+class TellInter < QuizFlavour
+
+  def initialize
+    super
+    begin
+      inter = get_random_interval sorted: true
+      @holes = inter[0..1]
+      @dsemi = inter[2]
+      @solution = inter[3]
+    end while @@prevs.include?(@holes)
+    @@prevs << @holes
+    @@prevs.shift if @@prevs.length > 2
+    @choices = $intervals_quiz[$opts[:difficulty]].map {|st| $intervals[st][0]}
+    @choices_orig = @choices.clone
+    @prompt = "Enter the interval between holes #{@holes[0]} and #{@holes[1]}:"
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+      ", taking #{$intervals_quiz[$opts[:difficulty]].length} intervals out of #{$intervals.length}"
+  end
+
+  def after_solve
+    after_solve_interval
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mWhat is the interval between holes \e[94m#{@holes[0]}\e[34m and \e[94m#{@holes[1]}\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+  end
+
+  def help2
+    puts "Playing interval:"
+    play_hons
+  end
+
+  def help2_desc
+    ['.HELP-PLAY-INTER', 'Play interval']
+  end
+
+  def help3
+    puts "Show holes as notes:"
+    notes = @holes.map {|h| $hole2note[h]}
+    chart = $charts[:chart_notes]
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        if notes.include?(cell.strip)
+          print "\e[34m#{cell}\e[0m"
+        else
+          print cell
+        end
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end
+  end
+
+  def help3_desc
+    ['.HELP-CHART-NOTES', 'Show chart with notes']
+  end
+
+end
+
+
+class Players < QuizFlavour
+
+  def initialize
+    super
+    $players ||= FamousPlayers.new
+    @pitems = %w(bio notes songs).shuffle
+    @qitem = @pitems.sample
+    @hitems = @pitems.clone
+    @hitems.rotate!(@hitems.find_index(@qitem))
+    @@choices = @choices = $players.structured.keys
+    @choices_orig = @choices.clone
+    begin
+      @solution = $players.structured.keys.sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
+    @structured = $players.structured[@solution]
+    @prompt = "Enter the name of the player described above:"
+  end
+
+  def self.describe_difficulty
+    "Selecting one of #{@@choices.length} players"
+  end
+
+  def after_solve
+    puts
+    print_player $players.structured[@solution]
+  end
+  
+  def issue_question
+    puts
+    puts "\e[34mWhat is the name of the player with  \e[94m#{@qitem.upcase}\e[34m  given below.\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    puts
+    puts "\e[32m#{@qitem.capitalize}:\e[0m"
+    @structured[@qitem].each {|l| puts '  ' + l}
+  end
+
+  def help2
+    @hitems.rotate!
+    puts "\e[32m#{@hitems[0].capitalize}:\e[0m"
+    @structured[@hitems[0]].each {|l| puts '  ' + l}
+    puts
+    puts "\e[2m(invoke again for more information)\e[0m"
+  end
+
+  def help2_desc
+    ['.HELP-MORE-INFO', 'Show additional information about player']
   end
 
 end
@@ -916,7 +1034,7 @@ class HoleNote < QuizFlavour
           'even not-so-simple holes (e.g. with bends)'
         end
     else
-      QuizFlavour.difficulty_head + '; but that makes no difference for this quiz-flavour and type of harp'
+      'Selecting all holes of harp'
     end
   end
 
@@ -940,11 +1058,10 @@ class HoleNote < QuizFlavour
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
-    
   end
 
   def help2_desc
-    ['.HELP-PRINT-CHART', "Print harmonica chart with notes"]
+    ['.HELP-CHART-NOTES', "Print harmonica chart with notes"]
   end
 
 end
@@ -1501,16 +1618,16 @@ class NotInScale < QuizFlavourScales
 end
 
 
-def get_random_interval
+def get_random_interval sorted: false
   # favour lower holes
   all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
   loop do
     err "Internal error: no more holes to try" if all_holes.length == 0
     holes_inter = [all_holes.shift, nil]
-    $intervals_quiz.clone.shuffle.each do |inter|
+    $intervals_quiz[$opts[:difficulty]].clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
       if holes_inter[1]
-        if rand > 0.8
+        if rand > 0.8 && !sorted
           holes_inter.rotate!
           holes_inter << -inter
         else

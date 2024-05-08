@@ -624,7 +624,7 @@ do_test 'id-10: quiz' do
   sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['b4    4   b14  b45   4   b14'] }
+  expect { screen[4]['b4    4   b14  b4    4   b14'] }
   kill_session
 end
 
@@ -1126,7 +1126,7 @@ do_test 'id-33: display as chart with scales' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['b1   b1    1   b1   b1    b    1   b1   b1    b'] }
+  expect { screen[8]['b1   b1    1   b1    b    b    1   b1    b    b'] }
   kill_session
 end
 
@@ -1619,7 +1619,7 @@ do_test 'id-53d: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[3]['-1.15    +2.4     -2.14   -3/.4     +3.14   -3/.4   -3//.5     -2.14'] }
+  expect { screen[3][' -1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1709,7 +1709,7 @@ do_test 'id-54e: print list of all scales' do
    "   \e[2mShort: b\e[0m   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
    " blues-middle     :   7\n",
    "   \e[2mShort: b\e[0m   \e[2mDesc: middle octave of the blues scale\e[0m\n",
-   " chord-i          :  11\n",
+   " chord-i          :   9\n",
    "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]}, idx+8, exp) { lines[8+idx] == exp }
   end
@@ -2506,7 +2506,7 @@ do_test 'id-94: quiz-flavour add-inter' do
   sleep 2
   tms :ENTER
   expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
-  tms 'SHOW-SEMIS'
+  tms 'CHART-SEMIS'
   tms :enter
   expect { screen[6]['--1----2----3--'] }
   kill_session
@@ -2759,10 +2759,10 @@ do_test 'id-105: lick in shift circle' do
   tms 'harpwise licks --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b15    +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
+  expect { screen[15]['-1.b15    +2.4      -2.b14   -3/.b      +3.b14   -3/.b'] }
   tms '>'
   sleep 4
-  expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45'] }
+  expect { screen[15]['-2.b14  -3//.5      +4.b4    (*)     +4.b4    (*)'] }
   expect { screen[22]['Holes shifted by perfect Fourth'] }
   kill_session
 end
@@ -2785,9 +2785,38 @@ do_test 'id-107: quiz-flavour hole-note' do
   tms :ENTER
   expect { screen[10]['Given the HOLE'] || screen[10]['Given the NOTE'] }
   sleep 1
-  tms 'help-print-chart'
+  tms 'help-chart-notes'
   tms :ENTER
   expect { screen[1]['Printing chart with notes'] }  
+  kill_session
+end
+
+do_test 'id-108: quiz-flavour tell-inter' do
+  new_session
+  tms 'harpwise quiz tell-inter --difficulty easy'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  expect { screen[10]['What is the interval between holes'] }
+  sleep 1
+  tms 'help-chart-notes'
+  tms :ENTER
+  expect { screen[1]['Show holes as notes'] }  
+  kill_session
+end
+
+do_test 'id-109: quiz-flavour players' do
+  new_session
+  tms 'harpwise quiz players --difficulty easy'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  sleep 1
+  expect { screen[3..7].any?{|l| l['What is the name of the player with']} }
+  sleep 1
+  tms 'help-more-info'
+  tms :ENTER
+  expect { screen[7..14].any?{|l| l['invoke again for more information']} }  
   kill_session
 end
 
