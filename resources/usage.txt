@@ -3,8 +3,8 @@ intervals, licks or bends on a diatonic (richter) or chromatic
 harmonica for various keys.
 
 The wise recognizes single notes, that you play and it may play chords
-for you (but can not identify your chords); it teaches a little about
-tempo, but not rhythm.
+for you (but can not identify your chords); it knows a thing or two
+about tempo, but not about rhythm.
 
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
@@ -13,12 +13,11 @@ specifies the mode of operation; it can be one of:
     or bends
   - quiz: Train your ear, memory and knowledge of music theory. This
     is actually fun and a engaging way to start with harpwise.
-  - licks: Learn licks (only some included, but pointers for more)
+  - licks: Learn licks (some included and pointers for more)
 
 And, less interactive:
 
-  - play: Wise plays scales, holes or licks, not asking you to play
-    them back
+  - play: Wise plays scales, holes, licks, intervals, chords, etc.
   - print: Print and annotate the holes of scales or licks given
     on the commandline. Also print various informationo about licks,
     scales and much more
