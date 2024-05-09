@@ -50,7 +50,7 @@ def do_quiz to_handle
       err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
     end
   else
-    err "'harpwise quiz #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if to_handle.length > 0
+    err_args_not_allowed(to_handle) if to_handle.length > 0
   end
   $num_quiz_replay ||= {easy: 4, hard: 8}[$opts[:difficulty]]
 

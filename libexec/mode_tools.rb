@@ -7,7 +7,7 @@ def do_tools to_handle
   $lick_file ||= get_lick_file
 
   # common error checking
-  err "'harpwise tools #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if %w(chart edit-licks edit-config chords).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if %w(chart edit-licks edit-config chords).include?($extra) && to_handle.length > 0
 
   case $extra
   when 'transpose'

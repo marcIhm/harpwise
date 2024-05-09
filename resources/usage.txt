@@ -1,10 +1,10 @@
-harpwise ('wise' for short) supports the daily practice of bends,
-scales, intervals or licks on a diatonic (richter) or chromatic
+harpwise ('wise' for short) supports the daily practice of scales,
+intervals, licks or bends on a diatonic (richter) or chromatic
 harmonica for various keys.
 
 The wise recognizes single notes, that you play and it may play chords
-for you (but can not identify your chords); it touches tempo, but not
-rhythm.
+for you (but can not identify your chords); it teaches a little about
+tempo, but not rhythm.
 
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
@@ -13,9 +13,9 @@ specifies the mode of operation; it can be one of:
     or bends
   - quiz: Train your ear, memory and knowledge of music theory. This
     is actually fun and a engaging way to start with harpwise.
-  - licks: Learn licks (only a few included, but pointers for more)
+  - licks: Learn licks (only some included, but pointers for more)
 
-And with a less interactive interface and not using your microphone:
+And, less interactive:
 
   - play: Wise plays scales, holes or licks, not asking you to play
     them back
@@ -64,12 +64,13 @@ An example using all these arguments would be:
   harpwise listen richter c blues
 
 this does listen to your playing, while marking notes from the
-blues-scale.  And, relying on defaults, this could also be written as:
+blues-scale.  However, relying on defaults, this could also be written
+shorter as:
 
   harpwise listen blues
 
 This example would listen especially for the first three notes of the
-blues-scale, which are given as arguments as an adhoc scale
+blues-scale, which are given as arguments form an adhoc scale
 
   harpwise listen -2 -3 +4
 

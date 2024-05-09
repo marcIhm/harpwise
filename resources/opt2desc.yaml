@@ -33,9 +33,8 @@ transpose_scale:
     if you want to practice e.g. the d-major scale on a chromatic
     harmonica of key c. Or if you want to play e.g. in third position,
     you may transpose by 7st (= perfect fifth), as the scales are
-    genarally written in second position.  In any case: for a diatonic
-    harmonica, however, your mileage may vary, as not all notes are
-    available
+    generally notated in second position.  In any case: for a diatonic
+    harmonica your mileage may vary, as not all notes are available
   - KEY_OR_SEMITONES
 
 display:

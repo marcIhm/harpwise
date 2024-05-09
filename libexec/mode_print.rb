@@ -16,7 +16,7 @@ def do_print to_print
   end
 
   # common error checking
-  err "'harpwise print #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if $extra && !%w(player players).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra && !%w(player players).include?($extra) && args_for_extra.length > 0
 
   
   if !$extra
@@ -399,6 +399,7 @@ end
 
 def print_players args
   puts
+
   if args.length == 0
     puts_underlined "All players known to harpwise"
     $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
@@ -412,8 +413,10 @@ def print_players args
     puts "- Players, which have no details yet, are dimmed\e[0m"
     puts
     puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
+
   elsif args.length == 1 && 'random'.start_with?(args[0])
     print_player $players.structured[$players.all_with_details.sample]
+
   elsif args.length == 1 && 'last'.start_with?(args[0])
     if $pers_data['players_last']
       player = $players.structured[$pers_data['players_last']]
@@ -425,6 +428,7 @@ def print_players args
     else
       puts "No player recorded in '#{$pers_file}'\ninvoke mode listen first"
     end
+
   elsif args.length == 1 && 'all'.start_with?(args[0])
     # the only way to end this loop prematurely is to press ctrl-c;
     # with feh, this gives errors otherwise
@@ -447,6 +451,7 @@ def print_players args
     end
     puts
     puts "#{$players.all_with_details.length} players with their details."
+
   else
     selected_name, selected_content = $players.select(args)
     selected = [selected_name, selected_content].flatten
@@ -504,7 +509,7 @@ def print_player player, in_loop = false
       puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
-    $players.view_picture(player['image'][0], in_loop) if player['image'][0]
+    $players.view_picture(player['image'][0], in_loop)
   else
     puts "\n\e[2mNo details known yet.\e[0m"
   end

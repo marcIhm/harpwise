@@ -126,7 +126,7 @@ quiz:
   hear-tempo: |
     plays a tempo and asks for its bpm
   replay: |
-    harpwise plays a sequence of holes and you asks to play it back    
+    harpwise plays a sequence of holes and asks you to play it back    
 develop:
   man: |
     produce man page from erb-template

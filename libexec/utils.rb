@@ -766,6 +766,12 @@ class FamousPlayers
   def view_picture file, in_loop
     needed = []
     puts "\e[32mImage:\e[0m"
+
+    if !file
+      puts "\e[2m  (you may store a player image in #{$dirs[:players_pictures]}, then it would be shown here)\e[0m"
+      return
+    end
+    
     case $opts[:viewer]
     when 'none'
       puts "\e[2m  (to view the image, set option or config '--viewer')\e[0m"
@@ -795,5 +801,14 @@ class FamousPlayers
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")
     end
+  end
+end
+
+
+def err_args_not_allowed args
+  if args.length == 1 && $conf[:all_keys].include?(args[0])
+    err "'harpwise #{$mode} #{$extra}' does not take any arguments; however your argument '#{args[0]}' is a key, which might be placed further left on the commandline, if you wish"
+  else
+    err "'harpwise #{$mode} #{$extra}' does not take any arguments, these cannot be handled: #{args}"
   end
 end

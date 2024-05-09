@@ -20,7 +20,7 @@ def do_play to_play
   end
 
   # common error checking
-  err "'harpwise play #{$extra}' does not take any arguments, these cannot be handled: #{args_for_extra}" if %w(pitch licks user).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if %w(pitch licks user).include?($extra) && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
 

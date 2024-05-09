@@ -5,7 +5,7 @@
 def do_develop to_handle
 
   # common error checking
-  err "'harpwise develop #{$extra}' does not take any arguments, these cannot be handled: #{to_handle}" if to_handle.length > 0
+  err_args_not_allowed(to_handle) if to_handle.length > 0
 
   $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
