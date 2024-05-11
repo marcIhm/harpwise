@@ -108,7 +108,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 87
+num_exp = 89
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -393,7 +393,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     expect_opts = { 'none' => [2, '???'],
                     'calibrate' => [4, 'prefer sharps'],
                     'listen' => [16, 'on every invocation'],
-                    'quiz' => [7, '--transpose-scale KEY_OR_SEMITONES'],
+                    'quiz' => [8, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [5, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
@@ -1057,7 +1057,7 @@ do_test 'id-25: cycle through licks back to start' do
     lickname = $all_testing_licks[i % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
-    sleep 4
+    sleep 2
   end
   kill_session
 end
@@ -1636,7 +1636,7 @@ do_test 'id-53f: print with multiple scales' do
   # chord-i is taken as scale and only chord-iv and chord-v are handled
   tms 'harpwise print chord-i chord-iv chord-v --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[21]['2 scales printed.'] }
+  expect { screen[21]['3 scales printed.'] }
   kill_session
 end
 
@@ -2374,7 +2374,8 @@ do_test 'id-85: print info about a specifc player' do
   sleep 2
   tms '1'
   sleep 2
-  expect { screen[7]['Aleck Rice Miller'] }
+  expect { screen[4]['Aleck Rice Miller'] }
+  expect { screen[19]['You may store a player image'] }
   kill_session
 end
 
@@ -2819,6 +2820,46 @@ do_test 'id-109: quiz-flavour players' do
   expect { screen[7..14].any?{|l| l['invoke again for more information']} }  
   kill_session
 end
+
+ENV['HARPWISE_TESTING']='argv'
+
+do_test 'id-110: some cases of argv processing' do
+  new_session
+  [
+    ['play chord-i chord-iv',
+     {'scale' => 'chord-i',
+      'argv' => %w(chord-i chord-iv)}],
+    ['play blues:u chord-i chord-iv',
+     {'scale' => 'blues',
+      'argv' => %w(blues chord-i chord-iv)}],
+    ['play chord-i x',
+     {'scale' => 'chord-i',
+      'argv' => %w(x)}],
+    ['play x',
+     {'scale' => 'blues',
+      'argv' => %w(x)}],
+    ['play chord-i feeling-bad',
+     {'scale' => 'chord-i',
+      'argv' => %w(feeling-bad)}],
+    ['listen +1 +2',
+     {'scale' => 'adhoc',
+      'argv' => []}],
+    ['play a wade st-louis feeling-bad',
+     {'scale' => 'blues',
+      'argv' => %w(wade st-louis feeling-bad)}]
+  ].each do |args, result|
+    tms "harpwise #{args} >#{$testing_output_file}"
+    tms :ENTER
+    wait_for_end_of_harpwise
+    parsed = JSON.parse(File.read($testing_output_file))
+    result.each do |k,v|
+      expect(args, parsed, "expect: #{k} = #{v}") { parsed[k] == v}
+    end
+  end
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
 
 puts
 puts

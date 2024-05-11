@@ -95,7 +95,7 @@ omitted, this defaults to 'c'.
 .IP -
 .B SCALE:
 scale on which you want to concentrate, e.g. 'blues', 'major_pentatonic'
-or 'all'. No default; cannot be abbreviated.
+or 'all'; defaults to 'blues'.
 
 Note, that most scales are notated in second position (e.g. key of g
 for a c-harp); you may use the option --transpose-scale to change
@@ -120,8 +120,20 @@ shorter as:
 harpwise listen blues   
 .RE
 
+or shorter:
+.IP
+harpwise listen c
+.RE
+
+as 'blues' and 'c' are also the defaults, one might be tempted to
+write even shorter:
+.IP
+harpwise listen
+.RE
+but that would (on purpose) produce the usage-message of mode listen.
+
 This example would listen especially for the first three notes of the
-blues-scale, which are given as arguments form an adhoc scale
+blues-scale, which are given as arguments and form an adhoc scale:
 
   harpwise listen -2 -3 +4
 

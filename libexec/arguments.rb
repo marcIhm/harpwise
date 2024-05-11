@@ -313,12 +313,11 @@ def parse_arguments_early
   # Handle special case: convert 'harpwise play pitch g'
   #                         into 'harpwise play g pitch'
   # The mode (play) has already been removed from ARGV
-  if mode == :play && $conf[:all_keys].include?(ARGV[1]) &&
-     ARGV.length >= 2 && 'pitch'.start_with?(ARGV[0])
-    ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
-
+  if mode == :play && ARGV[0] == 'pitch' && ARGV.length >= 2 &&
+     $conf[:all_keys].include?(ARGV[1])
+    ARGV[0], ARGV[1] = ARGV[1], ARGV[0]
   end
-
+  
   # Get key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   if !key
@@ -326,38 +325,62 @@ def parse_arguments_early
     $source_of[:key] = 'config'
   end
   err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
+
   
   # Get scale
   case mode
-  when :listen, :licks
-    # these modes dont take an extra arg
-    scales, holes = partition_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
-    ARGV.clear
-    if scales.length > 0
-      scale = get_scale_from_sws(scales[0])
-    elsif holes.length > 0
-      scale = get_scale_from_sws('adhoc:h')
-      $adhoc_holes = holes
-      $source_of[:scale] = 'adhoc'
-    else
-      scale = get_scale_from_sws($conf[:scale])
-      $source_of[:scale] = 'config'
-    end
-  when :play, :print, :tools, :quiz
-    # if the first remaining argument looks like a scale, take it as such
+  when :quiz
+    # quiz does not allow a scale as an extra arg
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
-      # for modes play and print: if the scale is our only argument, keep it for later
-      # for mode tools: remove the recognized scale in any case
-      #
-      # These cases should all be treated as described:
-      #   Take chord-i as scale-argument and print chord-iv and chord-v:
-      #     harpwise print chord-i chord-iv chord-v
-      #   Take chord-i as scale-argument and print it:
-      #     harpwise print chord-i
-      #   Take chord-i as scale-argument and show table of keys:
-      #     harpwise tools chord-i keys
-      ARGV.shift if ARGV.length > 1 || $mode == :tools
+      ARGV.shift
+    else
+      scale = get_scale_from_sws($conf[:scale] || 'all:a')
+      $source_of[:scale] = 'implicit'
+    end
+  when :listen, :licks
+    # These modes allow ahoc scales, so we have to seperate scales from holes.
+    # The function below already generates detailed errors
+    #   if scales.length > 0 && holes.length > 0
+    #   if scales.length > 1
+    #   if there are any arguments other than scales or holes
+    # so we dont have to cover each situation below
+    scales, holes = partition_argv_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
+    ARGV.clear
+
+    if scales.length == 0
+      if holes.length == 0
+        scale = get_scale_from_sws($conf[:scale])
+        $source_of[:scale] = 'config'
+      else
+        scale = get_scale_from_sws('adhoc:h')
+        $adhoc_holes = holes
+        $source_of[:scale] = 'adhoc'
+      end
+    else
+      scale = get_scale_from_sws(scales[0])
+    end
+
+  when :play, :print, :tools
+    # modes play and print both accept multiple scales as arguments
+    # without having any extra-argument; mode tools is simpler in
+    # requirering an extra arg, but can nevertheless be handled alike
+    scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
+    # if we have only scales (more than one) on the commandline, we assume
+    # that they all should be printed or played; the first scale than
+    # servers double duty in also specifying the scale (besides beeing
+    # printed or played). If, in the future, we ever have the need to
+    # specify another scale (e.g. for print) without printing or playing
+    # it, we may introduce a new option '--scale'. And btw: for mode
+    # tools, this cannot happen, because it always requires an extra arg.
+    # See also test id-110 for a some cases of expected behaviour
+    if scale
+      if ARGV.length > 1 && !ARGV[1..-1].all? {|x| $all_scales.include?(x)}
+        ARGV.shift
+      else
+        # ARGV[0] might look like blues:b, this will turn it into blues
+        ARGV[0] = scale
+      end
     else
       scale = get_scale_from_sws($conf[:scale] || 'all:a')
       $source_of[:scale] = 'implicit'
@@ -451,7 +474,8 @@ def parse_arguments_late
 end
 
 
-def get_scale_from_sws scale_w_short, graceful = false, added = false   # get_scale_from_scale_with_short
+# get_scale_from_scale_with_short
+def get_scale_from_sws scale_w_short, graceful = false, added = false   
   scale = nil
 
   if md = scale_w_short.match(/^(.*?):(.*)$/)
@@ -546,14 +570,14 @@ def get_types_with_scales
 end
 
 
-def partition_into_scales_and_holes args, all_scales, all_holes
+def partition_argv_into_scales_and_holes argv, all_scales, all_holes
   scales = Array.new
   holes = Array.new
   other = Array.new
   
   hint = "\n\n\e[2mHint: The commandline for modes listen, quiz and licks might contain a single scale or alternatively a set of holes, which then make up an adhoc-scale.\nScales are: #{all_scales}\nHoles are: #{all_holes}\e[0m"
   
-  args.each do |arg|
+  argv.each do |arg|
     arg_woc = arg.gsub(/:.*/,'')
     err "Scale 'adhoc' is only the temporary name for the holes given on commandline; there is no such permanent scale however" if arg.downcase == 'adhoc'
     found = match_or(arg_woc, all_scales) do |none, choices, matches|

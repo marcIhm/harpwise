@@ -49,7 +49,7 @@ $testing = !!ENV["HARPWISE_TESTING"]
 $testing_what = nil
 if $testing && ! %w(1 true t yes y).include?(ENV["HARPWISE_TESTING"].downcase)
   $testing_what = ENV["HARPWISE_TESTING"].downcase.to_sym
-  tw_allowed = [:lag, :jitter, :player]
+  tw_allowed = [:lag, :jitter, :player, :argv]
   err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed} (case insensitive)" unless tw_allowed.include?($testing_what)
 end
 
@@ -69,6 +69,10 @@ initialize_extra_vars
 # get debug info early to help e.g. for error messages
 $opts = {debug: true} if ARGV.include?('--debug')
 $mode, $type, $key, $scale, $opts = parse_arguments_early
+if $testing_what == :argv
+  puts JSON.pretty_generate({mode: $mode, type: $type, key: $key, scale: $scale, argv: ARGV})
+  exit
+end
 
 IO.popen('ps -ef').each_line do |line|
   fields = line.chomp.split(' ',8)

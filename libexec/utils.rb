@@ -689,9 +689,13 @@ class FamousPlayers
       end
 
       # handle pictures
-      pic_dir = $dirs[:players_pictures] + '/' + name.gsub(/[^\w\s_-]+/,'').gsub(/\s+/,'_')
-      FileUtils.mkdir(pic_dir) unless File.directory?(pic_dir)
-      sorted_info['image'] = [Dir[pic_dir + '/*'].sample]
+      picture_dir = $dirs[:players_pictures] + '/' +
+                     name.gsub(/[^\w\s_-]+/,'').gsub(/\s+/,'_')
+      FileUtils.mkdir(picture_dir) unless File.directory?(picture_dir)
+      sorted_info['image'] = [Dir[picture_dir + '/*'].sample]
+      @picture_dirs ||= Hash.new
+      @picture_dirs[name] = picture_dir
+      sorted_info['image_dir'] = picture_dir
       
       @structured[name] = sorted_info
       @printable[name] = pplayer
@@ -763,12 +767,12 @@ class FamousPlayers
     @lines_pool_last
   end
 
-  def view_picture file, in_loop
+  def view_picture file, name, in_loop
     needed = []
     puts "\e[32mImage:\e[0m"
 
     if !file
-      puts "\e[2m  (you may store a player image in #{$dirs[:players_pictures]}, then it would be shown here)\e[0m"
+      puts "\e[2m  You may store a player image to be shown in:\n    #{@picture_dirs[name]}\e[0m"
       return
     end
     
