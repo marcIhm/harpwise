@@ -874,13 +874,17 @@ class Players < QuizFlavour
     @qitem = @pitems.sample
     @hitems = @pitems.clone
     @hitems.rotate!(@hitems.find_index(@qitem))
-    @@choices = @choices = $players.structured.keys
-    @choices_orig = @choices.clone
+
     begin
       @solution = $players.structured.keys.sample
     end while @@prevs.include?(@solution)
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
+
+    # take 8 players to choose from
+    @choices = (($players.structured.keys - [@solution]).sample(7) + [@solution]).shuffle
+    @@choices = @choices_orig = @choices.clone
+
     @structured = $players.structured[@solution]
     @prompt = "Enter the name of the player described above:"
   end

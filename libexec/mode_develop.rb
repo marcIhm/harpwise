@@ -349,15 +349,17 @@ def do_widgets
   end while char != 'q'
   puts "#{cnt} chars read."
 
-  puts_underlined "choose_interactive", '-', dim: false
-  make_term_immediate
-  ($term_height - $lines[:comment_tall] + 1).times { puts }
-  answer = choose_interactive('testprompt', (1..1000).to_a.map(&:to_s))
-  clear_area_comment
-  clear_area_message
-  make_term_cooked
-  print "\e[#{$lines[:comment_tall]}H"
-  puts "Answer: #{answer}"
+  %w(one two).each do |count|
+    puts_underlined "choose_interactive #{count}", '-', dim: false
+    make_term_immediate
+    ($term_height - $lines[:comment_tall] + 1).times { puts }
+    answer = choose_interactive('testprompt', (1..100).to_a.map(&:to_s)) {|name| 'Selected: ' + name}
+    clear_area_comment
+    clear_area_message
+    make_term_cooked
+    print "\e[#{$lines[:comment_tall]}H"
+    puts "Answer #{count}: #{answer}"
+  end
 end
 
 

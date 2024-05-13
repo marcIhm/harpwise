@@ -1044,31 +1044,52 @@ def handle_win_change
   $freqs_queue.clear
 end
 
-
+#
+# These functions and variable need to be in accord about the sematics
+# of indexing into their respective arrays of names:
+#
+# choose_interactive: index is in the array of currently matching
+# names, ignoring frame_start
+#
+# chia_print_in_columns: index is in the current frame of matching
+# names plus more-marker (added to front, if any)
+#
+# $chia_loc_cache, chia_move_loc: index is similar to that of
+# chia_print_in_columns but never includes the more-marker
+#
 def choose_interactive prompt, names
   prompt_orig = prompt
   names.uniq!
   clear_area_comment
   clear_area_message
+  $chia_more_text = '...more'
+  fail "Internal error: one of the passed names contains reserved string '#{$chia_more_text}: #{names}" if names.include?($chia_more_text)
+
+  $chia_padding = if names.map(&:length).sum / names.length > 10 ||
+                     names.any? {|name| name[' ']}
+                    '  '
+                  else
+                    ' '
+                  end
   
-  total_chars = chia_padded(names).join.length
+  $chia_total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[K"
   help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
-  $chia_loc_cache = nil
-  $chia_no_matches = nil
+  $chia_no_matches_text = nil
   print help_template % ( $lines[:comment_tall] + 2 )
-  idx_hl = 0
-  idx_hl += 1 while names[idx_hl][0] == ';'
+
   frame_start = 0
   frame_start_was = Array.new
-
+  idx_high_min = idx_high = chia_idx_helper(names, frame_start)
+  
   input = ''
   matching = names
-  idx_last_shown = chia_print_in_columns(chia_framify(names, frame_start), idx_hl, total_chars)
-  print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given? && matching[idx_hl]
+  idx_last_shown = chia_print_in_columns(matching, frame_start, idx_high)
+  print chia_desc_helper(yield(matching[idx_high]), names[idx_high][0] == ';') if block_given? && matching[idx_high]
   loop do
     key = $ctl_kb_queue.deq.downcase
+
     if key == '?'
       clear_area_comment
       clear_area_message
@@ -1093,114 +1114,158 @@ def choose_interactive prompt, names
         input += key
       end
       matching = names.select {|n| n.downcase[input]}
-      idx_hl = ( frame_start > 0  ?  1  :  0 )
-    elsif key.ord == 127 # backspace
+      frame_start = idx_high = idx_high_min = 0
+      frame_start_was = Array.new
+
+    elsif key.ord == 127  ## backspace
       input[-1] = '' if input.length > 0
       matching = names.select {|n| n[input]} 
-      idx_hl = ( frame_start > 0  ?  1  :  0 )
+      idx_high = idx_high_min
       prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
-      $chia_no_matches = nil
-    elsif key.ord == 8 # ctrl-backspace
+      $chia_no_matches_text = nil
+
+    elsif key.ord == 8  ## ctrl-backspace
       input= '' if input.length
       matching = names
-      idx_hl = ( frame_start > 0  ?  1  :  0 )
+      idx_high = idx_high_min
       prompt = prompt_orig
-      $chia_no_matches = nil
+      $chia_no_matches_text = nil
+
     elsif %w(left right up down).include?(key)
-      idx_hl = chia_move_loc(idx_hl, key,
-                             idx_last_shown, frame_start > 0 ? 1 : 0) if idx_last_shown >= 0
+      idx_high = chia_move_loc(idx_high, key,
+                               idx_high_min,
+                               idx_last_shown,
+                               frame_start)
+
     elsif key == "\n"
+
       if matching.length == 0
-        $chia_no_matches ="\e[0;101mNO MATCHES !\e[0m Please shorten input above or type ESC to abort !"
-      elsif matching[idx_hl][0] == ';'
+        $chia_no_matches_text ="\e[0;101mNO MATCHES !\e[0m Please shorten input above or type ESC to abort !"
+
+      elsif matching[idx_high][0] == ';'
         clear_area_comment(2)
         clear_area_message
-        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[2m  '#{matching[idx_hl]}'\e[0m is a comment, please choose another item."
+        print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[2m  '#{matching[idx_high]}'\e[0m is a comment, please choose another item."
         print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
         $ctl_kb_queue.deq
+
       else
         clear_area_comment
         clear_area_message
         print "\e[0m"
-        return matching[idx_hl]
+        return matching[idx_high]
       end
-    elsif key.ord == 12 # ctrl-l
+
+    elsif key.ord == 12  ## ctrl-l
       print "\e[2J"
       handle_win_change
       print prompt_template % [$lines[:comment_tall] + 1, prompt]
       print "\e[0m\e[92m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
+
     elsif key == "\e"
       clear_area_comment
       clear_area_message
       print "\e[0m"
       return nil
+
     elsif key == "\t"
-      if idx_last_shown + frame_start < matching.length - 1
-        frame_start_was = Array.new if frame_start == 0
+      if idx_last_shown < matching.length - 1
         frame_start_was << frame_start
-        frame_start += idx_last_shown
-        idx_hl = ( frame_start > 0  ?  1  :  0 )
+        frame_start = idx_last_shown + 1
+        idx_high_min = idx_high = chia_idx_helper(matching, frame_start)
       end
+
     elsif key == 'shift-tab'
       if frame_start > 0
         frame_start = frame_start_was.pop || 0
-        idx_hl = ( frame_start > 0  ?  1  :  0 )
+        idx_high_min = idx_high = chia_idx_helper(matching, frame_start)
       end
     end    
+
     print prompt_template % [$lines[:comment_tall] + 1, prompt]
     print "\e[0m\e[92m#{input}\e[0m\e[K"
     print help_template % ( $lines[:comment_tall] + 2 )
-    idx_last_shown = chia_print_in_columns(chia_framify(matching, frame_start), idx_hl, total_chars)
-    print chia_desc_helper(yield(matching[idx_hl]), names[idx_hl][0] == ';') if block_given? && matching[idx_hl]
+
+    idx_last_shown = chia_print_in_columns(matching, frame_start, idx_high)
+
+    print chia_desc_helper(yield(matching[idx_high]), names[idx_high][0] == ';') if block_given? && matching[idx_high]
   end
 end
 
 
-def chia_print_in_columns names, idx_hl, total_chars
-  offset = ( total_chars > $term_width * 3  ?  3  :  4)
-  print "\e[#{$lines[:comment_tall] + offset}H\e[0m\e[2m"
+def chia_idx_helper names, frame_start
+  # leave out initial '...more' if present (although it will only be
+  # added later in chia_print_in_columns)
+  idx_high = ( frame_start > 0  ?  frame_start  :  0 )
+  idx_high += 1 while names[idx_high][0] == ';'
+  return idx_high
+end
+
+
+def chia_print_in_columns names, frame_start, idx_high
+  lines_offset = ( $chia_total_chars > $term_width * 3  ?  3  :  4)
+  print "\e[#{$lines[:comment_tall] + lines_offset}H\e[0m\e[2m"
+  # x,y-pairs of elements shown in most recent call of
+  # chia_print_in_columns; never contains '...more'
   $chia_loc_cache = Array.new
   max_lines = $lines[:hint_or_message] - $lines[:comment_tall] - 4
-  # prepare array and print it over existing lines to reduce flicker
-  lines = (0 .. max_lines).map {|x| ''}
+  # idx2cidx: index to caller index (this functions semantics of)
+  idx2cidx = if frame_start > 0
+               names = [$chia_more_text + ' '] + names[frame_start .. -1] 
+               frame_start - 1
+             else
+               0
+             end
+  cidx2idx = -idx2cidx
   idx_last_shown = names.length - 1
+  idx_high += cidx2idx
+
+  # General processing: prepare array and print it over existing lines
+  # to avoid flicker
+  lines = (0 .. max_lines).map {|x| ''}
   if names.length == 0
     clear_area_comment(2)
-    lines[0] = "  " + ( $chia_no_matches || "\e[0mNO MATCHES for input above, please shorten ..." )
+    lines[0] = "  " + ( $chia_no_matches_text || "\e[0mNO MATCHES for input above, please shorten ..." )
   else
+    has_more_above = false
     lines_count = 0
+    line_was = nil
     line = '  '
-    wrote_more = false
-    chia_padded(names).each_with_index do |name,idx|
+    chia_padded(names).each_with_index do |name, idx|
       break if lines_count > max_lines
+      has_more = ( name == $chia_more_text )
       if (line + name).length > $term_width - 4
         if lines_count == max_lines && idx < names.length - 1
-          # we cannot output the current element, so we overwrite even the
-          # previous one to tell about this
-          text_more = ' ... more'
-          line[-text_more.length ..] = text_more
+          # this is the last line; we cannot output the current
+          # element, so we overwrite even the previous one to tell
+          # about this
+          line = line_was + ' ' + $chia_more_text
           $chia_loc_cache.pop
           idx_last_shown = idx - 2
-          wrote_more = true
+          has_more = has_more_above = true
         end
-        # we know that we have reached the end, so we output our line
+        # finish line
         lines[lines_count] = chia_line_helper(line)
         lines_count += 1
+        line_was = line
         line = '  '
       end
-      $chia_loc_cache << [line.length, lines_count] unless wrote_more
-      line[-1] = (name[0] == ';' ? '{' : '[') if idx == idx_hl
+      $chia_loc_cache << [line.length, lines_count] unless has_more
+      # insert markers {[]} for later highlighting
+      line[-1] = ( name[0] == ';'  ?  '{'  :  '[' ) if idx == idx_high
+      line_was = line
       line += name
-      line[line.rstrip.length] = (name[0] == ';' ? '}' : ']')  if idx == idx_hl
+      line[line.rstrip.length] = ( name[0] == ';'  ?  '}'  :  ']' )  if idx == idx_high
     end
-    # only output, if not already done above
-    lines[lines_count] = chia_line_helper(line) unless wrote_more || line.strip.empty?
+    # output any line, that has not yet been finished
+    lines[lines_count] = chia_line_helper(line) unless has_more_above || line.strip.empty?
   end
+  
   lines.each_with_index do |line, idx|
-    print "\e[#{$lines[:comment_tall] + offset + idx}H#{line}\e[K"
+    print "\e[#{$lines[:comment_tall] + lines_offset + idx}H#{line}\e[K"
   end
-  return idx_last_shown
+  return idx_last_shown + idx2cidx
 end
 
 
@@ -1217,36 +1282,33 @@ def chia_desc_helper text, is_comment
 end
 
 
-def chia_framify names, frame_start
-  if frame_start == 0
-    return names
-  else
-    if names
-      return ['... more'] + names[frame_start .. -1]
-    else
-      return nil
-    end
-  end
-end
+def chia_move_loc idx_high_old, dir, idx_high_min, idx_last_shown, frame_start
+  # idx2cidx: index to caller index (this functions semantics of)
+  idx2cidx = ( frame_start > 0  ?  frame_start  :  0 )
+  cidx2idx = -idx2cidx
+  idx_high_old += cidx2idx
+  idx_high_min += cidx2idx
+  idx_last_shown += cidx2idx
 
-
-def chia_move_loc idx_old, dir, idx_last_shown, idx_min
-  column_old, line_old = $chia_loc_cache[idx_old]
+  column_old, line_old = $chia_loc_cache[idx_high_old]
   line_max = $chia_loc_cache[-1][1]
+
   if dir == 'left'
-    idx_new = idx_old - 1
+    idx_high_new = idx_high_old - 1
+
   elsif dir == 'right'
-    idx_new = idx_old + 1
+    idx_high_new = idx_high_old + 1
+
   elsif dir == 'up'
-    idx_new = idx_old
+    idx_high_new = idx_high_old
     if line_old > 0 
       line_new = line_old - 1
-      $chia_loc_cache[0 .. idx_old].each_with_index do |pos, idx_of_this|
+      $chia_loc_cache[0 .. idx_high_old].each_with_index do |pos, idx_of_this|
         column_of_this, line_of_this = pos
         if line_of_this == line_new
           column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
           # keep updating until break below
-          idx_new = idx_of_this
+          idx_high_new = idx_of_this
           # next item is already on different line
           break if line_of_next != line_of_this
           # next item is more distant columnwise than current
@@ -1254,18 +1316,19 @@ def chia_move_loc idx_old, dir, idx_last_shown, idx_min
         end
       end
     end
+
   elsif dir == 'down'
-    idx_new = idx_old
+    idx_high_new = idx_high_old
     if line_old < line_max
       # there is one line below, so try it
       line_new = line_old + 1
       # idx in loop below starts at 0
-      $chia_loc_cache[idx_old .. idx_last_shown ].each_with_index do |pos, idx|
+      $chia_loc_cache[idx_high_old .. idx_last_shown ].each_with_index do |pos, idx|
         column_of_this, line_of_this = pos
-        idx_of_this = idx_old + idx
+        idx_of_this = idx_high_old + idx
         if line_of_this == line_new
           # keep updating until break below
-          idx_new = idx_of_this
+          idx_high_new = idx_of_this
           # no further entries
           break if idx_of_this == idx_last_shown
           column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
@@ -1277,19 +1340,18 @@ def chia_move_loc idx_old, dir, idx_last_shown, idx_min
       end
     end
   end
-  # make sure to be in range
-  idx_new = idx_last_shown if idx_new < idx_min
-  idx_new = idx_min if idx_new > idx_last_shown
-  idx_new = [idx_new, idx_min].max
-  idx_new = [idx_new, idx_last_shown ].min
 
-  return idx_new
+  # wrap around from left to right and vice versa
+  idx_high_new = idx_last_shown if idx_high_new < idx_high_min
+  idx_high_new = idx_high_min if idx_high_new > idx_last_shown
+
+  return idx_high_new + idx2cidx
 end
 
 
 def chia_padded names
   names.
-    map {|name| name + ' '}.
+    map {|name| name + $chia_padding}.
     map {|name| name + ' ' * (-name.length % 8)}
 end
 

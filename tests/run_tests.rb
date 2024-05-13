@@ -1569,7 +1569,7 @@ do_test 'id-53: print' do
   new_session
   tms "harpwise print st-louis --sharps >#{$testing_output_file}"
   tms :ENTER
-  sleep 1
+  sleep 2
   lines = File.read($testing_output_file).lines
   {17 => 'd4  e4  g4  as4  g4  as4  a4  g4',
    20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
@@ -2665,11 +2665,26 @@ do_test 'id-99: widgets' do
   expect { screen[10]['Input #4: -BACKSPACE-'] }
   tms 'q'
   sleep 1
+  expect { screen[22]['39       ...more'] }
+  tms :TAB
+  expect { screen[18]['...more         40'] }
+  expect { screen[23]['Selected: 40'] }
+  expect { screen[22]['76       ...more'] }
   tms :TAB
   tms :LEFT
-  tms :RIGHT
+  expect { screen[23]['Selected: 100'] }
   tms :ENTER
-  expect { screen[15]['Answer: 2'] }
+  expect { screen[11]['Answer one: 100'] }
+  sleep 1
+  tms :TAB
+  tms :TAB
+  tms :TAB
+  tms 'q'
+  expect { screen[18]['NO MATCHES for input above'] }
+  tms :BSPACE
+  tms :LEFT
+  tms :RIGHT
+  expect { screen[23]['Selected: 1'] }
   kill_session
 end
 
@@ -2764,7 +2779,7 @@ do_test 'id-105: lick in shift circle' do
   tms '>'
   sleep 4
   expect { screen[15]['-2.b14  -3//.5      +4.b4    (*)     +4.b4    (*)'] }
-  expect { screen[22]['Holes shifted by perfect Fourth'] }
+  expect { screen[22]['Holes shifted by perf Fourth'] }
   kill_session
 end
 
@@ -2813,7 +2828,7 @@ do_test 'id-109: quiz-flavour players' do
   sleep 2
   tms :ENTER
   sleep 1
-  expect { screen[3..7].any?{|l| l['What is the name of the player with']} }
+  expect { screen[1..7].any?{|l| l['What is the name of the player with']} }
   sleep 1
   tms 'help-more-info'
   tms :ENTER
