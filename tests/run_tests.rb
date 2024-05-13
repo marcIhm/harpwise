@@ -947,6 +947,8 @@ do_test 'id-21: mode licks with --start-with' do
   expect { screen[-1]['samples'] }
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
+  tms 'I'
+  expect { screen[16]['Lick Name: wade'] }
   kill_session
 end
 

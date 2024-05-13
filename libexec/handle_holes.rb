@@ -449,7 +449,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -650,7 +650,7 @@ def show_help
     end
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
-                          "      t: change option --tags-any (aka -t)",
+                          "      t: change option -t                  I: show info on lick",
                           "      %: shift lick by chosen interval     @: change option --partial",
                           "     <>: shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                           "     */: Add or remove Star from current lick persistently;",

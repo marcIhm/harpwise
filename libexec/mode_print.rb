@@ -51,7 +51,7 @@ def do_print to_print
       puts_underlined 'Licks given as arguments:'
       lnames.each do |lname|
         puts_underlined "#{lname}:", '-', dim: false
-        puts
+        puts unless $opts[:terse]
         lick = $licks.find {|l| l[:name] == lname}
         print_holes_and_more lick[:holes_wo_events]
         unless $opts[:terse]
@@ -60,7 +60,7 @@ def do_print to_print
           puts "        Tags: #{lick[:tags].join(' ')}"
           puts "Rec harp-key: #{lick[:rec_key]}"
         end
-        puts
+        puts unless $opts[:terse]
         puts if lnames.length > 1
       end
       puts "#{lnames.length} licks printed." unless $opts[:terse]
@@ -169,7 +169,7 @@ end
 
 
 def print_holes_and_more holes_or_notes
-  puts "\e[2mHoles or notes given:\e[0m"
+  puts "\e[2mHoles or notes given:\e[0m" unless $opts[:terse]
   print_in_columns holes_or_notes, pad: :tabs
   puts
   return if $opts[:terse]

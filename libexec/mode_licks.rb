@@ -479,7 +479,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
           return
         end
 
-        break if [:next, :back, :replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -536,7 +536,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        unless [:replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
@@ -563,6 +563,19 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       if $ctl_mic[:quiz_hint]
         lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name)
         $ctl_mic[:quiz_hint] = false
+      end
+
+      if $ctl_mic[:lick_info]
+        $ctl_mic[:lick_info] = false
+        clear_area_comment
+        print "\e[#{$lines[:comment] + 1}H\e[0m"
+        puts '  Lick Name: ' + to_play[:lick][:name]
+        puts wrap_words('       Tags: ', to_play[:lick][:tags])
+        puts '       Desc: ' + to_play[:lick][:desc]
+        puts "\e[2m  Press any key to continue ...\e[0m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        $freqs_queue.clear
       end
       
     end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :shift_inter, :shift_inter_circle, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
@@ -1016,7 +1029,7 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  input = choose_interactive("Choose new tag for --tags-any, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
+  input = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
     if tag2licks[tag]
       "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
     else

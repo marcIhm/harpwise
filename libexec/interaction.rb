@@ -596,6 +596,9 @@ def handle_kb_mic
   elsif char == '&' && $mode == :licks
     $ctl_mic[:shuffle_holes] = true
     text = 'Shuffle'    
+  elsif char == 'I' && $mode == :licks
+    $ctl_mic[:lick_info] = true
+    text = 'Lick info'    
   elsif char.ord == 18 && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Record user'

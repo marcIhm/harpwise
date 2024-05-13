@@ -816,3 +816,16 @@ def err_args_not_allowed args
     err "'harpwise #{$mode} #{$extra}' does not take any arguments, these cannot be handled: #{args}"
   end
 end
+
+
+def wrap_words head, words
+  para = head
+  words.each do |word|
+    para += ',' unless para[-1] == ' '
+    para += word
+    para += ",\n" + (' ' * head.length) if para.lines.last.length > $term_width - 2 - head.length
+  end
+  para.rstrip!
+  para.gsub!(/,$/,'')
+  return para
+end
