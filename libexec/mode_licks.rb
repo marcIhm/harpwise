@@ -94,6 +94,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
     elsif $ctl_mic[:shift_inter]
       to_play.read_and_shift_inter
+      $freqs_queue.clear
 
     elsif $ctl_mic[:shift_inter_circle]
       to_play.shift_inter_circle($ctl_mic[:shift_inter_circle])
@@ -1254,8 +1255,10 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
        end]
     end.to_h
     choices_desc = Hash.new
-    choices_desc['no shift'] = 'use original, unshifted lick'
+    shift_prev = nil
     $std_semi_shifts.each do |shift|
+      choices_desc['NO SHIFT'] = 'use original, unshifted lick' if shift_prev && shift * shift_prev < 0
+      shift_prev = shift
       choices_desc[$intervals[shift.abs][0] + ' ' + ( shift > 0  ?  'UP'  :  'DOWN' )] =
         "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
@@ -1286,6 +1289,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         end
       else
         $msgbuf.print "Shifting by '#{answer}' does not produce any playable holes; holes not shifted", 2, 5, :shift
+        sleep 2
       end
     else
       $msgbuf.print "No interval chosen, holes not shifted", 2, 5, :shift
