@@ -79,10 +79,10 @@ def do_quiz to_handle
     puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
     puts "\n\n\n"
     prepare_listen_perspective_for_quiz
-    do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _) do
+    do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _, _) do
                        solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes(solve_text, holes, :all)
+                       quiz_hint_in_handle_holes_simple(solve_text, 'sequence', holes, :all)
                      end)
 
     
@@ -99,10 +99,10 @@ def do_quiz to_handle
     sleep 2
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_scale_name: scale_name,
-                     lambda_quiz_hint: -> (holes, _, scale_name) do
+                     lambda_quiz_hint: -> (holes, _, scale_name, _) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes(solve_text, holes, :all)
+                       quiz_hint_in_handle_holes_simple(solve_text, nil, 'scale', holes, :all)
                      end)
 
     
@@ -119,10 +119,25 @@ def do_quiz to_handle
     sleep 2
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_holes_inter: holes_inter,
-                     lambda_quiz_hint: -> (holes, holes_inter, _) do
+                     lambda_quiz_hint: -> (holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       quiz_hint_in_handle_holes(solve_text, holes, holes[-1])
+                       quiz_hint_in_handle_holes_simple(solve_text, nil, 'interval', holes, holes[-1])
+                     end)
+
+    
+  elsif $quiz_flavour == 'play-shifted'
+
+    back_to_comment_after_mode_switch
+    holes_shifts = get_holes_shifts
+    puts
+    puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{holes_shifts[2]}\e[0m"
+    puts
+    puts
+    prepare_listen_perspective_for_quiz
+    do_licks_or_quiz(quiz_holes_shifts: holes_shifts,
+                     lambda_quiz_hint: -> (holes, holes_inter, _, holes_shifts) do
+                       quiz_hint_in_handle_holes_shifts holes_shifts
                      end)
 
     
@@ -171,8 +186,9 @@ def do_quiz to_handle
     
     first_round = true
     loop do  ## every new question
-      $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard) unless first_round
-      $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $quiz_flavour == 'replay'
+      
+      re_calculate_quiz_difficulty unless first_round
+
       catch :next do
         sleep 0.1
         puts
@@ -204,10 +220,12 @@ def do_quiz to_handle
   end
 end
 
+$quiz_flavours = Hash.new {|h,k| h[k] = Array.new}
 
 class QuizFlavour
 
   @@prevs = Array.new
+  @meta_tags = Set.new
 
   def initialize
     @state = Hash.new
@@ -371,17 +389,14 @@ class QuizFlavour
 end
 
 
-# Shallow superclass of all scale-related flavours
-# only needed to select the
-
-class QuizFlavourScales < QuizFlavour
-end
-
 
 # The three classes below are mostly done within do_licks, so the
 # classes here are not complete
 
 class Replay < QuizFlavour
+
+  $quiz_flavours[:microphone] << self
+
   def self.describe_difficulty
     if $num_quiz_replay_explicit
       "number of holes to replay is #{$num_quiz_replay} (explicitly set)"
@@ -392,7 +407,11 @@ class Replay < QuizFlavour
 end
 
 
-class PlayScale < QuizFlavourScales
+class PlayScale < QuizFlavour
+
+  $quiz_flavours[:microphone] << self
+  $quiz_flavours[:scales] << self
+
   def self.describe_difficulty
     HearScale.describe_difficulty
   end
@@ -400,14 +419,31 @@ end
 
 
 class PlayInter < QuizFlavour
+
+  $quiz_flavours[:microphone] << self
+
   def self.describe_difficulty
     AddInter.describe_difficulty
   end
 end
 
 
-class HearScale < QuizFlavourScales
+class PlayShifted < QuizFlavour
 
+  $quiz_flavours[:microphone] << self
+
+  def self.describe_difficulty
+    $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
+    QuizFlavour.difficulty_head +
+      ", #{$num_quiz_replay} holes to be shifted by one of #{$std_semi_shifts.length} intervals"
+  end
+end
+
+
+class HearScale < QuizFlavour
+
+  $quiz_flavours[:scales] << self
+  
   def initialize
     super
     @choices = $all_quiz_scales[$opts[:difficulty]].clone
@@ -480,7 +516,9 @@ class HearScale < QuizFlavourScales
 end
 
 
-class MatchScale < QuizFlavourScales
+class MatchScale < QuizFlavour
+
+  $quiz_flavours[:scales] << self
 
   def initialize
     super
@@ -722,6 +760,8 @@ end
 
 class AddInter < QuizFlavour
 
+  $quiz_flavours[:silent] << self
+
   def initialize
     super
     begin
@@ -802,6 +842,8 @@ end
 
 class TellInter < QuizFlavour
 
+  $quiz_flavours[:silent] << self
+
   def initialize
     super
     begin
@@ -867,6 +909,8 @@ end
 
 class Players < QuizFlavour
 
+  $quiz_flavours[:silent] << self
+
   def initialize
     super
     $players ||= FamousPlayers.new
@@ -924,6 +968,8 @@ end
 
 class KeyHarpSong < QuizFlavour
 
+  $quiz_flavours[:silent] << self
+
   def initialize
     super
     harp2song = get_harp2song(basic_set: $opts[:difficulty] == :easy)
@@ -974,6 +1020,8 @@ end
 
 
 class HoleNote < QuizFlavour
+
+  $quiz_flavours[:silent] << self
 
   def initialize
     super
@@ -1531,7 +1579,9 @@ class HearTempo < QuizFlavour
 end
 
 
-class NotInScale < QuizFlavourScales
+class NotInScale < QuizFlavour
+
+  $quiz_flavours[:scales] << self
 
   def initialize
     super
@@ -1653,6 +1703,38 @@ def get_random_interval sorted: false
 end
 
 
+def get_holes_shifts
+
+  # favour lower holes and allow a hole to appear multiple times
+  all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).then {|x| [x,x,x,x]}.flatten
+  # favour intervals up to perfect fifth
+  all_shifts = ($std_semi_shifts + $std_semi_shifts.select {|s| s.abs <= 7}.then {|x| [x,x,x,x]}).flatten
+
+  unshifted = shift = shifted = nil
+  400.times do
+    unshifted = all_holes.sample($num_quiz_replay)
+    semi_span = all_holes.map {|h| $harp[h][:semi]}.minmax
+    # mostly avoid holes, that span more than one octave
+    redo if semi_span[1] - semi_span[0] > 12 && rand > 0.1
+    shift = all_shifts.sample
+    shifted = unshifted.map{|h| $harp[h][:shifted_by][shift]}
+    break(:found) if shifted.all?
+  end == :found or err "Internal error: too many tries"
+  idesc = if shift > 0
+            $intervals[shift][0] + ' UP'
+          else
+            $intervals[-shift][0] + ' DOWN'
+          end
+
+  return [unshifted,
+          shift,
+          "%+dst, #{idesc}" % shift,
+          unshifted + shifted,
+          shifted[0],
+          shifted]
+end
+
+
 def stand_out text, all_green: false, turn_red: nil
   print "\e[32m" if all_green
   puts
@@ -1701,9 +1783,9 @@ def key2semi note
 end
 
 
-def quiz_hint_in_handle_holes solve_text, holes, hide
-  choices2desc = {'SOLVE-PRINT' => 'Solve: Print interval, but keep current question',
-                  'HELP-PLAY' => 'Play interval, so that you may replay it'}
+def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide
+  choices2desc = {'SOLVE-PRINT' => "Solve: Print #{item}, but keep current question",
+                  'HELP-PLAY' => "Play #{item}, so that you may replay it"}
   answer = choose_interactive("Available hints for quiz-flavour #{$quiz_flavour}:",
                               choices2desc.keys) {|tag| choices2desc[tag]}
   clear_area_comment
@@ -1711,13 +1793,15 @@ def quiz_hint_in_handle_holes solve_text, holes, hide
   case answer
   when 'SOLVE-PRINT'
     puts "\e[#{$lines[:comment_tall]}H"
+    puts "\e[0mSolution:"
     print solve_text
-    puts "\n\n\n\e[0m\e[2mAny char to continue ..."
+    puts "\n\n\e[0m\e[2many char to continue ..."
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
     $msgbuf.print 'Solution:   ' + holes.join('  '), 6, 8, :quiz_solution
   when 'HELP-PLAY'
     puts "\e[#{$lines[:comment] + 1}H"
+    puts "Help: Playing #{item}"
     $ctl_kb_queue.clear
     puts
     play_holes_or_notes_simple(holes, hide: [hide, :help])
@@ -1725,6 +1809,62 @@ def quiz_hint_in_handle_holes solve_text, holes, hide
   end
   clear_area_comment
   clear_area_message
+end
+
+
+def quiz_hint_in_handle_holes_shifts holes_shifts
+  choices2desc = {'HELP-PRINT-UNSHIFTED' => "Solve: Print unshifted sequence, but keep current question",
+                  'SOLVE-PRINT-SHIFTED' => "Solve: Print shifted sequence, but keep current question",
+                  'HELP-PLAY-UNSHIFTED' => "Play unshifted sequence; similar to '.'",
+                  'HELP-PLAY-BOTH' => "Play unshifted sequence first and then shifted, so that you may replay it"}
+  answer = choose_interactive("Available hints for quiz-flavour #{$quiz_flavour}:",
+                              choices2desc.keys) {|tag| choices2desc[tag]}
+  clear_area_comment
+  clear_area_message
+  $ctl_kb_queue.clear
+  case answer
+  when 'HELP-PRINT-UNSHIFTED'
+    puts "\e[#{$lines[:comment_tall]}H"
+    puts "\e[0mHelp: unshifted sequence is:\n\n\n"
+    puts "\e[32m  #{holes_shifts[0].join('  ')}"
+    puts "\n\n\e[0m\e[2many char to continue ..."
+    $ctl_kb_queue.deq
+    $msgbuf.print 'Help, unshifted:   ' + holes_shifts[0].join('  '), 6, 8, :quiz_solution
+  when 'SOLVE-PRINT-SHIFTED'
+    puts "\e[#{$lines[:comment_tall]}H"
+    puts "\e[0mSolution: shifted sequence is:"
+    puts "\e[32m  #{holes_shifts[5].join('  ')}"
+    puts "\n\e[0m\e[2mUnshifted is:"
+    puts "  #{holes_shifts[0].join('  ')}"
+    puts "\e[0m\e[2mShifted by: #{holes_shifts[2]}"
+    puts "\e[0m\e[2many char to continue ..."
+    $ctl_kb_queue.deq
+    $msgbuf.print 'Solution, shifted:   ' + holes_shifts[5].join('  '), 6, 8, :quiz_solution
+  when 'HELP-PLAY-UNSHIFTED'
+    puts "\e[#{$lines[:comment] + 1}H"
+    puts
+    print "      \e[32mUnshifted:   "
+    play_holes_or_notes_simple(holes_shifts[0], hide: :help)
+    sleep 2
+    print "  \e[32mFirst shifted:   "
+    play_holes_or_notes_simple([holes_shifts[4]], hide: :help)
+    sleep 1
+  when 'HELP-PLAY-BOTH'
+    puts "\e[#{$lines[:comment] + 1}H"
+    puts
+    print "  \e[32mUnshifted:   "
+    play_holes_or_notes_simple(holes_shifts[0], hide: :help)
+    sleep 2
+    print "    \e[32mShifted:   "
+    play_holes_or_notes_simple(holes_shifts[5], hide: [:all, :help])
+    sleep 1
+  else
+    fail "Internal error: #{answer}" if answer
+  end
+  print "\e[0m"
+  clear_area_comment
+  clear_area_message
+  $ctl_kb_queue.clear
 end
 
 
@@ -1843,10 +1983,10 @@ end
 def get_accepted_flavour_from_extra
 
   # get either a flavour already or at least flavour_choices
-  flavour, flavour_choices = if $quiz_flavours_meta.include?($extra) ||
+  flavour, flavour_choices = if $quiz_flavours[:meta].include?($extra) ||
                                 ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
-                               if $extra == 'scales'
-                                 [nil, $quiz_flavours_scales]
+                               if %w(scales microphone silent).include?($extra)
+                                 [nil, $quiz_flavours[$extra.to_sym]]
                                else
                                  [nil, $quiz_flavour2class.keys]
                                end
@@ -1967,4 +2107,18 @@ def choose_and_play_answer_scale
     puts "\nNo scale selected to play.\n\n"
   end
   puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
+end
+
+
+def re_calculate_quiz_difficulty
+  $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
+  unless $num_quiz_replay_explicit
+    nqr = case $quiz_flavour
+          when 'play-shifted'
+            $opts[:difficulty] == :easy  ?  3  :  6
+          when 'replay'
+            $opts[:difficulty] == :easy  ?  4  :  8
+          end
+    $num_quiz_replay = nqr if nqr
+  end
 end

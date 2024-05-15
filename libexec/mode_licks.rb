@@ -2,7 +2,7 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hint: nil
+def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shifts: nil, lambda_quiz_hint: nil
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -14,12 +14,15 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
   $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
   
   to_play = PlayController.new
+  to_play[:replacement_for_play] = quiz_holes_shifts[0] if quiz_holes_shifts
+  
   # below stands for override for line_message2 and is set during
   # initial play, i.e. before builtup of listen-perspective
   oride_l_message2 = nil
   first_round = true
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
+  start_with ||= 'adhoc' if $opts[:adhoc_lick]
   trace_text = nil
   quiz_prevs = Array.new
   
@@ -112,14 +115,15 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       
       # figure out holes to play
       if $mode == :quiz
-        unless first_round
-          $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
-          $num_quiz_replay = {easy: 4, hard: 8}[$opts[:difficulty]] if !$num_quiz_replay_explicit && $quiz_flavour == 'replay'
-        end
+
+        re_calculate_quiz_difficulty unless first_round
 
         # erase previous solution if any
         $msgbuf.print '', 1, 1, :quiz_solution
 
+        #
+        # compute holes and ask questions 
+        #
         case $quiz_flavour
 
         when 'replay'
@@ -158,9 +162,37 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
             sleep 2
+          end 
+          to_play[:all_wanted] = quiz_holes_inter[0..1]
+          $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
+
+        when 'play-shifted'
+          unless first_round
+            quiz_prevs << quiz_holes_shifts
+            begin 
+              quiz_holes_shifts = get_holes_shifts
+            end while quiz_prevs.include?(quiz_holes_shifts)
+            quiz_prevs.shift if quiz_prevs.length > 2
+          end
+          to_play[:all_wanted] = quiz_holes_shifts[3]
+          to_play[:replacement_for_play] = quiz_holes_shifts[0]
+          $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
+
+        when 'shift-holes'
+          unless first_round
+            quiz_prevs << quiz_holes_inter
+            begin 
+              quiz_holes_inter = get_random_interval
+            end while quiz_prevs.include?(quiz_holes_inter)
+            quiz_prevs.shift if quiz_prevs.length > 2
+            clear_area_comment
+            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
+            sleep 2
           end
           to_play[:all_wanted] = quiz_holes_inter[0..1]
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
+
         else
           err "Internal error: #{$quiz_flavour}"
         end
@@ -200,6 +232,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
         to_play.set_lick_and_others_from_idx
         trace_text = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
+
       end   ## figure out holes to play
 
       $ctl_mic[:loop] = $opts[:loop]
@@ -219,7 +252,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
         end
       end
 
-      # get current cursor line, will be used as bottom of two lines for messages
+      # get current cursor line, will be used as bottom of two lines
+      # for messages as long as listen-perspective has not been set up
+      # yet
       print "\e[6n"
       reply = ''
       reply += STDIN.gets(1) while reply[-1] != 'R'
@@ -257,7 +292,10 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
 
       pstart = Time.now.to_f
 
-      play_rec_or_holes to_play, oride_l_message2
+      play_rec_or_holes to_play, oride_l_message2, show_holes: !!quiz_holes_shifts 
+
+      # quiz-flavour play-shifted
+      peek_into_quiz_shifts(quiz_holes_shifts, oride_l_message2) if quiz_holes_shifts 
 
       seq_played_recently = true
       pend = Time.now.to_f
@@ -562,7 +600,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, lambda_quiz_hi
       end
 
       if $ctl_mic[:quiz_hint]
-        lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name)
+        lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name, quiz_holes_shifts)
         $ctl_mic[:quiz_hint] = false
       end
 
@@ -680,7 +718,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_recording_quiz lick, at_line:, shift_inter:, holes:
+def play_recording_lick lick, at_line:, shift_inter:, holes:
       
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -1138,31 +1176,59 @@ def print_comment_adhoc holes, quiz_and_after: false
 end
 
 
-def play_rec_or_holes to_play, oride_l_message2
+def play_rec_or_holes to_play, oride_l_message2, show_holes: nil
   if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
      (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
      ($opts[:holes] && !$ctl_mic[:ignore_holes])
-    play_holes to_play[:all_wanted],
+    play_holes(to_play[:replacement_for_play] || to_play[:all_wanted],
                at_line: oride_l_message2,
                verbose: true,
-               lick: to_play[:lick]
+               lick: to_play[:lick],
+               show_holes: show_holes)
   else
-    play_recording_quiz to_play[:lick],
+    play_recording_lick(to_play[:lick],
                         at_line: oride_l_message2,
                         shift_inter: to_play[:shift_inter],
-                        holes: to_play[:all_wanted]
+                        holes: to_play[:all_wanted])
   end
 end
 
 
-class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_hints, :shift_inter, :shift_inter_circle_pos)
+def peek_into_quiz_shifts shifts, oride_l_message2
+  if oride_l_message2
+    puts "\e[#{oride_l_message2}H\e[0m"
+    puts "\e[0m\e[2mPlay what you have heard,\n\e[0m\e[94mbut shift to start with:\e[34m"
+  else
+    clear_area_comment
+    print "\e[#{$lines[:comment]}H\e[0m"
+    puts "\e[0m\e[2mPlay what you have heard, shift by #{shifts[2]},\n\e[0m\e[94mand continue with:\e[34m"
+  end
+  if oride_l_message2
+    8.times do  ## make room for font smblock
+      sleep 0.04
+      puts
+    end
+    puts "\e[#{oride_l_message2 - 8}H"
+  end
+  puts
+  do_figlet_unwrapped(shifts[4], 'smblock')
+  sleep 0.25
+  play_wave(this_or_equiv("#{$sample_dir}/%s.wav", $harp[shifts[4]][:note]))
+  sleep 1
+  $ctl_kb_queue.clear
+  $msgbuf.print "Shift interval is #{shifts[3]}", 2, 4, :quiz_play_shifted
+  $msgbuf.print "Shift holes #{shifts[0].join(', ')} to start with #{shifts[4]}", 4, 8, :quiz_play_shifted
+end
+
+
+class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_idx, :lick_idx_before, :lick_hints, :shift_inter, :shift_inter_circle_pos, :replacement_for_play)
 
   def initialize
     self[:shift_inter] = 0
     self[:shift_inter_circle_pos] = 0
   end
 
-  
+
   def read_name_change_lick curr_lick
     input = matching = trace_text = nil
     $ctl_mic[:change_lick] = false
@@ -1283,7 +1349,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
           end
         end
         if shift == 0
-          $msgbuf.print "Holes not shifted", 2, 5, :shift
+          $msgbuf.print 'Holes not shifted', 2, 5, :shift
         else
           $msgbuf.print "Shifted holes by '#{answer}'", 2, 5, :shift
         end

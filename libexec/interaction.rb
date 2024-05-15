@@ -152,7 +152,7 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
       end
     end
   end
-  if $figlet_cache[cmdt] # could save us after resize
+  if $figlet_cache[cmdt]  ## may save us after resize
     $figlet_cache[cmdt].each do |line|
       print "#{line.chomp}\e[K\n"
     end

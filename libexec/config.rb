@@ -350,11 +350,14 @@ def set_global_vars_late
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 
-  $quiz_flavour2class = [QuizFlavour.subclasses - [QuizFlavourScales], QuizFlavourScales.subclasses].flatten.map do |subclass|
+  $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  $quiz_flavours_meta = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
-  $quiz_flavours_scales = QuizFlavourScales.subclasses.map {|c| c.to_s.underscore.tr('_', '-')}
+  cl2qfl = $quiz_flavour2class.invert
+  $quiz_flavours[:meta] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  [:scales, :microphone, :silent].each do |tag|
+      $quiz_flavours[tag].map! {|cl| cl2qfl[cl]}
+  end
 end
 
 
@@ -691,9 +694,9 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false
 
   # shortcut for scale given on commandline
   if sname == 'adhoc'
-    $adhoc_holes.map! {|h| $note2hole[harp[h][:note]]}
-    $adhoc_holes.each {|h| hole2rem[h] = nil}
-    return [$adhoc_holes, hole2rem, [{'short' => 'h'}], 'commandline']
+    $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
+    $adhoc_scale_holes.each {|h| hole2rem[h] = nil}
+    return [$adhoc_scale_holes, hole2rem, [{'short' => 'h'}], 'commandline']
   end
   
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']

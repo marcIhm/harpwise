@@ -150,7 +150,7 @@ at_exit do
   $ulrec&.stop_rec
   
   # notice for lagging or jitter if appropriate
-  print_afterthought
+  print_afterthought if $initialized
 
   # give processes started by threads some time to terminate
   sleep 0.1

@@ -726,7 +726,7 @@ def play_holes_or_notes_simple holes_or_notes, hide: nil
 end
 
 
-def play_holes all_holes, at_line: nil, verbose: false, lick: nil
+def play_holes all_holes, at_line: nil, verbose: false, lick: nil, show_holes: false
 
   if $opts[:partial] && !$ctl_mic[:ignore_partial]
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
@@ -765,6 +765,8 @@ def play_holes all_holes, at_line: nil, verbose: false, lick: nil
         end
       end
       ltext += if musical_event?(hole)
+                 "\e[0m#{hole}\e[2m"
+               elsif show_holes
                  "\e[0m#{hole}\e[2m"
                elsif $opts[:immediate]
                  "\e[0m#{hole},#{$harp[hole][:note]}\e[2m"

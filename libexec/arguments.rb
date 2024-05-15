@@ -68,7 +68,8 @@ def parse_arguments_early
         immediate: %w(--immediate),
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
-        no_loop: %w(--no-loop)}],
+        no_loop: %w(--no-loop),
+        adhoc_lick: %w(--adhoc-lick)}],
      [Set[:quiz], {
         difficulty: %w(--difficulty)}],
      [Set[:listen, :quiz, :play, :print], {
@@ -354,7 +355,7 @@ def parse_arguments_early
         $source_of[:scale] = 'config'
       else
         scale = get_scale_from_sws('adhoc:h')
-        $adhoc_holes = holes
+        $adhoc_scale_holes = holes
         $source_of[:scale] = 'adhoc'
       end
     else
@@ -421,12 +422,6 @@ def initialize_extra_vars
     double = extra & scales
     err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra}" if double.length > 0
   end
-
-  $quiz_flavour2class = [QuizFlavour.subclasses - [QuizFlavourScales], QuizFlavourScales.subclasses].flatten.map do |subclass|
-    [subclass.to_s.underscore.tr('_', '-'), subclass]
-  end.to_h
-  $quiz_flavours_meta = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
-  $quiz_flavours_scales = QuizFlavourScales.subclasses.map {|c| c.to_s.underscore.tr('_', '-')}
 
 end
 

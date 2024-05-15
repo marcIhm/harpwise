@@ -1629,7 +1629,7 @@ do_test 'id-53e: print with scales but terse' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
   tms :ENTER
-  expect { screen[15] == '$' }
+  expect { screen[12] == '$' }
   kill_session
 end
 
@@ -2634,7 +2634,7 @@ do_test 'id-97: hint in quiz-flavour replay' do
   tms 'solve-print'
   tms :ENTER
   sleep 1
-  expect { screen[19].split.length == 4 }
+  expect { screen[20].split.length == 4 }
   kill_session
 end
 
@@ -2877,6 +2877,25 @@ do_test 'id-110: some cases of argv processing' do
 end
 
 ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-111: mode licks with adhoc-lick' do
+  new_session
+  tms 'harpwise licks --adhoc-lick +1,-2'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'I'
+  expect { screen[16]['Lick Name: adhoc'] }
+  kill_session
+end
+
+do_test 'id-112: quiz-flavour play-shifted' do
+  new_session
+  tms 'harpwise quiz play-shifted --difficulty easy'
+  tms :ENTER
+  sleep 3
+  expect { screen[14]['Wise makes up a sequence'] }
+  kill_session
+end
 
 puts
 puts

@@ -80,6 +80,11 @@ quiz:
     choose one quiz flavour at random
   scales: |
     choose one quiz flavour related with scales at random
+  microphone: |
+    choose one quiz flavour at random, that uses your microphone and
+    therefore switches to listen-perspective
+  silent: |
+    all quiz flavours that can be tried with muted speakers
   choose: |
     choose one quiz flavour from a list
   players: |
@@ -113,6 +118,11 @@ quiz:
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching
     harmonica)
+  play-shifted: |
+    wise computes a sequence of holes, that can be shifted by an
+    interval; it plays the original unshifted sequence and names and
+    plays the first hole of the shifted sequence; then you should play
+    BOTH the unshifted and shifted sequence together
   key-harp-song: |
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa

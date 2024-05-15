@@ -18,22 +18,42 @@ def read_licks graceful = false
   all_licks = []
   licks = nil
   derived = []
-  adhoc_licks = Hash.new
+  adhoc_tag_licks = Hash.new
   all_lick_names = Set.new
   default = Hash.new
   vars = Hash.new
   lick = name = nil
+  jrlick = ahlick = nil
 
   # insert journal as lick
   if journal_length > 0
     all_lick_names << 'journal'
-    lick = Hash.new
-    lick[:name] = 'journal'
-    lick[:lno] = 1
-    lick[:desc] = "The current journal as a lick; see also #{$journal_file}"
-    lick[:holes] = $journal.clone
-    lick[:tags] = ['journal', 'not-from-lickfile']
+    jrlick = Hash.new
+    jrlick[:name] = 'journal'
+    jrlick[:lno] = 1
+    jrlick[:desc] = "The current journal as a lick; see also #{$journal_file}"
+    jrlick[:holes] = $journal.clone
+    jrlick[:tags] = ['journal', 'not-from-lickfile']
   end
+
+  
+  # handle adhoc lick from commandline
+  if $opts[:adhoc_lick]
+    all_lick_names << 'adhoc'
+    ahlick = Hash.new
+    ahlick[:name] = 'adhoc'
+    ahlick[:lno] = 1
+    ahlick[:desc] = "Lick given on the commandline via --adhoc-lick"
+    holes = $opts[:adhoc_lick].split(/\s|,/)
+    holes.each do |hole|
+      err "Hole '#{hole}' from '--adhoc-lick=#{$opts[:adhoc_lick]}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+    end
+    ahlick[:holes] = holes
+    ahlick[:tags] = ['adhoc', 'from-commandline']
+  end
+
+  special_licks = [jrlick, ahlick]
+  
   
   (File.readlines(lfile) << '[default]').each_with_index do |line, idx|  # trigger checks for new lick even at end of file
     err "Line #{idx} from #{lfile} is not in a valid encoding for current locale (consider using UTF-8): '#{line}'" unless line.valid_encoding?
@@ -44,13 +64,13 @@ def read_licks graceful = false
     derived << line
 
 
-    # adding adhoc tags to licks
+    # adding adhoc-tags to licks
     if md = line.match(/^ *add.tag.to *= *(.*)$/)
       if name
-        err "Variable 'add.add.to' may only appear before first group"
+        err "Variable 'add.tag.to' may only appear before first group"
       else
         words = md[1].split(' ').map(&:strip)
-        adhoc_licks[words[0]] = words[1 ...]
+        adhoc_tag_licks[words[0]] = words[1 ...]
       end
       
 
@@ -60,8 +80,10 @@ def read_licks graceful = false
       nname = md[1]
 
       
-      # Do final processing of previous lick: merging with default and replacement of vars
-      if lick
+      # Do final processing of previous lick: merging with default and
+      # replacement of vars; also collect journal and adhoc, if
+      # prepared
+      [lick, special_licks].flatten.compact.each do |lick|  ## shadow variable lick deliberately
         if name == 'default'
           default = lick
         elsif name == 'vars'
@@ -83,8 +105,8 @@ def read_licks graceful = false
                                       starred
                                      ).flatten.select(&:itself),name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-          adhoc_licks.keys.each do |tag| 
-            lick[:tags] << tag if adhoc_licks[tag].include?(name)
+          adhoc_tag_licks.keys.each do |tag| 
+            lick[:tags] << tag if adhoc_tag_licks[tag].include?(name)
           end
           
           lick[:desc] = lick[:desc] || default[:desc] || ''
@@ -110,6 +132,7 @@ def read_licks graceful = false
         end
       end
       name = nname
+      special_licks = nil
 
       # start with new lick
       unless %w(default vars).include?(nname)
@@ -299,7 +322,8 @@ def read_licks graceful = false
         end
       end
     end
-
+    
+    # apply all filtering options in order
     licks = all_licks.
               select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
               select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
@@ -307,9 +331,16 @@ def read_licks graceful = false
               reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
               select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
               select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
-    if licks.length == 0
-      err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") 
-    end
+
+    # insert journal and adhoc if set and not already selected
+    lick_names = licks.map {|lick| lick[:name]}
+    [jrlick, ahlick].
+      compact.
+      reject {|lick| lick_names.include?(lick[:name])}.
+      each {|lick| licks.unshift(lick)}
+
+    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") if licks.length == 0
+
   end
   
   [all_licks, licks]

@@ -627,7 +627,7 @@ def get_extra_desc for_usage: false, exclude_meta: false
   lines = []
   $extra_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
-    next if exclude_meta && ks.any? {|kk| $quiz_flavours_meta.include?(kk)}
+    next if exclude_meta && ks.any? {|kk| $quiz_flavours[:meta].include?(kk)}
     lines << (for_usage ? '  ' : '') + "  - #{k}:"
     lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
   end
