@@ -10,7 +10,6 @@ def do_quiz to_handle
   end
 
   flavour = nil
-
   
   #
   # Handle Signals
@@ -220,7 +219,9 @@ def do_quiz to_handle
   end
 end
 
-$quiz_flavours = Hash.new {|h,k| h[k] = Array.new}
+# will be populated by class-definitions (with flavours and tags) and
+# reworked in config.rb into $quiz_flav2tag and $quiz_tag2flav
+$q_f2t = Hash.new
 
 class QuizFlavour
 
@@ -395,7 +396,7 @@ end
 
 class Replay < QuizFlavour
 
-  $quiz_flavours[:microphone] << self
+  $q_f2t[self] = [:microphone]
 
   def self.describe_difficulty
     if $num_quiz_replay_explicit
@@ -409,8 +410,7 @@ end
 
 class PlayScale < QuizFlavour
 
-  $quiz_flavours[:microphone] << self
-  $quiz_flavours[:scales] << self
+  $q_f2t[self] = [:microphone, :scales]
 
   def self.describe_difficulty
     HearScale.describe_difficulty
@@ -420,7 +420,7 @@ end
 
 class PlayInter < QuizFlavour
 
-  $quiz_flavours[:microphone] << self
+  $q_f2t[self] = [:microphone]
 
   def self.describe_difficulty
     AddInter.describe_difficulty
@@ -430,7 +430,7 @@ end
 
 class PlayShifted < QuizFlavour
 
-  $quiz_flavours[:microphone] << self
+  $q_f2t[self] = [:microphone]
 
   def self.describe_difficulty
     $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
@@ -442,7 +442,7 @@ end
 
 class HearScale < QuizFlavour
 
-  $quiz_flavours[:scales] << self
+  $q_f2t[self] = [:scales]
   
   def initialize
     super
@@ -518,7 +518,7 @@ end
 
 class MatchScale < QuizFlavour
 
-  $quiz_flavours[:scales] << self
+  $q_f2t[self] = [:scales]
 
   def initialize
     super
@@ -760,7 +760,7 @@ end
 
 class AddInter < QuizFlavour
 
-  $quiz_flavours[:silent] << self
+  $q_f2t[self] = [:silent]
 
   def initialize
     super
@@ -842,7 +842,7 @@ end
 
 class TellInter < QuizFlavour
 
-  $quiz_flavours[:silent] << self
+  $q_f2t[self] = [:silent]
 
   def initialize
     super
@@ -909,7 +909,7 @@ end
 
 class Players < QuizFlavour
 
-  $quiz_flavours[:silent] << self
+  $q_f2t[self] = [:silent]
 
   def initialize
     super
@@ -968,7 +968,7 @@ end
 
 class KeyHarpSong < QuizFlavour
 
-  $quiz_flavours[:silent] << self
+  $q_f2t[self] = [:silent]
 
   def initialize
     super
@@ -1021,7 +1021,7 @@ end
 
 class HoleNote < QuizFlavour
 
-  $quiz_flavours[:silent] << self
+  $q_f2t[self] = [:silent]
 
   def initialize
     super
@@ -1581,7 +1581,7 @@ end
 
 class NotInScale < QuizFlavour
 
-  $quiz_flavours[:scales] << self
+  $q_f2t[self] = [:scales]
 
   def initialize
     super
@@ -1983,10 +1983,10 @@ end
 def get_accepted_flavour_from_extra
 
   # get either a flavour already or at least flavour_choices
-  flavour, flavour_choices = if $quiz_flavours[:meta].include?($extra) ||
+  flavour, flavour_choices = if $quiz_tag2flavours[:meta].include?($extra) ||
                                 ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
                                if %w(scales microphone silent).include?($extra)
-                                 [nil, $quiz_flavours[$extra.to_sym]]
+                                 [nil, $quiz_tag2flavours[$extra.to_sym]]
                                else
                                  [nil, $quiz_flavour2class.keys]
                                end

@@ -350,13 +350,20 @@ def set_global_vars_late
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
 
+  # prepare meta information about flavours and their tags
   $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  cl2qfl = $quiz_flavour2class.invert
-  $quiz_flavours[:meta] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
-  [:scales, :microphone, :silent].each do |tag|
-      $quiz_flavours[tag].map! {|cl| cl2qfl[cl]}
+  $quiz_flavour2tags = Hash.new {|h,k| h[k] = Array.new}
+  $quiz_tag2flavours = Hash.new {|h,k| h[k] = Array.new}
+  $quiz_tag2flavours[:meta] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  # $q_f2t comes from the individual flavour classes
+  $q_f2t.each do |flav, tags|
+    fl = flav.to_s.underscore.tr('_', '-')
+    tags.each do |tg|
+      $quiz_flavour2tags[fl] << tg
+      $quiz_tag2flavours[tg] << fl
+    end
   end
 end
 

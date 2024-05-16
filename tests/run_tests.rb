@@ -2893,7 +2893,7 @@ do_test 'id-112: quiz-flavour play-shifted' do
   tms 'harpwise quiz play-shifted --difficulty easy'
   tms :ENTER
   sleep 3
-  expect { screen[14]['Wise makes up a sequence'] }
+  expect { screen[14]['Wise computes a sequence'] }
   kill_session
 end
 

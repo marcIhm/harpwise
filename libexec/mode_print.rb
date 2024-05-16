@@ -400,6 +400,10 @@ end
 def print_players args
   puts
 
+  # If we have an external viewer (like feh), we get an exception on
+  # ctrl-c otherwise
+  Thread.report_on_exception = false
+
   if args.length == 0
     puts_underlined "All players known to harpwise"
     $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
@@ -430,9 +434,6 @@ def print_players args
     end
 
   elsif args.length == 1 && 'all'.start_with?(args[0])
-    # the only way to end this loop prematurely is to press ctrl-c;
-    # with feh, this gives errors otherwise
-    Thread.report_on_exception = false
     make_term_immediate
     $players.all_with_details.shuffle.each do |name|
       puts
