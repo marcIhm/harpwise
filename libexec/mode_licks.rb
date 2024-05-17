@@ -1329,17 +1329,14 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
     
-    answer = choose_interactive('Choose interval to shift original, unshifted lick:', choices_desc.keys) do |inter|
+    answer = choose_interactive("Choose new interval to shift (curr. %+dst):" % self[:shift_inter], choices_desc.keys) do |inter|
       choices_desc[inter] 
     end&.strip
-
-    self[:shift_inter] = 0
-    self[:shift_inter_circle_pos] = 0
-    self[:all_wanted] = self[:lick][:holes]
     
     if answer
       shift = $intervals_inv[answer.downcase] || 0
       if num_holes_playable[shift] > 0
+        self[:shift_inter_circle_pos] = 0
         self[:shift_inter] = shift
         self[:all_wanted] = self[:lick][:holes].map do |hole|
           if musical_event?(hole) 
@@ -1349,16 +1346,18 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
           end
         end
         if shift == 0
-          $msgbuf.print 'Holes not shifted', 2, 5, :shift
+          self[:shift_inter] = 0
+          self[:all_wanted] = self[:lick][:holes]
+          $msgbuf.print 'Holes unshifted', 2, 5, :shift
         else
           $msgbuf.print "Shifted holes by '#{answer}'", 2, 5, :shift
         end
       else
-        $msgbuf.print "Shifting by '#{answer}' does not produce any playable holes; holes not shifted", 2, 5, :shift
+        $msgbuf.print "Shifting by '#{answer}' does not produce any playable holes; holes still shifted by +%dst" % self[:shift_inter], 2, 5, :shift
         sleep 2
       end
     else
-      $msgbuf.print "No interval chosen, holes not shifted", 2, 5, :shift
+      $msgbuf.print "No interval chosen, holes still shifted by +%dst" % self[:shift_inter], 2, 5, :shift
     end
   end
 

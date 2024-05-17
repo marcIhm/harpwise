@@ -374,7 +374,7 @@ class QuizFlavour
     puts
     puts "\e[0mWhat's next ?"
     puts
-    puts "\e[32mPress any key for next #{$quiz_flavour} or BACKSPACE to re-ask this one ... \e[0m"
+    puts "\e[32mPress any key for next \e[92m#{$quiz_flavour}\e[0m\e[32m or BACKSPACE to re-ask this one ... \e[0m"
     char = one_char
     puts
     if char == 'BACKSPACE'
@@ -611,7 +611,7 @@ class MatchScale < QuizFlavour
   
   def after_solve
     puts
-    puts "Playing solution scale #{@solution} ..."
+    puts "Playing #{@others ? 'shortest' : 'single'} solution scale #{@solution} ..."
     sleep 0.2
     puts
     play_hons hons: @holes_scale
@@ -921,7 +921,7 @@ class Players < QuizFlavour
 
     begin
       @solution = $players.structured.keys.sample
-    end while @@prevs.include?(@solution)
+    end while @@prevs.include?(@solution) || !$players.has_details?[@solution]
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
 
@@ -1832,11 +1832,11 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     $msgbuf.print 'Help, unshifted:   ' + holes_shifts[0].join('  '), 6, 8, :quiz_solution
   when 'SOLVE-PRINT-SHIFTED'
     puts "\e[#{$lines[:comment_tall]}H"
-    puts "\e[0mSolution: shifted sequence is:"
-    puts "\e[32m  #{holes_shifts[5].join('  ')}"
-    puts "\n\e[0m\e[2mUnshifted is:"
+    puts "\e[0m\e[2mUnshifted is:"
     puts "  #{holes_shifts[0].join('  ')}"
-    puts "\e[0m\e[2mShifted by: #{holes_shifts[2]}"
+    puts "\n\e[0mSolution: shifted sequence is:"
+    puts "\e[32m  #{holes_shifts[5].join('  ')}"
+    puts "\n\e[0m\e[2mShifted by: #{holes_shifts[2]}"
     puts "\e[0m\e[2many char to continue ..."
     $ctl_kb_queue.deq
     $msgbuf.print 'Solution, shifted:   ' + holes_shifts[5].join('  '), 6, 8, :quiz_solution

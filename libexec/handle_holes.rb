@@ -471,7 +471,7 @@ def text_for_key
   if $mode == :licks
     text += "(#{$licks.length},#{$opts[:iterate][0..2]})"
   end
-  text += " \e[0m#{$extra}\e[2m" if $extra
+  text += " \e[0m#{$quiz_flavour}\e[2m" if $quiz_flavour
   text += " #{$type} \e[0m#{$key}"
   if $used_scales.length > 1
     text += "\e[0m"
@@ -646,7 +646,7 @@ def show_help
                "    0,-: forget holes played               +: skip rest of sequence",
                "      t: toggle tracking progress in seq"]
     if $mode == :quiz
-      frames[-1] << "      H: hints for quiz-flavour #{$extra}"
+      frames[-1] << "      H: hints for quiz-flavour #{$quiz_flavour}"
     end
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",

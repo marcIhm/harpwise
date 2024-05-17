@@ -665,7 +665,7 @@ class FamousPlayers
       # print information in order given by @all_groups
       lcount = 0
       @all_groups.each do |group|
-        lines = info[group]
+        lines = info[group] || []
         next if group == 'name'
         @has_details[name] = true if lines.length > 0
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
