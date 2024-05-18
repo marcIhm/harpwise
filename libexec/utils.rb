@@ -692,10 +692,12 @@ class FamousPlayers
       picture_dir = $dirs[:players_pictures] + '/' +
                      name.gsub(/[^\w\s_-]+/,'').gsub(/\s+/,'_')
       FileUtils.mkdir(picture_dir) unless File.directory?(picture_dir)
-      sorted_info['image'] = [Dir[picture_dir + '/*'].sample]
+      sorted_info['image'] = Dir[picture_dir + '/*'].
+                               # convenient for wsl2
+                               reject {_1.end_with?('Zone.Identifier')}.
+                               sample
       @picture_dirs ||= Hash.new
       @picture_dirs[name] = picture_dir
-      sorted_info['image_dir'] = picture_dir
       
       @structured[name] = sorted_info
       @printable[name] = pplayer
@@ -800,7 +802,9 @@ class FamousPlayers
       sw = sys("xwininfo -root").lines.find {|l| l["Width"]}.scan(/\d+/)[0].to_i
       pw, ph = sys("feh -l #{file}").lines[1].split.slice(2,2).map(&:to_i)
       scale = $conf[:viewer_scale_to].to_f / ( pw > ph ? ph : pw )
-      sys "feh -Z --borderless --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
+      command = "feh -Z --borderless --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
+      sys command
+      puts command if $opts[:debug]
     else
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")

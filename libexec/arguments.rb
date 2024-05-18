@@ -69,7 +69,7 @@ def parse_arguments_early
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop),
-        adhoc_lick: %w(--adhoc-lick)}],
+        adhoc_lick: %w(--adhoc --adhoc-lick)}],
      [Set[:quiz], {
         difficulty: %w(--difficulty)}],
      [Set[:listen, :quiz, :play, :print], {

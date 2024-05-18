@@ -510,7 +510,7 @@ def print_player player, in_loop = false
       puts "\e[32m#{group.capitalize}:\e[0m"
       player[group].each {|l| puts "  #{l}"}
     end
-    $players.view_picture(player['image'][0], player['name'], in_loop)
+    $players.view_picture(player['image'], player['name'], in_loop)
   else
     puts "\n\e[2mNo details known yet.\e[0m"
   end

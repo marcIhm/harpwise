@@ -44,7 +44,7 @@ def read_licks graceful = false
     ahlick[:name] = 'adhoc'
     ahlick[:lno] = 1
     ahlick[:desc] = "Lick given on the commandline via --adhoc-lick"
-    holes = $opts[:adhoc_lick].split(/\s|,/)
+    holes = $opts[:adhoc_lick].strip.split(/\s+|,/)
     holes.each do |hole|
       err "Hole '#{hole}' from '--adhoc-lick=#{$opts[:adhoc_lick]}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
     end

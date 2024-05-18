@@ -40,7 +40,7 @@
   - Started as a professional musician at the age of 17
   notes:
   - '"Annie Raines has some of the biggest tone out there, period"'
-  - (quote by Ronnie Shellist)
+  - (quote Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
   source: https://en.wikipedia.org/wiki/Annie_Raines
   songs:
@@ -167,7 +167,7 @@
   - chromatic playing in 1970
   - '"has been realistically presented as one of the most important"'
   - '"and radical harmonica innovators of the twentieth century."'
-  - "(quote from https://www.allmusic.com)"
+  - (quote from https://www.allmusic.com)
   source: https://en.wikipedia.org/wiki/Howard_Levy
   songs:
   - Harmonia Mundi Suite for Harmonica and Chamber Ensemble
@@ -218,7 +218,7 @@
   - Has been compared with Raymond Chandler
   - (for the story in his songs)
   - "Harman had one of the tightest bands anywhere,"
-  - (quote by Mary Katherine Aldin)
+  - (quote Mary Katherine Aldin)
   source: https://en.wikipedia.org/wiki/James_Harman
   songs:
   - Bonetime
@@ -234,7 +234,8 @@
   notes:
   - 'Won the Blues Music Award for "Best Harmonica Player" in 2010'
   - '"I am convinced he ... is one of the best harmonica players"'
-  - '"of his generation." (quote by Adam Gussow)'
+  - '"of his generation."'
+  - (quote by Adam Gussow)
   source: https://en.wikipedia.org/wiki/Jason_Ricci
   songs:
   - I'm a New Man
@@ -255,7 +256,7 @@
   - Toured Europe with the American Folk Blues Festival in 1968.
   - '"Perhaps the most influential bluesman of all,"'
   - due to his easily accessible style.
-  - (quote by Cub Koda)
+  - (quote Cub Koda)
   source: https://en.wikipedia.org/wiki/Jimmy_Reed
   songs:
   - Big Boss Man
@@ -305,7 +306,7 @@
   - Together with Eric Burdon formed the crossover band "War"
   - where he formed a horn section together with the saxophone
   - '"...among the best rock-blues-soul harmonica players"'
-  - (quote by Bill Snyder)
+  - (quote Bill Snyder)
   - His company sells harmonicas in many different tunings
   source: https://en.wikipedia.org/wiki/Lee_Oskar
   songs:
@@ -353,7 +354,7 @@
   notes:
   - '"If the world were a hipper place, Paul deLay would have"'
   - '"been a superstar."'
-  - (quote by Rick Estrin)
+  - (quote Rick Estrin)
   - His work on the chromatic harp is considered
   - by many to be unrivaled.
   source: https://en.wikipedia.org/wiki/Paul_deLay
@@ -483,7 +484,7 @@
   - '"one of the best harp players out there,"'
   - '"with maybe the biggest tone,"'
   - '"a bluesman with as much soul and swing in his music"'
-  - (quote by Dick Shurman)
+  - (quote Dick Shurman)
   - Played regularly with George "Harmonica" Smith
   source: https://en.wikipedia.org/wiki/William_Clarke_(musician)
   songs:
@@ -527,53 +528,34 @@
   - Blues del Junco
 
   
-- name: Alan House
-  bio:
-  notes:
-  source:
-  songs:
-
-
-- name: Indiara Sfair
-  bio:
-  notes:
-  source:
-  songs:    
-
-
 - name: Sugar Blue
   bio:
+  - December 16, 1949 -
+  - Born as James Joshua Whiting
+  - American blues harmonica player
   notes:
-  source:
-  songs:    
+  - Best known for playing on the 1978 Rolling Stones album Some Girls
+  - Partnered with the blues guitarist Louisiana Red
+  - Appeared with Brownie McGhee in the film Angel Heart
+  - '"At times, it sounds as if two harps were working at once..."'
+  - (quote Chicago Tribune)
+  source: https://en.wikipedia.org/wiki/Sugar_Blue
+  songs:
+  - Another Man Done Gone
+  - Pontiac Blues
 
 
 - name: Carey Bell
   bio:
+  - November 14, 1936 – May 6, 2007
+  - Born as Carey Bell Harrington
+  - American blues musician
   notes:
+  - Also played bass guitar
+  - Inducted into the Blues Hall of Fame in 2023
+  - Taught himself how to play; proficient by the age of eight
   source:
-  songs:    
-
-
-- name: Magic Dick
-  bio:
-  notes:
-  source:
+  - https://en.wikipedia.org/wiki/Carey_Bell
   songs:
-
-
-- name: DeFord Bailey
-  bio:
-  notes:
-  source:
-  songs:    
-
-        
-- name: Billy Branch
-  bio:
-  notes:
-  source:
-  songs:    
-
-    
-        
+  - It's so easy to love you
+  - What my mama told me

@@ -1329,7 +1329,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
         "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
     
-    answer = choose_interactive("Choose new interval to shift (curr. %+dst):" % self[:shift_inter], choices_desc.keys) do |inter|
+    answer = choose_interactive("Choose #{self[:shift_inter] == 0  ?  'an' : 'new'} interval to shift (curr. %+dst):" % self[:shift_inter], choices_desc.keys) do |inter|
       choices_desc[inter] 
     end&.strip
     
