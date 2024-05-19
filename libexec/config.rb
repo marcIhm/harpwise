@@ -36,6 +36,9 @@ def set_global_vars_early
                               :sharps_or_flats => :to_sym,
                               :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                               :tags_any => :to_str,
+                              :tags_all => :to_str,
+                              :drop_tags_any => :to_str,
+                              :drop_tags_all => :to_str,
                               :add_scales => :empty2nil}
   $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any]
   $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any]
