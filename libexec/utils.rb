@@ -823,13 +823,17 @@ end
 
 
 def wrap_words head, words
-  para = head
-  words.each do |word|
-    para += ',' unless para[-1] == ' '
-    para += word
-    para += ",\n" + (' ' * head.length) if para.lines.last.length > $term_width - 2 - head.length
+  line = head
+  lines = Array.new
+  words.map {|w| w.strip}.each_with_index do |word, idx|
+    line += ',' unless line[-1] == ' ' || idx == 0
+    if line.length + word.length > $term_width - 2
+      lines << line
+      line = (' ' * head.length) + word
+    else
+      line += word
+    end
   end
-  para.rstrip!
-  para.gsub!(/,$/,'')
-  return para
+  lines << line unless line == ''
+  return lines.join("\n")
 end

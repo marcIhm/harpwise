@@ -606,14 +606,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
       if $ctl_mic[:lick_info]
         $ctl_mic[:lick_info] = false
-        clear_area_comment
-        print "\e[#{$lines[:comment] + 1}H\e[0m"
-        puts '  Lick Name: ' + to_play[:lick][:name]
-        puts wrap_words('       Tags: ', to_play[:lick][:tags])
-        puts '       Desc: ' + to_play[:lick][:desc]
-        puts "\e[2m  Press any key to continue ...\e[0m"
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
+        show_lick_info to_play[:lick]
         $freqs_queue.clear
       end
       
@@ -1076,7 +1069,7 @@ def read_tags_and_refresh_licks curr_lick
     end
   end
   return false unless input
-  $opts[:tags_any] = input
+  $opts[:tags_all] = input
   $all_licks, $licks = read_licks(true)
   input = choose_interactive('Choose new value for --iterate: ', %w(random cycle))
   return true unless input
@@ -1433,4 +1426,33 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_before, :lick, :lick_
     self[:lick_hints] << 'Desc: ' + self[:lick][:desc] if self[:lick][:desc] != ''
   end
 
+end
+
+
+def show_lick_info lick
+  clear_area_comment
+  clear_area_message
+  print "\e[#{$lines[:comment]}H\e[0m"
+  puts '   Lick Name: ' + lick[:name]
+  puts wrap_words('        Tags: ', lick[:tags])
+  puts '        Desc: ' + lick[:desc]
+  ohead = false
+  [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any].each do |opt|
+    next unless $opts[opt] && $opts[opt].length > 0
+    print ( ohead  ?  '   '  :  ' Tag-Options: ' )
+      puts '--' + opt.to_s.gsub('_','-') +
+           ( opt == :tags_all  ?  "\e[2m(ie. -t)\e[0m"  :  '' ) +
+           ' ' + $opts[opt]
+    ohead = true
+  end
+  puts ' Tag-Options: none' unless ohead
+  licks = $licks.map {|l| l[:name]}
+  if licks.length > 20
+    lks = licks.sample(20)
+    licks = ["e.g.: #{lks[0]}"] + lks[1..-1]
+  end
+  puts wrap_words("Set of Licks: ", ["#{$licks.length} in total"] + licks)
+  puts "\e[2m  Press any key to continue ...\e[0m"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
 end

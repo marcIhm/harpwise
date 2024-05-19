@@ -394,10 +394,10 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'calibrate' => [4, 'prefer sharps'],
                     'listen' => [16, 'on every invocation'],
                     'quiz' => [8, '--transpose-scale KEY_OR_SEMITONES'],
-                    'licks' => [5, '--partial 1/3@b, 1/4@x or 1/2@e'],
+                    'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
-                    'tools' => [1, 'has the same effect as'],
+                    'tools' => [4, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs']}
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
@@ -867,7 +867,7 @@ end
 
 do_test 'id-19: mode licks with licks excluding one tag' do
   new_session
-  tms 'harpwise licks --no-tags-any scales a'
+  tms 'harpwise licks --drop-tags-any scales a'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
@@ -948,7 +948,7 @@ do_test 'id-21: mode licks with --start-with' do
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
   tms 'I'
-  expect { screen[16]['Lick Name: wade'] }
+  expect { screen[15]['Lick Name: wade'] }
   kill_session
 end
 
@@ -1271,7 +1271,7 @@ do_test 'id-37b: change option --tags' do
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'favorites'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_all] == 'favorites'}
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'cycle'}
   kill_session
 end
@@ -1289,7 +1289,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_any] == 'advanced'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_all] == 'advanced'}
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'random'}
   kill_session
 end
@@ -2667,11 +2667,11 @@ do_test 'id-99: widgets' do
   expect { screen[10]['Input #4: -BACKSPACE-'] }
   tms 'q'
   sleep 1
-  expect { screen[22]['39       ...more'] }
+  expect { screen[22]['37       ...more'] }
   tms :TAB
-  expect { screen[18]['...more         40'] }
-  expect { screen[23]['Selected: 40'] }
-  expect { screen[22]['76       ...more'] }
+  expect { screen[18]['...more         38'] }
+  expect { screen[23]['Selected: 38'] }
+  expect { screen[22]['74       ...more'] }
   tms :TAB
   tms :LEFT
   expect { screen[23]['Selected: 100'] }
@@ -2687,6 +2687,9 @@ do_test 'id-99: widgets' do
   tms :LEFT
   tms :RIGHT
   expect { screen[23]['Selected: 1'] }
+  tms '3'
+  tms :RIGHT
+  expect { screen[23]['Selected: 13'] }
   kill_session
 end
 
@@ -2884,7 +2887,7 @@ do_test 'id-111: mode licks with adhoc-lick' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'I'
-  expect { screen[16]['Lick Name: adhoc'] }
+  expect { screen[14]['Lick Name: adhoc'] }
   kill_session
 end
 

@@ -80,34 +80,30 @@ hole:
   - start with calibration from this hole and on
   - HOLE
 
-tags_any:
-  - |
-    filter licks and keep those
-    having any of the given tags (example: --tags-any scales,classic).
-    The special tag 'starred' is carried by all licks, that have
-    been starred at some moment in the past, see e.g.
-    <%=$star_file_template % 'richter'%>
-  - TAG1,TAG2,...
-    
 tags_all:
-  
   - |
     filter licks and keep those
-    having all of the given tags. For a single tag, this option
+    having ALL of the given tags. For a single tag, this option
     has the same effect as --tags-any
   - TAG1,TAG2,...
 
-no_tags_any:
+tags_any:
   - |
-    filter licks and discard those
-    having any of the given tags
+    filter licks and keep those
+    having ANY of the given tags (example: --tags-any scales,classic).
+  - TAG1,TAG2,...
+    
+drop_tags_all:
+  - |
+    filter licks and drop those
+    having ALL of the given tags. For a single tag, this option has the
+    same effect as --drop-tags-any
   - TAG1,TAG2,...
 
-no_tags_all:
+drop_tags_any:
   - |
-    filter licks and discard those having
-    all of the given tags. For a single tag, this option has the
-    same effect as --no-tags-any
+    filter licks and drop those
+    having ANY of the given tags
   - TAG1,TAG2,...
 
 licks:
@@ -159,7 +155,7 @@ iterate:
 partial:
   - |
     to make the mode 'licks' more
-    *challenging* and to improve the learning result, you may let only
+    challenging and to improve the learning result, you may let only
     parts of the recording be played.
 
     Examples for this option are:
@@ -173,7 +169,11 @@ partial:
       seconds or holes (1 or 2) at the given position (b=begin,
       x=random, e=end) 
 
-      as a special case --part 0 plays nothing initially
+      as a special case --part 0 plays nothing initially.
+
+      This can also be abbreviated as -p 0 and memorized as 'play
+      nothing' initially; but of course, when the mode has started,
+      you may always request a replay with '.'.
   - PARTIAL_SPEC
   
 time_slice:
@@ -246,7 +246,7 @@ options:
 
 adhoc_lick:
   - |
-    Adhoc-lick on the commandline.
+    Adhoc-lick on commandline.
     With this option you may give a lick on the commandline to work
     with and avoid adding i to your lickfile first.
   - HOLES_WITH_COMMAS

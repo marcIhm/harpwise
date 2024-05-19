@@ -25,7 +25,7 @@ def set_global_vars_early
   # update config ini if the below is extended
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to],
-    :licks => [:tags_any, :tags_all, :no_tags_any, :no_tags_all],
+    :licks => [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]

@@ -87,10 +87,10 @@ def parse_arguments_early
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
      [Set[:licks, :play, :print, :tools], {
-        tags_any: %w(--tags-any),
         tags_all: %w(-t --tags-all),
-        no_tags_any: %w(-nt --no-tags-any),
-        no_tags_all: %w(--no-tags-all),
+        tags_any: %w(--tags-any),
+        drop_tags_all: %w(--drop-tags-all),
+        drop_tags_any: %w(-dt --drop-tags-any),
         licks: %w(--licks),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes)}],

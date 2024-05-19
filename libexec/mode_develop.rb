@@ -353,7 +353,7 @@ def do_widgets
     puts_underlined "choose_interactive #{count}", '-', dim: false
     make_term_immediate
     ($term_height - $lines[:comment_tall] + 1).times { puts }
-    answer = choose_interactive('testprompt', (1..100).to_a.map(&:to_s)) {|name| 'Selected: ' + name}
+    answer = choose_interactive('testprompt', ['1', ';comment'] + (2..100).to_a.map(&:to_s)) {|name| 'Selected: ' + name}
     clear_area_comment
     clear_area_message
     make_term_cooked

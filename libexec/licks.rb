@@ -283,16 +283,16 @@ def read_licks graceful = false
   end
 
   # keep only those licks, that match any of the four --tags arguments
-  keep_any = Set.new($opts[:tags_any]&.split(','))
   keep_all = Set.new($opts[:tags_all]&.split(','))
-  discard_any = Set.new($opts[:no_tags_any]&.split(','))
-  discard_all = Set.new($opts[:no_tags_all]&.split(','))
+  keep_any = Set.new($opts[:tags_any]&.split(','))
+  drop_all = Set.new($opts[:drop_tags_all]&.split(','))
+  drop_any = Set.new($opts[:drop_tags_any]&.split(','))
 
-  if (keep_all).intersection(discard_any).any?
+  if (keep_all).intersection(drop_any).any?
     if graceful
       return [[],[]]
     else
-      err "No licks can be found, because options '--tags-all' and '--no-tags-any' have this intersection: #{(keep_all).intersection(discard_any).to_a}"
+      err "No licks can be found, because options '--tags-all' and '--drop-tags-any' have this intersection: #{(keep_all).intersection(drop_any).to_a}"
     end
   end
 
@@ -308,10 +308,10 @@ def read_licks graceful = false
   else
     
     tags_licks = Set.new(all_licks.map {|l| l[:tags] + %w(has_rec no_rec starred shifts_four shifts_five shifts_eight)}.flatten.sort_by(&:to_s))
-    [['--tags-any', keep_any],
-     ['--tags-all', keep_all],
-     ['--no-tags-any', discard_any],
-     ['--no-tags-all', discard_all]].each do |opt, tags|
+    [['--tags-all', keep_all],
+     ['--tags-any', keep_any],
+     ['--dtop-tags-all', drop_all],
+     ['--drop-tags-any', drop_any]].each do |opt, tags|
       if !tags.subset?(tags_licks)
         if graceful
           return [[],[]]
@@ -325,10 +325,10 @@ def read_licks graceful = false
     
     # apply all filtering options in order
     licks = all_licks.
-              select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
               select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
-              reject {|lick| discard_any.any? && (discard_any.to_a & lick[:tags]).any?}.
-              reject {|lick| discard_all.any? && (discard_all.subset?(Set.new(lick[:tags])))}.
+              select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
+              reject {|lick| drop_all.any? && (drop_all.subset?(Set.new(lick[:tags])))}.
+              reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}.
               select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
               select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
@@ -449,7 +449,7 @@ def replace_vars vars, words, name
 end
 
 def desc_lick_select_opts
-  effective = [:tags_any, :tags_all, :no_tags_any, :no_tags_all, :max_holes, :min_holes].map do |opt|
+  effective = [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :max_holes, :min_holes].map do |opt|
     if $opts[opt] && $opts[opt].to_s.length > 0
       "\n  --" + opt.o2str + ' ' + $opts[opt].to_s
     else

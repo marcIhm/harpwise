@@ -80,13 +80,16 @@ USAGE BY EXAMPLES
     harpwise print licks-list --tags-any fav,scales
 
 
-  Select licks, that have been starred (if any) by pressing '*' while
+  Select licks (if any), that have been starred by pressing '*' while
   it was beeing played:
 
     harpwise licks a -t starred
 
   and use mode print to see details about starred licks.
-  
+  Which licks are starred is kept in file (e.g)
+
+    <%=$star_file_template % 'richter'%>
+
 
   There are some more options to *filter* the set of available licks
   (see below); see also the lick-file created initially on more
@@ -95,13 +98,13 @@ USAGE BY EXAMPLES
   Here is a more sophisticated example. It helps to memorize licks,
   but not scales and shows the scales for each hole:
 
-    harpwise licks c blues --loop --imm --no-tags-any scales \
+    harpwise licks c blues --loop --imm --drop-tags-any scales \
         --add-scales chord-i,chord-iv,chord-v \
         --display chart-scales --comment holes-all
 
   However, if you find yourself using these options for mode licks
-  over and over again, and if you do not want to set them
-  interactively, once the wise is running, you may move them to your
+  over and over again (and if you do not want to set them
+  interactively, once the wise is running) you may move them to your
   config.ini and shorten the above command line to:
 
     harpwise licks blues
