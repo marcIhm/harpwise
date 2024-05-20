@@ -9,16 +9,27 @@
 # Empty lines and comments are ignored.
 #
 
-# An advanced feature right away: Before the first section, there
-# can be a special variable, that allows to put the given tag
-# (first word after '=') on the given licks (remaining
-# words). This can be useful, if you have a lot of licks and want
-# to address them at once e.g. via '-t' without having to edit
-# the lick individually. This can be rpeated. An example would be:
-
+# An advanced feature right away (feel free to skip it for now):
+# Before the first section, there can be the special variable
+# 'add.tag.to' (even multiple times), that allows to attach the
+# given tag (first word after '=') to the given licks (remaining
+# words).
+#
+# This can be useful, if you have a lot of licks and want to
+# address them at once e.g. via '-t' without having to modify all
+# the licks individually.
+#
+# Moreover, if later you select those licks with e.g. '-t mytag1'
+# on the commandline, they are sorted accordingly.
+#
+# An example would be:
+#
 # add.tag.to = mytag1 lick1 lick2
 # add.tag.to = mytag2 lick3 lick4
+#
 
+#
+# (... now back to the more common cases)
 #
 # A lick (e.g. 'wade') can be defined like this:
 #

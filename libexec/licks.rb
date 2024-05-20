@@ -18,7 +18,7 @@ def read_licks graceful = false
   all_licks = []
   licks = nil
   derived = []
-  adhoc_tag_licks = Hash.new
+  adhoc_tag2licks = Hash.new
   all_lick_names = Set.new
   default = Hash.new
   vars = Hash.new
@@ -70,7 +70,7 @@ def read_licks graceful = false
         err "Variable 'add.tag.to' may only appear before first group"
       else
         words = md[1].split(' ').map(&:strip)
-        adhoc_tag_licks[words[0]] = words[1 ...]
+        adhoc_tag2licks[words[0]] = words[1 ...]
       end
       
 
@@ -105,8 +105,8 @@ def read_licks graceful = false
                                       starred
                                      ).flatten.select(&:itself),name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-          adhoc_tag_licks.keys.each do |tag| 
-            lick[:tags] << tag if adhoc_tag_licks[tag].include?(name)
+          adhoc_tag2licks.keys.each do |tag| 
+            lick[:tags] << tag if adhoc_tag2licks[tag].include?(name)
           end
           
           lick[:desc] = lick[:desc] || default[:desc] || ''
@@ -332,6 +332,16 @@ def read_licks graceful = false
               select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
               select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
+    # maybe sort licks according to add.tag.to
+    lnames = licks.map {|l| l[:name]}
+    lick_sets_with_all = adhoc_tag2licks.values.
+                           select {|lnms| lnames - lnms == []}
+    if lick_sets_with_all.length > 0
+      licks.sort! do |lk1, lk2|
+        lick_sets_with_all[0].index(lk1[:name]) <=> lick_sets_with_all[0].index(lk2[:name])
+      end
+    end
+    
     # insert journal and adhoc if set and not already selected
     lick_names = licks.map {|lick| lick[:name]}
     [jrlick, ahlick].

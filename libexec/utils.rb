@@ -825,7 +825,7 @@ end
 def wrap_words head, words
   line = head
   lines = Array.new
-  words.map {|w| w.strip}.each_with_index do |word, idx|
+  words.each_with_index do |word, idx|
     line += ',' unless line[-1] == ' ' || idx == 0
     if line.length + word.length > $term_width - 2
       lines << line

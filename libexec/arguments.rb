@@ -83,7 +83,7 @@ def parse_arguments_early
         viewer: %w(--viewer)}],
      [Set[:licks, :play], {
         holes: %w(--holes),
-        iterate: %w(--iterate),
+        iterate: %w(-i --iterate),
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
      [Set[:licks, :play, :print, :tools], {

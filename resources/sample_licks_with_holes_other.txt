@@ -6,8 +6,10 @@
 # This lickfile is for type '<%= $type %>'.
 #
 <%= try_richter.map {|l| "# #{l}"}.join %>
+#
 # In addition a lickfile for type 'richter' will contain all the
 # comments needed to understand this file properly.
+#
 
 # This lick has no recording
 [some]

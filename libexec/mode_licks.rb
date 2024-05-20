@@ -1061,20 +1061,38 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  input = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
+  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
     if tag2licks[tag]
       "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
     else
       'no licks with this tag'
     end
   end
-  return false unless input
-  $opts[:tags_all] = input
-  $all_licks, $licks = read_licks(true)
-  input = choose_interactive('Choose new value for --iterate: ', %w(random cycle))
-  return true unless input
-  $opts[:iterate] = input.to_sym
-  return true
+  changed = if tags_all
+              $opts[:tags_all] = tags_all
+              $all_licks, $licks = read_licks(true)
+              iter = choose_interactive('Choose new value for --iterate, aka -i: ',
+                                        %w(random cycle)) do |tag|
+                {'random' => 'choose one lick at random every time',
+                 'cycle' => 'one lick after the other, starting over at end'}[tag] || tag
+              end
+              $opts[:iterate] = iter.to_sym if iter
+              true
+            else    
+              false
+            end
+  clear_area_comment
+  clear_area_message
+
+  print "\e[#{$lines[:comment]}H\e[0m"
+  puts
+  puts_names_of_licks 40
+  puts
+  puts "\e[2m  Press any key to continue ...\e[0m"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+
+  return changed
 end
 
 
@@ -1446,13 +1464,18 @@ def show_lick_info lick
     ohead = true
   end
   puts ' Tag-Options: none' unless ohead
-  licks = $licks.map {|l| l[:name]}
-  if licks.length > 20
-    lks = licks.sample(20)
-    licks = ["e.g.: #{lks[0]}"] + lks[1..-1]
-  end
-  puts wrap_words("Set of Licks: ", ["#{$licks.length} in total"] + licks)
+  puts_names_of_licks 20
   puts "\e[2m  Press any key to continue ...\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
+end
+
+
+def puts_names_of_licks maxnum
+  names = $licks.map {|l| l[:name]}
+  if names.length > maxnum
+    names = names.sample(maxnum)
+    names = ["e.g.: #{names[0]}"] + names[1..-1]
+  end
+  puts wrap_words("Set of Licks: ", ["#{$licks.length} in total; "] + names)
 end

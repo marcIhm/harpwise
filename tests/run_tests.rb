@@ -1268,6 +1268,8 @@ do_test 'id-37b: change option --tags' do
   tms :ENTER
   tms 'cyc'
   tms :ENTER
+  sleep 1
+  tms :ENTER
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
@@ -1285,6 +1287,8 @@ do_test 'id-37c: change option --tags with cursor keys' do
   5.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
+  tms :ENTER
+  sleep 1
   tms :ENTER
   tms 'q'
   wait_for_end_of_harpwise
@@ -2753,14 +2757,15 @@ do_test 'id-104: add.tag.to for licks' do
   FileUtils.cp $lickfile_testing, saved unless File.exist?(saved)
   # prepend
   File.write($lickfile_testing,
-             ["add.tag.to = mytag1 wade st-louis\n",
+             # make st-louis appear first, although it comes last in file
+             ["add.tag.to = mytag1 st-louis wade\n",
               "add.tag.to = mytag2 st-louis feeling-bad\n",
               File.read($lickfile_testing).lines].flatten.join)
 
   tms 'harpwise print licks-list -t mytag1'
   tms :ENTER
-  expect { screen[9]['wade'] }
-  expect { screen[10]['st-louis'] }
+  expect { screen[9]['st-louis'] }
+  expect { screen[10]['wade'] }
   expect { screen[12]['Total count: 2'] }
   wait_for_end_of_harpwise
 
