@@ -646,16 +646,17 @@ def show_help
                "    0,-: forget holes played               +: skip rest of sequence",
                "      t: toggle tracking progress in seq"]
     if $mode == :quiz
-      frames[-1] << "      H: hints for quiz-flavour #{$quiz_flavour}"
+      frames[-1] << "    4,H: hints for quiz-flavour #{$quiz_flavour}"
     end
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
                           "      t: change option -t                  I: show info on lick",
-                          "      %: shift lick by chosen interval     @: change option --partial",
+                          "      %: shift lick by chosen interval   9,@: change option --partial",
                           "     <>: shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
                           "      !: play holes reversed               &: shuffle holes",
+                          "      1: pretend, one hole played",
                           ""])
     elsif $mode == :quiz && $extra == 'replay'
       frames[-1] << "      n: change number of holes to be replayed"

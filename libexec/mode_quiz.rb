@@ -101,7 +101,7 @@ def do_quiz to_handle
                      lambda_quiz_hint: -> (holes, _, scale_name, _) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes_simple(solve_text, nil, 'scale', holes, :all)
+                       quiz_hint_in_handle_holes_simple(solve_text, 'scale', holes, :all)
                      end)
 
     
@@ -121,7 +121,7 @@ def do_quiz to_handle
                      lambda_quiz_hint: -> (holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       quiz_hint_in_handle_holes_simple(solve_text, nil, 'interval', holes, holes[-1])
+                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1])
                      end)
 
     

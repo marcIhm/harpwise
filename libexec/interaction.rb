@@ -578,7 +578,7 @@ def handle_kb_mic
     else
       text = get_text_invalid(char)
     end
-  elsif char == 'H' && $mode == :quiz
+  elsif ( char == 'H' || char == '4' ) && $mode == :quiz
     $ctl_mic[:quiz_hint] = true
     text = 'Quiz Hints'
   elsif char == 'l' && $mode == :licks
@@ -611,7 +611,7 @@ def handle_kb_mic
   elsif char == '<' && $mode == :licks
     $ctl_mic[:shift_inter_circle] = :prev
     text = 'Shift prev'
-  elsif char == '@' && $mode == :licks
+  elsif ( char == '@' || char == '9' ) && $mode == :licks
     $ctl_mic[:change_partial] = true
     text = 'Partial'
   elsif char == '*' && $mode == :licks

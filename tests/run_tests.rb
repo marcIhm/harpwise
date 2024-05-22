@@ -1503,7 +1503,7 @@ do_test 'id-49: edit lickfile' do
   wait_for_start_of_pipeline
   tms 'e'
   sleep 1
-  expect { screen[17]['[wade]'] }
+  expect { screen[11]['[wade]'] }
   kill_session
 end
 
