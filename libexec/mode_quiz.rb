@@ -15,7 +15,6 @@ def do_quiz to_handle
   # Handle Signals
   #
   Signal.trap('TSTP') do
-    ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = 'yes'
     # do some actions of at_exit-handler here
     sane_term
     puts "\e[#{$lines[:message_bottom]}H\e[0m\e[K"
@@ -27,14 +26,13 @@ def do_quiz to_handle
     exec($full_commandline)
   end
 
-  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
+  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL']
     do_restart_animation
     puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"    
   else
     animate_splash_line
-    puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"    
+    puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"
   end
-
   
   #
   # process any arguments passed in as to_handle
@@ -57,7 +55,7 @@ def do_quiz to_handle
   #
   # Get Flavour
   #
-  $quiz_flavour = get_accepted_flavour_from_extra unless  $other_mode_saved[:conf]
+  $quiz_flavour = get_accepted_flavour_from_extra unless $other_mode_saved[:conf]
 
   
   # for listen-perspective, dont show solution immediately
@@ -226,7 +224,6 @@ $q_f2t = Hash.new
 class QuizFlavour
 
   @@prevs = Array.new
-  @meta_tags = Set.new
 
   def initialize
     @state = Hash.new
@@ -1918,42 +1915,6 @@ def choose_prepare_for
 end
 
 
-def choose_flavour flavour_choices
-  flavour = nil
-  loop do
-    choose_prepare_for
-    flavour = choose_interactive('Please choose flavour:', [flavour_choices, 'describe-all', 'random'].flatten) do |tag|
-      if tag == 'describe-all'
-        'Describe all flavours in detail'
-      elsif tag == 'random'
-        'Choose a flavour at random'
-      else
-        "Flavour #{tag}"
-      end
-    end
-    choose_clean_up
-    if !flavour
-      puts "\e[0mNo flavour chosen, please try again."
-      puts "\e[2mPress any key to continue ...\e[0m"
-      one_char
-      redo
-    elsif flavour == "describe-all"
-      puts "The #{$quiz_flavour2class.keys.length} available flavours:"
-      puts
-      puts get_extra_desc(exclude_meta: true).join("\n")
-      puts
-      puts "\e[2mPress any key to choose again ...\e[0m"
-      one_char
-      redo
-    elsif flavour == 'random'
-      flavour = get_random_flavour(flavour_choices)
-    end
-    break
-  end
-  flavour
-end
-
-
 def do_restart_animation
 
   puts "\e[?25l"  ## hide cursor
@@ -1982,36 +1943,58 @@ end
 # flavours like 'hear-scale'
 def get_accepted_flavour_from_extra
 
-  # get either a flavour already or at least flavour_choices
-  flavour, flavour_choices = if $quiz_tag2flavours[:meta].include?($extra) ||
-                                ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] == 'yes'
-                               if %w(scales microphone silent).include?($extra)
-                                 [nil, $quiz_tag2flavours[$extra.to_sym]]
-                               else
-                                 [nil, $quiz_flavour2class.keys]
-                               end
-                             else
-                               [$extra, $quiz_flavour2class.keys]
-                             end
+  # flavour is nil or the flavour that can be determined directly from
+  # $extra; flavour_choices is the range of flavours to choose from at
+  # random, e.g. after ctrl-z
+  env_flavour = ENV['HARPWISE_RESTARTED_AFTER_SIGNAL']
+  flavour,
+  flavour_collection,
+  flavour_choices = if env_flavour
+                      [get_random_flavour($quiz_tag2flavours[env_flavour.to_sym]),
+                       env_flavour,
+                       $quiz_tag2flavours[env_flavour.to_sym]]
+                    else
+                      if $quiz_tag2flavours[:meta].include?($extra) 
+                        if $quiz_tag2flavours[:collections].include?($extra.to_sym)
+                          [nil, $extra, $quiz_tag2flavours[$extra.to_sym]]
+                        else
+                          # variations of random
+                          [nil, nil, $quiz_flavour2class.keys]
+                        end
+                      elsif $extra == 'choose'
+                        [nil, nil, $quiz_flavour2class.keys]
+                      else
+                        [$extra, nil, $quiz_flavour2class.keys]
+                      end
+                    end
 
+  ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection || 'all'
+  
   print "\e[2mChoosing flavour at random, 1 out of #{flavour_choices.length}.  " if !flavour && $extra != 'choose'
   puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
   puts
   sleep 0.1
-
-  # for random flavour loop until chosen flavour is accepted
-  first_iteration = true
-  loop do  ## endless loop, left via return
-    
-    # we need to get a flavour first
-    if !flavour
-      if $extra == 'choose'
-        flavour = choose_flavour(flavour_choices)
-      elsif flavour_choices
-        flavour = get_random_flavour(flavour_choices, true)
-      end
+  
+  if $extra == 'choose' && !env_flavour
+    while !flavour
+      flavour = choose_flavour(flavour_choices)
     end
+    # maybe user has chosen a collection right above
+    if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
+      flavour_choices = $quiz_tag2flavours[flavour.to_sym]
+      ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
+      flavour = nil
+    end
+  end
+  
+  first_iteration = true
 
+  # loop until chosen flavour is accepted; endless loop, left via
+  # return
+  loop do 
+
+    flavour ||= get_random_flavour(flavour_choices, true)
+    
     # now we have a valid flavour, so inform user and get confirmation
     has_issue_question = $quiz_flavour2class[flavour].method_defined?(:issue_question)
     puts
@@ -2024,8 +2007,8 @@ def get_accepted_flavour_from_extra
     sleep 0.05
     puts
     sleep 0.05
-    puts $extra_desc[:quiz][flavour].rstrip.sub(/\S/, &:upcase).
-           lines.map {|l| '  ' + l}.
+    puts get_extra_desc_single(flavour)[1..-1].
+           map {|l| '  ' + l + "\n"}.
            join.chomp +
          ".\n"
     if has_issue_question
@@ -2041,13 +2024,22 @@ def get_accepted_flavour_from_extra
     puts
 
     # ask for user feedback
-    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour\nor TAB to choose one explicitly ...\e[0m"
+    clause = ( )
+    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour" +
+         ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) +
+         "\nor TAB to choose one explicitly ...\e[0m"
     char = one_char
 
     if char == 'BACKSPACE'
-      flavour = get_random_flavour(flavour_choices)
+      flavour = nil
     elsif char == 'TAB'
       flavour = choose_flavour(flavour_choices)
+      # maybe user has chosen a collection
+      if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
+        ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
+        flavour_choices = $quiz_tag2flavours[flavour.to_sym]
+        flavour = get_random_flavour($quiz_tag2flavours[flavour.to_sym])
+      end
     else
       return flavour
     end
@@ -2055,6 +2047,43 @@ def get_accepted_flavour_from_extra
     first_iteration = false
     # next loop iteration
   end
+end
+
+
+def choose_flavour flavour_choices
+  flavour = nil
+  loop do
+    choose_prepare_for
+    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours[:collections].length} collections:",
+                                 [flavour_choices,
+                                  $quiz_tag2flavours[:collections].map(&:to_s),
+                                  'describe-all'].flatten) do |tag|
+      if tag == 'describe-all'
+        'Describe all flavours and flavour collections in detail'
+      elsif $quiz_tag2flavours[:meta].include?(tag)
+        make_extra_desc_short(tag, "Flavour collection '#{tag}'")
+      else
+        make_extra_desc_short(tag, "Flavour '#{tag}'")
+      end
+    end
+    choose_clean_up
+    if !flavour
+      puts "\e[0mNo flavour chosen, please try again."
+      puts "\e[2mPress any key to continue ...\e[0m"
+      one_char
+      redo
+    elsif flavour == "describe-all"
+      puts "The #{$extra_desc[:quiz].length} available flavours and flavour-collections:"
+      puts
+      puts get_extra_desc_all.join("\n")
+      puts
+      puts "\e[2mPress any key to choose again ...\e[0m"
+      one_char
+      redo
+    end
+    break
+  end
+  flavour
 end
 
 
@@ -2121,4 +2150,16 @@ def re_calculate_quiz_difficulty
           end
     $num_quiz_replay = nqr if nqr
   end
+end
+
+
+def make_extra_desc_short extra, head
+  desc_lines = get_extra_desc_single(extra)
+  head += " (#{desc_lines[0].gsub(' ','')})" if desc_lines[0] != extra
+  head += ': '
+  desc = desc_lines[1..-1].join(' ').
+           split(/(?=\s+)/).
+           inject("") {|m,w| m += w if m.length < ($term_width - w.length - head.length - 8); m}.
+           strip
+  head + desc.sub(/\S/,&:upcase) + ' ...'
 end
