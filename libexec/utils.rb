@@ -605,7 +605,7 @@ def print_amongs *choices
       print_in_columns $all_scales, indent: 4, pad: :tabs
     when :extra
       puts "\n- extra arguments:"
-      puts get_extra_desc.join("\n")
+      puts get_extra_desc_all.join("\n")
     when :inter
       puts "\n- named interval, i.e. one of: "
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
@@ -623,7 +623,7 @@ def print_amongs *choices
 end
 
 
-def get_extra_desc for_usage: false, exclude_meta: false
+def get_extra_desc_all for_usage: false, exclude_meta: false
   lines = []
   $extra_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
@@ -632,6 +632,18 @@ def get_extra_desc for_usage: false, exclude_meta: false
     lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
   end
   lines
+end
+
+
+# this can handle keys like 'ran, random'
+def get_extra_desc_single key
+  lines = []
+  $extra_desc[$mode].each do |k,v|
+    ks = k.split(',').map(&:strip)
+    next unless ks.include?(key)
+    return [k] + v.lines.map(&:strip)
+  end
+  fail "Internal error: #{key} not found"
 end
 
 

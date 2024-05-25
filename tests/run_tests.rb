@@ -31,7 +31,7 @@ $within = ( ARGV.length == 0 )
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(wade st-louis feeling-bad blues mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
+$all_testing_licks = %w(wade st-louis feeling-bad chord-prog blues mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
@@ -581,7 +581,7 @@ end
 
 do_test 'id-8: listen with merged scale' do
   new_session
-  tms 'harpwise listen a blues --add-scales chord-v,chord-i'
+  tms 'harpwise listen a blues --add-scales chord-v7,chord-i7'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[1]['blues,5,1'] }
@@ -612,7 +612,7 @@ do_test 'id-9d: error on ambigous scale' do
   tms 'harpwise listen a chord'
   tms :ENTER
   sleep 1
-  expect { screen[2]["ERROR: Argument from commandline 'chord' should be unique"] }
+  expect { screen[1]["ERROR: Argument from commandline 'chord' should be unique"] }
   kill_session
 end
 
@@ -624,7 +624,7 @@ do_test 'id-10: quiz' do
   sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['b4    4   b14  b4    4   b14'] }
+  expect { screen[4]['b4    4   b14  b45   4   b14'] }
   kill_session
 end
 
@@ -823,8 +823,8 @@ do_test 'id-17: mode licks with initial lickfile' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:licks], dump[:licks].length) { dump[:licks].length == 20 }
-  expect { screen[1]['licks(20,ran) richter a blues,1,4,5'] }
+  expect(dump[:licks].length) { dump[:licks].length == 21 }
+  expect { screen[1]['licks(21,ran) richter a blues,1,4,5'] }
   kill_session
 end
 
@@ -872,7 +872,7 @@ do_test 'id-19: mode licks with licks excluding one tag' do
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   # See comments above for verification
-  expect(dump[:licks], dump[:licks].length) { dump[:licks].length == 18 }
+  expect(dump[:licks].length) { dump[:licks].length == 19 }
   kill_session
 end
 
@@ -940,7 +940,7 @@ do_test 'id-21: mode licks with --start-with' do
   tms 'harpwise licks --start-with wade a'
   tms :ENTER
   wait_for_start_of_pipeline
-  # the waitin below needs to be somewhat in sync with timed rotation
+  # the waiting below needs to be somewhat in sync with timed rotation
   # of lick_hints, which has a period of 10 secs
   expect { screen[-1]['wade'] }
   sleep 8
@@ -948,6 +948,7 @@ do_test 'id-21: mode licks with --start-with' do
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
   tms 'I'
+  sleep 2
   expect { screen[15]['Lick Name: wade'] }
   kill_session
 end
@@ -971,6 +972,7 @@ do_test 'id-23: print list of licks with tags' do
   ["  wade ..... fav,favorites,samples,has_rec,shifts_five\n",
    "  st-louis ..... favorites,samples,has_rec,shifts_five\n",
    "  feeling-bad ..... favorites,samples,has_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  chord-prog ..... no_rec,shifts_four\n",
    "  blues ..... scales,theory,no_rec,shifts_five\n",
    "  mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
    "  box1-i ..... box,box1,i-chord,no_rec,shifts_five,shifts_eight\n",
@@ -1011,12 +1013,12 @@ do_test 'id-23a: overview for all licks' do
    "  has_rec                              4\n",
    "  i-chord                              3\n",
    "  iv-chord                             2\n",
-   "  no_rec                              16\n",
+   "  no_rec                              17\n",
    "  samples                              4\n",
    "  scales                               2\n",
    "  shifts_eight                        12\n",   
    "  shifts_five                         16\n",
-   "  shifts_four                         10\n",   
+   "  shifts_four                         11\n",   
    "  testing                              3\n",
    "  theory                               2\n",
    "  turn                                 1\n",
@@ -1025,10 +1027,10 @@ do_test 'id-23a: overview for all licks' do
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:              105\n",
+   "  Total number of tags:              107\n",
    "  Total number of different tags:     23\n",
    " -----------------------------------------\n",
-   "  Total number of licks:              20\n"].each_with_index do |exp,idx|
+   "  Total number of licks:              21\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx,) { lines[12+idx] == exp }
   end
   kill_session
@@ -1059,7 +1061,7 @@ do_test 'id-25: cycle through licks back to start' do
     lickname = $all_testing_licks[i % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
-    sleep 2
+    sleep 4
   end
   kill_session
 end
@@ -1070,7 +1072,7 @@ do_test 'id-27: cycle through licks from starting point' do
   tms :ENTER
   wait_for_start_of_pipeline
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
-    lickname = $all_testing_licks[(i + 15) % $all_testing_licks.length]
+    lickname = $all_testing_licks[(i + 16) % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
     tms :ENTER
     sleep 4
@@ -1078,13 +1080,19 @@ do_test 'id-27: cycle through licks from starting point' do
   kill_session
 end
 
-do_test 'id-29: back one lick' do
+do_test 'id-29: back some lick' do
   new_session
   tms 'harpwise licks --start-with st-louis --iter cycle'
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[-1]['st-louis'] }
   tms :ENTER
+  sleep 2
+  expect { screen[-1]['feeling-bad'] }
+  tms :ENTER
+  sleep 2
+  expect { screen[-1]['chord-prog'] }
+  tms :BSPACE
   sleep 2
   expect { screen[-1]['feeling-bad'] }
   tms :BSPACE
@@ -1128,7 +1136,7 @@ do_test 'id-33: display as chart with scales' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['b1   b1    1   b1    b    b    1   b1    b    b'] }
+  expect { screen[8]['b   b1    1   b1    b    b    1   b1    b    b'] }
   kill_session
 end
 
@@ -1152,7 +1160,7 @@ do_test 'id-33b: display chart where -2 equals +3' do
   # ends on +3 ; change 8 into correct line
   expect { screen[4]['b4    4   b14']}
   # ends on -2 ; change 12 into correct line
-  expect { screen[8]['b15  b14']}
+  expect { screen[8]['b5   b14']}
   kill_session
 end
 
@@ -1161,7 +1169,7 @@ do_test 'id-34: comment with scales and octave shift' do
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
+  expect { screen[15]['-1.b     +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   tms '%'
   sleep 1
   tms 'octave up'
@@ -1173,7 +1181,7 @@ do_test 'id-34: comment with scales and octave shift' do
   tms 'no shift'
   tms :ENTER
   sleep 2
-  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
+  expect { screen[15]['-1.b     +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   kill_session
 end
 
@@ -1482,14 +1490,13 @@ end
 
 do_test 'id-48b: chromatic in a, scale blues; listen; creation of derived' do
   sound 8, 2
-  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_chord-i_with_holes.yaml"
+  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_chord-i7_with_notes.yaml"
   FileUtils.rm derived if File.exist?(derived)
   new_session 92, 30
   tms 'harpwise listen chromatic a blues --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  # adjust lines 
-  expect { screen[4]['b4  4  b14  b4  b4  4  b14  b4'] }
+  expect { screen[4]['b1  1  b15 b14 b14  1  b15 b14 b14  1  b15 b14'] }
   expect { screen[8]['==1===2===3===4===5===6===7===8===9==10==11==12========'] }
   expect(derived) { File.exist?(derived) }
   kill_session
@@ -1625,7 +1632,7 @@ do_test 'id-53d: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
   tms :ENTER
-  expect { screen[3][' -1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[3]['-1.5     +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1715,8 +1722,10 @@ do_test 'id-54e: print list of all scales' do
    "   \e[2mShort: b\e[0m   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
    " blues-middle     :   7\n",
    "   \e[2mShort: b\e[0m   \e[2mDesc: middle octave of the blues scale\e[0m\n",
-   " chord-i          :   9\n",
-   "   \e[2mShort: 1\e[0m\n"].each_with_index do |exp,idx|
+   " chord-i          :   8\n",
+   "   \e[2mShort: 1\e[0m   \e[2mDesc: major chord I without flat seventh\e[0m\n",
+   " chord-i7         :  10\n",
+   "   \e[2mShort: 1\e[0m   \e[2mDesc: major chord I with added flat seventh\e[0m\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]}, idx+8, exp) { lines[8+idx] == exp }
   end
   kill_session
@@ -2451,7 +2460,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[8]["difficulty is 'EASY', taking 4 scales out of 19"] }
+  expect { screen[8]["difficulty is 'EASY', taking 4 scales out of 22"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
@@ -2465,8 +2474,8 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  sleep 6
-  expect { screen[8]["The difficulty is 'HARD', taking 7 scales out of 19"] }
+  sleep 8
+  expect { screen[8]["The difficulty is 'HARD', taking 7 scales out of 22"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2785,10 +2794,10 @@ do_test 'id-105: lick in shift circle' do
   tms 'harpwise licks --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b15    +2.4      -2.b14   -3/.b      +3.b14   -3/.b'] }
+  expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
   tms '>'
   sleep 4
-  expect { screen[15]['-2.b14  -3//.5      +4.b4    (*)     +4.b4    (*)'] }
+  expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45   (*)'] }
   expect { screen[22]['Holes shifted by perf Fourth'] }
   kill_session
 end
@@ -2902,6 +2911,21 @@ do_test 'id-112: quiz-flavour play-shifted' do
   tms :ENTER
   sleep 3
   expect { screen[14]['Wise computes a sequence'] }
+  kill_session
+end
+
+do_test 'id-113: quiz-flavour choose' do
+  new_session
+  tms 'harpwise quiz choose'
+  tms :ENTER
+  sleep 1
+  expect { screen[16]['Please choose among 16 flavours and 4 collections'] }
+  tms 'silent'
+  tms :ENTER
+  expect { screen[18..22].any?{|l| l['another random flavour (silent)'] }}
+  sleep 1
+  tms :TAB
+  expect { screen[16]['Please choose among 5 flavours and 4 collections'] }
   kill_session
 end
 

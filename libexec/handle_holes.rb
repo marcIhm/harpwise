@@ -544,7 +544,7 @@ def do_change_key_to_pitch
   clear_area_message
   key_was = $key
   print "\e[#{$lines[:comment]+1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
-  puts "\e[0m\e[2mPress any key to start (and RETURN when done) ...\e[K\e[0m\n\n"
+  puts "\e[0m\e[2mPress any key to start (and RETURN when done), or 'q' to cancel ...\e[K\e[0m\n\n"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
@@ -613,7 +613,7 @@ def show_help
   frames << [" Help on keys (invoke 'harpwise' without args for more info):",
              " \e[0m\e[2mVersion #{$version}\e[0m\e[32m",
              "",
-             "  SPACE: pause and continue      ctrl-l: redraw screen",
+             "  SPACE: pause and continue      CTRL-L: redraw screen",
              "    d,D: change display (upper part of screen)",
              "    c,C: change comment (in lower part of screen)",
              "    r,R: set reference to hole played or chosen",
@@ -622,7 +622,7 @@ def show_help
              "      s: rotate current scales        S: set scales"]
   if [:quiz, :licks].include?($mode)
     frames[-1] <<  "      j: journal-menu; only available in mode listen"
-    frames[-1] <<  " ctrl-r: record and play user (mode licks only)"
+    frames[-1] <<  " CTRL-R: record and play user (mode licks only)"
   else
     frames[-1] <<  "      j: journal-menu to handle holes collected"
     frames[-1] <<  "      w: switch comment to warble and prepare"
@@ -716,7 +716,7 @@ def show_help
     end
     curr_frame_was = curr_frame
     key = $ctl_kb_queue.deq
-    if key.ord == 127
+    if key == 'BACKSPACE'
       curr_frame -= 1 if can_back
     else
       if can_for

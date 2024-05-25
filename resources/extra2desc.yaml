@@ -77,16 +77,15 @@ tools:
     help with diagnosing problems with your sound system
 quiz:
   all, ran, random: |
-    choose one quiz flavour at random
+    all flavours, one at random
   scales: |
-    choose one quiz flavour related with scales at random
+    flavours related with scales at random
   microphone: |
-    choose one quiz flavour at random, that uses your microphone and
-    therefore switches to listen-perspective
+    flavour that use your microphone and switche to listen-perspective
   silent: |
-    all quiz flavours that can be tried with muted speakers
+    flavours that can be tried with muted speakers
   choose: |
-    choose one quiz flavour from a list
+    choose flavour right away
   players: |
     harpwise shows details about a famous player and asks for his or
     her name

@@ -238,24 +238,41 @@ def start_kb_handler
             ch = Timeout::timeout(0.05) { STDIN.getc }
             key = case ch
                   when 'A'
-                    'up'
+                    'UP'
                   when 'B'
-                    'down'
+                    'DOWN'
                   when 'C'
-                    'right'
+                    'RIGHT'
                   when 'D'
-                    'left'
+                    'LEFT'
                   when 'Z'
-                    'shift-tab'
+                    'SHIFT-TAB'
                   else
-                    "\e"
+                    'ESC'
                   end
           elsif ch == "\t"
-            key = 'shift-tab'
+            key = 'SHIFT-TAB'
           end
         rescue Timeout::Error => e
         end
       end
+      key = if key == "\n"
+              'RETURN'
+            elsif key == "\t"
+              'TAB'
+            elsif key == "\e"
+              'ESC'
+            elsif key.ord == 18
+              'CTRL-R'
+            elsif key.ord == 12
+              'CTRL-L'
+            elsif key.ord == 127
+              'BACKSPACE'
+            elsif key.ord == 8
+              'CTRL-BACKSPACE'
+            else
+              key
+            end
       $ctl_kb_queue.enq key
     end
   end
@@ -313,7 +330,7 @@ def handle_kb_play_holes
     end until char == ' '
     print "go \e[0m"
     sleep 0.5
-  elsif char == "\t" || char == '+'
+  elsif char == "TAB" || char == '+'
     $ctl_hole[:skip] = true
   elsif char == 'v'
     $ctl_hole[:vol_down] = true
@@ -337,7 +354,7 @@ def handle_kb_play_holes_or_notes_simple
     end until char == ' '
     print "go \e[0m"
     sleep 0.5
-  elsif char == "\t" || char == '+'
+  elsif char == "TAB" || char == '+'
     $ctl_hole[:skip] = true
   elsif char == 'v'
     $ctl_hole[:vol_down] = true
@@ -374,7 +391,7 @@ def handle_kb_play_recording
     $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] 
   elsif char == 'h'
     $ctl_rec[:show_help] = true
-  elsif char == "\t" || char == '+'
+  elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
   end
 end
@@ -399,7 +416,7 @@ def handle_kb_play_recording_simple
     $ctl_rec[:replay] = true
   elsif char == '-'
     $ctl_rec[:replay] = true
-  elsif char == "\t" || char == '+'
+  elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
   end
 end
@@ -416,7 +433,7 @@ def handle_kb_play_semis
     $ctl_prog[:prefix] = '' unless $ctl_prog[:prefix]
     $ctl_prog[:prefix] += char
     print "\n\e[0m\e[2mprefix is #{$ctl_prog[:prefix]}\e[0m\n"
-  elsif char == "\e"
+  elsif char == 'ESC'
     $ctl_prog[:prefix] = nil
     print "\n\e[0m\e[2mprefix cleared\e[0m\n"
   elsif char == 's' || char == '+'
@@ -467,9 +484,9 @@ def handle_kb_play_pitch
     $ctl_pitch[:wave_up] = true
   elsif char == 'w'
     $ctl_pitch[:wave_down] = true
-  elsif char == 'q' || char == 'x' || char == "\e"
+  elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_pitch[:quit] = true
-  elsif char == "\n"
+  elsif char == "RETURN"
     $ctl_pitch[:accept_or_repeat] = true
   else
     $ctl_pitch[:any] = false
@@ -503,7 +520,7 @@ def handle_kb_play_inter
     $ctl_inter[:len_inc] = true
   elsif char == 'h'
     $ctl_inter[:show_help] = true
-  elsif char == 'q' || char == 'x' || char == "\e"
+  elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_inter[:quit] = char
   elsif char == 's'
     $ctl_inter[:swap] = true
@@ -511,7 +528,7 @@ def handle_kb_play_inter
     $ctl_inter[:vol_down] = true
   elsif char == 'V'
     $ctl_inter[:vol_up] = true
-  elsif char == "\n"
+  elsif char == "RETURN"
     $ctl_inter[:replay] = true
   else
     $ctl_inter[:any] = false
@@ -545,9 +562,9 @@ def handle_kb_play_chord
     $ctl_chord[:wave_down] = true
   elsif char == 'h'
     $ctl_chord[:show_help] = true
-  elsif char == "\n"
+  elsif char == "RETURN"
     $ctl_chord[:replay] = true
-  elsif char == 'q' || char == 'x' || char == "\e"
+  elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_chord[:quit] = char
   else
     $ctl_chord[:any] = false
@@ -568,7 +585,7 @@ def handle_kb_mic
     end until char == ' '
     ctl_response 'continue', hl: true
     waited = true
-  elsif char == "\n"
+  elsif char == 'RETURN'
     if [:quiz, :licks].include?($mode)
       $ctl_mic[:next] = true
       text = 'Skip'
@@ -599,7 +616,7 @@ def handle_kb_mic
   elsif char == 'I' && $mode == :licks
     $ctl_mic[:lick_info] = true
     text = 'Lick info'    
-  elsif char.ord == 18 && $mode == :licks
+  elsif char == 'CTRL-R' && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Record user'
   elsif char == '%' && $mode == :licks
@@ -690,7 +707,7 @@ def handle_kb_mic
     $ctl_mic[:change_num_quiz_replay] = true
     # $opts[:no_progress] will be toggled later
     text = 'Change num of holes'
-  elsif char.ord == 127
+  elsif char == 'BACKSPACE'
     if [:quiz, :licks].include?($mode)
       $ctl_mic[:back] = true
       text = 'Skip back'
@@ -703,7 +720,7 @@ def handle_kb_mic
     else
       text = get_text_invalid(char)
     end
-  elsif char.ord == 12
+  elsif char == 'CTRL-L'
     $ctl_mic[:redraw] = Set[:silent, :clear]
     text = 'redraw'
   elsif char == 'i'
@@ -913,12 +930,25 @@ def one_char
   end while STDIN.getc
   system("stty min 1")
   sane_term
-  return 'RETURN' if char == "\n"
-  return 'TAB' if char == "\t"
-  # lump together ctrl-h and backspace
-  return 'BACKSPACE' if [8, 127].include?(char.ord)
-  # cannot be condensed to char&.gsub!
-  return char && char.gsub(/[^[:print:]]/,'?')
+  char = if char == "\n"
+           'RETURN'
+         elsif char == "\t"
+           'TAB'
+         elsif char == "\e"
+           'ESC'
+         elsif char.ord == 18
+           'CTRL-R'
+         elsif char.ord == 12
+           'CTRL-L'
+         elsif char.ord == 127
+           'BACKSPACE'
+         elsif char.ord == 8
+           'CTRL-BACKSPACE'
+         else
+           # cannot be condensed to char&.gsub!
+           char && char.gsub(/[^[:print:]]/,'?')
+         end
+  return char
 end  
 
 
@@ -1092,6 +1122,7 @@ def choose_interactive prompt, names
   print chia_desc_helper(yield(matching[idx_hili]), matching[idx_hili][0] == ';') if block_given? && matching[idx_hili]
   loop do
     key = $ctl_kb_queue.deq.downcase
+    key.downcase! if key.length == 1
 
     if key == '?'
       clear_area_comment
@@ -1099,7 +1130,7 @@ def choose_interactive prompt, names
       print "\e[#{$lines[:comment_tall] + 1}H\e[0m"
       puts "Help on selecting: Just type or use cursor keys.\e[32m"
       puts " - Any char adds to search, which narrows choices"
-      puts " - Cursor keys move selection, ctrl-l redraws"
+      puts " - Cursor keys move selection, CTRL-L redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
       puts "\e[0mBottom line shows descriptions of choices."
@@ -1120,14 +1151,14 @@ def choose_interactive prompt, names
       frame_start = idx_hili = idx_hili_min = 0
       frame_start_was = Array.new
 
-    elsif key.ord == 127  ## backspace
+    elsif key == 'BACKSPACE'
       input[-1] = '' if input.length > 0
       matching = names.select {|n| n[input]} 
       idx_hili = idx_hili_min
       prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
       $chia_no_matches_text = nil
 
-    elsif key.ord == 8  ## ctrl-backspace
+    elsif key == 'CTRL-BACKSPACE'
       input= '' if input.length
       matching = names
       idx_hili = idx_hili_min
@@ -1140,7 +1171,7 @@ def choose_interactive prompt, names
                                idx_last_shown,
                                frame_start)
 
-    elsif key == "\n"
+    elsif key == "RETURN"
 
       if matching.length == 0
         $chia_no_matches_text ="\e[0;101mNO MATCHES !\e[0m Please shorten input above or type ESC to abort !"
@@ -1159,27 +1190,27 @@ def choose_interactive prompt, names
         return matching[idx_hili]
       end
 
-    elsif key.ord == 12  ## ctrl-l
+    elsif key == 'CTRL-L'
       print "\e[2J"
       handle_win_change
       print prompt_template % [$lines[:comment_tall] + 1, prompt]
       print "\e[0m\e[92m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
 
-    elsif key == "\e"
+    elsif key == 'ESC'
       clear_area_comment
       clear_area_message
       print "\e[0m"
       return nil
 
-    elsif key == "\t"
+    elsif key == 'TAB'
       if idx_last_shown < matching.length - 1
         frame_start_was << frame_start
         frame_start = idx_last_shown + 1
         idx_hili_min = idx_hili = chia_idx_helper(matching, frame_start)
       end
 
-    elsif key == 'shift-tab'
+    elsif key == 'SHIFT-TAB'
       if frame_start > 0
         frame_start = frame_start_was.pop || 0
         idx_hili_min = idx_hili = chia_idx_helper(matching, frame_start)
@@ -1466,16 +1497,8 @@ end
 
 
 def get_text_invalid char
-  cdesc = if char.match?(/^[[:print:]]+$/)
+  cdesc = if char.match?(/^[[:print:]]+$/) || char.length > 0
             char
-          elsif char.ord == 10
-            'RETURN'
-          elsif char.ord == 9
-            'TAB'
-          elsif char.ord == 127 || char.ord == 8
-            'BACKSPACE'
-          elsif char.ord == 18
-            'CTRL-R'
           else
             "? (#{char.ord})"
           end

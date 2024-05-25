@@ -48,16 +48,8 @@ def do_play to_play
       $ctl_rec[:lick_lick] = false
       $ctl_rec[:loop_loop] = false
       
-      lnames.each do |lname|
-        lick = $licks.find {|l| l[:name] == lname}
-        trace_lick(lick)
-        sleep ( $opts[:fast] ? 0.25 : 0.5 )
-        loop do
-          play_and_print_lick lick
-          break if lnames.length == 1
-          maybe_wait_for_key_and_decide_replay  ?  redo  :  break
-        end
-      end
+      play_licks_controller $licks.select {|l| lnames.include?(l[:name])},
+                            nil, nil
 
     else
 
@@ -314,24 +306,80 @@ def play_and_print_lick lick, extra = ''
   puts
 end
 
+
+def play_licks_controller licks, refill, iterate
+
+  stock = licks.clone
+  prev_licks = Array.new
+  lick = stock.shift
+
+  loop do
+    trace_lick(lick)
+
+    sleep ( $opts[:fast] ? 0.25 : 0.5 )
+
+    loop do
+      play_and_print_lick lick
+      break if licks.length == 1 && !refill
+      case maybe_wait_for_key_and_decide_replay
+      when :next
+        prev_licks << lick if lick && lick != prev_licks[-1]
+        lick = stock.shift
+        break
+      when :redo
+        redo
+      when :prev
+        if prev_licks.length > 0
+          lick = prev_licks.pop
+        else
+          puts "No previous lick available."
+          puts
+          redo
+        end
+        break
+      end
+    end
+
+    if stock.length == 0
+      if refill
+        if iterate == :random
+          stock = refill.shuffle
+        else
+          stock = refill.clone
+        end
+      else
+        return
+      end
+    end
+  end
+end
+
+
 def maybe_wait_for_key_and_decide_replay
   if $ctl_rec[:lick_lick]
     puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
     sleep 0.5
-    return false
+    return :next
   else
     puts "\e[0m\e[2m" +
-         "Press:    r: to replay this lick\n" +
-         "any other key for next, especially:\n" +
-         "          c: continue without further questions\n" +
-         "          L: loop over next licks until pressed again " +
-         ( $ctl_rec[:loop_loop]  ?  "(already ON)"  :  "(currently OFF)" ) +
+         "Press:   r: to replay this lick      BACKSPACE: for previous\n" +
+         "any other key for next lick, especially:\n" +
+         "         c: continue without further questions\n" +
+         "         L: loop over next licks until pressed again " +
+         ( $ctl_rec[:loop_loop]  ?  "(now ON)"  :  "(now OFF)" ) +
          "\e[0m"
     char = $ctl_kb_queue.deq
     $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] if char == 'c'
     $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] if char == 'L'
     puts
-    return char == 'r'
+    case char
+    when 'BACKSPACE'
+      return :prev
+    when 'r'
+      return :redo
+    else
+      return :next
+    end
   end
 end
 
@@ -343,24 +391,11 @@ end
   
 
 def do_play_licks
-
   if $opts[:iterate] == :random
     lick_idx = nil
     puts "\e[2mA random walk through licks.\e[0m"
     puts
-    loop do
-      # avoid playing the same lick twice in a row
-      if lick_idx
-        lick_idx = (lick_idx + 1 + rand($licks.length - 1)) % $licks.length
-          else
-            lick_idx = rand($licks.length)
-      end
-      trace_lick($licks[lick_idx])
-      loop do
-        play_and_print_lick $licks[lick_idx]
-        maybe_wait_for_key_and_decide_replay  ?  redo  :  break
-      end
-    end
+    play_licks_controller $licks, $licks, :random
   else
     puts "\e[2mOne lick after the other.\e[0m"
     puts
@@ -375,16 +410,8 @@ def do_play_licks
           else
             0
           end
-    
-    loop do
-      $licks.rotate(idx).each_with_index do |lick, idx|
-        trace_lick(lick)
-        loop do
-          play_and_print_lick lick, " (#{idx+1} of #{$licks.length})"
-          maybe_wait_for_key_and_decide_replay  ?  redo  :  break
-        end
-      end
-    end
-  end
-  
+    licks = $licks.clone
+    licks.rotate(idx)
+    play_licks_controller licks, licks, :cycle
+  end  
 end

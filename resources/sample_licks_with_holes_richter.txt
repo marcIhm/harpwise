@@ -70,7 +70,7 @@
   rec.key = a
 
 #
-# The third lick, that comes with harpwise as a starter-pack
+# The third lick with recording
 #
 [feeling-bad]
   holes = +6 +5 +6 +6 +6 +5 -4 -4 +4
@@ -78,6 +78,10 @@
   rec = feeling-bad.mp3
   tags = samples favorites
   rec.key = c
+
+[chord-prog]
+  holes = -2 -3 -4 +2 -2 -3 -3// +4 +5 -1 -2/ -3// -2
+  desc = Jazz progression of chord triads I, VI, II-, V; shifts by +5st
 
 #
 # The blues scale as a lick
