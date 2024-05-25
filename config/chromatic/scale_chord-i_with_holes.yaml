@@ -1,0 +1,13 @@
+---
+- short: 1
+- desc: major chord I without flat seventh
+- "+1 root"
+- "+2"
+- "+3"
+- "+4 root"
+- "+6"
+- "+7"
+- "+8 root"
+- "+10"
+- "+11"
+- "+12 root"
