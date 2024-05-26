@@ -2161,5 +2161,5 @@ def make_extra_desc_short extra, head
            split(/(?=\s+)/).
            inject("") {|m,w| m += w if m.length < ($term_width - w.length - head.length - 8); m}.
            strip
-  head + desc.sub(/\S/,&:upcase) + ' ...'
+  head + desc + ' ...'
 end

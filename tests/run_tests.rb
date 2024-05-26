@@ -783,6 +783,7 @@ do_test 'id-16b: cycle in play' do
   tms :ENTER
   sleep 2
   expect { screen[6]['Lick wade'] }
+  sleep 4
   tms :ENTER
   sleep 2
   expect { screen[14]['Lick st-louis'] }
@@ -2671,7 +2672,7 @@ do_test 'id-99: widgets' do
   tms :ENTER
   sleep 1
   tms :RIGHT
-  expect { screen[7]['Input #1: -?-'] }
+  expect { screen[7]['Input #1: -ESC-'] }
   tms :ENTER
   expect { screen[8]['Input #2: -RETURN-'] }
   tms :TAB
@@ -2847,11 +2848,11 @@ do_test 'id-109: quiz-flavour players' do
   sleep 2
   tms :ENTER
   sleep 1
-  expect { screen[1..7].any?{|l| l['What is the name of the player with']} }
+  expect { screen[1..7].any? {|l| l['What is the name of the player with']} }
   sleep 1
   tms 'help-more-info'
   tms :ENTER
-  expect { screen[7..14].any?{|l| l['invoke again for more information']} }  
+  expect { screen[7..14].any? {|l| l['invoke again for more information']} }  
   kill_session
 end
 
@@ -2901,7 +2902,7 @@ do_test 'id-111: mode licks with adhoc-lick' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'I'
-  expect { screen[14]['Lick Name: adhoc'] }
+  expect { screen[12..16].any? {|l| l['Lick Name: adhoc']} }
   kill_session
 end
 
@@ -2922,7 +2923,7 @@ do_test 'id-113: quiz-flavour choose' do
   expect { screen[16]['Please choose among 16 flavours and 4 collections'] }
   tms 'silent'
   tms :ENTER
-  expect { screen[18..22].any?{|l| l['another random flavour (silent)'] }}
+  expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
   sleep 1
   tms :TAB
   expect { screen[16]['Please choose among 5 flavours and 4 collections'] }

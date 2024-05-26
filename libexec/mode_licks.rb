@@ -1275,7 +1275,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
   def set_all_wanted new_all_wanted
     self[:all_wanted_befores].pop if self[:all_wanted_befores][-1] == new_all_wanted
     self[:all_wanted_befores] << self[:all_wanted] if self[:all_wanted] != self[:all_wanted_befores][-1]
-    self[:all_wanted] = new_all_wanted
+    self[:all_wanted] = new_all_wanted.to_a
   end
 
 
@@ -1367,13 +1367,13 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
       if num_holes_playable[shift] > 0
         self[:shift_inter_circle_pos] = 0
         self[:shift_inter] = shift
-        self.set_all_wanted self[:lick][:holes].map do |hole|
-          if musical_event?(hole) 
-            hole
-          else
-            $harp[hole][:shifted_by][shift] || '(*)'
-          end
-        end
+        self.set_all_wanted(self[:lick][:holes].map do |hole|
+                              if musical_event?(hole) 
+                                hole
+                              else
+                                $harp[hole][:shifted_by][shift] || '(*)'
+                              end
+                            end)
         if shift == 0
           self[:shift_inter] = 0
           self.set_all_wanted self[:lick][:holes]
@@ -1397,9 +1397,9 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     self[:shift_inter_circle_pos] += ( direction == :next  ?  +1  :  -1 )
     self[:shift_inter_circle_pos] %= shifts.length
     self[:shift_inter] = shift = shifts[self[:shift_inter_circle_pos]]
-    self.set_all_wanted self[:lick][:holes].map do |hole|
-      $harp[hole][:shifted_by][shift] || '(*)'
-    end
+    self.set_all_wanted(self[:lick][:holes].map do |hole|
+                          $harp[hole][:shifted_by][shift] || '(*)'
+                        end)
 
     max_playable, num_playable = [self[:lick][:holes], self[:all_wanted]].map do |holes|
       holes.map do |hole|

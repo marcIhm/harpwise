@@ -641,7 +641,8 @@ def get_extra_desc_single key
   $extra_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next unless ks.include?(key)
-    return [k] + v.lines.map(&:strip)
+    lns = v.lines.map(&:strip)
+    return [k] + [lns[0].sub(/\S/,&:upcase)] + lns[1 .. -1]
   end
   fail "Internal error: #{key} not found"
 end
