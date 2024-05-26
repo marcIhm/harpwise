@@ -1080,7 +1080,7 @@ do_test 'id-27: cycle through licks from starting point' do
   kill_session
 end
 
-do_test 'id-29: back some lick' do
+do_test 'id-29: back some licks' do
   new_session
   tms 'harpwise licks --start-with st-louis --iter cycle'
   tms :ENTER
@@ -2926,6 +2926,36 @@ do_test 'id-113: quiz-flavour choose' do
   sleep 1
   tms :TAB
   expect { screen[16]['Please choose among 5 flavours and 4 collections'] }
+  kill_session
+end
+
+do_test 'id-114: play licks next and previous' do
+  new_session
+  tms 'harpwise play licks'
+  tms :ENTER
+  sleep 6
+  expect { screen[6]['Lick wade'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[14]['Lick st-louis'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[14]['Lick feeling-bad'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[16]['Lick chord-prog'] }
+  tms :BSPACE
+  sleep 6
+  expect { screen[14]['Lick feeling-bad'] }
+  tms :BSPACE
+  sleep 6
+  expect { screen[14]['Lick st-louis'] }
+  tms :BSPACE
+  sleep 6
+  expect { screen[14]['Lick wade'] }
+  tms :BSPACE
+  sleep 6
+  expect { screen[12]['No previous lick available'] }
   kill_session
 end
 

@@ -131,7 +131,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             $num_quiz_replay_explicit = true
             $ctl_mic[:change_num_quiz_replay] = false
           end
-          to_play.set_all_wanted_before get_quiz_sample($num_quiz_replay)
+          to_play.set_all_wanted get_quiz_sample($num_quiz_replay)
           $msgbuf.print Replay.describe_difficulty, 2, 5, :dicu
 
         when 'play-scale'
@@ -173,7 +173,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             end while quiz_prevs.include?(quiz_holes_shifts)
             quiz_prevs.shift if quiz_prevs.length > 2
           end
-          to_play.set_all_wanted = quiz_holes_shifts[3]
+          to_play.set_all_wanted quiz_holes_shifts[3]
           to_play[:replacement_for_play] = quiz_holes_shifts[0]
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
 
@@ -1367,7 +1367,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
       if num_holes_playable[shift] > 0
         self[:shift_inter_circle_pos] = 0
         self[:shift_inter] = shift
-        self.set_all_wanted = self[:lick][:holes].map do |hole|
+        self.set_all_wanted self[:lick][:holes].map do |hole|
           if musical_event?(hole) 
             hole
           else
@@ -1376,7 +1376,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
         end
         if shift == 0
           self[:shift_inter] = 0
-          self.set_all_wanted = self[:lick][:holes]
+          self.set_all_wanted self[:lick][:holes]
           $msgbuf.print 'Holes unshifted', 2, 5, :shift
         else
           $msgbuf.print "Shifted holes by '#{answer}'", 2, 5, :shift

@@ -1121,7 +1121,7 @@ def choose_interactive prompt, names
   idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
   print chia_desc_helper(yield(matching[idx_hili]), matching[idx_hili][0] == ';') if block_given? && matching[idx_hili]
   loop do
-    key = $ctl_kb_queue.deq.downcase
+    key = $ctl_kb_queue.deq
     key.downcase! if key.length == 1
 
     if key == '?'
@@ -1165,7 +1165,7 @@ def choose_interactive prompt, names
       prompt = prompt_orig
       $chia_no_matches_text = nil
 
-    elsif %w(left right up down).include?(key)
+    elsif %w(LEFT RIGHT UP DOWN).include?(key)
       idx_hili = chia_move_loc(idx_hili, key,
                                idx_hili_min,
                                idx_last_shown,
@@ -1327,13 +1327,13 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
   column_old, line_old = $chia_loc_cache[idx_hili_old]
   line_max = $chia_loc_cache[-1][1]
 
-  if dir == 'left'
+  if dir == 'LEFT'
     idx_hili_new = idx_hili_old - 1
 
-  elsif dir == 'right'
+  elsif dir == 'RIGHT'
     idx_hili_new = idx_hili_old + 1
 
-  elsif dir == 'up'
+  elsif dir == 'UP'
     idx_hili_new = idx_hili_old
     if line_old > 0 
       line_new = line_old - 1
@@ -1351,7 +1351,7 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
       end
     end
 
-  elsif dir == 'down'
+  elsif dir == 'DOWN'
     idx_hili_new = idx_hili_old
     if line_old < line_max
       # there is one line below, so try it

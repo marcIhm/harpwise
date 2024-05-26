@@ -7,5 +7,5 @@ OVERVIEW
   The required additional argument specifies a task needed; it can be
   one of:
 
-<%= get_extra_desc(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
   

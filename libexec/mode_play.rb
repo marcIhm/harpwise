@@ -368,6 +368,7 @@ def maybe_wait_for_key_and_decide_replay
          "         L: loop over next licks until pressed again " +
          ( $ctl_rec[:loop_loop]  ?  "(now ON)"  :  "(now OFF)" ) +
          "\e[0m"
+    $ctl_kb_queue.clear
     char = $ctl_kb_queue.deq
     $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] if char == 'c'
     $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] if char == 'L'

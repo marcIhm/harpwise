@@ -18,7 +18,7 @@ OVERVIEW
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-<%= get_extra_desc(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
 
   
 USAGE BY EXAMPLES
