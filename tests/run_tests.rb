@@ -754,7 +754,7 @@ do_test 'id-15b: play licks with controls between' do
   sleep 2
   expect { screen[4]['Lick wade'] }
   sleep 4
-  expect { screen[10]['any other key for next'] }
+  expect { screen[14]['SPACE or RETURN for next licks'] }
   kill_session
 end
 
@@ -786,7 +786,7 @@ do_test 'id-16b: cycle in play' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[12]['Lick st-louis'] }
   kill_session
 end
 
@@ -950,7 +950,7 @@ do_test 'id-21: mode licks with --start-with' do
   expect { screen[-1]['Wade in the Water'] }
   tms 'I'
   sleep 2
-  expect { screen[15]['Lick Name: wade'] }
+  expect { screen[12..16].any? {|l| l['Lick Name: wade']} }
   kill_session
 end
 
@@ -2932,31 +2932,31 @@ end
 
 do_test 'id-114: play licks next and previous' do
   new_session
-  tms 'harpwise play licks'
+  tms 'harpwise play licks -i c'
   tms :ENTER
   sleep 6
   expect { screen[6]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[12]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick feeling-bad'] }
+  expect { screen[12]['Lick feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[16]['Lick chord-prog'] }
+  expect { screen[12]['Lick chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[14]['Lick feeling-bad'] }
+  expect { screen[12]['Lick feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[12]['Lick st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[14]['Lick wade'] }
+  expect { screen[12]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[12]['No previous lick available'] }
+  expect { screen[10]['No previous lick available'] }
   kill_session
 end
 

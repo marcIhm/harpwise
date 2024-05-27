@@ -23,10 +23,18 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
   loop_message_printed = false
   lick_lick_was = $ctl_rec[:lick_lick]
   loop_loop_was = $ctl_rec[:loop_loop]
+  num_loops_was = $ctl_rec[:num_loops]
+  cnt_loops = 0
 
   # loop as long as the recording needs to be played again due to
   # immediate controls triggered while it is playing
   begin
+    cnt_loops += 1
+    if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
+      sleep 1 if cnt_loops < $ctl_rec[:num_loops]
+      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
+    end
+    
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
     cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
@@ -43,6 +51,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
     begin
       sleep 0.1
       handle_kb_play_recording
+
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         if pplayer.paused?
@@ -71,8 +80,8 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
                         "      +: jump to end           -: jump to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                         "      <: decrease speed        >: increase speed\n" +
-                        "      l: loop over recording   " +
-                        ( $mode == :play  ?  "L: loop over next recording too\n"  :  "\n" ) +
+                        "      l: loop over rec     2-9,0: set num of loops (now #{get_num_loops_desc})\n" +
+                        ( $mode == :play  ?  "      L: loop over next recording too\n"  :  "\n" ) +
                         ( $mode == :play  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
@@ -81,6 +90,14 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
         print "\e[0m\e[32mreplay \e[0m"
       elsif $ctl_rec[:skip]
         print "\e[0m\e[32mjump to end \e[0m"
+      elsif $ctl_rec[:num_loops_to_one]
+        print "\e[0m\e[2mNumber of loops cannot be set to 1; rather switch looping off ... \e[0m"
+        $ctl_rec[:num_loops_to_one] = false
+      end
+
+      if $ctl_rec[:num_loops] != num_loops_was
+        print "\e[0m\e[32m num loops #{nltxt}#{$ctl_rec[:loop] ? '' : ', but loop is OFF (switch with l)'} \e[0m"
+        num_loops_was = $ctl_rec[:num_loops]
       end
 
       if $ctl_rec[:lick_lick] != lick_lick_was
@@ -96,8 +113,9 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       end
 
       if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (+ to end) " + 
-              ( $ctl_rec[:loop_loop]  ?  'and loop after loop (L to end) '  :  '' ) +
+        print "\e[0m\e[32mloop (+ to end) with " +
+              ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
+              ( $ctl_rec[:lick_lick]  ?  '; after lick continue without menu (c to change) '  :  '' ) +
               "\e[0m"
         loop_message_printed = true
       end
@@ -110,7 +128,8 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
     pplayer.kill
     pplayer.check
 
-  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
+  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} ||
+            ( $ctl_rec[:loop] && ( !$ctl_rec[:num_loops] || cnt_loops < $ctl_rec[:num_loops] ))
   $ctl_rec[:skip]
 
 end
@@ -909,4 +928,9 @@ end
 
 def get_sound_description wave, gap, len
   "Wave: #{wave}, Gap: #{gap}, Len: #{len}"
+end
+
+
+def get_num_loops_desc
+  $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf, i.e. 0'
 end

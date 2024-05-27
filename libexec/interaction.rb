@@ -393,6 +393,12 @@ def handle_kb_play_recording
     $ctl_rec[:show_help] = true
   elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
+  elsif %w(2 3 4 5 6 7 8 9).include?(char)
+    $ctl_rec[:num_loops] = char.to_i
+  elsif char == '1'
+    $ctl_rec[:num_loops_to_one] = true
+  elsif char == '0'
+    $ctl_rec[:num_loops] = false
   end
 end
 

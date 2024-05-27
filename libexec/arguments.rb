@@ -253,7 +253,7 @@ def parse_arguments_early
 
   if opts_all[:iterate]
     %w(random cycle).each do |choice|
-      opts[:iterate] = choice.to_sym if opts[:iterate] && choice.start_with?(opts[:iterate])
+      opts[:iterate] = choice.to_sym if opts[:iterate] && choice.start_with?(opts[:iterate].to_s)
     end
     opts[:iterate] ||= :random
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
