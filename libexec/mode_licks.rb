@@ -1280,7 +1280,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
 
 
   def set_lick_idx new_lick_idx
-    self[:lick_idx_before].pop if self[:lick_idx_befores][-1] == new_lick_idx
+    self[:lick_idx_befores].pop if self[:lick_idx_befores][-1] == new_lick_idx
     self[:lick_idx_befores] << self[:lick_idx] if self[:lick_idx] != self[:lick_idx_befores][-1]
     self[:lick_idx] = new_lick_idx
   end
