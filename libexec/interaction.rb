@@ -474,9 +474,9 @@ def handle_kb_play_pitch
     $ctl_pitch[:vol_up] = true
   elsif char == 'h'
     $ctl_pitch[:show_help] = true
-  elsif char == 's' || char == '+' || char == 'up'
+  elsif char == 's' || char == '+' || char == 'UP'
     $ctl_pitch[:semi_up] = true
-  elsif char == 'S' || char == '-' || char == 'down'
+  elsif char == 'S' || char == '-' || char == 'DOWN'
     $ctl_pitch[:semi_down] = true
   elsif char == 'o'
     $ctl_pitch[:octave_up] = true

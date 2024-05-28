@@ -417,7 +417,7 @@ end
 
 class PlayInter < QuizFlavour
 
-  $q_f2t[self] = [:microphone]
+  $q_f2t[self] = [:microphone, :inter]
 
   def self.describe_difficulty
     AddInter.describe_difficulty
@@ -692,6 +692,8 @@ end
 
 class HearInter < QuizFlavour
 
+  $q_f2t[self] = [:inter]
+  
   def initialize
     super
     @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]}
@@ -757,7 +759,7 @@ end
 
 class AddInter < QuizFlavour
 
-  $q_f2t[self] = [:silent]
+  $q_f2t[self] = [:silent, :inter]
 
   def initialize
     super
@@ -839,7 +841,7 @@ end
 
 class TellInter < QuizFlavour
 
-  $q_f2t[self] = [:silent]
+  $q_f2t[self] = [:silent, :inter]
 
   def initialize
     super
