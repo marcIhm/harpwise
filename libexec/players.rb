@@ -91,7 +91,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       elsif $ctl_rec[:skip]
         print "\e[0m\e[32mjump to end \e[0m"
       elsif $ctl_rec[:num_loops_to_one]
-        print "\e[0m\e[2mNumber of loops cannot be set to 1; rather switch looping off ... \e[0m"
+        print "\e[0m\e[2m#{$string_ressources[:number_loops_not_one]} \e[0m"
         $ctl_rec[:num_loops_to_one] = false
       end
 

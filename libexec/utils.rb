@@ -819,6 +819,7 @@ class FamousPlayers
       sys command
       puts command if $opts[:debug]
     else
+      sleep 1
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")
     end

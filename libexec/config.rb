@@ -184,6 +184,11 @@ def set_global_vars_early
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
   $control_fifo = "#{$dirs[:data]}/control_fifo"
+
+  # strings that are used at different locations
+  $string_ressources = {
+    number_loops_not_one: 'Number of loops cannot be set to 1; rather switch looping off ...'
+  }
 end
 
 

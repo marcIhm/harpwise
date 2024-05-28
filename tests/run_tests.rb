@@ -393,7 +393,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     expect_opts = { 'none' => [2, '???'],
                     'calibrate' => [4, 'prefer sharps'],
                     'listen' => [16, 'on every invocation'],
-                    'quiz' => [8, '--transpose-scale KEY_OR_SEMITONES'],
+                    'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
@@ -2400,7 +2400,7 @@ do_test 'id-86: print details of players' do
   tms 'harpwise print players all'
   tms :ENTER
   sleep 8
-  expect { screen[21]['players with their details'] }
+  expect { screen[18..24].any? {|l| l['Press any key for next Player']} }  
   kill_session
 end
 

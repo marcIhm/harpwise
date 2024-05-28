@@ -1977,7 +1977,7 @@ def get_accepted_flavour_from_extra
   
   if $extra == 'choose' && !env_flavour
     while !flavour
-      flavour = choose_flavour(flavour_choices)
+      flavour = choose_flavour(flavour_choices, flavour_collection)
     end
     # maybe user has chosen a collection right above
     if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
@@ -2033,7 +2033,7 @@ def get_accepted_flavour_from_extra
     if char == 'BACKSPACE'
       flavour = nil
     elsif char == 'TAB'
-      flavour = choose_flavour(flavour_choices)
+      flavour = choose_flavour(flavour_choices, flavour_collection)
       # maybe user has chosen a collection
       if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
         ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
@@ -2050,11 +2050,12 @@ def get_accepted_flavour_from_extra
 end
 
 
-def choose_flavour flavour_choices
+def choose_flavour flavour_choices, flavour_collection
   flavour = nil
   loop do
     choose_prepare_for
-    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours[:collections].length} collections:",
+    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours[:collections].length} collections" +
+                                 ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) + ':',
                                  [flavour_choices,
                                   $quiz_tag2flavours[:collections].map(&:to_s),
                                   'describe-all'].flatten) do |tag|

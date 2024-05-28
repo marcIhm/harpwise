@@ -439,15 +439,11 @@ def print_players args
       puts
       puts
       print_player $players.structured[name], true
-      if $opts[:viewer] == 'feh'
-        if !$players.structured[name]['image'][0]
-          puts
-          puts "\e[2mPress any key for next Player ...\e[0m"
-          $ctl_kb_queue.clear
-          $ctl_kb_queue.deq
-        else
-          puts "\e[2mPress ctrl-c in this terminal to quit ...\e[0m"
-        end
+      if $opts[:viewer] != 'feh' || !$players.structured[name]['image']
+        puts
+        puts "\e[2mPress any key for next Player ...\e[0m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
       end
     end
     puts

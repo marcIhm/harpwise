@@ -79,7 +79,7 @@ def parse_arguments_early
         hole: %w(--hole)}],
      [Set[:print], {
         terse: %w(--terse)}],
-     [Set[:listen, :print], {
+     [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],
      [Set[:licks, :play], {
         holes: %w(--holes),

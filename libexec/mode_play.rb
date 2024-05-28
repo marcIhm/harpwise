@@ -379,10 +379,10 @@ def maybe_wait_for_key_and_decide_replay
     old_lines = nil
     loop do
       lines =["Press:   r: to replay this lick      BACKSPACE: for previous",
-              "Keys available during play too:",
+              "Keys (available during play too):",
               "         c: continue lick after lick and without this menu " +
               ( $ctl_rec[:lick_lick]  ?  "(now ON)"  :  "(now OFF)" ),
-              "         L: loop over all licks until pressed again " +
+              "         L: loop over lick for all licks until pressed again " +
               ( $ctl_rec[:loop_loop]  ?  "(now ON)"  :  "(now OFF)" ),
               ("     2-9,0: set number of loops (now %s)" % get_num_loops_desc),
               "SPACE or RETURN for next licks ...\n"]
@@ -411,7 +411,7 @@ def maybe_wait_for_key_and_decide_replay
         $ctl_rec[:num_loops] = false
         redo
       when '1'
-        puts "\e[0m\e[2mNumber of loops cannot be set to 1; rather switch looping off ..."
+        puts "\e[0m\e[2m#{$string_ressources[:number_loops_not_one]}"
         puts
         redo
       when '2','3','4','5','6','7','8','9'
