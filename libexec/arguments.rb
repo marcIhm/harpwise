@@ -429,9 +429,9 @@ end
 def parse_arguments_late
 
   $amongs_play_or_print = if $opts[:scale_over_lick]
-                            [:semi_note, :hole, :note, :scale, :lick, :last]
+                            [:hole, :note, :scale, :lick, :last]
                           else
-                            [:semi_note, :hole, :note, :lick, :scale, :last]
+                            [:hole, :note, :lick, :scale, :last]
                           end
 
   $extra = nil

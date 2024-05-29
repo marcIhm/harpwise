@@ -417,7 +417,7 @@ end
 
 class PlayInter < QuizFlavour
 
-  $q_f2t[self] = [:microphone, :inter]
+  $q_f2t[self] = [:microphone, :inters]
 
   def self.describe_difficulty
     AddInter.describe_difficulty
@@ -692,7 +692,7 @@ end
 
 class HearInter < QuizFlavour
 
-  $q_f2t[self] = [:inter]
+  $q_f2t[self] = [:inters]
   
   def initialize
     super
@@ -759,7 +759,7 @@ end
 
 class AddInter < QuizFlavour
 
-  $q_f2t[self] = [:silent, :inter]
+  $q_f2t[self] = [:silent, :inters]
 
   def initialize
     super
@@ -841,7 +841,7 @@ end
 
 class TellInter < QuizFlavour
 
-  $q_f2t[self] = [:silent, :inter]
+  $q_f2t[self] = [:silent, :inters]
 
   def initialize
     super
@@ -2058,7 +2058,7 @@ def choose_flavour flavour_choices, flavour_collection
     choose_prepare_for
     flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours[:collections].length} collections" +
                                  ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) + ':',
-                                 [flavour_choices,
+                                 [flavour_choices, ';COLLECTIONS->',
                                   $quiz_tag2flavours[:collections].map(&:to_s),
                                   'describe-all'].flatten) do |tag|
       if tag == 'describe-all'

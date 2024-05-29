@@ -84,7 +84,7 @@ quiz:
     flavour that use your microphone and switche to listen-perspective
   silent: |
     flavours that can be tried with muted speakers
-  inter: |
+  inters: |
     flavours that revolve around intervals
   choose: |
     choose flavour right away

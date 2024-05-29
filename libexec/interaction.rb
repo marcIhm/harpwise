@@ -1096,7 +1096,7 @@ end
 # $chia_loc_cache, chia_move_loc: index is similar to that of
 # chia_print_in_columns but never includes the more-marker
 #
-def choose_interactive prompt, names
+def choose_interactive prompt, names, &block
   prompt_orig = prompt
   names.uniq!
   clear_area_comment
@@ -1125,7 +1125,7 @@ def choose_interactive prompt, names
   input = ''
   matching = names
   idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
-  print chia_desc_helper(yield(matching[idx_hili]), matching[idx_hili][0] == ';') if block_given? && matching[idx_hili]
+  print chia_desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
   loop do
     key = $ctl_kb_queue.deq
     key.downcase! if key.length == 1
@@ -1229,7 +1229,7 @@ def choose_interactive prompt, names
 
     idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
 
-    print chia_desc_helper(yield(matching[idx_hili]), matching[idx_hili][0] == ';') if block_given? && matching[idx_hili]
+    print chia_desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
   end
 end
 
@@ -1315,10 +1315,15 @@ def chia_line_helper line
 end
 
 
-def chia_desc_helper text, is_comment
-  "\e[#{$lines[:message_bottom]}H\e[0m\e[#{is_comment ? 2 : 32}m" +
-    ( is_comment ? 'This is a comment and cannot be chosen ...' : truncate_text(text) ) +
-    "\e[0m\e[K"
+def chia_desc_helper text, block
+  "\e[#{$lines[:message_bottom]}H\e[0m" +
+    if text[0] == ';'
+      "\e[2m" + 'This is a comment and cannot be chosen ...'
+    else
+      "\e[32m" +
+        truncate_text( block  ?  block.call(text)  :  text )
+    end +
+    + "\e[0m\e[K"
 end
 
 

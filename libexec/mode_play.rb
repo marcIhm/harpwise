@@ -128,15 +128,14 @@ def partition_to_play_or_print to_handle
   snames = []
   other = []
 
-  to_handle.join(' ').split.each do |th| # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+  # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+  to_handle.join(' ').split.each do |th|
 
     what = recognize_among(th, $amongs_play_or_print)
     if what == :note
       holes_or_notes << sf_norm(th)
-    elsif [:semi_note, :hole].include?(what)
+    elsif what == :hole
       holes_or_notes << th
-    elsif what == :lick && !$opts[:scale_over_lick]
-      lnames << th
     elsif what == :scale
       snames << th
     elsif what == :lick
@@ -155,7 +154,8 @@ def partition_to_play_or_print to_handle
 
   types_count = [holes_or_notes, lnames, snames].select {|x| x.length > 0}.length
 
-  if other.length > 0  ## other is only filled, if $extra == ''
+  # other is only filled, if $extra == ''
+  if other.length > 0 
     puts
     puts "Cannot understand these arguments: #{other}#{not_any_source_of};"
     puts 'they are none of (exact match required):'
