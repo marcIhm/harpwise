@@ -393,7 +393,7 @@ end
 
 class Replay < QuizFlavour
 
-  $q_f2t[self] = [:microphone]
+  $q_f2t[self] = %w(mic)
 
   def self.describe_difficulty
     if $num_quiz_replay_explicit
@@ -407,7 +407,7 @@ end
 
 class PlayScale < QuizFlavour
 
-  $q_f2t[self] = [:microphone, :scales]
+  $q_f2t[self] = %w(mic scales)
 
   def self.describe_difficulty
     HearScale.describe_difficulty
@@ -417,7 +417,7 @@ end
 
 class PlayInter < QuizFlavour
 
-  $q_f2t[self] = [:microphone, :inters]
+  $q_f2t[self] = %w(mic inters)
 
   def self.describe_difficulty
     AddInter.describe_difficulty
@@ -427,7 +427,7 @@ end
 
 class PlayShifted < QuizFlavour
 
-  $q_f2t[self] = [:microphone]
+  $q_f2t[self] = %w(mic)
 
   def self.describe_difficulty
     $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
@@ -439,7 +439,7 @@ end
 
 class HearScale < QuizFlavour
 
-  $q_f2t[self] = [:scales]
+  $q_f2t[self] = %w(scales no-mic)
   
   def initialize
     super
@@ -515,7 +515,7 @@ end
 
 class MatchScale < QuizFlavour
 
-  $q_f2t[self] = [:scales]
+  $q_f2t[self] = %w(scales no-mic)
 
   def initialize
     super
@@ -692,7 +692,7 @@ end
 
 class HearInter < QuizFlavour
 
-  $q_f2t[self] = [:inters]
+  $q_f2t[self] = %w(inters no-mic)
   
   def initialize
     super
@@ -759,7 +759,7 @@ end
 
 class AddInter < QuizFlavour
 
-  $q_f2t[self] = [:silent, :inters]
+  $q_f2t[self] = %w(silent inters no-mic)
 
   def initialize
     super
@@ -841,7 +841,7 @@ end
 
 class TellInter < QuizFlavour
 
-  $q_f2t[self] = [:silent, :inters]
+  $q_f2t[self] = %w(silent inters no-mic)
 
   def initialize
     super
@@ -908,7 +908,7 @@ end
 
 class Players < QuizFlavour
 
-  $q_f2t[self] = [:silent]
+  $q_f2t[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -967,7 +967,7 @@ end
 
 class KeyHarpSong < QuizFlavour
 
-  $q_f2t[self] = [:silent]
+  $q_f2t[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -1020,7 +1020,7 @@ end
 
 class HoleNote < QuizFlavour
 
-  $q_f2t[self] = [:silent]
+  $q_f2t[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -1120,6 +1120,8 @@ end
 
 class HearKey < QuizFlavour
 
+  $q_f2t[self] = %w(no-mic)
+  
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
@@ -1516,6 +1518,8 @@ end
 
 class HearTempo < QuizFlavour
 
+  $q_f2t[self] = %w(no-mic)
+  
   @@choices = {:easy => %w(70 90 110 130),
                :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160)}
   
@@ -1580,7 +1584,7 @@ end
 
 class NotInScale < QuizFlavour
 
-  $q_f2t[self] = [:scales]
+  $q_f2t[self] = %w(scales no-mic)
 
   def initialize
     super
@@ -1952,13 +1956,13 @@ def get_accepted_flavour_from_extra
   flavour,
   flavour_collection,
   flavour_choices = if env_flavour
-                      [get_random_flavour($quiz_tag2flavours[env_flavour.to_sym]),
+                      [get_random_flavour($quiz_tag2flavours[env_flavour]),
                        env_flavour,
-                       $quiz_tag2flavours[env_flavour.to_sym]]
+                       $quiz_tag2flavours[env_flavour]]
                     else
-                      if $quiz_tag2flavours[:meta].include?($extra) 
-                        if $quiz_tag2flavours[:collections].include?($extra.to_sym)
-                          [nil, $extra, $quiz_tag2flavours[$extra.to_sym]]
+                      if $quiz_tag2flavours['meta'].include?($extra) 
+                        if $quiz_tag2flavours['collections'].include?($extra)
+                          [nil, $extra, $quiz_tag2flavours[$extra]]
                         else
                           # variations of random
                           [nil, nil, $quiz_flavour2class.keys]
@@ -1982,8 +1986,8 @@ def get_accepted_flavour_from_extra
       flavour = choose_flavour(flavour_choices, flavour_collection)
     end
     # maybe user has chosen a collection right above
-    if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
-      flavour_choices = $quiz_tag2flavours[flavour.to_sym]
+    if $quiz_tag2flavours['collections'].include?(flavour)
+      flavour_choices = $quiz_tag2flavours[flavour]
       ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
       flavour = nil
     end
@@ -2037,10 +2041,10 @@ def get_accepted_flavour_from_extra
     elsif char == 'TAB'
       flavour = choose_flavour(flavour_choices, flavour_collection)
       # maybe user has chosen a collection
-      if $quiz_tag2flavours[:collections].include?(flavour.to_sym)
+      if $quiz_tag2flavours['collections'].include?(flavour)
         ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
-        flavour_choices = $quiz_tag2flavours[flavour.to_sym]
-        flavour = get_random_flavour($quiz_tag2flavours[flavour.to_sym])
+        flavour_choices = $quiz_tag2flavours[flavour]
+        flavour = get_random_flavour($quiz_tag2flavours[flavour])
       end
     else
       return flavour
@@ -2056,14 +2060,14 @@ def choose_flavour flavour_choices, flavour_collection
   flavour = nil
   loop do
     choose_prepare_for
-    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours[:collections].length} collections" +
+    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours['collections'].length} collections" +
                                  ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) + ':',
                                  [flavour_choices, ';COLLECTIONS->',
-                                  $quiz_tag2flavours[:collections].map(&:to_s),
+                                  $quiz_tag2flavours['collections'],
                                   'describe-all'].flatten) do |tag|
       if tag == 'describe-all'
         'Describe all flavours and flavour collections in detail'
-      elsif $quiz_tag2flavours[:meta].include?(tag)
+      elsif $quiz_tag2flavours['meta'].include?(tag)
         make_extra_desc_short(tag, "Flavour collection '#{tag}'")
       else
         make_extra_desc_short(tag, "Flavour '#{tag}'")

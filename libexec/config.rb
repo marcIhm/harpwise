@@ -364,17 +364,17 @@ def set_global_vars_late
   end.to_h
   $quiz_flavour2tags = Hash.new {|h,k| h[k] = Array.new}
   $quiz_tag2flavours = Hash.new {|h,k| h[k] = Array.new}
-  $quiz_tag2flavours[:meta] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
-  $quiz_tag2flavours[:all] = $quiz_flavour2class.keys
+  $quiz_tag2flavours['meta'] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
+  $quiz_tag2flavours['all'] = $quiz_flavour2class.keys
   # $q_f2t comes from the individual flavour classes
-  $q_f2t.each do |flav, tags|
-    fl = flav.to_s.underscore.tr('_', '-')
+  $q_f2t.each do |flcl, tags|
+    fl = flcl.to_s.underscore.tr('_', '-')
     tags.each do |tg|
       $quiz_flavour2tags[fl] << tg
       $quiz_tag2flavours[tg] << fl
     end
   end
-  $quiz_tag2flavours[:collections] = $quiz_tag2flavours.keys - [:meta]
+  $quiz_tag2flavours['collections'] = $quiz_tag2flavours.keys - ['meta']
 end
 
 

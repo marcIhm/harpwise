@@ -80,14 +80,18 @@ quiz:
     all flavours, one at random
   scales: |
     flavours related with scales at random
-  microphone: |
-    flavour that use your microphone and switche to listen-perspective
+  mic: |
+    flavours, that use the microphone and switch to listen-perspective
+  no-mic: |
+    flavours, that do not use the microphone, so that you do not need
+    a harp; but these flavours are not necessarily silent and may
+    still play sounds.
   silent: |
     flavours that can be tried with muted speakers
   inters: |
     flavours that revolve around intervals
   choose: |
-    choose flavour right away
+    choose flavour right away (only as extra-argument on commandline)
   players: |
     harpwise shows details about a famous player and asks for his or
     her name

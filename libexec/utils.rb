@@ -647,7 +647,7 @@ def get_extra_desc_single key
     lns = v.lines.map(&:strip)
     return [k] + [lns[0].sub(/\S/,&:upcase)] + lns[1 .. -1]
   end
-  fail "Internal error: #{key} not found"
+  fail "Internal error: key #{key} not found"
 end
 
 

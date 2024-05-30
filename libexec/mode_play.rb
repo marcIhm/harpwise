@@ -384,7 +384,7 @@ def maybe_wait_for_key_and_decide_replay
               ( $ctl_rec[:lick_lick]  ?  "(now ON)"  :  "(now OFF)" ),
               "         L: loop over lick for all licks until pressed again " +
               ( $ctl_rec[:loop_loop]  ?  "(now ON)"  :  "(now OFF)" ),
-              ("     2-9,0: set number of loops (now %s)" % get_num_loops_desc),
+              ("     2-9,0: set num, if looping enabled (now %s)" % get_num_loops_desc(true)),
               "SPACE or RETURN for next licks ...\n"]
       # highlight diffs to initial state
       old_lines ||= lines.clone

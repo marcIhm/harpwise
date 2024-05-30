@@ -2920,13 +2920,13 @@ do_test 'id-113: quiz-flavour choose' do
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 16 flavours and 5 collections'] }
+  expect { screen[16]['Please choose among 16 flavours and 6 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
   sleep 1
   tms :TAB
-  expect { screen[16]['Please choose among 5 flavours and 5 collections'] }
+  expect { screen[16]['Please choose among 5 flavours and 6 collections'] }
   kill_session
 end
 

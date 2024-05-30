@@ -80,7 +80,9 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
                         "    +: jump to end           -: jump to start\n" +
                         "    v: decrease volume       V: increase volume by 3dB\n" +
                         "    <: decrease speed        >: increase speed\n" +
-                        "    l: loop over rec     2-9,0: num loops (now #{get_num_loops_desc})\n" +
+                        "    l: loop over rec " +
+                        ( $ctl_rec[:loop]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
+                        "2-9,0: set num, if looping enabled (now #{get_num_loops_desc})\n" +
                         if $mode == :play
                           "    L: loop over next recording too " +
                             ( $ctl_rec[:lick_lick]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
@@ -612,7 +614,7 @@ def play_interactive_chord semis, args_orig
                         "      w: change waveform       W: change waveform back\n" +
                         "      g: decrease time gap     G: increase\n" +
                         "      l: decrease length       L: increase\n" +
-                        "      v: decrease volume       V: increase volume by 3dB" +
+                        "      v: decrease volume       V: increase volume by 3dB\n" +
                         " RETURN: play again"
         pplayer.continue
         puts "\e[0m#{cdesc}"
@@ -937,13 +939,13 @@ def get_sound_description wave, gap, len
 end
 
 
-def get_num_loops_desc
+def get_num_loops_desc short = false
   if $ctl_rec[:num_loops]
     $ctl_rec[:num_loops].to_s
   else
     'inf, ie. 0'
   end +
-    if $ctl_rec[:loop] || $ctl_rec[:loop_loop]
+    if $ctl_rec[:loop] || $ctl_rec[:loop_loop] || short
       ''
     else 
       '; but loop is OFF'
