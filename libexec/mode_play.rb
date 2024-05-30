@@ -372,7 +372,7 @@ end
 
 def maybe_wait_for_key_and_decide_replay 
   if $ctl_rec[:lick_lick] && $ctl_kb_queue.empty?
-    puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
+    puts "\e[0m\e[2mContinuing with next lick with waiting for key ('c' to toggle)\e[0m"
     $ctl_kb_queue.clear
     return :next
   else
@@ -398,6 +398,7 @@ def maybe_wait_for_key_and_decide_replay
       puts
       case char
       when 'BACKSPACE'
+        $ctl_rec[:lick_lick] = false
         return :prev
       when 'r'
         return :redo

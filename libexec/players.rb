@@ -76,13 +76,19 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
-                        "  SPACE: pause/continue\n" + 
-                        "      +: jump to end           -: jump to start\n" +
-                        "      v: decrease volume       V: increase volume by 3dB\n" +
-                        "      <: decrease speed        >: increase speed\n" +
-                        "      l: loop over rec     2-9,0: set num of loops (now #{get_num_loops_desc})\n" +
-                        ( $mode == :play  ?  "      L: loop over next recording too\n"  :  "\n" ) +
-                        ( $mode == :play  ?  "      c: continue with next lick without waiting for key\n"  :  "\n" )
+                        "SPACE: pause/continue\n" + 
+                        "    +: jump to end           -: jump to start\n" +
+                        "    v: decrease volume       V: increase volume by 3dB\n" +
+                        "    <: decrease speed        >: increase speed\n" +
+                        "    l: loop over rec     2-9,0: num loops (now #{get_num_loops_desc})\n" +
+                        if $mode == :play
+                          "    L: loop over next recording too " +
+                            ( $ctl_rec[:lick_lick]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
+                            "    c: continue with next lick without waiting for key " +
+                            ( $ctl_rec[:loop_loop]  ?  "(now ON)\n"  :  "(now OFF)\n" )
+                        else
+                          ''
+                        end
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
@@ -96,7 +102,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       end
 
       if $ctl_rec[:num_loops] != num_loops_was
-        print "\e[0m\e[32m num loops #{nltxt}#{$ctl_rec[:loop] ? '' : ', but loop is OFF (switch with l)'} \e[0m"
+        print "\e[0m\e[32m num loops #{get_num_loops_desc} \e[0m"
         num_loops_was = $ctl_rec[:num_loops]
       end
 
@@ -932,5 +938,14 @@ end
 
 
 def get_num_loops_desc
-  $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf, i.e. 0'
+  if $ctl_rec[:num_loops]
+    $ctl_rec[:num_loops].to_s
+  else
+    'inf, ie. 0'
+  end +
+    if $ctl_rec[:loop] || $ctl_rec[:loop_loop]
+      ''
+    else 
+      '; but loop is OFF'
+    end
 end
