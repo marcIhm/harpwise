@@ -1228,6 +1228,8 @@ end
 
 class KeepTempo < QuizFlavour
 
+  $q_f2t[self] = %w(mic)
+  
   @@explained = false
   @@history = Array.new
 
@@ -2068,7 +2070,7 @@ def choose_flavour flavour_choices, flavour_collection
       if tag == 'describe-all'
         'Describe all flavours and flavour collections in detail'
       elsif $quiz_tag2flavours['meta'].include?(tag)
-        make_extra_desc_short(tag, "Flavour collection '#{tag}'")
+        make_extra_desc_short(tag, "Flavour collection '#{tag}' (#{$quiz_tag2flavours[tag].length})")
       else
         make_extra_desc_short(tag, "Flavour '#{tag}'")
       end

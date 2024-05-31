@@ -81,11 +81,12 @@ quiz:
   scales: |
     flavours related with scales at random
   mic: |
-    flavours, that use the microphone and switch to listen-perspective
+    flavours, that use the microphone; most of them switch to
+    listen-perspective
   no-mic: |
-    flavours, that do not use the microphone, so that you do not need
-    a harp; but these flavours are not necessarily silent and may
-    still play sounds.
+    flavours, that do not use the microphone, so that no harp is
+    needed; but these flavours are not necessarily silent and may
+    still play sounds
   silent: |
     flavours that can be tried with muted speakers
   inters: |
