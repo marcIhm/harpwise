@@ -28,7 +28,7 @@ def do_quiz to_handle
 
   if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL']
     do_restart_animation
-    puts "\e[0m\e[2mStarting over with a different flavour ...\e[0m\n\n"    
+    puts "\e[0m\e[2mStarting over with a different flavour.\e[0m\n\n"    
   else
     animate_splash_line
     puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"
@@ -1644,7 +1644,7 @@ class NotInScale < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-MOD-ASC', 'Play holes of modified scale in ascending order']
+    ['.HELP-PLAY-MOD-ASC', 'Play holes of modified scale in ascending order']
   end
   
   def help3
@@ -1653,7 +1653,7 @@ class NotInScale < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-ORIG-ASC', 'Play original scale ascending']
+    ['.HELP-PLAY-ORIG-ASC', 'Play original scale ascending']
   end
 
   def help4
@@ -1662,7 +1662,7 @@ class NotInScale < QuizFlavour
   end
 
   def help4_desc
-    ['.HELP-ORIG-SHUF', 'Play original scale shuffled']
+    ['.HELP-PLAY-ORIG-SHUF', 'Play original scale shuffled']
   end
 
   def help5
@@ -2099,7 +2099,7 @@ end
 def get_random_flavour flavour_choices, silent = false
   # choose a random flavour that has not been used recently
   unless silent
-    puts "\e[2mChoosing a random flavour ...\e[0m"
+    puts "\e[2mChoosing a random flavour, 1 out of #{flavour_choices.length} ...\e[0m"
     sleep 0.1
   end
   flavours_last = $pers_data['quiz_flavours_last'] || []
