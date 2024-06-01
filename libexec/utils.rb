@@ -359,7 +359,13 @@ def animate_splash_line single_line = false, as_string: false
 
   return if $splashed
   print "\e[J"
-  puts unless single_line
+  unless single_line
+    3.times do
+      puts
+      sleep 0.08
+    end
+    print "\e[A\e[A"
+  end
   if $testing
     testing_clause = "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
     if single_line
@@ -385,7 +391,7 @@ def animate_splash_line single_line = false, as_string: false
     sleep 0.2
   end
   puts unless single_line
-  sleep 0.01
+  sleep 0.04
   $splashed = true
 end
 
