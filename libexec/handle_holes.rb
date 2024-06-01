@@ -176,9 +176,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
                  lambda_good_done_was_good.call(hole, hole_since)
                end
 
-    if $ctl_mic[:done]
+    if $ctl_mic[:hole_given]
       good = done = true
-      $ctl_mic[:done] = false
+      $ctl_mic[:hole_given] = false
+      $msgbuf.print "One hole for free, just as if you would have played it", 1, 4, :hole_given
     end
 
     was_good_since = tntf if was_good && was_good != was_was_good
@@ -656,7 +657,7 @@ def show_help
                           "     */: Add or remove Star from current lick persistently;",
                           "         select them later by tag 'starred'",
                           "      !: play holes reversed               &: shuffle holes",
-                          "      1: pretend, one hole played",
+                          "      1: give one hole, as if you played it",
                           ""])
     elsif $mode == :quiz && $extra == 'replay'
       frames[-1] << "      n: change number of holes to be replayed"

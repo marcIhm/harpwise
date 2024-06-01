@@ -1086,7 +1086,7 @@ def read_tags_and_refresh_licks curr_lick
   puts
   puts_names_of_licks 40
   puts
-  puts "\e[2m  Press any key to continue ...\e[0m"
+  puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 
@@ -1483,7 +1483,7 @@ def show_lick_info lick
   end
   puts ' Tag-Options: none' unless ohead
   puts_names_of_licks 20
-  puts "\e[2m  Press any key to continue ...\e[0m"
+  puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 end

@@ -76,7 +76,7 @@ def check_screen graceful: false, hint_on_large_term: false
   if $opts[:debug] && $debug_what.include?(:check_screen) && $debug_state[:kb_handler_started]
     puts "[width, height] = [#{$term_width}, #{$term_height}]"
     pp $lines
-    puts "Press any key to continue ..."
+    puts $resources[:any_key]
     $ctl_kb_queue.deq
     $ctl_kb_queue.clear
   end
@@ -668,8 +668,8 @@ def handle_kb_mic
     $ctl_mic[:quit] = true
     text = nil
   elsif char == '1'
-    $ctl_mic[:done] = true
-    text = 'Hole done'
+    $ctl_mic[:hole_given] = true
+    text = 'One for free'
   elsif char == '!' && $opts[:debug]
     $ctl_mic[:debug] = !$ctl_mic[:debug]
     text = "Debug: #{$ctl_mic[:debug]}"
@@ -1141,7 +1141,7 @@ def choose_interactive prompt, names, &block
       puts " - TAB and S-TAB go to next/prev page if '...more'"
       puts "\e[0mBottom line shows descriptions of choices."
       puts
-      puts "\e[0m\e[2mPress any key to continue ...\e[0m"
+      puts "\e[0m\e[2m#{$resources[:any_key]}\e[0m"
       $ctl_kb_queue.deq
       clear_area_comment(2)        
 
@@ -1186,7 +1186,7 @@ def choose_interactive prompt, names, &block
         clear_area_comment(2)
         clear_area_message
         print "\e[#{$lines[:comment_tall] + 4}H\e[0m\e[2m  '#{matching[idx_hili]}'\e[0m is a comment, please choose another item."
-        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    Press any key to continue ...\e[0m"
+        print "\e[#{$lines[:comment_tall] + 5}H\e[0m\e[2m    #{$resources[:any_key]}\e[0m"
         $ctl_kb_queue.deq
 
       else
@@ -1414,7 +1414,7 @@ def report_condition_wait_key text, condition = :error
   end
   print "\e[0m\n\n"
   print text
-  print "\n\n\e[2mPress any key to continue ... \e[K"
+  print "\n\n\e[2m#{$resources[:any_key]}\e[K"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 end

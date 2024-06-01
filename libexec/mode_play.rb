@@ -412,7 +412,7 @@ def maybe_wait_for_key_and_decide_replay
         $ctl_rec[:num_loops] = false
         redo
       when '1'
-        puts "\e[0m\e[2m#{$string_ressources[:number_loops_not_one]}"
+        puts "\e[0m\e[2m#{$resources[:nloops_not_one]}"
         puts
         redo
       when '2','3','4','5','6','7','8','9'

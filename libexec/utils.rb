@@ -181,7 +181,7 @@ def display_kb_help what, scroll_allowed, body
   body.lines.each do |l|
     puts ( ' ' * indent ) + l.gsub(/(\S+): /, "\e[92m\\1\e[32m: ").chomp + "\n"
   end
-  print "\e[0mPress any key to continue ..."
+  print "\e[0m#{$resources[:any_key]}"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   if scroll_allowed
@@ -539,7 +539,7 @@ def edit_file file, lno = nil
   else
     make_term_immediate
     puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
-    puts "Press any key to continue ...\e[K"
+    puts "#{$resources[:any_key]}\e[K"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
     return false

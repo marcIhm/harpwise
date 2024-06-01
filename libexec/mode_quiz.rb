@@ -1791,8 +1791,8 @@ end
 def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide
   choices2desc = {'SOLVE-PRINT' => "Solve: Print #{item}, but keep current question",
                   'HELP-PLAY' => "Play #{item}, so that you may replay it"}
-  answer = choose_interactive("Available hints for quiz-flavour #{$quiz_flavour}:",
-                              choices2desc.keys) {|tag| choices2desc[tag]}
+  answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
+                              choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
   clear_area_message
   case answer
@@ -1822,8 +1822,8 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
                   'SOLVE-PRINT-SHIFTED' => "Solve: Print shifted sequence, but keep current question",
                   'HELP-PLAY-UNSHIFTED' => "Play unshifted sequence; similar to '.'",
                   'HELP-PLAY-BOTH' => "Play unshifted sequence first and then shifted, so that you may replay it"}
-  answer = choose_interactive("Available hints for quiz-flavour #{$quiz_flavour}:",
-                              choices2desc.keys) {|tag| choices2desc[tag]}
+  answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
+                              choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
   clear_area_message
   $ctl_kb_queue.clear
@@ -2078,7 +2078,7 @@ def choose_flavour flavour_choices, flavour_collection
     choose_clean_up
     if !flavour
       puts "\e[0mNo flavour chosen, please try again."
-      puts "\e[2mPress any key to continue ...\e[0m"
+      puts "\e[2m#{$resources[:any_key]}\e[0m"
       one_char
       redo
     elsif flavour == "describe-all"

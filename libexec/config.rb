@@ -58,7 +58,7 @@ def set_global_vars_early
   $ctl_sig_winch = false
   
   # Variables that may be set by pressing keys when listening to microphone
-  ks = [:skip, :redraw, :done, :next, :back, :forget, :quit, :replay, :octave,
+  ks = [:skip, :redraw, :hole_given, :next, :back, :forget, :quit, :replay, :octave,
         :loop, :start_loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
         :ignore_partial, :ignore_holes, :ignore_recording, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter, :shift_inter_circle,
@@ -185,9 +185,13 @@ def set_global_vars_early
 
   $control_fifo = "#{$dirs[:data]}/control_fifo"
 
-  # strings that are used at different locations
-  $string_ressources = {
-    number_loops_not_one: 'Number of loops cannot be set to 1; rather switch looping off ...'
+  # strings that are used identically at different locations;
+  # collected here to help consistency
+  $resources = {
+    nloops_not_one: 'Number of loops cannot be set to 1; rather switch looping off ...',
+    quiz_hints: 'Available hints for quiz-flavour %s',
+    any_key: 'Press any key to continue ...',
+    just_type_one: ";or just type '1' to get one hole"
   }
 end
 

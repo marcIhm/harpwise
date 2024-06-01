@@ -15,7 +15,7 @@
 
   [[images/harmonica3.png]]
 
-  harpwise supports the practice of scales, licks, bends, warbles,
+  Harpwise supports the practice of scales, licks, bends, warbles,
   intervals or note-progressions on a diatonic (richter) or chromatic
   harmonica for all keys. It uses your microphone and speaker to give you
   immediate feedback.
