@@ -26,14 +26,18 @@ def do_quiz to_handle
     exec($full_commandline)
   end
 
-  if ENV['HARPWISE_RESTARTED_AFTER_SIGNAL']
+  inherited = ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION']
+  if inherited
     do_restart_animation
-    puts "\e[0m\e[2mStarting over with a different flavour.\e[0m\n\n"    
+    puts "\e[0m\e[2mStarting over with a different flavour.\e[0m"
   else
     animate_splash_line
     puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"
   end
-  
+  puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
+  puts
+  sleep 0.1
+
   #
   # process any arguments passed in as to_handle
   #
@@ -55,7 +59,8 @@ def do_quiz to_handle
   #
   # Get Flavour
   #
-  $quiz_flavour = get_accepted_flavour_from_extra unless $other_mode_saved[:conf]
+  $quiz_flavour,
+  ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION'] = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
 
   
   # for listen-perspective, dont show solution immediately
@@ -219,7 +224,7 @@ end
 
 # will be populated by class-definitions (with flavours and tags) and
 # reworked in config.rb into $quiz_flav2tag and $quiz_tag2flav
-$q_f2t = Hash.new
+$q_class2colls = Hash.new
 
 class QuizFlavour
 
@@ -393,7 +398,7 @@ end
 
 class Replay < QuizFlavour
 
-  $q_f2t[self] = %w(mic)
+  $q_class2colls[self] = %w(mic)
 
   def self.describe_difficulty
     if $num_quiz_replay_explicit
@@ -407,7 +412,7 @@ end
 
 class PlayScale < QuizFlavour
 
-  $q_f2t[self] = %w(mic scales)
+  $q_class2colls[self] = %w(mic scales)
 
   def self.describe_difficulty
     HearScale.describe_difficulty
@@ -417,7 +422,7 @@ end
 
 class PlayInter < QuizFlavour
 
-  $q_f2t[self] = %w(mic inters)
+  $q_class2colls[self] = %w(mic inters)
 
   def self.describe_difficulty
     AddInter.describe_difficulty
@@ -427,7 +432,7 @@ end
 
 class PlayShifted < QuizFlavour
 
-  $q_f2t[self] = %w(mic)
+  $q_class2colls[self] = %w(mic)
 
   def self.describe_difficulty
     $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
@@ -439,7 +444,7 @@ end
 
 class HearScale < QuizFlavour
 
-  $q_f2t[self] = %w(scales no-mic)
+  $q_class2colls[self] = %w(scales no-mic)
   
   def initialize
     super
@@ -515,7 +520,7 @@ end
 
 class MatchScale < QuizFlavour
 
-  $q_f2t[self] = %w(scales no-mic)
+  $q_class2colls[self] = %w(scales no-mic)
 
   def initialize
     super
@@ -692,7 +697,7 @@ end
 
 class HearInter < QuizFlavour
 
-  $q_f2t[self] = %w(inters no-mic)
+  $q_class2colls[self] = %w(inters no-mic)
   
   def initialize
     super
@@ -759,7 +764,7 @@ end
 
 class AddInter < QuizFlavour
 
-  $q_f2t[self] = %w(silent inters no-mic)
+  $q_class2colls[self] = %w(silent inters no-mic)
 
   def initialize
     super
@@ -841,7 +846,7 @@ end
 
 class TellInter < QuizFlavour
 
-  $q_f2t[self] = %w(silent inters no-mic)
+  $q_class2colls[self] = %w(silent inters no-mic)
 
   def initialize
     super
@@ -908,7 +913,7 @@ end
 
 class Players < QuizFlavour
 
-  $q_f2t[self] = %w(silent no-mic)
+  $q_class2colls[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -967,7 +972,7 @@ end
 
 class KeyHarpSong < QuizFlavour
 
-  $q_f2t[self] = %w(silent no-mic)
+  $q_class2colls[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -1020,7 +1025,7 @@ end
 
 class HoleNote < QuizFlavour
 
-  $q_f2t[self] = %w(silent no-mic)
+  $q_class2colls[self] = %w(silent no-mic)
 
   def initialize
     super
@@ -1120,7 +1125,7 @@ end
 
 class HearKey < QuizFlavour
 
-  $q_f2t[self] = %w(no-mic)
+  $q_class2colls[self] = %w(no-mic)
   
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
@@ -1228,7 +1233,7 @@ end
 
 class KeepTempo < QuizFlavour
 
-  $q_f2t[self] = %w(mic)
+  $q_class2colls[self] = %w(mic)
   
   @@explained = false
   @@history = Array.new
@@ -1520,7 +1525,7 @@ end
 
 class HearTempo < QuizFlavour
 
-  $q_f2t[self] = %w(no-mic)
+  $q_class2colls[self] = %w(no-mic)
   
   @@choices = {:easy => %w(70 90 110 130),
                :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160)}
@@ -1586,7 +1591,7 @@ end
 
 class NotInScale < QuizFlavour
 
-  $q_f2t[self] = %w(scales no-mic)
+  $q_class2colls[self] = %w(scales no-mic)
 
   def initialize
     super
@@ -1947,53 +1952,28 @@ def do_restart_animation
 end
 
 
-# extra may contain meta-keywords like 'choose'; flavour only real
+# $extra may contain meta-keywords like 'choose'; flavour only real
 # flavours like 'hear-scale'
-def get_accepted_flavour_from_extra
+def get_accepted_flavour_from_extra inherited
 
-  # flavour is nil or the flavour that can be determined directly from
-  # $extra; flavour_choices is the range of flavours to choose from at
-  # random, e.g. after ctrl-z
-  env_flavour = ENV['HARPWISE_RESTARTED_AFTER_SIGNAL']
   flavour,
-  flavour_collection,
-  flavour_choices = if env_flavour
-                      [get_random_flavour($quiz_tag2flavours[env_flavour]),
-                       env_flavour,
-                       $quiz_tag2flavours[env_flavour]]
-                    else
-                      if $quiz_tag2flavours['meta'].include?($extra) 
-                        if $quiz_tag2flavours['collections'].include?($extra)
-                          [nil, $extra, $quiz_tag2flavours[$extra]]
-                        else
-                          # variations of random
-                          [nil, nil, $quiz_flavour2class.keys]
-                        end
-                      elsif $extra == 'choose'
-                        [nil, nil, $quiz_flavour2class.keys]
-                      else
-                        [$extra, nil, $quiz_flavour2class.keys]
-                      end
-                    end
-
-  ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection || 'all'
-  
-  print "\e[2mChoosing flavour at random, 1 out of #{flavour_choices.length}.  " if !flavour && $extra != 'choose'
-  puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
-  puts
-  sleep 0.1
-  
-  if $extra == 'choose' && !env_flavour
-    while !flavour
-      flavour = choose_flavour(flavour_choices, flavour_collection)
-    end
-    # maybe user has chosen a collection right above
-    if $quiz_tag2flavours['collections'].include?(flavour)
-      flavour_choices = $quiz_tag2flavours[flavour]
-      ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
-      flavour = nil
-    end
-  end
+  collection = if inherited
+                 # we only ever inherit a collection; never a
+                 # specific flavour
+                 [get_random_flavour(inherited), inherited]
+               elsif $extra == 'choose'
+                 choose_flavour_or_collection('all')
+               elsif $quiz_coll2flavs[$extra]
+                 # a flavour collection
+                 [nil, $extra]
+               elsif $quiz_coll2flavs['all'].include?($extra)
+                 # a specific flafour
+                 [$extra, 'all']
+               else
+                 # this handles 'ran' and 'random' as synonyms for
+                 # 'all' (which itself is handled above)
+                 [nil, 'all']
+               end
   
   first_iteration = true
 
@@ -2001,7 +1981,13 @@ def get_accepted_flavour_from_extra
   # return
   loop do 
 
-    flavour ||= get_random_flavour(flavour_choices, true)
+    # maybe user has chosen a collection (above or in previous iteration)
+    if $quiz_coll2flavs[flavour]
+      collection = flavour
+      flavour = nil
+    end
+
+    flavour ||= get_random_flavour(collection)
     
     # now we have a valid flavour, so inform user and get confirmation
     has_issue_question = $quiz_flavour2class[flavour].method_defined?(:issue_question)
@@ -2032,24 +2018,15 @@ def get_accepted_flavour_from_extra
     puts
 
     # ask for user feedback
-    clause = ( )
-    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour" +
-         ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) +
-         "\nor TAB to choose one explicitly ...\e[0m"
+    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour (#{collection})\nor TAB to choose a flavour or collection explicitly ...\e[0m"
     char = one_char
 
     if char == 'BACKSPACE'
       flavour = nil
     elsif char == 'TAB'
-      flavour = choose_flavour(flavour_choices, flavour_collection)
-      # maybe user has chosen a collection
-      if $quiz_tag2flavours['collections'].include?(flavour)
-        ENV['HARPWISE_RESTARTED_AFTER_SIGNAL'] = flavour_collection = flavour
-        flavour_choices = $quiz_tag2flavours[flavour]
-        flavour = get_random_flavour($quiz_tag2flavours[flavour])
-      end
+      flavour, collection = choose_flavour_or_collection(collection)
     else
-      return flavour
+      return flavour, collection
     end
     puts
     first_iteration = false
@@ -2058,30 +2035,25 @@ def get_accepted_flavour_from_extra
 end
 
 
-def choose_flavour flavour_choices, flavour_collection
-  flavour = nil
+def choose_flavour_or_collection collection
+  choices = $quiz_coll2flavs[collection]
+  answer = nil
   loop do
     choose_prepare_for
-    flavour = choose_interactive("Please choose among #{flavour_choices.length} flavours and #{$quiz_tag2flavours['collections'].length} collections" +
-                                 ( flavour_collection  ?  " (#{flavour_collection})"  :  '' ) + ':',
-                                 [flavour_choices, ';COLLECTIONS->',
-                                  $quiz_tag2flavours['collections'],
+    answer = choose_interactive("Please choose among #{choices.length} (#{collection}) flavours and #{$quiz_coll2flavs.keys.length} collections:",
+                                 [choices, ';COLLECTIONS->',
+                                  $quiz_coll2flavs.keys,
                                   'describe-all'].flatten) do |tag|
       if tag == 'describe-all'
         'Describe all flavours and flavour collections in detail'
-      elsif $quiz_tag2flavours['meta'].include?(tag)
-        make_extra_desc_short(tag, "Flavour collection '#{tag}' (#{$quiz_tag2flavours[tag].length})")
+      elsif $quiz_coll2flavs[tag]
+        make_extra_desc_short(tag, "Flavour collection '#{tag}' (#{$quiz_coll2flavs[tag].length})")
       else
         make_extra_desc_short(tag, "Flavour '#{tag}'")
       end
-    end
+    end || collection
     choose_clean_up
-    if !flavour
-      puts "\e[0mNo flavour chosen, please try again."
-      puts "\e[2m#{$resources[:any_key]}\e[0m"
-      one_char
-      redo
-    elsif flavour == "describe-all"
+    if answer == "describe-all"
       puts "The #{$extra_desc[:quiz].length} available flavours and flavour-collections:"
       puts
       puts get_extra_desc_all.join("\n")
@@ -2090,21 +2062,23 @@ def choose_flavour flavour_choices, flavour_collection
       one_char
       redo
     end
-    break
+
+    if $quiz_coll2flavs[answer]
+      return [nil, answer]
+    else
+      return [answer, collection]
+    end
   end
-  flavour
 end
 
 
-def get_random_flavour flavour_choices, silent = false
-  # choose a random flavour that has not been used recently
-  unless silent
-    puts "\e[2mChoosing a random flavour, 1 out of #{flavour_choices.length} ...\e[0m"
-    sleep 0.1
-  end
+def get_random_flavour collection
+  choices = $quiz_coll2flavs[collection]
+  puts "\e[2mChoosing a random flavour, 1 out of #{choices.length} (#{collection}).\e[0m"
+  sleep 0.1
   flavours_last = $pers_data['quiz_flavours_last'] || []
   try_flavour = nil
-  choices = flavour_choices.shuffle
+  choices = choices.shuffle
   loop do
     try_flavour = choices.shift
     break if !flavours_last.include?(try_flavour) || choices.length == 0

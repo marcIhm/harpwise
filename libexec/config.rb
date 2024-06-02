@@ -366,19 +366,16 @@ def set_global_vars_late
   $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
     [subclass.to_s.underscore.tr('_', '-'), subclass]
   end.to_h
-  $quiz_flavour2tags = Hash.new {|h,k| h[k] = Array.new}
-  $quiz_tag2flavours = Hash.new {|h,k| h[k] = Array.new}
-  $quiz_tag2flavours['meta'] = $extra_kws[:quiz].to_a - $quiz_flavour2class.keys
-  $quiz_tag2flavours['all'] = $quiz_flavour2class.keys
-  # $q_f2t comes from the individual flavour classes
-  $q_f2t.each do |flcl, tags|
-    fl = flcl.to_s.underscore.tr('_', '-')
-    tags.each do |tg|
-      $quiz_flavour2tags[fl] << tg
-      $quiz_tag2flavours[tg] << fl
+  $quiz_coll2flavs = Hash.new
+  # $q_cl2ts comes from the individual flavour classes
+  $q_class2colls.each do |clasz, colls|
+    flav = clasz.to_s.underscore.tr('_', '-')
+    colls.each do |co|
+      $quiz_coll2flavs[co] ||= Array.new
+      $quiz_coll2flavs[co] << flav
     end
   end
-  $quiz_tag2flavours['collections'] = $quiz_tag2flavours.keys - ['meta']
+  $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
 end
 
 

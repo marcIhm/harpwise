@@ -2848,7 +2848,7 @@ do_test 'id-109: quiz-flavour players' do
   sleep 2
   tms :ENTER
   sleep 1
-  expect { screen[1..7].any? {|l| l['What is the name of the player with']} }
+  expect { screen[16]['Enter the name of the player described above'] } 
   sleep 1
   tms 'help-more-info'
   tms :ENTER
@@ -2920,13 +2920,13 @@ do_test 'id-113: quiz-flavour choose' do
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 16 flavours and 6 collections'] }
+  expect { screen[16]['Please choose among 16 (all) flavours and 6 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
   sleep 1
   tms :TAB
-  expect { screen[16]['Please choose among 5 flavours and 6 collections'] }
+  expect { screen[16]['Please choose among 5 (silent) flavours and 6 collections'] }
   kill_session
 end
 

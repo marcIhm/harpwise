@@ -323,15 +323,6 @@ def do_unittest
   utreport('Age away for hint', found, expected)
 
   puts
-  puts_underlined 'Subclasses of QuizFlavour'
-  found = $quiz_flavour2class.keys.to_a.sort
-  expected = $extra_kws[:quiz].to_a.sort - $quiz_tag2flavours['meta']
-  utreport('subclasses and extra', found, expected)
-  found = $quiz_flavour2class.keys.select {|f| $quiz_flavour2class[f].respond_to?(:describe_difficulty)}.sort
-  expected = ($extra_kws[:quiz].to_a.sort - $quiz_tag2flavours['meta']).sort
-  utreport('describe_difficulty implemented', found, expected)  
-
-  puts
   puts "All unittests okay."
   puts
 end

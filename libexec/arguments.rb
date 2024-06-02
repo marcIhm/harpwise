@@ -463,7 +463,7 @@ def parse_arguments_late
     ARGV.clear
   end
 
-  # do these checks late, because we have more specific error messages before
+  # do this check late, because we have more specific error messages before
   err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
   return to_handle
 end
