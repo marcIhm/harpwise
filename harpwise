@@ -108,21 +108,14 @@ Signal.trap('SIGINT') do
 end
 
 
-Signal.trap('TSTP') do
-  print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-  puts "\n\n\n\e[0mThis signal is handled in mode quiz only; exiting ..."
-  puts "\e[K"
-  print "\e[K"
-  exit 1
-end
-
-
-Signal.trap('QUIT') do
-  print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-  puts "\n\n\n\e[0mExiting on sig-quit ..."
-  puts "\e[K"
-  print "\e[K"
-  exit 1
+%W(TSTP QUIT).each do |sig|
+  Signal.trap(sig) do
+    print "\e[#{$lines[:message2]}H" if $move_down_on_exit
+    puts "\n\n\n\e[0mThis signal (#{sig}) is handled in mode quiz only; exiting ..."
+    puts "\e[K"
+    print "\e[K"
+    exit 1
+  end
 end
 
 

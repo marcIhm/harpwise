@@ -8,33 +8,35 @@ def do_quiz to_handle
     print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
     puts "\e[?25l"  ## hide cursor
   end
-
+  
   flavour = nil
   
   #
   # Handle Signals
   #
-  Signal.trap('TSTP') do
-    # do some actions of at_exit-handler here
-    sane_term
-    puts "\e[#{$lines[:message_bottom]}H\e[0m\e[K"
-    puts "\e[2m\e[34m ... quiz start over ... \e[0m\e[K"
-    puts "\e[K"    
-    if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-      File.write($pers_file, JSON.pretty_generate($pers_data))
+  %w(TSTP QUIT).each do |sig|
+    Signal.trap(sig) do
+      # do some actions of at_exit-handler here
+      sane_term
+      puts "\e[#{$lines[:message_bottom]}H\e[0m\e[K"
+      puts "\e[2m\e[34m ... quiz start over ... \e[0m\e[K"
+      puts "\e[K"    
+      if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+        File.write($pers_file, JSON.pretty_generate($pers_data))
+      end
+      exec($full_commandline)
     end
-    exec($full_commandline)
   end
 
   inherited = ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION']
   if inherited
     do_restart_animation
-    puts "\e[0m\e[2mStarting over with a different flavour.\e[0m"
+    puts "\e[0m\e[2mStarting over with a different flavour due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   else
     animate_splash_line
     puts "\e[2mPlease note, that when playing holes, the normal play-controls\n(e.g. space or 'h') are available but not advertised.\e[0m"
+    puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp)\e[0m"
   end
-  puts "\e[2mTo start over issue signal \e[0m\e[32mctrl-z\e[0m"
   puts
   sleep 0.1
 
@@ -1132,6 +1134,7 @@ class HearKey < QuizFlavour
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
             [[0, 0, 8, 8, 6, 6, 3, 3], 'box'],
             [[0, 0, 0], 'repeated'],
+            [[0, 4, 7, -3, 0, 4, 2, 5, 9, -5, -1, 2, 0, 0], 'chord progression'],
             [:chord, 'chord']]
   
   def initialize
@@ -1879,7 +1882,7 @@ end
 
 
 def prepare_listen_perspective_for_quiz
-  $msgbuf.print "or issue signal ctrl-z for another flavour", 3, 5, later: true
+  $msgbuf.print "or issue signal ctrl-z (quit, tstp) for another flavour", 3, 5, later: true
   $msgbuf.print "Type 'H' for quiz-hints, RETURN for next question,", 3, 5, :quiz
 end
 

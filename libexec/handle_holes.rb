@@ -648,6 +648,7 @@ def show_help
                "      t: toggle tracking progress in seq"]
     if $mode == :quiz
       frames[-1] << "    4,H: hints for quiz-flavour #{$quiz_flavour}"
+      frames[-1] << " ctrl-z: restart with another flavour (signals quit, tstp)"
     end
     if $mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
@@ -659,7 +660,7 @@ def show_help
                           "      !: play holes reversed               &: shuffle holes",
                           "      1: give one hole, as if you played it",
                           ""])
-    elsif $mode == :quiz && $extra == 'replay'
+    elsif $mode == :quiz && $quiz_flavour == 'replay'
       frames[-1] << "      n: change number of holes to be replayed"
       frames[-1] << ""
     else
