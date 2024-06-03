@@ -903,6 +903,7 @@ do_test 'id-19b: prepare and get history of licks' do
     tms "harpwise licks --start-with #{lick} a"
     tms :ENTER
     wait_for_start_of_pipeline
+    sleep 1
     tms 'q'
     wait_for_end_of_harpwise
   end
