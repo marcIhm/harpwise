@@ -2462,11 +2462,11 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[8]["difficulty is 'EASY', taking 4 scales out of 22"] }
+  expect { screen[10]["difficulty is 'EASY', taking 4 scales out of 22"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'HELP'
   tms :ENTER
-  expect { screen[10]['Removing some choices'] }
+  expect { screen[11]['Removing some choices'] }
   kill_session
 end
 
@@ -2477,7 +2477,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 2
   tms :ENTER
   sleep 8
-  expect { screen[8]["The difficulty is 'HARD', taking 7 scales out of 22"] }
+  expect { screen[10]["The difficulty is 'HARD', taking 7 scales out of 22"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2510,7 +2510,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms 'PLAY-ALL'
   tms :ENTER
   sleep 8
-  expect { screen[11]['Octave'] }
+  expect { screen[12]['Octave'] }
   tms 'SOLVE'
   tms :ENTER
   expect { screen[13]['Playing interval of'] }
@@ -2523,10 +2523,10 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[10]['and add interval'] || screen[10]['and subtract interval'] }
+  expect { screen[11]['and add interval'] || screen[11]['and subtract interval'] }
   tms 'CHART-SEMIS'
   tms :enter
-  expect { screen[6]['--1----2----3--'] }
+  expect { screen[7]['--1----2----3--'] }
   kill_session
 end
 
@@ -2536,16 +2536,16 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[9]['Given a HARP with key of'] || screen[9]['Given a SONG with key of'] }
+  expect { screen[10]['Given a HARP with key of'] || screen[10]['Given a SONG with key of'] }
   sleep 1
   tms 'help-play-answer'
   tms :ENTER
-  expect { screen[9]['for answer-key of'] }  
+  expect { screen[10]['for answer-key of'] }  
   tms 'solve'
   tms :ENTER
   sleep 1
   tms :BSPACE
-  expect { screen[6]['Same question again'] }  
+  expect { screen[8]['Same question again'] }  
   kill_session
 end
 
@@ -2585,7 +2585,7 @@ do_test 'id-96b: quiz-flavour match-scale' do
   expect { screen[16]['that contains all the holes'] }
   tms 'help-print-scales'
   tms :ENTER
-  expect { screen[5]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
+  expect { screen[6]['mipe:   -2  -3/  +4  -4  -5  +6'] }  
   kill_session
 end
 
@@ -2599,7 +2599,7 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   expect { screen[19]['Ready to play ?'] }
   tms :ENTER
   sleep 12
-  expect { screen[4]['no beats found'] }
+  expect { screen[5]['no beats found'] }
   kill_session
 end
 
@@ -2609,13 +2609,13 @@ do_test 'id-96d: quiz-flavour hear-tempo' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[9]['Playing 6 beats of Tempo to find'] }
+  expect { screen[11]['Playing 6 beats of Tempo to find'] }
   tms 'compare'
   tms :ENTER
   sleep 1
   tms :ENTER
   sleep 4
-  expect { screen[11]['Done with compare, BACK to original question.'] }  
+  expect { screen[12]['Done with compare, BACK to original question.'] }  
   kill_session
 end
 
@@ -2626,14 +2626,14 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[11]['h1 h2 h3 h4'] }
+  expect { screen[12]['h1 h2 h3 h4'] }
   expect { screen[16]['Which hole does not belong to'] }
   tms 'show'
   tms :ENTER
   sleep 1
   tms :ENTER
   sleep 4
-  expect { screen[9]['Play and show original scale shuffled'] }  
+  expect { screen[10]['Play and show original scale shuffled'] }  
   kill_session
 end
 
@@ -2820,11 +2820,11 @@ do_test 'id-107: quiz-flavour hole-note' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[10]['Given the HOLE'] || screen[10]['Given the NOTE'] }
+  expect { screen[11]['Given the HOLE'] || screen[11]['Given the NOTE'] }
   sleep 1
   tms 'help-chart-notes'
   tms :ENTER
-  expect { screen[1]['Printing chart with notes'] }  
+  expect { screen[2]['Printing chart with notes'] }  
   kill_session
 end
 
@@ -2834,11 +2834,11 @@ do_test 'id-108: quiz-flavour tell-inter' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[10]['What is the interval between holes'] }
+  expect { screen[11]['What is the interval between holes'] }
   sleep 1
   tms 'help-chart-notes'
   tms :ENTER
-  expect { screen[1]['Show holes as notes'] }  
+  expect { screen[2]['Show holes as notes'] }  
   kill_session
 end
 

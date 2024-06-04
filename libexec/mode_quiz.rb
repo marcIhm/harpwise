@@ -262,7 +262,6 @@ class QuizFlavour
     if [@solution].flatten.include?(answer)
       if self.respond_to?(:after_solve)
         stand_out "Yes, '#{answer}' is RIGHT !\n\nSome extra info below.", all_green: true
-        puts
         after_solve
       else
         stand_out "Yes, '#{answer}' is RIGHT !", all_green: true
@@ -476,17 +475,20 @@ class HearScale < QuizFlavour
   
   def after_solve
     puts
-    puts "Playing scale #{@solution} ..."
-    sleep 0.1
-    puts
+    puts "Playing original scale #{@solution}:"
+    sleep 0.5
     play_hons hons: @sorted
+    sleep 1
+    puts
+    puts
+    puts "Repeating and showing the question, shuffled scale #{@solution}:"
+    sleep 0.5
+    play_hons
   end
   
   def issue_question
-    puts
     puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
-    puts
     play_hons hide: :all
   end
 
@@ -615,15 +617,13 @@ class MatchScale < QuizFlavour
   
   def after_solve
     puts
-    puts "Playing #{@others ? 'shortest' : 'single'} solution scale #{@solution} ..."
+    puts "Playing #{@others ? 'shortest' : 'single'} solution scale #{@solution}:"
     sleep 0.2
-    puts
     play_hons hons: @holes_scale
     puts
     sleep 0.5
-    puts "Playing the holes in question ..."
+    puts "Playing the holes in question:"
     sleep 0.2
-    puts
     play_hons
     puts "\n\e[2m"
     if @others
@@ -639,10 +639,8 @@ class MatchScale < QuizFlavour
   end
   
   def issue_question
-    puts
     puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'} ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
-    puts
     play_hons hide: @state[:hide_holes]
   end
 
@@ -661,7 +659,7 @@ class MatchScale < QuizFlavour
   end
 
   def help3
-    puts "\n\e[2mPlaying unique holes of sequence sorted by pitch.\n\n"
+    puts "Playing unique holes of sequence sorted by pitch:"
     play_hons hide: @state[:hide_holes],
               hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
   end
@@ -671,7 +669,7 @@ class MatchScale < QuizFlavour
   end
 
   def help4
-    puts "Showing all holes played (this question only)."
+    puts "Showing all holes played (this question only):"
     @state[:hide_holes] = nil
     play_hons hide: [@state[:hide_holes], :help]
   end
@@ -681,7 +679,8 @@ class MatchScale < QuizFlavour
   end
 
   def help5
-    puts "\n\e[2mPrinting all scales with their holes.\n\n"
+    puts "Printing all scales with their holes:"
+    puts 
     maxl = @scale2holes.keys.max_by(&:length).length
     @scale2holes.each do |k, v|
       puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join('  ')}\e[0m"
@@ -726,11 +725,9 @@ class HearInter < QuizFlavour
   end
   
   def issue_question
-    puts
     puts "\e[34mPlaying an interval\e[0m\e[2m; one out of #{@choices.length} ...\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
-    puts
     play_hons hide: [:help, :all]
   end
 
@@ -1003,7 +1000,6 @@ class KeyHarpSong < QuizFlavour
   end
 
   def issue_question
-    puts
     puts "\e[34mGiven a \e[94m#{@qdesc.upcase}\e[34m with key of '\e[94m#{@qitem}\e[34m', name the matching key for the \e[94m#{@adesc}\e[34m\n(2nd position)\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1097,7 +1093,6 @@ class HoleNote < QuizFlavour
   end
 
   def issue_question
-    puts
     puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m', name the matching \e[94m#{@adesc}\e[34m #{@any_clause}\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1163,7 +1158,6 @@ class HearKey < QuizFlavour
 
   def issue_question silent: false
     unless silent
-      puts
       puts "\e[34mHear the sequence of notes '#{@nick}' and name its key\e[0m"
       puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     end
@@ -1192,7 +1186,7 @@ class HearKey < QuizFlavour
     @@seqs.rotate!
     @seq = @@seqs[0][0]
     @nick = @@seqs[0][1]
-    puts "\nSequence of notes changed to '#{@nick}'."
+    puts "Sequence of notes changed to '#{@nick}'."
     issue_question silent: true
   end
 
@@ -1201,7 +1195,7 @@ class HearKey < QuizFlavour
   end
 
   def help3
-    puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence"
+    puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence."
     make_term_immediate
     $ctl_kb_queue.clear
     harp2song = get_harp2song(downcase: true, basic_set: false)
@@ -1221,7 +1215,7 @@ class HearKey < QuizFlavour
 
   def after_solve
     puts
-    puts "Playing key (of sequence) #{@solution}"
+    puts "Playing key (of sequence) #{@solution}:"
     sleep 0.1
     puts
     make_term_immediate
@@ -1279,7 +1273,6 @@ class KeepTempo < QuizFlavour
   def issue_question
 
     if @@explained
-      puts
       puts "\e[0mParameters (#{$opts[:difficulty]}):"
       puts "  Tempo:           #{@tempo} bpm"
       puts "  PICK-UP-TEMPO:   %2s beats" % @beats_intro.to_s
@@ -1287,7 +1280,6 @@ class KeepTempo < QuizFlavour
       puts "  TOGETHER-AGAIN:  %2s" % @beats_outro.to_s
       puts "\n\n"
     else
-      puts
       puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@tempo}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
       puts " \e[0mPICK-UP-TEMPO:  %2s\e[2m ; Harpwise plays a stretch of #{@beats_intro} beats and you are\n    invited to join with the same tempo and hole '#{$typical_hole}'" % @beats_intro.to_s
       puts " \e[0mKEEP-TEMPO:     %2s\e[2m ; Playing pauses for #{@beats_keep} beats, but you should\n   continue on your own; this will be recorded for later analysis" % @beats_keep
@@ -1554,11 +1546,9 @@ class HearTempo < QuizFlavour
   end
 
   def issue_question
-    puts
     puts "\e[34mPlaying #{@num_beats} beats of Tempo to find\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
-    puts
     make_term_immediate
     $ctl_kb_queue.clear    
     play_recording_and_handle_kb_simple @sample, true
@@ -1630,17 +1620,14 @@ class NotInScale < QuizFlavour
   
   def after_solve
     puts
-    puts "Playing note #{@solution}, hole #{@hole_notin}, that was foreign in scale #{@scale_name} ..."
+    puts "Playing note #{@solution}, hole #{@hole_notin}, that was foreign in scale #{@scale_name}:"
     sleep 0.1
-    puts
     play_hons(hons: [@hole_notin])
   end
   
   def issue_question
-    puts
     puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m modified: shuffled and one note replaced by a foreign one\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
-    puts
     play_hons(hons: @holes, hide: @hide)
   end
 
@@ -1750,7 +1737,6 @@ end
 
 def stand_out text, all_green: false, turn_red: nil
   print "\e[32m" if all_green
-  puts
   lines = text.lines.map(&:chomp)
   maxl = lines.map(&:length).max
   puts '  + ' + ( '-' * maxl ) + ' +'
@@ -1923,7 +1909,7 @@ def choose_prepare_for
   prepare_term
   make_term_immediate
   $ctl_kb_queue.clear
-  ($term_height - $lines[:comment_tall] + 3).times do
+  ($term_height - $lines[:comment_tall] + 2).times do
     sleep 0.01
     puts
   end
@@ -2026,9 +2012,12 @@ def get_accepted_flavour_from_extra inherited
 
     if char == 'BACKSPACE'
       flavour = nil
+      puts "\e[2mAnother flavour at random ...\e[0m"
     elsif char == 'TAB'
+      puts "\e[2mChoose a different flavour ...\e[0m"
       flavour, collection = choose_flavour_or_collection(collection)
     else
+      puts "\e[2mFlavour accepted.\e[0m"
       return flavour, collection
     end
     puts
@@ -2116,7 +2105,6 @@ def choose_and_play_answer_scale
   if answer
     scale = answer.gsub('compare-','')
     puts "\e[2mPlaying scale \e[0m\e[34m#{scale}\e[0m\e[2m with \e[0m\e[34m#{@scale2holes[scale].length}\e[0m\e[2m holes."
-    puts
     play_hons(hons: @scale2holes[scale], hide: @state[:hide_holes])
   else
     puts "\nNo scale selected to play.\n\n"
