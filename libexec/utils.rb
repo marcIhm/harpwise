@@ -376,13 +376,17 @@ def animate_splash_line single_line = false, as_string: false
     sleep 0.3
   else
     version_clause = "\e[2m#{$version}\e[0m"
-    print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G|"
-    '~HARPWISE~'.each_char do |c|
-      print "\e[0m\e[32m#{c}\e[0m\e[2m|\e[0m"
+    print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G"
+    sleep 0.08
+    print "|\e[0m\e[92m~\e[0m\e[2m|\e[2D"
+    sleep 0.04
+    '~HARPWISE~'.each_char.each_cons(2) do |c1, c2|
+      print "\e[0m\e[32m#{c1}\e[0m\e[2m|\e[0m\e[92m#{c2}\e[0m\e[2m|\e[0m\e[2D"
       sleep 0.04
     end
+    print "\e[32m~\e[0m\e[2m|\e[0m"
     puts unless single_line
-    sleep 0.01
+    sleep 0.04
     if single_line
       print '  ' + version_clause + '  '
     else
