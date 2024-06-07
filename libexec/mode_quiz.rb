@@ -19,17 +19,19 @@ def do_quiz to_handle
       # do some actions of at_exit-handler here
       sane_term
       puts "\e[#{$lines[:message_bottom]}H\e[0m\e[K"
-      puts "\e[2m\e[34m ... quiz start over ... \e[0m\e[K"
-      puts "\e[K"    
+      puts "\e[0m\e[34m ... quiz start over ... \e[0m\e[K"
+      puts "\e[K"
       if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
         File.write($pers_file, JSON.pretty_generate($pers_data))
       end
+      ENV['HARPWISE_RESTARTED'] = 'yes'
       exec($full_commandline)
     end
   end
 
   inherited = ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION']
-  if inherited
+  
+  if ENV['HARPWISE_RESTARTED']
     do_restart_animation
     puts "\e[0m\e[2mStarting over with a different flavour due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   else
@@ -61,8 +63,7 @@ def do_quiz to_handle
   #
   # Get Flavour
   #
-  $quiz_flavour,
-  ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION'] = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
+  $quiz_flavour = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
 
   
   # for listen-perspective, dont show solution immediately
@@ -1928,14 +1929,18 @@ def do_restart_animation
   txt = dots + info + dots + info + dots
   ilen = txt.length
   nlines = ($term_height - $lines[:comment_tall] - 1)
+  prev = nil
   nlines.times do
     len = push_front.length
     txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
-    puts "\e[2m\e[34m#{txt}\e[0m\e[K"
-    sleep 0.02
+    puts "\e[G\e[2m\e[34m#{prev}\e[0m" if prev
     txt.prepend(' ')
     txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
+    print "\e[0m\e[34m#{txt}\e[0m\e[K"
+    prev = txt
+    sleep 0.04
   end
+  puts "\e[G\e[2m\e[34m#{txt}\e[0m"
   puts "\e[K"
   sleep 0.03
 end
@@ -1975,6 +1980,9 @@ def get_accepted_flavour_from_extra inherited
       collection = flavour
       flavour = nil
     end
+
+    # remember collection for maybe restart
+    ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION'] = collection
 
     flavour ||= get_random_flavour(collection)
     
@@ -2018,7 +2026,7 @@ def get_accepted_flavour_from_extra inherited
       flavour, collection = choose_flavour_or_collection(collection)
     else
       puts "\e[2mFlavour accepted.\e[0m"
-      return flavour, collection
+      return flavour
     end
     puts
     first_iteration = false
