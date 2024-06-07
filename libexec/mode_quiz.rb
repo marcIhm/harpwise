@@ -1740,7 +1740,7 @@ def stand_out text, all_green: false, turn_red: nil
   print "\e[32m" if all_green
   lines = text.lines.map(&:chomp)
   maxl = lines.map(&:length).max
-  puts '  + ' + ( '-' * maxl ) + ' +'
+  puts '  +-' + ( '-' * maxl ) + '-+'
   lines.each do |l|
     sleep 0.05
     if turn_red && md = l.match(/^(.*)(\b#{turn_red}\b)(.*)$/)
@@ -1750,7 +1750,7 @@ def stand_out text, all_green: false, turn_red: nil
     end
     puts "  | #{ll} |"
   end
-  puts '  + ' + ( '-' * maxl ) + ' +'
+  puts '  +-' + ( '-' * maxl ) + '-+'
   sleep 0.05
   print "\e[0m"
 end
