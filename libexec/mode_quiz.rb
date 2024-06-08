@@ -123,11 +123,12 @@ def do_quiz to_handle
     puts
     sleep 2
     prepare_listen_perspective_for_quiz
+    $hole_ref = holes_inter[0]
     do_licks_or_quiz(quiz_holes_inter: holes_inter,
                      lambda_quiz_hint: -> (holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1])
+                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1], holes_inter[2])
                      end)
 
     
@@ -241,10 +242,11 @@ class QuizFlavour
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
-    all_choices = ['.AGAIN', @choices, '.SOLVE', '.SKIP', all_helps[0]].flatten
+    all_choices = ['.AGAIN', @choices, '.SOLVE', '.SKIP', '.KEY', all_helps[0]].flatten
     choices_desc = {'.AGAIN' => 'Ask same question again',
                     '.SOLVE' => 'Give solution and go to next question',
                     '.SKIP' => 'Show solution and Skip to next question without extra info',
+                    '.KEY' => 'Change key and ask new question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
     [help2_desc, help3_desc, help4_desc, help5_desc].each_with_index do |desc, idx|
@@ -292,6 +294,19 @@ class QuizFlavour
       end
       puts
       return next_or_reissue
+    when '.KEY'
+      choose_prepare_for
+      key_was = $key
+      do_change_key
+      choose_clean_up
+      set_global_vars_late
+      set_global_musical_vars
+      if key_was == $key
+        puts "\e[2mKey not changed.\e[0m"
+      else
+        puts "\e[2mKey changed to \e[0m\e[32m#{$key}\e[0m\e[2m.\e[0m"
+      end
+      return :next
     when all_helps[0]
       if @choices.length > 1
         stand_out 'Removing some choices.'
@@ -704,7 +719,8 @@ class HearInter < QuizFlavour
   def initialize
     super
     @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]}
-    @choices_orig = @choices.clone    
+    @choices_orig = @choices.clone
+    @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
     begin
       inter = get_random_interval
       @holes = inter[0..1]
@@ -745,11 +761,11 @@ class HearInter < QuizFlavour
     puts "Playing all intervals:"
     puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
     puts
-    maxlen = $intervals_quiz[$opts[:difficulty]].map {$intervals[_1][0].length}.max
-    $intervals_quiz[$opts[:difficulty]].each do |inter|
+    maxlen = @inter2semi.keys.map(&:length).max
+    @choices.each do |inter|
       sleep 0.5
-      note_inter = semi2note($harp[@holes[0]][:semi] + inter * (@dsemi <=> 0))
-      print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % $intervals[inter][0]
+      note_inter = semi2note($harp[@holes[0]][:semi] + @inter2semi[inter] * (@dsemi <=> 0))
+      print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % inter
       play_hons hons: [@holes[0], note_inter], hide: :all, newline: false
     end
     sleep 0.5
@@ -1783,9 +1799,10 @@ def key2semi note
 end
 
 
-def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide
+def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide, semis = nil
   choices2desc = {'SOLVE-PRINT' => "Solve: Print #{item}, but keep current question",
                   'HELP-PLAY' => "Play #{item}, so that you may replay it"}
+  choices2desc['HELP-SEMI'] = "Print semitone distance of #{item}" if semis
   answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
                               choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
@@ -1795,10 +1812,9 @@ def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0mSolution:"
     print solve_text
-    puts "\n\n\e[0m\e[2many char to continue ..."
+    puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
-    $msgbuf.print 'Solution:   ' + holes.join('  '), 6, 8, :quiz_solution
   when 'HELP-PLAY'
     puts "\e[#{$lines[:comment] + 1}H"
     puts "Help: Playing #{item}"
@@ -1806,6 +1822,13 @@ def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide
     puts
     play_holes_or_notes_simple(holes, hide: [hide, :help])
     sleep 1
+  when 'HELP-SEMI'
+    puts "\e[#{$lines[:comment_tall] + 2}H"
+    puts "\e[0mSemitone distance of #{item} is \e[32m#{semis}\e[0m"
+    puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    $msgbuf.print "Semitone distance is #{semis}", 6, 8, :quiz_help
   end
   clear_area_comment
   clear_area_message
@@ -1827,7 +1850,7 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0mHelp: unshifted sequence is:\n\n\n"
     puts "\e[32m  #{holes_shifts[0].join('  ')}"
-    puts "\n\n\e[0m\e[2many char to continue ..."
+    puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
     $msgbuf.print 'Help, unshifted:   ' + holes_shifts[0].join('  '), 6, 8, :quiz_solution
   when 'SOLVE-PRINT-SHIFTED'
@@ -1837,7 +1860,7 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     puts "\n\e[0mSolution: shifted sequence is:"
     puts "\e[32m  #{holes_shifts[5].join('  ')}"
     puts "\n\e[0m\e[2mShifted by: #{holes_shifts[2]}"
-    puts "\e[0m\e[2many char to continue ..."
+    puts "\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
     $msgbuf.print 'Solution, shifted:   ' + holes_shifts[5].join('  '), 6, 8, :quiz_solution
   when 'HELP-PLAY-UNSHIFTED'

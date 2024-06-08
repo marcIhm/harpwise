@@ -2517,7 +2517,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   kill_session
 end
 
-do_test 'id-94: quiz-flavour add-inter' do
+do_test 'id-94: quiz-flavour add-inter and change key' do
   new_session
   tms 'harpwise quiz add-inter'
   tms :ENTER
@@ -2527,6 +2527,12 @@ do_test 'id-94: quiz-flavour add-inter' do
   tms 'CHART-SEMIS'
   tms :enter
   expect { screen[7]['--1----2----3--'] }
+  tms '.KEY'
+  tms :enter
+  tms 'a'
+  tms :RIGHT
+  tms :enter
+  expect { screen[6]['Key changed to a.'] }  
   kill_session
 end
 

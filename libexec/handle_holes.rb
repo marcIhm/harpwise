@@ -421,6 +421,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       set_global_vars_late
       set_global_musical_vars
       $freqs_queue.clear
+      # need a new question
+      $ctl_mic[:next] = true if $mode == :quiz
     end
 
     if $ctl_mic[:pitch]

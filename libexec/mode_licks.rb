@@ -158,6 +158,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             end while quiz_prevs.include?(quiz_holes_inter)
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
+            $hole_ref = quiz_holes_inter[0]
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
             do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
             sleep 2
