@@ -128,7 +128,7 @@ def do_quiz to_handle
                      lambda_quiz_hint: -> (holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1], holes_inter[2])
+                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1], true)
                      end)
 
     
@@ -241,12 +241,12 @@ class QuizFlavour
 
   def get_and_check_answer
     choose_prepare_for
-    all_helps = ['.HELP-NARROW', 'NOT_DEFINED', 'NOT_DEFINED']
-    all_choices = ['.AGAIN', @choices, '.SOLVE', '.SKIP', '.KEY', all_helps[0]].flatten
-    choices_desc = {'.AGAIN' => 'Ask same question again',
-                    '.SOLVE' => 'Give solution and go to next question',
-                    '.SKIP' => 'Show solution and Skip to next question without extra info',
-                    '.KEY' => 'Change key and ask new question',
+    all_helps = ['.help-narrow', 'not_defined', 'not_defined']
+    all_choices = [',again', @choices, ';controls-and-help->', ',solve', ',skip', ',change-key', all_helps[0]].flatten
+    choices_desc = {',again' => 'Ask same question again',
+                    ',solve' => 'Give solution and go to next question',
+                    ',skip' => 'Show solution and Skip to next question without extra info',
+                    ',change-key' => 'Change key and ask new question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
     [help2_desc, help3_desc, help4_desc, help5_desc].each_with_index do |desc, idx|
@@ -276,17 +276,17 @@ class QuizFlavour
     when nil
       stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
-    when '.AGAIN'
+    when ',again'
       stand_out 'Asking question again.'
       puts
       return :reissue
-    when '.SOLVE', '.SKIP'
+    when ',solve', ',skip'
       sol_text = if @solution.is_a?(Array) && @solution.length > 1
                    "  any of  #{@solution.join(',')}"
                  else
                    "        #{[@solution].flatten[0]}"
                  end
-      if answer != '.SKIP' && self.respond_to?(:after_solve)
+      if answer != ',SKIP' && self.respond_to?(:after_solve)
         stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
         after_solve
       else
@@ -294,7 +294,7 @@ class QuizFlavour
       end
       puts
       return next_or_reissue
-    when '.KEY'
+    when ',change-key'
       choose_prepare_for
       key_was = $key
       do_change_key
@@ -523,7 +523,7 @@ class HearScale < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-ASCENDING', 'Play holes in ascending order']
+    ['.help-play-ascending', 'Play holes in ascending order']
   end
 
   def help3
@@ -531,7 +531,7 @@ class HearScale < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-PLAY-COMPARE', 'Select a scale and play it for comparison']
+    ['.help-play-compare', 'Select a scale and play it for comparison']
   end
 
   
@@ -671,7 +671,7 @@ class MatchScale < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-COMPARE', 'Select a scale and play it for comparison']
+    ['.help-play-compare', 'Select a scale and play it for comparison']
   end
 
   def help3
@@ -681,7 +681,7 @@ class MatchScale < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-PLAY-ASCENDING', 'Play holes-in-question in ascending order']
+    ['.help-play-ascending', 'Play holes-in-question in ascending order']
   end
 
   def help4
@@ -691,7 +691,7 @@ class MatchScale < QuizFlavour
   end
 
   def help4_desc
-    ['.HELP-SHOW-HOLES', 'Show the holes played']
+    ['.help-show-holes', 'Show the holes played']
   end
 
   def help5
@@ -706,7 +706,7 @@ class MatchScale < QuizFlavour
   end
 
   def help5_desc
-    ['.HELP-PRINT-SCALES', 'print all the hole-content of all possible scales']
+    ['.help-print-scales', 'print all the hole-content of all possible scales']
   end
 
 end
@@ -754,7 +754,7 @@ class HearInter < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-REVERSE', 'Play interval reversed']
+    ['.help-reverse', 'Play interval reversed']
   end
 
   def help3
@@ -772,7 +772,7 @@ class HearInter < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-PLAY-ALL', 'Play all intervals over first note']
+    ['.help-play-all', 'Play all intervals over first note']
   end
 
 end
@@ -825,7 +825,7 @@ class AddInter < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-INTER', 'Play interval']
+    ['.help-play-inter', 'Play interval']
   end
 
   def help3
@@ -841,7 +841,7 @@ class AddInter < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-CHART-SEMIS', 'Show chart with holes as semitones']
+    ['.help-chart-semis', 'Show chart with holes as semitones']
   end
 
   def help4
@@ -854,7 +854,7 @@ class AddInter < QuizFlavour
   end
 
   def help4_desc
-    ['.HELP-SHOW-INTERVALS', 'Show intervals and semitones']
+    ['.help-show-intervals', 'Show intervals and semitones']
   end
 
 end
@@ -900,7 +900,7 @@ class TellInter < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-INTER', 'Play interval']
+    ['.help-play-inter', 'Play interval']
   end
 
   def help3
@@ -921,7 +921,7 @@ class TellInter < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-CHART-NOTES', 'Show chart with notes']
+    ['.help-chart-notes', 'Show chart with notes']
   end
 
 end
@@ -980,7 +980,7 @@ class Players < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-MORE-INFO', 'Show additional information about player']
+    ['.help-more-info', 'Show additional information about player']
   end
 
 end
@@ -1032,7 +1032,7 @@ class KeyHarpSong < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-ANSWER', "Play note for answer-key of #{@adesc}"]
+    ['.help-play-answer', "Play note for answer-key of #{@adesc}"]
   end
 
 end
@@ -1131,7 +1131,7 @@ class HoleNote < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-CHART-NOTES', "Print harmonica chart with notes"]
+    ['.help-chart-notes', "Print harmonica chart with notes"]
   end
 
 end
@@ -1208,7 +1208,7 @@ class HearKey < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-OTHER-SEQ', "Choose a different sequence of notes"]
+    ['.help-other-seq', "Choose a different sequence of notes"]
   end
 
   def help3
@@ -1227,7 +1227,7 @@ class HearKey < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-PITCH', "Play an adjustable pitch to compare"]
+    ['.help-pitch', "Play an adjustable pitch to compare"]
   end
 
   def after_solve
@@ -1593,7 +1593,7 @@ class HearTempo < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-COMPARE', 'Play one of the choices']
+    ['.help-compare', 'Play one of the choices']
   end
 
 end
@@ -1656,7 +1656,7 @@ class NotInScale < QuizFlavour
   end
 
   def help2_desc
-    ['.HELP-PLAY-MOD-ASC', 'Play holes of modified scale in ascending order']
+    ['.help-play-mod-asc', 'Play holes of modified scale in ascending order']
   end
   
   def help3
@@ -1665,7 +1665,7 @@ class NotInScale < QuizFlavour
   end
 
   def help3_desc
-    ['.HELP-PLAY-ORIG-ASC', 'Play original scale ascending']
+    ['.help-play-orig-asc', 'Play original scale ascending']
   end
 
   def help4
@@ -1674,7 +1674,7 @@ class NotInScale < QuizFlavour
   end
 
   def help4_desc
-    ['.HELP-PLAY-ORIG-SHUF', 'Play original scale shuffled']
+    ['.help-play-orig-shuf', 'Play original scale shuffled']
   end
 
   def help5
@@ -1683,7 +1683,7 @@ class NotInScale < QuizFlavour
   end
 
   def help5_desc
-    ['.HELP-SHOW-ORIG-SHUF', 'Kind of solve: Play and show original scale shuffled']
+    ['.help-show-orig-shuf', 'Kind of solve: Play and show original scale shuffled']
   end
 
 end
@@ -1707,8 +1707,8 @@ def get_random_interval sorted: false
         holes_inter << $intervals[inter][0]
         # some compositions for consistency and convenience
         holes_inter << holes_inter[0] +
-                       ' .. ' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + ' .. ' +
-                       holes_inter[3]
+                       '..' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + '..' +
+                       holes_inter[3] + ( '..%+dst' % holes_inter[2] )
         # 0,1: holes,
         #   2: numerical semitone-interval with sign
         #   3: interval long name
@@ -1799,36 +1799,32 @@ def key2semi note
 end
 
 
-def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide, semis = nil
-  choices2desc = {'SOLVE-PRINT' => "Solve: Print #{item}, but keep current question",
-                  'HELP-PLAY' => "Play #{item}, so that you may replay it"}
-  choices2desc['HELP-SEMI'] = "Print semitone distance of #{item}" if semis
+def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide, offer_disp = false
+  choices2desc = {',solve-print' => "Solve: Print #{item}, but keep current question",
+                  '.help-play' => "Play #{item}, so that you may replay it"}
+  choices2desc['.help-display'] = "Switch display to show intervals" if offer_disp
   answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
                               choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
   clear_area_message
   case answer
-  when 'SOLVE-PRINT'
+  when ',solve-print'
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0mSolution:"
     print solve_text
     puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
-  when 'HELP-PLAY'
+  when '.help-play'
     puts "\e[#{$lines[:comment] + 1}H"
     puts "Help: Playing #{item}"
     $ctl_kb_queue.clear
     puts
     play_holes_or_notes_simple(holes, hide: [hide, :help])
     sleep 1
-  when 'HELP-SEMI'
-    puts "\e[#{$lines[:comment_tall] + 2}H"
-    puts "\e[0mSemitone distance of #{item} is \e[32m#{semis}\e[0m"
-    puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
-    $ctl_kb_queue.clear
-    $ctl_kb_queue.deq
-    $msgbuf.print "Semitone distance is #{semis}", 6, 8, :quiz_help
+  when '.help-display'
+    $opts[:display] = :chart_intervals
+    $msgbuf.print "Changed display, so that you may spot the solution", 6, 8, :quiz_help
   end
   clear_area_comment
   clear_area_message
@@ -1836,24 +1832,24 @@ end
 
 
 def quiz_hint_in_handle_holes_shifts holes_shifts
-  choices2desc = {'HELP-PRINT-UNSHIFTED' => "Solve: Print unshifted sequence, but keep current question",
-                  'SOLVE-PRINT-SHIFTED' => "Solve: Print shifted sequence, but keep current question",
-                  'HELP-PLAY-UNSHIFTED' => "Play unshifted sequence; similar to '.'",
-                  'HELP-PLAY-BOTH' => "Play unshifted sequence first and then shifted, so that you may replay it"}
+  choices2desc = {'.help-print-unshifted' => "Solve: Print unshifted sequence, but keep current question",
+                  ',solve-print-shifted' => "Solve: Print shifted sequence, but keep current question",
+                  '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
+                  '.help-play-both' => "Play unshifted sequence first and then shifted, so that you may replay it"}
   answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
                               choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
   clear_area_message
   $ctl_kb_queue.clear
   case answer
-  when 'HELP-PRINT-UNSHIFTED'
+  when '.help-print-unshifted'
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0mHelp: unshifted sequence is:\n\n\n"
     puts "\e[32m  #{holes_shifts[0].join('  ')}"
     puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
     $msgbuf.print 'Help, unshifted:   ' + holes_shifts[0].join('  '), 6, 8, :quiz_solution
-  when 'SOLVE-PRINT-SHIFTED'
+  when ',solve-print-shifted'
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0m\e[2mUnshifted is:"
     puts "  #{holes_shifts[0].join('  ')}"
@@ -1863,7 +1859,7 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     puts "\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
     $msgbuf.print 'Solution, shifted:   ' + holes_shifts[5].join('  '), 6, 8, :quiz_solution
-  when 'HELP-PLAY-UNSHIFTED'
+  when '.help-play-unshifted'
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "      \e[32mUnshifted:   "
@@ -1872,7 +1868,7 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     print "  \e[32mFirst shifted:   "
     play_holes_or_notes_simple([holes_shifts[4]], hide: :help)
     sleep 1
-  when 'HELP-PLAY-BOTH'
+  when '.help-play-both'
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "  \e[32mUnshifted:   "

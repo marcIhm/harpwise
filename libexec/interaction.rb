@@ -1508,7 +1508,7 @@ end
 
 
 def get_text_invalid char
-  cdesc = if char.match?(/^[[:print:]]+$/) || char.length > 0
+  cdesc = if char.match?(/^[[:print:]]+$/)
             char
           else
             "? (#{char.ord})"

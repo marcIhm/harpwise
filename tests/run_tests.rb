@@ -1213,8 +1213,8 @@ do_test 'id-36: display as chart with intervals as names' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-intervals --ref -2 --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pFo-OSi-O  REF  pFo  Si   Oct'] }
-  expect { screen[15]['-2.Ton   -3/.3st    -2.Si-O  -3/.3st    -2.Si-O   -2.Ton'] }
+  expect { screen[4]['-pFi -3st  REF  pFo  Si   Oct'] }
+  expect { screen[15]['-2.Ton   -3/.3st    -2.-3st  -3/.3st    -2.-3st   -2.Ton'] }
   kill_session
 end
 
@@ -1233,7 +1233,7 @@ do_test 'id-36b: display as chart with notes' do
   tms 'harpwise licks blues --display chart-intervals --comment holes-notes --ref -2 --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['pFo-OSi-O  REF  pFo  Si   Oct'] }
+  expect { screen[4]['-pFi -3st  REF  pFo  Si   Oct'] }
   expect { screen[15]['-1.d4     +2.e4     -2.g4    -3/.bf4    +3.g4    -3/.bf4'] }
   kill_session
 end
@@ -1588,7 +1588,7 @@ do_test 'id-53: print' do
   lines = File.read($testing_output_file).lines
   {17 => 'd4  e4  g4  as4  g4  as4  a4  g4',
    20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   29 => '-1.Ton      +2.fT       -2.3st     -3/.3st      +3.Si-O',
+   29 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
    33 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
    37 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
    41 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
@@ -1926,7 +1926,7 @@ do_test 'id-60a: set reference from sound' do
   tms 'D'
   tms 'inter'
   tms :ENTER
-  expect { screen[9]['-19st-14stfT-O pFo-O'] }
+  expect { screen[9]['-19st-14st-fSe -pFi       REF'] }
   kill_session
 end
 
@@ -2143,10 +2143,10 @@ do_test 'id-72: record user in licks' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms :C_R
-  expect { screen[0]['-rec-'] }
+  expect { screen[1]['-rec-'] }
   tms '1'
   sleep 1
-  expect { screen[0]['-REC-'] }
+  expect { screen[1]['-REC-'] }
   5.times {
     tms '1'
     sleep 1
@@ -2464,7 +2464,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 2
   expect { screen[10]["difficulty is 'EASY', taking 4 scales out of 22"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
-  tms 'HELP'
+  tms 'help-narrow'
   tms :ENTER
   expect { screen[11]['Removing some choices'] }
   kill_session
@@ -2511,7 +2511,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms :ENTER
   sleep 8
   expect { screen[12]['Octave'] }
-  tms 'SOLVE'
+  tms 'solve'
   tms :ENTER
   expect { screen[13]['Playing interval of'] }
   kill_session
@@ -2527,7 +2527,7 @@ do_test 'id-94: quiz-flavour add-inter and change key' do
   tms 'CHART-SEMIS'
   tms :enter
   expect { screen[7]['--1----2----3--'] }
-  tms '.KEY'
+  tms ',change-key'
   tms :enter
   tms 'a'
   tms :RIGHT

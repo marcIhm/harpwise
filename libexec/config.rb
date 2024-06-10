@@ -634,12 +634,12 @@ def read_and_set_musical_config
     $intervals_quiz[:hard] << st
     intervals[st].delete('quiz_easy')
     intervals[st].delete('quiz_hard')
-    next if st == 0 || st - 12 < -12 || st - 12 >= 0
-    intervals[st-12] = intervals[st].clone
+    next if st == 0
+    err "Intervals < 0 (here: #{st}) are not supported; they are created by inverting those > 0: #{intervals[st]}, as read from #{ifile}" if st < 0
     # dont use prepend here
-    intervals[st - 12].map! {|inter| inter = inter + '-O'}
+    intervals[-st] = intervals[st].map {|i| '-' + i}
   end
-
+  
   # intervals inverted
   intervals_inv = Hash.new
   intervals.each do |k,vv|

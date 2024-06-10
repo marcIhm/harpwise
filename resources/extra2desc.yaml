@@ -119,7 +119,7 @@ quiz:
     names a hole and an interval which resolves to a hole; then asks
     to play back both holes
   tell-inter: |
-    wise names two holes and asks for the interval between
+    names two holes and asks for the interval between
   hear-key: |
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching

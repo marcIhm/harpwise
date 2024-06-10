@@ -484,7 +484,7 @@ def text_for_key
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
   text += '; journal-all ' if $journal_all
-  truncate_colored_text(text, $term_width - 2 ) + "\e[K"
+  truncate_colored_text(text, $term_width - 12 ) + '    '
 end
 
 
