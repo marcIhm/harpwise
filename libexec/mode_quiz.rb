@@ -486,7 +486,7 @@ class HearScale < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
+      ", taking one scale out of #{$all_quiz_scales[$opts[:difficulty]].length}"
   end
   
   def after_solve
@@ -503,7 +503,7 @@ class HearScale < QuizFlavour
   end
   
   def issue_question
-    puts "\e[34mPlaying a scale\e[0m\e[2m; one scale out of #{@choices.length}; with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes ...\e[0m"
+    puts "\e[34mPlaying a scale\e[0m\e[2m with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes ...\e[0m"
     puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
     play_hons hide: :all
   end

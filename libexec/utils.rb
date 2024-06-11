@@ -686,14 +686,14 @@ class FamousPlayers
       fail "Internal error: No 'name' given for #{info}" unless name
       fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
       pplayer = [name]
-      @has_details[name] = false
-      fail "Internal error: Set of allowed Groups #{@all_groups.sort} is different from set of groups for #{name} in #{pfile}: #{info.keys.sort}" unless @all_groups.sort == info.keys.sort 
+      @has_details[name] = true
+      fail "Internal error: Set of groups for #{name} in #{pfile} #{info.keys.sort} is not a subset of required Groups #{@all_groups.sort}" unless Set[*info.keys].subset?(Set[*@all_groups])
       # print information in order given by @all_groups
       lcount = 0
       @all_groups.each do |group|
         lines = info[group] || []
         next if group == 'name'
-        @has_details[name] = true if lines.length > 0
+        @has_details[name] = false if lines.length == 0
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
         lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
         next if group == 'image'

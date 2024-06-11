@@ -14,7 +14,6 @@
   - My Babe
   - Blues With a Feeling
 
-
 - name: Sonny Boy Williamson II
   bio:
   - December 5, 1912 - May 24, 1965
@@ -32,23 +31,21 @@
   - Checkin' Up on My Baby
   - Bring It On Home
 
-
 - name: Annie Raines
   bio:
   - July 3, 1969 -
   - American blues harmonica player
   - Started as a professional musician at the age of 17
   notes:
-  - '"Annie Raines has some of the biggest tone out there, period"'
-  - (quote Ronnie Shellist)
   - Forms a world class blues-duo with Paul Rishell
+  - Sings and plays mandoline and piano too
+  - Worked with the Tarbox Ramblers and the Susan Tedeschi Band
   source: https://en.wikipedia.org/wiki/Annie_Raines
   songs:
   - Looking Good
   - Orange Dude Blues
   - Nothin' but the devil
   - Little Dog
-
 
 - name: Big Mama Thornton
   bio:
@@ -67,7 +64,6 @@
   songs:
   - First to record Leiber and Stoller's "Hound Dog", in 1952
   - Wrote "Ball and Chain"
-
 
 - name: '"Big" Walter Horton'
   bio:
@@ -88,7 +84,6 @@
   - Walking By Myself
   - Walter's Boogie
 
-
 - name: Charlie McCoy
   bio:
   - March 28, 1941 -
@@ -103,7 +98,6 @@
   songs:
   - Orange Blossom Special
   - You were always on my Mind
-
 
 - name: Charlie Musselwhite
   bio:
@@ -125,20 +119,18 @@
   - Cha Cha The Blues
   - Christo Redemptor
 
-
 - name: Gary Primich
   bio:
   - April 20, 1958 - September 23, 2007
   - American blues harmonica player, singer, guitarist and songwriter
   notes:
   - "Released an instructional double CD, Blues Harmonica:"
-  - "The Blues And Beyond"
+  - The Blues And Beyond
   source: https://en.wikipedia.org/wiki/Gary_Primich
   songs:
   - Bad Poker Hand
   - Goodbye Little Girl
   - Hoo Doo Ball
-
 
 - name: George "Harmonica" Smith
   bio:
@@ -152,14 +144,13 @@
   - Last Night
   - Teardrops Falling
 
-
 - name: Howard Levy
   bio:
   - July 31, 1951 -
   - American multi-instrumentalist, keyboardist and virtuoso
   - harmonica player
-  - Grammy Award for Best Pop Instrumental
-  - Grammy Award for Best Instrumental Composition
+  - Grammy Award for Best Pop Instrumental and
+  - Best Instrumental Composition
   notes:
   - "plays in many genres: jazz, classical, rock, folk, Latin,"
   - blues, country, and world music
@@ -172,7 +163,6 @@
   songs:
   - Harmonia Mundi Suite for Harmonica and Chamber Ensemble
   - The Tritate Boogie
-
 
 - name: Howlin' Wolf
   bio:
@@ -191,7 +181,6 @@
   - The Red Rooster
   - Killing Floor
 
-
 - name: James Cotton
   bio:
   - July 1, 1935 - March 16, 2017
@@ -207,7 +196,6 @@
   - When the Levee Breaks
   - Play With Your Poodle
   - Superharp
-
 
 - name: James Harman
   bio:
@@ -226,23 +214,19 @@
   - Blue Stretchmark Tattoo
   - Ain't it crazy
 
-
 - name: Jason Ricci
   bio:
   - February 3, 1974 -
   - American harmonica player and singer
+  - Started performing in punk bands at the age of 14
   notes:
-  - 'Won the Blues Music Award for "Best Harmonica Player" in 2010'
-  - '"I am convinced he ... is one of the best harmonica players"'
-  - '"of his generation."'
-  - (quote by Adam Gussow)
+  - Was named "Best Harmonica Player" at the 2010 Blues Music Awards
   source: https://en.wikipedia.org/wiki/Jason_Ricci
   songs:
   - I'm a New Man
   - Can't believe it's this Good
   - Nobody's Fault but Mine
   - Black Limousine
-
 
 - name: Jimmy Reed
   bio:
@@ -263,7 +247,6 @@
   - Baby What You Want Me to Do
   - Bright Lights, Big City
 
-
 - name: Junior Wells
   bio:
   - December 9, 1934 – January 15, 1998
@@ -277,7 +260,6 @@
   - Messin' with the kid
   - In My Younger Days
   - Hoodoo Man Blues
-
 
 - name: Kim Wilson
   bio:
@@ -294,7 +276,6 @@
   - You Upset my Mind
   - Searched All Over
   - Mean Old Frisco
-
 
 - name: Lee Oskar
   bio:
@@ -313,7 +294,6 @@
   - Before the Rain
   - Up All Night
 
-
 - name: Mark Hummel
   bio:
   - December 15, 1955 -
@@ -330,7 +310,6 @@
   - You Got Me Wrong
   - 7 Nights to Rock
 
-
 - name: Paul Butterfield
   bio:
   - December 17, 1942 – May 4, 1987
@@ -345,7 +324,6 @@
   songs:
   - Born in Chicago
   - Shake your Money-Maker
-
 
 - name: Paul Delay
   bio:
@@ -364,7 +342,6 @@
   - I Know You Got Another Man
   - Wealthy Man
 
-
 - name: Phil Wiggins
   bio:
   - May 8, 1954 -
@@ -380,18 +357,14 @@
   - Goin' Down the Road Feelin' Bad
   - Broke and Hungry
 
-
 - name: Rick Estrin
   bio:
   - October 5, 1949 -
   - Lead singer, songwriter and harmonica player
   notes:
   - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
-  - '"One of the great characters in blues - a sharp-dressing,"'
-  - '"smooth talking harmonica-playing hep-cat. He''s also a"'
-  - '"deceptively subtle writer who can cloak pointed or "'
-  - '"sobering messages within the band''s good-time vibe."'
-  - (The Philadelphia Inquirer)
+  - won the 1994 Blues Music Award for Song of the Year for
+  - his composition "My Next Ex-Wife"
   - Played around the world with his band
   - '"Rick Estrin & The Nightcats".'
   - Muddy Waters tried to hire Estrin as a sideman but Estrin did
@@ -401,7 +374,6 @@
   - The Blues Ain't Going Nowhere
   - My Next Ex-Wife
   - Nothing but love
-
 
 - name: Rod Piazza
   bio:
@@ -418,7 +390,6 @@
   - Southern Lady
   - The Upsetter
   - Ghostin
-
 
 - name: Son of Dave
   bio:
@@ -438,7 +409,6 @@
   - Squat That Rabbit
   - Whole Lotta Rosie
 
-
 - name: Sonny Boy Williamson
   bio:
   - March 30, 1914 – June 1, 1948
@@ -455,7 +425,6 @@
   - Sugar Mama
   - Early in the Morning
   - Stop Breaking down
-
 
 - name: Sonny Terry
   bio:
@@ -475,7 +444,6 @@
   - Diggin' My Potatoes
   - Changed the Lock On My Door
 
-
 - name: William Clarke
   bio:
   - March 29, 1951 - November 2, 1996
@@ -484,14 +452,13 @@
   - '"one of the best harp players out there,"'
   - '"with maybe the biggest tone,"'
   - '"a bluesman with as much soul and swing in his music"'
-  - (quote Dick Shurman)
+  - (quote Dick Shurman, blues writer)
   - Played regularly with George "Harmonica" Smith
   source: https://en.wikipedia.org/wiki/William_Clarke_(musician)
   songs:
   - Must Be Jelly
   - Lonesome Bedroom Blues
   - That Ain't the Way to Do it
-
 
 - name: John Popper
   bio:
@@ -511,7 +478,6 @@
   - But Anyway
   - Harmonica Musings
   - No Woman No Cry
-
 
 - name: Carlos del Junco
   bio:
@@ -544,7 +510,6 @@
   - Another Man Done Gone
   - Pontiac Blues
 
-
 - name: Carey Bell
   bio:
   - November 14, 1936 – May 6, 2007
@@ -559,3 +524,44 @@
   songs:
   - It's so easy to love you
   - What my mama told me
+
+- name: Joe Filisko
+  bio:
+  - Born 1967 in Giessen, Germany
+  - American blues harmonica player, teacher and maker
+  - of customized harmonicas
+  notes:
+  - Forms a duo with Eric Noden
+  - Arguably the worlds foremost authority on nearly all aspects
+  - of the diatonic harmonica
+  source: https://en.wikipedia.org/wiki/Joe_Filisko
+  songs:
+  - Sonic Breakdown
+  - On the Move
+  - Kick Myself
+
+- name: Magic Dick
+  bio:
+  - May 13, 1965 -
+  - Born as Richard Salwitz
+  notes:
+  - Plays trumpet and saxophone too
+  - Founding member of the J. Geils Band
+  - Has toured as part of the Legendary Rhythm & Blues Revue
+  source: https://en.wikipedia.org/wiki/Magic_Dick
+  songs:
+  - Whammer Jammer
+  - Nine Below Zero
+  
+- name: Alan Wilson
+  bio:
+  - July 4, 1943 – September 3, 1970
+  - Co-founder, leader, singer, and primary composer of Canned Heat
+  notes:
+  - '"Al Wilson taught Son House how to play Son House."'
+  - Sang '"Going Up the Country."'
+  source:
+  - https://en.wikipedia.org/wiki/Alan_Wilson_(musician)
+  songs:
+  - Going Up the Country
+  - On the Road Again

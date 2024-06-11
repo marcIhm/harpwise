@@ -405,16 +405,16 @@ def print_players args
   Thread.report_on_exception = false
 
   if args.length == 0
-    puts_underlined "All players known to harpwise"
+    puts_underlined "Players known to harpwise"
     $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
     puts
     puts "\e[2m  r,random: pick one of these at random"
     puts "  l,last: last player (if any) featured in listen"
     puts "  a,all: all players shuffled in a loop\n\n"
     puts "Remarks:"
-    puts "- Most information is taken from Wikipedia; source is provided."
-    puts "- You may add your own pictures of players to subdirs of\n    #{$dirs[:players_pictures]}"
-    puts "- Players, which have no details yet, are dimmed\e[0m"
+    puts "- Most information is taken from Wikipedia; sources are provided."
+    puts "- You may add your own pictures to already created subdirs of\n    #{$dirs[:players_pictures]}"
+    puts "- Players, which do not have all details yet, are dimmed\e[0m"
     puts
     puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
 
@@ -450,30 +450,35 @@ def print_players args
     puts "#{$players.all_with_details.length} players with their details."
 
   else
-    selected_name, selected_content = $players.select(args)
-    selected = [selected_name, selected_content].flatten
+    selected_by_name, selected_by_content = $players.select(args)
+    selected = (selected_by_name + selected_by_content).uniq
     total = selected.length
     if total == 0
       puts "No player matches your input; invoke without arguments to see a complete list of players"
-    elsif selected_name.length == 1
-      print_player $players.structured[selected_name[0]]
-    elsif selected_name.length == 0 && selected_content.length == 1
-      print_player $players.structured[selected_content[0]]
+    elsif selected_by_name.length == 1
+      print_player $players.structured[selected_by_name[0]]
+    elsif selected_by_name.length == 0 && selected_by_content.length == 1
+      print_player $players.structured[selected_by_content[0]]
     else
       puts "Multiple players match your input:\n"
       puts
       if total <= 9
-        if selected_name.length > 0
+        if selected_by_name.length > 0
           puts "\e[2mMatches in name:\e[0m"
-          selected_name.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+          puts
+          selected_by_name.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
         end
-        if selected_content.length > 0
+        if selected_by_content.length > 0
           puts "\e[2mMatches in content:\e[0m"
-          selected_content.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+          selected_by_content.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
         end
         make_term_immediate
         $ctl_kb_queue.clear
-        puts
+        4.times do
+          puts
+          sleep 0.04
+        end
+        print "\e[3A"
         print "Please type one of (1..#{total}) to read details: "
         char = $ctl_kb_queue.deq
         make_term_cooked
@@ -486,9 +491,9 @@ def print_players args
         end
       else
         puts "\e[2mMatches in name:\e[0m"
-        selected_name.each {|p,i| puts "  " + p}
+        selected_by_name.each {|p,i| puts "  " + p}
         puts "\e[2mMatches in content:\e[0m"
-        selected_content.each {|p,i| puts "  " + p}
+        selected_by_content.each {|p,i| puts "  " + p}
         puts
         puts "Too many matches (#{selected.length}); please be more specific"
       end
@@ -508,6 +513,6 @@ def print_player player, in_loop = false
     end
     $players.view_picture(player['image'], player['name'], in_loop)
   else
-    puts "\n\e[2mNo details known yet.\e[0m"
+    puts "\n\e[2mNot enough details known yet.\e[0m"
   end
 end
