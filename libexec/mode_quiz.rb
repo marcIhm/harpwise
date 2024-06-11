@@ -503,8 +503,8 @@ class HearScale < QuizFlavour
   end
   
   def issue_question
-    puts "\e[34mPlaying a scale\e[0m\e[2m with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes ...\e[0m"
-    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
+    puts "\e[34mPlaying a scale\e[0m\e[2m with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     play_hons hide: :all
   end
 
@@ -655,8 +655,8 @@ class MatchScale < QuizFlavour
   end
   
   def issue_question
-    puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'} ...\e[0m"
-    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
+    puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'}\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     play_hons hide: @state[:hide_holes]
   end
 
@@ -742,7 +742,7 @@ class HearInter < QuizFlavour
   end
   
   def issue_question
-    puts "\e[34mPlaying an interval\e[0m\e[2m; one out of #{@choices.length} ...\e[0m"
+    puts "\e[34mPlaying an interval\e[0m\e[2m to ask for its name\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     play_hons hide: [:help, :all]
@@ -890,7 +890,7 @@ class TellInter < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mWhat is the interval between holes \e[94m#{@holes[0]}\e[34m and \e[94m#{@holes[1]}\e[0m"
+    puts "\e[34mAsking for the interval between holes \e[94m#{@holes[0]}\e[34m and \e[94m#{@holes[1]}\e[0m\e[2m\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
@@ -964,7 +964,7 @@ class Players < QuizFlavour
   
   def issue_question
     puts
-    puts "\e[34mWhat is the name of the player with  \e[94m#{@qitem.upcase}\e[34m  given below.\e[0m"
+    puts "\e[34mAsking for the name of the player with  \e[94m#{@qitem.upcase}\e[34m  given below\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     puts
     puts "\e[32m#{@qitem.capitalize}:\e[0m"
@@ -1017,7 +1017,7 @@ class KeyHarpSong < QuizFlavour
   end
 
   def issue_question
-    puts "\e[34mGiven a \e[94m#{@qdesc.upcase}\e[34m with key of '\e[94m#{@qitem}\e[34m', name the matching key for the \e[94m#{@adesc}\e[34m\n(2nd position)\e[0m"
+    puts "\e[34mGiven a \e[94m#{@qdesc.upcase}\e[34m with key of '\e[94m#{@qitem}\e[34m', name the matching key for the \e[94m#{@adesc}\e[0m\e[2m\n(2nd position)\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
@@ -1644,7 +1644,7 @@ class NotInScale < QuizFlavour
   
   def issue_question
     puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m modified: shuffled and one note replaced by a foreign one\e[0m"
-    puts "\e[2mThe " + self.class.describe_difficulty + "\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     play_hons(hons: @holes, hide: @hide)
   end
 

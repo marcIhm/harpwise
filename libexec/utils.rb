@@ -49,7 +49,6 @@ class String
       tr("-", "_").
       downcase
   end
-
 end
 
 
