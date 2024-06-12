@@ -47,9 +47,7 @@ def do_play to_play
       
       $ctl_rec[:lick_lick] = false
       $ctl_rec[:loop_loop] = false
-      
-      play_licks_controller $licks.select {|l| lnames.include?(l[:name])},
-                            nil
+      play_licks_controller $licks.select {|l| lnames.include?(l[:name])}, nil
 
     else
 
@@ -290,7 +288,9 @@ def play_and_print_lick lick, extra = ''
          "    (h for help)\e[0m\n" +
          lick[:holes].join(' ')
     print "\e[0m\e[2m"
+    sleep 0.02
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
+    sleep 0.02
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     play_recording_and_handle_kb lick[:rec], lick[:rec_start], lick[:rec_length], lick[:rec_key], true
@@ -303,39 +303,45 @@ def play_and_print_lick lick, extra = ''
       play_holes lick[:holes], lick: lick
     end
     print "\e[0m\e[2m"
+    sleep 0.02
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
+    sleep 0.02
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
   end
+  sleep 0.02
   puts
 end
 
 
 def play_licks_controller licks, refill, sleep_between: false
-
   stock = licks.clone
   prev_licks = Array.new
   lick = stock.shift
 
-  loop do
+  loop do  ## one lick after the other
     trace_lick(lick)
 
-    loop do
+    loop do  ## repeats of the same lick
       play_and_print_lick lick
 
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
-        puts "\e[0m\e[2m2 secs pause after (any key for menu) ...\e[0m"
-        10.times do
-          sleep 0.2
+        print "\e[0m\e[2m5 secs pause (any key for menu) "
+        (0..50).each do |i|
+          sleep 0.1
+          print '.' if i % 10 == 5
           break if !$ctl_kb_queue.empty?
         end
-        puts
+        puts "\e[0m"
       else
         sleep ( $opts[:fast] ? 0.25 : 0.5 )
       end
-      
-      break if licks.length == 1 && !refill
+      if stock.length == 0 && !refill
+        # last lick has been played, no need to ask
+        lick = nil
+        break
+      end
       case maybe_wait_for_key_and_decide_replay
       when :next
         prev_licks << lick if lick && lick != prev_licks[-1]
@@ -353,9 +359,9 @@ def play_licks_controller licks, refill, sleep_between: false
         end
         break
       end
-    end
+    end  ## repeats of the same lick
 
-    if stock.length == 0
+    if !lick && stock.length == 0
       if refill
         if $opts[:iterate] == :random
           stock = refill.shuffle
@@ -366,7 +372,7 @@ def play_licks_controller licks, refill, sleep_between: false
         return
       end
     end
-  end
+  end  ## one lick after the other
 end
 
 
@@ -378,20 +384,32 @@ def maybe_wait_for_key_and_decide_replay
   else
     old_lines = nil
     loop do
-      lines =["Press:   r: to replay this lick      BACKSPACE: for previous",
-              "Keys (available during play too):",
-              "         c: continue lick after lick and without this menu " +
-              ( $ctl_rec[:lick_lick]  ?  "(now ON)"  :  "(now OFF)" ),
-              "         L: loop over lick for all licks until pressed again " +
-              ( $ctl_rec[:loop_loop]  ?  "(now ON)"  :  "(now OFF)" ),
-              ("     2-9,0: set num, if looping enabled (now %s)" % get_num_loops_desc(true)),
-              "SPACE or RETURN for next licks ...\n"]
+      # lines are devided in segments, which are highlighted if they change
+      lines = [['Press:   r: to replay this lick      BACKSPACE: for previous'],
+               ['toggle-keys (available during play too):'],
+               ['         c: continue lick after lick and without this menu (now ',
+                ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
+               ['         L: loop over lick for all licks until pressed again (now ',
+                ( $ctl_rec[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
+               ['     2-9,0: set num, if looping (l,L) enabled (now ',
+                get_num_loops_desc(true).to_s, ')'],
+               ["SPACE or RETURN for next licks ...\n"]]
+      oldlines ||= lines
       # highlight diffs to initial state
-      old_lines ||= lines.clone
-      lines.zip(old_lines).each do |line, oldline|
+      lines.zip(oldlines).each do |line, oldline|
         print "\e[0m\e[2m"
-        line[line.rindex('(')] = "\e[0m\e[32m(" if line != oldline
-        puts line
+        # not strings but rather arrays of segments
+        line.zip(oldline).each do |seg, oldseg|
+          if seg != oldseg
+            print "\e[0m\e[32m"
+            # modify, so that highlight persists
+            oldseg[0] = '#'
+          end
+          print seg
+          print "\e[0m\e[2m"
+        end
+        puts
+        sleep 0.02
       end
       $ctl_kb_queue.clear
       char = $ctl_kb_queue.deq

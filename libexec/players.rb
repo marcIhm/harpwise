@@ -31,7 +31,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
   begin
     cnt_loops += 1
     if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
-      sleep 1 if cnt_loops < $ctl_rec[:num_loops]
+      sleep 2 if cnt_loops < $ctl_rec[:num_loops]
       print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
     end
     

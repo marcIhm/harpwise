@@ -786,7 +786,7 @@ do_test 'id-16b: cycle in play' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[12]['Lick st-louis'] }
+  expect { screen[11]['Lick st-louis'] }
   kill_session
 end
 
@@ -2477,7 +2477,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 2
   tms :ENTER
   sleep 8
-  expect { screen[10]["The difficulty is 'HARD', taking one scale out of 7"] }
+  expect { screen[10]["difficulty is 'HARD', taking one scale out of 7"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2840,7 +2840,7 @@ do_test 'id-108: quiz-flavour tell-inter' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[11]['What is the interval between holes'] }
+  expect { screen[11]['Asking for the interval between holes'] }
   sleep 1
   tms 'help-chart-notes'
   tms :ENTER
@@ -2945,25 +2945,40 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[6]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[12]['Lick st-louis'] }
+  expect { screen[11]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[12]['Lick feeling-bad'] }
+  expect { screen[11]['Lick feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[12]['Lick chord-prog'] }
+  expect { screen[11]['Lick chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[12]['Lick feeling-bad'] }
+  expect { screen[11]['Lick feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[12]['Lick st-louis'] }
+  expect { screen[11]['Lick st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[12]['Lick wade'] }
+  expect { screen[11]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[10]['No previous lick available'] }
+  expect { screen[9]['No previous lick available'] }
+  kill_session
+end
+
+do_test 'id-115: play two licks with no prompt after last' do
+  new_session
+  tms 'harpwise play wade st-louis'
+  tms :ENTER
+  sleep 6
+  expect { screen[4]['Lick wade'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[17]['Lick st-louis'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[23]['$'] }
   kill_session
 end
 
