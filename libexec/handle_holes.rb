@@ -607,7 +607,7 @@ def get_mission_override
 end
 
 
-def show_help
+def show_help mode = $mode, testing_only = false
   max_lines_per_frame = 20
   fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
   lines_offset = (( $term_height - max_lines_per_frame ) * 4 / 5.0).to_i
@@ -623,7 +623,7 @@ def show_help
              "      k: change key of harp",
              "      K: play adjustable pitch and take it as new key",
              "      s: rotate current scales        S: set scales"]
-  if [:quiz, :licks].include?($mode)
+  if [:quiz, :licks].include?(mode)
     frames[-1] <<  "      j: journal-menu; only available in mode listen"
     frames[-1] <<  " CTRL-R: record and play user (mode licks only)"
   else
@@ -632,13 +632,14 @@ def show_help
     frames[-1] <<  "      p: print details about current player"
   end
     
-  if [:listen, :quiz, :licks].include?($mode)
+  if [:listen, :quiz, :licks].include?(mode)
     frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
   end
   frames[-1].append(*["      q: quit harpwise                h: this help",
                       ""])
   
-  if [:quiz, :licks].include?($mode)
+  if [:quiz, :licks].include?(mode)
+    
     frames << [" More help on keys (special for modes licks and quiz):",
                "",
                " RETURN: next sequence or lick     BACKSPACE: previous sequence",
@@ -646,15 +647,15 @@ def show_help
                "    :;p: replay but ignore '--partial', i.e. play all",
                "      P: toggle automatic replay when looping over a sequence",
                "      i: toggle '--immediate'              L: loop current sequence",
-               "    0,-: forget holes played               +: skip rest of sequence",
-               "      t: toggle tracking progress in seq"]
-    if $mode == :quiz
+               "    0,-: forget holes played               +: skip rest of sequence"]
+    if mode == :quiz
+      frames[-1] << "      t: toggle tracking progress in seq"
       frames[-1] << "    4,H: hints for quiz-flavour #{$quiz_flavour}"
       frames[-1] << " ctrl-z: restart with another flavour (signals quit, tstp)"
     end
-    if $mode == :licks
+    if mode == :licks
       frames[-1].append(*["      l: change current lick               e: edit lickfile",
-                          "      t: change option -t                  I: show info on lick",
+                          "      t: change lick-selection             I: show info on lick",
                           "      %: shift lick by chosen interval   9,@: change option --partial",
                           "     <>: shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                           "     */: Add or remove Star from current lick persistently;",
@@ -662,7 +663,7 @@ def show_help
                           "      !: play holes reversed               &: shuffle holes",
                           "      1: give one hole, as if you played it",
                           ""])
-    elsif $mode == :quiz && $quiz_flavour == 'replay'
+    elsif mode == :quiz && $quiz_flavour == 'replay'
       frames[-1] << "      n: change number of holes to be replayed"
       frames[-1] << ""
     else
@@ -677,12 +678,17 @@ def show_help
     can_for = ( curr_frame < frames.length - 1 )
     prompt = ' ' +
              if can_for
-               'Press any key to show more help'
+               'Any key for more help'
              else
-               'Press any key to leave help'
+               'Help done, any key to leave'
              end +
              if can_back
-               ', BACKSPACE for previous screen'
+               ', BACKSPACE for prev screen'
+             else
+               ''
+             end +
+             if can_for
+               ', ESC to quit'
              else
                ''
              end +
@@ -690,16 +696,38 @@ def show_help
     frame << prompt
   end
     
-  
-  if $testing
+
+  # check current set of frames more thoroughly while testing
+  if $testing || testing_only
+    # fkgs = frame_keys_groups
+    all_fkgs_kg2line = Hash.new
     frames.each do |frame|
+
       err "Internal error: frame #{frame} with #{frame.length} lines is longer than maximum of #{max_lines_per_frame}" if frame.length > max_lines_per_frame
+
+      this_fkgs_pos2group_last = Hash.new
       frame.each do |line|
-        err "Internal error line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 1}" if line.length > $term_width - 1
+
+        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 1}" if line.length > $term_width - 1
+
+        scanner = StringScanner.new(line)
+        # one keys-group after the other
+        while scanner.scan_until(/\S+: /)
+          kg = scanner.matched
+          this_fkgs_pos2group_last[scanner.pos] = kg
+          err "Internal error: frame key group '#{kg}' in line '#{line}' has already appeared before in prior line '#{all_fkgs_kg2line[kg]}' (maybe in a prior frame)" if all_fkgs_kg2line[kg]
+          all_fkgs_kg2line[kg] = line
+        end
       end
+
+      # checking of key groups, so that we can be sure to highlight
+      # correctly, even with our simple approach (see below)
+      err "Internal error: frame \n\n#{frame.pretty_inspect}\nhas too many positions of keys-groups (alignment is probably wrong); this_fkgs_pos2group_last = #{this_fkgs_pos2group_last}\n" if this_fkgs_pos2group_last.keys.length > 2
     end
   end
 
+  return nil if testing_only
+  
   curr_frame_was = -1
   curr_frame = 0
   loop do
@@ -712,6 +740,10 @@ def show_help
       print frames[curr_frame][0]
       print "\e[0m\e[32m\n"
       frames[curr_frame][1 .. -2].each do |line|
+        # frames are checked for correct usage of keys-groups during
+        # testing (see above), so that any errors are found and we can
+        # use our simple approach, which has the advantage of beeing
+        # easy to format
         puts line.gsub(/(\S+): /, "\e[92m\\1\e[32m: ")
       end
       print "\e[\e[0m"
@@ -722,6 +754,8 @@ def show_help
     key = $ctl_kb_queue.deq
     if key == 'BACKSPACE'
       curr_frame -= 1 if can_back
+    elsif key == 'ESC'
+      return
     else
       if can_for
         curr_frame += 1

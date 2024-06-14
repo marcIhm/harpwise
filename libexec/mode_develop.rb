@@ -252,6 +252,16 @@ end
 def do_unittest
 
   puts
+  puts_underlined 'show_help'
+  [:quiz, :listen, :licks].each do |mode|
+    # needed in help
+    $modes_for_switch = [:quiz, :listen]
+    # will throw error on problems
+    show_help mode, true
+    puts mode.to_s.ljust(6) + "\e[32m ... okay\e[0m"
+  end
+
+  puts
   puts_underlined 'Semitone calculations'
   found = note2semi('a4')
   expected = 0

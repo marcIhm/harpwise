@@ -1800,7 +1800,7 @@ end
 
 help_samples = {'harpwise listen d' => [[9,'change key of harp']],
                 'harpwise quiz a replay 3' => [[9,'change key of harp'],[9,'forget holes played']],
-                'harpwise licks c' => [[9,'change key of harp'],[16,'select them later by tag']]}
+                'harpwise licks c' => [[9,'change key of harp'],[15,'select them later by tag']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do

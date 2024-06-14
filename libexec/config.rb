@@ -108,7 +108,7 @@ def set_global_vars_early
   find_and_check_dirs
 
   # vars for recording user in mode licks
-  $ulrec = UserLickRecording.instance
+  $ulrec = UserLickRecording.new
 
   $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
   fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
