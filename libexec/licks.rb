@@ -103,7 +103,7 @@ def read_licks graceful = false
                                      ([lick[:tags] || default[:tags]] +
                                       [lick[:tags_add] || default[:tags_add]] +
                                       starred
-                                     ).flatten.select(&:itself),name).sort.uniq
+                                     ).flatten.compact,name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
           adhoc_tag2licks.keys.each do |tag| 
             lick[:tags] << tag if adhoc_tag2licks[tag].include?(name)
@@ -115,7 +115,7 @@ def read_licks graceful = false
           elsif default[:desc_add] && default[:desc_add].length > 0
             lick[:desc] += ' ' + default[:desc_add] 
           end
-          lick[:desc].strip!
+          lick[:desc] = replace_vars(vars,[lick[:desc].strip],name)[0]
           lick[:rec_key] ||= 'c'
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
@@ -155,7 +155,7 @@ def read_licks graceful = false
 
       
     # $var = value
-    elsif md = line.match(/^ *(\$#{$word_re}) *= *(#{$word_re})$/)
+    elsif md = line.match(/^ *(\$#{$word_re}) *= *(.*) *$/)
       var, value = md[1..2]
       err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile}, line #{idx + 1})" unless name == 'vars'
       vars[var] = value
