@@ -11,7 +11,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     start_collect_freqs
   end
   $modes_for_switch = [:listen, $mode.to_sym]
-  $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
+  $ctl_mic[:replay] = $ctl_mic[:replay_menu] = false
   
   to_play = PlayController.new
   to_play[:replacement_for_play] = quiz_holes_shifts[0] if quiz_holes_shifts
@@ -79,18 +79,25 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     elsif $ctl_mic[:change_tags]  
       to_play.change_tags
 
+    elsif $ctl_mic[:replay_menu]  
+      $ctl_mic[:replay_flags] = get_replay_flags
+      $ctl_mic[:replay] = true
+      $ctl_mic[:replay_menu] = false
+
     elsif $ctl_mic[:reverse_holes]
       to_play.set_all_wanted to_play[:all_wanted].reverse 
       if to_play[:lick][:rec]
         $msgbuf.print 'Holes reverted, ignoring recording', 2, 5, :holes
-        $ctl_mic[:ignore_recording] = true
+        $ctl_mic[:replay_flags] = Set[:holes]
+        $ctl_mic[:replay] = true
       end
 
     elsif $ctl_mic[:shuffle_holes]
       to_play.set_all_wanted to_play[:all_wanted].shuffle
       if to_play[:lick][:rec]
         $msgbuf.print 'Holes shuffled, ignoring recording', 2, 5, :holes
-        $ctl_mic[:ignore_recording] = true
+        $ctl_mic[:replay_flags] = Set[:holes]
+        $ctl_mic[:replay] = true
       end
 
     elsif $ctl_mic[:replay]      
@@ -284,7 +291,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       
       print_mission('Listen ...') unless oride_l_message2
 
-      $ctl_mic[:ignore_partial] = true if zero_partial? && $ctl_mic[:replay]
+      $ctl_mic[:replay_flags].add(:ignore_partial) if zero_partial? && $ctl_mic[:replay]
 
       # show later comment already while playing
       print_comment_adhoc(to_play[:all_wanted]) unless oride_l_message2
@@ -312,10 +319,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
     # reset controls before listening
     $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:shift_inter_circle] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
-
-    # these controls are only used during play, but can be set during
-    # listening and play
-    $ctl_mic[:ignore_recording] = $ctl_mic[:ignore_holes] = $ctl_mic[:ignore_partial] = false
+    
+    $ctl_mic[:replay] = false
+    $ctl_mic[:replay_flags] = Set.new
 
     #
     #  Prepare for listening
@@ -517,7 +523,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           return
         end
 
-        break if [:next, :back, :replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :replay_menu, :shift_inter, :shift_inter_circle, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
 
       end  # notes in a sequence
 
@@ -574,7 +580,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
         # update hint
         print "\e[#{$lines[:hint_or_message]}H\e[K"
-        unless [:replay, :shift_inter, :shift_inter_circle, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        unless [:replay, :replay_menu, :shift_inter, :shift_inter_circle, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
@@ -609,7 +615,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         $freqs_queue.clear
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :shift_inter, :shift_inter_circle, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :replay_menu, :shift_inter, :shift_inter_circle, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}   # while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
@@ -712,7 +718,7 @@ end
 
 def play_recording_lick lick, at_line:, shift_inter:, holes:
       
-  if $opts[:partial] && !$ctl_mic[:ignore_partial]
+  if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
@@ -1095,6 +1101,29 @@ def read_tags_and_refresh_licks curr_lick
 end
 
 
+def get_replay_flags
+  ch2desc = {'normal-replay' => "Normal replay, just as if typing '.'",
+             'prefer-holes' => "Play holes, even if recording is present",
+             'prefer-rec' => "Play recording (if present), even if option '--holes' given",
+             'prefer-holes-no-partial' => "In addition to 'prefer-holes', also ignore option '--partial'",
+             'prefer-rec-no-partial' => "In addition to 'prefer-rec', also ignore option '--partial'"}
+  answer = choose_interactive('Choose flags for one replay: ',
+                              ch2desc.keys) do |tag|
+    ch2desc[tag]
+  end
+  clear_area_comment
+  clear_area_message
+  flags = Set.new
+  if answer['prefer-holes']
+    flags << :holes
+  elsif answer['prefer-rec']
+    flags << :recording
+  end
+  flags << :ignore_partial if answer['no-partial']
+  return flags
+end
+
+
 def read_and_set_partial
   make_term_cooked
   clear_area_comment
@@ -1187,9 +1216,8 @@ end
 
 
 def play_rec_or_holes to_play, oride_l_message2, show_holes: nil
-  if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:ignore_recording] ||
-     (to_play[:all_wanted] == to_play[:lick][:holes].reverse) ||
-     ($opts[:holes] && !$ctl_mic[:ignore_holes])
+  if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:replay_flags].include?(:holes) ||
+     ($opts[:holes] && !$ctl_mic[:replay_flags].include?(:recording))
     play_holes(to_play[:replacement_for_play] || to_play[:all_wanted],
                at_line: oride_l_message2,
                verbose: true,

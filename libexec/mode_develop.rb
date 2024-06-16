@@ -311,6 +311,18 @@ def do_unittest
   utreport('Symbols override', found, expected)
 
   $msgbuf.clear
+  $msgbuf.print 'c', 1, 3, :foo
+  $msgbuf.print 'a', 1, 3
+  $msgbuf.print 'b', 1, 3
+  # one :foo should overwrite the other
+  $msgbuf.print 'd', 1, 3, :foo
+  found = $msgbuf.get_lines_durations
+  expected = [["a", 1, 3, nil],
+              ["b", 1, 3, nil],
+              ["d", 1, 3, :foo]] 
+  utreport('Symbols deep override', found, expected)
+
+  $msgbuf.clear
   $msgbuf.print 'd', 1, 3
   sleep 2
   found = $msgbuf.update

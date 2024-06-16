@@ -77,7 +77,7 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
                         "SPACE: pause/continue\n" + 
-                        "    +: jump to end           -: jump to start\n" +
+                        "    +: jump to end          -.: jump to start\n" +
                         "    v: decrease volume       V: increase volume by 3dB\n" +
                         "    <: decrease speed        >: increase speed\n" +
                         "    l: loop over rec " +
@@ -755,13 +755,13 @@ end
 
 def play_holes all_holes, at_line: nil, verbose: false, lick: nil, show_holes: false
 
-  if $opts[:partial] && !$ctl_mic[:ignore_partial]
+  if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
   end
   
-  IO.write($testing_log, all_holes.inspect + "\n", mode: 'a') if $testing
+  IO.write($testing_log, holes.inspect + "\n", mode: 'a') if $testing
   
   $ctl_hole[:skip] = false
   ltext = if lick

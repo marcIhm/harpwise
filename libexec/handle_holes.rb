@@ -373,12 +373,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if $ctl_mic[:start_loop]
-      $ctl_mic[:loop] = true
-      $ctl_mic[:start_loop] = false
-      print_mission(get_mission_override || lambda_mission.call)
-    end
-    
     if $ctl_mic[:toggle_progress]
       $opts[:no_progress] = !$opts[:no_progress]
       $ctl_mic[:toggle_progress] = false
@@ -452,7 +446,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -608,94 +602,143 @@ end
 
 
 def show_help mode = $mode, testing_only = false
+  #
+  # Remark: We see the plain-text-version of our help text as its
+  # primary form, because it is easier to read and write (in code). A
+  # form with more structure is derived in a second step only; to
+  # allow this, we have some rules:
+  #
+  # - key-groups and their description are separated by ':_' which is
+  #   replaced by ': ' as late as possible before printing to screen
+  #
+  # - Within key-groups, some heuristics are applied for characters
+  #   ',' and ':'
+  #
   max_lines_per_frame = 20
   fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
-  lines_offset = (( $term_height - max_lines_per_frame ) * 4 / 5.0).to_i
+  lines_offset = (( $term_height - max_lines_per_frame ) * 0.5).to_i
   
   frames = Array.new
-  frames << [" Help on keys (invoke 'harpwise' without args for more info):",
-             " \e[0m\e[2mVersion #{$version}\e[0m\e[32m",
+  frames << [" Help on keys in main view:",
              "",
-             "  SPACE: pause and continue      CTRL-L: redraw screen",
-             "    d,D: change display (upper part of screen)",
-             "    c,C: change comment (in lower part of screen)",
-             "    r,R: set reference to hole played or chosen",
-             "      k: change key of harp",
-             "      K: play adjustable pitch and take it as new key",
-             "      s: rotate current scales        S: set scales"]
+             "  SPACE:_pause and continue      CTRL-L:_redraw screen",
+             "    d,D:_change display (upper part of screen)",
+             "    c,C:_change comment (in lower part of screen)",
+             "    r,R:_set reference to hole played or chosen",
+             "      k:_change key of harp",
+             "      K:_play adjustable pitch and take it as new key",
+             "      s:_rotate current scales        S:_set scales"]
   if [:quiz, :licks].include?(mode)
-    frames[-1] <<  "      j: journal-menu; only available in mode listen"
-    frames[-1] <<  " CTRL-R: record and play user (mode licks only)"
+    frames[-1] <<  "      j:_journal-menu; only available in mode listen"
+    frames[-1] <<  " CTRL-R:_record and play user (mode licks only)"
   else
-    frames[-1] <<  "      j: journal-menu to handle holes collected"
-    frames[-1] <<  "      w: switch comment to warble and prepare"
-    frames[-1] <<  "      p: print details about current player"
+    frames[-1] <<  "      j:_invoke journal-menu to handle your musical ideas"
+    frames[-1] <<  "      w:_switch comment to warble and prepare"
+    frames[-1] <<  "      p:_print details about player currently drifting by"
   end
-    
-  if [:listen, :quiz, :licks].include?(mode)
-    frames[-1] << "      m: switch between modes #{$modes_for_switch.map(&:to_s).join(',')}"
-  end
-  frames[-1].append(*["      q: quit harpwise                h: this help",
+
+  frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
+                      "      q:_quit harpwise                h:_this help",
                       ""])
   
   if [:quiz, :licks].include?(mode)
-    
-    frames << [" More help on keys (special for modes licks and quiz):",
+    frames << [" More help on keys; special for modes licks and quiz:",
                "",
-               " RETURN: next sequence or lick     BACKSPACE: previous sequence",
-               "     .:: replay current                   ,;: replay, holes only",
-               "    :;p: replay but ignore '--partial', i.e. play all",
-               "      P: toggle automatic replay when looping over a sequence",
-               "      i: toggle '--immediate'              L: loop current sequence",
-               "    0,-: forget holes played               +: skip rest of sequence"]
+               "  Note: 'licks' and 'sequence of holes to play' (mode quiz)",
+               "  are mostly handled alike.",
+               "",
+               "  RETURN:_next sequence or lick     BACKSPACE:_previous"]
     if mode == :quiz
-      frames[-1] << "      t: toggle tracking progress in seq"
-      frames[-1] << "    4,H: hints for quiz-flavour #{$quiz_flavour}"
-      frames[-1] << " ctrl-z: restart with another flavour (signals quit, tstp)"
-    end
-    if mode == :licks
-      frames[-1].append(*["      l: change current lick               e: edit lickfile",
-                          "      t: change lick-selection             I: show info on lick",
-                          "      %: shift lick by chosen interval   9,@: change option --partial",
-                          "     <>: shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
-                          "     */: Add or remove Star from current lick persistently;",
-                          "         select them later by tag 'starred'",
-                          "      !: play holes reversed               &: shuffle holes",
-                          "      1: give one hole, as if you played it",
-                          ""])
-    elsif mode == :quiz && $quiz_flavour == 'replay'
-      frames[-1] << "      n: change number of holes to be replayed"
-      frames[-1] << ""
+      frames[-1].append(*["      .p:_replay sequence"])
     else
-      frames[-1] << ""
+      frames[-1].append(*["      .p:_replay recording",
+                          "       ,:_replay menu to choose flags for next replay"])
     end
-    frames[-1].append(*[" Note, that other keys (and help) apply when harpwise plays itself."])
+
+    frames[-1].append(*["       P:_toggle auto replay for repeats of the same seq",
+                        "       i:_toggle immediate reveal of sequence",
+                        "     0,-:_forget holes played; start over   +:_skip rest of sequence"])
+    if mode == :quiz
+      frames[-1].append(*["       t:_toggle tracking progress in seq",
+                          "     4,H:_hints for quiz-flavour #{$quiz_flavour}",
+                          "  CTRL-Z:_restart with another flavour (signals quit, tstp)"])
+          if $quiz_flavour == 'replay'
+            frames[-1].append(*["       n:_change number of holes to be replayed",
+                                ""])
+          end
+    else
+      frames << [" More help on keys; special for mode licks:",
+                 "",
+                 "      l:_change current lick by name       e:_edit lickfile",
+                 "      t:_change lick-selection (-t)        I:_show info on lick",
+                 "      %:_shift lick by chosen interval   9,@:_change option --partial",
+                 "     <>:_shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
+                 "     */:_Add or remove Star from current lick persistently;",
+                 "         select them later by tag 'starred'",
+                 "      !:_play holes reversed               &:_shuffle holes",
+                 "      1:_give one hole, as if you played it",
+                 ""]
+    end
   end
 
-  # add prompt to frames, so that it can be tested below
-  frames.each_with_index do |frame, curr_frame|
-    can_back = ( curr_frame > 0 )
-    can_for = ( curr_frame < frames.length - 1 )
-    prompt = ' ' +
-             if can_for
-               'Any key for more help'
+  frames << [" Further reading:",
+             "",
+             "  Invoke 'harpwise' without arguments for an introduction as well as",
+             "  explanation of the individual concepts; general and for each mode.",
+             "",
+             "  And note, that other keys (and help) apply when harpwise plays",
+             "  recordings and licks; type 'h' then for details."]
+
+  # add prompt and frame count
+  frames.each_with_index do |frame, fidx|
+    frame[0] = frame[0].ljust($conf[:term_min_width] - 10) + "   [#{fidx + 1}/#{frames.length}]"
+    frame << "" unless frame[-1] == ""
+    frame << ""  while frame.length < max_lines_per_frame - 2
+    frame << ' ' +
+             if fidx < frames.length - 1
+               'SPACE or RETURN for more; ESC to leave'
              else
-               'Help done, any key to leave'
+               'Help done; SPACE, RETURN or ESC to leave'
              end +
-             if can_back
-               ', BACKSPACE for prev screen'
+             if fidx > 0 
+               ', BACKSPACE for prev'
              else
                ''
-             end +
-             if can_for
-               ', ESC to quit'
-             else
-               ''
-             end +
-             ' ...'
-    frame << prompt
+             end 
+    frame << "   any other key to highlight its specific line of help ..."
   end
-    
+  
+  # get some structured information out of frames
+  all_fkgs_k2flidx = Hash.new
+  frames.each_with_index do |frame, fidx|
+    frame.each_with_index do |line, lidx|
+      scanner = StringScanner.new(line)
+      while scanner.scan_until(/\S+:_/)
+        full_kg = scanner.matched
+        kg = scanner.matched[0..-3].strip
+        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE)
+        ks = if special.include?(kg)
+               [kg]
+             else
+               fail "Internal error: cannot handle #{special} with other keys in same keygroup yet; in line '#{line}'" if special.any? {|sp| kg[sp]} && !special.any {|sp| kg == sp}
+               # handle comma as first or last in key group special
+               if kg[0] == ',' || kg[-1] == ',' || kg.length == 1
+                 kg.chars
+               else
+                 if kg[',']
+                   kg.split(',')
+                 else
+                   kg.chars
+                 end
+               end
+             end
+        ks.each do |k|
+          fail "Key '#{k}' already has this [frame, line]: '#{all_fkgs_k2flidx[k]}'; cannot assign it new '#{[fidx, lidx]}'; line is '#{line}'" if all_fkgs_k2flidx[k]
+          all_fkgs_k2flidx[k] ||= [fidx, lidx]
+        end
+      end
+    end
+  end
 
   # check current set of frames more thoroughly while testing
   if $testing || testing_only
@@ -703,16 +746,16 @@ def show_help mode = $mode, testing_only = false
     all_fkgs_kg2line = Hash.new
     frames.each do |frame|
 
-      err "Internal error: frame #{frame} with #{frame.length} lines is longer than maximum of #{max_lines_per_frame}" if frame.length > max_lines_per_frame
+      err "Internal error: frame #{frame.pretty_inspect} with #{frame.length} lines is longer than maximum of #{max_lines_per_frame}" if frame.length > max_lines_per_frame
 
       this_fkgs_pos2group_last = Hash.new
       frame.each do |line|
 
-        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 1}" if line.length > $term_width - 1
+        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 2}" if line.length > $term_width - 2
 
         scanner = StringScanner.new(line)
         # one keys-group after the other
-        while scanner.scan_until(/\S+: /)
+        while scanner.scan_until(/\S+:_/)
           kg = scanner.matched
           this_fkgs_pos2group_last[scanner.pos] = kg
           err "Internal error: frame key group '#{kg}' in line '#{line}' has already appeared before in prior line '#{all_fkgs_kg2line[kg]}' (maybe in a prior frame)" if all_fkgs_kg2line[kg]
@@ -727,43 +770,75 @@ def show_help mode = $mode, testing_only = false
   end
 
   return nil if testing_only
-  
+
+  #
+  # present result: show and navigate frames according to user input
+  #
   curr_frame_was = -1
   curr_frame = 0
+  lidx_high = nil
+
+  # loop over user-input
   loop do
-    can_back = ( curr_frame > 0 )
-    can_for = ( curr_frame < frames.length - 1 )
-    if curr_frame != curr_frame_was
-      system('clear')
+    if curr_frame != curr_frame_was || lidx_high
+      system('clear') if curr_frame != curr_frame_was
       print "\e[#{lines_offset}H"
       print "\e[0m"
       print frames[curr_frame][0]
       print "\e[0m\e[32m\n"
-      frames[curr_frame][1 .. -2].each do |line|
+      frames[curr_frame][1 .. -3].each_with_index do |line, lidx|
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
-        # easy to format
-        puts line.gsub(/(\S+): /, "\e[92m\\1\e[32m: ")
+        # easy to format: also od the replacement ':_' to ': '
+        if lidx_high && lidx_high == lidx + 1
+          puts "\e[34m" + line.gsub(':_', ': ') +"\e[32m"
+        else
+          puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ")
+        end
       end
-      print "\e[\e[0m"
+      print "\e[\e[0m\e[2m"
+      puts frames[curr_frame][-2]
       print frames[curr_frame][-1]
       print "\e[0m\e[32m"
     end
+
     curr_frame_was = curr_frame
+    lidx_high = nil
     key = $ctl_kb_queue.deq
-    if key == 'BACKSPACE'
-      curr_frame -= 1 if can_back
+
+    if key == 'BACKSPACE' 
+      curr_frame -= 1 if curr_frame > 0
     elsif key == 'ESC'
       return
-    else
-      if can_for
+    elsif key == ' ' || key == 'RETURN'
+      if curr_frame < frames.length - 1
         curr_frame += 1
       else
         return
       end
+    else
+      if all_fkgs_k2flidx[key]
+        lidx_high = all_fkgs_k2flidx[key][1]
+        if curr_frame != all_fkgs_k2flidx[key][0]
+          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m Changing screen ...\e[K"
+          sleep 0.5
+          curr_frame_was = -1
+          curr_frame = all_fkgs_k2flidx[key][0]
+        end
+      else
+        system('clear')
+        print "\e[#{lines_offset + 4}H"
+        puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
+        puts
+        sleep 0.5
+        puts "\e[2m #{$resources[:any_key]}\e[0m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        curr_frame_was = -1
+      end
     end
-  end
+  end  ## loop over user input
 end
 
 
@@ -819,7 +894,7 @@ class MsgBuf
   def print text, min, max, group = nil, later: false
     # remove any outdated stuff
     if group
-      # of each group there should only be one elemnt in messages;
+      # of each group there should only be one element in messages;
       # older ones are removed. group is only useful, if min > 0
       idx = @@lines_durations.each_with_index.find {|x| x[0][3] == group}&.at(1)
       @@lines_durations.delete_at(idx) if idx

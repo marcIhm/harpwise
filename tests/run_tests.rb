@@ -1129,6 +1129,20 @@ do_test 'id-32: use option --partial and --holes' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
+  expect(tlog[-1]) { tlog[-1]['["-2"]'] }
+  kill_session
+end
+
+do_test 'id-32a: as before, but override --partial' do
+  new_session
+  tms 'harpwise licks --start-with wade --holes --partial 1@b'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms ','
+  expect { screen[16]['Choose flags for one replay'] }
+  tms 'prefer-holes-no-partial'
+  tms :ENTER
+  tlog = read_testing_log
   expect(tlog[-1]) { tlog[-1]['["-2", "-3/", "-2", "-3/", "-2", "-2", "-2", "-2/", "-1", "-2/", "-2"]'] }
   kill_session
 end
@@ -1790,17 +1804,17 @@ do_test 'id-56: forward and back in help' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[5]['pause and continue'] }
+  expect { screen[3]['pause and continue'] }
   tms :ENTER 
-  expect { screen[4]['next sequence or lick'] }
+  expect { screen[6]['next sequence or lick'] }
   tms :BSPACE
-  expect { screen[5]['pause and continue'] }
+  expect { screen[3]['pause and continue'] }
   kill_session
 end
 
-help_samples = {'harpwise listen d' => [[9,'change key of harp']],
-                'harpwise quiz a replay 3' => [[9,'change key of harp'],[9,'forget holes played']],
-                'harpwise licks c' => [[9,'change key of harp'],[15,'select them later by tag']]}
+help_samples = {'harpwise listen d' => [[7,'change key of harp']],
+                'harpwise quiz a replay 3' => [[7,'change key of harp'],[10,'forget holes played']],
+                'harpwise licks c' => [[7,'change key of harp'],[10,'toggle immediate reveal of sequence']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do
@@ -2979,6 +2993,20 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms :ENTER
   sleep 6
   expect { screen[23]['$'] }
+  kill_session
+end
+
+do_test "id-116: show help for specific key" do
+  new_session
+  tms 'harpwise licks c'
+  tms :ENTER
+  sleep 2
+  wait_for_start_of_pipeline
+  tms 'h'
+  expect { screen[1]['Help on keys in main view'] }
+  tms 'p'
+  expect { screen[1]['More help on keys'] }
+  expect { screen_col[7]["\e[34m      .p: replay recording"] }
   kill_session
 end
 

@@ -371,7 +371,7 @@ def handle_kb_play_recording
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
 
-  if char == '.' || char == ',' || char == '-'
+  if char == '.' || char == '-'
     $ctl_rec[:replay] = true
   elsif char == ' '
     $ctl_rec[:pause_continue] = true
@@ -691,12 +691,13 @@ def handle_kb_mic
   elsif char == 'C'
     $ctl_mic[:change_comment] = :choose
     text = 'Choose comment'
-  elsif %w(. : , ; p).include?(char) && [:quiz, :licks].include?($mode)
+  elsif %w(. p).include?(char) && [:quiz, :licks].include?($mode)
     $ctl_mic[:replay] = true
-    $ctl_mic[:ignore_recording] = (char == ',' || char == ';')
-    $ctl_mic[:ignore_holes] = (char == '.' || char == ':')
-    $ctl_mic[:ignore_partial] = (char == ';' || char == ':' || char == 'p')
-    text = 'Replay'
+    $ctl_mic[:replay_flags] = Set.new
+    text ='Replay'
+  elsif char == ',' && $mode == :licks
+    $ctl_mic[:replay_menu] = true
+    text = 'Replay menu'
   elsif char == 'P' && [:quiz, :licks].include?($mode)
     $ctl_mic[:auto_replay] = true
     text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'
@@ -733,9 +734,6 @@ def handle_kb_mic
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
     $ctl_mic[:redraw] = Set[:silent] if $opts[:comment] == :holes_some
-  elsif char == 'L' && [:quiz, :licks].include?($mode)
-    $ctl_mic[:start_loop] = true
-    text = 'Loop started'
   elsif char == '§'
     $opts[:debug] = true
     text = 'Debug is ON'
