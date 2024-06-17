@@ -116,7 +116,7 @@ def read_licks graceful = false
             lick[:desc] += ' ' + default[:desc_add] 
           end
           lick[:desc] = replace_vars(vars,[lick[:desc].strip],name)[0]
-          lick[:rec_key] ||= 'c'
+          lick[:rec_key] ||= ( default[:rec_key] || 'c' )
           lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
           $licks_semi_shifts.keys.select {_1 > 0}.each do |st|
@@ -210,20 +210,27 @@ def read_licks graceful = false
       svar = var.gsub('.','_').to_sym
       err "Key '#{var}' (below [#{name}]) has already been defined" if lick[svar]
       lick[svar] = desc
+      
 
+    # rec.key = musical-key
+    elsif md = line.match(/^ *rec.key *= *(#{$word_re})$ *$/)
+      mkey = md[1]
+      err "Key 'rec.key' (below [#{name}]) has already been defined" if lick[:rec_key]
+      err "Unknown musical key '#{mkey}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(mkey)
+      lick[:rec_key] = mkey
 
-    # assignment
-    elsif md = line.match(/^ *(#{$word_re}) *= *(-?#{$word_re})$/)
+    # all assignments, that have not been handled above
+    elsif md = line.match(/^ *(#{$word_re}) *= *(-?#{$word_re}) *$/)
       key, value = md[1..2]
       if name == 'default'
-        # correct assignment has been handled before
-        err "Default section only allows keys tags, tags.add, desc or desc.add ; not '#{key}'"
+        # assignment for these keys has been handled before
+        err "Default section only allows keys tags, tags.add, desc, desc.add, rec_key ; not '#{key}'"
       elsif name == 'vars'
-        # correct assignments have been handled before
+        # variable assignments have been handled before
         err "Section [vars] may only contain variables (starting with '$'), not #{key} (#{lfile}, line #{idx + 1})"
       # normal lick
       else
-        # tags, holes and notes have already been handled above special
+        # desc, tags, holes, etc. have already been handled above special
         if %w(rec.start rec.length).include?(key)
           begin
             Float(value)
@@ -231,6 +238,7 @@ def read_licks graceful = false
             err "Value of #{key} is not a number: '#{value}' (#{lfile}, line #{idx + 1})"
           end
         end
+
         if key == 'rec.start' && value.to_f < 0
           err "Value of rec.start cannot be negative: '#{value}' (#{lfile}, line #{idx + 1})"
         end
@@ -242,11 +250,10 @@ def read_licks graceful = false
         else
           err "Unknown key '#{key}', none of #{all_keys}"
         end
+        
         if key == 'rec'
           file = $lick_dir + '/recordings/' + value
           err "File #{file} does not exist" unless File.exist?(file)
-        elsif key == 'rec.key'
-          err "Unknown key '#{value}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(value)
         end
       end
 
@@ -352,7 +359,7 @@ def read_licks graceful = false
     err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") if licks.length == 0
 
   end
-  
+
   [all_licks, licks]
 end
 

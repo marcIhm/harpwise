@@ -119,9 +119,9 @@ def do_print to_print
 
       print_starred_licks
 
-    when 'dump'
+    when 'licks-dump'
 
-      pp $all_licks
+      pp $licks
       
     when 'scales'
 

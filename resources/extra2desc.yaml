@@ -32,7 +32,7 @@ print:
   licks-starred: |
     show all starred licks
   licks-dump: |
-    dump all the licks in json-format
+    dump all selected licks in json-format
   scales: |
     list of all scales with hole count
   intervals: |
