@@ -780,6 +780,7 @@ def show_help mode = $mode, testing_only = false
 
   # loop over user-input
   loop do
+
     if curr_frame != curr_frame_was || lidx_high
       system('clear') if curr_frame != curr_frame_was
       print "\e[#{lines_offset}H"
@@ -791,16 +792,23 @@ def show_help mode = $mode, testing_only = false
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
         # easy to format: also od the replacement ':_' to ': '
-        if lidx_high && lidx_high == lidx + 1
-          puts "\e[34m" + line.gsub(':_', ': ') +"\e[32m"
-        else
-          puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ")
-        end
+        puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ")
       end
+
       print "\e[\e[0m\e[2m"
       puts frames[curr_frame][-2]
       print frames[curr_frame][-1]
       print "\e[0m\e[32m"
+
+      if lidx_high
+        print "\e[#{lines_offset + lidx_high}H"
+        line = frames[curr_frame][lidx_high].gsub(':_', ': ')
+        [92,0,92,32,92,0,92,32,34].each do |col|
+          print "\r\e[#{col}m" + line
+          sleep 0.1
+        end
+        puts "\e[32m"
+      end
     end
 
     curr_frame_was = curr_frame
@@ -822,7 +830,7 @@ def show_help mode = $mode, testing_only = false
         lidx_high = all_fkgs_k2flidx[key][1]
         if curr_frame != all_fkgs_k2flidx[key][0]
           print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m Changing screen ...\e[K"
-          sleep 0.5
+          sleep 0.3
           curr_frame_was = -1
           curr_frame = all_fkgs_k2flidx[key][0]
         end

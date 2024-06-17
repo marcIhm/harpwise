@@ -21,11 +21,14 @@ def set_global_vars_early
 
   # expectations for config-file
   $conf_meta = Hash.new
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :print, :calibrate, :general]
-  # update config ini if the below is extended
+  # Read config.ini for the background  semantics of :any_mode and its relations
+  # to others; basically the first defines defaults for the rest
+  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :play, :print, :calibrate, :general]
+  # Below we only need to list those modes (e.g. :quiz) which allow
+  # more keys, than :any_mode.  Remark: update config.ini if the below
+  # is extended
   $conf_meta[:sections_keys] = {
-    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to],
-    :licks => [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
+    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
@@ -490,7 +493,7 @@ def read_config_ini file, strict: true
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
         allowed += Set.new($conf_meta[:sections_keys][:any_mode]) if ! [:any_mode, :general].include?(section)
-        err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'" unless allowed.include?(key)
+        err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'. If not a typo, it might be allowed in one of the other sections however #{$conf_meta[:sections].map(&:o2str)}" unless allowed.include?(key)
         conf[section][key] = value
       elsif section.nil?
         err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
@@ -510,6 +513,9 @@ def read_config_ini file, strict: true
 
     err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is not a subset of all keys allowed:\n\n#{allowed}" unless found.subset?(allowed)
 
+    # For the two sections below, we require all keys to be present,
+    # but only for installation-config, not for user-config. This
+    # requirement is relaxed for other sections, e.g. :licks
     if strict && [:any_mode, :general].include?(section)
       err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is different from all keys required:\n\n#{required}" unless required == found
     end
