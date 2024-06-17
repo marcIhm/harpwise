@@ -536,7 +536,7 @@ def edit_file file, lno = nil
   make_term_cooked
   if system($editor + ' ' + (lno ? "+#{lno}" : '') + ' ' + file)
     make_term_immediate
-    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing done.\e[K"
+    print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing done.\e[K\e[0m"
     sleep stime
     return true
   else

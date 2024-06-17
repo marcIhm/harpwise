@@ -10,7 +10,7 @@ def do_play to_play
 
   make_term_immediate
 
-  puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} licks.\e[0m"
+  puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
   puts
 
   if $extra
@@ -323,6 +323,7 @@ def play_licks_controller licks, refill, sleep_between: false
     trace_lick(lick)
 
     loop do  ## repeats of the same lick
+      puts
       play_and_print_lick lick
 
       if sleep_between && $ctl_rec[:lick_lick]
@@ -349,6 +350,12 @@ def play_licks_controller licks, refill, sleep_between: false
         break
       when :redo
         redo
+      when :edit
+        puts
+        edit_file($lick_file, lick[:lno])
+        puts
+        $all_licks, $licks = read_licks
+        redo
       when :prev
         if prev_licks.length > 0
           lick = prev_licks.pop
@@ -368,6 +375,7 @@ def play_licks_controller licks, refill, sleep_between: false
         else
           stock = refill.clone
         end
+        lick = stock.shift
       else
         return
       end
@@ -378,14 +386,14 @@ end
 
 def maybe_wait_for_key_and_decide_replay 
   if $ctl_rec[:lick_lick] && $ctl_kb_queue.empty?
-    puts "\e[0m\e[2mContinuing with next lick with waiting for key ('c' to toggle)\e[0m"
+    puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
     $ctl_kb_queue.clear
     return :next
   else
     old_lines = nil
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines = [['Press:   r: to replay this lick      BACKSPACE: for previous'],
+      lines = [['Press:   r: replay this lick      BACKSPACE: previous      e: edit lickfile'],
                ['toggle-keys (available during play too):'],
                ['         c: continue lick after lick and without this menu (now ',
                 ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
@@ -412,14 +420,16 @@ def maybe_wait_for_key_and_decide_replay
         sleep 0.02
       end
       $ctl_kb_queue.clear
+      print "\e[0m"
       char = $ctl_kb_queue.deq
-      puts
       case char
       when 'BACKSPACE'
         $ctl_rec[:lick_lick] = false
         return :prev
       when 'r'
         return :redo
+      when 'e'
+        return :edit
       when 'c'
         $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick]
         redo

@@ -830,7 +830,7 @@ def show_help mode = $mode, testing_only = false
         lidx_high = all_fkgs_k2flidx[key][1]
         if curr_frame != all_fkgs_k2flidx[key][0]
           print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m Changing screen ...\e[K"
-          sleep 0.3
+          sleep 0.4
           curr_frame_was = -1
           curr_frame = all_fkgs_k2flidx[key][0]
         end

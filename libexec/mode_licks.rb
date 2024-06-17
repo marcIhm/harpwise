@@ -249,7 +249,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     if !$other_mode_saved[:conf] && first_round
       if !$splashed
         animate_splash_line
-        puts "\n" + ( $mode == :licks  ?  "#{$licks.length} licks, "  :  "" ) +
+        puts "\n" + ( $mode == :licks  ?  "#{$licks.length} of #{$all_licks.length} licks, "  :  "" ) +
              "key of #{$key}"
         sleep 0.01
         3.times do
