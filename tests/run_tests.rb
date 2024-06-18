@@ -3006,7 +3006,8 @@ do_test "id-116: show help for specific key" do
   expect { screen[1]['Help on keys in main view'] }
   tms 'p'
   expect { screen[1]['More help on keys'] }
-  expect { screen_col[7]["\e[34m      .p: replay recording"] }
+  # why not 0 ?
+  expect { screen_col[7]["\e[39m      .p: replay recording"] }
   kill_session
 end
 

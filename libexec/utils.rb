@@ -623,7 +623,7 @@ def print_amongs *choices
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
-      puts "\n- licks:"
+      puts "\n- selected licks:"
       print_in_columns all_lnames, indent: 4, pad: :tabs
     when :last
       puts "\n- A symbolic name for one of the last licks"

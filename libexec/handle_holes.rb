@@ -803,9 +803,9 @@ def show_help mode = $mode, testing_only = false
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')
-        [92,0,92,32,92,0,92,32,34].each do |col|
+        [92,0,92,32,92,0,92,32,92,39].each do |col|
           print "\r\e[#{col}m" + line
-          sleep 0.1
+          sleep 0.08
         end
         puts "\e[32m"
       end
