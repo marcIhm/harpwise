@@ -803,10 +803,11 @@ def show_help mode = $mode, testing_only = false
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')
-        [92,0,92,32,92,0,92,32,92,39].each do |col|
+        [32,92,0,92,32,92,0].each do |col|
           print "\r\e[#{col}m" + line
-          sleep 0.08
+          sleep 0.15
         end
+        blinked = true
         puts "\e[32m"
       end
     end
@@ -829,8 +830,15 @@ def show_help mode = $mode, testing_only = false
       if all_fkgs_k2flidx[key]
         lidx_high = all_fkgs_k2flidx[key][1]
         if curr_frame != all_fkgs_k2flidx[key][0]
-          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m Changing screen ...\e[K"
-          sleep 0.4
+          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m\e[K"
+          print "\e[0m C\e[2D"
+          sleep 0.04
+          'Changing screen ...'.each_char.each_cons(2) do |c1, c2|
+            print "\e[0m\e[2m#{c1}\e[0m#{c2}\e[D"
+            sleep 0.01
+          end
+          print "\e[2m."
+          sleep 0.2
           curr_frame_was = -1
           curr_frame = all_fkgs_k2flidx[key][0]
         end
