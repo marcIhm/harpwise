@@ -691,7 +691,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play a mape'
   tms :ENTER
   sleep 2
-  expect { screen[5]['-2 -3// -3 -4 +5 +6'] }
+  expect { screen[6]['-2 -3// -3 -4 +5 +6'] }
   kill_session
 end
 
@@ -700,7 +700,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play a mape --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[5]['+6 +5 -4 -3 -3// -2'] }
+  expect { screen[6]['+6 +5 -4 -3 -3// -2'] }
   kill_session
 end
 
@@ -732,8 +732,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick wade'] }
-  expect { screen[5]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
+  expect { screen[5]['Lick wade'] }
+  expect { screen[6]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
   expect { File.exist?(trace_file) }
   kill_session
 end
@@ -752,9 +752,9 @@ do_test 'id-15b: play licks with controls between' do
   tms 'harpwise play a wade st-louis feeling-bad'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick wade'] }
+  expect { screen[5]['Lick wade'] }
   sleep 4
-  expect { screen[14]['SPACE or RETURN for next licks'] }
+  expect { screen[15]['SPACE or RETURN for next licks'] }
   kill_session
 end
 
@@ -782,7 +782,7 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick wade'] }
+  expect { screen[7]['Lick wade'] }
   sleep 4
   tms :ENTER
   sleep 2
@@ -949,7 +949,7 @@ do_test 'id-21: mode licks with --start-with' do
   expect { screen[-1]['samples'] }
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
-  tms 'I'
+  tms 'i'
   sleep 2
   expect { screen[12..16].any? {|l| l['Lick Name: wade']} }
   kill_session

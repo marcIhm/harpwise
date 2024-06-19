@@ -619,7 +619,7 @@ def handle_kb_mic
   elsif char == '&' && $mode == :licks
     $ctl_mic[:shuffle_holes] = true
     text = 'Shuffle'    
-  elsif char == 'I' && $mode == :licks
+  elsif char == 'i' && $mode == :licks
     $ctl_mic[:lick_info] = true
     text = 'Lick info'    
   elsif char == 'CTRL-R' && $mode == :licks
@@ -730,7 +730,7 @@ def handle_kb_mic
   elsif char == 'CTRL-L'
     $ctl_mic[:redraw] = Set[:silent, :clear]
     text = 'redraw'
-  elsif char == 'i'
+  elsif char == 'I'
     $opts[:immediate] = !$opts[:immediate]
     text = 'immediate is ' + ( $opts[:immediate] ? 'ON' : 'OFF' )
     $ctl_mic[:redraw] = Set[:silent] if $opts[:comment] == :holes_some
@@ -992,8 +992,9 @@ end
 
 
 def clear_area_message
-  print "\e[#{$lines[:hint_or_message]}H\e[K"
-  print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
+  ($lines[:hint_or_message] .. $term_height).each do |lnum|
+    print "\e[#{lnum}H\e[K"
+  end
 end
 
 

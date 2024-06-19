@@ -656,7 +656,7 @@ def show_help mode = $mode, testing_only = false
     end
 
     frames[-1].append(*["       P:_toggle auto replay for repeats of the same seq",
-                        "       i:_toggle immediate reveal of sequence",
+                        "       I:_toggle immediate reveal of sequence",
                         "     0,-:_forget holes played; start over   +:_skip rest of sequence"])
     if mode == :quiz
       frames[-1].append(*["       t:_toggle tracking progress in seq",
@@ -670,7 +670,7 @@ def show_help mode = $mode, testing_only = false
       frames << [" More help on keys; special for mode licks:",
                  "",
                  "      l:_change current lick by name       e:_edit lickfile",
-                 "      t:_change lick-selection (-t)        I:_show info on lick",
+                 "      t:_change lick-selection (-t)        i:_show info on lick",
                  "      %:_shift lick by chosen interval   9,@:_change option --partial",
                  "     <>:_shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                  "     */:_Add or remove Star from current lick persistently;",
@@ -830,15 +830,8 @@ def show_help mode = $mode, testing_only = false
       if all_fkgs_k2flidx[key]
         lidx_high = all_fkgs_k2flidx[key][1]
         if curr_frame != all_fkgs_k2flidx[key][0]
-          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m\e[K"
-          print "\e[0m C\e[2D"
-          sleep 0.04
-          'Changing screen ...'.each_char.each_cons(2) do |c1, c2|
-            print "\e[0m\e[2m#{c1}\e[0m#{c2}\e[D"
-            sleep 0.01
-          end
-          print "\e[2m."
-          sleep 0.2
+          print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m Changing screen ...\e[K"
+          sleep 0.4
           curr_frame_was = -1
           curr_frame = all_fkgs_k2flidx[key][0]
         end

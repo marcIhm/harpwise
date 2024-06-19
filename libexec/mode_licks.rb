@@ -802,34 +802,34 @@ def select_and_calc_partial all_holes, start_s, length_s
 end
 
 
-def tabify_colorize max_lines, holes_scales, idx_first_active
+def tabify_colorize max_lines, holes_etc, idx_first_active
   lines = Array.new
-  max_cell_len = holes_scales.map {|hs| hs.map(&:length).sum + 2}.max
+  max_cell_len = holes_etc.map {|he| he.map(&:length).sum + 2}.max
   per_line = (($term_width * 0.8 - 4) / max_cell_len).truncate
   line = '   '
-  holes_scales.each_with_index do |hole_scale, idx|
+  holes_etc.each_with_index do |hole_etc, idx|
     if idx > 0 && idx % per_line == 0
       lines << line
       lines << ''
       line = '   '
     end
-    mb_w_dot = if hole_scale[2].strip.length > 0
-                 '.' + hole_scale[2]
+    mb_w_dot = if hole_etc[2].strip.length > 0
+                 '.' + hole_etc[2]
                else
                  ' '
                end
     line += " \e[0m" +
             if idx < idx_first_active
-              ' ' + "\e[0m\e[2m" + hole_scale[0] + hole_scale[1] + mb_w_dot
+              ' ' + "\e[0m\e[2m" + hole_etc[0] + hole_etc[1] + mb_w_dot
             else
-              hole_scale[0] +
+              hole_etc[0] +
                 if idx == idx_first_active
                   "\e[0m\e[92m*"
                 else
                   ' '
                 end +
-                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_scale[1],true)) +
-                hole_scale[1] + "\e[0m\e[2m" + mb_w_dot
+                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_etc[1],true)) +
+                hole_etc[1] + "\e[0m\e[2m" + mb_w_dot
             end
   end
   lines << line
@@ -1427,6 +1427,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     self[:shift_inter_circle_pos] %= shifts.length
     self[:shift_inter] = shift = shifts[self[:shift_inter_circle_pos]]
     self.set_all_wanted(self[:lick][:holes].map do |hole|
+                          ( musical_event?(hole) && hole ) ||
                           $harp[hole][:shifted_by][shift] || '(*)'
                         end)
 
