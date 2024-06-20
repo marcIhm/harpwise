@@ -2321,7 +2321,10 @@ do_test 'id-78: detect interval' do
   kill_session
 end
 
-[[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"],
+# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
+# oder das ist nur ein Unterschied in den Versionen von tmux.
+# [[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"],
+[[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m g4"],
  [-2, 4, "\e[34m c4   e4  \e[7m\e[92m g4"]].each_with_index do |vals, idx|
   semi, line, text = vals
   do_test "id-79a#{idx}: check against semitone played #{semi}" do
@@ -2331,7 +2334,7 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 1
-    expect { screen_col[line][text] }
+    expect(idx,vals) { screen_col[line][text] }
     kill_session
   end
 end
@@ -2518,7 +2521,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms 'SKIP'
   tms :ENTER
   sleep 1
-  expect { screen[12]['The correct answer is'] }
+  expect { screen[4]['The correct answer is'] }
   tms :ENTER
   sleep 1
   tms 'PLAY-ALL'
@@ -2922,7 +2925,7 @@ do_test 'id-111: mode licks with adhoc-lick' do
   tms 'harpwise licks --adhoc-lick +1,-2'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'I'
+  tms 'i'
   expect { screen[12..16].any? {|l| l['Lick Name: adhoc']} }
   kill_session
 end
@@ -2956,7 +2959,7 @@ do_test 'id-114: play licks next and previous' do
   tms 'harpwise play licks -i c'
   tms :ENTER
   sleep 6
-  expect { screen[6]['Lick wade'] }
+  expect { screen[7]['Lick wade'] }
   tms :ENTER
   sleep 6
   expect { screen[11]['Lick st-louis'] }
@@ -2977,7 +2980,7 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[11]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[9]['No previous lick available'] }
+  expect { screen[8]['No previous lick available'] }
   kill_session
 end
 
@@ -2986,7 +2989,7 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms 'harpwise play wade st-louis'
   tms :ENTER
   sleep 6
-  expect { screen[4]['Lick wade'] }
+  expect { screen[5]['Lick wade'] }
   tms :ENTER
   sleep 6
   expect { screen[17]['Lick st-louis'] }
@@ -3006,8 +3009,10 @@ do_test "id-116: show help for specific key" do
   expect { screen[1]['Help on keys in main view'] }
   tms 'p'
   expect { screen[1]['More help on keys'] }
-  # why not 0 ?
-  expect { screen_col[7]["\e[39m      .p: replay recording"] }
+# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
+# oder das ist nur ein Unterschied in den Versionen von tmux.
+#  expect { screen_col[7]["\e[39m      .p: replay recording"] }
+  expect { screen_col[7]["      .p: replay recording"] }
   kill_session
 end
 
