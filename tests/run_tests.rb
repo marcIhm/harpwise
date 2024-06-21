@@ -2321,12 +2321,12 @@ do_test 'id-78: detect interval' do
   kill_session
 end
 
-# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
-# oder das ist nur ein Unterschied in den Versionen von tmux.
-# [[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"],
-[[-5, 4, "\e[7m\e[94m e4  \e[0m\e[32m g4"],
- [-2, 4, "\e[34m c4   e4  \e[7m\e[92m g4"]].each_with_index do |vals, idx|
-  semi, line, text = vals
+# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich hier; deswegen
+# zwei Alternativen prüfen
+[[-5, 4, ["\e[7m\e[94m e4  \e[0m\e[32m g4",
+          "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"]],
+ [-2, 4, ["\e[34m c4   e4  \e[7m\e[92m g4"]]].each_with_index do |vals, idx|
+  semi, line, texts = vals
   do_test "id-79a#{idx}: check against semitone played #{semi}" do
     sound 10, semi
     new_session
@@ -2334,7 +2334,7 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 1
-    expect(idx,vals) { screen_col[line][text] }
+    expect(idx,vals) { texts.any? {|text| screen_col[line][text] }}
     kill_session
   end
 end

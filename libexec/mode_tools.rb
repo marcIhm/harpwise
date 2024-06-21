@@ -719,6 +719,10 @@ def tool_diag
     puts "\n\e[32mSome hints:\e[0m\n"
     puts <<end_of_guide
 
+  Even if the program sox is present on your system, you might need to
+  install support for more audio-formats; for linux this could be the
+  package libsox-fmt-all.
+
   sox-Errors, which mention "no default audio device" or "encode
   0-bit Unknown or not applicable" can sometimes be solved by
   setting and exporting the environment variable AUDIODRIVER to a

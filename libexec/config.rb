@@ -384,15 +384,17 @@ end
 
 
 def check_installation verbose: false
+  minimum_ruby = '3.1.0'
+  err "Your Version of ruby #{RUBY_VERSION} is lower than minimum required version #{minimum_ruby}" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new(minimum_ruby)
   # check for some required programs
-  needed_progs = %w( figlet toilet aubiopitch sox rec play stdbuf )
+  needed_progs = %w( figlet toilet aubiopitch sox stdbuf )
   not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
   puts "Found needed programs: #{needed_progs}" if verbose
 
   # check, that sox understands mp3
   %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
-    err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package")
+    err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package (e.g. libsox-fmt-all)")
   puts "Sox is able to handle mp3." if verbose
 
   # Check some sample dirs and files
