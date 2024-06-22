@@ -217,9 +217,9 @@ def truncate_colored_text text, len
 end
 
 
-def truncate_text text, len = $term_width - 5
+def truncate_text text, len = $term_width - 4
   if text.length > len
-    text[0,len].gsub(/\.+$/,'').gsub(/\s+$/,'') + ' ...'
+    text[0,len] + '...'
   else
     text
   end
