@@ -219,7 +219,7 @@ end
 
 def truncate_text text, len = $term_width - 5
   if text.length > len
-    text[0,len] + ' ...'
+    text[0,len].gsub(/\.+$/,'').gsub(/\s+$/,'') + ' ...'
   else
     text
   end

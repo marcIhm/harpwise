@@ -2160,7 +2160,7 @@ def make_extra_desc_short extra, head
   head += ': '
   desc = desc_lines[1..-1].join(' ').
            split(/(?=\s+)/).
-           inject("") {|m,w| m += w if m.length < ($term_width - w.length - head.length - 8); m}.
+           inject {|m,w| break m if m.length > ($term_width - w.length - head.length - 8); m + w}.
            strip
   head + desc + ' ...'
 end
