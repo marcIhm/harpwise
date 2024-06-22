@@ -384,8 +384,6 @@ end
 
 
 def check_installation verbose: false
-  minimum_ruby = '3.1.0'
-  err "Your Version of ruby #{RUBY_VERSION} is lower than minimum required version #{minimum_ruby}" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new(minimum_ruby)
   # check for some required programs
   needed_progs = %w( figlet toilet aubiopitch sox stdbuf )
   not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}

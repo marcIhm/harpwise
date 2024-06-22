@@ -683,10 +683,10 @@ def show_help mode = $mode, testing_only = false
 
   frames << [" Further reading:",
              "",
-             "  Invoke 'harpwise' without arguments for an introduction as well as",
-             "  explanation of the individual concepts; general and for each mode.",
+             "  Invoke 'harpwise' without arguments for introduction, options",
+             "  and pointers to more help.",
              "",
-             "  And note, that other keys (and help) apply when harpwise plays",
+             "  Note, that other keys and help apply while harpwise plays",
              "  recordings and licks; type 'h' then for details."]
 
   # add prompt and frame count

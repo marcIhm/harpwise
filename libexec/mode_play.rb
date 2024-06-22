@@ -397,7 +397,7 @@ def maybe_wait_for_key_and_decide_replay
                ['toggle-keys (available during play too):'],
                ['         c: continue lick after lick and without this menu (now ',
                 ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
-               ['         L: loop over lick for all licks until pressed again (now ',
+               ['       L,l: loop over lick for all licks until pressed again (now ',
                 ( $ctl_rec[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
                ['     2-9,0: set num, if looping (l,L) enabled (now ',
                 get_num_loops_desc(true).to_s, ')'],
@@ -433,7 +433,7 @@ def maybe_wait_for_key_and_decide_replay
       when 'c'
         $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick]
         redo
-      when 'L'
+      when 'L', 'l'
         $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop]
         redo
       when '0'

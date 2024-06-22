@@ -723,7 +723,7 @@ def tool_diag
   install support for more audio-formats; for linux this could be the
   package libsox-fmt-all.
 
-  sox-Errors, which mention "no default audio device" or "encode
+  Sox-Errors, which mention "no default audio device" or "encode
   0-bit Unknown or not applicable" can sometimes be solved by
   setting and exporting the environment variable AUDIODRIVER to a
   suitable value.

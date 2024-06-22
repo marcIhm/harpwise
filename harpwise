@@ -4,6 +4,12 @@
 # Main entry point: Load and orchestrate functions, handle global vars
 #
 
+min_ruby = '3.1.0'
+if Gem::Version.new(RUBY_VERSION) < Gem::Version.new(min_ruby)
+  puts "\nERROR: Your Version of ruby #{RUBY_VERSION} is lower than minimum required version #{min_ruby}\n\n"
+  exit 1
+end
+
 require 'set'
 require 'yaml'
 require 'json'
