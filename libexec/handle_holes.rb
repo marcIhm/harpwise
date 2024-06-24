@@ -521,13 +521,22 @@ def do_change_key
          else
            $notes_with_sharps
          end
-  $key = choose_interactive("Available keys (current is #{$key}): ", keys) do |key|
+  $key = choose_interactive("Available keys (current is #{$key}): ", keys + ['random-common', 'random-all']) do |key|
     if key == $key
       "The current key"
+    elsif key == 'random-common'
+      "At random: One of #{$common_harp_keys.length} common harp keys"
+    elsif key == 'random-all'
+      "At random: One of all #{$all_harp_keys.length} harp keys"
     else
       "#{describe_inter_keys(key, $key)} to the current key #{$key}"
     end
   end || $key
+  if $key == 'random-common'
+    $key = ( $common_harp_keys - [$key] ).sample
+  elsif $key == 'random-all'
+    $key = ( $all_harp_keys - [$key] ).sample
+  end
   if $key == key_was
     $msgbuf.print "Key of harp unchanged \e[0m#{$key}", 2, 5, :key
   else

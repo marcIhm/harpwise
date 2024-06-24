@@ -530,6 +530,7 @@ end
 
 def read_and_set_musical_bootstrap_config
   $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
+  $no_calibration_needed = false
   return [scales_for_type($type), yaml_parse($holes_file).keys]
 end
 
@@ -550,7 +551,7 @@ def read_and_set_musical_config
     hole_root ||= hole if semi % 12 == 0
   end
   # :equiv and :canonical are useful when doing set operations with
-  # holws; eg for scales and licks
+  # hols; eg for scales and licks
   $hole2note_read.each do |hole, _|
     harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
     equiv = harp[harp[hole][:equiv][0]] 
@@ -629,9 +630,18 @@ def read_and_set_musical_config
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
 
-  # e.g. for quiz keep-tempo
-  typical_hole = harp_holes.include?('-2') ? '-2' : harp_holes[0]
-  
+  # read e.g. typical and characteristic holes
+  sets_file = "#{$dirs[:install]}/config/#{$type}/hole_sets.yaml"
+  hole_sets = yaml_parse(sets_file).transform_keys!(&:to_sym)
+  required = Set[:typical_hole, :characteristic_sets]
+  found = Set.new(hole_sets.keys)
+  err "Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}" unless required == found
+  typical_hole = hole_sets[:typical_hole]  
+  characteristic_hole_sets = hole_sets[:characteristic_sets].transform_keys!(&:to_sym)
+  required = Set[:draw, :blow]
+  found = Set.new(characteristic_hole_sets.keys)
+  err "Internal error: Characteristic sets #{found} from #{sets_file} is different from required set #{required}" unless required == found
+
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
   $intervals_quiz = {easy: [], hard: []}
@@ -679,7 +689,8 @@ def read_and_set_musical_config
     intervals,
     intervals_inv,
     hole_root,
-    typical_hole]
+    typical_hole,
+    characteristic_hole_sets ]
 
 end
 
@@ -919,7 +930,7 @@ def read_calibration
       fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
       fa < fb_plus
     end
-    err "Frequencies in #{$freq_file} are not even in roughly ascending (by 0.25 semitones margin) order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
+    err "Frequencies in #{$freq_file} are not even roughly in ascending (by 0.25 semitones margin) order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
@@ -950,7 +961,7 @@ def set_global_musical_vars
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $characteristic_hole_sets = read_and_set_musical_config
   # semitone shifts that will be tagged and can be traversed
   $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
                         7 => 'shifts_five', 12 => 'shifts_eight'}
@@ -962,11 +973,19 @@ def set_global_musical_vars
   end
   
   $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :print
-  $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode)
+  $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
+                                       $no_calibration_needed
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]
   end
+
+  $common_harp_keys = %w(g a c d)
+  $all_harp_keys = if $opts[:sharps_or_flats] == :flats
+                     %w(g af a bf b c df d ef e f gf)
+                   else
+                     %w(g gs a as b c cs d ds e f fs)
+                   end
 end
 
 

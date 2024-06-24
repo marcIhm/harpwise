@@ -88,9 +88,11 @@ quiz:
     needed; but these flavours are not necessarily silent and may
     still play sounds
   silent: |
-    flavours that can be tried with muted speakers
+    flavours, that can be tried with muted speakers
   inters: |
-    flavours that revolve around intervals
+    flavours, that revolve around intervals
+  layout: |
+    flavours, that deal with the note-layout of the harp
   choose: |
     choose flavour right away (only as extra-argument on commandline)
   players: |
@@ -99,7 +101,7 @@ quiz:
   hear-scale: |
     harpwise plays the holes of a scale and asks for its name
   not-in-scale: |
-    harpwise chooses a scale at random and modifies it: holes are
+    harpwise picks a scale at random and modifies it: holes are
     shuffled and one is replaced with a foreign hole; this modified
     scale is played and you should find the foreign hole. The holes
     are disguised as h1, h2, and so on. Help allows to compare the
@@ -133,7 +135,14 @@ quiz:
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa
   hole-note: |
-    gives a hole and asks for the note or vice versa
+    gives a hole and asks for the note or vice versa; this of course
+    depends on the key of the harp, which you might want to change now
+    and then
+  hole-note-key: |
+    picks (and hides) a new key for the harp at random; then, for a
+    characteristic hole-set (e.g. 'blow'), gives holes and matching
+    notes (which depend on the hidden key of harp); then asks for the
+    key
   keep-tempo: |
     plays a number of beats defining a certain tempo; then some
     silence and then some final beats. You are expected to play along

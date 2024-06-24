@@ -233,6 +233,7 @@ $q_class2colls = Hash.new
 class QuizFlavour
 
   @@prevs = Array.new
+  @@key_chosen_explicitly = false
 
   def initialize
     @state = Hash.new
@@ -306,6 +307,7 @@ class QuizFlavour
       else
         puts "\e[2mKey changed to \e[0m\e[32m#{$key}\e[0m\e[2m.\e[0m"
       end
+      @@key_chosen_explicitly = true
       return :next
     when all_helps[0]
       if @choices.length > 1
@@ -405,6 +407,78 @@ class QuizFlavour
     end
     return :next  
   end
+
+  # only used in some flavours
+  def print_chart_with_notes
+    puts "Printing chart with notes:"
+    chart = $charts[:chart_notes]
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        if cell.gsub(/\d+/,'').strip == @mark_in_chart
+          print "\e[34m#{cell}\e[0m"
+        else
+          print cell
+        end
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end
+  end
+
+  # only used in some flavours
+  def print_mapping hide: true, color: true, no_notes: false, no_semis: false
+    cdim, cbright = if color
+                      ["\e[34m", "\e[94m"]
+                    else
+                      ["\e[2m", "\e[0m"]
+                    end
+    semi_min = @holes_descs.map {|d| $characteristic_hole_sets[d.to_sym]}.flatten.
+                 map {|h| $harp[h][:semi]}.min
+    @holes_descs.each_with_index do |desc, idx|
+      char_holes = $characteristic_hole_sets[desc.to_sym]
+      err "Internal error: no characteristic holes for '#{desc}'" unless char_holes && char_holes.length > 0
+      holes = char_holes.map {|h| "#{h}  "}
+      notes = char_holes.map do |h|
+        h = $harp[h][:note].gsub(/\d+$/,'')
+        h = '?' if h == $key && hide
+        "#{h.rjust(3)}  "
+      end
+      semis = char_holes.map {|h| "%+dst  " % ( $harp[h][:semi] - semi_min )}
+      maxlen = (holes + notes + semis).map(&:length).max
+
+      puts "#{cdim}  holes '#{desc}':#{cbright}"
+      pr_in_cols holes.map {|x| x.rjust(maxlen)}
+
+      unless no_notes
+        puts "#{cdim}  notes:#{cbright}"
+        pr_in_cols notes.map {|x| x.rjust(maxlen)}
+      end
+
+      unless no_semis
+        puts "#{cdim}  semis to first:#{cbright}"
+        pr_in_cols semis.map {|x| x.rjust(maxlen)}
+      end
+
+      puts if idx == 0
+    end
+  end
+
+  # only used in some flavours
+  def pr_in_cols cells
+    head = '        '
+    print head
+    column = head.length
+    cells.each do |cell|
+      if column + cell.length > $term_width - 2
+        puts 
+        print head
+        column = head.length
+      end
+      print cell
+    end
+    puts
+  end
+  
 
 end
 
@@ -988,7 +1062,7 @@ end
 
 class KeyHarpSong < QuizFlavour
 
-  $q_class2colls[self] = %w(silent no-mic)
+  $q_class2colls[self] = %w(silent no-mic layout)
 
   def initialize
     super
@@ -1040,29 +1114,17 @@ end
 
 class HoleNote < QuizFlavour
 
-  $q_class2colls[self] = %w(silent no-mic)
+  $q_class2colls[self] = %w(silent no-mic layout)
 
   def initialize
     super
 
-    # if our harp has lines with different count of holes, we assume
-    # that those lines with the maximum count are also easy to
-    # play. If all lines have the same number of holes, they are all
-    # assumed to be alike playable
-    line2count = $hole2chart.values.map {|pairs| pairs.map {|pair| pair[1]}}.flatten.tally
-    maxcount = line2count.values.max
-    lines_w_maxcount = line2count.keys.select {|l| line2count[l] == maxcount}
-    
-    @@diffi_matters = ( lines_w_maxcount.length != line2count.keys.length )
-    holes = if !@@diffi_matters || $opts[:difficulty] == :hard
+    holes = if $opts[:difficulty] == :hard
               $harp_holes
             else
-              $hole2chart.select do |hole,cls|
-                cls.any? do |c,l|
-                  lines_w_maxcount.include?(l)
-                end
-              end.map {|hole,cls| hole}
+              $characteristic_hole_sets.map {|k, hset| hset}.flatten.uniq
             end
+
     hole2note = holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
     note2hole = hole2note.inject(Hash.new {|h,k| h[k] = Array.new}) do |memo, hn|
       memo[hn[1]] << hn[0]
@@ -1076,7 +1138,7 @@ class HoleNote < QuizFlavour
                               ['note', 'hole', note2hole]
                             end
 
-    @choices = qi2ai.values    
+    @choices = qi2ai.values.shuffle
     @choices_orig = @choices.clone
     begin
       @qitem = qi2ai.keys.sample
@@ -1094,46 +1156,126 @@ class HoleNote < QuizFlavour
     @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
     @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
     @help_head = "#{@adesc} with key of".capitalize
+    @holes_descs = %w(blow draw)
   end
 
   def self.describe_difficulty
-    if @@diffi_matters
-      QuizFlavour.difficulty_head + ', taking ' +
-        if $opts[:difficulty] == :easy
-          'only simple holes (e.g. without bends)'
-        else
-          'even not-so-simple holes (e.g. with bends)'
-        end
-    else
-      'Selecting all holes of harp'
-    end
+    QuizFlavour.difficulty_head + ', taking ' +
+      if $opts[:difficulty] == :hard
+        'all holes of harp'
+      else
+        'only characteristic holes'
+      end
   end
 
   def issue_question
-    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m', name the matching \e[94m#{@adesc}\e[34m #{@any_clause}\e[0m"
+    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m', name the matching \e[94m#{@adesc}\e[34m #{@any_clause}; key of #{$key}\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
   def help2
-    puts "Printing chart with notes:"
-    chart = $charts[:chart_notes]
-    chart.each_with_index do |row, ridx|
-      print '  '
-      row[0 .. -2].each_with_index do |cell, cidx|
-        if cell.gsub(/\d+/,'').strip == @mark_in_chart
-          print "\e[34m#{cell}\e[0m"
-        else
-          print cell
-        end
-      end
-      puts "\e[0m\e[2m#{row[-1]}\e[0m"
-    end
+    print_chart_with_notes
   end
 
   def help2_desc
     ['.help-chart-notes', "Print harmonica chart with notes"]
   end
 
+  def help3
+    print_mapping hide: false, color: false, no_notes: true
+  end
+
+  def help3_desc
+    ['.help-semis', "Print semitone-diffs for hole-sets"]
+  end
+
+  def after_solve
+    puts "\nThese are some mappings of holes to notes:\n\n"
+    print_mapping hide: false, color: false
+  end
+end
+
+
+class HoleNoteKey < QuizFlavour
+
+  $q_class2colls[self] = %w(silent no-mic layout)
+  
+  def initialize
+    super
+
+    $no_calibration_needed = true
+    @choices = if $opts[:difficulty] == :easy
+                 $common_harp_keys
+               else
+                 $all_harp_keys
+               end
+    @choices_orig = @choices.clone
+
+    @holes_descs = %w(blow draw)
+
+    if @@key_chosen_explicitly
+      @solution = $key
+    else
+      begin
+        @solution = @choices.sample
+      end while @@prevs.include?(@solution)
+      @@prevs << @solution
+      @@prevs.shift if @@prevs.length > 2
+      $key = @solution
+        
+      # change global key and reread, to get e.g. hole-mapping right
+      $no_calibration_needed = true
+      set_global_musical_vars
+    end
+    
+    @prompt = "What is the key of harp for the hole-note relations given above:"
+    @help_head = "#{@adesc} with key of".capitalize
+
+    if @@key_chosen_explicitly
+      puts "\e[2m(keeping explicitly chosen key of #{$key})\e[0m"
+    else
+      puts "\e[2m(choosing a new key; hidden)\e[0m"
+    end
+    puts
+    @@key_chosen_explicitly = false
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head + ', taking ' +
+      if $opts[:difficulty] == :easy
+        'only common harp keys'
+      else
+        'all harp keys'
+      end
+  end
+
+  def issue_question
+    puts "\e[34mGiven the mapping of holes to notes below, name the key of the harp\n\n"
+    print_mapping no_semis: true
+    puts "\e[0m\n"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+  end
+
+  def help2
+    print_chart_with_notes    
+  end
+
+  def help2_desc
+    ['.help-chart-notes', "Print harmonica chart with notes"]
+  end
+  
+  def help3
+    print_mapping hide: false, color: false
+  end
+
+  def help3_desc
+    ['.help-semis', "Print semitone-diffs for hole-sets"]
+  end
+
+  def after_solve
+    puts "\nThese are some mappings of holes to notes:\n\n"
+    print_mapping hide: false, color: false
+  end
 end
 
 
@@ -1215,7 +1357,7 @@ class HearKey < QuizFlavour
     puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence."
     make_term_immediate
     $ctl_kb_queue.clear
-    harp2song = get_harp2song(downcase: true, basic_set: false)
+    harp2song = get_harp2song(basic_set: false)
     song2harp = harp2song.invert
     ia_key_harp = ( @ia_key && song2harp[@ia_key] )
     ia_key_harp = play_interactive_pitch explain: false, start_key: ia_key_harp, return_accepts: true
@@ -1772,21 +1914,15 @@ def stand_out text, all_green: false, turn_red: nil
 end
 
 
-def get_harp2song downcase: false, basic_set: false
+def get_harp2song basic_set: false
   harps = if basic_set
-            %w(G A C D)
+            $common_harp_keys
           else
-            if $opts[:sharps_or_flats] == :flats
-              %w(G Af A Bf B C Df D Ef E F Gf)
-            else
-              %w(G Gs A As B C Cs D Ds E F Fs)
-            end
+            $all_harp_keys
           end
-  harps.map!(&:downcase) if downcase
   harp2song = Hash.new
   harps.each do |harp|
-    harp2song[harp] = semi2note(note2semi(harp + '4') + 7)[0..-2].capitalize
-    harp2song[harp].downcase! if downcase
+    harp2song[harp] = semi2note(note2semi(harp + '4') + 7)[0..-2].downcase
   end
   harp2song
 end
