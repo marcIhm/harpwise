@@ -427,7 +427,7 @@ class QuizFlavour
   end
 
   # only used in some flavours
-  def print_mapping hide: nil, color: true, no_notes: false, no_semis: false, sets: nil
+  def print_mapping hide_note: nil, color: true, no_notes: false, no_semis: false, sets: nil
     cdim, cbright = if color
                       ["\e[34m", "\e[94m"]
                     else
@@ -436,15 +436,15 @@ class QuizFlavour
     semi_min = @holes_descs.map {|d| $named_hole_sets[d]}.flatten.
                  map {|h| $harp[h][:semi]}.min
     (sets || @holes_descs).each_with_index do |desc, idx|
-      char_holes = $named_hole_sets[desc]
-      err "Internal error: no named holes for '#{desc}'" unless char_holes && char_holes.length > 0
-      holes = char_holes.map {|h| "#{h}  "}
-      notes = char_holes.map do |h|
-        h = $harp[h][:note].gsub(/\d+$/,'')
-        h = '?' if hide && h == hide
-        "#{h.rjust(3)}  "
+      nmd_holes = $named_hole_sets[desc]
+      err "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
+      holes = nmd_holes.map {|h| "#{h}  "}
+      notes = nmd_holes.map do |h|
+        n = $harp[h][:note].gsub(/\d+$/,'')
+        n = '?' if hide_note && n == hide_note
+        "#{n.rjust(3)}  "
       end
-      semis = char_holes.map {|h| "%+dst  " % ( $harp[h][:semi] - semi_min )}
+      semis = nmd_holes.map {|h| "%+dst  " % ( $harp[h][:semi] - semi_min )}
       maxlen = (holes + notes + semis).map(&:length).max
 
       puts "#{cdim}  holes '#{desc}':#{cbright}"
@@ -1140,8 +1140,8 @@ class HoleNote < QuizFlavour
       memo
     end
 
-    q_is_hole = ( rand > 0.5 )
-    @qdesc, @adesc, qi2ai = if q_is_hole
+    @q_is_hole = ( rand > 0.5 )
+    @qdesc, @adesc, qi2ai = if @q_is_hole
                               ['hole', 'note', hole2note]
                             else
                               ['note', 'hole', note2hole]
@@ -1156,14 +1156,16 @@ class HoleNote < QuizFlavour
     @@prevs << @qitem
     @@prevs.shift if @@prevs.length > 2
 
-    holes = if q_is_hole
-              [@qitem]
-            else
-              note2hole[@qitem]
-            end
-    @help_sets = $named_hole_sets.select {|k, hset| ( hset & holes ) == [] }.
+    @holes, @note = if @q_is_hole
+               [[@qitem], hole2note[@qitem]]
+             else
+               [note2hole[@qitem], @qitem]
+             end
+
+    @help_sets = $named_hole_sets.select {|k, hset| ( hset & @holes ) == [] }.
                    map {|k, hset| k}
-    @mark_in_chart = if q_is_hole
+
+    @mark_in_chart = if @q_is_hole
                        hole2note[@qitem]
                      else
                        @qitem
@@ -1189,14 +1191,21 @@ class HoleNote < QuizFlavour
   end
 
   def help2
-    print_mapping hide: @hole, color: false, no_semis: true, sets: @help_sets
+    if @q_is_hole
+      print_mapping color: false, no_semis: true, hide_note: @note
+    elsif @help_sets.length == 0
+      puts 'No hole-set to show; each would reveal the solution'
+    else
+      print_mapping color: false, no_semis: true, sets: @help_sets
+    end
   end
 
   def help2_desc
-    ['.help-hole-sets', "Print named hole-sets that do not contain solution"]
+    ['.help-hole-sets', "Print hole-sets, skipping over solution"]
   end
 
   def after_solve
+    puts
     print_chart_with_notes
   end
 end
@@ -1250,7 +1259,7 @@ class HoleNoteKey < QuizFlavour
 
   def issue_question
     puts "\e[34mGiven the mapping of holes to notes below, name the key of the harp\n\n"
-    print_mapping hide: $key, no_semis: true
+    print_mapping hide_note: $key, no_semis: true
     puts "\e[0m\n"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1323,7 +1332,7 @@ class HoleHideNote < QuizFlavour
 
   def issue_question
     puts "\e[34mSee the mapping of holes to notes below, pick the hidden note\n\n"
-    print_mapping no_semis: true, sets: [@desc], hide: @solution
+    print_mapping no_semis: true, sets: [@desc], hide_note: @solution
     puts "\e[0m\n"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
