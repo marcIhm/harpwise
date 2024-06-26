@@ -411,7 +411,7 @@ class QuizFlavour
 
   # only used in some flavours
   def print_chart_with_notes
-    puts "Printing chart with notes:"
+    puts "Chart with notes:"
     chart = $charts[:chart_notes]
     chart.each_with_index do |row, ridx|
       print '  '
@@ -1182,24 +1182,22 @@ class HoleNote < QuizFlavour
   end
 
   def help2
-    print_chart_with_notes
+    puts "Chart with semitones:"
+    chart = get_chart_with_intervals(ref: $typical_hole,
+                                     prefer_names: false)
+    chart.each_with_index do |row, ridx|
+      print '  ' + row[0 .. -2].join
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end
   end
 
   def help2_desc
-    ['.help-chart-notes', "Print harmonica chart with notes"]
-  end
-
-  def help3
-    print_mapping color: false, no_notes: true
-  end
-
-  def help3_desc
-    ['.help-semis', "Print semitone-diffs for hole-sets"]
+    ['.help-chart-semis', "Print chart with semitones"]
   end
 
   def after_solve
-    puts "\nThese are some mappings of holes to notes:\n\n"
-    print_mapping color: false
+    puts "\nChart with notes:\n\n"
+    print_chart_with_notes
   end
 end
 
