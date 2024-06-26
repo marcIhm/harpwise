@@ -1156,6 +1156,13 @@ class HoleNote < QuizFlavour
     @@prevs << @qitem
     @@prevs.shift if @@prevs.length > 2
 
+    holes = if q_is_hole
+              [@qitem]
+            else
+              note2hole[@qitem]
+            end
+    @help_sets = $named_hole_sets.select {|k, hset| ( hset & holes ) == [] }.
+                   map {|k, hset| k}
     @mark_in_chart = if q_is_hole
                        hole2note[@qitem]
                      else
@@ -1182,21 +1189,14 @@ class HoleNote < QuizFlavour
   end
 
   def help2
-    puts "Chart with semitones:"
-    chart = get_chart_with_intervals(ref: $typical_hole,
-                                     prefer_names: false)
-    chart.each_with_index do |row, ridx|
-      print '  ' + row[0 .. -2].join
-      puts "\e[0m\e[2m#{row[-1]}\e[0m"
-    end
+    print_mapping hide: @hole, color: false, no_semis: true, sets: @help_sets
   end
 
   def help2_desc
-    ['.help-chart-semis', "Print chart with semitones"]
+    ['.help-hole-sets', "Print named hole-sets that do not contain solution"]
   end
 
   def after_solve
-    puts "\nChart with notes:\n\n"
     print_chart_with_notes
   end
 end
