@@ -92,7 +92,7 @@ quiz:
   inters: |
     flavours, that revolve around intervals
   layout: |
-    flavours, that deal with the note-layout of the harp
+    flavours, that deal with the layout (holes to notes) of the harp
   choose: |
     choose flavour right away (only as extra-argument on commandline)
   players: |
@@ -140,9 +140,11 @@ quiz:
     and then
   hole-note-key: |
     picks (and hides) a new key for the harp at random; then, for a
-    characteristic hole-set (e.g. 'blow'), gives holes and matching
-    notes (which depend on the hidden key of harp); then asks for the
-    key
+    named hole-set (e.g. 'blow'), gives holes and matching notes
+    (which depend on the hidden key of harp); then asks for the key
+  hole-hide-note: |
+    picks a new key at random and a named hole-set; then shows the
+    hole-set, but hides one note; then asks for the hidden note
   keep-tempo: |
     plays a number of beats defining a certain tempo; then some
     silence and then some final beats. You are expected to play along

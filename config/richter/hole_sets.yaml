@@ -1,6 +1,6 @@
 ---
 typical_hole: "-2"
-characteristic_sets:
+named_sets:
     blow:
     - "+1"
     - "+2"

@@ -630,16 +630,16 @@ def read_and_set_musical_config
     hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
   end
 
-  # read e.g. typical and characteristic holes
+  # read e.g. typical and named holes
   sets_file = "#{$dirs[:install]}/config/#{$type}/hole_sets.yaml"
   hole_sets = yaml_parse(sets_file).transform_keys!(&:to_sym)
-  required = Set[:typical_hole, :characteristic_sets]
+  required = Set[:typical_hole, :named_sets]
   found = Set.new(hole_sets.keys)
   err "Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}" unless required == found
-  typical_hole = hole_sets[:typical_hole]  
-  characteristic_hole_sets = hole_sets[:characteristic_sets].transform_keys!(&:to_sym)
+  typical_hole = hole_sets[:typical_hole]
+  named_hole_sets = hole_sets[:named_sets].transform_keys!(&:to_sym)
   required = Set[:draw, :blow]
-  found = Set.new(characteristic_hole_sets.keys)
+  found = Set.new(named_hole_sets.keys)
   err "Internal error: Characteristic sets #{found} from #{sets_file} is different from required set #{required}" unless required == found
 
   # read from first available intervals file
@@ -690,7 +690,7 @@ def read_and_set_musical_config
     intervals_inv,
     hole_root,
     typical_hole,
-    characteristic_hole_sets ]
+    named_hole_sets ]
 
 end
 
@@ -961,7 +961,7 @@ def set_global_musical_vars
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $characteristic_hole_sets = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets = read_and_set_musical_config
   # semitone shifts that will be tagged and can be traversed
   $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
                         7 => 'shifts_five', 12 => 'shifts_eight'}

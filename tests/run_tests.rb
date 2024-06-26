@@ -2865,6 +2865,20 @@ do_test 'id-107a: quiz-flavour hole-note-key' do
   kill_session
 end
 
+do_test 'id-107b: quiz-flavour hole-hide-note' do
+  new_session
+  tms 'harpwise quiz hole-hide-note --difficulty easy'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  expect { screen[16]['Pick the hidden note in the hole-set'] }
+  sleep 1
+  tms 'help-semis'
+  tms :ENTER
+  expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  kill_session
+end
+
 do_test 'id-108: quiz-flavour tell-inter' do
   new_session
   tms 'harpwise quiz tell-inter --difficulty easy'
@@ -2958,13 +2972,13 @@ do_test 'id-113: quiz-flavour choose' do
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 17 (all) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 18 (all) flavours and 7 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
   sleep 1
   tms :TAB
-  expect { screen[16]['Please choose among 6 (silent) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 7 (silent) flavours and 7 collections'] }
   kill_session
 end
 

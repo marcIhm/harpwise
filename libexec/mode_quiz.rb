@@ -238,15 +238,16 @@ class QuizFlavour
   def initialize
     @state = Hash.new
     @state_orig = @state.clone
+    @holes_descs = $named_hole_sets.keys
   end
 
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.help-narrow', 'not_defined', 'not_defined']
     all_choices = [',again', @choices, ';controls-and-help->', ',solve', ',skip', ',change-key', all_helps[0]].flatten
-    choices_desc = {',again' => 'Ask same question again',
+    choices_desc = {',again' => 'Repeat question',
                     ',solve' => 'Give solution and go to next question',
-                    ',skip' => 'Show solution and Skip to next question without extra info',
+                    ',skip' => 'Give solution and Skip to next question without extra info',
                     ',change-key' => 'Change key and ask new question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
@@ -426,21 +427,21 @@ class QuizFlavour
   end
 
   # only used in some flavours
-  def print_mapping hide: true, color: true, no_notes: false, no_semis: false
+  def print_mapping hide: nil, color: true, no_notes: false, no_semis: false, sets: nil
     cdim, cbright = if color
                       ["\e[34m", "\e[94m"]
                     else
                       ["\e[2m", "\e[0m"]
                     end
-    semi_min = @holes_descs.map {|d| $characteristic_hole_sets[d.to_sym]}.flatten.
+    semi_min = @holes_descs.map {|d| $named_hole_sets[d]}.flatten.
                  map {|h| $harp[h][:semi]}.min
-    @holes_descs.each_with_index do |desc, idx|
-      char_holes = $characteristic_hole_sets[desc.to_sym]
-      err "Internal error: no characteristic holes for '#{desc}'" unless char_holes && char_holes.length > 0
+    (sets || @holes_descs).each_with_index do |desc, idx|
+      char_holes = $named_hole_sets[desc]
+      err "Internal error: no named holes for '#{desc}'" unless char_holes && char_holes.length > 0
       holes = char_holes.map {|h| "#{h}  "}
       notes = char_holes.map do |h|
         h = $harp[h][:note].gsub(/\d+$/,'')
-        h = '?' if h == $key && hide
+        h = '?' if hide && h == hide
         "#{h.rjust(3)}  "
       end
       semis = char_holes.map {|h| "%+dst  " % ( $harp[h][:semi] - semi_min )}
@@ -478,8 +479,16 @@ class QuizFlavour
     end
     puts
   end
-  
 
+  # only used in some flavours
+  def issue_choosing_key
+    if @@key_chosen_explicitly
+      puts "\e[0mKeeping explicitly chosen key of #{$key}"
+    else
+      puts "\e[0mChoosing a new key; hidden"
+    end
+    puts
+  end
 end
 
 
@@ -1122,7 +1131,7 @@ class HoleNote < QuizFlavour
     holes = if $opts[:difficulty] == :hard
               $harp_holes
             else
-              $characteristic_hole_sets.map {|k, hset| hset}.flatten.uniq
+              $named_hole_sets.map {|k, hset| hset}.flatten.uniq
             end
 
     hole2note = holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
@@ -1156,7 +1165,6 @@ class HoleNote < QuizFlavour
     @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
     @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
     @help_head = "#{@adesc} with key of".capitalize
-    @holes_descs = %w(blow draw)
   end
 
   def self.describe_difficulty
@@ -1164,7 +1172,7 @@ class HoleNote < QuizFlavour
       if $opts[:difficulty] == :hard
         'all holes of harp'
       else
-        'only characteristic holes'
+        'only named hole-sets'
       end
   end
 
@@ -1182,7 +1190,7 @@ class HoleNote < QuizFlavour
   end
 
   def help3
-    print_mapping hide: false, color: false, no_notes: true
+    print_mapping color: false, no_notes: true
   end
 
   def help3_desc
@@ -1191,7 +1199,7 @@ class HoleNote < QuizFlavour
 
   def after_solve
     puts "\nThese are some mappings of holes to notes:\n\n"
-    print_mapping hide: false, color: false
+    print_mapping color: false
   end
 end
 
@@ -1211,8 +1219,6 @@ class HoleNoteKey < QuizFlavour
                end
     @choices_orig = @choices.clone
 
-    @holes_descs = %w(blow draw)
-
     if @@key_chosen_explicitly
       @solution = $key
     else
@@ -1231,19 +1237,14 @@ class HoleNoteKey < QuizFlavour
     @prompt = "What is the key of harp for the hole-note relations given above:"
     @help_head = "#{@adesc} with key of".capitalize
 
-    if @@key_chosen_explicitly
-      puts "\e[2m(keeping explicitly chosen key of #{$key})\e[0m"
-    else
-      puts "\e[2m(choosing a new key; hidden)\e[0m"
-    end
-    puts
+    issue_choosing_key
     @@key_chosen_explicitly = false
   end
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head + ', taking ' +
       if $opts[:difficulty] == :easy
-        'only common harp keys'
+        'common harp keys only'
       else
         'all harp keys'
       end
@@ -1251,7 +1252,7 @@ class HoleNoteKey < QuizFlavour
 
   def issue_question
     puts "\e[34mGiven the mapping of holes to notes below, name the key of the harp\n\n"
-    print_mapping no_semis: true
+    print_mapping hide: $key, no_semis: true
     puts "\e[0m\n"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1265,7 +1266,7 @@ class HoleNoteKey < QuizFlavour
   end
   
   def help3
-    print_mapping hide: false, color: false
+    print_mapping color: false
   end
 
   def help3_desc
@@ -1274,7 +1275,74 @@ class HoleNoteKey < QuizFlavour
 
   def after_solve
     puts "\nThese are some mappings of holes to notes:\n\n"
-    print_mapping hide: false, color: false
+    print_mapping color: false
+  end
+end
+
+
+class HoleHideNote < QuizFlavour
+
+  $q_class2colls[self] = %w(silent no-mic layout)
+  
+  def initialize
+    super
+
+    $no_calibration_needed = true
+
+    unless @@key_chosen_explicitly
+      keys = if $opts[:difficulty] == :easy
+               $common_harp_keys
+             else
+               $all_harp_keys
+             end
+      $key = ( keys - [$key] ).sample
+        
+      # change global key and reread, to get e.g. hole-mapping right
+      set_global_musical_vars
+    end
+
+    @choices = $all_harp_keys
+    @choices_orig = @choices.clone
+
+    @desc = @holes_descs.sample
+    @solution = ( $named_hole_sets[@desc].map {|h| $harp[h][:note].gsub(/\d+$/,'')} - [$key] ).sample
+    
+    @prompt = "Pick the hidden note in the hole-set '#{@desc}' given above:"
+    @help_head = 'Note'
+
+    issue_choosing_key
+    @@key_chosen_explicitly = false
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head + ', taking ' +
+      if $opts[:difficulty] == :easy
+        'common harp keys only'
+      else
+        'all harp keys'
+      end
+  end
+
+  def issue_question
+    puts "\e[34mSee the mapping of holes to notes below, pick the hidden note\n\n"
+    print_mapping no_semis: true, sets: [@desc], hide: @solution
+    puts "\e[0m\n"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+  end
+
+  def help2
+    print_mapping color: false, no_notes: true
+  end
+
+  def help2_desc
+    ['.help-semis', "Print semitone-diffs for hole-sets"]
+  end
+
+  def after_solve
+    puts "\nThese are some mappings of holes to notes:\n\n"
+    puts "Key is #{$key}"
+    puts
+    print_mapping color: false
   end
 end
 
