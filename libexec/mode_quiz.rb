@@ -288,7 +288,7 @@ class QuizFlavour
                  else
                    "        #{[@solution].flatten[0]}"
                  end
-      if answer != ',SKIP' && self.respond_to?(:after_solve)
+      if answer != ',skip' && self.respond_to?(:after_solve)
         stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
         after_solve
       else
@@ -410,17 +410,34 @@ class QuizFlavour
   end
 
   # only used in some flavours
-  def print_chart_with_notes
-    puts "Chart with notes:"
+  def print_chart_with_notes spread: nil, hide: nil, mark: nil
     chart = $charts[:chart_notes]
     chart.each_with_index do |row, ridx|
+      spread_in_row = row[0 .. -2].any? {|c| spread && spread == c.strip.gsub(/\d+/,'')}
       print '  '
       row[0 .. -2].each_with_index do |cell, cidx|
-        if cell.gsub(/\d+/,'').strip == @mark_in_chart
-          print "\e[34m#{cell}\e[0m"
-        else
-          print cell
-        end
+        hcell = ' ' * cell.length
+        hcell[hcell.length / 2] = ( spread_in_row  ?  '-'  :  '?' )
+        cell_sg = cell.strip.gsub(/\d+/,'')
+        print(
+          if spread_in_row
+            if rand > 0.7 || cell_sg == spread
+              "\e[34m#{hcell}\e[0m"
+            else
+              cell
+            end
+          else
+            if cell_sg == hide
+              "\e[34m#{hcell}\e[0m"
+            else
+              if cell_sg == mark
+                "\e[34m#{cell}\e[0m"
+              else
+                cell
+              end
+            end
+          end
+        )
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
@@ -1140,13 +1157,13 @@ class HoleNote < QuizFlavour
       memo
     end
 
-    @q_is_hole = ( rand > 0.5 )
-    @qdesc, @adesc, qi2ai = if @q_is_hole
-                              ['hole', 'note', hole2note]
-                            else
+    @a_is_hole = @q_is_note = ( rand > 0.5 )
+    @qdesc, @adesc, qi2ai = if @a_is_hole
                               ['note', 'hole', note2hole]
-                            end
-
+                            else
+                              ['hole', 'note', hole2note]
+                            end    
+    
     @choices = qi2ai.values.shuffle
     @choices_orig = @choices.clone
     begin
@@ -1156,21 +1173,12 @@ class HoleNote < QuizFlavour
     @@prevs << @qitem
     @@prevs.shift if @@prevs.length > 2
 
-    @holes, @note = if @q_is_hole
-               [[@qitem], hole2note[@qitem]]
-             else
-               [note2hole[@qitem], @qitem]
-             end
+    @note = if @q_is_note
+              @qitem
+            else
+              hole2note[@qitem]
+            end
 
-    @help_sets = $named_hole_sets.select {|k, hset| ( hset & @holes ) == [] }.
-                   map {|k, hset| k}
-
-    @mark_in_chart = if @q_is_hole
-                       hole2note[@qitem]
-                     else
-                       @qitem
-                     end
-    
     @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
     @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
     @help_head = "#{@adesc} with key of".capitalize
@@ -1191,22 +1199,23 @@ class HoleNote < QuizFlavour
   end
 
   def help2
-    if @q_is_hole
-      print_mapping color: false, no_semis: true, hide_note: @note
-    elsif @help_sets.length == 0
-      puts 'No hole-set to show; each would reveal the solution'
+    if @a_is_hole
+      puts 'Chart with answer spread:'
+      print_chart_with_notes spread: @note
     else
-      print_mapping color: false, no_semis: true, sets: @help_sets
+      puts 'Chart with answer hidden:'
+      print_chart_with_notes hide: @note
     end
   end
 
   def help2_desc
-    ['.help-hole-sets', "Print hole-sets, skipping over solution"]
+    ['.help-chart', "Print chart with context for solution"]
   end
 
   def after_solve
     puts
-    print_chart_with_notes
+    puts 'Chart with notes:'
+    print_chart_with_notes mark: @note
   end
 end
 
@@ -1265,6 +1274,7 @@ class HoleNoteKey < QuizFlavour
   end
 
   def help2
+    puts 'Chart with notes:'
     print_chart_with_notes    
   end
 

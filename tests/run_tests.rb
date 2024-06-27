@@ -2521,7 +2521,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms 'SKIP'
   tms :ENTER
   sleep 1
-  expect { screen[4]['The correct answer is'] }
+  expect { screen[12]['The correct answer is'] }
   tms :ENTER
   sleep 1
   tms 'PLAY-ALL'
@@ -2845,9 +2845,9 @@ do_test 'id-107: quiz-flavour hole-note' do
   tms :ENTER
   expect { screen[11]['Given the HOLE'] || screen[11]['Given the NOTE'] }
   sleep 1
-  tms 'help-chart-notes'
+  tms 'help-chart'
   tms :ENTER
-  expect { screen[2]['Printing chart with notes'] }  
+  expect { screen[2]['Chart with answer hidden'] || screen[2]['Chart with answer spread'] }  
   kill_session
 end
 
