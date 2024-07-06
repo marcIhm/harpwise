@@ -1054,7 +1054,7 @@ class Players < QuizFlavour
   end
 
   def self.describe_difficulty
-    "Selecting one of #{@@choices.length} players"
+    "One of #{@@choices.length} (randomly selected) players"
   end
 
   def after_solve
@@ -2149,6 +2149,7 @@ end
 def choose_prepare_for
   prepare_term
   make_term_immediate
+  print "\e[#{$term_height};1H"
   $ctl_kb_queue.clear
   ($term_height - $lines[:comment_tall] + 2).times do
     sleep 0.01
