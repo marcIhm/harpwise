@@ -137,9 +137,8 @@ if [:listen, :quiz, :licks].include?($mode)
   end
 end
 
-
 at_exit do
-  sane_term if STDIN.isatty
+  sane_term if STDIN.isatty && STDOUT.isatty
   print "\e[0m"
   write_dump 'end' if $testing
   Thread.list.each do |thread|

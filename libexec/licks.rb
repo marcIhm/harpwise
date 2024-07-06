@@ -18,7 +18,7 @@ def read_licks graceful = false
   all_licks = []
   licks = nil
   derived = []
-  adhoc_tag2licks = Hash.new
+  tag2lick_sets = Hash.new
   all_lick_names = Set.new
   default = Hash.new
   vars = Hash.new
@@ -65,12 +65,12 @@ def read_licks graceful = false
 
 
     # adding adhoc-tags to licks
-    if md = line.match(/^ *add.tag.to *= *(.*)$/)
+    if md = line.match(/^ *tag.to.lick.set *= *(.*)$/)
       if name
-        err "Variable 'add.tag.to' may only appear before first group"
+        err "Variable 'tag.to.lick.set' may only appear before first group"
       else
         words = md[1].split(' ').map(&:strip)
-        adhoc_tag2licks[words[0]] = words[1 ...]
+        tag2lick_sets[words[0]] = words[1 ...]
       end
       
 
@@ -105,8 +105,12 @@ def read_licks graceful = false
                                       starred
                                      ).flatten.compact,name).sort.uniq
           lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-          adhoc_tag2licks.keys.each do |tag| 
-            lick[:tags] << tag if adhoc_tag2licks[tag].include?(name)
+          lick[:lick_sets] = []
+          tag2lick_sets.keys.each do |tag|
+            if tag2lick_sets[tag].include?(name)
+              lick[:tags] << tag 
+              lick[:lick_sets] << tag
+            end
           end
           
           lick[:desc] = lick[:desc] || default[:desc] || ''
@@ -339,13 +343,14 @@ def read_licks graceful = false
               select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
               select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
-    # maybe sort licks according to add.tag.to
-    lnames = licks.map {|l| l[:name]}
-    lick_sets_with_all = adhoc_tag2licks.values.
-                           select {|lnms| lnames - lnms == []}
-    if lick_sets_with_all.length > 0
-      licks.sort! do |lk1, lk2|
-        lick_sets_with_all[0].index(lk1[:name]) <=> lick_sets_with_all[0].index(lk2[:name])
+    # maybe sort licks according to one tag.to.lick.set
+    if tag2lick_sets.length > 0
+      lnames = licks.map {|l| l[:name]}
+      # find a lick set (let's say 'set_xy'), that contains all
+      # selected licks. This is most probable, if licks were picked
+      # with '-tset_xy' initially.
+      if lset_with_all = tag2lick_sets.values.find {|set| lnames - set == []}
+        licks.sort_by! {|lk| lset_with_all.index(lk[:name])}
       end
     end
     

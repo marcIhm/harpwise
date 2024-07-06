@@ -399,18 +399,137 @@ def animate_splash_line single_line = false, as_string: false
 end
 
 
-def get_files_journal_trace
-  trace = if $mode == :licks || $mode == :play || $mode == :print
-            # modes licks and play both play random licks and report needs to read them
-            "#{$dirs[:data]}/trace_#{$type}_modes_licks_and_play.txt"
-          elsif $mode == :quiz
-            "#{$dirs[:data]}/trace_#{$type}_mode_quiz.txt"
-          else
-            nil
-          end
-  return ["#{$dirs[:data]}/journal_#{$type}.txt", trace]
+$last_trace_holes = []
+$one_trace_written = false
+
+def write_trace play_type, name, holes = []
+
+  return if holes.length > 0 && holes == $last_trace_holes
+
+  # check for file size
+  if !$one_trace_written && File.exist?($trace_file) && File.size($trace_file) > 100_000
+    tlines = File.read($trace_file).lines
+    # keep only last half
+    File.write($trace_file, tlines[tlines.length/2 .. -1].join)
+  end
+
+  File.open($trace_file, 'a') do |trace|
+    tstamps = [Time.now.strftime("%Y-%m-%d %H:%M"), Time.now.to_i]
+    data = { rec_type: 'start',
+             harp_type: $type,
+             mode: $mode,
+             timestamps: tstamps }
+    trace.write("\n" + JSON.generate(data) + "\n\n") unless $one_trace_written
+    # must match formats in next function
+    data = { rec_type: 'entry',
+             harp_type: $type,
+             mode: $mode,
+             play_type: play_type,
+             name: name,
+             holes: holes,
+             timestamps: tstamps }
+    trace.write(JSON.generate(data) + "\n\n")
+  end
+  $last_trace_holes = holes if holes.length > 0
+  $one_trace_written = true
 end
 
+
+def get_prior_trace_records *for_modes
+
+  num_entries_wanted = 16
+  num_entries = 0
+  records = []
+  return [] if !File.exist?($trace_file)
+
+  File.foreach($trace_file).each_with_index do |line, lno|
+    line.strip!
+    next if line == ''
+    begin
+      data = JSON.parse(line, symbolize_names: true)
+    rescue JSON::ParserError
+      err "Cannot parse line #{lno} from trace-file #{$trace_file}: '#{line}'"
+    end
+
+    # must match formats in previous function
+    unless ( data in { rec_type: 'start',
+                       harp_type: _,
+                       mode: _, 
+                       timestamps: [ _, _ ] } ) ||
+           ( data in { rec_type: 'entry',
+                       harp_type: _,
+                       mode: _,
+                       play_type: _,
+                       name: _,
+                       holes: [*],
+                       timestamps: [ _, _ ] } )
+      err "Cannot parse line #{lno} from trace-file #{$trace_file}: '#{line}'"
+    end
+    [:mode, :rec_type].each do |key|
+      data[key] = data[key].to_sym if data[key]
+    end
+    
+    if for_modes.include?(data[:mode])
+      if records.length == 0 && data[:rec_type] == :entry
+        # we did not find start-record; maybe due to prior truncation
+        records << { rec_type: :start,
+                     mode: data[:mode], 
+                     timestamps: [ 'unknown', -1 ] }
+      end
+      records << data
+      num_entries += 1 if data[:rec_type] == :entry
+    end
+  end
+  
+  # return if no records, so that further down below we can be sure to have at
+  # least one record for each type of :start and :entry
+  return [] if records.length == 0
+
+  # wipe out entries beyound num_entries
+  eidx = 0
+  loop do
+    eidx = (0 ... records.length).find {|i| records[i][:rec_type] == :entry}
+    break if num_entries <= num_entries_wanted
+    # avoid building two or more :skipping-entries in a row
+    if records[eidx - 1][:rec_type] != :skipping
+      records[eidx] = { rec_type: :skipping }
+    else
+      records.delete_at(eidx)
+    end
+    num_entries -= 1
+  end
+  
+  # go down to matching start-index (which is guaranteed to exist, see above)
+  sidx = eidx
+  sidx -= 1 while records[sidx][:rec_type] != :start
+  records.shift(sidx)
+
+  records.reverse
+end
+
+
+def shortcut2trace_record short, md
+  idx = if md
+          md[1].to_i - 1
+        else
+          0
+        end
+
+  # must be consistent with selection in print_last_licks_from_trace
+  records = get_prior_trace_records(:licks, :play).
+              select {|r| r[:play_type] == 'lick'}
+
+  err "Shortcut '#{short}' is beyound end of #{records.length} available history records" if idx >= records.length
+    
+  $all_licks, $licks = read_licks unless $licks
+  lnames = $licks.map {|l| l[:name]}
+  rname = records[idx][:name]
+  lidx = lnames.index(rname)
+  err "Shortcut '#{short}' maps to lick '#{rname}', which is unknown among currently selected licks: #{lnames}" unless lidx
+
+  records[idx][:lick_idx] = lidx
+  records[idx]
+end
 
 #
 # Volumes for sox
@@ -508,7 +627,6 @@ def switch_modes
   $lines = calculate_screen_layout
   $first_round_ever_get_hole = true
   
-  $journal_file, $trace_file = get_files_journal_trace
   $journal_all = false
   
   clear_area_comment

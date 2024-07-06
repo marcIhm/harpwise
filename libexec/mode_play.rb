@@ -6,8 +6,6 @@ def do_play to_play
 
   $all_licks, $licks = read_licks
 
-  trace_text = nil
-
   make_term_immediate
 
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
@@ -31,6 +29,7 @@ def do_play to_play
       puts "Some holes or notes"
       play_holes_or_notes_simple holes_or_notes
       puts
+      write_trace('holes or notes', 'adhoc', holes_or_notes)
       
     elsif snames.length > 0
       
@@ -39,8 +38,7 @@ def do_play to_play
         puts "Scale #{sname}"
         play_holes_or_notes_simple scale_holes
         puts
-        trace_text = sprintf('Scale %s: ', sname) + scale_holes.join(' ')
-        IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
+        write_trace('scale', sname, scale_holes)
       end
       
     elsif lnames.length > 0
@@ -128,7 +126,6 @@ def partition_to_play_or_print to_handle
 
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
-
     what = recognize_among(th, $amongs_play_or_print)
     if what == :note
       holes_or_notes << sf_norm(th)
@@ -139,8 +136,9 @@ def partition_to_play_or_print to_handle
     elsif what == :lick
       lnames << th
     elsif what == :last
+      $all_licks, $licks = read_licks
       md = th.match(/^(\dlast|\dl)$/)
-      lnames << $all_licks[get_last_lick_idxs_from_trace($all_licks)[md  ?  md[1].to_i - 1  :  0] || 0][:name]
+      lnames << shortcut2trace_record(th, md)[:name]
     else
       other << th
     end
@@ -320,7 +318,8 @@ def play_licks_controller licks, refill, sleep_between: false
   lick = stock.shift
 
   loop do  ## one lick after the other
-    trace_lick(lick)
+
+    write_trace('lick', lick[:name], lick[:holes])
 
     loop do  ## repeats of the same lick
       puts
@@ -458,12 +457,6 @@ def maybe_wait_for_key_and_decide_replay
 end
 
 
-def trace_lick lick
-  trace_text = sprintf('Lick %s: ', lick[:name]) + lick[:holes].join(' ')
-  IO.write($trace_file, "#{trace_text}\n\n", mode: 'a')
-end    
-  
-
 def do_play_licks
   if $opts[:iterate] == :random
     lick_idx = nil
@@ -477,7 +470,7 @@ def do_play_licks
     idx = if sw 
             if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
               # start with lick from history
-              get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
+              shortcut2trace_record(sw, md)[:lick_idx]
             else
               (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
             end

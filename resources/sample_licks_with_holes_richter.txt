@@ -11,8 +11,8 @@
 
 # An advanced feature right away (feel free to skip it for now):
 # Before the first section, there can be the special variable
-# 'add.tag.to' (even multiple times), that allows to attach the
-# given tag (first word after '=') to the given licks (remaining
+# 'tag.to.lick.set' (even multiple times), that allows to attach the
+# given tag (first word after '=') to the given set of licks (remaining
 # words).
 #
 # This can be useful, if you have a lot of licks and want to
@@ -24,8 +24,8 @@
 #
 # An example would be:
 #
-# add.tag.to = mytag1 lick1 lick2
-# add.tag.to = mytag2 lick3 lick4
+# tag.to.lick.set = mytag1 lick1 lick2
+# tag.to.lick.set = mytag2 lick3 lick4
 #
 
 #

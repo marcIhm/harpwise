@@ -136,12 +136,8 @@ start_with:
   - |
     the name of the first lick to play;
     accepts the special values 'last' or 'l' to repeat the last lick
-    (2l, 3l for earlier licks).
-
-    Use '--start-with iter' to iterate through all selected
-    licks one by one
-    use '--start-with foo,iter' to start at lick foo; 
-    'cycle' instead of 'iter' starts all over at the end.  
+    (2l, 3l for earlier licks). Use 'harpwise print licks-history' to 
+    get a list of recent licks (including shortcuts like '3l')
   - LICK_OR_L
 
 iterate:

@@ -28,11 +28,15 @@ print:
   licks-tags-stats: |
     statistics for all known licks and their tags
   licks-history: |
-    show, which licks you played recently
+    show, which licks you played recently in mode licks; the shortcuts
+    ('l', '2l', ...) from the output can be used as arguments to
+    option --start-with
   licks-starred: |
     show all starred licks
   licks-dump: |
     dump all selected licks in json-format
+  holes-history: |
+    show, which holes you played recently, from any mode
   scales: |
     list of all scales with hole count
   intervals: |

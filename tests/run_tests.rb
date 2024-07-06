@@ -726,7 +726,7 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  trace_file = "#{$dotdir_testing}/trace_richter_modes_licks_and_play.txt"
+  trace_file = "#{$dotdir_testing}/trace_richter.txt"
   FileUtils.rm trace_file if File.exist?(trace_file)
   new_session
   tms 'harpwise play a wade'
@@ -896,35 +896,63 @@ do_test 'id-19a: cycle through displays and comments in licks ' do
 end
 
 do_test 'id-19b: prepare and get history of licks' do
-  trace_file = "#{$dotdir_testing}/trace_richter_modes_licks_and_play.txt"
+  trace_file = "#{$dotdir_testing}/trace_richter.txt"
   FileUtils.rm trace_file if File.exist?(trace_file)
   new_session
+  # produce lick history
   %w(wade mape blues).each do |lick|
     tms "harpwise licks --start-with #{lick} a"
     tms :ENTER
     wait_for_start_of_pipeline
-    sleep 1
+    sleep 4
     tms 'q'
     wait_for_end_of_harpwise
   end
-  tms "harpwise print licks-history >#{$testing_output_file}"
+
+  tms "harpwise print licks-history"
   tms :ENTER
   wait_for_end_of_harpwise
-  lines = File.read($testing_output_file).lines
-  ["   l: blues\n",
-   "  2l: mape\n",
-   "  3l: wade\n"].each_with_index do |exp,idx|
-    expect(lines.each_with_index.map {|l,i| [i,l]}, exp, idx) { lines[10+idx] == exp }
-  end
+  expect { screen[13]['l: blues'] }
+  expect { screen[15]['2l: mape'] }
+  expect { screen[17]['3l: wade'] }
+
+  tms "harpwise play +1 +2"
+  tms :ENTER
+  sleep 4
+  wait_for_end_of_harpwise
+
+  tms "harpwise quiz replay 2"
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  sleep 2
+  tms 'q'
+  wait_for_end_of_harpwise
+
+  tms "harpwise print holes-history"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[9]['mode quiz, replay'] }
+  expect { screen[11]['mode play, holes or notes'] }
+  expect { screen[13]['mode licks, lick'] }
   kill_session
 end
 
-do_test 'id-19c: start with next to last lick' do
+# kann nicht alleine gestartet werden; erst nach id-19b
+do_test 'id-19c: start with older lick' do
   new_session
-  tms 'harpwise licks --start-with 2l'
+
+  tms "harpwise print licks-history"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[16]['3l: wade'] }
+
+  tms 'harpwise licks --start-with 3l'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-1]['mape'] }
+  tms 'i'
+  expect { screen[15]['Lick Name: wade'] }
+  tms :q
   kill_session
 end
 
@@ -1271,12 +1299,15 @@ do_test 'id-37a: change lick by name with cursor keys' do
   tms 'harpwise lick blues --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[-1]['wade'] }
+  tms 'i'
+  expect { screen[15]['Lick Name: wade'] }
+  tms :ENTER
   tms 'l'
   tms :RIGHT
   tms :ENTER
   sleep 2
-  expect { screen[-1]['special'] }
+  tms 'i'
+  expect { screen[15]['Lick Name: boogie-i'] }
   kill_session
 end
 
@@ -2785,15 +2816,15 @@ do_test 'id-103: tool search-scale-in-licks' do
   kill_session
 end
 
-do_test 'id-104: add.tag.to for licks' do
+do_test 'id-104: tag.to.lick.set for licks' do
   new_session
   saved = "#{$lickfile_testing}_saved"
   FileUtils.cp $lickfile_testing, saved unless File.exist?(saved)
   # prepend
   File.write($lickfile_testing,
              # make st-louis appear first, although it comes last in file
-             ["add.tag.to = mytag1 st-louis wade\n",
-              "add.tag.to = mytag2 st-louis feeling-bad\n",
+             ["tag.to.lick.set = mytag1 st-louis wade\n",
+              "tag.to.lick.set = mytag2 st-louis feeling-bad\n",
               File.read($lickfile_testing).lines].flatten.join)
 
   tms 'harpwise print licks-list -t mytag1'

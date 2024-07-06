@@ -23,7 +23,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   $all_licks, $licks = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   start_with ||= 'adhoc' if $opts[:adhoc_lick]
-  trace_text = nil
   quiz_prevs = Array.new
   
   loop do   # forever until ctrl-c, sequence after sequence
@@ -71,7 +70,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       to_play.back_one_sequence
       
     elsif $ctl_mic[:change_lick] 
-      trace_text = to_play.read_name_change_lick(to_play[:lick])
+      to_play.read_name_change_lick(to_play[:lick])
       
     elsif $ctl_mic[:edit_lick_file] 
       to_play.edit_lick
@@ -212,8 +211,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         if start_with
 
           if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
-            # start with lick from history
-            to_play.set_lick_idx get_last_lick_idxs_from_trace($licks)[md  ?  md[1].to_i - 1  :  0]
+            to_play.set_lick_idx(shortcut2trace_record(start_with, md)[:lick_idx])
           else
             to_play.choose_lick_by_name(start_with)
           end
@@ -237,7 +235,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         end
 
         to_play.set_lick_and_others_from_idx
-        trace_text = sprintf('Lick %s: ', to_play[:lick][:name]) + to_play[:all_wanted].join(' ')
 
       end   ## figure out holes to play
 
@@ -283,9 +280,13 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     #
     #  Play the holes or recording
     #
-    IO.write($trace_file, "#{trace_text}\n", mode: 'a') if trace_text
-    trace_text = nil
     seq_played_recently = false
+    if $quiz_flavour == 'replay'
+      write_trace('replay', 'random', to_play[:all_wanted])
+    else
+      write_trace('lick', to_play[:lick][:name], to_play[:all_wanted])
+    end
+      
     if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
        $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:shift_inter_circle] || $ctl_mic[:change_partial]
       
@@ -1091,7 +1092,7 @@ def read_tags_and_refresh_licks curr_lick
 
   print "\e[#{$lines[:comment]}H\e[0m"
   puts
-  puts_names_of_licks 40
+  puts_names_of_licks 20
   puts
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
@@ -1270,10 +1271,14 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
 
 
   def read_name_change_lick curr_lick
-    input = matching = trace_text = nil
+    input = matching = nil
     $ctl_mic[:change_lick] = false
+    lnames = $licks.map {|l| l[:name]}
 
-    old_licks = get_last_lick_idxs_from_trace($licks, true).map {|lick_idx| $licks[lick_idx][:name]}
+    old_licks = get_prior_trace_records(:lick).
+                  map {|r| r[:name]}.
+                  select {|n| lnames.include?(n)}
+                  
     choices = if old_licks.length > 0
                 [';RECENT->', old_licks[0 .. 3], ';ALL-OTHER->']
               else
@@ -1288,16 +1293,13 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
         'no description'
       end
     end
-    return nil unless input
+    return unless input
     
     new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]
     if self[:lick_idx] != new_idx
       self[:lick_idx_befores] << self[:lick_idx] if self[:lick_idx] != self[:lick_idx_befores][-1]
       self.set_lick_and_others_from_idx(new_idx)
-      trace_text = sprintf('Lick %s: ', self[:lick][:name]) + self[:all_wanted].join(' ')
-    end
-    
-    trace_text
+    end    
   end
 
 
@@ -1512,7 +1514,12 @@ def show_lick_info lick
     ohead = true
   end
   puts ' Tag-Options: none' unless ohead
-  puts_names_of_licks 20
+  if lick[:lick_sets].length == 0
+    puts 'in lick-sets: none'
+  else
+    puts 'in lick-sets: ' + lick[:lick_sets].join(',')
+  end
+  puts_names_of_licks 10
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
@@ -1525,5 +1532,5 @@ def puts_names_of_licks maxnum
     names = names.sample(maxnum)
     names = ["e.g.: #{names[0]}"] + names[1..-1]
   end
-  puts wrap_words("Set of Licks: ", ["#{$licks.length} in total; "] + names)
+  puts wrap_words('   All licks: ', ["#{$licks.length} in total; "] + names)
 end

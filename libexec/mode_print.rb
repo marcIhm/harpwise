@@ -113,7 +113,7 @@ def do_print to_print
 
     when 'licks-history'
 
-      print_last_licks_from_journal $all_licks
+      print_last_licks_from_trace $all_licks
 
     when 'licks-starred'
 
@@ -123,6 +123,10 @@ def do_print to_print
 
       pp $licks
       
+    when 'holes-history'
+
+      print_last_holes_from_trace $all_licks
+
     when 'scales'
 
       puts_underlined 'All scales:'
@@ -306,55 +310,67 @@ def print_lick_and_tag_stats licks
 end
 
 
-def get_last_lick_idxs_from_trace licks, graceful = false
-  lnames = []
-  if !File.exist?($trace_file)
-    return [] if graceful
-    err "Expected trace-file #{$trace_file} could not be found"
+def print_last_licks_from_trace licks
+  puts "\e[2mList of most recent licks played, modes licks and play:"
+  puts "  - abbrev (e.g. '2l') for '--start-with'"
+  puts "  - name of lick\e[0m"
+  puts
+  puts "\e[2mHistory-records in reverse order: Last lick comes first,\n timestamp of start last:\e[0m"
+  puts
+  cnt = 1
+  # must be consistent with selection in shortcut2trace_record
+  records = get_prior_trace_records(:licks, :play).
+              select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
+  if records.length == 0
+    puts "No history found for mode licks.\n\n"
+    exit 0
   end
-  File.readlines($trace_file).each do |line|
-    md = line.match(/^Lick +([^, :\/]+):/)
-    lnames << md[1] if md
-    lnames.shift if lnames.length > 100
+  records.each do |rec|
+    if rec[:rec_type] == :start
+      puts "\e[2m Start with type #{rec[:harp_type]}, mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
+    elsif rec[:rec_type] == :skipping
+      puts "\e[2m  ...\e[0m"
+    else
+      print '     '
+      if cnt == 1
+        print ' l: '
+      elsif cnt <= 9
+        print cnt.to_s + 'l: '
+      else
+        print '    '
+      end
+      cnt += 1
+      puts rec[:name]
+    end
   end
-  if lnames.length == 0
-    return [] if graceful
-    err "Did not find any licks in #{$trace_file}"
-  end
-  idxs = lnames.map do |ln|
-    licks.index {|l| l[:name] == ln }
-  end.select(&:itself)
-  if idxs.length == 0
-    return [] if graceful
-    err "Could not find any of the lick names #{lnames} from trace-fie #{$trace_file} among current set of licks #{licks.map {|l| l[:name]}}"
-  end
-  idxs.reverse.uniq[0..16]
+  puts
+  puts "\e[2m(from #{$trace_file})\e[0m"
+  puts
 end
 
 
-def print_last_licks_from_journal licks
-  puts "\nList of most recent licks played:"
-  puts "  - abbrev (e.g. '2l') for '--start-with'"
-  puts "  - name of lick"
+def print_last_holes_from_trace licks
+  puts "\e[2mList of most recent holes played, no matter which mode:"
   puts
-  puts "Last lick comes first:"
+  puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
   puts
   cnt = 1
-  get_last_lick_idxs_from_trace(licks).each do |idx|
-    print '  '
-    if cnt == 1
-      print ' l: '
-    elsif cnt <= 9
-      print cnt.to_s + 'l: '
+  records = get_prior_trace_records(:licks, :play, :quiz)
+  if records.length == 0
+    puts "No history found for any mode.\n\n"
+    exit 0
+  end
+  records.each do |rec|
+    if rec[:rec_type] == :start
+      puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
+    elsif rec[:rec_type] == :skipping
+      puts "\e[2m  ...\e[0m"
     else
-      print '    '
+      puts "  mode #{rec[:mode]}, #{rec[:play_type]} '#{rec[:name]}':   #{rec[:holes].join('  ')}"
     end
-    cnt += 1
-    puts licks[idx][:name]
-    
   end
   puts
-  puts "(from #{$trace_file})"
+  puts "\e[2m(from #{$trace_file})\e[0m"
   puts
 end
 

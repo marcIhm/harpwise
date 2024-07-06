@@ -344,7 +344,8 @@ def set_global_vars_late
   # is journaling of all holes played ongoing ?
   $journal_all = false
   # filenames for user-readable persistant data
-  $journal_file, $trace_file = get_files_journal_trace
+  $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
+  $trace_file = "#{$dirs[:data]}/trace_#{$type}.txt"
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
