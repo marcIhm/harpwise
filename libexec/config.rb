@@ -345,7 +345,7 @@ def set_global_vars_late
   $journal_all = false
   # filenames for user-readable persistant data
   $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
-  $trace_file = "#{$dirs[:data]}/trace_#{$type}.txt"
+  $history_file = "#{$dirs[:data]}/history_#{$type}.json"
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"

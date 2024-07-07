@@ -113,7 +113,7 @@ def do_print to_print
 
     when 'licks-history'
 
-      print_last_licks_from_trace $all_licks
+      print_last_licks_from_history $all_licks
 
     when 'licks-starred'
 
@@ -125,7 +125,7 @@ def do_print to_print
       
     when 'holes-history'
 
-      print_last_holes_from_trace $all_licks
+      print_last_holes_from_history $all_licks
 
     when 'scales'
 
@@ -310,7 +310,7 @@ def print_lick_and_tag_stats licks
 end
 
 
-def print_last_licks_from_trace licks
+def print_last_licks_from_history licks
   puts "\e[2mList of most recent licks played, modes licks and play:"
   puts "  - abbrev (e.g. '2l') for '--start-with'"
   puts "  - name of lick\e[0m"
@@ -318,16 +318,16 @@ def print_last_licks_from_trace licks
   puts "\e[2mHistory-records in reverse order: Last lick comes first,\n timestamp of start last:\e[0m"
   puts
   cnt = 1
-  # must be consistent with selection in shortcut2trace_record
-  records = get_prior_trace_records(:licks, :play).
+  # must be consistent with selection in shortcut2history_record
+  records = get_prior_history_records(:licks, :play).
               select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
   if records.length == 0
-    puts "No history found for mode licks.\n\n"
+    puts "No lick-history found for modes 'lick' or 'play' in file\n  #{$history_file}.\n\n"
     exit 0
   end
   records.each do |rec|
     if rec[:rec_type] == :start
-      puts "\e[2m Start with type #{rec[:harp_type]}, mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
+      puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
     elsif rec[:rec_type] == :skipping
       puts "\e[2m  ...\e[0m"
     else
@@ -344,18 +344,18 @@ def print_last_licks_from_trace licks
     end
   end
   puts
-  puts "\e[2m(from #{$trace_file})\e[0m"
+  puts "\e[2m(from #{$history_file})\e[0m"
   puts
 end
 
 
-def print_last_holes_from_trace licks
+def print_last_holes_from_history licks
   puts "\e[2mList of most recent holes played, no matter which mode:"
   puts
   puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
   puts
   cnt = 1
-  records = get_prior_trace_records(:licks, :play, :quiz)
+  records = get_prior_history_records(:licks, :play, :quiz)
   if records.length == 0
     puts "No history found for any mode.\n\n"
     exit 0
@@ -370,7 +370,7 @@ def print_last_holes_from_trace licks
     end
   end
   puts
-  puts "\e[2m(from #{$trace_file})\e[0m"
+  puts "\e[2m(from #{$history_file})\e[0m"
   puts
 end
 

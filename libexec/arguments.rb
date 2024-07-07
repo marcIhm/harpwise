@@ -264,6 +264,12 @@ def parse_arguments_early
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
 
+  # save them away, so we may later restore them
+  $initial_tag_options = Hash.new
+  [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
+    $initial_tag_options[opt] = opts[opt]
+  end
+  
   # usage info specific for mode
   if opts[:help] || num_args_after_mode == 0
     print_usage_info mode

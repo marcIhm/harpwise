@@ -29,7 +29,7 @@ def do_play to_play
       puts "Some holes or notes"
       play_holes_or_notes_simple holes_or_notes
       puts
-      write_trace('holes or notes', 'adhoc', holes_or_notes)
+      write_history('holes or notes', 'adhoc', holes_or_notes)
       
     elsif snames.length > 0
       
@@ -38,7 +38,7 @@ def do_play to_play
         puts "Scale #{sname}"
         play_holes_or_notes_simple scale_holes
         puts
-        write_trace('scale', sname, scale_holes)
+        write_history('scale', sname, scale_holes)
       end
       
     elsif lnames.length > 0
@@ -137,8 +137,8 @@ def partition_to_play_or_print to_handle
       lnames << th
     elsif what == :last
       $all_licks, $licks = read_licks
-      md = th.match(/^(\dlast|\dl)$/)
-      lnames << shortcut2trace_record(th, md)[:name]
+      record = shortcut2history_record(th)
+      lnames << record[:name]
     else
       other << th
     end
@@ -319,7 +319,7 @@ def play_licks_controller licks, refill, sleep_between: false
 
   loop do  ## one lick after the other
 
-    write_trace('lick', lick[:name], lick[:holes])
+    write_history('lick', lick[:name], lick[:holes])
 
     loop do  ## repeats of the same lick
       puts
@@ -468,9 +468,8 @@ def do_play_licks
     puts
     sw = $opts[:start_with]
     idx = if sw 
-            if (md = sw.match(/^(\dlast|\dl)$/)) || sw == 'last' || sw == 'l'
-              # start with lick from history
-              shortcut2trace_record(sw, md)[:lick_idx]
+            if record = shortcut2history_record(sw)              
+              record[:lick_idx]
             else
               (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
             end

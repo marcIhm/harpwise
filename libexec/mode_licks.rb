@@ -210,8 +210,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
         if start_with
 
-          if (md = start_with.match(/^(\dlast|\dl)$/)) || start_with == 'last' || start_with == 'l'
-            to_play.set_lick_idx(shortcut2trace_record(start_with, md)[:lick_idx])
+          if record = shortcut2history_record(start_with)
+            to_play.set_lick_idx(record[:lick_idx])
           else
             to_play.choose_lick_by_name(start_with)
           end
@@ -282,9 +282,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     #
     seq_played_recently = false
     if $quiz_flavour == 'replay'
-      write_trace('replay', 'random', to_play[:all_wanted])
+      write_history('replay', 'random', to_play[:all_wanted])
     else
-      write_trace('lick', to_play[:lick][:name], to_play[:all_wanted])
+      write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
     end
       
     if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
@@ -1067,14 +1067,22 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", all_tags.flatten) do |tag|
-    if tag2licks[tag]
+  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", (['.INITIAL'] + all_tags).flatten) do |tag|
+    if tag == '.INITIAL'
+      'Revert all tag options (-t, --drop-tags-any, --i, ...) to their initial values'
+    elsif tag2licks[tag]
       "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
     else
-      'no licks with this tag'
+      'No licks with this tag'
     end
   end
-  changed = if tags_all
+  changed = if tags_all == '.INITIAL'
+              [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
+                $opts[opt] = $initial_tag_options[opt] 
+              end
+              $all_licks, $licks = read_licks(true)
+              true
+            elsif tags_all
               $opts[:tags_all] = tags_all
               $all_licks, $licks = read_licks(true)
               iter = choose_interactive('Choose new value for --iterate, aka -i: ',
@@ -1092,7 +1100,7 @@ def read_tags_and_refresh_licks curr_lick
 
   print "\e[#{$lines[:comment]}H\e[0m"
   puts
-  puts_names_of_licks 20
+  puts_names_of_licks 10
   puts
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
@@ -1275,7 +1283,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     $ctl_mic[:change_lick] = false
     lnames = $licks.map {|l| l[:name]}
 
-    old_licks = get_prior_trace_records(:lick).
+    old_licks = get_prior_history_records(:licks).
                   map {|r| r[:name]}.
                   select {|n| lnames.include?(n)}
                   
@@ -1515,11 +1523,11 @@ def show_lick_info lick
   end
   puts ' Tag-Options: none' unless ohead
   if lick[:lick_sets].length == 0
-    puts 'in lick-sets: none'
+    puts "in lick-sets: \e[2m--none--\e[0m"
   else
     puts 'in lick-sets: ' + lick[:lick_sets].join(',')
   end
-  puts_names_of_licks 10
+  puts_names_of_licks 5
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
@@ -1532,5 +1540,5 @@ def puts_names_of_licks maxnum
     names = names.sample(maxnum)
     names = ["e.g.: #{names[0]}"] + names[1..-1]
   end
-  puts wrap_words('   All licks: ', ["#{$licks.length} in total; "] + names)
+  puts wrap_words('   All licks, ', ["#{$licks.length} in total:  "] + names, ', ')
 end

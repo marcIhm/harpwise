@@ -399,76 +399,75 @@ def animate_splash_line single_line = false, as_string: false
 end
 
 
-$last_trace_holes = []
-$one_trace_written = false
+$last_history_holes = []
+$one_history_written = false
 
-def write_trace play_type, name, holes = []
+def write_history play_type, name, holes = []
 
-  return if holes.length > 0 && holes == $last_trace_holes
+  return if holes.length > 0 && holes == $last_history_holes
 
   # check for file size
-  if !$one_trace_written && File.exist?($trace_file) && File.size($trace_file) > 100_000
-    tlines = File.read($trace_file).lines
+  if !$one_history_written && File.exist?($history_file) && File.size($history_file) > 100_000
+    tlines = File.read($history_file).lines
     # keep only last half
-    File.write($trace_file, tlines[tlines.length/2 .. -1].join)
+    File.write($history_file, tlines[tlines.length/2 .. -1].join)
   end
 
-  File.open($trace_file, 'a') do |trace|
+  File.open($history_file, 'a') do |history|
     tstamps = [Time.now.strftime("%Y-%m-%d %H:%M"), Time.now.to_i]
     data = { rec_type: 'start',
-             harp_type: $type,
              mode: $mode,
              timestamps: tstamps }
-    trace.write("\n" + JSON.generate(data) + "\n\n") unless $one_trace_written
+    history.write("\n" + JSON.generate(data) + "\n\n") unless $one_history_written
     # must match formats in next function
     data = { rec_type: 'entry',
-             harp_type: $type,
              mode: $mode,
              play_type: play_type,
              name: name,
              holes: holes,
              timestamps: tstamps }
-    trace.write(JSON.generate(data) + "\n\n")
+    history.write(JSON.generate(data) + "\n\n")
   end
-  $last_trace_holes = holes if holes.length > 0
-  $one_trace_written = true
+  $last_history_holes = holes if holes.length > 0
+  $one_history_written = true
 end
 
 
-def get_prior_trace_records *for_modes
+def get_prior_history_records *for_modes
 
+  for_modes.each do |m|
+    err "Internal error: unknown mode: #{m}" unless $early_conf[:modes].include?(m.to_s)
+  end
   num_entries_wanted = 16
   num_entries = 0
   records = []
-  return [] if !File.exist?($trace_file)
+  return [] if !File.exist?($history_file)
 
-  File.foreach($trace_file).each_with_index do |line, lno|
+  File.foreach($history_file).each_with_index do |line, lno|
     line.strip!
     next if line == ''
     begin
       data = JSON.parse(line, symbolize_names: true)
     rescue JSON::ParserError
-      err "Cannot parse line #{lno} from trace-file #{$trace_file}: '#{line}'"
+      err "Cannot parse line #{lno} from history-file #{$history_file}: '#{line}'"
     end
 
     # must match formats in previous function
     unless ( data in { rec_type: 'start',
-                       harp_type: _,
                        mode: _, 
                        timestamps: [ _, _ ] } ) ||
            ( data in { rec_type: 'entry',
-                       harp_type: _,
                        mode: _,
                        play_type: _,
                        name: _,
                        holes: [*],
                        timestamps: [ _, _ ] } )
-      err "Cannot parse line #{lno} from trace-file #{$trace_file}: '#{line}'"
+      err "Cannot parse line #{lno} from history-file #{$history_file}: '#{line}'"
     end
     [:mode, :rec_type].each do |key|
       data[key] = data[key].to_sym if data[key]
     end
-    
+
     if for_modes.include?(data[:mode])
       if records.length == 0 && data[:rec_type] == :entry
         # we did not find start-record; maybe due to prior truncation
@@ -508,15 +507,17 @@ def get_prior_trace_records *for_modes
 end
 
 
-def shortcut2trace_record short, md
+def shortcut2history_record short
+  md = nil
+  return false unless ( md = short.match(/^(\dlast|\dl)$/) ) || short == 'last' || short == 'l'
   idx = if md
           md[1].to_i - 1
         else
           0
         end
 
-  # must be consistent with selection in print_last_licks_from_trace
-  records = get_prior_trace_records(:licks, :play).
+  # must be consistent with selection in print_last_licks_from_history
+  records = get_prior_history_records(:licks, :play).
               select {|r| r[:play_type] == 'lick'}
 
   err "Shortcut '#{short}' is beyound end of #{records.length} available history records" if idx >= records.length
@@ -966,12 +967,12 @@ def err_args_not_allowed args
 end
 
 
-def wrap_words head, words
+def wrap_words head, words, sep = ','
   line = head
   lines = Array.new
   words.each_with_index do |word, idx|
-    line += ',' unless line[-1] == ' ' || idx == 0
-    if line.length + word.length > $term_width - 2
+    line += sep unless line[-1] == ' ' || idx == 0
+    if line.length + word.length > $term_width - sep.length
       lines << line
       line = (' ' * head.length) + word
     else

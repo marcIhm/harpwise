@@ -726,15 +726,15 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  trace_file = "#{$dotdir_testing}/trace_richter.txt"
-  FileUtils.rm trace_file if File.exist?(trace_file)
+  history_file = "#{$dotdir_testing}/history_richter.json"
+  FileUtils.rm history_file if File.exist?(history_file)
   new_session
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
   expect { screen[5]['Lick wade'] }
   expect { screen[6]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
-  expect { File.exist?(trace_file) }
+  expect { File.exist?(history_file) }
   kill_session
 end
 
@@ -896,8 +896,8 @@ do_test 'id-19a: cycle through displays and comments in licks ' do
 end
 
 do_test 'id-19b: prepare and get history of licks' do
-  trace_file = "#{$dotdir_testing}/trace_richter.txt"
-  FileUtils.rm trace_file if File.exist?(trace_file)
+  history_file = "#{$dotdir_testing}/history_richter.json"
+  FileUtils.rm history_file if File.exist?(history_file)
   new_session
   # produce lick history
   %w(wade mape blues).each do |lick|
@@ -978,7 +978,6 @@ do_test 'id-21: mode licks with --start-with' do
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
   tms 'i'
-  sleep 2
   expect { screen[12..16].any? {|l| l['Lick Name: wade']} }
   kill_session
 end
@@ -1280,7 +1279,7 @@ do_test 'id-36b: display as chart with notes' do
   kill_session
 end
 
-do_test 'id-37: change lick by name' do
+do_test 'id-37: change lick by name and back' do
   new_session
   tms 'harpwise lick blues --start-with wade'
   tms :ENTER
@@ -1339,7 +1338,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 't'
-  5.times {tms :RIGHT}
+  7.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
   tms :ENTER
@@ -1353,7 +1352,27 @@ do_test 'id-37c: change option --tags with cursor keys' do
   kill_session
 end
 
-do_test 'id-37d: change partial' do
+do_test 'id-37d: change option --tags and back' do
+  new_session
+  tms 'harpwise lick blues --start-with st-louis'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 't'
+  tms 'favo'
+  tms :ENTER
+  tms 'cyc'
+  tms :ENTER
+  expect { screen[16]['All licks, 4 in total:'] }
+  tms :ENTER
+  sleep 2
+  tms 't'
+  tms '.INITIAL'
+  tms :ENTER
+  expect { screen[16]['All licks, 21 in total:'] }
+  kill_session
+end
+
+do_test 'id-37e: change partial' do
   new_session
   tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
