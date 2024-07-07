@@ -680,7 +680,7 @@ def show_help mode = $mode, testing_only = false
                  "",
                  "      l:_change current lick by name       e:_edit lickfile",
                  "      t:_change lick-selection (-t)        i:_show info on lick",
-                 "      %:_shift lick by chosen interval   9,@:_change option --partial",
+                 "      #:_shift lick by chosen interval   9,@:_change option --partial",
                  "     <>:_shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                  "     */:_Add or remove Star from current lick persistently;",
                  "         select them later by tag 'starred'",
