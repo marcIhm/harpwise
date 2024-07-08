@@ -1213,13 +1213,13 @@ do_test 'id-34: comment with scales and octave shift' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-1.b     +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
-  tms '%'
+  tms '#'
   sleep 1
   tms 'octave up'
   tms :ENTER
   sleep 2
   expect { screen[15]['-4.b1   +5    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
-  tms '%'
+  tms '#'
   sleep 1
   tms 'no shift'
   tms :ENTER
@@ -1302,11 +1302,11 @@ do_test 'id-37a: change lick by name with cursor keys' do
   expect { screen[15]['Lick Name: wade'] }
   tms :ENTER
   tms 'l'
-  tms :RIGHT
+  tms :LEFT
   tms :ENTER
   sleep 2
   tms 'i'
-  expect { screen[15]['Lick Name: boogie-i'] }
+  expect { screen[15]['Lick Name: two'] }
   kill_session
 end
 

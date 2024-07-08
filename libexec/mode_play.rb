@@ -18,7 +18,7 @@ def do_play to_play
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if %w(pitch licks user).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if %w(pitch user).include?($extra) && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
 
@@ -68,7 +68,7 @@ def do_play to_play
         
     when 'licks'
 
-      do_play_licks
+      do_play_licks args_for_extra
       
     when 'progression', 'prog'
       
@@ -457,7 +457,23 @@ def maybe_wait_for_key_and_decide_replay
 end
 
 
-def do_play_licks
+def do_play_licks args
+
+  if args.length > 0
+    err "First argument to 'harpwise play licks' can only be 'radio', not '#{args[0]}'" if args[0] != 'radio'
+    $ctl_rec[:lick_lick] = $ctl_rec[:loop_loop] = true
+    $ctl_rec[:num_loops] = if args.length > 1
+                             if md = args[1].match(/^(\d+)$/)
+                               md[1].to_i
+                             else
+                               err "Argument after 'harpwise play licks radio' can only be a number, not '#{args[1]}'"
+                             end
+                           else
+                             4
+                           end
+    
+  end
+  
   if $opts[:iterate] == :random
     lick_idx = nil
     puts "\e[2mA random walk through licks.\e[0m"
