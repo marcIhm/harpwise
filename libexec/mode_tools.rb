@@ -25,11 +25,9 @@ def do_tools to_handle
   when 'chart'
     tool_chart
   when 'edit-licks'
-    Signal.trap('TSTP', 'DEFAULT')
-    system($editor + ' ' + $lick_file)
-    puts "\nEdited \e[0m\e[32m#{$lick_file}\e[0m\n\n"
+    tool_edit_file $lick_file, to_handle
   when 'edit-config'
-    tool_edit_config
+    tool_edit_file $early_conf[:config_file_user], to_handle
   when 'transcribe', 'trans'
     tool_transcribe to_handle
   when 'notes-major', 'notes'
@@ -459,12 +457,12 @@ def tool_chart
 end
 
 
-def tool_edit_config to_handle
+def tool_edit_file file, to_handle
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
-
-  system($editor + ' ' + $early_conf[:config_file_user])
-  puts "\nEdited \e[0m\e[32m#{$early_conf[:config_file_user]}\e[0m\n\n"
+  puts "\nInvoking #{$editor} on \e[0m\e[32m#{file}\e[0m\n\n"
+  sleep 1 
+  exec($editor + ' ' + file)
 end
 
 

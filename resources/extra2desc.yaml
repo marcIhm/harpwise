@@ -24,7 +24,7 @@ print:
   licks-list-all: |
     terse list of all licks (disregarding e.g option -t)
   licks-with-tags: |
-    list licks (wach with its tags) according to the various tag-options
+    list licks (each with its tags) according to the various tag-options
   licks-tags-stats: |
     statistics for all known licks and their tags
   licks-history: |
