@@ -244,10 +244,11 @@ class QuizFlavour
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.help-narrow', 'not_defined', 'not_defined']
-    all_choices = [',again', @choices, ';controls-and-help->', ',solve', ',skip', ',change-key', all_helps[0]].flatten
+    all_choices = [',again', @choices, ';controls-and-help->', ',solve', ',skip', ',describe', ',change-key', all_helps[0]].flatten
     choices_desc = {',again' => 'Repeat question',
                     ',solve' => 'Give solution and go to next question',
                     ',skip' => 'Give solution and Skip to next question without extra info',
+                    ',describe' => 'Repeat initial description of flavour',
                     ',change-key' => 'Change key and ask new question',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
@@ -296,6 +297,10 @@ class QuizFlavour
       end
       puts
       return next_or_reissue
+    when ',describe'
+      has_issue_question = $quiz_flavour2class[$quiz_flavour].method_defined?(:issue_question)
+      describe_flavour $quiz_flavour, has_issue_question
+      return :reask
     when ',change-key'
       choose_prepare_for
       key_was = $key
@@ -2227,21 +2232,13 @@ def get_accepted_flavour_from_extra inherited
     flavour ||= get_random_flavour(collection)
     
     # now we have a valid flavour, so inform user and get confirmation
-    has_issue_question = $quiz_flavour2class[flavour].method_defined?(:issue_question)
     puts
     unless first_iteration
       puts get_dim_hline
       puts
     end
-    puts "Quiz Flavour is:   \e[34m#{flavour}\e[0m"
-    puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless has_issue_question
-    sleep 0.05
-    puts
-    sleep 0.05
-    puts get_extra_desc_single(flavour)[1..-1].
-           map {|l| '  ' + l + "\n"}.
-           join.chomp +
-         ".\n"
+    has_issue_question = $quiz_flavour2class[flavour].method_defined?(:issue_question)
+    describe_flavour flavour, has_issue_question
     if has_issue_question
       # describe_difficulty will be done in issue_question
     else
@@ -2380,4 +2377,17 @@ def make_extra_desc_short extra, head
   head += " (#{desc_lines[0].gsub(' ','')})" if desc_lines[0] != extra
   head += ': '
   head + desc_lines[1..-1].join(' ')
+end
+
+
+def describe_flavour flavour, has_issue_question
+  puts "Quiz Flavour is:   \e[34m#{flavour}\e[0m"
+  puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless has_issue_question
+  sleep 0.05
+  puts
+  sleep 0.05
+  puts get_extra_desc_single(flavour)[1..-1].
+         map {|l| '  ' + l + "\n"}.
+         join.chomp +
+       ".\n"
 end

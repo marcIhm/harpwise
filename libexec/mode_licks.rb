@@ -281,8 +281,11 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     #  Play the holes or recording
     #
     seq_played_recently = false
-    if $quiz_flavour == 'replay'
+    case $quiz_flavour
+    when'replay'
       write_history('replay', 'random', to_play[:all_wanted])
+    when 'play-shifted'
+      write_history('play-shifted', 'random-shifted', to_play[:all_wanted])
     else
       write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
     end
