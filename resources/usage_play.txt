@@ -47,6 +47,10 @@ USAGE BY EXAMPLES
 
     harpwise play licks --tags-any fav
 
+  Play endless, no questions asked:
+
+    harpwise play licks radio
+
 
   Play an interactive, adjustable pitch:
 

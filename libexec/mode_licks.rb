@@ -282,10 +282,14 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     #
     seq_played_recently = false
     case $quiz_flavour
-    when'replay'
+    when 'replay'
       write_history('replay', 'random', to_play[:all_wanted])
     when 'play-shifted'
       write_history('play-shifted', 'random-shifted', to_play[:all_wanted])
+    when 'play-scale'
+      write_history('play-scale', quiz_scale_name, to_play[:all_wanted])
+    when 'play-inter'
+      write_history('play-inter', quiz_holes_inter[3], to_play[:all_wanted])
     else
       write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
     end
