@@ -144,7 +144,7 @@ quiz:
   hole-note: |
     gives a hole and asks for the note or vice versa; this of course
     depends on the key of the harp, which you might want to change now
-    and then
+    and then to broader coverage
   hole-note-key: |
     picks (and hides) a new key for the harp at random; then, for a
     named hole-set (e.g. 'blow'), gives holes and matching notes

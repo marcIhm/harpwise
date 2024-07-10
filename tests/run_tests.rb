@@ -108,7 +108,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 89
+num_exp = 90
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2510,6 +2510,11 @@ do_test 'id-90: quiz-flavour play-scale' do
   tms :ENTER
   sleep 3
   expect { screen[11]['Quiz Flavour is:   play-scale'] }
+  tms :ENTER
+  sleep 4
+  tms 'q'
+  wait_for_end_of_harpwise
+  expect { screen[-3]['Terminating on user request'] }
   kill_session
 end
 
@@ -2519,6 +2524,11 @@ do_test 'id-91: quiz-flavour play-inter' do
   tms :ENTER
   sleep 3
   expect { screen[11]['Quiz Flavour is:   play-inter'] }
+  tms :ENTER
+  sleep 4
+  tms 'q'
+  wait_for_end_of_harpwise
+  expect { screen[-3]['Terminating on user request'] }
   kill_session
 end
 
@@ -3014,6 +3024,11 @@ do_test 'id-112: quiz-flavour play-shifted' do
   tms :ENTER
   sleep 3
   expect { screen[14]['Wise computes a sequence'] }
+  tms :ENTER
+  sleep 4
+  tms 'q'
+  wait_for_end_of_harpwise
+  expect { screen[-3]['Terminating on user request'] }
   kill_session
 end
 

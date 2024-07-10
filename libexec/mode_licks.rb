@@ -1074,8 +1074,8 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", (['.INITIAL'] + all_tags).flatten) do |tag|
-    if tag == '.INITIAL'
+  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", (['.initial'] + all_tags).flatten) do |tag|
+    if tag == '.initial'
       'Revert all tag options (-t, --drop-tags-any, --i, ...) to their initial values'
     elsif tag2licks[tag]
       "#{tag2licks[tag].length} licks, e.g. #{tag2licks[tag].sample(5).join(',')}"
@@ -1083,7 +1083,7 @@ def read_tags_and_refresh_licks curr_lick
       'No licks with this tag'
     end
   end
-  changed = if tags_all == '.INITIAL'
+  changed = if tags_all == '.initial'
               [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
                 $opts[opt] = $initial_tag_options[opt] 
               end
