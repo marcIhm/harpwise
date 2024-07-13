@@ -78,16 +78,18 @@ def read_licks graceful = false
     elsif md = line.match(/^\[(#{$word_re})\]$/)
       derived.insert(-2,'') # empty line before in derived
       nname = md[1]
-
       
       # Do final processing of previous lick: merging with default and
       # replacement of vars; also collect journal and adhoc, if
       # prepared
       [lick, special_licks].flatten.compact.each do |lick|  ## shadow variable lick deliberately
+
         if name == 'default'
           default = lick
+
         elsif name == 'vars'
           # vars have already been assigned; nothing to do here
+
         else
           err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
           # merge from star-file
@@ -135,6 +137,7 @@ def read_licks graceful = false
           all_licks << lick
         end
       end
+
       name = nname
       special_licks = nil
 
@@ -158,7 +161,7 @@ def read_licks graceful = false
       err "Invalid lick name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile}, line #{idx + 1})"
 
       
-    # $var = value
+    # Assign variable like, $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(.*) *$/)
       var, value = md[1..2]
       err "Variables (here: #{var}) may only be assigned in section [vars]; not in [#{name}] (#{lfile}, line #{idx + 1})" unless name == 'vars'
@@ -459,14 +462,17 @@ def get_musical_duration hole_or_note
 end
 
 
-def replace_vars vars, words, name
-  words.map do |word|
-    if word.start_with?('$')
-      err("Unknown variable #{word} used in lick #{name}") unless vars[word]
-      vars[word]
-    else
-      word
+def replace_vars vars, strings, name
+  strings.map do |string|
+    string_orig = string
+    while md = string.match(/^(.*?)\$(#{$word_re})(.*?)$/)
+      word = '$' + md[2]
+      err("Unknown variable '#{word}' used in string '#{string_orig}' for lick #{name}; it is not in #{vars}") unless vars[word]
+      string = md[1] + vars[word] + md[3]
     end
+    err "This string contains a '$'-sign, but cannot be handled as a variable: '#{string}'; lick is #{name}" if string['$']
+
+    string
   end
 end
 
