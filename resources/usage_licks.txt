@@ -81,7 +81,7 @@ USAGE BY EXAMPLES
 
 
   Select licks (if any), that have been starred by pressing '*' while
-  it was beeing played:
+  it is beeing or has been played played:
 
     harpwise licks a -t starred
 

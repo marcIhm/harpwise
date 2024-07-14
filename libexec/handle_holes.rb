@@ -404,7 +404,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:star_lick] && lambda_star_lick
-      lambda_star_lick.call($ctl_mic[:star_lick] == :up  ?  +1  :  -1)
+      lambda_star_lick.call($ctl_mic[:star_lick])
       $ctl_mic[:star_lick] = false
     end
     

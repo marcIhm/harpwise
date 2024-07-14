@@ -35,7 +35,7 @@ def do_listen
       -> (hole_color, isemi, itext, note, hole_disp, freq) do
         color = "\e[0m" + hole_color
         witdh_template = nil
-        line = $lines[:comment_low]
+        line = $lines[:comment]
         font = 'mono9'
         text = case $opts[:comment]
                when :note
@@ -65,7 +65,6 @@ def do_listen
                  font = 'smblock'
                  just_dots_long = '......:......:......:......'
                  template_text = 'fixed:' + just_dots_long
-                 font = 'smblock'
                  line += 2
                  if $hole_ref
                    semi_ref = $harp[$hole_ref][:semi]

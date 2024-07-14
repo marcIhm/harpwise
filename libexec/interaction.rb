@@ -43,7 +43,7 @@ def check_screen graceful: false, hint_on_large_term: false
 
     # check for clashes
     clashes_ok = (2..4).map do |n|
-      [[:help, :comment, :comment_tall, :comment_low],
+      [[:help, :comment, :comment_tall, :comment_flat],
        [:hint_or_message, :message2, :message_bottom]].map do |set|
         set.combination(n).map {|tuple| Set.new(tuple)}
       end
@@ -399,6 +399,10 @@ def handle_kb_play_recording
     $ctl_rec[:num_loops_to_one] = true
   elsif char == '0'
     $ctl_rec[:num_loops] = false
+  elsif char == '*' && $ctl_rec[:can_star_unstar]
+    $ctl_rec[:star_lick] = :up
+  elsif char == '/' && $ctl_rec[:can_star_unstar]
+    $ctl_rec[:star_lick] = :down    
   end
 end
 

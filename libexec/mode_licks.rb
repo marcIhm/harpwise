@@ -12,6 +12,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   end
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_mic[:replay] = $ctl_mic[:replay_menu] = false
+  $ctl_rec[:can_star_unstar] = true if $mode == :licks
   
   to_play = PlayController.new
   to_play[:replacement_for_play] = quiz_holes_shifts[0] if quiz_holes_shifts
@@ -503,17 +504,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           
           # lambda_star_lick
           if $mode == :licks
-            -> (delta) do
-              $starred[to_play[:lick][:name]] += delta
-              startag = if $starred[to_play[:lick][:name]] > 0
-                          'starred'
-                        elsif $starred[to_play[:lick][:name]] < 0
-                          'unstarred'
-                        end
-              %w(starred unstarred).each {|t| to_play[:lick][:tags].delete(t)}
-              to_play[:lick][:tags] << startag if startag
-              $starred.delete([to_play[:lick][:name]]) if $starred[to_play[:lick][:name]] == 0
-              File.write($star_file, YAML.dump($starred))
+            -> (up_down) do
+              star_unstar_lick(up_down, to_play[:lick])
               $msgbuf.print "Wrote #{$star_file}", 2, 5, :star
             end
           else
@@ -747,7 +739,7 @@ def play_recording_lick lick, at_line:, shift_inter:, holes:
     print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_recording_and_handle_kb(lick[:rec], start, length, lick[:rec_key], !!at_line, shift_inter)
+  skipped = play_lick_recording_and_handle_kb(lick, start, length, !!at_line, shift_inter)
 
   print skipped ? " skip rest" : " done"
 end
@@ -990,7 +982,7 @@ end
 
 
 def largify holes, idx
-  line = $lines[:comment_low]
+  line = $lines[:comment_flat]
   if $num_quiz_replay == 1
     [ "\e[2m", '...', line, 'smblock', nil ]
   elsif $opts[:immediate] # show all unplayed
@@ -1548,4 +1540,20 @@ def puts_names_of_licks maxnum
     names = ["e.g.: #{names[0]}"] + names[1..-1]
   end
   puts wrap_words('   All licks, ', ["#{$licks.length} in total:  "] + names, ', ')
+end
+
+
+def star_unstar_lick up_down, lick
+  $starred[lick[:name]] += ( up_down == :up  ?  +1  :  -1 )
+  startag, $starred[lick[:name]] = if $starred[lick[:name]] > 0
+                                     ['starred', +1]
+                                   elsif $starred[lick[:name]] < 0
+                                     ['unstarred', -1]
+                                   else
+                                     [nil, 0]
+                                   end
+  %w(starred unstarred).each {|t| lick[:tags].delete(t)}
+  lick[:tags] << startag if startag
+  $starred.delete(lick[:name]) if $starred[lick[:name]] == 0
+  File.write($star_file, YAML.dump($starred))
 end

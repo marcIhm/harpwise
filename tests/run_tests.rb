@@ -754,7 +754,7 @@ do_test 'id-15b: play licks with controls between' do
   sleep 2
   expect { screen[5]['Lick wade'] }
   sleep 4
-  expect { screen[15]['SPACE or RETURN for next licks'] }
+  expect { screen[16]['SPACE or RETURN for next licks'] }
   kill_session
 end
 
@@ -786,7 +786,7 @@ do_test 'id-16b: cycle in play' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[11]['Lick st-louis'] }
+  expect { screen[10]['Lick st-louis'] }
   kill_session
 end
 
@@ -1472,11 +1472,11 @@ do_test 'id-45: star and unstar a lick' do
   tms 'harpwise licks a --start-with wade'
   tms :ENTER
   wait_for_start_of_pipeline
-  5.times do
+  2.times do
     tms '*'
     sleep 1
   end
-  3.times do
+  2.times do
     tms '/'
     sleep 1
   end
@@ -1484,7 +1484,7 @@ do_test 'id-45: star and unstar a lick' do
   sleep 1
   kill_session
   stars = YAML.load_file(starred_file)
-  expect(stars) { stars['wade'] == 2 }
+  expect(stars) { stars['wade'] == -1 }
 end
 
 # start at test before if rerun
@@ -1493,7 +1493,7 @@ do_test 'id-46: show lick starred in previous invocation' do
   tms 'harpwise print licks-starred'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[6]['wade:    2'] }
+  expect { screen[6]['wade:   -1'] }
   kill_session
 end
 
@@ -1502,7 +1502,7 @@ do_test 'id-46a: verify persistent tag "starred"' do
   tms 'harpwise print licks-with-tags 2>/dev/null | head -20'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['wade ..... fav,favorites,samples,starred,has_rec'] }
+  expect { screen[13]['wade ..... fav,favorites,samples,unstarred,has_rec'] }
   kill_session
 end
 
@@ -2269,12 +2269,18 @@ do_test 'id-74: player for licks' do
   tms '<'
   sleep 1
   expect { screen[9]['x0.9'] }
+  tms '*'
+  sleep 1
+  expect { screen[9]['Starred'] }
+  tms '/'
+  sleep 1
+  expect { screen[9]['Unstarred'] }
   tms 'h'
   sleep 1
   expect { screen[11]['Keys available while playing a recording:'] }
   tms 'q'
   sleep 1
-  expect { screen[19]['continue'] }
+  expect { screen[18]['continue'] }
   kill_session
 end
 
@@ -3055,25 +3061,25 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[7]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[11]['Lick st-louis'] }
+  expect { screen[10]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[11]['Lick feeling-bad'] }
+  expect { screen[10]['Lick feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[11]['Lick chord-prog'] }
+  expect { screen[10]['Lick chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[11]['Lick feeling-bad'] }
+  expect { screen[10]['Lick feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[11]['Lick st-louis'] }
+  expect { screen[10]['Lick st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[11]['Lick wade'] }
+  expect { screen[10]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[8]['No previous lick available'] }
+  expect { screen[7]['No previous lick available'] }
   kill_session
 end
 

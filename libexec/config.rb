@@ -76,7 +76,7 @@ def set_global_vars_early
   # this is partially mirrored in sound_driver.rb
   ks = [:skip, :replay, :slower, :faster, :vol_up, :vol_down,
         :loop, :loop_loop, :lick_lick, :num_loops, :num_loops_to_one,
-        :show_help, :pause_continue]
+        :show_help, :pause_continue, :star_lick, :can_star_unstar]
   $ctl_rec = Struct.new(*ks).new
   ks.each {|k| $ctl_rec[k] = false}
 
@@ -288,6 +288,7 @@ def calculate_screen_layout
   need_message2 = ( $mode == :quiz || $mode == :licks )
   lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
   lines = Hash.new
+
   lines[:mission] = 1
   lines[:key] = 2
   lines[:display] = 4 + stretch - squeeze
@@ -300,14 +301,14 @@ def calculate_screen_layout
   2.times do
     lines[:hint_or_message] += 1 if $term_height - lines[:hint_or_message] > ( need_message2 ? 1 : 0 )
   end
-  lines[:comment_tall] = lines[:comment_low] = lines[:comment]
+  # they start of the same, but may diverge below
+  lines[:comment_tall] = lines[:comment_flat] = lines[:comment]
+  lines[:comment_flat] += 1
+  if lines_extra > 0
+    lines[:comment_flat] += 1
+    lines[:comment] += 1
+  end
   if need_message2
-    lines[:comment_low] += 1
-    if lines_extra > 0
-      # font for quiz is fairly small, so we may leave some space
-      lines[:comment_low] += 1
-      lines[:comment] += 1
-    end
     # only needed for quiz and licks
     lines[:message2] = lines[:hint_or_message] + 1
   else
@@ -316,7 +317,6 @@ def calculate_screen_layout
   end
   lines[:message_bottom] = [lines[:hint_or_message], lines[:message2]].max
   lines[:help] = lines[:comment_tall]
-
   lines
 end
 

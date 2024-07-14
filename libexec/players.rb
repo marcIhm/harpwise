@@ -2,8 +2,10 @@
 # Playing under user control
 #
 
-def play_recording_and_handle_kb recording, start, length, key, scroll_allowed = true, shift_inter = 0
+def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true, shift_inter = 0
 
+  recording, key = lick[:rec], lick[:rec_key]
+  
   trim_clause = if start && length
                   # for positive length this is different than written in the man page of sox ?!
                   "trim #{start} #{length}"
@@ -76,21 +78,29 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
-                        "SPACE: pause/continue\n" + 
-                        "    +: jump to end          -.: jump to start\n" +
-                        "    v: decrease volume       V: increase volume by 3dB\n" +
-                        "    <: decrease speed        >: increase speed\n" +
-                        "    l: loop over rec " +
-                        ( $ctl_rec[:loop]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
-                        "2-9,0: set num, if looping enabled (now #{get_num_loops_desc})\n" +
+                        "SPACE: pause/continue            " + 
+                        if $ctl_rec[:can_star_unstar]
+                          "  *,/: star,unstar lick\n"
+                        else
+                          "\n"
+                        end +
+                        "    +: jump to end                  -.: jump to start\n" +
+                        "  v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
                         if $mode == :play
-                          "    L: loop over next recording too " +
-                            ( $ctl_rec[:lick_lick]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
-                            "    c: continue with next lick without waiting for key " +
+                            "    c: toggle continue without menu " +
                             ( $ctl_rec[:loop_loop]  ?  "(now ON)\n"  :  "(now OFF)\n" )
                         else
                           ''
-                        end
+                        end +
+                        "    l: toggle loop over rec " +
+                        ( $ctl_rec[:loop]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
+                        if $mode == :play
+                          "    L: toggle loop over next recordings too " +
+                            ( $ctl_rec[:lick_lick]  ?  "(now ON)\n"  :  "(now OFF)\n" )
+                        else
+                          ''
+                        end +
+                        "2-9,0: set num, if looping enabled (now #{get_num_loops_desc})\n"
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
@@ -101,6 +111,14 @@ def play_recording_and_handle_kb recording, start, length, key, scroll_allowed =
       elsif $ctl_rec[:num_loops_to_one]
         print "\e[0m\e[2m#{$resources[:nloops_not_one]} \e[0m"
         $ctl_rec[:num_loops_to_one] = false
+      elsif $ctl_rec[:star_lick]
+        star_unstar_lick($ctl_rec[:star_lick], lick)
+        if $ctl_rec[:star_lick] == :up
+          print "\e[0m\e[32mStarred lick \e[0m"
+        else
+          print "\e[0m\e[32mUnstarred lick \e[0m"
+        end
+        $ctl_rec[:star_lick] = false
       end
 
       if $ctl_rec[:num_loops] != num_loops_was

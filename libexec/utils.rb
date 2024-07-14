@@ -171,11 +171,11 @@ def display_kb_help what, scroll_allowed, body
     puts "\n\e[0m"
   else
     clear_area_comment
-    puts "\e[#{$lines[:help]}H\e[0m"
+    print "\e[#{$lines[:help]}H\e[0m"
   end
   puts "Keys available while playing #{what}:\e[0m\e[32m\n"
   maxlen = body.lines.map(&:length).max
-  indent = ($term_width - maxlen) / 3
+  indent = ($term_width - maxlen) / 4
   indent = 2 if indent < 0
   body.lines.each do |l|
     puts ( ' ' * indent ) + l.gsub(/(\S+): /, "\e[92m\\1\e[32m: ").chomp + "\n"
