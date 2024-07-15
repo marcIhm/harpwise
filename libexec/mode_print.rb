@@ -402,14 +402,23 @@ end
 
 
 def print_starred_licks
-  print "Licks with stars:\n\n"
+  print "Licks with (un)stars:\n\n"
   maxlen = $starred.keys.map(&:length).max
-  $starred.keys.sort {|x,y| $starred[x] <=> $starred[y]}.each do |lname|
-    print "  %-#{maxlen}s: %4d\n" % [lname, $starred[lname]]
+  if $starred.keys.length > 0
+    $starred.keys.sort {|x,y| $starred[x] <=> $starred[y]}.each do |lname|
+      puts "  %-#{maxlen}s: %4d" % [lname, $starred[lname]]
+    end
+  else
+    puts "   -- none --"
   end
-  print "\nTotal number of starred licks: %4d\n" % $starred.keys.length
-  print "Total number of stars:       %6d\n" % $starred.values.sum
-  print "Stars from: #{$star_file}\n\n"
+  puts "\e[2m"
+  puts "Total number of   starred licks.." + ("%6d" % $starred.values.select {|x| x > 0}.length).gsub(' ','.')
+  puts "             of unstarred licks.." + ("%6d" % $starred.values.select {|x| x < 0}.length).gsub(' ','.')
+  puts "                    Sum of both.." + ("%6d" % $starred.values.select {|x| x != 0}.length).gsub(' ','.')
+  puts "Total number of selected licks..." + ("%6d" % $licks.length).gsub(' ','.')
+  puts "             of      all licks..." + ("%6d" % $all_licks.length).gsub(' ','.')
+  puts
+  puts "Stars from: #{$star_file}\e[0m\n"
 end      
 
 

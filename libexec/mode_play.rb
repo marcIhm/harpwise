@@ -489,26 +489,30 @@ def do_play_licks args
   end
 
   $ctl_rec[:can_star_unstar] = true
+  sw = $opts[:start_with]
+  licks =   if $opts[:iterate] == :random
+              licks = $licks.shuffle
+            else
+              licks = $licks.clone
+            end  
+  idx = if sw 
+          if record = shortcut2history_record(sw)              
+            record[:lick_idx]
+          else
+            (0 ... licks.length).find {|i| licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
+          end
+        else
+          0
+        end
+
+  licks.rotate!(idx)
   if $opts[:iterate] == :random
-    lick_idx = nil
     puts "\e[2mA random walk through licks.\e[0m"
     puts
-    play_licks_controller $licks.shuffle, $licks, sleep_between: true
+    play_licks_controller licks, $licks, sleep_between: true
   else
     puts "\e[2mOne lick after the other.\e[0m"
     puts
-    sw = $opts[:start_with]
-    idx = if sw 
-            if record = shortcut2history_record(sw)              
-              record[:lick_idx]
-            else
-              (0 ... $licks.length).find {|i| $licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
-            end
-          else
-            0
-          end
-    licks = $licks.clone
-    licks.rotate(idx)
     play_licks_controller licks, licks, sleep_between: true
   end  
 end
