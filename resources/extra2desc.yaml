@@ -93,15 +93,17 @@ quiz:
   no-mic: |
     flavours, that do not use the microphone, so that no harp is
     needed; but these flavours are not necessarily silent and may
-    still play sounds
+    still play sounds themselves
   silent: |
-    flavours, that can be tried with muted speakers
+    flavours, that can be tried with muted speakers, although some
+    of the help might not be as useful
   inters: |
     flavours, that revolve around intervals
   layout: |
     flavours, that deal with the layout (holes to notes) of the harp
   choose: |
-    choose flavour right away (only as extra-argument on commandline)
+    choose flavour right away, no suggestion from harpwise
+    (only as extra-argument on commandline)
   players: |
     harpwise shows details about a famous player and asks for his or
     her name
@@ -144,7 +146,7 @@ quiz:
   hole-note: |
     gives a hole and asks for the note or vice versa; this of course
     depends on the key of the harp, which you might want to change now
-    and then to broader coverage
+    and then for broader coverage
   hole-note-key: |
     picks (and hides) a new key for the harp at random; then, for a
     named hole-set (e.g. 'blow'), gives holes and matching notes

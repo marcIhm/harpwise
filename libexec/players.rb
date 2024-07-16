@@ -127,7 +127,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
       end
 
       if $ctl_rec[:lick_lick] != lick_lick_was
-        print "\n\e[0m\e[32mContinue with next lick at end is: \e[0m" +
+        print "\n\e[0m\e[32mContinue without menu is: \e[0m" +
               ( $ctl_rec[:lick_lick]  ?  'ON'  :  'OFF' ) + "\n"
         lick_lick_was = $ctl_rec[:lick_lick]
       end
@@ -141,7 +141,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
       if $ctl_rec[:loop] && !loop_message_printed
         print "\e[0m\e[32mloop (+ to end) with " +
               ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
-              ( $ctl_rec[:lick_lick]  ?  '; after lick continue without menu (c to change) '  :  '' ) +
+              ( $ctl_rec[:lick_lick]  ?  '; continue without menu is: ON (c to toggle) '  :  '' ) +
               "\e[0m"
         loop_message_printed = true
       end

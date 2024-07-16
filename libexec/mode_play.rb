@@ -328,8 +328,9 @@ def play_licks_controller licks, refill, sleep_between: false
 
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
-        print "\e[0m\e[2m5 secs pause (any key for menu) "
-        (0..50).each do |i|
+        plen = $ctl_rec[:skip]  ?  3  :  5 
+        print "\e[0m\e[2m#{plen} secs pause (any key for menu) "
+        (0..10*plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
           break if !$ctl_kb_queue.empty?
@@ -356,6 +357,21 @@ def play_licks_controller licks, refill, sleep_between: false
         puts
         $all_licks, $licks = read_licks
         redo
+      when :named
+        choose_prepare_for skip_term: true
+        puts
+        lnames = $all_licks.map {|l| l[:name]}
+        input = choose_interactive("Please choose lick (current is #{lick[:name]}): ", lnames) do |lname|
+          lk = $all_licks.find {|l| l[:name] == lname}
+          "[#{lk[:tags].join(',')}] #{lk[:holes].length} holes, #{lk[:desc]}"
+        end
+        choose_clean_up skip_term: true
+        if input
+          lick = $all_licks.find {|l| l[:name] == input}
+          puts "New lick."
+        else
+          puts "Canceled."
+        end
       when :star_up
         star_unstar_lick(:up, lick)
         puts "Starred most recent lick"
@@ -403,7 +419,8 @@ def maybe_wait_for_key_and_decide_replay
       # lines are devided in segments, which are highlighted if they change
       lines = [['Press:      r: replay this lick    e: edit lickfile'],
                ['    BACKSPACE: previous lick     *,/: star,unstar most recent lick'],
-               ['Keys available during play too:   (help there for even more)'],
+               ['            n: choose next lick by name'],
+               ['Keys available during play too:   (help there for even more keys)'],
                ['      c: toggle continue without this menu (now ',
                 ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
                ['    L,l: toggle loop for all licks (now ',
@@ -435,6 +452,8 @@ def maybe_wait_for_key_and_decide_replay
       when 'BACKSPACE'
         $ctl_rec[:lick_lick] = false
         return :prev
+      when 'n'
+        return :named
       when 'r'
         return :redo
       when 'e'
@@ -490,29 +509,27 @@ def do_play_licks args
 
   $ctl_rec[:can_star_unstar] = true
   sw = $opts[:start_with]
-  licks =   if $opts[:iterate] == :random
-              licks = $licks.shuffle
-            else
-              licks = $licks.clone
-            end  
+  licks = if $opts[:iterate] == :random
+            licks = $licks.shuffle
+          else
+            licks = $licks.clone
+          end  
   idx = if sw 
-          if record = shortcut2history_record(sw)              
-            record[:lick_idx]
+          if record = shortcut2history_record(sw)
+            # we canno use record[:lick_idx], because that is against unshuffled licks
+            licks.each_with_index.find {|l,i| l[:name] == record[:name]}&.at(1) || 0
           else
             (0 ... licks.length).find {|i| licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
           end
         else
           0
         end
-
   licks.rotate!(idx)
   if $opts[:iterate] == :random
     puts "\e[2mA random walk through licks.\e[0m"
-    puts
-    play_licks_controller licks, $licks, sleep_between: true
   else
     puts "\e[2mOne lick after the other.\e[0m"
-    puts
-    play_licks_controller licks, licks, sleep_between: true
   end  
+  puts
+  play_licks_controller licks, licks, sleep_between: true
 end

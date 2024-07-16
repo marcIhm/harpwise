@@ -2143,17 +2143,17 @@ def quiz_generate_tempo prefix, bpm, num_intro, num_silence, num_outro
 end
 
 
-def choose_clean_up
+def choose_clean_up skip_term: false
   clear_area_comment
   clear_area_message
-  make_term_cooked
+  make_term_cooked unless skip_term
   print "\e[#{$lines[:comment_tall] - 1}H\e[K"
 end
 
 
-def choose_prepare_for
+def choose_prepare_for skip_term: false
   prepare_term
-  make_term_immediate
+  make_term_immediate unless skip_term
   $ctl_kb_queue.clear
   ($term_height - $lines[:comment_tall] + 2).times do
     sleep 0.01

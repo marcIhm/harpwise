@@ -754,7 +754,7 @@ do_test 'id-15b: play licks with controls between' do
   sleep 2
   expect { screen[5]['Lick wade'] }
   sleep 4
-  expect { screen[16]['SPACE or RETURN for next licks'] }
+  expect { screen[17]['SPACE or RETURN for next licks'] }
   kill_session
 end
 
@@ -786,7 +786,7 @@ do_test 'id-16b: cycle in play' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[10]['Lick st-louis'] }
+  expect { screen[9]['Lick st-louis'] }
   kill_session
 end
 
@@ -3061,25 +3061,25 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[7]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[10]['Lick st-louis'] }
+  expect { screen[9]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[10]['Lick feeling-bad'] }
+  expect { screen[9]['Lick feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[10]['Lick chord-prog'] }
+  expect { screen[9]['Lick chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[10]['Lick feeling-bad'] }
+  expect { screen[9]['Lick feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[10]['Lick st-louis'] }
+  expect { screen[9]['Lick st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[10]['Lick wade'] }
+  expect { screen[9]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[7]['No previous lick available'] }
+  expect { screen[6]['No previous lick available'] }
   kill_session
 end
 

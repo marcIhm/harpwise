@@ -683,7 +683,7 @@ def show_help mode = $mode, testing_only = false
                  "      #:_shift lick by chosen interval   9,@:_change option --partial",
                  "     <>:_shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                  "     */:_Add or remove Star from current lick persistently;",
-                 "         select them later by tag 'starred'",
+                 "         select them later by tags starred/unstarred",
                  "      !:_play holes reversed               &:_shuffle holes",
                  "      1:_give one hole, as if you played it",
                  ""]
