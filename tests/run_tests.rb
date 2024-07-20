@@ -51,6 +51,7 @@ Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
 ENV['HARPWISE_TESTING']='1'
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
+
 # get termsize
 File.readlines('libexec/config.rb').each do |line|
   $term_min_width ||= line.match(/^\s*conf\[:term_min_width\]\s*=\s*(\d*?)\s*$/)&.to_a&.at(1)
@@ -3112,6 +3113,33 @@ do_test "id-116: show help for specific key" do
 # oder das ist nur ein Unterschied in den Versionen von tmux.
 #  expect { screen_col[7]["\e[39m      .p: replay recording"] }
   expect { screen_col[7]["      .p: replay recording"] }
+  kill_session
+end
+
+do_test 'id-117: check errors for bogous lickfiles' do
+  file2err = {
+    'b1.txt' => [2, "Section 'set-of-licks' needs to contain key 'tag'"],
+    'b2.txt' => [2, "Lick 'foo' has already appeared before"],
+    'b3.txt' => [0, "Lick name [] cannot be empty"]
+  }
+  Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
+    line, msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
+    new_session
+    tms "harpwise develop lf #{file}"
+    tms :ENTER
+    expect { screen[line][msg] }
+    kill_session
+  end
+end
+
+do_test 'id-118: read and check fancy lickfile' do
+  new_session
+  tms "harpwise develop lf #{Dir.pwd}/tests/data/fancy_lickfile.txt >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  dump = read_testing_dump('end')
+  expect(dump[:licks][0]) { dump[:licks][0][:name] == 'lick1' }
+  expect(dump[:licks][1]) { dump[:licks][1] == '?' }
   kill_session
 end
 

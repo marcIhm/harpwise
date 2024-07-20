@@ -1,0 +1,4 @@
+[foo]
+holes = +1
+[foo]
+holes = +1

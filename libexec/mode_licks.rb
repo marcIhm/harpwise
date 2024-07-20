@@ -1509,7 +1509,8 @@ def show_lick_info lick
   clear_area_message
   print "\e[#{$lines[:comment]}H\e[0m"
   puts '   Lick Name: ' + lick[:name]
-  puts wrap_words('        Tags: ', lick[:tags])
+  tags_w_cnt = lick[:tags].map {|t| t + '(' + $licks.select {|l| l[:tags].include?(t)}.length.to_s + ')'}
+  puts wrap_words('        Tags: ', tags_w_cnt)
   puts '        Desc: ' + lick[:desc]
   ohead = false
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any].each do |opt|
@@ -1521,11 +1522,7 @@ def show_lick_info lick
     ohead = true
   end
   puts ' Tag-Options: none' unless ohead
-  if lick[:lick_sets].length == 0
-    puts "in lick-sets: \e[2m--none--\e[0m"
-  else
-    puts 'in lick-sets: ' + lick[:lick_sets].join(',')
-  end
+  puts('in lick-sets: ' + lick[:lick_sets].join(',')) if lick[:lick_sets].length > 0
   puts_names_of_licks 5
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear

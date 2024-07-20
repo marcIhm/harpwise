@@ -4,7 +4,7 @@ OVERVIEW
   harpwise; it is therefore not listed in the general usage
   information.
 
-  The required additional argument specifies a task needed; it can be
+  The required additional argument specifies a task to perform; it can be
   one of:
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>

@@ -5,7 +5,7 @@
 def do_develop to_handle
 
   # common error checking
-  err_args_not_allowed(to_handle) if to_handle.length > 0
+  err_args_not_allowed(to_handle) if $extra && !%w(lickfile lf).include?($extra) && to_handle.length > 0
 
   $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
@@ -21,6 +21,8 @@ def do_develop to_handle
     do_unittest
   when 'widgets', 'wt'
     do_widgets
+  when 'lickfile', 'lf'
+    do_lickfile to_handle
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
@@ -384,4 +386,12 @@ def utreport desc, found, expected
     puts "\e[31mError\e[0m\n  found = #{found}\n  expected = #{expected}\n"
     exit 1
   end
+end
+
+
+def do_lickfile to_handle
+  err "Need exactly one argument, not #{to_handle}" if to_handle.length != 1
+  $all_licks, $licks = read_licks(false, to_handle[0])
+  pp({all_licks: $all_licks.length,
+      licks: $licks.length})
 end

@@ -175,3 +175,5 @@ develop:
     main test program
   widgets, wt: |
     excercise selected widgets to be tested
+  lickfile, lf: |
+    load and parse a lickfile
