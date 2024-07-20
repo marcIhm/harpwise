@@ -15,6 +15,10 @@ class String
     self.gsub('-','_').to_sym if self
   end
 
+  def o2sym2
+    self.gsub('.','_').to_sym if self
+  end
+
   def to_b
     case self
     when 'true'

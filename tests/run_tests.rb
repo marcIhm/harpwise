@@ -3118,28 +3118,40 @@ end
 
 do_test 'id-117: check errors for bogous lickfiles' do
   file2err = {
-    'b1.txt' => [2, "Section 'set-of-licks' needs to contain key 'tag'"],
-    'b2.txt' => [2, "Lick 'foo' has already appeared before"],
-    'b3.txt' => [0, "Lick name [] cannot be empty"]
+    'b1.txt' => "Section 'set-of-licks' needs to contain key 'tag'",
+    'b2.txt' => "Lick 'foo' has already appeared before",
+    'b3.txt' => "Section [] cannot be empty",
+    'b4.txt' => "Invalid section name",
+    'b5.txt' => "Variable assignment (here: $foo) is not allowed outside",
+    'b6.txt' => "Tags must consist of word characters; '==='",
+    'b7.txt' => "Lick lick1 key 'holes' is empty",
+    'b8.txt' => "Lick lick1 key 'notes' is empty",
+    'b9.txt' => "Unknown musical key 'x'",
+    'b10.txt' => "Value of rec.start is not a number",
+    'b11.txt' => "Some hole-sequences appear under more than one name",
+    'b12.txt' => "set-of-licks with 'tag = foo' contains unknown lick"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
-    line, msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
+    msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
     new_session
     tms "harpwise develop lf #{file}"
     tms :ENTER
-    expect { screen[line][msg] }
+    expect { screen[2][msg] }
     kill_session
   end
 end
 
-do_test 'id-118: read and check fancy lickfile' do
+do_test 'id-118: read and check a fancy lickfile' do
   new_session
-  tms "harpwise develop lf #{Dir.pwd}/tests/data/fancy_lickfile.txt >#{$testing_output_file}"
+  tms "harpwise develop lf #{Dir.pwd}/tests/data/fancy_lickfile.txt"
   tms :ENTER
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:licks][0]) { dump[:licks][0][:name] == 'lick1' }
-  expect(dump[:licks][1]) { dump[:licks][1] == '?' }
+  expect(dump[:licks][0]) { dump[:licks][0][:name] == 'lick0' }
+  expect(dump[:licks][1]) { dump[:licks][1][:desc] == 'bar, qux' }
+  expect(dump[:licks][0]) { dump[:licks][0][:tags] == %w(one two no_rec shifts_four shifts_five shifts_eight three) }
+  expect(dump[:licks][2]) { dump[:licks][2][:tags] == %w(five four no_rec shifts_four shifts_five shifts_eight) }
+  expect(dump[:licks][2]) { dump[:licks][2][:desc] == 'pix thud' }
   kill_session
 end
 

@@ -1,0 +1,3 @@
+[lick1]
+rec.key = x
+[lick2]

@@ -244,6 +244,6 @@ adhoc_lick:
   - |
     Adhoc-lick on commandline.
     With this option you may give a lick on the commandline to work
-    with and avoid adding i to your lickfile first.
+    with and avoid adding it to your lickfile first.
   - HOLES_WITH_COMMAS
 

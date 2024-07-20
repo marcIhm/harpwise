@@ -1,0 +1,2 @@
+[lick1]
+tags = foo bar ===

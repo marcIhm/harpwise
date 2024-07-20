@@ -1,3 +1,19 @@
-[lick1]
+[lick0]
   holes = +1
+  tags = one two
+[vars]
+  $foo = bar
+[lick1]
+  holes = +2
+  desc = $foo, qux
+[set-of-licks]
+  tag = three
+  licks = lick0
+[default]
+  tags = four
+  desc.add = thud
+[lick2]
+  holes = +1 +2
+  desc = pix
+  tags.add = five
   

@@ -53,7 +53,7 @@ def read_licks graceful = false, lick_file = nil
         # vars have already been assigned; nothing to do here
       elsif section_type == :set_of_licks
         %w(tag licks).each do |key|
-          err "Section 'set-of-licks' needs to contain key '#{key}' (#{where})" unless lick[key.o2sym]
+          err "Section 'set-of-licks' needs to contain key '#{key}' (#{where})" unless lick[key.o2sym2]
         end
         tag2lick_sets[lick[:tag]] = lick[:licks]
       elsif section_type == :lick
@@ -90,7 +90,7 @@ def read_licks graceful = false, lick_file = nil
 
     # [non-word]
     elsif md = line.match(/^ *\[(.*)\] *$/)
-      err "Invalid section name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{file}, line #{lno})"
+      err "Invalid section name: '#{md[1]}', only letters, numbers, underscore and minus are allowed (#{lfile}, line #{lno})"
       
     # Assign variable like, $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(.*) *$/)
@@ -102,7 +102,7 @@ def read_licks graceful = false, lick_file = nil
     elsif (md = line.match(/^ *(tags.add) *= *(.*?) *$/))||
           (md = line.match(/^ *(tags) *= *(.*?) *$/))
       key, tags = md[1, 2]
-      skey = key.o2sym
+      skey = key.o2sym2
       check_section_key(section_type, key, lick, type2keys, where)
       lick[skey] = tags.split
       lick[skey].each do |tag|
@@ -117,7 +117,7 @@ def read_licks graceful = false, lick_file = nil
         err("Hole '#{hole}' is not among holes of harp #{$harp_holes} (#{where})") unless musical_event?(hole) || $harp_holes.include?(hole)
         hole
       end
-      err "Lick #{lname} does not contain any holes (#{where})" unless lick[:holes].length > 0
+      err "Lick #{lname} key 'holes' is empty (#{where})" unless lick[:holes].length > 0
       lick[:holes_wo_events] = lick[:holes].reject {|h| musical_event?(h)}
       derived[-1] = "  notes = " + holes.split.map do |hoe|
         musical_event?(hoe)  ?  hoe  :  $harp[hoe][:note]
@@ -125,14 +125,14 @@ def read_licks graceful = false, lick_file = nil
       
     # notes = value1 value2 ...
     elsif md = line.match(/^ *notes *= *(.*?) *$/)
-      check_section_key(section_type, key, lick, type2keys, where)
+      check_section_key(section_type, 'notes', lick, type2keys, where)
       notes = md[1]
-      # do not kee notes, but rather convert them to holes right away
+      # do not keep notes, but rather convert them to holes right away
       lick[:holes] = notes.split.map do |note|
         err("Note '#{note}' is not among notes of harp #{$harp_notes} (#{where})") unless musical_event?(note) || $harp_notes.include?(note)
         $note2hole[note]
       end
-      err "Lick #{lname} does not contain any notes (#{where})" unless lick[:holes].length > 0
+      err "Lick #{lname} key 'notes' is empty (#{where})" unless lick[:holes].length > 0
       derived[-1] = "  holes = " + lick['holes'].join(' ')
 
     # desc.add = multi word description
@@ -141,7 +141,7 @@ def read_licks graceful = false, lick_file = nil
           (md = line.match(/^ *(desc.add) *= *(.*?) *$/))
       key, desc = md[1 .. 2]
       check_section_key(section_type, key, lick, type2keys, where)
-      lick[key.o2sym] = desc
+      lick[key.o2sym2] = desc
 
     # rec = mp3
     elsif md = line.match(/^ *rec *= *(#{$word_re}) *$/)
@@ -161,11 +161,11 @@ def read_licks graceful = false, lick_file = nil
     elsif md = (line.match(/^ *(rec.start) *= *(.*?)$ *$/) || line.match(/^ *(rec.length) *= *(.*?)$ *$/))
       check_section_key(section_type, 'rec.key', lick, type2keys, where)
       key, val = md[1..2]
-      lick[key.o2sym] = begin
-                          Float(val)
-                        rescue ArgumentError
-                          err "Value of #{key} is not a number: '#{val}' (#{where})"
-                        end
+      lick[key.o2sym2] = begin
+                           Float(val)
+                         rescue ArgumentError
+                           err "Value of #{key} is not a number: '#{val}' (#{where})"
+                         end
 
     elsif md = line.match(/^ *tag *= *(#{$word_re}) *$/)
       check_section_key(section_type, 'tag', lick, type2keys, where)
@@ -434,8 +434,7 @@ end
 
 
 def process_lick lick, name, vars, default
-
-  err "Lick [#{name}] does not contain any holes" unless lick[:holes]  
+  err "Lick #{name} does not contain any holes" unless lick[:holes]  
   # merge from star-file
   star_tag = if $starred.keys.include?(name)
                if $starred[name] > 0
@@ -478,7 +477,7 @@ end
 def check_section_key type, key, lick, type2keys, where
 
   # first, check for double key in section
-  skey = key.o2sym
+  skey = key.o2sym2
   err "Key '#{key}' (below [#{lick[:name]}], #{where}) has already been defined" if lick[skey]
 
   # now for allowed key in section

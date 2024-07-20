@@ -1,0 +1,4 @@
+[lick1]
+holes = +1 +2
+[lick2]
+holes = +1 +2

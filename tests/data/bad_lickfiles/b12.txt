@@ -1,0 +1,5 @@
+[lick1]
+holes = +1
+[set-of-licks]
+tag = foo
+licks = bar
