@@ -4,8 +4,6 @@ OVERVIEW
   plays a random lick from your collection and asks you to play it
   back, note by note. If successful, the next lick will be asked for.
 
-  This mode 
-
   For harpwise, a 'lick' is a short musical phrase with a sequence of
   holes and an mp3-recording. It will be transposed as necessary.
 
@@ -13,9 +11,10 @@ OVERVIEW
   need to accumulate over time; only a simple starter set will
   be created at first start; typically it will be kept at:
   ~/.harpwise/licks/richter/licks_with_holes.txt
+  similar e.g. for chromatic.
 
-  When adding licks and need to adjust start and end of the recording,
-  you may find the mode 'play' helpful, to check your results.
+  When adding licks and you need to adjust start and end of the
+  recording, the mode 'play' might help, to check your results.
 
   Personally I have paid for some good lick collections (see the
   sample lick file for pointers), so that I have 50 or so licks, that
@@ -108,3 +107,21 @@ USAGE BY EXAMPLES
   config.ini and shorten the above command line to:
 
     harpwise licks blues
+
+
+  Alternatively to using the tag-options described above, you may give
+  licks as arguments on the commandline:
+
+    harpwise licks box1-i box1-iv box1-v
+
+  would start with those three licks and switch from one to the next per your
+  request; all other licks that you may have (e.g. wade, st-louis) are ignored.
+
+
+  If you want to concentrate on a single lick (as very simple example:
+  +1 +2 +3), you may specify it adhoc by giving its holes on the
+  commandline:
+
+    harpwise licks +1 +2 +3
+
+  this way you do not need to add the lick to your lickfile permanently.

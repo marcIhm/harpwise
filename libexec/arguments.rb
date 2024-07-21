@@ -73,8 +73,7 @@ def parse_arguments_early
         immediate: %w(--immediate),
         no_progress: %w(--no-progress),
         :loop => %w(--loop),
-        no_loop: %w(--no-loop),
-        adhoc_lick: %w(--adhoc --adhoc-lick)}],
+        no_loop: %w(--no-loop)}],
      [Set[:quiz], {
         difficulty: %w(--difficulty)}],
      [Set[:listen, :quiz, :play, :print], {
@@ -96,7 +95,6 @@ def parse_arguments_early
         tags_any: %w(--tags-any),
         drop_tags_all: %w(--drop-tags-all),
         drop_tags_any: %w(-dt --drop-tags-any),
-        licks: %w(--licks),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes)}],
      [Set[:play, :print], {
@@ -342,7 +340,6 @@ def parse_arguments_early
   # Get scale
   case mode
   when :quiz
-    # quiz does not allow a scale as an extra arg
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     if scale
       ARGV.shift
@@ -350,48 +347,47 @@ def parse_arguments_early
       scale = get_scale_from_sws($conf[:scale] || 'all:a')
       $source_of[:scale] = 'implicit'
     end
-  when :listen, :licks
-    # These modes allow ahoc scales, so we have to seperate scales from holes.
-    # The function below already generates detailed errors
-    #   if scales.length > 0 && holes.length > 0
-    #   if scales.length > 1
-    #   if there are any arguments other than scales or holes
-    # so we dont have to cover each situation below
-    scales, holes = partition_argv_into_scales_and_holes(ARGV, $all_scales, $harp_holes)
+  when :listen
+    scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
+    ARGV.shift if scale
+    holes = ARGV.clone
     ARGV.clear
-
-    if scales.length == 0
+    holes.each do |h|
+      next if $harp_holes.include?(h)
+      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp (#{$harp_holes.join(', ')})"
+    end
+    if !scale
       if holes.length == 0
         scale = get_scale_from_sws($conf[:scale])
         $source_of[:scale] = 'config'
       else
-        scale = get_scale_from_sws('adhoc:h')
+        # allow for adhoc-scale
+        scale = get_scale_from_sws('adhoc-scale:h')
         $adhoc_scale_holes = holes
-        $source_of[:scale] = 'adhoc'
+        $source_of[:scale] = 'adhoc-commandline'
       end
-    else
-      scale = get_scale_from_sws(scales[0])
     end
+    
+  when :play, :print, :tools, :licks
+    # modes play and print both accept multiple scales as arguments, tools
+    # and licks only one.
 
-  when :play, :print, :tools
-    # modes play and print both accept multiple scales as arguments
-    # without having any extra-argument; mode tools is simpler in
-    # requirering an extra arg, but can nevertheless be handled alike
+    # check if first arg is a scale
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
-    # if we have only scales (more than one) on the commandline, we assume
-    # that they all should be printed or played; the first scale than
-    # servers double duty in also specifying the scale (besides beeing
-    # printed or played). If, in the future, we ever have the need to
-    # specify another scale (e.g. for print) without printing or playing
-    # it, we may introduce a new option '--scale'. And btw: for mode
-    # tools, this cannot happen, because it always requires an extra arg.
     # See also test id-110 for a some cases of expected behaviour
+
     if scale
-      if ARGV.length > 1 && !ARGV[1..-1].all? {|x| $all_scales.include?(x)}
+      # ARGV[0] might look like blues:b, this will turn it into blues
+      ARGV[0] = scale
+      case mode
+      when :play, :print
+        # If we have only scales on the commandline, we assume that they all
+        # should be printed or played; the first scale than servers double
+        # duty in also specifying the scale (besides beeing printed or
+        # played).
+        ARGV.shift unless Set[*ARGV].subset?(Set[*$all_scales])
+      when :tools, :licks
         ARGV.shift
-      else
-        # ARGV[0] might look like blues:b, this will turn it into blues
-        ARGV[0] = scale
       end
     else
       scale = get_scale_from_sws($conf[:scale] || 'all:a')
@@ -445,6 +441,8 @@ def parse_arguments_late
                             [:hole, :note, :lick, :scale, :last]
                           end
 
+  $amongs_licks = [:hole, :note, :lick]
+
   $extra = nil
   okay = true
   if $extra_desc[$mode]
@@ -469,7 +467,7 @@ def parse_arguments_late
     err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'#{rem}"
   end
   
-  if [:play, :print, :quiz, :tools, :develop].include?($mode)
+  if [:play, :print, :quiz, :licks, :tools, :develop].include?($mode)
     to_handle = ARGV.clone
     ARGV.clear
   end
@@ -493,7 +491,7 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false
     # $scale2short will be set when actually reading scale
     scale = scale_w_short
   end
-  return scale if scale == 'adhoc'
+  return scale if scale == 'adhoc-scale'
 
   scales = scales_for_type($type)
   if scales.include?(scale)
@@ -506,7 +504,7 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false
       err "Scale (%s) must be one of #{scales}, i.e. scales matching #{scale_glob}; not #{scale}%s" %
           if added
             ["given in option --add-scales or in configuration files",
-             ", Hint: use '--add-scales -' to ignore the value from the config-files"]
+             ", Hint: use '--add-scales -' to override the value from the config-files"]
           else
             ['main scale', '']
           end
@@ -573,40 +571,6 @@ def get_types_with_scales
     end
     txt.chomp(', ')
   end.compact.join("\n  ")
-end
-
-
-def partition_argv_into_scales_and_holes argv, all_scales, all_holes
-  scales = Array.new
-  holes = Array.new
-  other = Array.new
-  
-  hint = "\n\n\e[2mHint: The commandline for modes listen, quiz and licks might contain a single scale or alternatively a set of holes, which then make up an adhoc-scale.\nScales are: #{all_scales}\nHoles are: #{all_holes}\e[0m"
-  
-  argv.each do |arg|
-    arg_woc = arg.gsub(/:.*/,'')
-    err "Scale 'adhoc' is only the temporary name for the holes given on commandline; there is no such permanent scale however" if arg.downcase == 'adhoc'
-    found = match_or(arg_woc, all_scales) do |none, choices, matches|
-      err "Argument from commandline #{none} should be unique among the known scales, but it matches more than one: #{matches}#{hint}" if matches.length > 1
-    end
-    if found
-      scales << found
-    else
-      found = all_holes.find {|x| x == arg}
-      if found
-        holes << found
-      else
-        other << arg
-      end
-    end
-  end
-  if other.length > 0
-    err "Some arguments from commandline are neither scales nor holes: #{other}" +
-        not_any_source_of + hint
-  end
-  err "Commandline specified scales (#{scales}) as well as holes (#{holes}); this cannot be handled#{hint}" if scales.length > 0 && holes.length > 0
-  err "commandline contains more than one scale (#{scales}), but only one can be handled#{hint}" if scales.length > 1
-  return scales, holes
 end
 
 

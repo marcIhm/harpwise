@@ -9,27 +9,6 @@
 # Empty lines and comments are ignored.
 #
 
-# An advanced feature right away (feel free to skip it for now):
-# Before the first section, there can be the special variable
-# 'tag.to.lick.set' (even multiple times), that allows to attach the
-# given tag (first word after '=') to the given set of licks (remaining
-# words).
-#
-# This can be useful, if you have a lot of licks and want to
-# address them at once e.g. via '-t' without having to modify all
-# the licks individually.
-#
-# Moreover, if later you select those licks with e.g. '-t mytag1'
-# on the commandline, they are sorted accordingly.
-#
-# An example would be:
-#
-# tag.to.lick.set = mytag1 lick1 lick2
-# tag.to.lick.set = mytag2 lick3 lick4
-#
-
-#
-# (... now back to the more common cases)
 #
 # A lick (e.g. 'wade') can be defined like this:
 #
@@ -106,15 +85,31 @@
 #
 [box1-i]
   holes = -2 -4 -5 +6
-  tags = i-chord box box1
+  tags = i-chord box
 
 [box1-iv]
   holes = +1 -2 -3/ +4
-  tags = iv-chord box box1
+  tags = iv-chord box
 
 [box1-v]
   holes = -1 -3// +4 -4
-  tags = v-chord box box1
+  tags = v-chord box
+
+#
+# Lick sets (see below) are optional (e.g. we do not have one for
+# box2), they simply work by adding the given tag to the named
+# licks, so that you may select them by '--tags-all box1'
+#
+# This could alternatively be done by modifying the tags-line of
+# each of the named licks (like it is done for box2-licks further
+# down); but doing it with a lick-set like below gives a name and
+# description to it and allows for easy lookup, e.g. via
+# 'harpwise print lick-sets'
+#
+[lick-set]
+  desc = Set of licks for box-pattern 1
+  tag = box1
+  licks = box1-i box1-iv box1-v
 
 #
 # Descending box pattern for i, iv and v

@@ -109,7 +109,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 90
+num_exp = 92
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -398,7 +398,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : For modes play'],
-                    'tools' => [4, 'same effect as --drop-tags-any'],
+                    'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs']}
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
@@ -613,7 +613,7 @@ do_test 'id-9d: error on ambigous scale' do
   tms 'harpwise listen a chord'
   tms :ENTER
   sleep 1
-  expect { screen[1]["ERROR: Argument from commandline 'chord' should be unique"] }
+  expect { screen[2]["ERROR: Argument 'chord' from the commandline is not a hole"] }
   kill_session
 end
 
@@ -712,7 +712,7 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   wait_for_end_of_harpwise
   dump = read_testing_dump('start')
   lick = dump[:licks].find {|l| l[:name] == 'long'}
-  expect(lick) {lick[:rec_length] == '-1'}
+  expect(lick[:rec_length]) {lick[:rec_length] == '-1'}
   # use 'one' twice to make index match name
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 
@@ -1005,9 +1005,9 @@ do_test 'id-23: print list of licks with tags' do
    "  chord-prog ..... no_rec,shifts_four\n",
    "  blues ..... scales,theory,no_rec,shifts_five\n",
    "  mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
-   "  box1-i ..... box,box1,i-chord,no_rec,shifts_five,shifts_eight\n",
-   "  box1-iv ..... box,box1,iv-chord,no_rec,shifts_five\n",
-   "  box1-v ..... box,box1,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
+   "  box1-i ..... box,i-chord,no_rec,shifts_five,shifts_eight,box1\n",
+   "  box1-iv ..... box,iv-chord,no_rec,shifts_five,box1\n",
+   "  box1-v ..... box,v-chord,no_rec,shifts_four,shifts_five,shifts_eight,box1\n",
    "  box2-i ..... box,box2,i-chord,no_rec,shifts_five,shifts_eight\n",
    "  box2-iv ..... box,box2,iv-chord,no_rec,shifts_five\n",
    "  box2-v ..... box,box2,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
@@ -1425,15 +1425,6 @@ do_test 'id-40: handling a very long lick' do
   kill_session
 end
 
-do_test 'id-41: abbreviated scale' do
-  new_session
-  tms 'harpwise licks mid'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  expect { screen[1]['middle'] }
-  kill_session
-end
-
 do_test 'id-44: switch between modes licks and listen' do
   new_session
   tms 'harpwise licks a'
@@ -1577,7 +1568,7 @@ do_test 'id-49: edit lickfile' do
   wait_for_start_of_pipeline
   tms 'e'
   sleep 1
-  expect { screen[11]['[wade]'] }
+  expect { screen[14]['[wade]'] }
   kill_session
 end
 
@@ -2479,6 +2470,15 @@ do_test 'id-86: print details of players' do
   kill_session
 end
 
+do_test 'id-86a: print lick sets' do
+  new_session
+  tms 'harpwise print lick-sets'
+  tms :ENTER
+  sleep 2
+  expect { screen[5]['desc: Set of licks for box-pattern 1'] }
+  kill_session
+end
+
 do_test 'id-87: player info in listen' do
   new_session
   tms 'harpwise listen c'
@@ -2852,15 +2852,15 @@ do_test 'id-103: tool search-scale-in-licks' do
   kill_session
 end
 
-do_test 'id-104: tag.to.lick.set for licks' do
+do_test 'id-104: sorting due to lick-set' do
   new_session
   saved = "#{$lickfile_testing}_saved"
   FileUtils.cp $lickfile_testing, saved unless File.exist?(saved)
   # prepend
   File.write($lickfile_testing,
              # make st-louis appear first, although it comes last in file
-             ["tag.to.lick.set = mytag1 st-louis wade\n",
-              "tag.to.lick.set = mytag2 st-louis feeling-bad\n",
+             ["[lick-set]\n tag = mytag1\n licks = st-louis wade\n",
+              "[lick-set]\n tag = mytag2\n licks = st-louis feeling-bad\n",
               File.read($lickfile_testing).lines].flatten.join)
 
   tms 'harpwise print licks-list -t mytag1'
@@ -2896,11 +2896,14 @@ end
 
 do_test 'id-106: mode licks with list of licks' do
   new_session
-  tms 'harpwise licks --licks wade,st-louis a'
+  tms 'harpwise licks a wade st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  dump = read_testing_dump('start')
-  expect(dump[:licks]) { dump[:licks].length == 2 }
+  sleep 1
+  tms 'q'
+  wait_for_end_of_harpwise
+  dump = read_testing_dump('end')
+  expect(dump[:licks].length, dump[:licks].map {|l| l[:name]}) { dump[:licks].length == 2 }
   kill_session
 end
 
@@ -2996,8 +2999,11 @@ do_test 'id-110: some cases of argv processing' do
      {'scale' => 'chord-i',
       'argv' => %w(feeling-bad)}],
     ['listen +1 +2',
-     {'scale' => 'adhoc',
+     {'scale' => 'adhoc-scale',
       'argv' => []}],
+    ['licks blues:b wade st-louis',
+     {'scale' => 'blues',
+      'argv' => %w(wade st-louis)}],
     ['play a wade st-louis feeling-bad',
      {'scale' => 'blues',
       'argv' => %w(wade st-louis feeling-bad)}]
@@ -3017,11 +3023,11 @@ ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-111: mode licks with adhoc-lick' do
   new_session
-  tms 'harpwise licks --adhoc-lick +1,-2'
+  tms 'harpwise licks +1 -2'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[12..16].any? {|l| l['Lick Name: adhoc']} }
+  expect { screen[12..16].any? {|l| l['Lick Name: adhoc-lick']} }
   kill_session
 end
 
@@ -3118,7 +3124,7 @@ end
 
 do_test 'id-117: check errors for bogous lickfiles' do
   file2err = {
-    'b1.txt' => "Section 'set-of-licks' needs to contain key 'tag'",
+    'b1.txt' => "Section 'lick-set' needs to contain key 'tag'",
     'b2.txt' => "Lick 'foo' has already appeared before",
     'b3.txt' => "Section [] cannot be empty",
     'b4.txt' => "Invalid section name",
@@ -3129,14 +3135,14 @@ do_test 'id-117: check errors for bogous lickfiles' do
     'b9.txt' => "Unknown musical key 'x'",
     'b10.txt' => "Value of rec.start is not a number",
     'b11.txt' => "Some hole-sequences appear under more than one name",
-    'b12.txt' => "set-of-licks with 'tag = foo' contains unknown lick"
+    'b12.txt' => "lick-set with 'tag = foo' contains unknown lick"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
     new_session
     tms "harpwise develop lf #{file}"
     tms :ENTER
-    expect { screen[2][msg] }
+    expect(file,msg) { screen[2][msg] }
     kill_session
   end
 end
@@ -3152,6 +3158,8 @@ do_test 'id-118: read and check a fancy lickfile' do
   expect(dump[:licks][0]) { dump[:licks][0][:tags] == %w(one two no_rec shifts_four shifts_five shifts_eight three) }
   expect(dump[:licks][2]) { dump[:licks][2][:tags] == %w(five four no_rec shifts_four shifts_five shifts_eight) }
   expect(dump[:licks][2]) { dump[:licks][2][:desc] == 'pix thud' }
+  # read_testing_dump symbolizes 'three' to :three
+  expect(dump[:lick_sets]) { dump[:lick_sets][:three][:desc] == 'for testing' }
   kill_session
 end
 

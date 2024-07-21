@@ -2,7 +2,16 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shifts: nil, lambda_quiz_hint: nil
+def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shifts: nil, lambda_quiz_hint: nil, to_handle: []
+
+  if to_handle && to_handle.length > 0
+    holes_or_notes, lnames, _ = partition_for_mode(to_handle)
+    if holes_or_notes.length > 0
+      $adhoc_lick_holes = holes_or_notes
+    else
+      $adhoc_lick_set = lnames
+    end
+  end
 
   unless $other_mode_saved[:conf]
     # do not start kb thread yet as we need to read current cursor
@@ -21,9 +30,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   # initial play, i.e. before builtup of listen-perspective
   oride_l_message2 = nil
   first_round = true
-  $all_licks, $licks = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
-  start_with ||= 'adhoc' if $opts[:adhoc_lick]
+  start_with ||= 'adhoc-lick' if $adhoc_lick_holes
   quiz_prevs = Array.new
   
   loop do   # forever until ctrl-c, sequence after sequence
@@ -1079,11 +1088,11 @@ def read_tags_and_refresh_licks curr_lick
               [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
                 $opts[opt] = $initial_tag_options[opt] 
               end
-              $all_licks, $licks = read_licks(true)
+              $all_licks, $licks, $lick_sets = read_licks(true)
               true
             elsif tags_all
               $opts[:tags_all] = tags_all
-              $all_licks, $licks = read_licks(true)
+              $all_licks, $licks, $lick_sets = read_licks(true)
               iter = choose_interactive('Choose new value for --iterate, aka -i: ',
                                         %w(random cycle)) do |tag|
                 {'random' => 'choose one lick at random every time',
@@ -1105,6 +1114,10 @@ def read_tags_and_refresh_licks curr_lick
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 
+  # ignore licks given on commandline from now on, but we can still
+  # get them with tag adhoc-set
+  $adhoc_lick_sets = nil if changed
+  
   return changed
 end
 
@@ -1480,7 +1493,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     when 1
       self.set_lick_idx($licks.index {|l| l[:name][start_with]})
     when 0
-      err "Unknown lick: '#{start_with}' after applying these options:#{desc_lick_select_opts}"
+      err "Unknown lick: '#{start_with}' (among #{$licks.length} licks) after applying these options:#{desc_lick_select_opts}"
     else
       exact = $licks.map {|l| l[:name]}.select {|n| n == start_with}
       if exact.length == 1

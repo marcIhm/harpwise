@@ -218,7 +218,7 @@ def tool_search_in_licks to_handle
   puts "\nList of licks containing   \e[0m\e[32m#{to_handle.join(' ')}\e[0m   or equivalent:\n\n"
   count = 0
   maxlen = 0
-  _, $licks, _ = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
 
   [:max, :print].each do |what|
     $licks.each do |lick|
@@ -253,7 +253,7 @@ def tool_search_in_scales to_handle
   err "Need at least one lick-name or hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
   holes = if to_handle.length == 1
-            $all_licks, _ = read_licks
+            $all_licks, $licks, $lick_sets = read_licks
             lick = $all_licks.find {|l| l[:name] == to_handle[0]}
             err "Given single argument '#{to_handle[0]}' is not the name of a lick" unless lick
             lick[:holes_wo_events]
@@ -313,7 +313,7 @@ def tool_search_scale_in_licks to_handle
   licks_but_one = Array.new
   puts
   
-  _, $licks = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
   $licks.each do |lick|
 
     lick_holes = lick[:holes_wo_events]
@@ -471,7 +471,7 @@ def tool_transcribe to_handle
   err "need a single argument" if to_handle.length == 0
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 1
 
-  $all_licks, $licks = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
 
   puts
   to_play = if File.exist?(to_handle[0])

@@ -730,7 +730,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false
   hole2rem = Hash.new
 
   # shortcut for scale given on commandline
-  if sname == 'adhoc'
+  if sname == 'adhoc-scale'
     $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
     $adhoc_scale_holes.each {|h| hole2rem[h] = nil}
     return [$adhoc_scale_holes, hole2rem, [{'short' => 'h'}], 'commandline']
@@ -973,7 +973,7 @@ def set_global_musical_vars
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
   
-  $all_licks, $licks = read_licks if $mode == :play || $mode == :licks || $mode == :print
+  $all_licks, $licks, $lick_sets = read_licks if $mode == :play || $mode == :licks || $mode == :print
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
   if $opts[:ref] 

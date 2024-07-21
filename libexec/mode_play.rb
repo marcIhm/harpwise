@@ -4,7 +4,7 @@
 
 def do_play to_play
 
-  $all_licks, $licks = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
 
   make_term_immediate
 
@@ -14,7 +14,7 @@ def do_play to_play
   if $extra
     args_for_extra = to_play
   else
-    holes_or_notes, lnames, snames = partition_to_play_or_print(to_play)
+    holes_or_notes, lnames, snames = partition_for_mode(to_play)
   end
 
   # common error checking
@@ -29,7 +29,7 @@ def do_play to_play
       puts "Some holes or notes"
       play_holes_or_notes_simple holes_or_notes
       puts
-      write_history('holes or notes', 'adhoc', holes_or_notes)
+      write_history('holes or notes', 'adhoc-holes', holes_or_notes)
       
     elsif snames.length > 0
       
@@ -118,16 +118,24 @@ def do_play to_play
 end
 
 
-def partition_to_play_or_print to_handle
+def partition_for_mode to_handle
 
   holes_or_notes = []
   lnames = []
   snames = []
   other = []
 
+  amongs = if $mode == :print || $mode == :play
+             $amongs_play_or_print
+           elsif $mode == :licks
+             $amongs_licks
+           else
+             err 'Internal error: not for this mode'
+           end
+
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
-    what = recognize_among(th, $amongs_play_or_print)
+    what = recognize_among(th, amongs)
     if what == :note
       holes_or_notes << sf_norm(th)
     elsif what == :hole
@@ -137,7 +145,7 @@ def partition_to_play_or_print to_handle
     elsif what == :lick
       lnames << th
     elsif what == :last
-      $all_licks, $licks = read_licks
+      $all_licks, $licks, $lick_sets = read_licks
       record = shortcut2history_record(th)
       lnames << record[:name]
     else
@@ -157,16 +165,18 @@ def partition_to_play_or_print to_handle
     puts "Cannot understand these arguments: #{other}#{not_any_source_of};"
     puts 'they are none of (exact match required):'
     print_amongs($amongs_play_or_print)
-    puts
-    puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
-    print_amongs(:extra)
+    if $mode != :licks
+      puts
+      puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
+      print_amongs(:extra)
+    end
     err 'See above'
   end
   
   if $extra == '' && types_count == 0
     puts
-    puts "Nothing to #{$mode}; please specify any of:"
-    print_amongs([$amongs_play_or_print, :extra])
+    puts "Nothing to handle for #{$mode}; please specify any of:"
+    print_amongs([amongs, :extra])
     err 'See above'
   end
   
@@ -355,7 +365,7 @@ def play_licks_controller licks, refill, sleep_between: false
         puts
         edit_file($lick_file, lick[:lno])
         puts
-        $all_licks, $licks = read_licks
+        $all_licks, $licks, $lick_sets = read_licks
         redo
       when :named
         choose_prepare_for skip_term: true

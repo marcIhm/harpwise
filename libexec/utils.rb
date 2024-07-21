@@ -242,7 +242,7 @@ end
 def write_dump marker
   dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
   File.delete(dumpfile) if File.exist?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_sets: $lick_sets, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed}
   File.write(dumpfile, JSON.pretty_generate(structure))
 end
 
@@ -526,7 +526,7 @@ def shortcut2history_record short
 
   err "Shortcut '#{short}' is beyound end of #{records.length} available history records" if idx >= records.length
     
-  $all_licks, $licks = read_licks unless $licks
+  $all_licks, $licks, $lick_sets = read_licks unless $licks
   lnames = $licks.map {|l| l[:name]}
   rname = records[idx][:name]
   lidx = lnames.index(rname)
@@ -687,7 +687,7 @@ end
 $among_all_lnames = nil
 
 def recognize_among val, choices
- 
+  
   return nil unless val
   choices = [choices].flatten
   choices.each do |choice|

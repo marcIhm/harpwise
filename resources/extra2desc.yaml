@@ -36,6 +36,8 @@ print:
     option --start-with
   licks-starred: |
     show all starred licks
+  lick-sets, licks-sets: |
+    print all known lick sets
   licks-dump: |
     dump all selected licks in json-format
   holes-history: |

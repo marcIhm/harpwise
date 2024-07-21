@@ -178,7 +178,7 @@ begin
   when :quiz
     do_quiz to_handle
   when :licks
-    do_licks_or_quiz
+    do_licks_or_quiz to_handle: to_handle
   when :listen
     do_listen
   when :play

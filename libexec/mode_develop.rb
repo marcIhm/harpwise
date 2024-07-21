@@ -391,7 +391,7 @@ end
 
 def do_lickfile to_handle
   err "Need exactly one argument, not #{to_handle}" if to_handle.length != 1
-  $all_licks, $licks = read_licks(false, to_handle[0])
+  $all_licks, $licks, $lick_sets = read_licks(false, to_handle[0])
   pp({all_licks: $all_licks.length,
       licks: $licks.length})
 end

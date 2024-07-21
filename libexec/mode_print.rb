@@ -4,7 +4,7 @@
 
 def do_print to_print
 
-  $all_licks, $licks = read_licks
+  $all_licks, $licks, $lick_sets = read_licks
 
   puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
   puts
@@ -12,7 +12,7 @@ def do_print to_print
   if $extra
     args_for_extra = to_print
   else
-    holes_or_notes, lnames, snames = partition_to_play_or_print(to_print)
+    holes_or_notes, lnames, snames = partition_for_mode(to_print)
   end
 
   # common error checking
@@ -119,9 +119,13 @@ def do_print to_print
 
       print_starred_licks
 
+    when 'lick-sets', 'licks-sets'
+
+      print_lick_sets
+    
     when 'licks-dump'
 
-      pp $licks
+      print JSON.pretty_generate($licks)
       
     when 'holes-history'
 
@@ -540,4 +544,23 @@ def print_player player, in_loop = false
   else
     puts "\n\e[2mNot enough details known yet.\e[0m"
   end
+end
+
+
+def print_lick_sets
+
+  if $lick_sets.length == 0
+    puts "\nNo lick sets defined."
+    puts
+  else
+    $lick_sets.values.each do |ls|
+      puts "#{ls[:tag]}:"
+      puts "   desc: " + ( ls[:desc] || 'none' )
+      puts "  licks: #{ls[:licks].join(', ')}"
+      puts "   line: #{ls[:lno]}"
+      puts
+    end
+    puts "#{$lick_sets.length} lick sets in file #{$lick_file}"
+  end
+  
 end

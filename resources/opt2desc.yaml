@@ -106,14 +106,6 @@ drop_tags_any:
     having ANY of the given tags
   - TAG1,TAG2,...
 
-licks:
-  - |
-    specify all the licks to use by their name;
-    helpful if you have specific licks in mind e.g. for chords and
-    turnaround. If you use this option, the options to select via tags
-    (e.g. --tags-all) are ignored.
-  - NAME1,NAME2,...
-
 max_holes:
   - |
     filter licks and keep those, that have
@@ -239,11 +231,3 @@ flats:
 options:
   - |
     show full list of mode specific options
-
-adhoc_lick:
-  - |
-    Adhoc-lick on commandline.
-    With this option you may give a lick on the commandline to work
-    with and avoid adding it to your lickfile first.
-  - HOLES_WITH_COMMAS
-
