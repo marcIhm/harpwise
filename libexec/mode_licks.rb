@@ -1071,7 +1071,7 @@ def read_tags_and_refresh_licks curr_lick
       tag2licks[tag] << lick[:name]
     end
   end
-  tags_all = choose_interactive("Choose new tag for --tags-all, aka -t (current lick is #{curr_lick[:name]}): ", (['.initial'] + all_tags).flatten) do |tag|
+  tags_all = choose_interactive("Choose new value for --tags-all, aka -t (current is #{$opts[:tags_all]}): ", (['.initial'] + all_tags).flatten) do |tag|
     if tag == '.initial'
       'Revert all tag options (-t, --drop-tags-any, --i, ...) to their initial values'
     elsif tag2licks[tag]
@@ -1090,9 +1090,9 @@ def read_tags_and_refresh_licks curr_lick
               $opts[:tags_all] = tags_all
               $all_licks, $licks, $lick_sets = read_licks(true)
               iter = choose_interactive('Choose new value for --iterate, aka -i: ',
-                                        %w(random cycle)) do |tag|
-                {'random' => 'choose one lick at random every time',
-                 'cycle' => 'one lick after the other, starting over at end'}[tag] || tag
+                                        %w(cycle random)) do |tag|
+                {'cycle' => 'one lick after the other, starting over at end',
+                 'random' => 'choose one lick at random every time'}[tag] || tag
               end
               $opts[:iterate] = iter.to_sym if iter
               true
@@ -1314,6 +1314,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     if self[:lick_idx] != new_idx
       self[:lick_idx_befores] << self[:lick_idx] if self[:lick_idx] != self[:lick_idx_befores][-1]
       self.set_lick_and_others_from_idx(new_idx)
+      self[:shift_inter] = 0
     end    
   end
 
@@ -1399,7 +1400,11 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     choices_desc['NO SHIFT'] = 'use original, unshifted lick'
     $std_semi_shifts.sort_by {|sh| sh < 0  ?  1000 - sh  :  sh}.each do |shift|
       choices_desc[$intervals[shift.abs][0] + ' ' +
-                   ( shift > 0  ?  'UP'  :  'DOWN' )] =
+                   ( shift > 0  ?  'UP'  :  'DOWN' ) +
+                   # these are biased shortcuts for often used
+                   # intervals, assuming that this menu is braught up
+                   # by typing '#'
+                   ({5 => '.#', 7 => '.##'}[shift] || '')] =
         "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
     

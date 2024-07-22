@@ -246,8 +246,8 @@ def do_listen
       clear_area_comment
       $freqs_queue.clear
       if char == 'c'
-        $journal = Array.new
         journal_write("Automatic save before clearing journal")
+        $journal = Array.new
         $msgbuf.print "Saved and cleared journal", 2, 5, :journal
       elsif char == 'C'
         $journal = Array.new
@@ -362,9 +362,12 @@ end
 
 
 def journal_write(comment)
-  IO.write($journal_file, "\n\n\n#{Time.now} -- #{journal_length} holes in key of #{$key}:\n" +
+  IO.write($journal_file, "\n\n-----------------------------------\n\n#{Time.now} -- #{journal_length} holes in key of #{$key}:\n\n" +
                           + ( comment.empty?  ?  ''  :  "Comment: #{comment}\n" ) + "\n" + 
-                          + tabify_plain($journal) + "\n\n", mode: 'a')
+                          + tabify_plain($journal) + "\n" +
+                          "The same but more compact: \n\n   " +
+                          $journal.reject {|h| musical_event?(h)}.join(' ') +
+                          "\n\n", mode: 'a')
 end
 
 
