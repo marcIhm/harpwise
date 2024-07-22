@@ -2887,10 +2887,13 @@ do_test 'id-105: lick in shift circle' do
   tms :ENTER
   wait_for_start_of_pipeline
   expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
-  tms '>'
-  sleep 4
+  tms '#'
+  sleep 2
+  tms :RIGHT
+  tms :RIGHT
+  tms :ENTER  
   expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45   (*)'] }
-  expect { screen[22]['Holes shifted by perf Fourth'] }
+  expect { screen[22]["Shifted holes by 'perf Fourth UP'"] }
   kill_session
 end
 

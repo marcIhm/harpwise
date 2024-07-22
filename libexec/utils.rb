@@ -403,15 +403,12 @@ def animate_splash_line single_line = false, as_string: false
 end
 
 
-$last_history_holes = []
-$one_history_written = false
-
+$last_history_data = nil
+$first_history_written = false
 def write_history play_type, name, holes = []
 
-  return if holes.length > 0 && holes == $last_history_holes
-
   # check for file size
-  if !$one_history_written && File.exist?($history_file) && File.size($history_file) > 100_000
+  if !$first_history_written && File.exist?($history_file) && File.size($history_file) > 100_000
     tlines = File.read($history_file).lines
     # keep only last half
     File.write($history_file, tlines[tlines.length/2 .. -1].join)
@@ -422,18 +419,19 @@ def write_history play_type, name, holes = []
     data = { rec_type: 'start',
              mode: $mode,
              timestamps: tstamps }
-    history.write("\n" + JSON.generate(data) + "\n\n") unless $one_history_written
+    history.write("\n" + JSON.generate(data) + "\n\n") unless $first_history_written
     # must match formats in next function
     data = { rec_type: 'entry',
              mode: $mode,
              play_type: play_type,
-             name: name,
-             holes: holes,
-             timestamps: tstamps }
+             name: name}
+    return if data == $last_history_data
+    $last_history_data = data.clone 
+    data[:timestamps] = tstamps
+    data[:holes] = holes 
     history.write(JSON.generate(data) + "\n\n")
   end
-  $last_history_holes = holes if holes.length > 0
-  $one_history_written = true
+  $first_history_written = true
 end
 
 

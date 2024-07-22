@@ -681,7 +681,6 @@ def show_help mode = $mode, testing_only = false
                  "      l:_change current lick by name       e:_edit lickfile",
                  "      t:_change lick-selection (-t)        i:_show info on lick",
                  "      #:_shift lick by chosen interval   9,@:_change option --partial",
-                 "     <>:_shift lick by intervals in circle #{$licks_semi_shifts.keys.join(',')} st",
                  "     */:_Add or remove Star from current lick persistently;",
                  "         select them later by tags starred/unstarred",
                  "      !:_play holes reversed               &:_shuffle holes",
@@ -812,7 +811,7 @@ def show_help mode = $mode, testing_only = false
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')
-        [32,92,0,92,32,92,0].each do |col|
+        [32,92,32,0,92,32,92,0,92,32,92,0].each do |col|
           print "\r\e[#{col}m" + line
           sleep 0.15
         end

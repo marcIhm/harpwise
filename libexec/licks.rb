@@ -465,6 +465,7 @@ def process_lick lick, name, vars, default
   lick[:rec_key] ||= ( default[:rec_key] || 'c' )
   lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
+  dbg if name == 
   $licks_semi_shifts.keys.select {_1 > 0}.each do |st|
     tag = $licks_semi_shifts[st]
     num_shiftable = lick[:holes].inject(0) do |sum, hole|
