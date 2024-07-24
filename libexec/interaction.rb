@@ -206,8 +206,10 @@ end
 
 
 def prepare_term
-  system("stty -echo -icanon min 1 time 0")  # no timeout on read, one char is enough
-  Kernel::print "\e[?25l"  ## hide cursor
+  # no timeout on read, one char is enough
+  system("stty -echo -icanon min 1 time 0")
+  # hide cursor  
+  Kernel::print "\e[?25l"  
 end
 
 
@@ -589,8 +591,15 @@ def handle_kb_mic
   waited = false
 
   if char == ' '
-    ctl_response 'SPACE to continue', hl: true
+    txt = 'SPACE to continue'
+    ctl_response txt
+    cnt = 0
     begin
+      while $ctl_kb_queue.empty?
+        cnt += 1
+        ctl_response txt, hl: 1 + ( cnt / 10 ) % 4
+        sleep 0.1
+      end
       char = $ctl_kb_queue.deq
     end until char == ' '
     ctl_response 'continue', hl: true
@@ -743,7 +752,8 @@ def handle_kb_mic
 end
 
 
-def ctl_response text = nil, **opts
+def ctl_response text = nil, hl: false
+  hl = {false => 0, true => 1}[hl] unless hl.is_a?(Numeric)
   if text
     $ctl_response_non_def_ts = Time.now.to_f 
   else
@@ -751,7 +761,10 @@ def ctl_response text = nil, **opts
     text = $ctl_response_default
   end
   text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
-  print "\e[1;#{$term_width - $ctl_response_width}H\e[0m\e[#{opts[:hl] ? 32 : 2}m#{text.rjust($ctl_response_width)}\e[0m"
+  print "\e[1;#{$term_width - $ctl_response_width}H\e[0m"
+  print "\e[#{[2,32,92,0,92][hl]}m"
+  print "#{text.rjust($ctl_response_width)}"
+  print "\e[0m"
 end
   
 
@@ -1435,13 +1448,13 @@ def journal_menu
   print "\e[2m"
   puts " There are two ways to add holes to the journal in the comment area:"
   print "\e[0m\e[32m"
-  puts "   j,a: toggle on/off all notes played"
+  puts "   j,a: toggle on/off all notes played (for more than #{$journal_minimum_duration}s)"
   print "\e[0m\e[32m"
   puts "    Or\e[0m\e[2m, after leaving this menu (and when comment is journal) just press"
   puts "       RETURN to add the note currently played or BACKSPACE to delete it."
   puts " Within this menu again, operate on the current content of the journal:"
   print "\e[0m\e[32m"
-  puts "     p: play the journal shown, using durations (e.g. '(0.3)') if any"
+  puts "     p: play the journal shown, using durations (e.g. '(0.3s)') if any"
   puts "     e: invoke editor on it  c: clear it (offer saving before)"
   puts "     w: write it to file     r: recall 100 lines from file into edit"
   print "\e[0m\e[2m Type any of j,a,p,e,c,w,r or any other key to cancel ... \e[K"

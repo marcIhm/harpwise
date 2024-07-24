@@ -1413,6 +1413,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     end&.strip
     
     if answer
+      answer.gsub!(/\.#+$/, '')
       shift = $intervals_inv[answer.downcase] || 0
       if num_holes_playable[shift] > 0
         self[:shift_inter] = shift

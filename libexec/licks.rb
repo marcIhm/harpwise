@@ -393,9 +393,19 @@ def refresh_licks
 end
 
 
-def musical_event? hole_or_note
-  (hole_or_note[0] == '(' && hole_or_note[-1] == ')') ||
-    (hole_or_note[0] == '[' && hole_or_note[-1] == ']') 
+def musical_event? hole_or_note, type = :general
+  is_event = (hole_or_note[0] == '(' && hole_or_note[-1] == ')') ||
+             (hole_or_note[0] == '[' && hole_or_note[-1] == ']')
+  case type
+  when :general
+    return is_event
+  when :secs
+    return false unless is_event
+    return false unless hole_or_note[-2] == 's'
+    return ( !!Float(hole_or_note[1 .. -3]) rescue false )
+  else
+    err "Internal error: #{type}"
+  end
 end
 
 

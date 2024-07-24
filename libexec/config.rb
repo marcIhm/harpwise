@@ -343,6 +343,7 @@ def set_global_vars_late
   $journal = Array.new
   # is journaling of all holes played ongoing ?
   $journal_all = false
+  $journal_minimum_duration = 0.2
   # filenames for user-readable persistant data
   $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
   $history_file = "#{$dirs[:data]}/history_#{$type}.json"

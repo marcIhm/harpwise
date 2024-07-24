@@ -1349,7 +1349,7 @@ do_test 'id-37c: change option --tags with cursor keys' do
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
   expect(dump[:file_from], dump[:opts]) { dump[:opts][:tags_all] == 'advanced'}
-  expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'random'}
+  expect(dump[:file_from], dump[:opts]) { dump[:opts][:iterate] == 'cycle'}
   kill_session
 end
 
@@ -1911,7 +1911,7 @@ do_test 'id-58: listen with journal on request, recall later' do
   tms 'j'
   sleep 2
   tms 'r'
-  expect { screen[-7]['-- 2 holes in key of a'] }
+  expect { screen[18]['-- 2 holes in key of a'] }
   ENV.delete('EDITOR')
   kill_session
 end
@@ -2889,8 +2889,7 @@ do_test 'id-105: lick in shift circle' do
   expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
   tms '#'
   sleep 2
-  tms :RIGHT
-  tms :RIGHT
+  tms '#'
   tms :ENTER  
   expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45   (*)'] }
   expect { screen[22]["Shifted holes by 'perf Fourth UP'"] }

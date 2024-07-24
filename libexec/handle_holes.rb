@@ -142,18 +142,36 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     hole_held_was = hole_held
     hole_held = hole if $total_freq_ticks - hole_since_ticks >= held_min_ticks
 
-    # update journal if hole_held has changed
+    #
+    # This generates journal entries for holes that have been held
+    # long enough; see mode_listen.rb for handling the explicit
+    # request of a journal-entry by pressing RETURN.
+    #
     if $journal_all && hole_held_was != hole_held
-      if hole_held
-        if hole_journal && hole_journal != hole_held
-          $journal << ('(%.1fs)' % (tntf - hole_journal_since)) if journal_length > 0 && !musical_event?($journal[-1])
+      # we get here, if: hole has just startet or hole has just
+      # stopped or hole has just changed
+      if hole_journal &&
+         journal_length > 0 &&
+         hole_journal != hole_held
+        # hole_held has just changed, but this is not yet reflected in
+        # journal; so maybe add the duration to journal, just before
+        # the next hole is added
+        if tntf - hole_journal_since > $journal_minimum_duration
+          # put in duration for last note, if held long enough
+          if !musical_event?($journal[-1])
+            $journal << ('(%.1fs)' % (tntf - hole_journal_since))
+            $msgbuf.print("#{journal_length} holes", 2, 5, :journal) if $opts[:comment] == :journal
+          end
+        else
+          # too short, so do not add duration and rather remove hole
+          $journal.pop if $journal[-1] && !musical_event?($journal[-1])
         end
+      end
+      if hole_held
+        # add new hole
         hole_journal = hole_held
         $journal << hole_held
-        hole_journal_since = hole_since 
-        $msgbuf.print("#{journal_length} holes", 2, 5, :journal) if $opts[:comment] == :journal
-      else
-        $journal << ('(%.1fs)' % (tntf - hole_journal_since)) if journal_length > 0 && !musical_event?($journal[-1])
+        hole_journal_since = tntf if hole_journal
       end
     end
 
@@ -811,7 +829,7 @@ def show_help mode = $mode, testing_only = false
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')
-        [32,92,32,0,92,32,92,0,92,32,92,0].each do |col|
+        [32,92,0,92,32,92,0,92,32,92,0].each do |col|
           print "\r\e[#{col}m" + line
           sleep 0.15
         end

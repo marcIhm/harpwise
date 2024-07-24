@@ -109,9 +109,9 @@ def do_listen
                          "   No journal yet to show.",
                          "\e[K",
                          "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
-                         "   \e[2mType 'j' for menu e.g. to switch on journal for all notes beeing played\e[0m"] if $journal.length == 0
-                 if jlen_refresh_comment_cache != $journal.length || $ctl_mic[:update_comment]
-                   jlen_refresh_comment_cache = $journal.length
+                         "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all  ?  'ON'  :  'OFF'})\e[0m"] if journal_length == 0
+                 if jlen_refresh_comment_cache != journal_length || $ctl_mic[:update_comment]
+                   jlen_refresh_comment_cache = journal_length
                    comment_cache, to_del = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
                    $journal.shift(to_del)
                  end
@@ -144,10 +144,12 @@ def do_listen
       
       # lambda_star_lick
       nil
-    )  # end of get_hole
+    )  ## end of handle_holes
 
     #
-    # Handling Journal
+    # Create journal entries, that have been explicitly requested by
+    # pressing RETURN see handle_holes.rb for those holes that get
+    # journaled, just because they have been held long enough
     #
     if $ctl_mic[:journal_current]
       $ctl_mic[:journal_current] = false
@@ -155,20 +157,13 @@ def do_listen
       if hole_disp == '-'
         case $journal[-1]
         when '(-)'
+          # user has played nothing but has hit return
           $journal[-1] = '(+)'
         when '(+)'
-          make_term_cooked
-          clear_area_comment
-          puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
-          puts
-          print "\e[0mYour comment (20 chars cutoff): "
-          comment = STDIN.gets.chomp.strip
-          comment.gsub!('(','')
-          comment.gsub!(')','')
-          make_term_immediate
-          clear_area_comment
+          # hit three times, so we assume he wants to enter a comment
+          comment = get_journal_comment
           if comment.length > 0
-            $journal[-1] = comment[0 .. 19]
+            $journal[-1] = '(' + comment[0 .. 19] + ')'
           else
             $journal[-1] = '(-)'
           end
@@ -183,6 +178,7 @@ def do_listen
     
     if $ctl_mic[:journal_delete]
       $ctl_mic[:journal_delete] = false
+      $journal.pop if $journal[-1] && musical_event?($journal[-1], :secs)
       $journal.pop
     end
     
@@ -246,7 +242,7 @@ def do_listen
       clear_area_comment
       $freqs_queue.clear
       if char == 'c'
-        journal_write("Automatic save before clearing journal")
+        journal_write("Automatic save before clearing journal") if journal_length > 0
         $journal = Array.new
         $msgbuf.print "Saved and cleared journal", 2, 5, :journal
       elsif char == 'C'
@@ -297,7 +293,7 @@ END
       $ctl_mic[:journal_all_toggle] = false
       $journal_all = !$journal_all
       $msgbuf.print "journal-all is " +
-                    ( $journal_all ? 'ON' : 'OFF' ), 2, 5, :journal
+                    ( $journal_all  ?  "ON, minimum duration is #{$journal_minimum_duration}s" : 'OFF' ), 2, 5, :journal
       ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
 
@@ -390,3 +386,17 @@ def val_with_meter head, val, scale
   "\e[2m" + head + "\e[0m" + ( " %4.1f" % val ) + " " + meter + "\e[0m\e[K"
 end
     
+
+def get_journal_comment
+  make_term_cooked
+  clear_area_comment
+  puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
+  puts
+  print "\e[0mYour comment (20 chars cutoff): "
+  comment = STDIN.gets.chomp.strip
+  comment.tr!('()[]{}','')
+  make_term_immediate
+  clear_area_comment
+
+  return comment
+end  
