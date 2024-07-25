@@ -261,6 +261,18 @@ def do_listen
       $ctl_mic[:redraw] = Set[:silent]
     end
 
+    if $ctl_mic[:journal_short]
+      clear_area_comment
+      puts "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[2mJournal without durations, e.g for cut and paste:\e[0m\n\n"
+      puts $journal.reject {|x| musical_event?(x,:secs)}.join('  ')
+      puts "\n\e[2m  any key to continue ...\e[2m"
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      $freqs_queue.clear
+      $ctl_mic[:journal_short] = false
+      clear_area_comment      
+    end
+
     if $ctl_mic[:journal_recall]
       $ctl_mic[:journal_recall] = false
       content = if File.exist?($journal_file) && File.size($journal_file) > 0

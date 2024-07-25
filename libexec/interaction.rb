@@ -1455,8 +1455,8 @@ def journal_menu
   puts " Within this menu again, operate on the current journal:"
   print "\e[0m\e[32m"
   puts "     \e[0m\e[32mp\e[0m\e[2m: play it, using durations (e.g. '(0.3s)') if any"
-  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear"
-  puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 lines from file into edit"
+  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear     \e[0m\e[32ms\e[0m\e[2m: show short for cut and paste"
+  puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 old lines from file into edit"
   print "\e[0m\e[2m Type one of j,a,p,e,c,w,r ... or any other key to cancel ... \e[K"
   char = $ctl_kb_queue.deq
   case char
@@ -1470,6 +1470,8 @@ def journal_menu
     $ctl_mic[:journal_play] = true
   when 'c'
     $ctl_mic[:journal_clear] = true
+  when 's'
+    $ctl_mic[:journal_short] = true
   when 'e'
     $ctl_mic[:journal_edit] = true
   when 'r'
