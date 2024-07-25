@@ -592,12 +592,11 @@ def handle_kb_mic
 
   if char == ' '
     txt = 'SPACE to continue'
-    ctl_response txt
     cnt = 0
     begin
       while $ctl_kb_queue.empty?
+        ctl_response txt, hl: cnt / 10
         cnt += 1
-        ctl_response txt, hl: 1 + ( cnt / 10 ) % 4
         sleep 0.1
       end
       char = $ctl_kb_queue.deq
@@ -753,7 +752,6 @@ end
 
 
 def ctl_response text = nil, hl: false
-  hl = {false => 0, true => 1}[hl] unless hl.is_a?(Numeric)
   if text
     $ctl_response_non_def_ts = Time.now.to_f 
   else
@@ -762,9 +760,12 @@ def ctl_response text = nil, hl: false
   end
   text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
   print "\e[1;#{$term_width - $ctl_response_width}H\e[0m"
-  print "\e[#{[2,32,92,0,92][hl]}m"
-  print "#{text.rjust($ctl_response_width)}"
-  print "\e[0m"
+  if hl.is_a?(Numeric)
+    print "\e[#{[32,92,0,92][hl % 4]}m"
+  else
+    print "\e[#{hl  ?  32  :  2}m"
+  end
+  print "#{text.rjust($ctl_response_width)}\e[0m"
 end
   
 
@@ -1446,18 +1447,17 @@ def journal_menu
   end
   print "\e[#{$lines[:comment_tall]}H\e[J"
   print "\e[2m"
-  puts " There are two ways to add holes to the journal in the comment area:"
+  puts " There are two ways to add holes to the journal:"
   print "\e[0m\e[32m"
-  puts "   j,a: toggle on/off all notes played (for more than #{$journal_minimum_duration}s)"
+  puts "   j,a\e[0m\e[2m: toggle journal for all notes played longer than #{$journal_minimum_duration}s"
+  puts "    \e[0m\e[32mOr\e[0m\e[2m, after leaving this menu:"
+  puts "        \e[0m\e[32mRETURN\e[0m\e[2m to add the current hole or \e[0m\e[32mBACKSPACE\e[0m\e[2m to delete it."
+  puts " Within this menu again, operate on the current journal:"
   print "\e[0m\e[32m"
-  puts "    Or\e[0m\e[2m, after leaving this menu (and when comment is journal) just press"
-  puts "       RETURN to add the note currently played or BACKSPACE to delete it."
-  puts " Within this menu again, operate on the current content of the journal:"
-  print "\e[0m\e[32m"
-  puts "     p: play the journal shown, using durations (e.g. '(0.3s)') if any"
-  puts "     e: invoke editor on it  c: clear it (offer saving before)"
-  puts "     w: write it to file     r: recall 100 lines from file into edit"
-  print "\e[0m\e[2m Type any of j,a,p,e,c,w,r or any other key to cancel ... \e[K"
+  puts "     \e[0m\e[32mp\e[0m\e[2m: play it, using durations (e.g. '(0.3s)') if any"
+  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear"
+  puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 lines from file into edit"
+  print "\e[0m\e[2m Type one of j,a,p,e,c,w,r ... or any other key to cancel ... \e[K"
   char = $ctl_kb_queue.deq
   case char
   when 'a', 'j'
@@ -1494,6 +1494,11 @@ def prepare_warbles
     print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mwarble\e[2m ...\e[0m"
     tag = 'switch to comment warble'
     stime = $messages_seen[tag]  ?  0.1  :  0.2
+    $messages_seen[tag] = true
+    5.times do
+      break if $ctl_kb_queue.length > 0
+      sleep stime
+    end    
     $opts[:comment] = :warbles
   else
     $warbles_holes = Array.new(2)
