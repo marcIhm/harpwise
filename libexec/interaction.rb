@@ -601,7 +601,12 @@ def handle_kb_mic
       end
       char = $ctl_kb_queue.deq
     end until char == ' '
-    ctl_response 'continue', hl: true
+    txt = 'and on !'
+    ctl_response txt
+    sleep 0.2
+    ctl_response txt, hl: 0
+    sleep 0.2
+    ctl_response txt, hl: 2
     waited = true
   elsif char == 'RETURN'
     if [:quiz, :licks].include?($mode)
@@ -1449,7 +1454,7 @@ def journal_menu
   print "\e[2m"
   puts " There are two ways to add holes to the journal:"
   print "\e[0m\e[32m"
-  puts "   j,a\e[0m\e[2m: toggle journal for all notes played longer than #{$journal_minimum_duration}s"
+  puts "   j,a\e[0m\e[2m: toggle journal for all notes played longer than #{$journal_minimum_duration}s (is \e[0m\e[32m#{$journal_all  ?  ' ON'  :  'OFF'}\e[0m)"
   puts "    \e[0m\e[32mOr\e[0m\e[2m, after leaving this menu:"
   puts "        \e[0m\e[32mRETURN\e[0m\e[2m to add the current hole or \e[0m\e[32mBACKSPACE\e[0m\e[2m to delete it."
   puts " Within this menu again, operate on the current journal:"
@@ -1457,7 +1462,7 @@ def journal_menu
   puts "     \e[0m\e[32mp\e[0m\e[2m: play it, using durations (e.g. '(0.3s)') if any"
   puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear     \e[0m\e[32ms\e[0m\e[2m: show short for cut and paste"
   puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 old lines from file into edit"
-  print "\e[0m\e[2m Type one of j,a,p,e,c,w,r ... or any other key to cancel ... \e[K"
+  print "\e[0m\e[2m Type one of j,a,p,e,c,s,w,r ... or any other key to continue ... \e[K"
   char = $ctl_kb_queue.deq
   case char
   when 'a', 'j'

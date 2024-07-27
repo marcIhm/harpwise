@@ -106,7 +106,7 @@ def do_listen
                when :journal
                  return ["\e[K",
                          "\e[K",
-                         "   No journal yet to show.",
+                         "   No journal yet to show ...\e[2m journal all is #{$journal_all  ?  ' ON'  :  'OFF'}\e[0m\e[K",
                          "\e[K",
                          "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
                          "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all  ?  'ON'  :  'OFF'})\e[0m"] if journal_length == 0
