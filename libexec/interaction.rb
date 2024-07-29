@@ -326,10 +326,7 @@ def handle_kb_play_holes
   $ctl_kb_queue.clear
 
   if char == ' '
-    print "\e[0m\e[32m SPACE to continue ... "
-    begin
-      char = $ctl_kb_queue.deq
-    end until char == ' '
+    space_to_cont
     print "go \e[0m"
     sleep 0.5
   elsif char == "TAB" || char == '+'
@@ -350,10 +347,7 @@ def handle_kb_play_holes_or_notes_simple
   $ctl_kb_queue.clear
 
   if char == ' '
-    print "\e[0m\e[32m SPACE to continue ... "
-    begin
-      char = $ctl_kb_queue.deq
-    end until char == ' '
+    space_to_cont
     print "go \e[0m"
     sleep 0.5
   elsif char == "TAB" || char == '+'
@@ -602,11 +596,10 @@ def handle_kb_mic
       char = $ctl_kb_queue.deq
     end until char == ' '
     txt = 'and on !'
-    ctl_response txt
-    sleep 0.2
-    ctl_response txt, hl: 0
-    sleep 0.2
-    ctl_response txt, hl: 2
+    [[false, 0.2], [0, 0.2], [2, 0.8], [false, 0]].each do |hl, slp|
+      ctl_response txt, hl: hl
+      sleep slp
+    end
     waited = true
   elsif char == 'RETURN'
     if [:quiz, :licks].include?($mode)
@@ -765,8 +758,9 @@ def ctl_response text = nil, hl: false
   end
   text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
   print "\e[1;#{$term_width - $ctl_response_width}H\e[0m"
+  wheel = $resources[:hl_wheel]
   if hl.is_a?(Numeric)
-    print "\e[#{[32,92,0,92][hl % 4]}m"
+    print "\e[0m\e[#{wheel[hl % wheel.length]}m"
   else
     print "\e[#{hl  ?  32  :  2}m"
   end
@@ -1539,3 +1533,26 @@ def get_text_invalid char
   "Invalid key #{cdesc}" + ( cdesc.length > 5  ?  ''  :  ", h for help" )
 end
 
+
+def space_to_cont
+  wheel = $resources[:hl_wheel]
+  # text may wrap around to next line and cause screen to scroll
+  # up. So we first go with spaces and erase them: if wrap occurs, we
+  # end up at start of next line (which is okay); if no wrap occurs we
+  # end at the original pos.
+  # Note, that \e[s is not usable here, because it does not help in
+  # case of scroll up
+  print ' ' * $resources[:space_to_cont].length
+  print "\e[#{$resources[:space_to_cont].length}D"
+  cnt = 0
+  begin
+    while $ctl_kb_queue.empty?
+      print "\e[0m\e[#{wheel[( cnt / 10 ) % wheel.length]}m#{$resources[:space_to_cont]}"
+      print "\e[#{$resources[:space_to_cont].length}D"
+      cnt += 1
+      sleep 0.1
+    end
+    char = $ctl_kb_queue.deq
+  end until char == ' '
+  print "\e[0m\e[2m#{$resources[:space_to_cont]}"
+end

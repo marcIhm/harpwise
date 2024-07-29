@@ -9,7 +9,8 @@ play:
     repeats
   pitch: |
     play an interactive, adjustable pitch; this may help to find the
-    key of a song by ear-comparison
+    key of a song by ear-comparison; the initial key, e.g. 'a4' can be
+    supplied as an optional argument
   interval, inter: |
     interactive, adjustable interval given as arguments
   progression, prog: |

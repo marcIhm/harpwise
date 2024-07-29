@@ -802,10 +802,10 @@ do_test 'id-16c: play pitch' do
   expect { screen[-3]['key of song: c  ,  matches key of harp: f'] }
   tms ' '
   sleep 1
-  expect { screen[22] == 'SPACE to continue ...' }
+  expect { screen[22] == 'SPACE to continue playing or any other key or h for help ...' }
   tms ' '
   sleep 1
-  expect { screen[22]['go'] }
+  expect { screen[22]['playing on'] }
   tms 'h'
   sleep 1
   expect { screen[15] == 'Keys available while playing a pitch:'}
@@ -815,7 +815,7 @@ do_test 'id-16c: play pitch' do
   # still alive after help ?
   tms ' '
   sleep 1
-  expect { screen[22] == 'SPACE to continue ...' }
+  expect { screen[22] == 'SPACE to continue playing or any other key or h for help ...' }
   kill_session
 end
 
@@ -2010,20 +2010,20 @@ do_test 'id-62: play interval' do
   expect { screen[19]['to:   5st ,   -4 ,   d5'] }
   tms ' '
   sleep 1
-  expect { screen[22] == 'SPACE to continue ...' }
+  expect { screen[22] == 'SPACE to continue playing or any other key or h for help ...' }
   tms ' '
   sleep 1
-  expect { screen[22]['go'] }
+  expect { screen[22]['playing on'] }
   tms 'h'
   sleep 1
   expect { screen[15]['Keys available while playing an interval:'] }
   tms 'x'
   sleep 1
-  expect { screen[21] == 'continue' }
+  expect { screen[21] == 'done with help' }
   # still alive after help ?
   tms ' '
   sleep 1
-  expect { screen[22] == 'SPACE to continue ...' }
+  expect { screen[22] == 'SPACE to continue playing or any other key or h for help ...' }
 end
 
 do_test 'id-63: calculate interval' do
@@ -2066,10 +2066,10 @@ do_test 'id-65: play progression' do
   tms 's'
   sleep 1
   wait_for_end_of_harpwise
-  expect { screen[5]['|---------|---------|---------|---------|'] }
-  expect { screen[6]['|      -- |      a3 |     -12 |       0 |'] }
-  expect { screen[16]['|---------|---------|---------|---------|'] }
-  expect { screen[17]['|      -1 |      d4 |      -7 |       0 |'] }
+  expect { screen[2]['|---------|---------|---------|---------|'] }
+  expect { screen[3]['|      -- |      a3 |     -12 |       0 |'] }
+  expect { screen[13]['|---------|---------|---------|---------|'] }
+  expect { screen[14]['|      -1 |      d4 |      -7 |       0 |'] }
   kill_session
 end
 
@@ -2248,7 +2248,7 @@ do_test 'id-74: player for licks' do
   sleep 1
   tms ' '
   sleep 1
-  expect { screen[8]['SPACE'] && screen[9] == ' to continue ...' }
+  expect { screen[9] == 'SPACE to continue ...' }
   tms ' '
   sleep 1
   expect { screen[9]['go'] }
@@ -2272,7 +2272,7 @@ do_test 'id-74: player for licks' do
   expect { screen[11]['Keys available while playing a recording:'] }
   tms 'q'
   sleep 1
-  expect { screen[18]['continue'] }
+  expect { screen[18]['done with help'] }
   kill_session
 end
 
@@ -2286,7 +2286,7 @@ do_test 'id-75: player for user recording' do
   sleep 1
   tms ' '
   sleep 1
-  expect { screen[6] == ' SPACE to continue ...' }
+  expect { screen[6] == 'SPACE to continue ...' }
   tms ' '
   sleep 1
   expect { screen[6]['SPACE to continue ... go'] }
@@ -2295,11 +2295,11 @@ do_test 'id-75: player for user recording' do
   expect { screen[8] == 'Keys available while playing a recording:' }
   tms 'x'
   sleep 1
-  expect { screen[14]['continue'] }
+  expect { screen[14]['done with help'] }
   # still alive after help ?
   tms ' '
   sleep 1
-  expect { screen[16] == ' SPACE to continue ...' }
+  expect { screen[16] == 'SPACE to continue ...' }
   kill_session
 end
 

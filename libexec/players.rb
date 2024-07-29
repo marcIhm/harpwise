@@ -56,13 +56,10 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
 
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
-        if pplayer.paused?
-          pplayer.continue
-          print "\e[0m\e[32mgo \e[0m"
-        else
-          pplayer.pause
-          printf "\e[0m\e[32m%.1fs SPACE to continue ... \e[0m", pplayer.time_played
-        end
+        pplayer.pause
+        space_to_cont
+        pplayer.continue
+        print "\e[0m\e[32mgo \e[0m"
       elsif $ctl_rec[:slower]
         tempo -= 0.1 if tempo > 0.4
         print "\e[0m\e[32mx%.1f \e[0m" % tempo
@@ -191,13 +188,10 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
       handle_kb_play_recording_simple
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
-        if pplayer.paused?
-          pplayer.continue
-          print "\e[0m\e[32mgo \e[0m"
-        else
-          pplayer.pause
-          printf "\e[0m\e[32m SPACE to continue ... \e[0m"
-        end
+        pplayer.pause
+        space_to_cont
+        pplayer.continue
+        print "\e[0m\e[32mgo \e[0m"
       elsif $ctl_rec[:vol_up]
         $vol.inc
         print "\e[0m\e[32m#{$vol} \e[0m"
@@ -242,8 +236,10 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
 end
 
 
-def play_interactive_pitch embedded = false, explain: true, start_key: nil, return_accepts: false
-  semi = note2semi((start_key || $key) + '4')
+def play_interactive_pitch embedded: false, explain: true,
+                           start_key: nil, return_accepts: false
+
+  semi = note2semi((start_key || $key).then {|k| ('1' .. '9').include?(k[-1])  ?  k  :  k + '4'})
   all_waves = [:pluck, :sawtooth, :square, :sine]
   wave = wave_was = :pluck
   min_semi = -24
@@ -273,7 +269,7 @@ def play_interactive_pitch embedded = false, explain: true, start_key: nil, retu
 
   # loop forever until ctrl-c; loop on every key
   loop do
-    # we also loop when paused
+    # we also loop when paused, so that user can change other settings during pause
     if paused
       if pplayer&.alive?
         pplayer.kill
@@ -306,10 +302,10 @@ def play_interactive_pitch embedded = false, explain: true, start_key: nil, retu
       if $ctl_pitch[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[2mgo\e[0m"
+          puts "\e[0m\e[32mplaying on\e[0m"
         else
           paused = true
-          puts "\e[0m\e[2mSPACE to continue ...\e[0m"
+          print $resources[:playing_is_paused]          
         end
       elsif $ctl_pitch[:vol_up]
         $vol.inc
@@ -408,8 +404,7 @@ def play_interactive_interval semi1, semi2
 
   # loop forever until ctrl-c; loop on every key
   loop do
-
-    # we also loop when paused
+    # we also loop when paused, so that user can change other settings during pause
     if paused
       if pplayer&.alive?
         pplayer.kill
@@ -450,35 +445,42 @@ def play_interactive_interval semi1, semi2
       if $ctl_inter[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[2mgo\e[0m"
+          puts "\e[0m\e[32mplaying on\e[0m"
         else
           paused = true
-          puts "\e[0m\e[2mSPACE to continue ...\e[0m"
+          print $resources[:playing_is_paused]
         end
       elsif $ctl_inter[:up] || $ctl_inter[:down]
         step =  $ctl_inter[:up]  ?  +1  :  -1
         semi1 += step
         semi2 += step
+        print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:narrow] || $ctl_inter[:widen]
         delta_semi +=  $ctl_inter[:narrow]  ?  -1  :  +1
         semi2 = semi1 + delta_semi
+        print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:gap_inc]
         gap.inc
+        puts "\e[0m\e[2m  Gap: #{gap.val}\n\n" if paused
         new_sound = true
       elsif $ctl_inter[:gap_dec]
         gap.dec
+        puts "\e[0m\e[2m  Gap: #{gap.val}\n\n" if paused
         new_sound = true
       elsif $ctl_inter[:len_inc]
         len.inc
+        puts "\e[0m\e[2m  length: #{len.val}\e[0m\n\n" if paused
         new_sound = true
       elsif $ctl_inter[:len_dec]
         len.dec
+        puts "\e[0m\e[2m  length: #{len.val}\e[0m\n\n" if paused
         new_sound = true
       elsif $ctl_inter[:swap]
         semi1, semi2 = semi2, semi1
         delta_semi = -delta_semi
+        print_interval(semi1, semi2) if paused
         new_sound = true        
       elsif $ctl_inter[:replay]
         puts "\e[0m\e[2mReplay\e[0m\n\n"
@@ -492,7 +494,7 @@ def play_interactive_interval semi1, semi2
         puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true        
       elsif $ctl_inter[:show_help]
-        pplayer.pause
+        pplayer.pause unless paused
         display_kb_help 'an interval',true,
                         "   SPACE: pause/continue          ESC,x,q: quit\n" +
                         "       +: widen interval by one semi    -: narrow by one semi\n" +
@@ -501,7 +503,7 @@ def play_interactive_interval semi1, semi2
                         "       l: decrease length               L: increase\n" +
                         "       v: decrease volume by 3db        V: increase volume\n" +
                         "       s: swap notes               RETURN: play again"
-        pplayer.continue
+        pplayer.continue unless paused
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
         if pplayer&.alive?
@@ -545,7 +547,7 @@ def play_interactive_chord semis, args_orig
 
   # loop forever until ctrl-c; loop on every key
   loop do
-    # we also loop when paused
+    # we also loop when paused, so that user can change other settings during pause    
     if paused
       if pplayer&.alive?
         pplayer.kill
@@ -584,11 +586,11 @@ def play_interactive_chord semis, args_orig
       if $ctl_chord[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[2mgo\e[0m"
+          puts "\e[0m\e[32mplaying on\e[0m"
           puts "#{cdesc}"
         else
           paused = true
-          puts "\e[0m\e[2mSPACE to continue ...\e[0m"
+          print $resources[:playing_is_paused]
         end
       elsif $ctl_chord[:vol_up]
         $vol.inc
@@ -682,11 +684,8 @@ def play_interactive_progression prog
                         "      l: toggle looping of progression    q: quit after iteration"
         $ctl_prog[:show_help] = false
       elsif $ctl_prog[:pause_continue]
-        print "\n\e[0m\e[32mSPACE to continue ..."
-        begin
-          char = $ctl_kb_queue.deq
-        end until char == ' '
-        print " go\e[0m\n"
+        space_to_cont
+        print "go\e[0m\n"
         puts
         sleep 0.5
         $ctl_prog[:pause_continue] = false
@@ -718,6 +717,7 @@ def play_interactive_progression prog
     break if quit
     iteration += 1
   end while loop || change_semis
+  puts "\n\e[2m(done with progression, looping no enabled)\e[0m\n\n"
   puts
 end
 

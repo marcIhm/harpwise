@@ -417,7 +417,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $ctl_mic[:redraw] = Set[:clear, :silent]
         $freqs_queue.clear
       else
-        $msgbuf.print("Featuring players not yet started, please stand by", 2, 5, :replay)
+        $msgbuf.print("Featuring players not yet started, please stand by ...", 2, 5, :replay)
       end
     end
 
@@ -572,7 +572,7 @@ def do_change_key_to_pitch
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
-  $key = play_interactive_pitch(embedded = true) || $key
+  $key = play_interactive_pitch(embedded: true) || $key
   $msgbuf.print(if key_was == $key
                 "Key of harp is still at"
                else
@@ -829,7 +829,7 @@ def show_help mode = $mode, testing_only = false
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')
-        [32,92,0,92,32,92,0,92,32,92,0].each do |col|
+        $resources[:hl_long_wheel].each do |col|
           print "\r\e[#{col}m" + line
           sleep 0.15
         end

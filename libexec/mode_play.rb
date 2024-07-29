@@ -18,7 +18,7 @@ def do_play to_play
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if %w(pitch user).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra == 'user' && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
 
@@ -59,7 +59,16 @@ def do_play to_play
     case $extra
     when 'pitch'
 
-      play_interactive_pitch
+      key = if args_for_extra.length == 1
+              key_wo_digit = args_for_extra[0].gsub(/\d$/,'')
+              err "Unknown key '#{key_wo_digit}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(key_wo_digit)
+              args_for_extra[0]
+            elsif args_for_extra.length > 1
+              err "harpwise play pitch only accepts zero or one argument, not #{args_for_extra}"
+            else
+              nil
+            end
+      play_interactive_pitch(start_key: key)
 
     when 'interval', 'inter'
 
@@ -80,16 +89,17 @@ def do_play to_play
     when 'chord'
 
       puts "A chord"
-      semis = args_for_extra.map do |hon|
-        if $harp_holes.include?(hon)
-          $harp[hon][:semi]
-        elsif semi = note2semi(hon, 2..8, true)
-          semi
+      err "Need at least two holes or notes to play a chord" unless args_for_extra.length >= 1
+      _, first = hole_or_note_or_semi(args_for_extra[0], false)
+      semis = args_for_extra[1 .. -1].map do |arg|
+        tp, sem = hole_or_note_or_semi(arg)
+        if tp == :diff
+          first + sem
         else
-          err "Can only play holes or notes, but not this: #{hon}"
+          sem
         end
       end
-      err "Need at least two holes or notes to play a chord" unless semis.length >= 1
+      semis.unshift(first)
       play_interactive_chord semis, args_for_extra
 
     when 'user'
@@ -197,38 +207,34 @@ end
 
 def hole_or_note_or_semi hns, diff_allowed = true
 
-  types = Array.new
-  values = Array.new
-
   # check if argument is interval or absolute note or hole or event or
   # many of them
 
-  what = recognize_among(hns, [:hole, :note, :inter, :semi_note])
-  case what
-  when :hole
-    types << :abs
-    values << note2semi($hole2note[hns])
-  when :note
-    values << note2semi(hns)
-    types << :abs
-  when :inter
-    types << :diff
-    values << $intervals_inv[hns].to_i
-  when :semi_note
-    types << :diff
-    values << hns.to_i
-  end
+  amongs = if diff_allowed
+             [:hole, :note, :inter, :semi_note]
+           else
+             [:hole, :note]
+           end
+  what = recognize_among(hns, amongs)
+  type, value = case what
+                when :hole
+                  [:abs, note2semi($hole2note[hns])]
+                when :note
+                  [:abs, note2semi(hns)]
+                when :inter
+                  [:diff, $intervals_inv[hns].to_i]
+                when :semi_note
+                  [:diff, hns.to_i]
+                else
+                  [nil, nil]
+                end
 
-  fail "Internal error: #{types}" if types.length >= 3
-  
-  if types.length == 0
-    amongs = [:hole, :note]
-    amongs.append(:semi_inter, :inter) if diff_allowed
+  if !type
     print_amongs(*amongs)
-    err "Given argument #{hns} is none those given above"
+    err "Given argument #{hns} is none of those given above"
   end
-
-  return types, values
+  
+  return type, value
 end
 
 
@@ -249,20 +255,17 @@ def normalize_interval args
   end
   s1 = s2 = 0
   case tt
-  when [[:abs, :diff], [:abs, :diff]]
-    s1 = vv[0][0]
-    s2 = vv[1][0]
-  when [[:diff], [:diff]]
+  when [:abs, :abs]
+    s1 = vv[0]
+    s2 = vv[1]
+  when [:diff, :diff]
     err "You specified two semitone-differences but no base note: #{args}"
-  when [[:abs, :diff], [:diff]], [[:abs], [:diff]]
-    s1 = vv[0][0]
-    s2 = s1 + vv[1][0]
-  when [[:diff], [:abs, :diff]], [[:diff], [:abs]]
-    s1 = vv[1][0]
-    s2 = s1 + vv[0][0]
-  when [[:abs], [:abs]], [[:abs, :diff], [:abs]], [[:abs], [:abs, :diff]]
-    s1 = vv[0][0]
-    s2 = vv[1][0]
+  when [:abs, :diff]
+    s1 = vv[0]
+    s2 = s1 + vv[1]
+  when [:diff, :abs]
+    s1 = vv[1]
+    s2 = s1 + vv[0]
   else
     fail "Internal error: unmatched: #{tt}"
   end
@@ -274,12 +277,12 @@ end
 def base_and_delta_to_semis base_and_delta
   prog = Array.new
   bt, bv = hole_or_note_or_semi(base_and_delta[0], false)
-  err "Progression should start with an absolute value (hole or note), but not with a semitone difference like #{base_and_delta[0]}" if bt == [:diff]
-  prog << bv[0]
+  err "Progression should start with an absolute value (hole or note), but not with a semitone difference like #{base_and_delta[0]}" if bt == :diff
+  prog << bv
   base_and_delta[1 .. -1].each do |diff|
     dt, dv = hole_or_note_or_semi(diff)
-    err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}; remark: in case of ambiguities between holes and semitones add 'st' to semitones, like in '3st'" if dt.include?(:abs)
-    prog << prog[0] + dv[-1]
+    err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}; remark: in case of ambiguities between holes and semitones add 'st' to semitones, like in '3st'" if dt == :abs
+    prog << prog[0] + dv
   end
   prog
 end

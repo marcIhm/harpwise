@@ -188,7 +188,7 @@ def display_kb_help what, scroll_allowed, body
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   if scroll_allowed
-    puts "\n\e[0m\e[2mcontinue\e[0m"
+    puts "\n\e[0m\e[2mdone with help\e[0m"
     puts
   else
     clear_area_comment
