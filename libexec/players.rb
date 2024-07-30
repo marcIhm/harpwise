@@ -302,10 +302,10 @@ def play_interactive_pitch embedded: false, explain: true,
       if $ctl_pitch[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[32mplaying on\e[0m"
+          puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
         else
           paused = true
-          print $resources[:playing_is_paused]          
+          print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
         end
       elsif $ctl_pitch[:vol_up]
         $vol.inc
@@ -445,10 +445,10 @@ def play_interactive_interval semi1, semi2
       if $ctl_inter[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[32mplaying on\e[0m"
+          puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
         else
           paused = true
-          print $resources[:playing_is_paused]
+          print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"          
         end
       elsif $ctl_inter[:up] || $ctl_inter[:down]
         step =  $ctl_inter[:up]  ?  +1  :  -1
@@ -586,11 +586,11 @@ def play_interactive_chord semis, args_orig
       if $ctl_chord[:pause_continue]
         if paused
           paused = false
-          puts "\e[0m\e[32mplaying on\e[0m"
+          puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
           puts "#{cdesc}"
         else
           paused = true
-          print $resources[:playing_is_paused]
+          print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
         end
       elsif $ctl_chord[:vol_up]
         $vol.inc
@@ -651,11 +651,13 @@ def play_interactive_chord semis, args_orig
 end
 
 
-def play_interactive_progression prog
+def play_interactive_progression prog, prog_disp
   fmt = ' ' + '|%8s ' * 4 + '|'
-  print "\e[0m\e[2m(type 'h' for help)\e[0m\n\n"
-  loop = quit = change_semis = false
-  iteration = 1
+  print "\nPlaying progression: #{prog_disp}\n\n"
+  print "\e[0m\e[2mWhile the progression plays, you may shift its next iteration\nby pressing appropriate keys.\n\nSPACE to pause, h for help; looping is ON\e[0m\n\n"
+  quit = change_semis = false
+  loop = true
+  # loop repeating the progression
   begin
     if change_semis
       prog.map! {|s| s += change_semis}
@@ -665,21 +667,30 @@ def play_interactive_progression prog
     
     puts fmt % ['Holes', 'Notes', 'abs st', 'rel st']
     puts ' ' + '|---------' * 4 + '|'
-    holes.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
-      line = fmt % [ho, no, as, rs]
-
-      print "\n\n\n\e[3A"
-      print "\e[0m\e[32m#{line}\e[0m"
-      play_semi_and_handle_kb as
-      print "\r\e[0m#{line}\n"
+    $ctl_prog[:prefix] = nil    
+    # loop over holes of progression
+    [holes, :delay, :delay, :delay, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
+      if ho == :delay
+        sleep 0.2
+        handle_kb_play_semis        
+      else
+        line = fmt % [ho, no, as, rs]
+        print "\n\n\n\e[3A\e[G"
+        # for wsl2 (2024-07-30): this delay seems to necessary to make
+        # the green-white animation work (bug in term ?)
+        sleep 0.1
+        print "\e[G\e[0m#{line}\e[0m\n"
+        play_semi_and_handle_kb as, wave: 'pluck'
+        sleep 0.4
+      end
 
       if $ctl_prog[:show_help]
         display_kb_help 'a semitone progression', true,
                         "  SPACE: pause/continue\n" +
                         "    0-9: add to prefix for semitone step\n" +
                         "    ESC: clear semitone prefix\n" +
-                        "    s,+: shift whole prog by one (or prefix) semitones up\n" +
-                        "    S,-: shift whole progression down\n" +
+                        "  u,s,+: shift next iteration of progression UP by one (or prefix) semitones\n" +
+                        "  d,S,-: shift next iteration of progression DOWN\n" +
                         "      v: decrease volume by 3db           V: increase volume\n" +
                         "      l: toggle looping of progression    q: quit after iteration"
         $ctl_prog[:show_help] = false
@@ -712,12 +723,10 @@ def play_interactive_progression prog
         quit = true
         print "\e[0m\e[2mQuit after this iteration\e[0m\n"
       end
-    end
-    print "\e[0m\e[2mIteration #{iteration} done ...\e[0m\n\n" if loop || change_semis
+    end  ## loop over holes of progression
+    print "\n\n" if loop || change_semis
     break if quit
-    iteration += 1
-  end while loop || change_semis
-  puts "\n\e[2m(done with progression, looping no enabled)\e[0m\n\n"
+  end while loop || change_semis  ## loop repeating the progression
   puts
 end
 

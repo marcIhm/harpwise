@@ -330,11 +330,11 @@ def play_hole_or_note_simple_and_handle_kb note, duration
 end
 
 
-def play_semi_and_handle_kb semi
+def play_semi_and_handle_kb semi, wave: 'sawtooth'
   cmd = if $testing
           "sleep 1"
         else
-          "play --norm=#{$vol.to_i} -q -n synth #{( $opts[:fast] ? 1 : 0.5 )} sawtooth %#{semi}"
+          "play --norm=#{$vol.to_i} -q -n synth #{( $opts[:fast] ? 1 : 0.5 )} #{wave} %#{semi}"
         end
   
   _, stdout_err, wait_thr  = Open3.popen2e(cmd)

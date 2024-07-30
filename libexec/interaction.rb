@@ -438,13 +438,13 @@ def handle_kb_play_semis
   elsif %w(0 1 2 3 4 5 6 7 8 9).include?(char)
     $ctl_prog[:prefix] = '' unless $ctl_prog[:prefix]
     $ctl_prog[:prefix] += char
-    print "\n\e[0m\e[2mprefix is #{$ctl_prog[:prefix]}\e[0m\n"
+    print "\e[0m\e[2mprefix is #{$ctl_prog[:prefix]}\e[0m\n"
   elsif char == 'ESC'
     $ctl_prog[:prefix] = nil
-    print "\n\e[0m\e[2mprefix cleared\e[0m\n"
-  elsif char == 's' || char == '+'
+    print "\e[0m\e[2mprefix cleared\e[0m\n"
+  elsif char == 's' || char == '+' || char == 'u'
     $ctl_prog[:semi_up] = true
-  elsif char == 'S' || char == '-'
+  elsif char == 'S' || char == '-' || char == 'd'
     $ctl_prog[:semi_down] = true
   elsif char == 'v'
     $ctl_prog[:vol_down] = true

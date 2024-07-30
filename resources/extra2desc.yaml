@@ -14,7 +14,9 @@ play:
   interval, inter: |
     interactive, adjustable interval given as arguments
   progression, prog: |
-    take a base and some semitone diffs, then play it
+    take a base and some semitone diffs, then play it in a loop,
+    allowing e.g. to shift each iteration by some semitones e.g.
+    through a chord-progression of i-iv-v
   chord: |
     play the given holes or notes simultanously as a chord
   user: |

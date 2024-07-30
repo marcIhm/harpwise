@@ -84,7 +84,7 @@ def do_play to_play
       
       err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
       prog = base_and_delta_to_semis(args_for_extra)
-      play_interactive_progression prog
+      play_interactive_progression prog, args_for_extra.join(' ')
 
     when 'chord'
 
