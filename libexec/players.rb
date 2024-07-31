@@ -651,25 +651,54 @@ def play_interactive_chord semis, args_orig
 end
 
 
-def play_interactive_progression prog, prog_disp
+def play_interactive_progression progs, progs_disp
   fmt = ' ' + '|%8s ' * 4 + '|'
-  print "\nPlaying progression: #{prog_disp}\n\n"
-  print "\e[0m\e[2mWhile the progression plays, you may shift its next iteration\nby pressing appropriate keys.\n\nSPACE to pause, h for help; looping is ON\e[0m\n\n"
+  puts "\nProgressions are: "
+  progs_disp.each {|p| puts '  ' + p}
+  print "\n\n"
+  
+  puts "\e[0m\e[2mWhile a progression play, you may shift its next iteration\nby pressing appropriate keys,"
+  if progs.length == 1
+    puts "You specified one progression only, but multiple are accepted too, separated by ' . '"
+  else
+    puts "You may also switch between progressions for each next iteration"
+  end
+  print "\nSPACE to pause, h for help; looping is ON\e[0m\n\n"
   quit = change_semis = false
+  total_semis = total_semis_was = 0
+  progs_idx = 0
+  progs_idx_was = -1
   loop = true
+
   # loop repeating the progression
   begin
+    prog = progs[progs_idx]
     if change_semis
       prog.map! {|s| s += change_semis}
+      total_semis += change_semis
       change_semis = false
     end
     holes, notes, abs_semis, rel_semis = get_progression_views(prog)
+
+    if progs_idx != progs_idx_was
+      print "\e[2mProgression is: #{progs_disp[progs_idx]}"
+      print "\n\n\e[0m"
+      progs_idx_was = progs_idx
+    end
     
+    if total_semis != total_semis_was
+      print "\e[2mTotal shift is #{total_semis} semitones"
+      print ", #{$intervals[total_semis][0]}" if $intervals[total_semis]
+      print "\n\n\e[0m"
+      total_semis_was = total_semis
+    end
+ 
     puts fmt % ['Holes', 'Notes', 'abs st', 'rel st']
     puts ' ' + '|---------' * 4 + '|'
     $ctl_prog[:prefix] = nil    
+
     # loop over holes of progression
-    [holes, :delay, :delay, :delay, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
+    [holes, :delay, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
       if ho == :delay
         sleep 0.2
         handle_kb_play_semis        
@@ -686,26 +715,26 @@ def play_interactive_progression prog, prog_disp
 
       if $ctl_prog[:show_help]
         display_kb_help 'a semitone progression', true,
-                        "  SPACE: pause/continue\n" +
-                        "    0-9: add to prefix for semitone step\n" +
-                        "    ESC: clear semitone prefix\n" +
-                        "  u,s,+: shift next iteration of progression UP by one (or prefix) semitones\n" +
-                        "  d,S,-: shift next iteration of progression DOWN\n" +
-                        "      v: decrease volume by 3db           V: increase volume\n" +
-                        "      l: toggle looping of progression    q: quit after iteration"
+                        "    SPACE: pause/continue\n" +
+                        "      0-9: add to prefix for semitone step\n" +
+                        "      ESC: clear semitone prefix\n" +
+                        "    u,s,+: shift next iteration of progression UP by one (or prefix) semitones\n" +
+                        "    d,S,-: shift next iteration of progression DOWN\n" +
+                        "  <,>,p,n: switch to previous or next progression (if more than one)\n" +
+                        "        v: decrease volume by 3db           V: increase volume\n" +
+                        "        l: toggle looping of progression    q: quit after iteration"
         $ctl_prog[:show_help] = false
       elsif $ctl_prog[:pause_continue]
         space_to_cont
         print "go\e[0m\n"
-        puts
         sleep 0.5
         $ctl_prog[:pause_continue] = false
       elsif $ctl_prog[:semi_up] || $ctl_prog[:semi_down]
         # things happen at start if outside loop
         change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up]  ?  +1  :  -1 )
-        $ctl_prog[:prefix] = nil
         print "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones #{$ctl_prog[:semi_up] ? 'UP' : 'DOWN'}\e[0m\n"
         $ctl_prog[:semi_up] = $ctl_prog[:semi_down] = false
+        $ctl_prog[:prefix] = nil
       elsif $ctl_prog[:vol_up]
         $ctl_prog[:vol_up] = false
         $vol.inc
@@ -718,6 +747,22 @@ def play_interactive_progression prog, prog_disp
         $ctl_prog[:toggle_loop] = false
         loop = !loop
         print "\e[0m\e[2mloop: #{loop ? 'ON' : 'OFF'}\e[0m\n"
+      elsif $ctl_prog[:prev_prog]
+        $ctl_prog[:prev_prog] = false
+        progs_idx = (progs_idx + 1) % progs.length
+        if progs.length == 1
+          print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
+        else
+          print "\e[0m\e[2mprevious progression\e[0m\n"
+        end
+      elsif $ctl_prog[:next_prog]
+        $ctl_prog[:next_prog] = false
+        progs_idx = (progs_idx - 1) % progs.length
+        if progs.length == 1
+          print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
+        else
+          print "\e[0m\e[2mnext progression\e[0m\n"
+        end
       elsif $ctl_prog[:quit]
         $ctl_prog[:quit] = false
         quit = true

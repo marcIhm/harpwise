@@ -113,10 +113,16 @@ USAGE BY EXAMPLES
   to get the i-chord again, then 7 etc., etc. until all 12 bars have
   been played.
 
-  Alternatively, you may get a similar result by playing predefined
-  licks. As harpwise comes with licks of the 'box pattern' for chords
-  i, iv and v, you may ask the wise to play the bass-line of a 12-bar
-  blues like this:
+  If you want to switch between multiple progressions, separate them
+  by a dot ('.') like so (using both progressions from above):
+
+    harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+
+
+  Alternatively (and without using the progression feature) you may
+  get a similar result by playing predefined licks. As harpwise comes
+  with licks of the 'box pattern' for chords i, iv and v, you may ask
+  the wise to play the bass-line of a 12-bar blues like this:
 
     harpwise play box1-i box1-i box1-i box1-i box1-iv box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
 

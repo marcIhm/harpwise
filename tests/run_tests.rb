@@ -109,7 +109,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 92
+num_exp = 93
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2058,19 +2058,21 @@ end
 
 do_test 'id-65: play progression' do
   new_session
-  tms 'harpwise play prog a3 5st 9st oct'
+  tms 'harpwise play prog a3 5st 9st oct . a4 5st +7st -3st'
   tms :ENTER
   sleep 1
   tms '5'
   sleep 0.5
   tms 's'
   sleep 1
+  tms 'p'
+  sleep 1
   tms 'q'
   wait_for_end_of_harpwise
-  expect { screen.any? {|l| l['|      -- |      a3 |     -12 |       0 |']} }
-  expect { screen.any? {|l| l['|      -1 |      d4 |      -7 |       5 |']} }
+  expect { screen.any? {|l| l['|    -3// |      a4 |       0 |      12 |']} }
   expect { screen.any? {|l| l['next iteration: 5 semitones UP']} }
   expect { screen.any? {|l| l['Quit after this iteration']} }
+  expect { screen.any? {|l| l['previous progression']} }  
   kill_session
 end
 

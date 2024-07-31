@@ -452,6 +452,10 @@ def handle_kb_play_semis
     $ctl_prog[:vol_up] = true
   elsif char == 'l'
     $ctl_prog[:toggle_loop] = true
+  elsif char == '<' || char == 'p'
+    $ctl_prog[:prev_prog] = true
+  elsif char == '>' || char == 'n'
+    $ctl_prog[:next_prog] = true
   elsif char == 'h'
     $ctl_prog[:show_help] = true
   elsif char == 'q'

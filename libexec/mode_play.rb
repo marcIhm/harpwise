@@ -83,8 +83,10 @@ def do_play to_play
     when 'progression', 'prog'
       
       err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
-      prog = base_and_delta_to_semis(args_for_extra)
-      play_interactive_progression prog, args_for_extra.join(' ')
+      progs = args_for_extra.join(' ').split('.').map {|p| p.split.map {|hns| hns.strip}}
+      play_interactive_progression(
+        progs.map {|p| base_and_delta_to_semis(p)},
+        progs.map {|p| p.join(' ')} )
 
     when 'chord'
 

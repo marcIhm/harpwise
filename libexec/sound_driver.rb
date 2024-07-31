@@ -345,7 +345,7 @@ def play_semi_and_handle_kb semi, wave: 'sawtooth'
     # this sets $ctl_prog, which will be used by caller one level up
     handle_kb_play_semis
   end while wait_thr.alive?
-  wait_thr.join   # raises any errors from thread
+  wait_thr.join  ## raises any errors from thread
 end
 
 
