@@ -669,13 +669,13 @@ def play_interactive_progression progs, progs_disp
   progs_disp.each_with_index {|pr, ix| puts "   (#{ix+1})  #{pr}"}
   print "\n\n"
   
-  puts "\e[0m\e[2mWhile a progression play, you may shift its next iteration\nby pressing appropriate keys,"
+  puts "\e[0m\e[2mWhile a progression play, you may shift its next iteration\nby pressing appropriate keys"
   if progs.length == 1
     puts "You specified one progression only, but multiple are accepted too, separated by ' . '"
   else
     puts "You may also switch between progressions for each next iteration"
   end
-  print "\nSPACE to pause, h for help; looping is ON\nkeys are handled after each note or during pause\e[0m\n\n"
+  print "\nSPACE to pause, h for help;   looping is  ON\e[0m\n\n"
   quit = change_semis = false
   total_semis = total_semis_was = 0
   progs_idx = 0
