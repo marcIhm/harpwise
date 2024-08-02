@@ -170,7 +170,7 @@ def describe_scales_maybe scales, type
 end
 
 
-def display_kb_help what, scroll_allowed, body
+def display_kb_help what, scroll_allowed, body, wait_for_key: true
   if scroll_allowed
     puts "\n\e[0m"
   else
@@ -184,11 +184,14 @@ def display_kb_help what, scroll_allowed, body
   body.lines.each do |l|
     puts ( ' ' * indent ) + l.gsub(/(\S+): /, "\e[92m\\1\e[32m: ").chomp + "\n"
   end
-  print "\e[0m#{$resources[:any_key]}"
-  $ctl_kb_queue.clear
-  $ctl_kb_queue.deq
+  if wait_for_key
+    print "\e[0m#{$resources[:any_key]}"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    puts
+  end
   if scroll_allowed
-    puts "\n\e[0m\e[2mdone with help\e[0m"
+    puts "\e[0m\e[2mdone with help.\e[0m"
     puts
   else
     clear_area_comment

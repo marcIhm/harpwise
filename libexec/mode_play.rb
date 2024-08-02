@@ -82,8 +82,14 @@ def do_play to_play
       
     when 'progression', 'prog'
       
-      err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
-      progs = args_for_extra.join(' ').split('.').map {|p| p.split.map {|hns| hns.strip}}
+      err "Need at a base hole or note and some semitone diffs or intervals, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
+      progs = args_for_extra.
+                # replace dot by something unlikely, because some day
+                # it might also be part of a hole-notation
+                map {|a| a == '.'  ?  '###'  :  a}.  
+                join(' ').
+                split('###').
+                map {|p| p.split.map {|hns| hns.strip}}
       play_interactive_progression(
         progs.map {|p| base_and_delta_to_semis(p)},
         progs.map {|p| p.join(' ')} )
@@ -91,7 +97,7 @@ def do_play to_play
     when 'chord'
 
       puts "A chord"
-      err "Need at least two holes or notes to play a chord" unless args_for_extra.length >= 1
+      err "Need at least two holes or notes or semitone-diffs or intervals, e.g. 'c3 7st'" unless args_for_extra.length >= 1
       _, first = hole_or_note_or_semi(args_for_extra[0], false)
       semis = args_for_extra[1 .. -1].map do |arg|
         tp, sem = hole_or_note_or_semi(arg)

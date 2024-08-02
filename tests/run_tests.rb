@@ -2019,7 +2019,7 @@ do_test 'id-62: play interval' do
   expect { screen[15]['Keys available while playing an interval:'] }
   tms 'x'
   sleep 1
-  expect { screen[21] == 'done with help' }
+  expect { screen[21] == 'done with help.' }
   # still alive after help ?
   tms ' '
   sleep 1
@@ -2070,7 +2070,7 @@ do_test 'id-65: play progression' do
   tms 'q'
   wait_for_end_of_harpwise
   expect { screen.any? {|l| l['|    -3// |      a4 |       0 |      12 |']} }
-  expect { screen.any? {|l| l['next iteration: 5 semitones UP']} }
+  expect { screen.any? {|l| l['next iteration: 5 semitones (perf Fourth) UP']} }
   expect { screen.any? {|l| l['Quit after this iteration']} }
   expect { screen.any? {|l| l['previous progression']} }  
   kill_session

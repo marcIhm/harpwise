@@ -330,25 +330,6 @@ def play_hole_or_note_simple_and_handle_kb note, duration
 end
 
 
-def play_semi_and_handle_kb semi, wave: 'sawtooth'
-  cmd = if $testing
-          "sleep 1"
-        else
-          "play --norm=#{$vol.to_i} -q -n synth #{( $opts[:fast] ? 1 : 0.5 )} #{wave} %#{semi}"
-        end
-  
-  _, stdout_err, wait_thr  = Open3.popen2e(cmd)
-
-  # loop to check repeatedly while the semitone is beeing played
-  begin
-    sleep 0.1
-    # this sets $ctl_prog, which will be used by caller one level up
-    handle_kb_play_semis
-  end while wait_thr.alive?
-  wait_thr.join  ## raises any errors from thread
-end
-
-
 def synth_for_inter_or_chord semis, files, gap, len, wave = :pluck
   fail 'Internal error: unequal param len' unless semis.length == files.length
   im_files = [1, 2].map {|i| "#{$dirs[:tmp]}/intermediate_#{i}.wav"}

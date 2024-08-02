@@ -53,7 +53,6 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
     begin
       sleep 0.1
       handle_kb_play_recording
-
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         pplayer.pause
@@ -267,7 +266,7 @@ def play_interactive_pitch embedded: false, explain: true,
   puts
   print_pitch_information(semi)
 
-  # loop forever until ctrl-c; loop on every key
+  # loop forever until ctrl-c
   loop do
     # we also loop when paused, so that user can change other settings during pause
     if paused
@@ -275,9 +274,14 @@ def play_interactive_pitch embedded: false, explain: true,
         pplayer.kill
         pplayer.check
       end
+      sleep 0.1
     else
       # semi+7 because key of song, rather than key of harp is wanted
-      cmd = "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} %#{semi+7}"
+      cmd = if $testing then 
+              "sleep 1"
+            else
+              "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} %#{semi+7}"
+            end
       if cmd_was != cmd || !pplayer&.alive?
         pplayer.kill if pplayer&.alive?
         pplayer&.check
@@ -307,6 +311,7 @@ def play_interactive_pitch embedded: false, explain: true,
           paused = true
           print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
         end
+        $ctl_rec[:pause_continue] = false        
       elsif $ctl_pitch[:vol_up]
         $vol.inc
         puts "\e[0m\e[2m#{$vol}\e[0m"
@@ -348,7 +353,8 @@ def play_interactive_pitch embedded: false, explain: true,
                         "      o: one octave up         O: one octave down\n" +
                         "      f: one fifth up          F: one fifth down\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
-                        ( embedded  ?  ' RETURN: accept'  :  ' RETURN: play again')
+                        ( embedded  ?  ' RETURN: accept'  :  ' RETURN: play again'),
+                        wait_for_key: !paused
         pplayer.continue
         print_pitch_information(semi)
       elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
@@ -410,6 +416,7 @@ def play_interactive_interval semi1, semi2
         pplayer.kill
         pplayer.check
       end
+      sleep 0.1
     else
       if new_sound || !pplayer&.alive?
         if pplayer
@@ -450,6 +457,7 @@ def play_interactive_interval semi1, semi2
           paused = true
           print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"          
         end
+        $ctl_rec[:pause_continue] = false        
       elsif $ctl_inter[:up] || $ctl_inter[:down]
         step =  $ctl_inter[:up]  ?  +1  :  -1
         semi1 += step
@@ -502,7 +510,8 @@ def play_interactive_interval semi1, semi2
                         "       g: decrease time gap             G: increase\n" +
                         "       l: decrease length               L: increase\n" +
                         "       v: decrease volume by 3db        V: increase volume\n" +
-                        "       s: swap notes               RETURN: play again"
+                        "       s: swap notes               RETURN: play again",
+                        wait_for_key: !paused
         pplayer.continue unless paused
       elsif $ctl_inter[:quit]
         $ctl_inter[:quit] = false
@@ -553,6 +562,7 @@ def play_interactive_chord semis, args_orig
         pplayer.kill
         pplayer.check
       end
+      sleep 0.1
     else
       if new_sound || !pplayer&.alive?
         if pplayer
@@ -635,7 +645,8 @@ def play_interactive_chord semis, args_orig
                         "      g: decrease time gap     G: increase\n" +
                         "      l: decrease length       L: increase\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
-                        " RETURN: play again"
+                        " RETURN: play again",
+                        wait_for_key: !paused
         pplayer.continue
         puts "\e[0m#{cdesc}"
       elsif $ctl_chord[:quit]
@@ -652,9 +663,10 @@ end
 
 
 def play_interactive_progression progs, progs_disp
+
   fmt = ' ' + '|%8s ' * 4 + '|'
   puts "\nProgressions are: "
-  progs_disp.each {|p| puts '  ' + p}
+  progs_disp.each_with_index {|pr, ix| puts "   (#{ix+1})  #{pr}"}
   print "\n\n"
   
   puts "\e[0m\e[2mWhile a progression play, you may shift its next iteration\nby pressing appropriate keys,"
@@ -663,12 +675,13 @@ def play_interactive_progression progs, progs_disp
   else
     puts "You may also switch between progressions for each next iteration"
   end
-  print "\nSPACE to pause, h for help; looping is ON\e[0m\n\n"
+  print "\nSPACE to pause, h for help; looping is ON\nkeys are handled after each note or during pause\e[0m\n\n"
   quit = change_semis = false
   total_semis = total_semis_was = 0
   progs_idx = 0
   progs_idx_was = -1
   loop = true
+  pplayer = nil
 
   # loop repeating the progression
   begin
@@ -681,94 +694,122 @@ def play_interactive_progression progs, progs_disp
     holes, notes, abs_semis, rel_semis = get_progression_views(prog)
 
     if progs_idx != progs_idx_was
-      print "\e[2mProgression is: #{progs_disp[progs_idx]}"
-      print "\n\n\e[0m"
+      print "\e[2mProgression is (#{progs_idx + 1}): #{progs_disp[progs_idx]}\e[0m\n\n"
       progs_idx_was = progs_idx
     end
     
     if total_semis != total_semis_was
       print "\e[2mTotal shift is #{total_semis} semitones"
       print ", #{$intervals[total_semis][0]}" if $intervals[total_semis]
-      print "\n\n\e[0m"
+      print "\e[0m\n\n"
       total_semis_was = total_semis
     end
- 
+
+    
     puts fmt % ['Holes', 'Notes', 'abs st', 'rel st']
+    sleep 0.05
     puts ' ' + '|---------' * 4 + '|'
+    sleep 0.05
     $ctl_prog[:prefix] = nil    
 
     # loop over holes of progression
-    [holes, :delay, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
-      if ho == :delay
-        sleep 0.2
-        handle_kb_play_semis        
-      else
-        line = fmt % [ho, no, as, rs]
-        print "\n\n\n\e[3A\e[G"
-        # for wsl2 (2024-07-30): this delay seems to necessary to make
-        # the green-white animation work (bug in term ?)
-        sleep 0.1
-        print "\e[G\e[0m#{line}\e[0m\n"
-        play_semi_and_handle_kb as, wave: 'pluck'
-        sleep 0.4
-      end
+    [holes, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
 
-      if $ctl_prog[:show_help]
-        display_kb_help 'a semitone progression', true,
-                        "    SPACE: pause/continue\n" +
-                        "      0-9: add to prefix for semitone step\n" +
-                        "      ESC: clear semitone prefix\n" +
-                        "    u,s,+: shift next iteration of progression UP by one (or prefix) semitones\n" +
-                        "    d,S,-: shift next iteration of progression DOWN\n" +
-                        "  <,>,p,n: switch to previous or next progression (if more than one)\n" +
-                        "        v: decrease volume by 3db           V: increase volume\n" +
-                        "        l: toggle looping of progression    q: quit after iteration"
-        $ctl_prog[:show_help] = false
-      elsif $ctl_prog[:pause_continue]
-        space_to_cont
-        print "go\e[0m\n"
-        sleep 0.5
-        $ctl_prog[:pause_continue] = false
-      elsif $ctl_prog[:semi_up] || $ctl_prog[:semi_down]
-        # things happen at start if outside loop
-        change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up]  ?  +1  :  -1 )
-        print "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones #{$ctl_prog[:semi_up] ? 'UP' : 'DOWN'}\e[0m\n"
-        $ctl_prog[:semi_up] = $ctl_prog[:semi_down] = false
-        $ctl_prog[:prefix] = nil
-      elsif $ctl_prog[:vol_up]
-        $ctl_prog[:vol_up] = false
-        $vol.inc
-        puts "\e[0m\e[2m#{$vol}\e[0m"
-      elsif $ctl_prog[:vol_down]
-        $ctl_prog[:vol_down] = false
-        $vol.dec
-        puts "\e[0m\e[2m#{$vol}\e[0m"
-      elsif $ctl_prog[:toggle_loop]
-        $ctl_prog[:toggle_loop] = false
-        loop = !loop
-        print "\e[0m\e[2mloop: #{loop ? 'ON' : 'OFF'}\e[0m\n"
-      elsif $ctl_prog[:prev_prog]
-        $ctl_prog[:prev_prog] = false
-        progs_idx = (progs_idx + 1) % progs.length
-        if progs.length == 1
-          print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
-        else
-          print "\e[0m\e[2mprevious progression\e[0m\n"
-        end
-      elsif $ctl_prog[:next_prog]
-        $ctl_prog[:next_prog] = false
-        progs_idx = (progs_idx - 1) % progs.length
-        if progs.length == 1
-          print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
-        else
-          print "\e[0m\e[2mnext progression\e[0m\n"
-        end
-      elsif $ctl_prog[:quit]
-        $ctl_prog[:quit] = false
-        quit = true
-        print "\e[0m\e[2mQuit after this iteration\e[0m\n"
+      if ho != :delay
+        line = fmt % [ho, no, as, rs]
+        3.times { puts ; sleep 0.05 }
+        print "\e[3A\e[G"
+        print "\e[G\e[0m#{line}\e[0m\n"
       end
+      
+      if pplayer
+        pplayer.kill
+        pplayer.check
+      end
+      cmd = if ho == :delay
+              "sleep 0.1"
+            elsif $testing
+              "sleep 1"
+            else
+              "play --norm=#{$vol.to_i} -q -n synth #{( $opts[:fast] ? 1 : 0.5 )} pluck %#{as}"
+            end
+      pplayer = PausablePlayer.new(cmd)
+      paused = false
+      
+      # we also loop when paused, so that user can change other settings during pause
+      # loop while playing or paused
+      begin
+
+        handle_kb_play_semis
+
+        if $ctl_prog[:pause_continue]
+          if paused
+            paused = false
+            pplayer.continue
+            puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
+          else
+            paused = true
+            pplayer.pause
+            print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
+          end
+          $ctl_prog[:pause_continue] = false        
+        elsif $ctl_prog[:show_help]
+          display_kb_help 'a semitone progression', true,
+                          "    SPACE: pause/continue\n" +
+                          "      0-9: add to prefix for semitone step\n" +
+                          "      ESC: clear semitone prefix\n" +
+                          "    u,s,+: shift next iteration of progression UP by one (or prefix) semitones\n" +
+                          "    d,S,-: shift next iteration of progression DOWN\n" +
+                          "  <,>,p,n: switch to previous or next progression (if more than one)\n" +
+                          "        v: decrease volume by 3db           V: increase volume\n" +
+                          "        l: toggle looping of progression    q: quit after iteration",
+                          wait_for_key: !paused
+          $ctl_prog[:show_help] = false
+        elsif $ctl_prog[:semi_up] || $ctl_prog[:semi_down]
+          # things happen at start if outside loop
+          change_semis_was = change_semis
+          change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up]  ?  +1  :  -1 )
+          ctxt = ( change_semis == change_semis_was  ?  '; unchanged; does not add up, rather use prefix'  :  '' )
+          itxt = ( $intervals[change_semis.abs]  ?  " (#{$intervals[change_semis.abs][0]})"  :  '' )
+          print "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones#{itxt} #{$ctl_prog[:semi_up] ? 'UP' : 'DOWN'}#{ctxt}\e[0m\n"
+          $ctl_prog[:semi_up] = $ctl_prog[:semi_down] = false
+          $ctl_prog[:prefix] = nil
+        elsif $ctl_prog[:vol_up]
+          $ctl_prog[:vol_up] = false
+          $vol.inc
+          puts "\e[0m\e[2m#{$vol}\e[0m"
+        elsif $ctl_prog[:vol_down]
+          $ctl_prog[:vol_down] = false
+          $vol.dec
+          puts "\e[0m\e[2m#{$vol}\e[0m"
+        elsif $ctl_prog[:toggle_loop]
+          $ctl_prog[:toggle_loop] = false
+          loop = !loop
+          print "\e[0m\e[2mloop: #{loop ? 'ON' : 'OFF'}\e[0m\n"
+        elsif $ctl_prog[:prev_prog]
+          $ctl_prog[:prev_prog] = false
+          progs_idx = (progs_idx + 1) % progs.length
+          if progs.length == 1
+            print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
+          else
+            print "\e[0m\e[2mprevious progression\e[0m\n"
+          end
+        elsif $ctl_prog[:next_prog]
+          $ctl_prog[:next_prog] = false
+          progs_idx = (progs_idx - 1) % progs.length
+          if progs.length == 1
+            print "\e[0m\e[2mjust one progression given, cannot change it\e[0m\n"
+          else
+            print "\e[0m\e[2mnext progression\e[0m\n"
+          end
+        elsif $ctl_prog[:quit]
+          $ctl_prog[:quit] = false
+          quit = true
+          print "\e[0m\e[2mQuit after this iteration\e[0m\n"
+        end
+      end while paused  || pplayer&.alive?  ## loop while playing or paused
     end  ## loop over holes of progression
+
     print "\n\n" if loop || change_semis
     break if quit
   end while loop || change_semis  ## loop repeating the progression
