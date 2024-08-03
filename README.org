@@ -47,16 +47,16 @@
   - Show full help on its capabilities
 
     
-  The image below links to a screencast, showing how harpwise (mode
-  'listen') reacts on notes played. No sound has been recorded, so some
-  accustic imagination is required.
+  The screencast below, shows how harpwise (mode 'listen') reacts on notes
+  beeng played. No sound has been recorded however, so some accustic
+  imagination is required ...
   
-  [[https://asciinema.org/a/670611][https://asciinema.org/a/670611.svg]]
+  [[images/harpwise-listen.gif]]
   
   The second screencast is from mode 'quiz', showing three of the many
-  flavours.
+  flavours: hole-hide-note, players and keep-tempo
   
-  [[https://asciinema.org/a/670612][https://asciinema.org/a/670612.svg]]
+  [[images/harpwise-quiz.gif]]
 
 * Installation
 
