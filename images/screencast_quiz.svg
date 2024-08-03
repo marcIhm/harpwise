@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="673.8666664" height="485.33321200000006" font-family="Consolas, Menlo, 'Bitstream Vera Sans Mono', monospace, 'Powerline Symbols'" font-size="14px">
+  <style>
+    .br { font-weight: bold }
+    .fa { fill-opacity: 0.5 }
+    .it { font-style: italic }
+    .un { text-decoration: underline }
+  </style>
+
+  <rect width="100%" height="100%" style="fill: #121314" rx="4" ry="4"></rect>
+
+  <svg x="8.42333333" y="9.333331000000001" class="default-text-fill">
+    <g style="shape-rendering: optimizeSpeed">
+
+        <rect x="16.84666666" y="354.666578" width="50.539999980000005" height="18.666662000000002" style="fill: #4ebf22"></rect>
+
+
+    </g>
+
+    <text style="fill: #cccccc">
+      <tspan y="0.0">
+        <tspan dy="1em" x="0.0" class="fa">
+Flavour accepted.
+        </tspan>
+      </tspan><tspan y="37.333324000000005">
+        <tspan dy="1em" x="0.0">
+Choosing a new key; hidden
+        </tspan>
+      </tspan><tspan y="74.66664800000001">
+        <tspan dy="1em" x="0.0" style="fill: #26b0d7">
+See the mapping of holes to notes below, pick the hidden note
+        </tspan>
+      </tspan><tspan y="111.99997200000001">
+        <tspan dy="1em" x="16.84666666" style="fill: #26b0d7">
+holes &#39;draw&#39;:
+        </tspan>
+      </tspan><tspan y="130.66663400000002">
+        <tspan dy="1em" x="92.65666663" style="fill: #26b0d7">
+-1
+        </tspan><tspan x="151.61999994" style="fill: #26b0d7">
+-2
+        </tspan><tspan x="210.58333325" style="fill: #26b0d7">
+-3
+        </tspan><tspan x="269.54666656" style="fill: #26b0d7">
+-4
+        </tspan><tspan x="328.50999987" style="fill: #26b0d7">
+-5
+        </tspan><tspan x="387.47333318" style="fill: #26b0d7">
+-6
+        </tspan>
+      </tspan><tspan y="149.33329600000002">
+        <tspan dy="1em" x="16.84666666" style="fill: #26b0d7">
+notes:
+        </tspan>
+      </tspan><tspan y="167.99995800000002">
+        <tspan dy="1em" x="101.07999996000001" style="fill: #26b0d7">
+?
+        </tspan><tspan x="160.04333327" style="fill: #26b0d7">
+d
+        </tspan><tspan x="210.58333325" style="fill: #26b0d7">
+gf
+        </tspan><tspan x="277.96999989" style="fill: #26b0d7">
+?
+        </tspan><tspan x="336.9333332" style="fill: #26b0d7">
+c
+        </tspan><tspan x="395.89666651" style="fill: #26b0d7">
+e
+        </tspan>
+      </tspan><tspan y="223.99994400000003">
+        <tspan dy="1em" x="0.0" class="fa">
+difficulty is &#39;EASY&#39;, taking common harp keys only
+        </tspan>
+      </tspan><tspan y="261.33326800000003">
+        <tspan dy="1em" x="0.0" class="fa">
+---------------------------------------
+        </tspan>
+      </tspan><tspan y="298.66659200000004">
+        <tspan dy="1em" x="0.0">
+Pick the hidden note in the hole-set &#39;draw&#39; given above:
+        </tspan>
+      </tspan><tspan y="317.333254">
+        <tspan dy="1em" x="0.0" class="fa">
+(any char or cursor keys to select, ? for short help)
+        </tspan>
+      </tspan><tspan y="354.666578">
+        <tspan dy="1em" x="16.84666666" style="fill: #000000">
+,again
+        </tspan><tspan x="84.2333333" class="fa">
+g
+        </tspan><tspan x="151.61999994" class="fa">
+af
+        </tspan><tspan x="219.00666658" class="fa">
+a
+        </tspan><tspan x="286.39333322" class="fa">
+bf
+        </tspan><tspan x="353.77999986000003" class="fa">
+b
+        </tspan><tspan x="421.1666665" class="fa">
+c
+        </tspan><tspan x="488.55333314" class="fa">
+df
+        </tspan><tspan x="555.93999978" class="fa">
+d
+        </tspan>
+      </tspan><tspan y="373.33324000000005">
+        <tspan dy="1em" x="16.84666666" class="fa">
+ef
+        </tspan><tspan x="84.2333333" class="fa">
+e
+        </tspan><tspan x="151.61999994" class="fa">
+f
+        </tspan><tspan x="219.00666658" class="fa">
+gf
+        </tspan><tspan x="286.39333322" class="fa">
+;controls-and-help-&gt;
+        </tspan><tspan x="488.55333314" class="fa">
+,solve
+        </tspan><tspan x="555.93999978" class="fa">
+,skip
+        </tspan>
+      </tspan><tspan y="391.999902">
+        <tspan dy="1em" x="16.84666666" class="fa">
+,describe
+        </tspan><tspan x="151.61999994" class="fa">
+,change-key
+        </tspan><tspan x="286.39333322" class="fa">
+.help-narrow
+        </tspan><tspan x="421.1666665" class="fa">
+.help-semis
+        </tspan>
+      </tspan><tspan y="447.99988800000006">
+        <tspan dy="1em" x="0.0" style="fill: #4ebf22">
+Repeat question
+        </tspan>
+      </tspan>
+    </text>
+  </svg>
+
+  <g transform="translate(-40 -40)">
+    <svg x="50%" y="50%" width="80" height="80">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000.0 1000.0" style="filter: drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.4))">
+  <defs>
+    <mask id="small-triangle-mask">
+      <rect width="100%" height="100%" fill="white"></rect>
+      <polygon points="700.0 500.0, 400.00000000000006 326.7949192431122, 399.9999999999999 673.2050807568877" fill="black">
+      </polygon>
+    </mask>
+  </defs>
+  <polygon points="1000.0 500.0, 250.0000000000001 66.98729810778059, 249.99999999999977 933.0127018922192" mask="url(#small-triangle-mask)" fill="white">
+  </polygon>
+  <polyline points="673.2050807568878 400.0, 326.7949192431123 600.0" stroke="white" stroke-width="90">
+  </polyline>
+</svg>
+    </svg>
+  </g>
+</svg>
