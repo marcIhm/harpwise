@@ -47,17 +47,16 @@
   - Show full help on its capabilities
 
     
-  The first screenshot is from mode 'listen': The program has recognized a
-  note from the blues scale and marks it in the harmonica chart.
+  The image below links to a screencast, showing how harpwise (mode
+  'listen') reacts on notes played. No sound has been recorded, so some
+  accustic imagination is required.
   
-  [[images/screenshot_listen.png]]
-
-  The second screenshot is from mode 'quiz', flavour 'recall': The program
-  has played five notes initially and now challenges to play them back.
-  
-  [[images/screenshot_quiz.png]]
-
   [[https://asciinema.org/a/670611][https://asciinema.org/a/670611.svg]]
+  
+  The second screencast is from mode 'quiz', showing three of the many
+  flavours.
+  
+  [[https://asciinema.org/a/670612][https://asciinema.org/a/670612.svg]]
 
 * Installation
 

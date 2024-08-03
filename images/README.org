@@ -10,7 +10,7 @@
 
   ./harpwise quiz replay 5 richter c blues --add-scales chord-v --display chart-notes --screenshot
 
-* How to produce asci-casts
+* How to produce ascii-casts
 
   With: stty size = 25 78
 
