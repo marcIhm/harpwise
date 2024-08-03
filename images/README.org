@@ -8,5 +8,41 @@
 
   ./harpwise listen richter c blues --add-scales chord-v --display chart-notes --comment holes-some --screenshot
 
-  ./harpwise quiz 5 richter c blues --add-scales chord-v --display chart-notes --screenshot
+  ./harpwise quiz replay 5 richter c blues --add-scales chord-v --display chart-notes --screenshot
 
+* How to produce asci-casts
+
+  With: stty size = 25 78
+
+  PS1="\$ "
+  clear
+
+** quiz
+   
+   asciinema rec -q -t "harpwise quiz" -c "~/harpwise/harpwise quiz choose --difficulty easy" --overwrite ~/harpwise-quiz.cast
+
+   Then:
+   - 'describe' (choose by typing down)
+     - do not scroll
+   - 'hole-hide-note' (down)
+     - ',solve'
+     - ctrl-z
+     - tab
+   - 'players' (choose by typing name)
+     - wrong try
+     - ',solve'
+     - ctrl-z
+     - tab
+   - 'keep-tempo' (choose by typing name)
+     - ctrl-c
+    
+** Listen
+   
+   asciinema rec -q -t "harpwise listen" -c "~/harpwise/harpwise listen c" --overwrite ~/harpwise-listen.cast
+
+   - Spielen
+     - Blues Scale
+   - Help
+     - j
+   - Journal
+     - +1 +2 +3 +4 +5 +6

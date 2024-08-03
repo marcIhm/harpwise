@@ -11,8 +11,9 @@ specifies the mode of operation; it can be one of:
 
   - listen: The wise listens to your playing, e.g. to monitor scales
     or bends
-  - quiz: Train your ear, memory and knowledge of music theory. This
-    is actually fun and a engaging way to start with harpwise.
+  - quiz: Train your ear, memory and knowledge of music theory with
+    many different flavours. This is actually fun and an engaging way
+    to start with harpwise.
   - licks: Learn licks (some included and pointers for more)
 
 And, less interactive:

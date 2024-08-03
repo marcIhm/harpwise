@@ -15,11 +15,11 @@
 
   [[images/harmonica3.png]]
 
-  Harpwise supports the practice of scales, licks, bends, warbles,
-  intervals or note-progressions on a diatonic (richter) or chromatic
-  harmonica for all keys. It uses your microphone and speaker to give you
-  immediate feedback.
-
+  A harmonica tool for the command line, using microphone and speaker. It
+  can assist your playing with scales and licks; it offers an explorable
+  quiz with many flavours and it brings tools and players for the various
+  needs of a player (either richter or chromatic).
+  
   Harpwise runs on the command line of Linux, MacOS and Windows (wsl2).
   
   It plays and hears single notes and can play (but not hear) chords.
@@ -79,7 +79,8 @@
 
 * Getting started
 
-  Get usage information by invoking harpwise without arguments:
+  Get usage information, especially a section on "Quick Start" by invoking
+  harpwise without arguments:
   
   ./harpwise
 
@@ -87,10 +88,13 @@
   This will show examples and options for its main operations:
   
   - listen: listen to your playing, e.g. to monitor bends or scales
-  - quiz: train your ear and musical knowledge with eight flavours
-  - licks: learn licks; a few are included and some pointers to more
-  - play: wise plays scales, holes, licks or a reference pitch
-  - print: print above or produce various reports
+  - quiz: train your ear, memory and knowledge of music theory with
+    many different flavours. This is actually fun and an engaging way
+    to start with harpwise.
+  - licks: learn licks ! A few are included and some pointers to more
+  - play: wise plays scales, holes, licks, chords, intervals, progressions
+    or a reference pitch
+  - print: print licks, scales, etc. or produce various reports
   - tools: utilities, mostly related to basic harmonica theory
   - calibrate: generate samples for holes or record your own
 
@@ -125,15 +129,15 @@
   In addition harpwise comes with a number of help sources:
 
   - This README gives some general background and context information
-  - The program harpwise will issue a usage information, if invoked wrong
-    or with too few arguments. This usage screens contain lots of
-    examples and descriptions for invoking harpwise and for the form of
-    its arguments and options.
+  - The program harpwise comes with a general usage text as well as texts
+    specific to each mode. These texts are shown, if harpwise is invoked
+    without arguments and contain lots of examples and descriptions for
+    invoking harpwise and for the form of its arguments and options.
   - When harpwise is running, especially in its main listen-perspective
     (see screenshots), you can press 'h' to get a short overview of all
     available keys.
   - The main menu facility of harpwise (which, at times, covers the lower
-    half of the screen and offers to choose between various items) often
+    half of the screen and offers to choose between various items), often
     shows one-line descriptions of its items at the bottom.
   
 * Configuration
