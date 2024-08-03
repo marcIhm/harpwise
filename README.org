@@ -1,21 +1,24 @@
 # -*- fill-column: 74 -*-
 
-*** Table of Contents                                                 :TOC_1:
-- [[#Screencasts][Screencasts]]
-- [[#Introduction][Introduction]]
+* Summary
+
+A harmonica tool for the command line, using microphone and speaker. It
+can assist your playing with scales and licks; it offers an explorable
+quiz with many flavours and it brings tools and players for the various
+needs of a harp-player (either richter or chromatic).
+  
+* Table of Contents                                                   :TOC_1:
+
+- [[#screencasts][Screencasts]]
+- [[#introduction][Introduction]]
 - [[#installation][Installation]]
-- [[#invocation][Invocation]]
+- [[#Invocation][Invocation]]
 - [[#getting-started][Getting started]]
 - [[#getting-help][Getting help]]
 - [[#configuration][Configuration]]
 - [[#some-musical-concepts][Some musical concepts]]
 - [[#some-technical-concepts][Some technical concepts]]
 - [[#a-closer-look-at-the-screen][A closer look at the Screen]]
-  
-A harmonica tool for the command line, using microphone and speaker. It
-can assist your playing with scales and licks; it offers an explorable
-quiz with many flavours and it brings tools and players for the various
-needs of a harp-player (either richter or chromatic).
   
 * Screencasts
     
