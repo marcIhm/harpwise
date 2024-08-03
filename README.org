@@ -48,13 +48,13 @@
 
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
-  beeng played. No sound has been recorded however, so some accustic
-  imagination is required ...
+  beeing played and can help to write them down. No sound has been
+  recorded however, so some accustic imagination is required ...
   
   [[images/harpwise-listen.gif]]
   
   The second screencast is from mode 'quiz', showing three of the many
-  flavours: hole-hide-note, players and keep-tempo
+  flavours: hear-key, players and keep-tempo.
   
   [[images/harpwise-quiz.gif]]
 
