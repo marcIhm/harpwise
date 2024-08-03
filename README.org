@@ -57,7 +57,7 @@
   
   [[images/screenshot_quiz.png]]
 
-  <a href="https://asciinema.org/a/670611" target="_blank"><img src="https://asciinema.org/a/670611.svg" /></a> 
+  [[https://asciinema.org/a/670611][https://asciinema.org/a/670611.svg]]
 
 * Installation
 
