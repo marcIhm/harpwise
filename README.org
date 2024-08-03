@@ -57,6 +57,8 @@
   
   [[images/screenshot_quiz.png]]
 
+  <script async id="asciicast-670612" src="https://asciinema.org/a/670612.js"></script>
+
 * Installation
 
   Please see the README within subdirectory install.
