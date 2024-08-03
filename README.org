@@ -1,7 +1,8 @@
 # -*- fill-column: 74 -*-
 
 *** Table of Contents                                                 :TOC_1:
-- [[#harpwise---an-introduction][harpwise - an introduction]]
+- [[#Screencasts][Screencasts]]
+- [[#Introduction][Introduction]]
 - [[#installation][Installation]]
 - [[#invocation][Invocation]]
 - [[#getting-started][Getting started]]
@@ -11,7 +12,20 @@
 - [[#some-technical-concepts][Some technical concepts]]
 - [[#a-closer-look-at-the-screen][A closer look at the Screen]]
 
-* harpwise - an introduction
+* Screencasts
+    
+  The screencast below, shows how harpwise (mode 'listen') reacts on notes
+  beeing played and can help to write them down. No sound has been
+  recorded however, so some accustic imagination is required ...
+  
+  [[images/harpwise-listen.gif]]
+  
+  The second screencast is from mode 'quiz', showing three of the many
+  flavours: hear-key, players and keep-tempo.
+  
+  [[images/harpwise-quiz.gif]]
+  
+* Introduction
 
   [[images/harmonica3.png]]
 
@@ -45,18 +59,6 @@
   - Print notes layed out on a harmonica chart
   - Print or play chords or scales
   - Show full help on its capabilities
-
-    
-  The screencast below, shows how harpwise (mode 'listen') reacts on notes
-  beeing played and can help to write them down. No sound has been
-  recorded however, so some accustic imagination is required ...
-  
-  [[images/harpwise-listen.gif]]
-  
-  The second screencast is from mode 'quiz', showing three of the many
-  flavours: hear-key, players and keep-tempo.
-  
-  [[images/harpwise-quiz.gif]]
 
 * Installation
 
