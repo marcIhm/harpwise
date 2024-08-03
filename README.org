@@ -11,7 +11,12 @@
 - [[#some-musical-concepts][Some musical concepts]]
 - [[#some-technical-concepts][Some technical concepts]]
 - [[#a-closer-look-at-the-screen][A closer look at the Screen]]
-
+  
+A harmonica tool for the command line, using microphone and speaker. It
+can assist your playing with scales and licks; it offers an explorable
+quiz with many flavours and it brings tools and players for the various
+needs of a harp-player (either richter or chromatic).
+  
 * Screencasts
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
@@ -29,12 +34,9 @@
 
   [[images/harmonica3.png]]
 
-  A harmonica tool for the command line, using microphone and speaker. It
-  can assist your playing with scales and licks; it offers an explorable
-  quiz with many flavours and it brings tools and players for the various
-  needs of a player (either richter or chromatic).
+  A harmonica tool for the command line, using microphone and speaker.
   
-  Harpwise runs on the command line of Linux, MacOS and Windows (wsl2).
+  Harpwise runs on the command line of Linux, MacOS and Windows-wsl2.
   
   It plays and hears single notes and can play (but not hear) chords.
 
