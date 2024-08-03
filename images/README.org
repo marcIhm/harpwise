@@ -17,6 +17,22 @@
   PS1="\$ "
   clear
 
+  Tools:
+  - asciinema (from repositories)
+  - agg  (https://github.com/asciinema/agg)  
+** Listen
+   
+   asciinema rec -q -t "harpwise listen" -c "~/harpwise/harpwise listen c" --overwrite ~/harpwise-listen.cast
+
+   - Spielen
+     - Blues Scale
+   - Help
+     - j
+   - Journal
+     - +1 +2 +3 +4 +5 +6
+
+   .cargo/bin/agg --line-height 1.2 --font-size 26 harpwise-listen.cast harpwise-listen.gif
+
 ** quiz
    
    asciinema rec -q -t "harpwise quiz" -c "~/harpwise/harpwise quiz choose --difficulty easy" --overwrite ~/harpwise-quiz.cast
@@ -36,13 +52,3 @@
    - 'keep-tempo' (choose by typing name)
      - ctrl-c
     
-** Listen
-   
-   asciinema rec -q -t "harpwise listen" -c "~/harpwise/harpwise listen c" --overwrite ~/harpwise-listen.cast
-
-   - Spielen
-     - Blues Scale
-   - Help
-     - j
-   - Journal
-     - +1 +2 +3 +4 +5 +6
