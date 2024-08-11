@@ -456,11 +456,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:rotate_scale]
-      do_rotate_scale_add_scales
+      do_rotate_scale_add_scales 
       $ctl_mic[:rotate_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
-      set_global_musical_vars
+      set_global_musical_vars rotated: true
       $freqs_queue.clear
     end
 
@@ -611,15 +611,25 @@ def do_change_scale_add_scales
     $opts[:add_scales] = add_scales.join(',')
   end
 
+  # will otherwise collide with chosen scales
+  if Set[*$scale_progression] != Set[*(add_scales + [$scale])]
+    $opts[:scale_progression] = nil 
+    $scale_progression = $used_scales
+  end
+
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 5, :scale
 end
 
 
+$sc_prog_init = nil
 def do_rotate_scale_add_scales
-  $used_scales.rotate!
+  $sc_prog_init ||= $scale_progression.clone
+  $scale_progression.rotate!
+  $used_scales.rotate! while $used_scales[0] != $scale_progression[0]
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
-  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 0, 5, :scale
+  clause = ( $sc_prog_init == $scale_progression  ?  ', new cycle'  :  '' )
+  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 5, :scale
 end
 
 
@@ -654,7 +664,8 @@ def show_help mode = $mode, testing_only = false
              "    r,R:_set reference to hole played or chosen",
              "      k:_change key of harp",
              "      K:_play adjustable pitch and take it as new key",
-             "      s:_rotate current scales        S:_set scales"]
+             "      s:_rotate scales (used scales or --scale-progression)",
+             "      S:_set scale, choose from all known"]
   if [:quiz, :licks].include?(mode)
     frames[-1] <<  "      j:_journal-menu; only available in mode listen"
     frames[-1] <<  " CTRL-R:_record and play user (mode licks only)"
@@ -707,13 +718,24 @@ def show_help mode = $mode, testing_only = false
     end
   end
 
-  frames << [" Further reading:",
-             "",
-             "  Invoke 'harpwise' without arguments for introduction, options",
-             "  and pointers to more help.",
-             "",
-             "  Note, that other keys and help apply while harpwise plays",
-             "  recordings and licks; type 'h' then for details."]
+  frames << []
+  if $opts[:tab_is] || $opts[:ret_is]
+    frames[-1].append(*["",
+                        " Keyboard translations:",
+                        ""])
+    frames[-1].append(*["     TAB:_translates to '#{$opts[:tab_is]}'",
+                        ""]) if $opts[:tab_is]
+    frames[-1].append(*["  RETURN:_translates to '#{$opts[:ret_is]}'",
+                        ""]) if $opts[:ret_is]
+  end
+  frames[-1].append(*["",
+                      " Further reading:",
+                      "",
+                      "  Invoke 'harpwise' without arguments for introduction, options",
+                      "  and pointers to more help.",
+                      "",
+                      "  Note, that other keys and help apply while harpwise plays",
+                      "  recordings and licks; type 'h' then for details."])
 
   # add prompt and frame count
   frames.each_with_index do |frame, fidx|
@@ -730,7 +752,7 @@ def show_help mode = $mode, testing_only = false
                ', BACKSPACE for prev'
              else
                ''
-             end 
+             end
     frame << "   any other key to highlight its specific line of help ..."
   end
   
@@ -841,7 +863,8 @@ def show_help mode = $mode, testing_only = false
     curr_frame_was = curr_frame
     lidx_high = nil
     key = $ctl_kb_queue.deq
-
+    key = $opts[:tab_is] if key == 'TAB' && $opts[:tab_is]
+    
     if key == 'BACKSPACE' 
       curr_frame -= 1 if curr_frame > 0
     elsif key == 'ESC'
@@ -864,7 +887,11 @@ def show_help mode = $mode, testing_only = false
       else
         system('clear')
         print "\e[#{lines_offset + 4}H"
-        puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
+        if key == 'TAB'
+          puts "\e[0m\e[2m Use option --tab-is to translate key '\e[0m#{key}\e[2m' into another key."
+        else
+          puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
+        end
         puts
         sleep 0.5
         puts "\e[2m #{$resources[:any_key]}\e[0m"
@@ -924,6 +951,7 @@ class MsgBuf
   @@lines_durations = Array.new
   @@printed_at = nil
   @@ready = false
+  # used for testing
   @@printed = Array.new
 
   def print text, min, max, group = nil, later: false
@@ -1000,6 +1028,13 @@ class MsgBuf
     @@printed
   end
 
+  def flush_to_term
+    return if @@lines_durations.length == 0
+    puts "\n\n\e[0m\e[2mFlushing pending messages:"
+    @@lines_durations.each {|l,d| puts '  ' + l}
+    Kernel::print "\e[0m"
+  end
+  
   def empty?
     return @@lines_durations.length > 0
   end

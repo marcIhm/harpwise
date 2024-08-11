@@ -197,27 +197,27 @@ terse:
   
 scale_over_lick:
   - |
-    For modes play and print: interpret
-    a given name as a scale if it is known as a scale as well as a
-    lick.  By default such a name would be treated as a lick.
+    Interpret a given name as a scale
+    if it is known as a scale as well as a lick.  By default such a
+    name would be treated as a lick.
 
 read_fifo:
   - |
-    For mode listen, licks, quiz: when in the main
-    interactive view, read keys from fifo /tmp/harpwise_fifo too.
-    This can be useful when automizing certain aspects of its
-    operation. The name of the fifo is fixed.
+    When in the main interactive view,
+    read keys from fifo /tmp/harpwise_fifo too.  This can be useful
+    when automizing certain aspects of its operation. The name of the
+    fifo is fixed.
 
 difficulty:
   - |
-    For mode quiz: Difficulty of
-    questions asked; if you should identify or reproduce one of a set
-    of choices (e.g. when hearing intervals), the difficulty usually
-    gives the size of the set. A percentage value between 0 an 100,
-    chooses easy or hard at random, with e.g. 20 meaning one time in
-    five (i.e. at a rate of 20%) 'hard' and four times 'easy'; so
-    larger numbers are harder and 100 would be all 'hard'. This option
-    defaults to 'easy'.
+    Difficulty of questions asked;
+    if you should identify or reproduce one of a set of choices
+    (e.g. when hearing intervals), the difficulty usually gives the
+    size of the set. A percentage value between 0 an 100, chooses easy
+    or hard at random, with e.g. 20 meaning one time in five (i.e. at
+    a rate of 20%) 'hard' and four times 'easy'; so larger numbers are
+    harder and 100 would be all 'hard'. This option defaults to
+    'easy'.
   - EASY_OR_HARD_OR_PERCENT
 
 sharps:
@@ -231,3 +231,45 @@ flats:
 options:
   - |
     show full list of mode specific options
+
+scale_progression:
+  - |
+    Specify a sequence of scales
+    separated by comma, that will be cycled when pressing 's'. Only
+    long names of scales are supported here (e.g. 'chord-i7', but not
+    '1'). Note, that the standard chords are available as scales, so
+    this defines a chord progression. By default this progression
+    would be the main scale and any additional scales given by
+    --add-scales.
+
+    The standard 12-bar blues would be:
+
+      --scale-progression
+         chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7
+
+    which wraps around and does not need to specify, the varying
+    length of the different scales / chords (because you have to press
+    's' at the right point in time); this has its own abbreviation
+    --prog-blues (which needs no arguments)
+  - SEQUENCE_OF_SCALES
+
+prog_blues:
+  - |
+    Short for
+    --scale-progression chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7
+
+no_player_info:
+  - |
+    Do not print player infos in background
+
+tab_is:
+  - |
+    Assign a char to the tab-key
+    to be sent instead (in main interactive view only)
+  - SINGLE_CHAR
+
+ret_is:
+  - |
+    Assign a char to the return-key
+    to be sent instead (in main interactive view only)
+  - SINGLE_CHAR

@@ -31,6 +31,8 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
+    :listen => [:tab_is, :ret_is],
+    :licks => [:tab_is],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]
@@ -954,21 +956,27 @@ def read_calibration
 end
 
 
-def set_global_musical_vars
+def set_global_musical_vars rotated: false
+
   $used_scales = get_used_scales($opts[:add_scales])
+  $scale_progression ||= $used_scales
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
   # set global var $scale2desc for all known scales, e.g. for quiz
   $all_scales.each {|s| read_and_parse_scale_simple(s, desc_only: true)}
   $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
+  
   $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
   fail "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == [:easy, :hard]
   [:easy, :hard].each do |dicu|
     fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
+  
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
+
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets = read_and_set_musical_config
+    
   # semitone shifts that will be tagged and can be traversed
   $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
                         7 => 'shifts_five', 12 => 'shifts_eight'}

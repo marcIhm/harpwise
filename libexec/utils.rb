@@ -92,6 +92,7 @@ def err text
   sane_term
   puts
   print "\e[0mERROR: #{text}"
+  $msgbuf&.flush_to_term  
   if $initialized
     puts
   else
@@ -105,21 +106,19 @@ end
 
 def puts_err_context
   clauses = [:mode, :type, :key, :scale, :extra].map do |var|
-      val = if $err_binding && eval("defined?(#{var})",$err_binding)
-              eval("#{var}", $err_binding)
-            elsif eval("defined?($#{var})")
-              eval("$#{var}")
-            else
-              nil
-            end
-      if val
-        "%-5s = #{val} (#{$source_of[var] || 'commandline'})" % var
-      else
-        "#{var} is not set"
-      end
-                                 
-                                  
-  end.select(&:itself)
+    val = if $err_binding && eval("defined?(#{var})",$err_binding)
+            eval("#{var}", $err_binding)
+          elsif eval("defined?($#{var})")
+            eval("$#{var}")
+          else
+            nil
+          end
+    if val
+      "%-5s = #{val} (#{$source_of[var] || 'commandline'})" % var
+    else
+      "#{var} is not set"
+    end
+  end.compact
   puts
   print "\e[0m\e[2m"
   print "\n(result of argument processing so far: "

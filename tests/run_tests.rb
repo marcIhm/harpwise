@@ -109,7 +109,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 93
+num_exp = 95
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -397,7 +397,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
-                    'print' => [12, '--scale-over-lick : For modes play'],
+                    'print' => [12, '--scale-over-lick : Interpret a given name as a scale'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs']}
     
@@ -3167,6 +3167,26 @@ do_test 'id-118: read and check a fancy lickfile' do
   expect(dump[:lick_sets]) { dump[:lick_sets][:three][:desc] == 'for testing' }
   kill_session
 end
+
+do_test 'id-119: rotate through blues progression' do
+  new_session
+  tms 'harpwise listen a --prog-blues --tab-is s --ret-is s'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  expect { screen[1]['listen richter a chord-i'] }
+  tms :TAB
+  sleep 1
+  expect { screen[1]['listen richter a chord-iv'] }
+  tms :ENTER
+  sleep 1
+  expect { screen[1]['listen richter a chord-i'] }
+  tms 's'
+  sleep 1
+  expect { screen[1]['listen richter a chord-v'] }
+  kill_session
+end
+
 
 puts
 puts

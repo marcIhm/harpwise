@@ -46,8 +46,8 @@ needs of a harp-player (either richter or chromatic).
   The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
   these may help to:
 
-  - Internalize various scales and intervals
-  - Analyze your playing regarding scales, chords and intervals
+  - Learn scales and intervals
+  - Play through a chord progression
   - Learn and memorize licks (a few sample-licks included)
   - Train your ear and musical memory
   - Learn related music theory by the way of quiz
@@ -60,10 +60,10 @@ needs of a harp-player (either richter or chromatic).
   - Interactively play intervals or note progressions
   - Help in writing down a sequence of holes (journal)
   - Transpose a sequence of holes from one key of harp to another
-  - Provide an overview table of positions, keys of songs and keys
+  - Provide an overview table of positions and keys of songs and harp
   - Print notes layed out on a harmonica chart
   - Print or play chords or scales
-  - Show full help on its capabilities
+  - Show full help on its usage
 
 * Installation
 

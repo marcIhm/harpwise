@@ -585,6 +585,8 @@ end
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
+  char = $opts[:tab_is] if char == 'TAB' && $opts[:tab_is]
+  char = $opts[:ret_is] if char == 'RETURN' && $opts[:ret_is]
   $ctl_kb_queue.clear
   waited = false
 

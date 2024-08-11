@@ -11,8 +11,8 @@ def parse_arguments_early
   # We get the mode first, because set of available options depends on it.
   #  
   # Then we process all options.  Last come the remaining positional
-  # arguments, which depend on the mode too, but are not only recognized
-  # by the position, but by their content too.
+  # arguments, which depend on the mode, but are not only recognized by
+  # the position, but by their content too.
 
   # produce general usage, if appropriate
   if ARGV.length == 0 || %w(-h --help -? ? help usage --usage).any? {|w| w.start_with?(ARGV[0])}
@@ -64,6 +64,13 @@ def parse_arguments_early
         display: %w(-d --display),
         comment: %w(-c --comment),
         read_fifo: %w(--read-fifo)}],
+     [Set[:listen, :licks], {
+        scale_progression: %w(--scale-progression),
+        prog_blues: %w(--prog-blues),
+        tab_is: %w(--tab-is)}],
+     [Set[:listen], {
+        no_player_info: %w(--no-player-info),
+        ret_is: %w(--ret-is --return-is)}],
      [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {
@@ -262,6 +269,15 @@ def parse_arguments_early
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
 
+  err "Options '--prog-blues' and '--scale-progression' cannot be given at the same time" if opts[:prog_blues] && opts[:scale_progression]
+  opts[:scale_progression] = 'chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7' if opts[:prog_blues]
+  opts[:no_player_info] = true if opts[:scale_progression]
+
+  [:tab_is, :ret_is].each do |sym|
+    str = '--' + sym.o2str
+    err "Option '#{str}' accepts only a single char, not '" + opts[sym] + "'" if opts[sym] && opts[sym].length != 1
+  end
+  
   # save them away, so we may later restore them
   $initial_tag_options = Hash.new
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
@@ -350,6 +366,7 @@ def parse_arguments_early
   when :listen
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     ARGV.shift if scale
+    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
     holes = ARGV.clone
     ARGV.clear
     holes.each do |h|
@@ -393,6 +410,7 @@ def parse_arguments_early
       scale = get_scale_from_sws($conf[:scale] || 'all:a')
       $source_of[:scale] = 'implicit'
     end
+    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
   when :develop, :calibrate
     # no explicit scale, ever
     scale = get_scale_from_sws($conf[:scale] || 'all:a')
@@ -546,7 +564,7 @@ def print_options opts
   # check for maximum length; for performance, do this only on usage info (which is among tests)
   pieces = opt_desc_text(opts, false)
   pieces.join.lines.each do |line|
-    err "Internal error: line from opt2desc.yml too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width] - 2
+    err "Internal error: line from opt2desc.yml too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width]
   end
   
   # now produce again (with color) and print
@@ -600,3 +618,19 @@ def opt_desc_text opts, with_color = true
   end
   return pieces
 end
+
+
+def override_scales_mb scale, opts
+  return scale, opts[:add_scales], nil unless opts[:scale_progression]
+  sc_prog = opts[:scale_progression].split(',')
+  $msgbuf.print("Scale prog is #{sc_prog.join(',')}", 5, 5)
+  $msgbuf.print("Adjusted scale to match option '--scale-progression'", 5, 5) if scale && scale != sc_prog[0]
+  scale = sc_prog[0]
+  opts[:scale_progression].split(',').each do |sc|
+    err "Scale '#{sc}' given via '--scale-progression #{opts[:scale_progression]}' must be one of #{$all_scales}" unless $all_scales.include?(sc)
+  end
+  add_scs = sc_prog[1 .. -1].join(',')
+  $msgbuf.print("Adjusted option --add-scales to match option --scale-progression", 5, 5) if add_scs != opts[:add_scales]
+  return scale, add_scs, sc_prog
+end
+  

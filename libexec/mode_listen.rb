@@ -135,6 +135,8 @@ def do_listen
             ["#{journal_length} holes"]
           elsif $opts[:comment] == :warbles && $warbles_holes[0] && $warbles_holes[1]
             ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
+          elsif $opts[:no_player_info]
+            []
           else
             [$players.line_stream_current]
           end

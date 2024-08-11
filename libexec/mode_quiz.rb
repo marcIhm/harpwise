@@ -1059,7 +1059,7 @@ class Players < QuizFlavour
   end
 
   def self.describe_difficulty
-    "One of #{@@choices.length} random players"
+    "One of #{@@choices.length} of players (chosen at random from a total of #{$players.structured.length})"
   end
 
   def after_solve
