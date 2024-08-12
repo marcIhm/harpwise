@@ -234,29 +234,27 @@ options:
 
 scale_progression:
   - |
-    Specify a sequence of scales
-    separated by comma, that will be cycled when pressing 's'. Only
-    long names of scales are supported here (e.g. 'chord-i7', but not
-    '1'). Note, that the standard chords are available as scales, so
-    this defines a chord progression. By default this progression
-    would be the main scale and any additional scales given by
-    --add-scales.
+    Specify a
+    sequence of scales separated by comma, that will be cycled when
+    pressing 's'. Only long names of scales are supported here
+    (e.g. 'chord-i7', but not '1'). Note, that the standard chords are
+    available as scales, so this can be seen as defining a chord
+    progression. By default (i.e. if you omit this option) this
+    progression would be the main scale and any additional scales
+    given by --add-scales.
 
     The standard 12-bar blues would be:
 
-      --scale-progression
+      --scale-progression 
          chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7
 
     which wraps around and does not need to specify, the varying
-    length of the different scales / chords (because you have to press
-    's' at the right point in time); this has its own abbreviation
-    --prog-blues (which needs no arguments)
+    length of the different scales / chords, because you have to press
+    's' at the right point in time. There are a few predefined
+    progressions (like '12bar' for the example above), that you may
+    learn about in the error-message on specifying an invalid
+    progression like '--scale-progression x'
   - SEQUENCE_OF_SCALES
-
-prog_blues:
-  - |
-    Short for
-    --scale-progression chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7
 
 no_player_info:
   - |

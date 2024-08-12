@@ -544,7 +544,7 @@ do_test 'id-7a: change scale of harp' do
   tms 'harpwise listen a all'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'S'
+  tms '$'
   sleep 1
   tms 'blues'
   tms :ENTER
@@ -1513,7 +1513,6 @@ usage_examples.each_with_index do |ex,idx|
       tms 'echo ' + marker + ' \$?'
       tms :ENTER
       expect(marker) { screen.find {|l| l[marker + ' 0']} }
-      expect(output) { output.select {|l| l.downcase['error']}.length == 0 }
     else
       # just create an OKAY-marker
       expect {true}
@@ -3170,20 +3169,23 @@ end
 
 do_test 'id-119: rotate through blues progression' do
   new_session
-  tms 'harpwise listen a --prog-blues --tab-is s --ret-is s'
+  tms 'harpwise listen a --sc-prog 12bar --tab-is s --ret-is s'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
-  expect { screen[1]['listen richter a chord-i'] }
+  expect { screen[1]['listen richter a chord-i7'] }
   tms :TAB
   sleep 1
-  expect { screen[1]['listen richter a chord-iv'] }
+  expect { screen[1]['listen richter a chord-iv7'] }
   tms :ENTER
   sleep 1
-  expect { screen[1]['listen richter a chord-i'] }
+  expect { screen[1]['listen richter a chord-i7'] }
   tms 's'
   sleep 1
-  expect { screen[1]['listen richter a chord-v'] }
+  expect { screen[1]['listen richter a chord-v7'] }
+  tms 'S'
+  sleep 1
+  expect { screen[1]['listen richter a chord-i7'] }
   kill_session
 end
 

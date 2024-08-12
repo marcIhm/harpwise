@@ -65,7 +65,7 @@ def set_global_vars_early
   # Variables that may be set by pressing keys when listening to microphone
   ks = [:skip, :redraw, :hole_given, :next, :back, :forget, :quit, :replay, :octave,
         :loop,
-        :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
+        :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
         :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter,
         :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_short, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
@@ -538,9 +538,22 @@ end
 
 
 def read_and_set_musical_bootstrap_config
-  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
   $no_calibration_needed = false
-  return [scales_for_type($type), yaml_parse($holes_file).keys]
+  all_scales = scales_for_type($type)
+  sc_pr_fl = "#{$dirs[:install]}/config/#{$type}/scale_progressions.yaml"
+  sc_progs = yaml_parse(sc_pr_fl)
+  sc_progs.is_a?(Hash) || err("Internal error: not an array but a #{sc_progs.class} in #{sc_pr_fl})")
+  sc_progs.each do |name,prog|
+    prog.is_a?(Hash) || err("Internal error: not a hash #{prog} (in #{sc_pr_fl})")
+    prog.transform_keys!(&:to_sym)
+    sc_pr_ks = [:desc, :chords]
+    prog.keys == sc_pr_ks || err("Internal error: wrong keys #{prog.keys}, not #{sc_pr_ks} (in #{sc_pr_fl})")
+    prog[:chords].each do |ch|
+      err("Unknown scale #{ch} specified in scale progression #{name}, none of #{prog[:chords]} (in #{sc_pr_fl})") unless all_scales.include?(ch)
+    end
+  end
+  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
+  return [all_scales, yaml_parse($holes_file).keys, sc_progs]
 end
 
 
@@ -972,7 +985,7 @@ def set_global_musical_vars rotated: false
     fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
-  
+
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
 
   $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets = read_and_set_musical_config

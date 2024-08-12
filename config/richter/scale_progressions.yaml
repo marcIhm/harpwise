@@ -1,0 +1,20 @@
+---
+12bar:
+    desc: standard 12-bar blues progression, based on flat-7th chords
+    chords:
+    - "chord-i7"
+    - "chord-iv7"
+    - "chord-i7"
+    - "chord-v7"
+    - "chord-iv7"
+    - "chord-i7"
+12bar-om3:
+    desc: standard 12-bar blues progression, based on flat-7th chords but with major thirds ommitted
+    chords:
+    - "chord-i7om3"
+    - "chord-iv7om3"
+    - "chord-i7om3"
+    - "chord-v7om3"
+    - "chord-iv7om3"
+    - "chord-i7om3"
+    

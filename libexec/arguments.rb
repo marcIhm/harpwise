@@ -65,8 +65,7 @@ def parse_arguments_early
         comment: %w(-c --comment),
         read_fifo: %w(--read-fifo)}],
      [Set[:listen, :licks], {
-        scale_progression: %w(--scale-progression),
-        prog_blues: %w(--prog-blues),
+        scale_progression: %w(--sc-prog --scale-progression),
         tab_is: %w(--tab-is)}],
      [Set[:listen], {
         no_player_info: %w(--no-player-info),
@@ -162,21 +161,23 @@ def parse_arguments_early
       next
     end
     matching = Hash.new {|h,k| h[k] = Array.new}
+    exact_match = nil
     opts_all.each do |osym, odet|
       odet[0].each do |ostr|
         matching[osym] << ostr if ostr.start_with?(ARGV[i])
+        exact_match = osym if ostr == ARGV[i]
       end
     end
 
-    if matching.keys.length > 1
-      err "Argument '#{ARGV[i]}' matches multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
+    if matching.keys.length > 1 && !exact_match
+      err "Argument '#{ARGV[i]}' is the start of multiple options (#{matching.values.flatten.join(', ')}); please be more specific"
     elsif matching.keys.length == 0
       # this is not an option, so process it later
       i += 1
     else
-      # exact match, so put into hash of options
-      osym = matching.keys[0]
-      odet = opts_all[matching.keys[0]]
+      # single or exact match, so put into hash of options
+      osym = exact_match || matching.keys[0]
+      odet = opts_all[osym]
       ARGV.delete_at(i)
       if odet[1]
         opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
@@ -269,8 +270,6 @@ def parse_arguments_early
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
 
-  err "Options '--prog-blues' and '--scale-progression' cannot be given at the same time" if opts[:prog_blues] && opts[:scale_progression]
-  opts[:scale_progression] = 'chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7' if opts[:prog_blues]
   opts[:no_player_info] = true if opts[:scale_progression]
 
   [:tab_is, :ret_is].each do |sym|
@@ -313,8 +312,9 @@ def parse_arguments_early
   end
   $type = type
   
-  # prefetch a very small subset of musical config
-  $all_scales, $harp_holes = read_and_set_musical_bootstrap_config
+  # prefetch a very small subset of musical config; this is needed to
+  # judge commandline arguments, e.g. scales
+  $all_scales, $harp_holes, $scale_progressions = read_and_set_musical_bootstrap_config
   
   # check for unprocessed args, that look like options and are neither holes not semitones  
   other_opts = ARGV.select do |arg|
@@ -366,7 +366,6 @@ def parse_arguments_early
   when :listen
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
     ARGV.shift if scale
-    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
     holes = ARGV.clone
     ARGV.clear
     holes.each do |h|
@@ -384,6 +383,7 @@ def parse_arguments_early
         $source_of[:scale] = 'adhoc-commandline'
       end
     end
+    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
     
   when :play, :print, :tools, :licks
     # modes play and print both accept multiple scales as arguments, tools
@@ -411,6 +411,7 @@ def parse_arguments_early
       $source_of[:scale] = 'implicit'
     end
     scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
+
   when :develop, :calibrate
     # no explicit scale, ever
     scale = get_scale_from_sws($conf[:scale] || 'all:a')
@@ -621,16 +622,30 @@ end
 
 
 def override_scales_mb scale, opts
+
   return scale, opts[:add_scales], nil unless opts[:scale_progression]
-  sc_prog = opts[:scale_progression].split(',')
-  $msgbuf.print("Scale prog is #{sc_prog.join(',')}", 5, 5)
-  $msgbuf.print("Adjusted scale to match option '--scale-progression'", 5, 5) if scale && scale != sc_prog[0]
-  scale = sc_prog[0]
-  opts[:scale_progression].split(',').each do |sc|
-    err "Scale '#{sc}' given via '--scale-progression #{opts[:scale_progression]}' must be one of #{$all_scales}" unless $all_scales.include?(sc)
+
+  if !opts[:scale_progression][',']
+    if !$scale_progressions.include?(opts[:scale_progression])
+      max_nm_len = $scale_progressions.keys.map(&:length).max
+      err "Scale progression given via '--scale-progression #{opts[:scale_progression]}' is none of these:\n\n" +
+          $scale_progressions.map {|nm,sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm,sp[:desc],'',sp[:chords].join(',')]}.join
+    end
+    sc_prog = $scale_progressions[opts[:scale_progression]][:chords]
+  else
+    sc_prog = opts[:scale_progression].split(',')
   end
-  add_scs = sc_prog[1 .. -1].join(',')
+  
+  $msgbuf.print("Scale prog is #{opts[:scale_progression]}", 5, 5)
+  $msgbuf.print("Adjusted scale to match option '--scale-progression'", 5, 5) if scale && scale != sc_prog[0]
+
+  sc_prog.each do |sc|
+    err "Scale '#{sc}' given via '--scale-progression #{sc_prog.join(',')}' must be one of #{$all_scales}" unless $all_scales.include?(sc)
+  end
+
+  scl = sc_prog[0]
+  add_scs = (sc_prog + [scale]).uniq[1..-1].join(',')
   $msgbuf.print("Adjusted option --add-scales to match option --scale-progression", 5, 5) if add_scs != opts[:add_scales]
-  return scale, add_scs, sc_prog
+  return scl, add_scs, sc_prog
 end
   

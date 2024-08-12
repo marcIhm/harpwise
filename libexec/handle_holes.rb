@@ -464,6 +464,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
+    if $ctl_mic[:rotate_scale_reset]
+      do_rotate_scale_add_scales_reset
+      $ctl_mic[:rotate_scale_reset] = false
+      $ctl_mic[:redraw] = Set[:silent]
+      set_global_vars_late
+      set_global_musical_vars rotated: true
+      $freqs_queue.clear
+    end
+
     if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
@@ -633,6 +642,19 @@ def do_rotate_scale_add_scales
 end
 
 
+def do_rotate_scale_add_scales_reset
+  unless $sc_prog_init
+    $msgbuf.print "Scales have not been rotated yet", 0, 2
+    return
+  end
+  $scale_progression = $sc_prog_init.clone
+  $used_scales.rotate! while $used_scales[0] != $scale_progression[0]  
+  $scale = $used_scales[0]
+  $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
+  $msgbuf.print "Reset scale of harp to initial \e[0m\e[32m#{$scale}\e[0m\e[2m", 0, 5, :scale
+end
+
+
 def get_mission_override
   $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil
 end
@@ -665,7 +687,8 @@ def show_help mode = $mode, testing_only = false
              "      k:_change key of harp",
              "      K:_play adjustable pitch and take it as new key",
              "      s:_rotate scales (used scales or --scale-progression)",
-             "      S:_set scale, choose from all known"]
+             "      S:_reset rotation of scales to initial state",
+             "      $:_set scale, choose from all known"]
   if [:quiz, :licks].include?(mode)
     frames[-1] <<  "      j:_journal-menu; only available in mode listen"
     frames[-1] <<  " CTRL-R:_record and play user (mode licks only)"
@@ -723,10 +746,9 @@ def show_help mode = $mode, testing_only = false
     frames[-1].append(*["",
                         " Keyboard translations:",
                         ""])
-    frames[-1].append(*["     TAB:_translates to '#{$opts[:tab_is]}'",
-                        ""]) if $opts[:tab_is]
-    frames[-1].append(*["  RETURN:_translates to '#{$opts[:ret_is]}'",
-                        ""]) if $opts[:ret_is]
+    frames[-1] << "     TAB:_maps to '#{$opts[:tab_is]}'" if $opts[:tab_is]
+    frames[-1] << "  RETURN:_maps to '#{$opts[:ret_is]}'" if $opts[:ret_is]
+    frames[-1] << ''
   end
   frames[-1].append(*["",
                       " Further reading:",

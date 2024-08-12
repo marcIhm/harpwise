@@ -1,0 +1,12 @@
+---
+- short: 4
+- desc: major chord v with added flat seventh and major third removed
+- "+1 root"
+- "-2"
+- "-3/"
+- "+4 root"
+- "+6"
+- "+7 root"
+- "+9"
+- "+10//"
+- "+10 root"

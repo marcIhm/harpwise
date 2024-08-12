@@ -669,6 +669,9 @@ def handle_kb_mic
     $ctl_mic[:rotate_scale] = true
     text = nil
   elsif char == 'S'
+    $ctl_mic[:rotate_scale_reset] = true
+    text = nil
+  elsif char == '$'
     $ctl_mic[:change_scale] = true
     text = nil
   elsif char == 'K'
