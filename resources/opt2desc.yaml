@@ -203,7 +203,7 @@ scale_over_lick:
 
 read_fifo:
   - |
-    When in the main interactive view,
+    When in the main listen-perspective,
     read keys from fifo /tmp/harpwise_fifo too.  This can be useful
     when automizing certain aspects of its operation. The name of the
     fifo is fixed.
@@ -235,7 +235,7 @@ options:
 scale_progression:
   - |
     Specify a
-    sequence of scales separated by comma, that will be cycled when
+    list of scales separated by comma, that will be cycled when
     pressing 's'. Only long names of scales are supported here
     (e.g. 'chord-i7', but not '1'). Note, that the standard chords are
     available as scales, so this can be seen as defining a chord
@@ -254,20 +254,33 @@ scale_progression:
     progressions (like '12bar' for the example above), that you may
     learn about in the error-message on specifying an invalid
     progression like '--scale-progression x'
-  - SEQUENCE_OF_SCALES
+  - LIST_OF_SCALES
 
 no_player_info:
   - |
     Do not print player infos in background
 
-tab_is:
+keyboard_translate:
   - |
-    Assign a char to the tab-key
-    to be sent instead (in main interactive view only)
-  - SINGLE_CHAR
+    translate keys
+    from your keyboard into other keys; this is for the main
+    listen-perspective only.
 
-ret_is:
-  - |
-    Assign a char to the return-key
-    to be sent instead (in main interactive view only)
-  - SINGLE_CHAR
+    E.g. for mode listen, by giving:
+
+      --keyboard-translate TAB=s,RETURN=r
+
+    harpwise accepts the TAB key (which has otherwise no function in
+    this mode) and behaves, as if the key 's' has been pressed; in the
+    same way it treats RETURN as 'r'. The benefit of this is, that the
+    new keys might be easier to press while playing. But beware and
+    make sure, that you dont translate keys, that already have an
+    important function in harpwise (e.g. 'RETURN=r' for mode licks),
+    because these keys would no longer be available for their original
+    function; regarding the available names, let the error message be
+    your guide (i.e. type: --kb-tr x). If you want to translate
+    permanently, you may (as with many options) put it into your
+    config.
+    
+  - LIST_OF_KB_TRANSLATIONS
+  

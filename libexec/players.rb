@@ -83,7 +83,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
                         "    +: jump to end                  -.: jump to start\n" +
                         "  v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
                         if $mode == :play
-                            "    c: toggle continue without menu " +
+                            "    c: toggle continue without menu-break " +
                             ( $ctl_rec[:loop_loop]  ?  "(now ON)\n"  :  "(now OFF)\n" )
                         else
                           ''
@@ -123,8 +123,8 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
       end
 
       if $ctl_rec[:lick_lick] != lick_lick_was
-        print "\n\e[0m\e[32mContinue without menu is: \e[0m" +
-              ( $ctl_rec[:lick_lick]  ?  'ON'  :  'OFF' ) + "\n"
+        print "\n\e[0m\e[32mContinue without menu-break is: \e[0m" +
+              ( $ctl_rec[:lick_lick]  ?  'ON'  :  "OFF  \e[2m(break after all reps of this lick)" ) + "\n"
         lick_lick_was = $ctl_rec[:lick_lick]
       end
 
@@ -137,7 +137,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
       if $ctl_rec[:loop] && !loop_message_printed
         print "\e[0m\e[32mloop (+ to end) with " +
               ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
-              ( $ctl_rec[:lick_lick]  ?  '; continue without menu is: ON (c to toggle) '  :  '' ) +
+              ( $ctl_rec[:lick_lick]  ?  "; continue without menu-break is: ON (\e[92mc\e[32m to toggle) "  :  '' ) +
               "\e[0m"
         loop_message_printed = true
       end

@@ -3169,7 +3169,7 @@ end
 
 do_test 'id-119: rotate through blues progression' do
   new_session
-  tms 'harpwise listen a --sc-prog 12bar --tab-is s --ret-is s'
+  tms 'harpwise listen a --sc-prog 12bar --keyboard-translate TAB=s,RETURN=s'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1

@@ -66,10 +66,9 @@ def parse_arguments_early
         read_fifo: %w(--read-fifo)}],
      [Set[:listen, :licks], {
         scale_progression: %w(--sc-prog --scale-progression),
-        tab_is: %w(--tab-is)}],
+        keyboard_translate: %w(--kb-tr --keyboard-translate)}],
      [Set[:listen], {
-        no_player_info: %w(--no-player-info),
-        ret_is: %w(--ret-is --return-is)}],
+        no_player_info: %w(--no-player-info)}],
      [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {
@@ -272,9 +271,19 @@ def parse_arguments_early
 
   opts[:no_player_info] = true if opts[:scale_progression]
 
-  [:tab_is, :ret_is].each do |sym|
-    str = '--' + sym.o2str
-    err "Option '#{str}' accepts only a single char, not '" + opts[sym] + "'" if opts[sym] && opts[sym].length != 1
+  if opts[:keyboard_translate]
+    cite = "--keyboard-translate #{opts[:keyboard_translate]}"
+    opts[:keyboard_translate].split(',').each do |tr|
+      ks = tr.split('=')
+      err "Cannot understand this keyboard translation: '#{tr}' (in '#{cite}'); it must have the form 'key1=key2,key3=key4,...', where each key is one of: #{$keyboard_translateable.join(',')}" unless ks.length == 2
+      ks.each do |k|
+        err "Key '#{k}' (in '#{tr}') (in '#{cite}') is none of these translatable keys: #{$keyboard_translateable.join(',')}" unless $keyboard_translateable.include?(k)
+      end
+      err "Key '#{ks[0]}' is already translated into '#{$keyboard_translations[ks[0]]}'; cannot translate it again into '#{ks[1]}'" if $keyboard_translations[ks[0]]
+      $keyboard_translations[ks[0]] = ks[1]
+    end
+    in_both = $keyboard_translations.keys & $keyboard_translations.values
+    err "Invalid keyboard translation: these keys appear both as from and to (in #{cite}): #{in_both.join(',')}" if in_both.length > 0
   end
   
   # save them away, so we may later restore them

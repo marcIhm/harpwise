@@ -742,13 +742,14 @@ def show_help mode = $mode, testing_only = false
   end
 
   frames << []
-  if $opts[:tab_is] || $opts[:ret_is]
+  if $keyboard_translations.length > 0
     frames[-1].append(*["",
-                        " Keyboard translations:",
+                        " Translated keys:",
                         ""])
-    frames[-1] << "     TAB:_maps to '#{$opts[:tab_is]}'" if $opts[:tab_is]
-    frames[-1] << "  RETURN:_maps to '#{$opts[:ret_is]}'" if $opts[:ret_is]
-    frames[-1] << ''
+    maxlen = $keyboard_translations.keys.map(&:length).max
+    $keyboard_translations.each do |from,to|
+      frames[-1] << ( "  %#{maxlen}s:_maps to %s" % [from, to] )
+    end
   end
   frames[-1].append(*["",
                       " Further reading:",
@@ -910,7 +911,7 @@ def show_help mode = $mode, testing_only = false
         system('clear')
         print "\e[#{lines_offset + 4}H"
         if key == 'TAB'
-          puts "\e[0m\e[2m Use option --tab-is to translate key '\e[0m#{key}\e[2m' into another key."
+          puts "\e[0m\e[2m Use option --kb-tr to translate key '\e[0m#{key}\e[2m' into another key."
         else
           puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
         end

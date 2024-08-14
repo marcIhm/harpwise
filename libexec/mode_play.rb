@@ -514,7 +514,7 @@ end
 def do_play_licks args
 
   if args.length > 0
-    err "First argument to 'harpwise play licks' can only be 'radio', not '#{args[0]}'" if args[0] != 'radio'
+    err "First argument (if any) to 'harpwise play licks' can only be 'radio', not '#{args[0]}'" if args[0] != 'radio'
     $ctl_rec[:lick_lick] = $ctl_rec[:loop_loop] = true
     $ctl_rec[:num_loops] = if args.length > 1
                              if md = args[1].match(/^(\d+)$/)

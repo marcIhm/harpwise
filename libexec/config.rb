@@ -31,8 +31,8 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
-    :listen => [:tab_is, :ret_is],
-    :licks => [:tab_is],
+    :listen => [:keyboard_translate],
+    :licks => [:keyboard_translate],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]
@@ -204,6 +204,9 @@ def set_global_vars_early
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
     playing_on: "playing on"
   }
+
+  $keyboard_translateable = %w(TAB RETURN BACKSPACE) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & / ? + - * # . : ; _) + ['(', ')']
+  $keyboard_translations = Hash.new
 end
 
 

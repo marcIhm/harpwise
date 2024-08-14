@@ -38,10 +38,10 @@ USAGE BY EXAMPLES
 
   To use the RETURN-key, which might be easier to hit, you may try:
 
-    harpwise listen --sc-prog 12bar --return-is s
+    harpwise listen --sc-prog 12bar --keyboard-translate RETURN=s
 
-  or use --tab-is to employ the TAB-key. And you may also make this
-  option durable in your config.ini.
+  or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
+  also make this option durable in your config.ini.
 
 
   As an advanced example, assume that you would like to play the minor
