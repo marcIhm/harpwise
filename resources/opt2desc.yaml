@@ -281,6 +281,16 @@ keyboard_translate:
     your guide (i.e. type: --kb-tr x). If you want to translate
     permanently, you may (as with many options) put it into your
     config.
-    
   - LIST_OF_KB_TRANSLATIONS
+
+comment_lick:
+  - |
+    show given lick in comment
+    (lower part of screen), e.g.
+    
+      --comment-lick wade
+
+    this lick can also be played by pressing '.'. You may e.g. want to
+    specify a turnaround lick with this option.
+  - LICKNAME
   

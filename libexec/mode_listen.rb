@@ -14,6 +14,22 @@ def do_listen
   $hole_was_for_disp = nil
   jlen_refresh_comment_cache = comment_cache = nil
   $players = FamousPlayers.new
+  $comment_lick = nil
+  comment_lick_lines = []
+  if $opts[:comment_lick]
+    $all_licks, $licks, $lick_sets = read_licks
+    $comment_lick = lick = $licks[find_lick_by_name($opts[:comment_lick])]
+    holes_lines = wrap_words('    ', lick[:holes], sep = '  ').split("\n")
+    comment_lick_lines << ''
+    comment_lick_lines << '  lick ' + lick[:name] +':'
+    if holes_lines.length <= 2
+      comment_lick_lines << ''
+      comment_lick_lines.append(*(holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact))
+    else
+      comment_lick_lines.append(*holes_lines)
+    end
+  end
+
   
   while !$ctl_mic[:switch_modes] do
     
@@ -117,8 +133,15 @@ def do_listen
                  end
                  # different convention on return value than other comments
                  return comment_cache
+               when :lick_holes
+                 if comment_lick_lines.length > 0
+                   comment_lick_lines
+                 else
+                   ['',
+                    '  Need to specify a lick to be displayed here','','  e.g. via     --comment-lick wade']
+                 end
                else
-                 fail "Internal error: #{$opts[:comment]}"
+                 fail "Internal error: unknown comment: #{$opts[:comment]}"
                end || '...'
         [color, text, line, font, width_template]
       end,
@@ -177,7 +200,7 @@ def do_listen
       end
       $msgbuf.print "#{journal_length} holes", 0, 5
     end
-    
+
     if $ctl_mic[:journal_delete]
       $ctl_mic[:journal_delete] = false
       $journal.pop if $journal[-1] && musical_event?($journal[-1], :secs)
@@ -311,6 +334,32 @@ END
       ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
 
+    #
+    # Handling controls for comment lick
+    #
+    if $ctl_mic[:comment_lick_play]
+      $ctl_mic[:comment_lick_play] = false
+      if $comment_lick
+        clear_area_comment
+        clear_area_message
+        puts "\e[#{$lines[:comment_tall] + 1}H"
+        play_and_print_lick $comment_lick
+        sleep 0.5
+        $freqs_queue.clear
+        clear_area_comment
+        clear_area_message
+        $ctl_mic[:redraw] = Set[:silent]
+      else
+        clear_area_comment
+        print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option\n\n        --comment-lick"
+        puts $journal.reject {|x| musical_event?(x,:secs)}.join('  ')
+        puts "\n\e[2m  any key to continue ...\e[2m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        $freqs_queue.clear
+      end
+    end
+    
     #
     # Handling controls for warbling
     #

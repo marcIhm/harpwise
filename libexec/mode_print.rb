@@ -555,10 +555,16 @@ def print_lick_sets
   else
     $lick_sets.values.each do |ls|
       puts "#{ls[:tag]}:"
-      puts "   desc: " + ( ls[:desc] || 'none' )
-      puts "  licks: #{ls[:licks].join(', ')}"
-      puts "   line: #{ls[:lno]}"
-      puts
+      if $opts[:terse]
+        puts("   desc:  " + ls[:desc]) if ls[:desc]
+      else
+        puts "   desc:  " + ( ls[:desc] || 'none' )
+      end
+      puts "  licks:  #{ls[:licks].join('  ')}"
+      unless $opts[:terse]
+        puts "   line:  #{ls[:lno]}"
+        puts
+      end
     end
     puts "#{$lick_sets.length} lick sets in file #{$lick_file}"
   end

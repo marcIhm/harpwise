@@ -710,6 +710,9 @@ def handle_kb_mic
   elsif char == ',' && $mode == :licks
     $ctl_mic[:replay_menu] = true
     text = 'Replay menu'
+  elsif char == '.' && $mode == :listen
+    $ctl_mic[:comment_lick_play] = true
+    text ='Play lick'
   elsif char == 'P' && [:quiz, :licks].include?($mode)
     $ctl_mic[:auto_replay] = true
     text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'

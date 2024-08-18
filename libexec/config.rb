@@ -66,7 +66,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :hole_given, :next, :back, :forget, :quit, :replay, :octave,
         :loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
-        :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter,
+        :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter, :comment_lick_play,
         :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_short, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
         :set_ref, :auto_replay, :player_details]
@@ -140,7 +140,7 @@ def set_global_vars_early
                            chart_intervals: 'Chart with intervals to ref as names',
                            chart_inter_semis: 'Chart with intervals to ref as semitones'}
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_inter_semis, :holes_notes])
-  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal]
+  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal, :lick_holes]
   $comment_choices_desc = {holes_some: 'Some of the holes to play; largest letters',
                            holes_all: 'All holes to play; large letters',
                            holes_scales: 'Holes to play with abbreviated scales',
@@ -153,7 +153,8 @@ def set_global_vars_early
                            cents_to_ref: 'Cents to ref',
                            gauge_to_ref: 'Instrument for freq diff to ref',
                            warbles: 'Counting warble speed',
-                           journal: 'Journal of selected notes you played'}
+                           journal: 'Journal of selected notes you played',
+                           lick_holes: "show holes of a lick given via '--comment-lick'"}
 
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"

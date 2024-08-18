@@ -219,7 +219,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           if record = shortcut2history_record(start_with)
             to_play.set_lick_idx(record[:lick_idx])
           else
-            to_play.choose_lick_by_name(start_with)
+            to_play.set_lick_idx(find_lick_by_name(start_with))
           end
           # consumed
           start_with = nil
@@ -1456,24 +1456,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
       self.set_lick_idx((self[:lick_idx] + 1 + rand($licks.length - 1)) % $licks.length)
     else
       self.set_lick_idx rand($licks.length)
-    end
-  end
-
-
-  def choose_lick_by_name start_with
-    mnames = $licks.map {|l| l[:name]}.select {|n| n.start_with?(start_with)}
-    case mnames.length
-    when 1
-      self.set_lick_idx($licks.index {|l| l[:name][start_with]})
-    when 0
-      err "Unknown lick: '#{start_with}' (among #{$licks.length} licks) after applying these options:#{desc_lick_select_opts}"
-    else
-      exact = $licks.map {|l| l[:name]}.select {|n| n == start_with}
-      if exact.length == 1
-        self.set_lick_idx($licks.index {|l| l[:name] == exact[0]})
-      else
-        err "Multiple licks start with '#{start_with}': #{mnames}"
-      end
     end
   end
 

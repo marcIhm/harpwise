@@ -435,14 +435,22 @@ def replace_vars vars, strings, name
   end
 end
 
-def desc_lick_select_opts
-  effective = [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :max_holes, :min_holes].map do |opt|
+def desc_lick_select_opts indent: ''
+  effective = []
+  relax = []
+  [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :max_holes, :min_holes].each do |opt|
     if $opts[opt] && $opts[opt].to_s.length > 0
-      "\n  --" + opt.o2str + ' ' + $opts[opt].to_s
-    else
-      ''
+      effective << "\n#{indent}  --" + opt.o2str + ' ' + $opts[opt].to_s
+      relax << "--#{opt.o2str} -"
     end
-  end.join + "\n(some of these values may also come from config)\n"
+  end
+  effective << "\n#{indent}    no lick-selecting option or config in effect" if effective.length == 0
+  effective.join + "\n#{indent}(some of these may come from config" +
+    if relax.length == 0
+      ")\n"
+    else
+      "; relax with:   #{relax.join('   ')}  )\n"
+    end
 end
 
 
@@ -516,4 +524,17 @@ def check_section_key type, key, lick, type2keys, where
     else
       "Key '#{key}' is unknown (#{where})"
     end)
+end
+
+
+def find_lick_by_name name
+  nm_idx = $licks.each_with_index.find {|l,idx| l[:name] == name}
+  if nm_idx
+    return nm_idx[1]
+  else
+    puts "Unknown lick #{name}, none of:"
+    print_in_columns($licks.map {|l| l[:name]}.sort, indent: 4, pad: :tabs)
+    puts "after applying these options:#{desc_lick_select_opts}"
+    err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
+  end
 end

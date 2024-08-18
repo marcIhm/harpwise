@@ -2477,7 +2477,7 @@ do_test 'id-86a: print lick sets' do
   tms 'harpwise print lick-sets'
   tms :ENTER
   sleep 2
-  expect { screen[5]['desc: Set of licks for box-pattern 1'] }
+  expect { screen[5]['desc:  Set of licks for box-pattern 1'] }
   kill_session
 end
 
@@ -3189,6 +3189,15 @@ do_test 'id-119: rotate through blues progression' do
   kill_session
 end
 
+do_test 'id-120: comment with lick from commandline' do
+  new_session
+  tms 'harpwise listen --comment-lick wade'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 2
+  expect { screen[16]['wade'] }
+  kill_session
+end
 
 puts
 puts

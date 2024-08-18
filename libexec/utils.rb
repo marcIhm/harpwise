@@ -747,7 +747,8 @@ def print_amongs *choices
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
       puts "\n- selected licks:"
-      print_in_columns all_lnames, indent: 4, pad: :tabs
+      print_in_columns all_lnames.sort, indent: 4, pad: :tabs
+      puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
     when :last
       puts "\n- A symbolic name for one of the last licks"
       puts '    e.g. l, 2l, last'
