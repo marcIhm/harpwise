@@ -1002,6 +1002,12 @@ class TellInter < QuizFlavour
   def help2
     puts "Playing interval:"
     play_hons
+    sleep 0.5
+    puts "\nOne octave lower:"
+    play_hons hons: @holes.map {|h| semi2note($harp[h][:semi] - 12)}, hide: :all
+    sleep 0.5
+    puts "\nOne octave higher:"
+    play_hons hons: @holes.map {|h| semi2note($harp[h][:semi] + 12)}, hide: :all
   end
 
   def help2_desc
