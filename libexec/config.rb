@@ -66,7 +66,7 @@ def set_global_vars_early
   ks = [:skip, :redraw, :hole_given, :next, :back, :forget, :quit, :replay, :octave,
         :loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
-        :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter, :comment_lick_play,
+        :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter, :comment_lick_play, :comment_lick_next,
         :switch_modes, :toggle_record_user,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_short, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
         :set_ref, :auto_replay, :player_details]
@@ -1003,8 +1003,9 @@ def set_global_musical_vars rotated: false
     $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
-  
-  $all_licks, $licks, $lick_sets = read_licks if $mode == :play || $mode == :licks || $mode == :print
+
+  # might be reread later
+  $all_licks, $licks, $lick_sets = read_licks if [:play, :licks, :print].include?($mode)
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
   if $opts[:ref] 

@@ -684,9 +684,7 @@ def rotate_among value, direction, all_values
 end
 
 
-$among_all_lnames = nil
-
-def recognize_among val, choices
+def recognize_among val, choices, licks: $licks
   
   return nil unless val
   choices = [choices].flatten
@@ -702,8 +700,7 @@ def recognize_among val, choices
       sc = get_scale_from_sws(val, true)
       return choice if $all_scales.include?(sc)
     elsif choice == :lick
-      $among_all_lnames ||= $licks.map {|l| l[:name]}
-      return choice if $among_all_lnames.include?(val)
+      return choice if licks.any? {|l| l[:name] == val}
     elsif choice == :extra
       return choice if $extra_kws[$mode].include?(val)
     elsif choice == :inter
@@ -748,9 +745,13 @@ def print_amongs *choices
       all_lnames = $licks.map {|l| l[:name]}
       puts "\n- selected licks:"
       print_in_columns all_lnames.sort, indent: 4, pad: :tabs
-      puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
+      if $licks == $all_licks
+        puts "  , where set of licks has not been restricted by tags"
+      else
+        puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
+      end
     when :last
-      puts "\n- A symbolic name for one of the last licks"
+      puts "\n- A symbolic name for one of the last licks:"
       puts '    e.g. l, 2l, last'
     else
       fail "Internal error: Unknown choice #{choice}" 

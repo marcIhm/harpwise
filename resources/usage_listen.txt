@@ -43,6 +43,12 @@ USAGE BY EXAMPLES
   or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
   also make this option durable in your config.ini.
 
+  If, in addition to the scale-progression, you want one or more licks
+  at hand (e.g. turnarounds), you may add them as licks to be shown in
+  the comment area:
+  
+    harpwise listen --sc-prog 12bar --licks simple-turn
+
 
   As an advanced example, assume that you would like to play the minor
   pentatonic scale in fourth position. However, harpwise only knows it

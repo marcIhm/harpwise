@@ -6,7 +6,10 @@ def do_print to_print
 
   $all_licks, $licks, $lick_sets = read_licks
 
-  puts "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
+  # We expect lick-names on commandline, so dont narrow to tag-selection
+  $licks = $all_licks if !$extra
+  
+  puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
   puts
 
   if $extra
@@ -56,11 +59,11 @@ def do_print to_print
         print_holes_and_more lick[:holes_wo_events]
         unless $opts[:terse]
           puts
-          puts " Description: #{lick[:desc]}"
-          puts "        Tags: #{lick[:tags].join(' ')}"
-          puts "Rec harp-key: #{lick[:rec_key]}"
+          puts "\e[2m Description:\e[0m #{lick[:desc]}"
+          puts "\e[2m        Tags:\e[0m #{lick[:tags].join(' ')}"
+          puts "\e[2mRec harp-key:\e[0m #{lick[:rec_key]}"
+          puts
         end
-        puts unless $opts[:terse]
         puts if lnames.length > 1
       end
       puts "#{lnames.length} licks printed." unless $opts[:terse]
@@ -77,13 +80,18 @@ def do_print to_print
 
     when 'licks-details'
 
-      puts_underlined 'Licks selected by tags and hole-count:'
+      puts_underlined 'Licks selected by tags and hole-count:', vspace: !$opts[:terse]
       $licks.each do |lick|
-        puts
-        puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
+        if $opts[:terse]
+          puts "#{lick[:name]}:"
+        else
+          puts
+          puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
+        end
         print_holes_and_more lick[:holes_wo_events]
       end
-      puts "\e[2mTotal count: #{$licks.length}\e[0m"
+      puts
+      puts "\e[2mTotal count of licks printed: #{$licks.length}\e[0m"
 
     when 'licks-list', 'licks-list-all'
 
@@ -101,7 +109,7 @@ def do_print to_print
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
       puts
-      puts "\e[2mTotal count: #{licks.length}\e[0m"
+      puts "\e[2mTotal count of licks printed: #{licks.length}\e[0m"
 
     when 'licks-with-tags'
 
@@ -147,7 +155,7 @@ def do_print to_print
         end
       end
       puts
-      puts "\e[2mTotal count: #{$all_scales.length}\e[0m"
+      puts "\e[2mTotal count of scales printed: #{$all_scales.length}\e[0m"
 
     when 'intervals'
 
@@ -179,8 +187,8 @@ end
 def print_holes_and_more holes_or_notes
   puts "\e[2mHoles or notes given:\e[0m" unless $opts[:terse]
   print_in_columns holes_or_notes, pad: :tabs
-  puts
   return if $opts[:terse]
+  puts
   if $used_scales[0] == 'all'
     puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
     puts

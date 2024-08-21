@@ -14,22 +14,18 @@ def do_listen
   $hole_was_for_disp = nil
   jlen_refresh_comment_cache = comment_cache = nil
   $players = FamousPlayers.new
-  $comment_lick = nil
+  $comment_licks = []
   comment_lick_lines = []
-  if $opts[:comment_lick]
+  if $opts[:licks]
     $all_licks, $licks, $lick_sets = read_licks
-    $comment_lick = lick = $licks[find_lick_by_name($opts[:comment_lick])]
-    holes_lines = wrap_words('    ', lick[:holes], sep = '  ').split("\n")
-    comment_lick_lines << ''
-    comment_lick_lines << '  lick ' + lick[:name] +':'
-    if holes_lines.length <= 2
-      comment_lick_lines << ''
-      comment_lick_lines.append(*(holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact))
-    else
-      comment_lick_lines.append(*holes_lines)
+    # We get the lick-name on commandline, so dont narrow to tag-selection
+    $licks = $all_licks
+    $comment_licks = []
+    $opts[:licks].split(',').each do |lname|
+      $comment_licks << $licks[find_lick_by_name(lname)]
     end
+    comment_lick_lines = get_listen_lick_lines($comment_licks[0])
   end
-
   
   while !$ctl_mic[:switch_modes] do
     
@@ -138,7 +134,7 @@ def do_listen
                    comment_lick_lines
                  else
                    ['',
-                    '  Need to specify a lick to be displayed here','','  e.g. via     --comment-lick wade']
+                    '  Need to specify one or more lick to be displayed here','','  e.g. via     --licks wade']
                  end
                else
                  fail "Internal error: unknown comment: #{$opts[:comment]}"
@@ -339,24 +335,29 @@ END
     #
     if $ctl_mic[:comment_lick_play]
       $ctl_mic[:comment_lick_play] = false
-      if $comment_lick
+      if $comment_licks.length > 0
         clear_area_comment
         clear_area_message
-        puts "\e[#{$lines[:comment_tall] + 1}H"
-        play_and_print_lick $comment_lick
+        puts "\e[#{$lines[:comment_tall]}H"
+        play_and_print_lick $comment_licks[0]
         sleep 0.5
         $freqs_queue.clear
         clear_area_comment
         clear_area_message
         $ctl_mic[:redraw] = Set[:silent]
       else
+        tell_no_comment_licks
+      end
+    end
+    
+    if $ctl_mic[:comment_lick_next]
+      $ctl_mic[:comment_lick_next] = false
+      if $comment_licks.length > 0
+        $comment_licks.rotate!
+        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
         clear_area_comment
-        print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option\n\n        --comment-lick"
-        puts $journal.reject {|x| musical_event?(x,:secs)}.join('  ')
-        puts "\n\e[2m  any key to continue ...\e[2m"
-        $ctl_kb_queue.clear
-        $ctl_kb_queue.deq
-        $freqs_queue.clear
+      else
+        tell_no_comment_licks
       end
     end
     
@@ -463,3 +464,26 @@ def get_journal_comment
 
   return comment
 end  
+
+
+def get_listen_lick_lines lick
+  holes_lines = wrap_words('    ', lick[:holes], sep = '  ').split("\n")
+  lines = ['']
+  lines << '  lick ' + lick[:name] +':'
+  if holes_lines.length <= 2
+    lines << ''
+    lines.append(*(holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact))
+  else
+    lines.append(*holes_lines)
+  end
+  lines
+end
+
+def tell_no_comment_licks
+  clear_area_comment
+  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option\n\n        --licks"
+  puts "\n\e[2m  #{$resources[:any_key]}\e[2m"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+  $freqs_queue.clear
+end

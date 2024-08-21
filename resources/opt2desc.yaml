@@ -283,14 +283,15 @@ keyboard_translate:
     config.
   - LIST_OF_KB_TRANSLATIONS
 
-comment_lick:
+licks:
   - |
-    show given lick in comment
+    show given licks in comment
     (lower part of screen), e.g.
     
-      --comment-lick wade
+      --licks wade
 
-    this lick can also be played by pressing '.'. You may e.g. want to
-    specify a turnaround lick with this option.
+    multiple licks may be separated by comma. These lick can be
+    played by pressing '.'. You may e.g. want to specify turnaround
+    licks with this way.
   - LICKNAME
   

@@ -37,7 +37,7 @@ def parse_arguments_early
   num_args_after_mode = ARGV.length
   
   # needed for error messages
-  $for_usage = "Invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage."
+  $for_usage = "invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage."
 
 
   #
@@ -69,7 +69,7 @@ def parse_arguments_early
         keyboard_translate: %w(--kb-tr --keyboard-translate)}],
      [Set[:listen], {
         no_player_info: %w(--no-player-info),
-        comment_lick: %w(--co-li --comment-lick)}],
+        licks: %w(--licks)}],
      [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {
@@ -216,7 +216,7 @@ def parse_arguments_early
   end
     
   if opts[:min_holes]
-    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{$for_usage}" unless opts[:min_holes].match?(/^\d+$/)
+    err "Option '--min-holes' needs an integer argument, not '#{opts[:min_holes]}'; #{$for_usage}" unless opts[:min_holes].to_s.match?(/^\d+$/)
     opts[:min_holes] = opts[:min_holes].to_i
   end
 
@@ -287,7 +287,7 @@ def parse_arguments_early
     err "Invalid keyboard translation: these keys appear both as from and to (in #{cite}): #{in_both.join(',')}" if in_both.length > 0
   end
 
-  opts[:comment] = :lick_holes if opts[:comment_lick] 
+  opts[:comment] = :lick_holes if opts[:licks] 
 
   # save them away, so we may later restore them
   $initial_tag_options = Hash.new
@@ -476,11 +476,20 @@ def parse_arguments_late
 
   $extra = nil
   okay = true
+
   if $extra_desc[$mode]
     if [:play, :print].include?($mode)
-      what = recognize_among(ARGV[0], [$amongs_play_or_print, :extra])
+      # We want a complete error-message e.g. for a typo in first
+      # argument; so this needs to check all possible choices:
+      # $amongs_play_or_print as well as $extra. All arguments (with a
+      # possible $extra already removed) will later be checked again, but
+      # only against $amongs_play_or_print
+      what = recognize_among(ARGV[0], [$amongs_play_or_print, :extra], licks: $all_licks)
       $extra = ARGV.shift if what == :extra
       if !what
+        # this will make print_amongs aware, that we did recognize_among
+        # against $all_licks above
+        $licks = $all_licks
         print_amongs($amongs_play_or_print, :extra)
         okay = false
       end
@@ -491,11 +500,12 @@ def parse_arguments_late
         okay = false
       end
     end
-  end
-  if !okay
-    err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
-    rem = ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' )
-    err "First argument for mode #{$mode} should be one of those listed above, not '#{ARGV[0]}'#{rem}"
+
+    if !okay
+      err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
+      rem = ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' )
+ru      err "First argument for mode #{$mode} should be one of those choices listed above, not '#{ARGV[0]}'#{rem}"
+    end
   end
   
   if [:play, :print, :quiz, :licks, :tools, :develop].include?($mode)
@@ -560,6 +570,14 @@ def print_usage_info mode = nil
 
   # get content of all harmonica-types to be inserted
   types_with_scales = get_types_with_scales
+  # used for play and print
+  no_lick_selecting_options = <<-EOTEXT
+  Note, that the above case does not use any of the extra arguments given
+  above, but rather expects (maybe among others) lick-names on the
+  commandline; in this case the lick-selecting tag-options (e.g. -t) are
+  ignored (even those from your config.ini) and the given lick-names
+  ('st-louis') are searched among ALL of your licks.
+EOTEXT
 
   puts
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'')

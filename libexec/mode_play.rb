@@ -6,6 +6,9 @@ def do_play to_play
 
   $all_licks, $licks, $lick_sets = read_licks
 
+  # We expect lick-names on commandline, so dont narrow to tag-selection
+  $licks = $all_licks if !$extra
+  
   make_term_immediate
 
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"

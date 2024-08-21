@@ -109,7 +109,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 95
+num_exp = 96
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -993,6 +993,39 @@ do_test 'id-22: print list of some licks with tags' do
   kill_session
 end
 
+do_test 'id-22a: print finds a lick ignoring tag-selection' do
+  new_session
+  tms 'harpwise print --tags-all favorites one'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[18]['Tags:'] }
+  # tags do not contain 'favorites'
+  expect { !screen[18]['favorites'] }
+  # but the lick is still found
+  expect { screen[21]['1 licks printed'] }
+  kill_session
+end
+
+do_test 'id-22b: print tries its first argument against various areas' do
+  new_session
+  tms "harpwise print none-of-possible-choices >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  ["- musical events in () or []\n",
+   "- holes:\n",
+   "- notes:\n",
+   "- selected licks:\n",
+   "- selected licks:\n",
+   "  , where set of licks has not been restricted by tags\n",
+   "- scales:\n",
+   "- A symbolic name for one of the last licks:\n",
+   "- extra arguments:\n"].each_with_index do |exp,idx|
+    expect(exp, "See #{$testing_output_file}") { lines.include?(exp) }
+  end
+  kill_session
+end
+
 do_test 'id-23: print list of licks with tags' do
   new_session
   tms "harpwise print licks-with-tags >#{$testing_output_file}"
@@ -1403,7 +1436,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[13]["First argument for mode print should be one of those listed above"] }
+  expect { screen[13]["First argument for mode print should be one of those choices"] }
   kill_session
 end
 
@@ -1648,7 +1681,7 @@ do_test 'id-53: print' do
    37 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
    41 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    45 => '-7  -5  -2  1   -2  1   0   -2',
-   50 => 'Description: St. Louis Blues'}.each do |lno, exp|
+   50 => 'St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1697,7 +1730,7 @@ do_test 'id-53e: print with scales but terse' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
   tms :ENTER
-  expect { screen[12] == '$' }
+  expect { screen[11] == '$' }
   kill_session
 end
 
@@ -1759,8 +1792,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10] == 'With intervals to first:' }
-  expect { screen[16] == 'As absolute semitones (a4 = 0):' }
+  expect { screen[9] == 'With intervals to first:' }
+  expect { screen[15] == 'As absolute semitones (a4 = 0):' }
   kill_session
 end
 
@@ -1811,6 +1844,21 @@ do_test 'id-54g: print scale with flats' do
 end
 
 
+do_test 'id-54h: print list of licks by hole-count' do
+  new_session
+  tms "harpwise print licks-list --max-holes 12 --min-holes 8"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[19] == 'Total count of licks printed: 9' }
+  sleep 1
+  tms "harpwise print licks-list --max-holes 20 --min-holes 4"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[21] == 'Total count of licks printed: 18' }
+  kill_session
+end
+
+
 do_test 'id-55: check persistence of volume' do
   FileUtils.rm $persistent_state_file if File.exist?($persistent_state_file)
   first_vol = -9
@@ -1845,17 +1893,17 @@ do_test 'id-56: forward and back in help' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[3]['pause and continue'] }
+  expect { screen[4]['pause and continue'] }
   tms :ENTER 
-  expect { screen[6]['next sequence or lick'] }
+  expect { screen[7]['next sequence or lick'] }
   tms :BSPACE
-  expect { screen[3]['pause and continue'] }
+  expect { screen[4]['pause and continue'] }
   kill_session
 end
 
-help_samples = {'harpwise listen d' => [[7,'change key of harp']],
-                'harpwise quiz a replay 3' => [[7,'change key of harp'],[10,'forget holes played']],
-                'harpwise licks c' => [[7,'change key of harp'],[10,'toggle immediate reveal of sequence']]}
+help_samples = {'harpwise listen d' => [[8,'change key of harp']],
+                'harpwise quiz a replay 3' => [[8,'change key of harp'],[11,'forget holes played']],
+                'harpwise licks c' => [[8,'change key of harp'],[11,'toggle immediate reveal of sequence']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do
@@ -2338,7 +2386,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[13]['First argument for mode tools should be one of those listed above'] }
+  expect { screen[13]['First argument for mode tools should be one of those choices'] }
   kill_session
 end
 
@@ -2869,14 +2917,14 @@ do_test 'id-104: sorting due to lick-set' do
   tms :ENTER
   expect { screen[9]['st-louis'] }
   expect { screen[10]['wade'] }
-  expect { screen[12]['Total count: 2'] }
+  expect { screen[12]['Total count of licks printed: 2'] }
   wait_for_end_of_harpwise
 
   tms 'harpwise print licks-list -t mytag2'
   tms :ENTER
   expect { screen[18]['st-louis'] }
   expect { screen[19]['feeling-bad'] }
-  expect { screen[21]['Total count: 2'] }
+  expect { screen[21]['Total count of licks printed: 2'] }
   wait_for_end_of_harpwise
 
   FileUtils.mv saved, $lickfile_testing
@@ -3119,10 +3167,10 @@ do_test "id-116: show help for specific key" do
   expect { screen[1]['Help on keys in main view'] }
   tms 'p'
   expect { screen[1]['More help on keys'] }
-# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
-# oder das ist nur ein Unterschied in den Versionen von tmux.
-#  expect { screen_col[7]["\e[39m      .p: replay recording"] }
-  expect { screen_col[7]["      .p: replay recording"] }
+  # 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
+  # oder das ist nur ein Unterschied in den Versionen von tmux.
+  # expect { screen_col[7]["\e[39m      .p: replay recording"] }
+  expect { screen_col[8]["      .p: replay recording"] }
   kill_session
 end
 
@@ -3189,13 +3237,20 @@ do_test 'id-119: rotate through blues progression' do
   kill_session
 end
 
-do_test 'id-120: comment with lick from commandline' do
+do_test 'id-120: comment with licks from commandline' do
   new_session
-  tms 'harpwise listen --comment-lick wade'
+  tms 'harpwise listen --licks wade,simple-turn'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 2
   expect { screen[16]['wade'] }
+  sleep 1
+  tms '.'
+  sleep 1
+  expect { screen[16]['Lick wade, recorded with'] }
+  sleep 4
+  tms 'l'
+  expect { screen[16]['simple-turn'] }
   kill_session
 end
 

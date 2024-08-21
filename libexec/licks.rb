@@ -315,7 +315,7 @@ def read_licks graceful = false, lick_file = nil
     licks << lk
   end
 
-  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options:#{desc_lick_select_opts}") if licks.length == 0
+  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options: #{desc_lick_select_opts}") if licks.length == 0
   
   [all_licks, licks, lick_sets]
 end
@@ -436,6 +436,7 @@ def replace_vars vars, strings, name
 end
 
 def desc_lick_select_opts indent: ''
+
   effective = []
   relax = []
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :max_holes, :min_holes].each do |opt|
@@ -444,7 +445,7 @@ def desc_lick_select_opts indent: ''
       relax << "--#{opt.o2str} -"
     end
   end
-  effective << "\n#{indent}    no lick-selecting option or config in effect" if effective.length == 0
+  effective << "\n#{indent}no lick-selecting option or config in effect" if effective.length == 0
   effective.join + "\n#{indent}(some of these may come from config" +
     if relax.length == 0
       ")\n"
@@ -534,7 +535,11 @@ def find_lick_by_name name
   else
     puts "Unknown lick #{name}, none of:"
     print_in_columns($licks.map {|l| l[:name]}.sort, indent: 4, pad: :tabs)
-    puts "after applying these options:#{desc_lick_select_opts}"
+    if $licks == $all_licks
+      puts "where set of licks has not been restricted by tags"
+    else
+      puts "after applying these options: #{desc_lick_select_opts}"
+    end
     err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
   end
 end

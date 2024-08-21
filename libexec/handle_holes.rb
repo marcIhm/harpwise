@@ -10,7 +10,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   longest_hole_name = $harp_holes.max_by(&:length)
   # we cache time for (assumed) performance reasons
   tntf = Time.now.to_f
-  
   # Remark: $hole_was_for_disp needs to be persistant over invocations
   # and cannot be set here
 
@@ -69,7 +68,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
         animate_splash_line(single_line = true)
-        $msgbuf.print nil, 0, 6
+        # does not print anythin, but lets splash be seen
+        $msgbuf.print nil, 0, 4
       end
     end
 
@@ -473,7 +473,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -680,6 +680,7 @@ def show_help mode = $mode, testing_only = false
   frames = Array.new
   frames << [" Help on keys in main view:",
              "",
+             "",
              "  SPACE:_pause and continue      CTRL-L:_redraw screen",
              "    d,D:_change display (upper part of screen)",
              "    c,C:_change comment (in lower part of screen)",
@@ -694,9 +695,13 @@ def show_help mode = $mode, testing_only = false
     frames[-1] <<  " CTRL-R:_record and play user (mode licks only)"
   else
     frames[-1] <<  "      j:_invoke journal-menu to handle your musical ideas"
+    frames << [" More help on keys:",
+               "",
+               ""]
     frames[-1] <<  "      w:_switch comment to warble and prepare"
     frames[-1] <<  "      p:_print details about player currently drifting by"
-    frames[-1] <<  "      .:_play lick given via --comment-lick"
+    frames[-1] <<  "      .:_play lick given via --licks (shown in comment-area)"
+    frames[-1] <<  "      l:_rotate among those licks"
   end
 
   frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
@@ -705,6 +710,7 @@ def show_help mode = $mode, testing_only = false
 
   if [:quiz, :licks].include?(mode)
     frames << [" More help on keys; special for modes licks and quiz:",
+               "",
                "",
                "  Note: 'licks' and 'sequence of holes to play' (mode quiz)",
                "  are mostly handled alike.",
@@ -731,6 +737,7 @@ def show_help mode = $mode, testing_only = false
     else
       frames << [" More help on keys; special for mode licks:",
                  "",
+                 "",
                  "      l:_change current lick by name       e:_edit lickfile",
                  "      t:_change lick-selection (-t)        i:_show info on lick",
                  "      #:_shift lick by chosen interval   9,@:_change option --partial",
@@ -749,7 +756,7 @@ def show_help mode = $mode, testing_only = false
                         ""])
     maxlen = $keyboard_translations.keys.map(&:length).max
     $keyboard_translations.each do |from,to|
-      frames[-1] << ( "  %#{maxlen}s:_maps to %s" % [from, to] )
+      frames[-1] << ( "  %#{maxlen}s:_to %s" % [from, to] )
     end
   end
   frames[-1].append(*["",
@@ -768,9 +775,9 @@ def show_help mode = $mode, testing_only = false
     frame << ""  while frame.length < max_lines_per_frame - 2
     frame << ' ' +
              if fidx < frames.length - 1
-               'SPACE or RETURN for more; ESC to leave'
+               'SPACE for more; ESC to leave'
              else
-               'Help done; SPACE, RETURN or ESC to leave'
+               'Help done; SPACE or ESC to leave'
              end +
              if fidx > 0 
                ', BACKSPACE for prev'
@@ -893,7 +900,7 @@ def show_help mode = $mode, testing_only = false
       curr_frame -= 1 if curr_frame > 0
     elsif key == 'ESC'
       return
-    elsif key == ' ' || key == 'RETURN'
+    elsif key == ' '
       if curr_frame < frames.length - 1
         curr_frame += 1
       else
@@ -1014,7 +1021,8 @@ class MsgBuf
       # current message is old
       @@lines_durations.pop
       if @@lines_durations.length > 0
-        # display new topmost message
+        # display new topmost message; special case of text = nil
+        # preserves already visible content (e.g. splash)
         if @@ready && @@lines_durations[-1][0]
           Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
           @@printed.push(@@lines_durations[-1]) if $testing
@@ -1053,9 +1061,12 @@ class MsgBuf
   end
 
   def flush_to_term
-    return if @@lines_durations.length == 0
+    return if @@lines_durations.length == 0 || @@lines_durations.none? {|l,_| l}
     puts "\n\n\e[0m\e[2mFlushing pending messages:"
-    @@lines_durations.each {|l,d| puts '  ' + l}
+    @@lines_durations.each do |l,_|
+      next if !l
+      puts '  ' + l
+    end
     Kernel::print "\e[0m"
   end
   
