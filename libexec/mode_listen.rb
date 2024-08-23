@@ -15,15 +15,16 @@ def do_listen
   jlen_refresh_comment_cache = comment_cache = nil
   $players = FamousPlayers.new
   $comment_licks = []
+  comment_licks_initial = nil
   comment_lick_lines = []
   if $opts[:licks]
     $all_licks, $licks, $lick_progs = read_licks
     # We get lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks
-    $comment_licks = []
     $opts[:licks].split(',').each do |lname|
       $comment_licks << $licks[find_lick_by_name(lname)]
     end
+    comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
   end
   
@@ -354,6 +355,18 @@ END
       $ctl_mic[:comment_lick_next] = false
       if $comment_licks.length > 0
         $comment_licks.rotate!
+        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+        clear_area_comment
+      else
+        tell_no_comment_licks
+      end
+    end
+    
+
+    if $ctl_mic[:comment_lick_first]
+      $ctl_mic[:comment_lick_first] = false
+      if $comment_licks.length > 0
+        $comment_licks = comment_licks_initial.clone
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
         clear_area_comment
       else

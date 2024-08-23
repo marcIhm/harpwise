@@ -107,6 +107,7 @@ def parse_arguments_early
      [Set[:play, :print], {
         scale_over_lick: %w(--scale-over-lick)}],
      [Set[:licks], {
+        fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
 
   double_sets = modes2opts.map {|m2o| m2o[0]}

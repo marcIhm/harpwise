@@ -84,6 +84,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     elsif $ctl_mic[:back]
       to_play.back_one_sequence
       
+    elsif $ctl_mic[:first_lick]
+      to_play.back_to_first_lick
+      
     elsif $ctl_mic[:change_lick] 
       to_play.read_name_change_lick(to_play[:lick])
       
@@ -337,7 +340,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     end
 
     # reset controls before listening
-    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = false
+    $ctl_mic[:back] = $ctl_mic[:next] = $ctl_mic[:replay] = $ctl_mic[:shift_inter] = $ctl_mic[:reverse_holes] = $ctl_mic[:shuffle_holes] = $ctl_mic[:change_partial] = $ctl_mic[:first_lick] = false
     
     $ctl_mic[:replay] = false
     $ctl_mic[:replay_flags] = Set.new
@@ -448,7 +451,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           end, 
           
           # lambda_skip
-          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]},  
+          -> () {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial] || $ctl_mic[:first_lick]},  
 
           
           # lambda_comment; this one needs no arguments at all
@@ -533,15 +536,17 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           return
         end
 
-        break if [:next, :back, :replay, :replay_menu, :shift_inter, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
+        break if [:next, :back, :replay, :replay_menu, :shift_inter, :change_partial, :forget, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :first_lick].any? {|k| $ctl_mic[k]}
 
       end  ## notes in a sequence
 
       #
       #  Finally judge result and handle display
       #
-      
-      if $ctl_mic[:forget]
+
+      if $opts[:fast_lick_switch]
+        # no echo of action
+      elsif $ctl_mic[:forget]
         $ulrec.ensure_end_rec
         clear_area_comment
         if [:holes_scales, :holes_intervals, :holes_inter_semis].include?($opts[:comment])
@@ -562,6 +567,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
                       'jump back'
                     elsif $ctl_mic[:replay]
                       'replay'
+                    elsif $ctl_mic[:first_lick]
+                      'first'
                     elsif $ctl_mic[:toggle_record_user]
                       if $ulrec.active?
                         cmnt_col = 2
@@ -625,7 +632,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         $freqs_queue.clear
       end
       
-    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :replay_menu, :shift_inter, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay].all? {|k| !$ctl_mic[k]}  ## while looping over the same sequence again and again
+    end while ( $ctl_mic[:loop] || $ctl_mic[:forget] ) && [:back, :next, :replay, :replay_menu, :shift_inter, :change_partial, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :change_num_quiz_replay, :first_lick].all? {|k| !$ctl_mic[k]}  ## while looping over the same sequence again and again
 
     print_mission ''
     oride_l_message2 = nil
@@ -1461,6 +1468,11 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     else
       self.set_lick_idx rand($licks.length)
     end
+  end
+
+
+  def back_to_first_lick
+    self.set_lick_idx(0)
   end
 
 

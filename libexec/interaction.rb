@@ -685,6 +685,9 @@ def handle_kb_mic
   elsif char == '$'
     $ctl_mic[:change_scale] = true
     text = nil
+  elsif char == 'L' && $mode == :licks
+    $ctl_mic[:first_lick] = true
+    text = 'First lick'
   elsif char == 'K'
     $ctl_mic[:pitch] = true
     text = nil
@@ -728,6 +731,9 @@ def handle_kb_mic
   elsif char == 'l' && $mode == :listen
     $ctl_mic[:comment_lick_next] = true
     text ='Next lick'
+  elsif char == 'L' && $mode == :listen
+    $ctl_mic[:comment_lick_first] = true
+    text ='First lick'
   elsif char == 'P' && [:quiz, :licks].include?($mode)
     $ctl_mic[:auto_replay] = true
     text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'

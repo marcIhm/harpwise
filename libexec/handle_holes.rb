@@ -473,7 +473,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_first].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -701,7 +701,7 @@ def show_help mode = $mode, testing_only = false
     frames[-1] <<  "      w:_switch comment to warble and prepare"
     frames[-1] <<  "      p:_print details about player currently drifting by"
     frames[-1] <<  "      .:_play lick given via --licks (shown in comment-area)"
-    frames[-1] <<  "      l:_rotate among those licks"
+    frames[-1] <<  "      l:_rotate among those licks        L:_to first lick"
   end
 
   frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
@@ -738,13 +738,13 @@ def show_help mode = $mode, testing_only = false
       frames << [" More help on keys; special for mode licks:",
                  "",
                  "",
-                 "      l:_change current lick by name       e:_edit lickfile",
+                 "      l:_change current lick by name       L:_to first lick",
                  "      t:_change lick-selection (-t)        i:_show info on lick",
                  "      #:_shift lick by chosen interval   9,@:_change option --partial",
                  "     */:_Add or remove Star from current lick persistently;",
                  "         select them later by tags starred/unstarred",
                  "      !:_play holes reversed               &:_shuffle holes",
-                 "      1:_give one hole, as if you played it",
+                 "      1:_give one hole, as if played       e:_edit lickfile",
                  ""]
     end
   end
