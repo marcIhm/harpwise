@@ -21,9 +21,16 @@ def do_listen
     $all_licks, $licks, $lick_progs = read_licks
     # We get lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks
-    $opts[:licks].split(',').each do |lname|
-      $comment_licks << $licks[find_lick_by_name(lname)]
+    if $lick_progs[$opts[:licks]]
+      $lick_progs[$opts[:licks]][:licks].each do |lname|
+        $comment_licks << $licks[find_lick_by_name(lname)]
+      end
+    else 
+      $opts[:licks].split(',').each do |lname|
+        $comment_licks << $licks[find_lick_by_name(lname)]
+      end
     end
+      
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
   end

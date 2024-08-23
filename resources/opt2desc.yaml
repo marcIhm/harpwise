@@ -344,10 +344,16 @@ licks:
     show given licks in comment
     (lower part of screen), e.g.
     
-      --licks wade
+      --licks wade,simple-turn
 
     multiple licks may be separated by comma. These lick can be
     played by pressing '.'. You may e.g. want to specify turnaround
     licks with this way.
+
+    You may also use a lick progression defined in your lick file:
+
+      --licks box1-turn
+
+    to save some typing.
   - LICKNAME
   

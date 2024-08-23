@@ -203,8 +203,9 @@ def read_licks graceful = false, lick_file = nil
 
   # check progressions and add info
   name2prog.keys.each do |pname|
+    err "There is progression and a lick both with name '#{pname}'" if name2lick[pname]
     name2prog[pname][:licks].each do |lname|
-      err "lick progression '#{pname}' contains unknown lick #{lname} (file #{lfile})" unless name2lick[lname]
+      err "Lick progression '#{pname}' contains unknown lick #{lname} (file #{lfile})" unless name2lick[lname]
       name2lick[lname][:progs] << pname
     end
   end

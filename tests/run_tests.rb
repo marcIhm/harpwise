@@ -3244,5 +3244,19 @@ do_test 'id-120: comment with licks from commandline' do
   kill_session
 end
 
+do_test 'id-121: comment with licks from lick-progression' do
+  new_session
+  tms 'harpwise listen --licks box1-turn'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 2
+  expect { screen[16]['box1-i'] }
+  sleep 1
+  tms 'l'
+  sleep 1
+  expect { screen[16]['box1-iv'] }
+  kill_session
+end
+
 puts
 puts
