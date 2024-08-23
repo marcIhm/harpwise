@@ -18,17 +18,17 @@ def read_licks graceful = false, lick_file = nil
   all_licks = []
   licks = nil
   derived = []
-  lick_sets = Hash.new
+  name2prog = Hash.new
   name2lick = Hash.new
   default = Hash.new
   vars = Hash.new
-  lick = lname = nil
-  section = section_type = nil
+  sec_title = sec_type = nil
+  section = nil
 
   type2keys = { lick: %w(holes notes tags tags.add desc desc.add rec rec.key rec.start rec.length),
                 default: %w(tags tags.add desc desc.add rec.key),
                 vars: [],
-                lick_set: %w(desc tag licks) }
+                prog: %w(desc licks) }
       
   #
   # Proces file line by line
@@ -43,46 +43,49 @@ def read_licks graceful = false, lick_file = nil
     derived << line
     where = "file #{lfile}, line #{lno}"
       
-    if md = line.match(/^\[(#{$word_re})\]$/)
+    if md = ( line.match(/^\[(#{$word_re})\]$/) ||
+              line.match(/^\[(prog #{$word_re})\]$/) )
       derived.insert(-2,'') 
 
-      # section_type, lick, etc. still belong to previous lick
-      if section_type == :default
-        default = lick
-      elsif section_type == :vars
+      # sec_type, lick, etc. still belong to previous lick
+      if sec_type == :default
+        default = section
+      elsif sec_type == :vars
         # vars have already been assigned; nothing to do here
-      elsif section_type == :lick_set
-        %w(tag licks).each do |key|
-          err "Section 'lick-set' needs to contain key '#{key}' (#{where})" unless lick[key.o2sym2]
-        end
-        lick_sets[lick[:tag]] = lick
-      elsif section_type == :lick
+      elsif sec_type == :prog
+        err "Section 'prog #{sec_title}' needs to contain key 'licks' (#{where})" unless section[:licks]
+        before = name2prog[sec_title]
+        err "Progression '#{sec_title}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]})" if before
+        name2prog[sec_title] = section
+        err "Progression #{sec_title} does not contain any licks" unless section[:licks]  
+      elsif sec_type == :lick
         # a lick
-        lname = section
-        before = name2lick[lname]
-        err "Lick '#{lname}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{lick[:lno]})" if before
-        name2lick[lname] = lick
-        all_licks << process_lick(lick, lname, vars, default)
+        before = name2lick[sec_title]
+        err "Lick '#{sec_title}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]})" if before
+        name2lick[sec_title] = section
+        all_licks << process_lick(section, sec_title, vars, default)
       end
       
       # Start with new section
-      section = md[1]
-      lick = Hash.new
-      lick[:lno] = lno
-      lname = nil
+      sec_title = md[1]
+      section = Hash.new
+      section[:lno] = lno
       
-      if section == 'default'
-        section_type = :default
-      elsif section == 'vars'
+      if sec_title == 'default'
+        sec_type = :default
+      elsif sec_title == 'vars'
         # vars have already been assigned; nothing to do here
-        section_type = :vars 
-      elsif section == 'lick-set'
-        section_type = :lick_set
+        sec_type = :vars
+      elsif md = sec_title.match(/^prog (#{$word_re})$/)
+        sec_type = :prog
+        sec_title = section[:name] = md[1]
       else
-        section_type = :lick    
-        lname = section
-        lick[:name] = lname
+        sec_type = :lick    
+        section[:name] = sec_title
       end
+
+      # helpful for dumps
+      section[:type] = sec_type
       
     # [empty section]
     elsif line.match?(/^ *\[\] *$/)
@@ -95,7 +98,7 @@ def read_licks graceful = false, lick_file = nil
     # Assign variable like, $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(.*) *$/)
       var, value = md[1..2]
-      err "Variable assignment (here: #{var}) is not allowed outside a [var]-section; this section is [#{section}] (#{where})" if section_type != :vars 
+      err "Variable assignment (here: #{var}) is not allowed outside a [var]-section; this section is [#{section}] (#{where})" if sec_type != :vars 
       vars[var] = value
       
     # tags
@@ -103,36 +106,36 @@ def read_licks graceful = false, lick_file = nil
           (md = line.match(/^ *(tags) *= *(.*?) *$/))
       key, tags = md[1, 2]
       skey = key.o2sym2
-      check_section_key(section_type, key, lick, type2keys, where)
-      lick[skey] = tags.split
-      lick[skey].each do |tag|
+      check_section_key(sec_type, key, section, type2keys, where)
+      section[skey] = tags.split
+      section[skey].each do |tag|
         err "Tags must consist of word characters; '#{tag}' (#{where}) does not" unless tag.match?(/^#{$word_re}$/) || tag.match?(/^\$#{$word_re}$/) 
       end
       
     # holes = value1 value2 ...
     elsif md = line.match(/^ *holes *= *(.*?) *$/)
-      check_section_key(section_type, 'holes', lick, type2keys, where)
+      check_section_key(sec_type, 'holes', section, type2keys, where)
       holes = md[1]
-      lick[:holes] = holes.split.map do |hole|
+      section[:holes] = holes.split.map do |hole|
         err("Hole '#{hole}' is not among holes of harp #{$harp_holes} (#{where})") unless musical_event?(hole) || $harp_holes.include?(hole)
         hole
       end
-      err "Lick #{lname} key 'holes' is empty (#{where})" unless lick[:holes].length > 0
-      lick[:holes_wo_events] = lick[:holes].reject {|h| musical_event?(h)}
+      err "Lick #{sec_title} key 'holes' is empty (#{where})" unless section[:holes].length > 0
+      section[:holes_wo_events] = section[:holes].reject {|h| musical_event?(h)}
       derived[-1] = "  notes = " + holes.split.map do |hoe|
         musical_event?(hoe)  ?  hoe  :  $harp[hoe][:note]
       end.join(' ')
       
     # notes = value1 value2 ...
     elsif md = line.match(/^ *notes *= *(.*?) *$/)
-      check_section_key(section_type, 'notes', lick, type2keys, where)
+      check_section_key(sec_type, 'notes', section, type2keys, where)
       notes = md[1]
       # do not keep notes, but rather convert them to holes right away
-      lick[:holes] = notes.split.map do |note|
+      section[:holes] = notes.split.map do |note|
         err("Note '#{note}' is not among notes of harp #{$harp_notes} (#{where})") unless musical_event?(note) || $harp_notes.include?(note)
         $note2hole[note]
       end
-      err "Lick #{lname} key 'notes' is empty (#{where})" unless lick[:holes].length > 0
+      err "Lick '#{sec_title}', key 'notes' is empty (#{where})" unless section[:holes].length > 0
       derived[-1] = "  holes = " + lick['holes'].join(' ')
 
     # desc.add = multi word description
@@ -140,45 +143,45 @@ def read_licks graceful = false, lick_file = nil
     elsif (md = line.match(/^ *(desc) *= *(.*?) *$/)) ||
           (md = line.match(/^ *(desc.add) *= *(.*?) *$/))
       key, desc = md[1 .. 2]
-      check_section_key(section_type, key, lick, type2keys, where)
-      lick[key.o2sym2] = desc
+      check_section_key(sec_type, key, section, type2keys, where)
+      section[key.o2sym2] = desc
 
     # rec = mp3
     elsif md = line.match(/^ *rec *= *(#{$word_re}) *$/)
-      check_section_key(section_type, 'rec', lick, type2keys, where)
+      check_section_key(sec_type, 'rec', section, type2keys, where)
       file = $lick_dir + '/recordings/' + md[1]
       err "File #{file} does not exist (#{where})" unless File.exist?(file)
-      lick[:rec] = md[1]
+      section[:rec] = md[1]
 
     # rec.key = musical-key
     elsif md = line.match(/^ *rec.key *= *(#{$word_re}) *$/)
-      check_section_key(section_type, 'rec.key', lick, type2keys, where)
+      check_section_key(sec_type, 'rec.key', section, type2keys, where)
       mkey = md[1]
-      err "Unknown musical key '#{mkey}'; none of #{$conf[:all_keys]} (#{where})" unless $conf[:all_keys].include?(mkey)
-      lick[:rec_key] = mkey
+      err "Unknown musical key '#{mkey}'; none of: #{$conf[:all_keys].join(',')} (#{where})" unless $conf[:all_keys].include?(mkey)
+      section[:rec_key] = mkey
 
     # rec.start = secs or rec.length = secs
     elsif md = (line.match(/^ *(rec.start) *= *(.*?)$ *$/) || line.match(/^ *(rec.length) *= *(.*?)$ *$/))
-      check_section_key(section_type, 'rec.key', lick, type2keys, where)
+      check_section_key(sec_type, 'rec.key', section, type2keys, where)
       key, val = md[1..2]
       begin
         Float(val)
       rescue ArgumentError
         err "Value of #{key} is not a number: '#{val}' (#{where})"
       end
-      lick[key.o2sym2] = val
+      section[key.o2sym2] = val
     elsif md = line.match(/^ *tag *= *(#{$word_re}) *$/)
-      check_section_key(section_type, 'tag', lick, type2keys, where)
-      lick[:tag] = md[1]
+      check_section_key(sec_type, 'tag', section, type2keys, where)
+      section[:tag] = md[1]
 
     elsif md = line.match(/^ *licks *= *(.*?) *$/)
-      check_section_key(section_type, 'licks', lick, type2keys, where)
-      lick[:licks] = md[1].split
+      check_section_key(sec_type, 'licks', section, type2keys, where)
+      section[:licks] = md[1].split
 
     # all assignments, that have not been handled before
     elsif md = line.match(/^ *(#{$word_re}) *= *(#{$word_re}) *$/)
       key = md[1]
-      check_section_key(section_type, key, lick, type2keys, where)
+      check_section_key(sec_type, key, section, type2keys, where)
       err "Internal error: not expected to come here"
       
     else
@@ -198,15 +201,14 @@ def read_licks graceful = false, lick_file = nil
   h2n = h2n.to_a.select {|p| p[1].length > 1}.to_h
   err "Some hole-sequences appear under more than one name: #{h2n.inspect} ! (add tag 'dup' to avoid this error) (file #{lfile})" if h2n.length > 0
 
-  # tag lick sets
-  lick_sets.keys.each do |tag|
-    lick_sets[tag][:licks].each do |lname|
-      err "lick-set with 'tag = #{tag}' contains unknown lick #{lname} (file #{lfile})" unless name2lick[lname]
-      name2lick[lname][:tags] << tag 
-      name2lick[lname][:lick_sets] << tag
+  # check progressions and add info
+  name2prog.keys.each do |pname|
+    name2prog[pname][:licks].each do |lname|
+      err "lick progression '#{pname}' contains unknown lick #{lname} (file #{lfile})" unless name2lick[lname]
+      name2lick[lname][:progs] << pname
     end
   end
-   
+  
   # write derived lick file
   dfile = $derived_dir + '/derived_' + File.basename(lfile).sub(/holes|notes/, lfile['holes'] ? 'notes' : 'holes')
   File.open(dfile,'w') do |df|
@@ -221,103 +223,99 @@ def read_licks graceful = false, lick_file = nil
     df.puts derived.join("\n") + "\n"
   end
 
-  if $adhoc_lick_set
-    ahls_lks = $adhoc_lick_set.map do |name|
-      name2lick[name] || err("Lick '#{name}' given on commandline does not exist")
-    end
-    ahls_lks.each {|lk| lk[:tags] << 'adhoc-lick-set'}
-    $msgbuf.print "Licks from commandline; acting if '--tags-all adhoc-lick-set' has been given", 2, 5
-    [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any].each do |opt|
-      $opts[opt] = ''
-    end
-    $opts[:tags_all] = 'adhoc-lick-set'
+  if $adhoc_lick_prog
+    name2prog['adhoc'] = { lno: 1,
+                           desc: "Adhoc lick progression given on the commandline",
+                           licks: $adhoc_lick_prog }
+    $adhoc_lick_prog.each {|lname| name2lick[lname][:progs] << 'adhoc'}
   end
-  
-  # keep only those licks, that match any of the four --tags arguments
-  keep_all = Set.new($opts[:tags_all]&.split(','))
-  keep_any = Set.new($opts[:tags_any]&.split(','))
-  drop_all = Set.new($opts[:drop_tags_all]&.split(','))
-  drop_any = Set.new($opts[:drop_tags_any]&.split(','))
-
-  if (keep_all).intersection(drop_any).any?
-    if graceful
-      return [[],[]]
-    else
-      err "No licks can be found, because options '--tags-all' and '--drop-tags-any' have this intersection: #{(keep_all).intersection(drop_any).to_a}"
-    end
-  end
-
-  tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
-  # add special tags right now, the licks only below
-  tags_licks << 'journal' if journal_length > 0
-  tags_licks << 'adhoc-lick' if $adhoc_lick_holes
-  
-  [['--tags-all', keep_all],
-   ['--tags-any', keep_any],
-   ['--dtop-tags-all', drop_all],
-   ['--drop-tags-any', drop_any]].each do |opt, tags|
-    if !tags.subset?(tags_licks)
+   
+  if $opts[:lick_prog]
+    
+    prog  = name2prog[$opts[:lick_prog]]
+    err "Unknown lick-progression '#{$opts[:lick_prog]}', none of: #{name2prog.keys.join(',')}" unless prog
+    licks = prog[:licks].map {|lnm| name2lick[lnm]}
+    $opts[:iterate] = :cycle
+    
+  else
+    
+    # keep only those licks, that match any of the four --tags arguments
+    keep_all = Set.new($opts[:tags_all]&.split(','))
+    keep_any = Set.new($opts[:tags_any]&.split(','))
+    drop_all = Set.new($opts[:drop_tags_all]&.split(','))
+    drop_any = Set.new($opts[:drop_tags_any]&.split(','))
+    
+    if (keep_all).intersection(drop_any).any?
       if graceful
         return [[],[]]
       else
-        print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
-        print_in_columns tags_licks.to_a.sort, pad: :tabs
-        err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
+        err "No licks can be found, because options '--tags-all' and '--drop-tags-any' have this intersection: #{(keep_all).intersection(drop_any).to_a}"
       end
     end
-  end
-  
-  # apply all filtering options in order
-  licks = all_licks.
-            select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
-            select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
-            reject {|lick| drop_all.any? && (drop_all.subset?(Set.new(lick[:tags])))}.
-            reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}.
-            select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
-            select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
-  # maybe sort licks according to one lick-set
-  if lick_sets.length > 0
-    lnames = licks.map {|l| l[:name]}
-    # find a lick set (let's say 'set_xy'), that contains all
-    # selected licks. This is most probable, if licks were picked
-    # with '-t set_xy' initially.
-    if lset_with_all = lick_sets.values.find {|ls| lnames - ls[:licks] == []}
-      licks.sort_by! {|lk| lset_with_all[:licks].index(lk[:name])}
+    tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
+    # add special tags right now, the licks only below
+    tags_licks << 'journal' if journal_length > 0
+    tags_licks << 'adhoc' if $adhoc_lick_holes
+    
+    [['--tags-all', keep_all],
+     ['--tags-any', keep_any],
+     ['--dtop-tags-all', drop_all],
+     ['--drop-tags-any', drop_any]].each do |opt, tags|
+      if !tags.subset?(tags_licks)
+        if graceful
+          return [[],[]]
+        else
+          print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
+          print_in_columns tags_licks.to_a.sort, pad: :tabs
+          err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
+        end
+      end
     end
-  end
-  
-  # insert journal as lick
-  if journal_length > 0
-    lick = { name: 'journal',
-             lno: 1,
-             desc: "The current journal as a lick; see also #{$journal_file}",
-             holes: $journal.clone,
-             tags: %w(journal) }
-    lk = process_lick(lick, lname, vars, default)
-    all_licks << lk
-    licks << lk
-  end
+    
+    # apply all filtering options in order
+    licks = all_licks.
+              select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}.
+              select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}.
+              reject {|lick| drop_all.any? && (drop_all.subset?(Set.new(lick[:tags])))}.
+              reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}.
+              select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}.
+              select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
-  # handle adhoc lick from commandline
-  if $adhoc_lick_holes
-    lick = { name: 'adhoc-lick',
-             lno: 1,
-             desc: 'Lick given on the commandline',
-             holes: $adhoc_lick_holes.map do |hon|
-               ( $harp_holes.include?(hon) && hon ) ||
-                 $note2hole[hon] ||
-                 err("Given note #{hon} cannot be played on this harmonica")
-             end,
-             tags: %w(adhoc-lick) }
-    lk = process_lick(lick, lname, vars, default)
-    all_licks << lk
-    licks << lk
-  end
+    # insert journal as lick
+    if journal_length > 0
+      lick = { name: 'journal',
+               lno: 1,
+               desc: "The current journal as a lick; see also #{$journal_file}",
+               holes: $journal.clone,
+               tags: %w(journal) }
+      lk = process_lick(lick, 'journal', vars, default)
+      all_licks << lk
+      licks << lk
+    end
 
-  err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options: #{desc_lick_select_opts}") if licks.length == 0
-  
-  [all_licks, licks, lick_sets]
+    # handle adhoc lick from commandline
+    if $adhoc_lick_holes
+      lick = { name: 'adhoc',
+               lno: 1,
+               desc: 'Lick given on the commandline',
+               holes: $adhoc_lick_holes.map do |hon|
+                 ( $harp_holes.include?(hon) && hon ) ||
+                   $note2hole[hon] ||
+                   err("Given note #{hon} cannot be played on this harmonica")
+               end,
+               tags: %w(adhoc) }
+      lk = process_lick(lick, 'adhoc', vars, default)
+      all_licks << lk
+      licks << lk
+    end
+
+    err("None of the #{all_licks.length} licks from #{lfile} has been selected when applying these tag-options: #{desc_lick_select_opts}") if licks.length == 0
+
+  end  ## $opts[:lick_prog]
+
+  [all_licks, licks, name2prog]
+
 end
 
 
@@ -385,7 +383,7 @@ end
 
 def refresh_licks
   if File.mtime($lick_file) > $lick_file_mod_time
-    $all_licks, $licks, $lick_sets = read_licks
+    $all_licks, $licks, $lick_progs = read_licks
     true
   else
     false
@@ -472,7 +470,6 @@ def process_lick lick, name, vars, default
                               star_tag
                              ).flatten.compact,name).sort.uniq
   lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
-  lick[:lick_sets] = []
   
   lick[:desc] = lick[:desc] || default[:desc] || ''
   if lick[:desc_add] && lick[:desc_add].length > 0
@@ -484,7 +481,6 @@ def process_lick lick, name, vars, default
   lick[:rec_key] ||= ( default[:rec_key] || 'c' )
   lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
-  dbg if name == 
   $licks_semi_shifts.keys.select {_1 > 0}.each do |st|
     tag = $licks_semi_shifts[st]
     num_shiftable = lick[:holes].inject(0) do |sum, hole|
@@ -493,6 +489,7 @@ def process_lick lick, name, vars, default
     end
     lick[:tags] << tag if lick[:holes].length == num_shiftable
   end
+  lick[:progs] = []
   lick
 end
 
@@ -503,15 +500,15 @@ def check_section_key type, key, lick, type2keys, where
   skey = key.o2sym2
   err "Key '#{key}' (below [#{lick[:name]}], #{where}) has already been defined" if lick[skey]
 
-  # now for allowed key in section
+  # now for allowed keys in section
   err "Assigning a key (here: #{key}) is not allowed before first section, e.g. #{type2keys.keys.map(&:o2str).join(',')} #{where}" unless type
   return if type2keys[type].include?(key)
   others = type2keys.keys.select {|type| type2keys[type].include?(key)}.map(&:o2str)
   what = case type
          when :lick
            "lick '#{lick[:name]}'"
-         when :lick_set
-           "lick-set '#{lick[:tag]}'"
+         when :prog
+           "prog '#{lick[:tag]}'"
          when :default
            "default-section"
          when :vars
@@ -523,7 +520,7 @@ def check_section_key type, key, lick, type2keys, where
     if others.length > 0
       "Key '#{key}' is not allowed:\n  - the current section has been identified as #{what}\n  - and key '#{key}' is not allowed there\n  - however, key '#{key}' may appear in these types of section: #{others.join(', ')}\n  - for section of type #{type}, these keys are allowed: #{type2keys[type].join(', ')}\n#{where}"
     else
-      "Key '#{key}' is unknown (#{where})"
+      "Key '#{key}' is unknown for #{what} and any other type of section (#{where})"
     end)
 end
 

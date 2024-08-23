@@ -585,8 +585,20 @@ end
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0
   char = $ctl_kb_queue.deq
-  char = $keyboard_translations[char] || char
-  $ctl_kb_queue.clear
+  if $keyboard_translations[char]
+    if $keyboard_translations[char].is_a?(String)
+      char = $keyboard_translations[char]
+      $ctl_kb_queue.clear
+    else
+      # sneak in second char, to be processed next; this only works
+      # with two keys, not three
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.enq($keyboard_translations[char][1])
+      char = $keyboard_translations[char][0]
+    end
+  else
+    $ctl_kb_queue.clear
+  end
   waited = false
 
   if char == ' '

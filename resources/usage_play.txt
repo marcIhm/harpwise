@@ -127,7 +127,8 @@ USAGE BY EXAMPLES
   with licks of the 'box pattern' for chords i, iv and v, you may ask
   the wise to play the bass-line of a 12-bar blues like this:
 
-    harpwise play box1-i box1-i box1-i box1-i box1-iv box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
+    harpwise play box1-i box1-i box1-i box1-i box1-iv
+      box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
 
   which also uses the simple-turn lick at the end; you may also
   replace 'box1' with 'box2' for a variant.

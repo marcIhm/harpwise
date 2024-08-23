@@ -59,20 +59,6 @@ USAGE BY EXAMPLES
     harpwise licks c --tags-any fav,scales
 
 
-  Select 3 licks of type box-pattern from chords i, iv and v (second
-  position):
-
-    harpwise licks c -t box1
-
-  knowing these licks in and out would allow for basic accompaniment
-  of e.g. a 12-bar blues.
-
-  There is also a quite similar set box2, or boogie as another
-  interval-based lick:
-
-    harpwise licks c -t boogie
-
-
   Show the licks selected by the previous example, employing the
   mode 'print':
 
@@ -110,18 +96,41 @@ USAGE BY EXAMPLES
 
 
   Alternatively to using the tag-options described above, you may give
-  licks as arguments on the commandline:
+  licks as arguments on the commandline (especially for a 12-bar blues):
 
-    harpwise licks box1-i box1-iv box1-v
+    harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
 
-  would start with those three licks and switch from one to the next per your
+  would start with the lick box1-i and switch from one to the next per your
   request; all other licks that you may have (e.g. wade, st-louis) are ignored.
 
+  Note, that the lick box1-i (e.g.) appears more than once in the
+  commandline above, because during a 12-bar blues, this chord appears
+  multiple times.
 
-  If you want to concentrate on a single lick (as very simple example:
-  +1 +2 +3), you may specify it adhoc by giving its holes on the
-  commandline:
+
+  If you find yourself using such a commandline as given above over
+  and over, you may put an appropriate definition into you lick-file
+  (see there for explanation); a predefined example could be used like
+  this:
+
+    harpwise licks --lick-progression box1-turn
+
+  knowing these licks in and out would allow for basic accompaniment
+  of e.g. a 12-bar blues.
+
+  This option can fruitfully be combined with a scale-progression:
+
+    harpwise licks --scale-prog 12bar-om3-v --lick-prog box1-turn --kb-tr b=s,b=RETURN
+
+  which employs the key 'b' to switch both scale-progression and
+  lick-progression at once.
+  
+
+  If you want to explore a single lick, that is not yet in your
+  lick-file (take +1 +2 +3 as a simple example), you may specify it
+  adhoc by giving its holes on the commandline:
 
     harpwise licks +1 +2 +3
 
-  this way you do not need to add the lick to your lickfile permanently.
+  later, if satisfied, you may add this lick and a recording to your
+  lickfile.

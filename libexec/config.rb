@@ -976,7 +976,7 @@ end
 def set_global_musical_vars rotated: false
 
   $used_scales = get_used_scales($opts[:add_scales])
-  $scale_progression ||= $used_scales
+  $scale_prog ||= $used_scales
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_scales = scales_for_type($type)
   # set global var $scale2desc for all known scales, e.g. for quiz
@@ -1005,7 +1005,7 @@ def set_global_musical_vars rotated: false
   end
 
   # might be reread later
-  $all_licks, $licks, $lick_sets = read_licks if [:play, :licks, :print].include?($mode)
+  $all_licks, $licks, $lick_progs = read_licks if [:play, :licks, :print].include?($mode)
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
   if $opts[:ref] 

@@ -85,31 +85,28 @@
 #
 [box1-i]
   holes = -2 -4 -5 +6
-  tags = i-chord box
+  tags = i-chord box box1
 
 [box1-iv]
   holes = +1 -2 -3/ +4
-  tags = iv-chord box
+  tags = iv-chord box box1
 
 [box1-v]
   holes = -1 -3// +4 -4
-  tags = v-chord box
+  tags = v-chord box box1
 
 #
-# Lick sets (see below) are optional (e.g. we do not have one for
-# box2), they simply work by adding the given tag to the named
-# licks, so that you may select them by '--tags-all box1'
+# Lick progressions (see below) are optional (e.g. we do not have
+# one for box2), they collect licks, that may lead through the
+# chords of e.g. a 12-bar blues.  They may be selected for mode
+# licks via 'harpwise licks --lick-progression box1'
 #
-# This could alternatively be done by modifying the tags-line of
-# each of the named licks (like it is done for box2-licks further
-# down); but doing it with a lick-set like below gives a name and
-# description to it and allows for easy lookup, e.g. via
-# 'harpwise print lick-sets'
+# You may lookup these progressions via:
+# 'harpwise print lick-progressions'
 #
-[lick-set]
-  desc = Set of licks for box-pattern 1
-  tag = box1
-  licks = box1-i box1-iv box1-v
+[prog box1-turn]
+  desc = Progression of licks for box-pattern 1
+  licks = box1-i box1-iv box1-i box1-v box1-iv box1-i simple-turn
 
 #
 # Descending box pattern for i, iv and v

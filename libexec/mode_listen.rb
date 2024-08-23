@@ -17,8 +17,8 @@ def do_listen
   $comment_licks = []
   comment_lick_lines = []
   if $opts[:licks]
-    $all_licks, $licks, $lick_sets = read_licks
-    # We get the lick-name on commandline, so dont narrow to tag-selection
+    $all_licks, $licks, $lick_progs = read_licks
+    # We get lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks
     $comment_licks = []
     $opts[:licks].split(',').each do |lname|

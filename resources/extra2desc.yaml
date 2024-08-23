@@ -41,14 +41,16 @@ print:
     option --start-with
   licks-starred: |
     show all starred licks
-  lick-sets, licks-sets: |
-    print all known lick sets
+  lick-progs, lick-progressions: |
+    print all known lick progressions
   licks-dump: |
     dump all selected licks in json-format
   holes-history: |
     show, which holes you played recently, from any mode
   scales: |
     list of all scales with hole count
+  scale-progs, scale-progressions: |
+    print all known scale progressions
   intervals: |
     print all known intervals
   player, players: |

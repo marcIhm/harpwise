@@ -4,7 +4,7 @@
 
 def do_play to_play
 
-  $all_licks, $licks, $lick_sets = read_licks
+  $all_licks, $licks, $lick_progs = read_licks
 
   # We expect lick-names on commandline, so dont narrow to tag-selection
   $licks = $all_licks if !$extra
@@ -166,7 +166,7 @@ def partition_for_mode to_handle
     elsif what == :lick
       lnames << th
     elsif what == :last
-      $all_licks, $licks, $lick_sets = read_licks
+      $all_licks, $licks, $lick_progs = read_licks
       record = shortcut2history_record(th)
       lnames << record[:name]
     else
@@ -191,7 +191,7 @@ def partition_for_mode to_handle
       puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
       print_amongs(:extra)
     end
-    err 'See above'
+    err "See above (cannot understand these arguments: #{other})"
   end
   
   if $extra == '' && types_count == 0
@@ -379,7 +379,7 @@ def play_licks_controller licks, refill, sleep_between: false
         puts
         edit_file($lick_file, lick[:lno])
         puts
-        $all_licks, $licks, $lick_sets = read_licks
+        $all_licks, $licks, $lick_progs = read_licks
         redo
       when :named
         choose_prepare_for skip_term: true

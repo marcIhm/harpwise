@@ -11,11 +11,25 @@ help:
   -
 
 add_scales:
-  - show these additional scales
-  - SCALE1,SCALE2,...
+  - |
+    load these additional scales,
+    given as a list of scales separated by comma.
+    and show them, e.g. in harmonica-chart in upper half of screen.
+
+    Note, that this option can be specified in your config.
+
+    Unlike the quite similar option --scale-progression (available for
+    modes listen and licks), this option (--add-scales) is not
+    primarily meant to accompany you through the progression of a
+    song, but rather to adjust the harp-display. Also note, that both
+    of these options, when given, do adjust the respective other to
+    match, therefore it is enough to specify one of them only.
+  - LIST_OF_SCALES
 
 remove_scales:
-  - "subtract the holes of\nthese scales from the primary one"
+  - |
+    subtract the holes of
+    these scales from the primary one
   - SCALE1,SCALE2,...
 
 no_add_holes:
@@ -232,7 +246,7 @@ options:
   - |
     show full list of mode specific options
 
-scale_progression:
+scale_prog:
   - |
     Specify a
     list of scales separated by comma, that will be cycled when
@@ -250,12 +264,39 @@ scale_progression:
 
     which wraps around and does not need to specify, the varying
     length of the different scales / chords, because you have to press
-    's' at the right point in time. There are a few predefined
-    progressions (like '12bar' for the example above), that you may
-    learn about in the error-message on specifying an invalid
-    progression like '--scale-progression x'
+    's' at the right point in time.
+
+    There are some predefined progressions (like '12bar' for the
+    example above), that you may learn about by invoking
+
+      harpwise print sclae-progressions
+
+    Note, that this option can not be specified in your config.
+
+    Unlike the quite similar option --add-scales (available for most
+    modes and meant to adjust the harp-display), this option
+    (--scale-progression) is primarily meant to accompany you through
+    the progression of a song. Also note, that both of these options,
+    when given, do adjust the respective other, therefore it is enough
+    to specify one of them only.
   - LIST_OF_SCALES
 
+lick_prog:
+  - |
+    Accepts the name
+    of a lick progression as defined within your lick-file; the licks
+    from this progression will then be cycled in mode licks.
+
+      --lick-prog my-lick-progression
+
+    If you use this option, the tag-options for lick-selection are
+    ignored.
+
+    Note, that an adhoc lick-progression can always be given as
+    arguments on the commandline (space separated) without even using
+    this option.
+  - LIST_OF_LICKS
+  
 no_player_info:
   - |
     Do not print player infos in background
@@ -273,14 +314,24 @@ keyboard_translate:
     harpwise accepts the TAB key (which has otherwise no function in
     this mode) and behaves, as if the key 's' has been pressed; in the
     same way it treats RETURN as 'r'. The benefit of this is, that the
-    new keys might be easier to press while playing. But beware and
-    make sure, that you dont translate keys, that already have an
-    important function in harpwise (e.g. 'RETURN=r' for mode licks),
-    because these keys would no longer be available for their original
-    function; regarding the available names, let the error message be
+    new keys might be easier to press while playing.
+
+    Beware and make sure, that you dont translate keys, that already
+    have an important function in harpwise (e.g. 'RETURN=r' for mode
+    licks), because these keys would no longer be available for their
+    original function.
+
+    Regarding the available names, let the error message be
     your guide (i.e. type: --kb-tr x). If you want to translate
     permanently, you may (as with many options) put it into your
     config.
+
+    In some cases it might be useful to make two keys out of one:
+
+      --kb-tr b=s,b=RETURN
+
+    see usage of mode licks where this is used to switch
+    lick-progression and scale-progression at once by pressing 'b'.
   - LIST_OF_KB_TRANSLATIONS
 
 licks:

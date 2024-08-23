@@ -4,7 +4,7 @@
 
 def do_print to_print
 
-  $all_licks, $licks, $lick_sets = read_licks
+  $all_licks, $licks, $lick_progs = read_licks
 
   # We expect lick-names on commandline, so dont narrow to tag-selection
   $licks = $all_licks if !$extra
@@ -57,13 +57,7 @@ def do_print to_print
         puts unless $opts[:terse]
         lick = $licks.find {|l| l[:name] == lname}
         print_holes_and_more lick[:holes_wo_events]
-        unless $opts[:terse]
-          puts
-          puts "\e[2m Description:\e[0m #{lick[:desc]}"
-          puts "\e[2m        Tags:\e[0m #{lick[:tags].join(' ')}"
-          puts "\e[2mRec harp-key:\e[0m #{lick[:rec_key]}"
-          puts
-        end
+        print_lick_meta lick unless $opts[:terse]        
         puts if lnames.length > 1
       end
       puts "#{lnames.length} licks printed." unless $opts[:terse]
@@ -80,7 +74,7 @@ def do_print to_print
 
     when 'licks-details'
 
-      puts_underlined 'Licks selected by tags and hole-count:', vspace: !$opts[:terse]
+      puts_underlined 'Licks selected by e.g. tags and hole-count:', vspace: !$opts[:terse]
       $licks.each do |lick|
         if $opts[:terse]
           puts "#{lick[:name]}:"
@@ -89,6 +83,7 @@ def do_print to_print
           puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         end
         print_holes_and_more lick[:holes_wo_events]
+        print_lick_meta lick unless $opts[:terse]                
       end
       puts
       puts "\e[2mTotal count of licks printed: #{$licks.length}\e[0m"
@@ -127,9 +122,9 @@ def do_print to_print
 
       print_starred_licks
 
-    when 'lick-sets', 'licks-sets'
+    when 'lick-progs', 'lick-progressions'
 
-      print_lick_sets
+      print_lick_progs
     
     when 'licks-dump'
 
@@ -157,6 +152,16 @@ def do_print to_print
       puts
       puts "\e[2mTotal count of scales printed: #{$all_scales.length}\e[0m"
 
+    when 'scale-progs', 'scale-progression'
+
+      puts_underlined 'All scale-progressions:'
+      $all_scale_progs.map do |nm,sp|
+        puts "#{nm}:"
+        puts "    Desc: #{sp[:desc]}"
+        puts "  Chords: #{sp[:chords].join(' ')}"
+        puts
+      end
+    
     when 'intervals'
 
       puts
@@ -555,26 +560,34 @@ def print_player player, in_loop = false
 end
 
 
-def print_lick_sets
+def print_lick_progs
 
-  if $lick_sets.length == 0
-    puts "\nNo lick sets defined."
+  if $lick_progs.length == 0
+    puts "\nNo lick progressions defined."
     puts
   else
-    $lick_sets.values.each do |ls|
-      puts "#{ls[:tag]}:"
+    $lick_progs.values.each do |lp|
+      puts "#{lp[:name]}:"
       if $opts[:terse]
-        puts("   desc:  " + ls[:desc]) if ls[:desc]
+        puts("   Desc:  " + lp[:desc]) if lp[:desc]
       else
-        puts "   desc:  " + ( ls[:desc] || 'none' )
+        puts "   Desc:  " + ( lp[:desc] || 'none' )
       end
-      puts "  licks:  #{ls[:licks].join('  ')}"
+      puts "  Licks:  #{lp[:licks].join('  ')}"
       unless $opts[:terse]
-        puts "   line:  #{ls[:lno]}"
+        puts "   Line:  #{lp[:lno]}"
         puts
       end
     end
-    puts "#{$lick_sets.length} lick sets in file #{$lick_file}"
+    puts "#{$lick_progs.length} lick progressions in file #{$lick_file}"
   end
   
+end
+
+def print_lick_meta lick
+  puts
+  puts "\e[2m     Desc:\e[0m #{lick[:desc]}"
+  puts "\e[2m     Tags:\e[0m #{lick[:tags].join(' ')}"
+  puts "\e[2m  rec-Key:\e[0m #{lick[:rec_key]}"
+  puts
 end

@@ -5,11 +5,16 @@
 def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shifts: nil, lambda_quiz_hint: nil, to_handle: []
 
   if to_handle && to_handle.length > 0
+    # We get lick-names on commandline, so dont narrow to tag-selection
+    $licks = $all_licks    
     holes_or_notes, lnames, _ = partition_for_mode(to_handle)
     if holes_or_notes.length > 0
       $adhoc_lick_holes = holes_or_notes
     else
-      $adhoc_lick_set = lnames
+      $adhoc_lick_prog = lnames
+      $all_licks, $licks, $lick_progs = read_licks
+      err "Option '--lick-progression #{$opts[:lick_prog]}' and licks as arguments on the commandline #{$adhoc_lick_prog} cannot be given at the same time" if $opts[:lick_prog]
+      $opts[:lick_prog] = 'adhoc'
     end
   end
 
@@ -30,9 +35,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   # initial play, i.e. before builtup of listen-perspective
   oride_l_message2 = nil
   first_round = true
-  $all_licks, $licks, $lick_sets = read_licks
+  $all_licks, $licks, $lick_progs = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
-  start_with ||= 'adhoc-lick' if $adhoc_lick_holes
+  start_with ||= 'adhoc' if $adhoc_lick_holes
   quiz_prevs = Array.new
   
   loop do   # forever until ctrl-c, sequence after sequence
@@ -1084,11 +1089,11 @@ def read_tags_and_refresh_licks curr_lick
               [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
                 $opts[opt] = $initial_tag_options[opt] 
               end
-              $all_licks, $licks, $lick_sets = read_licks(true)
+              $all_licks, $licks, $lick_progs = read_licks(true)
               true
             elsif tags_all
               $opts[:tags_all] = tags_all
-              $all_licks, $licks, $lick_sets = read_licks(true)
+              $all_licks, $licks, $lick_progs = read_licks(true)
               iter = choose_interactive('Choose new value for --iterate, aka -i: ',
                                         %w(cycle random)) do |tag|
                 {'cycle' => 'one lick after the other, starting over at end',
@@ -1111,8 +1116,7 @@ def read_tags_and_refresh_licks curr_lick
   $ctl_kb_queue.deq
 
   # ignore licks given on commandline from now on, but we can still
-  # get them with tag adhoc-set
-  $adhoc_lick_sets = nil if changed
+  $adhoc_lick_proc = nil if changed
   
   return changed
 end
@@ -1465,8 +1469,8 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     self[:lick] = $licks[self[:lick_idx]]
     self[:all_wanted] = self[:lick][:holes]
     self[:lick_hints] = ['Lick Name: ' + self[:lick][:name],
-                         'Tags: ' + self[:lick][:tags].join(',')]
-    self[:lick_hints] << 'Desc: ' + self[:lick][:desc] if self[:lick][:desc] != ''
+                         "Tags of #{self[:lick][:name]}: " + self[:lick][:tags].join(',')]
+    self[:lick_hints] << "Desc of #{self[:lick][:name]}: " + self[:lick][:desc] if self[:lick][:desc] != ''
   end
 
 end
@@ -1490,7 +1494,7 @@ def show_lick_info lick
     ohead = true
   end
   puts ' Tag-Options: none' unless ohead
-  puts('in lick-sets: ' + lick[:lick_sets].join(',')) if lick[:lick_sets].length > 0
+  puts('in lick-progressions: ' + lick[:progs].join(',')) if lick[:progs].length > 0
   puts_names_of_licks 5
   puts "\e[2m  #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear

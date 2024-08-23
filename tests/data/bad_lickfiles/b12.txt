@@ -1,5 +1,4 @@
 [lick1]
 holes = +1
-[lick-set]
-tag = foo
+[prog foo]
 licks = bar

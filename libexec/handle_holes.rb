@@ -621,9 +621,9 @@ def do_change_scale_add_scales
   end
 
   # will otherwise collide with chosen scales
-  if Set[*$scale_progression] != Set[*(add_scales + [$scale])]
-    $opts[:scale_progression] = nil 
-    $scale_progression = $used_scales
+  if Set[*$scale_prog] != Set[*(add_scales + [$scale])]
+    $opts[:scale_prog] = nil 
+    $scale_prog = $used_scales
   end
 
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 5, :scale
@@ -632,12 +632,12 @@ end
 
 $sc_prog_init = nil
 def do_rotate_scale_add_scales
-  $sc_prog_init ||= $scale_progression.clone
-  $scale_progression.rotate!
-  $used_scales.rotate! while $used_scales[0] != $scale_progression[0]
+  $sc_prog_init ||= $scale_prog.clone
+  $scale_prog.rotate!
+  $used_scales.rotate! while $used_scales[0] != $scale_prog[0]
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
-  clause = ( $sc_prog_init == $scale_progression  ?  ', new cycle'  :  '' )
+  clause = ( $sc_prog_init == $scale_prog  ?  ', new cycle'  :  '' )
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 5, :scale
 end
 
@@ -647,8 +647,8 @@ def do_rotate_scale_add_scales_reset
     $msgbuf.print "Scales have not been rotated yet", 0, 2
     return
   end
-  $scale_progression = $sc_prog_init.clone
-  $used_scales.rotate! while $used_scales[0] != $scale_progression[0]  
+  $scale_prog = $sc_prog_init.clone
+  $used_scales.rotate! while $used_scales[0] != $scale_prog[0]  
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
   $msgbuf.print "Reset scale of harp to initial \e[0m\e[32m#{$scale}\e[0m\e[2m", 0, 5, :scale

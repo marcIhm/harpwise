@@ -65,7 +65,7 @@ def parse_arguments_early
         comment: %w(-c --comment),
         read_fifo: %w(--read-fifo)}],
      [Set[:listen, :licks], {
-        scale_progression: %w(--sc-prog --scale-progression),
+        scale_prog: %w(--sc-prog --scale-progression),
         keyboard_translate: %w(--kb-tr --keyboard-translate)}],
      [Set[:listen], {
         no_player_info: %w(--no-player-info),
@@ -97,6 +97,7 @@ def parse_arguments_early
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
      [Set[:licks, :play, :print, :tools], {
+        lick_prog: %w(--li-prog --lick-progression),
         tags_all: %w(-t --tags-all),
         tags_any: %w(--tags-any),
         drop_tags_all: %w(--drop-tags-all),
@@ -270,7 +271,7 @@ def parse_arguments_early
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
 
-  opts[:no_player_info] = true if opts[:scale_progression]
+  opts[:no_player_info] = true if opts[:scale_prog]
 
   if opts[:keyboard_translate]
     cite = "--keyboard-translate #{opts[:keyboard_translate]}"
@@ -280,8 +281,12 @@ def parse_arguments_early
       ks.each do |k|
         err "Key '#{k}' (in '#{tr}') (in '#{cite}') is none of these translatable keys: #{$keyboard_translateable.join(',')}" unless $keyboard_translateable.include?(k)
       end
-      err "Key '#{ks[0]}' is already translated into '#{$keyboard_translations[ks[0]]}'; cannot translate it again into '#{ks[1]}'" if $keyboard_translations[ks[0]]
-      $keyboard_translations[ks[0]] = ks[1]
+      if $keyboard_translations[ks[0]]
+        $keyboard_translations[ks[0]] = [$keyboard_translations[ks[0]], ks[1]].flatten
+        err "Cannot assign more than two translations to a single source key '#{ks[0]}'; these are too many: #{$keyboard_translations[ks[0]]}" if $keyboard_translations[ks[0]].length > 2
+      else
+        $keyboard_translations[ks[0]] = ks[1]
+      end
     end
     in_both = $keyboard_translations.keys & $keyboard_translations.values
     err "Invalid keyboard translation: these keys appear both as from and to (in #{cite}): #{in_both.join(',')}" if in_both.length > 0
@@ -326,7 +331,7 @@ def parse_arguments_early
   
   # prefetch a very small subset of musical config; this is needed to
   # judge commandline arguments, e.g. scales
-  $all_scales, $harp_holes, $scale_progressions = read_and_set_musical_bootstrap_config
+  $all_scales, $harp_holes, $all_scale_progs = read_and_set_musical_bootstrap_config
   
   # check for unprocessed args, that look like options and are neither holes not semitones  
   other_opts = ARGV.select do |arg|
@@ -395,7 +400,7 @@ def parse_arguments_early
         $source_of[:scale] = 'adhoc-commandline'
       end
     end
-    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
+    scale, opts[:add_scales], $scale_prog = override_scales_mb(scale, opts)
     
   when :play, :print, :tools, :licks
     # modes play and print both accept multiple scales as arguments, tools
@@ -422,7 +427,7 @@ def parse_arguments_early
       scale = get_scale_from_sws($conf[:scale] || 'all:a')
       $source_of[:scale] = 'implicit'
     end
-    scale, opts[:add_scales], $scale_progression = override_scales_mb(scale, opts)
+    scale, opts[:add_scales], $scale_prog = override_scales_mb(scale, opts)
 
   when :develop, :calibrate
     # no explicit scale, ever
@@ -653,20 +658,20 @@ end
 
 def override_scales_mb scale, opts
 
-  return scale, opts[:add_scales], nil unless opts[:scale_progression]
+  return scale, opts[:add_scales], nil unless opts[:scale_prog]
 
-  if !opts[:scale_progression][',']
-    if !$scale_progressions.include?(opts[:scale_progression])
-      max_nm_len = $scale_progressions.keys.map(&:length).max
-      err "Scale progression given via '--scale-progression #{opts[:scale_progression]}' is none of these:\n\n" +
-          $scale_progressions.map {|nm,sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm,sp[:desc],'',sp[:chords].join(',')]}.join
+  if !opts[:scale_prog][',']
+    if !$all_scale_progs.include?(opts[:scale_prog])
+      max_nm_len = $all_scale_progs.keys.map(&:length).max
+      err "Scale progression given via '--scale-progression #{opts[:scale_prog]}' is none of these:\n\n" +
+          $all_scale_progs.map {|nm,sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm,sp[:desc],'',sp[:chords].join(',')]}.join
     end
-    sc_prog = $scale_progressions[opts[:scale_progression]][:chords]
+    sc_prog = $all_scale_progs[opts[:scale_prog]][:chords]
   else
-    sc_prog = opts[:scale_progression].split(',')
+    sc_prog = opts[:scale_prog].split(',')
   end
   
-  $msgbuf.print("Scale prog is #{opts[:scale_progression]}", 5, 5)
+  $msgbuf.print("Scale prog is #{opts[:scale_prog]}", 5, 5)
   $msgbuf.print("Adjusted scale to match option '--scale-progression'", 5, 5) if scale && scale != sc_prog[0]
 
   sc_prog.each do |sc|

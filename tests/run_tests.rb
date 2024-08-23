@@ -1038,9 +1038,9 @@ do_test 'id-23: print list of licks with tags' do
    "  chord-prog ..... no_rec,shifts_four\n",
    "  blues ..... scales,theory,no_rec,shifts_five\n",
    "  mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
-   "  box1-i ..... box,i-chord,no_rec,shifts_five,shifts_eight,box1\n",
-   "  box1-iv ..... box,iv-chord,no_rec,shifts_five,box1\n",
-   "  box1-v ..... box,v-chord,no_rec,shifts_four,shifts_five,shifts_eight,box1\n",
+   "  box1-i ..... box,box1,i-chord,no_rec,shifts_five,shifts_eight\n",
+   "  box1-iv ..... box,box1,iv-chord,no_rec,shifts_five\n",
+   "  box1-v ..... box,box1,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
    "  box2-i ..... box,box2,i-chord,no_rec,shifts_five,shifts_eight\n",
    "  box2-iv ..... box,box2,iv-chord,no_rec,shifts_five\n",
    "  box2-v ..... box,box2,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
@@ -1792,8 +1792,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[9] == 'With intervals to first:' }
-  expect { screen[15] == 'As absolute semitones (a4 = 0):' }
+  expect { screen[3] == 'With intervals to first:' }
+  expect { screen[9] == 'As absolute semitones (a4 = 0):' }
   kill_session
 end
 
@@ -2520,12 +2520,21 @@ do_test 'id-86: print details of players' do
   kill_session
 end
 
-do_test 'id-86a: print lick sets' do
+do_test 'id-86a: print lick progressions' do
   new_session
-  tms 'harpwise print lick-sets'
+  tms 'harpwise print lick-progs'
   tms :ENTER
   sleep 2
-  expect { screen[5]['desc:  Set of licks for box-pattern 1'] }
+  expect { screen[5]['Desc:  Progression of licks for box-pattern 1'] }
+  kill_session
+end
+
+do_test 'id-86b: print scale progressions' do
+  new_session
+  tms 'harpwise print scale-progs'
+  tms :ENTER
+  sleep 2
+  expect { screen[2]['Desc: standard 12-bar blues progression, based on flat-7th chords'] }
   kill_session
 end
 
@@ -2902,32 +2911,13 @@ do_test 'id-103: tool search-scale-in-licks' do
   kill_session
 end
 
-do_test 'id-104: sorting due to lick-set' do
+do_test 'id-104: print licks from progression' do
   new_session
-  saved = "#{$lickfile_testing}_saved"
-  FileUtils.cp $lickfile_testing, saved unless File.exist?(saved)
-  # prepend
-  File.write($lickfile_testing,
-             # make st-louis appear first, although it comes last in file
-             ["[lick-set]\n tag = mytag1\n licks = st-louis wade\n",
-              "[lick-set]\n tag = mytag2\n licks = st-louis feeling-bad\n",
-              File.read($lickfile_testing).lines].flatten.join)
-
-  tms 'harpwise print licks-list -t mytag1'
+  tms 'harpwise print licks-list --lick-progression box1-turn'
   tms :ENTER
-  expect { screen[9]['st-louis'] }
-  expect { screen[10]['wade'] }
-  expect { screen[12]['Total count of licks printed: 2'] }
-  wait_for_end_of_harpwise
-
-  tms 'harpwise print licks-list -t mytag2'
-  tms :ENTER
-  expect { screen[18]['st-louis'] }
-  expect { screen[19]['feeling-bad'] }
-  expect { screen[21]['Total count of licks printed: 2'] }
-  wait_for_end_of_harpwise
-
-  FileUtils.mv saved, $lickfile_testing
+  expect { screen[9]['box1-i'] }
+  expect { screen[15]['simple-turn'] }
+  expect { screen[17]['Total count of licks printed: 7'] }
   kill_session
 end
 
@@ -3079,7 +3069,7 @@ do_test 'id-111: mode licks with adhoc-lick' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[12..16].any? {|l| l['Lick Name: adhoc-lick']} }
+  expect { screen[12..16].any? {|l| l['Lick Name: adhoc']} }
   kill_session
 end
 
@@ -3176,18 +3166,18 @@ end
 
 do_test 'id-117: check errors for bogous lickfiles' do
   file2err = {
-    'b1.txt' => "Section 'lick-set' needs to contain key 'tag'",
+    'b1.txt' => "Section 'prog foo' needs to contain key 'licks'",
     'b2.txt' => "Lick 'foo' has already appeared before",
     'b3.txt' => "Section [] cannot be empty",
     'b4.txt' => "Invalid section name",
     'b5.txt' => "Variable assignment (here: $foo) is not allowed outside",
     'b6.txt' => "Tags must consist of word characters; '==='",
     'b7.txt' => "Lick lick1 key 'holes' is empty",
-    'b8.txt' => "Lick lick1 key 'notes' is empty",
+    'b8.txt' => "Lick 'lick1', key 'notes' is empty",
     'b9.txt' => "Unknown musical key 'x'",
     'b10.txt' => "Value of rec.start is not a number",
     'b11.txt' => "Some hole-sequences appear under more than one name",
-    'b12.txt' => "lick-set with 'tag = foo' contains unknown lick"
+    'b12.txt' => "lick progression 'foo' contains unknown lick bar"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
@@ -3207,11 +3197,11 @@ do_test 'id-118: read and check a fancy lickfile' do
   dump = read_testing_dump('end')
   expect(dump[:licks][0]) { dump[:licks][0][:name] == 'lick0' }
   expect(dump[:licks][1]) { dump[:licks][1][:desc] == 'bar, qux' }
-  expect(dump[:licks][0]) { dump[:licks][0][:tags] == %w(one two no_rec shifts_four shifts_five shifts_eight three) }
+  expect(dump[:licks][0]) { dump[:licks][0][:tags] == %w(one two no_rec shifts_four shifts_five shifts_eight) }
   expect(dump[:licks][2]) { dump[:licks][2][:tags] == %w(five four no_rec shifts_four shifts_five shifts_eight) }
   expect(dump[:licks][2]) { dump[:licks][2][:desc] == 'pix thud' }
   # read_testing_dump symbolizes 'three' to :three
-  expect(dump[:lick_sets]) { dump[:lick_sets][:three][:desc] == 'for testing' }
+  expect(dump[:lick_progs]) { dump[:lick_progs][:three][:desc] == 'for testing' }
   kill_session
 end
 

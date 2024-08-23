@@ -6,9 +6,8 @@
 [lick1]
   holes = +2
   desc = $foo, qux
-[lick-set]
+[prog three]
   desc = for testing
-  tag = three
   licks = lick0
 [default]
   tags = four
