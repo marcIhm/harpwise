@@ -4,8 +4,6 @@
 
 def do_print to_print
 
-  $all_licks, $licks, $lick_progs = read_licks
-
   # We expect lick-names on commandline, so dont narrow to tag-selection
   $licks = $all_licks if !$extra
   
@@ -15,7 +13,7 @@ def do_print to_print
   if $extra
     args_for_extra = to_print
   else
-    holes_or_notes, lnames, snames = partition_for_mode(to_print)
+    holes_or_notes, lnames, lpnames, snames, spnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
   end
 
   # common error checking
@@ -48,6 +46,13 @@ def do_print to_print
         puts if snames.length > 1
       end
       puts "#{snames.length} scales printed." unless $opts[:terse]
+
+    elsif spnames.length > 0
+
+      puts_underlined 'Scale progressions given as arguments:'
+      spnames.each do |spnm|
+        print_single_scale_prog(spnm)
+      end
       
     elsif lnames.length > 0
       
@@ -62,6 +67,14 @@ def do_print to_print
       end
       puts "#{lnames.length} licks printed." unless $opts[:terse]
 
+    elsif lpnames.length > 0
+
+      puts_underlined 'Lick progressions given as arguments:'
+      lpnames.each do |lpnm|
+        lp = $all_lick_progs.values.find {|lp| lp[:name] == lpnm}
+        print_single_lick_prog(lp)
+      end
+      
     else
 
       fail 'Internal error'
@@ -152,14 +165,11 @@ def do_print to_print
       puts
       puts "\e[2mTotal count of scales printed: #{$all_scales.length}\e[0m"
 
-    when 'scale-progs', 'scale-progression'
+    when 'scale-progs', 'scale-progressions'
 
       puts_underlined 'All scale-progressions:'
-      $all_scale_progs.map do |nm,sp|
-        puts "#{nm}:"
-        puts "    Desc: #{sp[:desc]}"
-        puts "  Chords: #{sp[:chords].join(' ')}"
-        puts
+      $all_scale_progs.map do |spnm, _|
+        print_single_scale_prog spnm
       end
     
     when 'intervals'
@@ -562,27 +572,42 @@ end
 
 def print_lick_progs
 
-  if $lick_progs.length == 0
+  if $all_lick_progs.length == 0
     puts "\nNo lick progressions defined."
     puts
   else
-    $lick_progs.values.each do |lp|
-      puts "#{lp[:name]}:"
-      if $opts[:terse]
-        puts("   Desc:  " + lp[:desc]) if lp[:desc]
-      else
-        puts "   Desc:  " + ( lp[:desc] || 'none' )
-      end
-      puts "  Licks:  #{lp[:licks].join('  ')}"
-      unless $opts[:terse]
-        puts "   Line:  #{lp[:lno]}"
-        puts
-      end
+    $all_lick_progs.values.each do |lp|
+      print_single_lick_prog(lp)
     end
-    puts "#{$lick_progs.length} lick progressions in file #{$lick_file}"
+    puts "#{$all_lick_progs.length} lick progressions in file #{$lick_file}"
   end
   
 end
+
+
+def print_single_lick_prog lp
+  puts "#{lp[:name]}:"
+  if $opts[:terse]
+    puts("   Desc:  " + lp[:desc]) if lp[:desc]
+  else
+    puts "   Desc:  " + ( lp[:desc] || 'none' )
+  end
+  puts "  Licks:  #{lp[:licks].join('  ')}"
+  unless $opts[:terse]
+    puts "   Line:  #{lp[:lno]}"
+    puts
+  end
+end
+
+
+def print_single_scale_prog spname
+  sp = $all_scale_progs[spname]
+  puts "#{spname}:"
+  puts "    Desc: #{sp[:desc]}"
+  puts "  Chords: #{sp[:chords].join(' ')}"
+  puts
+end
+
 
 def print_lick_meta lick
   puts
@@ -591,3 +616,4 @@ def print_lick_meta lick
   puts "\e[2m  rec-Key:\e[0m #{lick[:rec_key]}"
   puts
 end
+

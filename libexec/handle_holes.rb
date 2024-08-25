@@ -681,7 +681,7 @@ def show_help mode = $mode, testing_only = false
   frames << [" Help on keys in main view:",
              "",
              "",
-             "  SPACE:_pause and continue      CTRL-L:_redraw screen",
+             "  SPACE:_pause and continue        CTRL-L:_redraw screen",
              "    d,D:_change display (upper part of screen)",
              "    c,C:_change comment (in lower part of screen)",
              "    r,R:_set reference to hole played or chosen",
@@ -701,11 +701,11 @@ def show_help mode = $mode, testing_only = false
     frames[-1] <<  "      w:_switch comment to warble and prepare"
     frames[-1] <<  "      p:_print details about player currently drifting by"
     frames[-1] <<  "      .:_play lick given via --licks (shown in comment-area)"
-    frames[-1] <<  "      l:_rotate among those licks        L:_to first lick"
+    frames[-1] <<  "      l:_rotate among those licks       L:_to first lick"
   end
 
   frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
-                      "      q:_quit harpwise                h:_this help",
+                      "      q:_quit harpwise                  h:_this help",
                       ""])
 
   if [:quiz, :licks].include?(mode)
@@ -756,7 +756,7 @@ def show_help mode = $mode, testing_only = false
                         ""])
     maxlen = $keyboard_translations.keys.map(&:length).max
     $keyboard_translations.each do |from,to|
-      frames[-1] << ( "  %#{maxlen}s:_to %s" % [from, to] )
+      frames[-1] << ( "  %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] )
     end
   end
   frames[-1].append(*["",
@@ -795,7 +795,7 @@ def show_help mode = $mode, testing_only = false
       while scanner.scan_until(/\S+:_/)
         full_kg = scanner.matched
         kg = scanner.matched[0..-3].strip
-        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE)
+        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN)
         ks = if special.include?(kg)
                [kg]
              else

@@ -288,7 +288,19 @@ scale_prog:
 
 lick_prog:
   - |
-    Accepts the name
+    Accepts the name <% if $mode == :listen %>
+    show given licks in comment
+    (lower part of screen), e.g.
+    
+      --lick-prog wade,simple-turn
+
+    multiple licks may be separated by comma. These licks can be
+    played by pressing '.'. You may e.g. want to specify licks for the
+    individual chords and/or turnaround licks this way.
+
+    To use a lick progression defined in your lick file, give (e.g.):
+
+      --lick-prog box1-turn<% else %>
     of a lick progression as defined within your lick-file; the licks
     from this progression will then be cycled in mode licks.
 
@@ -299,7 +311,7 @@ lick_prog:
 
     Note, that an adhoc lick-progression can always be given as
     arguments on the commandline (space separated) without even using
-    this option.
+    this option.<% end %>    
   - LIST_OF_LICKS
   
 no_player_info:
@@ -341,19 +353,5 @@ keyboard_translate:
 
 licks:
   - |
-    show given licks in comment
-    (lower part of screen), e.g.
-    
-      --licks wade,simple-turn
-
-    multiple licks may be separated by comma. These lick can be
-    played by pressing '.'. You may e.g. want to specify turnaround
-    licks with this way.
-
-    You may also use a lick progression defined in your lick file:
-
-      --licks box1-turn
-
-    to save some typing.
   - LICKNAME
   

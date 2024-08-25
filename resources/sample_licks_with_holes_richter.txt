@@ -105,7 +105,7 @@
 # 'harpwise print lick-progressions'
 #
 [prog box1-turn]
-  desc = Progression of licks for box-pattern 1
+  desc = Progression of licks for box-pattern 1, with turnaround
   licks = box1-i box1-iv box1-i box1-v box1-iv box1-i simple-turn
 
 #

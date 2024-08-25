@@ -6,7 +6,7 @@
 $lick_file_mod_time = nil
 $lick_file = nil
 
-def read_licks graceful = false, lick_file = nil
+def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
   # argument lick_file is used in tests
 
   $lick_file = lfile = ( lick_file || get_lick_file )
@@ -231,7 +231,7 @@ def read_licks graceful = false, lick_file = nil
     $adhoc_lick_prog.each {|lname| name2lick[lname][:progs] << 'adhoc'}
   end
    
-  if $opts[:lick_prog]
+  if $opts[:lick_prog] && use_opt_lick_prog
     
     prog  = name2prog[$opts[:lick_prog]]
     err "Unknown lick-progression '#{$opts[:lick_prog]}', none of: #{name2prog.keys.join(',')}" unless prog
@@ -384,7 +384,7 @@ end
 
 def refresh_licks
   if File.mtime($lick_file) > $lick_file_mod_time
-    $all_licks, $licks, $lick_progs = read_licks
+    $all_licks, $licks, $all_lick_progs = read_licks
     true
   else
     false
@@ -540,4 +540,36 @@ def find_lick_by_name name
     end
     err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
   end
+end
+
+
+def process_opt_lick_prog
+  # make sure, that $opts[:lick_prog] contains the name of a defined
+  # lick-progression or 'adhoc' if given initially as a comma-separated list.
+  # Make sure, that following rereads give the same result.
+  
+  # We assume, that licks have already been read with use_opt_lick_prog: false
+  $all_licks || err('Internal error: licks not read')
+
+  # We get lick-names from option on commandline, so dont narrow to tag-selection
+  $licks = $all_licks
+
+  # this already errs out for lnames.length > 0 && lpnames.length > 0
+  _, lnames, lpnames, _, _ = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
+                                                          amongs: [:lick, :lick_prog],
+                                                          extra_allowed: false)
+  if ( lnames.length == 0 && lpnames.length == 0 ) ||
+     ( lnames.length > 0  && lpnames.length > 0 )
+    err "Internal error, should have had error already in partition: #{lpnames}, #{lnames}"
+  elsif lnames.length > 0
+    $opts[:lick_prog] = 'adhoc'
+    $adhoc_lick_prog = lnames
+  else  ## lpnames.length > 0
+    err("Can handle only one lick-progression at a time, not: #{lpnames.join(',')}") if lpnames.length > 1
+    lnames = $all_lick_progs[lpnames[0]][:licks]
+  end
+  # read again for consistency with later rereading
+  $all_licks, $licks, $all_lick_progs = read_licks
+  $licks = $all_licks
+  lnames
 end

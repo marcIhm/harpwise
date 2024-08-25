@@ -66,10 +66,11 @@ def parse_arguments_early
         read_fifo: %w(--read-fifo)}],
      [Set[:listen, :licks], {
         scale_prog: %w(--sc-prog --scale-progression),
-        keyboard_translate: %w(--kb-tr --keyboard-translate)}],
+        keyboard_translate: %w(--kb-tr --keyboard-translate),
+        # any mode that handles this option needs to make sure to reread licks
+        lick_prog: %w(--li-prog --lick-progression)}],
      [Set[:listen], {
-        no_player_info: %w(--no-player-info),
-        licks: %w(--licks)}],
+        no_player_info: %w(--no-player-info)}],
      [Set[:listen, :quiz, :licks, :develop], {
         time_slice: %w(--time-slice)}],
      [Set[:quiz, :play, :licks], {
@@ -97,7 +98,6 @@ def parse_arguments_early
         reverse: %w(--reverse),
         start_with: %w(-s --start-with)}],
      [Set[:licks, :play, :print, :tools], {
-        lick_prog: %w(--li-prog --lick-progression),
         tags_all: %w(-t --tags-all),
         tags_any: %w(--tags-any),
         drop_tags_all: %w(--drop-tags-all),
@@ -121,18 +121,26 @@ def parse_arguments_early
   opt2desc = yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
   opts_all = Hash.new
   oabbr2osym = Hash.new {|h,k| h[k] = Array.new}
+  oabbr2other_modes = Hash.new {|h,k| h[k] = Array.new}
   modes2opts.each do |modes, opts|
-    next unless modes.include?(mode)
-    opts.each do |osym, oabbrevs|
-      oabbrevs.each do |oabbr|
-        oabbr2osym[oabbr] << osym
-        fail "Internal error: option '#{oabbr}' belongs to multiple options: #{oabbr2osym[oabbr]}" if oabbr2osym[oabbr].length > 1
+    if modes.include?(mode)
+      opts.each do |osym, oabbrevs|
+        oabbrevs.each do |oabbr|
+          oabbr2osym[oabbr] << osym
+          fail "Internal error: option '#{oabbr}' belongs to multiple options: #{oabbr2osym[oabbr]}" if oabbr2osym[oabbr].length > 1
+        end
+        fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
+        opts_all[osym] = [oabbrevs]
+        fail "Internal error, not defined: opt2desc[#{osym}]" unless opt2desc[osym]
+        opts_all[osym] << opt2desc[osym][1]
+        opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
       end
-      fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
-      opts_all[osym] = [oabbrevs]
-      fail "Internal error, not defined: opt2desc[#{osym}]" unless opt2desc[osym]
-      opts_all[osym] << opt2desc[osym][1]
-      opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
+    else
+      opts.each do |osym, oabbrevs|
+        oabbrevs.each do |oabbr|
+          oabbr2other_modes[oabbr].append(*modes)
+        end
+      end
     end
   end
 
@@ -335,11 +343,36 @@ def parse_arguments_early
   $all_scales, $harp_holes, $all_scale_progs = read_and_set_musical_bootstrap_config
   
   # check for unprocessed args, that look like options and are neither holes not semitones  
-  other_opts = ARGV.select do |arg|
+  looks_like_opts = ARGV.select do |arg|
     arg.start_with?('-') && !$harp_holes.include?(arg) && !arg.match?(/(\+|-)?\d+st/)
   end
-  err("Unknown options: #{other_opts.join(',')}; #{$for_usage}") if other_opts.length > 0 
 
+  if looks_like_opts.length > 0
+    puts
+    not_for_any_mode = []
+    but_for_mode = []
+    looks_like_opts.each do |llo|
+      if oabbr2other_modes[llo].length > 0
+        but_for_mode << "    #{llo}  , for modes: #{oabbr2other_modes[llo].join(', ')}"
+      else
+        not_for_any_mode << "    #{llo}"
+      end
+    end
+    puts "#{not_for_any_mode.length} unknown options for mode #{$mode} that are unknown\n for this mode, as well as for any other mode:"
+    if not_for_any_mode.length > 0
+      puts not_for_any_mode.join("\n")
+    else
+      puts '    none'
+    end
+    puts
+    puts "#{but_for_mode.length} unknown options for mode #{$mode} that are unknown\n for this mode, but are known for other modes:"
+    if but_for_mode.length > 0
+      puts but_for_mode.join("\n")
+    else
+      puts '    none'
+    end
+    err("#{looks_like_opts.length} unknown options: #{looks_like_opts.join(', ')}. See above for details; #{$for_usage}")
+  end
 
   # Handle special cases; e.g:
   #  convert / swap 'harpwise tools transpose c g'
@@ -472,13 +505,16 @@ end
 
 def parse_arguments_late
 
-  $amongs_play_or_print = if $opts[:scale_over_lick]
-                            [:hole, :note, :scale, :lick, :last]
-                          else
-                            [:hole, :note, :lick, :scale, :last]
-                          end
+  $amongs = Hash.new
+  $amongs[:play] = if $opts[:scale_over_lick]
+                     [:hole, :note, :scale, :lick, :last]
+                   else
+                     [:hole, :note, :lick, :scale, :last]
+                   end
 
-  $amongs_licks = [:hole, :note, :lick]
+  $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
+
+  $amongs[:licks] = [:hole, :note, :lick]
 
   $extra = nil
   okay = true
@@ -486,17 +522,17 @@ def parse_arguments_late
   if $extra_desc[$mode]
     if [:play, :print].include?($mode)
       # We want a complete error-message e.g. for a typo in first
-      # argument; so this needs to check all possible choices:
-      # $amongs_play_or_print as well as $extra. All arguments (with a
-      # possible $extra already removed) will later be checked again, but
-      # only against $amongs_play_or_print
-      what = recognize_among(ARGV[0], [$amongs_play_or_print, :extra], licks: $all_licks)
+      # argument; so this needs to check all possible choices: $amongs as
+      # well as $extra. All arguments (with a possible $extra already
+      # removed) will later be checked again, but only against
+      # $amongs[$mode]
+      what = recognize_among(ARGV[0], [$amongs[$mode], :extra], licks: $all_licks)
       $extra = ARGV.shift if what == :extra
       if !what
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
-        print_amongs($amongs_play_or_print, :extra)
+        print_amongs($amongs[$mode], :extra)
         okay = false
       end
     else

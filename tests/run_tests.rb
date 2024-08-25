@@ -830,6 +830,18 @@ do_test 'id-17: mode licks with initial lickfile' do
   kill_session
 end
 
+do_test 'id-17a: licks from lick-progression' do
+  new_session
+  tms 'harpwise licks --lick-progression box1-turn'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect(dump[:licks].length) { dump[:licks].length == 21 }
+  expect { screen[1]['licks(7,cyc) richter c blues,1,4,5'] }
+  kill_session
+end
+
+
 #  Licks with their tags (type 'testing'):
 #
 #  wade ..... favorites,samples,fav
@@ -2911,16 +2923,6 @@ do_test 'id-103: tool search-scale-in-licks' do
   kill_session
 end
 
-do_test 'id-104: print licks from progression' do
-  new_session
-  tms 'harpwise print licks-list --lick-progression box1-turn'
-  tms :ENTER
-  expect { screen[9]['box1-i'] }
-  expect { screen[15]['simple-turn'] }
-  expect { screen[17]['Total count of licks printed: 7'] }
-  kill_session
-end
-
 do_test 'id-105: lick in shift circle' do
   new_session
   tms 'harpwise licks --comment holes-scales --start-with st-louis'
@@ -3073,6 +3075,17 @@ do_test 'id-111: mode licks with adhoc-lick' do
   kill_session
 end
 
+do_test 'id-111a: error on lick and lick-progression' do
+  new_session
+  tms 'harpwise licks wade --lick-prog box1-turn'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[2]['Option'] }
+  expect { screen[2]['and arguments'] }
+  expect { screen[3]['cannot be given at the same time'] }
+  kill_session
+end
+
 do_test 'id-112: quiz-flavour play-shifted' do
   new_session
   tms 'harpwise quiz play-shifted --difficulty easy'
@@ -3177,7 +3190,7 @@ do_test 'id-117: check errors for bogous lickfiles' do
     'b9.txt' => "Unknown musical key 'x'",
     'b10.txt' => "Value of rec.start is not a number",
     'b11.txt' => "Some hole-sequences appear under more than one name",
-    'b12.txt' => "lick progression 'foo' contains unknown lick bar"
+    'b12.txt' => "Lick progression 'foo' contains unknown lick bar"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
@@ -3229,11 +3242,12 @@ end
 
 do_test 'id-120: comment with licks from commandline' do
   new_session
-  tms 'harpwise listen --licks wade,simple-turn'
+  tms 'harpwise listen --lick-prog wade,simple-turn'
   tms :ENTER
   wait_for_start_of_pipeline
-  sleep 2
+  sleep 1
   expect { screen[16]['wade'] }
+  tms :ENTER
   sleep 1
   tms '.'
   sleep 1
@@ -3246,7 +3260,7 @@ end
 
 do_test 'id-121: comment with licks from lick-progression' do
   new_session
-  tms 'harpwise listen --licks box1-turn'
+  tms 'harpwise listen --lick-prog box1-turn'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 2
@@ -3255,6 +3269,61 @@ do_test 'id-121: comment with licks from lick-progression' do
   tms 'l'
   sleep 1
   expect { screen[16]['box1-iv'] }
+  kill_session
+end
+
+do_test 'id-122: comment with licks from adhoc lick-progression' do
+  new_session
+  tms 'harpwise listen --lick-prog box1-i,box1-iv'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 2
+  expect { screen[16]['box1-i'] }
+  sleep 1
+  tms 'l'
+  sleep 1
+  expect { screen[16]['box1-iv'] }
+  kill_session
+end
+
+do_test 'id-123: error on ivalid value of lick-progression' do
+  new_session
+  tms 'harpwise listen --lick-prog invalid-value'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[1]['Cannot understand these arguments'] }
+  expect { screen[5]['selected licks'] }
+  expect { screen[12]['lick-progressions'] }
+  kill_session
+end
+
+do_test 'id-124: print single lick-progression' do
+  new_session
+  tms 'harpwise print box1-turn'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[8]['Progression of licks for box-pattern 1, with turnaround'] }
+  kill_session
+end
+
+do_test 'id-125: print single scale-progression' do
+  new_session
+  tms 'harpwise print 12bar'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[8]['standard 12-bar blues progression, based on flat-7th chords'] }
+  kill_session
+end
+
+do_test 'id-126: error message refers to other modes' do
+  new_session
+  tms 'harpwise listen c --fast-lick-switch --foo'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[3]['as well as for any other mode'] }
+  expect { screen[4]['--foo'] }
+  expect { screen[7]['but are known for other modes'] }
+  expect { screen[8]['--fast-lick-switch  , for modes: licks'] }
   kill_session
 end
 

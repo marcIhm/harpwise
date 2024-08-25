@@ -17,22 +17,11 @@ def do_listen
   $comment_licks = []
   comment_licks_initial = nil
   comment_lick_lines = []
-  if $opts[:licks]
-    $all_licks, $licks, $lick_progs = read_licks
-    # We get lick-names on commandline, so dont narrow to tag-selection
-    $licks = $all_licks
-    if $lick_progs[$opts[:licks]]
-      $lick_progs[$opts[:licks]][:licks].each do |lname|
-        $comment_licks << $licks[find_lick_by_name(lname)]
-      end
-    else 
-      $opts[:licks].split(',').each do |lname|
-        $comment_licks << $licks[find_lick_by_name(lname)]
-      end
-    end
-      
+  if $opts[:lick_prog]
+    $comment_licks = process_opt_lick_prog.map {|ln| $licks[find_lick_by_name(ln)]}
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+    $opts[:comment] = :lick_holes
   end
   
   while !$ctl_mic[:switch_modes] do

@@ -4,7 +4,7 @@
 
 def do_play to_play
 
-  $all_licks, $licks, $lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = read_licks
 
   # We expect lick-names on commandline, so dont narrow to tag-selection
   $licks = $all_licks if !$extra
@@ -17,7 +17,7 @@ def do_play to_play
   if $extra
     args_for_extra = to_play
   else
-    holes_or_notes, lnames, snames = partition_for_mode(to_play)
+    holes_or_notes, lnames, _, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
   end
 
   # common error checking
@@ -139,34 +139,36 @@ def do_play to_play
 end
 
 
-def partition_for_mode to_handle
+def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   holes_or_notes = []
   lnames = []
+  lpnames = []
   snames = []
+  spnames = []
   other = []
 
-  amongs = if $mode == :print || $mode == :play
-             $amongs_play_or_print
-           elsif $mode == :licks
-             $amongs_licks
-           else
-             err 'Internal error: not for this mode'
-           end
+  amongs ||= $amongs[$mode] ||  err("Internal error: not for mode #{$mode}")
 
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
+
     what = recognize_among(th, amongs)
+
     if what == :note
       holes_or_notes << sf_norm(th)
     elsif what == :hole
       holes_or_notes << th
     elsif what == :scale
       snames << th
+    elsif what == :scale_prog
+      spnames << th
     elsif what == :lick
       lnames << th
+    elsif what == :lick_prog
+      lpnames << th
     elsif what == :last
-      $all_licks, $licks, $lick_progs = read_licks
+      $all_licks, $licks, $all_lick_progs = read_licks
       record = shortcut2history_record(th)
       lnames << record[:name]
     else
@@ -180,13 +182,12 @@ def partition_for_mode to_handle
 
   types_count = [holes_or_notes, lnames, snames].select {|x| x.length > 0}.length
 
-  # other is only filled, if $extra == ''
   if other.length > 0 
     puts
     puts "Cannot understand these arguments: #{other}#{not_any_source_of};"
     puts 'they are none of (exact match required):'
-    print_amongs($amongs_play_or_print)
-    if $mode != :licks
+    print_amongs(amongs)
+    if extra_allowed && $extra == ''
       puts
       puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
       print_amongs(:extra)
@@ -194,7 +195,7 @@ def partition_for_mode to_handle
     err "See above (cannot understand these arguments: #{other})"
   end
   
-  if $extra == '' && types_count == 0
+  if extra_allowed && $extra == '' && types_count == 0
     puts
     puts "Nothing to handle for #{$mode}; please specify any of:"
     print_amongs([amongs, :extra])
@@ -204,14 +205,16 @@ def partition_for_mode to_handle
   if types_count > 1
     puts "The following #{types_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at the same time:"
     puts
-    puts " Holes or Notes: #{holes_or_notes.join(' ')}" if holes_or_notes.length > 0
-    puts "          Licks: #{lnames.join(' ')}" if lnames.length > 0
-    puts "         Scales: #{snames.join(' ')}" if snames.length > 0
+    puts "     Holes or Notes: #{holes_or_notes.join(' ')}" if holes_or_notes.length > 0
+    puts "              Licks: #{lnames.join(' ')}" if lnames.length > 0
+    puts "  Lick progressions: #{lpnames.join(' ')}" if lpnames.length > 0
+    puts "             Scales: #{snames.join(' ')}" if snames.length > 0
+    puts " Scale progressions: #{lpnames.join(' ')}" if spnames.length > 0
     puts
     err 'See above'
   end
 
-  return [holes_or_notes, lnames, snames]
+  return [holes_or_notes, lnames, lpnames, snames, spnames]
 
 end
 
@@ -379,7 +382,7 @@ def play_licks_controller licks, refill, sleep_between: false
         puts
         edit_file($lick_file, lick[:lno])
         puts
-        $all_licks, $licks, $lick_progs = read_licks
+        $all_licks, $licks, $all_lick_progs = read_licks
         redo
       when :named
         choose_prepare_for skip_term: true

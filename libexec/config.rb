@@ -1004,8 +1004,10 @@ def set_global_musical_vars rotated: false
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
 
-  # might be reread later
-  $all_licks, $licks, $lick_progs = read_licks if [:play, :licks, :print].include?($mode)
+  if [:play, :print, :licks, :listen].include?($mode)
+    # might be reread later
+    $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
+  end
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
   if $opts[:ref] 

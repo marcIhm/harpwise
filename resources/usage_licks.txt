@@ -109,21 +109,24 @@ USAGE BY EXAMPLES
 
 
   If you find yourself using such a commandline as given above over
-  and over, you may put an appropriate definition into you lick-file
-  (see there for explanation); a predefined example could be used like
-  this:
+  and over, you may define them as a lick-progression in your
+  lick-file (see there for explanation); a predefined example could be
+  used like this:
 
     harpwise licks --lick-progression box1-turn
 
   knowing these licks in and out would allow for basic accompaniment
   of e.g. a 12-bar blues.
 
+
   This option can fruitfully be combined with a scale-progression:
 
-    harpwise licks --scale-prog 12bar-om3-v --lick-prog box1-turn --kb-tr RIGHT=s,RIGHT=RETURN,LEFT=S,LEFT=L
+    harpwise licks --scale-prog 12bar-om3-v --lick-prog box1-turn
+      --kb-tr RIGHT=s,RIGHT=RETURN,LEFT=S,LEFT=L
 
-  which employs the key 'b' to switch both scale-progression and
-  lick-progression at once.
+  which employs the key 'RIGHT' to switch both scale-progression and
+  lick-progression at once; where 'LEFT' resets them to their initial
+  values.
   
 
   If you want to explore a single lick, that is not yet in your

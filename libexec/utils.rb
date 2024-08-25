@@ -244,7 +244,7 @@ end
 def write_dump marker
   dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
   File.delete(dumpfile) if File.exist?(dumpfile)
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed}
   File.write(dumpfile, JSON.pretty_generate(structure))
 end
 
@@ -526,7 +526,7 @@ def shortcut2history_record short
 
   err "Shortcut '#{short}' is beyound end of #{records.length} available history records" if idx >= records.length
     
-  $all_licks, $licks, $lick_progs = read_licks unless $licks
+  $all_licks, $licks, $all_lick_progs = read_licks unless $licks
   lnames = $licks.map {|l| l[:name]}
   rname = records[idx][:name]
   lidx = lnames.index(rname)
@@ -699,8 +699,12 @@ def recognize_among val, choices, licks: $licks
     elsif choice == :scale
       sc = get_scale_from_sws(val, true)
       return choice if $all_scales.include?(sc)
+    elsif choice == :scale_prog
+      return choice if $all_scale_progs[val]
     elsif choice == :lick
       return choice if licks.any? {|l| l[:name] == val}
+    elsif choice == :lick_prog
+      return choice if $all_lick_progs.keys.any? {|lpn| lpn == val}
     elsif choice == :extra
       return choice if $extra_kws[$mode].include?(val)
     elsif choice == :inter
@@ -708,7 +712,7 @@ def recognize_among val, choices, licks: $licks
     elsif choice == :last
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
     else
-      fail "Internal error: Unknown among-choice #{choice}" 
+      fail "Internal error: Unknown among-choice '#{choice}'" 
     end
   end
   return false
@@ -735,6 +739,9 @@ def print_amongs *choices
     when :scale
       puts "\n- scales:"
       print_in_columns $all_scales, indent: 4, pad: :tabs
+    when :scale_prog
+      puts "\n- scale-progressions:"
+      print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
     when :extra
       puts "\n- extra arguments:"
       puts get_extra_desc_all.join("\n")
@@ -750,11 +757,14 @@ def print_amongs *choices
       else
         puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
       end
+    when :lick_prog
+      puts "\n- lick-progressions:"
+      print_in_columns $all_lick_progs.keys.sort, indent: 4, pad: :tabs
     when :last
       puts "\n- A symbolic name for one of the last licks:"
       puts '    e.g. l, 2l, last'
     else
-      fail "Internal error: Unknown choice #{choice}" 
+      fail "Internal error: Unknown choice: '#{choice}'" 
     end
   end  
 end

@@ -5,17 +5,30 @@
 def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shifts: nil, lambda_quiz_hint: nil, to_handle: []
 
   if to_handle && to_handle.length > 0
+
+    err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the commandline #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
+    
     # We get lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks    
-    holes_or_notes, lnames, _ = partition_for_mode(to_handle)
+    holes_or_notes, lnames, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
+
     if holes_or_notes.length > 0
       $adhoc_lick_holes = holes_or_notes
-    else
-      $adhoc_lick_prog = lnames
-      $all_licks, $licks, $lick_progs = read_licks
-      err "Option '--lick-progression #{$opts[:lick_prog]}' and licks as arguments on the commandline #{$adhoc_lick_prog} cannot be given at the same time" if $opts[:lick_prog]
+    else  ##  lnames.length > 0
       $opts[:lick_prog] = 'adhoc'
+      $adhoc_lick_prog = lnames
+      $all_licks, $licks, $all_lick_progs = read_licks
     end
+
+  elsif $opts[:lick_prog]
+
+    # this narrows available licks to those specified by option
+    _ = process_opt_lick_prog
+
+  else
+
+    # use licks selected by tags (maybe from config)
+    
   end
 
   unless $other_mode_saved[:conf]
@@ -35,7 +48,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   # initial play, i.e. before builtup of listen-perspective
   oride_l_message2 = nil
   first_round = true
-  $all_licks, $licks, $lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = read_licks
   start_with =  $other_mode_saved[:conf]  ?  nil  :  $opts[:start_with].dup
   start_with ||= 'adhoc' if $adhoc_lick_holes
   quiz_prevs = Array.new
@@ -1096,11 +1109,11 @@ def read_tags_and_refresh_licks curr_lick
               [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
                 $opts[opt] = $initial_tag_options[opt] 
               end
-              $all_licks, $licks, $lick_progs = read_licks(true)
+              $all_licks, $licks, $all_lick_progs = read_licks(graceful: true)
               true
             elsif tags_all
               $opts[:tags_all] = tags_all
-              $all_licks, $licks, $lick_progs = read_licks(true)
+              $all_licks, $licks, $all_lick_progs = read_licks(graceful: true)
               iter = choose_interactive('Choose new value for --iterate, aka -i: ',
                                         %w(cycle random)) do |tag|
                 {'cycle' => 'one lick after the other, starting over at end',

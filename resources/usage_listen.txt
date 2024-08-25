@@ -44,10 +44,10 @@ USAGE BY EXAMPLES
   also make this option durable in your config.ini.
 
   If, in addition to the scale-progression, you want one or more licks
-  at hand (e.g. turnarounds), you may add them as licks to be shown in
-  the comment area:
+  at hand (e.g. turnarounds), you may give them as an adhoc
+  lick-progression:
   
-    harpwise listen --sc-prog 12bar --licks simple-turn
+    harpwise listen --sc-prog 12bar --li-prog simple-turn,wade
 
 
   As an advanced example, assume that you would like to play the minor
