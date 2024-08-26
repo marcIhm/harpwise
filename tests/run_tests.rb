@@ -3327,5 +3327,19 @@ do_test 'id-126: error message refers to other modes' do
   kill_session
 end
 
+do_test 'id-127: test two regressions 2024-08-25' do
+  new_session  
+  tms 'harpwise licks --sc-prog 12bar --lick-prog box1-turn --fast-lick-switch'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  tms 'T'  ## this key should be functional
+  expect { screen[0]['Not tracking progress'] }
+  expect { screen[1]['licks(7,cyc)'] }
+  tms 's'  ## rereading licks should not increase number of licks by ignoring $opts[:lick_prog]
+  tms 's'
+  expect { screen[1]['licks(7,cyc)'] }
+  kill_session
+end
+
 puts
 puts

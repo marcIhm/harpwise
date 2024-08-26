@@ -691,17 +691,18 @@ def show_help mode = $mode, testing_only = false
              "      S:_reset rotation of scales to initial state",
              "      $:_set scale, choose from all known"]
   if [:quiz, :licks].include?(mode)
-    frames[-1] <<  "      j:_journal-menu; only available in mode listen"
-    frames[-1] <<  " CTRL-R:_record and play user (mode licks only)"
+    frames[-1] << "      j:_journal-menu; only available in mode listen"
+    frames[-1] << " CTRL-R:_record and play user (mode licks only)"
+    frames[-1] << "      T:_toggle tracking progress in seq"
   else
-    frames[-1] <<  "      j:_invoke journal-menu to handle your musical ideas"
+    frames[-1] << "      j:_invoke journal-menu to handle your musical ideas"
     frames << [" More help on keys:",
                "",
                ""]
-    frames[-1] <<  "      w:_switch comment to warble and prepare"
-    frames[-1] <<  "      p:_print details about player currently drifting by"
-    frames[-1] <<  "      .:_play lick given via --licks (shown in comment-area)"
-    frames[-1] <<  "      l:_rotate among those licks       L:_to first lick"
+    frames[-1] << "      w:_switch comment to warble and prepare"
+    frames[-1] << "      p:_print details about player currently drifting by"
+    frames[-1] << "      .:_play lick given via --licks (shown in comment-area)"
+    frames[-1] << "      l:_rotate among those licks       L:_to first lick"                          
   end
 
   frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
@@ -727,8 +728,7 @@ def show_help mode = $mode, testing_only = false
                         "       I:_toggle immediate reveal of sequence",
                         "     0,-:_forget holes played; start over   +:_skip rest of sequence"])
     if mode == :quiz
-      frames[-1].append(*["       t:_toggle tracking progress in seq",
-                          "     4,H:_hints for quiz-flavour #{$quiz_flavour}",
+      frames[-1].append(*["     4,H:_hints for quiz-flavour #{$quiz_flavour}",
                           "  CTRL-Z:_restart with another flavour (signals quit, tstp)"])
           if $quiz_flavour == 'replay'
             frames[-1].append(*["       n:_change number of holes to be replayed",

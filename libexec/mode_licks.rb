@@ -452,15 +452,19 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           
           # lambda_good_done_was_good
           -> (played, since) do
-            good = (holes_equiv?(played, wanted) || musical_event?(wanted))
-            [good,
-             
-             $ctl_mic[:forget] ||
-             (good && (Time.now.to_f - since >= min_sec_hold )),
-             
-             idx > 0 &&
-             holes_equiv?(played, to_play[:all_wanted][idx-1]) &&
-             !holes_equiv?(played, wanted)]
+            if $opts[:no_progress]
+              [false, $ctl_mic[:forget], false]
+            else
+              good = (holes_equiv?(played, wanted) || musical_event?(wanted))
+              [good,
+               
+               $ctl_mic[:forget] ||
+               (good && (Time.now.to_f - since >= min_sec_hold )),
+               
+               idx > 0 &&
+               holes_equiv?(played, to_play[:all_wanted][idx-1]) &&
+               !holes_equiv?(played, wanted)]
+            end
           end, 
           
           # lambda_skip

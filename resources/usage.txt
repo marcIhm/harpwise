@@ -9,12 +9,12 @@ about tempo, but not about rhythm.
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
 
-  - listen: The wise listens to your playing, e.g. to monitor scales
-    or bends
+  - listen: The wise listens to your playing (e.g. for scales or
+    bends) and helps to steer through a chord progression
   - quiz: Train your ear, memory and knowledge of music theory with
-    many different flavours. This is actually fun and an engaging way
-    to start with harpwise.
-  - licks: Learn licks (some included and pointers for more)
+    many different flavours. This is actually a fun way to start.
+  - licks: Learn licks (some included, pointers for more) as a
+    starting point for improvisations.
 
 And, less interactive:
 

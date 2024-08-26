@@ -742,7 +742,7 @@ def handle_kb_mic
   elsif (char == '0' || char == '-') && [:quiz, :licks].include?($mode)
     $ctl_mic[:forget] = true
     text = 'Forget'
-  elsif char == 't' && $mode == :quiz
+  elsif char == 'T' && [:quiz, :licks].include?($mode)
     $ctl_mic[:toggle_progress] = true
     # $opts[:no_progress] will be toggled later
     text = $opts[:no_progress]  ?  'Track progress'  :  'Do not track progress'

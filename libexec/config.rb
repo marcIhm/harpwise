@@ -1005,8 +1005,9 @@ def set_global_musical_vars rotated: false
   end
 
   if [:play, :print, :licks, :listen].include?($mode)
-    # might be reread later
-    $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
+    # might be reread later. Pass use_opt_lick_prog = false on very
+    # first invocation, where $all_licks has not yet been set
+    $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
