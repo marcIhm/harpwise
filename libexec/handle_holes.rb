@@ -755,22 +755,30 @@ def show_help mode = $mode, testing_only = false
                         " Translated keys:",
                         ""])
     maxlen = $keyboard_translations.keys.map(&:length).max
-    $keyboard_translations.each do |from,to|
-      frames[-1] << ( "  %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] )
+    $keyboard_translations.each_slice(2) do |pair|
+      frames[-1] << ""
+      pair.each do |from,to|
+        frames[-1][-1] += ( "        %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] )
+      end
     end
   end
   frames[-1].append(*["",
                       " Further reading:",
                       "",
-                      "  Invoke 'harpwise' without arguments for introduction, options",
-                      "  and pointers to more help.",
+                      "   Invoke 'harpwise' without arguments for introduction, options",
+                      "   and pointers to more help.",
                       "",
-                      "  Note, that other keys and help apply while harpwise plays",
-                      "  recordings and licks; type 'h' then for details."])
+                      "   Note, that other keys and help apply while harpwise plays",
+                      "   itself; type 'h' then for details.",
+                      "",
+                      " Questions and suggestions welcome to:     \e[92mmarc@ihm.name\e[32m",
+                      "",
+                      " Harpwise version is:     \e[92m#{$version}\e[32m"])
 
   # add prompt and frame count
   frames.each_with_index do |frame, fidx|
-    frame[0] = frame[0].ljust($conf[:term_min_width] - 10) + "   [#{fidx + 1}/#{frames.length}]"
+    # insert page-cookie
+    frame[0] = frame[0].ljust($conf[:term_min_width] - 10) + "   \e[0m[#{fidx + 1}/#{frames.length}]"
     frame << "" unless frame[-1] == ""
     frame << ""  while frame.length < max_lines_per_frame - 2
     frame << ' ' +
@@ -830,7 +838,7 @@ def show_help mode = $mode, testing_only = false
       this_fkgs_pos2group_last = Hash.new
       frame.each do |line|
 
-        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 2}" if line.length > $term_width - 2
+        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 2}" if line.gsub(/\e\[\d+m/,'').length > $term_width - 2
 
         scanner = StringScanner.new(line)
         # one keys-group after the other
@@ -861,24 +869,24 @@ def show_help mode = $mode, testing_only = false
   loop do
 
     if curr_frame != curr_frame_was || lidx_high
+      # actually print frame
       system('clear') if curr_frame != curr_frame_was
       print "\e[#{lines_offset}H"
       print "\e[0m"
+      print "\e[0m\e[32m" if curr_frame == frames.length - 1
       print frames[curr_frame][0]
       print "\e[0m\e[32m\n"
       frames[curr_frame][1 .. -3].each_with_index do |line, lidx|
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
-        # easy to format: also od the replacement ':_' to ': '
+        # easy to format: replacement ':_' to ': '
         puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ")
       end
-
       print "\e[\e[0m\e[2m"
       puts frames[curr_frame][-2]
       print frames[curr_frame][-1]
       print "\e[0m\e[32m"
-
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
         line = frames[curr_frame][lidx_high].gsub(':_', ': ')

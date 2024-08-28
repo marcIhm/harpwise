@@ -1490,6 +1490,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
 
   def back_to_first_lick
     self.set_lick_idx(0)
+    self.set_lick_and_others_from_idx(0)
   end
 
 
