@@ -6,9 +6,15 @@ def do_play to_play
 
   $all_licks, $licks, $all_lick_progs = read_licks
 
-  # We expect lick-names on commandline, so dont narrow to tag-selection
-  $licks = $all_licks if !$extra
-  
+  if !$extra
+    # We expect lick-names on commandline, so dont narrow to tag-selection
+    $licks = $all_licks 
+  elsif $opts[:lick_prog]
+    err "Options --lick-prog only useful for extra argument licks, not #{$extra}" if $extra != 'licks'
+    _ = process_opt_lick_prog
+    $all_licks, $licks, $all_lick_progs = read_licks    
+  end
+
   make_term_immediate
 
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
@@ -306,11 +312,8 @@ def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_rec[:loop_loop]
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "Lick #{lick[:name]}\e[2m" +
-         if lick[:rec_key] == $key
-           "#{extra}, recorded and played on a #{$key}-harp"
-         else
-           "#{extra}, recorded with a #{lick[:rec_key]}-harp, shifted for #{$key}"
-         end +
+         "#{extra}, rec in #{lick[:rec_key]}" +
+         ( $key == lick[:rec_key]  ?  ''  :  ", shifted to #{$key}" ) +
          "    (h for help)\e[0m\n" +
          lick[:holes].join(' ')
     print "\e[0m\e[2m"
@@ -349,9 +352,10 @@ def play_licks_controller licks, refill, sleep_between: false
 
     write_history('lick', lick[:name], lick[:holes])
 
+    
     loop do  ## repeats of the same lick
       puts
-      play_and_print_lick lick
+      play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}, #{$opts[:iterate]}"
 
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
@@ -423,8 +427,10 @@ def play_licks_controller licks, refill, sleep_between: false
       if refill
         if $opts[:iterate] == :random
           stock = refill.shuffle
+          puts "Every licks played once, shuffled in random sequence.   Starting over ..."
         else
           stock = refill.clone
+          puts "Every licks played once, in order of lickfile.   Starting over ..."
         end
         lick = stock.shift
       else

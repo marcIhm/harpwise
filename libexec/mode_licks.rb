@@ -17,7 +17,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     else  ##  lnames.length > 0
       $opts[:lick_prog] = 'adhoc'
       $adhoc_lick_prog = lnames
-      $all_licks, $licks, $all_lick_progs = read_licks
     end
 
   elsif $opts[:lick_prog]

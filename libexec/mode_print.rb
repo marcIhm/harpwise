@@ -12,6 +12,12 @@ def do_print to_print
 
   if $extra
     args_for_extra = to_print
+    if $opts[:lick_prog]
+      allowed = %w(licks-details licks-list licks-list-all)
+      err "Options --lick-prog only useful for these extra arguments: #{allowed.join(',')}, not #{$extra}" unless allowed.include?($extra)
+      _ = process_opt_lick_prog
+      $all_licks, $licks, $all_lick_progs = read_licks    
+    end
   else
     holes_or_notes, lnames, lpnames, snames, spnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
   end
@@ -87,7 +93,7 @@ def do_print to_print
 
     when 'licks-details'
 
-      puts_underlined 'Licks selected by e.g. tags and hole-count:', vspace: !$opts[:terse]
+      puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:terse]
       $licks.each do |lick|
         if $opts[:terse]
           puts "#{lick[:name]}:"
@@ -588,13 +594,13 @@ end
 def print_single_lick_prog lp
   puts "#{lp[:name]}:"
   if $opts[:terse]
-    puts("   Desc:  " + lp[:desc]) if lp[:desc]
+    puts("     Desc:  " + lp[:desc]) if lp[:desc]
   else
-    puts "   Desc:  " + ( lp[:desc] || 'none' )
+    puts "     Desc:  " + ( lp[:desc] || 'none' )
   end
-  puts "  Licks:  #{lp[:licks].join('  ')}"
+  puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
   unless $opts[:terse]
-    puts "   Line:  #{lp[:lno]}"
+    puts "     Line:  #{lp[:lno]}"
     puts
   end
 end

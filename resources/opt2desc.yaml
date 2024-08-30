@@ -288,7 +288,7 @@ scale_prog:
 
 lick_prog:
   - |
-    Accepts the name <% if $mode == :listen %>
+    <% if $mode == :listen %>
     show given licks in comment
     (lower part of screen), e.g.
     
@@ -301,17 +301,17 @@ lick_prog:
     To use a lick progression defined in your lick file, give (e.g.):
 
       --lick-prog box1-turn<% else %>
-    of a lick progression as defined within your lick-file; the licks
-    from this progression will then be cycled in mode licks.
+    accepts the name of a lick progression as defined within your
+    lick-file; the licks from this progression will then be cycled.
 
       --lick-prog my-lick-progression
 
     If you use this option, the tag-options for lick-selection are
-    ignored.
-
+    ignored.<% if $mode == :licks %>
+    
     Note, that an adhoc lick-progression can always be given as
     arguments on the commandline (space separated) without even using
-    this option.<% end %>    
+    this option.<% end %><% end %>    
   - LIST_OF_LICKS
   
 no_player_info:

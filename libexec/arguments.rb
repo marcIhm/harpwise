@@ -65,10 +65,11 @@ def parse_arguments_early
         comment: %w(-c --comment),
         read_fifo: %w(--read-fifo)}],
      [Set[:listen, :licks], {
-        scale_prog: %w(--sc-prog --scale-progression),
-        keyboard_translate: %w(--kb-tr --keyboard-translate),
+        scale_prog: %w(--sc-prog --scale-prog --scale-progression),
+        keyboard_translate: %w(--kb-tr --keyboard-translate)}],
+     [Set[:listen, :licks, :play, :print], {
         # any mode that handles this option needs to make sure to reread licks
-        lick_prog: %w(--li-prog --lick-progression)}],
+        lick_prog: %w(--li-prog --lick-prog --lick-progression)}],
      [Set[:listen], {
         no_player_info: %w(--no-player-info)}],
      [Set[:listen, :quiz, :licks, :develop], {
@@ -483,12 +484,12 @@ def initialize_extra_vars
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
   $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
-  $extra_desc.each do |key, val|
-    $extra_desc[key].each do |kk,vv|
-      $extra_desc[key][kk] = ERB.new(vv).result(binding)
-      $extra_desc[key][kk].lines.each do |l|
+  $extra_desc.each do |mode, _|
+    $extra_desc[mode].each do |extras,desc|
+      $extra_desc[mode][extras] = ERB.new(desc).result(binding)
+      $extra_desc[mode][extras].lines.each do |l|
         err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
-        kk.split(',').map(&:strip).each {|k| $extra_kws[key] << k}
+        extras.split(',').map(&:strip).each {|extra| $extra_kws[mode] << extra}
       end
     end
   end

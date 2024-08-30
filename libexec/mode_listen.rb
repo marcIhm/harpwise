@@ -18,7 +18,9 @@ def do_listen
   comment_licks_initial = nil
   comment_lick_lines = []
   if $opts[:lick_prog]
-    $comment_licks = process_opt_lick_prog.map {|ln| $licks[find_lick_by_name(ln)]}
+    lnames = process_opt_lick_prog
+    $all_licks, $licks, $all_lick_progs = read_licks
+    $comment_licks = lnames.map {|ln| $licks[find_lick_by_name(ln)]}
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
     $opts[:comment] = :lick_holes

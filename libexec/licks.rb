@@ -232,7 +232,6 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
   end
    
   if $opts[:lick_prog] && use_opt_lick_prog
-    
     prog  = name2prog[$opts[:lick_prog]]
     err "Unknown lick-progression '#{$opts[:lick_prog]}', none of: #{name2prog.keys.join(',')}" unless prog
     licks = prog[:licks].map {|lnm| name2lick[lnm]}
@@ -549,10 +548,7 @@ def process_opt_lick_prog
   # Make sure, that following rereads give the same result.
   
   # We assume, that licks have already been read with use_opt_lick_prog: false
-  $all_licks || err('Internal error: licks not read')
-
-  # We get lick-names from option on commandline, so dont narrow to tag-selection
-  $licks = $all_licks
+  $all_licks || err('Internal error: licks not read before')
 
   # this already errs out for lnames.length > 0 && lpnames.length > 0
   _, lnames, lpnames, _, _ = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
@@ -568,8 +564,5 @@ def process_opt_lick_prog
     err("Can handle only one lick-progression at a time, not: #{lpnames.join(',')}") if lpnames.length > 1
     lnames = $all_lick_progs[lpnames[0]][:licks]
   end
-  # read again for consistency with later rereading
-  $all_licks, $licks, $all_lick_progs = read_licks
-  $licks = $all_licks
   lnames
 end

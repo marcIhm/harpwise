@@ -109,7 +109,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 96
+num_exp = 100
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -3145,6 +3145,15 @@ do_test 'id-114: play licks next and previous' do
   kill_session
 end
 
+do_test 'id-114a: play licks from progression' do
+  new_session
+  tms 'harpwise play licks --lick-prog box1-turn'
+  tms :ENTER
+  sleep 2
+  expect { screen[2]['7 of 21 licks'] }
+  kill_session
+end
+
 do_test 'id-115: play two licks with no prompt after last' do
   new_session
   tms 'harpwise play wade st-louis'
@@ -3247,11 +3256,10 @@ do_test 'id-120: comment with licks from commandline' do
   wait_for_start_of_pipeline
   sleep 1
   expect { screen[16]['wade'] }
-  tms :ENTER
   sleep 1
   tms '.'
   sleep 1
-  expect { screen[16]['Lick wade, recorded with'] }
+  expect { screen[16]['Lick wade, rec in a, shifted to c'] }
   sleep 4
   tms 'l'
   expect { screen[16]['simple-turn'] }

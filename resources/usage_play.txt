@@ -38,19 +38,33 @@ USAGE BY EXAMPLES
     harpwise print licks-history
 
 
-  Lick-Radio: Play all my licks in random order without end:
+  Various ways to play all licks:
+
+  Shuffled and in random order, without end:
 
     harpwise play licks
 
-  or play them one after another:
+  or play them one after another as they appear in your lickfile:
 
     harpwise play licks --iterate cycle
 
+  or shorter:
+  
+    harpwise play licks -i c
+
   Only play favorite licks (tag 'fav'):
 
-    harpwise play licks --tags-any fav
+    harpwise play licks --tags-all fav
 
-  Play endless, no questions asked:
+  or shorter:
+
+    harpwise play licks -t fav
+
+  Play licks from a progression:
+
+    harpwise play licks --lick-prog box1-turn
+
+  Play endless, no questions asked, but various controls available:
 
     harpwise play licks radio
 
