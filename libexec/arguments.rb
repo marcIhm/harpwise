@@ -107,6 +107,8 @@ def parse_arguments_early
         min_holes: %w(--min-holes)}],
      [Set[:play, :print], {
         scale_over_lick: %w(--scale-over-lick)}],
+     [Set[:play], {
+        lick_radio: %w(--radio --lick-radio)}],
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
@@ -508,9 +510,9 @@ def parse_arguments_late
 
   $amongs = Hash.new
   $amongs[:play] = if $opts[:scale_over_lick]
-                     [:hole, :note, :scale, :lick, :last]
+                     [:hole, :note, :scale, :lick, :last, :lick_prog]
                    else
-                     [:hole, :note, :lick, :scale, :last]
+                     [:hole, :note, :lick, :scale, :last, :lick_prog]
                    end
 
   $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten

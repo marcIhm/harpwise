@@ -1,13 +1,12 @@
 OVERVIEW
 
-  The mode 'play' picks from the command line: holes, notes, licks or
-  special keywords.  It may play multiple holes but cannot mix them
-  with e.g. licks.
+  The mode 'play' picks its arguments from the commandline and plays them.
+  It also handles some extra keywords. 
 
-  Its arguments can be any of:
+  Its arguments (which can not be mixed with each other) can be any of:
 
-    - holes (e.g. '-1')
-    - licks (e.g. 'st-louis')
+    - holes (e.g. '-1') or notes
+    - licks (e.g. 'st-louis') or lick-progressions (e.g. 'box1-turn')
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
 
   or one of the known extra arguments (that themselves might require
@@ -66,7 +65,7 @@ USAGE BY EXAMPLES
 
   Play endless, no questions asked, but various controls available:
 
-    harpwise play licks radio
+    harpwise play licks --lick-radio
 
 
   Play an interactive, adjustable pitch:

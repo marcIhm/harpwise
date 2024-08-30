@@ -23,14 +23,15 @@ def do_play to_play
   if $extra
     args_for_extra = to_play
   else
-    holes_or_notes, lnames, _, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
+    holes_or_notes, lnames, lpnames, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
   end
 
   # common error checking
   err_args_not_allowed(args_for_extra) if $extra == 'user' && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra == 'licks' && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
-
+  
   if !$extra 
 
     if holes_or_notes.length > 0
@@ -51,12 +52,17 @@ def do_play to_play
       end
       
     elsif lnames.length > 0
-      
-      $ctl_rec[:lick_lick] = false
-      $ctl_rec[:loop_loop] = false
-      $ctl_rec[:can_star_unstar] = true
-      play_licks_controller $licks.select {|l| lnames.include?(l[:name])}, nil
 
+      play_named_licks(lnames)
+
+    elsif lpnames.length > 0
+
+      err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
+      
+      lnames = $all_lick_progs[lpnames[0]][:licks]
+      $opts[:iterate] = :cycle
+      play_named_licks(lnames)
+      
     else
 
       fail 'Internal error'
@@ -450,7 +456,7 @@ def maybe_wait_for_key_and_decide_replay
     old_lines = nil
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines = [['Press:      r: replay this lick    e: edit lickfile'],
+      lines = [['Press:    .,r: replay this lick    e: edit lickfile'],
                ['    BACKSPACE: previous lick     *,/: star,unstar most recent lick'],
                ['            n: choose next lick by name'],
                ['Keys available during play too:   (help there for even more keys)'],
@@ -487,7 +493,7 @@ def maybe_wait_for_key_and_decide_replay
         return :prev
       when 'n'
         return :named
-      when 'r'
+      when 'r','.'
         return :redo
       when 'e'
         return :edit
@@ -525,19 +531,9 @@ end
 
 def do_play_licks args
 
-  if args.length > 0
-    err "First argument (if any) to 'harpwise play licks' can only be 'radio', not '#{args[0]}'" if args[0] != 'radio'
+  if $opts[:lick_radio]
     $ctl_rec[:lick_lick] = $ctl_rec[:loop_loop] = true
-    $ctl_rec[:num_loops] = if args.length > 1
-                             if md = args[1].match(/^(\d+)$/)
-                               md[1].to_i
-                             else
-                               err "Argument after 'harpwise play licks radio' can only be a number, not '#{args[1]}'"
-                             end
-                           else
-                             4
-                           end
-    
+    $ctl_rec[:num_loops] = 4
   end
 
   $ctl_rec[:can_star_unstar] = true
@@ -565,4 +561,12 @@ def do_play_licks args
   end  
   puts
   play_licks_controller licks, licks, sleep_between: true
+end
+
+
+def play_named_licks lnames
+  $ctl_rec[:lick_lick] = false
+  $ctl_rec[:loop_loop] = false
+  $ctl_rec[:can_star_unstar] = true
+  play_licks_controller lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}, nil
 end

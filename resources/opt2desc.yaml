@@ -351,7 +351,9 @@ keyboard_translate:
     lick-progression and scale-progression at once by pressing 'b'.
   - LIST_OF_KB_TRANSLATIONS
 
-licks:
+lick_radio:
   - |
-  - LICKNAME
+    For playing licks:
+    preset controls for endless playing of selected licks random or in
+    a loop
   

@@ -368,7 +368,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
                      'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
-                     'play' => [4, "The mode 'play' picks from the command line"],
+                     'play' => [4, "The mode 'play' picks its arguments from the commandline"],
                      'print' => [5, 'and prints their hole-content on the commandline'],
                      'tools' => [4, "The mode 'tools' offers some non-interactive"],
                      'develop' => [4, "This mode is useful only for the maintainer or developer"]}
@@ -396,7 +396,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'listen' => [16, 'on every invocation'],
                     'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
-                    'play' => [8, '--max-holes NUMBER'],
+                    'play' => [5, '--max-holes NUMBER'],
                     'print' => [12, '--scale-over-lick : Interpret a given name as a scale'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs']}
