@@ -1032,7 +1032,7 @@ do_test 'id-22b: print tries its first argument against various areas' do
    "  , where set of licks has not been restricted by tags\n",
    "- scales:\n",
    "- A symbolic name for one of the last licks:\n",
-   "- extra arguments:\n"].each_with_index do |exp,idx|
+   "- extra arguments (specific for mode print):\n"].each_with_index do |exp,idx|
     expect(exp, "See #{$testing_output_file}") { lines.include?(exp) }
   end
   kill_session
@@ -1448,7 +1448,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[13]["First argument for mode print should be one of those choices"] }
+  expect { screen[13]['First argument for mode print should belong to one of those types'] }
   kill_session
 end
 
@@ -2398,7 +2398,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[13]['First argument for mode tools should be one of those choices'] }
+  expect { screen[13]['First argument for mode tools should be one of those extra arguments'] }
   kill_session
 end
 

@@ -743,7 +743,7 @@ def print_amongs *choices
       puts "\n- scale-progressions:"
       print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
     when :extra
-      puts "\n- extra arguments:"
+      puts "\n- extra arguments (specific for mode #{$mode}):"
       puts get_extra_desc_all.join("\n")
     when :inter
       puts "\n- named interval, i.e. one of: "

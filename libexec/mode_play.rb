@@ -456,8 +456,8 @@ def maybe_wait_for_key_and_decide_replay
     old_lines = nil
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines = [['Press:    .,r: replay this lick    e: edit lickfile'],
-               ['    BACKSPACE: previous lick     *,/: star,unstar most recent lick'],
+      lines = [['Press:     .r: replay this lick    e: edit lickfile'],
+               ['    BACKSPACE: previous lick      */: star,unstar most recent lick'],
                ['            n: choose next lick by name'],
                ['Keys available during play too:   (help there for even more keys)'],
                ['      c: toggle continue without this menu (now ',

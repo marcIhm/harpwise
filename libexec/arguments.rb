@@ -424,7 +424,7 @@ def parse_arguments_early
     ARGV.clear
     holes.each do |h|
       next if $harp_holes.include?(h)
-      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp (#{$harp_holes.join(', ')})"
+      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp (#{$harp_holes.join(', ')}) and can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0
@@ -506,7 +506,7 @@ def initialize_extra_vars
 end
 
 
-def parse_arguments_late
+def parse_arguments_for_mode
 
   $amongs = Hash.new
   $amongs[:play] = if $opts[:scale_over_lick]
@@ -514,52 +514,54 @@ def parse_arguments_late
                    else
                      [:hole, :note, :lick, :scale, :last, :lick_prog]
                    end
-
   $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
-
   $amongs[:licks] = [:hole, :note, :lick]
 
   $extra = nil
   okay = true
+  amongs_clause = ''
 
   if $extra_desc[$mode]
+    # Only some modes accept an extra argument, listen or licks e.g. do not
     if [:play, :print].include?($mode)
-      # We want a complete error-message e.g. for a typo in first
-      # argument; so this needs to check all possible choices: $amongs as
-      # well as $extra. All arguments (with a possible $extra already
+      # These mode (play, print) are the only two modes, that allow
+      # arguments on the commandline as well as an extra argument, which
+      # however is optional (quiz as a counterexample requires its extra
+      # argument). Therefore the first argument for play and print can be
+      # from any of large set of types
+      
+      # We want a complete error-message e.g. for a typo in first argument
+      # after mode; so this needs to check all possible choices: $amongs
+      # as well as $extra. All arguments (with a possible $extra already
       # removed) will later be checked again, but only against
       # $amongs[$mode]
-      what = recognize_among(ARGV[0], [$amongs[$mode], :extra], licks: $all_licks)
+      amongs = [$amongs[$mode], :extra].flatten
+      what = recognize_among(ARGV[0], amongs, licks: $all_licks)
       $extra = ARGV.shift if what == :extra
       if !what
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
         print_amongs($amongs[$mode], :extra)
-        okay = false
+        err "First argument for mode #{$mode} should belong to one of those types listed above, not '#{ARGV[0]}'"
       end
     else
+      # these modes (e.g. quiz) require their extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], :extra) == :extra
       if !$extra
         print_amongs(:extra)
-        okay = false
+        err("First argument for mode #{$mode} should be one of those extra arguments listed above, not '#{ARGV[0]}'" +
+            ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' ))
       end
-    end
-
-    if !okay
-      err "Mode #{$mode} needs an argument from the list above" if ARGV.length == 0
-      rem = ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' )
-ru      err "First argument for mode #{$mode} should be one of those choices listed above, not '#{ARGV[0]}'#{rem}"
     end
   end
   
-  if [:play, :print, :quiz, :licks, :tools, :develop].include?($mode)
-    to_handle = ARGV.clone
-    ARGV.clear
-  end
+  to_handle = ARGV.clone
+  ARGV.clear
 
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if ARGV.length > 0
+  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop].include?($mode)
+
   return to_handle
 end
 
