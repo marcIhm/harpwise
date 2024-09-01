@@ -755,7 +755,8 @@ do_test 'id-15b: play licks with controls between' do
   sleep 2
   expect { screen[5]['Lick wade'] }
   sleep 4
-  expect { screen[17]['SPACE or RETURN for next licks'] }
+  expect { screen[10]['h: show help with more keys (available now already)'] }
+  expect { screen[11]['SPACE or RETURN for next lick'] }
   kill_session
 end
 
@@ -783,11 +784,11 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[7]['Lick wade'] }
+  expect { screen[7]['Lick wade    1/21'] }
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[9]['Lick st-louis'] }
+  expect { screen[15]['Lick st-louis    2/21'] }
   kill_session
 end
 
@@ -2538,6 +2539,10 @@ do_test 'id-86a: print lick progressions' do
   tms :ENTER
   sleep 2
   expect { screen[5]['Desc:  Progression of licks for box-pattern 1'] }
+  tms 'harpwise print lick-progs -t fav'
+  tms :ENTER
+  sleep 2
+  expect { screen[20]['1 of 1 lick progressions'] }
   kill_session
 end
 
@@ -3123,25 +3128,25 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[7]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[9]['Lick st-louis'] }
+  expect { screen[15]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[9]['Lick feeling-bad'] }
+  expect { screen[15]['Lick feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[9]['Lick chord-prog'] }
+  expect { screen[15]['Lick chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[9]['Lick feeling-bad'] }
+  expect { screen[15]['Lick feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[9]['Lick st-louis'] }
+  expect { screen[15]['Lick st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[9]['Lick wade'] }
+  expect { screen[15]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[6]['No previous lick available'] }
+  expect { screen[12]['No previous lick available'] }
   kill_session
 end
 
@@ -3162,10 +3167,10 @@ do_test 'id-115: play two licks with no prompt after last' do
   expect { screen[5]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[17]['Lick st-louis'] }
+  expect { screen[14]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[23]['$'] }
+  expect { screen[20]['$'] }
   kill_session
 end
 

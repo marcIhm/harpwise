@@ -22,6 +22,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   elsif $opts[:lick_prog]
 
     # this narrows available licks to those specified by option
+    $licks = $all_licks    
     _ = process_opt_lick_prog
 
   else

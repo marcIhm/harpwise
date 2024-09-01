@@ -582,10 +582,20 @@ def print_lick_progs
     puts "\nNo lick progressions defined."
     puts
   else
-    $all_lick_progs.values.each do |lp|
+    keep_all = Set.new($opts[:tags_all]&.split(','))
+    printed = 0
+    $all_lick_progs.
+      values.
+      select {|lp| keep_all.empty? || (keep_all.subset?(Set.new(lp[:tags])))}.
+      each do |lp|
       print_single_lick_prog(lp)
+      printed += 1
     end
-    puts "#{$all_lick_progs.length} lick progressions in file #{$lick_file}"
+    if $opts[:tags_all] != ''
+      puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}' from file #{$lick_file}"
+    else
+      puts "#{$all_lick_progs.length} lick progressions from file #{$lick_file}"
+    end
   end
   
 end
@@ -601,6 +611,7 @@ def print_single_lick_prog lp
   puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
   unless $opts[:terse]
     puts "     Line:  #{lp[:lno]}"
+    puts "     Tags:  #{lp[:tags].join('  ')}" if lp[:tags].length > 0
     puts
   end
 end

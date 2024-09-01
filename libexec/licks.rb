@@ -28,7 +28,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
   type2keys = { lick: %w(holes notes tags tags.add desc desc.add rec rec.key rec.start rec.length),
                 default: %w(tags tags.add desc desc.add rec.key),
                 vars: [],
-                prog: %w(desc licks) }
+                prog: %w(desc licks tags) }
       
   #
   # Proces file line by line
@@ -45,7 +45,9 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       
     if md = ( line.match(/^\[(#{$word_re})\]$/) ||
               line.match(/^\[(prog #{$word_re})\]$/) )
-      derived.insert(-2,'') 
+      derived.insert(-2,'')
+
+      # starting new section, process old section first
 
       # sec_type, lick, etc. still belong to previous lick
       if sec_type == :default
@@ -56,6 +58,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
         err "Section 'prog #{sec_title}' needs to contain key 'licks' (#{where})" unless section[:licks]
         before = name2prog[sec_title]
         err "Progression '#{sec_title}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]})" if before
+        section[:tags] ||= []
         name2prog[sec_title] = section
         err "Progression #{sec_title} does not contain any licks" unless section[:licks]  
       elsif sec_type == :lick

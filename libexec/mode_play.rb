@@ -4,13 +4,14 @@
 
 def do_play to_play
 
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
 
   if !$extra
     # We expect lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks 
   elsif $opts[:lick_prog]
     err "Options --lick-prog only useful for extra argument licks, not #{$extra}" if $extra != 'licks'
+    $licks = $all_licks 
     _ = process_opt_lick_prog
     $all_licks, $licks, $all_lick_progs = read_licks    
   end
@@ -353,16 +354,14 @@ def play_licks_controller licks, refill, sleep_between: false
   stock = licks.clone
   prev_licks = Array.new
   lick = stock.shift
-
+  
   loop do  ## one lick after the other
 
     write_history('lick', lick[:name], lick[:holes])
-
     
     loop do  ## repeats of the same lick
-      puts
       play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}, #{$opts[:iterate]}"
-
+      
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
         plen = $ctl_rec[:skip]  ?  3  :  5 
@@ -447,27 +446,35 @@ def play_licks_controller licks, refill, sleep_between: false
 end
 
 
-def maybe_wait_for_key_and_decide_replay 
+def maybe_wait_for_key_and_decide_replay
+  show_help = false
   if $ctl_rec[:lick_lick] && $ctl_kb_queue.empty?
     puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
     $ctl_kb_queue.clear
     return :next
   else
-    old_lines = nil
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines = [['Press:     .r: replay this lick    e: edit lickfile'],
-               ['    BACKSPACE: previous lick      */: star,unstar most recent lick'],
-               ['            n: choose next lick by name'],
-               ['Keys available during play too:   (help there for even more keys)'],
-               ['      c: toggle continue without this menu (now ',
-                ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
-               ['    L,l: toggle loop for all licks (now ',
-                ( $ctl_rec[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
-               ['  2-9,0: set num, if looping (l,L) enabled (now ',
-                get_num_loops_desc(true).to_s, ')'],
-               ["SPACE or RETURN for next licks ...\n"]]
-      oldlines ||= lines
+      lines_long = [['Press:      h: this help        .r: replay this lick    e: edit lickfile'],
+                    ['    BACKSPACE: previous lick    */: star,unstar most recent lick'],
+                    ['            n: choose lick by name'],
+                    ['Keys available during play too:   (help there for even more keys)'],
+                    ['      c: toggle continue without this menu (now ',
+                     ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
+                    ['    L,l: toggle loop for all licks (now ',
+                     ( $ctl_rec[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
+                    ['  2-9,0: set num, if looping (l,L) enabled (now ',
+                     get_num_loops_desc(true).to_s, ')'],
+                    ["SPACE or RETURN for next lick ...\n"]]
+       lines = if show_help
+                 lines_long
+              else
+                [['Press:      h: show help with more keys (available now already)'],
+                 ["SPACE or RETURN for next lick ...\n"]]
+              end
+       oldlines ||= lines
+       oldlines_long ||= lines_long
+      $ctl_kb_queue.clear
       # highlight diffs to initial state
       lines.zip(oldlines).each do |line, oldline|
         print "\e[0m\e[2m"
@@ -484,7 +491,6 @@ def maybe_wait_for_key_and_decide_replay
         puts
         sleep 0.02
       end
-      $ctl_kb_queue.clear
       print "\e[0m"
       char = $ctl_kb_queue.deq
       case char
@@ -497,14 +503,25 @@ def maybe_wait_for_key_and_decide_replay
         return :redo
       when 'e'
         return :edit
+      when 'h'
+        oldlines = nil
+        show_help = true
+        puts
+        redo
       when 'c'
         $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick]
+        show_help = true
+        oldlines = oldlines_long        
         redo
       when 'L', 'l'
         $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop]
+        show_help = true
+        oldlines = oldlines_long        
         redo
       when '0'
         $ctl_rec[:num_loops] = false
+        show_help = true
+        oldlines = oldlines_long
         redo
       when '1'
         puts "\e[0m\e[2m#{$resources[:nloops_not_one]}"
@@ -512,6 +529,8 @@ def maybe_wait_for_key_and_decide_replay
         redo
       when '2','3','4','5','6','7','8','9'
         $ctl_rec[:num_loops] = char.to_i
+        show_help = true
+        oldlines = oldlines_long
         redo
       when ' ', 'RETURN'
         return :next
@@ -522,6 +541,7 @@ def maybe_wait_for_key_and_decide_replay
       else
         puts "\e[0mUnknown key: '#{char}'    \e[2m(but more keys available during play)"
         puts
+        show_help = true
         redo
       end
     end

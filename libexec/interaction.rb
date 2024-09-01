@@ -362,7 +362,7 @@ def handle_kb_play_holes_or_notes_simple
 end
 
 
-def handle_kb_play_recording
+def handle_kb_play_recording scroll_allowed
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -398,12 +398,19 @@ def handle_kb_play_recording
   elsif char == '*' && $ctl_rec[:can_star_unstar]
     $ctl_rec[:star_lick] = :up
   elsif char == '/' && $ctl_rec[:can_star_unstar]
-    $ctl_rec[:star_lick] = :down    
+    $ctl_rec[:star_lick] = :down
+  else
+    text = get_text_invalid(char)
+    if scroll_allowed
+      puts text + ' (h for help)'
+    else
+      ctl_response text
+    end
   end
 end
 
 
-def handle_kb_play_recording_simple
+def handle_kb_play_recording_simple scroll_allowed
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -424,6 +431,13 @@ def handle_kb_play_recording_simple
     $ctl_rec[:replay] = true
   elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
+  else
+    text = get_text_invalid(char)
+    if scroll_allowed
+      puts text + ' (h for help)'
+    else
+      ctl_response text
+    end    
   end
 end
 

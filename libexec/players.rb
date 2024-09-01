@@ -52,10 +52,11 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
     # loop to check repeatedly while the recording is beeing played
     begin
       sleep 0.1
-      handle_kb_play_recording
+      handle_kb_play_recording scroll_allowed
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         pplayer.pause
+        print "\e\2m (%.2fs) " % pplayer.time_played
         space_to_cont
         pplayer.continue
         print "\e[0m\e[32mgo \e[0m"
@@ -80,7 +81,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
                         else
                           "\n"
                         end +
-                        "    +: jump to end                  -.: jump to start\n" +
+                        "TAB,+: skip to end                  -.: back to start\n" +
                         "  v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
                         if $mode == :play
                             "    c: toggle continue without menu-break " +
@@ -103,7 +104,7 @@ def play_lick_recording_and_handle_kb lick, start, length, scroll_allowed = true
       elsif $ctl_rec[:replay]
         print "\e[0m\e[32mreplay \e[0m"
       elsif $ctl_rec[:skip]
-        print "\e[0m\e[32mjump to end \e[0m"
+        print "\e[0m\e[32mskip to end \e[0m"
       elsif $ctl_rec[:num_loops_to_one]
         print "\e[0m\e[2m#{$resources[:nloops_not_one]} \e[0m"
         $ctl_rec[:num_loops_to_one] = false
@@ -184,7 +185,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
     # loop to check repeatedly while the recording is beeing played
     begin
       sleep 0.1
-      handle_kb_play_recording_simple
+      handle_kb_play_recording_simple scroll_allowed
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         pplayer.pause
@@ -201,7 +202,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
                         "  SPACE: pause/continue\n" + 
-                        "      +: jump to end           -: jump to start\n" +
+                        "  TAB,+: skip to end           -: back to start\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                         "      l: loop over recording"
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
@@ -210,7 +211,7 @@ def play_recording_and_handle_kb_simple recording, scroll_allowed, timed_comment
       elsif $ctl_rec[:replay]
         print "\e[0m\e[32m replay \e[0m"
       elsif $ctl_rec[:skip]
-        print "\e[0m\e[32m jump to end \e[0m"
+        print "\e[0m\e[32m skip to end \e[0m"
       end
 
       if timed_comments && timed_comments.length > 0
