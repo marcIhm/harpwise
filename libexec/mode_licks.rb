@@ -1510,23 +1510,26 @@ def show_lick_info lick
   clear_area_comment
   clear_area_message
   print "\e[#{$lines[:comment]}H\e[0m"
-  puts '   Lick Name: ' + lick[:name]
+  puts '   Lick Name:  ' + lick[:name]
   tags_w_cnt = lick[:tags].map {|t| t + '(' + $licks.select {|l| l[:tags].include?(t)}.length.to_s + ')'}
   puts wrap_words('        Tags: ', tags_w_cnt)
-  puts '        Desc: ' + lick[:desc]
+  puts '        Desc:  ' + lick[:desc]
   ohead = false
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any].each do |opt|
     next unless $opts[opt] && $opts[opt].length > 0
-    print ( ohead  ?  '   '  :  ' Tag-Options: ' )
+    print ( ohead  ?  '   '  :  ' Tag-Options:  ' )
       puts '--' + opt.to_s.gsub('_','-') +
            ( opt == :tags_all  ?  "\e[2m(ie. -t)\e[0m"  :  '' ) +
            ' ' + $opts[opt]
     ohead = true
   end
-  puts ' Tag-Options: none' unless ohead
-  puts('in lick-progressions: ' + lick[:progs].join(',')) if lick[:progs].length > 0
+  puts ' Tag-Options:  none' unless ohead
+  if $opts[:lick_prog]
+    desc = $all_lick_progs[$opts[:lick_prog]][:desc]
+    puts "   Lick-prog:  #{$opts[:lick_prog]}"  + ( desc  ?  ", #{desc}"  :  '' )
+  end
   puts_names_of_licks 5
-  puts "\e[2m  #{$resources[:any_key]}\e[0m"
+  puts "\e[2m#{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 end

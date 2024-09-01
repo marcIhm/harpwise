@@ -563,9 +563,13 @@ def process_opt_lick_prog
   elsif lnames.length > 0
     $opts[:lick_prog] = 'adhoc'
     $adhoc_lick_prog = lnames
+    $msgbuf.print "Adhoc lick progression", 5, 5, :lick_prog
   else  ## lpnames.length > 0
     err("Can handle only one lick-progression at a time, not: #{lpnames.join(',')}") if lpnames.length > 1
     lnames = $all_lick_progs[lpnames[0]][:licks]
+    desc = $all_lick_progs[lpnames[0]][:desc]
+    $msgbuf.print  "Lick prog #{lpnames[0]}" + ( desc  ?  ", #{desc}"  :  '' ),
+                    7, 7, :lick_prog
   end
   lnames
 end
