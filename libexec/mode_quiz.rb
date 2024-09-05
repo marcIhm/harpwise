@@ -87,7 +87,7 @@ def do_quiz to_handle
     do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _, _) do
                        solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes_simple(solve_text, 'sequence', holes, :all)
+                       quiz_hint_in_handle_holes_std(solve_text, 'sequence', holes, :all)
                      end)
 
     
@@ -107,7 +107,7 @@ def do_quiz to_handle
                      lambda_quiz_hint: -> (holes, _, scale_name, _) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes_simple(solve_text, 'scale', holes, :all)
+                       quiz_hint_in_handle_holes_std(solve_text, 'scale', holes, :all)
                      end)
 
     
@@ -128,7 +128,7 @@ def do_quiz to_handle
                      lambda_quiz_hint: -> (holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                       quiz_hint_in_handle_holes_simple(solve_text, 'interval', holes, holes[-1], true)
+                       quiz_hint_in_handle_holes_std(solve_text, 'interval', holes, holes[-1], true)
                      end)
 
     
@@ -356,7 +356,8 @@ class QuizFlavour
     make_term_immediate
     $ctl_kb_queue.clear
     puts if newline
-    play_holes_or_notes_simple(reverse ? hons.rotate : hons, hide: [hide, :help])
+    play_holes_or_notes_and_handle_kb( reverse  ?  hons.rotate  :  hons,
+                                       hide: [hide, :help] )
     make_term_cooked
   end
 
@@ -1137,7 +1138,7 @@ class KeyHarpSong < QuizFlavour
     make_term_immediate
     $ctl_kb_queue.clear
     puts
-    play_holes_or_notes_simple [note], hide: [note, :help]
+    play_holes_or_notes_and_handle_kb [note], hide: [note, :help]
     make_term_cooked
   end
 
@@ -1425,11 +1426,11 @@ class HearKey < QuizFlavour
         synth_for_inter_or_chord(semis, tfiles, 0.2, 2, :sawtooth)
         @wavs_created = true
       end
-      play_recording_and_handle_kb_simple tfiles, true
+      play_recording_and_handle_kb tfiles
     elsif @seq.is_a?(Array)
       notes = @seq.map {|s| semi2note(isemi + s)}
       puts
-      play_holes_or_notes_simple notes, hide: [semi2note(isemi), :help]
+      play_holes_or_notes_and_handle_kb notes, hide: [semi2note(isemi), :help]
     else
       err "Internal error: #{seq}"
     end
@@ -1475,7 +1476,7 @@ class HearKey < QuizFlavour
     make_term_immediate
     $ctl_kb_queue.clear
     puts
-    play_holes_or_notes_simple [semi2note(key2semi(@solution))], hide: :help
+    play_holes_or_notes_and_handle_kb [semi2note(key2semi(@solution))], hide: :help
     make_term_cooked
   end
 
@@ -1805,7 +1806,7 @@ class HearTempo < QuizFlavour
     sleep 0.1
     make_term_immediate
     $ctl_kb_queue.clear    
-    play_recording_and_handle_kb_simple @sample, true
+    play_recording_and_handle_kb @sample
     make_term_cooked
   end
 
@@ -1821,7 +1822,7 @@ class HearTempo < QuizFlavour
       puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
       make_term_immediate
       $ctl_kb_queue.clear    
-      play_recording_and_handle_kb_simple help, true
+      play_recording_and_handle_kb help
       make_term_cooked
     else
       puts "\nNo Tempo selected to play.\n\n"
@@ -2030,7 +2031,7 @@ def key2semi note
 end
 
 
-def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide, offer_disp = false
+def quiz_hint_in_handle_holes_std solve_text, item, holes, hide, offer_disp = false
   choices2desc = {',solve-print' => "Solve: Print #{item}, but keep current question",
                   '.help-play' => "Play #{item}, so that you may replay it"}
   choices2desc['.help-display'] = "Switch display to show intervals" if offer_disp
@@ -2051,7 +2052,7 @@ def quiz_hint_in_handle_holes_simple solve_text, item, holes, hide, offer_disp =
     puts "Help: Playing #{item}"
     $ctl_kb_queue.clear
     puts
-    play_holes_or_notes_simple(holes, hide: [hide, :help])
+    play_holes_or_notes_and_handle_kb(holes, hide: [hide, :help])
     sleep 1
   when '.help-display'
     $opts[:display] = :chart_intervals
@@ -2094,19 +2095,19 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "      \e[32mUnshifted:   "
-    play_holes_or_notes_simple(holes_shifts[0], hide: :help)
+    play_holes_or_notes_and_handle_kb(holes_shifts[0], hide: :help)
     sleep 2
     print "  \e[32mFirst shifted:   "
-    play_holes_or_notes_simple([holes_shifts[4]], hide: :help)
+    play_holes_or_notes_and_handle_kb([holes_shifts[4]], hide: :help)
     sleep 1
   when '.help-play-both'
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "  \e[32mUnshifted:   "
-    play_holes_or_notes_simple(holes_shifts[0], hide: :help)
+    play_holes_or_notes_and_handle_kb(holes_shifts[0], hide: :help)
     sleep 2
     print "    \e[32mShifted:   "
-    play_holes_or_notes_simple(holes_shifts[5], hide: [:all, :help])
+    play_holes_or_notes_and_handle_kb(holes_shifts[5], hide: [:all, :help])
     sleep 1
   else
     fail "Internal error: #{answer}" if answer

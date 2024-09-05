@@ -320,7 +320,7 @@ def make_term_cooked
 end
 
 
-def handle_kb_play_holes
+def handle_kb_play_holes_or_notes
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -337,32 +337,13 @@ def handle_kb_play_holes
     $ctl_hole[:vol_up] = true
   elsif char == 'h'
     $ctl_hole[:show_help] = true
+  else
+    $ctl_hole[:invalid] = get_text_invalid(char)
   end
 end
 
 
-def handle_kb_play_holes_or_notes_simple
-  return if $ctl_kb_queue.length == 0
-  char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
-
-  if char == ' '
-    space_to_cont
-    print "go \e[0m"
-    sleep 0.5
-  elsif char == "TAB" || char == '+'
-    $ctl_hole[:skip] = true
-  elsif char == 'v'
-    $ctl_hole[:vol_down] = true
-  elsif char == 'V'
-    $ctl_hole[:vol_up] = true
-  elsif char == 'h'
-    $ctl_hole[:show_help] = true
-  end
-end
-
-
-def handle_kb_play_recording scroll_allowed
+def handle_kb_play_lick_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -400,17 +381,12 @@ def handle_kb_play_recording scroll_allowed
   elsif char == '/' && $ctl_rec[:can_star_unstar]
     $ctl_rec[:star_lick] = :down
   else
-    text = get_text_invalid(char)
-    if scroll_allowed
-      puts text + ' (h for help)'
-    else
-      ctl_response text
-    end
+    $ctl_rec[:invalid] = get_text_invalid(char)
   end
 end
 
 
-def handle_kb_play_recording_simple scroll_allowed
+def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
   $ctl_kb_queue.clear
@@ -432,12 +408,7 @@ def handle_kb_play_recording_simple scroll_allowed
   elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
   else
-    text = get_text_invalid(char)
-    if scroll_allowed
-      puts text + ' (h for help)'
-    else
-      ctl_response text
-    end    
+    $ctl_rec[:invalid] = get_text_invalid(char)
   end
 end
 
@@ -474,6 +445,8 @@ def handle_kb_play_semis
     $ctl_prog[:show_help] = true
   elsif char == 'q'
     $ctl_prog[:quit] = true
+  else
+    $ctl_prog[:invalid] = get_text_invalid(char)
   end
 end
 
@@ -513,6 +486,7 @@ def handle_kb_play_pitch
   elsif char == "RETURN"
     $ctl_pitch[:accept_or_repeat] = true
   else
+    $ctl_pitch[:invalid] = get_text_invalid(char)
     $ctl_pitch[:any] = false
   end
 end
@@ -555,6 +529,7 @@ def handle_kb_play_inter
   elsif char == "RETURN"
     $ctl_inter[:replay] = true
   else
+    $ctl_inter[:invalid] = get_text_invalid(char)
     $ctl_inter[:any] = false
   end
 end
@@ -591,7 +566,7 @@ def handle_kb_play_chord
   elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_chord[:quit] = char
   else
-    $ctl_chord[:any] = false
+    $ctl_chord[:invalid] = get_text_invalid(char) 
   end
 end
 
@@ -640,7 +615,7 @@ def handle_kb_mic
       $ctl_mic[:journal_current] = true
       text = 'Add to journal'
     else
-      text = get_text_invalid(char)
+      text = get_text_invalid(char, true)
     end
   elsif ( char == 'H' || char == '4' ) && $mode == :quiz
     $ctl_mic[:quiz_hint] = true
@@ -775,7 +750,7 @@ def handle_kb_mic
       $ctl_mic[:warbles_clear] = true
       text = 'Clear warbles'
     else
-      text = get_text_invalid(char)
+      text = get_text_invalid(char, true)
     end
   elsif char == 'CTRL-L'
     $ctl_mic[:redraw] = Set[:silent, :clear]
@@ -788,7 +763,7 @@ def handle_kb_mic
     $opts[:debug] = true
     text = 'Debug is ON'
   elsif char.length > 0
-    text = get_text_invalid(char)
+    text = get_text_invalid(char, true)
   end
   ctl_response text if text && !waited
   waited
@@ -807,8 +782,12 @@ def ctl_response text = nil, hl: false
   wheel = $resources[:hl_wheel]
   if hl.is_a?(Numeric)
     print "\e[0m\e[#{wheel[hl % wheel.length]}m"
+  elsif text == $ctl_response_default || hl == :low
+    print "\e[2m"
+  elsif hl
+    print "\e[32m"
   else
-    print "\e[#{hl  ?  32  :  2}m"
+    print "\e[0m"
   end
   print "#{text.rjust($ctl_response_width)}\e[0m"
 end
@@ -1500,7 +1479,7 @@ def journal_menu
   puts " Within this menu again, operate on the current journal:"
   print "\e[0m\e[32m"
   puts "     \e[0m\e[32mp\e[0m\e[2m: play it, using durations (e.g. '(0.3s)') if any"
-  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear     \e[0m\e[32ms\e[0m\e[2m: show short for cut and paste"
+  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear     \e[0m\e[32ms\e[0m\e[2m: show short for copy"
   puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 old lines from file into edit"
   print "\e[0m\e[2m Type one of j,a,p,e,c,s,w,r ... or any other key to continue ... \e[K"
   char = $ctl_kb_queue.deq
@@ -1569,14 +1548,17 @@ def prepare_warbles
 end
 
 
-def get_text_invalid char
+def get_text_invalid char, simple = false
   cdesc = if char.match?(/^[[:print:]]+$/)
             char
           else
             "? (#{char.ord})"
           end
-  
-  "Invalid key #{cdesc}" + ( cdesc.length > 5  ?  ''  :  ", h for help" )
+  if simple
+    return "invalid key " + cdesc
+  else
+    return "\e[2minvalid key \e[0m#{cdesc}\e[2m, h for help\e[0m"
+  end
 end
 
 

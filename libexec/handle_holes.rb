@@ -52,7 +52,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     if first_round || $ctl_mic[:redraw]
       system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       print_mission(get_mission_override || lambda_mission.call)
-      ctl_response
+      if first_round
+        ctl_response
+      else
+        ctl_response 'Redraw', hl: :low
+      end
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"

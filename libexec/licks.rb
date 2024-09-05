@@ -57,14 +57,14 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       elsif sec_type == :prog
         err "Section 'prog #{sec_title}' needs to contain key 'licks' (#{where})" unless section[:licks]
         before = name2prog[sec_title]
-        err "Progression '#{sec_title}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]})" if before
+        err "Progression '#{sec_title}' appeares at least twice in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]}" if before
         section[:tags] ||= []
         name2prog[sec_title] = section
         err "Progression #{sec_title} does not contain any licks" unless section[:licks]  
       elsif sec_type == :lick
         # a lick
         before = name2lick[sec_title]
-        err "Lick '#{sec_title}' has already appeared before in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]})" if before
+        err "Lick '#{sec_title}' appeares at least twice in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]}" if before
         name2lick[sec_title] = section
         all_licks << process_lick(section, sec_title, vars, default)
       end
@@ -411,13 +411,13 @@ end
 
 
 def get_musical_duration hole_or_note
-  dura = ( $opts[:fast]  ?  0.5  :  1.0)
-  return dura unless musical_event?(hole_or_note)
-  return dura unless hole_or_note[-2 .. -1] == 's)'
+  duration = ( $opts[:fast]  ?  0.5  :  1.0)
+  return duration unless musical_event?(hole_or_note)
+  return duration unless hole_or_note[-2 .. -1] == 's)'
   begin
     return Float(hole_or_note[1 .. -3])
   rescue
-    return dura
+    return duration
   end
 end
 

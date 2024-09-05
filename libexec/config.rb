@@ -45,10 +45,10 @@ def set_global_vars_early
                               :drop_tags_any => :to_str,
                               :drop_tags_all => :to_str,
                               :add_scales => :empty2nil}
-  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any]
-  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any]
-  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down]
-  $conf_meta[:ctrls_play_prog] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :prev_prog, :next_prog, :quit]
+  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any, :invalid]
+  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any, :invalid]
+  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down, :invalid]
+  $conf_meta[:ctrls_play_prog] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :prev_prog, :next_prog, :quit, :invalid]
   
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -78,7 +78,7 @@ def set_global_vars_early
   # this is partially mirrored in sound_driver.rb
   ks = [:skip, :replay, :slower, :faster, :vol_up, :vol_down,
         :loop, :loop_loop, :lick_lick, :num_loops, :num_loops_to_one,
-        :show_help, :pause_continue, :star_lick, :can_star_unstar]
+        :show_help, :pause_continue, :star_lick, :can_star_unstar, :invalid]
   $ctl_rec = Struct.new(*ks).new
   ks.each {|k| $ctl_rec[k] = false}
 
@@ -99,7 +99,7 @@ def set_global_vars_early
   $conf_meta[:ctrls_play_prog].each {|k| $ctl_prog[k] = false}
 
   # result of processing keys, while a series of holes is played
-  ks = [:skip, :show_help, :vol_up, :vol_down]
+  ks = [:skip, :show_help, :vol_up, :vol_down, :invalid]
   $ctl_hole = Struct.new(*ks).new
   ks.each {|k| $ctl_hole[k] = false}
 

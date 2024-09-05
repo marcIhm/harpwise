@@ -38,7 +38,7 @@ def do_play to_play
     if holes_or_notes.length > 0
 
       puts "Some holes or notes"
-      play_holes_or_notes_simple holes_or_notes
+      play_holes_or_notes_and_handle_kb holes_or_notes
       puts
       write_history('holes or notes', 'adhoc-holes', holes_or_notes)
       
@@ -47,7 +47,7 @@ def do_play to_play
       snames.each do |sname|
         scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
-        play_holes_or_notes_simple scale_holes
+        play_holes_or_notes_and_handle_kb scale_holes
         puts
         write_history('scale', sname, scale_holes)
       end
@@ -133,7 +133,7 @@ def do_play to_play
         duration = '%.1fs' % sox_query(rfile, 'Length')
         puts "Playing \e[32m#{rfile}\e[0m, #{duration} ..."
         puts "\e[2m(h for help)"
-        play_recording_and_handle_kb_simple rfile, true
+        play_recording_and_handle_kb rfile
         puts
       else
         puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it."
@@ -317,33 +317,30 @@ end
 
 def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_rec[:loop_loop]
+  print "Lick #{lick[:name]}\e[2m#{extra}, "
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
-    puts "Lick #{lick[:name]}\e[2m" +
-         "#{extra}, rec in #{lick[:rec_key]}" +
+    puts "rec in #{lick[:rec_key]}" +
          ( $key == lick[:rec_key]  ?  ''  :  ", shifted to #{$key}" ) +
-         "    (h for help)\e[0m\n" +
-         lick[:holes].join(' ')
-    print "\e[0m\e[2m"
+         "    (h for help)\e[0m\e[2m"
     sleep 0.02
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
     sleep 0.02
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
-    play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], true
+    puts lick[:holes].join(' ')
+    play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], 0, true
   else
-    if $opts[:reverse]
-      puts "Lick #{lick[:name]} in reverse \e[2m(h for help)\e[0m"
-      play_holes lick[:holes].reverse, lick: lick
-    else
-      puts "Lick #{lick[:name]} \e[2m(h for help)\e[0m"
-      play_holes lick[:holes], lick: lick
-    end
-    print "\e[0m\e[2m"
+    puts ( $opts[:reverse]  ?  ' in reverse'  :  '' ) +
+         "    (h for help)\e[0m\e[2m"
     sleep 0.02
     puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
     sleep 0.02
     puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
+    play_lick_holes_and_handle_kb ( $opts[:reverse]  ?  lick[:holes].reverse  :  lick[:holes] ),
+                                  lick: lick,
+                                  scroll_allowed: true,
+                                  with_head: false
   end
   sleep 0.02
   puts
@@ -455,10 +452,10 @@ def maybe_wait_for_key_and_decide_replay
   else
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines_long = [['Press:      h: this help        .r: replay this lick    e: edit lickfile'],
+      lines_long = [["\e[0mPress:\e[2m      h: this help        .r: replay this lick    e: edit lickfile"],
                     ['    BACKSPACE: previous lick    */: star,unstar most recent lick'],
                     ['            n: choose lick by name'],
-                    ['Keys available during play too:   (help there for even more keys)'],
+                    ["Keys here and while playing:   (help there for more keys)"],
                     ['      c: toggle continue without this menu (now ',
                      ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
                     ['    L,l: toggle loop for all licks (now ',
@@ -506,7 +503,6 @@ def maybe_wait_for_key_and_decide_replay
       when 'h'
         oldlines = nil
         show_help = true
-        puts
         redo
       when 'c'
         $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick]
@@ -541,6 +537,7 @@ def maybe_wait_for_key_and_decide_replay
       else
         puts "\e[0mUnknown key: '#{char}'    \e[2m(but more keys available during play)"
         puts
+        oldlines = nil
         show_help = true
         redo
       end

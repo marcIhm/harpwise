@@ -209,6 +209,7 @@ def tool_search_in_licks to_handle
 
   err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
+  to_handle.reject! {|h| musical_event?(h)}
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
   end
@@ -569,7 +570,7 @@ def tool_transcribe to_handle
 
   # if necessary we have changed our key to match the lick
   print "\nPlaying \e[2m(as recorded, for a #{$key}-harp)\e[0m:"
-  play_recording_and_handle_kb_simple to_play, true, ts_with_holes_durations
+  play_recording_and_handle_kb to_play, ts_with_holes_durations
   puts "\n\n\n"
 
 end

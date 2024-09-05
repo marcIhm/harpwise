@@ -20,7 +20,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
         else    
           "play --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
         end
-  sys(cmd, $sox_fail_however) unless $testing
+  sys(cmd, $sox_fail_however)
 end
 
 
@@ -293,22 +293,9 @@ def pipeline_catch_up
 end
 
 
-def play_hole_and_handle_kb hole, duration
-  wait_thr = Thread.new do
-    play_wave(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]),
-              duration)
-  end  
-  begin
-    sleep 0.1
-    # this sets $ctl_hole, which will be used by caller one level up
-    handle_kb_play_holes
-  end while wait_thr.alive?
-  wait_thr.join   # raises any errors from thread
-end
+def play_hole_or_note_and_collect_kb hon, duration
 
-
-def play_hole_or_note_simple_and_handle_kb note, duration
-  
+  note = $harp[hon]&.dig(:note) || hon
   wfile = this_or_equiv("#{$sample_dir}/%s.wav", note)
   wait_thr = Thread.new do
     if $testing
@@ -324,7 +311,7 @@ def play_hole_or_note_simple_and_handle_kb note, duration
   begin
     sleep 0.1
     # this sets $ctl_hole, which will be used by caller one level up
-    handle_kb_play_holes_or_notes_simple
+    handle_kb_play_holes_or_notes
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread
 end
@@ -455,7 +442,7 @@ class UserLickRecording
   
   def play_rec
     fail 'Internal error: no rec' unless @has_rec
-    play_recording_and_handle_kb_simple @file_trimmed, false
+    play_recording_and_handle_kb @file_trimmed
   end
 
   def rec_file

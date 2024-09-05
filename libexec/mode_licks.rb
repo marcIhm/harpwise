@@ -333,7 +333,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
       pstart = Time.now.to_f
 
-      play_rec_or_holes to_play, oride_l_message2, show_holes: !!quiz_holes_shifts 
+      play_lick_rec_or_holes to_play, oride_l_message2
 
       # quiz-flavour play-shifted
       peek_into_quiz_shifts(quiz_holes_shifts, oride_l_message2) if quiz_holes_shifts 
@@ -415,7 +415,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         clear_area_comment
         print "\e[#{$lines[:comment]}H\e[0m\e[32m"
         do_figlet_unwrapped 'listen ...', 'smblock'
-        play_rec_or_holes to_play, oride_l_message2
+        play_lick_rec_or_holes to_play, oride_l_message2
         seq_played_recently = true
       end
 
@@ -750,7 +750,7 @@ def nearest_hole_with_flag hole, flag
 end
 
 
-def play_recording_lick lick, at_line:, shift_inter:, holes:
+def play_lick_recording_and_handle_kb_plus lick, at_line:, shift_inter:, holes:
       
   if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
     lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
@@ -773,7 +773,7 @@ def play_recording_lick lick, at_line:, shift_inter:, holes:
     print "\e[#{$lines[:hint_or_message]}H#{text} \e[K"
   end
 
-  skipped = play_lick_recording_and_handle_kb(lick, start, length, !!at_line, shift_inter)
+  skipped = play_lick_recording_and_handle_kb(lick, start, length, shift_inter, !!at_line)
 
   print skipped ? " skip rest" : " done"
 end
@@ -1260,19 +1260,19 @@ def print_comment_adhoc holes, quiz_and_after: false
 end
 
 
-def play_rec_or_holes to_play, oride_l_message2, show_holes: nil
+def play_lick_rec_or_holes to_play, oride_l_message2
   if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:replay_flags].include?(:holes) ||
      ($opts[:holes] && !$ctl_mic[:replay_flags].include?(:recording))
-    play_holes(to_play[:replacement_for_play] || to_play[:all_wanted],
-               at_line: oride_l_message2,
-               verbose: true,
-               lick: to_play[:lick],
-               show_holes: show_holes)
+    play_lick_holes_and_handle_kb  to_play[:replacement_for_play] || to_play[:all_wanted],
+                                   at_line: oride_l_message2,
+                                   scroll_allowed: !!oride_l_message2,
+                                   lick: to_play[:lick],
+                                   with_head: true
   else
-    play_recording_lick(to_play[:lick],
-                        at_line: oride_l_message2,
-                        shift_inter: to_play[:shift_inter],
-                        holes: to_play[:all_wanted])
+    play_lick_recording_and_handle_kb_plus(to_play[:lick],
+                                           at_line: oride_l_message2,
+                                           shift_inter: to_play[:shift_inter],
+                                           holes: to_play[:all_wanted])
   end
 end
 
@@ -1512,7 +1512,7 @@ def show_lick_info lick
   print "\e[#{$lines[:comment]}H\e[0m"
   puts '   Lick Name:  ' + lick[:name]
   tags_w_cnt = lick[:tags].map {|t| t + '(' + $licks.select {|l| l[:tags].include?(t)}.length.to_s + ')'}
-  puts wrap_words('        Tags: ', tags_w_cnt)
+  puts wrap_words('        Tags:  ', tags_w_cnt)
   puts '        Desc:  ' + lick[:desc]
   ohead = false
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any].each do |opt|
@@ -1541,7 +1541,7 @@ def puts_names_of_licks maxnum
     names = names.sample(maxnum)
     names = ["e.g.: #{names[0]}"] + names[1..-1]
   end
-  puts wrap_words('   All licks, ', ["#{$licks.length} in total:  "] + names, ', ')
+  puts wrap_words('   All licks,  ', ["#{$licks.length} in total:  "] + names, ', ')
 end
 
 

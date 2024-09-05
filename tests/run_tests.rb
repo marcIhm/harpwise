@@ -208,6 +208,7 @@ end
     tms :ENTER
     sleep 1
     tms 'y'
+    sleep 4
     wait_for_end_of_harpwise
     expect { screen[-4]['Recordings done.'] }
     kill_session
@@ -220,8 +221,9 @@ end
     new_session
     tms "harpwise calib chromatic #{key} --auto"
     tms :ENTER
-    sleep 1
+    sleep 2
     tms 'y'
+    sleep 12
     wait_for_end_of_harpwise
     expect { screen[-4]['Recordings done.'] }
     kill_session
@@ -701,7 +703,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play a mape --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[6]['+6 +5 -4 -3 -3// -2'] }
+  expect { screen[6]['+6 +5 -4 -3'] }
   kill_session
 end
 
@@ -733,8 +735,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
-  expect { screen[5]['Lick wade'] }
-  expect { screen[6]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
+  expect { screen[4]['Lick wade'] }
+  expect { screen[7]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
   expect { File.exist?(history_file) }
   kill_session
 end
@@ -753,10 +755,10 @@ do_test 'id-15b: play licks with controls between' do
   tms 'harpwise play a wade st-louis feeling-bad'
   tms :ENTER
   sleep 2
-  expect { screen[5]['Lick wade'] }
+  expect { screen[4]['Lick wade'] }
   sleep 4
-  expect { screen[10]['h: show help with more keys (available now already)'] }
-  expect { screen[11]['SPACE or RETURN for next lick'] }
+  expect { screen[9]['h: show help with more keys (available now already)'] }
+  expect { screen[10]['SPACE or RETURN for next lick'] }
   kill_session
 end
 
@@ -784,11 +786,11 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[7]['Lick wade    1/21'] }
+  expect { screen[6]['Lick wade    1/21'] }
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[15]['Lick st-louis    2/21'] }
+  expect { screen[14]['Lick st-louis    2/21'] }
   kill_session
 end
 
@@ -965,7 +967,7 @@ do_test 'id-19c: start with older lick' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[15]['Lick Name: wade'] }
+  expect { screen[15]['Lick Name:  wade'] }
   tms :q
   kill_session
 end
@@ -992,7 +994,7 @@ do_test 'id-21: mode licks with --start-with' do
   sleep 8
   expect { screen[-1]['Wade in the Water'] }
   tms 'i'
-  expect { screen[12..16].any? {|l| l['Lick Name: wade']} }
+  expect { screen[12..16].any? {|l| l['Lick Name:  wade']} }
   kill_session
 end
 
@@ -1133,11 +1135,14 @@ do_test 'id-25: cycle through licks back to start' do
   tms 'harpwise licks --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 1
+  expect { screen[1]["licks(#{$all_testing_licks.length},cyc)"] }
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
     lickname = $all_testing_licks[i % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
+    sleep 8
     tms :ENTER
-    sleep 4
+    sleep 1
   end
   kill_session
 end
@@ -1147,11 +1152,14 @@ do_test 'id-27: cycle through licks from starting point' do
   tms 'harpwise licks --start-with special --iterate cycle'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 1
+  expect { screen[1]["licks(#{$all_testing_licks.length},cyc)"] }
   (0 .. $all_testing_licks.length + 2).to_a.each do |i|
     lickname = $all_testing_licks[(i + 16) % $all_testing_licks.length]
     expect(lickname,i) { screen[-1][lickname] || screen[-2][lickname] }
+    sleep 8
     tms :ENTER
-    sleep 4
+    sleep 1
   end
   kill_session
 end
@@ -1163,16 +1171,16 @@ do_test 'id-29: back some licks' do
   wait_for_start_of_pipeline
   expect { screen[-1]['st-louis'] }
   tms :ENTER
-  sleep 2
+  sleep 8
   expect { screen[-1]['feeling-bad'] }
   tms :ENTER
-  sleep 2
+  sleep 8
   expect { screen[-1]['chord-prog'] }
   tms :BSPACE
-  sleep 2
+  sleep 8
   expect { screen[-1]['feeling-bad'] }
   tms :BSPACE
-  sleep 2
+  sleep 8
   expect { screen[-1]['st-louis'] }
   kill_session
 end
@@ -1346,14 +1354,14 @@ do_test 'id-37a: change lick by name with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[15]['Lick Name: wade'] }
+  expect { screen[15]['Lick Name:  wade'] }
   tms :ENTER
   tms 'l'
   tms :LEFT
   tms :ENTER
   sleep 2
   tms 'i'
-  expect { screen[15]['Lick Name: two'] }
+  expect { screen[15]['Lick Name:  two'] }
   kill_session
 end
 
@@ -1384,13 +1392,14 @@ do_test 'id-37c: change option --tags with cursor keys' do
   tms 'harpwise lick blues --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 8
   tms 't'
   7.times {tms :RIGHT}
   tms :ENTER
   tms :DOWN
   tms :ENTER
-  sleep 1
   tms :ENTER
+  sleep 8
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
@@ -1409,13 +1418,13 @@ do_test 'id-37d: change option --tags and back' do
   tms :ENTER
   tms 'cyc'
   tms :ENTER
-  expect { screen[16]['All licks, 4 in total:'] }
+  expect { screen[16]['All licks,  4 in total:'] }
   tms :ENTER
   sleep 2
   tms 't'
   tms '.INITIAL'
   tms :ENTER
-  expect { screen[16]['All licks, 21 in total:'] }
+  expect { screen[16]['All licks,  21 in total:'] }
   kill_session
 end
 
@@ -2016,14 +2025,14 @@ do_test 'id-60: listen with auto journal' do
   tms 'j'
   expect { screen[1]['journal-all'] }
   sleep 6
-  # allow for varying duration
+  # allow for varying durations
   expect { (screen[16]['-4 (3'] ||
             screen[16]['-4 (4'] ||
             screen[16]['-4 (5'] ||
             screen[16]['-4 (6']) &&
            screen[16]['-6/'] }
   tms 'm'
-  sleep 4
+  sleep 8
   expect { screen[1]['licks(1,ran)'] }
   expect { screen[-1]['journal'] }
   kill_session
@@ -2807,9 +2816,9 @@ do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
   tms :ENTER
-  sleep 2
-  tms :ENTER
   sleep 1
+  tms :ENTER
+  sleep 6
   tms 'H'
   sleep 1
   tms 'solve-print'
@@ -3076,7 +3085,7 @@ do_test 'id-111: mode licks with adhoc-lick' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[12..16].any? {|l| l['Lick Name: adhoc']} }
+  expect { screen[12..16].any? {|l| l['Lick Name:  adhoc']} }
   kill_session
 end
 
@@ -3125,10 +3134,10 @@ do_test 'id-114: play licks next and previous' do
   tms 'harpwise play licks -i c'
   tms :ENTER
   sleep 6
-  expect { screen[7]['Lick wade'] }
+  expect { screen[6]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick st-louis'] }
+  expect { screen[14]['Lick st-louis'] }
   tms :ENTER
   sleep 6
   expect { screen[15]['Lick feeling-bad'] }
@@ -3146,7 +3155,7 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[15]['Lick wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[12]['No previous lick available'] }
+  expect { screen[13]['No previous lick available'] }
   kill_session
 end
 
@@ -3164,13 +3173,13 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms 'harpwise play wade st-louis'
   tms :ENTER
   sleep 6
-  expect { screen[5]['Lick wade'] }
+  expect { screen[4]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[12]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[20]['$'] }
+  expect { screen[18]['$'] }
   kill_session
 end
 
@@ -3194,7 +3203,7 @@ end
 do_test 'id-117: check errors for bogous lickfiles' do
   file2err = {
     'b1.txt' => "Section 'prog foo' needs to contain key 'licks'",
-    'b2.txt' => "Lick 'foo' has already appeared before",
+    'b2.txt' => "Lick 'foo' appeares at least twice",
     'b3.txt' => "Section [] cannot be empty",
     'b4.txt' => "Invalid section name",
     'b5.txt' => "Variable assignment (here: $foo) is not allowed outside",
@@ -3353,6 +3362,22 @@ do_test 'id-127: test two regressions 2024-08-25' do
   expect { screen[1]['licks(7,cyc)'] }
   kill_session
 end
+
+ENV['HARPWISE_TESTING']='player'
+
+do_test 'id-128: error message on invalid key during play' do
+  new_session  
+  tms 'harpwise play long'
+  tms :ENTER
+  sleep 1
+  tms 'x'
+  expect { screen[11]['invalid key x'] }
+  tms 'h'
+  expect { screen[13]['Keys available while playing a recording'] }
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
 
 puts
 puts
