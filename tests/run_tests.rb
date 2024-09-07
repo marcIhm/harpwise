@@ -35,6 +35,7 @@ $all_testing_licks = %w(wade st-louis feeling-bad chord-prog blues mape box1-i b
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
+$rc_marker = 'harpwise_testing_return_code_is'
 
 # locations for our test-data; these dirs will be created as full
 # will be removed in test id-1
@@ -376,13 +377,12 @@ usage_types.keys.each_with_index do |mode, idx|
                      'develop' => [4, "This mode is useful only for the maintainer or developer"]}
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
-    marker = 'harpwise_testing_return_code_is'
     tms "harpwise #{usage_types[mode][1]}"
     tms :ENTER
     sleep 2
-    tms 'echo ' + marker + ' \$?'
+    tms 'echo ' + $rc_marker + ' \$?'
     tms :ENTER
-    expect(marker) { screen.find {|l| l[marker + ' 0']} }
+    expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
     kill_session
   end
 end
@@ -404,13 +404,12 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'develop' => [13, 'If lagging occurs']}
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
-    marker = 'harpwise_testing_return_code_is'
     tms "harpwise #{usage_types[mode][1]}"
     tms :ENTER
     sleep 2
-    tms 'echo ' + marker + ' \$?'
+    tms 'echo ' + $rc_marker + ' \$?'
     tms :ENTER
-    expect(marker) { screen.find {|l| l[marker + ' 0']} }
+    expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
     kill_session
   end
 end
@@ -1563,11 +1562,10 @@ usage_examples.each_with_index do |ex,idx|
     # if the program keeps running, than it had no errors; otherwise
     # test its return code and scan its output
     if wait_for_end_of_harpwise(4)
-      marker = 'harpwise_testing_return_code_is'
       output = File.read($testing_output_file).lines
-      tms 'echo ' + marker + ' \$?'
+      tms 'echo ' + $rc_marker + ' \$?'
       tms :ENTER
-      expect(marker) { screen.find {|l| l[marker + ' 0']} }
+      expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
     else
       # just create an OKAY-marker
       expect {true}
@@ -3375,6 +3373,17 @@ do_test 'id-128: error message on invalid key during play' do
   tms 'h'
   expect { screen[13]['Keys available while playing a recording'] }
   kill_session
+end
+
+do_test 'id-129: duration as a comandline-argument' do
+  new_session  
+  tms 'harpwise play -1 [2s]'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  sleep 1
+  tms 'echo ' + $rc_marker + ' \$?'
+  tms :ENTER
+  expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
 end
 
 ENV['HARPWISE_TESTING']='1'

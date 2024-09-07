@@ -510,9 +510,9 @@ def parse_arguments_for_mode
 
   $amongs = Hash.new
   $amongs[:play] = if $opts[:scale_over_lick]
-                     [:hole, :note, :scale, :lick, :last, :lick_prog]
+                     [:hole, :note, :event, :scale, :lick, :last, :lick_prog]
                    else
-                     [:hole, :note, :lick, :scale, :last, :lick_prog]
+                     [:hole, :note, :event, :lick, :scale, :last, :lick_prog]
                    end
   $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
   $amongs[:licks] = [:hole, :note, :lick]

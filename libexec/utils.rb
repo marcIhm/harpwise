@@ -696,6 +696,8 @@ def recognize_among val, choices, licks: $licks
       return choice if note2semi(val, 2..8, true)
     elsif [:semi_note, :semi_inter].include?(choice)
       return choice if val.match(/^[+-]?\d+st$/)
+    elsif choice == :event
+      return choice if musical_event?(val)
     elsif choice == :scale
       sc = get_scale_from_sws(val, true)
       return choice if $all_scales.include?(sc)
@@ -722,9 +724,10 @@ end
 def print_amongs *choices
   choices.flatten.each do |choice|
     case choice
-    # keys must be the same set of values as in recognize_among
-    when :hole
+        # keys must be the same set of values as in recognize_among
+    when :event
       puts "\n- musical events in () or []\n    e.g. comments like '(warble)' or '[123]'"
+    when :hole
       puts "\n- holes:"
       print_in_columns $harp_holes, indent: 4, pad: :tabs
     when :note

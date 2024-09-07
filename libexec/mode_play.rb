@@ -161,7 +161,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   spnames = []
   other = []
 
-  amongs ||= $amongs[$mode] ||  err("Internal error: not for mode #{$mode}")
+  amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
 
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
@@ -171,6 +171,8 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     if what == :note
       holes_or_notes << sf_norm(th)
     elsif what == :hole
+      holes_or_notes << th
+    elsif what == :event
       holes_or_notes << th
     elsif what == :scale
       snames << th
