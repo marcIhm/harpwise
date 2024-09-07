@@ -587,5 +587,6 @@ def play_named_licks lnames
   $ctl_rec[:lick_lick] = false
   $ctl_rec[:loop_loop] = false
   $ctl_rec[:can_star_unstar] = true
-  play_licks_controller lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}, nil
+  licks = lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}
+  play_licks_controller licks, licks
 end
