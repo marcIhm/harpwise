@@ -42,7 +42,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
       cmd = 'sleep 600 ### ' + cmd
-    elsif $testing != 'player'
+    elsif $testing && $testing != 'player'
       sleep 4
       return false
     end

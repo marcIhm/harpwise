@@ -59,7 +59,8 @@ def do_play to_play
     elsif lpnames.length > 0
 
       err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
-      
+
+      print_single_lick_prog($all_lick_progs[lpnames[0]])      
       lnames = $all_lick_progs[lpnames[0]][:licks]
       $opts[:iterate] = :cycle
       play_named_licks(lnames)
