@@ -31,7 +31,7 @@ $within = ( ARGV.length == 0 )
 $testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
 $testing_output_file = '/tmp/harpwise_testing_output.txt'
 $testing_log_file = '/tmp/harpwise_testing.log'
-$all_testing_licks = %w(wade st-louis feeling-bad chord-prog blues mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
+$all_testing_licks = %w(wade st-louis feeling-bad chord-prog lick-blues lick-mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
 $pipeline_started = '/tmp/harpwise_pipeline_started'
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
@@ -398,8 +398,8 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'listen' => [16, 'on every invocation'],
                     'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
-                    'play' => [5, '--max-holes NUMBER'],
-                    'print' => [12, '--scale-over-lick : Interpret a given name as a scale'],
+                    'play' => [8, '--max-holes NUMBER'],
+                    'print' => [16, 'Please note, that options'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs']}
     
@@ -690,19 +690,19 @@ end
 
 do_test 'id-14: play a lick' do
   new_session
-  tms 'harpwise play a mape'
+  tms 'harpwise play a box1-i'
   tms :ENTER
   sleep 2
-  expect { screen[6]['-2 -3// -3 -4 +5 +6'] }
+  expect { screen[6]['-2 -4 -5 +6'] }
   kill_session
 end
 
 do_test 'id-14a: play a lick reverse' do
   new_session
-  tms 'harpwise play a mape --reverse'
+  tms 'harpwise play a box1-i --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[6]['+6 +5 -4 -3'] }
+  expect { screen[6]['+6 -5 -4 -2'] }
   kill_session
 end
 
@@ -915,7 +915,7 @@ do_test 'id-19b: prepare and get history of licks' do
   FileUtils.rm history_file if File.exist?(history_file)
   new_session
   # produce lick history
-  %w(wade mape blues).each do |lick|
+  %w(wade lick-mape lick-blues).each do |lick|
     tms "harpwise licks --start-with #{lick} a"
     tms :ENTER
     wait_for_start_of_pipeline
@@ -927,8 +927,8 @@ do_test 'id-19b: prepare and get history of licks' do
   tms "harpwise print licks-history"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['l: blues'] }
-  expect { screen[15]['2l: mape'] }
+  expect { screen[13]['l: lick-blues'] }
+  expect { screen[15]['2l: lick-mape'] }
   expect { screen[17]['3l: wade'] }
 
   tms "harpwise play +1 +2"
@@ -1050,8 +1050,8 @@ do_test 'id-23: print list of licks with tags' do
    "  st-louis ..... favorites,samples,has_rec,shifts_five\n",
    "  feeling-bad ..... favorites,samples,has_rec,shifts_four,shifts_five,shifts_eight\n",
    "  chord-prog ..... no_rec,shifts_four\n",
-   "  blues ..... scales,theory,no_rec,shifts_five\n",
-   "  mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
+   "  lick-blues ..... scales,theory,no_rec,shifts_five\n",
+   "  lick-mape ..... scales,theory,no_rec,shifts_four,shifts_eight\n",
    "  box1-i ..... box,box1,i-chord,no_rec,shifts_five,shifts_eight\n",
    "  box1-iv ..... box,box1,iv-chord,no_rec,shifts_five\n",
    "  box1-v ..... box,box1,v-chord,no_rec,shifts_four,shifts_five,shifts_eight\n",
@@ -1111,6 +1111,19 @@ do_test 'id-23a: overview for all licks' do
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx,) { lines[12+idx] == exp }
   end
   kill_session
+end
+
+do_test 'id-23b: print each testing lick' do
+  $all_testing_licks.each do |lick|
+    new_session
+    tms "harpwise print #{lick}"
+    tms :ENTER
+    sleep 2
+    tms 'echo ' + $rc_marker + ' \$?'
+    tms :ENTER
+    expect { screen.any? {|l| l['1 licks printed']} }
+    kill_session
+  end
 end
 
 do_test 'id-24: cycle through licks' do
@@ -1356,11 +1369,11 @@ do_test 'id-37a: change lick by name with cursor keys' do
   expect { screen[15]['Lick Name:  wade'] }
   tms :ENTER
   tms 'l'
-  tms :LEFT
+  tms :RIGHT
   tms :ENTER
   sleep 2
   tms 'i'
-  expect { screen[15]['Lick Name:  two'] }
+  expect { screen[14]['Lick Name:  special'] }
   kill_session
 end
 
@@ -1848,7 +1861,7 @@ do_test 'id-54f: print scale with sharps' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['g4  as4  c5  cs5  d5  f5  g5']}
+  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[19]['g4  as4  c5  cs5  d5  f5  g5']}
   kill_session
 end
 
@@ -1859,7 +1872,7 @@ do_test 'id-54g: print scale with flats' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['g4  bf4  c5  df5  d5  f5  g5']}
+  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[19]['g4  bf4  c5  df5  d5  f5  g5']}
   kill_session
 end
 
@@ -2265,7 +2278,7 @@ do_test 'id-72: record user in licks' do
   sound 40, 2
   ENV['HARPWISE_TESTING']='player'
   new_session
-  tms 'harpwise licks a --start-with mape'
+  tms 'harpwise licks a --start-with lick-mape'
   tms :ENTER
   wait_for_start_of_pipeline
   tms :C_R
@@ -2298,7 +2311,7 @@ end
 do_test 'id-73: advance in licks by played sound' do
   sound 40, -5
   new_session
-  tms 'harpwise licks a --start-with mape'
+  tms 'harpwise licks a --start-with lick-mape'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -2514,7 +2527,7 @@ do_test 'id-84: print list of players' do
   tms 'harpwise print players'
   tms :ENTER
   sleep 8
-  expect { screen[20][' players with details. Specify a single name'] }
+  expect { screen[20]['players with details; specify a single name'] }
   expect($players_pictures) {File.directory?($players_pictures)}
   kill_session
 end
@@ -2930,7 +2943,7 @@ do_test 'id-103: tool search-scale-in-licks' do
   tms 'harpwise tool search-scale-in-licks blues-middle'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['blues   box1-i  box2-i'] }
+  expect { screen[16]['lick-blues  box1-i  box2-i'] }
   expect { screen[20]['feeling-bad     box1-iv     box2-iv     three'] }
   kill_session
 end
@@ -3171,13 +3184,13 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms 'harpwise play wade st-louis'
   tms :ENTER
   sleep 6
-  expect { screen[4]['Lick wade'] }
+  expect { screen[6]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[12]['Lick st-louis'] }
+  expect { screen[14]['Lick st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[18]['$'] }
+  expect { screen[22]['$'] }
   kill_session
 end
 
@@ -3211,7 +3224,8 @@ do_test 'id-117: check errors for bogous lickfiles' do
     'b9.txt' => "Unknown musical key 'x'",
     'b10.txt' => "Value of rec.start is not a number",
     'b11.txt' => "Some hole-sequences appear under more than one name",
-    'b12.txt' => "Lick progression 'foo' contains unknown lick bar"
+    'b12.txt' => "Lick progression 'foo' contains unknown lick bar",
+    'b13.txt' => "There are 1 name collisions"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
@@ -3369,9 +3383,9 @@ do_test 'id-128: error message on invalid key during play' do
   tms :ENTER
   sleep 1
   tms 'x'
-  expect { screen[11]['invalid key x'] }
+  expect { screen[13]['invalid key x'] }
   tms 'h'
-  expect { screen[13]['Keys available while playing a recording'] }
+  expect { screen[15]['Keys available while playing a recording'] }
   kill_session
 end
 
@@ -3387,6 +3401,14 @@ do_test 'id-129: duration as a comandline-argument' do
 end
 
 ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-130: letter s missing in extra argument' do
+  new_session  
+  tms 'harpwise print lick-prog'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[2]["Did you mean 'lick-progs' instead of 'lick-prog' ?"] }
+end
 
 puts
 puts

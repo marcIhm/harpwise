@@ -392,6 +392,7 @@ end
 def do_lickfile to_handle
   err "Need exactly one argument, not #{to_handle}" if to_handle.length != 1
   $all_licks, $licks, $all_lick_progs = read_licks(lick_file: to_handle[0])
+  report_name_collisions_mb
   pp({all_licks: $all_licks.length,
       licks: $licks.length})
 end

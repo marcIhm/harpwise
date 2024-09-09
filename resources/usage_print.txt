@@ -38,10 +38,9 @@ USAGE BY EXAMPLES
 
     harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
 
-  Print the major pentatonic scale but shift it down by 7 semitones;
-  prepare for the case, that there might be a lick with the same name:
+  Print the major pentatonic scale but shift it down by 7 semitones:
 
-    harpwise print mape --transpose-scale -7st --scale-over-lick
+    harpwise print mape --transpose-scale -7st
 
   nearly the same result can be achieved by
 

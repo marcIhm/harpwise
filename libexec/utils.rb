@@ -707,12 +707,25 @@ def recognize_among val, choices, licks: $licks
       return choice if licks.any? {|l| l[:name] == val}
     elsif choice == :lick_prog
       return choice if $all_lick_progs.keys.any? {|lpn| lpn == val}
-    elsif choice == :extra
-      return choice if $extra_kws[$mode].include?(val)
     elsif choice == :inter
       return choice if $intervals_inv[val]
     elsif choice == :last
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
+    elsif choice == :extra
+      # As a unique exception, we take the liberty to err-out if we think so ...
+      return choice if $extra_kws[$mode].include?(val)
+      should = $extra_kws_w_wo_s[$mode][val]
+      if should
+        puts
+        puts "Did you mean '#{should}' instead of '#{val}' ?"
+        puts
+        puts "Its description is:   #{should}:"
+        puts get_extra_desc_single(should)[1..-1].
+               map {|l| '  ' + l + "\n"}.
+               join.chomp +
+             ".\n"
+        err "Extra argument might have been spelled wrong (with or without letter 's'; see above)"
+      end
     else
       fail "Internal error: Unknown among-choice '#{choice}'" 
     end
@@ -1000,4 +1013,18 @@ def wrap_words head, words, sep = ','
   end
   lines << line unless line == ''
   return lines.join("\n")
+end
+
+
+def report_name_collisions_mb
+  collisions = $name_collisions_mb.select {|_, s| s.length > 1}
+  return if collisions.length == 0
+  puts
+  puts "There are #{collisions.length} name collisions:"
+  puts
+  maxnm = collisions.keys.map(&:length).max
+  collisions.each do |name, set|
+    puts "  -  '#{name}'" + (' ' * (maxnm - name.length)) + "  can be any of:   #{set.to_a.sort.join(', ')}"
+  end
+  err "Please fix them; probably by giving a unique name to those entries in:\n  #{$lick_file}"
 end

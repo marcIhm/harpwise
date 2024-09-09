@@ -372,7 +372,7 @@ def tool_search_scale_in_licks to_handle
     puts " count: #{licks_all.length}"
   end
   puts
-  puts 'Licks that are contained but one hole:'
+  puts 'Licks that are contained but for one hole:'
   if licks_but_one.length == 0
     puts '  none'
   else

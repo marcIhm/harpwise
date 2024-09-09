@@ -168,6 +168,8 @@ at_exit do
 end
 $initialized = true
 
+report_name_collisions_mb
+
 $other_mode_saved = Hash.new
 begin
 

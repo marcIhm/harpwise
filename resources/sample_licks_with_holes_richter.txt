@@ -65,14 +65,14 @@
 #
 # The blues scale as a lick
 #
-[blues]
+[lick-blues]
   holes = -2 -3/ +4 -4/ -4 -5 +6
   tags = scales theory
 
 #
 # The major pentatonic scale as a lick
 #
-[mape]
+[lick-mape]
   holes = -2 -3// -3 -4 +5 +6
   tags = scales theory
 
@@ -97,12 +97,17 @@
 
 #
 # Lick progressions (see below) are optional (e.g. we do not have
-# one for box2), they collect licks, that may lead through the
+# one for box2), they group licks, that may lead through the
 # chords of e.g. a 12-bar blues.  They may be selected for mode
 # licks via 'harpwise licks --lick-progression box1'
 #
 # You may lookup these progressions via:
-# 'harpwise print lick-progressions'
+#
+#   harpwise print lick-progressions
+#
+# or for just a subset:
+#
+#   harpwise print lick-progressions -t fav
 #
 [prog box1-turn]
   desc = Progression of licks for box-pattern 1, with turnaround

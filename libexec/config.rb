@@ -13,6 +13,7 @@ def set_global_vars_early
   $max_jitter = -1.0
   $max_jitter_at = 0
   $total_freq_ticks = 0
+  $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
 
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
@@ -544,6 +545,7 @@ end
 def read_and_set_musical_bootstrap_config
   $no_calibration_needed = false
   all_scales = scales_for_type($type)
+  all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   sc_pr_fl = "#{$dirs[:install]}/config/#{$type}/scale_progressions.yaml"
   sc_progs = yaml_parse(sc_pr_fl)
   sc_progs.is_a?(Hash) || err("Internal error: not an array but a #{sc_progs.class} in #{sc_pr_fl})")
@@ -688,6 +690,7 @@ def read_and_set_musical_config
   intervals.each do |k,vv|
     vv.each do |v|
       intervals_inv[v.downcase] = k
+      $name_collisions_mb[v] << 'interval'
       # add some common variations
       intervals_inv[v.downcase+ ' up'] = k
       intervals_inv[v.downcase+ ' down'] = -k

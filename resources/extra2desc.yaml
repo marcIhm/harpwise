@@ -43,8 +43,10 @@ print:
     show all starred licks
   lick-progs, lick-progressions: |
     print all known lick progressions. These can be narrowed by giving
-    option -t (this is the only case, where this option applies to lick 
-    progressions instead of licks).
+    option -t (this is the only case, where this option applies to
+    lick progressions instead of licks). Please note, that to print a
+    single lick-progression, you may just give its name on the
+    commandline without any extra-keyword
   licks-dump: |
     dump all selected licks in json-format
   holes-history: |

@@ -474,7 +474,7 @@ def print_players args
     puts "- You may add your own pictures to already created subdirs of\n    #{$dirs[:players_pictures]}"
     puts "- Players, which do not have all details yet, are dimmed\e[0m"
     puts
-    puts "#{$players.all_with_details.length} players with details. Specify a single name (or part of) to read details."
+    puts "#{$players.all_with_details.length} players with details; specify a single name (or part of) to read details."
 
   elsif args.length == 1 && 'random'.start_with?(args[0])
     print_player $players.structured[$players.all_with_details.sample]

@@ -60,13 +60,15 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
         err "Progression '#{sec_title}' appeares at least twice in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]}" if before
         section[:tags] ||= []
         name2prog[sec_title] = section
-        err "Progression #{sec_title} does not contain any licks" unless section[:licks]  
+        err "Progression #{sec_title} does not contain any licks" unless section[:licks]
+        $name_collisions_mb[sec_title] << 'lick-progression'
       elsif sec_type == :lick
         # a lick
         before = name2lick[sec_title]
         err "Lick '#{sec_title}' appeares at least twice in #{lfile}: first on line #{before[:lno]} and again on line #{section[:lno]}" if before
         name2lick[sec_title] = section
         all_licks << process_lick(section, sec_title, vars, default)
+        $name_collisions_mb[sec_title] << 'lick'
       end
       
       # Start with new section

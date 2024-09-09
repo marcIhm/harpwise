@@ -54,7 +54,7 @@ def do_play to_play
       
     elsif lnames.length > 0
 
-      play_named_licks(lnames)
+      play_named_licks(lnames, refill: false)
 
     elsif lpnames.length > 0
 
@@ -63,7 +63,7 @@ def do_play to_play
       print_single_lick_prog($all_lick_progs[lpnames[0]])      
       lnames = $all_lick_progs[lpnames[0]][:licks]
       $opts[:iterate] = :cycle
-      play_named_licks(lnames)
+      play_named_licks(lnames, refill: true)
       
     else
 
@@ -354,13 +354,26 @@ def play_licks_controller licks, refill, sleep_between: false
   stock = licks.clone
   prev_licks = Array.new
   lick = stock.shift
+
+  print "\e[2m"
+  if refill
+    print "Set of licks will be played without end, "
+  else 
+    print "Set of licks will be played once, "
+  end
+  if $opts[:iterate] == :random
+    puts "shuffled and in random sequence."
+  else
+    puts "in order of lickfile."
+  end
+  puts "\e[0m"
   
   loop do  ## one lick after the other
 
     write_history('lick', lick[:name], lick[:holes])
     
     loop do  ## repeats of the same lick
-      play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}, #{$opts[:iterate]}"
+      play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}"
       
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
@@ -429,16 +442,22 @@ def play_licks_controller licks, refill, sleep_between: false
     end  ## repeats of the same lick
 
     if !lick && stock.length == 0
+      print "\e[2m"
       if refill
+        print "Every licks played once, "
         if $opts[:iterate] == :random
           stock = refill.shuffle
-          puts "Every licks played once, shuffled in random sequence.   Starting over ..."
+          print "shuffled in random sequence."
         else
           stock = refill.clone
-          puts "Every licks played once, in order of lickfile.   Starting over ..."
+          print "in order of lickfile."
         end
+        puts "   Starting over ..."
+        puts
         lick = stock.shift
       else
+        puts "Done with playing #{licks.length} licks."
+        puts "\e[0m"
         return
       end
     end
@@ -584,10 +603,10 @@ def do_play_licks args
 end
 
 
-def play_named_licks lnames
+def play_named_licks lnames, refill: true
   $ctl_rec[:lick_lick] = false
   $ctl_rec[:loop_loop] = false
   $ctl_rec[:can_star_unstar] = true
   licks = lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}
-  play_licks_controller licks, licks
+  play_licks_controller licks, ( refill  ?  licks  :  nil )
 end

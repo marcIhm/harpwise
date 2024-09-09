@@ -105,8 +105,6 @@ def parse_arguments_early
         drop_tags_any: %w(-dt --drop-tags-any),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes)}],
-     [Set[:play, :print], {
-        scale_over_lick: %w(--scale-over-lick)}],
      [Set[:play], {
         lick_radio: %w(--radio --lick-radio)}],
      [Set[:licks], {
@@ -486,6 +484,8 @@ def initialize_extra_vars
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
   $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
+  $extra_kws.each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
+
   $extra_desc.each do |mode, _|
     $extra_desc[mode].each do |extras,desc|
       $extra_desc[mode][extras] = ERB.new(desc).result(binding)
@@ -495,7 +495,38 @@ def initialize_extra_vars
       end
     end
   end
-  
+
+  # construct variants of keywords (with and without s) for giving hints
+  $extra_kws_w_wo_s = Hash.new
+  # there might be a more elegant recursive solution, but for now only the
+  # result counts
+  $extra_kws.each do |mode, extras|
+    extras.each do |extra|
+      multi_variants = extra.split('-').map do |word|
+        [word, ( word.end_with?('s')  ?  word[0..-2]  :  word + 's' )]
+      end
+      # the if below cannot be made simpler (?), because product for
+      # arrays has no neutral element (aka '1'), which we could use for
+      # inject
+      if multi_variants.length == 1
+        multi_variants[0]
+      else
+        multi_variants[1..-1].inject(multi_variants[0]) do |variants, w_wo_s|
+          variants.product(w_wo_s)
+        end.map {|variants| variants.join('-')}
+      end.each do |variant|
+        $extra_kws_w_wo_s[mode] ||= Hash.new
+        if mode == :print && %w(player players).include?(variant)
+          # handle special case for mode print: both player and players
+          # exist and mean different things
+          $extra_kws_w_wo_s[mode][extra] = extra
+        else
+          fail "Internal error: ambigous variant '#{variant}' maps both to '#{extra}' and '#{$extra_kws_w_wo_s[mode][variant]}'" if $extra_kws_w_wo_s[mode][variant]
+          $extra_kws_w_wo_s[mode][variant] = extra
+        end
+      end
+    end
+  end
   # check, that the names of those extra args do not collide with scales
   scales = scales_for_type($type)
   $extra_kws.each do |mode, extra|
@@ -509,11 +540,7 @@ end
 def parse_arguments_for_mode
 
   $amongs = Hash.new
-  $amongs[:play] = if $opts[:scale_over_lick]
-                     [:hole, :note, :event, :scale, :lick, :last, :lick_prog]
-                   else
-                     [:hole, :note, :event, :lick, :scale, :last, :lick_prog]
-                   end
+  $amongs[:play] = [:hole, :note, :event, :scale, :lick, :last, :lick_prog]
   $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
   $amongs[:licks] = [:hole, :note, :lick]
 
@@ -521,8 +548,8 @@ def parse_arguments_for_mode
   okay = true
   amongs_clause = ''
 
+  # Only some modes accept an extra argument, listen or licks e.g. do not
   if $extra_desc[$mode]
-    # Only some modes accept an extra argument, listen or licks e.g. do not
     if [:play, :print].include?($mode)
       # These mode (play, print) are the only two modes, that allow
       # arguments on the commandline as well as an extra argument, which

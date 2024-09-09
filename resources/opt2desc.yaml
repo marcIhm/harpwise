@@ -214,12 +214,6 @@ terse:
     Be somewhat less verbose than usual. The exact effect
     (if any) depends on the subcommand chosen.
   
-scale_over_lick:
-  - |
-    Interpret a given name as a scale
-    if it is known as a scale as well as a lick.  By default such a
-    name would be treated as a lick.
-
 read_fifo:
   - |
     When in the main listen-perspective,
