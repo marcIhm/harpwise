@@ -1101,7 +1101,7 @@ def handle_win_change
     puts "\n\n\e[0mScreensize is not acceptable, see above !"
     puts "\nPlease resize screen right now to continue."
     puts
-    puts "(Or press ctrl-c to break out of this checking loop.)"
+    puts "Or press ctrl-c to break out of this checking loop."
     $ctl_sig_winch = false
     while !$ctl_sig_winch
       sleep 0.2

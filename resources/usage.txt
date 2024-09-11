@@ -143,9 +143,7 @@ Quick Start:
   
     harpwise listen c              
 
-  then blow your harp.
-
-  Or
+  Or try
 
     harpwise quiz random
 

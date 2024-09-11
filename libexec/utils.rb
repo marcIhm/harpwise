@@ -688,6 +688,7 @@ def recognize_among val, choices, licks: $licks
   
   return nil unless val
   choices = [choices].flatten
+  err("Internal error: :extra_w_wo_s should always be last, if it appears at all: #{choices}") if choices.index(:extra_w_wo_s)&.!=(choices.length - 1)
   choices.each do |choice|
     # keys must be the same as in print_amongs
     if choice == :hole
@@ -712,8 +713,10 @@ def recognize_among val, choices, licks: $licks
     elsif choice == :last
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
     elsif choice == :extra
-      # As a unique exception, we take the liberty to err-out if we think so ...
       return choice if $extra_kws[$mode].include?(val)
+    elsif choice == :extra_w_wo_s
+      # As a unique exception, we take the liberty to err-out if we think so;
+      # therefore :extra_w_wo_s should always be last in amongs (see above)
       should = $extra_kws_w_wo_s[$mode][val]
       if should
         puts

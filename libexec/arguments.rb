@@ -562,8 +562,9 @@ def parse_arguments_for_mode
       # as well as $extra. All arguments (with a possible $extra already
       # removed) will later be checked again, but only against
       # $amongs[$mode]
-      amongs = [$amongs[$mode], :extra].flatten
-      what = recognize_among(ARGV[0], amongs, licks: $all_licks)
+      what = recognize_among(ARGV[0],
+                             [$amongs[$mode], :extra, :extra_w_wo_s],
+                             licks: $all_licks)
       $extra = ARGV.shift if what == :extra
       if !what
         # this will make print_amongs aware, that we did recognize_among
@@ -574,7 +575,7 @@ def parse_arguments_for_mode
       end
     else
       # these modes (e.g. quiz) require their extra argument
-      $extra = ARGV.shift if recognize_among(ARGV[0], :extra) == :extra
+      $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_w_wo_s]) == :extra
       if !$extra
         print_amongs(:extra)
         err("First argument for mode #{$mode} should be one of those extra arguments listed above, not '#{ARGV[0]}'" +

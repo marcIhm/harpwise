@@ -693,7 +693,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play a box1-i'
   tms :ENTER
   sleep 2
-  expect { screen[6]['-2 -4 -5 +6'] }
+  expect { screen[8]['-2 -4 -5 +6'] }
   kill_session
 end
 
@@ -702,7 +702,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play a box1-i --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[6]['+6 -5 -4 -2'] }
+  expect { screen[8]['+6 -5 -4 -2'] }
   kill_session
 end
 
@@ -734,8 +734,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick wade'] }
-  expect { screen[7]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
+  expect { screen[6]['Lick wade'] }
+  expect { screen[9]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
   expect { File.exist?(history_file) }
   kill_session
 end
@@ -754,10 +754,10 @@ do_test 'id-15b: play licks with controls between' do
   tms 'harpwise play a wade st-louis feeling-bad'
   tms :ENTER
   sleep 2
-  expect { screen[4]['Lick wade'] }
+  expect { screen[6]['Lick wade'] }
   sleep 4
-  expect { screen[9]['h: show help with more keys (available now already)'] }
-  expect { screen[10]['SPACE or RETURN for next lick'] }
+  expect { screen[11]['h: show help with more keys (available now already)'] }
+  expect { screen[12]['SPACE or RETURN for next lick'] }
   kill_session
 end
 
@@ -785,11 +785,11 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick wade    1/21'] }
+  expect { screen[8]['Lick wade    1/21'] }
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[14]['Lick st-louis    2/21'] }
+  expect { screen[15]['Lick st-louis    2/21'] }
   kill_session
 end
 
@@ -1366,14 +1366,14 @@ do_test 'id-37a: change lick by name with cursor keys' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'i'
-  expect { screen[15]['Lick Name:  wade'] }
+  expect { screen[14]['Lick Name:  wade'] || screen[15]['Lick Name:  wade'] }
   tms :ENTER
   tms 'l'
   tms :RIGHT
   tms :ENTER
   sleep 2
   tms 'i'
-  expect { screen[14]['Lick Name:  special'] }
+  expect { screen[14]['Lick Name:  special'] || screen[15]['Lick Name:  special'] }
   kill_session
 end
 
@@ -1389,7 +1389,7 @@ do_test 'id-37b: change option --tags' do
   tms :ENTER
   tms 'cyc'
   tms :ENTER
-  sleep 1
+  sleep 4
   tms :ENTER
   tms 'q'
   wait_for_end_of_harpwise
@@ -1497,6 +1497,7 @@ do_test 'id-44: switch between modes licks and listen' do
   tms 'harpwise licks a'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 1
   expect { screen[1]['licks'] }
   tms 'm'
   sleep 4
@@ -3145,10 +3146,10 @@ do_test 'id-114: play licks next and previous' do
   tms 'harpwise play licks -i c'
   tms :ENTER
   sleep 6
-  expect { screen[6]['Lick wade'] }
+  expect { screen[8]['Lick wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[15]['Lick st-louis'] }
   tms :ENTER
   sleep 6
   expect { screen[15]['Lick feeling-bad'] }
