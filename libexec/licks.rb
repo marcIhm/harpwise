@@ -188,9 +188,9 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       key = md[1]
       check_section_key(sec_type, key, section, type2keys, where)
       err "Internal error: not expected to come here"
-      
+
     else
-      err "Cannot parse this line: '#{line}' (#{where})"
+      err "Cannot parse this line:\n\n#{line}\n\na line should be one of:\n  - a comment starting with '#'\n  - a section like '[name]'\n  - an assignment like 'key = something'\n(#{where})"
     end
 
   end  ## end of processing lines in file

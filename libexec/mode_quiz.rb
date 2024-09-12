@@ -402,7 +402,8 @@ class QuizFlavour
     puts
     puts "\e[0mWhat's next ?"
     puts
-    puts "\e[32mPress any key for next \e[92m#{$quiz_flavour}\e[0m\e[32m or BACKSPACE to re-ask this one ... \e[0m"
+    puts "\e[32mPress any key for next \e[92m#{$quiz_flavour}\e[0m\e[32m   or   BACKSPACE to re-ask this one"
+    puts "  or   press ctrl-z to start over with a different flavour ...\e[0m"
     char = one_char
     puts
     if char == 'BACKSPACE'

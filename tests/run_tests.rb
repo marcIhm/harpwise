@@ -2685,7 +2685,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms 'SKIP'
   tms :ENTER
   sleep 1
-  expect { screen[12]['The correct answer is'] }
+  expect { screen[11]['The correct answer is'] }
   tms :ENTER
   sleep 1
   tms 'PLAY-ALL'
@@ -2694,7 +2694,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   expect { screen[12]['Octave'] }
   tms 'solve'
   tms :ENTER
-  expect { screen[13]['Playing interval of'] }
+  expect { screen[12]['Playing interval of'] }
   kill_session
 end
 
@@ -3226,7 +3226,8 @@ do_test 'id-117: check errors for bogous lickfiles' do
     'b10.txt' => "Value of rec.start is not a number",
     'b11.txt' => "Some hole-sequences appear under more than one name",
     'b12.txt' => "Lick progression 'foo' contains unknown lick bar",
-    'b13.txt' => "There are 1 name collisions"
+    'b13.txt' => "There are 1 name collisions",
+    'b14.txt' => "Cannot parse this line"
   }
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )

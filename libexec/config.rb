@@ -513,7 +513,7 @@ def read_config_ini file, strict: true
         err err_head + "Not in a section, key '#{key}' can only be assigned to in a section" 
       end
     else
-      err err_head + "Cannot understand this line:\n\n#{line}\n\n,should be either a [section] or 'key = value'"
+      err err_head + "\nCannot understand this line:\n\n#{line}\n\na line should be one of:\n  - a comment starting with '#'\n  - a section like [name]\n  - an assignment  like 'key = something'"
     end
   end
 

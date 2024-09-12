@@ -617,7 +617,7 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false
       nil
     else
       scale_glob = $scale_files_template % [$type, '*', '*']
-      err "Scale (%s) must be one of #{scales}, i.e. scales matching #{scale_glob}; not #{scale}%s" %
+      err "Scale (%s) must be one of #{scales.join(',')}, i.e. scales matching #{scale_glob}; not '#{scale}'%s" %
           if added
             ["given in option --add-scales or in configuration files",
              ", Hint: use '--add-scales -' to override the value from the config-files"]
