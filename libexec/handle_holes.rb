@@ -55,7 +55,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if first_round
         ctl_response
       else
-        ctl_response 'Redraw', hl: :low
+        ctl_response('Redraw', hl: :low) unless $ctl_mic[:redraw].include?(:silent)
       end
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
@@ -266,7 +266,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         fit_into_comment lambda_comment.call
       when :journal, :warbles
         fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)
-      when :lick_holes
+      when :lick_holes, :lick_holes_large
         fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)[1]
       else
         color,
@@ -460,7 +460,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:rotate_scale]
-      do_rotate_scale_add_scales 
+      do_rotate_scale_add_scales($ctl_mic[:rotate_scale])
       $ctl_mic[:rotate_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
       set_global_vars_late
@@ -477,7 +477,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_first].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -635,10 +635,11 @@ end
 
 
 $sc_prog_init = nil
-def do_rotate_scale_add_scales
+def do_rotate_scale_add_scales for_bak
+  step = ( for_bak == :forward  ?  1  :  -1 )
   $sc_prog_init ||= $scale_prog.clone
-  $scale_prog.rotate!
-  $used_scales.rotate! while $used_scales[0] != $scale_prog[0]
+  $scale_prog.rotate!(step)
+  $used_scales.rotate!(step) while $used_scales[0] != $scale_prog[0]
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
   clause = ( $sc_prog_init == $scale_prog  ?  ', new cycle'  :  '' )
@@ -688,28 +689,30 @@ def show_help mode = $mode, testing_only = false
              "  SPACE:_pause and continue        CTRL-L:_redraw screen",
              "    d,D:_change display (upper part of screen)",
              "    c,C:_change comment (in lower part of screen)",
-             "    r,R:_set reference to hole played or chosen",
              "      k:_change key of harp",
              "      K:_play adjustable pitch and take it as new key",
              "      s:_rotate scales (used scales or --scale-progression)",
+             "  ALT-s:_rotate scales backward",
              "      S:_reset rotation of scales to initial state",
              "      $:_set scale, choose from all known"]
+  frames << [" More help on keys:",
+             "",
+             ""]
   if [:quiz, :licks].include?(mode)
     frames[-1] << "      j:_journal-menu; only available in mode listen"
     frames[-1] << " CTRL-R:_record and play user (mode licks only)"
     frames[-1] << "      T:_toggle tracking progress in seq"
   else
     frames[-1] << "      j:_invoke journal-menu to handle your musical ideas"
-    frames << [" More help on keys:",
-               "",
-               ""]
     frames[-1] << "      w:_switch comment to warble and prepare"
     frames[-1] << "      p:_print details about player currently drifting by"
-    frames[-1] << "      .:_play lick given via --licks (shown in comment-area)"
-    frames[-1] << "      l:_rotate among those licks       L:_to first lick"                          
+    frames[-1] << "      .:_play lick from --lick-prog (shown in comment-area)"
+    frames[-1] << "      l:_rotate among those licks   ALT-l:_backward"                          
+    frames[-1] << "      L:_to first lick"                        
   end
 
-  frames[-1].append(*["      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
+  frames[-1].append(*["    r,R:_set reference to hole played or chosen",
+                      "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
                       "      q:_quit harpwise                  h:_this help",
                       ""])
 
@@ -762,7 +765,7 @@ def show_help mode = $mode, testing_only = false
     $keyboard_translations.each_slice(2) do |pair|
       frames[-1] << ""
       pair.each do |from,to|
-        frames[-1][-1] += ( "        %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] )
+        frames[-1][-1] += ( "    %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] ).ljust(30)
       end
     end
   end
@@ -807,7 +810,7 @@ def show_help mode = $mode, testing_only = false
       while scanner.scan_until(/\S+:_/)
         full_kg = scanner.matched
         kg = scanner.matched[0..-3].strip
-        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN)
+        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN SPACE TAB ALT-s ALT-l)
         ks = if special.include?(kg)
                [kg]
              else

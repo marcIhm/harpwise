@@ -23,7 +23,7 @@ def do_listen
     $comment_licks = lnames.map {|ln| $licks[find_lick_by_name(ln)]}
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-    $opts[:comment] = :lick_holes
+    $opts[:comment] = :lick_holes_large unless $opts[:comment] == :lick_holes
   end
   
   while !$ctl_mic[:switch_modes] do
@@ -135,6 +135,12 @@ def do_listen
                    ['',
                     '  Need to specify one or more lick to be displayed here','','  e.g. via     --licks wade']
                  end
+               when :lick_holes_large
+                 if $comment_licks.length > 0
+                   wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], $comment_licks[0][:holes], -1)                   
+                 else
+                   'no comment licks'
+                 end                 
                else
                  fail "Internal error: unknown comment: #{$opts[:comment]}"
                end || '...'
@@ -359,8 +365,18 @@ END
         tell_no_comment_licks
       end
     end
-    
 
+    if $ctl_mic[:comment_lick_prev]
+      $ctl_mic[:comment_lick_prev] = false
+      if $comment_licks.length > 0
+        $comment_licks.rotate!(-1)
+        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+        clear_area_comment
+      else
+        tell_no_comment_licks
+      end
+    end
+    
     if $ctl_mic[:comment_lick_first]
       $ctl_mic[:comment_lick_first] = false
       if $comment_licks.length > 0

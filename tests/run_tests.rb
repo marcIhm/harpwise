@@ -1928,16 +1928,16 @@ do_test 'id-56: forward and back in help' do
   wait_for_start_of_pipeline
   tms 'h'
   expect { screen[4]['pause and continue'] }
-  tms :ENTER 
-  expect { screen[7]['next sequence or lick'] }
+  tms ' '
+  expect { screen[7]['set reference to hole played or chosen'] }
   tms :BSPACE
   expect { screen[4]['pause and continue'] }
   kill_session
 end
 
-help_samples = {'harpwise listen d' => [[8,'change key of harp']],
-                'harpwise quiz a replay 3' => [[8,'change key of harp'],[11,'forget holes played']],
-                'harpwise licks c' => [[8,'change key of harp'],[11,'toggle immediate reveal of sequence']]}
+help_samples = {'harpwise listen d' => [[7,'change key of harp']],
+                'harpwise quiz a replay 3' => [[7,'change key of harp'],[11,'forget holes played']],
+                'harpwise licks c' => [[7,'change key of harp'],[11,'toggle immediate reveal of sequence']]}
 
 help_samples.keys.each_with_index do |cmd, idx|
   do_test "id-57#{%w{a b c}[idx]}: show help for #{cmd}" do
@@ -2572,7 +2572,7 @@ do_test 'id-86b: print scale progressions' do
   tms 'harpwise print scale-progs'
   tms :ENTER
   sleep 2
-  expect { screen[2]['Desc: standard 12-bar blues progression, based on flat-7th chords'] }
+  expect { screen[17]['Desc: standard 12-bar blues progression, based on flat-7th chords'] }
   kill_session
 end
 
@@ -3279,7 +3279,7 @@ end
 
 do_test 'id-120: comment with licks from commandline' do
   new_session
-  tms 'harpwise listen --lick-prog wade,simple-turn'
+  tms 'harpwise listen --lick-prog wade,simple-turn --comment lick-holes'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -3296,7 +3296,7 @@ end
 
 do_test 'id-121: comment with licks from lick-progression' do
   new_session
-  tms 'harpwise listen --lick-prog box1-turn'
+  tms 'harpwise listen --lick-prog box1-turn --comment lick-holes'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 2
@@ -3310,7 +3310,7 @@ end
 
 do_test 'id-122: comment with licks from adhoc lick-progression' do
   new_session
-  tms 'harpwise listen --lick-prog box1-i,box1-iv'
+  tms 'harpwise listen --lick-prog box1-i,box1-iv --comment lick-holes'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 2

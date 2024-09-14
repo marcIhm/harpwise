@@ -1046,11 +1046,15 @@ def largify holes, idx
   end
 end
 
-
+# idx_first_active is a special case used for comment :lick_holes_large
 def wrapify_for_comment max_lines, holes, idx_first_active
   # get output from figlet
   lines_all = get_figlet_wrapped(holes.join('  '),'smblock')
-  lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join('  '),'smblock')
+  if idx_first_active == -1
+    lines_inactive = lines_all
+  else
+    lines_inactive = get_figlet_wrapped(holes[0 ... idx_first_active].join('  '),'smblock')
+  end
   # we know that each figlet-line has 4 screen lines; integer arithmetic on purpose
   fig_lines_max = max_lines / 4
   fig_lines_all = lines_all.length / 4
@@ -1079,7 +1083,14 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   lines_all[offset .. -1].each_with_index do |line, idx|
     break if idx >= max_lines
     lines << "\e[0m#{line.chomp}\e[K"
-    lines[-1] += "\e[G\e[0m\e[38;5;236m#{lines_inactive[idx + offset]}" if idx + offset < lines_inactive.length
+    if idx + offset < lines_inactive.length
+      if idx_first_active == -1
+        lines[-1] += "\e[G\e[0m\e[38;5;244m"
+      else
+        lines[-1] += "\e[G\e[0m\e[38;5;236m"
+      end
+      lines[-1] += lines_inactive[idx + offset]
+    end
   end
   lines[-1] += "\e[0m"
   lines

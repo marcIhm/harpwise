@@ -620,8 +620,8 @@ end
 def print_single_scale_prog spname
   sp = $all_scale_progs[spname]
   puts "#{spname}:"
-  puts "    Desc: #{sp[:desc]}"
-  puts "  Chords: #{sp[:chords].join(' ')}"
+  puts "      Desc: #{sp[:desc]}"
+  puts "  %2d Chords: #{sp[:chords].join(' ')}" % sp[:chords].length
   puts
 end
 

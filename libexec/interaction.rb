@@ -231,14 +231,14 @@ def start_kb_handler
   $term_kb_handler = Thread.new do
     loop do
       key = STDIN.getc
-      # handle escape
+      # handle key sequences starting with escape
       if key == "\e"
         # try to read cursor keys and some
         begin
           ch = Timeout::timeout(0.05) { STDIN.getc }
           if ch == '['
-            ch = Timeout::timeout(0.05) { STDIN.getc }
-            key = case ch
+            ch1 = Timeout::timeout(0.05) { STDIN.getc }
+            key = case ch1                      
                   when 'A'
                     'UP'
                   when 'B'
@@ -249,11 +249,26 @@ def start_kb_handler
                     'LEFT'
                   when 'Z'
                     'SHIFT-TAB'
+                  when '5', '6'
+                    ch2 = Timeout::timeout(0.05) { STDIN.getc }
+                    if ch2 == '~'
+                      if ch1 == '5'
+                        'PAGE-UP'
+                      else
+                        'PAGE-DOWN'
+                      end
+                    else
+                      'ESC-' + ch1 + ch2
+                    end
                   else
-                    'ESC'
+                    'ESC-' + ch1
                   end
           elsif ch == "\t"
             key = 'SHIFT-TAB'
+          elsif ('a' .. 'z').include?(ch)
+            key = 'ALT-' + ch
+          elsif ch
+            key = 'ESC-?'
           end
         rescue Timeout::Error => e
         end
@@ -666,7 +681,10 @@ def handle_kb_mic
     $ctl_mic[:change_key] = true
     text = nil
   elsif char == 's'
-    $ctl_mic[:rotate_scale] = true
+    $ctl_mic[:rotate_scale] = :forward
+    text = nil
+  elsif char == 'ALT-s'
+    $ctl_mic[:rotate_scale] = :backward
     text = nil
   elsif char == 'S'
     $ctl_mic[:rotate_scale_reset] = true
@@ -720,6 +738,9 @@ def handle_kb_mic
   elsif char == 'l' && $mode == :listen
     $ctl_mic[:comment_lick_next] = true
     text ='Next lick'
+  elsif char == 'ALT-l' && $mode == :listen
+    $ctl_mic[:comment_lick_prev] = true
+    text ='Prev lick'
   elsif char == 'L' && $mode == :listen
     $ctl_mic[:comment_lick_first] = true
     text ='First lick'
