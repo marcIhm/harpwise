@@ -1031,3 +1031,14 @@ def report_name_collisions_mb
   end
   err "Please fix them; probably by giving a unique name to those entries in:\n  #{$lick_file}"
 end
+
+
+def write_invocation
+  file = "#{$invocations_dir}/#{$type}_#{$mode}" + ( $extra  ?  "_#{$extra}"  :  '' )
+  lines = if File.exist?(file)
+            File.read(file).lines.reject {|l| l.chomp == $full_commandline}
+          else
+            []
+          end.append($full_commandline + "\n")
+  File.write(file, lines.last(10).join)
+end

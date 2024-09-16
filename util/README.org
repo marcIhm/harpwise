@@ -1,0 +1,4 @@
+Utility scripts, not needed for normal operation of harpwise, but
+useful for some advanced users or special use-cases.
+
+See the comments in the individual files for a description.

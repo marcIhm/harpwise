@@ -3412,5 +3412,18 @@ do_test 'id-130: letter s missing in extra argument' do
   expect { screen[2]["Did you mean 'lick-progs' instead of 'lick-prog' ?"] }
 end
 
+do_test 'id-131: check invocation logging' do
+  idir = "#{$dotdir_testing}/invocations"
+  ifile = "#{idir}/richter_tools_chart"
+  cmd = "harpwise tools chart"
+  new_session
+  FileUtils.rm_r(idir) if File.exist?(idir)
+  tms cmd
+  tms :ENTER
+  wait_for_end_of_harpwise
+  content = File.read(ifile).chomp
+  expect(content, cmd) { content.end_with?(cmd) }
+end
+
 puts
 puts

@@ -170,6 +170,8 @@ $initialized = true
 
 report_name_collisions_mb
 
+write_invocation
+
 $other_mode_saved = Hash.new
 begin
 

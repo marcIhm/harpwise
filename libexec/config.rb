@@ -340,6 +340,8 @@ def set_global_vars_late
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
+  $invocations_dir = "#{$dirs[:data]}/invocations"
+  FileUtils.mkdir_p($invocations_dir) unless File.directory?($invocations_dir)
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
