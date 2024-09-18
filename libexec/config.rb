@@ -32,8 +32,8 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
-    :listen => [:keyboard_translate],
-    :licks => [:keyboard_translate],
+    :listen => [:keyboard_translate, :keyboard_translate_1,  :keyboard_translate_2,  :keyboard_translate_3],
+    :licks => [:keyboard_translate, :keyboard_translate_1,  :keyboard_translate_2,  :keyboard_translate_3],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]

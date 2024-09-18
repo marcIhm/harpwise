@@ -707,13 +707,13 @@ def show_help mode = $mode, testing_only = false
     frames[-1] << "      w:_switch comment to warble and prepare"
     frames[-1] << "      p:_print details about player currently drifting by"
     frames[-1] << "      .:_play lick from --lick-prog (shown in comment-area)"
-    frames[-1] << "      l:_rotate among those licks   ALT-l:_backward"                          
+    frames[-1] << "      l:_rotate among those licks     ALT-l:_backward"
     frames[-1] << "      L:_to first lick"                        
   end
 
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
-                      "      q:_quit harpwise                  h:_this help",
+                      "      q:_quit harpwise                    h:_this help",
                       ""])
 
   if [:quiz, :licks].include?(mode)
@@ -762,10 +762,10 @@ def show_help mode = $mode, testing_only = false
                         " Translated keys:",
                         ""])
     maxlen = $keyboard_translations.keys.map(&:length).max
-    $keyboard_translations.each_slice(2) do |pair|
-      frames[-1] << ""
-      pair.each do |from,to|
-        frames[-1][-1] += ( "    %#{maxlen}s:_to %s" % [from, [to].flatten.join(',')] ).ljust(30)
+    $keyboard_translations.each_slice(2) do |slice|
+      frames[-1] << '      '
+      slice.each do |from,to|
+        frames[-1][-1] += ( "    %#{maxlen}s:_%s" % [from, [to].flatten.join(',')] ).ljust(24)
       end
     end
   end
@@ -780,7 +780,7 @@ def show_help mode = $mode, testing_only = false
                       "",
                       " Questions and suggestions welcome to:     \e[92mmarc@ihm.name\e[32m",
                       "",
-                      " Harpwise version is:     \e[92m#{$version}\e[32m"])
+                      "                  Harpwise version is:     \e[92m#{$version}\e[32m"])
 
   # add prompt and frame count
   frames.each_with_index do |frame, fidx|
@@ -881,14 +881,14 @@ def show_help mode = $mode, testing_only = false
       print "\e[#{lines_offset}H"
       print "\e[0m"
       print "\e[0m\e[32m" if curr_frame == frames.length - 1
-      print frames[curr_frame][0]
+      print frames[curr_frame][0].rstrip
       print "\e[0m\e[32m\n"
       frames[curr_frame][1 .. -3].each_with_index do |line, lidx|
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
         # easy to format: replacement ':_' to ': '
-        puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ")
+        puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ").rstrip
       end
       print "\e[\e[0m\e[2m"
       puts frames[curr_frame][-2]

@@ -152,7 +152,7 @@ def parse_arguments_early
     $conf[mode].each {|k,v| $conf[k] = v}
   end
   
-  # preset some options e.g. from config (maybe overriden later)
+  # preset options from config (maybe overriden later)
   $conf_meta[:keys_for_modes].each do |k|
     if opts_all[k]
       opts[k] ||= $conf[k]
@@ -284,6 +284,13 @@ def parse_arguments_early
   opts[:no_player_info] = true if opts[:scale_prog]
 
   if opts[:keyboard_translate]
+    if [1, 2, 3].include?(opts[:keyboard_translate])
+      num = opts[:keyboard_translate]
+      opts[:keyboard_translate] = $conf["keyboard_translate_#{num}".to_sym] ||
+                                  err("Number '#{num}' given in '--keyboard-translate #{num}' does not have a matching option 'keyboard_translate_#{num}' in your config")
+    elsif opts[:keyboard_translate].is_a?(Numeric)
+      err "Option --keyboard-translate does not accept a number other than 1,2,3; see 'harpwise #{$mode} -o' for a full description"
+    end
     cite = "--keyboard-translate #{opts[:keyboard_translate]}"
     opts[:keyboard_translate].split(',').each do |tr|
       ks = tr.split('=')

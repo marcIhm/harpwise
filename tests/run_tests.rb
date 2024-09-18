@@ -3421,7 +3421,7 @@ do_test 'id-131: check invocation logging' do
   tms cmd
   tms :ENTER
   wait_for_end_of_harpwise
-  content = File.read(ifile).chomp
+  content = File.read(ifile).chomp.gsub(/ *\#.*/,'')
   expect(content, cmd) { content.end_with?(cmd) }
 end
 

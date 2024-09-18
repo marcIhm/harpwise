@@ -1034,11 +1034,12 @@ end
 
 
 def write_invocation
+  ts = Time.now.to_s.split[0..1].join('  ')
   file = "#{$invocations_dir}/#{$type}_#{$mode}" + ( $extra  ?  "_#{$extra}"  :  '' )
   lines = if File.exist?(file)
-            File.read(file).lines.reject {|l| l.chomp == $full_commandline}
+            File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == $full_commandline}
           else
             []
-          end.append($full_commandline + "\n")
+          end.append($full_commandline + "   ##  #{ts}\n")
   File.write(file, lines.last(10).join)
 end

@@ -343,6 +343,13 @@ keyboard_translate:
 
     see usage of mode licks where this is used to switch
     lick-progression and scale-progression at once by pressing 'b'.
+
+    Note, that in your config.ini you may define keyboard_translate_1,
+    2 and 3 and use it on the commandline like:
+
+      --kb-tr 1
+
+    see the comments in your config for more explanation.
   - LIST_OF_KB_TRANSLATIONS
 
 lick_radio:
