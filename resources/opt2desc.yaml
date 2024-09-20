@@ -344,10 +344,11 @@ keyboard_translate:
     see usage of mode licks where this is used to switch
     lick-progression and scale-progression at once by pressing 'b'.
 
-    Note, that in your config.ini you may define keyboard_translate_1,
-    2 and 3 and use it on the commandline like:
+    Note, that in your config.ini you may define
+    keyboard_translate_slot1, 2 and 3 and use it on the commandline
+    like this:
 
-      --kb-tr 1
+      --kb-tr s1
 
     see the comments in your config for more explanation.
   - LIST_OF_KB_TRANSLATIONS

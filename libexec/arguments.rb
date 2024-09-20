@@ -193,7 +193,7 @@ def parse_arguments_early
       if odet[1]
         opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
         # convert options as described for configs
-        opts[osym] = opts[osym].send($conf_meta[:conversions][osym] || :num_or_str) unless [:ref, :hole, :partial].include?(osym)
+        opts[osym] = opts[osym].send($conf_meta[:conversions][osym]) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)
       else
         opts[osym] = true
@@ -203,7 +203,12 @@ def parse_arguments_early
 
   # clear options with special value '-'
   opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
-  
+
+  if $testing_what == :opts
+    puts JSON.pretty_generate(opts)
+    exit
+  end
+
   #
   # Special handling for some options
   #
@@ -260,10 +265,9 @@ def parse_arguments_early
     err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
   end.to_sym
 
-  if opts[:difficulty].is_a?(Numeric)
-    dicu = opts[:difficulty].to_i
+  if opts[:difficulty] =~ /^\d+$/
+    dicu = opts[:difficulty_numeric] = opts[:difficulty].to_i
     err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)
-    opts[:difficulty_numeric] = opts[:difficulty]
     opts[:difficulty] = (rand(100) > dicu ? 'easy' : 'hard')
   end
   opts[:difficulty] = match_or(opts[:difficulty], %w(easy hard)) do |none, choices|
@@ -284,17 +288,17 @@ def parse_arguments_early
   opts[:no_player_info] = true if opts[:scale_prog]
 
   if opts[:keyboard_translate]
-    if [1, 2, 3].include?(opts[:keyboard_translate])
-      num = opts[:keyboard_translate]
-      opts[:keyboard_translate] = $conf["keyboard_translate_#{num}".to_sym] ||
-                                  err("Number '#{num}' given in '--keyboard-translate #{num}' does not have a matching option 'keyboard_translate_#{num}' in your config")
-    elsif opts[:keyboard_translate].is_a?(Numeric)
-      err "Option --keyboard-translate does not accept a number other than 1,2,3; see 'harpwise #{$mode} -o' for a full description"
+    if %w(slot1 slot2 slot3 s1 s2 s3).include?(opts[:keyboard_translate])
+      num = opts[:keyboard_translate][-1].to_i
+      opts[:keyboard_translate] = $conf["keyboard_translate_slot#{num}".to_sym] ||
+                                  err("'slot#{num}' given in '--keyboard-translate slot#{num}' or '--kb-tr s#{num}' does not have a matching option 'keyboard_translate_slot#{num}' in your config; see there for more explanation")
+    elsif opts[:keyboard_translate] =~ /^(slot|s)\d+$/
+      err "Option --keyboard-translate does not accept a slot other than 1,2,3; see 'harpwise #{$mode} -o' for a full description"
     end
     cite = "--keyboard-translate #{opts[:keyboard_translate]}"
     opts[:keyboard_translate].split(',').each do |tr|
       ks = tr.split('=')
-      err "Cannot understand this keyboard translation: '#{tr}' (in '#{cite}'); it must have the form 'key1=key2,key3=key4,...', where each key is one of: #{$keyboard_translateable.join(',')}" unless ks.length == 2
+      err "Cannot parse this keyboard translation: '#{tr}' (in '#{cite}'); it must have the form 'key1=key2,key3=key4,...', where each key is one of: #{$keyboard_translateable.join(',')}" unless ks.length == 2
       ks.each do |k|
         err "Key '#{k}' (in '#{tr}') (in '#{cite}') is none of these translatable keys: #{$keyboard_translateable.join(',')}" unless $keyboard_translateable.include?(k)
       end

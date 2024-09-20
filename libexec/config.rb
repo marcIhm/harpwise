@@ -32,20 +32,17 @@ def set_global_vars_early
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :calibrate => [:auto_synth_db],
     :quiz => [:difficulty],
-    :listen => [:keyboard_translate, :keyboard_translate_1,  :keyboard_translate_2,  :keyboard_translate_3],
-    :licks => [:keyboard_translate, :keyboard_translate_1,  :keyboard_translate_2,  :keyboard_translate_3],
+    :listen => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
+    :licks => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
     :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
   }
   $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
-  $conf_meta[:conversions] = {:display => :o2sym, :comment => :o2sym,
-                              :sharps_or_flats => :to_sym,
-                              :immediate => :to_b, :loop => :to_b, :fast => :to_b,
-                              :tags_any => :to_str,
-                              :tags_all => :to_str,
-                              :drop_tags_any => :to_str,
-                              :drop_tags_all => :to_str,
-                              :add_scales => :empty2nil}
+  $conf_meta[:conversions] = Hash.new {|h,k| :to_str}
+  $conf_meta[:conversions].merge!({:display => :o2sym, :comment => :o2sym,
+                                   :sharps_or_flats => :to_sym,
+                                   :immediate => :to_b, :loop => :to_b, :fast => :to_b,
+                                   :add_scales => :empty2nil})
   $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any, :invalid]
   $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any, :invalid]
   $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down, :invalid]
@@ -238,6 +235,21 @@ def find_and_check_dirs
       $dirs_data_created = true if dirsym == :data
     end
   end
+
+  readme = "#{$dirs[:data]}/README.org"
+  unless File.exist?(readme)
+    File.write readme, <<~EOREADME
+
+      The directory contains your personal data for harpwise,
+      e.g. your configuration file config.ini or your licks.
+
+      Many of these files contain comments, others are explained in
+      the documentation of harpwise.
+
+      Consider backing up this directory now and then.
+
+EOREADME
+  end
     
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
@@ -341,7 +353,21 @@ def set_global_vars_late
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
   $invocations_dir = "#{$dirs[:data]}/invocations"
-  FileUtils.mkdir_p($invocations_dir) unless File.directory?($invocations_dir)
+  if !File.directory?($invocations_dir)
+    FileUtils.mkdir_p($invocations_dir)
+    File.write "#{$invocations_dir}/README.org", <<~EOREADME
+
+      The files in this directory contain the most recent
+      commandlines, that have been used to invoke harpwise. These are
+      grouped by mode and extra keyword, so each type may have its own
+      history.
+
+      The files can be used as a basis for an easy lookup of harpwise
+      commands; a sample script using fzf can be found in the
+      install-dir of harpwise, subdirectory util.
+
+EOREADME
+  end
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
@@ -505,7 +531,7 @@ def read_config_ini file, strict: true
       err err_head + "Section #{section.o2str} is none of allowed #{$conf_meta[:sections].map(&:o2str)}" unless $conf_meta[:sections].include?(section)
     elsif md = line.match(/^(#{$word_re})\s*=\s*(.*?)$/)
       key = md[1].to_sym
-      value = md[2].send($conf_meta[:conversions][key] || :num_or_str)
+      value = md[2].send($conf_meta[:conversions][key])
       err err_head + "Key '#{key.to_sym}' is deprecated; please edit the file and remove or rename it" if $conf_meta[:deprecated_keys].include?(key)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])

@@ -1391,6 +1391,7 @@ do_test 'id-37b: change option --tags' do
   tms :ENTER
   sleep 4
   tms :ENTER
+  sleep 1
   tms 'q'
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
@@ -3424,6 +3425,40 @@ do_test 'id-131: check invocation logging' do
   content = File.read(ifile).chomp.gsub(/ *\#.*/,'')
   expect(content, cmd) { content.end_with?(cmd) }
 end
+
+ENV['HARPWISE_TESTING']='opts'
+
+do_test 'id-132: some cases of opts processing' do
+  new_session
+  [
+    ['listen --kb-tr 1',
+     {'keyboard_translate' => '1'}]
+  ].each do |args, result|
+    tms "harpwise #{args} >#{$testing_output_file}"
+    tms :ENTER
+    wait_for_end_of_harpwise
+    parsed = JSON.parse(File.read($testing_output_file))
+    result.each do |k,v|
+      expect(args, parsed, "expect: #{k} = #{v}") { parsed[k] == v}
+    end
+  end
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-133: test for diff between man and usage' do
+  new_session
+  tms "HARPWISE_TESTING=none ~/harpwise/harpwise dev diff"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  sleep 2
+  tms 'echo ' + $rc_marker + ' \$?'
+  tms :ENTER
+  expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
+  kill_session
+end
+
 
 puts
 puts

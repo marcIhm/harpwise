@@ -34,18 +34,6 @@ class String
     self.empty?  ?  nil  :  self
   end
 
-  def num_or_str
-    begin
-      begin
-        return Integer(self)
-      rescue
-        return Float(self)
-      end
-    rescue
-      return self
-    end
-  end
-
   def underscore
     self.gsub(/::/, '/').
       gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
@@ -1040,6 +1028,25 @@ def write_invocation
             File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == $full_commandline}
           else
             []
-          end.append($full_commandline + "   ##  #{ts}\n")
-  File.write(file, lines.last(10).join)
+          end.append($full_commandline + (' ' * ($full_commandline.length % 8)) + "   #  #{ts}\n")
+  File.write(file, lines.last(20).join)
+end
+
+
+def set_testing_vars_mb
+  testing = !!ENV["HARPWISE_TESTING"]
+  testing_what = nil
+  tw_allowed = %w(1 true t yes y)
+  if testing && !tw_allowed.include?(ENV["HARPWISE_TESTING"].downcase)
+    testing_what = ENV["HARPWISE_TESTING"].downcase
+    tw_allowed.append(*%w(lag jitter player argv opts none))
+    err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
+    testing_what = testing_what.to_sym
+  end
+  if testing_what == :none
+    testing = false
+    testing_what = nil
+  end
+
+  return [testing, testing_what]
 end

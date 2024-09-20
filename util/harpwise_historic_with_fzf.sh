@@ -11,7 +11,7 @@
 # typing; sult will be on the commandline and can be edited further.
 
 function hwh {
-    command=$(cat ~/.harpwise/invocations/* | cut -d" " -f2- | fzf --query "${@:-}" --prompt "${HARPWISE_COMMAND:-harpwise} " --print-query | tail -1 | sed 's/ *#.*//')
+    command=$(cat $(ls ~/.harpwise/invocations/* | grep -v README) | cut -d" " -f2- | fzf --query "${@:-}" --prompt "${HARPWISE_COMMAND:-harpwise} " --print-query | tail -1 | sed 's/ *#.*//')
     read -e -i "${HARPWISE_COMMAND:-harpwise} $command" edited
     history -s $edited
     eval $edited
