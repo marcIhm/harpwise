@@ -30,12 +30,12 @@ def do_print to_print
 
     if holes_or_notes.length > 0
       
-      puts_underlined 'Holes or notes given as arguments:'
+      puts_underlined 'Printing Holes or notes given as arguments.', ' ', dim: false
       print_holes_and_more holes_or_notes
       
     elsif snames.length > 0
 
-      puts_underlined 'Scales given as arguments:'
+      puts_underlined 'Printing scales given as arguments.', ' ', dim: false
       snames.each do |sn|
         sname = get_scale_from_sws(sn)
         puts_underlined "#{sname}:", '-', dim: false
@@ -55,14 +55,14 @@ def do_print to_print
 
     elsif spnames.length > 0
 
-      puts_underlined 'Scale progressions given as arguments:'
+      puts_underlined 'Printing scale progressions given as arguments.', ' ', dim: false
       spnames.each do |spnm|
         print_single_scale_prog(spnm)
       end
       
     elsif lnames.length > 0
       
-      puts_underlined 'Licks given as arguments:'
+      puts_underlined 'Printing licks given as arguments.', ' ', dim: false
       lnames.each do |lname|
         puts_underlined "#{lname}:", '-', dim: false
         puts unless $opts[:terse]
@@ -75,7 +75,7 @@ def do_print to_print
 
     elsif lpnames.length > 0
 
-      puts_underlined 'Lick progressions given as arguments:'
+      puts_underlined 'Printing lick progressions given as arguments.', ' ', dim: false
       lpnames.each do |lpnm|
         lp = $all_lick_progs.values.find {|lp| lp[:name] == lpnm}
         print_single_lick_prog(lp)
@@ -237,8 +237,14 @@ def print_holes_and_more holes_or_notes
   puts "\e[2mWith intervals to first:\e[0m"
   print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
+  puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
+  print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+  puts
   puts "\e[2mWith intervals to first as semitones:\e[0m"
   print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+  puts
+  puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
+  print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
   print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)

@@ -954,10 +954,10 @@ def intervalify holes_or_notes, prefer_names: true
 end
 
 
-def intervalify_to_first holes, prefer_names: true
+def intervalify_to_first holes, prefer_names: true, prefer_plus: false
   inters = []
   holes.each_with_index do |hole,idx|
-    isemi ,_ ,itext, _ = describe_inter(hole, holes[0])
+    isemi ,_ ,itext, semi = describe_inter(hole, holes[0], prefer_plus: prefer_plus)
     idesc = if prefer_names
               itext || isemi || ''
             else

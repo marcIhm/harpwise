@@ -95,7 +95,7 @@ def notes_equiv note
 end
 
 
-def describe_inter hon1, hon2
+def describe_inter hon1, hon2, prefer_plus: false
   return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2) 
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
@@ -105,11 +105,21 @@ def describe_inter hon1, hon2
     end
   end
   dsemi = semi1 - semi2
-  inter = $intervals[dsemi] || [nil, nil]
-  return ["#{dsemi} st",
-          inter[0],
-          inter[1],
-          dsemi]
+  if prefer_plus && dsemi < 0
+    dsemi_shifted = (dsemi % 12)
+    oct_shift_clause = " - #{( dsemi_shifted - dsemi ) / 12} oct"
+    inter = $intervals[dsemi_shifted] || [nil, nil]
+    return ["#{dsemi_shifted} st" + oct_shift_clause,
+            inter[0] && ( inter[0] + oct_shift_clause ),
+            inter[1] && ( inter[1] + oct_shift_clause ),
+            dsemi]
+  else
+    inter = $intervals[dsemi] || [nil, nil]
+    return ["#{dsemi} st",
+            inter[0],
+            inter[1],
+            dsemi]
+  end
 end
 
 
