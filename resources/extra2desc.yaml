@@ -65,6 +65,11 @@ tools:
     transpose a sequence of holes between keys
   shift: |
     shift a sequence of holes by the given number of semitones
+  shift-to-groups: |
+    shift a sequence of holes by the given number of semitones (like
+    shift), but also show group of alternative holes, that give the
+    same note but in a different octave. This can be useful to find
+    musically related hole-sequences.
   keys: |
     print a chart with keys and positions centered around current key
   chart: |

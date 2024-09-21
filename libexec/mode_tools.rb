@@ -14,6 +14,8 @@ def do_tools to_handle
     tool_transpose to_handle
   when 'shift'
     tool_shift to_handle
+  when 'shift-to-groups'
+    tool_shift_to_groups to_handle
   when 'keys'
     tool_key_positions to_handle
   when 'search-in-licks'
@@ -44,7 +46,7 @@ def do_tools to_handle
   when 'diag'
     tool_diag
   else
-    fail "Internal error: unknown extra '#{extra}'"
+    fail "Internal error: unknown extra '#{$extra}'"
   end
 end
 
@@ -143,19 +145,10 @@ end
 
 def tool_shift to_handle
 
-  err "Need at least two additional arguments: a number of semitones and at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
-
-  inter = to_handle.shift
-  dsemi = $intervals_inv[inter] ||
-          ((md = inter.match(/^[+-]?\d+st?$/)) && md[0].to_i) ||
-          err("Given argument #{inter} is neither a named interval (one of: #{$intervals_inv.keys.reject {_1[' ']}.join(',')}) nor a number of semitones (e.g. 12st)")
-
-  to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
-  end
+  inter, dsemi = tools_shift_helper(to_handle)  
   
   puts
-  puts "Shifting holes and notes by #{describe_inter_semis(dsemi)}:"
+  puts "Shifting holes by #{describe_inter_semis(dsemi)}:"
   puts
   puts
   cols = Array.new
@@ -174,8 +167,56 @@ def tool_shift to_handle
 end
 
 
-def print_transposed cols, emphasis
+def tool_shift_to_groups to_handle
 
+  inter, dsemi = tools_shift_helper(to_handle)
+  
+  puts
+  puts "Shifting holes by #{describe_inter_semis(dsemi)} and showing all holes,"
+  puts "that map to the same bare note (i.e. ignoring octaves)"
+  puts
+  puts
+  cols = Array.new
+  cols << ['Holes given', 'Notes given', 'Bare notes shifted', 'Holes with same bare']
+  to_handle.each do |hole|
+    bare_note_shifted = semi2note($harp[hole][:semi] + dsemi)[0..-2]
+    cols << [hole,
+             $harp[hole][:note],
+             bare_note_shifted]
+    $bare_note2holes[bare_note_shifted].each do |hole|
+      cols[-1] << hole
+    end
+  end
+  print_transposed(cols)
+  puts
+end
+
+
+def tools_shift_helper to_handle
+  err "Need at least two additional arguments: a number of semitones and at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
+
+  inter = to_handle.shift
+  dsemi = $intervals_inv[inter] ||
+          ((md = inter.match(/^[+-]?\d+st?$/)) && md[0].to_i) ||
+          err("Given argument #{inter} is neither a named interval (one of: #{$intervals_inv.keys.reject {_1[' ']}.join(',')}) nor a number of semitones (e.g. 12st)")
+
+  to_handle.each do |hole|
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+  end
+  return [inter, dsemi]
+end
+
+
+def print_transposed cols, emphasis = nil
+
+  # make sure, that all columns have the same number of elements
+  maxlen = cols.map(&:length).max
+  cols.each do |col|
+    while col.length < maxlen
+      col << ''
+    end
+  end
+  
   max_in_col = Array.new
   cols.each do |cells|
     max = 0
@@ -189,15 +230,21 @@ def print_transposed cols, emphasis
   cols.each_with_index do |cells, idx_cols|
     cells.each_with_index do |cell, idx_lines|
       lines[idx_lines] += cell.rjust(max_in_col[idx_cols] + 2)
-      lines[idx_lines] += ': ' if idx_cols == 0
+      if idx_cols == 0
+        lines[idx_lines] += ( cell.length > 0  ?  ': '  :  '  ' )
+      end
     end
   end
 
   lines.each_with_index do |line, idx|
-    if emphasis.include?(idx)
-      print "\e[0m\e[32m"
+    if emphasis
+      if emphasis.include?(idx)
+        print "\e[0m\e[32m"
+      else
+        print "\e[2m"
+      end
     else
-      print "\e[2m"
+      print "\e[0m"
     end
     puts line
     print "\e[0m\n"

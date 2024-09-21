@@ -599,6 +599,7 @@ def read_and_set_musical_config
   hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
   semi2hole_sc = Hash.new {|h,k| h[k] = Array.new}
+  bare_note2holes = Hash.new {|h,k| h[k] = Set.new}
   hole_root = nil
   $hole2note_read.each do |hole, note|
     semi = note2semi(note) + $dsemi_harp
@@ -624,6 +625,10 @@ def read_and_set_musical_config
   $hole2note = harp.map {|hole, hash| [hole, hash[:note]]}.reverse.to_h
   $note2hole = $hole2note.invert
   harp_notes = harp.keys.map {|h| $hole2note[h]}
+
+  harp_holes.each do |hole|
+   bare_note2holes[harp[hole][:note][0..-2]] << hole 
+  end
 
   # process scales
   if $scale
@@ -748,7 +753,8 @@ def read_and_set_musical_config
     intervals_inv,
     hole_root,
     typical_hole,
-    named_hole_sets ]
+    named_hole_sets,
+    bare_note2holes ]
 
 end
 
@@ -1024,7 +1030,7 @@ def set_global_musical_vars rotated: false
 
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
 
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets, $bare_note2holes = read_and_set_musical_config
     
   # semitone shifts that will be tagged and can be traversed
   $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',

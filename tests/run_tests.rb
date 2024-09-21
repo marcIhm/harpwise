@@ -1671,7 +1671,15 @@ do_test 'id-51b: tools shift by semitones' do
   kill_session
 end
 
-do_test 'id-51c: tools chords' do
+do_test 'id-51c: tools shift-to-groups by semitones' do
+  new_session
+  tms 'harpwise tools shift-to-groups +7st -1 +2 +3 +4'
+  tms :ENTER
+  expect { screen[12]['Holes with same bare:   -3//    -3  -1  -2'] }
+  kill_session
+end
+
+do_test 'id-51d: tools chords' do
   new_session
   tms 'harpwise tools g chords'
   tms :ENTER
@@ -1709,14 +1717,15 @@ do_test 'id-53: print' do
   tms :ENTER
   sleep 2
   lines = File.read($testing_output_file).lines
-  {17 => 'd4  e4  g4  as4  g4  as4  a4  g4',
-   20 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   29 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   33 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   37 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
-   41 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   45 => '-7  -5  -2  1   -2  1   0   -2',
-   50 => 'St. Louis Blues'}.each do |lno, exp|
+  {16 => 'd4  e4  g4  as4  g4  as4  a4  g4',
+   19 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
+   28 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   32 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   36 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   40 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   44 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   52 => '-7  -5  -2  1   -2  1   0   -2',
+   57 => 'St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1724,11 +1733,16 @@ end
 
 do_test 'id-53a: print' do
   new_session
-  tms "harpwise print st-louis --flats>#{$testing_output_file}"
+  tms "harpwise print +2  +1  +3  -4  -4/ --flats>#{$testing_output_file}"
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect(17, lines) {lines[17]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
+  {11 => 'Notes:',
+   12 => 'e4  c4  g4  d5  df5',
+   37 => 'With intervals to first as positive semitones (maybe minus octaves)',
+   38 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
+    expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
+  end
   kill_session
 end
 
@@ -1738,7 +1752,7 @@ do_test 'id-53b: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect(17, lines) {lines[17]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
+  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
   kill_session
 end
 
@@ -1748,16 +1762,16 @@ do_test 'id-53c: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect(lines) {lines[10]['a4.5   b4.1   c4.b4']}
+  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[9]['a4.5   b4.1   c4.b4']}
   kill_session
 end
 
 do_test 'id-53d: print with scale' do
   # need some content that would otherwise scroll out of screen
   new_session 120, 40
-  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v'
+  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v | head -20'
   tms :ENTER
-  expect { screen[3]['-1.5     +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[13]['-1.5     +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -1765,7 +1779,7 @@ do_test 'id-53e: print with scales but terse' do
   new_session
   tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
   tms :ENTER
-  expect { screen[11] == '$' }
+  expect { screen[10] == '$' }
   kill_session
 end
 
@@ -1827,7 +1841,7 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3] == 'With intervals to first:' }
+  expect { screen[3] == 'With intervals to first as semitones:' }
   expect { screen[9] == 'As absolute semitones (a4 = 0):' }
   kill_session
 end
@@ -1863,7 +1877,7 @@ do_test 'id-54f: print scale with sharps' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[19]['g4  as4  c5  cs5  d5  f5  g5']}
+  expect(18, lines.each_with_index.map {|l,i| [i,l]}) {lines[18]['g4  as4  c5  cs5  d5  f5  g5']}
   kill_session
 end
 
@@ -1874,7 +1888,7 @@ do_test 'id-54g: print scale with flats' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[19]['g4  bf4  c5  df5  d5  f5  g5']}
+  expect(18, lines.each_with_index.map {|l,i| [i,l]}) {lines[18]['g4  bf4  c5  df5  d5  f5  g5']}
   kill_session
 end
 
@@ -2133,8 +2147,8 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[0]['-1.-   a5.+7  +4.-   d2.-'] }
-  expect { screen[12]['-1.Ton    a5.22st   +4.fSe    d2.-21st'] }
+  expect { screen[0]['-1.Ton    a5.22st   +4.-Oct   d2.-31st'] }
+  expect { screen[15]['-1.0st       a5.22st      +4.10st      d2.3st-2oct'] }
   kill_session
 end
 
@@ -2430,7 +2444,7 @@ do_test 'id-77: print for chromatic' do
   tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[0]['c4.+1  e4.+2  g4.+3  c5.+4  e5.+6  g5.+7  c6.+8'] }
+  expect { screen[0]['c4.Ton  e4.mT   g4.3st  c5.pFo  e5.mT   g5.3st  c6.pFo'] }
   kill_session
 end
 
@@ -3339,7 +3353,7 @@ do_test 'id-124: print single lick-progression' do
   tms 'harpwise print box1-turn'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[8]['Progression of licks for box-pattern 1, with turnaround'] }
+  expect { screen[7]['Progression of licks for box-pattern 1, with turnaround'] }
   kill_session
 end
 
@@ -3348,7 +3362,7 @@ do_test 'id-125: print single scale-progression' do
   tms 'harpwise print 12bar'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[8]['standard 12-bar blues progression, based on flat-7th chords'] }
+  expect { screen[7]['standard 12-bar blues progression, based on flat-7th chords'] }
   kill_session
 end
 
