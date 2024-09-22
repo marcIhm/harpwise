@@ -145,7 +145,7 @@ end
 
 def tool_shift to_handle
 
-  inter, dsemi = tools_shift_helper(to_handle)  
+  to_handle, inter, dsemi = tools_shift_helper(to_handle)  
   
   puts
   puts "Shifting holes by #{describe_inter_semis(dsemi)}:"
@@ -169,7 +169,7 @@ end
 
 def tool_shift_to_groups to_handle
 
-  inter, dsemi = tools_shift_helper(to_handle)
+  to_handle, inter, dsemi = tools_shift_helper(to_handle)
   
   puts
   puts "Shifting holes by #{describe_inter_semis(dsemi)} and showing all holes,"
@@ -200,10 +200,19 @@ def tools_shift_helper to_handle
           ((md = inter.match(/^[+-]?\d+st?$/)) && md[0].to_i) ||
           err("Given argument #{inter} is neither a named interval (one of: #{$intervals_inv.keys.reject {_1[' ']}.join(',')}) nor a number of semitones (e.g. 12st)")
 
-  to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+  if to_handle.length == 1
+    $all_licks, $licks, $all_lick_progs = read_licks
+    if lick = $all_licks.find {|l| l[:name] == to_handle[0]}
+      to_handle = lick[:holes]
+    end
   end
-  return [inter, dsemi]
+
+  to_handle.reject! {|h| musical_event?(h)}
+  to_handle.each do |hole|
+    err("Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" +
+        ( to_handle.length == 1  ?  " and not a lick either"  :  '' )) unless $harp_holes.include?(hole)
+  end
+  return [to_handle, inter, dsemi]
 end
 
 

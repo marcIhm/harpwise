@@ -499,11 +499,11 @@ def process_lick lick, name, vars, default
 end
 
 
-def check_section_key type, key, lick, type2keys, where
+def check_section_key type, key, section, type2keys, where
 
   # first, check for double key in section
   skey = key.o2sym2
-  err "Key '#{key}' (below [#{lick[:name]}], #{where}) has already been defined" if lick[skey]
+  err "Key '#{key}' (below [#{section[:name]}], #{where}) has already been defined" if section[skey]
 
   # now for allowed keys in section
   err "Assigning a key (here: #{key}) is not allowed before first section, e.g. #{type2keys.keys.map(&:o2str).join(',')} #{where}" unless type
@@ -511,9 +511,9 @@ def check_section_key type, key, lick, type2keys, where
   others = type2keys.keys.select {|type| type2keys[type].include?(key)}.map(&:o2str)
   what = case type
          when :lick
-           "lick '#{lick[:name]}'"
+           "lick '#{section[:name]}'"
          when :prog
-           "prog '#{lick[:tag]}'"
+           "prog '#{section[:name]}'"
          when :default
            "default-section"
          when :vars
@@ -523,7 +523,7 @@ def check_section_key type, key, lick, type2keys, where
          end
   err(
     if others.length > 0
-      "Key '#{key}' is not allowed:\n  - the current section has been identified as #{what}\n  - and key '#{key}' is not allowed there\n  - however, key '#{key}' may appear in these types of section: #{others.join(', ')}\n  - for section of type #{type}, these keys are allowed: #{type2keys[type].join(', ')}\n#{where}"
+      "Key  '#{key}'  is not allowed:\n  - The current section has been identified as #{what}\n    and key '#{key}' is not allowed there\n  - However, key '#{key}' may appear in these types of section:   #{others.join(', ')}\n  - On the other hand, for section of type #{type}, these keys are allowed:   #{type2keys[type].join(', ')}\n#{where}"
     else
       "Key '#{key}' is unknown for #{what} and any other type of section (#{where})"
     end)

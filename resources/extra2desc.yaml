@@ -64,12 +64,13 @@ tools:
   transpose: |
     transpose a sequence of holes between keys
   shift: |
-    shift a sequence of holes by the given number of semitones
+    shift a sequence of holes or a single lick by the given number of
+    semitones (first argument)
   shift-to-groups: |
-    shift a sequence of holes by the given number of semitones (like
-    shift), but also show group of alternative holes, that give the
-    same note but in a different octave. This can be useful to find
-    musically related hole-sequences.
+    Starts off like 'shift' (see there), but also shows groups of
+    alternative holes, that give the same note only in different
+    octaves. This can be useful to find variations of a
+    hole-sequences, e.g. for improvisation
   keys: |
     print a chart with keys and positions centered around current key
   chart: |
