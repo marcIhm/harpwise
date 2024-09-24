@@ -311,6 +311,9 @@ def start_fifo_handler
   $term_fifo_handler = Thread.new do
     loop do
       $ctl_kb_queue.enq fifo.getc
+      # if we let keys in without a delay, they tend to get lost (for
+      # reasons not understood); so we need to throttle to human speed
+      sleep 0.1
     end
   end
 end

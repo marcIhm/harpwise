@@ -40,7 +40,7 @@ timestamps_to_keys = params['timestamps_to_keys']
 sound_file = params['sound_file']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
-$thr = Thread.new do
+Thread.new do
   system "play -q #{sound_file}"
   sleep 1
   puts
