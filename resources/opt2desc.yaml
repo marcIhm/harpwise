@@ -211,15 +211,15 @@ viewer:
   
 terse:
   - |
-    Be somewhat less verbose than usual. The exact effect
-    (if any) depends on the subcommand chosen.
+    Be somewhat less verbose than usual.
+    Mostly used for mode print.
   
 read_fifo:
   - |
     When in the main listen-perspective,
-    read keys from fifo /tmp/harpwise_fifo too.  This can be useful
-    when automizing certain aspects of its operation. The name of the
-    fifo is fixed.
+    read keys from fifo ~/harpwise/control_fifo too.  This can be
+    useful when automizing certain aspects of its operation. The name
+    of the fifo is fixed.
 
 difficulty:
   - |
