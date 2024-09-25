@@ -302,12 +302,14 @@ def parse_arguments_early
       ks.each do |k|
         err "Key '#{k}' (in '#{tr}') (in '#{cite}') is none of these translatable keys: #{$keyboard_translateable.join(',')}" unless $keyboard_translateable.include?(k)
       end
-      if $keyboard_translations[ks[0]]
-        $keyboard_translations[ks[0]] = [$keyboard_translations[ks[0]], ks[1]].flatten
-        err "Cannot assign more than two translations to a single source key '#{ks[0]}'; these are too many: #{$keyboard_translations[ks[0]]}" if $keyboard_translations[ks[0]].length > 2
-      else
-        $keyboard_translations[ks[0]] = ks[1]
-      end
+      from_k, to_k = ks
+      # Remark: Most (all ?) cases of error checking (e.g. circular or
+      # translations) are already handled by check for 'in_both' below
+      $keyboard_translations[from_k] = if $keyboard_translations[from_k]
+                                         [$keyboard_translations[from_k], to_k].flatten
+                                       else
+                                         to_k
+                                       end
     end
     in_both = $keyboard_translations.keys & $keyboard_translations.values
     err "Invalid keyboard translation: these keys appear both as from and to (in #{cite}): #{in_both.join(',')}" if in_both.length > 0

@@ -311,9 +311,6 @@ def start_fifo_handler
   $term_fifo_handler = Thread.new do
     loop do
       $ctl_kb_queue.enq fifo.getc
-      # if we let keys in without a delay, they tend to get lost (for
-      # reasons not understood); so we need to throttle to human speed
-      sleep 0.1
     end
   end
 end
@@ -341,7 +338,6 @@ end
 def handle_kb_play_holes_or_notes
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
 
   if char == ' '
     space_to_cont
@@ -364,7 +360,6 @@ end
 def handle_kb_play_lick_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
 
   if char == '.' || char == '-'
     $ctl_rec[:replay] = true
@@ -407,7 +402,7 @@ end
 def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
+
   if char == ' '
     $ctl_rec[:pause_continue] = true
   elsif char == 'v'
@@ -434,7 +429,6 @@ end
 def handle_kb_play_semis
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
 
   if char == ' '
     $ctl_prog[:pause_continue] = true
@@ -472,7 +466,6 @@ end
 def handle_kb_play_pitch
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
   $ctl_pitch[:any] = true
 
   if char == ' '
@@ -513,7 +506,6 @@ end
 def handle_kb_play_inter
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
   $ctl_inter[:any] = true
 
   if char == ' '
@@ -556,7 +548,6 @@ end
 def handle_kb_play_chord
   return if $ctl_kb_queue.length == 0
   char = $ctl_kb_queue.deq
-  $ctl_kb_queue.clear
   $ctl_chord[:any] = true
 
   if char == ' '
@@ -595,16 +586,13 @@ def handle_kb_mic
   if $keyboard_translations[char]
     if $keyboard_translations[char].is_a?(String)
       char = $keyboard_translations[char]
-      $ctl_kb_queue.clear
     else
-      # sneak in second char, to be processed next; this only works
-      # with two keys, not three
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.enq($keyboard_translations[char][1])
+      # sneak in other chars, to be processed next
+      $keyboard_translations[char][1..-1].reverse.each do |ch|
+        $ctl_kb_queue.enq(ch)
+      end
       char = $keyboard_translations[char][0]
     end
-  else
-    $ctl_kb_queue.clear
   end
   waited = false
 

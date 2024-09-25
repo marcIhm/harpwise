@@ -1,13 +1,14 @@
 #!/usr/bin/ruby
 
-# This script plays a mp3 and sends keys (e.g. 'l') to harpwise (which
-# must be started separately). This can be used e.g. to switch the
-# lick, that is displayed in 'harpwise listen', in sync with
+# This script plays an mp3 and sends keys (e.g. 'l') to harpwise
+# (which must be started separately). This can be used e.g. to switch
+# the lick, that is displayed in 'harpwise listen', in sync with
 # chord-changes of the played mp3.
 
 # The only argument is a json file with all needed informations, e.g.:
 # {
 #     "sound_file": "some-song.mp3",
+#     "lead_secs": 0.5,
 #     "timestamps_to_keys": [
 # 	[5.868409, "l"],
 # 	[15.47452, "l"],
@@ -15,8 +16,8 @@
 # 	[24.93715, "l"],
 # 	[27.333297, "l"],
 # 	[29.6864, "l"],
-# 	[33.442824, "l"],
-# 	[34.442824, "l"]
+# 	[30.442824, "l","s"],
+# 	[34.442824, "l","s"]
 #     ]
 # }
 
@@ -28,9 +29,9 @@ require 'set'
 
 fifo = "#{Dir.home}/.harpwise/control_fifo"
 
-ARGV[0] || raise("No argument provided; however a json file with parameters is needed.")
+ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
 params = JSON.parse(File.read(ARGV[0]))
-wanted = %w(timestamps_to_keys sound_file)
+wanted = %w(timestamps_to_keys sound_file lead_secs)
 given = params.keys
 raise("Found keys: #{given}, but wanted: #{wanted} in #{ARGV[0]}") if Set[*given] != Set[*wanted]
 raise("Value '#{params['timestamps_to_keys']}' should be an array") unless params['timestamps_to_keys'].is_a?(Array)
@@ -38,6 +39,7 @@ raise("Value '#{params['timestamps_to_keys']}' should be an array") unless param
 puts
 timestamps_to_keys = params['timestamps_to_keys']
 sound_file = params['sound_file']
+lead_secs = params['lead_secs']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
 Thread.new do
@@ -65,8 +67,8 @@ loop do
     x,y = pair[0][0], pair[1][0]
     keys_to_send = pair[0][1 .. -1]
     puts "Interval #{j+1}/#{timestamps_to_keys.length-1}:"
-    puts "sleep %.2f sec" % (y-x)
-    sleep y-x
+    puts "sleep %.2f sec" % (y - x)
+    sleep y - x - lead_secs
     keys_to_send.each do |key|
       begin
         Timeout::timeout(1) do
@@ -78,6 +80,7 @@ loop do
       end
       puts "wrote '#{key}'"
     end
+    sleep lead_secs
     puts
   end
 end
