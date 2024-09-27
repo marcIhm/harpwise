@@ -68,7 +68,8 @@ loop do
     keys_to_send = pair[0][1 .. -1]
     puts "Interval #{j+1}/#{timestamps_to_keys.length-1}:"
     puts "sleep %.2f sec" % (y - x)
-    sleep y - x - lead_secs
+    this_lead_secs = ( y - x > lead_secs  ?  lead_secs  :  0 )
+    sleep y - x - this_lead_secs
     keys_to_send.each do |key|
       begin
         Timeout::timeout(1) do
@@ -80,7 +81,7 @@ loop do
       end
       puts "wrote '#{key}'"
     end
-    sleep lead_secs
+    sleep this_lead_secs
     puts
   end
 end

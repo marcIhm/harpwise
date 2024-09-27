@@ -626,17 +626,17 @@ end
 def print_single_scale_prog spname
   sp = $all_scale_progs[spname]
   puts "#{spname}:"
-  puts "      Desc: #{sp[:desc]}"
-  puts "  %2d Chords: #{sp[:chords].join(' ')}" % sp[:chords].length
+  puts "       Desc:  #{sp[:desc]}"
+  puts "  %2d Chords:  #{sp[:chords].join(' ')}" % sp[:chords].length
   puts
 end
 
 
 def print_lick_meta lick
   puts
-  puts "\e[2m     Desc:\e[0m #{lick[:desc]}"
-  puts "\e[2m     Tags:\e[0m #{lick[:tags].join(' ')}"
-  puts "\e[2m  rec-Key:\e[0m #{lick[:rec_key]}"
+  puts "\e[2m     Desc:\e[0m  #{lick[:desc]}"
+  puts "\e[2m     Tags:\e[0m  #{lick[:tags].join(' ')}"
+  puts "\e[2m  rec-Key:\e[0m  #{lick[:rec_key]}"
   puts
 end
 

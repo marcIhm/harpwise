@@ -318,7 +318,8 @@ keyboard_translate:
     from your keyboard into other keys; this is for the main
     listen-perspective only.
 
-    E.g. for mode listen, by giving:
+    E.g. for mode listen, this specifies two translations, separated
+    by ',' (comma), i.e.
 
       --keyboard-translate TAB=s,RETURN=r
 
@@ -337,16 +338,17 @@ keyboard_translate:
     permanently, you may (as with many options) put it into your
     config.
 
-    In some cases it might be useful to make two keys out of one:
+    In some cases it might be useful to make two keys (s,RETURN) out
+    of one (b):
 
-      --kb-tr b=s,b=RETURN
+      --kb-tr b=s+RETURN
 
     see usage of mode licks where this is used to switch
     lick-progression and scale-progression at once by pressing 'b'.
 
     Note, that in your config.ini you may define
-    keyboard_translate_slot1, 2 and 3 and use it on the commandline
-    like this:
+    keyboard_translate_slot1, 2 and 3 and use these slots as
+    shorthands on the commandline like this:
 
       --kb-tr s1
 

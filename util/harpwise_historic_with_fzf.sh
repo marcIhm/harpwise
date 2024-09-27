@@ -1,7 +1,8 @@
 
-# Source this script for a bash-function (hwh stands for harpwise
-# historic) to invoke fzf on the automatic invocation-files of
-# harpwise. fzf needs to be installed as a prerequisite.
+# Source this script for a bash-function hwh ("hwh" stands for
+# harpwise historic) to invoke fzf ("fuzzy finder") on the
+# invocation-files of harpwise. fzf needs to be installed as a
+# prerequisite.
 
 # The variable HARPWISE_COMMAND can be used to specify a command to
 # invoke harpwise; the default is 'harpwise' but can be changed to
@@ -11,7 +12,8 @@
 # typing; sult will be on the commandline and can be edited further.
 
 function hwh {
-    command=$(cat $(ls ~/.harpwise/invocations/* | grep -v README) | cut -d" " -f2- | fzf --query "${@:-}" --prompt "${HARPWISE_COMMAND:-harpwise} " --print-query | tail -1 | sed 's/ *#.*//')
+
+    command=$(cat $(ls ~/.harpwise/invocations/* | grep -v README) | awk '{print $(NF-1), $NF, $0}' | sort | cut -f4- -d' ' | fzf -e --query "${@:-}" --no-sort --tac --prompt "${HARPWISE_COMMAND:-harpwise} " --print-query | tail -1 | sed 's/ *#.*//')
     read -e -i "${HARPWISE_COMMAND:-harpwise} $command" edited
     history -s $edited
     eval $edited

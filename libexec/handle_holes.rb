@@ -674,6 +674,7 @@ def show_help mode = $mode, testing_only = false
   #
   # - key-groups and their description are separated by ':_' which is
   #   replaced by ': ' as late as possible before printing to screen
+  #   (likewise '=_' to '=')
   #
   # - Within key-groups, some heuristics are applied for characters
   #   ',' and ':'
@@ -765,7 +766,7 @@ def show_help mode = $mode, testing_only = false
     $keyboard_translations.each_slice(2) do |slice|
       frames[-1] << '      '
       slice.each do |from,to|
-        frames[-1][-1] += ( "    %#{maxlen}s:_%s" % [from, [to].flatten.join(',')] ).ljust(24)
+        frames[-1][-1] += ( "    %#{maxlen}s=_%s" % [from, [to].flatten.join('+')] ).ljust(24)
       end
     end
   end
@@ -807,7 +808,7 @@ def show_help mode = $mode, testing_only = false
   frames.each_with_index do |frame, fidx|
     frame.each_with_index do |line, lidx|
       scanner = StringScanner.new(line)
-      while scanner.scan_until(/\S+:_/)
+      while scanner.scan_until(/\S+(:|=)_/)
         full_kg = scanner.matched
         kg = scanner.matched[0..-3].strip
         special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN SPACE TAB ALT-s ALT-l)
@@ -887,8 +888,8 @@ def show_help mode = $mode, testing_only = false
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
-        # easy to format: replacement ':_' to ': '
-        puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ").rstrip
+        # easy to format: replacement ':_' to ': ' and '=_' to '='
+        puts line.gsub(/(\S+):_/, "\e[92m\\1\e[32m: ").gsub(/(\S+)=_/, "\e[92m\\1\e[32m=").rstrip
       end
       print "\e[\e[0m\e[2m"
       puts frames[curr_frame][-2]
@@ -896,7 +897,7 @@ def show_help mode = $mode, testing_only = false
       print "\e[0m\e[32m"
       if lidx_high
         print "\e[#{lines_offset + lidx_high}H"
-        line = frames[curr_frame][lidx_high].gsub(':_', ': ')
+        line = frames[curr_frame][lidx_high].gsub(':_', ': ').gsub('=_', '=')
         $resources[:hl_long_wheel].each do |col|
           print "\r\e[#{col}m" + line
           sleep 0.15
@@ -933,11 +934,7 @@ def show_help mode = $mode, testing_only = false
       else
         system('clear')
         print "\e[#{lines_offset + 4}H"
-        if key == 'TAB'
-          puts "\e[0m\e[2m Use option --kb-tr to translate key '\e[0m#{key}\e[2m' into another key."
-        else
-          puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
-        end
+        puts "\e[0m\e[2m Key '\e[0m#{key}\e[2m' has no function and no help within this part of harpwise."
         puts
         sleep 0.5
         puts "\e[2m #{$resources[:any_key]}\e[0m"

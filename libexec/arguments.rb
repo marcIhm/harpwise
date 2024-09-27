@@ -288,31 +288,40 @@ def parse_arguments_early
   opts[:no_player_info] = true if opts[:scale_prog]
 
   if opts[:keyboard_translate]
+    from_slot = ''
+    # check for shorthands using slots
     if %w(slot1 slot2 slot3 s1 s2 s3).include?(opts[:keyboard_translate])
       num = opts[:keyboard_translate][-1].to_i
+      from_slot = ", shorthand from slot #{num}"
       opts[:keyboard_translate] = $conf["keyboard_translate_slot#{num}".to_sym] ||
                                   err("'slot#{num}' given in '--keyboard-translate slot#{num}' or '--kb-tr s#{num}' does not have a matching option 'keyboard_translate_slot#{num}' in your config; see there for more explanation")
     elsif opts[:keyboard_translate] =~ /^(slot|s)\d+$/
       err "Option --keyboard-translate does not accept a slot other than 1,2,3; see 'harpwise #{$mode} -o' for a full description"
     end
-    cite = "--keyboard-translate #{opts[:keyboard_translate]}"
+    
+    cite = "'--keyboard-translate #{opts[:keyboard_translate]}'#{from_slot}"
+    should_form = "In general the argument for option --keyboard-translate should have the form 'key1=key2,key3=key4+key5 ...', which e.g. specifies two separate translations and would translate   key1 into key2   and   key3 into key4 plus key5"
     opts[:keyboard_translate].split(',').each do |tr|
-      ks = tr.split('=')
-      err "Cannot parse this keyboard translation: '#{tr}' (in '#{cite}'); it must have the form 'key1=key2,key3=key4,...', where each key is one of: #{$keyboard_translateable.join(',')}" unless ks.length == 2
-      ks.each do |k|
-        err "Key '#{k}' (in '#{tr}') (in '#{cite}') is none of these translatable keys: #{$keyboard_translateable.join(',')}" unless $keyboard_translateable.include?(k)
+      from_to = tr.split('=')
+      err "Cannot parse this keyboard translation: '#{tr}' (from #{cite}).\n#{should_form}.\nEach of these keys should be one of: #{$keyboard_translateable.join(',')}" unless from_to.length == 2
+      from_k = from_to[0]
+      to_ks = from_to[1].split('+')
+      [from_k,to_ks].flatten.each do |k|
+        err "Key '#{k}' (in '#{tr}') (in #{cite})\nis none of the translatable keys #{$keyboard_translateable.join(',')}\n#{should_form}" unless $keyboard_translateable.include?(k)
       end
-      from_k, to_k = ks
-      # Remark: Most (all ?) cases of error checking (e.g. circular or
-      # translations) are already handled by check for 'in_both' below
-      $keyboard_translations[from_k] = if $keyboard_translations[from_k]
-                                         [$keyboard_translations[from_k], to_k].flatten
-                                       else
-                                         to_k
-                                       end
+      err "Key '#{from_k}' already has this translation: '#{$keyboard_translations[from_k]}', cannot translate it again to '#{to_ks.join('+')}'; please use use '#{from_k}=#{[$keyboard_translations[from_k],to_ks].flatten.join('+')}' to have both in a single statement" if $keyboard_translations[from_k]
+      to_ks.each do |to_k|
+        # Remark: Most (all ?) cases of error checking (e.g. circular or
+        # translations) are already handled by check for 'in_both' below
+        $keyboard_translations[from_k] = if $keyboard_translations[from_k]
+                                           [$keyboard_translations[from_k], to_k].flatten
+                                         else
+                                           to_k
+                                         end
+      end
     end
     in_both = $keyboard_translations.keys & $keyboard_translations.values
-    err "Invalid keyboard translation: these keys appear both as from and to (in #{cite}): #{in_both.join(',')}" if in_both.length > 0
+    err "Invalid keyboard translation: these keys appear both as from- and to-keys (i.e. on both sides of the '='-sign) (in #{cite}): #{in_both.join(',')}. #{should_form}" if in_both.length > 0
   end
 
   opts[:comment] = :lick_holes if opts[:licks] 

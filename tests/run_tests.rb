@@ -2587,7 +2587,7 @@ do_test 'id-86b: print scale progressions' do
   tms 'harpwise print scale-progs'
   tms :ENTER
   sleep 2
-  expect { screen[17]['Desc: standard 12-bar blues progression, based on flat-7th chords'] }
+  expect { screen[17]['Desc:  standard 12-bar blues progression, based on flat-7th chords'] }
   kill_session
 end
 
@@ -3445,8 +3445,8 @@ ENV['HARPWISE_TESTING']='opts'
 do_test 'id-132: some cases of opts processing' do
   new_session
   [
-    ['listen --kb-tr 1',
-     {'keyboard_translate' => '1'}]
+    ['listen --kb-tr s1',
+     {'keyboard_translate' => 's1'}]
   ].each do |args, result|
     tms "harpwise #{args} >#{$testing_output_file}"
     tms :ENTER

@@ -122,7 +122,7 @@ USAGE BY EXAMPLES
   This option can fruitfully be combined with a scale-progression:
 
     harpwise licks --scale-prog 12bar-om3-v --lick-prog box1-turn
-      --kb-tr RIGHT=s,RIGHT=RETURN,LEFT=S,LEFT=L
+      --kb-tr RIGHT=s+RETURN,LEFT=S+L
 
   which employs the key 'RIGHT' to switch both scale-progression and
   lick-progression at once; where 'LEFT' resets them to their initial
