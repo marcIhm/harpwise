@@ -1028,7 +1028,7 @@ def write_invocation
             File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == $full_commandline}
           else
             []
-          end.append($full_commandline + (' ' * ($full_commandline.length % 8)) + "   #  #{ts}\n")
+          end.append($full_commandline + (' ' * (-$full_commandline.length % 4)) + "   #  #{ts}\n")
   File.write(file, lines.last(20).join)
 end
 

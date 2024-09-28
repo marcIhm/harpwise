@@ -206,7 +206,6 @@ def set_global_vars_early
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
-  $keyboard_translations = Hash.new
 end
 
 

@@ -2695,7 +2695,8 @@ do_test 'id-93: quiz-flavour hear-inter' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  sleep 2
+  sleep 2  
+  expect { screen[10]["difficulty is 'EASY'"] }  
   expect { screen[16]['Choose the Interval you have heard:'] }
   tms 'SKIP'
   tms :ENTER

@@ -8,8 +8,10 @@
 # The only argument is a json file with all needed informations, e.g.:
 # {
 #     "sound_file": "some-song.mp3",
-#     "lead_secs": 0.5,
-#     "timestamps_to_keys": [
+#     "lead_for_keys": 0.5,
+#     "sleep_before_start": 0.2,
+#     "sleep_after_iteration": 0.2,
+#     "timestamps_and_keys": [
 # 	[5.868409, "l"],
 # 	[15.47452, "l"],
 # 	[20.209422, "l"],
@@ -31,7 +33,7 @@ fifo = "#{Dir.home}/.harpwise/control_fifo"
 
 ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
 params = JSON.parse(File.read(ARGV[0]))
-wanted = %w(timestamps_to_keys sound_file lead_secs)
+wanted = %w(timestamps_to_keys sound_file lead_for_keys sleep_before_start sleep_after_iteration)
 given = params.keys
 raise("Found keys: #{given}, but wanted: #{wanted} in #{ARGV[0]}") if Set[*given] != Set[*wanted]
 raise("Value '#{params['timestamps_to_keys']}' should be an array") unless params['timestamps_to_keys'].is_a?(Array)
@@ -39,7 +41,9 @@ raise("Value '#{params['timestamps_to_keys']}' should be an array") unless param
 puts
 timestamps_to_keys = params['timestamps_to_keys']
 sound_file = params['sound_file']
-lead_secs = params['lead_secs']
+lead_for_keys = params['lead_for_keys']
+sleep_before_start = params['sleep_before_start']
+sleep_after_iteration = params['sleep_after_iteration']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
 Thread.new do
@@ -54,7 +58,7 @@ at_exit do
 end
 puts
 
-sleep_secs = timestamps_to_keys[0][0]
+sleep_secs = timestamps_to_keys[0][0] + sleep_before_start
 puts "Initial sleep %.2f sec" % sleep_secs
 sleep sleep_secs
 i = 0
@@ -68,8 +72,8 @@ loop do
     keys_to_send = pair[0][1 .. -1]
     puts "Interval #{j+1}/#{timestamps_to_keys.length-1}:"
     puts "sleep %.2f sec" % (y - x)
-    this_lead_secs = ( y - x > lead_secs  ?  lead_secs  :  0 )
-    sleep y - x - this_lead_secs
+    this_lead_for_keys = ( y - x > lead_for_keys  ?  lead_for_keys  :  0 )
+    sleep y - x - this_lead_for_keys
     keys_to_send.each do |key|
       begin
         Timeout::timeout(1) do
@@ -81,7 +85,9 @@ loop do
       end
       puts "wrote '#{key}'"
     end
-    sleep this_lead_secs
+    sleep this_lead_for_keys
     puts
   end
+  puts "Sleep after iteration %.2f sec" % sleep_after_iteration
+  sleep sleep_after_iteration
 end
