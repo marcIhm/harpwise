@@ -2840,6 +2840,37 @@ do_test 'id-96e: quiz-flavour not-in-scale' do
   kill_session
 end
 
+do_test 'id-96f: quiz-flavour hear-hole' do
+  new_session
+  tms 'harpwise quiz hear-hole'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  sleep 2
+  expect { screen[9]['Hear a hole from set'] }
+  tms 'solve'
+  tms :ENTER
+  sleep 2
+  expect { screen[10]['from set'] }
+  expect { screen[19]["What's next"] }
+  kill_session
+end
+
+do_test 'id-96g: quiz-flavour hear-hole-set' do
+  new_session
+  tms 'harpwise quiz hear-hole-set'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  sleep 2
+  expect { screen[1]['then asks for the key and the hole set'] }
+  tms 'solve'
+  tms :ENTER
+  sleep 2
+  expect { screen[11]['The correct answer is'] }
+  kill_session
+end
+
 do_test 'id-97: hint in quiz-flavour replay' do
   new_session
   tms 'harpwise quiz replay --difficulty easy'
@@ -2999,7 +3030,7 @@ do_test 'id-107: quiz-flavour hole-note' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[11]['Given the HOLE'] || screen[11]['Given the NOTE'] }
+  expect { screen[10]['Given the HOLE'] || screen[10]['Given the NOTE'] }
   sleep 1
   tms 'help-chart'
   tms :ENTER
@@ -3147,7 +3178,7 @@ do_test 'id-113: quiz-flavour choose' do
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 18 (all) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 20 (all) flavours and 7 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}

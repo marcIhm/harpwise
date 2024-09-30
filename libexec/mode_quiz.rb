@@ -176,7 +176,7 @@ def do_quiz to_handle
             puts "Same parameters \e[2magain.\e[0m"
           else
             puts "New parameters."
-            $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
+            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard )
             keep.set_params
             keep.clear_history
           end
@@ -192,7 +192,7 @@ def do_quiz to_handle
     
     first_round = true
     loop do  ## every new question
-      
+
       re_calculate_quiz_difficulty unless first_round
 
       catch :next do
@@ -1157,13 +1157,25 @@ class HoleNote < QuizFlavour
   def initialize
     super
 
-    holes = if $opts[:difficulty] == :hard
-              $harp_holes
-            else
-              $named_hole_sets.map {|k, hset| hset}.flatten.uniq
-            end
+    unless @@key_chosen_explicitly    
+      $key = $common_harp_keys.sample
+      $no_calibration_needed = true
+    end
+    set_global_musical_vars
 
-    hole2note = holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
+    @hole_set  = if $opts[:difficulty] == :hard
+                   nil
+                 else
+                   $named_hole_sets.keys.sample
+                 end
+
+    @holes = if @hole_set
+               $named_hole_sets[@hole_set]
+             else
+               $harp_holes
+             end
+
+    hole2note = @holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
     note2hole = hole2note.inject(Hash.new {|h,k| h[k] = Array.new}) do |memo, hn|
       memo[hn[1]] << hn[0]
       memo
@@ -1198,15 +1210,17 @@ class HoleNote < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head + ', taking ' +
-      if $opts[:difficulty] == :hard
-        'all holes of harp'
+      if @hole_set
+        "only holes from set '#{@hole_set}'"
       else
-        'only named hole-sets'
+        'all holes of harp'
       end
   end
 
   def issue_question
-    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m', name the matching \e[94m#{@adesc}\e[34m #{@any_clause}; key of #{$key}\e[0m"
+    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m'" +
+         ( @hole_set  ?  " (taken from set '#{@hole_set}', with #{$named_hole_sets[@hole_set].length} holes)"  :  '(taken from all holes of harp)' ) +
+         "\nname the matching \e[94m#{@adesc}\e[34m #{@any_clause}; \e[94mKEY of #{$key}\e[34m\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 
@@ -1222,6 +1236,28 @@ class HoleNote < QuizFlavour
 
   def help2_desc
     ['.help-chart', "Print chart with context for solution"]
+  end
+
+  def help3
+    print "The relevant hole set is "
+    if @hole_set
+      print "'#{@hole_set}'"
+    else
+      print 'all holes of harp'
+    end
+    print "; therefore the answer\nis among "
+    
+    if @adesc == 'note'
+      puts "the notes from these holes:"
+    else
+      puts "these holes:"
+    end
+    puts
+    puts @holes.join('  ')
+  end
+
+  def help3_desc
+    ['.help-hole-set', "Print the relevant set of holes"]
   end
 
   def after_solve
@@ -1376,6 +1412,86 @@ class HoleHideNote < QuizFlavour
 end
 
 
+
+class HearHoleSet < QuizFlavour
+
+  $q_class2colls[self] = %w(no-mic)
+  
+  def initialize
+    super
+
+    @harp_keys = if $opts[:difficulty] == :easy
+                   $common_harp_keys
+                 else
+                   $all_harp_keys
+                 end
+    
+    unless @@key_chosen_explicitly    
+      $key = @harp_keys.sample
+      $no_calibration_needed = true
+    end
+    set_global_musical_vars
+
+    @choices = @harp_keys.map {|chk| $named_hole_sets.keys.map {|hs| "#{chk}-#{hs}"}}.flatten
+    @choices_orig = @choices.clone
+
+    @hole_set = $named_hole_sets.keys.sample
+    @solution = "#{$key}-" + @hole_set.to_s
+    @holes = $named_hole_sets[@hole_set]
+      
+    @prompt = "Pick the key and hole-set, that has been played:"
+    @help_head = 'key and hole-set'
+
+    issue_choosing_key
+    @@key_chosen_explicitly = false
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head + ', taking ' +
+      if $opts[:difficulty] == :easy
+        'common harp keys only'
+      else
+        'all harp keys'
+      end + " and all (#{$named_hole_sets.length}) hole sets"
+  end
+
+  def issue_question
+    puts "\e[34mUsing a key and playing a hole set\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    play_hons hide: :all
+  end
+
+  def help2
+    maxlen = $named_hole_sets.keys.map(&:length).max
+    puts "Showing all hole sets:"
+    $named_hole_sets.each do |name, holes|
+      puts "  #{name.to_s.rjust(maxlen)} : " + holes.join('  ')
+    end
+  end
+
+  def help2_desc
+    ['.help-show-all-hole-sets', "Show all hole sets"]
+  end
+
+  def help3
+    puts "The hole set is   '#{@hole_set}':   #{@holes.join('  ')}"
+  end
+
+  def help3_desc
+    ['.help-hole-set', "Reveal the hole-set"]
+  end
+
+  def help4
+    puts "The key is   '#{$key}'."
+  end
+
+  def help4_desc
+    ['.help-key', "Reveal the key"]
+  end
+
+end
+
+
 class HearKey < QuizFlavour
 
   $q_class2colls[self] = %w(no-mic)
@@ -1479,6 +1595,76 @@ class HearKey < QuizFlavour
     puts
     play_holes_or_notes_and_handle_kb [semi2note(key2semi(@solution))], hide: :help
     make_term_cooked
+  end
+
+end
+
+
+class HearHole < QuizFlavour
+
+  $q_class2colls[self] = %w(no-mic)
+  
+  def initialize
+    super
+
+    unless @@key_chosen_explicitly    
+      $key = $common_harp_keys.sample
+      $no_calibration_needed = true
+    end
+    set_global_musical_vars    
+    @hole_set = $named_hole_sets.keys.sample
+    
+    @choices = $named_hole_sets[@hole_set]
+    @choices_orig = @choices.clone
+    begin
+      @solution = @choices.sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
+    @prompt = "Hole that has been played (hole set '#{@hole_set}', key of #{$key}):"
+    @help_head = "Hole"
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+      ", taking one key out of #{$common_harp_keys.length} keys and one hole-set from #{$named_hole_sets.keys.length}"
+  end
+
+  def issue_question silent: false
+    unless silent
+      puts "\e[34mHear a hole from set '#{@hole_set}' and key #{$key} and give it's name\e[0m"
+      puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    end
+    play_hons hide: :all, hons: [@solution]
+  end
+
+  def help2
+    other = ($named_hole_sets[@hole_set] - [@solution]).sample
+    puts "Another hole, but from the same hole set '#{@hole_set}':"
+    play_hons hons: [other]
+  end
+
+  def help2_desc
+    ['.help-other', "Play and name another hole from the same set"]
+  end
+
+  def help3
+    other = ($named_hole_sets[@hole_set] - [@solution]).sample
+    puts "Playing hole set   #{$named_hole_sets[@hole_set].join('  ')}   but shuffled:"
+    play_hons hide: :all, hons: $named_hole_sets[@hole_set].shuffle
+  end
+
+  def help3_desc
+    ['.help-shuffle', "Play the hole set, shuffled"]
+  end
+
+  def after_solve
+    puts
+    puts "Playing hole #{@solution}, from set '#{@hole_set}', key of #{$key}:"
+    sleep 0.1
+    puts
+    play_hons hons: [@solution]
+    puts
   end
 
 end
@@ -1778,8 +1964,8 @@ class HearTempo < QuizFlavour
 
   $q_class2colls[self] = %w(no-mic)
   
-  @@choices = {:easy => %w(70 90 110 130),
-               :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160)}
+  @@choices = {:easy => %w(70 90 110 130 150),
+               :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160 170 180)}
   
   def initialize
     super
@@ -2366,7 +2552,7 @@ end
 
 
 def re_calculate_quiz_difficulty
-  $opts[:difficulty] = (rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
+  $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard)
   unless $num_quiz_replay_explicit
     nqr = case $quiz_flavour
           when 'play-shifted'

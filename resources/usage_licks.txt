@@ -135,5 +135,5 @@ USAGE BY EXAMPLES
 
     harpwise licks +1 +2 +3
 
-  later, if satisfied, you may add this lick and a recording to your
-  lickfile.
+  later, if satisfied, you may add this lick (and maybe a recording)
+  to your lickfile.

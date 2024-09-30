@@ -8,9 +8,11 @@
 # The only argument is a json file with all needed informations, e.g.:
 # {
 #     "sound_file": "some-song.mp3",
+#     "multiply": 1.0,
 #     "lead_for_keys": 0.5,
 #     "sleep_before_start": 0.2,
 #     "sleep_after_iteration": 0.2,
+#     "sox_opts": "",
 #     "timestamps_and_keys": [
 # 	[5.868409, "l"],
 # 	[15.47452, "l"],
@@ -32,8 +34,9 @@ require 'set'
 fifo = "#{Dir.home}/.harpwise/control_fifo"
 
 ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
+raise("Ony one argument allowed, not #{ARGV}") if ARGV.length > 1
 params = JSON.parse(File.read(ARGV[0]))
-wanted = %w(timestamps_to_keys sound_file lead_for_keys sleep_before_start sleep_after_iteration)
+wanted = %w(timestamps_to_keys sound_file lead_for_keys sleep_before_start sleep_after_iteration sox_opts multiply)
 given = params.keys
 raise("Found keys: #{given}, but wanted: #{wanted} in #{ARGV[0]}") if Set[*given] != Set[*wanted]
 raise("Value '#{params['timestamps_to_keys']}' should be an array") unless params['timestamps_to_keys'].is_a?(Array)
@@ -44,10 +47,14 @@ sound_file = params['sound_file']
 lead_for_keys = params['lead_for_keys']
 sleep_before_start = params['sleep_before_start']
 sleep_after_iteration = params['sleep_after_iteration']
+multiply = params['multiply']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
 Thread.new do
-  system "play -q #{sound_file}"
+  cmd = "play -q #{sound_file} #{params['sox_opts']}"
+  puts cmd
+  puts
+  system cmd
   sleep 1
   puts
   puts "Done."
@@ -58,7 +65,7 @@ at_exit do
 end
 puts
 
-sleep_secs = timestamps_to_keys[0][0] + sleep_before_start
+sleep_secs = ( timestamps_to_keys[0][0] + sleep_before_start ) * multiply
 puts "Initial sleep %.2f sec" % sleep_secs
 sleep sleep_secs
 i = 0
@@ -71,9 +78,9 @@ loop do
     x,y = pair[0][0], pair[1][0]
     keys_to_send = pair[0][1 .. -1]
     puts "Interval #{j+1}/#{timestamps_to_keys.length-1}:"
-    puts "sleep %.2f sec" % (y - x)
+    puts "sleep %.2f sec" % ( (y - x) * multiply )
     this_lead_for_keys = ( y - x > lead_for_keys  ?  lead_for_keys  :  0 )
-    sleep y - x - this_lead_for_keys
+    sleep ( y - x ) * multiply - this_lead_for_keys
     keys_to_send.each do |key|
       begin
         Timeout::timeout(1) do
@@ -88,6 +95,6 @@ loop do
     sleep this_lead_for_keys
     puts
   end
-  puts "Sleep after iteration %.2f sec" % sleep_after_iteration
-  sleep sleep_after_iteration
+  puts "Sleep after iteration %.2f sec" % ( sleep_after_iteration * multiply )
+  sleep sleep_after_iteration * multiply
 end

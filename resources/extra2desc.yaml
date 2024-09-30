@@ -154,6 +154,9 @@ quiz:
     plays a sequence of notes starting from a random key (i.e. its
     base-note); asks for this key (rather than for the matching
     harmonica)
+  hear-hole: |
+    picks a random key and a named hole-set; then plays a hole from
+    this set and asks for its name
   play-shifted: |
     wise computes a sequence of holes, that can be shifted by an
     interval; it plays the original unshifted sequence and names and
@@ -163,9 +166,8 @@ quiz:
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa
   hole-note: |
-    gives a hole and asks for the note or vice versa; this of course
-    depends on the key of the harp, which you might want to change now
-    and then for broader coverage
+    the wise picks a harp-key then gives a hole and asks for the note
+    or vice versa
   hole-note-key: |
     picks (and hides) a new key for the harp at random; then, for a
     named hole-set (e.g. 'blow'), gives holes and matching notes
@@ -173,6 +175,9 @@ quiz:
   hole-hide-note: |
     picks a new key at random and a named hole-set; then shows the
     hole-set, but hides one note; then asks for the hidden note
+  hear-hole-set: |
+    picks a new key at random and a named hole set; then plays it,
+    holes hidden; then asks for the key and the hole set
   keep-tempo: |
     plays a number of beats defining a certain tempo; then some
     silence and then some final beats. You are expected to play along
