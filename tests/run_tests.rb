@@ -1498,13 +1498,13 @@ do_test 'id-44: switch between modes licks and listen' do
   tms 'harpwise licks a'
   tms :ENTER
   wait_for_start_of_pipeline
-  sleep 1
+  sleep 2
   expect { screen[1]['licks'] }
   tms 'm'
-  sleep 4
+  sleep 6
   expect { screen[1]['listen'] }
   tms 'm'
-  sleep 4
+  sleep 6
   expect { screen[1]['licks'] }
   kill_session
 end
@@ -3505,6 +3505,16 @@ do_test 'id-133: test for diff between man and usage' do
   kill_session
 end
 
+do_test 'id-134: timed.rb with sample' do
+  new_session
+  tms "~/harpwise/util/timed.rb ~/harpwise/util/timed_sample.json"
+  tms :ENTER
+  sleep 2
+  # if we get to this error message, the format of timed_sample.json
+  # has already been accepted.
+  expect { screen[2]['Given mp3 some-song.mp3'] }
+  kill_session
+end
 
 puts
 puts

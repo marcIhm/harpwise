@@ -207,7 +207,7 @@ end
 
 
 at_exit {
-  $memo[:count] = [$memo_count, $memo[:count]].max
+  $memo[:count] = [$memo_count, $memo[:count].to_i].max
   if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
     $memo[:count] = $memo_count
     $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
