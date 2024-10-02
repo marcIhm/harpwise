@@ -5,40 +5,21 @@
 # the lick, that is displayed in 'harpwise listen', in sync with
 # chord-changes of the played mp3.
 
-# The only argument is a json file with all needed informations, e.g.:
-# {
-#     "sound_file": "some-song.mp3",
-#     "multiply": 1.0,
-#     "lead_for_keys": 0.5,
-#     "sleep_before_start": 0.2,
-#     "sleep_after_iteration": 0.2,
-#     "sox_opts": "",
-#     "timestamps_and_keys": [
-# 	[5.868409, "l"],
-# 	[15.47452, "l"],
-# 	[20.209422, "l"],
-# 	[24.93715, "l"],
-# 	[27.333297, "l"],
-# 	[29.6864, "l"],
-# 	[30.442824, "l","s"],
-# 	[34.442824, "l","s"]
-#     ]
-# }
-
-
+# The only argument is a json file with all needed informations, e.g. timed_sample.json
 
 require 'timeout'
 require 'json'
 require 'set'
+require 'pp'
 
 fifo = "#{Dir.home}/.harpwise/control_fifo"
 
 ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
 raise("Ony one argument allowed, not #{ARGV}") if ARGV.length > 1
 params = JSON.parse(File.read(ARGV[0]))
-wanted = %w(timestamps_to_keys sound_file lead_for_keys sleep_before_start sleep_after_iteration sox_opts multiply)
-given = params.keys
-raise("Found keys: #{given}, but wanted: #{wanted} in #{ARGV[0]}") if Set[*given] != Set[*wanted]
+wanted = Set.new(%w(timestamps_to_keys sound_file lead_for_keys sleep_before_start sleep_after_iteration sox_opts multiply comment))
+given = Set.new(params.keys)
+raise("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
 raise("Value '#{params['timestamps_to_keys']}' should be an array") unless params['timestamps_to_keys'].is_a?(Array)
 
 puts
@@ -48,12 +29,18 @@ lead_for_keys = params['lead_for_keys']
 sleep_before_start = params['sleep_before_start']
 sleep_after_iteration = params['sleep_after_iteration']
 multiply = params['multiply']
+comment = params['comment']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
-Thread.new do
-  cmd = "play -q #{sound_file} #{params['sox_opts']}"
-  puts cmd
+if comment.length > 0
+  puts "Comment: " + comment
   puts
+end
+
+cmd = "play -q #{sound_file} #{params['sox_opts']}"
+puts cmd
+puts
+Thread.new do
   system cmd
   sleep 1
   puts
@@ -63,7 +50,6 @@ end
 at_exit do
   system "killall play >/dev/null 2>&1"
 end
-puts
 
 sleep_secs = ( timestamps_to_keys[0][0] + sleep_before_start ) * multiply
 puts "Initial sleep %.2f sec" % sleep_secs

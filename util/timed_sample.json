@@ -1,0 +1,19 @@
+{
+    "sound_file": "some-song.mp3",
+    "comment": "text to be displayed up front, e.g. harpwise-options",
+    "multiply": 1.0,
+    "lead_for_keys": 0.5,
+    "sleep_before_start": 0.2,
+    "sleep_after_iteration": 0.2,
+    "sox_opts": "",
+    "timestamps_to_keys": [
+	[5.868409, "l","s"],
+	[15.47452, "l","s"],
+	[20.209422, "l","s"],
+	[24.93715, "l","s"],
+	[27.333297, "l","s"],
+	[29.6864, "l","s"],
+	[33.442824, "l"],
+	[34.442824, "l","s"]
+    ]
+}
