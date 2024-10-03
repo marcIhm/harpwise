@@ -45,7 +45,10 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   to_play[:replacement_for_play] = quiz_holes_shifts[0] if quiz_holes_shifts
   
   # below stands for override for line_message2 and is set during
-  # initial play, i.e. before builtup of listen-perspective
+  # initial play, i.e. before builtup of listen-perspective; when set,
+  # it overrides line_message2, so that the notes played are shown at
+  # the current cursor position rather than at the bottom of the
+  # screen.
   oride_l_message2 = nil
   first_round = true
   $all_licks, $licks, $all_lick_progs = read_licks

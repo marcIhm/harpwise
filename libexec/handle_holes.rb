@@ -689,7 +689,7 @@ def show_help mode = $mode, testing_only = false
              "",
              "  SPACE:_pause and continue        CTRL-L:_redraw screen",
              "    d,D:_change display (upper part of screen)",
-             "    c,C:_change comment (in lower part of screen)",
+             "    c,C:_change comment (lower part of screen)",
              "      k:_change key of harp",
              "      K:_play adjustable pitch and take it as new key",
              "      s:_rotate scales (used scales or --scale-progression)",
@@ -1013,7 +1013,7 @@ class MsgBuf
     # invoked multiple times in a row; the last one should be called
     # without setting later
     if @@ready && text && !later
-      Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K"
+      Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{truncate_text(text)}\e[0m\e[K"
       @@printed.push([text, min, max, group]) if $testing
     end
     @@printed_at = Time.now.to_f
@@ -1036,7 +1036,7 @@ class MsgBuf
         # display new topmost message; special case of text = nil
         # preserves already visible content (e.g. splash)
         if @@ready && @@lines_durations[-1][0]
-          Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
+          Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{truncate_text(@@lines_durations[-1][0])}\e[0m\e[K"
           @@printed.push(@@lines_durations[-1]) if $testing
         end
         @@printed_at = Time.now.to_f
@@ -1050,7 +1050,7 @@ class MsgBuf
     else
       # current message is still valid
       if @@ready && @@lines_durations[-1][0] && refresh
-        Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K"
+        Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{truncate_text(@@lines_durations[-1][0])}\e[0m\e[K"
         @@printed.push(@@lines_durations[-1]) if $testing
         @@printed_at = Time.now.to_f
       end
