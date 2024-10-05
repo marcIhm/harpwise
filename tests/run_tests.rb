@@ -2528,6 +2528,8 @@ do_test "id-82: screen too small" do
   kill_session
 end
 
+ENV['HARPWISE_TESTING']='msgbuf'
+
 do_test 'id-83: unittest' do
   new_session
   tms 'harpwise develop unittest'
@@ -2536,6 +2538,8 @@ do_test 'id-83: unittest' do
   expect { screen[21]['All unittests okay.'] }
   kill_session
 end
+
+ENV['HARPWISE_TESTING'] = '1'
 
 do_test 'id-84: print list of players' do
   FileUtils.rm_r($players_pictures) if File.exist?($players_pictures)

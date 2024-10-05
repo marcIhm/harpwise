@@ -82,8 +82,8 @@ def check_screen graceful: false, hint_on_large_term: false
   end
 
   if hint_on_large_term && ( $term_width > 1.5 * $conf[:term_min_width] || $term_height > 1.5 * $conf[:term_min_height] )
-    $msgbuf.print "... consider adjusting it for better readability", 5, 5, later: true
-    $msgbuf.print "This terminal [#{$term_width}, #{$term_height}] is much larger than needed [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] ...", 5, 5
+    $msgbuf.print ["This terminal [#{$term_width}, #{$term_height}] is much larger than needed [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] ...",
+                   "... consider adjusting it for better readability"], 5, 5
   end
   
   return true

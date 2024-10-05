@@ -2307,8 +2307,8 @@ end
 
 
 def prepare_listen_perspective_for_quiz
-  $msgbuf.print "or issue signal ctrl-z (quit, tstp) for another flavour", 3, 5, later: true
-  $msgbuf.print "Type 'H' or '4' for quiz-hints, RETURN for next question,", 3, 5, :quiz
+  $msgbuf.print ["Type 'H' or '4' for quiz-hints, RETURN for next question,",
+                 "or issue signal ctrl-z (quit, tstp) for another flavour"], 3, 5
 end
 
 

@@ -570,8 +570,8 @@ def process_opt_lick_prog
     err("Can handle only one lick-progression at a time, not: #{lpnames.join(',')}") if lpnames.length > 1
     lnames = $all_lick_progs[lpnames[0]][:licks]
     desc = $all_lick_progs[lpnames[0]][:desc]
-    $msgbuf.print  "Lick prog #{lpnames[0]}" + ( desc  ?  ", #{desc}"  :  '' ),
-                    7, 7, :lick_prog
+    $msgbuf.print "Lick prog #{lpnames[0]}" + ( desc  ?  ", #{desc}"  :  '' ),
+                  7, 7, :lick_prog, wrap: true, truncate: false
   end
   lnames
 end

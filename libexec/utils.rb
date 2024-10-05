@@ -187,20 +187,24 @@ def display_kb_help what, scroll_allowed, body, wait_for_key: true
 end
 
 
-def truncate_colored_text text, len
+def truncate_colored_text text, len = nil
+  # cannot use default for argument, because we allow beeing called with one
+  # argument only
+  len ||= $term_width - 4
+  text = text.dup
   ttext = ''
   tlen = 0
   trunced = ''
   begin
-    if md = text.match(/^(\e\[\d+m)(.*)$/)
+    if md = text.match(/^(\e\[[\d;,]+m)(.*)$/)
       # escape-sequence: just copy into ttext but do not count in tlen
       ttext += md[1]
       text = md[2]
     elsif md = text.match(/^\e/)
       fail "Internal error: Unknown escape"
     else
-      # no escape a start, copy to ttext and count
-      md = text.match(/^([^\e]+)/)
+      # no escape a start, copy upto next escape to ttext and count
+      md = text.match(/^([^\e]*)/)
       ttext += md[1][0,len - tlen]
       tlen += md[1].length
       text[0,md[1].length] = ''
@@ -211,9 +215,9 @@ def truncate_colored_text text, len
 end
 
 
-def truncate_text text, len = $term_width - 4
+def truncate_text text, len = $term_width - 5
   if text.length > len
-    text[0,len] + '...'
+    text[0,len] + ' ...'
   else
     text
   end
@@ -1002,8 +1006,30 @@ def wrap_words head, words, sep = ','
       line += word
     end
   end
-  lines << line unless line == ''
+  lines << line.strip unless line == ''
   return lines.join("\n")
+end
+
+
+def wrap_text text, term_width: nil, cont: ' ...'
+  line = ''
+  lines = Array.new
+  term_width ||= $term_width
+  cont_len = ( cont&.length || 0 )
+  # keeps the spaces in tokens
+  text.split(/( +)/).each_with_index do |token, idx|
+    if line.length + token.length > term_width - 2 - cont_len
+      lines << line.strip
+      line = token.strip
+    else
+      line += token
+    end
+  end
+  lines << line.strip unless line.strip == ''
+  if cont_len > 0
+    lines[0 .. -2].each {|l| l << cont }
+  end
+  return lines
 end
 
 
@@ -1039,7 +1065,7 @@ def set_testing_vars_mb
   tw_allowed = %w(1 true t yes y)
   if testing && !tw_allowed.include?(ENV["HARPWISE_TESTING"].downcase)
     testing_what = ENV["HARPWISE_TESTING"].downcase
-    tw_allowed.append(*%w(lag jitter player argv opts none))
+    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none))
     err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
     testing_what = testing_what.to_sym
   end
@@ -1049,4 +1075,161 @@ def set_testing_vars_mb
   end
 
   return [testing, testing_what]
+end
+
+
+# Hint or message buffer for main loop in variou places. Makes sure, that all
+# messages are shown long enough
+class MsgBuf
+  # central data structure, used as a stack
+  @@lines_durations = Array.new
+  @@printed_at = nil
+  @@ready = false
+  # used for testing
+  @@printed = Array.new
+
+  def print text, min, max, group = nil, truncate: true, wrap: false
+    
+    # remove any outdated stuff
+    if group
+      # of each group there should only be one element in messages;
+      # older ones are removed. group is only useful, if min > 0
+      idx = @@lines_durations.each_with_index.find {|x| x[0][3] == group}&.at(1)
+      @@lines_durations.delete_at(idx) if idx
+    end
+
+    if text
+      
+      if truncate && wrap
+
+        fail "Internal error: both :truncate and :wrap are set" 
+
+      elsif wrap || text.is_a?(Array)
+
+        lines = if text.is_a?(Array)
+                  text
+                else
+                  wrap_text(text,
+                            term_width:  $testing_what == :msgbuf  ?  $conf[:term_min_width]  :  nil )
+                end
+
+        lines.each {|l| fail "Internal error: text to wrap contains escape: '#{l}'" if l["\e"]}
+
+        # recurse
+        lines[1 .. -1].reverse.each do |l|
+          print_internal l, min, max, group, true
+        end
+        print_internal lines[0], min, max, group, false
+        
+      elsif truncate
+        print_internal truncate_colored_text(text,
+                                             $testing_what == :msgbuf  ?  $conf[:term_min_width]  :  nil),
+                       min, max, group, false
+        
+      else
+
+        fail "Internal error: neither :truncate nor :wrap are set"
+
+      end
+
+    else
+
+      print_internal text, min, max, group, false
+
+    end
+    
+  end
+  
+    
+  def print_internal text, min, max, group, later
+
+    # use min duration for check
+    @@lines_durations.pop if @@lines_durations.length > 0 && @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
+    @@lines_durations << [text, min, max, group] if @@lines_durations.length == 0 || @@lines_durations[-1][0] != text
+    # 'later' should be used for batches of messages, where print is
+    # invoked multiple times in a row; the last one should be called
+    # without setting later
+    if @@ready && text && !later
+      Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K" unless $testing_what == :msgbuf
+      @@printed.push([text, min, max, group]) if $testing
+    end
+    @@printed_at = Time.now.to_f
+  end
+
+  # return true, if there is message content left, i.e. if
+  # message-line should not be used e.g. for hints
+  def update tntf = nil, refresh: false
+
+    tntf ||= Time.now.to_f
+
+    # we keep elements in @@lines_durations until they are expired
+    return false if @@lines_durations.length == 0
+
+    # use max duration for check
+    if @@printed_at && @@printed_at + @@lines_durations[-1][2] < Time.now.to_f
+      # current message is old
+      @@lines_durations.pop
+      if @@lines_durations.length > 0
+        # display new topmost message; special case of text = nil
+        # preserves already visible content (e.g. splash)
+        if @@ready && @@lines_durations[-1][0]
+          Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
+          @@printed.push(@@lines_durations[-1]) if $testing
+        end
+        @@printed_at = Time.now.to_f
+        return true
+      else
+        # no current message
+        @@printed_at = nil
+        # just became empty, return true one more time
+        return true
+      end
+    else
+      # current message is still valid
+      if @@ready && @@lines_durations[-1][0] && refresh
+        Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
+        @@printed.push(@@lines_durations[-1]) if $testing
+        @@printed_at = Time.now.to_f
+      end
+      return true
+    end
+  end
+
+  def ready state = true
+    @@ready = state
+  end
+
+  def clear
+    @@lines_durations = Array.new
+    @@printed_at = nil
+    Kernel::print "\e[#{$lines[:hint_or_message]}H\e[K" if @@ready && $testing_what != :msgbuf
+  end
+
+  def printed
+    @@printed
+  end
+
+  def flush_to_term
+    return if @@lines_durations.length == 0 || @@lines_durations.none? {|l,_| l}
+    puts "\n\n\e[0m\e[2mFlushing pending messages:"
+    @@lines_durations.each do |l,_|
+      next if !l
+      puts '  ' + l
+    end
+    Kernel::print "\e[0m" unless $testing_what == :msgbuf
+  end
+  
+  def empty?
+    return @@lines_durations.length > 0
+  end
+
+  def get_lines_durations
+    @@lines_durations
+  end
+
+  def borrowed secs
+    # correct for secs where lines have been borrowed something else
+    # (e.g. playing the licka)
+    @@printed_at += @@printed_at if @@printed_at
+  end
 end

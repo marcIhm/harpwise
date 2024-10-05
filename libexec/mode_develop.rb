@@ -300,8 +300,57 @@ def do_unittest
   puts
   puts_underlined '$msgbuf'
 
-  # we do not set $msgbuf ready, so we dont get any output
-  $msgbuf.print 'a', 1, 3, later: true
+  $msgbuf.clear
+  len = 42
+  $msgbuf.ready
+  # print long string, that wil be wrapped to three lines
+  $msgbuf.print %w(a b c).map {|ch| ch * len}.join(' '), 1, 1, wrap: true, truncate: false
+  puts "HINT: set HARPWISE_TESTING to 'msgbuf' to use a minimum terminal width" if ENV['HARPWISE_TESTING'] != 'msgbuf'
+  
+  found = $msgbuf.get_lines_durations
+  expected = [['c' * len, 1, 1, nil],
+              ['b' * len, 1, 1, nil],
+              ['a' * len, 1, 1, nil]]
+  expected = [["cccccccccccccccccccccccccccccccccccccccccc", 1, 1, nil],
+              ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...", 1, 1, nil],
+              ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil]]
+  utreport('Wrap long text', found, expected)
+
+  # from the three lines only one has already been printed; the others wait in backlog
+  found = $msgbuf.printed
+  expected = [["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil]]
+  utreport('Sequence of lines, part 1', found, expected)
+
+  # let messages age away
+  sleep 2
+  $msgbuf.update
+  sleep 2
+  $msgbuf.update
+  sleep 2
+  found = $msgbuf.printed
+  expected = [["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil],
+              ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...", 1, 1, nil],
+              ["cccccccccccccccccccccccccccccccccccccccccc", 1, 1, nil]]
+  utreport('Sequence of lines, part 2', found, expected)
+  $msgbuf.ready(false)
+
+  $msgbuf.clear
+  $msgbuf.print 'abc' * len, 1, 1
+  found = $msgbuf.get_lines_durations
+  expected = [["abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ...", 1, 1, nil]]
+  utreport('Truncate text', found, expected)
+
+  
+  $msgbuf.clear
+  $msgbuf.print ['foo','bar'], 1, 3
+  found = $msgbuf.get_lines_durations
+  expected = [['bar', 1, 3, nil],
+              ['foo', 1, 3, nil]]
+  utreport('Print array', found, expected)
+
+  
+  $msgbuf.clear
+  $msgbuf.print 'a', 1, 3
   $msgbuf.print 'b', 1, 3
   # one :foo should overwrite the other
   $msgbuf.print 'c', 1, 3, :foo
@@ -312,6 +361,7 @@ def do_unittest
               ["d", 1, 3, :foo]] 
   utreport('Symbols override', found, expected)
 
+  
   $msgbuf.clear
   $msgbuf.print 'c', 1, 3, :foo
   $msgbuf.print 'a', 1, 3
@@ -324,21 +374,25 @@ def do_unittest
               ["d", 1, 3, :foo]] 
   utreport('Symbols deep override', found, expected)
 
+  
   $msgbuf.clear
   $msgbuf.print 'd', 1, 3
   sleep 2
   found = $msgbuf.update
   expected = true
   utreport('Update', found, expected)
+
   
   found = $msgbuf.get_lines_durations
   expected = [["d", 1, 3, nil]]
   utreport('Not age away for hint', found, expected)
 
+  
   $msgbuf.print 'e', 1, 3
   found = $msgbuf.get_lines_durations
   expected = [["e", 1, 3, nil]]
   utreport('Age away for message', found, expected)
+
   
   sleep 4
   $msgbuf.update
@@ -346,6 +400,7 @@ def do_unittest
   expected = []
   utreport('Age away for hint', found, expected)
 
+  
   puts
   puts "All unittests okay."
   puts

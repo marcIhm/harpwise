@@ -237,7 +237,7 @@ def do_listen
     if $ctl_mic[:journal_play]
       $ctl_mic[:journal_play] = false
       if journal_length > 0
-        $msgbuf.print 'Journal played', 0, 5, later: true
+        # this will show up right after playing
         $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
         [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
           lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
@@ -251,6 +251,7 @@ def do_listen
             break
           end
         end
+        $msgbuf.print 'Journal played', 0, 3
         sleep 0.5
         $ctl_kb_queue.clear
         $freqs_queue.clear
