@@ -54,7 +54,7 @@ def trim_recorded hole, recorded
     if ('0' .. '9').to_a.include?(choice) || choice == '.'
       choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
-      choice += STDIN.gets.chomp.downcase.strip
+      choice += gets_with_cursor.downcase
       is_number = true
     else
       puts choice

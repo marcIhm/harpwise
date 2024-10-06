@@ -223,7 +223,7 @@ def do_listen
         puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
         puts
         print "\e[0mYour comment for these #{journal_length} holes: "
-        comment = STDIN.gets.chomp.strip
+        comment = gets_with_cursor
         make_term_immediate
         clear_area_comment
         journal_write(comment)
@@ -485,7 +485,7 @@ def get_journal_comment
   puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
   puts
   print "\e[0mYour comment (20 chars cutoff): "
-  comment = STDIN.gets.chomp.strip
+  comment = gets_with_cursor
   comment.tr!('()[]{}','')
   make_term_immediate
   clear_area_comment

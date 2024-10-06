@@ -132,7 +132,10 @@ if [:listen, :quiz, :licks].include?($mode)
 end
 
 at_exit do
-  sane_term if STDIN.isatty && STDOUT.isatty
+  if STDIN.isatty && STDOUT.isatty
+    sane_term
+    Kernel::print "\e[?25h"  ## show cursor
+  end
   print "\e[0m"
   write_dump 'end' if $testing
   Thread.list.each do |thread|
@@ -160,6 +163,7 @@ at_exit do
     File.write($pers_file, JSON.pretty_generate($pers_data))
   end
 end
+
 $initialized = true
 
 report_name_collisions_mb

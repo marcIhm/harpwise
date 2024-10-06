@@ -1193,7 +1193,7 @@ def read_and_set_partial
   puts " Current value is '#{$opts[:partial]}'"
   puts
   print "\e[0mYour input: "
-  input = STDIN.gets.chomp
+  input = gets_with_cursor.chomp
   old = $opts[:partial]
   $opts[:partial] = if input.strip.empty?
                       nil
@@ -1226,7 +1226,7 @@ def read_and_set_num_quiz_replay
   puts " anything invalid keeps the current value of: #{$num_quiz_replay}"
   puts
   print "\e[0mYour input: "
-  input = STDIN.gets.chomp
+  input = gets_with_cursor
   new = input.to_i
   $num_quiz_replay = new if new > 0
   make_term_immediate

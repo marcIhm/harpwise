@@ -208,14 +208,14 @@ end
 def prepare_term
   # no timeout on read, one char is enough
   system("stty -echo -icanon min 1 time 0")
-  # hide cursor  
-  Kernel::print "\e[?25l"  
+  Kernel::print "\e[?25l"  ## hide cursor  
 end
 
 
 def sane_term
   system("stty sane")
-  Kernel::print "\e[?25h" # # show cursor
+  # do not show cursor; the only place where this is needed, at_exit,
+  # does this explicitly
 end
 
 
@@ -965,6 +965,7 @@ def drain_chars
   prepare_term
   # drain any already pending chars
   system("stty -echo -icanon min 0 time 0")
+  Kernel::print "\e[?25l"  ## hide cursor  
   begin
   end while STDIN.getc
   system("stty min 1")
@@ -978,6 +979,7 @@ def one_char
   char = STDIN.getc
   # drain any remaining chars (e.g. after pressing cursor keys)
   system("stty -echo -icanon min 0 time 0")
+  Kernel::print "\e[?25l"  ## hide cursor  
   begin
   end while STDIN.getc
   system("stty min 1")
@@ -1595,4 +1597,12 @@ def space_to_cont
     char = $ctl_kb_queue.deq
   end until char == ' '
   print "\e[0m\e[2m#{$resources[:space_to_cont]}"
+end
+
+
+def gets_with_cursor
+  Kernel::print "\e[?25h"  ## show cursor
+  input = STDIN.gets.chomp.strip
+  Kernel::print "\e[?25l"  ## hide cursor
+  input
 end

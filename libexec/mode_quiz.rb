@@ -64,7 +64,6 @@ def do_quiz to_handle
   # Get Flavour
   #
   $quiz_flavour = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
-
   
   # for listen-perspective, dont show solution immediately
   $opts[:comment] = :holes_some
@@ -189,7 +188,7 @@ def do_quiz to_handle
     
   elsif $quiz_flavour2class[$quiz_flavour]
     # Generic flavour
-    
+
     first_round = true
     loop do  ## every new question
 
@@ -2447,7 +2446,6 @@ def get_accepted_flavour_from_extra inherited
     # ask for user feedback
     puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour (#{collection})\nor TAB to choose a flavour or collection explicitly ...\e[0m"
     char = one_char
-
     if char == 'BACKSPACE'
       flavour = nil
       puts "\e[2mAnother flavour at random ...\e[0m"
