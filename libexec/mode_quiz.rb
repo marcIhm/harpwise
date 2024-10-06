@@ -355,7 +355,7 @@ class QuizFlavour
     make_term_immediate
     $ctl_kb_queue.clear
     puts if newline
-    play_holes_or_notes_and_handle_kb( reverse  ?  hons.rotate  :  hons,
+    play_holes_or_notes_and_handle_kb( reverse  ?  hons.reverse  :  hons,
                                        hide: [hide, :help] )
     make_term_cooked
   end
@@ -1584,6 +1584,16 @@ class HearKey < QuizFlavour
     ['.help-pitch', "Play an adjustable pitch to compare"]
   end
 
+  def help4
+    puts "Playing all possible solutions."
+    notes = @choices.map {|k| semi2note(key2semi(k))}
+    play_hons hons: notes
+  end
+
+  def help4_desc
+    ['.help-play-choices', "Play each of the choices"]
+  end
+
   def after_solve
     puts
     puts "Playing key (of sequence) #{@solution}:"
@@ -1970,7 +1980,7 @@ class HearTempo < QuizFlavour
     super
     @choices = @@choices[$opts[:difficulty]].clone
     @choices_orig = @choices.clone
-    @num_beats = 6
+    @num_beats = 8
     begin
       @solution = @choices.sample
     end while @@prevs.include?(@solution)

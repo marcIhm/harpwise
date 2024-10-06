@@ -41,7 +41,7 @@ EOINTRO
   hole2freq = Hash.new
   $harp_holes.each_with_index do |hole, idx|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-    synth_sound hole, file, " (#{idx + 1} of #{$harp_holes.length})"
+    synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1)
     play_wave file, 0.5
     hole2freq[hole] = analyze_with_aubio(file)
   end
@@ -53,7 +53,7 @@ EOINTRO
   puts "this is simply because two programs are used for generation and analysis:"
   puts "sox and aubiopitch; both do a great job on their field, however sometimes"
   puts "they differ by a few Hertz."
-  puts "\n\nRecordings \e[32mdone.\e[0m\n\n\n"
+  puts "\n\nSound samples \e[32mdone.\e[0m\n\n\n"
 end
 
 

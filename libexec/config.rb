@@ -227,14 +227,10 @@ def find_and_check_dirs
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
 
   [:data, :players_pictures].each do |dirsym|
-    if File.exist?($dirs[dirsym])
-      err "Directory #{$dirs[dirsym]} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{$dirs[dirsym]} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?($dirs[dirsym])
-    else
-      FileUtils.mkdir_p($dirs[dirsym])
-      $dirs_data_created = true if dirsym == :data
-    end
+    created = create_dir($dirs[dirsym])
+    $dirs_data_created = true if created && dirsym == :data
   end
-
+  
   readme = "#{$dirs[:data]}/README.org"
   unless File.exist?(readme)
     File.write readme, <<~EOREADME
@@ -351,6 +347,21 @@ def set_global_vars_late
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
+
+  # check and do this before read_calibration is called in set_global_musical_vars
+  if $type == 'richter' and $key == 'c'
+    created = create_dir($sample_dir)
+    if created
+      from_dir = "#{$dirs[:install]}/resources/starter_samples_richter_c"
+      Dir["#{from_dir}/*.mp3"].each do |mp3|
+        wav = $sample_dir + '/' + File.basename(mp3, '.mp3') + '.wav'
+        sys "sox #{mp3} #{wav}"
+      end
+      FileUtils.cp "#{from_dir}/frequencies.yaml", $sample_dir
+      $msgbuf.print "Copied an initial set of samples for type 'richter' and key of 'c' to get you started. However, for a more natural sound, you may replace them with your own recordings later; see mode 'calibrate' for that.", 2, 5, wrap: true, truncate: false
+    end
+  end
+  
   $invocations_dir = "#{$dirs[:data]}/invocations"
   if !File.directory?($invocations_dir)
     FileUtils.mkdir_p($invocations_dir)
@@ -978,7 +989,7 @@ end
 
 def read_calibration
   unless File.exist?($freq_file)
-    puts "\nFrequency file #{$freq_file}\ndoes not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\n(this needs to be done only once for this key)\n\n"
+    puts "\nFrequency file #{$freq_file}\ndoes not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\nthis needs to be done only once for this key\n\n"
     exit 1
   end
   hole2freq = yaml_parse($freq_file)
@@ -1046,6 +1057,7 @@ def set_global_musical_vars rotated: false
     # first invocation, where $all_licks has not yet been set
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
+  
   $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
                                        $no_calibration_needed
   if $opts[:ref] 

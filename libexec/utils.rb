@@ -1233,3 +1233,14 @@ class MsgBuf
     @@printed_at += @@printed_at if @@printed_at
   end
 end
+
+
+def create_dir dir
+  if File.exist?(dir)
+    err "Directory #{dir} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{dir} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?(dir)
+  else
+    FileUtils.mkdir_p(dir)
+    return true
+  end
+  return false
+end

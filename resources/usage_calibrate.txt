@@ -1,13 +1,13 @@
 OVERVIEW
 
   The wise needs a set of audio-samples; these are the sounds-files
-  (recorded or generated) of each of the holes for one second;
+  (recorded or generated) of each of the holes of your harmonica;
   blow, draw, bend.
   
   The samples are used to:
   
-  - play a series of holes, e.g. for modes play or quiz
-  - judge the frequencies of your playing against the frequencies of the
+  - Play a series of holes, e.g. for modes play or quiz
+  - Judge the frequencies of your playing against the frequencies of the
     samples to find out, which note you are actually playing
 
   You may either record those samples under the guidance of this mode,
@@ -36,10 +36,10 @@ USAGE BY EXAMPLES
   Automatic calibration is the fastest way to get your set of samples:
   The wise creates all the audio samples (using sox) for you; however
   this cannot match the characteristics of your own harp and your own
-  playing style, but gives a good quick start.  To use auto
-  calibration, type:
+  playing style, but gives a good quick start.  For auto-calibration,
+  type:
 
-    harpwise calibrate c --auto
+    harpwise calibrate d --auto
 
 
   To calibrate a single hole only (for key of a):

@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 100
+num_exp = 99
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -202,7 +202,7 @@ do_test 'id-9c: create simple lick file for chromatic' do
   kill_session
 end
 
-%w(g a c d).each_with_index do |key,idx|
+%w(g a d).each_with_index do |key,idx|
   do_test "id-1g#{idx}: auto-calibration key of #{key}" do
     new_session
     tms "harpwise calib #{key} --auto"
@@ -211,11 +211,25 @@ end
     tms 'y'
     sleep 4
     wait_for_end_of_harpwise
-    expect { screen[-4]['Recordings done.'] }
+    expect { screen[-4]['Sound samples done.'] }
     kill_session
   end
 end
 
+do_test "id-1j: starter samples for key of c" do
+  some_samples_dir = "#{$dotdir_testing}/samples/richter/key_of_c"
+  probe_file = "#{some_samples_dir}/g5.wav"
+  FileUtils.rm_r(some_samples_dir) if File.exist?(some_samples_dir)
+  new_session
+  tms "harpwise listen c"
+  tms :ENTER
+  sleep 2
+  tms 'q'
+  sleep 2
+  wait_for_end_of_harpwise
+  expect(probe_file) { File.exist?(probe_file) }
+  kill_session
+end
 
 %w(a c).each_with_index do |key,idx|
   do_test "id-47a#{idx}: chromatic; auto-calibration key of #{key}" do
@@ -226,7 +240,7 @@ end
     tms 'y'
     sleep 12
     wait_for_end_of_harpwise
-    expect { screen[-4]['Recordings done.'] }
+    expect { screen[-4]['Sound samples done.'] }
     kill_session
   end
 end
@@ -2816,7 +2830,7 @@ do_test 'id-96d: quiz-flavour hear-tempo' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[11]['Playing 6 beats of Tempo to find'] }
+  expect { screen[11]['Playing 8 beats of Tempo to find'] }
   tms 'compare'
   tms :ENTER
   sleep 1

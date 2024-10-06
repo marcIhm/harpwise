@@ -18,17 +18,6 @@
     - "chord-iv7"
     - "chord-i7"
     - "chord-v7"
-12bar-solo:
-    desc: like 12bar-v but with the blues scale appended for a solo after the progression
-    chords:
-    - "chord-i7"
-    - "chord-iv7"
-    - "chord-i7"
-    - "chord-v7"
-    - "chord-iv7"
-    - "chord-i7"
-    - "chord-v7"
-    - "blues"
 12bar-om3:
     desc: standard 12-bar blues progression, based on flat-7th chords but with major thirds ommitted
     chords:
