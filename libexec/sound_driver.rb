@@ -130,7 +130,12 @@ end
 
 def synth_sound hole, file, extra = ''
   puts "Hole  \e[32m%-8s\e[0m#{extra},   note  \e[32m%-6s\e[0m,   semi \e[32m%4d\e[0m" % [hole, $harp[hole][:note], $harp[hole][:semi]]
-  cmd = "sox -n #{file} synth 4 sawtooth %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
+  duration = if $opts[:wave] == 'pluck'
+               $opts[:fast] ? 0.5 : 1
+             else
+               $opts[:fast] ? 2 : 4
+             end
+  cmd = "sox -n #{file} synth #{duration} #{$opts[:wave]}  %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
   sys cmd
 end
 
@@ -317,7 +322,7 @@ def play_hole_or_note_and_collect_kb hon, duration
 end
 
 
-def synth_for_inter_or_chord semis, files, gap, len, wave = :pluck
+def synth_for_inter_or_chord semis, files, gap, len, wave = 'pluck'
   fail 'Internal error: unequal param len' unless semis.length == files.length
   im_files = [1, 2].map {|i| "#{$dirs[:tmp]}/intermediate_#{i}.wav"}
   times = (0 ... semis.length).map {|i| 0.3 + i*gap}

@@ -206,6 +206,10 @@ def set_global_vars_early
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
+
+  # default is (sometimes) $all_waves[0]
+  $all_waves = %w(pluck sawtooth square sine)
+  
 end
 
 
@@ -619,7 +623,7 @@ def read_and_set_musical_config
     hole_root ||= hole if semi % 12 == 0
   end
   # :equiv and :canonical are useful when doing set operations with
-  # hols; eg for scales and licks
+  # holes; eg for scales and licks
   $hole2note_read.each do |hole, _|
     harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
     equiv = harp[harp[hole][:equiv][0]] 
@@ -887,6 +891,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false
   [scale_holes, hole2rem, props, sfile]
 end
 
+
 $chart_with_holes_raw = nil
 $chart_cell_len = nil
 
@@ -988,10 +993,7 @@ end
 
 
 def read_calibration
-  unless File.exist?($freq_file)
-    puts "\nFrequency file #{$freq_file}\ndoes not exist; you need to calibrate for key of #{$key} first !\n\n#{for_automatic_calibration}\n\nthis needs to be done only once for this key\n\n"
-    exit 1
-  end
+  err "Frequency file #{$freq_file}\ndoes not exist; you need to calibrate for the key of   #{$key}   first !\n\n#{for_automatic_calibration}\n\nthis needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes. Or you may redo the whole calibration !\n\n#{for_automatic_calibration}"

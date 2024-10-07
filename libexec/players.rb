@@ -248,8 +248,7 @@ def play_interactive_pitch embedded: false, explain: true,
                            start_key: nil, return_accepts: false
 
   semi = note2semi((start_key || $key).then {|k| ('1' .. '9').include?(k[-1])  ?  k  :  k + '4'})
-  all_waves = [:pluck, :sawtooth, :square, :sine]
-  wave = wave_was = :pluck
+  wave = wave_was = 'pluck'
   min_semi = -24
   max_semi = 24
   paused = false
@@ -347,11 +346,11 @@ def play_interactive_pitch embedded: false, explain: true,
         print_pitch_information(semi, knm)
       elsif $ctl_pitch[:wave_up]
         wave_was = wave
-        wave = rotate_among(wave, :up, all_waves)
+        wave = rotate_among(wave, :up, $all_waves)
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:wave_down]
         wave_was = wave
-        wave = rotate_among(wave, :down, all_waves)
+        wave = rotate_among(wave, :down, $all_waves)
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:show_help]
         pplayer.pause
@@ -388,7 +387,7 @@ def play_interactive_pitch embedded: false, explain: true,
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
     end
 
-    if wave == :pluck && wave_was != :pluck
+    if wave == 'pluck' && wave_was != 'pluck'
       wave_was = wave
       5.times do
         break if $ctl_pitch[:any]
@@ -549,8 +548,7 @@ def play_interactive_chord semis, args_orig
   puts "(type 'h' for help)\e[0m\n\n"
 
   tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
-  all_waves = [:pluck, :sawtooth, :square, :sine]
-  wave = :sawtooth
+  wave = 'sawtooth'
   gap = ConfinedValue.new(0.2, 0.1, 0, 2)
   len = ConfinedValue.new(6, 1, 1, 16)
   # chord dscription and sound description
@@ -626,11 +624,11 @@ def play_interactive_chord semis, args_orig
         puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true
       elsif $ctl_chord[:wave_up]
-        wave = rotate_among(wave, :up, all_waves)
+        wave = rotate_among(wave, :up, $all_waves)
         new_sound = true
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_chord[:wave_down]
-        wave = rotate_among(wave, :down, all_waves)
+        wave = rotate_among(wave, :down, $all_waves)
         new_sound = true
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_chord[:gap_inc]

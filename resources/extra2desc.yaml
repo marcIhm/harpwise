@@ -201,3 +201,5 @@ develop:
     excercise selected widgets to be tested
   lickfile, lf: |
     load and parse a lickfile
+  check-frequencies, cf: |
+    recalculate and check frequencies for current set of samples

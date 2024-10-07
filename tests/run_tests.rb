@@ -231,6 +231,18 @@ do_test "id-1j: starter samples for key of c" do
   kill_session
 end
 
+%w(c a).each_with_index do |key,idx|
+  do_test "id-1k#{idx}: check frequencies for key of #{key}" do
+    new_session
+    tms "harpwise dev #{key} cf"
+    tms :ENTER
+    sleep 2
+    wait_for_end_of_harpwise
+    expect { screen.any? {|l| l['All checks passed.']} }
+    kill_session
+  end
+end
+
 %w(a c).each_with_index do |key,idx|
   do_test "id-47a#{idx}: chromatic; auto-calibration key of #{key}" do
     new_session
@@ -450,7 +462,7 @@ do_test 'id-3: manual calibration summary' do
   sleep 2
   tms 's'
   sleep 4
-  expect { screen[9]['       -10   |     1482 |     1480 |      2 |      2 | ........I........'] }
+  expect { screen[9]['       -10   |     1480 |     1480 |      0 |      0 | ........I........'] }
   kill_session
 end
 

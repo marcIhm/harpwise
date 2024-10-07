@@ -37,7 +37,7 @@ EOINTRO
     puts
     exit 0
   end
-  puts
+
   hole2freq = Hash.new
   $harp_holes.each_with_index do |hole, idx|
     file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"

@@ -361,4 +361,11 @@ lick_radio:
     For playing licks:
     preset controls for endless playing of selected licks random or in
     a loop
-  
+
+wave:
+  - |
+    choose waveform for generated samples,
+    default is 'pluck'; give somthing invalid, e.g. 'x' for full set
+    of choices.
+  - WAVEFORM
+    

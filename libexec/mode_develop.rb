@@ -23,6 +23,8 @@ def do_develop to_handle
     do_widgets
   when 'lickfile', 'lf'
     do_lickfile to_handle
+  when 'check-frequencies', 'cf'
+    do_check_frequencies
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
@@ -450,4 +452,36 @@ def do_lickfile to_handle
   report_name_collisions_mb
   pp({all_licks: $all_licks.length,
       licks: $licks.length})
+end
+
+
+def do_check_frequencies
+  puts
+  hole2freq_read = yaml_parse($freq_file)
+  hole_was = nil
+  freq_was = 0
+  semi_was = 0
+  puts "Comparing #{$harp_holes.length} frequencies for type #{$type} and key of #{$key}:\n\n  - from file #{$freq_file}\n  - with measurement from aubiopitch\n  - with calculated frequencies for equal tempererament\n\nand checking for beeing strict ascending.\n\n"
+
+  $harp_holes.each do |hole|
+    semi = $harp[hole][:semi]
+
+    freq_measured = analyze_with_aubio("#{$sample_dir}/#{$harp[hole][:note]}.wav")
+    freq_calculated = semi2freq_et($harp[hole][:semi])
+    puts "  #{hole.ljust(8)}, #{$harp[hole][:note].ljust(4)}   measured = %8.2f\n                 calculated = %8.2f\n                  from file = %8.2f" % [freq_measured.round(2), freq_calculated, hole2freq_read[hole]]
+
+    if hole_was && semi != semi_was
+      err "Frequencies measured for holes   #{hole_was} = #{freq_was} Hz   and   #{hole} = #{freq_measured} Hz   are not ascending" unless freq_was < freq_measured
+    end
+
+    [['measured', freq_measured],
+     ['calculated', freq_calculated]].each do |what, freq_other|
+      err "Frequencies for hole #{hole}   #{what} = #{freq_other} Hz   and   read from file = #{hole2freq_read[hole]} Hz   are too different" if ( freq_other - hole2freq_read[hole] ).abs > 0.005 * ( freq_other + hole2freq_read[hole] )
+    end
+    
+    freq_was = freq_measured
+    hole_was = hole
+    semi_was = semi
+  end
+  puts "\n\nAll checks passed.\n\n"
 end

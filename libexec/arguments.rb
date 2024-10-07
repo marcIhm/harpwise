@@ -88,6 +88,7 @@ def parse_arguments_early
         transpose_scale: %w(--transpose-scale)}],
      [Set[:calibrate], {
         auto: %w(--auto),
+        wave: %w(--wave),
         hole: %w(--hole)}],
      [Set[:print], {
         terse: %w(-T --terse)}],
@@ -284,6 +285,13 @@ def parse_arguments_early
     opts[:iterate] ||= :random
     err "Option '--iterate' only accepts values 'random' or 'cycle', not '#{opts[:iterate]}'" if opts[:iterate].is_a?(String)
   end
+
+  if opts[:wave]
+    opts[:wave] = match_or(opts[:wave], $all_waves) do |none, choices|
+      err "Value #{none} of option '--wave' is none of #{choices}"
+    end
+  end
+  opts[:wave] ||= $all_waves[0]
 
   opts[:no_player_info] = true if opts[:scale_prog]
 
