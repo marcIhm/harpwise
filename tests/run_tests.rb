@@ -2198,21 +2198,21 @@ do_test 'id-65: play progression' do
   kill_session
 end
 
-do_test 'id-66: tool search-in-licks' do
+do_test 'id-66: tool search-holes-in-licks' do
   new_session
-  tms 'harpwise tool search-in-licks +1 -1'
+  tms 'harpwise tool search-holes-in-licks +1 -1'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[7]['2 matches'] }
   kill_session
 end
 
-do_test 'id-66a: tool search-in-scales' do
+do_test 'id-66a: tool search-lick-in-scales' do
   new_session
-  tms 'harpwise tool search-in-scales wade'
+  tms 'harpwise tool search-lick-in-scales wade'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['all     blues   minor   minor-pentatonic'] }
+  expect { screen[11]['all     blues   minor   minor-pentatonic'] }
   kill_session
 end
 
@@ -2436,8 +2436,8 @@ do_test 'id-76: transcribe a lick' do
   tms 'harpwise tools transcribe wade'
   tms :ENTER
   sleep 5
-  expect { screen[11]['0.7: -2   1.9: -3/   2.8: -2   3.4: -2'] }
-  expect { screen[14]['Playing (as recorded, for a a-harp): -2 (0.2)   -3/ (0.3)   -2 (0.4)'] }
+  expect { screen[11]['0.7: -2   1.9: -3/   2.5: -2   4.2: -1   4.7: -2//   5.0: -2'] }
+  expect { screen[13]['Playing (as recorded, for a a-harp): -2 (0.3)   -3/ (0.3)   -2 (1.4)'] }
   kill_session
 end
 
@@ -3016,13 +3016,14 @@ do_test 'id-102: help on flavours via TAB' do
   kill_session
 end
 
-do_test 'id-103: tool search-scale-in-licks' do
+do_test 'id-103: tool licks-from-scale' do
   new_session
-  tms 'harpwise tool search-scale-in-licks blues-middle'
+  tms 'harpwise tool licks-from-scale blues-middle'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[16]['lick-blues  box1-i  box2-i'] }
-  expect { screen[20]['feeling-bad     box1-iv     box2-iv     three'] }
+  expect { screen[3]['lick-blues  box1-i  box2-i'] }
+  expect { screen[12]['feeling-bad     box1-iv     box2-iv'] }
+  expect { screen[16]['wade'] }
   kill_session
 end
 

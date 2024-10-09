@@ -18,12 +18,12 @@ def do_tools to_handle
     tool_shift_to_groups to_handle
   when 'keys'
     tool_key_positions to_handle
-  when 'search-in-licks'
-    tool_search_in_licks to_handle
-  when 'search-in-scales'
-    tool_search_in_scales to_handle
-  when 'search-scale-in-licks'
-    tool_search_scale_in_licks to_handle
+  when 'search-holes-in-licks'
+    tool_search_holes_in_licks to_handle
+  when 'search-lick-in-scales'
+    tool_search_lick_in_scales to_handle
+  when 'licks-from-scale'
+    tool_licks_from_scale to_handle
   when 'chart'
     tool_chart
   when 'edit-licks'
@@ -261,7 +261,7 @@ def print_transposed cols, emphasis = nil
 end
 
 
-def tool_search_in_licks to_handle
+def tool_search_holes_in_licks to_handle
 
   err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
@@ -305,7 +305,7 @@ def tool_search_in_licks to_handle
 end
 
 
-def tool_search_in_scales to_handle
+def tool_search_lick_in_scales to_handle
 
   err "Need at least one lick-name or hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
@@ -343,6 +343,7 @@ def tool_search_in_scales to_handle
   print_in_columns(mt_scales_all, pad: :tabs)
   puts
   puts "Removing each of the given holes to get matches with more scales:"
+  puts
   cnt = 0
   holes.each do |hole|
     mt_scales = sc_hls.keys.select {|s| (holes - [hole] - sc_hls[s]).empty?}
@@ -355,87 +356,145 @@ def tool_search_in_scales to_handle
   puts
 end
 
-def tool_search_scale_in_licks to_handle
 
-  err "Need the name of a scale (e.g. '#{$all_scales[-1]}') as a single argument" unless to_handle.length == 1
+def tool_licks_from_scale to_handle
+  
+  err "Need the name of a scale (e.g. '#{$all_scales[-1]}') as a first argument" if to_handle.length == 0
+  err "Need one or two arguments, not:   #{to_handle.join(' ')}" if to_handle.length > 2
+
   scale = to_handle[0]
-  err "Given argument #{scale} is not the name of a scale (any of: #{$all_scales.join(', ')})" unless $all_scales.include?(scale)
+  err "First argument #{scale} is not the name of a scale (any of: #{$all_scales.join(', ')})" unless $all_scales.include?(scale)
+
+  pct_min = if to_handle.length == 2
+              if to_handle[1].match?(/^\d+$/)
+                to_handle[1].to_i
+              else
+                -1
+              end
+            else
+              60
+            end
+  err "Second argument (if any) must be an integer between 0 and 100, giving the minimum percent of holes, that must be from scale" if pct_min < 0 || pct_min > 100
   
   holes, _, _, _ = read_and_parse_scale(scale, $harp)
   scale_holes = holes.map {|h| $harp[h][:canonical]}.uniq.
                   sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
   
-  prev_not = false
   licks_all = Array.new
   licks_but_one = Array.new
-  puts
+  licks_but_two = Array.new
+  licks_not_from_scale = 0
+  licks_empty = 0
+  licks_too_few_holes = 0
+  holes_kept = nil
+  
+  puts "\e[2m"
   
   $all_licks, $licks, $all_lick_progs = read_licks
   $licks.each do |lick|
 
-    lick_holes = lick[:holes_wo_events]
+    lick_holes_all = lick[:holes_wo_events].map {|h| $harp[h][:canonical]}
+    lick_holes_uniq = lick_holes_all.uniq.sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
 
-    lick_holes = lick_holes.map {|h| $harp[h][:canonical]}.uniq.
-                   sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
-  
-    contains_all = (lick_holes - scale_holes).empty?
+    if lick_holes_all.length == 0
+      licks_empty += 1
+      next
+    end
+    
+    # does scale contain all holes of lick ?
+    contains_all = (lick_holes_uniq - scale_holes).empty?
+    what = :all if contains_all
 
-    contains_but_one = Array.new
-    unless contains_all
-      lick_holes.each do |hole|
-        contains_but_one << hole if (lick_holes - [hole] - scale_holes).empty?
+    unless what
+      contains_but_one = Array.new
+      lick_holes_uniq.each do |hole|
+        if (lick_holes_uniq - [hole] - scale_holes).empty?
+          contains_but_one << hole
+          what = :but_one
+          holes_kept = [(lick_holes_all - [hole]).length, lick_holes_all.length]
+        end
       end
     end
 
-    if !contains_all && contains_but_one.length == 0
-      if prev_not
-        print "\e[2m#{lick[:name]}\e[0m "
-      else
-        print "\e[2mScale does not contain at least two holes of lick(s):\n  #{lick[:name]}\e[0m "
+    unless what
+      contains_but_two = Array.new
+      lick_holes_uniq.combination(2).each do |holes|
+        if (lick_holes_uniq - holes - scale_holes).empty?
+          contains_but_two << holes
+          what = :but_two
+          holes_kept = [(lick_holes_all - holes).length, lick_holes_all.length]
+        end
       end
-      prev_not = true
-    else
-      if prev_not
-        puts 
-        puts
-      end
-      puts "Scale contains lick #{lick[:name]} with holes: #{lick_holes.join(' ')}"
-      if contains_all
-        puts " ,with all its holes."
-        licks_all << lick[:name]
-      else
-        puts " ,when removing any of these holes: #{contains_but_one.join(' ')}"
+    end
+
+    case what
+    when :all
+      puts "#{lick[:name]}: all holes from scale"
+      licks_all << lick[:name]
+    when :but_one
+      puts ("#{lick[:name]}: (%d,%d) when removing: " +
+            contains_but_one.join(' ')) % holes_kept
+      if holes_kept[0] >= holes_kept[1] * pct_min / 100.0
         licks_but_one << lick[:name]
+      else
+        licks_too_few_holes += 1
       end
-      puts
-      prev_not = false
+    when :but_two
+      puts ("#{lick[:name]}: (%d,%d) when removing: " +
+            contains_but_two.map {|hs| "(#{hs[0]},#{hs[1]})"}.join(' ')) % holes_kept
+      if holes_kept[0] >= holes_kept[1] * pct_min / 100.0
+        licks_but_two << lick[:name]
+      else
+        licks_too_few_holes += 1
+      end
+    else
+      licks_not_from_scale += 1
+      # no output; three ore more holes are not from scale
     end
-  end
-  if prev_not
-    puts 
-    puts
   end
   puts
+  puts "\e[2mNumber-pair after lickname, e.g. (5/12), is the number of holes\nremaining after removing holes to fit within scale."
+  puts "\e[0m"
   puts_underlined "Summary for Scale #{scale}", '-', dim: false
   puts
   puts "Total number of licks checked: #{$licks.length}"
   puts
-  puts 'Licks that are fully contained:'
+  puts "Licks that are fully contained in scale #{scale}:"
   if licks_all.length == 0
     puts '  none'
   else
+    print "\e[32m"
     print_in_columns licks_all, pad: :tabs
-    puts " count: #{licks_all.length}"
+    puts "\e[0mcount: #{licks_all.length}"
   end
   puts
-  puts 'Licks that are contained but for one hole:'
+  puts "Below you see only licks, that still have more than   #{pct_min}%   of their"
+  puts "original hole-count, once the not-from-scale-holes have been removed."
+  puts "You may explore by giving a different percentage as a second argument"
+  puts "on invocation."
+  puts
+  puts "Licks that are from scale but for one of their holes:"
   if licks_but_one.length == 0
     puts '  none'
   else
+    print "\e[32m"
     print_in_columns licks_but_one, pad: :tabs
-    puts " count: #{licks_but_one.length}"
+    puts "\e[0mcount: #{licks_but_one.length}"
   end
-  puts 
+  puts
+  puts "Licks that are from scale but for two of their holes:"
+  if licks_but_two.length == 0
+    puts '  none'
+  else
+    print "\e[32m"
+    print_in_columns licks_but_two, pad: :tabs
+    puts "\e[0mcount: #{licks_but_two.length}"
+  end
+  puts
+  puts "All remaining licks have three or more holes that are not from scale (#{licks_not_from_scale});"
+  puts "or they dont retain enough holes when removing out-of-scale holes (#{licks_too_few_holes})"
+  puts "or they had no holes to begin with (#{licks_empty})"
+  puts
 end
 
 

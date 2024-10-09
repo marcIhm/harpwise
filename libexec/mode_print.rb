@@ -155,17 +155,21 @@ def do_print to_print
 
     when 'scales'
 
-      puts_underlined 'All scales:'
-      puts " \e[2m(name : holes)\e[0m"
-      puts
-      maxs = $all_scales.map {|s| s.length}.max
-      $all_scales.each do |sname|
-        scale_holes, _ = read_and_parse_scale(sname)
-        puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
-        if $scale2desc[sname] || $scale2short[sname]
-          print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
-          print "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
-          puts 
+      if $opts[:terse]
+        print_in_columns($all_scales, pad: :tabs)
+      else
+        puts_underlined 'All scales:'
+        puts " \e[2m(name : holes)\e[0m"
+        puts
+        maxs = $all_scales.map {|s| s.length}.max
+        $all_scales.each do |sname|
+          scale_holes, _ = read_and_parse_scale(sname)
+          puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
+          if $scale2desc[sname] || $scale2short[sname]
+            print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
+            print "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+            puts 
+          end
         end
       end
       puts

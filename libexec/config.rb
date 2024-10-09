@@ -1085,12 +1085,6 @@ $warned_for_double_short = Hash.new
 def warn_if_double_short short, long
   if $short2scale[short] && long != $short2scale[short] && !$warned_for_double_short[short]
     $warned_for_double_short[short] = true
-    text = "Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)"
-    if [:listen, :quiz, :licks].include?($mode)
-      $msgbuf.print text, 5, 5, wrap: true, truncate: false
-    else
-      return if $initialized
-      print "\n\e[0mWARNING: #{text}\n\n"
-    end
+    $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, wrap: true, truncate: false) if [:listen, :quiz, :licks].include?($mode)
   end
 end
