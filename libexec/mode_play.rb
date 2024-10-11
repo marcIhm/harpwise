@@ -54,6 +54,7 @@ def do_play to_play
       
     elsif lnames.length > 0
 
+      $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: false)
 
     elsif lpnames.length > 0
@@ -363,9 +364,9 @@ def play_licks_controller licks, refill, sleep_between: false
     print "Set of licks will be played once, "
   end
   if $opts[:iterate] == :random
-    puts "shuffled and in random sequence."
+    puts "shuffled and in random order."
   else
-    puts "in order of lickfile."
+    puts "in given order."
   end
   puts "\e[0m"
   

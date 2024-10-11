@@ -3021,9 +3021,18 @@ do_test 'id-103: tool licks-from-scale' do
   tms 'harpwise tool licks-from-scale blues-middle'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3]['lick-blues  box1-i  box2-i'] }
-  expect { screen[12]['feeling-bad     box1-iv     box2-iv'] }
-  expect { screen[16]['wade'] }
+  expect { screen[1]['box2-i  lick-blues  box1-i'] }
+  expect { screen[9]['none'] }
+  expect { screen[15]['feeling-bad     box2-iv     box1-iv     wade    st-louis'] }
+  kill_session
+end
+
+do_test 'id-104: tool licks-from-scale' do
+  new_session
+  tms 'harpwise tool licks-from-scale blues-middle wade'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[6]['8 of 11 holes (= 73 %) are from scale'] }
   kill_session
 end
 
