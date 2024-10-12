@@ -1622,6 +1622,7 @@ class HearHole < QuizFlavour
     end
     set_global_musical_vars    
     @hole_set = $named_hole_sets.keys.sample
+    @shuffled = $named_hole_sets[@hole_set].shuffle
     
     @choices = $named_hole_sets[@hole_set]
     @choices_orig = @choices.clone
@@ -1660,7 +1661,9 @@ class HearHole < QuizFlavour
   def help3
     other = ($named_hole_sets[@hole_set] - [@solution]).sample
     puts "Playing hole set   #{$named_hole_sets[@hole_set].join('  ')}   but shuffled:"
-    play_hons hide: :all, hons: $named_hole_sets[@hole_set].shuffle
+    play_hons hide: :all, hons: @shuffled
+    puts
+    puts "Shuffled set ist kept, so you may repeat."
   end
 
   def help3_desc
