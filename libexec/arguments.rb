@@ -315,14 +315,11 @@ def parse_arguments_early
   # used to issue current state of processing in error messages
   $err_binding = binding
 
-  #
   # Now ARGV does not contain any options; process remaining non-option arguments
 
   # Mode has already been taken first, so we take type and key, by
   # recognising it among other args by their content; then we process the
   # scale, which is normally the only remaining argument.
-  #
-
 
   # type and key (further down below) are taken from front of args only if
   # they match the predefined set of choices; otherwise they come from

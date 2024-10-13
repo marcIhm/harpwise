@@ -1276,12 +1276,14 @@ end
 
 def play_lick_rec_or_holes to_play, oride_l_message2
   if $mode == :quiz || !to_play[:lick][:rec] || $ctl_mic[:replay_flags].include?(:holes) ||
-     ($opts[:holes] && !$ctl_mic[:replay_flags].include?(:recording))
+     ( $opts[:holes] && !$ctl_mic[:replay_flags].include?(:recording) )
     play_lick_holes_and_handle_kb  to_play[:replacement_for_play] || to_play[:all_wanted],
                                    at_line: oride_l_message2,
                                    scroll_allowed: !!oride_l_message2,
                                    lick: to_play[:lick],
-                                   with_head: true
+                                   with_head: true,
+                                   hide_holes: ( $mode == :quiz &&
+                                                 %w( replay play-scale play-inter ).include?($quiz_flavour) )
   else
     play_lick_recording_and_handle_kb_plus(to_play[:lick],
                                            at_line: oride_l_message2,

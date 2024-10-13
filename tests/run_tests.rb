@@ -2751,15 +2751,13 @@ do_test 'id-94: quiz-flavour add-inter and change key' do
   sleep 2
   tms :ENTER
   expect { screen[11]['and add interval'] || screen[11]['and subtract interval'] }
-  tms 'CHART-SEMIS'
+  tms 'chart-semis'
   tms :enter
   expect { screen[7]['--1----2----3--'] }
-  tms ',change-key'
-  tms :enter
-  tms 'a'
-  tms :RIGHT
-  tms :enter
-  expect { screen[6]['Key changed to a.'] }  
+  tms 'skip'
+  tms :ENTER
+  tms :TAB
+  expect { screen[7]['New question and new key of'] }  
   kill_session
 end
 
@@ -2790,12 +2788,12 @@ do_test 'id-96: quiz-flavour hear-key' do
   sleep 2
   tms :ENTER
   sleep 10
-  txt = 'asks for this key'
-  expect { screen.any? {|l| l[txt] }}
+  txt = 'name its key'
+  expect(txt) { screen.any? {|l| l[txt] }}
   tms 'help-other-seq'
   tms :ENTER
   txt = 'Sequence of notes changed'
-  expect { screen.any? {|l| l[txt] }}
+  expect(txt) { screen.any? {|l| l[txt] }}
   sleep 10
   tms 'help-pitch'
   tms :ENTER

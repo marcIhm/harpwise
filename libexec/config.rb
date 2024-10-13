@@ -586,7 +586,7 @@ end
 
 
 def read_and_set_musical_bootstrap_config
-  $no_calibration_needed = false
+  $calibration_needed = ![:calibrate, :print, :tools, :develop].include?($mode)
   all_scales = scales_for_type($type)
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   sc_pr_fl = "#{$dirs[:install]}/config/#{$type}/scale_progressions.yaml"
@@ -1001,12 +1001,12 @@ def read_calibration
   unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
     err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly !\n\n#{for_automatic_calibration}"
   end
-  unless $harp_holes.each_cons(2).all? do |ha, hb|
-      fa, fb = [ha,hb].map {|h| hole2freq[h]}
-      fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
-      fa < fb_plus
+  $harp_holes.each_cons(2).all? do |ha, hb|
+    fa = hole2freq[ha]
+    fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
+    if fa >= fb_plus
+      err "Frequencies in #{$freq_file} are not in accord to calculated values (by 0.25 semitones margin): #{fa} (for #{ha}, from file)  >= #{fb_plus} (for #{hb}, calculated + 0.25 st)\n#{hole2freq.pretty_inspect}"
     end
-    err "Frequencies in #{$freq_file} are not even roughly in ascending (by 0.25 semitones margin) order of #{$harp_holes.inspect}: #{hole2freq.pretty_inspect}"
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
@@ -1060,8 +1060,7 @@ def set_global_musical_vars rotated: false
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
   
-  $freq2hole = read_calibration unless [:calibrate, :print, :tools, :develop].include?($mode) ||
-                                       $no_calibration_needed
+  $freq2hole = read_calibration if $calibration_needed
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]

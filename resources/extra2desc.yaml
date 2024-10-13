@@ -137,8 +137,7 @@ quiz:
     harpwise picks a scale at random and modifies it: holes are
     shuffled and one is replaced with a foreign hole; this modified
     scale is played and you should find the foreign hole. The holes
-    are disguised as h1, h2, and so on. Help allows to compare the
-    modified scale with the original, either shuffled or ascending
+    are disguised as h1, h2, and so on
   match-scale: |
     plays a random sequence of holes, that are either a subset of one
     or many scales and asks for the name of the single or shortest
@@ -156,9 +155,9 @@ quiz:
   tell-inter: |
     names two holes and asks for the interval between
   hear-key: |
-    plays a sequence of notes starting from a random key (i.e. its
-    base-note); asks for this key (rather than for the matching
-    harmonica)
+    picks a random key and its matching note (from octaves 4 or
+    5); plays a sequence of notes starting from this note; asks for
+    the key
   hear-hole: |
     picks a random key and a named hole-set; then plays a hole from
     this set and asks for its name

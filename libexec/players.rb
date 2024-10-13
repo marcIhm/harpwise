@@ -888,7 +888,7 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
 end
 
 
-def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false, lick: nil, with_head: false
+def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false, lick: nil, with_head: false, hide_holes: false
 
   if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
@@ -914,7 +914,8 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
 
   [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
 
-    print( musical_event?(hole)  ?  "\e[2m#{hole}\e[2m "  :  "\e[0m#{hole}\e[2m " )
+    hole_disp = ( hide_holes  ?  '?'  :  hole )
+    print( musical_event?(hole)  ?  "\e[2m#{hole_disp}\e[2m "  :  "\e[0m#{hole_disp}\e[2m " )
     
     if musical_event?(hole)
       sleep $opts[:fast]  ?  0.125  :  0.25
