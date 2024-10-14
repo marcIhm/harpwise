@@ -79,11 +79,9 @@ def err text
   raise ArgumentError.new(text) if $on_error_raise
   sane_term
   puts
-  print "\e[0mERROR: #{text}"
+  puts "\e[0mERROR: #{text}"
   $msgbuf&.flush_to_term  
-  if $initialized
-    puts
-  else
+  unless $initialized
     puts_err_context
   end
   puts
@@ -107,7 +105,6 @@ def puts_err_context
       "#{var} is not set"
     end
   end.compact
-  puts
   print "\e[0m\e[2m"
   print "\n(result of argument processing so far: "
   if clauses.length == 0
@@ -1211,7 +1208,7 @@ class MsgBuf
 
   def flush_to_term
     return if @@lines_durations.length == 0 || @@lines_durations.none? {|l,_| l}
-    puts "\n\n\e[0m\e[2mFlushing pending messages:"
+    puts "\n\e[0m\e[2mFlushing pending messages:"
     @@lines_durations.each do |l,_|
       next if !l
       puts '  ' + l

@@ -993,7 +993,7 @@ end
 
 
 def read_calibration
-  err "Frequency file #{$freq_file}\ndoes not exist; you need to calibrate for the key of   #{$key}   first !\n\n#{for_automatic_calibration}\n\nthis needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
+  err "Frequency file #{$freq_file}\ndoes not exist; you need to calibrate for the key of   #{$key}   first !\n\n#{for_automatic_calibration}this needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes. Or you may redo the whole calibration !\n\n#{for_automatic_calibration}"
@@ -1076,7 +1076,7 @@ end
 
 
 def for_automatic_calibration
-  "For automatic calibration use:\n\n  #{$0} calibrate #{$type} #{$key} --auto"
+  "For automatic calibration use:\n\n  #{$0} calibrate #{$type} #{$key} --auto\n\nor even:\n\n  #{$0} calibrate #{$type} all\n\n"
 end
 
 

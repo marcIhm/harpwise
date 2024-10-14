@@ -4,56 +4,121 @@
 # Assistant and automate for calibration
 #
 
-def do_calibrate_auto
+def do_calibrate_auto to_handle
 
-  FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
-  puts <<EOINTRO
+  err "Can handle only the single argument 'all', not:   #{to_handle.join('  ')}" if to_handle.length > 1 || ( to_handle.length == 1 && to_handle[0] != 'all' )
+  do_all = ( to_handle.length > 0 )
 
-(type #{$type}, key of #{$key})
+  all_keys = if do_all
+               $all_harp_keys
+             else
+               [$key]
+             end
+
+  your_own = <<EOYOUROWN
+Letting harpwise generate your samples is the preferred way to get
+started.  The frequencies will be in "equal temperament" tuning.
+
+But please note, that the generated samples and their frequencies
+cannot match those of your own harp or style very well. So, later,
+you may want to repeat the calibration by playing yourself
+EOYOUROWN
+  
+  if do_all
+    puts <<EOINTRO
+
+\e[2m(type #{$type})\e[0m
+
+
+This will \e[32mautomatically\e[0m generate all needed samples
+for \e[32mall holes\e[0m of \e[32mall keys\e[0m:
+
+  \e[32m#{all_keys.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
+
+harmonica type is #{$type}. Other types still require their
+own calibration.
+
+Be warned, that any prior manual calibration, e.g. hole-sample you
+haveplayed yourself, will be overwritten in this process.
+
+#{your_own.chomp}
+e.g. for a specific key via 'harpwise calibrate c'
+EOINTRO
+
+    puts "\nNow, type 'y' to let harpwise generate all samples for all keys."
+    char = one_char
+    puts
+    
+    if char != 'y'
+      puts "Calibration aborted on user request ('#{char}')."
+      puts
+      exit 0
+    end
+
+  end
+  
+  all_keys.each_with_index do |key, idx|
+
+    $key = key
+    
+    if do_all
+      puts "Calibrating for key of   \e[92m#{$key}\e[0m   [#{idx+1}/#{all_keys.length}]\n"
+    else
+      puts <<EOINTRO
+
+\e[2m(type #{$type}, key of #{$key})\e[0m
 
 
 This will generate all needed samples for holes:
 
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
-Harmonica type #{$type}, key of #{$key}; other keys or types will require
+Harmonica type   #{$type},   key of   #{$key};   other keys or types will require
 their own calibration, but only once.
 
-Letting harpwise generate your samples is the preferred way to get
-started.  The frequencies will be in "equal temperament" tuning.
-
-Please note, that the generated notes and their frequencies cannot match
-those of your own special harp or style of playing very well. Therefore,
-later, you may want to repeat the calibration by playing yourself
-(i.e. without option '--auto').
+#{your_own.chomp}
+without option '--auto', i.e. 'harpwise calibrate #{$key}'
 EOINTRO
 
-  puts "\nNow, type 'y' to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m"
-  char = one_char
+      puts "\nNow, type 'y' to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m"
+      char = one_char
+      puts
+      
+      if char != 'y'
+        puts "Calibration aborted on user request ('#{char}')."
+        puts
+        exit 0
+      end
+    end
+
+    set_global_vars_late
+    set_global_musical_vars
+    FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)    
+    
+    hole2freq = Hash.new
+    $harp_holes.each_with_index do |hole, idx|
+      file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
+      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: do_all
+      print "\e[2m#{hole}\e[0m  " if do_all
+      play_wave file, 0.5 unless do_all
+      hole2freq[hole] = analyze_with_aubio(file)
+    end
+    write_freq_file hole2freq
+    puts "\nFrequencies in: #{$freq_file}"
+    if do_all
+      puts "\n"
+    else
+      print_summary hole2freq, 'generated'
+      puts "\nREMARK: You may wonder, why the generated frequencies do not follow equal"
+      puts "temperament \e[32mexactly\e[0m and why there can be a deviation in frequency \e[32mat all\e[0m;"
+      puts "this is simply because two programs are used for generation and analysis:"
+      puts "sox and aubiopitch; both do a great job on their field, however sometimes"
+      puts "they differ by a few Hertz."
+      puts
+    end
+  end
   puts
-
-  if char != 'y'
-    puts "Calibration aborted on user request ('#{char}')."
-    puts
-    exit 0
-  end
-
-  hole2freq = Hash.new
-  $harp_holes.each_with_index do |hole, idx|
-    file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-    synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1)
-    play_wave file, 0.5
-    hole2freq[hole] = analyze_with_aubio(file)
-  end
-  write_freq_file hole2freq
-  puts "\nFrequencies in: #{$freq_file}"
-  print_summary hole2freq, 'generated'
-  puts "\nREMARK: You may wonder, why the generated frequencies do not follow equal"
-  puts "temperament \e[32mexactly\e[0m and why there can be a deviation in frequency \e[32mat all\e[0m;"
-  puts "this is simply because two programs are used for generation and analysis:"
-  puts "sox and aubiopitch; both do a great job on their field, however sometimes"
-  puts "they differ by a few Hertz."
-  puts "\n\nSound samples \e[32mdone.\e[0m\n\n\n"
+  puts "Calibration \e[32mdone.\e[0m\n\n\n"    
 end
 
 

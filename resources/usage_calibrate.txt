@@ -34,10 +34,10 @@ USAGE BY EXAMPLES
 
 
   Automatic calibration is the fastest way to get your set of samples:
-  The wise creates all the audio samples (using sox) for you; however
-  this cannot match the characteristics of your own harp and your own
-  playing style, but gives a good quick start.  For auto-calibration,
-  type:
+  The wise offerts to create all the audio samples (using sox) for
+  you; however this cannot match the characteristics of your own harp
+  and your own playing style, but gives a good quick start.  For
+  auto-calibration, type:
 
     harpwise calibrate d --auto
 
@@ -45,3 +45,11 @@ USAGE BY EXAMPLES
   To calibrate a single hole only (for key of a):
 
     harpwise calibrate a --hole -3//
+
+
+  Or, to calibrate everything, all holes, all keys, in a single run:
+
+    harpwise calibrate all
+
+  Only when first changing the type of harmonica, e.g. from richter
+  (default) to chromatic, you will need to calibrate once again.

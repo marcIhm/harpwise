@@ -581,7 +581,7 @@ def parse_arguments_for_mode
   ARGV.clear
 
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{ARGV}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop].include?($mode)
+  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :calibrate].include?($mode)
 
   return to_handle
 end

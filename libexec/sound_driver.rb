@@ -128,8 +128,8 @@ def sox_query file, property
 end
 
 
-def synth_sound hole, file, extra = ''
-  puts "Hole  \e[32m%-8s\e[0m#{extra},   note  \e[32m%-6s\e[0m,   semi \e[32m%4d\e[0m" % [hole, $harp[hole][:note], $harp[hole][:semi]]
+def synth_sound hole, file, extra = '', silent: false
+  puts "Hole  \e[32m%-8s\e[0m#{extra},   note  \e[32m%-6s\e[0m,   semi \e[32m%4d\e[0m" % [hole, $harp[hole][:note], $harp[hole][:semi]] unless silent
   duration = if $opts[:wave] == 'pluck'
                $opts[:fast] ? 0.5 : 1
              else

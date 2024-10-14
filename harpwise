@@ -64,7 +64,7 @@ check_installation
 
 $conf = read_technical_config
 
-# neede for usage
+# needed for usage
 initialize_extra_vars
 
 # get debug info early to help e.g. for error messages
@@ -89,6 +89,8 @@ set_global_vars_late
 
 set_global_musical_vars
 
+$initialized = true
+
 to_handle = parse_arguments_for_mode
 
 check_screen(hint_on_large_term: true) if [:listen, :quiz, :licks].include?($mode)
@@ -108,7 +110,6 @@ Signal.trap('SIGINT') do
   exit 1
 end
 
-
 %W(TSTP QUIT).each do |sig|
   Signal.trap(sig) do
     print "\e[#{$lines[:message2]}H" if $move_down_on_exit
@@ -118,7 +119,6 @@ end
     exit 1
   end
 end
-
 
 if [:listen, :quiz, :licks].include?($mode)
   Signal.trap('WINCH') do
@@ -164,8 +164,6 @@ at_exit do
   end
 end
 
-$initialized = true
-
 report_name_collisions_mb
 
 write_invocation
@@ -188,8 +186,8 @@ begin
   when :print
     do_print to_handle
   when :calibrate
-    if $opts[:auto]
-      do_calibrate_auto
+    if $opts[:auto] || to_handle.length > 0
+      do_calibrate_auto to_handle
     else
       do_calibrate_assistant
     end

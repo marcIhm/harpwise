@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 99
+num_exp = 100
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -211,7 +211,7 @@ end
     tms 'y'
     sleep 4
     wait_for_end_of_harpwise
-    expect { screen[-4]['Sound samples done.'] }
+    expect { screen[-4]['Calibration done.'] }
     kill_session
   end
 end
@@ -252,9 +252,21 @@ end
     tms 'y'
     sleep 12
     wait_for_end_of_harpwise
-    expect { screen[-4]['Sound samples done.'] }
+    expect { screen[-4]['Calibration done.'] }
     kill_session
   end
+end
+
+do_test "id-47b: auto-calibration for all keys" do
+  new_session
+  tms "harpwise calib richter all"
+  tms :ENTER
+  sleep 2
+  tms 'y'
+  sleep 12
+  wait_for_end_of_harpwise
+  expect { screen[-4]['Calibration done.'] }
+  kill_session
 end
 
 ensure_config_ini_testing
