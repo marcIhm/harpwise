@@ -250,14 +250,36 @@ def record_and_review_hole hole
     end
 
     # get user input
+    # ruler for 75 chars:
+    #            ---------------------------------------------------------------------------
     puts "\e[34mReview and/or record\e[0m hole   \e[32m#{hole}\e[0m   (key of #{$key})"
-    choices = {:play => [['p', 'SPACE'], 'play current recording', 'play recorded sound'],
-               :draw => [['d'], 'draw sound', 'draw sound data (again)'],
-               :frequency => [['f'], 'play frequency sample', "show and play the ET frequency of the hole by\n              generating and analysing a sample sound;\n              does not overwrite current recording"],
-               :record => [['r'], 'record and trim', "record RIGHT AWAY (after countdown); then trim recording\n              and remove initial silence and surplus length"],
-               :generate => [['g'], 'generate sound', "generate a sound (instead of recording it) for the\n              ET frequency of the hole"],
-               :back => [['b'], 'back to prev hole', 'jump back to previous hole']}
-    
+    choices = {:play =>
+               [['p', 'SPACE'],
+                'play current recording',
+                'play current recording'],
+               :draw =>
+               [['d'],
+                'draw sound',
+                'draw sound data (again)'],
+               :frequency =>
+               [['f'],
+                'play frequency sample',
+                'show and play the ET frequency of the hole by generating and',
+                'analysing a sample sound; does not overwrite current recording'],
+               :record =>
+               [['r'],
+                'record and trim',
+                'record RIGHT AWAY (after countdown); then trim recording',
+                'and remove initial silence and surplus length'],
+               :generate =>
+               [['g'],
+                'generate sound',
+                'generate a sound (instead of recording it) for the',
+                'ET frequency of the hole'],
+               :back =>
+               [['b'],
+                'back to prev hole',
+                'jump back to previous hole and discard work on current']}
     choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exist?(sample_file)
     choices[:quit] = [['q'], 'quit calibration', 'exit from calibration']
     

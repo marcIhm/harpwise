@@ -899,7 +899,7 @@ class HearInter < QuizFlavour
     puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
     puts
     maxlen = @inter2semi.keys.map(&:length).max
-    @choices.each do |inter|
+    @choices_orig.each do |inter|
       sleep 0.5
       note_inter = semi2note($harp[@holes[0]][:semi] + @inter2semi[inter] * (@dsemi <=> 0))
       print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % inter
@@ -1173,7 +1173,7 @@ class KeyHarpSong < QuizFlavour
   end
 
   def issue_question
-    puts "\e[34mGiven a \e[94m#{@qdesc.upcase}\e[34m with key of '\e[94m#{@qitem}\e[34m', name the matching key for the \e[94m#{@adesc}\e[0m\e[2m\n(2nd position)\e[0m"
+    puts "\e[34mGiven a  \e[94m#{@qdesc.upcase}\e[34m  with key of '\e[94m#{@qitem}\e[34m', name the matching key for the  \e[94m#{@adesc}\e[0m\e[2m\n(2nd position)\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 

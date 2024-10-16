@@ -709,8 +709,7 @@ def tool_diag
 
   end_of_intro
 
-  file = "/tmp/harpwise.wav"
-  FileUtils.rm file if File.exist?(file)
+  FileUtils.rm file if File.exist?($diag_wav)
   print "\e[?25l"  ## hide cursor
 
   puts
@@ -718,7 +717,7 @@ def tool_diag
   cmd_rec = if $testing
               "sleep 100"
             else
-              "sox -d -q -r #{$conf[:sample_rate]} #{file}"
+              "sox -d -q -r #{$conf[:sample_rate]} #{$diag_wav}"
             end
 
   puts <<~end_of_intro_rec
@@ -753,7 +752,7 @@ def tool_diag
   cmd_play = if $testing
               "sleep 3"
             else
-              "play -q #{file}"
+              "play -q #{$diag_wav}"
             end
 
   puts <<~end_of_intro_play

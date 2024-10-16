@@ -119,6 +119,8 @@ def set_global_vars_early
 
   # will be created by test-driver
   $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
+  # tool diag
+  $diag_wav = "/tmp/#{File.basename($0)}_diag.wav"
   
   # for messages in hande_holes
   $msgbuf = MsgBuf.new

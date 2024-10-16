@@ -1088,6 +1088,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
     lines << "\e[0m#{line.chomp}\e[K"
     if idx + offset < lines_inactive.length
       if idx_first_active == -1
+        # two types of grey, but not the usual one \e[2m
         lines[-1] += "\e[G\e[0m\e[38;5;244m"
       else
         lines[-1] += "\e[G\e[0m\e[38;5;236m"

@@ -805,34 +805,47 @@ def ctl_response text = nil, hl: false
 end
   
 
-def read_answer ans2chs_dsc
-  klists = Hash.new
-  ans2chs_dsc.each do |ans, chs_dsc|
-    klists[ans] = chs_dsc[0].join(', ')
+def read_answer ans2chs_dscs
+  ans2klist = ans2chs_dscs.map {|ans, chs_dscs| [ans, chs_dscs[0].join(',')]}.to_h
+  maxlenl = ans2klist.values.map(&:length).max
+  # let two entries spill over
+  maxlenr = ans2chs_dscs.values.map {|chs_dscs| chs_dscs[1].length}.max
+  line = []
+  ans2chs_dscs.each do |ans, chs_dsc|
+    item = ["    #{ans2klist[ans].rjust(maxlenl)}",
+            ": ",
+            "#{chs_dsc[1].ljust(maxlenr)}"]
+    if (line + item).flatten.join.length <= $conf[:term_min_width]
+      line << item
+    else
+      line.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
+      puts
+      line = [item]
+    end
   end
-  maxlen = klists.map {|k,v| v.length}.max
-  i = 0
-  ans2chs_dsc.each do |ans, chs_dsc|
-    print "  %*s:  %-22s" % [maxlen, klists[ans], chs_dsc[1]]
-    puts if (i += 1) % 2 == 0
+  if line.length > 0
+    line.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
+    puts
   end
-
   begin
-    print "\nYour choice (h for help): "
+    print "Your choice (h for help): "
     char = one_char
     char = 'SPACE' if char == ' '
     puts char
     answer = nil
-    ans2chs_dsc.each do |ans, chs_dsc|
+    ans2chs_dscs.each do |ans, chs_dsc|
       answer = ans if chs_dsc[0].include?(char)
     end
     answer = :help if char == 'h'
     puts "Invalid key: '#{char.match?(/[[:print:]]/) ? char : '?'}' (#{char.ord})" unless answer
     if answer == :help
       puts "Full Help:\n\n"
-      ans2chs_dsc.each do |ans, chs_dsc|
-        puts '  %*s:  %s' % [maxlen, klists[ans], chs_dsc[2]]
+      ans2chs_dscs.each do |ans, chs_dsc|
+        desc_lines = chs_dsc[2 .. -1]
+        desc = ([desc_lines[0]] + desc_lines[1 .. -1].map {|l| ' ' * (maxlenl + 5) + l}).join("\n")
+        puts "  %#{maxlenl}s:  %s" % [ans2klist[ans], desc]
       end
+      puts
     end
   end while !answer || answer == :help
   answer
