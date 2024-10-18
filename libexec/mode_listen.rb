@@ -243,7 +243,7 @@ def do_listen
           lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
           fit_into_comment lines
           unless musical_event?(hole)
-            play_wave(this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note]),
+            play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3)),
                       get_musical_duration(hole_next))
           end
           if $ctl_kb_queue.length > 0

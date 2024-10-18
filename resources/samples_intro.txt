@@ -1,0 +1,21 @@
+
+
+This is an interactive assistant, that will ask to play these <%=holes.length%> holes
+of your harmonica, key of <%=$key%>, one after the other:
+
+  <%="\e[32m#{holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m"%>
+
+Any existing recording will be presented first for review. Then you
+may record a new sample and trim it (cut off initial silence). This
+will be repeated for all holes.
+
+You may invoke this assistant again at any later time, just to review
+your recorded samples and maybe correct some of them.  Results are
+written to disk immediately, so you may interrupt the process (ctrl-c)
+after any hole. Later, to start again from a specific hole, give it as
+a commandline argument.
+
+<%="\e[2m"%>Remark: if you just want to get started quickly, you may skip this
+procedure for now by invoking:
+   harpwise calibrate <%=$key%> generate
+and come back to 'record' later, maybe for some holes only.<%="\e[0m"%>

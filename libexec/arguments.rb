@@ -47,13 +47,13 @@ def parse_arguments_early
   opts = Hash.new
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:calibrate, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
+    [[Set[:samples, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage),
         sharps: %w(--sharps),
         flats: %w(--flats),
         options: %w(--show-options -o)}],
-     [Set[:calibrate, :listen, :quiz, :licks, :play, :print], {
+     [Set[:samples, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
      [Set[:listen, :quiz, :licks, :tools, :print], {
         add_scales: %w(-a --add-scales ),
@@ -86,10 +86,8 @@ def parse_arguments_early
         difficulty: %w(--difficulty)}],
      [Set[:listen, :quiz, :play, :print], {
         transpose_scale: %w(--transpose-scale)}],
-     [Set[:calibrate], {
-        auto: %w(--auto),
-        wave: %w(--wave),
-        hole: %w(--hole)}],
+     [Set[:samples], {
+        wave: %w(--wave)}],
      [Set[:print], {
         terse: %w(-T --terse)}],
      [Set[:listen, :print, :quiz], {
@@ -457,7 +455,7 @@ def parse_arguments_early
     end
     scale, opts[:add_scales], $scale_prog = override_scales_mb(scale, opts)
 
-  when :develop, :calibrate
+  when :develop, :samples
     # no explicit scale, ever
     scale = get_scale_from_sws($conf[:scale] || 'all:a')
     $source_of[:scale] = 'implicit'
@@ -571,7 +569,7 @@ def parse_arguments_for_mode
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_w_wo_s]) == :extra
       if !$extra
         print_amongs(:extra)
-        err("First argument for mode #{$mode} should be one of those extra arguments listed above, not '#{ARGV[0]}'" +
+        err("First argument for mode #{$mode} should be one of those extra arguments\n  #{$extra_desc[$mode].keys.join(', ')}    as described above, but not '#{ARGV[0]}'" +
             ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' ))
       end
     end
@@ -581,7 +579,7 @@ def parse_arguments_for_mode
   ARGV.clear
 
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :calibrate].include?($mode)
+  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :samples].include?($mode)
 
   return to_handle
 end

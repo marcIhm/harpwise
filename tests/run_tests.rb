@@ -1509,7 +1509,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[13]['First argument for mode print should belong to one of those types'] }
+  expect { screen[20]['First argument for mode print should belong to one of those types'] }
   kill_session
 end
 

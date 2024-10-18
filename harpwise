@@ -34,7 +34,7 @@ require_relative 'libexec/mode_listen'
 require_relative 'libexec/mode_licks'
 require_relative 'libexec/mode_play'
 require_relative 'libexec/mode_print'
-require_relative 'libexec/mode_calibrate'
+require_relative 'libexec/mode_samples'
 require_relative 'libexec/mode_tools'
 require_relative 'libexec/mode_quiz'
 require_relative 'libexec/mode_develop'
@@ -185,12 +185,8 @@ begin
     do_play to_handle
   when :print
     do_print to_handle
-  when :calibrate
-    if $opts[:auto] || to_handle.length > 0
-      do_calibrate_auto to_handle
-    else
-      do_calibrate_assistant
-    end
+  when :samples
+    do_samples to_handle
   when :tools
     do_tools to_handle
   when :develop

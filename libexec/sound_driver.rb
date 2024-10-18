@@ -32,7 +32,7 @@ end
 def trim_recorded hole, recorded
   wave2data(recorded)
   duration = sox_query(recorded, 'Length')
-  duration_trimmed = 2.0
+  duration_trimmed = 1.2
   do_draw = true
   trimmed_wave = "#{$dirs[:tmp]}/trimmed.wav"
   play_from = find_onset
@@ -84,7 +84,7 @@ EOHELP
     elsif choice == 'y' || choice == 'RETURN'
       FileUtils.cp trimmed_wave, recorded
       wave2data(recorded)
-      puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with next hole.\n\n"
+      puts "\nEdit\e[0m accepted, trimmed #{File.basename(recorded)}, starting with \e[32mnext hole\e[0m.\n\n"
       return :next
     elsif choice == 'c' || choice == 'q'
       wave2data(recorded)
@@ -135,7 +135,7 @@ def synth_sound hole, file, extra = '', silent: false
              else
                $opts[:fast] ? 2 : 4
              end
-  cmd = "sox -n #{file} synth #{duration} #{$opts[:wave]}  %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
+  cmd = "sox -n #{file} synth #{duration} #{$opts[:wave]} %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
   sys cmd
 end
 
@@ -167,10 +167,12 @@ def find_onset
 end
 
 
-def this_or_equiv template, note
-  notes_equiv(note).each do |eq|
-    name = template % eq
-    return name if File.exist?(name)
+def this_or_equiv template, note, endings = ['']
+  endings.each do |ending|
+    notes_equiv(note).each do |eq|
+      name = ( template % eq ) + ending
+      return name if File.exist?(name)
+    end
   end
   return nil
 end
@@ -301,7 +303,7 @@ end
 def play_hole_or_note_and_collect_kb hon, duration
 
   note = $harp[hon]&.dig(:note) || hon
-  wfile = this_or_equiv("#{$sample_dir}/%s.wav", note)
+  wfile = this_or_equiv("#{$sample_dir}/%s", note, %w(.wav .mp3))
   wait_thr = Thread.new do
     if $testing
       sys "sleep #{duration}"

@@ -190,7 +190,54 @@ quiz:
   hear-tempo: |
     plays a tempo and asks for its bpm
   replay: |
-    harpwise plays a sequence of holes and asks you to play it back    
+    harpwise plays a sequence of holes and asks you to play it back
+samples:
+  record: |
+    harpwise assists while you play the holes for the given type and
+    key of harmonica. After each recording you may hear back and trim.
+    
+    These samples capture your style of playing and the specific sound
+    of your harmonica as far as possible and bring them into
+    harpwise. This way of calibration gives more interesting samples
+    than 'generate' but requires some work from your side; consider
+    recording the most important keys (or even holes) first and use
+    'generate' for the others.
+
+    To redo the recording for a single hole, give it as an argument on
+    the commandline.
+
+    You may even combine this method of recording hole-samples with
+    'generate', as your recorded samples will be kept and preferred
+    over generated samples unless you explicitly use the extra-command
+    'delete'.
+  generate: |
+    as a faster alternative to 'record', you may let harpwise generate
+    samples for each hole.  This gives easy results, that, however
+    lack the typical harmonica sound.  You may try different waveforms
+    (e.g. 'sine') with option --wave.
+
+    To generate samples for all keys in one pass, you may give 'all'
+    as an additional argument; otherwise samples are created for the
+    current key only.
+
+    'generate' never overwrites samples that you play during 'record';
+    use 'delete' for this, if required.
+  check: |
+    For the current type and key of harmonica, check out and summarize
+    available samples; especially show, which samples have been
+    recorded and which ones generated. Use 'all' to get a summary for
+    each and every key.
+  delete: |
+    For the current key, ask for confirmation to delete your recorded
+    samples, if any. As these recorded samples had precedence over any
+    generated samples, this might be necessary to make harpwise use
+    the generated samples (or maybe suggest to use 'generate' first).
+    
+    This can be useful, if you prefer the (maybe) more precise samples
+    that harpwise generates.
+
+    By giving the argument 'all' you may delete all samples for all
+    keys.
 develop:
   man: |
     produce man page from erb-template

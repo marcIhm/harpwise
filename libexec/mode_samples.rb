@@ -1,30 +1,40 @@
 # -*- fill-column: 74 -*-
 
 #
-# Assistant and automate for calibration
+# Record or generate needed samples
 #
 
-def do_calibrate_auto to_handle
+def do_samples to_handle
 
-  err "Can handle only the single argument 'all', not:   #{to_handle.join('  ')}" if to_handle.length > 1 || ( to_handle.length == 1 && to_handle[0] != 'all' )
-  do_all = ( to_handle.length > 0 )
+  case $extra
+  when 'record'
+    samples_record to_handle
+  when 'generate'
+    samples_generate to_handle
+  when 'check'
+    samples_check to_handle
+  when 'delete'
+    samples_delete to_handle
+  else
+    fail "Internal error: unknown extra '#{$extra}'"
+  end
+end
 
-  all_keys = if do_all
-               $all_harp_keys
-             else
-               [$key]
-             end
 
+def samples_generate to_handle
+
+  do_all_keys, these_keys = sample_args_helper(to_handle)
+  
   your_own = <<EOYOUROWN
 Letting harpwise generate your samples is the preferred way to get
 started.  The frequencies will be in "equal temperament" tuning.
 
 But please note, that the generated samples and their frequencies
 cannot match those of your own harp or style very well. So, later,
-you may want to repeat the calibration by playing yourself
+you may want to redo the samples by playing yourself
 EOYOUROWN
   
-  if do_all
+  if do_all_keys
     puts <<EOINTRO
 
 \e[2m(type #{$type})\e[0m
@@ -33,16 +43,16 @@ EOYOUROWN
 This will \e[32mautomatically\e[0m generate all needed samples
 for \e[32mall holes\e[0m of \e[32mall keys\e[0m:
 
-  \e[32m#{all_keys.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
+  \e[32m#{these_keys.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
 harmonica type is #{$type}. Other types still require their
-own calibration.
+own samples beeing created.
 
-Be warned, that any prior manual calibration, e.g. hole-sample you
-haveplayed yourself, will be overwritten in this process.
+Any samples that you have recorded before will be kept; use extra-command
+'delete' to delete them.
 
 #{your_own.chomp}
-e.g. for a specific key via 'harpwise calibrate c'
+e.g. for a specific key via 'harpwise record c'
 EOINTRO
 
     puts "\nNow, type 'y' to let harpwise generate all samples for all keys."
@@ -50,19 +60,19 @@ EOINTRO
     puts
     
     if char != 'y'
-      puts "Calibration aborted on user request ('#{char}')."
+      puts "Generation of samples aborted on user request ('#{char}')."
       puts
       exit 0
     end
 
   end
   
-  all_keys.each_with_index do |key, idx|
+  these_keys.each_with_index do |key, idx|
 
     $key = key
     
-    if do_all
-      puts "Calibrating for key of   \e[92m#{$key}\e[0m   [#{idx+1}/#{all_keys.length}]\n"
+    if do_all_keys
+      puts "Generating for key of   \e[92m#{$key}\e[0m   [#{idx+1}/#{these_keys.length}]\n"
     else
       puts <<EOINTRO
 
@@ -74,10 +84,10 @@ This will generate all needed samples for holes:
   \e[32m#{$harp_holes.each_slice(12).to_a.map{|s| s.join('  ')}.join("\n  ")}\e[0m
 
 Harmonica type   #{$type},   key of   #{$key};   other keys or types will require
-their own calibration, but only once.
+their own samples beeing created, but only once.
 
 #{your_own.chomp}
-without option '--auto', i.e. 'harpwise calibrate #{$key}'
+e.g. 'harpwise record #{$key}'
 EOINTRO
 
       puts "\nNow, type 'y' to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m"
@@ -85,7 +95,7 @@ EOINTRO
       puts
       
       if char != 'y'
-        puts "Calibration aborted on user request ('#{char}')."
+        puts "Generation of samples aborted on user request ('#{char}')."
         puts
         exit 0
       end
@@ -96,52 +106,52 @@ EOINTRO
     FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)    
     
     hole2freq = Hash.new
+    num_wavs_uniq = $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
     $harp_holes.each_with_index do |hole, idx|
-      file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: do_all
-      print "\e[2m#{hole}\e[0m  " if do_all
-      play_wave file, 0.5 unless do_all
+      file = "#{$sample_dir}/#{$harp[hole][:note]}.mp3"
+      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: do_all_keys
+      print "\e[2m#{hole}\e[0m  " if do_all_keys
+      play_wave file, 0.5 unless do_all_keys
       hole2freq[hole] = analyze_with_aubio(file)
     end
     write_freq_file hole2freq
+    puts unless do_all_keys
     puts "\nFrequencies in: #{$freq_file}"
-    if do_all
-      puts "\n"
+    if do_all_keys
+      puts 
     else
       print_summary hole2freq, 'generated'
-      puts "\nREMARK: You may wonder, why the generated frequencies do not follow equal"
-      puts "temperament \e[32mexactly\e[0m and why there can be a deviation in frequency \e[32mat all\e[0m;"
-      puts "this is simply because two programs are used for generation and analysis:"
-      puts "sox and aubiopitch; both do a great job on their field, however sometimes"
-      puts "they differ by a few Hertz."
-      puts
     end
   end
   puts
-  puts "Calibration \e[32mdone.\e[0m\n\n\n"    
+  puts "Sample generation \e[32mdone.\e[0m\n\n\n"    
 end
 
 
-def do_calibrate_assistant
+def samples_record to_handle
 
-  if $opts[:hole] && !$harp_holes.include?($opts[:hole])
-    err "Argument to Option '--hole', '#{$opts[:hole]}' is none of #{$harp_holes.inspect}"
-  end
+  err "Can only handle zero or one argument, but not #{to_handle.length}:  #{to_handle.join(' ')}" if to_handle.length > 1
+  hole = to_handle[0]
+  err "Argument '#{hole}' is none of  #{$harp_holes.join(' ')}" if hole && !$harp_holes.include?(hole)
 
   FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
 
-  holes = if $opts[:hole]
-            $harp_holes[$harp_holes.find_index($opts[:hole]) .. -1]
+  holes = if hole
+            $harp_holes[$harp_holes.find_index(hole) .. -1]
           else
             $harp_holes
           end
 
-  puts ERB.new(IO.read("#{$dirs[:install]}/resources/calibration_intro.txt")).result(binding)
-
-  print "\nPress any key to start with the first hole\n"
-  print "  or type 's' to skip directly to summary: "
+  puts ERB.new(IO.read("#{$dirs[:install]}/resources/samples_intro.txt")).result(binding)
+  puts
+  puts
+  puts "Press:   \e[32many key\e[0m   to start with the first hole (#{holes[0]}), key of #{$key}"
+  puts "or       \e[32ms\e[0m         and skip to summary for existing samples."
+  puts
+  print "Your input:  "
   char = one_char
-  print "\n\n"
+  puts char
+  puts
 
   if File.exist?($freq_file)
     hole2freq = yaml_parse($freq_file)
@@ -161,7 +171,7 @@ def do_calibrate_assistant
       
       if what == :back
         if i == 0
-          puts "\n\n\e[31mCANNOT GO BACK !\e[0m  Already at first hole.\n\n\n"
+          puts "\n\n\e[91mCANNOT GO BACK !\e[0m  Already at first hole.\n\n\n"
           sleep 0.5
         else
           i -= 1
@@ -182,14 +192,14 @@ end
 def record_and_review_hole hole
 
   sample_file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
-  backup = "#{$sample_dir}/backup.wav"
+  backup = "#{$dirs[:tmp]}/backup.wav"
   if File.exist?(sample_file)
     puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     puts "\e[2m#{sample_file}\e[0m"
     wave2data(sample_file)
     FileUtils.cp(sample_file, backup)
   else
-    puts "\nFile  #{sample_file}  for hole  \e[32m#{hole}\e[0m  is not present so it needs to be recorded or generated."
+    puts "\nFile  #{sample_file}  for hole  \e[32m#{hole}\e[0m\nis not present so it needs to be recorded or generated."
   end
   issue_before_trim = false
 
@@ -203,7 +213,7 @@ def record_and_review_hole hole
 
     # false on first iteration
     if do_record 
-      rec_dura = 3
+      rec_dura = 2.4
       puts "\nRecording #{rec_dura} secs for hole  \e[32m#{hole}\e[0m  when '\e[0;101mRECORDING\e[0m' appears."
       [2, 1].each do |c|
         puts c
@@ -281,7 +291,10 @@ def record_and_review_hole hole
                 'back to prev hole',
                 'jump back to previous hole and discard work on current']}
     choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exist?(sample_file)
-    choices[:quit] = [['q'], 'quit calibration', 'exit from calibration']
+    choices[:quit] = [['q'],
+                      'quit recording',
+                      'exit from recording of samples, but keep all samples,',
+                      'that have been recorded up to this point']
     
     answer = read_answer(choices)
 
@@ -294,7 +307,7 @@ def record_and_review_hole hole
         play_wave sample_file, 5
         puts 'done'
       else
-        print "\e[31mFile #{sample_file} does not exist !\e[0m\n"
+        print "\e[91mFile #{sample_file} does not exist !\e[0m\n"
       end
     when :draw
       do_draw = true
@@ -362,4 +375,164 @@ def print_summary hole2freq, rec_or_gen
   puts "temperament tuning. The gauge shows the difference in frequency between"
   puts "#{rec_or_gen} and target frequency (:); left and right border are the"
   puts "neighbouring semitones."
+end
+
+
+def samples_check to_handle
+  
+  do_all_keys, these_keys = sample_args_helper(to_handle)
+
+  if do_all_keys
+    puts
+    puts "Checking counts of recorded and generated sound-samples\nfor all #{these_keys.length} keys,\nin subdirectories of #{$dirs[:data]}/samples:"
+    puts
+    template = '| %-3s | %11s | %12s | %s    '
+    ins = '  '
+    head = template % ['key', '# recorded', '# generated', 'remark'] 
+    puts ins + head
+    hline = '-' * head.length
+    (0 ... head.length).each {|i| hline[i] = '+' if head[i] == '|'}
+    puts ins + hline
+
+    prev_remark = nil
+    these_keys.each do |key|
+      sample_dir = get_sample_dir(key)
+      counts = ['wav', 'mp3'].map do |suff|
+        [suff,
+         File.directory?(sample_dir)  ?  Dir["#{sample_dir}/*.#{suff}"].length  :  0]
+      end.to_h
+      nosa = false
+      num_wavs_uniq = $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
+      remark = if counts.values.sum == 0
+                 nosa = true
+                 'no samples yet'
+               elsif counts['wav'] == 0
+                 'generated only'
+               elsif counts['wav'] == num_wavs_uniq
+                 'recorded for all holes'
+               else
+                 'recorded for some holes'
+               end
+      line = ( template % [ key,
+                            nosa  ?  '-'  :  counts['wav'].to_s,
+                            nosa  ?  '-'  :  counts['mp3'].to_s,
+                            remark == prev_remark  ?  "\e[2m#{remark}\e[0m"  :  remark ] )
+      prev_remark = remark
+      puts ins + line.gsub(/^\s*\|(.*?)\|/, "|\e[32m\\1\e[0m|")
+    end
+    puts
+  else
+    # check single key only
+    puts
+    if File.directory?($sample_dir)
+      puts "Checking for recorded and/or generated samples for each hole"
+      puts "in  #{$sample_dir}:"
+      puts
+      maxlen = $harp_holes.map(&:length).max
+      found_prev = nil
+      $harp_holes.each do |hole|
+        endings = %w(wav mp3).map do |ending|
+          this_or_equiv("#{$sample_dir}/%s.#{ending}", $harp[hole][:note]) && ending
+        end.compact
+
+        print "  #{hole.ljust(maxlen)} : "
+        found = case endings.length
+                when 0
+                  'no samples'
+                when 1
+                  {'wav' => 'recorded', 'mp3' => 'generated'}[endings[0]] + ' sample'
+                when 2
+                  'recorded sample'
+                else
+                  fail "Internal error: #{endings}"
+                end
+        puts ( found == found_prev  ?  "\e[2m#{found}\e[0m"  :  found )
+        found_prev = found
+      end
+    else
+      puts "No samples for key #{$key} yet; maybe record or create some ?\n\e[2m#{for_sample_generation}\e[0m"
+    end
+    puts
+  end
+end
+
+
+def samples_delete to_handle
+
+  do_all_keys, these_keys = sample_args_helper(to_handle)  
+
+  mindful = "Please be mindful, because the recording has probably\nbeen done by you with some effort."
+  
+  puts
+  if do_all_keys
+    puts "About to delete recorded samples for all #{these_keys.length} keys !"
+    puts
+    puts mindful
+    puts
+    puts "Press 'Y' (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel:"
+    char = one_char
+    puts
+    if char != 'Y'
+      puts 'Operation canceled; no files deleted'
+      puts
+      exit
+    end
+  end
+
+  these_keys.each do |key|
+    sample_dir = get_sample_dir(key)
+    to_delete = []
+    $harp_holes.each do |hole|
+      file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+      to_delete << File.basename(file) if file && File.exist?(file)
+    end
+    
+    if to_delete.length == 0
+      puts "No recorded sound samples for key   #{key}"
+    else
+      puts "These recorded sound samples for key #{key} in\n#{$sample_dir}:"
+      puts
+      puts wrap_words('    ', to_delete, sep = '  ')
+      puts
+      if do_all_keys
+        char = 'Y'
+      else
+        puts mindful
+        puts
+        puts "Press 'Y' (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel:"
+        char = one_char
+      end
+      if char == 'Y'
+        print 'deleting .'
+        to_delete.each do |f|
+          FileUtils.rm("#{$sample_dir}/#{f}")
+          print '.'
+          sleep 0.2
+        end
+        puts '. done.'
+        if do_all_keys
+          sleep 0.5
+          puts
+        end
+      else
+        puts
+        puts 'Operation canceled; no files deleted'
+      end
+    end
+  end
+  puts
+end
+
+
+def sample_args_helper to_handle
+  
+  err "Can only handle zero or one argument, but not #{to_handle.length}:  #{to_handle.join(' ')}" if to_handle.length > 1
+  
+  do_all_keys, these_keys = if to_handle.length == 1
+                              err "Can only handle 'all' as an optional argument, not:  #{to_handle[0]}" if to_handle[0] != 'all'
+                              [true, $all_harp_keys]
+                            else
+                              [false, [$key]]
+                end
+  return [do_all_keys, these_keys]
 end

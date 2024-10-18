@@ -230,67 +230,7 @@ end
 def start_kb_handler
   $term_kb_handler = Thread.new do
     loop do
-      key = STDIN.getc
-      # handle key sequences starting with escape
-      if key == "\e"
-        # try to read cursor keys and some
-        begin
-          ch = Timeout::timeout(0.05) { STDIN.getc }
-          if ch == '['
-            ch1 = Timeout::timeout(0.05) { STDIN.getc }
-            key = case ch1                      
-                  when 'A'
-                    'UP'
-                  when 'B'
-                    'DOWN'
-                  when 'C'
-                    'RIGHT'
-                  when 'D'
-                    'LEFT'
-                  when 'Z'
-                    'SHIFT-TAB'
-                  when '5', '6'
-                    ch2 = Timeout::timeout(0.05) { STDIN.getc }
-                    if ch2 == '~'
-                      if ch1 == '5'
-                        'PAGE-UP'
-                      else
-                        'PAGE-DOWN'
-                      end
-                    else
-                      'ESC-' + ch1 + ch2
-                    end
-                  else
-                    'ESC-' + ch1
-                  end
-          elsif ch == "\t"
-            key = 'SHIFT-TAB'
-          elsif ('a' .. 'z').include?(ch)
-            key = 'ALT-' + ch
-          elsif ch
-            key = 'ESC-?'
-          end
-        rescue Timeout::Error => e
-        end
-      end
-      key = if key == "\n"
-              'RETURN'
-            elsif key == "\t"
-              'TAB'
-            elsif key == "\e"
-              'ESC'
-            elsif key.ord == 18
-              'CTRL-R'
-            elsif key.ord == 12
-              'CTRL-L'
-            elsif key.ord == 127
-              'BACKSPACE'
-            elsif key.ord == 8
-              'CTRL-BACKSPACE'
-            else
-              key
-            end
-      $ctl_kb_queue.enq key
+      $ctl_kb_queue.enq get_complex_key
     end
   end
   $debug_state[:kb_handler_started] = true
@@ -812,7 +752,7 @@ def read_answer ans2chs_dscs
   maxlenr = ans2chs_dscs.values.map {|chs_dscs| chs_dscs[1].length}.max
   line = []
   ans2chs_dscs.each do |ans, chs_dsc|
-    item = ["    #{ans2klist[ans].rjust(maxlenl)}",
+    item = ["  #{ans2klist[ans].rjust(maxlenl)}",
             ": ",
             "#{chs_dsc[1].ljust(maxlenr)}"]
     if (line + item).flatten.join.length <= $conf[:term_min_width]
@@ -989,33 +929,15 @@ end
 def one_char
   prepare_term
   # wait for char
-  char = STDIN.getc
-  # drain any remaining chars (e.g. after pressing cursor keys)
+  key = get_complex_key
+  # drain any remaining chars (e.g. after pressing function-keys)
   system("stty -echo -icanon min 0 time 0")
   Kernel::print "\e[?25l"  ## hide cursor  
   begin
   end while STDIN.getc
   system("stty min 1")
   sane_term
-  char = if char == "\n"
-           'RETURN'
-         elsif char == "\t"
-           'TAB'
-         elsif char == "\e"
-           'ESC'
-         elsif char.ord == 18
-           'CTRL-R'
-         elsif char.ord == 12
-           'CTRL-L'
-         elsif char.ord == 127
-           'BACKSPACE'
-         elsif char.ord == 8
-           'CTRL-BACKSPACE'
-         else
-           # cannot be condensed to char&.gsub!
-           char && char.gsub(/[^[:print:]]/,'?')
-         end
-  return char
+  return key
 end  
 
 
@@ -1618,4 +1540,71 @@ def gets_with_cursor
   input = STDIN.gets.chomp.strip
   Kernel::print "\e[?25l"  ## hide cursor
   input
+end
+
+
+def get_complex_key
+  key = STDIN.getc
+  # handle key sequences starting with escape
+  if key == "\e"
+    # try to read cursor keys and some others
+    begin
+      ch = Timeout::timeout(0.05) { STDIN.getc }
+      if ch == '['
+        ch1 = Timeout::timeout(0.05) { STDIN.getc }
+        key = case ch1                      
+              when 'A'
+                'UP'
+              when 'B'
+                'DOWN'
+              when 'C'
+                'RIGHT'
+              when 'D'
+                'LEFT'
+              when 'Z'
+                'SHIFT-TAB'
+              when '5', '6'
+                ch2 = Timeout::timeout(0.05) { STDIN.getc }
+                if ch2 == '~'
+                  if ch1 == '5'
+                    'PAGE-UP'
+                  else
+                    'PAGE-DOWN'
+                  end
+                else
+                  'ESC-' + ch1 + ch2
+                end
+              else
+                'ESC-' + ch1
+              end
+      elsif ch == "\t"
+        key = 'SHIFT-TAB'
+      elsif ('a' .. 'z').include?(ch)
+        key = 'ALT-' + ch
+      elsif ch
+        key = 'ESC-?'
+      end
+    rescue Timeout::Error => e
+    end
+  end
+
+  # translate some chars into text and return
+  if key == "\n"
+    'RETURN'
+  elsif key == "\t"
+    'TAB'
+  elsif key == "\e"
+    'ESC'
+  elsif key.ord == 18
+    'CTRL-R'
+  elsif key.ord == 12
+    'CTRL-L'
+  elsif key.ord == 127
+    'BACKSPACE'
+  elsif key.ord == 8
+    'CTRL-BACKSPACE'
+  else
+    # cannot be condensed to key&.gsub!
+    key && key.gsub(/[^[:print:]]/,'?')
+  end
 end

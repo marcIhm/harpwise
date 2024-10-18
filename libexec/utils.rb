@@ -986,7 +986,7 @@ def err_args_not_allowed args
   if args.length == 1 && $conf[:all_keys].include?(args[0])
     err "'harpwise #{$mode} #{$extra}' does not take any arguments; however your argument '#{args[0]}' is a key, which might be placed further left on the commandline, if you wish"
   else
-    err "'harpwise #{$mode} #{$extra}' does not take any arguments, these cannot be handled: #{args}"
+    err "'harpwise #{$mode} #{$extra}' does not take any arguments, these cannot be handled:  #{args.join(' ')}"
   end
 end
 
@@ -997,13 +997,13 @@ def wrap_words head, words, sep = ','
   words.each_with_index do |word, idx|
     line += sep unless line[-1] == ' ' || idx == 0
     if line.length + word.length > $term_width - sep.length
-      lines << line
+      lines << line.rstrip
       line = (' ' * head.length) + word
     else
       line += word
     end
   end
-  lines << line.strip unless line == ''
+  lines << line.rstrip unless line == ''
   return lines.join("\n")
 end
 

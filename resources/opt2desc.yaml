@@ -365,7 +365,8 @@ lick_radio:
 wave:
   - |
     choose waveform for generated samples,
-    default is 'pluck'; give somthing invalid, e.g. 'x' for full set
-    of choices.
+    default is 'pluck', which resembles the sound of plucking a
+    string; give somthing invalid (e.g. 'x') for full set of
+    choices. However, these (e.g. 'sawtooth') sound less natural.
   - WAVEFORM
     

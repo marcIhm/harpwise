@@ -18,19 +18,19 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks play print calibrate tools develop)
+  $early_conf[:modes] = %w(listen quiz licks play print samples tools develop)
 
   # expectations for config-file
   $conf_meta = Hash.new
   # Read config.ini for the background  semantics of :any_mode and its relations
   # to others; basically the first defines defaults for the rest
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :play, :print, :calibrate, :general]
+  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :play, :print, :samples, :general]
   # Below we only need to list those modes (e.g. :quiz) which allow
   # more keys, than :any_mode.  Remark: update config.ini if the below
   # is extended
   $conf_meta[:sections_keys] = {
     :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
-    :calibrate => [:auto_synth_db],
+    :samples => [:auto_synth_db],
     :quiz => [:difficulty],
     :listen => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
     :licks => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
@@ -348,23 +348,21 @@ end
 
 
 def set_global_vars_late
-  $sample_dir = this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", $key.to_s) ||
-                "#{$dirs[:data]}/samples/#{$type}/key_of_#{$key}"
+  $sample_dir = get_sample_dir($key)
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
 
-  # check and do this before read_calibration is called in set_global_musical_vars
+  # check and do this before read_samples is called in set_global_musical_vars
   if $type == 'richter' and $key == 'c'
     created = create_dir($sample_dir)
     if created
       from_dir = "#{$dirs[:install]}/resources/starter_samples_richter_c"
       Dir["#{from_dir}/*.mp3"].each do |mp3|
-        wav = $sample_dir + '/' + File.basename(mp3, '.mp3') + '.wav'
-        sys "sox #{mp3} #{wav}"
+        FileUtils.cp mp3, $sample_dir
       end
       FileUtils.cp "#{from_dir}/frequencies.yaml", $sample_dir
-      $msgbuf.print "Copied an initial set of samples for type 'richter' and key of 'c' to get you started. However, for a more natural sound, you may replace them with your own recordings later; see mode 'calibrate' for that.", 2, 5, wrap: true, truncate: false
+      $msgbuf.print "Copied an initial set of samples for type 'richter' and key of 'c' to get you started. However, for a more natural sound, you may replace them with your own recordings later; see mode 'samples' for that.", 2, 5, wrap: true, truncate: false
     end
   end
   
@@ -588,7 +586,7 @@ end
 
 
 def read_and_set_musical_bootstrap_config
-  $calibration_needed = ![:calibrate, :print, :tools, :develop].include?($mode)
+  $samples_needed = ![:samples, :print, :tools, :develop].include?($mode)
   all_scales = scales_for_type($type)
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   sc_pr_fl = "#{$dirs[:install]}/config/#{$type}/scale_progressions.yaml"
@@ -994,14 +992,14 @@ def get_chart_with_intervals prefer_names: true, ref: nil
 end
 
 
-def read_calibration
-  err "Frequency file #{$freq_file}\ndoes not exist; you need to calibrate for the key of   #{$key}   first !\n\n#{for_automatic_calibration}this needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
+def read_samples
+  err "Frequency file #{$freq_file}\ndoes not exist; you need to create samples for the key of   #{$key}   first !\n\n#{for_sample_generation}this needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
-    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Probably you need to redo the calibration and play the missing holes. Or you may redo the whole calibration !\n\n#{for_automatic_calibration}"
+    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Maybe you need to redo the whole recording or generation of samples !\n\n#{for_sample_generation}"
   end
   unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
-    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the calibration to rebuild the file properly !\n\n#{for_automatic_calibration}"
+    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the sample creation to rebuild the file properly !\n\n#{for_sample_generation}"
   end
   $harp_holes.each_cons(2).all? do |ha, hb|
     fa = hole2freq[ha]
@@ -1014,8 +1012,8 @@ def read_calibration
   hole2freq.map {|k,v| $harp[k][:freq] = v}
 
   $harp_holes.each do |hole|
-    file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
-    err "Sample file #{file} does not exist; you need to calibrate" unless File.exist?(file)
+    file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3))
+    err "Sample file #{file} does not exist; you need to create samples" unless File.exist?(file)
   end
 
   # 'reverse', because we want to get the first of two holes having the same freq
@@ -1062,7 +1060,7 @@ def set_global_musical_vars rotated: false
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
   
-  $freq2hole = read_calibration if $calibration_needed
+  $freq2hole = read_samples if $samples_needed
   if $opts[:ref] 
     err "Option '--ref' needs a valid hole as an argument, not '#{$opts[:ref]}'" unless $harp_holes.include?($opts[:ref])
     $hole_ref = $opts[:ref]
@@ -1077,8 +1075,8 @@ def set_global_musical_vars rotated: false
 end
 
 
-def for_automatic_calibration
-  "For automatic calibration use:\n\n  #{$0} calibrate #{$type} #{$key} --auto\n\nor even:\n\n  #{$0} calibrate #{$type} all\n\n"
+def for_sample_generation
+  "For automatic generation of samples use:\n\n  #{$0} samples #{$type} #{$key} generate\n\nor even:\n\n  #{$0} samples #{$type} generate all\n\n"
 end
 
 
@@ -1088,4 +1086,10 @@ def warn_if_double_short short, long
     $warned_for_double_short[short] = true
     $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, wrap: true, truncate: false) if [:listen, :quiz, :licks].include?($mode)
   end
+end
+
+
+def get_sample_dir key
+  this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", key.to_s) ||
+    "#{$dirs[:data]}/samples/#{$type}/key_of_#{key}"    
 end
