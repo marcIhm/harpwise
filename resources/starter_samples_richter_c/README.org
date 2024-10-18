@@ -1,6 +1,5 @@
 This directory contains a set of samples (created with sox); they will
-be copied over into .harpwise and converted to wav on first invocation
-with matching type and key.
+be copied over into .harpwise on first invocation with matching type
+and key.
 
-Other types and key will still ask for a separate calibration
-(possibly with --auto).
+Other types and keys will still ask for a separate sample creation.

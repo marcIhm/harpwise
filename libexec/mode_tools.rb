@@ -595,8 +595,8 @@ def tool_transcribe to_handle
   end
   puts "\e[2mdone.\e[0m"
 
-  # we do not require a calibration for tools generally; so do it late here
-  $freq2hole = read_calibration
+  # for mode tools, we do not require samples generally; so do it late here
+  $freq2hole = read_samples
 
   # form batches with he same note
   batched = [[[0, nil]]]

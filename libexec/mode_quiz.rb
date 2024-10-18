@@ -235,7 +235,7 @@ class QuizFlavour
     #  0: key is not part of solution, but can be changed for broader coverage
     # +1: key is part or all of solution
     @key_contributes_to_solution = 0
-    @calibration_needed = true
+    @samples_needed = true
   end
 
   def get_and_check_answer
@@ -520,7 +520,7 @@ class QuizFlavour
     else
       $key = ( @difficulty_to_key_set[$opts[:difficulty]] - [$key] ).sample
     end
-    $calibration_needed = @calibration_needed
+    $samples_needed = @samples_needed
     set_global_vars_late
     set_global_musical_vars
     unless silent
@@ -1201,7 +1201,7 @@ class HoleNote < QuizFlavour
   def initialize first_round
     super
 
-    @calibration_needed = false
+    @samples_needed = false
 
     @hole_set  = if $opts[:difficulty] == :hard
                    nil
@@ -1316,7 +1316,7 @@ class HoleNoteKey < QuizFlavour
   def initialize first_round
     super
     
-    @calibration_needed = false
+    @samples_needed = false
     @difficulty_to_key_set = {easy: $common_harp_keys, hard: $all_harp_keys}
     @key_contributes_to_solution = 1
 
@@ -1378,7 +1378,7 @@ class HoleHideNote < QuizFlavour
     super
 
     @difficulty_to_key_set = {easy: $common_harp_keys, hard: $all_harp_keys}
-    @calibration_needed = false
+    @samples_needed = false
     @difficulty_to_key_set[$opts[:difficulty]]
     @choices = $all_harp_keys.clone
     @choices_orig = @choices.clone
@@ -1629,7 +1629,7 @@ class HearHole < QuizFlavour
   def initialize first_round
     super
 
-    @calibration_needed = false
+    @samples_needed = false
     @hole_set = $named_hole_sets.keys.sample
 
     @choices = $named_hole_sets[@hole_set]

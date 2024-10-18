@@ -197,11 +197,12 @@ samples:
     key of harmonica. After each recording you may hear back and trim.
     
     These samples capture your style of playing and the specific sound
-    of your harmonica as far as possible and bring them into
-    harpwise. This way of calibration gives more interesting samples
-    than 'generate' but requires some work from your side; consider
-    recording the most important keys (or even holes) first and use
-    'generate' for the others.
+    of your harmonica as far as possible and brings them into
+    harpwise. This way of creating samples gives more interesting
+    results than 'generate' but requires some work from your side;
+    consider recording the most important keys (or even holes) first
+    and use 'generate' for the others. Even 'generate all', as your
+    recordings would not be overwritten.
 
     To redo the recording for a single hole, give it as an argument on
     the commandline.

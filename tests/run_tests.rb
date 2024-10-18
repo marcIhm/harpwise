@@ -93,7 +93,7 @@ fail "These programs are needed but cannot be found: \n  #{not_found.join("\n  "
 #
 # Collect usage examples and later check, that none of them produces an error
 #
-usage_types = [nil, :calibrate, :listen, :quiz, :licks, :play, :print, :tools, :develop].map do |t|
+usage_types = [nil, :samples, :listen, :quiz, :licks, :play, :print, :tools, :develop].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 100
+num_exp = 101
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -203,15 +203,15 @@ do_test 'id-9c: create simple lick file for chromatic' do
 end
 
 %w(g a d).each_with_index do |key,idx|
-  do_test "id-1g#{idx}: auto-calibration key of #{key}" do
+  do_test "id-1g#{idx}: generating samples for key of #{key}" do
     new_session
-    tms "harpwise calib #{key} --auto"
+    tms "harpwise samples generate #{key}"
     tms :ENTER
     sleep 1
     tms 'y'
     sleep 4
     wait_for_end_of_harpwise
-    expect { screen[-4]['Calibration done.'] }
+    expect { screen[-4]['???'] }
     kill_session
   end
 end
@@ -244,28 +244,28 @@ end
 end
 
 %w(a c).each_with_index do |key,idx|
-  do_test "id-47a#{idx}: chromatic; auto-calibration key of #{key}" do
+  do_test "id-47a#{idx}: chromatic; generating samples key of #{key}" do
     new_session
-    tms "harpwise calib chromatic #{key} --auto"
+    tms "harpwise samples chromatic #{key} generate"
     tms :ENTER
     sleep 2
     tms 'y'
     sleep 12
     wait_for_end_of_harpwise
-    expect { screen[-4]['Calibration done.'] }
+    expect { screen[-4]['???'] }
     kill_session
   end
 end
 
-do_test "id-47b: auto-calibration for all keys" do
+do_test "id-47b: generating samples for all keys" do
   new_session
-  tms "harpwise calib richter all"
+  tms "harpwise samples richter generate all"
   tms :ENTER
   sleep 2
   tms 'y'
   sleep 12
   wait_for_end_of_harpwise
-  expect { screen[-4]['Calibration done.'] }
+  expect { screen[-4]['???'] }
   kill_session
 end
 
@@ -405,7 +405,7 @@ usage_types.keys.each_with_index do |mode, idx|
     tms :ENTER
     sleep 2
     expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
-                     'calibrate' => [4, 'The wise needs a set of audio-samples'],
+                     'samples' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
                      'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
@@ -432,7 +432,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     tms :ENTER
     sleep 2
     expect_opts = { 'none' => [2, '???'],
-                    'calibrate' => [4, 'prefer sharps'],
+                    'samples' => [4, 'prefer sharps'],
                     'listen' => [16, 'on every invocation'],
                     'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
@@ -452,10 +452,10 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
   end
 end
 
-do_test 'id-2: manual calibration' do
+do_test 'id-2: recording of samples' do
   sound 4, -14
   new_session
-  tms 'harpwise calib g'
+  tms 'harpwise samples record g'
   tms :ENTER
   sleep 2
   tms :ENTER
@@ -467,9 +467,9 @@ do_test 'id-2: manual calibration' do
   kill_session
 end
 
-do_test 'id-3: manual calibration summary' do
+do_test 'id-3: samples summary' do
   new_session
-  tms 'harpwise calib a'
+  tms 'harpwise samples record a'
   tms :ENTER
   sleep 2
   tms 's'
@@ -478,10 +478,10 @@ do_test 'id-3: manual calibration summary' do
   kill_session
 end
 
-do_test 'id-4: manual calibration starting at hole' do
+do_test 'id-4: recording samples starting at hole' do
   sound 1, -14
   new_session
-  tms 'harpwise calib a --hole +4'
+  tms 'harpwise samples a record +4'
   tms :ENTER
   sleep 2
   tms 'y'
@@ -498,7 +498,7 @@ end
 do_test 'id-5: check against et' do
   sound 1, 10
   new_session
-  tms 'harpwise calib c --hole +4'
+  tms 'harpwise samples record c +4'
   tms :ENTER
   sleep 2
   tms :ENTER
@@ -507,6 +507,34 @@ do_test 'id-5: check against et' do
   sleep 10
   expect { screen[11,2] == ['  You played:             784',
                              '  ET expects:             523.3']}
+  kill_session
+end
+
+do_test 'id-5a: delete recorded samples' do
+  new_session
+  tms 'harpwise samples delete all'
+  tms :ENTER
+  sleep 1
+  tms 'Y'
+  expect { screen[12]['???']}  
+  kill_session
+end
+
+do_test 'id-5b: check all samples' do
+  new_session
+  tms 'harpwise samples check all'
+  tms :ENTER
+  sleep 2
+  expect { screen[12]['???']}  
+  kill_session
+end
+
+do_test 'id-5c: check some samples' do
+  new_session
+  tms 'harpwise samples check'
+  tms :ENTER
+  sleep 2
+  expect { screen[12]['???']}  
   kill_session
 end
 

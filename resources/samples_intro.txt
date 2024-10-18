@@ -17,5 +17,5 @@ a commandline argument.
 
 <%="\e[2m"%>Remark: if you just want to get started quickly, you may skip this
 procedure for now by invoking:
-   harpwise calibrate <%=$key%> generate
+   harpwise samples <%=$key%> generate
 and come back to 'record' later, maybe for some holes only.<%="\e[0m"%>

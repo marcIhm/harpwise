@@ -24,11 +24,12 @@ And, less interactive:
     scales and much more
   - tools: Some simple, non-interactive tools related to basic
     harmonica theory
-  - calibrate: Wise generates samples for holes, or assists in
-    recording your own; this is a prerequisite for using many other
-    modes; you will be asked to invoke it, when necessary. Note, that
-    for convenience, type 'richter' and key of 'c' does not require
-    calibration, as the relevant samples are already included.
+  - samples: The wise assists in recording your own samples or
+    generates them for you; this is a prerequisite for using many
+    other modes, so you will be asked to invoke it, when
+    necessary. Note, that for convenience, type 'richter' and key of
+    'c' does not require this, as the relevant samples are
+    already included.
 
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.

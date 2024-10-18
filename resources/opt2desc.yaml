@@ -92,13 +92,6 @@ no_loop:
 
   - inverse of --no-loop
 
-auto:
-  - generate audio samples without user intervention
-  
-hole:
-  - start with calibration from this hole and on
-  - HOLE
-
 tags_all:
   - |
     filter licks and keep those

@@ -11,45 +11,64 @@ OVERVIEW
     samples to find out, which note you are actually playing
 
   You may either record those samples under the guidance of this mode,
-  or you may let the wise generate them for you (see option '--auto'
-  below).
+  or you may let the wise generate them for you; adding some helper
+  functions, this gives the following choice of extra arguments:
+
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
+
 
   The samples need to be generated for each key, but only once in the
   lifetime of your harp; you may start with the key of c only.
   After that you are ready to use the other modes of the wise.
 
+  Samples that have been recorded will not be overwritten with
+  samples, that the wise generates.  Moreover, recorded samples are
+  always preferred over generated samples, when harpwise has to play
+  holes; remove recorded samples, if (for the moment) you prefer
+  generated samples.
+  
   By its nature, this mode only accepts arguments for type and key,
   but not for scale.
   
 
 USAGE BY EXAMPLES
 
-  Calibrate the wise for the frequencies of the harp you are using:
+  Record samples to teach the wise abut the frequencies of the harp
+  you are using:
 
-    harpwise calibrate c
+    harpwise samples c record
 
-  this will ask you to play notes on your harp. The samples will be
-  stored in the hidden folder .harpwise within your home
-  directory; frequencies will be extracted to the file frequencies.yaml.
-
-
-  Automatic calibration is the fastest way to get your set of samples:
-  The wise offerts to create all the audio samples (using sox) for
-  you; however this cannot match the characteristics of your own harp
-  and your own playing style, but gives a good quick start.  For
-  auto-calibration, type:
-
-    harpwise calibrate d --auto
+  this will ask you to play notes on your harp (key of c). The samples
+  will be stored in the hidden folder .harpwise within your home
+  directory; frequencies will be extracted to the file
+  frequencies.yaml.
 
 
-  To calibrate a single hole only (for key of a):
+  On the other hand, generating samples automatically is the fastest
+  way to get a complete set of hole-samples: The wise offers to create
+  all the audio samples for you (using sox); unfortunately this cannot
+  match the characteristics of your own harp and your own playing
+  style, but it gives a good quick start.  For auto-generation, type:
 
-    harpwise calibrate a --hole -3//
+    harpwise samples generate a
 
 
-  Or, to calibrate everything, all holes, all keys, in a single run:
+  To create a sample for a single hole only (for key of a):
 
-    harpwise calibrate all
+    harpwise samples generate a -3//
+
+
+  Or, to generate everything, all holes, all keys, in a single run:
+
+    harpwise samples generate all
 
   Only when first changing the type of harmonica, e.g. from richter
-  (default) to chromatic, you will need to calibrate once again.
+  (default) to chromatic, you will need to create samples once again.
+
+
+  If later, you want to remove some samples, that you have recorded
+  previously, try:
+
+    harpwise samples delete d
+
+  (for the key of d)

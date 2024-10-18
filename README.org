@@ -104,15 +104,15 @@ quiz with many flavours.
     or a reference pitch
   - print: print licks, scales, etc. or produce various reports
   - tools: utilities, mostly related to basic harmonica theory
-  - calibrate: generate samples for holes or record your own
+  - samples: record samples for holes or generate them
 
-  As an optional step you may want to calibrate the program; the resulting
-  wav-files will be kept in directory ~/.harpwise
+  As an optional step you may want to create samples for the program; the
+  resulting wav-files will be kept in directory ~/.harpwise
 
-  Or, to get started quickly you may use auto-calibration for
-  machine-generated tones and frequencies (e.g. for the key of c):
+  Or, to get started quickly you may generate samples and frequencies
+  (e.g. for the key of c):
 
-  harpwise calibrate c --auto
+  harpwise samples generate c
 
   
   If you want to work with mode licks to learn and memorize licks (highly
@@ -243,10 +243,10 @@ quiz with many flavours.
    'just intonation'.  Simply because, it asks you to play your own harp
    to generate samples (whatever its tuning might be). It then computes
    frequency values from these samples. (Remark: for a quick start you may
-   have skipped this step using auto calibration)
+   have skipped this step using automatic sample generation)
   
    However, sometimes harpwise has to choose one tuning, e.g. when doing
-   auto calibration, or when your samples need to be judged against some
+   sample generation or when your samples need to be judged against some
    standard. In such cases it generally uses 'equal temperament' (ET for
    short).
 
