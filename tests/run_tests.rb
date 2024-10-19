@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 101
+num_exp = 103
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -205,20 +205,20 @@ end
 %w(g a d).each_with_index do |key,idx|
   do_test "id-1g#{idx}: generating samples for key of #{key}" do
     new_session
-    tms "harpwise samples generate #{key}"
+    tms "harpwise samples #{key} generate"
     tms :ENTER
     sleep 1
     tms 'y'
     sleep 4
     wait_for_end_of_harpwise
-    expect { screen[-4]['???'] }
+    expect { screen[-4]['Sample generation done.'] }
     kill_session
   end
 end
 
 do_test "id-1j: starter samples for key of c" do
   some_samples_dir = "#{$dotdir_testing}/samples/richter/key_of_c"
-  probe_file = "#{some_samples_dir}/g5.wav"
+  probe_file = "#{some_samples_dir}/g5.mp3"
   FileUtils.rm_r(some_samples_dir) if File.exist?(some_samples_dir)
   new_session
   tms "harpwise listen c"
@@ -252,7 +252,7 @@ end
     tms 'y'
     sleep 12
     wait_for_end_of_harpwise
-    expect { screen[-4]['???'] }
+    expect { screen[-4]['Sample generation done.'] }
     kill_session
   end
 end
@@ -265,7 +265,7 @@ do_test "id-47b: generating samples for all keys" do
   tms 'y'
   sleep 12
   wait_for_end_of_harpwise
-  expect { screen[-4]['???'] }
+  expect { screen[-4]['Sample generation done.'] }
   kill_session
 end
 
@@ -455,7 +455,7 @@ end
 do_test 'id-2: recording of samples' do
   sound 4, -14
   new_session
-  tms 'harpwise samples record g'
+  tms 'harpwise samples g record'
   tms :ENTER
   sleep 2
   tms :ENTER
@@ -469,7 +469,7 @@ end
 
 do_test 'id-3: samples summary' do
   new_session
-  tms 'harpwise samples record a'
+  tms 'harpwise samples a record'
   tms :ENTER
   sleep 2
   tms 's'
@@ -481,7 +481,7 @@ end
 do_test 'id-4: recording samples starting at hole' do
   sound 1, -14
   new_session
-  tms 'harpwise samples a record +4'
+  tms 'harpwise samples a record -4/'
   tms :ENTER
   sleep 2
   tms 'y'
@@ -498,7 +498,7 @@ end
 do_test 'id-5: check against et' do
   sound 1, 10
   new_session
-  tms 'harpwise samples record c +4'
+  tms 'harpwise samples c record +4'
   tms :ENTER
   sleep 2
   tms :ENTER
@@ -516,7 +516,7 @@ do_test 'id-5a: delete recorded samples' do
   tms :ENTER
   sleep 1
   tms 'Y'
-  expect { screen[12]['???']}  
+  expect { screen[15]['No recorded sound samples for key']}  
   kill_session
 end
 
@@ -525,7 +525,7 @@ do_test 'id-5b: check all samples' do
   tms 'harpwise samples check all'
   tms :ENTER
   sleep 2
-  expect { screen[12]['???']}  
+  expect { screen[15]['generated only']}  
   kill_session
 end
 
@@ -534,7 +534,7 @@ do_test 'id-5c: check some samples' do
   tms 'harpwise samples check'
   tms :ENTER
   sleep 2
-  expect { screen[12]['???']}  
+  expect { screen[12]['generated sample']}  
   kill_session
 end
 
@@ -2501,7 +2501,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[13]['First argument for mode tools should be one of those extra arguments'] }
+  expect { screen[17]['First argument for mode tools should be one of those extra arguments'] }
   kill_session
 end
 
@@ -2519,7 +2519,7 @@ do_test 'id-77a: error on abbreviated type' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[14]["ot 'chrom'"] }
+  expect { screen[21]["not 'chrom'"] }
   kill_session
 end
 
@@ -2807,7 +2807,7 @@ do_test 'id-95: quiz-flavour key-harp-song' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[10]['Given a HARP with key of'] || screen[10]['Given a SONG with key of'] }
+  expect { screen[10]['Given a  HARP  with key of'] || screen[10]['Given a  SONG  with key of'] }
   sleep 1
   tms 'help-play-answer'
   tms :ENTER
@@ -2975,7 +2975,7 @@ do_test 'id-99: widgets' do
   tms :ENTER
   sleep 1
   tms :RIGHT
-  expect { screen[7]['Input #1: -ESC-'] }
+  expect { screen[7]['Input #1: -RIGHT-'] }
   tms :ENTER
   expect { screen[8]['Input #2: -RETURN-'] }
   tms :TAB

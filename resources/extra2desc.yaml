@@ -213,9 +213,9 @@ samples:
     'delete'.
   generate: |
     as a faster alternative to 'record', you may let harpwise generate
-    samples for each hole.  This gives easy results, that, however
+    samples for each hole.  This gives fast results, that, however
     lack the typical harmonica sound.  You may try different waveforms
-    (e.g. 'sine') with option --wave.
+    (e.g. 'sine') with option --wave (with a default of 'pluck').
 
     To generate samples for all keys in one pass, you may give 'all'
     as an additional argument; otherwise samples are created for the

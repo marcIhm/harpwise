@@ -1313,7 +1313,7 @@ def peek_into_quiz_shifts shifts, oride_l_message2
   puts
   do_figlet_unwrapped(shifts[4], 'smblock')
   sleep 0.25
-  play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[shifts[4]][:note]), %w(.wav %mp3))
+  play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[shifts[4]][:note], %w(.wav .mp3)))
   sleep 1
   $ctl_kb_queue.clear
   $msgbuf.print "Shift interval is #{shifts[3]}", 2, 4, :quiz_play_shifted

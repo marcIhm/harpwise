@@ -17,7 +17,7 @@ end
 def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   cmd = if $testing
           "sleep #{secs}"
-        else    
+        else
           "play --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
         end
   sys(cmd, $sox_fail_however)

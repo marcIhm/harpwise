@@ -466,7 +466,7 @@ def do_check_frequencies
   $harp_holes.each do |hole|
     semi = $harp[hole][:semi]
 
-    freq_measured = analyze_with_aubio("#{$sample_dir}/#{$harp[hole][:note]}.wav")
+    freq_measured = analyze_with_aubio("#{$sample_dir}/#{$harp[hole][:note]}.mp3")
     freq_calculated = semi2freq_et($harp[hole][:semi])
     puts "  #{hole.ljust(8)}, #{$harp[hole][:note].ljust(4)}   measured = %8.2f\n                 calculated = %8.2f\n                  from file = %8.2f" % [freq_measured.round(2), freq_calculated, hole2freq_read[hole]]
 

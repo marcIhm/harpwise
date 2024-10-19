@@ -55,7 +55,7 @@ Any samples that you have recorded before will be kept; use extra-command
 e.g. for a specific key via 'harpwise record c'
 EOINTRO
 
-    puts "\nNow, type 'y' to let harpwise generate all samples for all keys."
+    puts "\nNow, type   'y'   to let harpwise generate all samples for all keys."
     char = one_char
     puts
     
@@ -90,7 +90,9 @@ their own samples beeing created, but only once.
 e.g. 'harpwise record #{$key}'
 EOINTRO
 
-      puts "\nNow, type 'y' to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m"
+      puts "\nNow, type   'y'   to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m."
+      puts
+      puts "\e[2mAnd note, that samples will also be partially played in the process.\e[0m"
       char = one_char
       puts
       
@@ -469,7 +471,7 @@ def samples_delete to_handle
     puts
     puts mindful
     puts
-    puts "Press 'Y' (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel:"
+    puts "Press   'Y'   (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel."
     char = one_char
     puts
     if char != 'Y'
@@ -499,7 +501,7 @@ def samples_delete to_handle
       else
         puts mindful
         puts
-        puts "Press 'Y' (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel:"
+        puts "Press   'Y'   (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel."
         char = one_char
       end
       if char == 'Y'
