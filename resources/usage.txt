@@ -146,7 +146,7 @@ Quick Start:
 
     harpwise quiz random
 
-  for a fun way to improve you musical skills.
+  for a fun way to improve you harmonica knowledge.
 
 
 Version <%=$version%>

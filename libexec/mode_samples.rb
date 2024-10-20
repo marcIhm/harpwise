@@ -523,7 +523,8 @@ def samples_delete to_handle
       if char == 'Y'
         print 'deleting .'
         to_delete.each do |f|
-          FileUtils.rm("#{$sample_dir}/#{f}")
+          ff = "#{$sample_dir}/#{f}"
+          FileUtils.rm(ff) if File.exist?(ff)
           print '.'
           sleep 0.2
         end
