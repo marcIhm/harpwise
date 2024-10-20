@@ -2095,6 +2095,17 @@ class NotInScale < QuizFlavour
     puts "Playing note #{@solution}, hole #{@hole_notin}, that was foreign in scale #{@scale_name}:"
     sleep 0.1
     play_hons(hons: [@hole_notin])
+    puts
+    sleep 0.5
+    puts "And these are the holes of the modified scales:"
+    puts
+    lines = ['','']
+    @holes.each do |hole|
+      lines[0] += hole + '  '
+      lines[1] += @hide[hole].ljust(hole.length) + '  '
+    end
+    puts lines[0]
+    puts "\e[2m" + lines[1] + "\e[0m"
   end
   
   def issue_question

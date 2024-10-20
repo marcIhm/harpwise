@@ -6,6 +6,8 @@
 
 def do_samples to_handle
 
+  print "\e[?25l"  ## hide cursor
+  
   case $extra
   when 'record'
     samples_record to_handle
@@ -150,7 +152,6 @@ def samples_record to_handle
   puts "Press:   \e[32many key\e[0m   to start with the first hole (#{holes[0]}), key of #{$key}"
   puts "or       \e[32ms\e[0m         and skip to summary for existing samples."
   puts
-  print "Your input:  "
   char = one_char
   puts char
   puts
@@ -432,6 +433,7 @@ def samples_check to_handle
       puts
       maxlen = $harp_holes.map(&:length).max
       found_prev = nil
+      counts = Hash.new {|h,k| h[k] = 0}
       $harp_holes.each do |hole|
         endings = %w(wav mp3).map do |ending|
           this_or_equiv("#{$sample_dir}/%s.#{ending}", $harp[hole][:note]) && ending
@@ -444,13 +446,19 @@ def samples_check to_handle
                 when 1
                   {'wav' => 'recorded', 'mp3' => 'generated'}[endings[0]] + ' sample'
                 when 2
-                  'recorded sample'
+                  'recorded + generated sample'
                 else
                   fail "Internal error: #{endings}"
                 end
         puts ( found == found_prev  ?  "\e[2m#{found}\e[0m"  :  found )
+        counts[found] += 1
         found_prev = found
       end
+      puts
+      puts 'Summary:'
+      maxlen = counts.keys.map(&:length).max
+      counts.keys.sort.each {|w| puts "#{head}  #{w.rjust(maxlen)}:  #{counts[w]}"}
+      puts
     else
       puts "No samples for key #{$key} yet; maybe record or create some ?\n\e[2m#{for_sample_generation}\e[0m"
     end
@@ -463,11 +471,11 @@ def samples_delete to_handle
 
   do_all_keys, these_keys = sample_args_helper(to_handle)  
 
-  mindful = "Please be mindful, because the recording has probably\nbeen done by you with some effort."
+  mindful = "Please be mindful, because the recordings have probably\nbeen done by you with some effort ..."
   
   puts
   if do_all_keys
-    puts "About to delete recorded samples for all #{these_keys.length} keys !"
+    puts "About to   \e[91mdelete\e[0m   recorded samples for   \e[91mall #{these_keys.length} keys !\e[0m"
     puts
     puts mindful
     puts
@@ -492,7 +500,12 @@ def samples_delete to_handle
     if to_delete.length == 0
       puts "No recorded sound samples for key   #{key}"
     else
-      puts "These recorded sound samples for key #{key} in\n#{$sample_dir}:"
+      if do_all_keys
+        print "\e[91mDeleting\e[0m "
+      else
+        print "About to   \e[91mdelete\e[0m  "
+      end
+      puts "these recorded sound samples for key of   \e[91m#{key}\e[0m   in\n#{$sample_dir}:"
       puts
       puts wrap_words('    ', to_delete, sep = '  ')
       puts
@@ -501,6 +514,9 @@ def samples_delete to_handle
       else
         puts mindful
         puts
+        puts
+        puts
+        print "\e[A"
         puts "Press   'Y'   (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel."
         char = one_char
       end
