@@ -1,4 +1,4 @@
-harpwise ('wise' for short) supports the daily practice of scales,
+Harpwise ('wise' for short) supports the daily practice of scales,
 intervals, licks or bends on a diatonic (richter) or chromatic
 harmonica for various keys.
 

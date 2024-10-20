@@ -81,16 +81,14 @@ def err text
   puts
   puts "\e[0mERROR: #{text}"
   $msgbuf&.flush_to_term  
-  unless $initialized
-    puts_err_context
-  end
+  puts_context_sources if $debug && !$initialized
   puts
   puts Thread.current.backtrace if $opts && $opts[:debug]
   exit 1
 end
 
 
-def puts_err_context
+def puts_context_sources
   clauses = [:mode, :type, :key, :scale, :extra].map do |var|
     val = if $err_binding && eval("defined?(#{var})",$err_binding)
             eval("#{var}", $err_binding)

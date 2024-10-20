@@ -94,7 +94,7 @@ EOINTRO
 
       puts "\nNow, type   'y'   to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m."
       puts
-      puts "\e[2mAnd note, that samples will also be partially played in the process.\e[0m"
+      puts "\e[2mThese samples will also be played in the process.\e[0m"
       char = one_char
       puts
       

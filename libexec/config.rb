@@ -993,7 +993,7 @@ end
 
 
 def read_samples
-  err "Frequency file #{$freq_file}\ndoes not exist; you need to create samples for the key of   #{$key}   first !\n\n#{for_sample_generation}this needs to be done only once for this key.\n\n" unless File.exist?($freq_file)
+  err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first !\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
     err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Maybe you need to redo the whole recording or generation of samples !\n\n#{for_sample_generation}"
@@ -1076,7 +1076,7 @@ end
 
 
 def for_sample_generation
-  "For automatic generation of samples use:\n\n  #{$0} samples #{$type} #{$key} generate\n\nor even:\n\n  #{$0} samples #{$type} generate all\n\n"
+  "For automatic generation of samples for key #{$key} use:\n\n  #{$0} samples #{$type} #{$key} generate\n\nor to generate for all keys:\n\n  #{$0} samples #{$type} generate all\n\n"
 end
 
 

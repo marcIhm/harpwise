@@ -645,6 +645,13 @@ def print_usage_info mode = nil
   ('st-louis') are searched among ALL of your licks.
 EOTEXT
 
+  if !mode && STDOUT.isatty
+    print "\e[?25l"  ## hide cursor      
+    animate_splash_line
+    puts "\e[2mOverview:\e[0m"
+    sleep 0.5
+    print "\e[?25h"  ## show cursor
+  end
   puts
   puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'')
 
