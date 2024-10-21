@@ -26,7 +26,7 @@ def parse_arguments_early
 
   # get mode
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
-    err "First argument can be one of #{choices}, not #{none}.\n\n    Please invoke without argument for general usage information.\n\n" +
+    err "First argument can be one of\n\n   #{choices}\n\nnot #{none}.\n\n    Please invoke without argument for general usage information.\n\n" +
         if $conf[:all_keys].include?(ARGV[0])
           "However your first argument '#{ARGV[0]}' is a key, which might be placed further right on the commandline, if you wish."
         else
@@ -413,7 +413,7 @@ def parse_arguments_early
     ARGV.clear
     holes.each do |h|
       next if $harp_holes.include?(h)
-      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp (#{$harp_holes.join(', ')}) and can therefore not be part of an adhoc-scale"
+      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp ( #{$harp_holes.join('  ')} ) and can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0
@@ -561,16 +561,17 @@ def parse_arguments_for_mode
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
-        print_amongs($amongs[$mode], :extra)
-        err "First argument for mode #{$mode} should belong to one of those types listed above, not '#{ARGV[0]}'"
+        any_of = print_amongs($amongs[$mode], :extra)
+        err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
       end
     else
-      # these modes (e.g. quiz) require their extra argument
+      # these modes (e.g. quiz or samples) require their extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_w_wo_s]) == :extra
       if !$extra
         print_amongs(:extra)
-        err("First argument for mode #{$mode} should be one of those extra arguments\n  #{$extra_desc[$mode].keys.join(', ')}    as described above, but not '#{ARGV[0]}'" +
-            ( $mode == :quiz  ?  "; you may also give 'choose'"  :  '' ))
+        puts get_extra_desc_all(extra_desc: {quiz: {'choose' => 'ask user to choose one'}}).join("\n") if $mode == :quiz
+        extra_words = $extra_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
+        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{wrap_words('  ',extra_words, '  ')} \n\e[0mas described above, but not '#{ARGV[0]}'"     
       end
     end
   end

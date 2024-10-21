@@ -120,7 +120,7 @@ def tool_transpose to_handle
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
   dsemi = diff_semitones($key, key_other, strategy: :g_is_lowest)
   to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
 
   puts
@@ -209,8 +209,8 @@ def tools_shift_helper to_handle
 
   to_handle.reject! {|h| musical_event?(h)}
   to_handle.each do |hole|
-    err("Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" +
-        ( to_handle.length == 1  ?  " and not a lick either"  :  '' )) unless $harp_holes.include?(hole)
+    err("Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" +
+        ( to_handle.length == 1  ?  "   and not a lick either"  :  '' )) unless $harp_holes.include?(hole)
   end
   return [to_handle, inter, dsemi]
 end
@@ -267,7 +267,7 @@ def tool_search_holes_in_licks to_handle
 
   to_handle.reject! {|h| musical_event?(h)}
   to_handle.each do |hole|
-    err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
 
   search_canon = to_handle.map {|h| $harp[h][:canonical]}
@@ -316,7 +316,7 @@ def tool_search_lick_in_scales to_handle
             lick[:holes_wo_events]
           else
             to_handle.each do |hole|
-              err "Argument '#{hole}' is not a hole of a #{$type}-harp: #{$harp_holes.join(',')}" unless $harp_holes.include?(hole)
+              err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
             end
             to_handle
           end

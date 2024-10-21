@@ -404,7 +404,7 @@ usage_types.keys.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} 2>/dev/null | head -20"
     tms :ENTER
     sleep 2
-    expect_usage = { 'none' => [2, "harpwise ('wise' for short) supports the daily"],
+    expect_usage = { 'none' => [2, "Harpwise ('wise' for short) supports the daily"],
                      'samples' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
                      'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
@@ -1537,7 +1537,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[20]['First argument for mode print should belong to one of those types'] }
+  expect { screen[17]['First argument for mode print should belong to one of these 10 types'] }
   kill_session
 end
 
@@ -2501,7 +2501,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[17]['First argument for mode tools should be one of those extra arguments'] }
+  expect { screen[16]['First argument for mode tools should be one of these 19'] }
   kill_session
 end
 

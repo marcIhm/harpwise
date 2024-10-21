@@ -725,37 +725,48 @@ end
 
 
 def print_amongs *choices
+  any_of = Set.new
   choices.flatten.each do |choice|
     case choice
         # keys must be the same set of values as in recognize_among
     when :event
+      any_of << 'musical events'
       puts "\n- musical events in () or []\n    e.g. comments like '(warble)' or '[123]'"
     when :hole
+      any_of << 'harp holes'
       puts "\n- holes:"
       print_in_columns $harp_holes, indent: 4, pad: :tabs
     when :note
+      any_of << 'notes'
       puts "\n- notes:"
       puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
     when :semi_note
+      any_of << 'semitones'
       puts "\n- Semitones (as note values):"
       puts '    e.g. 12st, -2st, +3st'
     when :semi_inter
+      any_of << 'semitones'
       puts "\n- Semitones (as intervals):"
       puts '    e.g. 12st, -2st, +3st'
     when :scale
+      any_of << 'scales'
       puts "\n- scales:"
       print_in_columns $all_scales, indent: 4, pad: :tabs
     when :scale_prog
+      any_of << 'scale-progressions'
       puts "\n- scale-progressions:"
       print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
     when :extra
+      any_of << 'extra arguments'
       puts "\n- extra arguments (specific for mode #{$mode}):"
       puts get_extra_desc_all.join("\n")
     when :inter
+      any_of << 'named intervals'
       puts "\n- named interval, i.e. one of: "
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
+      any_of << 'licks'
       puts "\n- selected licks:"
       print_in_columns all_lnames.sort, indent: 4, pad: :tabs
       if $licks == $all_licks
@@ -776,9 +787,9 @@ def print_amongs *choices
 end
 
 
-def get_extra_desc_all for_usage: false, exclude_meta: false
+def get_extra_desc_all extra_desc: $extra_desc, for_usage: false, exclude_meta: false
   lines = []
-  $extra_desc[$mode].each do |k,v|
+  extra_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
     lines << (for_usage ? '  ' : '') + "  - #{k}:"
@@ -993,15 +1004,15 @@ def wrap_words head, words, sep = ','
   line = head
   lines = Array.new
   words.each_with_index do |word, idx|
-    line += sep unless line[-1] == ' ' || idx == 0
-    if line.length + word.length > $term_width - sep.length
+    if line.length + sep.length + word.length >= $term_width - 1
       lines << line.rstrip
       line = (' ' * head.length) + word
     else
+      line += sep unless idx == 0
       line += word
     end
   end
-  lines << line.rstrip unless line == ''
+  lines << line.rstrip unless line.rstrip == ''
   return lines.join("\n")
 end
 

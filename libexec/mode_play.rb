@@ -202,7 +202,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   if other.length > 0 
     puts
-    puts "Cannot understand these arguments: #{other}#{not_any_source_of};"
+    puts "Cannot understand these arguments: #{other.join('  ')}#{not_any_source_of};"
     puts 'they are none of (exact match required):'
     print_amongs(amongs)
     if extra_allowed && $extra == ''
@@ -210,7 +210,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
       puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
       print_amongs(:extra)
     end
-    err "See above (cannot understand these arguments: #{other})"
+    err "Cannot understand these arguments: #{other.join('  ')}\nSee above for full list of choices."
   end
   
   if extra_allowed && $extra == '' && types_count == 0
