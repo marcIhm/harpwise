@@ -67,7 +67,6 @@ def check_screen graceful: false, hint_on_large_term: false
   rescue ArgumentError => e
     puts "\n[width, height] = [#{$term_width}, #{$term_height}]"
     puts
-    pp $lines if $debug
     err e.to_s unless graceful
     puts "\e[0m#{e}"
     return false

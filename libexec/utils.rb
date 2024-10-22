@@ -81,7 +81,7 @@ def err text
   puts
   puts "\e[0mERROR: #{text}"
   $msgbuf&.flush_to_term  
-  puts_context_sources if $debug && !$initialized
+  puts_context_sources if $opts && $opts[:debug]
   puts
   puts Thread.current.backtrace if $opts && $opts[:debug]
   exit 1
