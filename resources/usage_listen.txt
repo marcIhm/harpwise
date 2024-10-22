@@ -1,4 +1,4 @@
-OVERVIEW
+Overview:
 
   The mode 'listen' shows information on the notes you play; depending
   on settings for display and comment this can be:
@@ -13,7 +13,7 @@ OVERVIEW
   When playing, you may switch on journal to get a simple
   transcription of the holes played.
 
-USAGE BY EXAMPLES
+Usage by Examples:
 
   The wise listens, while your are playing a richter harp of key c and
   it shows the holes, that you played; green if from the scale, red

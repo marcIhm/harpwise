@@ -1,4 +1,4 @@
-OVERVIEW
+Overview:
 
   The wise needs a set of audio-samples; these are the sounds-files
   (recorded or generated) of each of the holes of your harmonica;
@@ -31,7 +31,7 @@ OVERVIEW
   but not for scale.
   
 
-USAGE BY EXAMPLES
+Usage by Examples:
 
   Record samples to teach the wise abut the frequencies of the harp
   you are using:

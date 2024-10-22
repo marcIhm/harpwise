@@ -1,4 +1,4 @@
-OVERVIEW
+Overview:
 
   The mode 'play' picks its arguments from the commandline and plays them.
   It also handles some extra keywords. 
@@ -15,7 +15,7 @@ OVERVIEW
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
 
 
-USAGE BY EXAMPLES
+Usage by Examples:
 
   Play a few holes on a harp of key c:
 

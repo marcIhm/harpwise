@@ -1,4 +1,4 @@
-OVERVIEW
+Overview:
 
   The mode 'print' takes its arguments (holes, notes, licks or special
   keywords) and prints their hole-content on the commandline.
@@ -21,7 +21,7 @@ OVERVIEW
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
 
   
-USAGE BY EXAMPLES
+Usage by Examples:
 
   Print holes and notes of a lick:
 

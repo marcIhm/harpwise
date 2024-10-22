@@ -1,4 +1,4 @@
-OVERVIEW
+Overview:
 
   The mode 'quiz' is a quiz on music theory, ear and memory. It is
   meant as a fun way to increase your musical abilities. Quiz comes in
@@ -11,11 +11,11 @@ OVERVIEW
   pressing ctrl-z.  For a chosen flavour, questions of this flavour
   are asked in an endless loop.
 
-  The available <%= $extra_desc[:quiz].length %> flavours are:
+The available <%= $extra_desc[:quiz].length %> flavours are:
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
   
-USAGE BY EXAMPLES
+Usage by Examples:
 
   The wise chooses a quiz-flavour at random (key of c):
 

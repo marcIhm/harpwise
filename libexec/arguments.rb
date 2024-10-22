@@ -655,10 +655,14 @@ EOTEXT
     print "\e[?25h"  ## show cursor
   end
   puts
-  puts ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'')
+  lines = ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'').lines
+  lines.each_with_index do |line, idx|
+    print line
+    sleep 0.01 if STDOUT.isatty && idx < 10
+  end
 
   if $mode
-    puts "\nCOMMANDLINE OPTIONS\n\n"
+    puts "\nCommandline Options:\n\n"
     puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
   end
   puts
