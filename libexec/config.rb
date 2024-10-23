@@ -1005,7 +1005,7 @@ def read_samples
     fa = hole2freq[ha]
     fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
     if fa >= fb_plus
-      err "Frequencies in #{$freq_file} are not in accord to calculated values (by 0.25 semitones margin): #{fa} (for #{ha}, from file)  >= #{fb_plus} (for #{hb}, calculated + 0.25 st)\n#{hole2freq.pretty_inspect}"
+      err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.25 st)\nMaybe record hole #{ha} or generate all holes for this key."
     end
   end
 

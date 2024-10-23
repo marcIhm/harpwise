@@ -32,7 +32,7 @@ def do_quiz to_handle
   inherited = ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION']
   
   if ENV['HARPWISE_RESTARTED']
-    do_restart_animation
+    do_animation 'quiz', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over with a different flavour due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   else
     animate_splash_line
@@ -2400,17 +2400,14 @@ def choose_prepare_for skip_term: false
 end
 
 
-def do_restart_animation
-
+def do_animation info, nlines
   puts "\e[?25l"  ## hide cursor
   $splashed = true
-  info = 'quiz'
   dots = '...'
   push_front = dots + info
   shift_back = info + dots
   txt = dots + info + dots + info + dots
   ilen = txt.length
-  nlines = ($term_height - $lines[:comment_tall] - 1)
   prev = nil
   nlines.times do
     len = push_front.length

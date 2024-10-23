@@ -88,7 +88,7 @@ def parse_arguments_early
         transpose_scale: %w(--transpose-scale)}],
      [Set[:samples], {
         wave: %w(--wave)}],
-     [Set[:print], {
+     [Set[:print, :samples], {
         terse: %w(-T --terse)}],
      [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],

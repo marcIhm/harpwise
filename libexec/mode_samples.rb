@@ -93,8 +93,10 @@ e.g. 'harpwise record #{$key}'
 EOINTRO
 
       puts "\nNow, type   'y'   to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m."
-      puts
-      puts "\e[2mThese samples will also be played in the process.\e[0m"
+      unless $opts[:terse]
+        puts
+        puts "\e[2mThese samples will also be played in the process.\e[0m"
+      end
       char = one_char
       puts
       
@@ -111,17 +113,18 @@ EOINTRO
     
     hole2freq = Hash.new
     num_wavs_uniq = $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
+    terse = do_all_keys || $opts[:terse]
     $harp_holes.each_with_index do |hole, idx|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.mp3"
-      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: do_all_keys
-      print "\e[2m#{hole}\e[0m  " if do_all_keys
-      play_wave file, 0.5 unless do_all_keys
+      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: terse
+      print "\e[2m#{hole}\e[0m  " if terse
+      play_wave file, 0.5 unless terse
       hole2freq[hole] = analyze_with_aubio(file)
     end
     write_freq_file hole2freq
     puts unless do_all_keys
     puts "\nFrequencies in: #{$freq_file}"
-    if do_all_keys
+    if terse
       puts 
     else
       print_summary hole2freq, 'generated'
@@ -146,15 +149,15 @@ def samples_record to_handle
             $harp_holes
           end
 
-  puts ERB.new(IO.read("#{$dirs[:install]}/resources/samples_intro.txt")).result(binding)
-  puts
+  ERB.new(IO.read("#{$dirs[:install]}/resources/samples_intro.txt")).result(binding).lines.each do |line|
+    print line
+    sleep 0.01
+  end
   puts
   puts "Press:   \e[32many key\e[0m   to start with the first hole (#{holes[0]}), key of #{$key}"
   puts "or       \e[32ms\e[0m         and skip to summary for existing samples."
   puts
   char = one_char
-  puts char
-  puts
 
   if File.exist?($freq_file)
     hole2freq = yaml_parse($freq_file)
@@ -162,8 +165,10 @@ def samples_record to_handle
     hole2freq = Hash.new
   end
 
+  do_animation 'first hole', 5
   unless char == 's'
     i = 0
+    # loop over all holes
     begin
       hole = holes[i]
       what, freq = record_and_review_hole(hole)
@@ -174,15 +179,18 @@ def samples_record to_handle
       
       if what == :back
         if i == 0
-          puts "\n\n\e[91mCANNOT GO BACK !\e[0m  Already at first hole.\n\n\n"
+          puts "\nCannot go back, already at first hole."
           sleep 0.5
+          do_animation 'first hole', 5
         else
           i -= 1
+          do_animation 'previous hole', 5
         end
       elsif what == :cancel
         # keep current value of i
       else
         i += 1
+        do_animation 'next hole', 5
       end
       break if what == :quit
     end while what != :quit && i < holes.length
@@ -197,7 +205,7 @@ def record_and_review_hole hole
   sample_file = "#{$sample_dir}/#{$harp[hole][:note]}.wav"
   backup = "#{$dirs[:tmp]}/backup.wav"
   if File.exist?(sample_file)
-    puts "\nThere is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
+    puts "There is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     puts "\e[2m#{sample_file}\e[0m"
     wave2data(sample_file)
     FileUtils.cp(sample_file, backup)
@@ -212,7 +220,7 @@ def record_and_review_hole hole
   do_record, do_draw, do_trim = [false, true, false]
   freq = nil
   
-  begin  # while answer != :okay
+  begin  ## while answer != :okay
 
     # false on first iteration
     if do_record 
@@ -265,7 +273,9 @@ def record_and_review_hole hole
     # get user input
     # ruler for 75 chars:
     #            ---------------------------------------------------------------------------
-    puts "\e[34mReview and/or record\e[0m hole   \e[32m#{hole}\e[0m   (key of #{$key})"
+    puts "\e[34mReview and/or Record\e[0m hole  \e[32m-->   \e[92m#{hole}\e[32m   <--  \e[0m(key of #{$key})"
+
+    sleep 0.1
     choices = {:play =>
                [['p', 'SPACE'],
                 'play current recording',
@@ -290,7 +300,7 @@ def record_and_review_hole hole
                 'generate a sound (instead of recording it) for the',
                 'ET frequency of the hole'],
                :back =>
-               [['b'],
+               [['b', 'BACKSPACE'],
                 'back to prev hole',
                 'jump back to previous hole and discard work on current']}
     choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exist?(sample_file)
@@ -555,3 +565,5 @@ def sample_args_helper to_handle
                 end
   return [do_all_keys, these_keys]
 end
+
+

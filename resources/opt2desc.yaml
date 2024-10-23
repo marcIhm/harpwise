@@ -204,8 +204,8 @@ viewer:
   
 terse:
   - |
-    Be somewhat less verbose than usual.
-    Mostly used for mode print.
+    Be somewhat less verbose or silent than usual.
+    Mostly used for mode print and samples.
   
 read_fifo:
   - |
