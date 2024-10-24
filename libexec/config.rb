@@ -995,17 +995,23 @@ end
 def read_samples
   err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first !\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
-  unless Set.new($harp_holes).subset?(Set.new(hole2freq.keys))
-    err "There are more holes in #{$holes_file} #{$harp_holes} than in #{$freq_file} #{hole2freq.keys}. Missing in #{$freq_file} are holes #{(Set.new($harp_holes) - Set.new(hole2freq.keys)).to_a}. Maybe you need to redo the whole recording or generation of samples !\n\n#{for_sample_generation}"
+  unless Set.new($harp_holes) == Set.new(hole2freq.keys)
+    err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples !\n\n#{for_sample_generation}"
   end
-  unless Set.new(hole2freq.keys).subset?(Set.new($harp_holes))
-    err "There are more holes in #{$freq_file} #{hole2freq.keys} than in #{$holes_file} #{$harp_holes}. Extra in #{$freq_file} are holes #{(Set.new(hole2freq.keys) - Set.new($harp_holes)).to_a.join(' ')}. Probably you need to remove the frequency file #{$freq_file} and redo the sample creation to rebuild the file properly !\n\n#{for_sample_generation}"
+  hole2freq.each do |hole, freq|
+    err "The frequency for hole   #{hole}   in #{$freq_file} is zero. Probably you need to re-record this sample or delete it !" if freq == 0
   end
   $harp_holes.each_cons(2).all? do |ha, hb|
     fa = hole2freq[ha]
-    fb_plus = semi2freq_et($harp[hb][:semi] + 0.25)
+    fa_plus = semi2freq_et($harp[ha][:semi] + 0.5)
+    fa_minus = semi2freq_et($harp[ha][:semi] - 0.5)
+    fb_plus = semi2freq_et($harp[hb][:semi] + 0.5)
+    maybe = "Maybe re-record hole #{ha} or simply generate all holes for this key."
     if fa >= fb_plus
-      err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.25 st)\nMaybe record hole #{ha} or generate all holes for this key."
+      err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}"
+    end
+    if fa <= fa_minus || fa >= fa_plus
+      err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}"
     end
   end
 

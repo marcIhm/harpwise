@@ -490,7 +490,7 @@ do_test 'id-4: recording samples starting at hole' do
   sleep 2
   tms 'r'
   sleep 8
-  expect { screen[9]['The frequency recorded for  -4/  (note bf4, semi 1) is too different from'] }
+  expect { screen[9]['The frequency recorded for hole  -->   -4   <--  (note b4, semi 2)'] }
   expect { screen[13]['  Difference:             -271.2'] }
   kill_session
 end

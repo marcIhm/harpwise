@@ -155,7 +155,7 @@ def samples_record to_handle
   end
   puts
   puts "Press:   \e[32many key\e[0m   to start with the first hole (#{holes[0]}), key of #{$key}"
-  puts "or       \e[32ms\e[0m         and skip to summary for existing samples."
+  puts "or       \e[32ms\e[0m         skip to summary for existing samples."
   puts
   char = one_char
 
@@ -303,12 +303,15 @@ def record_and_review_hole hole
                :back =>
                [['b', 'BACKSPACE'],
                 'back to prev hole',
-                'jump back to previous hole and discard work on current']}
-    choices[:okay] = [['y', 'RETURN'], 'accept and continue', 'continue to next hole'] if File.exist?(sample_file)
-    choices[:quit] = [['q'],
-                      'quit recording',
-                      'exit from recording of samples, but keep all samples,',
-                      'that have been recorded up to this point']
+                'jump back to previous hole and discard work on current'],
+               :okay =>
+               [['y', 'RETURN'],
+                'accept and continue', 'continue to next hole'],
+               :quit =>
+               [['q'],
+                'quit recording',
+                'exit from recording of samples, but keep all samples,',
+                'that have been recorded up to this point']}
     
     answer = read_answer(choices)
 
@@ -349,7 +352,7 @@ def record_and_review_hole hole
 end
 
 
-def write_freq_file hole2freq
+def write_freq_file hole2freq, file = $freq_file
   # Recreate the hash in order of $harp_holes
   hole2freq_sorted = Hash.new
   [$harp_holes + hole2freq.keys].flatten.each do |hole|
@@ -504,7 +507,7 @@ def samples_delete to_handle
     sample_dir = get_sample_dir(key)
     to_delete = []
     $harp_holes.each do |hole|
-      file = this_or_equiv("#{$sample_dir}/%s.wav", $harp[hole][:note])
+      file = this_or_equiv("#{sample_dir}/%s.wav", $harp[hole][:note])
       to_delete << File.basename(file) if file && File.exist?(file)
     end
     
@@ -516,7 +519,7 @@ def samples_delete to_handle
       else
         print "About to   \e[91mdelete\e[0m  "
       end
-      puts "these recorded sound samples for key of   \e[91m#{key}\e[0m   in\n#{$sample_dir}:"
+      puts "these recorded sound samples for key of   \e[91m#{key}\e[0m   in\n#{sample_dir}:"
       puts
       puts wrap_words('    ', to_delete, sep = '  ')
       puts
@@ -535,12 +538,15 @@ def samples_delete to_handle
         puts
         print 'Deleting .'
         to_delete.each do |f|
-          ff = "#{$sample_dir}/#{f}"
+          ff = "#{sample_dir}/#{f}"
           FileUtils.rm(ff) if File.exist?(ff)
           print '.'
           sleep 0.2
         end
         puts '. done.'
+        puts
+        create_frequency_file_from_mp3s sample_dir
+        
         if do_all_keys
           sleep 0.5
           puts
@@ -549,7 +555,7 @@ def samples_delete to_handle
         puts
         puts 'Operation canceled; no files deleted'
       end
-    end
+    end    
   end
   puts
 end
@@ -569,3 +575,22 @@ def sample_args_helper to_handle
 end
 
 
+def create_frequency_file_from_mp3s sample_dir
+  hole2freq = Hash.new
+  missing = []
+  $harp_holes.each do |hole|
+    file = this_or_equiv("#{sample_dir}/%s.mp3", $harp[hole][:note])
+    if file
+      hole2freq[hole] = analyze_with_aubio(file)
+    else
+      missing << hole
+    end
+  end
+  if missing.length > 0
+    puts "After deleting recorded samples, there are no generated sample for these holes:   #{missing.join(' ')}\nProbably you need to generate them first !"
+  else
+    freq_file = "#{sample_dir}/frequencies.yaml"
+    write_freq_file hole2freq, freq_file
+    puts "Wrote   #{freq_file}"
+  end
+end
