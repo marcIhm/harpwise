@@ -187,6 +187,7 @@ def samples_record to_handle
           do_animation 'previous hole', 5
         end
       elsif what == :cancel
+        do_animation 'again', 5
         # keep current value of i
       else
         i += 1
@@ -276,7 +277,12 @@ def record_and_review_hole hole
     puts "\e[34mReview and/or Record\e[0m hole  \e[32m-->   \e[92m#{hole}\e[32m   <--  \e[0m(key of #{$key})"
 
     sleep 0.1
-    choices = {:play =>
+    choices = {:record =>
+               [['r','TAB'],
+                'record and trim',
+                'record RIGHT AWAY (after countdown); then trim recording',
+                'and remove initial silence and surplus length'],
+               :play =>
                [['p', 'SPACE'],
                 'play current recording',
                 'play current recording'],
@@ -289,11 +295,6 @@ def record_and_review_hole hole
                 'play frequency sample',
                 'show and play the ET frequency of the hole by generating and',
                 'analysing a sample sound; does not overwrite current recording'],
-               :record =>
-               [['r'],
-                'record and trim',
-                'record RIGHT AWAY (after countdown); then trim recording',
-                'and remove initial silence and surplus length'],
                :generate =>
                [['g'],
                 'generate sound',
@@ -531,7 +532,8 @@ def samples_delete to_handle
         char = one_char
       end
       if char == 'Y'
-        print 'deleting .'
+        puts
+        print 'Deleting .'
         to_delete.each do |f|
           ff = "#{$sample_dir}/#{f}"
           FileUtils.rm(ff) if File.exist?(ff)

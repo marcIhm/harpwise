@@ -749,21 +749,21 @@ def read_answer ans2chs_dscs
   maxlenl = ans2klist.values.map(&:length).max
   # let two entries spill over
   maxlenr = ans2chs_dscs.values.map {|chs_dscs| chs_dscs[1].length}.max
-  line = []
+  items = []
   ans2chs_dscs.each do |ans, chs_dsc|
     item = ["  #{ans2klist[ans].rjust(maxlenl)}",
             ": ",
             "#{chs_dsc[1].ljust(maxlenr)}"]
-    if (line + item).flatten.join.length <= $conf[:term_min_width]
-      line << item
+    if (items + item).flatten.join.length <= $conf[:term_min_width]
+      items << item
     else
-      line.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
+      items.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
       puts
-      line = [item]
+      items = [item]
     end
   end
-  if line.length > 0
-    line.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
+  if items.length > 0
+    items.each {|itm| print itm[0] + itm[1] + "\e[2m" + itm[2] + "\e[0m"}
     puts
   end
   begin

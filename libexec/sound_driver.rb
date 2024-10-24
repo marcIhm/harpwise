@@ -45,7 +45,7 @@ def trim_recorded hole, recorded
     else
       puts
     end
-    puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole   \e[32m#{hole}\e[0m   play from %.2f" % play_from
+    puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole  \e[32m-->   \e[92m#{hole}\e[32m   <--  \e[0mplay from %.2f" % play_from
     puts 'Choices: <secs-start> | d:raw | p:play (SPC) | y:es (RET)'
     puts '                        f:req | r:ecord      | c:ancel'
     print "Your choice (h for help): "
