@@ -10,7 +10,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     
     # We get lick-names on commandline, so dont narrow to tag-selection
     $licks = $all_licks    
-    holes_or_notes, lnames, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
+    holes_or_notes, _, lnames, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
 
     if holes_or_notes.length > 0
       $adhoc_lick_holes = holes_or_notes
@@ -352,6 +352,11 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
       print_mission "Listen ... and !" unless oride_l_message2
       sleep 0.3
+
+      if first_round
+        $max_jitter = -1.0
+        $max_jitter_at = 0
+      end
 
     end
 

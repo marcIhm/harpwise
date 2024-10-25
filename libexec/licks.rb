@@ -556,7 +556,7 @@ def process_opt_lick_prog
   $all_licks || err('Internal error: licks not read before')
 
   # this already errs out for lnames.length > 0 && lpnames.length > 0
-  _, lnames, lpnames, _, _ = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
+  _, _, lnames, lpnames, _, _ = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
                                                           amongs: [:lick, :lick_prog],
                                                           extra_allowed: false)
   if ( lnames.length == 0 && lpnames.length == 0 ) ||

@@ -1,12 +1,15 @@
 Overview:
 
-  The mode 'play' picks its arguments from the commandline and plays them.
-  It also handles some extra keywords. 
+  The mode 'play' takes its arguments (holes, notes, semitones, licks,
+  scales) and plays them.  It also handles some extra keywords.
 
-  Its arguments (which can not be mixed with each other) can be any of:
+  Its arguments (which mostly can not be mixed) can be any of:
 
     - holes (e.g. '-1') or notes
-    - licks (e.g. 'st-louis') or lick-progressions (e.g. 'box1-turn')
+    - notes (e.g. 'a4')
+    - semitones (e.g. '+12st')
+    - licks (e.g. 'st-louis')
+    - scales (e.g. 'chord-i')
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
 
   or one of the known extra arguments (that themselves might require
@@ -17,9 +20,13 @@ Overview:
 
 Usage by Examples:
 
-  Play a few holes on a harp of key c:
+  Play a few holes and notes on a harp of key c:
 
     harpwise play c +1 -2 c4
+
+  Play a few semitones:
+
+    harpwise play c +1st -4st
 
   Play the lick 'wade'; transpose it to d:
   

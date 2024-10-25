@@ -24,7 +24,7 @@ def do_play to_play
   if $extra
     args_for_extra = to_play
   else
-    holes_or_notes, lnames, lpnames, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
+    holes_or_notes, semis, lnames, lpnames, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
   end
 
   # common error checking
@@ -57,6 +57,14 @@ def do_play to_play
       $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: false)
 
+    elsif semis.length > 0
+
+      notes = semis.map {|s| semi2note(s.to_i)}
+      puts "Some semitones converted to notes (a4 = 0st)"
+      play_holes_or_notes_and_handle_kb notes
+      puts
+      write_history('semitones converted to notes', 'adhoc-semitones', notes)
+      
     elsif lpnames.length > 0
 
       err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
@@ -157,6 +165,7 @@ end
 def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   holes_or_notes = []
+  semis = []
   lnames = []
   lpnames = []
   snames = []
@@ -165,7 +174,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
   err("Internal error: #{amongs} includes :extra_w_wo_s") if amongs.include?(:extra_w_wo_s)
-  
+
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
 
@@ -177,6 +186,8 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
       holes_or_notes << th
     elsif what == :event
       holes_or_notes << th
+    elsif what == :semi_note
+      semis << th
     elsif what == :scale
       snames << th
     elsif what == :scale_prog
@@ -198,7 +209,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   # Check results for consistency
   # 
 
-  types_count = [holes_or_notes, lnames, snames].select {|x| x.length > 0}.length
+  types_count = [holes_or_notes, semis, lnames, snames].select {|x| x.length > 0}.length
 
   if other.length > 0 
     puts
@@ -224,6 +235,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     puts "The following #{types_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at the same time:"
     puts
     puts "     Holes or Notes: #{holes_or_notes.join(' ')}" if holes_or_notes.length > 0
+    puts "          semitones: #{semis.join(' ')}" if semis.length > 0
     puts "              Licks: #{lnames.join(' ')}" if lnames.length > 0
     puts "  Lick progressions: #{lpnames.join(' ')}" if lpnames.length > 0
     puts "             Scales: #{snames.join(' ')}" if snames.length > 0
@@ -232,7 +244,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     err 'See above'
   end
 
-  return [holes_or_notes, lnames, lpnames, snames, spnames]
+  return [holes_or_notes, semis, lnames, lpnames, snames, spnames]
 
 end
 

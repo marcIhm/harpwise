@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 103
+num_exp = 106
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -409,8 +409,8 @@ usage_types.keys.each_with_index do |mode, idx|
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
                      'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
                      'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
-                     'play' => [4, "The mode 'play' picks its arguments from the commandline"],
-                     'print' => [5, 'and prints their hole-content on the commandline'],
+                     'play' => [4, "The mode 'play' takes its arguments"],
+                     'print' => [5, 'and prints them with additional'],
                      'tools' => [4, "The mode 'tools' offers some non-interactive"],
                      'develop' => [4, "This mode is useful only for the maintainer or developer"]}
     
@@ -491,7 +491,7 @@ do_test 'id-4: recording samples starting at hole' do
   tms 'r'
   sleep 8
   expect { screen[9]['The frequency recorded for hole  -->   -4   <--  (note b4, semi 2)'] }
-  expect { screen[13]['  Difference:             -271.2'] }
+  expect { screen[13]['Difference:             -298.9'] }
   kill_session
 end
 
@@ -510,13 +510,15 @@ do_test 'id-5: check against et' do
   kill_session
 end
 
+# restart with id-5
 do_test 'id-5a: delete recorded samples' do
   new_session
   tms 'harpwise samples delete all'
   tms :ENTER
   sleep 1
   tms 'Y'
-  expect { screen[15]['No recorded sound samples for key']}  
+  expect { screen[14]['Wrote   /home/ihm/dot_harpwise/samples/richter/key_of_c/frequencies.yaml']}
+  expect { screen[18]['No recorded sound samples for key']}  
   kill_session
 end
 
@@ -884,6 +886,17 @@ do_test 'id-16c: play pitch' do
   tms ' '
   sleep 1
   expect { screen[21] == 'Playing paused, but keys are still available;' }
+  kill_session
+end
+
+do_test 'id-16d: play some semitones' do
+  new_session
+  # d2 does not correspond to any hole
+  tms 'harpwise play a 0st +4st'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  sleep 1
+  expect { screen[7]['a4 df5'] }
   kill_session
 end
 
@@ -1537,7 +1550,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[17]['First argument for mode print should belong to one of these 10 types'] }
+  expect { screen[17]['First argument for mode print should belong to one of these 11 types'] }
   kill_session
 end
 
@@ -1797,7 +1810,7 @@ do_test 'id-53: print' do
   kill_session
 end
 
-do_test 'id-53a: print' do
+do_test 'id-53a: print holes' do
   new_session
   tms "harpwise print +2  +1  +3  -4  -4/ --flats>#{$testing_output_file}"
   tms :ENTER
@@ -1855,6 +1868,17 @@ do_test 'id-53f: print with multiple scales' do
   tms 'harpwise print chord-i chord-iv chord-v --add-scales chord-iv,chord-v'
   tms :ENTER
   expect { screen[21]['3 scales printed.'] }
+  kill_session
+end
+
+do_test 'id-53g: print semitones' do
+  new_session
+  tms "harpwise print +2st +10st"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  sleep 1
+  expect { screen[7]['+2st    +10st'] }
+  expect { screen[10]['b4  g5'] }
   kill_session
 end
 

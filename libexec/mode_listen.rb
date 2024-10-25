@@ -139,7 +139,8 @@ def do_listen
                  if $comment_licks.length > 0
                    wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], $comment_licks[0][:holes], -1)                   
                  else
-                   'no comment licks'
+                   ['',
+                    '  Need to specify one or more lick to be displayed here','','  e.g. via     --licks wade']
                  end                 
                else
                  fail "Internal error: unknown comment: #{$opts[:comment]}"

@@ -19,7 +19,7 @@ def do_print to_print
       $all_licks, $licks, $all_lick_progs = read_licks    
     end
   else
-    holes_or_notes, lnames, lpnames, snames, spnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
+    holes_or_notes, semis, lnames, lpnames, snames, spnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
   end
 
   # common error checking
@@ -32,6 +32,11 @@ def do_print to_print
       
       puts_underlined 'Printing Holes or notes given as arguments.', ' ', dim: false
       print_holes_and_more holes_or_notes
+
+    elsif semis.length > 0
+
+      puts_underlined 'Printing Semitones given as arguments.', ' ', dim: false
+      print_semis semis
       
     elsif snames.length > 0
 
@@ -644,3 +649,19 @@ def print_lick_meta lick
   puts
 end
 
+
+def print_semis semis
+  semi_nums = semis.map(&:to_i)
+  puts "\e[2mSemitones given (a4 = 0):\e[0m"
+  print_in_columns semis, pad: :tabs
+  puts 
+  puts "\e[2mAs notes:\e[0m"
+  print_in_columns(semi_nums.map {|s| semi2note(s)}, pad: :tabs)
+  puts 
+  puts "\e[2mAs holes:\e[0m"
+  print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
+  puts 
+  puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
+  print_in_columns(semi_nums.map {|s| '%.2f' % semi2freq_et(s)}, pad: :tabs)
+end
+  

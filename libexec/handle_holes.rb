@@ -65,6 +65,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       end
       # updates messages and returns true, if hint is allowed
       hints_old = nil if $msgbuf.update(tntf, refresh: true)
+      $freqs_queue.clear
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
@@ -355,7 +356,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $opts[:display] = (choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
                              $display_choices_desc[choice.to_sym]
         end || $opts[:display]).to_sym
-        $freqs_queue.clear
       else
         $opts[:display] = rotate_among($opts[:display], :up, $display_choices)
       end
@@ -366,6 +366,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       $msgbuf.print "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}", 2, 5, :display
+      $freqs_queue.clear
       $ctl_mic[:change_display] = false
     end
     
@@ -377,12 +378,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
         $opts[:comment] = (choose_interactive("Available comment choices (current is #{$opts[:comment].upcase}): ", choices) do |choice|
                              $comment_choices_desc[choice.to_sym]
                            end || $opts[:comment]).to_sym
-        $freqs_queue.clear
       else
         $opts[:comment] = rotate_among($opts[:comment], :up, $comment_choices[$mode])
       end
       clear_area_comment
       $msgbuf.print "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}", 2, 5, :comment
+      $freqs_queue.clear
       $ctl_mic[:change_comment] = false
       $ctl_mic[:update_comment] = true
     end

@@ -247,6 +247,8 @@ def sox_to_aubiopitch_to_queue
             delta_time = Float(line.split(' ',2)[0])
             now = Time.now.to_f
             if last_delta_time
+              # diff in timestamps transmitted over pipeline and diff
+              # in timestamps of picking these values from pipeline
               jitter = (delta_time - last_delta_time) - (now - last_delta_time_at)
               if jitter.abs > $max_jitter && now > $program_start + 4
                 $max_jitter = jitter.abs

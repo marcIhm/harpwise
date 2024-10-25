@@ -1,10 +1,11 @@
 Overview:
 
-  The mode 'print' takes its arguments (holes, notes, licks or special
-  keywords) and prints their hole-content on the commandline.
+  The mode 'print' takes its arguments (holes, notes, licks, scales,
+  semitones or special keywords) and prints them with additional
+  information.
 
-  In addition it produces various reports about the licks that you
-  have supplied or the scales and intervals that come with harpwise.
+  Moreover it has various reports about the licks or the scales and
+  intervals that are known harpwise.
 
   If you specify a scale (optional) too, the scale-membership of the
   the notes will be shown.
@@ -12,6 +13,8 @@ Overview:
   Its argument can be any of:
 
     - holes (e.g. '-1')
+    - notes (e.g. 'a4')
+    - semitones (e.g. '+12st')
     - licks (e.g. 'st-louis')
     - scales (e.g. 'chord-i')
 
@@ -22,6 +25,14 @@ Overview:
 
   
 Usage by Examples:
+
+  Print lots of information for given holes or notes:
+
+    harpwise print +1 +2 a4 bf5
+
+  Map semitones to holes and notes (which are probably more familiar):
+
+    harpwise print +0st +11st -1st
 
   Print holes and notes of a lick:
 
