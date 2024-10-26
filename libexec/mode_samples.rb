@@ -165,8 +165,8 @@ def samples_record to_handle
     hole2freq = Hash.new
   end
 
-  do_animation 'first hole', 5
   unless char == 's'
+    do_animation 'first hole', 5
     i = 0
     # loop over all holes
     begin
@@ -387,6 +387,7 @@ def print_summary hole2freq, rec_or_gen
               get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}[0]
             end
     puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
+    sleep 0.005
   end
   puts "\nYou may compare #{rec_or_gen} frequencies with those calculated from equal"
   puts "temperament tuning. The gauge shows the difference in frequency between"

@@ -46,8 +46,8 @@ def trim_recorded hole, recorded
       puts
     end
     puts "\e[34mTrimming\e[0m #{File.basename(recorded)} for hole  \e[32m-->   \e[92m#{hole}\e[32m   <--  \e[0mplay from %.2f" % play_from
-    puts 'Choices: <secs-start> | d:raw | p:play (SPC) | y:es (RET)'
-    puts '                        f:req | r:ecord      | c:ancel'
+    puts "       \e[0m0-9: \e[2menter start at   \e[0md: \e[2mdraw      \e[0mp,SPACE: \e[2mplay      \e[0mf: \e[2mplay freq"
+    puts "  \e[0my,RETURN: \e[2maccept           \e[0mr: \e[2mre-record     \e[0mq,c: \e[2mcancel this hole\e[0m"
     print "Your choice (h for help): "
     choice = one_char
 
@@ -65,15 +65,16 @@ def trim_recorded hole, recorded
 
 Full Help:
 
-   <secs-start>: set position to start from (marked by vertical bar
-                 line in plot); just start to type, e.g.:  0.4
-              d: draw current wave form
-       p, SPACE: play from current position
-      y, RETURN: accept current play position, trim file
-                 and skip to next hole
-              f: play a sample frequency for comparison 
-            q,c: cancel and go to main menu, where you may generate
-              r: record and trim again
+        0-9: set position to start from (marked by vertical bar
+             line in plot); just start to type, e.g.:  0.4
+          d: draw current recording
+    p,SPACE: play from current start position
+   y,RETURN: accept current start position, trim file
+             and skip to next hole
+          f: play a sample frequency for comparison 
+        q,c: cancel and go to main menu, where you may
+             generate a sample instead
+          r: record and trim again for this hole
 EOHELP
       
     elsif ['', ' ', 'p'].include?(choice)
@@ -92,7 +93,7 @@ EOHELP
       return :cancel
     elsif choice == 'f'
       print "\e[34mSample\e[0m sound ..."
-      synth_sound hole, $helper_wave
+      synth_sound hole, $helper_wave, silent: true
       play_wave $helper_wave
     elsif choice == 'r'
       puts "Redo recording and trim ..."
