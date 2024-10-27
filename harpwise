@@ -20,7 +20,7 @@ require 'erb'
 require 'timeout'
 require 'tempfile'
 require 'strscan'
-require 'pp' ## for pretty_inspect
+require 'pp'  ## for pretty_inspect
 require_relative 'libexec/utils'
 require_relative 'libexec/arguments'
 require_relative 'libexec/config'

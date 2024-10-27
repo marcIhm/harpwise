@@ -1087,13 +1087,32 @@ end
 # Hint or message buffer for main loop in variou places. Makes sure, that all
 # messages are shown long enough
 class MsgBuf
-  # central data structure, used as a stack
-  @@lines_durations = Array.new
-  @@printed_at = nil
-  @@ready = false
-  # used for testing
-  @@printed = Array.new
 
+  def self.reset
+    # central data structure, used as a stack
+    @@lines_durations = Array.new
+    # used for testing
+    @@printed = Array.new
+  end
+  
+  def reset
+    self.class.reset
+    @@reset_at << Time.now
+  end
+
+  # for debugging
+  def dump
+    pp ({ lines_durations: @@lines_durations,
+          printed: @@printed,
+          printed_at: @@printed_at,
+          reset_at: @@reset_at})
+  end
+    
+  self.reset
+  @@ready = false
+  @@printed_at = nil
+  @@reset_at = Array.new
+  
   def print text, min, max, group = nil, truncate: true, wrap: false
     
     # remove any outdated stuff
@@ -1105,45 +1124,30 @@ class MsgBuf
     end
 
     if text
-      
       if truncate && wrap
-
         fail "Internal error: both :truncate and :wrap are set" 
-
       elsif wrap || text.is_a?(Array)
-
         lines = if text.is_a?(Array)
                   text
                 else
                   wrap_text(text,
                             term_width:  $testing_what == :msgbuf  ?  $conf[:term_min_width]  :  nil )
                 end
-
         lines.each {|l| fail "Internal error: text to wrap contains escape: '#{l}'" if l["\e"]}
-
-        # recurse
         lines[1 .. -1].reverse.each do |l|
           print_internal l, min, max, group, true
         end
         print_internal lines[0], min, max, group, false
-        
       elsif truncate
         print_internal truncate_colored_text(text,
                                              $testing_what == :msgbuf  ?  $conf[:term_min_width]  :  nil),
                        min, max, group, false
-        
       else
-
         fail "Internal error: neither :truncate nor :wrap are set"
-
       end
-
     else
-
       print_internal text, min, max, group, false
-
     end
-    
   end
   
     

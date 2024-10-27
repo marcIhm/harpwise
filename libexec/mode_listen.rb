@@ -510,8 +510,8 @@ end
 
 def tell_no_comment_licks
   clear_area_comment
-  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option\n\n        --licks"
-  puts "\n\e[2m  #{$resources[:any_key]}\e[2m"
+  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option   --licks"
+  puts "\n\n\e[2m  #{$resources[:any_key]}\e[2m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
   $freqs_queue.clear

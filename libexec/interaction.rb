@@ -242,21 +242,21 @@ end
 
 
 def start_fifo_handler
-  File.mkfifo($control_fifo) unless File.exist?($control_fifo)
-  ftype = File.ftype($control_fifo)
-  err "Fifo '#{$control_fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
+  File.mkfifo($remote_fifo) unless File.exist?($remote_fifo)
+  ftype = File.ftype($remote_fifo)
+  err "Fifo '#{$remote_fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
 
-  fifo = File.open($control_fifo, 'r+')
-  $term_fifo_handler = Thread.new do
+  fifo = File.open($remote_fifo, 'r+')
+  $remote_fifo_handler = Thread.new do
     loop do
-      $ctl_kb_queue.enq fifo.getc
+      $ctl_kb_queue.enq fifo.gets.chomp
     end
   end
 end
 
 
 def stop_fifo_handler
-  $term_fifo_handler.kill if $term_fifo_handler
+  $remote_fifo_handler.kill if $remote_fifo_handler
 end
 
 
@@ -646,6 +646,8 @@ def handle_kb_mic
   elsif char == 'D'
     $ctl_mic[:change_display] = :choose
     text = 'Choose display'
+  elsif char == 'ALT-m'
+    $ctl_mic[:remote_message] = true
   elsif char == 'r' || char == 'R'
     $ctl_mic[:set_ref] = ( char == 'r'  ?  :played  :  :choose )
     text = 'Set reference'

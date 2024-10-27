@@ -369,7 +369,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
       $ctl_mic[:change_display] = false
     end
-    
+
     if $ctl_mic[:change_comment]
       clear_warbles
       if $ctl_mic[:change_comment] == :choose
@@ -388,6 +388,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:update_comment] = true
     end
 
+    if $ctl_mic[:remote_message]
+      show_remote_message
+      $ctl_mic[:remote_message] = false
+    end
+    
     if $ctl_mic[:show_help]
       show_help
       ctl_response 'continue', hl: true
@@ -631,7 +636,7 @@ def do_change_scale_add_scales
     $scale_prog = $used_scales
   end
 
-  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 5, :scale
+  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 3, :scale
 end
 
 
@@ -644,7 +649,7 @@ def do_rotate_scale_add_scales for_bak
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
   clause = ( $sc_prog_init == $scale_prog  ?  ', new cycle'  :  '' )
-  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 5, :scale
+  $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 3, :scale
 end
 
 
@@ -712,7 +717,8 @@ def show_help mode = $mode, testing_only = false
     frames[-1] << "      l:_rotate among those licks     ALT-l:_backward"
     frames[-1] << "      L:_to first lick"                        
   end
-
+  frames[-1] << "  ALT-m:_show remote message, used with --read-fifo"
+  
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
                       "      q:_quit harpwise                    h:_this help",
@@ -812,7 +818,7 @@ def show_help mode = $mode, testing_only = false
       while scanner.scan_until(/\S+(:|=)_/)
         full_kg = scanner.matched
         kg = scanner.matched[0..-3].strip
-        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN SPACE TAB ALT-s ALT-l)
+        special = %w(SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN SPACE TAB ALT-s ALT-l ALT-m)
         ks = if special.include?(kg)
                [kg]
              else
@@ -985,5 +991,28 @@ def add_and_del_warbles tntf, add_warble
       # maybe adjust scale
       $warbles[:scale] += 5 while $warbles[:scale] < $warbles[type][:max]
     end
+  end
+end
+
+
+def show_remote_message
+  if $opts[:read_fifo]
+    $msgbuf.reset
+    if File.exist?($remote_message)
+      lines = File.read($remote_message).lines
+      text = lines[0].chomp
+      err("Remote message from #{$remote_message} needs exactly two lines but its content has not: #{lines.pretty_inspect}") if lines.length != 2
+      duration = begin
+                   Float(lines[1].chomp)
+                 rescue ArgumentError
+                   err "Second line of remote message from #{$remote_message} is not a number: '#{lines[1].chomp}'"
+                 end
+      
+      $msgbuf.print "\e[2m>> \e[0m\e[32m#{text}", duration, duration, :remote
+    else
+      $msgbuf.print "File #{$remote_message} does not exist", 5, 5, :remote
+    end
+  else
+    $msgbuf.print "Need to give '--read-fifo' before file #{$remote_message} can be shown", 5, 5, truncate: false, wrap: true
   end
 end

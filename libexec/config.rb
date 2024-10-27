@@ -65,7 +65,7 @@ def set_global_vars_early
         :loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
         :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :shift_inter, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first,
-        :switch_modes, :toggle_record_user,
+        :switch_modes, :toggle_record_user, :remote_message,
         :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_short, :journal_all_toggle, :journal_with_timing, :change_display, :change_comment, :update_comment, :toggle_progress, :warbles_prepare, :warbles_clear,
         :set_ref, :auto_replay, :player_details]
   $ctl_mic = Struct.new(*ks).new
@@ -191,7 +191,9 @@ def set_global_vars_early
   $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
-  $control_fifo = "#{$dirs[:data]}/control_fifo"
+  $remote_fifo = "#{$dirs[:data]}/remote_fifo"
+  $remote_message = "#{$dirs[:data]}/remote_message"
+  FileUtils.rm($remote_message) if File.exist?($remote_message)
 
   # strings that are used identically at different locations;
   # collected here to help consistency

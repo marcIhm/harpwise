@@ -2034,7 +2034,7 @@ do_test 'id-56: forward and back in help' do
   tms 'h'
   expect { screen[4]['pause and continue'] }
   tms ' '
-  expect { screen[7]['set reference to hole played or chosen'] }
+  expect { screen[8]['set reference to hole played or chosen'] }
   tms :BSPACE
   expect { screen[4]['pause and continue'] }
   kill_session
@@ -2701,8 +2701,9 @@ do_test 'id-88: read from fifo' do
   tms 'harpwise listen c --read-fifo'
   tms :ENTER
   sleep 2
-  File.write("#{$dotdir_testing}/control_fifo", 'q')
-  sleep 1
+  File.write("#{$dotdir_testing}/remote_fifo", "q\n")
+  wait_for_end_of_harpwise
+  sleep 2
   expect { screen.any? {|l| l['Terminating on user request'] }}
   kill_session
 end
