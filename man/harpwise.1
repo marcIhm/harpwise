@@ -25,7 +25,7 @@ intervals, licks or bends on a diatonic (richter) or chromatic
 harmonica for various keys.
 
 The wise recognizes single notes, that you play and it may play chords
-for you (but can not identify your chords); it knows a thing or two
+for you, but can not identify your chords. It knows a thing or two
 about tempo, but not about rhythm.
 
 The primary documentation of harpwise is its usage information, that
@@ -104,13 +104,11 @@ or 'all'; defaults to 'blues'.
 Note, that most scales are notated in second position (e.g. key of g
 for a c-harp); you may use the option --transpose-scale to change
 this.
-
-Finally, as a special case (and only for modes listen, quiz and licks)
-you may specify a set of holes (e.g. +1 +2 +3) as an adhoc scale.
-
-See the usage of mode 'listen' for an advanced example involving
-an adhoc scale and fourth position.
 .RE
+
+Some modes (e.g. listen, licks, play) accept additional arguments on
+the commandline. See their individual usage messages for details (type
+e.g. 'harpwise listen') for details.
 
 An example using all these arguments would be:
 .IP
@@ -155,12 +153,12 @@ scales for chromatic: all, blues, chord-i, chord-i7, chord-iv, chord-iv7,
 
 Besides the arguments for type, key and scale, there are a lot of
 options (introduced by '-' or '--'), some requiring an argument
-themselves.  Options are specific for each mode and are describe, if
-you give the special option '-o'.
+themselves.  Options are specific for each mode and are described on
+request, i.e. if you give the special option '-o'.
 
-Also note, that for most modes, the behaviour (e.g. the kind of
-display) of the wise can be changed interactively; type 'h' to see
-help on this.
+Also note, that for most modes, the behaviour of the wise (e.g. the
+ways of display or comment) can be changed interactively; type 'h' to
+see help on this.
 
 .SH "SUGGESTED READING"
 
@@ -186,7 +184,7 @@ Options are specific for each mode; as an example you may type
 harpwise listen -o
 .RE
 
-to read options for mode 'listen' (e.g.).
+to read options for mode listen.
 
 .SH "DIAGNOSIS"
 

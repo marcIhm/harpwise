@@ -146,15 +146,18 @@ def do_diff
         line[s] = lines[s].shift.strip if line[s].empty?
       end
     else
-      puts "\nLast two pairs of common lines or line-fragments between usage and man:"
+      puts
+      puts "Comparison between   \e[32musage\e[0m   and   \e[32mman\e[0m   always in that sequence,\ni.e. usage first:"
+      puts
+      puts "Last two pairs of common lines or line-fragments that are equal:\e[2m"
       pp last_common[-2 .. -1]
-      puts "\nThe first pair of lines or line-fragments, that differ:"
+      puts "\e[0m\nThe first pair of lines or line-fragments, that differ:\e[2m"
       pp [line[:usage], line[:man]]
-      puts "\nError: #{srcs} differ; see above"
+      puts "\e[0m\nError: #{srcs} differ; see above"
       puts
-      puts "Hint: Make sure to edit the file\n  #{$man_template}\ninstead of the processed man page"
+      puts "\e[2mHint: Make sure to edit the file\n  #{$man_template}\ninstead of the processed man page"
       puts
-      puts "Hint: A common problem would be a line of text starting with a single quote (') in, which would be misinterpreted by man."
+      puts "Hint: A common problem would be a line of text starting with a single quote ('),\nwhich would be misinterpreted by man.\e[0m"
       puts
       exit 1
     end
