@@ -73,6 +73,12 @@ tools:
     hole-sequences, e.g. for improvisation
   keys: |
     print a chart with keys and positions centered around current key
+  spread-keys: |
+    given a list of key (e.g. a, b, cs) as arguments, turn them into a
+    list of holes that produce them, regardless of octave. Also shows
+    these holes as a harmonica chart. This tool is suitable to be
+    invoked as a subshell, in which case it just returns the list of
+    holes, to be used e.g. as an adhoc-scale.
   chart: |
     various harmonica charts for current key; add option --ref for
     more charts

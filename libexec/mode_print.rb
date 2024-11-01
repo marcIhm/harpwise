@@ -234,6 +234,9 @@ def print_holes_and_more holes_or_notes
   puts "\e[2mWith holes:\e[0m"
   print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
+  puts "\e[2mHoles only:\e[0m"
+  print_in_columns(holes_or_notes.map {|hon| $note2hole[hon]})
+  puts
   puts "\e[2mWith holes and remarks:\e[0m"
   print_in_columns(remarkify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts

@@ -18,6 +18,8 @@ def do_tools to_handle
     tool_shift_to_groups to_handle
   when 'keys'
     tool_key_positions to_handle
+  when 'spread-keys'
+    tool_spread_keys to_handle
   when 'search-holes-in-licks'
     tool_search_holes_in_licks to_handle
   when 'search-lick-in-scales'
@@ -62,13 +64,13 @@ def tool_key_positions to_handle
 
   if to_handle.length >= 1
     harp_key = to_handle[0].downcase
-    err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(harp_key)
+    err "Key   #{to_handle[0]}   is unknown among key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
     harp_color += "\e[7m"
   end
 
   if to_handle.length == 2
     song_key = to_handle[1].downcase
-    err "Key #{to_handle[1]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(song_key)
+    err "Key   #{to_handle[1]}   is unknown among keys  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
     song_color = "\e[0m\e[34m\e[7m"
   end
 
@@ -94,6 +96,52 @@ def tool_key_positions to_handle
       print line
     end
   end
+  puts
+end
+
+
+def tool_spread_keys keys
+  if STDOUT.isatty
+    puts
+    puts "\e[2mAll holes, that produce the given key in any octave:"
+    puts "As a chart:\e[0m"
+    puts
+  end
+  keys.map! {|k| sf_norm(k + '4')[0..-2]}
+  keys.each do |key|
+    err "Key   #{key}   is unknown among keys  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(key)
+  end
+  holes = Array.new
+  keys.each do |key|
+    holes.append(*$bare_note2holes[key])
+  end
+  holes.sort_by! {|h| $harp[h][:semi]}.uniq!
+  
+  if !STDOUT.isatty
+    print holes.join('  ')
+    exit
+  end
+  
+  chart = $charts[:chart_notes]
+  chart.each_with_index do |row, ridx|
+    print '  '
+    row[0 .. -2].each_with_index do |cell, cidx|
+      if keys.include?(cell.strip[0..-2])
+        print cell
+      elsif comment_in_chart?(cell)
+        print cell
+      else
+        hcell = ' ' * cell.length
+        hcell[hcell.length / 2] = '-'
+        print hcell
+      end
+    end
+    puts "\e[0m\e[2m#{row[-1]}\e[0m"
+  end
+  puts
+  puts "\e[2mAs a list (usable as an ad-hoc scale):\e[0m"
+  puts
+  puts '  ' + holes.join('  ')
   puts
 end
 
@@ -510,7 +558,6 @@ end
 
 
 def tool_chart
-
   puts
   puts
   to_print = [:chart_notes]
@@ -532,7 +579,6 @@ def tool_chart
     end
     puts
   end
-  puts
 end
 
 
@@ -658,7 +704,7 @@ def tool_notes to_handle
 
   err "Tool 'notes' needs a key as an additional argument" if to_handle.length != 1
   harp_key = to_handle[0].downcase
-  err "Key #{to_handle[0]} is unknown among #{$conf[:all_keys]}" unless $conf[:all_keys].include?(harp_key)
+  err "Key   #{to_handle[0]}   is unknown among keys  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
 
   puts
   puts "Notes of major scale \e[2m(with semi diffs and \e[0m\e[32mf\e[0m\e[2mifth)\e[0m"
