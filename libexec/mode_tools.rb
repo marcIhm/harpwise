@@ -7,7 +7,7 @@ def do_tools to_handle
   $lick_file ||= get_lick_file
 
   # common error checking
-  err_args_not_allowed(to_handle) if %w(chart edit-licks edit-config chords).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if %w(edit-licks edit-config chords).include?($extra) && to_handle.length > 0
 
   case $extra
   when 'transpose'
@@ -27,7 +27,7 @@ def do_tools to_handle
   when 'licks-from-scale'
     tool_licks_from_scale to_handle
   when 'chart'
-    tool_chart
+    tool_chart to_handle
   when 'edit-licks'
     tool_edit_file $lick_file, to_handle
   when 'edit-config'
@@ -557,23 +557,42 @@ def tool_chords
 end
 
 
-def tool_chart
+def tool_chart to_handle
   puts
   puts
+  holes_or_notes, _, _, _, _, _ = partition_for_mode_or_amongs(to_handle,
+                                                               amongs: [:hole, :note],
+                                                               extra_allowed: false)
+
   to_print = [:chart_notes]
-  to_print << :chart_scales if $used_scales[0] != 'all'
-  if $opts[:ref]
-    to_print << :chart_intervals
-    to_print << :chart_inter_semis 
-    $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-    $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+  notes = []
+  if holes_or_notes.length == 0
+    to_print << :chart_scales if $used_scales[0] != 'all'
+    if $opts[:ref]
+      to_print << :chart_intervals
+      to_print << :chart_inter_semis 
+      $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+      $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+    end
+  else
+    notes = holes_or_notes.map {|hon| $harp[hon]&.dig(:note) || hon}
   end
   to_print.each do |tp|
     puts tp.to_s + ':'
     $charts[tp].each_with_index do |row, ridx|
       print '  '
       row[0 .. -2].each_with_index do |cell, cidx|
-        print cell
+        if notes.length == 0
+          print cell
+        elsif notes.include?(cell.strip)
+          print cell
+        elsif comment_in_chart?(cell)
+          print cell
+        else
+          hcell = ' ' * cell.length
+          hcell[hcell.length / 2] = '-'
+          print hcell
+        end
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end

@@ -136,6 +136,7 @@ at_exit do
     sane_term
     Kernel::print "\e[?25h"  ## show cursor
   end
+  # useful for 'tools spread-keys' which can be used in a subshell
   print "\e[0m" if STDOUT.isatty
   write_dump 'end' if $testing
   Thread.list.each do |thread|
