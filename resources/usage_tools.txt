@@ -69,6 +69,15 @@ Usage by Examples:
     harpwise tools chord-i chart --ref -4
 
 
+  How to get the holes of the pentatonic scale in an adhoc fashion:
+  Assuming, that you know its notes  g a b d e:
+
+    harpwise tools spread-keys g a b d e
+
+  the resulting long list of 16 holes may then be used as an adhoc
+  scale for mode listen.
+
+
   The notes of the major scale starting at c:
 
     harpwise tools notes c

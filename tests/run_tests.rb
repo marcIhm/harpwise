@@ -110,7 +110,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 106
+num_exp = 107
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -517,6 +517,7 @@ do_test 'id-5a: delete recorded samples' do
   tms :ENTER
   sleep 1
   tms 'Y'
+  sleep 1
   expect { screen[14]['Wrote   /home/ihm/dot_harpwise/samples/richter/key_of_c/frequencies.yaml']}
   expect { screen[18]['No recorded sound samples for key']}  
   kill_session
@@ -1726,6 +1727,15 @@ do_test 'id-50a: tools keys' do
   kill_session
 end
 
+do_test 'id-50b: tools spread-keys' do
+  new_session
+  tms 'harpwise tools spread-keys g a b d e g'
+  tms :ENTER
+  expect { screen[7]['-   e4   g4    -   e5   g5'] }
+  expect { screen[18]['-1  +2  -2  +3  -3//  -3'] }
+  kill_session
+end
+
 do_test 'id-51: tools transpose' do
   new_session
   tms 'harpwise tools transpose c g -1'
@@ -1770,7 +1780,7 @@ do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
   tms :ENTER
-  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  expect { screen[6]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
   kill_session
 end
 
@@ -1778,7 +1788,7 @@ do_test 'id-52a: tools chart, explicit flat' do
   new_session
   tms 'harpwise tools chart g --flat'
   tms :ENTER
-  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  expect { screen[6]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
   kill_session
 end
 
@@ -1786,7 +1796,15 @@ do_test 'id-52b: tools chart, explicit sharp' do
   new_session
   tms 'harpwise tools chart g --sharp'
   tms :ENTER
-  expect { screen[5]['a3   d4   fs4  a4   c5   e5   fs5  a5   c6   e6'] }
+  expect { screen[6]['a3   d4   fs4  a4   c5   e5   fs5  a5   c6   e6'] }
+  kill_session
+end
+
+do_test 'id-52c: tools chart with holes' do
+  new_session
+  tms 'harpwise tools chart +1 +2'
+  tms :ENTER
+  expect { screen[6]['c4   e4    -    -'] }
   kill_session
 end
 
@@ -1798,13 +1816,13 @@ do_test 'id-53: print' do
   lines = File.read($testing_output_file).lines
   {16 => 'd4  e4  g4  as4  g4  as4  a4  g4',
    19 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   28 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   32 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   36 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
-   40 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
-   44 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   52 => '-7  -5  -2  1   -2  1   0   -2',
-   57 => 'St. Louis Blues'}.each do |lno, exp|
+   31 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   35 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   39 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   43 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   47 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   55 => '-7  -5  -2  1   -2  1   0   -2',
+   60 => 'St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1818,8 +1836,8 @@ do_test 'id-53a: print holes' do
   lines = File.read($testing_output_file).lines
   {11 => 'Notes:',
    12 => 'e4  c4  g4  d5  df5',
-   37 => 'With intervals to first as positive semitones (maybe minus octaves)',
-   38 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
+   40 => 'With intervals to first as positive semitones (maybe minus octaves)',
+   41 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -2525,7 +2543,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[16]['First argument for mode tools should be one of these 19'] }
+  expect { screen[16]['First argument for mode tools should be one of these'] }
   kill_session
 end
 

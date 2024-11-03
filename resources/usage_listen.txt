@@ -82,7 +82,7 @@ Usage by Examples:
 
     harpwise listen -3// +4 -4 +5 +6 -6
 
-  However, you could get the same effect more easily like this:
+  However, you could get the same effect also like this:
 
     harpwise listen mipe --transpose-scale +2st
 

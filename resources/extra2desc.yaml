@@ -83,7 +83,7 @@ tools:
     various harmonica charts for current key; add option --ref for
     more charts. If you supply holes or notes as arguments (optional),
     only these are printed in the chart of holes and the other charts
-    are left skipped.
+    are skipped.
   notes-major, notes: |
     print notes of major scale for given key
   progression, prog: |
