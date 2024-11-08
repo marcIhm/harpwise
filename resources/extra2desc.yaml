@@ -64,8 +64,8 @@ tools:
   transpose: |
     transpose a sequence of holes between keys
   shift: |
-    shift a sequence of holes or a single lick by the given number of
-    semitones (first argument)
+    shift a sequence of holes or notes or a single lick by the given
+    number of semitones (first argument)
   shift-to-groups: |
     Starts off like 'shift' (see there), but also shows groups of
     alternative holes, that give the same note only in different
@@ -73,12 +73,17 @@ tools:
     hole-sequences, e.g. for improvisation
   keys: |
     print a chart with keys and positions centered around current key
-  spread-keys: |
-    given a list of key (e.g. a, b, cs) as arguments, turn them into a
-    list of holes that produce them, regardless of octave. Also shows
-    these holes as a harmonica chart. This tool is suitable to be
-    invoked as a subshell, in which case it just returns the list of
-    holes, to be used e.g. as an adhoc-scale.
+  spread-notes: |
+    take a list of notes (e.g. a, a4, b, cs) as arguments and turn
+    them into a list of holes that produce them. As the octave is
+    deliberately not taken into account, you may give "a" as an
+    argument just as well as "a4". Also shows these holes in the
+    harmonica chart. When invoked with option --terse, this tool can
+    be used as a subcommand on the commandline, in which case it just
+    returns the list of holes, to be used e.g. as an adhoc-scale.
+  make-scale: |
+    accepts a list of holes on the commandline, asks some additional
+    questions and writes a new user-defined scale.
   chart: |
     various harmonica charts for current key; add option --ref for
     more charts. If you supply holes or notes as arguments (optional),
@@ -263,3 +268,5 @@ develop:
     load and parse a lickfile
   check-frequencies, cf: |
     recalculate and check frequencies for current set of samples
+  read-scale-with-notes, rswn: |
+    read given scale (first arg) from file (second arg)

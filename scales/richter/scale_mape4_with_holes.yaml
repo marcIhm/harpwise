@@ -1,0 +1,10 @@
+---
+desc: major pentatonic for the iv-chord
+short: "P4"
+holes:
+- "+4"
+- "-4"
+- "+5"
+- "+6"
+- "-6"
+- "+7"

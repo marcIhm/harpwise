@@ -930,15 +930,6 @@ def scaleify holes_or_notes
 end
 
 
-def remarkify holes_or_notes
-  hon_maxlen = holes_or_notes.max_by(&:length).length
-  remarks_maxlen = holes_or_notes.map {|hon| $hole2rem[$note2hole[hon] || hon] || ''}.max_by(&:length).length
-  holes_or_notes.each.map do |hon|
-    [' ' * (hon_maxlen - hon.length), hon, ($hole2rem[$note2hole[hon] || hon] || '').ljust(remarks_maxlen)]
-  end
-end
-
-
 def intervalify holes_or_notes, prefer_names: true
   inters = []
   holes_or_notes.each_with_index do |hon, idx|

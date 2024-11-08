@@ -1,0 +1,10 @@
+---
+desc: minor pentatonic
+short: p
+holes:
+- "-2"
+- "-3/"
+- "+4"
+- "-4"
+- "-5"
+- "+6"

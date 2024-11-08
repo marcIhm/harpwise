@@ -45,7 +45,7 @@ def do_print to_print
         sname = get_scale_from_sws(sn)
         puts_underlined "#{sname}:", '-', dim: false
         puts
-        scale_holes, _ = read_and_parse_scale(sname)
+        scale_holes = read_and_parse_scale(sname)
         print_holes_and_more scale_holes
         if $scale2desc[sname] || $scale2short[sname]
           puts
@@ -164,21 +164,23 @@ def do_print to_print
         print_in_columns($all_scales, pad: :tabs)
       else
         puts_underlined 'All scales:'
-        puts " \e[2m(name : holes)\e[0m"
         puts
         maxs = $all_scales.map {|s| s.length}.max
         $all_scales.each do |sname|
-          scale_holes, _ = read_and_parse_scale(sname)
-          puts " #{sname.ljust(maxs)} : #{scale_holes.length.to_s.rjust(3)}"
-          if $scale2desc[sname] || $scale2short[sname]
-            print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
-            print "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
-            puts 
-          end
+          scale_holes = read_and_parse_scale(sname)
+          from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )
+          puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
+          print "   \e[2mHoles: #{scale_holes.length.to_s.rjust(3)}  "
+          print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
+          puts
+          puts "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
         end
       end
       puts
-      puts "\e[2mTotal count of scales printed: #{$all_scales.length}\e[0m"
+      puts "\e[2mUser defined scales (if any) in: " +
+           File.dirname($scale_files_templates[1] % [$type, '-', '-']) + "\e[0m"
+      puts
+      puts "\e[2mTotal count of scales printed: \e[0m#{$all_scales.length}"
 
     when 'scale-progs', 'scale-progressions'
 
@@ -236,9 +238,6 @@ def print_holes_and_more holes_or_notes
   puts
   puts "\e[2mHoles only:\e[0m"
   print_in_columns(holes_or_notes.map {|hon| $note2hole[hon] || hon})
-  puts
-  puts "\e[2mWith holes and remarks:\e[0m"
-  print_in_columns(remarkify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
@@ -638,8 +637,8 @@ end
 def print_single_scale_prog spname
   sp = $all_scale_progs[spname]
   puts "#{spname}:"
-  puts "       Desc:  #{sp[:desc]}"
-  puts "  %2d Chords:  #{sp[:chords].join(' ')}" % sp[:chords].length
+  puts "        Desc:  #{sp[:desc]}"
+  puts "   %2d Scales:  #{sp[:scales].join(' ')}" % sp[:scales].length
   puts
 end
 

@@ -45,7 +45,7 @@ def do_play to_play
     elsif snames.length > 0
       
       snames.each do |sname|
-        scale_holes, _, _, _ = read_and_parse_scale_simple(sname)
+        scale_holes, _, _ = read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
         play_holes_or_notes_and_handle_kb scale_holes
         puts

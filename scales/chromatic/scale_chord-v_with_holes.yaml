@@ -1,0 +1,13 @@
+---
+short: "5"
+desc: major chord V without flat seventh
+holes:
+- "+3"
+- "-4"
+- "-5"
+- "+7"
+- "-8"
+- "-9"
+- "+11"
+- "-12"
+- "+12b"

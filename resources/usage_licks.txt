@@ -121,12 +121,12 @@ Usage by Examples:
 
   This option can fruitfully be combined with a scale-progression:
 
-    harpwise licks --scale-prog 12bar-om3-v --lick-prog box1-turn
+    harpwise licks --scale-prog 12bar --lick-prog box1-turn
       --kb-tr RIGHT=s+RETURN,LEFT=S+L
 
   which employs the key 'RIGHT' to switch both scale-progression and
-  lick-progression at once; where 'LEFT' resets them to their initial
-  values.
+  lick-progression at once; whereas 'LEFT' resets them to their
+  initial values.
   
 
   If you want to explore a single lick, that is not yet in your

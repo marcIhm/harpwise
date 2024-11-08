@@ -603,14 +603,14 @@ class HearScale < QuizFlavour
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
     
-    @sorted, _ = read_and_parse_scale(@solution, $harp)
+    @sorted = read_and_parse_scale(@solution, $harp)
     @holes = @sorted.clone.shuffle
     @holes_orig = @holes.clone
 
     @prompt = 'Choose the scale you have heard:'
     @help_head = 'Scale'
     @scale2holes = @choices.map do |scale|
-      holes, _ = read_and_parse_scale(scale, $harp)
+      holes = read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
 
@@ -685,7 +685,7 @@ class MatchScale < QuizFlavour
     @state[:hide_holes] = :all
     @state_orig = @state.clone
     @scale2holes = scales.map do |scale|
-      holes, _ = read_and_parse_scale(scale, $harp)
+      holes = read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
     # General goal: for every scale try to find a sequence of holes,
@@ -2061,7 +2061,7 @@ class NotInScale < QuizFlavour
     super
     
     @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-    @scale_holes, _ = read_and_parse_scale(@scale_name, $harp)
+    @scale_holes = read_and_parse_scale(@scale_name, $harp)
     # choose one harp-hole, which is not in scale but within range or nearby
     holes_notin = $harp_holes - @scale_holes
     # Remove holes above and below scale neighbours; calculate in

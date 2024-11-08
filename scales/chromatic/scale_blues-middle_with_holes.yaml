@@ -1,0 +1,11 @@
+---
+short: b
+desc: middle octave of the blues scale
+holes:
+- "+3"
+- "-3b"
+- "+4"
+- "+4b"
+- "-5"
+- "-6"
+- "+7"

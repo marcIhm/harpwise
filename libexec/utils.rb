@@ -61,9 +61,9 @@ def yaml_parse file
   begin
     YAML.load_file(file)
   rescue Psych::SyntaxError => e
-    fail "Cannot parse #{file}: #{e} !"
+    err "Cannot parse #{file}: #{e.message}"
   rescue Errno::ENOENT => e
-    fail "File #{file} does not exist !"
+    err "File #{file} does not exist !"
   end
 end
 
@@ -123,15 +123,30 @@ end
 
 
 def file2scale file, type = $type
-  %w(holes notes).each do |what|
-    parts = ($scale_files_template % [type, '|', what]).split('|')
-    return file[parts[0].length .. - parts[1].length - 1] if file[parts[1]]
+  $scale_files_templates.each do |template|
+    %w(holes notes).each do |what|
+      parts = (template % [type, '|', what]).split('|')
+      return file[parts[0].length .. - parts[1].length - 1] if file[parts[0]]
+    end
   end
 end
 
 
-def scales_for_type type
-  Dir[$scale_files_template % [type, '*', '{holes,notes}']].map {|file| file2scale(file, type)}.sort
+def scales_for_type type, check
+  files = $scale_files_templates.map do |template|
+    Dir[template % [type, '*', '{holes,notes}']]
+  end.flatten
+  if check
+    scale2file = Hash.new
+    files.each do |file|
+      scale = file2scale(file,type)
+      err "Duplicate scale   #{scale}   has already been defined in:\n#{scale2file[scale]}\ncannot redefine it in:\n#{file}"  if scale2file[scale]
+      scale2file[scale] = file
+    end
+    return scale2file.keys.sort, scale2file
+  else
+    return files.map {|file| file2scale(file, type)}.sort
+  end
 end
 
 
@@ -139,9 +154,8 @@ def describe_scales_maybe scales, type
   desc = Hash.new
   count = Hash.new
   scales.each do |scale|
-    sfile = $scale_files_template % [type, scale, 'holes']
-    begin 
-      _, holes_rem = YAML.load_file(sfile).partition {|x| x.is_a?(Hash)}
+    begin
+      _, holes_rem = YAML.load_file($scale2file[scale]).partition {|x| x.is_a?(Hash)}
       holes = holes_rem.map {|hr| hr.split[0]}
       desc[scale] = "holes #{holes.join(',')}"
       count[scale] = holes.length

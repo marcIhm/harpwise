@@ -15,7 +15,7 @@ def set_global_vars_early
   $total_freq_ticks = 0
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
 
-  # two more entries will be set in find_and_check_dirs
+  # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
   $early_conf[:modes] = %w(listen quiz licks play print samples tools develop)
@@ -109,7 +109,7 @@ def set_global_vars_early
 
   $all_licks = $licks = nil
 
-  find_and_check_dirs
+  find_and_check_dirs_early
 
   # vars for recording user in mode licks
   $ulrec = UserLickRecording.new
@@ -127,8 +127,9 @@ def set_global_vars_early
 
   $notes_with_sharps = %w( c cs d ds e f fs g gs a as b )
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
-  $scale_files_template = "#{$dirs[:install]}/config/%s/scale_%s_with_%s.yaml"
-  
+  $scale_files_templates = ["#{$dirs[:install]}/scales/%s/scale_%s_with_%s.yaml",
+                            "#{$dirs[:user_scales]}/%s/scale_%s_with_%s.yaml"]
+
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
@@ -217,7 +218,8 @@ def set_global_vars_early
 end
 
 
-def find_and_check_dirs
+def find_and_check_dirs_early
+
   $dirs = Hash.new
   $dirs_data_created = false
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
@@ -233,8 +235,9 @@ def find_and_check_dirs
                    "#{Dir.home}/.#{File.basename($0)}"
                  end
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
+  $dirs[:user_scales] = "#{$dirs[:data]}/scales"
 
-  [:data, :players_pictures].each do |dirsym|
+  [:data, :players_pictures, :user_scales].each do |dirsym|
     created = create_dir($dirs[dirsym])
     $dirs_data_created = true if created && dirsym == :data
   end
@@ -439,6 +442,12 @@ EOREADME
     end
   end
   $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
+
+  # does not fit into find_and_check_dirs_early, because we need
+  # all_types
+  $conf[:all_types].each do |type|
+    create_dir "#{$dirs[:user_scales]}/#{type}"
+  end
 end
 
 
@@ -589,36 +598,44 @@ end
 
 def read_and_set_musical_bootstrap_config
   $samples_needed = ![:samples, :print, :tools, :develop].include?($mode)
-  all_scales = scales_for_type($type)
+  all_scales, scale2file = scales_for_type($type,true)  
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
-  sc_pr_fl = "#{$dirs[:install]}/config/#{$type}/scale_progressions.yaml"
-  sc_progs = yaml_parse(sc_pr_fl)
-  sc_progs.is_a?(Hash) || err("Internal error: not an array but a #{sc_progs.class} in #{sc_pr_fl})")
-  sc_progs.each do |name,prog|
-    prog.is_a?(Hash) || err("Internal error: not a hash #{prog} (in #{sc_pr_fl})")
-    prog.transform_keys!(&:to_sym)
-    sc_pr_ks = [:desc, :chords]
-    prog.keys == sc_pr_ks || err("Internal error: wrong keys #{prog.keys}, not #{sc_pr_ks} (in #{sc_pr_fl})")
-    prog[:chords].each do |ch|
-      err("Unknown scale #{ch} specified in scale progression #{name}, none of #{prog[:chords]} (in #{sc_pr_fl})") unless all_scales.include?(ch)
+  sc_pr_fls = ["#{$dirs[:install]}/scales/#{$type}/scale_progressions.yaml",
+               "#{$dirs[:user_scales]}/#{$type}/scale_progressions.yaml"]
+  all_sc_progs = Hash.new
+  sc_prog2file = Hash.new
+  sc_pr_fls.each do |sc_pr_fl|
+    next unless File.exist?(sc_pr_fl)
+    sc_progs = yaml_parse(sc_pr_fl)
+    sc_progs.is_a?(Hash) || err("Not an array but a #{sc_progs.class}   (in #{sc_pr_fl})")
+    sc_progs.each do |name, prog|
+      err "Scale progression #{name} has already been defined in #{sc_prog2file[name]} cannot redefine it in #{sc_pr_file}" if sc_prog2file[name]
+      sc_prog2file[name] = sc_pr_fl
+      prog.is_a?(Hash) || err("Not a hash #{prog}   (in #{sc_pr_fl})")
+      prog.transform_keys!(&:to_sym)
+      sc_pr_ks = [:desc, :scales]
+      prog.keys == sc_pr_ks || err("Wrong keys #{prog.keys}, not #{sc_pr_ks}   (in #{sc_pr_fl})")
+      prog[:scales].each do |sc|
+        err("Unknown scale #{sc} specified in scale progression #{name}, none of #{all_scales}   (in #{sc_pr_fl})") unless all_scales.include?(sc)
+      end
+      all_sc_progs[name] = prog
     end
   end
-  $holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
-  return [all_scales, yaml_parse($holes_file).keys, sc_progs]
+  holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
+  return [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, holes_file]
 end
 
 
 def read_and_set_musical_config
-  $hole2note_read = yaml_parse($holes_file)
-  $dsemi_harp = diff_semitones($key, 'c', strategy: :minimum_distance)
+  $hole2note_for_c = yaml_parse($holes_file)
+  $dsemi_key_minus_c = diff_semitones($key, 'c', strategy: :minimum_distance)
   harp = Hash.new
-  hole2rem = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
   semi2hole_sc = Hash.new {|h,k| h[k] = Array.new}
   bare_note2holes = Hash.new {|h,k| h[k] = Set.new}
   hole_root = nil
-  $hole2note_read.each do |hole, note|
-    semi = note2semi(note) + $dsemi_harp
+  $hole2note_for_c.each do |hole, note|
+    semi = note2semi(note) + $dsemi_key_minus_c
     harp[hole] = [[:note, semi2note(semi)],
                   [:semi, semi]].to_h
     semi2hole_sc[semi] << hole
@@ -626,7 +643,7 @@ def read_and_set_musical_config
   end
   # :equiv and :canonical are useful when doing set operations with
   # holes; eg for scales and licks
-  $hole2note_read.each do |hole, _|
+  $hole2note_for_c.each do |hole, _|
     harp[hole][:equiv] = semi2hole_sc[harp[hole][:semi]].reject {|h| h == hole}
     equiv = harp[harp[hole][:equiv][0]] 
     harp[hole][:canonical] = ( equiv && equiv[:canonical]  ?  equiv[:canonical]  :  hole)
@@ -653,7 +670,7 @@ def read_and_set_musical_config
     holes_remove = []
     if $opts[:remove_scales]
       $opts[:remove_scales].split(',').each do |sn|
-        sc_ho, _ = read_and_parse_scale(sn)
+        sc_ho = read_and_parse_scale(sn)
         holes_remove.concat(sc_ho)
       end
     end
@@ -662,13 +679,13 @@ def read_and_set_musical_config
     h2s_shorts = Hash.new('')
     $used_scales.each_with_index do |sname, idx|
       # read scale
-      sc_ho, h2rem = read_and_parse_scale(sname, harp)
-      holes_remove.each {|h| sc_ho.delete(h)}
+      scale_holes = read_and_parse_scale(sname, harp)
+      holes_remove.each {|h| scale_holes.delete(h)}
       # build final scale as sum of multiple single scales
-      scale.concat(sc_ho) unless idx > 0 && $opts[:add_no_holes]
+      scale.concat(scale_holes) unless idx > 0 && $opts[:add_no_holes]
       # construct remarks to be shown amd flags to be used while
       # handling holes
-      h2rem.each_key do |h|
+      scale_holes.each do |h|
         next if holes_remove.include?(h)
         if idx == 0
           hole2flags[h] << :main
@@ -676,20 +693,8 @@ def read_and_set_musical_config
           next if $opts[:add_no_holes] && !hole2flags[h]
           hole2flags[h] << :added
         end
-        hole2flags[h] << :root if h2rem[h] && h2rem[h].match(/\broot\b/)
         h2s_shorts[h] += $scale2short[sname]
         harp[h][:equiv].each {|h| h2s_shorts[h] += $scale2short[sname]}
-        hole2rem[h] ||= [[],[]]
-        hole2rem[h][0] << ( $scale2short[sname] || sname ) if sname != 'all' && $used_scales.length > 1
-        if h2rem[h]
-          h2rem[h].split(/, /).each do |r|
-            if %w( root rt ).include?(r) && $used_scales.length > 0
-              hole2rem[h][1] << "rt(#{( $scale2short[sname] || sname )})"
-            else
-              hole2rem[h][1] << r
-            end
-          end
-        end
       end
     end
     # omit equivalent holes
@@ -703,10 +708,6 @@ def read_and_set_musical_config
   # semi2hole is independent of scale
   # "reverse" below to make the first hole (e.g. -2) prevail
   semi2hole = harp_holes.map {|hole| [harp[hole][:semi], hole]}.reverse.to_h
-
-  hole2rem.each_key do |h|
-    hole2rem[h] = [hole2rem[h][0].uniq, hole2rem[h][1].uniq].flatten.select(&:itself).uniq.join(',')
-  end
 
   # read e.g. typical and named holes
   sets_file = "#{$dirs[:install]}/config/#{$type}/hole_sets.yaml"
@@ -761,7 +762,6 @@ def read_and_set_musical_config
     harp_notes,
     scale_holes,
     scale_notes,
-    hole2rem.values.all?(&:nil?)  ?  nil  :  hole2rem,
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     h2s_shorts,
     semi2hole,
@@ -777,7 +777,7 @@ end
 
 def read_and_parse_scale sname, harp = nil
   
-  scale_holes, hole2rem, props, sfile = read_and_parse_scale_simple(sname, harp)
+  scale_holes, props, sfile = read_and_parse_scale_simple(sname, harp)
   
   unless $scale2short[sname]
     # No short name given on commandline: use from scale properties or make one up
@@ -792,105 +792,136 @@ def read_and_parse_scale sname, harp = nil
     $scale2short[sname] = short
   end
 
-  scale_holes_with_rem = scale_holes.map {|h| "#{h} #{hole2rem[h]}".strip}
-  scale_notes_with_rem = scale_holes.map {|h| "#{$hole2note[h]} #{hole2rem[h]}".strip}
-  
   # write derived scale file
-  dfile = $derived_dir + '/derived_' + File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
-  comment = "#\n# derived scale file with %s before any transposing has been applied,\n# created from #{sfile}\n#\n" 
-  File.write(dfile, (comment % [ dfile['holes'] ? 'holes' : 'notes' ]) + YAML.dump([{short: $scale2short[sname]}] + (dfile['holes'] ? scale_holes_with_rem : scale_notes_with_rem)))
-
-  [scale_holes, hole2rem]
+  dfile = $derived_dir + '/derived_' +
+          File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
+  dcont = {'short' => $scale2short[sname],
+           'desc' => $scale2desc[sname]}
+  if dfile['holes']
+    dcont['holes'] = scale_holes
+  else
+    # map notes back to c
+    dcont['notes'] = scale_holes.map {|h| $hole2note_for_c[h]}
+  end
+  what = ( dfile['holes']  ?  'holes'  :  'notes' )
+  File.write( dfile,
+              "#\n" +
+              "# Derived scale file with #{what}\n" +
+              "# created from   #{sfile}\n" +
+              "# and moved to the key of c.\n" +
+              "#\n" +
+              YAML.dump(dcont) )
+  scale_holes
 end
 
 
-def read_and_parse_scale_simple sname, harp = nil, desc_only: false
-
-  hole2rem = Hash.new
+def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_file: nil
 
   # shortcut for scale given on commandline
   if sname == 'adhoc-scale'
     $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
-    $adhoc_scale_holes.each {|h| hole2rem[h] = nil}
-    return [$adhoc_scale_holes, hole2rem, [{'short' => 'h'}], 'commandline']
+    return [$adhoc_scale_holes, [{'short' => 'h'}], 'commandline']
   end
-  
+
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
-  glob = $scale_files_template % [$type, sname, '{holes,notes}']
-  sfiles = Dir[glob]
-  if sfiles.length != 1
-    snames = scales_for_type($type)
-    err "Unknown scale '#{sname}' (none of #{snames.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
-    err "Invalid scale '#{sname}' (none of #{snames.join(', ')}) as there are multiple files matching #{glob}"
+  sfile = if override_file
+            override_file
+          else
+            globs = $scale_files_templates.map {|t| t % [$type, sname, '{holes,notes}']}
+            sfiles = globs.map {|g| Dir[g]}.flatten
+            if sfiles.length != 1
+              err "Unknown scale '#{sname}' (none of #{$all_scales.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
+              err "Invalid scale '#{sname}' (none of #{$all_scales.join(', ')}) as there are multiple files matching #{glob}"
+            end
+            sfiles[0]
+          end
+
+  # Actually read the file and check the yaml-keys
+  raw_read = yaml_parse(sfile)
+  what = ( sfile['holes']  ?  'holes'  :  'notes' )
+  err "Content of scale file #{sfile} is not a hash, but rather: #{raw_read.class}" unless raw_read.class == Hash
+  if sfile['holes']
+    err "Content of scale file #{sfile} does not have required key 'holes', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?('holes')
+  else
+    err "Content of scale file #{sfile} does not have required key 'notes', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?('notes')
   end
-  sfile = sfiles[0]
-
-  # Actually read the file
-  all_props, scale_read = yaml_parse(sfile).partition {|x| x.is_a?(Hash)}
-
-  # get properties of scale; currently only :short and :desc
+  err "Content of scale file   #{sfile}   has both keys 'holes' and 'notes', but judging from the filename, only '#{what}' is allowed." if (%w(holes notes) - raw_read.keys).length == 0
+  unknown = raw_read.keys - %w(desc short holes notes)
+  err "These keys from scale file #{sfile} are unknown: #{unknown.join(', ')}" if unknown.length > 0
+  hons_read = raw_read[what]
+  err "Value of key '#{what}' from scale file #{sfile} is not an Array, but rather this: #{hons_read.class}" unless hons_read.class == Array
+  
+  # get properties of scale
   props = Hash.new
-  all_props.inject(&:merge)&.map {|k,v| props[k.to_sym] = v}
-  err "Partially unknown properties in #{sfile}: #{props.keys}, only 'short' and 'desc' are supported" unless Set.new(props.keys).subset?(Set[:short, :desc])
-  props[:short] = props[:short].to_s if props[:short]
-  $scale2desc[sname] = props[:desc].to_s if props[:desc]
-
-  if desc_only
-    $scale2desc[sname] = props[:desc] if props[:desc]
-    return
+  %w(desc short).each do |key|
+    next unless raw_read[key]
+    props[key.to_sym] = raw_read[key] 
+    err "Value of key '#{key}' from scale file #{sfile} is not a String, but rather this: #{props[key.to_sym].class}" unless props[key.to_sym].class == String
   end
+  $scale2desc[sname] = props[:desc] if props[:desc]
 
+  return if desc_only
+
+  # move the scale to the right key and maybe transpose
+  dsemi_transpose = if !$opts[:transpose_scale]
+                      0
+                    elsif $opts[:transpose_scale].is_a?(Integer)
+                      $opts[:transpose_scale]
+                    else
+                      note2semi(($opts[:transpose_scale] || $key) + '0') - note2semi($key + '0')
+                    end
   scale_holes = Array.new
 
-  # For convenience we have both $hole2note and $hole2note_read; they only differ,
-  # if key does not equal c; the following relation always holds true:
-  # note2semi($hole2note[h]) - note2semi($hole2note_read[h]) == note2semi($key) - note2semi('c') =: $dsemi_harp
-  # Note, that below we transpose the scale, regardless if it is written as notes or as holes.
-  dsemi_scale = if $opts[:transpose_scale].is_a?(Integer)
-                  $opts[:transpose_scale]
-                else
-                  note2semi(($opts[:transpose_scale] || 'c') + '0') - note2semi('c0')
-                end
-  scale_read.each do |fields|
-    hon_read, rem = fields.split(nil,2)
-    if sfile['holes']
-      err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read[hon_read]
-    else
-      err "Internal error: hole or note #{hon_read}\nas read from #{sfile}\ndoes not appear in:\n#{$hole2note_read}\nas read from #{$holes_file}" unless $hole2note_read.values.include?(hon_read)
-    end
-    semi_read = if sfile['holes']
-                  note2semi($hole2note_read[hon_read])
-                else
-                  note2semi(hon_read)
-                end
-    note_read = semi2note(semi_read)
-    semi = $dsemi_harp + dsemi_scale + semi_read
-    if semi >= $min_semi && semi <= $max_semi
-      note = semi2note(semi)
-      hole = $note2hole[note]
-      hole2rem[hole] = rem&.strip
-      if !hole
-        tr_desc = if $opts[:transpose_scale].is_a?(Integer)
-                    "by #{$opts[:transpose_scale]}st"
-                  else
-                    "to #{$opts[:transpose_scale]}"
-                  end
-        hon_read_desc = if sfile['holes']
-                          "hole #{hon_read} (note #{note_read}, semi #{semi_read})"
-                        else
-                          "note #{hon_read} (semi #{semi_read})"
-                        end
-        if $opts[:transpose_scale]
-          err("Transposing scale #{sname} from key of c #{tr_desc} fails for #{hon_read_desc}: it results in #{note} (semi = #{semi}), which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Maybe choose another value for --transpose-scale")
-        else
-          err("#{sfile} has #{hon_read_desc}, which is not present in #{$holes_file} (but still in range of harp #{$min_semi} .. #{$max_semi}). Please correct these files")
-        end
-      end
-      scale_holes << hole
-    end
-  end
+  if sfile['holes']
 
-  [scale_holes, hole2rem, props, sfile]
+    holes_lost = []
+    hons_read.each do |hole|
+      err "Hole   '#{hole}'   as read from   #{sfile}   is none of the available holes:   #{$hole2note_for_c.keys.join(', ')}" unless $hole2note_for_c[hole]
+      semi_for_c = note2semi($hole2note_for_c[hole])
+      semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
+      if semi_moved >= $min_semi && semi_moved <= $max_semi
+        note_moved = semi2note(semi_moved)
+        hole_moved = $note2hole[note_moved]
+        if hole_moved
+          scale_holes << hole_moved
+        else
+          holes_lost << hole
+        end
+      else
+        holes_lost << hole
+      end
+    end
+    if $used_scales.include?(sname) && holes_lost.length > 0
+      $msgbuf.print "These holes from scale #{sname} have been lost during transpose: #{holes_lost.join(' ')}", 5, 5
+    end
+
+  else
+
+    notes_lost = []
+    all_notes_norm = $hole2note_for_c.values.map {|n| sf_norm(n)}
+    hons_read.each do |note_for_c|
+      err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(sf_norm(note_for_c))
+      semi_for_c = note2semi(note_for_c)
+      semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
+      if semi_moved >= $min_semi && semi_moved <= $max_semi
+        note_moved = semi2note(semi_moved)
+        hole_moved = $note2hole[note_moved]
+        if hole_moved
+          scale_holes << hole_moved
+        else
+          notes_lost << note_for_c
+        end
+      else
+        notes_lost << note_for_c
+      end
+    end
+    if $used_scales.include?(sname) && notes_lost.length > 0
+      $msgbuf.print "These notes from scale #{sname} have been lost during transpose: #{notes_lost.join(' ')}", 5, 5
+    end
+
+  end
+  
+  [scale_holes, props, sfile]
 end
 
 
@@ -1036,11 +1067,6 @@ def set_global_musical_vars rotated: false
   $used_scales = get_used_scales($opts[:add_scales])
   $scale_prog ||= $used_scales
   $opts[:add_scales] = nil if $used_scales.length == 1
-  $all_scales = scales_for_type($type)
-  # set global var $scale2desc for all known scales, e.g. for quiz
-  $all_scales.each {|s| read_and_parse_scale_simple(s, desc_only: true)}
-  $scale_desc_maybe, $scale2count = describe_scales_maybe($all_scales, $type)
-  
   $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
   fail "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == [:easy, :hard]
   [:easy, :hard].each do |dicu|
@@ -1050,8 +1076,16 @@ def set_global_musical_vars rotated: false
 
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
 
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2rem, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets, $bare_note2holes = read_and_set_musical_config
-    
+  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets, $bare_note2holes = read_and_set_musical_config
+
+  $scale_desc_maybe = Hash.new
+  $scale2count = Hash.new
+  $all_scales.each do |scale|
+    scale_holes, props, sfile = read_and_parse_scale_simple(scale)
+    $scale2count[scale] = scale_holes.length
+    $scale_desc_maybe = $scale2desc[scale] || "holes #{scale_holes.join(',')}"
+  end
+  
   # semitone shifts that will be tagged and can be traversed
   $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
                         7 => 'shifts_five', 12 => 'shifts_eight'}
@@ -1080,6 +1114,12 @@ def set_global_musical_vars rotated: false
                    else
                      %w(g gs a as b c cs d ds e f fs)
                    end
+
+  # check, that the names of those extra args do not collide with scales
+  $extra_kws.each do |mode, extra|
+    double = extra & $all_scales - ['all']
+    err "Some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double.to_a.join(',')}\n\nScales:\n#{$all_scales}\n\nExtra arguments for #{mode}:\n#{extra.to_a}\n\nPlease rename your scale" if double.length > 0
+  end
 end
 
 

@@ -18,8 +18,10 @@ def do_tools to_handle
     tool_shift_to_groups to_handle
   when 'keys'
     tool_key_positions to_handle
-  when 'spread-keys'
-    tool_spread_keys to_handle
+  when 'spread-notes'
+    tool_spread_notes to_handle
+  when 'make-scale'
+    tool_make_scale to_handle
   when 'search-holes-in-licks'
     tool_search_holes_in_licks to_handle
   when 'search-lick-in-scales'
@@ -100,25 +102,26 @@ def tool_key_positions to_handle
 end
 
 
-def tool_spread_keys keys
-  if STDOUT.isatty
+def tool_spread_notes notes
+  if !$opts[:terse]
     puts
-    puts "\e[2mAll holes, that produce the given key in any octave:"
+    puts "\e[2mAll holes, that produce the given notes in any octave:"
     puts "As a chart:\e[0m"
     puts
   end
-  keys.map! {|k| sf_norm(k + '4')[0..-2]}
-  keys.each do |key|
-    err "Key   #{key}   is unknown among keys  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(key)
+  notes.map! {|n| n.gsub(/\d+$/,'')}
+  notes.each do |note|
+    err "Note   #{note}   is unknown among   #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(note)
   end
+  notes.map! {|n| sf_norm(n + '4')[0..-2]}
   holes = Array.new
-  keys.each do |key|
-    holes.append(*$bare_note2holes[key])
+  notes.each do |note|
+    holes.append(*$bare_note2holes[note])
   end
   holes.sort_by! {|h| $harp[h][:semi]}.uniq!
   
-  if !STDOUT.isatty
-    print holes.join('  ')
+  if $opts[:terse]
+    puts holes.join('  ')
     exit
   end
   
@@ -126,7 +129,7 @@ def tool_spread_keys keys
   chart.each_with_index do |row, ridx|
     print '  '
     row[0 .. -2].each_with_index do |cell, cidx|
-      if keys.include?(cell.strip[0..-2])
+      if notes.include?(cell.strip[0..-2])
         print cell
       elsif comment_in_chart?(cell)
         print cell
@@ -142,6 +145,73 @@ def tool_spread_keys keys
   puts "\e[2mAs a list (usable as an ad-hoc scale):\e[0m"
   puts
   puts '  ' + holes.join('  ')
+  puts
+end
+
+
+def tool_make_scale holes
+  err "Need at least one hole as an argument" if holes.length == 0
+  holes.each do |hole|
+    err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
+  end
+  room = "\n\n\e[2A"
+  line = "\n" + ' ' * ( $term_width / 8 ) + "\e[2m" + '-' * ( $term_width / 2 ) + "\e[0m\n\n"
+  cont = {'holes' => holes}
+  puts
+  puts "Creating new user-defined scale from given holes and from answers to a few questions ..."
+
+  print line
+  print room
+  print "Please enter name of the new scale (required): "
+  sname = gets.chomp.strip.gsub(/[^[:print:]]/,'').downcase
+  err "Given new name   '#{sname}'   contains spaces" if sname[' ']
+  err "Given new name   '#{sname}'   is too short (must be three chars or more)" if sname.length < 3
+  err "Given new name   '#{sname}'   is already the name of an existing builtin scale; these builtin scales cannot be overwritten. Try   'harpwise print scales'   for a list of all known scales." if $all_scales.include?(sname) && !$scale2file[sname][$dirs[:data]]
+  sfile = $scale_files_templates[1] % [$type, sname, 'holes']
+  if File.exist?(sfile)
+    puts
+    puts "Look: The new user-defined scale   '#{sname}'   already exists as a file:\n\e[2m#{sfile}\e[0m"
+    puts
+    puts "Do you want to overwite it ?"
+    print room
+    print "Enter 'y' to overwrite, anything else to cancel: "
+    answer = gets.chomp.strip
+    if answer != 'y'
+      puts
+      puts "Creation of new scale has been canceled."
+      puts
+      puts
+      exit
+    end
+  end
+
+  print line
+  print room
+  print "Please enter 1-2 char short name for the new scale (empty to omit): "
+  short = gets.chomp.strip.gsub(/[^[:print:]]/,'')
+  err "Given short name   '#{short}'   contains spaces" if short[' ']
+  err "Given short name   '#{short}'   is too long (must be 1-2 chars)" if short.length > 2
+  cont['short'] = short if short.length > 0
+  
+  print line
+  print room
+  print "Please enter description for the new scale\n(multiple words, less than 80 chars, empty to omit): "
+  desc = gets.chomp.strip.gsub(/[^[:print:]]/,'')
+  err "Given description   '#{desc}'   is too long (#{desc.length} chars > 80)" if desc.length > 80
+  cont['desc'] = desc if desc.length > 0
+
+  print line
+  print room
+  ycont = YAML.dump(cont)
+  File.write(sfile, "#\n# User-defined scale\n#\n" + ycont )
+  puts "This content:"
+  puts
+  puts "\e[2m#{ycont}\e[0m"
+  puts
+  puts "has been written to:\n\e[2m#{sfile}\e[0m"
+  puts
+  puts "New scale   \e[32m'#{sname}'\e[0m   has been created and may be used from now on."
+  puts
   puts
 end
 
@@ -200,17 +270,20 @@ def tool_shift to_handle
   puts
   puts
   cols = Array.new
-  cols << ['Holes given', 'Notes', 'Holes shifted', 'Notes shifted', 'Oct up', 'Oct down']
-  to_handle.each do |hole|
-    cols << [hole,
-             $harp[hole][:note],
-             semi2note($harp[hole][:semi] + dsemi),
+
+  heads = ['Holes or']
+  cols << ['Notes given', 'as notes', 'Holes shifted', 'Notes shifted', 'Oct up', 'Oct down']
+  to_handle.each do |hon|
+    note = $harp.dig(hon,:note) || hon
+    cols << [hon,
+             note,
+             semi2note(note2semi(note) + dsemi),
              [0, +12, -12].map do |shift|
-               $semi2hole[$harp[hole][:semi] + dsemi + shift] || '*'
+               $semi2hole[note2semi(note) + dsemi + shift] || '*'
              end].flatten
     cols[-1][2], cols[-1][3] = cols[-1][3], cols[-1][2]
   end
-  print_transposed(cols, [2,3])
+  print_transposed(cols, [2,3], heads: heads)
   puts
 end
 
@@ -220,28 +293,30 @@ def tool_shift_to_groups to_handle
   to_handle, inter, dsemi = tools_shift_helper(to_handle)
   
   puts
-  puts "Shifting holes by #{describe_inter_semis(dsemi)} and showing all holes,"
-  puts "that map to the same bare note (i.e. ignoring octaves)"
+  puts "Shifting holes or notes by #{describe_inter_semis(dsemi)} and showing"
+  puts "all holes, that map to the same bare note (i.e. ignoring octaves)"
   puts
   puts
   cols = Array.new
-  cols << ['Holes given', 'Notes given', 'Bare notes shifted', 'Holes with same bare']
-  to_handle.each do |hole|
-    bare_note_shifted = semi2note($harp[hole][:semi] + dsemi)[0..-2]
-    cols << [hole,
-             $harp[hole][:note],
+  heads = ['Holes or', nil, 'Bare note', 'Holes with']
+  cols << ['Notes given', 'as notes', 'shifted', 'same bare']
+  to_handle.each do |hon|
+    note = $harp.dig(hon,:note) || hon    
+    bare_note_shifted = semi2note(note2semi(note) + dsemi)[0..-2]
+    cols << [hon,
+             note,
              bare_note_shifted]
     $bare_note2holes[bare_note_shifted].each do |hole|
       cols[-1] << hole
     end
   end
-  print_transposed(cols)
+  print_transposed(cols, heads: heads)
   puts
 end
 
 
 def tools_shift_helper to_handle
-  err "Need at least two additional arguments: a number of semitones and at least one hole (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
+  err "Need at least two additional arguments: a number of semitones and at least one hole or note (e.g. '7st -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
 
   inter = to_handle.shift
   dsemi = $intervals_inv[inter] ||
@@ -256,15 +331,21 @@ def tools_shift_helper to_handle
   end
 
   to_handle.reject! {|h| musical_event?(h)}
-  to_handle.each do |hole|
-    err("Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" +
-        ( to_handle.length == 1  ?  "   and not a lick either"  :  '' )) unless $harp_holes.include?(hole)
+  hons = []
+  to_handle.each do |hon|
+    if note2semi(hon, 2..8, true) || $harp_holes.include?(hon)
+      hons << hon
+    else
+      err("Argument '#{hole}' is neither   a note   nor   " +
+          "a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" +
+          ( to_handle.length == 1  ?  "   and not a lick either"  :  '' ))
+    end
   end
-  return [to_handle, inter, dsemi]
+  return [hons, inter, dsemi]
 end
 
 
-def print_transposed cols, emphasis = nil
+def print_transposed cols, emphasis = nil, heads: nil
 
   # make sure, that all columns have the same number of elements
   maxlen = cols.map(&:length).max
@@ -302,6 +383,10 @@ def print_transposed cols, emphasis = nil
       end
     else
       print "\e[0m"
+    end
+    if heads && heads[idx]
+      puts heads[idx].rjust(max_in_col[0] + 2)
+      head = nil
     end
     puts line
     print "\e[0m\n"
@@ -378,7 +463,7 @@ def tool_search_lick_in_scales to_handle
   mt_scales_all = Array.new
   sc_hls = Hash.new
   $all_scales.each do |scale|
-    hls, _, _, _ = read_and_parse_scale(scale, $harp)
+    hls = read_and_parse_scale(scale, $harp)
     sc_hls[scale] = hls.map {|h| $harp[h][:canonical]}.uniq.
                       sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
     mt_scales_all << scale if (holes - sc_hls[scale]).empty?
@@ -419,7 +504,7 @@ def tool_licks_from_scale to_handle
 
   lick_name = th_grouped[:lick]&.at(0)
   scale = th_grouped[:scale][0]
-  scale_holes, _, _, _ = read_and_parse_scale(scale, $harp)
+  scale_holes = read_and_parse_scale(scale, $harp)
   # _cus stands for canonical, uniq, sorted
   scale_holes_cus = scale_holes.map {|h| $harp[h][:canonical]}.uniq.
                       sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}

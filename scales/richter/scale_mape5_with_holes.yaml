@@ -1,0 +1,10 @@
+---
+desc: major pentatonic for the v-chord
+short: "P5"
+holes:
+- "-1"
+- "+2"
+- "-2/"
+- "-3//"
+- "-3"
+- "-4"

@@ -194,6 +194,13 @@ quiz with many flavours.
    to respectively. This command line may be shortend by moving the option
    --add-scale to your configuration.
 
+   
+   The wise already comes with a large set of scales; but if you still miss
+   something, you may create your own using the tool make-scale.
+
+   You may even use an adhoc-scale by giving its holes on the commandline;
+   see mode listen for an example.
+
 ** Licks
 
    Licks help you to grasp the style and ideas of other players. Harpwise

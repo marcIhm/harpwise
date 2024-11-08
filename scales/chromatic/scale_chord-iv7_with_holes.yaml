@@ -1,0 +1,15 @@
+---
+short: "4"
+desc: major chord iv with added flat seventh
+holes:
+- "-2"
+- "-3"
+- "+4"
+- "-5b"
+- "-6"
+- "-7"
+- "+8"
+- "-9b"
+- "-10"
+- "-11"
+- "+12"

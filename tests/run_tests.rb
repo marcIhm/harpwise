@@ -45,6 +45,7 @@ $config_ini_testing = $dotdir_testing + '/config.ini'
 $persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 $players_pictures = "#{$dotdir_testing}/players_pictures"
 $lickfile_testing = "#{$dotdir_testing}/licks/richter/licks_with_holes.txt"
+$scalefile_testing = "#{$dotdir_testing}/scales/richter/scale_foo_with_holes.yaml"
 
 # remove these to get clean even if we do not rebuild completely
 Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
@@ -110,7 +111,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 107
+num_exp = 108
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -683,7 +684,7 @@ do_test 'id-9d: error on ambigous scale' do
   tms 'harpwise listen a chord'
   tms :ENTER
   sleep 1
-  expect { screen[2]["ERROR: Argument 'chord' from the commandline is not a hole"] }
+  expect { screen[2]["Argument 'chord' from the commandline is"] }
   kill_session
 end
 
@@ -719,41 +720,42 @@ do_test 'id-10a: displays and comments in quiz' do
   kill_session
 end
 
-do_test 'id-11: transpose scale works on zero shift' do
+do_test 'id-11: transpose scale with zero shift' do
   new_session
-  tms 'harpwise listen a blues --transpose-scale c'
-  tms :ENTER
-  wait_for_start_of_pipeline
-  expect { screen[0]['Play from the scale to get green'] }
-  kill_session
-end
-
-do_test 'id-12: transpose scale works on non-zero shift' do
-  new_session
-  tms 'harpwise listen a blues --transpose-scale g'
+  tms 'harpwise listen a blues-middle --transpose-scale a'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect { dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-2','-3/','+4','-4/','-4','-5','+6'] }
   kill_session
 end
 
-do_test 'id-13: transpose scale not working in some cases' do
+do_test 'id-12: transpose scale with non-zero shift' do
   new_session
-  tms 'harpwise listen a blues --transpose-scale b'
-  tms :ENTER
-  sleep 2
-  expect { screen[2]['Transposing scale blues from key of c to b fails for hole -2'] }
-  kill_session
-end
-
-do_test 'id-13a: transpose scale by 7 semitones' do
-  new_session
-  tms 'harpwise listen a blues --transpose-scale +7st'
+  tms 'harpwise listen a blues-middle --transpose-scale g'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect { dump[:scale_holes] == ['-2','-3///','-3//','+4','-4','-5','+6','-6/','-6','+7','-8','+8/','+8','+9','-10','+10'] }
+  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-2//', '-3///', '-3/', '-3', '+4', '-5'] }
+  kill_session
+end
+
+do_test 'id-13: transpose scale by 7 semitones' do
+  new_session
+  tms 'harpwise listen a blues-middle --transpose-scale +7st'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  dump = read_testing_dump('start')
+  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-4','-5','+6','-6/','-6','+7','-8'] }
+  kill_session
+end
+
+do_test 'id-13a: read scale with notes' do
+  new_session
+  tms "harpwise dev read-scale-with-notes blues-middle #{Dir.pwd}/tests/data/scale_blues-middle_with_notes.yaml"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[4]['["-2", "-3/", "+4", "-4/", "-4", "-5", "+6"]'] }  
   kill_session
 end
 
@@ -1695,15 +1697,21 @@ end
 
 do_test 'id-48b: chromatic in a, scale blues; listen; creation of derived' do
   sound 8, 2
-  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_chord-i7_with_notes.yaml"
+  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_blues-middle_with_notes.yaml"
   FileUtils.rm derived if File.exist?(derived)
   new_session 92, 30
-  tms 'harpwise listen chromatic a blues --display chart-scales'
+  tms 'harpwise listen chromatic a blues-middle --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['b1  1  b15 b14 b14  1  b15 b14 b14  1  b15 b14'] }
+  expect { screen[4]['1   1  b15 b14 b14  1  b15  14  14  1   15  14'] }
   expect { screen[8]['==1===2===3===4===5===6===7===8===9==10==11==12========'] }
   expect(derived) { File.exist?(derived) }
+  tms 'q'
+  wait_for_end_of_harpwise
+  tms "harpwise dev chromatic a read-scale-with-notes blues-middle #{derived}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[26]['["+3", "-3b", "+4", "+4b", "-5", "-6", "+7"]'] }  
   kill_session
 end
 
@@ -1727,12 +1735,37 @@ do_test 'id-50a: tools keys' do
   kill_session
 end
 
-do_test 'id-50b: tools spread-keys' do
+do_test 'id-50b: tools spread-notes' do
   new_session
-  tms 'harpwise tools spread-keys g a b d e g'
+  tms 'harpwise tools spread-notes g a b d e g'
   tms :ENTER
   expect { screen[7]['-   e4   g4    -   e5   g5'] }
   expect { screen[18]['-1  +2  -2  +3  -3//  -3'] }
+  kill_session
+end
+
+do_test 'id-50c: tools make-scale' do
+  FileUtils.rm($scalefile_testing) if File.exist?($scalefile_testing)
+  new_session
+  tms 'harpwise tools make-scale +1'
+  tms :ENTER
+  sleep 1
+  tms 'foo'
+  tms :ENTER
+  sleep 1
+  tms 'f'
+  tms :ENTER
+  sleep 1
+  tms 'for testing'
+  tms :ENTER
+  expect { screen[13]['short: f'] }
+  expect { screen[14]['desc: for testing'] }
+  expect($scalefile_testing) { File.exist?($scalefile_testing) }
+  wait_for_end_of_harpwise
+
+  tms 'harpwise print scales -T'
+  tms :ENTER
+  expect { screen[15]['foo'] }
   kill_session
 end
 
@@ -1746,9 +1779,9 @@ end
 
 do_test 'id-51a: tools shift by interval' do
   new_session
-  tms 'harpwise tools shift mt -1 +2'
+  tms 'harpwise tools shift mt -1 e4 e8'
   tms :ENTER
-  expect { screen[9]['Holes shifted:   -2/  -3///'] }
+  expect { screen[10]['Holes shifted:   -2/  -3///    *'] }
   kill_session
 end
 
@@ -1756,15 +1789,15 @@ do_test 'id-51b: tools shift by semitones' do
   new_session
   tms 'harpwise tools shift +7st -1 +2'
   tms :ENTER
-  expect { screen[9]['  Holes shifted:   -3//  -3'] }
+  expect { screen[10]['  Holes shifted:   -3//  -3'] }
   kill_session
 end
 
 do_test 'id-51c: tools shift-to-groups by semitones' do
   new_session
-  tms 'harpwise tools shift-to-groups +7st -1 +2 +3 +4'
+  tms 'harpwise tools shift-to-groups +7st -1 +2 +3 e4'
   tms :ENTER
-  expect { screen[12]['Holes with same bare:   -3//    -3  -1  -2'] }
+  expect { screen[15]['same bare:   -3//    -3  -1    -3'] }
   kill_session
 end
 
@@ -1816,13 +1849,13 @@ do_test 'id-53: print' do
   lines = File.read($testing_output_file).lines
   {16 => 'd4  e4  g4  as4  g4  as4  a4  g4',
    19 => '-1.-      +2.-      -2.-     -3/.-      +3.-     -3/.-',
-   31 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   35 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
-   39 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
-   43 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
-   47 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
-   55 => '-7  -5  -2  1   -2  1   0   -2',
-   60 => 'St. Louis Blues'}.each do |lno, exp|
+   26 => '-1.Ton     +2.fT      -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   30 => '-1.0st     +2.2st     -2.3st    -3/.3st     +3.-3st   -3/.3st',
+   34 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   38 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
+   42 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
+   50 => '-7  -5  -2  1   -2  1   0   -2',
+   55 => 'St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1836,8 +1869,8 @@ do_test 'id-53a: print holes' do
   lines = File.read($testing_output_file).lines
   {11 => 'Notes:',
    12 => 'e4  c4  g4  d5  df5',
-   40 => 'With intervals to first as positive semitones (maybe minus octaves)',
-   41 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
+   36 => 'With intervals to first as positive semitones (maybe minus octaves)',
+   37 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1961,19 +1994,23 @@ do_test 'id-54e: print list of all scales' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  [" all              :  32\n",
-   "   \e[2mShort: A\e[0m\n",
-   " arabic           :  15\n",
-   "   \e[2mShort: a\e[0m\n",   
-   " blues            :  18\n",
-   "   \e[2mShort: b\e[0m   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
-   " blues-middle     :   7\n",
-   "   \e[2mShort: b\e[0m   \e[2mDesc: middle octave of the blues scale\e[0m\n",
-   " chord-i          :   8\n",
-   "   \e[2mShort: 1\e[0m   \e[2mDesc: major chord I without flat seventh\e[0m\n",
-   " chord-i7         :  10\n",
-   "   \e[2mShort: 1\e[0m   \e[2mDesc: major chord I with added flat seventh\e[0m\n"].each_with_index do |exp,idx|
-    expect(lines.each_with_index.map {|l,i| [i,l]}, idx+8, exp) { lines[8+idx] == exp }
+
+  [" all                \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles:  32     \e[2mShort: A\e[0m\n",
+   "   \e[2mDesc: all holes of the harmonica\e[0m\n",
+   " blues              \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles:  18     \e[2mShort: b\e[0m\n",
+   "   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
+   " blues-middle       \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles:   7     \e[2mShort: b\e[0m\n",
+   "   \e[2mDesc: middle octave of the blues scale\e[0m\n",
+   " chord-i            \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles:   8     \e[2mShort: 1\e[0m\n",
+   "   \e[2mDesc: major chord I without flat seventh\e[0m\n",
+   " chord-i7           \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles:  10     \e[2mShort: 1\e[0m\n",
+   "   \e[2mDesc: major chord I with added flat seventh\e[0m\n"].each_with_index do |exp,idx|
+    expect(lines.each_with_index.map {|l,i| [i,l]}, idx + 7, exp) { lines[7+idx] == exp }
   end
   kill_session
 end
@@ -2699,7 +2736,7 @@ do_test 'id-86b: print scale progressions' do
   tms 'harpwise print scale-progs'
   tms :ENTER
   sleep 2
-  expect { screen[17]['Desc:  standard 12-bar blues progression, based on flat-7th chords'] }
+  expect { screen[12]['Desc:  standard 12-bar blues progression, based on flat-7th chords'] }
   kill_session
 end
 
@@ -2786,7 +2823,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 2
   tms :ENTER
   sleep 8
-  expect { screen[10]["difficulty is 'HARD', taking one scale out of 7"] }
+  expect { screen[10]["difficulty is 'HARD', taking one scale out of 6"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end

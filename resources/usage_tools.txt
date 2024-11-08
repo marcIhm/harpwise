@@ -70,12 +70,19 @@ Usage by Examples:
 
 
   How to get the holes of the pentatonic scale in an adhoc fashion:
+
   Assuming, that you know its notes  g a b d e:
 
-    harpwise tools spread-keys g a b d e
+    harpwise tools spread-notes g a b d e
 
   the resulting long list of 16 holes may then be used as an adhoc
   scale for mode listen.
+
+
+  Advanced users, that are not satisfied with the builtin set of
+  scales, may want to create their own from a list of holes, e.g.:
+
+    harpwise tools make-scale +1 +2 +3
 
 
   The notes of the major scale starting at c:

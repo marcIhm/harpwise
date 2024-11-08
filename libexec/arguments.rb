@@ -88,7 +88,7 @@ def parse_arguments_early
         transpose_scale: %w(--transpose-scale)}],
      [Set[:samples], {
         wave: %w(--wave)}],
-     [Set[:print, :samples], {
+     [Set[:print, :samples, :tools], {
         terse: %w(-T --terse)}],
      [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],
@@ -333,7 +333,7 @@ def parse_arguments_early
   
   # prefetch a very small subset of musical config; this is needed to
   # judge commandline arguments, e.g. scales
-  $all_scales, $harp_holes, $all_scale_progs = read_and_set_musical_bootstrap_config
+  $all_scales, $scale2file, $harp_holes, $all_scale_progs, $holes_file = read_and_set_musical_bootstrap_config
   
   # check for unprocessed args, that look like options and are neither holes not semitones  
   looks_like_opts = ARGV.select do |arg|
@@ -414,7 +414,7 @@ def parse_arguments_early
     ARGV.clear
     holes.each do |h|
       next if $harp_holes.include?(h)
-      err "Argument '#{h}' from the commandline is not a hole of a #{$type}-harp ( #{$harp_holes.join('  ')} ) and can therefore not be part of an adhoc-scale"
+      err "Argument '#{h}' from the commandline is:\n  - neither a scale, any of:  #{$all_scales.join('  ')}\n  - nor a hole of a #{$type}-harp  (any of #{$harp_holes.join('  ')})  and can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0
@@ -519,13 +519,6 @@ def initialize_extra_vars
       end
     end
   end
-  # check, that the names of those extra args do not collide with scales
-  scales = scales_for_type($type)
-  $extra_kws.each do |mode, extra|
-    double = extra & scales
-    err "Internal error: some scales for type #{$type} can also be extra arguments for mode #{mode}: #{double}\n\nScales:\n#{scales}\n\nExtra for #{mode}:\n#{extra}" if double.length > 0
-  end
-
 end
 
 
@@ -602,18 +595,17 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false
   end
   return scale if scale == 'adhoc-scale'
 
-  scales = scales_for_type($type)
-  if scales.include?(scale)
+  if $all_scales.include?(scale)
     scale
   else
     if graceful
       nil
     else
-      scale_glob = $scale_files_template % [$type, '*', '*']
-      err "Scale (%s) must be one of #{scales.join(',')}, i.e. scales matching #{scale_glob}; not '#{scale}'%s" %
+      scale_globs = $scale_files_templates.map {|t| t % [$type, '*', '*']}
+      err "Scale (%s) must be one of #{$all_scales.join(',')}, i.e. scales matching:\n#{scale_globs.join('\n')}\nnot '#{scale}'%s" %
           if added
             ["given in option --add-scales or in configuration files",
-             ", Hint: use '--add-scales -' to override the value from the config-files"]
+             ", Hint: use '--add-scales -' to override the value from config"]
           else
             ['main scale', '']
           end
@@ -637,7 +629,7 @@ end
 def print_usage_info mode = nil
 
   # get content of all harmonica-types to be inserted
-  types_with_scales = get_types_with_scales
+  types_with_scales = get_types_with_scales_for_usage
   # used for play and print
   no_lick_selecting_options = <<-EOTEXT
   Note, that the above case does not use any of the extra arguments given
@@ -689,11 +681,11 @@ def print_options opts
 end
 
 
-def get_types_with_scales
+def get_types_with_scales_for_usage
   $conf[:all_types].map do |type|
     next if type == 'testing'
     txt = "scales for #{type}: "
-    scales_for_type(type).each do |scale|
+    scales_for_type(type,false).each do |scale|
       txt += "\n    " if (txt + scale).lines[-1].length > 80
       txt += scale + ', '
     end
@@ -738,9 +730,9 @@ def override_scales_mb scale, opts
     if !$all_scale_progs.include?(opts[:scale_prog])
       max_nm_len = $all_scale_progs.keys.map(&:length).max
       err "Scale progression given via '--scale-progression #{opts[:scale_prog]}' is none of these:\n\n" +
-          $all_scale_progs.map {|nm,sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm,sp[:desc],'',sp[:chords].join(',')]}.join
+          $all_scale_progs.map {|nm,sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm,sp[:desc],'',sp[:scales].join(',')]}.join
     end
-    sc_prog = $all_scale_progs[opts[:scale_prog]][:chords]
+    sc_prog = $all_scale_progs[opts[:scale_prog]][:scales]
   else
     sc_prog = opts[:scale_prog].split(',')
   end

@@ -5,7 +5,7 @@
 def do_develop to_handle
 
   # common error checking
-  err_args_not_allowed(to_handle) if $extra && !%w(lickfile lf).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if $extra && !%w(lickfile lf read-scale-with-notes rswn).include?($extra) && to_handle.length > 0
 
   $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
@@ -25,6 +25,8 @@ def do_develop to_handle
     do_lickfile to_handle
   when 'check-frequencies', 'cf'
     do_check_frequencies
+  when 'read-scale-with-notes', 'rswn'
+    do_read_scale_with_notes to_handle
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
@@ -34,7 +36,7 @@ end
 def do_man
 
   # needed in erb
-  types_with_scales = get_types_with_scales
+  types_with_scales = get_types_with_scales_for_usage
 
   File.write($man_result, ERB.new(IO.read($man_template)).result(binding).chomp)
 
@@ -50,7 +52,7 @@ def do_diff
   abort("\nFile\n\n  #{$man_result}\n\nis older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
 
   # needed in erb
-  types_with_scales = get_types_with_scales
+  types_with_scales = get_types_with_scales_for_usage
 
   lines = Hash.new
   line = Hash.new
@@ -487,4 +489,13 @@ def do_check_frequencies
     semi_was = semi
   end
   puts "\n\nAll checks passed.\n\n"
+end
+
+
+def do_read_scale_with_notes to_handle
+  err 'Need two args: name of scale and filename to read it from' unless to_handle.length == 2
+  sname, file = to_handle
+  puts "Trying to read scale #{sname} from file #{file}"
+  pp $key, $all_holes
+  pp read_and_parse_scale_simple(sname, override_file: file)
 end

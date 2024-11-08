@@ -1,0 +1,21 @@
+---
+12bar:
+    desc: standard 12-bar blues progression, based on flat-7th chords
+    scales:
+    - "chord-i7"
+    - "chord-iv7"
+    - "chord-i7"
+    - "chord-v7"
+    - "chord-iv7"
+    - "chord-i7"
+12bar-v:
+    desc: standard 12-bar blues progression, based on flat-7th chords plus extra v-chord at the end
+    scales:
+    - "chord-i7"
+    - "chord-iv7"
+    - "chord-i7"
+    - "chord-v7"
+    - "chord-iv7"
+    - "chord-i7"
+    - "chord-v7"
+    
