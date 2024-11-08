@@ -496,6 +496,5 @@ def do_read_scale_with_notes to_handle
   err 'Need two args: name of scale and filename to read it from' unless to_handle.length == 2
   sname, file = to_handle
   puts "Trying to read scale #{sname} from file #{file}"
-  pp $key, $all_holes
   pp read_and_parse_scale_simple(sname, override_file: file)
 end

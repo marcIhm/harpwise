@@ -142,7 +142,7 @@ def tool_spread_notes notes
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
   puts
-  puts "\e[2mAs a list (usable as an ad-hoc scale):\e[0m"
+  puts "\e[2mAs a list (usable as an adhoc scale):\e[0m"
   puts
   puts '  ' + holes.join('  ')
   puts
