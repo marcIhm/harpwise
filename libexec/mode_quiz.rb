@@ -2486,7 +2486,7 @@ def get_accepted_flavour_from_extra inherited
     puts
 
     # ask for user feedback
-    puts "\e[32mPress any key to start\e[0m\e[2m, BACKSPACE for another random flavour (#{collection})\nor TAB to choose a flavour or collection explicitly ...\e[0m"
+    puts "\e[32mPress any key to start\e[0m\e[2m,\nBACKSPACE or ctrl-z for another random flavour (#{collection}) or\nTAB to choose a flavour or collection explicitly ...\e[0m"
     char = one_char
     if char == 'BACKSPACE'
       flavour = nil

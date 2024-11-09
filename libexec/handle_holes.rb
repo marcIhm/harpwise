@@ -706,7 +706,7 @@ def show_help mode = $mode, testing_only = false
              "",
              ""]
   if [:quiz, :licks].include?(mode)
-    frames[-1] << "      j:_journal-menu; only available in mode listen"
+    frames[-1] << "      j:_journal-menu; write holes (mode listen only)"
     frames[-1] << " CTRL-R:_record and play user (mode licks only)"
     frames[-1] << "      T:_toggle tracking progress in seq"
   else

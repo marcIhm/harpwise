@@ -109,9 +109,9 @@
 #
 #   harpwise print lick-progressions -t fav
 #
-[prog box1-turn]
+[prog box1]
   desc = Progression of licks for box-pattern 1, with turnaround
-  licks = box1-i box1-iv box1-i box1-v box1-iv box1-i simple-turn
+  licks = box1-i box1-iv box1-i box1-v box1-iv box1-i
   tags = fav
 
 #

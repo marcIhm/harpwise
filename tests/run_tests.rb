@@ -916,12 +916,12 @@ end
 
 do_test 'id-17a: licks from lick-progression' do
   new_session
-  tms 'harpwise licks --lick-progression box1-turn'
+  tms 'harpwise licks --lick-progression box1'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
   expect(dump[:licks].length) { dump[:licks].length == 21 }
-  expect { screen[1]['licks(7,cyc) richter c blues,1,4,5'] }
+  expect { screen[1]['licks(6,cyc) richter c blues,1,4,5'] }
   kill_session
 end
 
@@ -3011,7 +3011,7 @@ do_test 'id-96g: quiz-flavour hear-hole-set' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[1]['then asks for the key and the hole set'] }
+  expect { screen[0]['then asks for the key and the hole set'] }
   tms 'solve'
   tms :ENTER
   sleep 2
@@ -3117,7 +3117,7 @@ do_test 'id-101: change quiz flavour via TAB' do
   sleep 1
   tms 'hear-inter'
   tms :ENTER
-  expect { screen[17]['Quiz Flavour is:   hear-inter'] }
+  expect { screen[16]['Quiz Flavour is:   hear-inter'] }
   kill_session
 end
 
@@ -3308,7 +3308,7 @@ end
 
 do_test 'id-111a: error on lick and lick-progression' do
   new_session
-  tms 'harpwise licks wade --lick-prog box1-turn'
+  tms 'harpwise licks wade --lick-prog box1'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[2]['Option'] }
@@ -3322,7 +3322,7 @@ do_test 'id-112: quiz-flavour play-shifted' do
   tms 'harpwise quiz play-shifted --difficulty easy'
   tms :ENTER
   sleep 3
-  expect { screen[14]['Wise computes a sequence'] }
+  expect { screen[13]['Wise computes a sequence'] }
   tms :ENTER
   sleep 4
   tms 'q'
@@ -3378,10 +3378,10 @@ end
 
 do_test 'id-114a: play licks from progression' do
   new_session
-  tms 'harpwise play licks --lick-prog box1-turn'
+  tms 'harpwise play licks --lick-prog box1'
   tms :ENTER
   sleep 2
-  expect { screen[2]['7 of 21 licks'] }
+  expect { screen[2]['6 of 21 licks'] }
   kill_session
 end
 
@@ -3501,7 +3501,7 @@ end
 
 do_test 'id-121: comment with licks from lick-progression' do
   new_session
-  tms 'harpwise listen --lick-prog box1-turn --comment lick-holes'
+  tms 'harpwise listen --lick-prog box1 --comment lick-holes'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 2
@@ -3540,7 +3540,7 @@ end
 
 do_test 'id-124: print single lick-progression' do
   new_session
-  tms 'harpwise print box1-turn'
+  tms 'harpwise print box1'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[7]['Progression of licks for box-pattern 1, with turnaround'] }
@@ -3570,15 +3570,15 @@ end
 
 do_test 'id-127: test two regressions 2024-08-25' do
   new_session  
-  tms 'harpwise licks --sc-prog 12bar --lick-prog box1-turn --fast-lick-switch'
+  tms 'harpwise licks --sc-prog 12bar --lick-prog box1 --fast-lick-switch'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'T'  ## this key should be functional
   expect { screen[0]['Not tracking progress'] }
-  expect { screen[1]['licks(7,cyc)'] }
+  expect { screen[1]['licks(6,cyc)'] }
   tms 's'  ## rereading licks should not increase number of licks by ignoring $opts[:lick_prog]
   tms 's'
-  expect { screen[1]['licks(7,cyc)'] }
+  expect { screen[1]['licks(6,cyc)'] }
   kill_session
 end
 
@@ -3630,6 +3630,15 @@ do_test 'id-131: check invocation logging' do
   expect(content, cmd) { content.end_with?(cmd) }
 end
 
+do_test 'id-131a: info about utilities' do
+  new_session
+  tms 'harpwise tools utilities'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[10]['Summary'] }
+  kill_session
+end
+
 ENV['HARPWISE_TESTING']='opts'
 
 do_test 'id-132: some cases of opts processing' do
@@ -3665,7 +3674,7 @@ end
 
 do_test 'id-134: timed.rb with sample' do
   new_session
-  tms "~/harpwise/util/timed.rb ~/harpwise/util/timed_sample.json"
+  tms "~/harpwise/utils/timed.rb ~/harpwise/utils/timed_sample.json"
   tms :ENTER
   sleep 2
   # if we get to this error message, the format of timed_sample.json

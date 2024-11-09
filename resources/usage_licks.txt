@@ -113,7 +113,7 @@ Usage by Examples:
   lick-file (see there for explanation); a predefined example could be
   used like this:
 
-    harpwise licks --lick-progression box1-turn
+    harpwise licks --lick-progression box1
 
   knowing these licks in and out would allow for basic accompaniment
   of e.g. a 12-bar blues.
@@ -121,7 +121,7 @@ Usage by Examples:
 
   This option can fruitfully be combined with a scale-progression:
 
-    harpwise licks --scale-prog 12bar --lick-prog box1-turn
+    harpwise licks --scale-prog 12bar --lick-prog box1
       --kb-tr RIGHT=s+RETURN,LEFT=S+L
 
   which employs the key 'RIGHT' to switch both scale-progression and

@@ -49,6 +49,8 @@ def do_tools to_handle
     tool_chords
   when 'diag'
     tool_diag
+  when 'utils', 'utilities'
+    tool_utils
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
@@ -984,4 +986,44 @@ end_of_guide
   
   puts "\nDiagnosis done.\n\n"  
   
+end
+
+
+def tool_utils
+  lines = File.read("#{$dirs[:install]}/utils/README.org").lines
+  summaries = Hash.new
+  head = nil
+  first_para = []
+  puts
+  state = :before_head
+  lines.each_with_index do |line, idx|
+    if state == :in_first_para && line.strip.length == 0
+      state = :after_first_para
+      summaries[head] = first_para
+    end
+    state = :in_first_para if state == :after_head && line.strip.length > 0
+    first_para << line if state == :in_first_para
+    if line =~ /^\*/
+      print "\e[32m"
+      state = :after_head
+      first_para = []
+      head = line
+    end
+    print line
+    print "\e[0m"
+    sleep 0.02 if idx < 10
+  end
+  puts
+  puts
+  sleep 0.2
+  puts "\e[32mSummary:\e[0m"
+  puts
+  summaries.each do |head, lines|
+    print "\e[32m#{head}\e[0m"
+    print lines.join
+    puts
+  end
+  puts
+  puts "Find these tools in:   #{$dirs[:install]}/utils"
+  puts
 end

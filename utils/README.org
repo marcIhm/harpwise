@@ -1,0 +1,39 @@
+Utility scripts, not needed for normal operation of harpwise, but
+useful for some advanced or special use-cases.
+
+* timed.rb
+
+  A remote control for harpwise with a time table for switching licks
+  and scales while playing a backing track.
+
+  To use timed.rb, you need *two* terminals. In the first one start
+  (e.g.):
+
+    harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo
+
+  and in the second terminal start:
+
+    ./timed.rb timed_sample.json
+
+  which however requires you to edit time_sample.json first and put in
+  the name of decent sound-file of your own as well as timestamps for
+  the chord-changes within this file.
+
+  Admittedly this needs some technical work; however, your ear and
+  audacity (by using and exporting text-markers) makes this quite
+  doable.
+
+  And as you may find, this task is very well worth the effort, as it
+  can help with a gentle transition from playing tabs into free
+  improvisation.
+  
+* harpwise_historic_with_fzf.sh
+  
+  Bash-function for an interactive search in the history of invocations
+  of harpwise.
+
+  This uses fzf (fuzzy-finder, which must be installed first) and may
+  provide a more specific search experience than the normal history
+  search of your shell.
+
+  This file contains some useful comments on its own usage.

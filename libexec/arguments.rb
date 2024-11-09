@@ -333,7 +333,8 @@ def parse_arguments_early
   
   # prefetch a very small subset of musical config; this is needed to
   # judge commandline arguments, e.g. scales
-  $all_scales, $scale2file, $harp_holes, $all_scale_progs, $holes_file = read_and_set_musical_bootstrap_config
+  $all_scales, $scale2file, $harp_holes, $all_scale_progs, $sc_prog2file, $holes_file =
+  read_and_set_musical_bootstrap_config
   
   # check for unprocessed args, that look like options and are neither holes not semitones  
   looks_like_opts = ARGV.select do |arg|

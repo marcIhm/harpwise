@@ -288,7 +288,7 @@ lick_prog:
 
     To use a lick progression defined in your lick file, give (e.g.):
 
-      --lick-prog box1-turn<% else %>
+      --lick-prog box1<% else %>
     accepts the name of a lick progression as defined within your
     lick-file; the licks from this progression will then be cycled.
 

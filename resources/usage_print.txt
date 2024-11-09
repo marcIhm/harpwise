@@ -70,7 +70,7 @@ Usage by Examples:
 
   or narrow to a lick-progression and reduce amount of output:
 
-    harpwise print licks-details --terse --lick-prog box1-turn
+    harpwise print licks-details --terse --lick-prog box1
 
 
   Print a list of licks (only those selected e.g. by -t)

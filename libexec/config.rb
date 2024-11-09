@@ -129,7 +129,11 @@ def set_global_vars_early
   $notes_with_flats = %w( c df d ef e f gf g af a bf b )
   $scale_files_templates = ["#{$dirs[:install]}/scales/%s/scale_%s_with_%s.yaml",
                             "#{$dirs[:user_scales]}/%s/scale_%s_with_%s.yaml"]
+  # $type will be inserted later
+  $scale_prog_file_templates = ["#{$dirs[:install]}/scales/%s/scale_progressions.yaml",
+                                "#{$dirs[:user_scales]}/%s/scale_progressions.yaml"]
 
+  
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
@@ -600,11 +604,10 @@ def read_and_set_musical_bootstrap_config
   $samples_needed = ![:samples, :print, :tools, :develop].include?($mode)
   all_scales, scale2file = scales_for_type($type,true)  
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
-  sc_pr_fls = ["#{$dirs[:install]}/scales/#{$type}/scale_progressions.yaml",
-               "#{$dirs[:user_scales]}/#{$type}/scale_progressions.yaml"]
   all_sc_progs = Hash.new
   sc_prog2file = Hash.new
-  sc_pr_fls.each do |sc_pr_fl|
+  $scale_prog_file_templates.each do |sc_pr_fl_tpl|
+    sc_pr_fl = sc_pr_fl_tpl % $type
     next unless File.exist?(sc_pr_fl)
     sc_progs = yaml_parse(sc_pr_fl)
     sc_progs.is_a?(Hash) || err("Not an array but a #{sc_progs.class}   (in #{sc_pr_fl})")
@@ -622,7 +625,7 @@ def read_and_set_musical_bootstrap_config
     end
   end
   holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
-  return [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, holes_file]
+  return [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
 end
 
 

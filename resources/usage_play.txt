@@ -68,7 +68,7 @@ Usage by Examples:
 
   Play licks from a progression:
 
-    harpwise play licks --lick-prog box1-turn
+    harpwise play licks --lick-prog box1
 
   Play endless, no questions asked, but various controls available:
 

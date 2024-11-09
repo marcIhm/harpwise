@@ -52,7 +52,7 @@ end
 ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
 raise("Ony one argument allowed, not #{ARGV}") if ARGV.length > 1
 params = JSON.parse(File.read(ARGV[0]))
-wanted = Set.new(%w(timestamps_to_actions sound_file offset sleep_after_iteration sox_opts multiply comment))
+wanted = Set.new(%w(timestamps_to_actions sound_file offset sleep_initially sleep_after_iteration sox_opts multiply comment))
 given = Set.new(params.keys)
 raise("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
 raise("Value '#{params['timestamps_to_actions']}' should be an array") unless params['timestamps_to_actions'].is_a?(Array)
@@ -64,6 +64,7 @@ offset = params['offset']
 sleep_after_iteration = params['sleep_after_iteration']
 multiply = params['multiply']
 comment = params['comment']
+sleep_initially = params['sleep_initially']
 raise("Given mp3 #{sound_file} does not exist") unless File.exist?(sound_file)
 
 # preprocess to allow negative timestamps as relative to preceding ones
@@ -101,6 +102,14 @@ end
 if comment.length > 0
   puts "Comment: " + comment
   puts
+end
+
+if sleep_initially > 0
+  do_action ['message',
+             'sleep initially for %.1d secs' % sleep_initially,
+             [0.0, sleep_initially - 0.2].max.round(1)],
+            0
+  sleep sleep_initially
 end
 
 cmd = "play -q #{sound_file} #{params['sox_opts']}"

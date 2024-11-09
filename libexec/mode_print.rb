@@ -1,5 +1,5 @@
 #
-# Print from the commandline
+# Printfrom the commandline
 #
 
 def do_print to_print
@@ -43,7 +43,8 @@ def do_print to_print
       puts_underlined 'Printing scales given as arguments.', ' ', dim: false
       snames.each do |sn|
         sname = get_scale_from_sws(sn)
-        puts_underlined "#{sname}:", '-', dim: false
+        from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )          
+        puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
         scale_holes = read_and_parse_scale(sname)
         print_holes_and_more scale_holes
@@ -56,6 +57,7 @@ def do_print to_print
         puts
         puts if snames.length > 1
       end
+      puts_user_defined_hint :scales
       puts "#{snames.length} scales printed." unless $opts[:terse]
 
     elsif spnames.length > 0
@@ -64,6 +66,8 @@ def do_print to_print
       spnames.each do |spnm|
         print_single_scale_prog(spnm)
       end
+      puts
+      puts_user_defined_hint :scale_progs
       
     elsif lnames.length > 0
       
@@ -110,7 +114,7 @@ def do_print to_print
         print_lick_meta lick unless $opts[:terse]                
       end
       puts
-      puts "\e[2mTotal count of licks printed: #{$licks.length}\e[0m"
+      puts "\e[2mTotal count of licks printed: \e[0m#{$licks.length}"
 
     when 'licks-list', 'licks-list-all'
 
@@ -128,7 +132,7 @@ def do_print to_print
         puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
       end
       puts
-      puts "\e[2mTotal count of licks printed: #{licks.length}\e[0m"
+      puts "\e[2mTotal count of licks printed: \e[0m#{licks.length}"
 
     when 'licks-with-tags'
 
@@ -177,9 +181,7 @@ def do_print to_print
         end
       end
       puts
-      puts "\e[2mUser defined scales (if any) in: " +
-           File.dirname($scale_files_templates[1] % [$type, '-', '-']) + "\e[0m"
-      puts
+      puts_user_defined_hint(:scales)
       puts "\e[2mTotal count of scales printed: \e[0m#{$all_scales.length}"
 
     when 'scale-progs', 'scale-progressions'
@@ -188,6 +190,8 @@ def do_print to_print
       $all_scale_progs.map do |spnm, _|
         print_single_scale_prog spnm
       end
+      puts
+      puts_user_defined_hint :scale_progs
     
     when 'intervals'
 
@@ -636,7 +640,8 @@ end
 
 def print_single_scale_prog spname
   sp = $all_scale_progs[spname]
-  puts "#{spname}:"
+  from = ( $sc_prog2file[spname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )  
+  puts "#{spname}   \e[2m(#{from})\e[0m:"
   puts "        Desc:  #{sp[:desc]}"
   puts "   %2d Scales:  #{sp[:scales].join(' ')}" % sp[:scales].length
   puts
@@ -667,3 +672,17 @@ def print_semis semis
   print_in_columns(semi_nums.map {|s| '%.2f' % semi2freq_et(s)}, pad: :tabs)
 end
   
+
+def puts_user_defined_hint what
+  case what
+  when :scales
+    puts "\e[2mUser-defined scales (if any) in: " +
+         File.dirname($scale_files_templates[1] % [$type, '-', '-']) + "\e[0m"
+    puts
+  when :scale_progs
+    puts "\e[2mUser-defined scale-progression (if any) in: #{$scale_prog_file_templates[1] % $type}"
+    puts
+  else
+    err "Internal error: #{what}"
+  end
+end

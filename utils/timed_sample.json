@@ -3,6 +3,7 @@
     "comment": "text to be displayed up front, e.g. harpwise-options",
     "multiply": 1.0,
     "offset": -0.2,
+    "sleep_initially": 0.0,
     "sleep_after_iteration": 0.2,
     "sox_opts": "-c 1",
     "timestamps_to_actions": [
