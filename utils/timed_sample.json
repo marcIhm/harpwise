@@ -5,7 +5,7 @@
     "offset": -0.2,
     "sleep_initially": 0.0,
     "sleep_after_iteration": 0.2,
-    "sox_opts": "-c 1",
+    "play_command": "play -q %s -c 1",
     "timestamps_to_actions": [
 	[0,"message","Intro ...",0],
 	[-2,"message","In two secs ...",1.8],

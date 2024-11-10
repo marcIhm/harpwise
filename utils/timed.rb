@@ -52,7 +52,7 @@ end
 ARGV[0] || raise("No argument provided; however a json file with parameters is needed; see comments in this script for an example.")
 raise("Ony one argument allowed, not #{ARGV}") if ARGV.length > 1
 params = JSON.parse(File.read(ARGV[0]))
-wanted = Set.new(%w(timestamps_to_actions sound_file offset sleep_initially sleep_after_iteration sox_opts multiply comment))
+wanted = Set.new(%w(timestamps_to_actions sound_file offset sleep_initially sleep_after_iteration play_command multiply comment))
 given = Set.new(params.keys)
 raise("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
 raise("Value '#{params['timestamps_to_actions']}' should be an array") unless params['timestamps_to_actions'].is_a?(Array)
@@ -112,7 +112,7 @@ if sleep_initially > 0
   sleep sleep_initially
 end
 
-cmd = "play -q #{sound_file} #{params['sox_opts']}"
+cmd = params['play_command'] % sound_file
 puts cmd
 puts
 Thread.new do
