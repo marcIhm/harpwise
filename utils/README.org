@@ -39,6 +39,10 @@ useful for some advanced or special use-cases.
 
   And as you may find, this labor can help with a gentle transition
   from just playing tabs into the realm of free improvisation.
+
+  Note, that in this setting you may either need headphones or a
+  hand-held microphone to keep apart your playing from the backing
+  track beeing played and thus save harpwise from getting confused.
   
 * harpwise_historic_with_fzf.sh
   
