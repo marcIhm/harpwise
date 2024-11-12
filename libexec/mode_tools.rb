@@ -1016,7 +1016,7 @@ def tool_utils
   puts
   puts
   sleep 0.2
-  puts "\e[32mSummary:\e[0m"
+  puts "\e[0mSummary:\e[0m"
   puts
   summaries.each do |head, lines|
     print "\e[32m#{head}\e[0m"
@@ -1024,6 +1024,6 @@ def tool_utils
     puts
   end
   puts
-  puts "Find these tools in:   #{$dirs[:install]}/utils"
+  puts "Find these utilities in:   #{$dirs[:install]}/utils"
   puts
 end

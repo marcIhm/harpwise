@@ -11,7 +11,7 @@ useful for some advanced or special use-cases.
 
     harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo
 
-  and in the second terminal start:
+  and after that, in the second terminal start:
 
     ./timed.rb timed_sample.json
 
@@ -19,13 +19,26 @@ useful for some advanced or special use-cases.
   the name of decent sound-file of your own as well as timestamps for
   the chord-changes within this file.
 
-  Admittedly this needs some technical work; however, your ear and
-  audacity (by using and exporting text-markers) makes this quite
-  doable.
+  Once started, harpwise (as usual) shows your playing on the chart
+  and how it matches the current chord with respect to the backing
+  track beeing played. The scale progression (12bar) in this and many
+  cases is really a chord-progression (I, IV, V) and is switched along
+  by timed.rb (using the fifo).  The script timed.rb uses the
+  timestamps from the json-file to trigger harpwise at the right
+  moment.
 
-  And as you may find, this task is very well worth the effort, as it
-  can help with a gentle transition from playing tabs into free
-  improvisation.
+  With this scripted chord-progression you always know the notes from
+  the chord and can see immediately, if you play within or without. In
+  addition you see the licks of the lick-progression (box1) which are
+  switched along with the song too. These can give your playing a
+  solid starting point until you start improvising.
+
+  Admittedly, preparing the json-file with timestamps needs some
+  technical preparation-work; however, your ear and e.g. audacity (by
+  using and exporting text-markers) makes this quite doable.
+
+  And as you may find, this labor can help with a gentle transition
+  from just playing tabs into the realm of free improvisation.
   
 * harpwise_historic_with_fzf.sh
   
