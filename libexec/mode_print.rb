@@ -23,7 +23,7 @@ def do_print to_print
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if $extra && !%w(player players).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions).include?($extra) && args_for_extra.length > 0
 
   
   if !$extra
@@ -152,7 +152,7 @@ def do_print to_print
 
     when 'lick-progs', 'lick-progressions'
 
-      print_lick_progs
+      print_lick_progs args_for_extra
     
     when 'licks-dump'
 
@@ -597,7 +597,7 @@ def print_player player, in_loop = false
 end
 
 
-def print_lick_progs
+def print_lick_progs pnames
 
   if $all_lick_progs.length == 0
     puts "\nNo lick progressions defined."
@@ -605,8 +605,13 @@ def print_lick_progs
   else
     keep_all = Set.new($opts[:tags_all]&.split(','))
     printed = 0
-    $all_lick_progs.
-      values.
+    if pnames.length == 0
+      pnames = $all_lick_progs.keys
+    else
+      unknown = pnames - $all_lick_progs.keys
+      err "These lick progressions from commandline are unknown:  #{unknown.join(', ')}" if unknown.length > 0
+    end
+    pnames.map {|pn| $all_lick_progs[pn]}.
       select {|lp| keep_all.empty? || (keep_all.subset?(Set.new(lp[:tags])))}.
       each do |lp|
       print_single_lick_prog(lp)
