@@ -112,6 +112,10 @@ end
 
 puts params['play_command'] 
 puts
+if ENV["HARPWISE_TESTING"]
+  puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
+  exit 0
+end
 Thread.new do
   system params['play_command'] 
   sleep 1

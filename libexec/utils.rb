@@ -1083,7 +1083,7 @@ def set_testing_vars_mb
   testing = !!ENV["HARPWISE_TESTING"]
   testing_what = nil
   tw_allowed = %w(1 true t yes y)
-  if testing && !tw_allowed.include?(ENV["HARPWISE_TESTING"].downcase)
+  if testing && !tw_allowed.include?(ENV['HARPWISE_TESTING'].downcase)
     testing_what = ENV["HARPWISE_TESTING"].downcase
     tw_allowed.append(*%w(lag jitter player argv opts msgbuf none))
     err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)

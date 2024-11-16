@@ -120,7 +120,7 @@ def tool_spread_notes notes
   notes.each do |note|
     holes.append(*$bare_note2holes[note])
   end
-  holes.sort_by! {|h| $harp[h][:semi]}.uniq!
+  holes.sort_by! {|h| $harp[h][:semi]}.map! {|h| $harp[h][:canonical]}.uniq!
   
   if $opts[:terse]
     puts holes.join('  ')
@@ -990,7 +990,7 @@ end
 
 
 def tool_utils
-  lines = File.read("#{$dirs[:install]}/utils/README.org").lines
+  lines = ERB.new(IO.read("#{$dirs[:install]}/utils/README.org")).result(binding).lines
   summaries = Hash.new
   head = nil
   first_para = []

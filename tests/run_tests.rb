@@ -1740,7 +1740,7 @@ do_test 'id-50b: tools spread-notes' do
   tms 'harpwise tools spread-notes g a b d e g'
   tms :ENTER
   expect { screen[7]['-   e4   g4    -   e5   g5'] }
-  expect { screen[18]['-1  +2  -2  +3  -3//  -3'] }
+  expect { screen[18]['-1  +2  -2  -3//  -3'] }
   kill_session
 end
 
@@ -3679,7 +3679,7 @@ do_test 'id-134: timed.rb with sample' do
   sleep 2
   # if we get to this error message, the format of timed_sample.json
   # has already been accepted.
-  expect { screen[2]['Given mp3 some-song.mp3'] }
+  expect { screen[4]['play -q some-song.mp3 -c 1'] }
   kill_session
 end
 

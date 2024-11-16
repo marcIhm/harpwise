@@ -73,12 +73,8 @@ def do_print to_print
       
       puts_underlined 'Printing licks given as arguments.', ' ', dim: false
       lnames.each do |lname|
-        puts_underlined "#{lname}:", '-', dim: false
-        puts unless $opts[:terse]
-        lick = $licks.find {|l| l[:name] == lname}
-        print_holes_and_more lick[:holes_wo_events]
-        print_lick_meta lick unless $opts[:terse]        
-        puts if lnames.length > 1
+        print_single_lick lname
+        puts if lnames.length > 1        
       end
       puts "#{lnames.length} licks printed." unless $opts[:terse]
 
@@ -618,7 +614,7 @@ def print_lick_progs pnames
       printed += 1
     end
     if $opts[:tags_all] != ''
-      puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}' from file #{$lick_file}"
+      puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}'\nfrom file #{$lick_file}"
     else
       puts "#{$all_lick_progs.length} lick progressions from file #{$lick_file}"
     end
@@ -638,8 +634,14 @@ def print_single_lick_prog lp
   unless $opts[:terse]
     puts "     Line:  #{lp[:lno]}"
     puts "     Tags:  #{lp[:tags].join('  ')}" if lp[:tags].length > 0
-    puts
+    puts "\e[2mLicks contained:"
+    lnames = lp[:licks].uniq
+    lnames.each do |lname|
+      lick = $all_licks.find {|l| l[:name] == lname}
+      puts "   #{lname}:    " + lick[:holes].join('  ')
+    end
   end
+  puts "\e[0m"
 end
 
 
@@ -690,4 +692,13 @@ def puts_user_defined_hint what
   else
     err "Internal error: #{what}"
   end
+end
+
+
+def print_single_lick lname
+  puts_underlined "#{lname}:", '-', dim: false
+  puts unless $opts[:terse]
+  lick = $licks.find {|l| l[:name] == lname}
+  print_holes_and_more lick[:holes_wo_events]
+  print_lick_meta lick unless $opts[:terse]
 end

@@ -11,36 +11,37 @@ useful for some advanced or special use-cases.
 
     harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo
 
-  and after that, in the second terminal start:
+  after that, in the second terminal change directory to:   <%= $dirs[:install] %>
+  and run:
 
     ./timed.rb timed_sample.json
 
-  which however requires you to edit time_sample.json first and put in
-  the name of decent sound-file of your own as well as timestamps for
-  the chord-changes within this file.
+  which however requires you to copy and edit timed_sample.json first
+  and put in the name of a decent sound-file of your own as well as
+  timestamps for the chord-changes within this file.
 
   Once started, harpwise (as usual) shows your playing on the chart
-  and how it matches the current chord with respect to the backing
-  track beeing played. The scale progression (12bar) in this and many
-  cases is really a chord-progression (I, IV, V) and is switched along
-  by timed.rb (using the fifo).  The script timed.rb uses the
-  timestamps from the json-file to trigger harpwise at the right
-  moment.
+  and indicates how it matches the current chord with respect to the
+  backing track beeing played. The scale progression (12bar) in this
+  and many cases is really a chord-progression (I, IV, V) and is
+  switched along by timed.rb (using the fifo).  The script timed.rb
+  uses the timestamps from the json-file to trigger harpwise at the
+  right moment.
 
   With this scripted chord-progression you always know the notes from
-  the chord and can see immediately, if you play within or without. In
-  addition you see the licks of the lick-progression (box1) which are
-  switched along with the song too. These can give your playing a
-  solid starting point until you start improvising.
+  the chord and can see immediately, if you play within the chord or
+  not. In addition you see the licks of the lick-progression (box1),
+  which are switched along with the song too. These can give you a
+  solid point to take off and for improvisation and land again.
 
   Admittedly, preparing the json-file with timestamps needs some
-  technical preparation-work; however, your ear and e.g. audacity (by
-  using and exporting text-markers) makes this quite doable.
+  technical work; however, your ear and e.g. audacity (by using and
+  exporting text-markers) makes this a matter of minutes.
 
-  And as you may find, this labor can help with a gentle transition
+  And as you may find, this work can help with a gentle transition
   from just playing tabs into the realm of free improvisation.
 
-  Note, that in this setting you may either need headphones or a
+  Note, that in this setup you may either need headphones or a
   hand-held microphone to keep apart your playing from the backing
   track beeing played and thus save harpwise from getting confused.
   
@@ -50,7 +51,8 @@ useful for some advanced or special use-cases.
   of harpwise.
 
   This uses fzf (fuzzy-finder, which must be installed first) and may
-  provide a more specific search experience than the normal history
-  search of your shell.
+  provide a more specific search experience than the standard
+  history-search of your shell.
 
-  This file contains some useful comments on its own usage.
+  The file contains some additional comments on how to put it into
+  use.
