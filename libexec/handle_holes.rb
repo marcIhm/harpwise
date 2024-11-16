@@ -483,6 +483,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
+    if $ctl_mic[:options_info]
+      do_show_options_info
+      $ctl_mic[:options_info] = false
+      $ctl_mic[:redraw] = Set[:silent]
+      $freqs_queue.clear
+    end
+
     if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
@@ -514,6 +521,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
+  text += '; ' + $comment_licks[0][:name] if $comment_licks.length > 0
   text += '; journal-all ' if $journal_all
   truncate_colored_text(text, $term_width - 12 ) + '    '
 end
@@ -640,6 +648,18 @@ def do_change_scale_add_scales
 end
 
 
+def do_show_options_info
+  clear_area_comment
+  clear_area_message
+  puts "\e[#{$lines[:comment]+1}H\e[0m Commandline for this instance of harpwise:\e[K\n"
+  puts "\e[32m"
+  puts wrap_words('  ', $full_commandline.split, ' ')
+  puts
+  print "\e[0m\e[2m #{$resources[:any_key]}\e[0m"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+end
+
 $sc_prog_init = nil
 def do_rotate_scale_add_scales for_bak
   step = ( for_bak == :forward  ?  1  :  -1 )
@@ -721,6 +741,7 @@ def show_help mode = $mode, testing_only = false
   
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
+                      "      o:_print commandline with options",
                       "      q:_quit harpwise                    h:_this help",
                       ""])
 
