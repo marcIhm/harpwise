@@ -583,7 +583,7 @@ def handle_kb_mic
   elsif char == 'i' && $mode == :licks
     $ctl_mic[:lick_info] = true
     text = 'Lick info'    
-  elsif char == 'o' && $mode == :listen
+  elsif char == 'o' && [:listen, :licks].include?($mode)
     $ctl_mic[:options_info] = true
     text = 'Option info'    
   elsif char == 'CTRL-R' && $mode == :licks

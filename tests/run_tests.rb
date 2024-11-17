@@ -3582,6 +3582,22 @@ do_test 'id-127: test two regressions 2024-08-25' do
   kill_session
 end
 
+do_test 'id-127a: explain commandline options' do
+  new_session
+  cmd = 'harpwise licks --sc-prog 12bar --lick-prog box1'
+  tms cmd
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms 'o'
+  expect(cmd) { screen[18][cmd] }
+  tms :ENTER
+  expect { screen[16]['Used scales:  chord-i7, chord-iv7, chord-v7, blues'] }
+  expect { screen[17]['Scale progression:  12bar'] }
+  expect { screen[20]['Comment licks:  none'] }
+  kill_session
+end
+
 ENV['HARPWISE_TESTING']='player'
 
 do_test 'id-128: error message on invalid key during play' do

@@ -17,6 +17,11 @@ def do_listen
   $comment_licks = []
   comment_licks_initial = nil
   comment_lick_lines = []
+  mission = if $used_scales.length == 1
+              "\e[0m\e[2mPlay from the scale"
+            else
+              "\e[0m\e[2mPlay from #{$used_scales.length} scales"
+            end
   if $opts[:lick_prog]
     lnames = process_opt_lick_prog
     $all_licks, $licks, $all_lick_progs = read_licks
@@ -24,14 +29,16 @@ def do_listen
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
     $opts[:comment] = :lick_holes_large unless $opts[:comment] == :lick_holes
+    mission += " or one of #{lnames.uniq.length} licks"
   end
-  
+
+
   while !$ctl_mic[:switch_modes] do
     
     result = handle_holes(
       
       # lambda_mission
-      -> () {"\e[0mPlay from the scale to get \e[32mgreen\e[0m"},   
+      -> () {mission},   
 
 
       # lambda_good_done_was_good

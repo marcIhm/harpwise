@@ -132,6 +132,11 @@ if [:listen, :quiz, :licks].include?($mode)
 end
 
 at_exit do
+  # we do this first in an attempt to avoid a locking error
+  Thread.list.each do |thread|
+    thread.kill.join unless thread == Thread.current
+  end
+  
   if STDIN.isatty && STDOUT.isatty
     sane_term
     Kernel::print "\e[?25h"  ## show cursor
@@ -139,9 +144,6 @@ at_exit do
   # useful for 'tools spread-keys' which can be used in a subshell
   print "\e[0m" if STDOUT.isatty
   write_dump 'end' if $testing
-  Thread.list.each do |thread|
-    thread.exit unless thread == Thread.current
-  end
 
   # a user recording could still be going on
   $ulrec&.stop_rec

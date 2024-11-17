@@ -94,7 +94,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     behind = $freqs_queue.length * $time_slice_secs
     if behind > 0.5
       now = tntf
-      if now - $mode_start > 10
+      if now - $mode_start > 4
         $lagging_freqs_lost += $freqs_queue.length 
         $freqs_queue.clear
         if now - $lagging_freqs_message_ts > 120 
@@ -521,7 +521,7 @@ def text_for_key
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += '; ' + $comment_licks[0][:name] if $comment_licks.length > 0
+  text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m" if $comment_licks && $comment_licks.length > 0
   text += '; journal-all ' if $journal_all
   truncate_colored_text(text, $term_width - 12 ) + '    '
 end
@@ -651,10 +651,31 @@ end
 def do_show_options_info
   clear_area_comment
   clear_area_message
-  puts "\e[#{$lines[:comment]+1}H\e[0m Commandline for this instance of harpwise:\e[K\n"
+  puts "\e[#{$lines[:comment] + 1}H\e[0m Commandline for this instance of harpwise:"
   puts "\e[32m"
-  puts wrap_words('  ', $full_commandline.split, ' ')
+  short_commandline = 'harpwise' + $full_commandline[$0.length .. -1]
+  puts wrap_words('   ', short_commandline.split(/(?= --)/).map(&:strip), ' ')
   puts
+  print "\e[0m\e[2m Any key for details ...\e[0m"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+
+  clear_area_comment
+  clear_area_message
+  puts "\e[#{$lines[:comment] + 1}H\e[0m       Used scales:  \e[32m#{$used_scales.join(', ')}\e[0m"
+  if $opts[:scale_prog]
+    puts "\e[0m Scale progression:  \e[32m#{$opts[:scale_prog]}\e[0m"
+    puts "\e[0m       its content:  \e[32m#{$scale_prog.join(', ')}\e[0m"
+  else
+    puts "\e[2m Scale progression:  none"
+  end
+  if $comment_licks.length > 0
+    puts "\e[0m     Comment licks:  \e[32m#{$comment_licks.map {|l| l[:name]}.join(', ')}\e[0m"
+  else
+    puts "\e[2m     Comment licks:  none"
+  end
+  puts
+  
   print "\e[0m\e[2m #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
@@ -741,7 +762,7 @@ def show_help mode = $mode, testing_only = false
   
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
-                      "      o:_print commandline with options",
+                      "      o:_print commandline with options and details",
                       "      q:_quit harpwise                    h:_this help",
                       ""])
 

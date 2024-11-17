@@ -12,6 +12,11 @@ def set_global_vars_early
   $freq_pipeline_cmd = ''
   $max_jitter = -1.0
   $max_jitter_at = 0
+  $jitter_checks_total = 0
+  $jitter_checks_failed = 0
+  $jitter_threshold = 0.2
+  $jitter_check_after_iters = 40
+  $max_jitter_lines = []
   $total_freq_ticks = 0
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
 
@@ -427,6 +432,9 @@ EOREADME
   #
   
   # Format: [bufsize, hopsize]
+  #
+  # The values below (first two pairs only) stem from a restriction of aubiopitch on macos
+  # for fft
   $aubiopitch_sizes = { short: [2048, 512],
                         medium: [4096, 1024],
                         long: [8192, 2048] }

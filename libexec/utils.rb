@@ -312,51 +312,60 @@ def print_afterthought
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
     afterthought += <<~end_of_content
 
+     Lagging detected
+     ----------------
 
-         Lagging detected !
-         ------------------
+     harpwise has been lagging behind at least once;
+     #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))} have been lost.
 
-         harpwise has been lagging behind at least once;
-         #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))} have been lost.
+     If you notice such a lag frequently and and want to reduce it, you
+     may try to set option '--time-slice' or config 'time_slice'
+     (currently '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
+     #{$conf[:config_file_user]}
+     and usage info of harpwise for more details.
 
-         If you notice such a lag frequently and and want to reduce it, you
-         may try to set option '--time-slice' or config 'time_slice'
-         (currently '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
-         #{$conf[:config_file_user]}
-         and usage info of harpwise for more details.
-
-         Note however, that changing these values too far, may make
-         harpwise sluggish in sensing holes.
+     Note however, that changing these values too far, may make
+     harpwise sluggish in sensing holes.
 
 
-         end_of_content
+     end_of_content
   end
 
-  if $max_jitter > 0.2
+  if true || $max_jitter > $jitter_threshold
     afterthought += <<~end_of_content
+\e[2m
+     Jitter detected
+     ---------------
+
+     The frequency pipeline had a maximum jitter of #{'%.2f' % $max_jitter} secs, which
+     happened #{(Time.now.to_f - $max_jitter_at).to_i} seconds ago, #{($max_jitter_at - $program_start).to_i} secs after program start.
+
+     A total of #{$jitter_checks_total} jitter-checks have been performed, one every #{$jitter_check_after_iters} iterations;
+     #{$jitter_checks_failed} of them were above the threshold of #{$jitter_threshold} secs.
+
+     [timestamps, lines] for which the maximum jitter has been detected:
+       #{$max_jitter_lines[0]}
+       #{$max_jitter_lines[1]}
+
+     As a result your playing and its display by harpwise were out of sync
+     at least once.
+
+     This is probably out of control of harpwise and might be caused by
+     external factors, like system-load or simply by hibernation of your
+     computer.
 
 
-         Jitter detected !
-         -----------------
-
-         The frequency pipeline had a maximum jitter of #{'%.2f' % $max_jitter} secs, which
-         happened #{(Time.now.to_f - $max_jitter_at).to_i} seconds ago, #{($max_jitter_at - $program_start).to_i} secs after program start.
-
-         As a result your playing and its display by harpwise were out of sync
-         at least once.
-
-         This is probably out of control of harpwise and might be caused by
-         external factors, like system-load or simply by hibernation of your
-         computer.
-
-
-         end_of_content
+     end_of_content
 
   end
 
   if afterthought.length > 0
     puts "\e[#{$lines[:message2]}H\e[0m\n" 
-    afterthought.lines.each {|line| puts line.chomp + "\e[K\n"}
+    afterthought.lines.each_with_index do |line, idx|
+      puts line.chomp + "\e[K\n"
+      sleep 0.02 if idx < 8      
+    end
+    print "\e[0m"
   end
 end
 
