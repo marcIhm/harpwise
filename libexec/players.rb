@@ -411,7 +411,7 @@ def play_interactive_interval semi1, semi2
   cmd_template = if $testing
                    "sleep 1"
                  else
-                   "play --norm=%s --combine mix #{tfiles[0]} #{tfiles[1]}"
+                   "play --norm=%s -q --combine mix #{tfiles[0]} #{tfiles[1]}"
                  end
   cmd = cmd_template % $vol.to_i
   synth_for_inter_or_chord([semi1, semi2], tfiles, gap.val, len.val)
@@ -557,7 +557,7 @@ def play_interactive_chord semis, args_orig
   cmd_template = if $testing
                    "sleep 1"
                  else
-                   "play --norm=%s --combine mix #{tfiles.join(' ')}"
+                   "play --norm=%s -q --combine mix #{tfiles.join(' ')}"
                  end
   cmd = cmd_template % $vol.to_i
   synth_for_inter_or_chord(semis, tfiles, gap.val, len.val, wave)

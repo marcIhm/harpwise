@@ -1,3 +1,4 @@
+# -*- fill-column: 74 -*-
 Utility scripts, not needed for normal operation of harpwise, but
 useful for some advanced or special use-cases.
 
@@ -44,6 +45,11 @@ useful for some advanced or special use-cases.
   Note, that in this setup you may either need headphones or a
   hand-held microphone to keep apart your playing from the backing
   track beeing played and thus save harpwise from getting confused.
+
+  Also note, that for wsl2 and if you want to start the sound-file with
+  explorer.exe, you may need to seperate directories with \\\\ (four
+  backslashes) due to quoting.  In this case you may also consider
+  starting the player (e.g. media player) in advance to reduce delay.
   
 * harpwise_historic_with_fzf.sh
   

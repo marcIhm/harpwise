@@ -1,6 +1,7 @@
 {
-    "play_command": "play -q some-song.mp3 -c 1",
+    "play_command": ["play -q some-song.mp3 -c 1"],
     "comment": "text to be displayed up front, e.g. harpwise-options",
+    "example_harpwise": "harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo",
     "multiply": 1.0,
     "offset": -0.2,
     "sleep_initially": 0.0,

@@ -307,45 +307,65 @@ end
 
 def print_afterthought
 
-  afterthought = ''
+  # collect this in string, so we may print it starting slow
+  thought = ''
+  has_lagging = false
 
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
-    afterthought += <<~end_of_content
+    has_lagging = true
+    thought += <<~end_of_content
 
      Lagging detected
      ----------------
 
-     harpwise has been lagging behind at least once;
+     Harpwise has been lagging behind at least once;
      #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))} have been lost.
 
-     If you notice such a lag frequently and and want to reduce it, you
-     may try to set option '--time-slice' or config 'time_slice'
-     (currently '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
-     #{$conf[:config_file_user]}
-     and usage info of harpwise for more details.
+     If you notice such a lag frequently and and want to reduce it,
+     you may try to set option   --time-slice   or config   time_slice
+     (currently: '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
 
-     Note however, that changing these values too far, may make
+       #{$conf[:config_file_user]}
+
+     Note however, that setting this to 'long' without need could make
      harpwise sluggish in sensing holes.
 
 
      end_of_content
   end
 
-  if true || $max_jitter > $jitter_threshold
-    afterthought += <<~end_of_content
-\e[2m
+  # $max_jitter is only set, if it exceeds $jitter_threshold
+  if $max_jitter > 0
+    jitter_file = "#{$dirs[:data]}/jitter_info"
+    if has_lagging
+      thought += <<~end_of_content
+      Jitter detected
+      ---------------
+
+      For details, see   #{jitter_file}
+
+      end_of_content
+    else
+      thought = "\e[2mJitter detected; for details, see   #{jitter_file}\n\n"
+    end
+    content =  <<~end_of_content
+
      Jitter detected
      ---------------
 
+     This happened for the instance of harpwise beeing started at:
+        #{Time.at($program_start)}
+     Note, that this might not have been the most recent invocation.
+
      The frequency pipeline had a maximum jitter of #{'%.2f' % $max_jitter} secs, which
-     happened #{(Time.now.to_f - $max_jitter_at).to_i} seconds ago, #{($max_jitter_at - $program_start).to_i} secs after program start.
+     happened #{($max_jitter_at - $program_start).to_i} secs after program start, #{(Time.now.to_f - $max_jitter_at).to_i} secs before its end.
 
      A total of #{$jitter_checks_total} jitter-checks have been performed, one every #{$jitter_check_after_iters} iterations;
-     #{$jitter_checks_failed} of them were above the threshold of #{$jitter_threshold} secs.
+     #{$jitter_checks_bad} of them were above the threshold of #{$jitter_threshold} secs.
 
-     [timestamps, lines] for which the maximum jitter has been detected:
-       #{$max_jitter_lines[0]}
-       #{$max_jitter_lines[1]}
+     [ts_harpwise, [ts_aubio, freq]] maximum jitter:
+       #{$max_jitter_info[0]}
+       #{$max_jitter_info[1]}
 
      As a result your playing and its display by harpwise were out of sync
      at least once.
@@ -356,17 +376,22 @@ def print_afterthought
 
 
      end_of_content
-
+    if $max_jitter_top
+      content += "\nOutput of top at the time of maximum jitter (#{Time.at($max_jitter_info[1][0])}):\n\n\n#{$max_jitter_top}\n\n"
+    else
+      content += "No output of top has been captured.\n\n"
+    end
+    IO.write jitter_file, content
   end
 
-  if afterthought.length > 0
-    puts "\e[#{$lines[:message2]}H\e[0m\n" 
-    afterthought.lines.each_with_index do |line, idx|
+  if thought.length > 0
+    print "\e[#{$lines[:message2]}H\e[0m" 
+    thought.lines.each_with_index do |line, idx|
       puts line.chomp + "\e[K\n"
       sleep 0.02 if idx < 8      
     end
-    print "\e[0m"
   end
+  print "\e[0m"
 end
 
 
@@ -1276,4 +1301,26 @@ def create_dir dir
     return true
   end
   return false
+end
+
+
+def print_chart_with_notes notes, strip_octave: false
+  chart = $charts[:chart_notes]
+  chart.each_with_index do |row, ridx|
+    print '  '
+    row[0 .. -2].each_with_index do |cell, cidx|
+      if comment_in_chart?(cell)
+        print cell
+      elsif strip_octave && notes.include?(cell.strip[0..-2])
+        print cell
+      elsif !strip_octave && notes.include?(cell.strip)
+        print cell
+      else
+        hcell = ' ' * cell.length
+        hcell[hcell.length / 2] = '-'
+        print hcell
+      end
+    end
+    puts "\e[0m\e[2m#{row[-1]}\e[0m"
+  end
 end

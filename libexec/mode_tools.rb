@@ -126,23 +126,8 @@ def tool_spread_notes notes
     puts holes.join('  ')
     exit
   end
-  
-  chart = $charts[:chart_notes]
-  chart.each_with_index do |row, ridx|
-    print '  '
-    row[0 .. -2].each_with_index do |cell, cidx|
-      if notes.include?(cell.strip[0..-2])
-        print cell
-      elsif comment_in_chart?(cell)
-        print cell
-      else
-        hcell = ' ' * cell.length
-        hcell[hcell.length / 2] = '-'
-        print hcell
-      end
-    end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
-  end
+
+  print_chart_with_notes notes, strip_octave: true
   puts
   puts "\e[2mAs a list (usable as an adhoc scale):\e[0m"
   puts
@@ -338,7 +323,7 @@ def tools_shift_helper to_handle
     if note2semi(hon, 2..8, true) || $harp_holes.include?(hon)
       hons << hon
     else
-      err("Argument '#{hole}' is neither   a note   nor   " +
+      err("Argument '#{hon}' is neither   a note   nor   " +
           "a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" +
           ( to_handle.length == 1  ?  "   and not a lick either"  :  '' ))
     end
@@ -997,6 +982,7 @@ def tool_utils
   puts
   state = :before_head
   lines.each_with_index do |line, idx|
+    next if line.strip[0] == '#'
     if state == :in_first_para && line.strip.length == 0
       state = :after_first_para
       summaries[head] = first_para

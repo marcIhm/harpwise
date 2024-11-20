@@ -217,6 +217,10 @@ end
 
 
 def print_holes_and_more holes_or_notes
+
+  holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
+  notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
+  
   puts "\e[2mHoles or notes given:\e[0m" unless $opts[:terse]
   print_in_columns holes_or_notes, pad: :tabs
   return if $opts[:terse]
@@ -231,13 +235,13 @@ def print_holes_and_more holes_or_notes
     puts
   end
   puts "\e[2mNotes:\e[0m"
-  print_in_columns(holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon})
+  print_in_columns(notes)
   puts
   puts "\e[2mWith holes:\e[0m"
   print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
   puts
   puts "\e[2mHoles only:\e[0m"
-  print_in_columns(holes_or_notes.map {|hon| $note2hole[hon] || hon})
+  print_in_columns(holes)
   puts
   puts "\e[2mWith intervals between:\e[0m"
   print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
@@ -262,6 +266,9 @@ def print_holes_and_more holes_or_notes
   puts 
   puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
   print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+  puts
+  puts "\e[2mIn chart with notes:\e[0m"
+  print_chart_with_notes notes
 end
 
 

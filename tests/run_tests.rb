@@ -572,7 +572,7 @@ do_test 'id-6a: listen and change display and comment' do
   sleep 1
   tms 'q'
   sleep 1
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[16..20].any? {|l| l['Terminating on user request']} }
   kill_session
 end
 
@@ -716,7 +716,7 @@ do_test 'id-10a: displays and comments in quiz' do
   sleep 1
   tms 'q'
   sleep 1
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[16..20].any? {|l| l['Terminating on user request']} }
   kill_session
 end
 
@@ -988,7 +988,7 @@ do_test 'id-19a: cycle through displays and comments in licks ' do
   sleep 1
   tms 'q'
   sleep 1
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[18..22].any? {|l| l['Terminating on user request']} }
   kill_session
 end
 
@@ -1855,7 +1855,8 @@ do_test 'id-53: print' do
    38 => '-1.Ton    +2.fT     -2.pFo   -3/.8st    +3.pFo   -3/.8st',
    42 => '-1.0st    +2.2st    -2.5st   -3/.8st    +3.5st   -3/.8st',
    50 => '-7  -5  -2  1   -2  1   0   -2',
-   55 => 'St. Louis Blues'}.each do |lno, exp|
+   58 => '-   e4   g4    -    -',
+   67 => 'St. Louis Blues'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1982,8 +1983,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3] == 'With intervals to first as semitones:' }
-  expect { screen[9] == 'As absolute semitones (a4 = 0):' }
+  expect { screen[0]['As absolute frequencies'] }
+  expect { screen[3]['In chart with notes'] }
   kill_session
 end
 
@@ -2206,6 +2207,7 @@ do_test 'id-60: listen with auto journal' do
   tms 'm'
   sleep 8
   expect { screen[1]['licks(1,ran)'] }
+  sleep 1
   expect { screen[-1]['journal'] }
   kill_session
   ENV.delete('EDITOR')
@@ -2292,8 +2294,8 @@ do_test 'id-64a: print some holes and notes' do
   tms 'harpwise print a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[0]['-1.Ton    a5.22st   +4.-Oct   d2.-31st'] }
-  expect { screen[15]['-1.0st       a5.22st      +4.10st      d2.3st-2oct'] }
+  expect { screen[3]['-1.0st       a5.22st      +4.10st      d2.3st-2oct'] }
+  expect { screen[9]['246.94  880.00  440.00  73.42'] }
   kill_session
 end
 
@@ -2395,7 +2397,7 @@ do_test 'id-69: detect lag' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[10]['harpwise has been lagging behind at least once'] }
+  expect { screen[2..10].any? {|l| l['Harpwise has been lagging behind at least once']} }
   kill_session
 end
 
@@ -2410,7 +2412,7 @@ do_test 'id-69b: detect jitter' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[9]['Jitter detected'] }
+  expect { screen[21]['Jitter detected'] }
   kill_session
 end
 
@@ -2589,7 +2591,8 @@ do_test 'id-77: print for chromatic' do
   tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[0]['c4.Ton  e4.mT   g4.3st  c5.pFo  e5.mT   g5.3st  c6.pFo'] }
+  expect { screen[1]['c4.0st   e4.4st   g4.7st   c5.12st  e5.16st  g5.19st  c6.24st'] }
+  expect { screen[21]['-   -   -  c5   -   -   -  c6   -   -'] }
   kill_session
 end
 
@@ -2783,7 +2786,7 @@ do_test 'id-90: quiz-flavour play-scale' do
   sleep 4
   tms 'q'
   wait_for_end_of_harpwise
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[21]['Terminating on user request'] }
   kill_session
 end
 
@@ -2797,7 +2800,7 @@ do_test 'id-91: quiz-flavour play-inter' do
   sleep 4
   tms 'q'
   wait_for_end_of_harpwise
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[21]['Terminating on user request'] }
   kill_session
 end
 
@@ -3327,7 +3330,7 @@ do_test 'id-112: quiz-flavour play-shifted' do
   sleep 4
   tms 'q'
   wait_for_end_of_harpwise
-  expect { screen[-3]['Terminating on user request'] }
+  expect { screen[21]['Terminating on user request'] }
   kill_session
 end
 
@@ -3695,7 +3698,7 @@ do_test 'id-134: timed.rb with sample' do
   sleep 2
   # if we get to this error message, the format of timed_sample.json
   # has already been accepted.
-  expect { screen[4]['play -q some-song.mp3 -c 1'] }
+  expect { screen[10]['play -q some-song.mp3 -c 1'] }
   kill_session
 end
 

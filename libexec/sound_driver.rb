@@ -18,7 +18,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   cmd = if $testing
           "sleep #{secs}"
         else
-          "play --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
+          "play -q --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
         end
   sys(cmd, $sox_fail_however)
 end
@@ -254,14 +254,17 @@ def sox_to_aubiopitch_to_queue
             if last_queue_time
               # diff in timestamps transmitted over pipeline vs. diff in timestamps of
               # picking these values from pipeline
-              jitter = (queue_time - last_queue_time) - (now - last_queue_time_now)
+              jitter = ((queue_time - last_queue_time) - (now - last_queue_time_now)).abs
               $jitter_checks_total += 1
               # ignore jitter within first two secs
-              if jitter.abs > $max_jitter && now > pipeline_started + 2
-                $jitter_checks_failed += 1
-                $max_jitter = jitter.abs
-                $max_jitter_at = now
-                $max_jitter_lines = [[last_queue_time_now, last_queue_line], [now, line]]
+              if now > pipeline_started + 2 && jitter > $jitter_threshold 
+                $jitter_checks_bad += 1
+                if jitter > $max_jitter
+                  $max_jitter_top = %x(top -b -n1 2>&1)
+                  $max_jitter = jitter.abs
+                  $max_jitter_at = now
+                  $max_jitter_info = [[last_queue_time_now, last_queue_line.split], [now, line.split]]
+                end
               end
             end
             last_queue_line = line
@@ -294,7 +297,7 @@ def get_pipeline_cmd(what, wav_from)
   #
   templates = [{pv: "pv -qL 192000 %s",
                 sox: "stdbuf -o0 sox %s -q -r #{$conf[:sample_rate]} -t wav -"},
-               "stdbuf -i0 -o0 aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
+               "stdbuf -i0 -oL aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
 
   args = [wav_from]
   args << $aubiopitch_sizes[$opts[:time_slice]]
@@ -319,9 +322,9 @@ def play_hole_or_note_and_collect_kb hon, duration
       sys "sleep #{duration}"
     else
       if wfile
-        sys "play --norm=#{$vol.to_i} #{wfile} trim 0 #{duration}", $sox_fail_however
+        sys "play -q --norm=#{$vol.to_i} #{wfile} trim 0 #{duration}", $sox_fail_however
       else
-        sys "play -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
+        sys "play -q -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
       end
     end
   end  

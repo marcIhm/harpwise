@@ -12,11 +12,12 @@ def set_global_vars_early
   $freq_pipeline_cmd = ''
   $max_jitter = -1.0
   $max_jitter_at = 0
-  $jitter_checks_total = 0
-  $jitter_checks_failed = 0
-  $jitter_threshold = 0.2
+  $max_jitter_info = []
+  $max_jitter_top = nil
   $jitter_check_after_iters = 40
-  $max_jitter_lines = []
+  $jitter_checks_total = 0
+  $jitter_checks_bad = 0
+  $jitter_threshold = 0.2
   $total_freq_ticks = 0
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
 

@@ -669,7 +669,7 @@ def do_show_options_info
   else
     puts "\e[2m Scale progression:  none"
   end
-  if $comment_licks.length > 0
+  if $comment_licks && $comment_licks.length > 0
     puts "\e[0m     Comment licks:  \e[32m#{$comment_licks.map {|l| l[:name]}.join(', ')}\e[0m"
   else
     puts "\e[2m     Comment licks:  none"
