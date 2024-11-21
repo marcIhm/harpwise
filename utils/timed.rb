@@ -68,28 +68,49 @@ num_command = if ARGV[1]
               else
                 0
               end
-params = JSON.parse(File.read(ARGV[0]))
-wanted = Set.new(%w(timestamps_to_actions offset sleep_initially sleep_after_iteration play_command multiply comment example_harpwise))
-given = Set.new(params.keys)
-err("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
-err("Value '#{params['timestamps_to_actions']}' should be an array") unless params['timestamps_to_actions'].is_a?(Array)
-
 puts
+
+#
+# Process parameters
+#
+params = JSON.parse(File.read(ARGV[0]))
 timestamps_to_actions = params['timestamps_to_actions']
 offset = params['offset']
 sleep_after_iteration = params['sleep_after_iteration']
 multiply = params['multiply']
-comment = params['comment']
+description = params['description']
 example = params['example_harpwise']
 sleep_initially = params['sleep_initially']
-play_commands = params['play_command']
+
+#
+# Handle 'play_command' specially
+#
+# synonyms
+err("Cannot specify both 'play_command' and 'play_commands': They are synonyms") if params['play_command'] && params['play_commands']
+params['play_commands'] = play_commands = params['play_command'] || params['play_commands']
+params.delete('play_command')
 err("Parameter 'play_commands' should be an array or a string, not a #{play_commands.class}") unless play_commands.is_a?(Array) || play_commands.is_a?(String)
 play_commands = [play_commands].flatten
+
+# check optional second arg
 if num_command < 0 || num_command > play_commands.length
   err("Given second argument  '#{num_command}'  is not in range  0 ... #{play_commands.length}, which is needed to choose from\n#{play_commands.pretty_inspect}" + $usage)
 end
 play_command = play_commands[num_command]
+err("Given play command is the empty string.") if play_command == ''
+
+# under wsl2 we may actually use explorer.exe (windows-command !) to start playing
 play_with_win = play_command['explorer.exe'] || play_command['wslview']
+
+# check if all parameters present
+wanted = Set.new(%w(timestamps_to_actions offset sleep_initially sleep_after_iteration play_commands multiply description comment example_harpwise))
+given = Set.new(params.keys)
+err("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
+err("Value '#{params['timestamps_to_actions']}' should be an array") unless params['timestamps_to_actions'].is_a?(Array)
+
+#
+# preprocess and check list of timestamps
+#
 
 # preprocess to allow negative timestamps as relative to preceding ones
 while i_neg = (0 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_to_actions[i][0] < 0}
@@ -102,6 +123,7 @@ while i_neg = (0 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_
   timestamps_to_actions[i_neg][0] = ts_abs
 end
 
+# check syntax of timestamps
 timestamps_to_actions.sort_by! {|ta| ta[0]}
 act_at = Hash.new
 timestamps_to_actions.each_with_index do |ta,idx|
@@ -117,14 +139,19 @@ end
 err("Need at least one timestamp with action 'start'") unless act_at['start']
 err("Action 'again', if it appears at all, must be last action, not #{act_at['again']}") if act_at['again'] && act_at['again'] != timestamps_to_actions.length - 1
 
+# transformations
 timestamps_to_actions.each_with_index do |ta,idx|
   ta[0] *= multiply
   ta[0] += offset
   ta[0] = 0.0 if ta[0] < 0
 end
 
-if comment.length > 0
-  puts "Comment: " + comment
+#
+# Start doing user-visible things
+#
+
+if description.length > 0
+  puts "description: " + description
   puts
 end
 
@@ -147,12 +174,13 @@ if ENV["HARPWISE_TESTING"]
   puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
   exit 0
 end
-err("Given play command is the empty string.") if play_command == ''
+
+# start playing
 Thread.new do
   puts "\n\nStarting:\n\n    #{play_command}\n\n"
   system play_command
   if play_with_win
-    puts "Assuming this is played with windows, not waiting for its end.\n\n"
+    puts "Assuming this is played with windows-programs, not waiting for its end.\n\n"
   else
     sleep 1
     puts
@@ -163,19 +191,22 @@ Thread.new do
 end
 
 at_exit do
-  system "killall play >/dev/null 2>&1"
+  system "killall play >/dev/null 2>&1" unless play_with_win
 end
 
 sleep_secs = timestamps_to_actions[0][0]
 puts "Initial sleep %.2f sec" % sleep_secs
 sleep sleep_secs
 
+# endless loop one iteration after the other
 (1 .. ).each do |iter|
   puts
   puts "ITERATION #{iter}:"
   puts
   pp timestamps_to_actions
   puts
+
+  # one action after the other
   timestamps_to_actions.each_cons(2).each_with_index do |pair,j|
 
     tsx, tsy = pair[0][0], pair[1][0]
@@ -189,7 +220,7 @@ sleep sleep_secs
     sleep sleep_between
     puts
 
-  end
+  end  ## one action after the other
 
   do_action timestamps_to_actions[-1][1 .. -1], iter
   
@@ -201,4 +232,4 @@ sleep sleep_secs
       timestamps_to_actions.shift
     end
   end
-end
+end  ## endless loop one iteration after the other

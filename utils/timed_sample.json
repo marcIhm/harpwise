@@ -1,6 +1,8 @@
 {
-    "play_command": ["play -q some-song.mp3 -c 1"],
-    "comment": "text to be displayed up front, e.g. harpwise-options",
+    "comment": "this is a comment, ment to be used within this json-file",
+    "comment": "it may appear multiple times",
+    "play_command": "play -q some-song.mp3 -c 1",
+    "description": "text to be displayed up front, e.g. harpwise-options",
     "example_harpwise": "harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo",
     "multiply": 1.0,
     "offset": -0.2,
