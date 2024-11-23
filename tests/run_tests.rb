@@ -572,7 +572,7 @@ do_test 'id-6a: listen and change display and comment' do
   sleep 1
   tms 'q'
   sleep 1
-  expect { screen[16..20].any? {|l| l['Terminating on user request']} }
+  expect { screen[16..22].any? {|l| l['Terminating on user request']} }
   kill_session
 end
 
@@ -3609,7 +3609,7 @@ do_test 'id-128: error message on invalid key during play' do
   tms :ENTER
   sleep 1
   tms 'x'
-  expect { screen[13]['invalid key x'] }
+  expect { screen[13]['invalid key \'x\''] }
   tms 'h'
   expect { screen[15]['Keys available while playing a recording'] }
   kill_session
@@ -3698,7 +3698,7 @@ do_test 'id-134: timed.rb with sample' do
   sleep 2
   # if we get to this error message, the format of timed_sample.json
   # has already been accepted.
-  expect { screen[10]['play -q some-song.mp3 -c 1'] }
+  expect { screen[6]['harpwise listen --sc-prog 12bar'] }
   kill_session
 end
 

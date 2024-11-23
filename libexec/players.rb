@@ -880,7 +880,7 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
       sleep 0.3
       break
     elsif $ctl_hole[:invalid]
-      print "\e[0m(#{$ctl_hole[:invalid]}) \e[0m "
+      print "(#{$ctl_hole[:invalid]}) "
       $ctl_hole[:invalid] = false
     end
   end
@@ -948,7 +948,7 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
       sleep 0.3
       break
     elsif $ctl_hole[:invalid]
-      print "\e[0m(#{$ctl_hole[:invalid]})\e[0m "
+      print "\e[0m(#{$ctl_hole[:invalid]}\e[0m) "
       $ctl_hole[:invalid] = false
     end
   end

@@ -1,18 +1,30 @@
 {
-    "comment": "this is a comment, ment to be used within this json-file",
-    "comment": "it may appear multiple times",
+    //
+    //  First start harpwise (see below for an example), then start timed.rb with this file
+    //  as an argument; also see README.org in this directory.
+    //
     "play_command": "play -q some-song.mp3 -c 1",
-    "description": "text to be displayed up front, e.g. harpwise-options",
+    "comment": "text to be displayed up front, e.g. harpwise-options",
+    // hint for usr on how to start harpwise
     "example_harpwise": "harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo",
-    "multiply": 1.0,
-    "offset": -0.2,
+    // global stretch or shrink
+    "timestamps_multiply": 1.0,
+    // maybe give some extra time to grab your harp
     "sleep_initially": 0.0,
+    // use this, if actions and music tend to drift; can even be negative
     "sleep_after_iteration": 0.2,
+    // Try audacity and its text-label-feature to get the timestamps for such a list.  This
+    // list of timestamps-to-actions will be repeated forever; this assumes that the
+    // chord-structure of your song is regular and repeated itself too.  On from the second
+    // iteration, only entries after "loop-start" will be used.
     "timestamps_to_actions": [
+	// this will appear in message-area of harpwise
 	[0,"message","Intro ...",0],
 	[-2,"message","In two secs ...",1.8],
-	[6.585817,"start","Start round %d",1.8],
+	// need 
+	[6.585817,"loop-start","Start round %d",1.8],
 	[-2,"message","Chord-change in two secs ...",1.8],
+	// these two keys will switch lick- and scale-progression in unison
 	[17.284542,"keys","l","s"],
 	[-2,"message","Chord-change in two secs ...",1.8],
 	[22.656503,"keys","l","s"],

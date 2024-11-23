@@ -119,13 +119,13 @@ end
 def trim_wave file, play_from, duration, trimmed
   fade_out = 0.2
   puts "Taking \e[32m%.2f\e[0m .. %.2f \e[2m(= \e[0m\e[34m#{duration}\e[0m\e[2m + #{fade_out} fade-out)\e[0m" % [play_from, play_from + duration + fade_out]
-  cmd = "sox #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + fade_out} gain -n -3 fade 0 -0 #{fade_out}"
+  cmd = "sox -q #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + fade_out} gain -n -3 fade 0 -0 #{fade_out}"
   sys cmd
 end
 
 
 def sox_query file, property
-  sys("sox #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
+  sys("sox -q #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
 end
 
 
@@ -136,13 +136,13 @@ def synth_sound hole, file, extra = '', silent: false
              else
                $opts[:fast] ? 2 : 4
              end
-  cmd = "sox -n #{file} synth #{duration} #{$opts[:wave]} %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
+  cmd = "sox -q -n #{file} synth #{duration} #{$opts[:wave]} %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
   sys cmd
 end
 
 
 def wave2data file
-  sys "sox #{file} #{$recorded_data}"
+  sys "sox -q #{file} #{$recorded_data}"
 end
 
 
@@ -296,7 +296,7 @@ def get_pipeline_cmd(what, wav_from)
   # did not work within a pipeline for unknown reasons
   #
   templates = [{pv: "pv -qL 192000 %s",
-                sox: "stdbuf -o0 sox %s -q -r #{$conf[:sample_rate]} -t wav -"},
+                sox: "stdbuf -o0 sox -q %s -r #{$conf[:sample_rate]} -t wav -"},
                "stdbuf -i0 -oL aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
 
   args = [wav_from]
@@ -417,7 +417,7 @@ class UserLickRecording
   
   def start_rec
     stop_rec if @rec_pid
-    cmd = "sox %s -q -r #{$conf[:sample_rate]} #{@file_raw1}" %
+    cmd = "sox -q %s -r #{$conf[:sample_rate]} #{@file_raw1}" %
           ( $testing  ?  $test_wav  :  '-d' )
     @rec_pid = Process.spawn "rec -q -r #{$conf[:sample_rate]} #{@file_raw1}"
     @first_hole_good_at = nil
@@ -441,12 +441,12 @@ class UserLickRecording
   def process_rec
     trim_secs = @first_hole_good_at - @rec_started_at - 2
     if trim_secs > 0
-      sys "sox #{@file_raw1} #{@file_raw2} trim #{'%.1f' % trim_secs}"
+      sys "sox -q #{@file_raw1} #{@file_raw2} trim #{'%.1f' % trim_secs}"
     else
       FileUtils.mv @file_raw1, @file_raw2
     end
     FileUtils.mv @file_trimmed, @file_prev if File.exist?(@file_trimmed)
-    sys "sox #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
+    sys "sox -q #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
     @first_hole_good_at = nil
     @has_rec = true
     @duration = sox_query(@file_trimmed, 'Length')

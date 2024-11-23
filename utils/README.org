@@ -21,6 +21,9 @@ useful for some advanced or special use-cases.
   and put in the name of a decent sound-file of your own as well as
   timestamps for the chord-changes within this file.
 
+  timed_sample.json iself has lots of comments, that help to understand
+  its structure.
+
   Once started, harpwise (as usual) shows your playing on the chart
   and indicates how it matches the current chord with respect to the
   backing track beeing played. The scale progression (12bar) in this

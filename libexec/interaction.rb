@@ -1510,7 +1510,7 @@ def get_text_invalid char, simple = false
   if simple
     return "invalid key " + cdesc
   else
-    return "\e[2minvalid key \e[0m#{cdesc}\e[2m, h for help\e[0m"
+    return "invalid key '#{cdesc}', h for help"
   end
 end
 

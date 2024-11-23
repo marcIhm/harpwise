@@ -134,7 +134,7 @@ end
 at_exit do
   # we do this first in an attempt to avoid a locking error
   Thread.list.each do |thread|
-    thread.kill.join unless thread == Thread.current
+    thread.exit.join unless thread == Thread.current
   end
   
   if STDIN.isatty && STDOUT.isatty
