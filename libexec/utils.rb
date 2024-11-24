@@ -1324,3 +1324,12 @@ def print_chart_with_notes notes, strip_octave: false
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
 end
+
+
+def end_all_other_threads
+  Thread.report_on_exception = false  
+  Thread.list.each do |thread|
+    # do kill in an attempt to keep any thread from calling exit itself
+    thread.kill.join unless thread == Thread.current
+  end  
+end

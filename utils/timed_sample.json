@@ -7,15 +7,16 @@
     "comment": "text to be displayed up front, e.g. harpwise-options",
     // hint for usr on how to start harpwise
     "example_harpwise": "harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo",
-    // global stretch or shrink
+    // global stretch or compress all timestamps
     "timestamps_multiply": 1.0,
     // maybe give some extra time to grab your harp
     "sleep_initially": 0.0,
-    // use this, if actions and music tend to drift; can even be negative
+    // use this, if actions and music tend to drift; can even be negative. Alternatively you
+    // may just as well increment or decrement the last timestamp
     "sleep_after_iteration": 0.2,
-    // Try audacity and its text-label-feature to get the timestamps for such a list.  This
-    // list of timestamps-to-actions will be repeated forever; this assumes that the
-    // chord-structure of your song is regular and repeated itself too.  On from the second
+    // Try audacity and its text-label-feature to get the timestamps for such a list as
+    // below.  Timestamps-to-actions will be repeated forever; this assumes that the
+    // chord-structure of your song is regular and repeats too.  On from the second
     // iteration, only entries after "loop-start" will be used.
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise

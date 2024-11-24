@@ -24,7 +24,7 @@ end
 def send_keys keys
   keys.each do |key|
     begin
-      Timeout::timeout(1) do
+      Timeout::timeout(0.5) do
         File.write($fifo, key + "\n")
       end
     rescue Timeout::Error, Errno::EINTR
@@ -131,12 +131,12 @@ end
 #
 
 if comment.length > 0
-  puts "comment: " + comment
+  puts "Comment:\n\n  \e[32m" + comment + "\e[0m\n\n"
   puts
 end
 
 if example.length > 0
-  puts "Invoke harpwise like this:\n\n  " + example + "\n\n"
+  puts "Invoke harpwise like this:\n\n  \e[32m" + example + "\e[0m\n\n"
   puts
 end
 
@@ -150,6 +150,9 @@ end
 endings = %w(.mp3 .wav .ogg)
 file = play_command.split.find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Couldn't find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
 err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+
+# make some room below to have initial error (if any) without scrolling
+print "\n\n\n\n\e[4A"
 
 if sleep_initially > 0
   do_action ['message',
@@ -220,7 +223,9 @@ ts_iter_start = nil
     puts "at ts %.2f sec" % tsx
     puts "sleep %.2f sec" % sleep_between
     if j + 1 == timestamps_to_actions.length - 1
-      # this allows sleep_after_iteration to be negative
+      # This allows sleep_after_iteration to be negative; we may simply add
+      # sleep_after_iteration to the last timestamp, but we want to make it explicit in
+      # output
       puts "and sleep after iteration %.2f sec" % ( sleep_after_iteration * timestamps_multiply )
       sleep sleep_between + ( sleep_after_iteration * timestamps_multiply )
     else

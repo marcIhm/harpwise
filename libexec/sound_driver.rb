@@ -213,7 +213,7 @@ def sox_to_aubiopitch_to_queue
   last_queue_time_now = last_queue_time = last_queue_line = nil
   #
   # Remark: The code below checks for several conditions, we have encountered when porting
-  # to homebrew / macos; or when switching to the one-piece pipeline. Read the comments
+  # to homebrew/macos  or when switching to the one-piece pipeline. Read the comments
   # twice, before streamlining.
   #
   # The jitter checks tests for jitter, i.e. varying delays in samples beeing delivered by

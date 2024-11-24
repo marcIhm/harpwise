@@ -102,6 +102,7 @@ write_dump 'start' if $testing
 Thread.report_on_exception = true
 
 Signal.trap('SIGINT') do
+  end_all_other_threads  
   print "\e[#{$lines[:message_bottom]}H" if $move_down_on_exit
   fail "\n\n\n\e[0mexit on ctrl-c" if $opts[:debug]
   puts "\n\n\n\e[0mexit on ctrl-c\e[K"
@@ -111,6 +112,7 @@ Signal.trap('SIGINT') do
 end
 
 %W(TSTP QUIT).each do |sig|
+  end_all_other_threads  
   Signal.trap(sig) do
     print "\e[#{$lines[:message2]}H" if $move_down_on_exit
     puts "\n\n\n\e[0mThis signal (#{sig}) is handled in mode quiz only; exiting ..."
@@ -132,11 +134,7 @@ if [:listen, :quiz, :licks].include?($mode)
 end
 
 at_exit do
-  # we do this first in an attempt to avoid a locking error
-  Thread.list.each do |thread|
-    thread.exit.join unless thread == Thread.current
-  end
-  
+  end_all_other_threads
   if STDIN.isatty && STDOUT.isatty
     sane_term
     Kernel::print "\e[?25h"  ## show cursor
