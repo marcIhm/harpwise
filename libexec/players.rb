@@ -38,7 +38,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
     end
     
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
-    cmd = "play --norm=#{$vol.to_i} -q -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
+    cmd = "play -q --norm=#{$vol.to_i} -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
       cmd = 'sleep 600 ### ' + cmd
