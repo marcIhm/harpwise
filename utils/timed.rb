@@ -43,8 +43,10 @@ def do_action action, iter, noop: false
       err("Message to be sent can only be one line, but this has more: #{action[1]}")
     end
     return if noop
-    File.write($message, ( action[1].chomp % iter ) + "\n" + action[2].to_s + "\n")
-    puts "sent message '#{action[1].chomp % iter}'"
+    $aux_data[:iteration] = iter
+    $aux_data[:elapsed] = "%.1f" % ( Time.now.to_f - $ts_prog_start )
+    File.write($message, ( action[1].chomp % $aux_data ) + "\n" + action[2].to_s + "\n")
+    puts "sent message '#{action[1].chomp % $aux_data}'"
     send_keys ["ALT-m"]
   elsif action[0] == 'keys'
     return if noop
@@ -80,6 +82,7 @@ comment = params['comment']
 example = params['example_harpwise']
 sleep_initially = params['sleep_initially']
 play_command = params['play_command']
+$ts_prog_start = Time.now.to_f
 
 # under wsl2 we may actually use explorer.exe (windows-command !) to start playing
 play_with_win = play_command['explorer.exe'] || play_command['wslview']
@@ -104,15 +107,16 @@ while i_neg = (0 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_
   err("When adding   #{loc_neg}   to   #{loc_pos_after_neg}   we come up with a negative absolute time: #{ts_abs}") if ts_abs < 0
   timestamps_to_actions[i_neg][0] = ts_abs
 end
-
+$aux_data = {comment: comment, iteration: 0, elapsed: 0}
+  
 # check syntax of timestamps before actually starting
 timestamps_to_actions.sort_by! {|ta| ta[0]}
 loop_start_at = nil
 timestamps_to_actions.each_with_index do |ta,idx|
   err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start).include?(ta[1])
   err("Timestamp #{ta[0]} (index #{idx}, #{ta}) is less than zero") if ta[0] < 0
-  # test action
-  do_action(ta[1 ..], 0, noop: true)
+  # test actions
+  do_action ta[1 ..], 0, noop: true
   if ta[1] == 'loop-start'
     err("Action 'loop-start' already appeared with index #{loop_start_at}: #{timestamps_to_actions[loop_start_at]}, cannot appear again with index #{idx}: #{ta}") if loop_start_at
     loop_start_at = idx
@@ -193,7 +197,6 @@ end
 sleep_secs = timestamps_to_actions[0][0]
 puts "Initial sleep %.2f sec" % sleep_secs
 sleep sleep_secs
-ts_prog_start = Time.now.to_f
 ts_iter_start = nil
 
 # endless loop one iteration after the other
@@ -204,7 +207,7 @@ ts_iter_start = nil
   puts "ITERATION #{iter}"
   if ts_iter_start_prev
     puts "%.1f secs after startup, last iteration took %.1f secs" %
-         [ts_iter_start - ts_prog_start, ts_iter_start - ts_iter_start_prev ]
+         [ts_iter_start - $ts_prog_start, ts_iter_start - ts_iter_start_prev ]
   end
   puts
   pp timestamps_to_actions

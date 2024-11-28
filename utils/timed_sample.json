@@ -18,12 +18,16 @@
     // below.  Timestamps-to-actions will be repeated forever; this assumes that the
     // chord-structure of your song is regular and repeats too.  On from the second
     // iteration, only entries after "loop-start" will be used.
+
+    // messages to be shown, may use the special variables %{comment}, %{iteration} and
+    // %{elapsed} to insert the comment from this file, the count of repeats and the number
+    // of seconds elapsed.
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise
-	[0,"message","Intro ...",0],
+	[0,"message","%{comment}. Intro ...",0],
 	[-2,"message","In two secs ...",1.8],
 	// need 
-	[6.585817,"loop-start","Start round %d",1.8],
+	[6.585817,"loop-start","Start iteration %{iteration}",1.8],
 	[-2,"message","Chord-change in two secs ...",1.8],
 	// these two keys will switch lick- and scale-progression in unison
 	[17.284542,"keys","l","s"],
