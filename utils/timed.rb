@@ -78,6 +78,7 @@ params = JSON.parse(File.read(ARGV[0]).lines.reject {|l| l.match?(/^\s*\/\//)}.j
 timestamps_to_actions = params['timestamps_to_actions']
 sleep_after_iteration = params['sleep_after_iteration']
 timestamps_multiply = params['timestamps_multiply']
+timestamps_add = params['timestamps_add']
 comment = params['comment']
 example = params['example_harpwise']
 sleep_initially = params['sleep_initially']
@@ -88,7 +89,7 @@ $ts_prog_start = Time.now.to_f
 play_with_win = play_command['explorer.exe'] || play_command['wslview']
 
 # check if all parameters present
-wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply comment example_harpwise))
+wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
 given = Set.new(params.keys)
 err("Found keys:\n\n#{given.pretty_inspect}\n\n, but wanted:\n\n#{wanted.pretty_inspect}\n\nin #{ARGV[0]}, symmetrical diff is:\n\n#{(given ^ wanted).pretty_inspect}\n") if given != wanted
 err("Value '#{params['timestamps_to_actions']}' should be an array") unless params['timestamps_to_actions'].is_a?(Array)
@@ -127,6 +128,7 @@ err("Need at least one timestamp with action 'loop-start'") unless loop_start_at
 # transformations
 timestamps_to_actions.each_with_index do |ta,idx|
   ta[0] *= timestamps_multiply
+  ta[0] += timestamps_add
   ta[0] = 0.0 if ta[0] < 0
 end
 

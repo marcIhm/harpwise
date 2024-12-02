@@ -4,12 +4,14 @@
     //  as an argument; also see README.org in this directory.
     //
     "play_command": "play -q some-song.mp3 -c 1",
-    "comment": "text to be displayed up front, e.g. harpwise-options",
+    "comment": "text to be displayed up front, e.g. structure or length of song",
     // hint for usr on how to start harpwise
     "example_harpwise": "harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo",
-    // global stretch or compress all timestamps
+    // global stretch (> 1) or compress (< 1) all timestamps
     "timestamps_multiply": 1.0,
-    // maybe give some extra time to grab your harp
+    // globally add to all timestamps; can be negative too
+    "timestamps_add": 0.0,
+    // maybe give some extra time to grab your harp before anything starts
     "sleep_initially": 0.0,
     // use this, if actions and music tend to drift; can even be negative. Alternatively you
     // may just as well increment or decrement the last timestamp
