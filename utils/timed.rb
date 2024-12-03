@@ -220,7 +220,7 @@ ts_iter_start = nil
 
     tsx, tsy = pair[0][0], pair[1][0]
     action = pair[0][1 .. -1]
-    puts "Action #{j + 1}/#{timestamps_to_actions.length - 1}:"
+    puts "Action #{j + 1}/#{timestamps_to_actions.length - 1} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"
 
     do_action action, iter
 
