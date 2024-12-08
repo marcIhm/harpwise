@@ -994,7 +994,8 @@ class FamousPlayers
     @lines_pool_last
   end
 
-  def view_picture file, name, in_loop
+  
+  def view_picture file, name, in_loop, lines
     needed = []
     puts "\e[32mImage:\e[0m"
 
@@ -1011,6 +1012,8 @@ class FamousPlayers
       needed = %w(xwininfo feh)
     when 'chafa'
       needed = %w(chafa)
+    when 'img2sixel'
+      needed = %w(img2sixel)
     else
       err "Internal error: Unknown viewer: '#{$opts[:viewer]}'"
     end
@@ -1030,8 +1033,30 @@ class FamousPlayers
       command = "feh -Z --borderless --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
       sys command
       puts command if $opts[:debug]
+    elsif $opts[:viewer] == 'img2sixel'
+      # get pixel size of terminal
+      prepare_term
+      print "\e[16t"
+      reply = ''
+      reply += STDIN.gets(1) while reply[-1] != 't'
+      sane_term
+      Kernel::print "\e[?25h"  ## show cursor
+      mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
+      # size in pixel
+      pwidth_cell = mdata[3]
+      # size in characters
+      _, cwidth_term = %x(stty size).split.map(&:to_i)
+      puts "\e[2m  #{file}\e[0m" 
+      if cwidth_term > $conf[:term_min_width] * 1.25
+        # enough room to show image right beside text
+        pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:term_min_width], $conf[:term_min_width] * 0.5].min.to_i
+        print "\e[s\e[#{lines}F\e[#{$conf[:term_min_width]}G"
+        puts sys("img2sixel --width #{pwidth_img} #{file}")
+        puts "\e[u"
+      else
+        puts sys("img2sixel #{file}")
+      end
     else
-      sleep 1
       puts "\e[2m  #{file}\e[0m" 
       puts sys("chafa #{file}")
     end

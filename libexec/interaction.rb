@@ -1072,7 +1072,7 @@ def handle_win_change
 end
 
 #
-# These functions and variable need to be in accord about the sematics
+# These functions and variables need to be in accord about the sematics
 # of indexing into their respective arrays of names:
 #
 # choose_interactive: index is in the array of currently matching

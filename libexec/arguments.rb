@@ -236,7 +236,7 @@ def parse_arguments_early
   end
 
   if opts[:viewer]
-    vchoices = %w(none feh chafa)
+    vchoices = %w(none feh chafa img2sixel)
     err "Option '--viewer' can be any of #{vchoices}, not '#{opts[:viewer]}'" unless vchoices.include?(opts[:viewer])
   else
     opts[:viewer] = 'none'

@@ -516,16 +516,17 @@ def print_players args
     end
 
   elsif args.length == 1 && 'all'.start_with?(args[0])
-    make_term_immediate
     $players.all_with_details.shuffle.each do |name|
       puts
       puts
       print_player $players.structured[name], true
       if $opts[:viewer] != 'feh' || !$players.structured[name]['image']
+        make_term_immediate
         puts
         puts "\e[2mPress any key for next Player ...\e[0m"
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
+        make_term_cooked
       end
     end
     puts
@@ -587,13 +588,18 @@ end
 
 def print_player player, in_loop = false
   puts_underlined player['name']
+  lines = 4
   if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
       next if group == 'name' || player[group].length == 0
       puts "\e[32m#{group.capitalize}:\e[0m"
-      player[group].each {|l| puts "  #{l}"}
+      lines += 1
+      player[group].each do |line|
+        puts "  #{line}"
+        lines += 1
+      end
     end
-    $players.view_picture(player['image'], player['name'], in_loop)
+    $players.view_picture(player['image'], player['name'], in_loop, lines)
   else
     puts "\n\e[2mNot enough details known yet.\e[0m"
   end

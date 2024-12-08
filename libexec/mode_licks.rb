@@ -285,7 +285,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         end
       end
 
-      # get current cursor line, will be used as bottom of two lines
+      # get current cursor line; will be used as bottom of two lines
       # for messages as long as listen-perspective has not been set up
       # yet
       print "\e[6n"
