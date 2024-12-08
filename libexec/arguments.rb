@@ -236,8 +236,12 @@ def parse_arguments_early
   end
 
   if opts[:viewer]
-    vchoices = %w(none feh chafa img2sixel)
-    err "Option '--viewer' can be any of #{vchoices}, not '#{opts[:viewer]}'" unless vchoices.include?(opts[:viewer])
+    if !$image_viewers.map {|vwr| vwr[:syn]}.flatten.include?(opts[:viewer])
+      vwrs_desc = get_viewers_desc
+      err "Option '--viewer' cannot be '#{opts[:viewer]}'; rather use any of:\n#{vwrs_desc}\n"
+    else
+      opts[:viewer] = $image_viewers.find {|vwr| vwr[:syn].include?(opts[:viewer])}[:syn][-1]
+    end
   else
     opts[:viewer] = 'none'
   end
@@ -811,4 +815,21 @@ def parse_keyboard_translate opt_kb_tr
   err "Invalid keyboard translation: these keys appear both as from- and to-keys (i.e. on both sides of the '='-sign) (in #{cite}): #{in_both.join(',')}. #{should_form}" if in_both.length > 0
 
   return kb_trs
+end
+
+
+def get_viewers_desc
+  $image_viewers.map do |vwrs|
+    '  - ' +
+      if vwrs[:syn].length == 1
+        vwrs[:syn][0] + ':'
+      else
+        "#{vwrs[:syn][0]}  or  #{vwrs[:syn][1]}:"
+      end + "\n" + wrap_words('      ', vwrs[:desc].split, ' ', width: 70) +
+      if vwrs[:choose_desc]
+        "\n" + wrap_words('      ', vwrs[:choose_desc].split, ' ', width: 70) 
+      else
+        ''
+      end
+  end.join("\n")
 end

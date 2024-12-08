@@ -1005,21 +1005,16 @@ class FamousPlayers
     end
     
     case $opts[:viewer]
+
     when 'none'
+
       puts "\e[2m  (to view the image, set option or config '--viewer')\e[0m"
       return
-    when 'feh'
-      needed = %w(xwininfo feh)
-    when 'chafa'
-      needed = %w(chafa)
-    when 'img2sixel'
-      needed = %w(img2sixel)
-    else
-      err "Internal error: Unknown viewer: '#{$opts[:viewer]}'"
-    end
-    not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
-    err "These programs are needed to view player images but cannot be found: #{not_found}" if not_found.length > 0
-    if $opts[:viewer] == 'feh'
+
+    when 'window'
+
+      check_needed_viewer_progs %w(xwininfo feh)
+
       puts "\e[2m  #{file}\e[0m"
       if in_loop
         puts "\e[2m  Viewing image with feh, type 'q' for next, type ctrl-c in terminal to quit\e[0m"
@@ -1033,32 +1028,66 @@ class FamousPlayers
       command = "feh -Z --borderless --geometry #{(pw*scale).to_i}x#{(ph*scale).to_i}+#{(sw-pw*scale-100).to_i}+100 #{file}"
       sys command
       puts command if $opts[:debug]
-    elsif $opts[:viewer] == 'img2sixel'
-      # get pixel size of terminal
-      prepare_term
-      print "\e[16t"
-      reply = ''
-      reply += STDIN.gets(1) while reply[-1] != 't'
-      sane_term
-      Kernel::print "\e[?25h"  ## show cursor
-      mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
-      # size in pixel
-      pwidth_cell = mdata[3]
-      # size in characters
-      _, cwidth_term = %x(stty size).split.map(&:to_i)
+
+    when 'char'
+
+      check_needed_viewer_progs %w(chafa)
+
       puts "\e[2m  #{file}\e[0m" 
-      if cwidth_term > $conf[:term_min_width] * 1.25
-        # enough room to show image right beside text
-        pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:term_min_width], $conf[:term_min_width] * 0.5].min.to_i
-        print "\e[s\e[#{lines}F\e[#{$conf[:term_min_width]}G"
-        puts sys("img2sixel --width #{pwidth_img} #{file}")
-        puts "\e[u"
+      puts sys("chafa -f symbols #{file}")
+
+    when 'pixel'
+
+      # get term size in characters
+      cheight_term, cwidth_term = %x(stty size).split.map(&:to_i)
+      puts "\e[2m  #{file}\e[0m"
+      
+      if ENV['TERM']['kitty']
+        
+        check_needed_viewer_progs %w(kitty)
+        if cwidth_term > $conf[:term_min_width] * 1.25
+          # enough room to show image right beside text
+          puts "\e[s"        
+          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term/4}x#{cheight_term}@#{$conf[:term_min_width]}x#{cheight_term - lines} --align right #{file}")
+          puts "\e[u"
+         else
+           # not enough room, place image below text
+           (cheight_term/2).times {puts}
+           puts "\e[s"        
+           puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term}x#{cheight_term/2}@0x#{cheight_term/2} --align left #{file}")
+           puts "\e[u"
+        end
+
       else
-        puts sys("img2sixel #{file}")
+        # we hope for sixel support
+        
+        check_needed_viewer_progs %w(img2sixel)
+
+        # get pixel width of terminal
+        prepare_term
+        print "\e[16t"
+        reply = ''
+        reply += STDIN.gets(1) while reply[-1] != 't'
+        sane_term
+        Kernel::print "\e[?25h"  ## show cursor
+        mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
+        pwidth_cell = mdata[3]
+        pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:term_min_width],
+                                         $conf[:term_min_width] * 0.5].min.to_i
+        
+        if cwidth_term > $conf[:term_min_width] * 1.25
+          # enough room to show image right beside text
+          # move up and right
+          print "\e[s\e[#{lines}F\e[#{$conf[:term_min_width]}G"
+          puts sys("img2sixel --width #{pwidth_img} #{file}")
+          puts "\e[u"
+        else
+          # not enough room, place image below text
+          puts sys("img2sixel --width #{pwidth_img} #{file}")
+        end
       end
     else
-      puts "\e[2m  #{file}\e[0m" 
-      puts sys("chafa #{file}")
+      err "Internal error: Unknown viewer: '#{$opts[:viewer]}'"
     end
   end
 end
@@ -1073,11 +1102,11 @@ def err_args_not_allowed args
 end
 
 
-def wrap_words head, words, sep = ','
+def wrap_words head, words, sep = ',', width: $term_width
   line = head
   lines = Array.new
   words.each_with_index do |word, idx|
-    if line.length + sep.length + word.length >= $term_width - 1
+    if line.length + sep.length + word.length >= width - 1
       lines << line.rstrip
       line = (' ' * head.length) + word
     else
@@ -1357,4 +1386,10 @@ def end_all_other_threads
     # do kill in an attempt to keep any thread from calling exit itself
     thread.kill.join unless thread == Thread.current
   end  
+end
+
+
+def check_needed_viewer_progs needed
+  not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
+  err "These programs are needed to view player images with method '$opts[:viewer]', but they cannot be found: #{not_found}" if not_found.length > 0
 end

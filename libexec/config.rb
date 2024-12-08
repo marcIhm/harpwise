@@ -168,6 +168,10 @@ def set_global_vars_early
                            lick_holes: "Show holes of a lick given via '--lick-prog'",
                            lick_holes_large: "The same as lick_holes but with large letters"}
 
+  $image_viewers = [{syn: %w(none), desc: 'Do not view images at all.'},
+                    {syn: %w(pixel-in-terminal pixel), desc: 'View images as pixel-grafic inside your terminal, scrolling along with the text; this requires kitty or img2sixel to be installed.', choose_desc: 'With this option kitty will be tried, if TERM is some form of kitty. In any other case will img2sixel will betrd, which however requires your terminal to support sixel (your mileage may vary).'},
+                    {syn: %w(new-window window), desc: 'Open a new grafical window to show the image; this requires feh to be installed.'},
+                    {syn: %w(char-in-terminal char), desc: 'Render the image with unicode characters; ths requires chafa to be installed.'}]
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
   
