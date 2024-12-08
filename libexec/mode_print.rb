@@ -520,7 +520,7 @@ def print_players args
       puts
       puts
       print_player $players.structured[name], true
-      if $opts[:viewer] != 'feh' || !$players.structured[name]['image']
+      if $opts[:viewer] != 'window' || !$players.structured[name]['image']
         make_term_immediate
         puts
         puts "\e[2mPress any key for next Player ...\e[0m"
