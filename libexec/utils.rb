@@ -1078,6 +1078,7 @@ class FamousPlayers
         Kernel::print "\e[?25h"  ## show cursor
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
         pwidth_cell = mdata[3]
+        pheight_cell = mdata[2]
         pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:term_min_width],
                                          $conf[:term_min_width] * 0.5].min.to_i
         
@@ -1090,7 +1091,7 @@ class FamousPlayers
           sane_term
         else
           # not enough room, place image below text
-          puts sys("img2sixel --width #{pwidth_img} #{file}")
+          puts sys("img2sixel --height #{pheight_cell.to_i * cheight_term / 2} #{file}")
           sane_term
         end
       end

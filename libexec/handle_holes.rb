@@ -418,8 +418,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if $players.stream_current
         system('clear')
         puts
+        stop_kb_handler
         print_player($players.structured[$players.stream_current])
-        if $opts[:viewer] != 'feh' || !$players.structured[$players.stream_current]['image'][0]
+        start_kb_handler
+        prepare_term
+        if $opts[:viewer] != 'window' || !$players.structured[$players.stream_current]['image'][0]
           puts "\n\e[0m\e[2m  Press any key to go back to mode '#{$mode}' ...\e[0m"
           $ctl_kb_queue.clear
           $ctl_kb_queue.deq
