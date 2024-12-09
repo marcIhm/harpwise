@@ -1065,9 +1065,15 @@ class FamousPlayers
 
         # get pixel width of terminal
         prepare_term
-        print "\e[16t"
         reply = ''
-        reply += STDIN.gets(1) while reply[-1] != 't'
+        begin
+          Timeout.timeout(1) do          
+            print "\e[16t"
+            reply += STDIN.gets(1) while reply[-1] != 't'
+          end
+        rescue Timeout::Error
+          err 'Could not get pixel width of terminal'
+        end
         sane_term
         Kernel::print "\e[?25h"  ## show cursor
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
@@ -1081,9 +1087,11 @@ class FamousPlayers
           print "\e[s\e[#{lines}F\e[#{$conf[:term_min_width]}G"
           puts sys("img2sixel --width #{pwidth_img} #{file}")
           puts "\e[u"
+          sane_term
         else
           # not enough room, place image below text
           puts sys("img2sixel --width #{pwidth_img} #{file}")
+          sane_term
         end
       end
     else

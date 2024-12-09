@@ -35,7 +35,7 @@ def set_global_vars_early
   # more keys, than :any_mode.  Remark: update config.ini if the below
   # is extended
   $conf_meta[:sections_keys] = {
-    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :viewer_scale_to, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
+    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
     :samples => [:auto_synth_db],
     :quiz => [:difficulty],
     :listen => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],

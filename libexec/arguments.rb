@@ -238,7 +238,7 @@ def parse_arguments_early
   if opts[:viewer]
     if !$image_viewers.map {|vwr| vwr[:syn]}.flatten.include?(opts[:viewer])
       vwrs_desc = get_viewers_desc
-      err "Option '--viewer' cannot be '#{opts[:viewer]}'; rather use any of:\n#{vwrs_desc}\n"
+      err "Option or config '--viewer' cannot be '#{opts[:viewer]}'; rather use any of:\n#{vwrs_desc}\n"
     else
       opts[:viewer] = $image_viewers.find {|vwr| vwr[:syn].include?(opts[:viewer])}[:syn][-1]
     end

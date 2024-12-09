@@ -3,6 +3,7 @@
     //  First start harpwise (see below for an example), then start timed.rb with this file
     //  as an argument; also see README.org in this directory.
     //
+    // note the '-q', which makes sure that play (sox) does not produce any output
     "play_command": "play -q some-song.mp3 -c 1",
     "comment": "text to be displayed up front, e.g. structure or length of song",
     // hint for usr on how to start harpwise

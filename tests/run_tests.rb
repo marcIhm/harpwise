@@ -432,10 +432,9 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} -o 2>/dev/null | tail -20"
     tms :ENTER
     sleep 2
-    expect_opts = { 'none' => [2, '???'],
-                    'samples' => [4, 'prefer sharps'],
+    expect_opts = { 'samples' => [4, 'prefer sharps'],
                     'listen' => [16, 'on every invocation'],
-                    'quiz' => [5, '--transpose-scale KEY_OR_SEMITONES'],
+                    'quiz' => [1, 'pixel-in-terminal  or  pixel'],
                     'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [16, 'Please note, that options'],
@@ -716,7 +715,7 @@ do_test 'id-10a: displays and comments in quiz' do
   sleep 1
   tms 'q'
   sleep 1
-  expect { screen[16..20].any? {|l| l['Terminating on user request']} }
+  expect { screen[16..22].any? {|l| l['Terminating on user request']} }
   kill_session
 end
 
@@ -1285,7 +1284,7 @@ do_test 'id-30: use option --partial for wade' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play --norm=-6 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3 trim 0.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3 trim 0.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -1295,7 +1294,7 @@ do_test 'id-31: use option --partial for st-louis' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play --norm=-6 -q -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3 trim 3.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3 trim 3.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -3698,7 +3697,7 @@ do_test 'id-134: timed.rb with sample' do
   sleep 2
   # if we get to this error message, the format of timed_sample.json
   # has already been accepted.
-  expect { screen[6]['harpwise listen --sc-prog 12bar'] }
+  expect { screen[9]['harpwise listen --sc-prog 12bar'] }
   kill_session
 end
 
