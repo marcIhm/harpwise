@@ -1,3 +1,5 @@
+#  -*- fill-column: 70 -*-
+# Remark: the value above should be equal $conf[:player_text_width]
 - name: Little Walter
   bio:
   - May 1, 1930 - February 15, 1968
@@ -5,7 +7,8 @@
   - Inducted into The Rock and Roll Hall of Fame in 2008
   notes:
   - Joined Muddy Waters' band in 1948
-  - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
+  - 14 top-ten hits on the Billboard R&B charts
+  - between 1952 and 1958
   - Pioneered amplified harmonica
   source: https://en.wikipedia.org/wiki/Little_Walter
   songs:
@@ -39,7 +42,8 @@
   notes:
   - Forms a world class blues-duo with Paul Rishell
   - Sings and plays mandoline and piano too
-  - Worked with the Tarbox Ramblers and the Susan Tedeschi Band
+  - Worked with the Tarbox Ramblers and the
+  - Susan Tedeschi Band
   source: https://en.wikipedia.org/wiki/Annie_Raines
   songs:
   - Looking Good
@@ -54,8 +58,10 @@
   - American singer and songwriter of the blues and R&B
   - Inducted into the Blues Hall of Fame in 1982
   notes:
-  - Her father was a minister in a Baptist church, her mother a singer.
-  - Toured with the American Folk Blues Festival in Europe in 1965.
+  - Her father was a minister in a Baptist church,
+  - her mother a singer.
+  - Toured with the American Folk Blues Festival
+  - in Europe in 1965.
   - She was given her nickname, "Big Mama," because of her 
   - strong voice, size, and personality.
   - Thornton has been praised for subverting traditional
@@ -75,8 +81,10 @@
   - with the two others being cited as Little Walter and
   - Sonny Boy Williamson II.
   - Known for his unique tongue-blocking techniques and tone.
-  - Toured extensively in places such as Germany, Finland, and England
-  - Accompanied John Lee Hooker in the 1980 film The Blues Brothers
+  - Toured extensively in places such as Germany, Finland,
+  - and England
+  - Accompanied John Lee Hooker in the 1980 film
+  - The Blues Brothers
   source: https://en.wikipedia.org/wiki/Big_Walter_Horton
   songs:
   - Easy
@@ -91,9 +99,9 @@
   - and multi-instrumentalist
   - Inducted into the Country Music Hall of Fame in 2009
   notes:
-  - His playing is heard on recordings by Elvis Presley, Bob Dylan,
-  - Johnny Cash, Chet Atkins, Waylon Jennings, Roy Orbison,
-  - Leon Russell, and Loretta Lynn
+  - His playing is heard on recordings by Elvis Presley,
+  - Bob Dylan, Johnny Cash, Chet Atkins, Waylon Jennings,
+  - Roy Orbison, Leon Russell, and Loretta Lynn
   source: https://en.wikipedia.org/wiki/Charlie_McCoy
   songs:
   - Orange Blossom Special
@@ -122,10 +130,11 @@
 - name: Gary Primich
   bio:
   - April 20, 1958 - September 23, 2007
-  - American blues harmonica player, singer, guitarist and songwriter
+  - American blues harmonica player, singer, guitarist
+  - and songwriter
   notes:
-  - His Album Mr. Freeze was named as on of the 20 best blues albums
-  - of the 1990s
+  - His Album Mr. Freeze was named as on of the 20 best
+  - blues albums of the 1990s
   - Recorded with Steve James, Nick Curran, Jimmie Vaughan
   - and many others
   - "Released an instructional double CD, Blues Harmonica:"
@@ -160,8 +169,9 @@
   - blues, country, and world music
   - Discovered the overblow and overdraw techniques for
   - chromatic playing in 1970
-  - '"has been realistically presented as one of the most important"'
-  - '"and radical harmonica innovators of the twentieth century."'
+  - '"has been realistically presented as one of the"'
+  - '"most important and radical harmonica innovators"'
+  - '"of the twentieth century."'
   - (quote from https://www.allmusic.com)
   source: https://en.wikipedia.org/wiki/Howard_Levy
   songs:
@@ -177,7 +187,8 @@
   - and the Rock and Roll Hall of Fame in 1991
   notes:
   - Learned from Charley Patton and Sonny Boy Williamson II
-  - Known for his booming voice and physical presence at 6 ft, 6 in
+  - Known for his booming voice and physical
+  - presence at 6 ft, 6 in
   - One of the most influential blues musicians of all time
   - Had a pioneering electric blues Band in Memphis
   - Played with Son House, had a show on KWEM radio station
@@ -227,7 +238,8 @@
   - American harmonica player and singer
   - Started performing in punk bands at the age of 14
   notes:
-  - Was named "Best Harmonica Player" at the 2010 Blues Music Awards
+  - Was named "Best Harmonica Player" at the
+  - 2010 Blues Music Awards
   source: https://en.wikipedia.org/wiki/Jason_Ricci
   songs:
   - I'm a New Man
@@ -243,7 +255,8 @@
   - and the Rock and Roll Hall of Fame in 1991
   notes:
   - Reed influenced other musicians, such as Elvis Presley,
-  - Hank Williams Jr., and the Rolling Stones, who recorded his songs.
+  - Hank Williams Jr., and the Rolling Stones,
+  - who recorded his songs.
   - Toured Europe with the American Folk Blues Festival in 1968.
   - '"Perhaps the most influential bluesman of all,"'
   - due to his easily accessible style.
@@ -324,7 +337,8 @@
   - Inducted into the Blues Hall of Fame in 2006
   notes:
   - Born in Chicago, met Muddy Waters and other blues greats
-  - Combined electric Chicago blues with a rock urgency and jazz fusion
+  - Combined electric Chicago blues with a rock urgency
+  - and jazz fusion
   - Formed one of the first racially integrated blues groups
   - Played at Fillmore, Monterey and Woodstock
   source: https://en.wikipedia.org/wiki/Paul_Butterfield
@@ -369,7 +383,8 @@
   - October 5, 1949 -
   - Lead singer, songwriter and harmonica player
   notes:
-  - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
+  - Won the 2013 Blues Music Award for
+  - Best Instrumentalist - Harmonica
   - won the 1994 Blues Music Award for Song of the Year for
   - his composition "My Next Ex-Wife"
   - Played around the world with his band
@@ -422,7 +437,8 @@
   - American blues harmonica player, singer and songwriter
   - Born as John Lee Curtis Williamson
   notes:
-  - One of the most recorded blues musicians of the 1930s and 1940s
+  - One of the most recorded blues musicians
+  - of the 1930s and 1940s
   - Was a mentor to blue musicians in the chicago area,
   - including Muddy Waters
   - Has been called "the father of modern blues harp"
@@ -505,7 +521,8 @@
   - Born as James Joshua Whiting
   - American blues harmonica player
   notes:
-  - Best known for playing on the 1978 Rolling Stones album Some Girls
+  - Best known for playing on the 1978 Rolling Stones
+  - album Some Girls
   - Partnered with the blues guitarist Louisiana Red
   - Appeared with Brownie McGhee in the film Angel Heart
   - '"At times, it sounds as if two harps were working at once..."'
@@ -597,14 +614,16 @@
   - American electric blues harmonicist, songwriter,
   - record producer and radio DJ
   notes:
-  - Has been awarded the title of 'Best Modern Blues Harmonica Player'
+  - Has been awarded the title of 'Best Modern
+  - Blues Harmonica Player'
   - three years in a row by Real Blues magazine
   - Inspired by Little Walter, Lester Young and Illinois Jacquet
   - Jammed with Snooky Pryor, Homesick James,
   - Pinetop Perkins, A.C. Reed
   - Customizes bullet mikes; plays chromatic and diatonic
   - Featuring in the Nick Moss Band
-  - Won a Blues Music Award for 'Instrumentalist - Harmonica' in 2019
+  - Won a Blues Music Award for 'Instrumentalist - Harmonica'
+  - in 2019
   source:
   - https://en.wikipedia.org/wiki/Dennis_Gruenling
   - https://www.dennisgruenling.com/bio

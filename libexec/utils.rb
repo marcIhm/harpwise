@@ -896,10 +896,12 @@ class FamousPlayers
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
         lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
         next if group == 'image'
-        lines.map {|l| "#{group.capitalize}: #{l}"}.each do |l|
+        lines.each do |l|
+          gl = "#{group.capitalize}: #{l}"
           lcount += 1
+          $conf[:player_text_width] = [$conf[:player_text_width], 2 + l.length].max
           pplayer << "(about #{info['name']})" if lcount % 4 == 0
-          pplayer.append(l)
+          pplayer.append(gl)
         end
       end
       if pplayer.length == 1
@@ -910,7 +912,7 @@ class FamousPlayers
         pplayer << "Done for: #{name}"
       end
       pplayer.each do |line|
-        fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width] - 1}: '#{line}'" if line.length >= $conf[:term_min_width]
+        fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width]}: '#{line}'" if line.length > $conf[:term_min_width]
       end
 
       # handle pictures
@@ -929,6 +931,7 @@ class FamousPlayers
       @with_details << name if @has_details[name]
       @names << name
     end
+    $conf[:player_text_width] += 1    
   end
 
   def select parts
@@ -1045,10 +1048,10 @@ class FamousPlayers
       if ENV['TERM']['kitty']
         
         check_needed_viewer_progs %w(kitty)
-        if cwidth_term > $conf[:term_min_width] * 1.25
+        if cwidth_term > $conf[:player_text_width] * 1.25
           # enough room to show image right beside text
           puts "\e[s"        
-          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term/4}x#{cheight_term}@#{$conf[:term_min_width]}x#{cheight_term - lines} --align right #{file}")
+          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term - $conf[:player_text_width]}x#{cheight_term}@#{$conf[:player_text_width]}x#{cheight_term - lines} --align right #{file}")
           puts "\e[u"
          else
            # not enough room, place image below text
@@ -1079,13 +1082,13 @@ class FamousPlayers
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
         pwidth_cell = mdata[3]
         pheight_cell = mdata[2]
-        pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:term_min_width],
-                                         $conf[:term_min_width] * 0.5].min.to_i
+        pwidth_img = pwidth_cell.to_i * [cwidth_term - $conf[:player_text_width],
+                                         $conf[:player_text_width] * 0.5].min.to_i
         
-        if cwidth_term > $conf[:term_min_width] * 1.25
+        if cwidth_term > $conf[:player_text_width] * 1.25
           # enough room to show image right beside text
           # move up and right
-          print "\e[s\e[#{lines}F\e[#{$conf[:term_min_width]}G"
+          print "\e[s\e[#{lines}F\e[#{$conf[:player_text_width]}G"
           puts sys("img2sixel --width #{pwidth_img} #{file}")
           puts "\e[u"
           sane_term
