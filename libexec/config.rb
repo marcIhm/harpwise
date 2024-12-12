@@ -541,8 +541,6 @@ def read_technical_config
                        reject {|f| f.start_with?('.')}
   conf[:term_min_width] = 75
   conf[:term_min_height] = 24
-  # will be computed later
-  conf[:player_text_width] = 0
 
   # Handle some special cases
   # gracefully handle common plural/singular-mingling
