@@ -588,7 +588,8 @@ end
 
 def print_player player, in_loop = false
   puts_underlined player['name']
-  lines = 4
+  # from puts_underlined
+  lines = 3
   twidth = 0
   if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
@@ -598,8 +599,8 @@ def print_player player, in_loop = false
       player[group].each do |line|
         txt = "  #{line}"
         puts txt
-        twidth = [twidth, txt.length].max
         lines += 1
+        twidth = [twidth, txt.length].max
       end
     end
     $players.view_picture(player['image'], player['name'], in_loop, lines, twidth)

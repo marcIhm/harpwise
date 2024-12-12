@@ -999,12 +999,14 @@ class FamousPlayers
   end
 
   
-  def view_picture file, name, in_loop, tlines, twidth
+  def view_picture file, name, in_loop, txt_lines, txt_width
 
     # when viewing all pictures, use overall text width instead of individual
-    twidth = @all_text_width if in_loop
+    txt_width = @all_text_width if in_loop
     # add two spaces of indent plus safety margin
-    twidth += 3
+    txt_width += 3
+    # three more lines will be printed below
+    txt_lines += 2
 
     needed = []
     puts "\e[32mImage:\e[0m"
@@ -1055,17 +1057,18 @@ class FamousPlayers
       if ENV['TERM']['kitty']
         
         check_needed_viewer_progs %w(kitty)
-        if cwidth_term > twidth * 1.25
+        if cwidth_term > txt_width * 1.25
           # enough room to show image right beside text
-          puts "\e[s"        
-          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term - twidth}x#{cheight_term}@#{twidth}x#{cheight_term - tlines} --align right #{file}")
-          puts "\e[u"
+          print "\e[s"
+          sleep 2
+          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term - txt_width}x#{cheight_term}@#{txt_width}x#{cheight_term - txt_lines} --align right #{file}")
+          print "\e[u"
          else
            # not enough room, place image below text
            (cheight_term/2).times {puts}
-           puts "\e[s"        
+           print "\e[s"        
            puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term}x#{cheight_term/2}@0x#{cheight_term/2} --align left #{file}")
-           puts "\e[u"
+           print "\e[u"
         end
 
       else
@@ -1089,14 +1092,14 @@ class FamousPlayers
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
         pwidth_cell = mdata[3]
         pheight_cell = mdata[2]
-        pwidth_img = pwidth_cell.to_i * [cwidth_term - twidth, cwidth_term * 0.5].min.to_i
+        pwidth_img = pwidth_cell.to_i * [cwidth_term - txt_width, cwidth_term * 0.5].min.to_i
         
-        if cwidth_term > twidth * 1.25
+        if cwidth_term > txt_width * 1.25
           # enough room to show image right beside text
           # move up and right
-          print "\e[s\e[#{tlines}F\e[#{twidth}G"
+          print "\e[s\e[#{txt_lines}F\e[#{txt_width}G"
           puts sys("img2sixel --width #{pwidth_img} #{file}")
-          puts "\e[u"
+          print "\e[u"
           sane_term
         else
           # not enough room, place image below text
