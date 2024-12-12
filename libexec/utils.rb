@@ -879,7 +879,7 @@ class FamousPlayers
     @has_details = Hash.new
     @with_details = Array.new
     @all_groups = %w(name bio notes source songs)
-    @text_width = 0
+    @all_text_width = 0
 
     raw.each do |info|
       sorted_info = Hash.new
@@ -901,7 +901,7 @@ class FamousPlayers
         lines.each do |l|
           gl = "#{group.capitalize}: #{l}"
           lcount += 1
-          @text_width = [@text_width, l.length].max
+          @all_text_width = [@all_text_width, l.length].max
           pplayer << "(about #{info['name']})" if lcount % 4 == 0
           pplayer.append(gl)
         end
@@ -999,7 +999,13 @@ class FamousPlayers
   end
 
   
-  def view_picture file, name, in_loop, lines
+  def view_picture file, name, in_loop, tlines, twidth
+
+    # when viewing all pictures, use overall text width instead of individual
+    twidth = @all_text_width if in_loop
+    # add two spaces of indent plus safety margin
+    twidth += 3
+
     needed = []
     puts "\e[32mImage:\e[0m"
 
@@ -1044,8 +1050,6 @@ class FamousPlayers
 
       # get term size in characters
       cheight_term, cwidth_term = %x(stty size).split.map(&:to_i)
-      # add two spaces of indent plus safety margin
-      twidth = @text_width + 3
       puts "\e[2m  #{file}\e[0m"
       
       if ENV['TERM']['kitty']
@@ -1054,7 +1058,7 @@ class FamousPlayers
         if cwidth_term > twidth * 1.25
           # enough room to show image right beside text
           puts "\e[s"        
-          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term - twidth}x#{cheight_term}@#{twidth}x#{cheight_term - lines} --align right #{file}")
+          puts sys("kitty +kitten icat --stdin=no --scale-up --z-index -1 --place #{cwidth_term - twidth}x#{cheight_term}@#{twidth}x#{cheight_term - tlines} --align right #{file}")
           puts "\e[u"
          else
            # not enough room, place image below text
@@ -1085,12 +1089,12 @@ class FamousPlayers
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
         pwidth_cell = mdata[3]
         pheight_cell = mdata[2]
-        pwidth_img = pwidth_cell.to_i * [cwidth_term - twidth, twidth * 0.5].min.to_i
+        pwidth_img = pwidth_cell.to_i * [cwidth_term - twidth, cwidth_term * 0.5].min.to_i
         
         if cwidth_term > twidth * 1.25
           # enough room to show image right beside text
           # move up and right
-          print "\e[s\e[#{lines}F\e[#{twidth}G"
+          print "\e[s\e[#{tlines}F\e[#{twidth}G"
           puts sys("img2sixel --width #{pwidth_img} #{file}")
           puts "\e[u"
           sane_term

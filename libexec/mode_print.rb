@@ -589,17 +589,20 @@ end
 def print_player player, in_loop = false
   puts_underlined player['name']
   lines = 4
+  twidth = 0
   if $players.has_details?[player['name']]
     $players.all_groups.each do |group|
       next if group == 'name' || player[group].length == 0
       puts "\e[32m#{group.capitalize}:\e[0m"
       lines += 1
       player[group].each do |line|
-        puts "  #{line}"
+        txt = "  #{line}"
+        puts txt
+        twidth = [twidth, txt.length].max
         lines += 1
       end
     end
-    $players.view_picture(player['image'], player['name'], in_loop, lines)
+    $players.view_picture(player['image'], player['name'], in_loop, lines, twidth)
   else
     puts "\n\e[2mNot enough details known yet.\e[0m"
   end
