@@ -261,7 +261,6 @@ def sox_to_aubiopitch_to_queue
                 if now > pipeline_started + 2 && jitter > $jitter_threshold 
                   $jitter_checks_bad += 1
                   if jitter > $max_jitter
-                    $max_jitter_top = %x(top -b -n1 2>&1)
                     $max_jitter = jitter.abs
                     $max_jitter_at = now
                     $max_jitter_info = [[last_queue_time_now, last_queue_line.split], [now, line.split]]
