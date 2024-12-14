@@ -264,7 +264,7 @@ do_test "id-47b: generating samples for all keys" do
   tms :ENTER
   sleep 2
   tms 'y'
-  sleep 12
+  sleep 20
   wait_for_end_of_harpwise
   expect { screen[-4]['Sample generation done.'] }
   kill_session
@@ -1881,6 +1881,7 @@ do_test 'id-53b: print' do
   tms "harpwise print st-louis >#{$testing_output_file}"
   tms :ENTER
   sleep 1
+  wait_for_end_of_harpwise  
   lines = File.read($testing_output_file).lines
   expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['d4  e4  g4  bf4  g4  bf4  a4  g4']}
   kill_session

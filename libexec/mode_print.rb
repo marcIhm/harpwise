@@ -603,7 +603,7 @@ def print_player player, in_loop = false
         twidth = [twidth, txt.length].max
       end
     end
-    $players.view_picture(player['image'], player['name'], in_loop, lines, twidth)
+    $players.show_picture(player['image'], player['name'], in_loop, lines, twidth)
   else
     puts "\n\e[2mNot enough details known yet.\e[0m"
   end

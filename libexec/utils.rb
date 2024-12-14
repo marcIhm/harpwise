@@ -374,13 +374,7 @@ def print_afterthought
      external factors, like system-load or simply by hibernation of your
      computer.
 
-
      end_of_content
-    if $max_jitter_top
-      content += "\nOutput of top at the time of maximum jitter (#{Time.at($max_jitter_info[1][0])}):\n\n\n#{$max_jitter_top}\n\n"
-    else
-      content += "No output of top has been captured.\n\n"
-    end
     IO.write jitter_file, content
   end
 
@@ -999,15 +993,16 @@ class FamousPlayers
   end
 
   
-  def view_picture file, name, in_loop, txt_lines, txt_width
+  def show_picture file, name, in_loop, txt_lines, txt_width
 
-    # when viewing all pictures, use overall text width instead of individual
-    txt_width = @all_text_width if in_loop
+    # oddly enough, txt_lines and txt_width are only used to compute size of
+    # image; txt_width will be handled again further down for pixel images
+    
     # add two spaces of indent plus safety margin
     txt_width += 3
     # three more lines will be printed below
     txt_lines += 2
-
+    
     needed = []
     puts "\e[32mImage:\e[0m"
 
@@ -1052,6 +1047,8 @@ class FamousPlayers
 
       # get term size in characters
       cheight_term, cwidth_term = %x(stty size).split.map(&:to_i)
+      # avoid picture beeing too large
+      txt_width = [txt_width, cwidth_term*2.0/3].max.to_i
       puts "\e[2m  #{file}\e[0m"
       
       if ENV['TERM']['kitty']

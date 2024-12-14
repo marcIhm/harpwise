@@ -13,7 +13,6 @@ def set_global_vars_early
   $max_jitter = -1.0
   $max_jitter_at = 0
   $max_jitter_info = []
-  $max_jitter_top = nil
   $jitter_check_after_iters = 40
   $jitter_checks_total = 0
   $jitter_checks_bad = 0
