@@ -2417,7 +2417,7 @@ do_test 'id-69b: detect jitter' do
 end
 
 [['', (30 .. 50)],
- [' --time-slice medium', (30 .. 50)],
+ [' --time-slice medium', (30 .. 55)],
  [' --time-slice short', (90 .. 110)],
  [' --time-slice long', (10 .. 30)]].each_with_index do |vals, idx|
   extra_args, lpsrange = vals

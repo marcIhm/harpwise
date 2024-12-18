@@ -191,7 +191,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           unless first_round
             quiz_prevs << quiz_holes_inter
             begin 
-              quiz_holes_inter = get_random_interval
+              quiz_holes_inter = get_random_interval_as_holes
             end while quiz_prevs.include?(quiz_holes_inter)
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment
@@ -219,7 +219,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           unless first_round
             quiz_prevs << quiz_holes_inter
             begin 
-              quiz_holes_inter = get_random_interval
+              quiz_holes_inter = get_random_interval_as_holes
             end while quiz_prevs.include?(quiz_holes_inter)
             quiz_prevs.shift if quiz_prevs.length > 2
             clear_area_comment

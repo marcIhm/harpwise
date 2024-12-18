@@ -111,7 +111,7 @@ def do_quiz to_handle
     
   elsif $quiz_flavour == 'play-inter'
 
-    holes_inter = get_random_interval
+    holes_inter = get_random_interval_as_holes
     back_to_comment_after_mode_switch
     puts "\e[34mInterval to play is:\e[0m\e[2m"
     puts
@@ -858,7 +858,7 @@ class HearInter < QuizFlavour
     @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
 
     begin
-      inter = get_random_interval
+      inter = get_random_interval_as_holes
       @holes = inter[0..1]
       @dsemi = inter[2]
       @solution = inter[3]
@@ -896,7 +896,7 @@ class HearInter < QuizFlavour
 
   def help3
     puts "Playing all intervals:"
-    puts "\e[2mPlease note, that some may not be available as holes.\e[0m"
+    puts "\e[2mPlease note, that some notes may not be available as holes.\e[0m"
     puts
     maxlen = @inter2semi.keys.map(&:length).max
     @choices_orig.each do |inter|
@@ -912,6 +912,26 @@ class HearInter < QuizFlavour
     ['.help-play-all', 'Play all intervals over first note']
   end
 
+  def help4
+    semis = @holes.map {|h| $harp[h][:semi]}
+    if semis.min - 12 >= $min_semi
+      semis.map! {|s| s - 12 }
+      desc = 'lower'
+    else
+      semis.map! {|s| s + 12 }
+      desc = 'higher'
+    end
+    
+    puts "Playing interval one octave #{desc}:"
+    puts "\e[2mPlease note, that some notes may not be available as holes.\e[0m"
+    puts
+    play_hons hons: semis.map {|s| semi2note(s)}, hide: :all
+  end
+
+  def help4_desc
+    ['.help-move-octave', 'Play interval one octave lower or higher']
+  end
+
 end
 
 
@@ -923,7 +943,7 @@ class AddInter < QuizFlavour
     super
     
     begin
-      inter = get_random_interval
+      inter = get_random_interval_as_holes
       @holes = inter[0..1]
       @dsemi = inter[2]
       @verb = inter[2] > 0 ? 'add' : 'subtract'
@@ -1008,7 +1028,7 @@ class TellInter < QuizFlavour
     super
     
     begin
-      inter = get_random_interval sorted: true
+      inter = get_random_interval_as_holes sorted: true
       @holes = inter[0..1]
       @dsemi = inter[2]
       @solution = inter[3]
@@ -2159,7 +2179,7 @@ class NotInScale < QuizFlavour
 end
 
 
-def get_random_interval sorted: false
+def get_random_interval_as_holes sorted: false
   # favour lower holes
   all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
   loop do
