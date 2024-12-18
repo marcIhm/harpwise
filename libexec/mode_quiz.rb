@@ -1384,7 +1384,11 @@ class HoleHideNote < QuizFlavour
     @choices_orig = @choices.clone
 
     @desc = @holes_descs.sample
-    @solution = ( $named_hole_sets[@desc].map {|h| $harp[h][:note].gsub(/\d+$/,'')} - [$key] ).sample
+    begin
+      @solution = ( $named_hole_sets[@desc].map {|h| $harp[h][:note].gsub(/\d+$/,'')} - [$key] ).sample
+    end while @@prevs.include?(@solution)
+    @@prevs << @solution
+    @@prevs.shift if @@prevs.length > 2
     
     @prompt = "Pick the hidden note in the hole-set '#{@desc}' given above:"
     @help_head = 'Note'
