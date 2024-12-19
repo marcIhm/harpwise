@@ -513,7 +513,8 @@ class QuizFlavour
     puts
   end
 
-  # only used in some flavours
+  # Some methods, that are only used in some flavours
+  
   def change_key silent: false, key: nil
     if key
       $key = key
@@ -534,6 +535,35 @@ class QuizFlavour
       puts
     end
   end
+
+  def print_chart_holes_as_semitones
+    chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        print cell
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end  
+  end
+
+
+  def print_chart_holes_as_notes
+    notes = @holes.map {|h| $hole2note[h]}
+    chart = $charts[:chart_notes]
+    chart.each_with_index do |row, ridx|
+      print '  '
+      row[0 .. -2].each_with_index do |cell, cidx|
+        if notes.include?(cell.strip)
+          print "\e[34m#{cell}\e[0m"
+        else
+          print cell
+        end
+      end
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
+    end  
+  end
+  
 end
 
 
@@ -2646,33 +2676,4 @@ def describe_flavour flavour, has_issue_question
          map {|l| '  ' + l + "\n"}.
          join.chomp +
        ".\n"
-end
-
-
-def print_chart_holes_as_semitones
-  chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
-  chart.each_with_index do |row, ridx|
-    print '  '
-    row[0 .. -2].each_with_index do |cell, cidx|
-      print cell
-    end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
-  end  
-end
-
-
-def print_chart_holes_as_notes
-  notes = @holes.map {|h| $hole2note[h]}
-  chart = $charts[:chart_notes]
-  chart.each_with_index do |row, ridx|
-    print '  '
-    row[0 .. -2].each_with_index do |cell, cidx|
-      if notes.include?(cell.strip)
-          print "\e[34m#{cell}\e[0m"
-      else
-        print cell
-      end
-    end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
-  end  
 end
