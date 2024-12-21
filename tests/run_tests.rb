@@ -2682,7 +2682,8 @@ do_test 'id-83: unittest' do
   new_session
   tms 'harpwise develop unittest'
   tms :ENTER
-  sleep 8
+  wait_for_end_of_harpwise  
+  sleep 2
   expect { screen[21]['All unittests okay.'] }
   kill_session
 end

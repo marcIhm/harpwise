@@ -152,6 +152,7 @@ def do_quiz to_handle
         keep = KeepTempo.new
         keep.set_params
         loop do
+          handle_win_change if $ctl_sig_winch
           keep.issue_question
           unless keep.play_and_record
             puts
@@ -198,6 +199,7 @@ def do_quiz to_handle
         first_round = false
         loop do  ## repeats of question
           catch :reissue do
+            handle_win_change if $ctl_sig_winch
             flavour.issue_question
             sleep 0.1
             loop do  ## repeats of asking for answer
@@ -2082,7 +2084,8 @@ class HearTempo < QuizFlavour
   def help2
     puts "For help, choose one of the answer-tempos to be played:"
     choose_prepare_for
-    answer = choose_interactive('Tempo to compare:', @choices.map {|x| "compare-#{x}"}) do |tag|
+    answer = choose_interactive('Tempo to compare:',
+                                @choices.map {|x| "compare-#{x}"}) do |tag|
       "compare with #{@help_head} #{tag_desc(tag)}" 
     end
     choose_clean_up
@@ -2564,9 +2567,9 @@ def choose_flavour_or_collection collection
   loop do
     choose_prepare_for
     answer = choose_interactive("Please choose among #{choices.length} (#{collection}) flavours and #{$quiz_coll2flavs.keys.length} collections:",
-                                 [choices, ';COLLECTIONS->',
-                                  $quiz_coll2flavs.keys,
-                                  'describe-all'].flatten) do |tag|
+                                [choices, ';COLLECTIONS->',
+                                 $quiz_coll2flavs.keys,
+                                 'describe-all'].flatten) do |tag|
       if tag == 'describe-all'
         'Describe all flavours and flavour collections in detail'
       elsif $quiz_coll2flavs[tag]

@@ -1063,12 +1063,11 @@ def handle_win_change
     $lines = calculate_screen_layout
     system('clear')
     puts
-  end 
-  ctl_response 'redraw'
+  end
   $figlet_cache = Hash.new
+  $freqs_queue.clear
   $ctl_mic[:redraw] = Set.new()
   $ctl_sig_winch = false
-  $freqs_queue.clear
 end
 
 #
@@ -1091,6 +1090,7 @@ def choose_interactive prompt, names, &block
   clear_area_message
   $chia_more_text = '...more'
   fail "Internal error: one of the passed names contains reserved string '#{$chia_more_text}: #{names}" if names.include?($chia_more_text)
+  handle_win_change if $ctl_sig_winch
 
   $chia_padding = if names.map(&:length).sum / names.length > 10 ||
                      names.any? {|name| name[' ']}
@@ -1115,7 +1115,12 @@ def choose_interactive prompt, names, &block
   idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
   print chia_desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
   loop do
-    key = $ctl_kb_queue.deq
+    key = if $ctl_sig_winch
+            handle_win_change
+            'CTRL-L'
+          else
+            $ctl_kb_queue.deq
+          end
     key.downcase! if key.length == 1
 
     if key == '?'
@@ -1186,7 +1191,6 @@ def choose_interactive prompt, names, &block
 
     elsif key == 'CTRL-L'
       print "\e[2J"
-      handle_win_change
       print prompt_template % [$lines[:comment_tall] + 1, prompt]
       print "\e[0m\e[92m#{input}\e[0m\e[K"
       print help_template % ( $lines[:comment_tall] + 2 )
