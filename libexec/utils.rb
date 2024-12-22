@@ -1,5 +1,3 @@
-# -*- fill-column: 78 -*-
-
 #
 # General helper functions
 #
@@ -995,12 +993,13 @@ class FamousPlayers
   
   def show_picture file, name, in_loop, txt_lines, txt_width
 
-    # oddly enough, txt_lines and txt_width are only used to compute size of
-    # image; txt_width will be handled again further down for pixel images
+    # txt_lines and txt_width are only used to compute size of image;
+    # txt_width will be handled again further down for pixel images
     
     # add two spaces of indent plus safety margin
     txt_width += 3
-    # three more lines will be printed below
+    # three more lines (adding to those, that have already been printed) will
+    # be printed below
     txt_lines += 2
     
     needed = []
@@ -1047,7 +1046,7 @@ class FamousPlayers
 
       # get term size in characters
       cheight_term, cwidth_term = %x(stty size).split.map(&:to_i)
-      # avoid picture beeing too large
+      # avoid picture beeing too large by limiting its available space
       txt_width = [txt_width, cwidth_term*2.0/3].max.to_i
       puts "\e[2m  #{file}\e[0m"
       
@@ -1073,7 +1072,17 @@ class FamousPlayers
         
         check_needed_viewer_progs %w(img2sixel)
 
-        # get pixel width of terminal
+        # get pixel width of one character cell.
+
+        # Note, for windows terminal: This will always return 10x20 (i.e. 1:2) regardless of
+        # chosen font (by design of the sixel-feature in windows-terminal); and as the
+        # picture takes up character cells according to its own pixel-size and this assumed
+        # pixel-size of a character cell, the aspect ratio of an image might be wrong, if
+        # the current font has an actual aspect ratio, that differs from 1:2. As a result
+        # pictures are shown stretched horizontally if the font is e.g. "Lucida Console"
+        # (which has a more quadratic character cell), even though the command img2sixel
+        # below uses only the width-argument and therefore places no constraints on the
+        # aspect ratio of the image.
         prepare_term
         reply = ''
         begin
