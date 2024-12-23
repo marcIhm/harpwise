@@ -1047,8 +1047,7 @@ end
 def handle_win_change
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
   $lines = calculate_screen_layout
-  system('clear')
-  puts
+  print "\e[s\e[2J\e[u"
   while !check_screen(graceful: true)
     puts "\e[2m"
     puts "\n\n\e[0mScreensize is not acceptable, see above !"
@@ -1112,7 +1111,7 @@ def choose_interactive prompt, names, &block
   
   input = ''
   matching = names
-  idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
+  idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili, input)
   print chia_desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
   loop do
     key = if $ctl_sig_winch
@@ -1170,10 +1169,10 @@ def choose_interactive prompt, names, &block
                                idx_last_shown,
                                frame_start)
 
-    elsif key == "RETURN"
+    elsif key == 'RETURN'
 
       if matching.length == 0
-        $chia_no_matches_text ="\e[0;101mNO MATCHES !\e[0m Please shorten input above or type ESC to abort !"
+        $chia_no_matches_text ="\e[0;101m NO MATCHES ! \e[0m Please shorten input '#{input}' above or type ESC to abort !"
 
       elsif matching[idx_hili][0] == ';'
         clear_area_comment(2)
@@ -1219,7 +1218,7 @@ def choose_interactive prompt, names, &block
     print "\e[0m\e[92m#{input}\e[0m\e[K"
     print help_template % ( $lines[:comment_tall] + 2 )
 
-    idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili)
+    idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili, input)
 
     print chia_desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
   end
@@ -1235,7 +1234,7 @@ def chia_idx_helper names, frame_start
 end
 
 
-def chia_print_in_columns names, frame_start, idx_hili
+def chia_print_in_columns names, frame_start, idx_hili, input
   lines_offset = ( $chia_total_chars > $term_width * 3  ?  3  :  4)
   print "\e[#{$lines[:comment_tall] + lines_offset}H\e[0m\e[2m"
   # x,y-pairs of elements shown in most recent call of
@@ -1258,7 +1257,7 @@ def chia_print_in_columns names, frame_start, idx_hili
   lines = (0 .. max_lines).map {|x| ''}
   if names.length == 0
     clear_area_comment(2)
-    lines[0] = "  " + ( $chia_no_matches_text || "\e[0mNO MATCHES for input above, please shorten ..." )
+    lines[0] = "  " + ( $chia_no_matches_text || "\e[0mNO MATCHES for input '#{input}' above, please shorten ..." )
   else
     has_more_above = false
     lines_count = 0
@@ -1320,6 +1319,9 @@ end
 
 
 def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
+
+  return idx_hili_old if $chia_loc_cache.length == 0
+
   # idx2cidx: index to caller index (this functions semantics of)
   idx2cidx = ( frame_start > 0  ?  frame_start  :  0 )
   cidx2idx = -idx2cidx
