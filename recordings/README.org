@@ -1,5 +1,8 @@
 
-The licks in this directory are short phrases taken from these songs:
+Regarding copyrights:
+
+The three licks in this directory are short phrases taken from
+these songs:
 
 - "Wade in the water" an "African American jubilee song", whose lyrics
   were first published in 1901.
@@ -21,3 +24,6 @@ The actual recordings in this directory are done by me (Marc Ihm) and
 so I am free to release these sample under the same license as the
 program itself; see the file LICENSE in the toplevel directory.
 
+
+The backing track 12bar-lofi.mp3 has also been created by the author
+of this program, using ableton live as a DAW.

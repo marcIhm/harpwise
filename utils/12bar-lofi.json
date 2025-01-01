@@ -6,7 +6,7 @@
     // Note the '-q', which makes sure that play (sox) does not try to print anything. Also,
     // the %{install_dir}-clause refers to the installation-directory of harpwise, which
     // also contains the given mp3
-    "play_command": "play -q %{install_dir}/resources/12bar-lofi.mp3",
+    "play_command": "play -q %{install_dir}/recordings/12bar-lofi.mp3",
     "comment": "home-made with ableton and help from youtube",
     // hint for user on how to start harpwise
     "example_harpwise": "%{install_dir}/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo",
