@@ -11,6 +11,7 @@ require 'timeout'
 require 'json'
 require 'set'
 require 'pp'
+require 'csv'
 
 $fifo = "#{Dir.home}/.harpwise/remote_fifo"
 $message = "#{Dir.home}/.harpwise/remote_message"
@@ -30,7 +31,7 @@ def send_keys keys
     rescue Timeout::Error, Errno::EINTR
       err "Could not write '#{key}' to #{$fifo}. Is harpwise listening on the other side ?"
     end
-    puts "sent key '#{key}'"
+    puts "sent key \e[32m'#{key}'\e[0m"
   end
 end
 
@@ -108,7 +109,7 @@ while i_neg = (0 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_
   err("When adding   #{loc_neg}   to   #{loc_pos_after_neg}   we come up with a negative absolute time: #{ts_abs}") if ts_abs < 0
   timestamps_to_actions[i_neg][0] = ts_abs
 end
-$aux_data = {comment: comment, iteration: 0, elapsed: 0}
+$aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
   
 # check syntax of timestamps before actually starting
 timestamps_to_actions.sort_by! {|ta| ta[0]}
@@ -142,7 +143,7 @@ if comment.length > 0
 end
 
 if example.length > 0
-  puts "Invoke harpwise like this:\n\n  \e[32m" + example + "\e[0m\n\n"
+  puts "Invoke harpwise like this:\n\n  \e[32m" + ( example % $aux_data ) + "\e[0m\n\n"
   puts
 end
 
@@ -154,7 +155,8 @@ end
 
 # try to figure out file and check if present even before first sleep
 endings = %w(.mp3 .wav .ogg)
-file = play_command.split.find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Couldn't find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
+play_command = play_command % $aux_data
+file = CSV::parse_line(play_command,col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
 err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
 
 # make some room below to have initial error (if any) without scrolling
@@ -171,7 +173,7 @@ end
 puts play_command
 puts
 
-# start playing
+# start play-command
 Thread.new do
   puts "\n\nStarting:\n\n    #{play_command}\n\n"
   if play_with_win
@@ -217,30 +219,28 @@ ts_iter_start = nil
 
   # one action after the other
   timestamps_to_actions.each_cons(2).each_with_index do |pair,j|
-
     tsx, tsy = pair[0][0], pair[1][0]
     action = pair[0][1 .. -1]
-    puts "Action #{j + 1}/#{timestamps_to_actions.length - 1} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"
+    puts "Action #{j + 1}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"
 
     do_action action, iter
 
     sleep_between = tsy - tsx
     puts "at ts %.2f sec" % tsx
     puts "sleep %.2f sec" % sleep_between
-    if j + 1 == timestamps_to_actions.length - 1
-      # This allows sleep_after_iteration to be negative; we may simply add
-      # sleep_after_iteration to the last timestamp, but we want to make it explicit in
-      # output
-      puts "and sleep after iteration %.2f sec" % ( sleep_after_iteration * timestamps_multiply )
-      sleep sleep_between + ( sleep_after_iteration * timestamps_multiply )
-    else
-      sleep sleep_between
-    end
+    sleep sleep_between
     puts
 
   end  ## one action after the other
 
+  puts "Final action #{timestamps_to_actions.length}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"  
   do_action timestamps_to_actions[-1][1 .. -1], iter
+  puts "at ts %.2f sec" % timestamps_to_actions[-1][0]
+
+  if sleep_after_iteration > 0
+    puts "and sleep after iteration %.2f sec" % ( sleep_after_iteration * timestamps_multiply ) 
+    sleep ( sleep_after_iteration * timestamps_multiply )
+  end
   
   if iter == 1
     while timestamps_to_actions[0][1] != 'loop-start'

@@ -4,56 +4,47 @@ useful for some advanced or special use-cases.
 
 * timed.rb
 
-  A remote control for harpwise with a time table for switching licks
-  and scales while playing a backing track.
+  A remote control for harpwise for switching licks and scales according
+  to a time-table, all while playing a backing track. A simple track
+  already comes included with harpwise.
 
   To use timed.rb, you need *two* terminals. In the first one start
   (e.g.):
 
-    harpwise listen --sc-prog 12bar --lick-prog box1 --no-player-info --read-fifo
+    <%= $dirs[:install] %>/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo
 
-  after that, in the second terminal change directory to:   <%= $dirs[:install] %>
-  and run:
+  after that, in the second terminal run:
 
-    ./timed.rb timed_sample.json
+    <%= $dirs[:install] %>/utils/timed.rb <%= $dirs[:install] %>/utils/12bar-lofi.json
 
-  which however requires you to copy and edit timed_sample.json first
-  and put in the name of a decent sound-file of your own as well as
-  timestamps for the chord-changes within this file.
+  The file 12bar-lofi.json iself has lots of comments, that help to
+  understand its structure.
 
-  timed_sample.json iself has lots of comments, that help to understand
-  its structure.
+  Once started, harpwise (as usual) shows your playing on the chart and
+  indicates how it matches the current chord with respect to the backing
+  track beeing played. The scale progression (12bar) in this and many
+  cases is really a chord-progression (I, IV, V) and is switched along by
+  timed.rb (using the fifo).  The script timed.rb uses the timestamps from
+  the json-file to trigger harpwise at the right moment.
 
-  Once started, harpwise (as usual) shows your playing on the chart
-  and indicates how it matches the current chord with respect to the
-  backing track beeing played. The scale progression (12bar) in this
-  and many cases is really a chord-progression (I, IV, V) and is
-  switched along by timed.rb (using the fifo).  The script timed.rb
-  uses the timestamps from the json-file to trigger harpwise at the
-  right moment.
+  With this scripted chord-progression you always which are the notes
+  (holes) from the chord and can see immediately, if you play within the
+  chord or not. In addition you see the licks of the lick-progression
+  (box1), which are switched along as the song progresses. These can give
+  you a solid point to take off for improvisation and later land again.
 
-  With this scripted chord-progression you always know the notes from
-  the chord and can see immediately, if you play within the chord or
-  not. In addition you see the licks of the lick-progression (box1),
-  which are switched along with the song too. These can give you a
-  solid point to take off and for improvisation and land again.
+  Admittedly, preparing the json-file with timestamps needs some technical
+  work; however, your ear and e.g. audacity (try to create and export
+  text-markers) makes this a matter of minutes.
 
-  Admittedly, preparing the json-file with timestamps needs some
-  technical work; however, your ear and e.g. audacity (by using and
-  exporting text-markers) makes this a matter of minutes.
+  And as you may hopefully find, this work can help with a gentle
+  transition from just playing tabs into the realm of free improvisation.
 
-  And as you may find, this work can help with a gentle transition
-  from just playing tabs into the realm of free improvisation.
+  Note, that in this setup you may either need headphones or a hand-held
+  microphone to keep apart your playing from the backing track beeing
+  played and thus save harpwise from getting confused when hearing the
+  backing track too.
 
-  Note, that in this setup you may either need headphones or a
-  hand-held microphone to keep apart your playing from the backing
-  track beeing played and thus save harpwise from getting confused.
-
-  Also note, that for wsl2 and if you want to start the sound-file with
-  explorer.exe, you may need to seperate directories with \\\\ (four
-  backslashes) due to quoting.  In this case you may also consider
-  starting the player (e.g. media player) in advance to reduce delay.
-  
 * harpwise_historic_with_fzf.sh
   
   Bash-function for an interactive search in the history of invocations

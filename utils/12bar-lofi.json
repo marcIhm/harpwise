@@ -1,0 +1,48 @@
+{
+    //
+    //  First start harpwise (see below for an example), then start timed.rb with this file
+    //  as an argument; also see README.org in this directory.
+    //
+    // Note the '-q', which makes sure that play (sox) does not try to print anything. Also,
+    // the %{install_dir}-clause refers to the installation-directory of harpwise, which
+    // also contains the given mp3
+    "play_command": "play -q %{install_dir}/resources/12bar-lofi.mp3",
+    "comment": "home-made with ableton and help from youtube",
+    // hint for user on how to start harpwise
+    "example_harpwise": "%{install_dir}/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo",
+    // global stretch (> 1) or compress (< 1) all timestamps
+    "timestamps_multiply": 1.0,
+    // globally add to all timestamps    
+    "timestamps_add": 0.0,
+    // maybe give some extra time to grab your harp before anything starts
+    "sleep_initially": 2.0,
+    // use this, if actions and music tend to drift. Alternatively you may just as well
+    // increment or decrement the last timestamp
+    "sleep_after_iteration": 0.0,
+    // Try audacity and its text-label-feature to get the timestamps for such a list as
+    // below.  Timestamps-to-actions will be repeated forever; this assumes that the
+    // chord-structure of your song is regular and repeats too.  On from the second
+    // iteration, only entries after "loop-start" will be used.
+
+    // messages to be shown, may use the special variables %{comment}, %{iteration} and
+    // %{elapsed} to insert the comment from this file, the count of repeats and the number
+    // of seconds elapsed.
+    "timestamps_to_actions": [
+	// this will appear in message-area of harpwise
+        [0,"message","%{comment}. Intro ...",0],
+        [-2,"message","In two secs ...",1.8],
+	// exactly one loop-start is needed
+        [4.8,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],
+        [-2,"message","Chord-change in two secs ...",1.8],
+	// these two keys will switch lick- and scale-progression in unison	
+        [14.4,"keys","l","s"],
+        [-2,"message","Chord-change in two secs ...",1.8],
+        [19.2,"keys","l","s"],
+        [-2,"message","Three chord-changes in two secs ...",1.8],
+        [24,"keys","l","s"],
+        [26.4,"keys","l","s"],
+        [28.8,"keys","l","s"],
+        [-2,"message","Turnaround in two secs ...",1.8],
+        [33.6,"keys","l","s"]
+    ]
+}

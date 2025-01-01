@@ -1191,6 +1191,9 @@ def write_invocation
             []
           end.append($full_commandline + (' ' * (-$full_commandline.length % 4)) + "   #  #{ts}\n")
   File.write(file, lines.last(20).join)
+
+  # and do something unrelated
+  File.write "#{$dirs[:data]}/path_to_install_dir", "#{$dirs[:install]}\n"
 end
 
 
