@@ -151,5 +151,5 @@ Quick Start:
 
 
 Version <%=$version%>
-Copyright (c) 2021-2024 by Marc Ihm (marc@ihm.name) 
+Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
 This program is subject to the MIT License.
