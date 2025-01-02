@@ -15,15 +15,15 @@ these songs:
 
 (mostly citing the Wikipedia)
 
-So, as far as I can tell, these songs are in the Public Domain, either
+Therefore these songs are in the Public Domain. Either
 they are traditionals with unknown authors or their copyright has
-expired.  See https://12bar.de/cms/albums/public-domain-blues-songs/
-for some background.
+long expired.  Their recordings have been done by me.
 
-The actual recordings in this directory are done by me (Marc Ihm) and
-so I am free to release these sample under the same license as the
-program itself; see the file LICENSE in the toplevel directory.
+The simple backing track 12bar-lofi.mp3 has too been created by me
+using ableton live as a DAW.
 
+All mp3-files  in this directory have been recorded / created
+by me (Marc Ihm) and are released under the same license as
+the program harpwise itself; see the file LICENSE in
+the directory above.
 
-The backing track 12bar-lofi.mp3 has also been created by the author
-of this program, using ableton live as a DAW.

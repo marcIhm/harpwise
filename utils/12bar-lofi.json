@@ -46,3 +46,13 @@
         [33.6,"keys","l","s"]
     ]
 }
+//
+//  If you practice often with the backing-track 12bar-lofi.mp3, then after some time you
+//  may want to try one of your own backing-track (e.g. one of those, that can be found on
+//  youtube). For this case you will need to prepare another json-file and put in the
+//  filename of your new backing-track. In addition you will need to adjust timestamps.
+//
+//  Admittedly, preparing those timestamps needs some technical work; however, your ear and
+//  good tools makes this a matter of minutes. Try e.g. audacity and its feature of creating
+//  and exporting text-markers.
+//

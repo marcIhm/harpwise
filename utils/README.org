@@ -4,46 +4,42 @@ useful for some advanced or special use-cases.
 
 * timed.rb
 
-  A remote control for harpwise for switching licks and scales according
-  to a time-table, all while playing a backing track. A simple track
-  already comes included with harpwise.
+  A remote control for harpwise that plays a backing-track while making
+  harpwise switch licks and scales. This happens in time with the
+  chord-changes of the track (by means of a time-table).  A simple
+  backing-track is included.
 
-  To use timed.rb, you need *two* terminals. In the first one start
-  (e.g.):
+  To use timed.rb, you need *two* terminals. In the first one start e.g.:
 
     <%= $dirs[:install] %>/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo
 
   after that, in the second terminal run:
 
-    <%= $dirs[:install] %>/utils/timed.rb <%= $dirs[:install] %>/utils/12bar-lofi.json
+    <%= $dirs[:install] %>/utils/timed.rb   <%= $dirs[:install] %>/utils/12bar-lofi.json
 
-  The file 12bar-lofi.json iself has lots of comments, that help to
-  understand its structure.
+  The file 12bar-lofi.json iself has many comments, that help to
+  understand its structure and features and how to expand on them.
 
   Once started, harpwise (as usual) shows your playing on the chart and
   indicates how it matches the current chord with respect to the backing
-  track beeing played. The scale progression (12bar) in this and many
-  cases is really a chord-progression (I, IV, V) and is switched along by
-  timed.rb (using the fifo).  The script timed.rb uses the timestamps from
-  the json-file to trigger harpwise at the right moment.
+  track beeing played. The scale progression '12bar' in this case is
+  really a chord-progression (I, IV, V) and is switched along by timed.rb
+  (using a fifo).  The script timed.rb uses the timestamps from the
+  json-file to trigger harpwise at the right moments.
 
-  With this scripted chord-progression you always which are the notes
-  (holes) from the chord and can see immediately, if you play within the
-  chord or not. In addition you see the licks of the lick-progression
-  (box1), which are switched along as the song progresses. These can give
-  you a solid point to take off for improvisation and later land again.
+  With the scripted chord-progression '12bar' (see commandline above) you
+  always see, which are the notes (holes) from the chord and may check
+  easily, if you play within the chord or not. In addition you have the
+  licks of the lick-progression 'box1', which is switched along as the
+  song progresses. These licks give you a solid take-of-point for
+  improvisation and a safe landing-point afterwards.
 
-  Admittedly, preparing the json-file with timestamps needs some technical
-  work; however, your ear and e.g. audacity (try to create and export
-  text-markers) makes this a matter of minutes.
+  In summary and as you may hopefully find, the utility timed.rb can help
+  with a gentle and guided progress into the realm of free improvisation.
 
-  And as you may hopefully find, this work can help with a gentle
-  transition from just playing tabs into the realm of free improvisation.
-
-  Note, that in this setup you may either need headphones or a hand-held
-  microphone to keep apart your playing from the backing track beeing
-  played and thus save harpwise from getting confused when hearing the
-  backing track too.
+  Note, that in this accustic setup you may either need headphones or a
+  hand-held microphone to keep apart your playing from the backing track
+  beeing played. This saves harpwise from getting confused.
 
 * harpwise_historic_with_fzf.sh
   
