@@ -19,10 +19,10 @@ Therefore these songs are in the Public Domain. Either
 they are traditionals with unknown authors or their copyright has
 long expired.  Their recordings have been done by me.
 
-The simple backing track 12bar-lofi.mp3 has too been created by me
+The simple backing track 12bar.mp3 too has been created by me,
 using ableton live as a DAW.
 
-All mp3-files  in this directory have been recorded / created
+All mp3-files in this directory have been recorded / created
 by me (Marc Ihm) and are released under the same license as
 the program harpwise itself; see the file LICENSE in
 the directory above.

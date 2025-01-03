@@ -1,0 +1,41 @@
+# -*- fill-column: 74 -*-
+
+* jamming.rb
+
+  A remote control and helper for harpwise that plays a backing-track
+  while making harpwise switch licks and scales (chords). This happens in
+  time with the chord-changes of the track (by means of a time-table).
+  One simple backing-track is included.
+
+  To use jamming.rb, you need *two* terminals. In the first one start e.g.:
+
+    <%= $dirs[:install] %>/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo
+
+  after that, in the second terminal run:
+
+    <%= $dirs[:install] %>/jamming/jamming.rb <%= $dirs[:install] %>/jamming/12bar.json
+
+  The file 12bar.json iself has many comments, that help to understand its
+  structure and features and how to expand on them.
+
+  Once started, harpwise (as usual) shows your playing on the chart and
+  indicates how it matches the current chord with respect to the backing
+  track beeing played. The scale progression '12bar' is really a
+  chord-progression (I, IV, V) and is switched along by jamming.rb. The
+  script jamming.rb uses the timestamps from the json-file to trigger
+  harpwise at the right moments.
+
+  With the scripted chord-progression '12bar' you always see, which are
+  the notes (holes) from the chord and may check easily, if you play
+  within the current chord or not. In addition you have the licks of the
+  lick-progression 'box1' (whose name comes from the box-pattern on
+  guitar). These licks are switched along as the backing-track progresses
+  (just like the chords). Start by playing the licks unil you feel in the
+  mood for some improvisation, e.g. over the chords.
+
+  In summary jamming.rb can help with a gentle and guided progress to free
+  improvisation.
+
+  Note, that in this accustic setup you may either need headphones or a
+  hand-held microphone to keep apart your playing from the backing track
+  beeing played. This saves harpwise from getting confused.

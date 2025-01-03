@@ -6,8 +6,8 @@
     // Note the '-q', which makes sure that play (sox) does not try to print anything. Also,
     // the %{install_dir}-clause refers to the installation-directory of harpwise, which
     // also contains the given mp3
-    "play_command": "play -q %{install_dir}/recordings/12bar-lofi.mp3",
-    "comment": "home-made with ableton and help from youtube",
+    "play_command": "play -q %{install_dir}/recordings/12bar.mp3",
+    "comment": "A 12-bar backing-track and a set (box1) of 3 licks for chords I,IV,V. Play each lick while it is displayed over one bar. E.g. play the first lick four times, than the second one two times, etc. Note that always a matching scale (chord) is displayed giving useful holes for impovisation. Play either with a mic or use earphones to help harpwise sense your playing even in the presence of the backing track.",
     // hint for user on how to start harpwise
     "example_harpwise": "%{install_dir}/harpwise listen c --sc-prog 12bar --lick-prog box1 --kb-tr s1 --read-fifo",
     // global stretch (> 1) or compress (< 1) all timestamps
@@ -47,12 +47,12 @@
     ]
 }
 //
-//  If you practice often with the backing-track 12bar-lofi.mp3, then after some time you
-//  may want to try one of your own backing-track (e.g. one of those, that can be found on
-//  youtube). For this case you will need to prepare another json-file and put in the
+//  After some practice with the backing-track 12bar.mp3 you may want to try one
+//  of your own backing-track (e.g. one, that can be found on youtube).
+//  For this you will need to prepare another json-file and put in the
 //  filename of your new backing-track. In addition you will need to adjust timestamps.
 //
 //  Admittedly, preparing those timestamps needs some technical work; however, your ear and
-//  good tools makes this a matter of minutes. Try e.g. audacity and its feature of creating
+//  good tools make this a matter of minutes. Try e.g. audacity and its feature of creating
 //  and exporting text-markers.
 //

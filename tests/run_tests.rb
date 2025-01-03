@@ -3083,7 +3083,7 @@ do_test 'id-99: widgets' do
   tms :TAB
   tms :TAB
   tms 'q'
-  expect { screen[18]['NO MATCHES for input above'] }
+  expect { screen[18]['NO MATCHES for input'] }
   tms :BSPACE
   tms :LEFT
   tms :RIGHT
@@ -3655,7 +3655,7 @@ do_test 'id-131a: info about utilities' do
   tms 'harpwise tools utilities'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['Summary'] }
+  expect { screen[8]['Summary'] }
   kill_session
 end
 
@@ -3692,14 +3692,14 @@ do_test 'id-133: test for diff between man and usage' do
   kill_session
 end
 
-do_test 'id-134: timed.rb with sample' do
+do_test 'id-134: timed.rb' do
   new_session
-  tms "~/harpwise/utils/timed.rb ~/harpwise/utils/timed_sample.json"
+  tms "~/harpwise/jamming/jamming.rb ~/harpwise/jamming/12bar.json"
   tms :ENTER
   sleep 2
-  # if we get to this error message, the format of timed_sample.json
+  # If we get to this error message, the format of timed_sample.json
   # has already been accepted.
-  expect { screen[9]['harpwise listen --sc-prog 12bar'] }
+  expect { screen[9]['harpwise listen c --sc-prog 12bar'] }
   kill_session
 end
 
