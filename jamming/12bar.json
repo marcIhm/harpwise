@@ -32,18 +32,18 @@
         [0,"message","%{comment}. Intro ...",0],
         [-2,"message","In two secs ...",1.8],
 	// exactly one loop-start is needed
-        [4.8,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],
+        [6,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],
         [-2,"message","Chord-change in two secs ...",1.8],
 	// these two keys will switch lick- and scale-progression in unison	
-        [14.4,"keys","l","s"],
+        [18,"keys","l","s"],
         [-2,"message","Chord-change in two secs ...",1.8],
-        [19.2,"keys","l","s"],
-        [-2,"message","Three chord-changes in two secs ...",1.8],
         [24,"keys","l","s"],
-        [26.4,"keys","l","s"],
-        [28.8,"keys","l","s"],
+        [-2,"message","Three chord-changes in two secs ...",1.8],
+        [30,"keys","l","s"],
+        [33,"keys","l","s"],
+        [36,"keys","l","s"],
         [-2,"message","Turnaround in two secs ...",1.8],
-        [33.6,"keys","l","s"]
+        [42,"keys","l","s"]
     ]
 }
 //
