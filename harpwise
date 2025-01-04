@@ -38,6 +38,7 @@ require_relative 'libexec/mode_samples'
 require_relative 'libexec/mode_tools'
 require_relative 'libexec/mode_quiz'
 require_relative 'libexec/mode_develop'
+require_relative 'libexec/mode_jamming'
 
 $program_start = $mode_start = Time.now.to_f
 $initialized = false
@@ -190,6 +191,8 @@ begin
     do_samples to_handle
   when :tools
     do_tools to_handle
+  when :jamming
+    do_jamming to_handle
   when :develop
     do_develop to_handle
   end

@@ -112,9 +112,9 @@ tools:
     given scale and group and sort them accordingly.  This may give an
     idea, which of all licks can be played over the given scale
     (e.g. chord-i or blues)
-  jamming: |
-    describe the script jamming.rb, that plays a backing-track and gives
-    licks and chords to guide improvisation
+  utils, utilities: |
+    Describe some utilities, that come with harpwise and need
+    to be invoked seperately.
   edit-licks: |
     invoke editor on your lickfile 
   edit-config: |

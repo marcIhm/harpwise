@@ -120,11 +120,3 @@ Usage by Examples:
 
   for simple harmonica content this will give you sequence of holes
   played in lick wade.mp3 (from current working dir)
-
-
-  Give detailed info about harpwise support for jamming:
-
-    harpwise tools jamming
-
-  which offers a guided approach to improvisation.
-  

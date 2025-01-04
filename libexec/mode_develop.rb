@@ -149,7 +149,7 @@ def do_diff
       end
     else
       puts
-      puts "Comparison between   \e[32musage\e[0m   and   \e[32mman\e[0m   always in that sequence,\ni.e. usage first:"
+      puts "Comparison between   \e[32musage\e[0m   and   \e[32mman\e[0m   always in that order,\ni.e. usage first:"
       puts
       puts "Last two pairs of common lines or line-fragments that are equal:\e[2m"
       pp last_common[-2 .. -1]

@@ -3,9 +3,8 @@
 * Summary
 
 A harmonica tool for the command line, using microphone and speaker. It
-assists your playing with scales and licks, all along the chords of a
-song. Harpwise offers various tools and an explorable quiz with many
-flavours.
+assists with scales and licks; it offers tools, an explorable quiz and
+supports your jamming.
   
 * Table of Contents                                                   :TOC_1:
 

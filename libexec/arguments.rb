@@ -47,7 +47,7 @@ def parse_arguments_early
   opts = Hash.new
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:samples, :listen, :quiz, :licks, :play, :print, :develop, :tools], {
+    [[Set[:samples, :listen, :quiz, :licks, :play, :print, :develop, :tools, :jamming], {
         debug: %w(--debug),
         help: %w(-h --help -? --usage),
         sharps: %w(--sharps),
@@ -461,7 +461,7 @@ def parse_arguments_early
     end
     scale, opts[:add_scales], $scale_prog = override_scales_mb(scale, opts)
 
-  when :develop, :samples
+  when :develop, :samples, :jamming
     # no explicit scale, ever
     scale = get_scale_from_sws($conf[:scale] || 'all:a')
     $source_of[:scale] = 'implicit'
@@ -579,7 +579,7 @@ def parse_arguments_for_mode
   ARGV.clear
 
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :samples].include?($mode)
+  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :samples, :jamming].include?($mode)
 
   return to_handle
 end

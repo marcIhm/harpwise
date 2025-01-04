@@ -1,0 +1,15 @@
+# -*- fill-column: 74 -*-
+Utility scripts, not needed for normal operation of harpwise, but
+useful for some advanced or special use-cases.
+
+* harpwise_historic_with_fzf.sh
+  
+  Bash-function for an interactive search in the history of invocations
+  of harpwise.
+
+  This uses fzf (fuzzy-finder, which must be installed first) and may
+  provide a more specific search experience than the standard
+  history-search of your shell.
+
+  The file contains some additional comments on how to put it into
+  use.

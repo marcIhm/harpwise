@@ -13,6 +13,7 @@ Overview:
   When playing, you may switch on journal to get a simple
   transcription of the holes played.
 
+
 Usage by Examples:
 
   The wise listens, while your are playing a richter harp of key c and

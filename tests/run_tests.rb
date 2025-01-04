@@ -94,7 +94,7 @@ fail "These programs are needed but cannot be found: \n  #{not_found.join("\n  "
 #
 # Collect usage examples and later check, that none of them produces an error
 #
-usage_types = [nil, :samples, :listen, :quiz, :licks, :play, :print, :tools, :develop].map do |t|
+usage_types = [nil, :samples, :listen, :quiz, :licks, :play, :print, :tools, :develop, :jamming].map do |t|
   [(t || :none).to_s,
    ['usage' + ( t  ?  '_' + t.to_s  :  '' ), t.to_s]]
 end.to_h
@@ -111,7 +111,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 108
+num_exp = 109
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -413,7 +413,8 @@ usage_types.keys.each_with_index do |mode, idx|
                      'play' => [4, "The mode 'play' takes its arguments"],
                      'print' => [5, 'and prints them with additional'],
                      'tools' => [4, "The mode 'tools' offers some non-interactive"],
-                     'develop' => [4, "This mode is useful only for the maintainer or developer"]}
+                     'develop' => [4, "This mode is useful only for the maintainer or developer"],
+                     'jamming' => [4, "'jamming' relies on the existing mode 'listen'"] }
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -439,7 +440,8 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'play' => [8, '--max-holes NUMBER'],
                     'print' => [16, 'Please note, that options'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
-                    'develop' => [13, 'If lagging occurs']}
+                    'develop' => [13, 'If lagging occurs'],
+                    'jamming' => [4, 'When printing notes, prefer sharps (e.g. as)'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -3655,7 +3657,7 @@ do_test 'id-131a: info about utilities' do
   tms 'harpwise tools utilities'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[8]['Summary'] }
+  expect { screen[14]['Summary'] }
   kill_session
 end
 
@@ -3692,14 +3694,37 @@ do_test 'id-133: test for diff between man and usage' do
   kill_session
 end
 
-do_test 'id-134: timed.rb' do
+do_test 'id-134: no args for mode jamming' do
   new_session
-  tms "~/harpwise/jamming/jamming.rb ~/harpwise/jamming/12bar.json"
+  tms "harpwise jamming x"
   tms :ENTER
-  sleep 2
-  # If we get to this error message, the format of timed_sample.json
-  # has already been accepted.
-  expect { screen[9]['harpwise listen c --sc-prog 12bar'] }
+  wait_for_end_of_harpwise
+  expect { screen[2]["Mode 'jamming' does not need or accept any arguments"] }
+  kill_session
+end
+
+do_test 'id-135: use jamming.rb as advised by usage' do
+  new_session
+  tms "harpwise jamming >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  lines = File.read($testing_output_file).lines
+  cmd_hw = lines.find {|l| l['harpwise listen']}
+  fail "Did not find suggested command for harpwise in output" unless cmd_hw
+  cmd_hw.strip!
+  cmd_jam = lines.find {|l| l['jamming/jamming.rb']}
+  fail "Did not find suggested command for jamming in output" unless cmd_jam
+  cmd_jam.strip!
+  tms cmd_jam
+  tms :ENTER
+  # The script jamming.rb and the usage-message of mode jamming should suggest the same
+  # commandline for invoking 'harpwise listen"
+  expect(cmd_jam, cmd_hw) { (screen[16].strip + screen[17].strip) == cmd_hw }
+  tms cmd_hw
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  expect { screen[12]['b4']}  
   kill_session
 end
 
