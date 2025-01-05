@@ -23,16 +23,18 @@ Usage by Example:
 
   To use jamming.rb with harpwise, you need *two* terminals. In the first one start e.g.:
 
-    <%= $dirs[:install] %>/harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
+    harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
 
   after that, in the second terminal run:
 
-    <%= $dirs[:install] %>/jamming/jamming.rb <%= $dirs[:install] %>/jamming/12bar.json
+    harpwise jamming 12bar
 
-  The file 12bar.json iself has many comments, that can help to understand
-  its structure and features and how to expand on them. This is not needed
-  initially but becomes essential if you want to use your own
-  backing-tracks or licks.
+  The argument '12bar' is treated as a filename; it is expandeded to '12bar.json' and
+  searched in various directories (for details, let remarks and errors be your guide).
+
+  The file '12bar.json' contains the required settings (e.g. location of the backing track)
+  and has many comments, that can help to understand its content. This is not needed
+  initially but becomes essential if you want to use your own backing-tracks or licks.
 
   Once started, harpwise (as usual) shows your playing on the
   harmonica-chart and indicates, how it matches the current chord; all
@@ -49,9 +51,15 @@ Usage by Example:
   (just like the chords). Start by playing the licks unil you feel in the
   mood for some improvisation, e.g. over the chords.
 
-  In summary jamming.rb can help with a gentle and guided progress to free
-  improvisation.
-
   Note, that in this accustic setup you may either need headphones or a
   hand-held microphone to keep apart your playing from the backing track
   beeing played. This saves harpwise from getting confused.
+
+
+  If, over time, you have created multiple json-files with settings
+  (e.g. different backing-tracks), you may use:
+
+    harpwise jamming list
+
+  to list them.
+

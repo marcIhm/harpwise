@@ -111,7 +111,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 109
+num_exp = 112
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -3694,33 +3694,40 @@ do_test 'id-133: test for diff between man and usage' do
   kill_session
 end
 
-do_test 'id-134: no args for mode jamming' do
+do_test 'id-134: invalid arf for mode jamming' do
   new_session
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[2]["Mode 'jamming' does not need or accept any arguments"] }
+  expect { screen[6]["Could not find file 'x.json'"] }
   kill_session
 end
 
 do_test 'id-135: use jamming.rb as advised by usage' do
   new_session
+
+  # get suggested commands from usage message
   tms "harpwise jamming >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  cmd_hw = lines.find {|l| l['harpwise listen']}
-  fail "Did not find suggested command for harpwise in output" unless cmd_hw
-  cmd_hw.strip!
-  cmd_jam = lines.find {|l| l['jamming/jamming.rb']}
-  fail "Did not find suggested command for jamming in output" unless cmd_jam
-  cmd_jam.strip!
-  tms cmd_jam
+  usg_cmd_hw = lines.find {|l| l['harpwise listen']}
+  fail "Did not find suggested command for harpwise in output" unless usg_cmd_hw
+  usg_cmd_hw.strip!
+  usg_cmd_jam = lines.find {|l| l['harpwise jamming 12bar']}
+  fail "Did not find suggested command for jamming in output" unless usg_cmd_jam
+  usg_cmd_jam.strip!
+  
+  # The usage-message of mode jamming and the error message from starting 'harpwise jamming'
+  # (which comes from the json-file) should suggest the same commandline for invoking
+  # 'harpwise listen"
+  tms usg_cmd_jam
   tms :ENTER
-  # The script jamming.rb and the usage-message of mode jamming should suggest the same
-  # commandline for invoking 'harpwise listen"
-  expect(cmd_jam, cmd_hw) { (screen[16].strip + screen[17].strip) == cmd_hw }
-  tms cmd_hw
+  wait_for_end_of_harpwise
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[16].strip == usg_cmd_hw }
+
+  # The command for 'harpwise listen' from the usage message should not lead to errors
+  tms usg_cmd_hw
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1

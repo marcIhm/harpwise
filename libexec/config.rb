@@ -370,6 +370,10 @@ def set_global_vars_late
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
+  $jamming_dir_local = "#{$dirs[:data]}/jamming"
+  FileUtils.mkdir_p($jamming_dir_local) unless File.directory?($jamming_dir_local)
+  $jamming_dir_global = "#{$dirs[:install]}/jamming"
+  $jamming_path = [$jamming_dir_local, $jamming_dir_global]
 
   # check and do this before read_samples is called in set_global_musical_vars
   if $type == 'richter' and $key == 'c'
