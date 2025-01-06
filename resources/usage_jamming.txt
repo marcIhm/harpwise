@@ -1,23 +1,14 @@
 Overview:
 
-  The mode jamming cooperates with 'harpwise listen' to provide impulse
-  and runway for improvisation. For this it includes a backing-track with
+  The mode jamming works with 'harpwise listen' to provide impulse and
+  runway for improvisation. For this it includes a backing-track with
   timestamps as well as matching sets of lick and chords.
 
 
 Usage by Example:
 
-  You may invoke:
-
-    harpwise jamming
-
-  which takes no arguments and simply issues its usage-message (which you
-  are reading right now).
-
-  Read on for minimum background and for easy-to-follow instructions.
-  
   The mode jamming is a remote control and helper for harpwise mode
-  listen; jamming plays a backing-track while making harpwise switch licks
+  listen; jamming plays a backing-track while making listen switch licks
   and chords (scales). This happens in time with the chord-changes of the
   track (by means of a time-table).
 
@@ -39,8 +30,8 @@ Usage by Example:
   harmonica-chart and indicates, how it matches the current chord; all
   with respect to the backing track beeing played. The scale-progression
   '12bar' is really a chord-progression (I,IV,V) and is switched along by
-  harpwise jamming. This mode uses the timestamps from the file
-  12bar.json to trigger harpwise at the right moments.
+  mode jamming. This mode uses the timestamps from the file 12bar.json to
+  trigger harpwise at the right moments.
 
   With the scripted chord-progression '12bar' you always see, which are
   the notes (holes) from the chord and may check easily, if you play
@@ -52,12 +43,12 @@ Usage by Example:
 
   Note, that in this accustic setup you may either need headphones or a
   hand-held microphone to keep apart your playing from the backing track
-  beeing played. This saves harpwise from getting confused.
+  beeing played.
 
 
   The argument '12bar' above is treated as a filename; it is expandeded to
-  '12bar.json' and searched in two directories (the install-dir of
-  harpwise and ~/.harpwise/jamming).
+  '12bar.json' and searched in two directories: ~/.harpwise/jamming. and
+  the installation-dir of harpwise and
 
   The file '12bar.json' contains the required settings (e.g. location of
   the backing track) and has many comments, that can help to understand

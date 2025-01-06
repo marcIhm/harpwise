@@ -111,7 +111,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 112
+num_exp = 111
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -414,7 +414,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'print' => [5, 'and prints them with additional'],
                      'tools' => [4, "The mode 'tools' offers some non-interactive"],
                      'develop' => [4, "This mode is useful only for the maintainer or developer"],
-                     'jamming' => [4, "'jamming' relies on the existing mode 'listen'"] }
+                     'jamming' => [4, "The mode jamming works with 'harpwise listen' to provide"] }
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -3711,7 +3711,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  usg_cmd_hw = lines.find {|l| l['harpwise listen']}
+  usg_cmd_hw = lines.find {|l| l.strip.start_with?('harpwise listen')}
   fail "Did not find suggested command for harpwise in output" unless usg_cmd_hw
   usg_cmd_hw.strip!
   usg_cmd_jam = lines.find {|l| l['harpwise jamming 12bar']}
@@ -3724,7 +3724,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms usg_cmd_jam
   tms :ENTER
   wait_for_end_of_harpwise
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[16].strip == usg_cmd_hw }
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[17].strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
   tms usg_cmd_hw
