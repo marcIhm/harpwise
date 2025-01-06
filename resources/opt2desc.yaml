@@ -210,11 +210,8 @@ terse:
 read_fifo:
   - |
     When in the main listen-perspective, read keys from fifo
-    ~/.harpwise/remote_fifo too.  This can be useful when automizing
-    certain aspects of its operation. See in the
-    installation-directory of harpwise the script util/timed.rb for an
-    interesting application of this. The name of the fifo is fixed.
-
+    ~/.harpwise/remote_fifo too. This is useful to allow cooperation
+    between modes listen and jamming.
 difficulty:
   - |
     Difficulty of questions asked;

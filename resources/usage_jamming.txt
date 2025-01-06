@@ -1,8 +1,8 @@
 Overview:
 
-  'jamming' relies on the existing mode 'listen' and the script jamming.rb
-  to provide impulse and a runway for improvisation. For this it includes a
-  backing-track as well as matching sets of lick and chords.
+  The mode jamming cooperates with 'harpwise listen' to provide impulse
+  and runway for improvisation. For this it includes a backing-track with
+  timestamps as well as matching sets of lick and chords.
 
 
 Usage by Example:
@@ -16,12 +16,14 @@ Usage by Example:
 
   Read on for minimum background and for easy-to-follow instructions.
   
-  The script jamming.rb is a remote control and helper for harpwise that
-  plays a backing-track while making harpwise switch licks and chords
-  (scales). This happens in time with the chord-changes of the track (by
-  means of a time-table).
+  The mode jamming is a remote control and helper for harpwise mode
+  listen; jamming plays a backing-track while making harpwise switch licks
+  and chords (scales). This happens in time with the chord-changes of the
+  track (by means of a time-table).
 
-  To use jamming.rb with harpwise, you need *two* terminals. In the first one start e.g.:
+
+  To use harpwise jamming, you need *two* terminals. In the first one
+  start e.g.:
 
     harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
 
@@ -29,19 +31,16 @@ Usage by Example:
 
     harpwise jamming 12bar
 
-  The argument '12bar' is treated as a filename; it is expandeded to '12bar.json' and
-  searched in various directories (for details, let remarks and errors be your guide).
+  then switch back to the first terminal, grab your harp and get into the
+  flow.
 
-  The file '12bar.json' contains the required settings (e.g. location of the backing track)
-  and has many comments, that can help to understand its content. This is not needed
-  initially but becomes essential if you want to use your own backing-tracks or licks.
 
-  Once started, harpwise (as usual) shows your playing on the
+  Once started, harpwise listen (as usual) shows your playing on the
   harmonica-chart and indicates, how it matches the current chord; all
   with respect to the backing track beeing played. The scale-progression
   '12bar' is really a chord-progression (I,IV,V) and is switched along by
-  jamming.rb. This script uses the timestamps from the file 12bar.json to
-  trigger harpwise at the right moments.
+  harpwise jamming. This mode uses the timestamps from the file
+  12bar.json to trigger harpwise at the right moments.
 
   With the scripted chord-progression '12bar' you always see, which are
   the notes (holes) from the chord and may check easily, if you play
@@ -55,6 +54,15 @@ Usage by Example:
   hand-held microphone to keep apart your playing from the backing track
   beeing played. This saves harpwise from getting confused.
 
+
+  The argument '12bar' above is treated as a filename; it is expandeded to
+  '12bar.json' and searched in two directories (the install-dir of
+  harpwise and ~/.harpwise/jamming).
+
+  The file '12bar.json' contains the required settings (e.g. location of
+  the backing track) and has many comments, that can help to understand
+  its content. This is not needed initially but becomes essential if you
+  want to use your own backing-tracks or licks.
 
   If, over time, you have created multiple json-files with settings
   (e.g. different backing-tracks), you may use:

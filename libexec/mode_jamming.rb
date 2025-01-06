@@ -68,7 +68,7 @@ def do_jamming to_handle
   $example = params['example_harpwise']
   $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
 
-  err "Cannot find an instance of harpwise, that listens on fifo.\n\nYou may try 'harpwise jamming' to learn about the needed steps to get going.\n\n\nBut for short, starting this in a second terminal should be enough:\n\n  #{$example % $aux_data}\n\nthen come back and start 'harpwise jamming' again." unless $pid_fifo_listener
+  err "Cannot find another instance of harpwise, that listens on fifo.\n\nYou may try 'harpwise jamming' to learn about the needed steps to get going.\n\n\nBut for short, starting this in a second terminal should be enough:\n\n  #{$example % $aux_data}\n\nthen come back and start '#{$full_commandline}' again." unless $pid_fifo_listener
   
   # under wsl2 we may actually use explorer.exe (windows-command !) to start playing
   play_with_win = play_command['explorer.exe'] || play_command['wslview']
@@ -248,7 +248,7 @@ def jamming_send_keys keys
         File.write($fifo, key + "\n")
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{$fifo}.\nIs harpwise still listening on the other side ?"
+      err "Could not write '#{key}' to #{$fifo}.\nIs the other instance of harpwise still listening ?"
     end
     puts "sent key \e[32m'#{key}'\e[0m"
   end

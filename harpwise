@@ -78,7 +78,7 @@ if $testing_what == :argv
 end
 
 # avoid double invocations; only for jamming, a second instance of harpwise is allowed;
-# required in fact (see jamming.rb for that)
+# required in fact (see mode_jamming.rb for that)
 pidfile_fifo_listener = "#{$dirs[:data]}/pid_last_fifo_reader"
 fifo_listener_running = false
 $pid_fifo_listener = ( File.exist?(pidfile_fifo_listener) && File.read(pidfile_fifo_listener).to_i )

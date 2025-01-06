@@ -3703,7 +3703,7 @@ do_test 'id-134: invalid arf for mode jamming' do
   kill_session
 end
 
-do_test 'id-135: use jamming.rb as advised by usage' do
+do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   new_session
 
   # get suggested commands from usage message

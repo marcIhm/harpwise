@@ -1695,7 +1695,7 @@ class HearHole < QuizFlavour
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
     @prompt = "Hole that has been played (hole set '#{@hole_set}', key of #{$key}):"
-    @help_head = "Hole"
+    @help_head = 'Hole'
   end
 
   def self.describe_difficulty
