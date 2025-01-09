@@ -1423,3 +1423,45 @@ def check_needed_viewer_progs needed
   not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed to view player images with method '$opts[:viewer]', but they cannot be found: #{not_found}" if not_found.length > 0
 end
+
+
+def mostly_avoid_double_invocations
+  # Avoid most cases of double invocations; only 'harpwise jamming' and 'harpwise listen
+  # --read-fifo' need each other. 'harpwise jamming' even requires the other one; see
+  # mode_jamming.rb for details. 'harpwise listen --read-fifo' has no such requirements.
+
+  # The files are named 'last' because they survive their creator
+  $pidfile_listen_fifo = "#{$dirs[:data]}/pid_last_listen_fifo"
+  $pidfile_jamming = "#{$dirs[:data]}/pid_last_jamming"
+  pid_listen_fifo, pid_jamming = [$pidfile_listen_fifo, $pidfile_jamming].map {|f| ( File.exist?(f) && File.read(f).to_i )}
+  # set initial values according to this processes owns mode and options; check other procs
+  # below and maybe adjust these vars then. 'p' for 'predicate'
+  $runningp_listen_fifo = ($mode == :listen && $opts[:read_fifo])
+  $runningp_jamming = ($mode == :jamming)
+
+  if ![:develop, :tools, :print].include?($mode)
+    # go through process-list
+    IO.popen('ps -ef').each_line do |line|
+      fields = line.chomp.split(' ',8)
+      pid = fields[1].to_i
+      cmd = fields[-1]
+      next unless cmd['ruby'] && cmd['harpwise']
+      $runningp_listen_fifo = true if pid == pid_listen_fifo
+      $runningp_jamming = true if pid == pid_jamming
+      # if we are jamming, it is okay to have a fifo_listener (see mode_jamming.rb for even
+      # requiring this)
+      next if $mode == :jamming && pid == pid_listen_fifo
+      # if we are fifo-listener, it is okay to have a jammer
+      next if $mode == :listen && $opts[:read_fifo] && pid == pid_jamming
+      err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'" if Process.pid != pid
+    end
+  end
+  # we can write this only after checking all procs above; otherwise we might overwrite the
+  # information of a process, that is still running
+  File.write($pidfile_listen_fifo, "#{Process.pid}\n") if $mode == :listen && $opts[:read_fifo]
+  File.write($pidfile_jamming, "#{Process.pid}\n") if $mode == :jamming
+
+  # remove stale files
+  FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_fifo 
+  FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
+end

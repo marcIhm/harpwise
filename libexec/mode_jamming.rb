@@ -50,7 +50,8 @@ def do_jamming to_handle
                 dir + '/' + arg_w_ending
               end
 
-  puts "Settings from: #{json_file}\n\n"
+  puts
+  puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
   
   #
   # Process json-file with settings
@@ -68,7 +69,16 @@ def do_jamming to_handle
   $example = params['example_harpwise']
   $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
 
-  err "Cannot find an instance of 'harpwise listen', that reads from fifo.\n\nYou may try 'harpwise jamming' to learn about the needed steps to get going.\n\n\nFor short, starting this in a second terminal should be enough:\n\n  #{$example % $aux_data}\n\nthen come back and start '#{$full_commandline}' again.\n\n" unless $pid_fifo_listener
+  unless $runningp_listen_fifo
+    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\n\nPlease start this in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
+    print "Waiting "
+    begin
+      pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
+      print '.'
+      sleep 1
+    end until pid_listen_fifo
+    puts
+  end
   
   # under wsl2 we may actually use explorer.exe (windows-command !) to start playing
   play_with_win = play_command['explorer.exe'] || play_command['wslview']

@@ -77,28 +77,8 @@ if $testing_what == :argv
   exit
 end
 
-# avoid double invocations; only for jamming, a second instance of harpwise is allowed;
-# required in fact (see mode_jamming.rb for that)
-pidfile_fifo_listener = "#{$dirs[:data]}/pid_last_fifo_reader"
-fifo_listener_running = false
-$pid_fifo_listener = ( File.exist?(pidfile_fifo_listener) && File.read(pidfile_fifo_listener).to_i )
+mostly_avoid_double_invocations
 
-if ![:develop, :tools, :print].include?($mode)
-  IO.popen('ps -ef').each_line do |line|
-    fields = line.chomp.split(' ',8)
-    pid = fields[1].to_i
-    cmd = fields[-1]
-    next if $mode == :jamming && $pid_fifo_listener == pid
-    err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'" if Process.pid != pid && cmd[File.basename($0)] && cmd['ruby']
-    fifo_listener_running = true if pid == $pid_fifo_listener
-  end
-end
-if $mode == :listen && $opts[:read_fifo]
-  File.write(pidfile_fifo_listener, "#{Process.pid}\n")
-elsif !fifo_listener_running 
-  FileUtils.rm(pidfile_fifo_listener) if File.exist?(pidfile_fifo_listener)
-end
-           
 
 # we need to have mode for this, so calculate it late
 $lines = calculate_screen_layout
