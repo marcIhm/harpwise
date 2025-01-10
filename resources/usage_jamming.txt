@@ -16,14 +16,18 @@ Usage by Example:
   To use harpwise jamming, you need *two* terminals. In the first one
   start e.g.:
 
-    harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
-
-  after that, in the second terminal run:
-
     harpwise jamming 12bar
 
-  then switch back to the first terminal, grab your harp and get into the
-  flow.
+  this will give you the command for the second terminal, and will stand
+  by until you have started it. For 'jamming 12bar' it will be like this:
+  
+    harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
+
+  note, that advanced users may vary this command, e.g. by choosing
+  a different lick-progression.
+  
+  As soon as both instances of harpwise are running, grab your harp and
+  get into the flow.
 
 
   Once started, harpwise listen (as usual) shows your playing on the
@@ -60,5 +64,9 @@ Usage by Example:
 
     harpwise jamming list
 
-  to list them.
+  to list them, whereas e.g.
+
+    harpwise jamming 12bar
+
+  will get you jamming.
 

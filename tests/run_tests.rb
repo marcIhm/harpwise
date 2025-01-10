@@ -111,7 +111,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 111
+num_exp = 112
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2431,8 +2431,8 @@ end
     wait_for_start_of_pipeline
     sleep 6
     tms 'q'
-    expect { ( md = screen[20].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
-             lpsrange.include?(md[1].to_f) }
+    expect(vals) { ( md = screen[20].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
+                   lpsrange.include?(md[1].to_f) }
     kill_session
   end
 end
@@ -3723,15 +3723,26 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   # 'harpwise listen"
   tms usg_cmd_jam
   tms :ENTER
-  wait_for_end_of_harpwise
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[17].strip == usg_cmd_hw }
+  sleep 4
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[18].strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
+  kill_session
+  new_session
   tms usg_cmd_hw
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
   expect { screen[12]['b4']}  
+  kill_session
+end
+
+do_test 'id-136: harpwise jamming list' do
+  new_session
+  tms "harpwise jamming list"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[11]['12bar.json']}  
   kill_session
 end
 

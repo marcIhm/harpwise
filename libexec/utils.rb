@@ -1430,6 +1430,9 @@ def mostly_avoid_double_invocations
   # --read-fifo' need each other. 'harpwise jamming' even requires the other one; see
   # mode_jamming.rb for details. 'harpwise listen --read-fifo' has no such requirements.
 
+  # Here we only find out who is running and barf on unwanted others; see mode_jamming.rb
+  # for code, that requires a second instance
+  
   # The files are named 'last' because they survive their creator
   $pidfile_listen_fifo = "#{$dirs[:data]}/pid_last_listen_fifo"
   $pidfile_jamming = "#{$dirs[:data]}/pid_last_jamming"

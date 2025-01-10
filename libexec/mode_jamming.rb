@@ -69,17 +69,6 @@ def do_jamming to_handle
   $example = params['example_harpwise']
   $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
 
-  unless $runningp_listen_fifo
-    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\n\nPlease start this in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
-    print "Waiting "
-    begin
-      pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
-      print '.'
-      sleep 1
-    end until pid_listen_fifo
-    puts
-  end
-  
   # under wsl2 we may actually use explorer.exe (windows-command !) to start playing
   play_with_win = play_command['explorer.exe'] || play_command['wslview']
 
@@ -88,12 +77,12 @@ def do_jamming to_handle
   given = Set.new(params.keys)
   err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{json_file}\n" +
       if (given - wanted).length > 0
-        "\nthese parameters given in file are unknown: #{(given - wanted).to_a.join(', ')}"
+        "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
       else
         ''
       end +
       if (wanted - given).length > 0
-         "\nthese parameters are missing in given file: #{(wanted - given).to_a.join(', ')}"
+         "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
       else
         ''
       end + "\n") if given != wanted
@@ -141,12 +130,20 @@ def do_jamming to_handle
   # Start doing user-visible things
   #
 
-  puts "Comment:\n\n  \e[32m" + comment + "\e[0m\n\n"
+  puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
   puts
 
-  puts "Invoke harpwise like this:\n\n  \e[32m" + ( $example % $aux_data ) + "\e[0m\n\n"
-  puts
-
+  unless $runningp_listen_fifo
+    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
+    print "Waiting "
+    begin
+      pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
+      print '.'
+      sleep 1
+    end until pid_listen_fifo
+    puts
+  end
+    
   # allow for testing
   if ENV["HARPWISE_TESTING"]
     puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
@@ -258,7 +255,7 @@ def jamming_send_keys keys
         File.write($fifo, key + "\n")
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{$fifo}.\nIs the other instance of harpwise still listening ?"
+      err "Could not write '#{key}' to #{$fifo}.\nIs 'harpwise listen' still listening ?"
     end
     puts "sent key \e[32m'#{key}'\e[0m"
   end
