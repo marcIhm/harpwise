@@ -247,9 +247,10 @@ def start_fifo_handler
   err "Fifo '#{$remote_fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
 
   fifo = File.open($remote_fifo, 'r+')
+  $ctl_fifo_queue.clear
   $remote_fifo_handler = Thread.new do
     loop do
-      $ctl_kb_queue.enq fifo.gets.chomp
+      $ctl_fifo_queue.enq fifo.gets.chomp
     end
   end
 end
@@ -257,6 +258,7 @@ end
 
 def stop_fifo_handler
   $remote_fifo_handler.kill if $remote_fifo_handler
+  $remote_fifo_handler = nil
 end
 
 
@@ -520,8 +522,12 @@ end
 
 
 def handle_kb_mic
-  return unless $ctl_kb_queue.length > 0
-  char = $ctl_kb_queue.deq
+  return unless $ctl_kb_queue.length > 0 || $ctl_fifo_queue.length > 0
+  char = if $ctl_kb_queue.length > 0
+           $ctl_kb_queue.deq
+         else
+           $ctl_fifo_queue.deq
+         end
   if $keyboard_translations[char]
     if $keyboard_translations[char].is_a?(String)
       char = $keyboard_translations[char]

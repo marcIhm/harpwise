@@ -63,6 +63,7 @@ def set_global_vars_early
 
   # Collect any key pressed and keep it until processed
   $ctl_kb_queue = Queue.new
+  $ctl_fifo_queue = Queue.new
   $ctl_sig_winch = false
   
   # Variables that may be set by pressing keys when listening to microphone
