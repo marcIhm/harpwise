@@ -59,14 +59,11 @@ Usage by Example:
   its content. This is not needed initially but becomes essential if you
   want to use your own backing-tracks or licks.
 
+
   If, over time, you have created multiple json-files with settings
   (e.g. different backing-tracks), you may use:
 
     harpwise jamming list
 
-  to list them, whereas e.g.
-
-    harpwise jamming 12bar
-
-  will get you jamming.
-
+  to list them; if you have many files, you may create subdirectories.
+  

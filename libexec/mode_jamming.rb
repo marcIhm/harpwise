@@ -16,8 +16,8 @@ def do_jamming to_handle
       puts
       puts_underlined "From #{jdir}:", '-', dim: false
       count = 0
-      Dir["#{jdir}/*.json"].each do |jf|
-        puts '  ' + File.basename(jf)
+      Dir["#{jdir}/**/*.json"].each do |jf|
+        puts '  ' + jf[(jdir.length + 1) .. -1]
         count += 1
       end
       puts "  none" if count == 0
@@ -35,20 +35,8 @@ def do_jamming to_handle
   
   explain = "\n\n\e[2mSome background on finding the required json-file with settings: The given argument is tried as a filename; if it contains a '/', it is assumed to be an absolute filename and is tried as such; on the contrary: if the filename does not contain a '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
 
-  json_file = if arg_w_ending['/']
-                if File.exist?(arg_w_ending)
-                  arg_w_ending
-                else
-                  err "Given file '#{arg_w_ending} does not exist in current directory.#{explain}"
-                end
-              else
-                if File.exist?(arg_w_ending) && !$jamming_path.include?(Dir.pwd)
-                  puts "\n\e[32mRemark:\e[0m Skipping file '#{arg_w_ending}' from current directory, use './#{arg_w_ending}' to enforce it.#{explain}"
-                  explain = ''
-                end
-                dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
-                dir + '/' + arg_w_ending
-              end
+  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
+  json_file = dir + '/' + arg_w_ending
 
   puts
   puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
