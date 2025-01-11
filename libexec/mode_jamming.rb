@@ -56,7 +56,6 @@ def do_jamming to_handle
   #
   # Process json-file with settings
   #
-  
   params = JSON.parse(File.read(json_file).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
   timestamps_to_actions = params['timestamps_to_actions']
   sleep_after_iteration = params['sleep_after_iteration']
@@ -126,38 +125,37 @@ def do_jamming to_handle
     ta[0] = 0.0 if ta[0] < 0
   end
 
+  # try to figure out file and check if present
+  endings = %w(.mp3 .wav .ogg)
+  play_command = play_command % $aux_data
+  file = CSV::parse_line(play_command,col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
+  err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+
   #
   # Start doing user-visible things
   #
 
   puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
-  puts
 
-  unless $runningp_listen_fifo
-    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
+  if $runningp_listen_fifo
+    puts "\nFound 'harpwise listen'"
+  else
+    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
     print "Waiting "
     begin
       pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
       print '.'
       sleep 1
     end until pid_listen_fifo
-    puts
+    puts ' found it'
   end
+  puts
     
   # allow for testing
   if ENV["HARPWISE_TESTING"]
     puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
     exit 0
   end
-
-  # try to figure out file and check if present even before first sleep
-  endings = %w(.mp3 .wav .ogg)
-  play_command = play_command % $aux_data
-  file = CSV::parse_line(play_command,col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
-  err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
-
-  # make some room below to have initial error (if any) without scrolling
-  print "\n\n\n\n\e[4A"
 
   if sleep_initially > 0
     jamming_do_action ['message',
@@ -213,6 +211,7 @@ def do_jamming to_handle
     puts
     pp timestamps_to_actions
     puts
+    puts "\nRemark: No need to watch this terminal, rather go over to 'harpwise listen' ...\n\n\n"
 
     # one action after the other
     timestamps_to_actions.each_cons(2).each_with_index do |pair,j|
