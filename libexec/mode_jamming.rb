@@ -16,7 +16,19 @@ def do_jamming to_handle
       puts
       puts_underlined "From #{jdir}:", '-', dim: false
       count = 0
-      Dir["#{jdir}/**/*.json"].each do |jf|
+      Dir["#{jdir}/**/*.json"].sort do |a,b|
+        as = a[(jdir.length + 1) .. -1]
+        bs = b[(jdir.length + 1) .. -1]
+        if as['/'] && bs['/']
+          as <=> bs
+        elsif as['/']
+          +1
+        elsif bs['/']
+          -1
+        else
+          as <=> bs
+        end
+      end.each do |jf|
         puts '  ' + jf[(jdir.length + 1) .. -1]
         count += 1
       end
