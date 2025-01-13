@@ -9,14 +9,22 @@ def do_jamming to_handle
 
   err "'harpwise jamming' accepts only a single argument, not #{to_handle}" if to_handle.length > 1
 
+  #
+  # Try to make output pretty but also easy for copy and paste
+  #
   if to_handle[0] == 'list'
     puts
-    puts_underlined "Available jamming-files:",vspace: false
+    puts "Available jamming-files:\e[2m"
     $jamming_path.each do |jdir|
       puts
-      puts_underlined "From #{jdir}:", '-', dim: false
+      puts "\e[2mFrom \e[0m\e[32m#{jdir}\e[0m\e[2m/"
+      puts
       count = 0
+      # prefixes for coloring
+      ppfx = pfx = ''
+      # sort files in toplevel dir first and then all subdirs
       Dir["#{jdir}/**/*.json"].sort do |a,b|
+        # short versions without dir from jpath
         as = a[(jdir.length + 1) .. -1]
         bs = b[(jdir.length + 1) .. -1]
         if as['/'] && bs['/']
@@ -29,10 +37,22 @@ def do_jamming to_handle
           as <=> bs
         end
       end.each do |jf|
-        puts '  ' + jf[(jdir.length + 1) .. -1]
+        jfs = jf[(jdir.length + 1) .. -1]
+        # dim, if there is a prefix, that did not change
+        if md = jfs.match(/^(.*?\/)/)
+          pfx = md[1]
+        else
+          ppfx = pfx = ''
+        end
+        if pfx.length == 0 || pfx != ppfx
+          puts "\e[0m  " + jfs
+          ppfx = pfx
+        else
+          puts "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
+        end
         count += 1
       end
-      puts "  none" if count == 0
+      puts "\e[0m  none" if count == 0
     end
     puts
     exit
