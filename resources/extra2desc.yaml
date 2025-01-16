@@ -3,10 +3,9 @@
 
 play:
   licks: |
-    all licks selected (e.g. by option -t). Add 'radio' as an argument
-    to turn harpwise into a lick-radio to play without interruption
-    (but repeats); another optional argument can be the number of
-    repeats
+    all licks selected (e.g. by option -t). Add option '--lick-radio'
+    to make harpwise play licks without interruption (but repeats);
+    as an optional argument you may give the number of repeats
   pitch: |
     play an interactive, adjustable pitch; this may help to find the
     key of a song by ear-comparison; the initial key, e.g. 'a4' can be

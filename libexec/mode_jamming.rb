@@ -67,8 +67,12 @@ def do_jamming to_handle
   
   explain = "\n\n\e[2mSome background on finding the required json-file with settings: The given argument is tried as a filename; if it contains a '/', it is assumed to be an absolute filename and is tried as such; on the contrary: if the filename does not contain a '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
 
-  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
-  json_file = dir + '/' + arg_w_ending
+  json_file = if arg_w_ending[0] == '/'
+                arg_w_ending
+              else                
+                dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
+                dir + '/' + arg_w_ending
+              end
 
   puts
   puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
@@ -160,7 +164,7 @@ def do_jamming to_handle
   if $runningp_listen_fifo
     puts "\nFound 'harpwise listen'"
   else
-    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\n\n"
+    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nNo need then to come back here.\n\n"
     print "Waiting "
     begin
       pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
