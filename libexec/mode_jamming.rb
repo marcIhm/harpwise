@@ -7,73 +7,32 @@ def do_jamming to_handle
   $fifo = "#{Dir.home}/.harpwise/remote_fifo"
   $message = "#{Dir.home}/.harpwise/remote_message"
 
-  err "'harpwise jamming' accepts only a single argument, not #{to_handle}" if to_handle.length > 1
-
-  #
-  # Try to make output pretty but also easy for copy and paste
-  #
-  if to_handle[0] == 'list'
-    puts
-    puts "Available jamming-files:\e[2m"
-    $jamming_path.each do |jdir|
-      puts
-      puts "\e[2mFrom \e[0m\e[32m#{jdir}\e[0m\e[2m/"
-      puts
-      count = 0
-      # prefixes for coloring
-      ppfx = pfx = ''
-      # sort files in toplevel dir first and then all subdirs
-      Dir["#{jdir}/**/*.json"].sort do |a,b|
-        # short versions without dir from jpath
-        as = a[(jdir.length + 1) .. -1]
-        bs = b[(jdir.length + 1) .. -1]
-        if as['/'] && bs['/']
-          as <=> bs
-        elsif as['/']
-          +1
-        elsif bs['/']
-          -1
-        else
-          as <=> bs
-        end
-      end.each do |jf|
-        jfs = jf[(jdir.length + 1) .. -1]
-        # dim, if there is a prefix, that did not change
-        if md = jfs.match(/^(.*?\/)/)
-          pfx = md[1]
-        else
-          ppfx = pfx = ''
-        end
-        if pfx.length == 0 || pfx != ppfx
-          puts "\e[0m  " + jfs
-          ppfx = pfx
-        else
-          puts "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
-        end
-        count += 1
-      end
-      puts "\e[0m  none" if count == 0
+  if $extra
+    
+    case $extra
+    when 'list'
+      
+      err_args_not_allowed(to_handle) if to_handle.length > 0
+      do_jamming_list
+      
+    when'edit'
+      
+      err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 2
+      err "'harpwise jamming edit' needs exactly one additional argument; none is given however" if to_handle.length == 0
+      tool_edit_file get_jamming_json(to_handle[0])
+      
     end
-    puts
-    exit
+    
+  else  ## no extra argument
+      
+    do_the_jamming get_jamming_json(to_handle[0])
+    
   end
-  
-  arg_w_ending = if to_handle[0].match?(/\.[a-zA-Z0-9]+$/)
-                    to_handle[0]
-                 else
-                   puts "\n\e[32mRemark:\e[0m Adding required ending '.json' to given argument '#{to_handle[0]}' for convenience.\e[0m\n\n"                    
-                   to_handle[0] + '.json'
-                 end
-  
-  explain = "\n\n\e[2mSome background on finding the required json-file with settings: The given argument is tried as a filename; if it contains a '/', it is assumed to be an absolute filename and is tried as such; on the contrary: if the filename does not contain a '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
+end
 
-  json_file = if arg_w_ending[0] == '/'
-                arg_w_ending
-              else                
-                dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
-                dir + '/' + arg_w_ending
-              end
 
+def do_the_jamming json_file
+  
   puts
   puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
   
@@ -105,7 +64,7 @@ def do_jamming to_handle
         ''
       end +
       if (wanted - given).length > 0
-         "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
+        "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
       else
         ''
       end + "\n") if given != wanted
@@ -174,7 +133,7 @@ def do_jamming to_handle
     puts ' found it'
   end
   puts
-    
+  
   # allow for testing
   if ENV["HARPWISE_TESTING"]
     puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
@@ -271,6 +230,7 @@ def do_jamming to_handle
   
 end
 
+
 def jamming_send_keys keys
   keys.each do |key|
     begin
@@ -283,6 +243,7 @@ def jamming_send_keys keys
     puts "sent key \e[32m'#{key}'\e[0m"
   end
 end
+
 
 def jamming_do_action action, iter, noop: false
   if action[0] == 'message' || action[0] == 'loop-start'
@@ -305,4 +266,96 @@ def jamming_do_action action, iter, noop: false
     err("Unknown type '#{action[0]}'")
     return if noop
   end
+end
+
+
+def get_jamming_dirs_content
+  cont = Hash.new
+  $jamming_path.each do |jdir|
+    cont[jdir] = Dir["#{jdir}/**/*.json"].sort do |a,b|
+      # short versions without dir from jpath
+      as = a[(jdir.length + 1) .. -1]
+      bs = b[(jdir.length + 1) .. -1]
+      if as['/'] && bs['/']
+        as <=> bs
+      elsif as['/']
+        +1
+      elsif bs['/']
+        -1
+      else
+        as <=> bs
+      end
+    end
+  end
+
+  cont
+end
+
+
+def get_jamming_json arg, extra_allowed: false
+  # get json-file to handle
+  if arg.match?(/^\d+$/)
+    num = arg.to_i
+    cont = $jamming_dirs_content.values.flatten
+    explain = "Use 'harpwise jamming list' to see the available jamming-files with numbers"
+    err "Given number '#{arg}' is less than one. #{explain}" if num < 1
+    err "Given number '#{arg}' is larger than maximum of #{cont.length}. #{explain}" if num > cont.length
+    json_file = cont[num - 1]
+  else
+    arg_w_ending = if arg.match?(/\.[a-zA-Z0-9]+$/)
+                     arg
+                   else
+                     puts "\n\e[32mRemark:\e[0m Adding required ending '.json' to given argument '#{arg}' for convenience.\e[0m\n\n"                    
+                     arg + '.json'
+                   end
+    
+    explain = "\n\n\e[2mSome background on finding the required json-file with settings: If the given argument is a plain number, it is treated The given argument is tried as a filename; if it starts with a '/', it is assumed to be an absolute filename and is tried as such; on the contrary: if the filename does not start with '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
+
+    json_file = if arg_w_ending[0] == '/'
+                  arg_w_ending
+                else                
+                  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
+                  dir + '/' + arg_w_ending
+                end
+  end
+  json_file
+end
+
+
+def do_jamming_list
+  #
+  # Try to make output pretty but also easy for copy and paste
+  #
+  puts
+  puts "Available jamming-files:\e[2m"
+  tcount = 1
+  $jamming_path.each do |jdir|
+    puts
+    puts "\e[2mFrom \e[0m\e[32m#{jdir}\e[0m\e[2m/"
+    puts
+    count = 0
+    # prefixes for coloring
+    ppfx = pfx = ''
+    # sort files in toplevel dir first and then all subdirs
+    $jamming_dirs_content[jdir].each do |jf|
+      jfs = jf[(jdir.length + 1) .. -1]
+      # dim, if there is a prefix, that did not change
+      if md = jfs.match(/^(.*?\/)/)
+        pfx = md[1]
+      else
+        ppfx = pfx = ''
+      end
+      print "\e[0m\e[2m%2d:\e[0m" % tcount
+      if pfx.length == 0 || pfx != ppfx
+        puts "\e[0m  " + jfs
+        ppfx = pfx
+      else
+        puts "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
+      end
+      count += 1
+      tcount += 1
+    end
+    puts "\e[0m  none" if count == 0
+  end
+  puts
 end

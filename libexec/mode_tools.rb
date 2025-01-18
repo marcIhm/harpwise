@@ -673,7 +673,7 @@ def tool_chart to_handle
 end
 
 
-def tool_edit_file file, to_handle
+def tool_edit_file file, to_handle = []
 
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
   puts "\nInvoking #{$editor} on \e[0m\e[32m#{file}\e[0m\n\n"

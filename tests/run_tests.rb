@@ -1717,7 +1717,6 @@ do_test 'id-48b: chromatic in a, scale blues; listen; creation of derived' do
 end
 
 do_test 'id-49: edit lickfile' do
-  ENV['EDITOR']='vi'
   new_session
   tms 'EDITOR=vi harpwise licks blues --start-with wade'
   tms :ENTER
@@ -3694,12 +3693,12 @@ do_test 'id-133: test for diff between man and usage' do
   kill_session
 end
 
-do_test 'id-134: invalid arf for mode jamming' do
+do_test 'id-134: invalid arg for mode jamming' do
   new_session
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[6]["Could not find file 'x.json'"] }
+  expect { screen[14]["for mode jamming should belong to one of these 3"] }
   kill_session
 end
 
@@ -3724,7 +3723,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms usg_cmd_jam
   tms :ENTER
   sleep 4
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[18].strip == usg_cmd_hw }
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[17].strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
   kill_session
@@ -3742,7 +3741,15 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[11]['12bar.json']}  
+  expect { screen[10]['1:  12bar.json']}  
+  kill_session
+end
+
+do_test 'id-137: harpwise jamming edit with a number' do
+  new_session
+  tms "EDITOR=vi harpwise jamming edit 1"
+  tms :ENTER
+  expect { screen[19]['hint for user on how to start harpwise']}  
   kill_session
 end
 

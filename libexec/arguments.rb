@@ -533,6 +533,7 @@ def parse_arguments_for_mode
   $amongs[:play] = [:hole, :note, :event, :scale, :lick, :last, :lick_prog, :semi_note]
   $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
   $amongs[:licks] = [:hole, :note, :lick]
+  $amongs[:jamming] = [:jamming_file, :jamming_number]
 
   $extra = nil
   okay = true
@@ -540,7 +541,7 @@ def parse_arguments_for_mode
 
   # Only some modes accept an extra argument, listen or licks e.g. do not
   if $extra_desc[$mode]
-    if [:play, :print].include?($mode)
+    if [:play, :print, :jamming].include?($mode)
       # These mode (play, print) are the only two modes, that allow
       # arguments on the commandline as well as an extra argument, which
       # however is optional (quiz as a counterexample requires its extra
@@ -553,7 +554,7 @@ def parse_arguments_for_mode
       # removed) will later be checked again, but only against
       # $amongs[$mode]
       what = recognize_among(ARGV[0],
-                             [$amongs[$mode], :extra, :extra_w_wo_s],
+                             [$amongs[$mode], :extra, ($mode == :jamming  ?  []  :  :extra_w_wo_s)],
                              licks: $all_licks)
       $extra = ARGV.shift if what == :extra
       if !what
@@ -561,7 +562,7 @@ def parse_arguments_for_mode
         # against $all_licks above
         $licks = $all_licks
         any_of = print_amongs($amongs[$mode], :extra)
-        err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
+        err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
       end
     else
       # these modes (e.g. quiz or samples) require their extra argument

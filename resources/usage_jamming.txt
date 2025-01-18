@@ -66,4 +66,17 @@ Usage by Example:
     harpwise jamming list
 
   to list them; if you have many files, you may create subdirectories.
+
+  The numbers, that 'jamming list' produces, can be used instead of
+  giving the full filename, so
+
+    harpwise jamming 1
+
+  is valid too and refers to the file '12bar.json'.
+
   
+  Finally, here ist the list of supported extra arguments:
+
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
+
+  which are used only, if you do not want to jam right now.

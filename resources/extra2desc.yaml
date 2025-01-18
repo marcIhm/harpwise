@@ -254,6 +254,13 @@ samples:
 
     By giving the argument 'all' you may delete all samples for all
     keys.
+jamming:
+  edit: |
+    edit given jamming-file; either specified as a number (as given
+    by 'list') or a filename
+  list: |
+    list available jamming-files and precede them by numbers, that
+    might be used instead of a filename
 develop:
   man: |
     produce man page from erb-template
