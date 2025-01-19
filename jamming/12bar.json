@@ -1,12 +1,12 @@
 {
     //
-    //  See the usage-message of 'harpwise jamming' for instructions on how to employ this
+    //  See the usage-message of 'harpwise jamming' for instructions on how to use this
     //  file.
     //
 
     // Note the '-q', which makes sure, that play (sox) does not try to print
-    // anything. Also, the %{install_dir}-clause refers to the installation-directory of
-    // harpwise, which also contains the given mp3
+    // anything. Also, the clause '%{install_dir}' refers to the installation-directory of
+    // harpwise, which (among others) contains the given mp3
     "play_command": "play -q %{install_dir}/recordings/12bar.mp3",
     "comment": "A 12-bar backing-track (334 s) and a set (box1) of 3 licks for chords I,IV,V. Play each lick while it is displayed over one bar. E.g. play the first lick four times, than the second one two times, etc. Note that always a matching scale (chord) is displayed giving useful holes for impovisation. Play either with a mic or use earphones to help harpwise sense your playing even in the presence of the backing track.",
     // hint for user on how to start harpwise

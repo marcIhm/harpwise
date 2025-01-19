@@ -17,7 +17,7 @@ def do_jamming to_handle
       
     when'edit'
       
-      err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 2
+      err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 1
       err "'harpwise jamming edit' needs exactly one additional argument; none is given however" if to_handle.length == 0
       tool_edit_file get_jamming_json(to_handle[0])
       
@@ -123,7 +123,7 @@ def do_the_jamming json_file
   if $runningp_listen_fifo
     puts "\nFound 'harpwise listen'"
   else
-    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nNo need then to come back here.\n\n"
+    puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nSo you can stay with it and need not come back here.\n\n"
     print "Waiting "
     begin
       pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )

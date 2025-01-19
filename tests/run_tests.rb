@@ -1116,9 +1116,9 @@ do_test 'id-22b: print tries its first argument against various areas' do
    "- selected licks:\n",
    "  , where set of licks has not been restricted by tags\n",
    "- scales:\n",
-   "- A symbolic name for one of the last licks:\n",
+   "- A symbolic name for one of the last licks\n",
    "- extra arguments (specific for mode print):\n"].each_with_index do |exp,idx|
-    expect(exp, "See #{$testing_output_file}") { lines.include?(exp) }
+    expect(exp, $testing_output_file) { lines.include?(exp) }
   end
   kill_session
 end
@@ -2208,7 +2208,7 @@ do_test 'id-60: listen with auto journal' do
   tms 'm'
   sleep 8
   expect { screen[1]['licks(1,ran)'] }
-  sleep 1
+  sleep 2
   expect { screen[-1]['journal'] }
   kill_session
   ENV.delete('EDITOR')

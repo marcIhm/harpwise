@@ -5,12 +5,12 @@ Overview:
   timestamps as well as matching sets of lick and chords.
 
 
-Usage by Example:
+Usage by Examples:
 
-  The mode jamming is a remote control and helper for harpwise mode
+  The mode jamming is a remote control and helper for harpwise in mode
   listen; jamming plays a backing-track while making listen switch licks
   and chords (scales). This happens in time with the chord-changes of the
-  track (by means of a time-table).
+  track by means of a time-table (see below).
 
 
   To use harpwise jamming, you need *two* terminals. In the first one
@@ -30,7 +30,7 @@ Usage by Example:
   get into the flow.
 
 
-  Once started, harpwise listen (as usual) shows your playing on the
+  Once started, 'harpwise listen' (as usual) shows your playing on the
   harmonica-chart and indicates, how it matches the current chord; all
   with respect to the backing track beeing played. The scale-progression
   '12bar' is really a chord-progression (I,IV,V) and is switched along by
@@ -75,8 +75,8 @@ Usage by Example:
   is valid too and refers to the file '12bar.json'.
 
   
-  Finally, here ist the list of supported extra arguments:
+  Finally, here is the list of supported extra arguments:
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
 
-  which are used only, if you do not want to jam right now.
+  which can be helpful before you start jamming.

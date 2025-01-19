@@ -26,7 +26,7 @@ def parse_arguments_early
 
   # get mode
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
-    err "First argument can be one of\n\n   #{choices}\n\nnot #{none}.\n\n    Please invoke without argument for general usage information.\n\n" +
+    err "First argument can be one of\n\n   #{choices}\n\nnot #{none}.\n\n   Please invoke without argument for general usage information.\n\n" +
         if $conf[:all_keys].include?(ARGV[0])
           "However your first argument '#{ARGV[0]}' is a key, which might be placed further right on the commandline, if you wish."
         else
