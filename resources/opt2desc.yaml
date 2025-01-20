@@ -209,9 +209,10 @@ terse:
   
 read_fifo:
   - |
-    When in the main listen-perspective, read keys from fifo
-    ~/.harpwise/remote_fifo too. This is useful to allow cooperation
-    between modes listen and jamming.
+    When in the main listen-perspective,
+    read keys from fifo ~/.harpwise/remote_fifo too.
+    This is useful e.g. to allow cooperation between modes listen
+    and jamming.
     
 difficulty:
   - |

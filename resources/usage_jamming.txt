@@ -21,7 +21,7 @@ Usage by Examples:
   this will give you the command for the second terminal, and will stand
   by until you have started it. For 'jamming 12bar' it will be like this:
   
-    harpwise listen c --sc-prog 12bar --lick-prog box1 --read-fifo
+    harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming
 
   note, that advanced users may vary this command, e.g. by choosing
   a different lick-progression.

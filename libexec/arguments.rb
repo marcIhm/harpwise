@@ -62,11 +62,11 @@ def parse_arguments_early
         no_add_holes: %w(--no-add-holes)}],
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
-        comment: %w(-c --comment),
-        read_fifo: %w(--read-fifo)}],
+        comment: %w(-c --comment)}],
      [Set[:listen, :licks], {
         scale_prog: %w(--sc-prog --scale-prog --scale-progression),
-        keyboard_translate: %w(--kb-tr --keyboard-translate)}],
+        keyboard_translate: %w(--kb-tr --keyboard-translate),
+        read_fifo: %w(--jamming --read-fifo)}],
      [Set[:listen, :licks, :play, :print], {
         # any mode that handles this option needs to make sure to reread licks
         lick_prog: %w(--li-prog --lick-prog --lick-progression)}],
