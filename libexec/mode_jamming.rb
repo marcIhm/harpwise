@@ -177,7 +177,7 @@ def do_the_jamming json_file
     end
     
     puts
-    puts "\e[32mAny key, any time to pause.\e[0m"
+    puts "\e[32mPress SPACE to pause.\e[0m"
     puts
 
     # one action after the other
@@ -348,14 +348,27 @@ end
 
 def my_sleep secs
   start_at = Time.now.to_f
+  hinted = false
   begin
     if $ctl_kb_queue.length > 0
-      $ctl_kb_queue.clear
-      $pplayer&.pause
-      print "\n\n\e[32mPaused: \e[0m"
-      space_to_cont
-      puts "\e[0m\e[32mgo\e[0m"        
-      $pplayer&.continue
+      space_seen = false
+      while $ctl_kb_queue.length > 0
+        char = $ctl_kb_queue.deq
+        if char == ' '
+          space_seen = true
+        elsif !hinted
+          puts "\n\e[0m\e[2mSPACE to pause, all other keys are ignored.\e[0m"
+          hinted = true
+        end
+      end
+      if space_seen
+        $ctl_kb_queue.clear
+        $pplayer&.pause
+        print "\n\n\e[32mPaused: \e[0m"
+        space_to_cont
+        puts "\e[0m\e[32mgo\e[0m"        
+        $pplayer&.continue
+      end
     end
     if !$pplayer.alive?
       puts
