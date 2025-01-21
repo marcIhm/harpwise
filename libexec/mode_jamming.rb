@@ -238,7 +238,7 @@ def jamming_do_action action, iter, noop: false
       err("Message to be sent can only be one line, but this has more: #{action[1]}")
     end
     return if noop
-    $aux_data[:iteration] = iter
+    $aux_data[:iteration] = iter if iter
     $aux_data[:elapsed] = "%.1f" % ( Time.now.to_f - $ts_prog_start )
     File.write("#{Dir.home}/.harpwise/remote_message",
                ( action[1].chomp % $aux_data ) + "\n" + action[2].to_s + "\n")
@@ -374,6 +374,7 @@ def my_sleep secs
       puts
       puts "Backing track has ended."
       puts
+      jamming_do_action ["message","Backing track has ended.",1], nil
       exit 0
     end
     sleep 0.1
