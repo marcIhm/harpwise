@@ -134,11 +134,17 @@ def do_the_jamming json_file
     exit 0
   end
 
+  if sleep_after_iteration != 0
+    timestamps_to_actions[-1][0] += sleep_after_iteration * timestamps_multiply
+    puts "Adding sleep_after_iteration * timestamps_multiply = #{sleep_after_iteration * timestamps_multiply} to last timestamp"
+  end
+  
   if sleep_initially > 0
     jamming_do_action ['message',
                        'sleep initially for %.1d secs' % sleep_initially,
                        [0.0, sleep_initially - 0.2].max.round(1)],
                       0
+    puts "Initial sleep %.2f sec" % sleep_initially    
     sleep sleep_initially
   end
 
@@ -153,7 +159,7 @@ def do_the_jamming json_file
   end
   
   sleep_secs = timestamps_to_actions[0][0]
-  puts "Initial sleep %.2f sec" % sleep_secs
+  puts "Sleep before first action %.2f sec" % sleep_secs
   my_sleep sleep_secs
   ts_iter_start = nil
   
@@ -199,11 +205,6 @@ def do_the_jamming json_file
     jamming_do_action timestamps_to_actions[-1][1 .. -1], iter
     puts "at ts %.2f sec" % timestamps_to_actions[-1][0]
 
-    if sleep_after_iteration > 0
-      puts "and sleep after iteration %.2f sec" % ( sleep_after_iteration * timestamps_multiply ) 
-      my_sleep ( sleep_after_iteration * timestamps_multiply )
-    end
-    
     if iter == 1
       while timestamps_to_actions[0][1] != 'loop-start'
         timestamps_to_actions.shift
