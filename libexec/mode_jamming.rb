@@ -377,5 +377,6 @@ def my_sleep secs
       exit 0
     end
     sleep 0.1
-  end while Time.now.to_f - start_at < secs + ( $pplayer  ?  $pplayer.sum_pauses :  0 )
+  end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
+  $pplayer.sum_pauses = 0 if $pplayer
 end
