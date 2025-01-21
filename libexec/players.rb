@@ -958,6 +958,7 @@ end
 
 class PausablePlayer
 
+  attr_reader :sum_pauses
   def initialize cmd
     @cmd = cmd
     _, @stdout_err, @wait_thr  = Open3.popen2e(cmd)
@@ -972,6 +973,10 @@ class PausablePlayer
     return true
   end
 
+  def wait
+    Process.wait(@wait_thr.pid) if @wait_thr.alive?  
+  end
+  
   def continue
     Process.kill('CONT', @wait_thr.pid) if @wait_thr.alive?
     if @paused_at

@@ -213,8 +213,8 @@ end
 
 def sane_term
   system("stty sane")
-  # do not show cursor; the only place where this is needed, at_exit,
-  # does this explicitly
+  # This is not the exact opposite of prepare_term, because it does not show cursor; the
+  # only place where this is needed (at_exit) does this explicitly
 end
 
 

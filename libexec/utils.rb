@@ -1362,7 +1362,7 @@ class MsgBuf
 
   def flush_to_term
     return if @@lines_durations.length == 0 || @@lines_durations.none? {|l,_| l}
-    puts "\n\e[0m\e[2mFlushing pending messages:"
+    puts "\n\e[0m\e[2mFlushing pending messages for completeness:"
     @@lines_durations.each do |l,_|
       next if !l
       puts '  ' + l

@@ -30,7 +30,7 @@
     // of seconds elapsed.
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise
-        [0,"message","%{comment}. Intro ...",0],
+        [0,"message","%{comment}",0],
         [-2,"message","In two secs ...",1.8],
 	// exactly one loop-start is needed
         [6,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],

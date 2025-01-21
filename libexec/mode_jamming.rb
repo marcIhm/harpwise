@@ -4,9 +4,6 @@
 
 def do_jamming to_handle
 
-  $fifo = "#{Dir.home}/.harpwise/remote_fifo"
-  $message = "#{Dir.home}/.harpwise/remote_message"
-
   if $extra
     
     case $extra
@@ -50,9 +47,6 @@ def do_the_jamming json_file
   $ts_prog_start = Time.now.to_f
   $example = params['example_harpwise']
   $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
-
-  # under wsl2 we may actually use explorer.exe (windows-command !) to start playing
-  play_with_win = play_command['explorer.exe'] || play_command['wslview']
 
   # check if all parameters present
   wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
@@ -148,39 +142,21 @@ def do_the_jamming json_file
     sleep sleep_initially
   end
 
-  puts play_command
+  make_term_immediate
+  # start play-command
+  puts "\n\nStarting:\n\n    #{play_command}\n\n"
+  $pplayer = PausablePlayer.new(play_command)
   puts
 
-  # start play-command
-  Thread.new do
-    puts "\n\nStarting:\n\n    #{play_command}\n\n"
-    if play_with_win
-      # avoid spurious output of e.g. media-player
-      system "#{play_command} >/dev/null 2>&1"
-    else
-      system play_command
-    end
-    puts
-    if play_with_win
-      puts "Assuming this is played with windows-programs, not waiting for its end.\n\n"
-    else
-      sleep 1
-      puts
-      puts "Backing track has ended."
-      puts
-      exit 0
-    end
-  end
-
   at_exit do
-    system "killall play >/dev/null 2>&1" unless play_with_win
+    $pplayer&.kill
   end
-
+  
   sleep_secs = timestamps_to_actions[0][0]
   puts "Initial sleep %.2f sec" % sleep_secs
-  sleep sleep_secs
+  my_sleep sleep_secs
   ts_iter_start = nil
-
+  
   # endless loop one iteration after the other
   (1 .. ).each do |iter|
     ts_iter_start_prev = ts_iter_start
@@ -193,21 +169,28 @@ def do_the_jamming json_file
     end
     puts
     pp timestamps_to_actions
+
+    if iter == 1
+      puts
+      puts "\n\e[32mYou may now go over to 'harpwise listen' ... "
+      puts "Come back here only, if you wish to pause the backing track.\e[0m"
+    end
+    
     puts
-    puts "\nRemark: No need to watch this terminal, rather go over to 'harpwise listen' ...\n\n\n"
+    puts "\e[32mAny key, any time to pause.\e[0m"
+    puts
 
     # one action after the other
     timestamps_to_actions.each_cons(2).each_with_index do |pair,j|
       tsx, tsy = pair[0][0], pair[1][0]
       action = pair[0][1 .. -1]
-      puts "Action #{j + 1}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"
+      puts "Action #{j + 1}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}) at %.2f sec:" % tsx
 
       jamming_do_action action, iter
 
       sleep_between = tsy - tsx
-      puts "at ts %.2f sec" % tsx
       puts "sleep %.2f sec" % sleep_between
-      sleep sleep_between
+      my_sleep sleep_between
       puts
 
     end  ## one action after the other
@@ -218,7 +201,7 @@ def do_the_jamming json_file
 
     if sleep_after_iteration > 0
       puts "and sleep after iteration %.2f sec" % ( sleep_after_iteration * timestamps_multiply ) 
-      sleep ( sleep_after_iteration * timestamps_multiply )
+      my_sleep ( sleep_after_iteration * timestamps_multiply )
     end
     
     if iter == 1
@@ -231,16 +214,17 @@ def do_the_jamming json_file
 end
 
 
-def jamming_send_keys keys
+def jamming_send_keys keys, silent: false
+  fifo = "#{Dir.home}/.harpwise/remote_fifo"
   keys.each do |key|
     begin
       Timeout::timeout(0.5) do
-        File.write($fifo, key + "\n")
+        File.write(fifo, key + "\n")
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{$fifo}.\nIs 'harpwise listen' still listening ?"
+      err "Could not write '#{key}' to #{fifo}.\nIs 'harpwise listen' still listening ?"
     end
-    puts "sent key \e[32m'#{key}'\e[0m"
+    puts "sent key \e[0m\e[2m'#{key}'\e[0m" unless silent
   end
 end
 
@@ -256,9 +240,10 @@ def jamming_do_action action, iter, noop: false
     return if noop
     $aux_data[:iteration] = iter
     $aux_data[:elapsed] = "%.1f" % ( Time.now.to_f - $ts_prog_start )
-    File.write($message, ( action[1].chomp % $aux_data ) + "\n" + action[2].to_s + "\n")
-    puts "sent message '#{action[1].chomp % $aux_data}'"
-    jamming_send_keys ["ALT-m"]
+    File.write("#{Dir.home}/.harpwise/remote_message",
+               ( action[1].chomp % $aux_data ) + "\n" + action[2].to_s + "\n")
+    puts "sent message \e[2m'#{action[1].chomp % $aux_data}'\e[0m"
+    jamming_send_keys ["ALT-m"], silent: true
   elsif action[0] == 'keys'
     return if noop
     jamming_send_keys action[1 .. -1]
@@ -358,4 +343,26 @@ def do_jamming_list
     puts "\e[0m  none" if count == 0
   end
   puts
+end
+
+
+def my_sleep secs
+  start_at = Time.now.to_f
+  begin
+    if $ctl_kb_queue.length > 0
+      $ctl_kb_queue.clear
+      $pplayer&.pause
+      print "\n\n\e[32mPaused: \e[0m"
+      space_to_cont
+      puts "\e[0m\e[32mgo\e[0m"        
+      $pplayer&.continue
+    end
+    if !$pplayer.alive?
+      puts
+      puts "Backing track has ended."
+      puts
+      exit 0
+    end
+    sleep 0.1
+  end while Time.now.to_f - start_at < secs + ( $pplayer  ?  $pplayer.sum_pauses :  0 )
 end
