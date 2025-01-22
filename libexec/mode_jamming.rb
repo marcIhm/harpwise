@@ -96,12 +96,18 @@ def do_the_jamming json_file
   err("Need at least one timestamp with action 'loop-start'") unless loop_start_at
 
   # transformations
+  puts "\e[0m\e[2mTransforming timestamps:"
+  puts "- adding timestamps_add = #{timestamps_add} to each timestamp"
+  puts "- adding sleep_after_iteration = #{sleep_after_iteration} to last timestamp only"
+  puts "- multiplying each timestamp by timestamps_multiply = #{timestamps_multiply}\e[0m"
+  puts
+  timestamps_to_actions[-1][0] += sleep_after_iteration
   timestamps_to_actions.each_with_index do |ta,idx|
-    ta[0] *= timestamps_multiply
     ta[0] += timestamps_add
+    ta[0] *= timestamps_multiply
     ta[0] = 0.0 if ta[0] < 0
   end
-
+  
   # try to figure out file and check if present
   endings = %w(.mp3 .wav .ogg)
   play_command = play_command % $aux_data
@@ -112,45 +118,48 @@ def do_the_jamming json_file
   # Start doing user-visible things
   #
 
+  make_term_immediate
+  $ctl_kb_queue.clear
+  
+  puts "\e[32mPress SPACE to pause.\e[0m"
+  puts
+  puts
+
   puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
 
   if $runningp_listen_fifo
-    puts "\nFound 'harpwise listen'"
+    puts "\nFound 'harpwise listen' running."
   else
     puts "\nCannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $aux_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nSo you can stay with it and need not come back here.\n\n"
     print "Waiting "
     begin
       pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
       print '.'
-      sleep 1
+      my_sleep 1
     end until pid_listen_fifo
-    puts ' found it'
+    puts ' found it !'
   end
   puts
   
   # allow for testing
   if ENV["HARPWISE_TESTING"]
+    puts
     puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
     exit 0
   end
-
-  if sleep_after_iteration != 0
-    timestamps_to_actions[-1][0] += sleep_after_iteration * timestamps_multiply
-    puts "Adding sleep_after_iteration * timestamps_multiply = #{sleep_after_iteration * timestamps_multiply} to last timestamp"
-  end
   
   if sleep_initially > 0
+    puts "Initial sleep %.2f sec" % sleep_initially    
     jamming_do_action ['message',
                        'sleep initially for %.1d secs' % sleep_initially,
                        [0.0, sleep_initially - 0.2].max.round(1)],
                       0
-    puts "Initial sleep %.2f sec" % sleep_initially    
-    sleep sleep_initially
+    my_sleep sleep_initially
   end
 
-  make_term_immediate
   # start play-command
-  puts "\n\nStarting:\n\n    #{play_command}\n\n"
+  puts
+  puts "Starting:\n\n    #{play_command}\n\n"
   $pplayer = PausablePlayer.new(play_command)
   puts
 
@@ -358,7 +367,7 @@ def my_sleep secs
         if char == ' '
           space_seen = true
         elsif !hinted
-          puts "\n\e[0m\e[2mSPACE to pause, all other keys are ignored.\e[0m"
+          puts "\e[0m\e[2mSPACE to pause, all other keys are ignored.\e[0m"
           hinted = true
         end
       end
@@ -371,7 +380,7 @@ def my_sleep secs
         $pplayer&.continue
       end
     end
-    if !$pplayer.alive?
+    if $pplayer && !$pplayer.alive?
       puts
       puts "Backing track has ended."
       puts

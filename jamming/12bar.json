@@ -19,7 +19,7 @@
     "sleep_initially": 2.0,
     // use this, if actions and music tend to drift. This is simply added to the
     // last timestamp; can be negative too
-    "sleep_after_iteration": 0.0,
+    "sleep_after_iteration": -0.5,
     // Try audacity and its text-label-feature to get the timestamps for such a list as
     // below.  Timestamps-to-actions will be repeated forever; this assumes that the
     // chord-structure of your song is regular and repeats too.  On from the second
@@ -31,6 +31,7 @@
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise
         [0,"message","%{comment}",0],
+        [0,"keys","L","S"],
         [-2,"message","In two secs ...",1.8],
 	// exactly one loop-start is needed
         [6,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],

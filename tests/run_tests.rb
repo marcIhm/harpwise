@@ -3749,7 +3749,7 @@ do_test 'id-137: harpwise jamming edit with a number' do
   new_session
   tms "EDITOR=vi harpwise jamming edit 1"
   tms :ENTER
-  expect { screen[19]['hint for user on how to start harpwise']}  
+  expect { screen[20]['hint for user on how to start harpwise']}  
   kill_session
 end
 
