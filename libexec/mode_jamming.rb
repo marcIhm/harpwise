@@ -109,24 +109,28 @@ def do_the_jamming json_file
     ta[0] *= timestamps_multiply
     ta[0] = 0.0 if ta[0] < 0
   end
-  
+
   # try to figure out file and check if present
   endings = %w(.mp3 .wav .ogg)
   play_command = play_command % $aux_data
   file = CSV::parse_line(play_command,col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
-  err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+  if File.exist?(file)
+    puts "\e[2mBacking track is:  #{file}\n\n\e[0m"
+  else
+    err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+  end
 
   #
   # Start doing user-visible things
   #
 
+  puts "\e[32mPress SPACE to pause.\e[0m"
+  puts
+  puts  
+    
   make_term_immediate
   $ctl_kb_queue.clear
   
-  puts "\e[32mPress SPACE to pause.\e[0m"
-  puts
-  puts
-
   puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
 
   if $runningp_listen_fifo
