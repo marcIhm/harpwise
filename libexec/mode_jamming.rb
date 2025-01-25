@@ -7,17 +7,19 @@ def do_jamming to_handle
   if $extra
     
     case $extra
-    when 'list'
+    when 'list', 'l'
       
       err_args_not_allowed(to_handle) if to_handle.length > 0
       do_jamming_list
       
-    when'edit'
+    when 'edit', 'e'
       
       err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 1
       err "'harpwise jamming edit' needs exactly one additional argument; none is given however" if to_handle.length == 0
       tool_edit_file get_jamming_json(to_handle[0])
       
+    else
+      fail "Internal error: unknown extra '#{$extra}'"
     end
     
   else  ## no extra argument

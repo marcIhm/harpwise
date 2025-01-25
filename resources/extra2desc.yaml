@@ -255,10 +255,10 @@ samples:
     By giving the argument 'all' you may delete all samples for all
     keys.
 jamming:
-  edit: |
+  edit, e: |
     edit given jamming-file; either specified as a number (as given
     by 'list') or a filename
-  list: |
+  list, l: |
     list available jamming-files and precede them by numbers, that
     might be used instead of a filename
 develop:
