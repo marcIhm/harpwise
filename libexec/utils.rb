@@ -1463,7 +1463,9 @@ def mostly_avoid_double_invocations
       # if we are jamming, it is okay to have a fifo_listener (see mode_jamming.rb for even
       # requiring this)
       next if $mode == :jamming && pid == pid_listen_fifo
-      # if we are fifo-listener, it is okay to have a jammer
+      # If we are not jamming, we tolerate a jammer
+      next if $mode != :jamming && pid == pid_jamming
+      # if we are the fifo-listener, it is okay to have a jammer
       next if $mode == :listen && $opts[:read_fifo] && pid == pid_jamming
       err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'" if Process.pid != pid
     end

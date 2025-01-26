@@ -7,15 +7,15 @@ def do_jamming to_handle
   if $extra
     
     case $extra
-    when 'list', 'l'
+    when 'list', 'ls'
       
       err_args_not_allowed(to_handle) if to_handle.length > 0
       do_jamming_list
       
-    when 'edit', 'e'
+    when 'edit', 'ed'
       
       err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 1
-      err "'harpwise jamming edit' needs exactly one additional argument; none is given however" if to_handle.length == 0
+      err "'harpwise jamming edit' needs exactly one additional argument but none is given" if to_handle.length == 0
       tool_edit_file get_jamming_json(to_handle[0])
       
     else
@@ -23,7 +23,9 @@ def do_jamming to_handle
     end
     
   else  ## no extra argument
-      
+
+    err "'harpwise jammin' can handle only one additional argument" if to_handle.length > 1
+    
     do_the_jamming get_jamming_json(to_handle[0])
     
   end
@@ -144,6 +146,7 @@ def do_the_jamming json_file
       my_sleep 1
     end until pid_listen_fifo
     puts ' found it !'
+    sleep 1
   end
   puts
   
