@@ -19,7 +19,7 @@
     "sleep_initially": 2.0,
     // use this, if actions and music tend to drift. This is simply added to the
     // last timestamp; can be negative too
-    "sleep_after_iteration": -0.5,
+    "sleep_after_iteration": 0.0,
     // Try audacity and its text-label-feature to get the timestamps for such a list as
     // below.  Timestamps-to-actions will be repeated forever; this assumes that the
     // chord-structure of your song is regular and repeats too.  On from the second
