@@ -391,8 +391,8 @@ def play_licks_controller licks, refill, sleep_between: false
       
       if sleep_between && $ctl_rec[:lick_lick]
         $ctl_kb_queue.clear
-        plen = $ctl_rec[:skip]  ?  3  :  5 
-        print "\e[0m\e[2m#{plen} secs pause (any key for menu) "
+        plen = 5 
+        print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, any other key for pause) "
         (0..10*plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
@@ -456,9 +456,8 @@ def play_licks_controller licks, refill, sleep_between: false
     end  ## repeats of the same lick
 
     if !lick && stock.length == 0
-      print "\e[2m"
       if refill
-        print "Every licks played once, "
+        print "\n\e[0mEvery licks played once, "
         if $opts[:iterate] == :random
           stock = refill.shuffle
           print "shuffled in random sequence."
@@ -474,6 +473,7 @@ def play_licks_controller licks, refill, sleep_between: false
         puts "\e[0m"
         return
       end
+      print "\e[2m"      
     end
   end  ## one lick after the other
 end
@@ -486,12 +486,20 @@ def maybe_wait_for_key_and_decide_replay
     $ctl_kb_queue.clear
     return :next
   else
+    if $ctl_kb_queue.length > 0
+      # different shortcuts apply before we even ask; these are similar to shortcuts during
+      # previous play
+      char = $ctl_kb_queue.deq
+      return :next if char == '+' || char == 'TAB'
+      show_help = true if char == 'h'
+    end
+
     loop do
       # lines are devided in segments, which are highlighted if they change
       lines_long = [["\e[0mPress:\e[2m      h: this help        .r: replay this lick    e: edit lickfile"],
                     ['    BACKSPACE: previous lick    */: star,unstar most recent lick'],
                     ['            n: choose lick by name'],
-                    ["Keys here and while playing:   (help there for more keys)"],
+                    ['More keys (also while playing recordings but not holes):'],
                     ['      c: toggle continue without this menu (now ',
                      ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
                     ['    L,l: toggle loop for all licks (now ',

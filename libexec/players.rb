@@ -28,12 +28,12 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
   num_loops_was = $ctl_rec[:num_loops]
   cnt_loops = 0
 
-  # loop as long as the recording needs to be played again due to
-  # immediate controls triggered while it is playing
+  # loop over repetitions in radio-playing or as long as the recording needs to be played
+  # again due to immediate controls triggered while it is playing
   begin
     cnt_loops += 1
     if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
-      sleep 2 if cnt_loops < $ctl_rec[:num_loops]
+      sleep 2 if cnt_loops <= $ctl_rec[:num_loops]
       print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
     end
     
@@ -141,7 +141,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       end
 
       if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (+ to end) with " +
+        print "\e[0m\e[32mloop (TAB,+ to end) with " +
               ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
               ( $ctl_rec[:lick_lick]  ?  "; continue without menu-break is: ON (\e[92mc\e[32m to toggle) "  :  '' ) +
               "\e[0m"
@@ -230,7 +230,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
       end
 
       if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (+ to end)\e[0m"
+        print "\e[0m\e[32mloop (TAB,+ to end)\e[0m"
         loop_message_printed = true
       end
 
@@ -912,46 +912,68 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
   
   print( lick  ?  "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "  :  "\e[2mHoles (h for help) ... ") if with_head
 
-  [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+  cnt_loops = 0
+  loop_message_printed = false  
+  $ctl_rec[:loop] = $ctl_rec[:loop_loop]
 
-    hole_disp = ( hide_holes  ?  '?'  :  hole )
-    print( musical_event?(hole)  ?  "\e[2m#{hole_disp}\e[2m "  :  "\e[0m#{hole_disp}\e[2m " )
-    
-    if musical_event?(hole)
-      sleep $opts[:fast]  ?  0.125  :  0.25
-    else
-      # this also handles kb input and sets $ctl_hole
-      play_hole_or_note_and_collect_kb hole, get_musical_duration(hole_next)
+  # loop over repetitions in radio-playing
+  begin
+    cnt_loops += 1
+    if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
+      sleep 2 if cnt_loops <= $ctl_rec[:num_loops]
+      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
     end
 
-    # react on keyboard input
-    if $ctl_hole[:show_help]
-      display_kb_help 'a series of holes', scroll_allowed,  <<~end_of_content
+    if $ctl_rec[:loop] && !loop_message_printed
+      print "\e[0m\e[32mloop (TAB,+ to end) with " +
+            ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
+            ( $ctl_rec[:lick_lick]  ?  "; continue without menu-break is: ON "  :  '' ) +            
+            " ; settings in menu between licks\e[0m\n"
+      loop_message_printed = true
+    end
+    
+    [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+
+      hole_disp = ( hide_holes  ?  '?'  :  hole )
+      print( musical_event?(hole)  ?  "\e[2m#{hole_disp}\e[2m "  :  "\e[0m#{hole_disp}\e[2m " )
+      
+      if musical_event?(hole)
+        sleep $opts[:fast]  ?  0.125  :  0.25
+      else
+        # this also handles kb input and sets $ctl_hole
+        play_hole_or_note_and_collect_kb hole, get_musical_duration(hole_next)
+      end
+
+      # react on keyboard input
+      if $ctl_hole[:show_help]
+        display_kb_help 'a series of holes', scroll_allowed,  <<~end_of_content
         SPACE: pause/continue
         TAB,+: skip to end
             v: decrease volume     V: increase volume by 3dB
       end_of_content
-      # continue below help (first round only)
-      print "\n"
-      at_line = [at_line + 10, $term_height].min if at_line
-      $ctl_hole[:show_help] = false
-    elsif $ctl_hole[:vol_up]
-      $vol.inc
-      print "\e[0m\e[32m #{$vol}\e[0m "
-      $ctl_hole[:vol_up] = false
-    elsif $ctl_hole[:vol_down]
-      $vol.dec
-      print "\e[0m\e[32m #{$vol}\e[0m "
-      $ctl_hole[:vol_down] = false
-    elsif $ctl_hole[:skip]
-      print "\e[0m\e[32m skip to end\e[0m"
-      sleep 0.3
-      break
-    elsif $ctl_hole[:invalid]
-      print "\e[0m(#{$ctl_hole[:invalid]}\e[0m) "
-      $ctl_hole[:invalid] = false
+        # continue below help (first round only)
+        print "\n"
+        at_line = [at_line + 10, $term_height].min if at_line
+        $ctl_hole[:show_help] = false
+      elsif $ctl_hole[:vol_up]
+        $vol.inc
+        print "\e[0m\e[32m #{$vol}\e[0m "
+        $ctl_hole[:vol_up] = false
+      elsif $ctl_hole[:vol_down]
+        $vol.dec
+        print "\e[0m\e[32m #{$vol}\e[0m "
+        $ctl_hole[:vol_down] = false
+      elsif $ctl_hole[:skip]
+        print "\e[0m\e[32mskip to end \e[0m"
+        sleep 0.3
+        break
+      elsif $ctl_hole[:invalid]
+        print "\e[0m(#{$ctl_hole[:invalid]}\e[0m) "
+        $ctl_hole[:invalid] = false
+      end
     end
-  end
+  end while !$ctl_hole[:skip] && $ctl_rec[:loop] && ( !$ctl_rec[:num_loops] || cnt_loops < $ctl_rec[:num_loops] )
+  
   puts if scroll_allowed
 end
 
