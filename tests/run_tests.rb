@@ -3753,5 +3753,13 @@ do_test 'id-137: harpwise jamming edit with a number' do
   kill_session
 end
 
+do_test 'id-138: harpwise jamming play with a number' do
+  new_session
+  tms "harpwise jamming play 1"
+  tms :ENTER
+  expect { screen[10]['play -q /home/ihm/harpwise/recordings/12bar.mp3']}  
+  kill_session
+end
+
 puts
 puts

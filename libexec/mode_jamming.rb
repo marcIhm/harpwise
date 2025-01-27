@@ -20,7 +20,7 @@ def do_jamming to_handle
 
     when 'play'
 
-      do_the_jamming get_jamming_json(to_handle[0]), play_only: true
+      do_the_playing to_handle[0]
 
     else
       fail "Internal error: unknown extra '#{$extra}'"
@@ -30,129 +30,50 @@ def do_jamming to_handle
 
     err "'harpwise jammin' can handle only one additional argument" if to_handle.length > 1
     
-    do_the_jamming get_jamming_json(to_handle[0])
+    do_the_jamming to_handle[0]
     
   end
 end
 
 
-def do_the_jamming json_file, play_only: false
-  
-  puts
-  puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
-  
-  #
-  # Process json-file with settings
-  #
-  params = JSON.parse(File.read(json_file).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
-  timestamps_to_actions = params['timestamps_to_actions']
-  sleep_after_iteration = params['sleep_after_iteration']
-  timestamps_multiply = params['timestamps_multiply']
-  timestamps_add = params['timestamps_add']
-  comment = params['comment']
-  sleep_initially = params['sleep_initially']
-  play_command = params['play_command']
-  $ts_prog_start = Time.now.to_f
-  $example = params['example_harpwise']
-  $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
+def do_the_jamming json_short
 
-  at_exit do
-    $pplayer&.kill
-  end  
-
-  # check if all parameters present
-  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
-  given = Set.new(params.keys)
-  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{json_file}\n" +
-      if (given - wanted).length > 0
-        "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
-      else
-        ''
-      end +
-      if (wanted - given).length > 0
-        "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
-      else
-        ''
-      end + "\n") if given != wanted
-  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{params['timestamps_to_actions'].pretty_inspect}\nshould be an array but is not (see #{json_file})") unless params['timestamps_to_actions'].is_a?(Array)
-  err("Value of parameter 'example_harpwise' cannot be empty (see #{json_file})") if $example == ''
-
-  #
-  # preprocess and check list of timestamps
-  #
-
-  # preprocess to allow negative timestamps as relative to preceding ones
-  while i_neg = (0 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_to_actions[i][0] < 0}
-    loc_neg = "negative timestamp at position #{i_neg}, content #{timestamps_to_actions[i_neg]}"
-    i_pos_after_neg = (i_neg + 1 .. timestamps_to_actions.length - 1).to_a.find {|i| timestamps_to_actions[i][0] > 0}
-    err("#{loc_neg.capitalize} is not followed by positive timestamp") unless i_pos_after_neg
-    loc_pos_after_neg = "following positive timestamp at position #{i_pos_after_neg}, content #{timestamps_to_actions[i_pos_after_neg]}"
-    ts_abs = timestamps_to_actions[i_pos_after_neg][0] + timestamps_to_actions[i_neg][0]
-    err("When adding   #{loc_neg}   to   #{loc_pos_after_neg}   we come up with a negative absolute time: #{ts_abs}") if ts_abs < 0
-    timestamps_to_actions[i_neg][0] = ts_abs
-  end
-  
-  # check syntax of timestamps before actually starting
-  timestamps_to_actions.sort_by! {|ta| ta[0]}
-  loop_start_at = nil
-  timestamps_to_actions.each_with_index do |ta,idx|
-    err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start).include?(ta[1])
-    err("Timestamp #{ta[0]} (index #{idx}, #{ta}) is less than zero") if ta[0] < 0
-    # test actions
-    jamming_do_action ta[1 ..], 0, noop: true
-    if ta[1] == 'loop-start'
-      err("Action 'loop-start' already appeared with index #{loop_start_at}: #{timestamps_to_actions[loop_start_at]}, cannot appear again with index #{idx}: #{ta}") if loop_start_at
-      loop_start_at = idx
-    end
-  end
-  err("Need at least one timestamp with action 'loop-start'") unless loop_start_at
-
-  # try to figure out file and check if present
-  endings = %w(.mp3 .wav .ogg)
-  play_command = play_command % $aux_data
-  file = CSV::parse_line(play_command,col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{play_command}'\nno word ends on any of: #{endings.join(' ')}")
-  if File.exist?(file)
-    puts "\e[2mBacking track is:  #{file}\n\n\e[0m"
-  else
-    err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
-  end
-
-  #
-  # Start doing user-visible things
-  #
+  pms, actions = parse_and_preprocess_jamming_json(json_short)
 
   make_term_immediate
   $ctl_kb_queue.clear
-  
-  if play_only
-    puts
-    puts "Starting:\n\n    #{play_command}\n\n"
-    puts
-    puts "\e[32mPress SPACE to pause.\e[0m"    
-    $pplayer = PausablePlayer.new(play_command)
-    puts
-    my_sleep 1000000
-  end
-  
-  # transformations
-  puts "\e[0m\e[2mTransforming timestamps:"
-  puts "- adding timestamps_add = #{timestamps_add} to each timestamp"
-  puts "- adding sleep_after_iteration = #{sleep_after_iteration} to last timestamp only"
-  puts "- multiplying each timestamp by timestamps_multiply = #{timestamps_multiply}\e[0m"
+
+  # 
+  # Transform timestamps
+  #
+  puts "Transforming timestamps:\e[0m\e[2m"
+  puts "- adding timestamps_add = #{pms['timestamps_add']} to each timestamp"
+  puts "- sleep_after_iteration = #{pms['sleep_after_iteration']}"
+  puts "  - if negative, subtract it from last timestamp only"
+  puts "  - if positive, add a new matching sleep-action"
+  puts "- multiplying each timestamp by timestamps_multiply = #{pms['timestamps_multiply']}\e[0m"
   puts
-  timestamps_to_actions[-1][0] += sleep_after_iteration
-  timestamps_to_actions.each_with_index do |ta,idx|
-    ta[0] += timestamps_add
-    ta[0] *= timestamps_multiply
-    ta[0] = 0.0 if ta[0] < 0
+  if pms['sleep_after_iteration'] <= 0  
+    actions[-1][0] += pms['sleep_after_iteration']
+  else
+    actions << [actions[-1][0] + pms['sleep_after_iteration'], "message", "Done sleep_after_iteration #{pms['sleep_after_iteration']} sec", 0]
+  end
+  actions.each_with_index do |ta,idx|
+    ta[0] += pms['timestamps_add']
+    ta[0] *= pms['timestamps_multiply']
+    err("Preprocessing above resulted in negative timestamp at index #{idx}: #{ta[0]} < 0; please adjust your settings\n" +
+        actions.each_with_index.map {|a,i| ("  %2d: " % i) + a.to_s + "\n"}.join) if ta[0] < 0
   end
   
   puts "\e[32mPress SPACE to pause.\e[0m"
   puts
   puts  
     
-  puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
+  puts "Comment:\n\n\e[32m" + wrap_text(pms['comment'],cont: '').join("\n") + "\e[0m\n\n"
 
+  #
+  # Wait for listener
+  #
   if $runningp_listen_fifo
     puts "\nFound 'harpwise listen' running."
   else
@@ -167,7 +88,7 @@ def do_the_jamming json_file, play_only: false
     sleep 1
   end
   puts
-  
+
   # allow for testing
   if ENV["HARPWISE_TESTING"]
     puts
@@ -175,27 +96,31 @@ def do_the_jamming json_file, play_only: false
     exit 0
   end
   
-  if sleep_initially > 0
-    puts "Initial sleep %.2f sec" % sleep_initially    
+  if pms['sleep_initially'] > 0
+    puts "Initial sleep %.2f sec" % pms['sleep_initially']    
     jamming_do_action ['message',
-                       'sleep initially for %.1d secs' % sleep_initially,
-                       [0.0, sleep_initially - 0.2].max.round(1)],
+                       'sleep initially for %.1d secs' % pms['sleep_initially'],
+                       [0.0, pms['sleep_initially'] - 0.2].max.round(1)],
                       0
-    my_sleep sleep_initially
+    my_sleep pms['sleep_initially']
   end
 
-  # start play-command
+  #
+  # Start playing
+  #
   puts
-  puts "Starting:\n\n    #{play_command}\n\n"
-  $pplayer = PausablePlayer.new(play_command)
+  puts "Starting:\n\n    #{pms['play_command']}\n\n"
+  $pplayer = PausablePlayer.new(pms['play_command'])
   puts
   
-  sleep_secs = timestamps_to_actions[0][0]
+  sleep_secs = actions[0][0]
   puts "Sleep before first action %.2f sec" % sleep_secs
   my_sleep sleep_secs
   ts_iter_start = nil
-  
-  # endless loop one iteration after the other
+
+  #
+  # Endless loop: one iteration after the other
+  #
   (1 .. ).each do |iter|
     ts_iter_start_prev = ts_iter_start
     ts_iter_start = Time.now.to_f
@@ -206,7 +131,7 @@ def do_the_jamming json_file, play_only: false
            [ts_iter_start - $ts_prog_start, ts_iter_start - ts_iter_start_prev ]
     end
     puts
-    pp timestamps_to_actions
+    pp actions
 
     if iter == 1
       puts
@@ -218,11 +143,14 @@ def do_the_jamming json_file, play_only: false
     puts "\e[32mPress SPACE to pause.\e[0m"
     puts
 
-    # one action after the other
-    timestamps_to_actions.each_cons(2).each_with_index do |pair,j|
+    #
+    # One action after the other (last action not included)
+    #
+    actions.each_cons(2).each_with_index do |pair,j|
+
       tsx, tsy = pair[0][0], pair[1][0]
       action = pair[0][1 .. -1]
-      puts "Action #{j + 1}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}) at %.2f sec:" % tsx
+      puts "Action #{j + 1}/#{actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}) at %.2f sec:" % tsx
 
       jamming_do_action action, iter
 
@@ -233,16 +161,18 @@ def do_the_jamming json_file, play_only: false
 
     end  ## one action after the other
 
-    puts "Final action #{timestamps_to_actions.length}/#{timestamps_to_actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"  
-    jamming_do_action timestamps_to_actions[-1][1 .. -1], iter
-    puts "at ts %.2f sec" % timestamps_to_actions[-1][0]
+    puts "Final action #{actions.length}/#{actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"  
+    jamming_do_action actions[-1][1 .. -1], iter
+    puts "at ts %.2f sec" % actions[-1][0]
 
+    # remove actions before actual loop-start; e.g. intro
     if iter == 1
-      while timestamps_to_actions[0][1] != 'loop-start'
-        timestamps_to_actions.shift
+      while actions[0][1] != 'loop-start'
+        actions.shift
       end
+      puts "\nAfter first iteration: removed all actions before loop-start.\n\n"
     end
-  end  ## endless loop one iteration after the other
+  end  ## Endless loop: one iteration after the other
   
 end
 
@@ -257,8 +187,8 @@ def jamming_send_keys keys, silent: false
     rescue Timeout::Error, Errno::EINTR
       err "Could not write '#{key}' to #{fifo}.\nIs 'harpwise listen' still listening ?"
     end
-    puts "sent key \e[0m\e[2m'#{key}'\e[0m" unless silent
   end
+  puts "sent keys \e[0m\e[2m#{keys.join(',')}\e[0m" unless silent
 end
 
 
@@ -413,4 +343,110 @@ def my_sleep secs
     sleep 0.1
   end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
   $pplayer.sum_pauses = 0 if $pplayer
+end
+
+
+def parse_and_preprocess_jamming_json json_short
+  json_file = get_jamming_json(json_short)
+  
+  puts
+  puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
+  
+  #
+  # Process json-file with settings
+  #
+  pms = JSON.parse(File.read(json_file).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
+  actions = pms['timestamps_to_actions']
+  $ts_prog_start = Time.now.to_f
+  $example = pms['example_harpwise']
+  $aux_data = {comment: pms['comment'], iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
+
+  at_exit do
+    $pplayer&.kill
+  end  
+
+  # check if all parameters present
+  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
+  given = Set.new(pms.keys)
+  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{json_file}\n" +
+      if (given - wanted).length > 0
+        "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
+      else
+        ''
+      end +
+      if (wanted - given).length > 0
+        "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
+      else
+        ''
+      end + "\n") if given != wanted
+  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{json_file})") unless actions.is_a?(Array)
+  err("Value of parameter 'example_harpwise' cannot be empty (see #{json_file})") if $example == ''
+
+  #
+  # preprocess and check list of timestamps
+  #
+
+  # preprocess to allow negative timestamps as relative to preceding ones
+  while i_neg = (0 .. actions.length - 1).to_a.find {|i| actions[i][0] < 0}
+    loc_neg = "negative timestamp at position #{i_neg}, content #{actions[i_neg]}"
+    i_pos_after_neg = (i_neg + 1 .. actions.length - 1).to_a.find {|i| actions[i][0] > 0}
+    err("#{loc_neg.capitalize} is not followed by positive timestamp") unless i_pos_after_neg
+    loc_pos_after_neg = "following positive timestamp at position #{i_pos_after_neg}, content #{actions[i_pos_after_neg]}"
+    ts_abs = actions[i_pos_after_neg][0] + actions[i_neg][0]
+    err("When adding   #{loc_neg}   to   #{loc_pos_after_neg}   we come up with a negative absolute time: #{ts_abs}") if ts_abs < 0
+    actions[i_neg][0] = ts_abs
+  end
+  
+  # check syntax of timestamps before actually starting
+  actions.sort_by! {|ta| ta[0]}
+  loop_start_at = nil
+  actions.each_with_index do |ta,idx|
+    err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start).include?(ta[1])
+    err("Timestamp #{ta[0]} (index #{idx}, #{ta}) is less than zero") if ta[0] < 0
+    # test actions
+    jamming_do_action ta[1 ..], 0, noop: true
+    if ta[1] == 'loop-start'
+      err("Action 'loop-start' already appeared with index #{loop_start_at}: #{actions[loop_start_at]}, cannot appear again with index #{idx}: #{ta}") if loop_start_at
+      loop_start_at = idx
+    end
+  end
+  err("Need at least one timestamp with action 'loop-start'") unless loop_start_at
+
+  # try to figure out file and check if present
+  endings = %w(.mp3 .wav .ogg)
+  pms['play_command'] = pms['play_command'] % $aux_data
+  file = CSV::parse_line(pms['play_command'],col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{pms['play_command']}'\nno word ends on any of: #{endings.join(' ')}")
+  if File.exist?(file)
+    puts "\e[2mBacking track is:  #{file}\e[0m\n\n"
+  else
+    err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+  end
+
+  [pms, actions]
+end
+
+
+def do_the_playing json_short
+
+  pms, actions = parse_and_preprocess_jamming_json(json_short)
+
+  make_term_immediate
+  $ctl_kb_queue.clear
+  
+  puts
+  puts "Starting:\n\n    #{pms['play_command']}\n\n"
+  puts
+  puts "\e[32mPress SPACE to pause.\e[0m"
+
+  # allow for testing
+  if ENV["HARPWISE_TESTING"]
+    puts
+    puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
+    exit 0
+  end
+    
+  $pplayer = PausablePlayer.new(pms['play_command'])
+  puts
+  my_sleep 1000000
+
 end
