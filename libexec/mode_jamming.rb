@@ -17,7 +17,11 @@ def do_jamming to_handle
       err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 1
       err "'harpwise jamming edit' needs exactly one additional argument but none is given" if to_handle.length == 0
       tool_edit_file get_jamming_json(to_handle[0])
-      
+
+    when 'play'
+
+      do_the_jamming get_jamming_json(to_handle[0]), play_only: true
+
     else
       fail "Internal error: unknown extra '#{$extra}'"
     end
@@ -32,7 +36,7 @@ def do_jamming to_handle
 end
 
 
-def do_the_jamming json_file
+def do_the_jamming json_file, play_only: false
   
   puts
   puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
@@ -51,6 +55,10 @@ def do_the_jamming json_file
   $ts_prog_start = Time.now.to_f
   $example = params['example_harpwise']
   $aux_data = {comment: comment, iteration: 0, elapsed: 0, install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp}
+
+  at_exit do
+    $pplayer&.kill
+  end  
 
   # check if all parameters present
   wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
@@ -99,19 +107,6 @@ def do_the_jamming json_file
   end
   err("Need at least one timestamp with action 'loop-start'") unless loop_start_at
 
-  # transformations
-  puts "\e[0m\e[2mTransforming timestamps:"
-  puts "- adding timestamps_add = #{timestamps_add} to each timestamp"
-  puts "- adding sleep_after_iteration = #{sleep_after_iteration} to last timestamp only"
-  puts "- multiplying each timestamp by timestamps_multiply = #{timestamps_multiply}\e[0m"
-  puts
-  timestamps_to_actions[-1][0] += sleep_after_iteration
-  timestamps_to_actions.each_with_index do |ta,idx|
-    ta[0] += timestamps_add
-    ta[0] *= timestamps_multiply
-    ta[0] = 0.0 if ta[0] < 0
-  end
-
   # try to figure out file and check if present
   endings = %w(.mp3 .wav .ogg)
   play_command = play_command % $aux_data
@@ -126,13 +121,36 @@ def do_the_jamming json_file
   # Start doing user-visible things
   #
 
+  make_term_immediate
+  $ctl_kb_queue.clear
+  
+  if play_only
+    puts
+    puts "Starting:\n\n    #{play_command}\n\n"
+    puts
+    puts "\e[32mPress SPACE to pause.\e[0m"    
+    $pplayer = PausablePlayer.new(play_command)
+    puts
+    my_sleep 1000000
+  end
+  
+  # transformations
+  puts "\e[0m\e[2mTransforming timestamps:"
+  puts "- adding timestamps_add = #{timestamps_add} to each timestamp"
+  puts "- adding sleep_after_iteration = #{sleep_after_iteration} to last timestamp only"
+  puts "- multiplying each timestamp by timestamps_multiply = #{timestamps_multiply}\e[0m"
+  puts
+  timestamps_to_actions[-1][0] += sleep_after_iteration
+  timestamps_to_actions.each_with_index do |ta,idx|
+    ta[0] += timestamps_add
+    ta[0] *= timestamps_multiply
+    ta[0] = 0.0 if ta[0] < 0
+  end
+  
   puts "\e[32mPress SPACE to pause.\e[0m"
   puts
   puts  
     
-  make_term_immediate
-  $ctl_kb_queue.clear
-  
   puts "Comment:\n\n\e[32m" + wrap_text(comment,cont: '').join("\n") + "\e[0m\n\n"
 
   if $runningp_listen_fifo
@@ -171,10 +189,6 @@ def do_the_jamming json_file
   puts "Starting:\n\n    #{play_command}\n\n"
   $pplayer = PausablePlayer.new(play_command)
   puts
-
-  at_exit do
-    $pplayer&.kill
-  end
   
   sleep_secs = timestamps_to_actions[0][0]
   puts "Sleep before first action %.2f sec" % sleep_secs
