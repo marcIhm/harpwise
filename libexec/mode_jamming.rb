@@ -36,15 +36,15 @@ def do_jamming to_handle
 end
 
 
-def do_the_jamming json_short
+def do_the_jamming json_short_or_num
 
-  pms, actions = parse_and_preprocess_jamming_json(json_short)
+  pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
 
   make_term_immediate
   $ctl_kb_queue.clear
 
   # 
-  # Transform timestamps
+  # Transform timestamps; see also below for some further changes to list of actions
   #
   puts "Transforming timestamps:\e[0m\e[2m"
   puts "- adding timestamps_add = #{pms['timestamps_add']} to each timestamp"
@@ -95,7 +95,7 @@ def do_the_jamming json_short
     puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
     exit 0
   end
-  
+
   if pms['sleep_initially'] > 0
     puts "Initial sleep %.2f sec" % pms['sleep_initially']    
     jamming_do_action ['message',
@@ -105,14 +105,13 @@ def do_the_jamming json_short
     my_sleep pms['sleep_initially']
   end
 
-  #
-  # Start playing
-  #
+  # start playing
   puts
   puts "Starting:\n\n    #{pms['play_command']}\n\n"
   $pplayer = PausablePlayer.new(pms['play_command'])
   puts
-  
+
+  # sleep up to timestamp of first action
   sleep_secs = actions[0][0]
   puts "Sleep before first action %.2f sec" % sleep_secs
   my_sleep sleep_secs
@@ -144,7 +143,7 @@ def do_the_jamming json_short
     puts
 
     #
-    # One action after the other (last action not included)
+    # Loop: each pair of actions with sleep between
     #
     actions.each_cons(2).each_with_index do |pair,j|
 
@@ -159,13 +158,16 @@ def do_the_jamming json_short
       my_sleep sleep_between
       puts
 
-    end  ## one action after the other
+    end  ## loop: each pair of actions with sleep between
 
+    # last action has not been included above, as we did only the first action of each pair;
+    # so we have to do it now
     puts "Final action #{actions.length}/#{actions.length} (elapsed #{$aux_data[:elapsed]} secs, iteration #{$aux_data[:iteration]}):"  
     jamming_do_action actions[-1][1 .. -1], iter
     puts "at ts %.2f sec" % actions[-1][0]
 
-    # remove actions before actual loop-start; e.g. intro
+    # as the actions before actual loop-start (e.g. intro) have been done once and should
+    # not be done again, we have to remove them now
     if iter == 1
       while actions[0][1] != 'loop-start'
         actions.shift
@@ -241,6 +243,7 @@ end
 
 
 def get_jamming_json arg, extra_allowed: false
+  
   # get json-file to handle
   if arg.match?(/^\d+$/)
     num = arg.to_i
@@ -346,8 +349,9 @@ def my_sleep secs
 end
 
 
-def parse_and_preprocess_jamming_json json_short
-  json_file = get_jamming_json(json_short)
+def parse_and_preprocess_jamming_json json_short_or_num
+  
+  json_file = get_jamming_json(json_short_or_num)
   
   puts
   puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
@@ -426,9 +430,9 @@ def parse_and_preprocess_jamming_json json_short
 end
 
 
-def do_the_playing json_short
+def do_the_playing json_short_or_num
 
-  pms, actions = parse_and_preprocess_jamming_json(json_short)
+  pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
 
   make_term_immediate
   $ctl_kb_queue.clear
