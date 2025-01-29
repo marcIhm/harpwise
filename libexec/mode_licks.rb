@@ -39,7 +39,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   end
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_mic[:replay] = $ctl_mic[:replay_menu] = false
-  $ctl_rec[:can_star_unstar] = true if $mode == :licks
+  $ctl_lk_hl[:can_star_unstar] = true if $mode == :licks
   
   to_play = PlayController.new
   to_play[:replacement_for_play] = quiz_holes_shifts[0] if quiz_holes_shifts

@@ -290,8 +290,14 @@ def handle_kb_play_holes_or_notes
     $ctl_hole[:vol_down] = true
   elsif char == 'V'
     $ctl_hole[:vol_up] = true
+  elsif char == 'l'
+    $ctl_lk_hl[:toggle_loop] = true
   elsif char == 'h'
     $ctl_hole[:show_help] = true
+  elsif char == '*' && $ctl_lk_hl[:can_star_unstar]
+    $ctl_lk_hl[:star_lick] = :up
+  elsif char == '/' && $ctl_lk_hl[:can_star_unstar]
+    $ctl_lk_hl[:star_lick] = :down
   else
     $ctl_hole[:invalid] = get_text_invalid(char)
   end
@@ -315,25 +321,15 @@ def handle_kb_play_lick_recording
   elsif char == 'V'
     $ctl_rec[:vol_up] = true
   elsif char == 'l'
-    $ctl_rec[:loop] = true
-  elsif char == 'L' && [:play, :print].include?($mode)
-    $ctl_rec[:loop] = $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop] 
-  elsif char == 'c' && [:play, :print].include?($mode)
-    $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick] 
+    $ctl_lk_hl[:toggle_loop] = true
   elsif char == 'h'
     $ctl_rec[:show_help] = true
   elsif char == "TAB" || char == '+'
     $ctl_rec[:skip] = true
-  elsif %w(2 3 4 5 6 7 8 9).include?(char)
-    $ctl_rec[:num_loops] = char.to_i
-  elsif char == '1'
-    $ctl_rec[:num_loops_to_one] = true
-  elsif char == '0'
-    $ctl_rec[:num_loops] = false
-  elsif char == '*' && $ctl_rec[:can_star_unstar]
-    $ctl_rec[:star_lick] = :up
-  elsif char == '/' && $ctl_rec[:can_star_unstar]
-    $ctl_rec[:star_lick] = :down
+  elsif char == '*' && $ctl_lk_hl[:can_star_unstar]
+    $ctl_lk_hl[:star_lick] = :up
+  elsif char == '/' && $ctl_lk_hl[:can_star_unstar]
+    $ctl_lk_hl[:star_lick] = :down
   else
     $ctl_rec[:invalid] = get_text_invalid(char)
   end
@@ -353,7 +349,7 @@ def handle_kb_play_recording
     $ctl_rec[:vol_up] = true
     $ctl_rec[:replay] = true
   elsif char == 'l'
-    $ctl_rec[:loop] = true
+    $ctl_lk_hl[:toggle_loop] = true
   elsif char == 'h'
     $ctl_rec[:show_help] = true
     $ctl_rec[:replay] = true

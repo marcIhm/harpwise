@@ -356,18 +356,14 @@ def parse_arguments_early
         not_for_any_mode << "    #{llo}"
       end
     end
-    puts "#{not_for_any_mode.length} unknown options for mode #{$mode} that are unknown\n for this mode, as well as for any other mode:"
     if not_for_any_mode.length > 0
+      puts "#{not_for_any_mode.length} options for mode #{$mode} that are unknown for any mode:"
       puts not_for_any_mode.join("\n")
-    else
-      puts '    none'
+      puts
     end
-    puts
-    puts "#{but_for_mode.length} unknown options for mode #{$mode} that are unknown\n for this mode, but are known for other modes:"
     if but_for_mode.length > 0
+      puts "#{but_for_mode.length} options for mode #{$mode} that are unknown for this mode, but are known for other modes:"
       puts but_for_mode.join("\n")
-    else
-      puts '    none'
     end
     err("#{looks_like_opts.length} unknown options: #{looks_like_opts.join(', ')}. See above for details; #{$for_usage}")
   end

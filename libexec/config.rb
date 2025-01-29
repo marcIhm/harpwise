@@ -81,11 +81,16 @@ def set_global_vars_early
   # result of processing keys, while a recording is played
   # this is partially mirrored in sound_driver.rb
   ks = [:skip, :replay, :slower, :faster, :vol_up, :vol_down,
-        :loop, :loop_loop, :lick_lick, :num_loops, :num_loops_to_one,
-        :show_help, :pause_continue, :star_lick, :can_star_unstar, :invalid]
+        :show_help, :pause_continue, :invalid]
   $ctl_rec = Struct.new(*ks).new
   ks.each {|k| $ctl_rec[k] = false}
 
+  # used both for holes and recordings
+  ks = [:toggle_loop, :loop_loop, :lick_lick, :num_loops, :star_lick, :can_star_unstar]
+  $ctl_lk_hl = Struct.new(*ks).new
+  ks.each {|k| $ctl_lk_hl[k] = false}
+  $ctl_lk_hl[:num_loops] = 100
+  
   # result of processing keys, while playing a pitch
   $ctl_pitch = Struct.new(*$conf_meta[:ctrls_play_pitch]).new
   $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}

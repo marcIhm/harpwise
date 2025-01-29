@@ -2516,10 +2516,10 @@ do_test 'id-74: player for licks' do
   expect { screen[9]['Unstarred'] }
   tms 'h'
   sleep 1
-  expect { screen[11]['Keys available while playing a recording:'] }
+  expect { screen[11]['Keys available while playing the recording of a lick:'] }
   tms 'q'
   sleep 1
-  expect { screen[18]['done with help'] }
+  expect { screen[17]['done with help'] }
   kill_session
 end
 
@@ -3566,10 +3566,10 @@ do_test 'id-126: error message refers to other modes' do
   tms 'harpwise listen c --fast-lick-switch --foo'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3]['as well as for any other mode'] }
-  expect { screen[4]['--foo'] }
-  expect { screen[7]['but are known for other modes'] }
-  expect { screen[8]['--fast-lick-switch  , for modes: licks'] }
+  expect { screen[2]['1 options for mode listen that are unknown for any mode:'] }
+  expect { screen[3]['--foo'] }
+  expect { screen[5]['unknown for this mode, but are known for'] }
+  expect { screen[7]['--fast-lick-switch  , for modes: licks'] }
   kill_session
 end
 
@@ -3613,7 +3613,7 @@ do_test 'id-128: error message on invalid key during play' do
   tms 'x'
   expect { screen[13]['invalid key \'x\''] }
   tms 'h'
-  expect { screen[15]['Keys available while playing a recording'] }
+  expect { screen[15]['Keys available while playing the recording of a lick:'] }
   kill_session
 end
 
@@ -3757,7 +3757,7 @@ do_test 'id-138: harpwise jamming play with a number' do
   new_session
   tms "harpwise jamming play 1"
   tms :ENTER
-  expect { screen[10]['play -q /home/ihm/harpwise/recordings/12bar.mp3']}  
+  expect { screen[9]['play -q /home/ihm/harpwise/recordings/12bar.mp3']}  
   kill_session
 end
 

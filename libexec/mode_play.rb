@@ -333,7 +333,7 @@ end
 
 
 def play_and_print_lick lick, extra = ''
-  sleep 1 if $ctl_rec[:loop_loop]
+  sleep 1 if $ctl_lk_hl[:loop_loop]
   print "Lick #{lick[:name]}\e[2m#{extra}, "
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "rec in #{lick[:rec_key]}" +
@@ -389,10 +389,10 @@ def play_licks_controller licks, refill, sleep_between: false
     loop do  ## repeats of the same lick
       play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}"
       
-      if sleep_between && $ctl_rec[:lick_lick]
+      if sleep_between && $ctl_lk_hl[:lick_lick]
         $ctl_kb_queue.clear
         plen = 5 
-        print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, any other key for pause) "
+        print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, any other key for permanent pause) "
         (0..10*plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
@@ -481,8 +481,7 @@ end
 
 def maybe_wait_for_key_and_decide_replay
   show_help = false
-  if $ctl_rec[:lick_lick] && $ctl_kb_queue.empty?
-    puts "\e[0m\e[2mContinuing with next lick without waiting for key ('c' to toggle)\e[0m"
+  if $ctl_lk_hl[:lick_lick] && $ctl_kb_queue.empty?
     $ctl_kb_queue.clear
     return :next
   else
@@ -501,11 +500,10 @@ def maybe_wait_for_key_and_decide_replay
                     ['            n: choose lick by name'],
                     ['More keys (also while playing recordings but not holes):'],
                     ['      c: toggle continue without this menu (now ',
-                     ( $ctl_rec[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
-                    ['    L,l: toggle loop for all licks (now ',
-                     ( $ctl_rec[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
-                    ['  2-9,0: set num, if looping (l,L) enabled (now ',
-                     get_num_loops_desc(true).to_s, ')'],
+                     ( $ctl_lk_hl[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
+                    ['      L: toggle loop for all licks (now ',
+                     ( $ctl_lk_hl[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
+                    ["  2-9,0: set num loops fo all-licks looping (L) (now #{$ctl_lk_hl[:num_loops]})"],
                     ["SPACE or RETURN for next lick ...\n"]]
        lines = if show_help
                  lines_long
@@ -536,7 +534,7 @@ def maybe_wait_for_key_and_decide_replay
       char = $ctl_kb_queue.deq
       case char
       when 'BACKSPACE'
-        $ctl_rec[:lick_lick] = false
+        $ctl_lk_hl[:lick_lick] = false
         return :prev
       when 'n'
         return :named
@@ -549,17 +547,17 @@ def maybe_wait_for_key_and_decide_replay
         show_help = true
         redo
       when 'c'
-        $ctl_rec[:lick_lick] = !$ctl_rec[:lick_lick]
+        $ctl_lk_hl[:lick_lick] = !$ctl_lk_hl[:lick_lick]
         show_help = true
         oldlines = oldlines_long        
         redo
-      when 'L', 'l'
-        $ctl_rec[:loop_loop] = !$ctl_rec[:loop_loop]
+      when 'L'
+        $ctl_lk_hl[:loop_loop] = !$ctl_lk_hl[:loop_loop]
         show_help = true
         oldlines = oldlines_long        
         redo
       when '0'
-        $ctl_rec[:num_loops] = false
+        $ctl_lk_hl[:num_loops] = 0
         show_help = true
         oldlines = oldlines_long
         redo
@@ -568,7 +566,7 @@ def maybe_wait_for_key_and_decide_replay
         puts
         redo
       when '2','3','4','5','6','7','8','9'
-        $ctl_rec[:num_loops] = char.to_i
+        $ctl_lk_hl[:num_loops] = char.to_i
         show_help = true
         oldlines = oldlines_long
         redo
@@ -593,11 +591,11 @@ end
 def do_play_licks args
 
   if $opts[:lick_radio]
-    $ctl_rec[:lick_lick] = $ctl_rec[:loop_loop] = true
-    $ctl_rec[:num_loops] = 4
+    $ctl_lk_hl[:lick_lick] = $ctl_lk_hl[:loop_loop] = true
+    $ctl_lk_hl[:num_loops] = 4
   end
 
-  $ctl_rec[:can_star_unstar] = true
+  $ctl_lk_hl[:can_star_unstar] = true
   sw = $opts[:start_with]
   licks = if $opts[:iterate] == :random
             licks = $licks.shuffle
@@ -626,9 +624,9 @@ end
 
 
 def play_named_licks lnames, refill: true
-  $ctl_rec[:lick_lick] = false
-  $ctl_rec[:loop_loop] = false
-  $ctl_rec[:can_star_unstar] = true
+  $ctl_lk_hl[:lick_lick] = false
+  $ctl_lk_hl[:loop_loop] = false
+  $ctl_lk_hl[:can_star_unstar] = true
   licks = lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}
   play_licks_controller licks, ( refill  ?  licks  :  nil )
 end

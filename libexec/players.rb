@@ -20,23 +20,21 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
   dsemi = diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
-  $ctl_rec[:loop] = $ctl_rec[:loop_loop]
   imm_ctrls_again = [:replay, :slower, :faster, :vol_up, :vol_down]
-  loop_message_printed = false
-  lick_lick_was = $ctl_rec[:lick_lick]
-  loop_loop_was = $ctl_rec[:loop_loop]
-  num_loops_was = $ctl_rec[:num_loops]
+
   cnt_loops = 0
+  loop_message_printed = false
+  loop_rec = $ctl_lk_hl[:loop_loop]
 
   # loop over repetitions in radio-playing or as long as the recording needs to be played
   # again due to immediate controls triggered while it is playing
   begin
     cnt_loops += 1
-    if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
-      sleep 2 if cnt_loops <= $ctl_rec[:num_loops]
-      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
+    if loop_rec && cnt_loops > 1 && cnt_loops <= $ctl_lk_hl[:num_loops]
+      sleep 2 if cnt_loops <= $ctl_lk_hl[:num_loops]
+      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_lk_hl[:num_loops]}) "
     end
-    
+
     tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
     cmd = "play -q --norm=#{$vol.to_i} -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
@@ -48,7 +46,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
     end
     pplayer = PausablePlayer.new(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
-
+    
     # loop to check repeatedly while the recording is beeing played
     begin
 
@@ -76,30 +74,17 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
         print "\e[0m\e[32m#{$vol} \e[0m"
       elsif $ctl_rec[:show_help]
         pplayer.pause
-        display_kb_help 'a recording', scroll_allowed,
+        display_kb_help 'the recording of a lick', scroll_allowed,
                         "SPACE: pause/continue            " + 
-                        if $ctl_rec[:can_star_unstar]
+                        if $ctl_lk_hl[:can_star_unstar]
                           "  *,/: star,unstar lick\n"
                         else
                           "\n"
                         end +
                         "TAB,+: skip to end                  -.: back to start\n" +
                         "  v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
-                        if $mode == :play
-                            "    c: toggle continue without menu-break " +
-                            ( $ctl_rec[:loop_loop]  ?  "(now ON)\n"  :  "(now OFF)\n" )
-                        else
-                          ''
-                        end +
                         "    l: toggle loop over rec " +
-                        ( $ctl_rec[:loop]  ?  "(now ON)\n"  :  "(now OFF)\n" ) +
-                        if $mode == :play
-                          "    L: toggle loop over next recordings too " +
-                            ( $ctl_rec[:lick_lick]  ?  "(now ON)\n"  :  "(now OFF)\n" )
-                        else
-                          ''
-                        end +
-                        "2-9,0: set num, if looping enabled (now #{get_num_loops_desc})\n"
+                        ( loop_rec  ?  "(now ON)\n"  :  "(now OFF)\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
@@ -107,66 +92,52 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
         print "\e[0m\e[32mreplay \e[0m"
       elsif $ctl_rec[:skip]
         print "\e[0m\e[32mskip to end \e[0m"
-      elsif $ctl_rec[:num_loops_to_one]
-        print "\e[0m\e[2m#{$resources[:nloops_not_one]} \e[0m"
-        $ctl_rec[:num_loops_to_one] = false
-      elsif $ctl_rec[:star_lick]
-        star_unstar_lick($ctl_rec[:star_lick], lick)
-        if $ctl_rec[:star_lick] == :up
+      elsif $ctl_lk_hl[:star_lick]
+        star_unstar_lick($ctl_lk_hl[:star_lick], lick)
+        if $ctl_lk_hl[:star_lick] == :up
           print "\e[0m\e[32mStarred lick \e[0m"
         else
           print "\e[0m\e[32mUnstarred lick \e[0m"
         end
-        $ctl_rec[:star_lick] = false
+        $ctl_lk_hl[:star_lick] = false
+      elsif $ctl_lk_hl[:toggle_loop]
+        loop_rec = !loop_rec
+        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec  ?  "ON\n"  :  "OFF\n" )
+        $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_rec[:invalid]
         print "\e[0m\e[2m(#{$ctl_rec[:invalid]}) \e[0m"
         $ctl_rec[:invalid] = false
       end
 
-      if $ctl_rec[:num_loops] != num_loops_was
-        print "\e[0m\e[32m num loops #{get_num_loops_desc} \e[0m"
-        num_loops_was = $ctl_rec[:num_loops]
-      end
-
-      if $ctl_rec[:lick_lick] != lick_lick_was
-        print "\n\e[0m\e[32mContinue without menu-break is: \e[0m" +
-              ( $ctl_rec[:lick_lick]  ?  'ON'  :  "OFF  \e[2m(break after all reps of this lick)" ) + "\n"
-        lick_lick_was = $ctl_rec[:lick_lick]
-      end
-
-      if $ctl_rec[:loop_loop] != loop_loop_was
-        print "\n\e[0m\e[32mLoop over next licks is: \e[0m" +
-              ( $ctl_rec[:loop_loop]  ?  'ON'  :  'OFF' ) + "\n"
-        loop_loop_was = $ctl_rec[:loop_loop]
-      end
-
-      if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (TAB,+ to end) with " +
-              ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
-              ( $ctl_rec[:lick_lick]  ?  "; continue without menu-break is: ON (\e[92mc\e[32m to toggle) "  :  '' ) +
-              "\e[0m"
+      # should be similar output to playing holes, e.g. holes first, then newline
+      if loop_rec && !loop_message_printed
+        # let the user know, how to end looping
+        print "\e[0m\e[32mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
         loop_message_printed = true
       end
-
+      
       # need to go leave this loop and play again if any immediate
       # controls have been triggered
     end while pplayer.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
     
-    $ctl_rec[:loop] = false if $ctl_rec[:skip]
+    loop_rec = false if $ctl_rec[:skip]
     pplayer.kill
     pplayer.check
 
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} ||
-            ( $ctl_rec[:loop] && ( !$ctl_rec[:num_loops] || cnt_loops < $ctl_rec[:num_loops] ))
-  $ctl_rec[:skip]
+            ( loop_rec && cnt_loops < $ctl_lk_hl[:num_loops] )
 
+  puts if scroll_allowed
+  $ctl_rec[:skip]
 end
 
 
 def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed = true
 
   imm_ctrls_again = [:replay, :vol_up, :vol_down]
+
   loop_message_printed = false
+  loop_rec = $ctl_lk_hl[:loop_loop]  
 
   # loop as long as the recording needs to be played again due to
   # immediate controls triggered while it is playing
@@ -217,6 +188,10 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
         print "\e[0m\e[32m replay \e[0m"
       elsif $ctl_rec[:skip]
         print "\e[0m\e[32m skip to end \e[0m"
+      elsif $ctl_lk_hl[:toggle_loop]
+        loop_rec = !loop_rec
+        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec  ?  "ON\n"  :  "OFF\n" )
+        $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_rec[:invalid]
         print "\e[0m\e[2m(#{$ctl_rec[:invalid]}) \e[0m"
         $ctl_rec[:invalid] = false        
@@ -229,8 +204,9 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
         end
       end
 
-      if $ctl_rec[:loop] && !loop_message_printed
-        print "\e[0m\e[32mloop (TAB,+ to end)\e[0m"
+      if loop_rec && !loop_message_printed
+        print "\e[0m\e[32mloop (TAB,+ to skip, l to end)\e[0m "
+        puts if scroll_allowed
         loop_message_printed = true
       end
 
@@ -240,7 +216,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
 
     pplayer.kill
     pplayer.check
-  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || $ctl_rec[:loop]
+  end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || loop_rec
 end
 
 
@@ -913,25 +889,17 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
   print( lick  ?  "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "  :  "\e[2mHoles (h for help) ... ") if with_head
 
   cnt_loops = 0
-  loop_message_printed = false  
-  $ctl_rec[:loop] = $ctl_rec[:loop_loop]
+  loop_message_printed = false
+  loop_holes = $ctl_lk_hl[:loop_loop]
 
   # loop over repetitions in radio-playing
   begin
     cnt_loops += 1
-    if $ctl_rec[:num_loops] && cnt_loops > 1 && cnt_loops <= $ctl_rec[:num_loops]
-      sleep 2 if cnt_loops <= $ctl_rec[:num_loops]
-      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_rec[:num_loops]}) "
+    if loop_holes && cnt_loops > 1 && cnt_loops <= $ctl_lk_hl[:num_loops]
+      sleep 2 if cnt_loops <= $ctl_lk_hl[:num_loops]
+      print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_lk_hl[:num_loops]}) "
     end
 
-    if $ctl_rec[:loop] && !loop_message_printed
-      print "\e[0m\e[32mloop (TAB,+ to end) with " +
-            ( $ctl_rec[:num_loops]  ?  $ctl_rec[:num_loops].to_s  :  'inf') + ' reps ' +
-            ( $ctl_rec[:lick_lick]  ?  "; continue without menu-break is: ON "  :  '' ) +            
-            " ; settings in menu between licks\e[0m\n"
-      loop_message_printed = true
-    end
-    
     [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
 
       hole_disp = ( hide_holes  ?  '?'  :  hole )
@@ -946,11 +914,17 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
 
       # react on keyboard input
       if $ctl_hole[:show_help]
-        display_kb_help 'a series of holes', scroll_allowed,  <<~end_of_content
-        SPACE: pause/continue
-        TAB,+: skip to end
-            v: decrease volume     V: increase volume by 3dB
-      end_of_content
+        display_kb_help 'the holes of a lick', scroll_allowed,
+        "SPACE: pause/continue" +
+        if $ctl_lk_hl[:can_star_unstar]
+          "          *,/: star,unstar lick\n"
+        else
+          "\n"
+        end +
+        "TAB,+: skip to end\n" +
+        "  v,V: decrease,increase volume\n" +
+        "    l: toggle loop over holes " +
+        ( loop_holes  ?  "(now ON)\n"  :  "(now OFF)\n" )
         # continue below help (first round only)
         print "\n"
         at_line = [at_line + 10, $term_height].min if at_line
@@ -967,12 +941,32 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
         print "\e[0m\e[32mskip to end \e[0m"
         sleep 0.3
         break
+      elsif $ctl_lk_hl[:star_lick]
+        star_unstar_lick($ctl_lk_hl[:star_lick], lick)
+        if $ctl_lk_hl[:star_lick] == :up
+          print "\e[0m\e[32mStarred lick \e[0m"
+        else
+          print "\e[0m\e[32mUnstarred lick \e[0m"
+        end
+        $ctl_lk_hl[:star_lick] = false
+      elsif $ctl_lk_hl[:toggle_loop]
+        loop_holes = !loop_holes
+        print "\e[0m\e[32mLoop over holes is: " + ( loop_holes  ?  "ON\n"  :  "OFF\n" )
+        $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_hole[:invalid]
         print "\e[0m(#{$ctl_hole[:invalid]}\e[0m) "
         $ctl_hole[:invalid] = false
       end
     end
-  end while !$ctl_hole[:skip] && $ctl_rec[:loop] && ( !$ctl_rec[:num_loops] || cnt_loops < $ctl_rec[:num_loops] )
+
+    # should be similar output to playing recording, e.g. holes first, then newline
+    if loop_holes && !loop_message_printed
+      puts if scroll_allowed
+      print "\e[0m\e[32mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
+      loop_message_printed = true
+    end
+
+  end while !$ctl_hole[:skip] && loop_holes && cnt_loops < $ctl_lk_hl[:num_loops]
   
   puts if scroll_allowed
 end
@@ -1077,15 +1071,3 @@ def get_sound_description wave, gap, len
 end
 
 
-def get_num_loops_desc short = false
-  if $ctl_rec[:num_loops]
-    $ctl_rec[:num_loops].to_s
-  else
-    'inf, ie. 0'
-  end +
-    if $ctl_rec[:loop] || $ctl_rec[:loop_loop] || short
-      ''
-    else 
-      '; but loop is OFF'
-    end
-end
