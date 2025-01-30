@@ -1968,7 +1968,7 @@ class KeepTempo < QuizFlavour
       if hole == $typical_hole
         hole_started_at = t if hole != hole_was
         holes_in_a_row += 1
-        if holes_in_a_row == 3
+        if holes_in_a_row == 4
           @beats_found << hole_started_at
           # let beats start at 0.0
           first_beat_at ||= @beats_found[0]

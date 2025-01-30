@@ -393,6 +393,20 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:remote_message] = false
     end
     
+    if $ctl_mic[:jamming_ps_rs]
+      if $opts[:read_fifo]
+        if $runningp_jamming
+          File.write($remote_jamming_ps_rs, Time.now)
+          $msgbuf.print("Sent request for pause/resume to remote jamming instance", 2, 5, :jamming)
+        else
+          $msgbuf.print("There seems to be no jamming instance; cannot pause/resume it", 2, 5, :jamming)
+        end
+      else
+        $msgbuf.print("This instance does not take part in jamming, cannot pause/resume it", 2, 5, :jamming)
+      end
+      $ctl_mic[:jamming_ps_rs] = false
+    end
+        
     if $ctl_mic[:show_help]
       show_help
       ctl_response 'continue', hl: true
@@ -493,7 +507,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $freqs_queue.clear
     end
 
-    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first].any? {|k| $ctl_mic[k]}
+    if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :jamming_ps_rs, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
       return {hole_disp: hole_disp}
@@ -759,9 +773,10 @@ def show_help mode = $mode, testing_only = false
     frames[-1] << "      p:_print details about player currently drifting by"
     frames[-1] << "      .:_play lick from --lick-prog (shown in comment-area)"
     frames[-1] << "      l:_rotate among those licks     ALT-l:_backward"
-    frames[-1] << "      L:_to first lick"                        
+    frames[-1] << "      L:_to first lick"
+    frames[-1] << "      J:_when jamming, pause / resume backing track"
   end
-  frames[-1] << "  ALT-m:_show remote message, used with --read-fifo"
+  frames[-1] << "  ALT-m:_show remote message; used with --read-fifo"
   
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",

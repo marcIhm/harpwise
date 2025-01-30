@@ -540,6 +540,10 @@ def handle_kb_mic
   if char == ' '
     txt = 'SPACE to continue'
     cnt = 0
+    if $mode == :listen && $opts[:read_fifo]
+      # this is picked up by harpwise jamming
+      File.write($remote_fifo_feedback, "pause\n")
+    end
     begin
       while $ctl_kb_queue.empty?
         ctl_response txt, hl: cnt / 10
@@ -609,6 +613,8 @@ def handle_kb_mic
   elsif char == 'j' && $mode == :listen
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
+  elsif char == 'J' && $mode == :listen
+    $ctl_mic[:jamming_ps_rs] = true
   elsif char == 'w' && $mode == :listen
     $ctl_mic[:warbles_prepare] = true
     text = 'Prepare warbles'

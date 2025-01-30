@@ -87,6 +87,7 @@ def do_the_jamming json_short_or_num
     puts ' found it !'
     sleep 1
   end
+  FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
   puts
 
   # allow for testing
@@ -315,7 +316,7 @@ end
 def my_sleep secs
   start_at = Time.now.to_f
   hinted = false
-  begin
+  begin  ## loop untils secs elapsed
     if $ctl_kb_queue.length > 0
       space_seen = false
       while $ctl_kb_queue.length > 0
@@ -327,14 +328,24 @@ def my_sleep secs
           hinted = true
         end
       end
+    end
+    if space_seen || File.exist?($remote_jamming_ps_rs)
+      $ctl_kb_queue.clear
+      $pplayer&.pause
       if space_seen
-        $ctl_kb_queue.clear
-        $pplayer&.pause
         print "\n\n\e[32mPaused: \e[0m"
         space_to_cont
-        puts "\e[0m\e[32mgo\e[0m"        
-        $pplayer&.continue
+      else
+        print "\n\n\e[32mPaused by typing 'J' in remote 'harpwise listen'.\nTo continue, type it there again: \e[0m"
+        FileUtils.rm($remote_jamming_ps_rs)
+        sleep 0.1
+        until File.exist?($remote_jamming_ps_rs) do
+          sleep 0.1
+        end
+        FileUtils.rm($remote_jamming_ps_rs)
       end
+      puts "\e[0m\e[32mgo\e[0m"
+      $pplayer&.continue
     end
     if $pplayer && !$pplayer.alive?
       puts
