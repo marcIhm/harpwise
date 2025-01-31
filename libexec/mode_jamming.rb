@@ -42,7 +42,8 @@ def do_the_jamming json_short_or_num
 
   make_term_immediate
   $ctl_kb_queue.clear
-
+  to_pause = "\e[32mPress SPACE here or 'j' in harpwise listen to pause.\e[0m"
+  
   # 
   # Transform timestamps; see also below for some further changes to list of actions
   #
@@ -64,8 +65,8 @@ def do_the_jamming json_short_or_num
     err("Preprocessing above resulted in negative timestamp at index #{idx}: #{ta[0]} < 0; please adjust your settings\n" +
         actions.each_with_index.map {|a,i| ("  %2d: " % i) + a.to_s + "\n"}.join) if ta[0] < 0
   end
-  
-  puts "\e[32mPress SPACE to pause.\e[0m"
+
+  puts to_pause
   puts
   puts  
     
@@ -140,7 +141,7 @@ def do_the_jamming json_short_or_num
     end
     
     puts
-    puts "\e[32mPress SPACE to pause.\e[0m"
+    puts to_pause
     puts
 
     #
@@ -336,7 +337,7 @@ def my_sleep secs
         print "\n\n\e[32mPaused: \e[0m"
         space_to_cont
       else
-        print "\n\n\e[32mPaused by typing 'J' in remote 'harpwise listen'.\nTo continue, type it there again: \e[0m"
+        print "\n\n\e[32mPaused by typing 'j' in remote 'harpwise listen'.\nTo continue, type it there again: \e[0m"
         FileUtils.rm($remote_jamming_ps_rs)
         sleep 0.1
         until File.exist?($remote_jamming_ps_rs) do

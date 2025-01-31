@@ -32,7 +32,8 @@ def do_listen
     mission += " or one of #{lnames.uniq.length} licks"
   end
 
-
+  $msgbuf.print("Expecting a jammer or fifo-writer to join ...", 2, 5, :jamming) if $opts[:read_fifo] && !$runningp_jamming
+  
   while !$ctl_mic[:switch_modes] do
     
     result = handle_holes(

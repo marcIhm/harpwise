@@ -610,10 +610,14 @@ def handle_kb_mic
   elsif char == 'm' && [:listen, :quiz, :licks].include?($mode)
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
-  elsif char == 'j' && $mode == :listen
+  elsif ((char == 'J' && $opts[:read_fifo]) ||
+         (char == 'j' && !$opts[:read_fifo])) &&
+        $mode == :listen
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
-  elsif char == 'J' && $mode == :listen
+  elsif ((char == 'j' && $opts[:read_fifo]) ||
+         (char == 'J' && !$opts[:read_fifo])) &&
+        $mode == :listen
     $ctl_mic[:jamming_ps_rs] = true
   elsif char == 'w' && $mode == :listen
     $ctl_mic[:warbles_prepare] = true

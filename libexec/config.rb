@@ -213,6 +213,7 @@ def set_global_vars_early
 
   $remote_fifo = "#{$dirs[:data]}/remote_fifo"
   $remote_jamming_ps_rs = "#{$dirs[:data]}/remote_jamming_pause_resume"
+  $remote_jamming_ps_rs_cnt = 0
   $remote_message = "#{$dirs[:data]}/remote_message"
   FileUtils.rm($remote_message) if File.exist?($remote_message)
 

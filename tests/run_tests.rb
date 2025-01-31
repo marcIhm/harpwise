@@ -2758,7 +2758,7 @@ end
 
 do_test 'id-88: read from fifo' do
   new_session
-  tms 'harpwise listen c --read-fifo'
+  tms 'harpwise listen c --jamming'
   tms :ENTER
   sleep 2
   File.write("#{$dotdir_testing}/remote_fifo", "q\n")

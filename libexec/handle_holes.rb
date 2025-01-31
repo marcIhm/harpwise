@@ -397,7 +397,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       if $opts[:read_fifo]
         if $runningp_jamming
           File.write($remote_jamming_ps_rs, Time.now)
-          $msgbuf.print("Sent request for pause/resume to remote jamming instance", 2, 5, :jamming)
+          $remote_jamming_ps_rs_cnt += 1
+          $msgbuf.print("Sent request ##{$remote_jamming_ps_rs_cnt} for pause/resume to remote jamming instance", 2, 5, :jamming)
         else
           $msgbuf.print("There seems to be no jamming instance; cannot pause/resume it", 2, 5, :jamming)
         end
@@ -746,7 +747,12 @@ def show_help mode = $mode, testing_only = false
   max_lines_per_frame = 20
   fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
   lines_offset = (( $term_height - max_lines_per_frame ) * 0.5).to_i
-  
+
+  j_jou, j_jam, j_if = if $opts[:read_fifo]
+                         ['J','j','--jamming is omitted']
+                       else
+                         ['j','J','--jamming is given']
+                       end
   frames = Array.new
   frames << [" Help on keys in main view:",
              "",
@@ -764,19 +770,21 @@ def show_help mode = $mode, testing_only = false
              "",
              ""]
   if [:quiz, :licks].include?(mode)
-    frames[-1] << "      j:_journal-menu; write holes (mode listen only)"
-    frames[-1] << " CTRL-R:_record and play user (mode licks only)"
-    frames[-1] << "      T:_toggle tracking progress in seq"
+    frames[-1].append(*["      j:_journal-menu; write holes (mode listen only)",
+                        " CTRL-R:_record and play user (mode licks only)",
+                        "      T:_toggle tracking progress in seq"])
   else
-    frames[-1] << "      j:_invoke journal-menu to handle your musical ideas"
-    frames[-1] << "      w:_switch comment to warble and prepare"
-    frames[-1] << "      p:_print details about player currently drifting by"
-    frames[-1] << "      .:_play lick from --lick-prog (shown in comment-area)"
-    frames[-1] << "      l:_rotate among those licks     ALT-l:_backward"
-    frames[-1] << "      L:_to first lick"
-    frames[-1] << "      J:_when jamming, pause / resume backing track"
+    frames[-1].append(*["      #{j_jou}:_invoke journal-menu to handle your musical ideas;",
+                        "         swapped with #{j_jam} if #{j_if}",
+                        "      w:_switch comment to warble and prepare",
+                        "      p:_print details about player currently drifting by",
+                        "      .:_play lick from --lick-prog (shown in comment-area)",
+                        "      l:_rotate among those licks     ALT-l:_backward",
+                        "      L:_to first lick",
+                        "      #{j_jam}:_when jamming, pause/resume backing-track;",
+                        "         swapped with #{j_jou} if #{j_if}"])
   end
-  frames[-1] << "  ALT-m:_show remote message; used with --read-fifo"
+  frames[-1] << "  ALT-m:_show remote message; used with --jamming"
   
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
@@ -1073,6 +1081,6 @@ def show_remote_message
       $msgbuf.print "File #{$remote_message} does not exist", 5, 5, :remote
     end
   else
-    $msgbuf.print "Need to give '--read-fifo' before file #{$remote_message} can be shown", 5, 5, truncate: false, wrap: true
+    $msgbuf.print "Need to give --jamming (or --read-fifo) before file #{$remote_message} can be shown", 5, 5, truncate: false, wrap: true
   end
 end

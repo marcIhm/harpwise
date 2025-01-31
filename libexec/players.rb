@@ -112,7 +112,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       # should be similar output to playing holes, e.g. holes first, then newline
       if loop_rec && !loop_message_printed
         # let the user know, how to end looping
-        print "\e[0m\e[32mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
+        print "\e[0m\e[2mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
         loop_message_printed = true
       end
       
@@ -962,7 +962,7 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
     # should be similar output to playing recording, e.g. holes first, then newline
     if loop_holes && !loop_message_printed
       puts if scroll_allowed
-      print "\e[0m\e[32mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
+      print "\e[0m\e[2mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
       loop_message_printed = true
     end
 

@@ -334,7 +334,11 @@ end
 
 def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_lk_hl[:loop_loop]
-  print "Lick #{lick[:name]}\e[2m#{extra}, "
+  ["\e[2m\e[34m", "\e[34m", "\e[94m"].each do |col|
+    print "\r\e[0m\e[34mLick   #{col}#{lick[:name]}"
+    sleep 0.1
+  end
+  print "\e[0m\e[2m#{extra}, "
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "rec in #{lick[:rec_key]}" +
          ( $key == lick[:rec_key]  ?  ''  :  ", shifted to #{$key}" ) +
@@ -392,7 +396,7 @@ def play_licks_controller licks, refill, sleep_between: false
       if sleep_between && $ctl_lk_hl[:lick_lick]
         $ctl_kb_queue.clear
         plen = 5 
-        print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, any other key for permanent pause) "
+        print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, RETURN for permanent pause) "
         (0..10*plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
