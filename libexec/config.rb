@@ -227,6 +227,7 @@ def set_global_vars_early
     just_type_one: ";or just type '1' to get one hole",
     hl_wheel: [32,92,0,92],
     hl_long_wheel: [32,92,0,92,32,92,0,92,32,92,0],
+    hl_wheel2: ["\e[2m\e[34m", "\e[34m", "\e[94m"],
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
     playing_on: "playing on"
   }

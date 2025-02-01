@@ -334,7 +334,7 @@ end
 
 def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_lk_hl[:loop_loop]
-  ["\e[2m\e[34m", "\e[34m", "\e[94m"].each do |col|
+  $resources[:hl_wheel2].each do |col|
     print "\r\e[0m\e[34mLick   #{col}#{lick[:name]}"
     sleep 0.1
   end

@@ -115,7 +115,7 @@ end
   end_all_other_threads  
   Signal.trap(sig) do
     print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-    puts "\n\n\n\e[0mThis signal (#{sig}) is handled in mode quiz only; exiting ..."
+    puts "\n\n\n\e[0mThis signal (#{sig}) is handled in modes quiz and jamming only; exiting ..."
     puts "\e[K"
     print "\e[K"
     exit 1

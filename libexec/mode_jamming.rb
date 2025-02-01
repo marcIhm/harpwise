@@ -4,6 +4,13 @@
 
 def do_jamming to_handle
 
+  $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
+  
+  if ENV['HARPWISE_RESTARTED']
+    do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
+    puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
+  end
+  
   if $extra
     
     case $extra
@@ -42,7 +49,7 @@ def do_the_jamming json_short_or_num
 
   make_term_immediate
   $ctl_kb_queue.clear
-  to_pause = "\e[32mPress SPACE here or 'j' in harpwise listen to pause.\e[0m"
+  jamming_check_and_prepare_sig_handler  
   
   # 
   # Transform timestamps; see also below for some further changes to list of actions
@@ -66,7 +73,7 @@ def do_the_jamming json_short_or_num
         actions.each_with_index.map {|a,i| ("  %2d: " % i) + a.to_s + "\n"}.join) if ta[0] < 0
   end
 
-  puts to_pause
+  puts $to_pause % 'pause'
   puts
   puts  
     
@@ -83,12 +90,16 @@ def do_the_jamming json_short_or_num
     begin
       pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
       print '.'
-      my_sleep 1
+      if my_sleep(1)
+        print "\nStill waiting for 'harpwise listen' "
+      end
     end until pid_listen_fifo
     puts ' found it !'
     sleep 1
   end
-  FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
+  #
+  # Do not remove $remote_jamming_ps_rs initially, because we may want to start paused
+  #
   puts
 
   # allow for testing
@@ -137,11 +148,10 @@ def do_the_jamming json_short_or_num
     if iter == 1
       puts
       puts "\n\e[32mYou may now go over to 'harpwise listen' ... "
-      puts "Come back here only, if you wish to pause the backing track.\e[0m"
     end
     
     puts
-    puts to_pause
+    puts $to_pause % 'pause'
     puts
 
     #
@@ -316,38 +326,41 @@ end
 
 def my_sleep secs
   start_at = Time.now.to_f
-  hinted = false
+  hinted = space_seen = false
+  paused = false
+
+  #
+  # Sleep but also check for pause-request
+  #
+  
   begin  ## loop untils secs elapsed
-    if $ctl_kb_queue.length > 0
-      space_seen = false
-      while $ctl_kb_queue.length > 0
-        char = $ctl_kb_queue.deq
-        if char == ' '
-          space_seen = true
-        elsif !hinted
-          puts "\e[0m\e[2mSPACE to pause, all other keys are ignored.\e[0m"
-          hinted = true
-        end
-      end
-    end
+
+    space_seen, hinted = check_for_space(hinted)
+
     if space_seen || File.exist?($remote_jamming_ps_rs)
+      paused = true
       $ctl_kb_queue.clear
       $pplayer&.pause
+      print "\n\n\e[0m\e[32mPaused:\e[0m\e[2m      (because "
       if space_seen
-        print "\n\n\e[32mPaused: \e[0m"
-        space_to_cont
+        print "SPACE has been pressed here"
       else
-        print "\n\n\e[32mPaused by typing 'j' in remote 'harpwise listen'.\nTo continue, type it there again: \e[0m"
-        FileUtils.rm($remote_jamming_ps_rs)
-        sleep 0.1
-        until File.exist?($remote_jamming_ps_rs) do
-          sleep 0.1
-        end
-        FileUtils.rm($remote_jamming_ps_rs)
+        print "'j' has been pressed in 'harpwise listen'"
       end
-      puts "\e[0m\e[32mgo\e[0m"
+      puts ")\e[0m"
+      puts $to_pause % 'CONTINUE'
+      space_seen = jamming_sleep_wait_for_go
+      print "\e[2m(because "
+      if space_seen
+        print "SPACE has been pressed here"
+      else
+        print "'j' has been pressed in 'harpwise listen'"
+      end
+      puts ")\e[0m"
+      space_seen = false
       $pplayer&.continue
     end
+    
     if $pplayer && !$pplayer.alive?
       puts
       puts "Backing track has ended."
@@ -358,6 +371,8 @@ def my_sleep secs
     sleep 0.1
   end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
   $pplayer.sum_pauses = 0 if $pplayer
+
+  paused
 end
 
 
@@ -448,6 +463,7 @@ def do_the_playing json_short_or_num
 
   make_term_immediate
   $ctl_kb_queue.clear
+  jamming_check_and_prepare_sig_handler    
   
   puts
   puts "Starting:\n\n    #{pms['play_command']}\n\n"
@@ -465,4 +481,75 @@ def do_the_playing json_short_or_num
   puts
   my_sleep 1000000
 
+end
+
+
+def check_for_space hinted
+  space_seen = false
+  if $ctl_kb_queue.length > 0
+    while $ctl_kb_queue.length > 0
+      char = $ctl_kb_queue.deq
+      if char == ' '
+        space_seen = true
+      elsif !hinted
+        print "\e[0m\e[2m (SPACE to pause, all other keys are ignored) \e[0m"
+        hinted = true
+      end
+    end
+  end
+  [space_seen, hinted]
+end
+  
+
+def jamming_check_and_prepare_sig_handler
+  
+  %w(TSTP QUIT).each do |sig|
+    Signal.trap(sig) do
+      # do some actions of at_exit-handler here
+      sane_term
+      $pplayer&.kill
+      puts
+      puts
+      puts "\e[0m\e[34m ... jamming start over ... \e[0m\e[K"
+      sleep 0.2
+      if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+        File.write($pers_file, JSON.pretty_generate($pers_data))
+      end
+      ENV['HARPWISE_RESTARTED'] = 'yes'
+      exec($full_commandline)
+    end
+  end
+  
+  if ENV['HARPWISE_RESTARTED']
+    puts "\n\n\e[0m\e[32mPaused after signal ctrl-z:\e[0m"
+    puts $to_pause % 'CONTINUE'    
+    jamming_sleep_wait_for_go
+    puts
+    puts
+  end
+end
+
+
+def jamming_sleep_wait_for_go
+  print "\e[0mPaused \e[0m"
+  space_seen = false
+  FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
+  
+  hinted = space_seen = false
+  count = 0
+  loop do
+    sleep 0.1
+    paused = true
+    print "." if count % 10 == 0
+    count += 1
+    if File.exist?($remote_jamming_ps_rs)
+      FileUtils.rm($remote_jamming_ps_rs)
+      break
+    end
+    space_seen, hinted = check_for_space(hinted)        
+    break if space_seen
+  end
+  print " \e[0m\e[32mgo\e[0m    "
+  
+  space_seen
 end
