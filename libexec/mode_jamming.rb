@@ -4,7 +4,7 @@
 
 def do_jamming to_handle
 
-  $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
+  $to_pause = "\e[0mPress   \e[92mSPACE or 'j'\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
   
   if ENV['HARPWISE_RESTARTED']
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
@@ -335,7 +335,7 @@ def my_sleep secs
   
   begin  ## loop untils secs elapsed
 
-    space_seen, hinted = check_for_space(hinted)
+    space_seen, hinted = check_for_space_etc(hinted)
 
     if space_seen || File.exist?($remote_jamming_ps_rs)
       paused = true
@@ -343,7 +343,7 @@ def my_sleep secs
       $pplayer&.pause
       print "\n\n\e[0m\e[32mPaused:\e[0m\e[2m      (because "
       if space_seen
-        print "SPACE has been pressed here"
+        print "SPACE or 'j' has been pressed here"
       else
         print "'j' has been pressed in 'harpwise listen'"
       end
@@ -352,7 +352,7 @@ def my_sleep secs
       space_seen = jamming_sleep_wait_for_go
       print "\e[2m(because "
       if space_seen
-        print "SPACE has been pressed here"
+        print "SPACE or 'j' has been pressed here"
       else
         print "'j' has been pressed in 'harpwise listen'"
       end
@@ -468,7 +468,7 @@ def do_the_playing json_short_or_num
   puts
   puts "Starting:\n\n    #{pms['play_command']}\n\n"
   puts
-  puts "\e[32mPress SPACE to pause.\e[0m"
+  puts "\e[32mPress SPACE or 'j' to pause.\e[0m"
 
   # allow for testing
   if ENV["HARPWISE_TESTING"]
@@ -484,15 +484,15 @@ def do_the_playing json_short_or_num
 end
 
 
-def check_for_space hinted
+def check_for_space_etc hinted
   space_seen = false
   if $ctl_kb_queue.length > 0
     while $ctl_kb_queue.length > 0
       char = $ctl_kb_queue.deq
-      if char == ' '
+      if char == ' ' || char == 'j'
         space_seen = true
       elsif !hinted
-        print "\e[0m\e[2m (SPACE to pause, all other keys are ignored) \e[0m"
+        print "\e[0m\e[2m (SPACE,j to pause, all other keys are ignored) \e[0m"
         hinted = true
       end
     end
@@ -546,7 +546,7 @@ def jamming_sleep_wait_for_go
       FileUtils.rm($remote_jamming_ps_rs)
       break
     end
-    space_seen, hinted = check_for_space(hinted)        
+    space_seen, hinted = check_for_space_etc(hinted)        
     break if space_seen
   end
   print " \e[0m\e[32mgo\e[0m    "
