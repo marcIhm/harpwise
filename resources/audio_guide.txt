@@ -1,0 +1,41 @@
+  Even if the program sox is present on your system, you might need to
+  install support for more audio-formats; for linux this could be the
+  package libsox-fmt-all.
+
+  Sox-Errors, which mention "no default audio device" or "encode
+  0-bit Unknown or not applicable" can sometimes be solved by
+  setting and exporting the environment variable AUDIODRIVER to a
+  suitable value.
+
+  sox shows possible values for this when invoked without arguments;
+  just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
+  might be 'alsa oss ossdsp pulseaudio' (linux) or 'coreaudio'
+  (macOS).
+
+  So e.g. on linux setting and exporting AUDIODRIVER=alsa or
+  AUDIODRIVER=pulseaudio might help.
+
+
+  If this is not enough to solve the problem, you may also set
+  AUDIODEV to a suitable value, which however must be understood by
+  your audio driver (as specified by AUDIODRIVER).
+
+  As a linux example lets assume, that you have set AUDIODRIVER=alsa
+  above. Then, setting AUDIODEV=hw:0 in addition (which will inform
+  alsa about the device to use) might work. Note, that for macOS
+  most surely different values will be needed.
+
+
+  Other options necessary for sox might be passed through the
+  environment variable SOX_OPTS. See the man-page of sox for
+  details; also see the documentation of your respective audio
+  driver, e.g. alsa (for linux) or coreaudio (for macOS).
+
+
+  If you use WSL (Windows Subsystem for Linux): Audio is complicated
+  (pipewire -> pulseaudio -> rdp -> windows) but generally works just
+  fine; in my case (2025-01-26) however it was necessary to issue:
+  
+    sudo systemctl stop systemd-timesyncd.service
+    
+  to prevent audio from stuttering or even stopping.

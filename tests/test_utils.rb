@@ -138,14 +138,6 @@ def two_sounds secs1, semi1, secs2, semi2
   sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav /tmp/harpwise_testing.wav"
 end
 
-$memo_file = "/tmp/harpwise_testing_memo.json"
-$last_test = "/tmp/harpwise_testing_last_tried.json"
-$memo_count = 0
-$memo_seen = Set.new
-$memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
-$memo.transform_keys!(&:to_sym)
-$fromon_id_uniq = Set.new
-
 def do_test text
   $memo_count += 1
   if md = text.match(/#{$fromon_id_regex}/)

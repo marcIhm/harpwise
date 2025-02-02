@@ -18,8 +18,15 @@ require_relative 'test_utils.rb'
 # Set vars
 #
 $fromon = ARGV.join(' ')
+$last_test = "#{Dir.home}/.harpwise_testing_last_tried.json"
+$memo_file = "#{Dir.home}/.harpwise_testing_memo.json"
+$memo_count = 0
+$memo_seen = Set.new
+$memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
+$memo.transform_keys!(&:to_sym)
+$fromon_id_uniq = Set.new
 if $fromon == '.'
-  $fromon = JSON.parse(File.read('/tmp/harpwise_testing_last_tried.json'))['id']
+  $fromon = JSON.parse(File.read($last_test))['id']
   puts "Continue from last test tried ..."
 end
 $fromon_cnt = $fromon.to_i if $fromon.match?(/^\d+$/)
@@ -46,6 +53,7 @@ $persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
 $players_pictures = "#{$dotdir_testing}/players_pictures"
 $lickfile_testing = "#{$dotdir_testing}/licks/richter/licks_with_holes.txt"
 $scalefile_testing = "#{$dotdir_testing}/scales/richter/scale_foo_with_holes.yaml"
+$remote_jamming_ps_rs = "#{$dotdir_testing}/remote_jamming_pause_resume"
 
 # remove these to get clean even if we do not rebuild completely
 Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
@@ -806,7 +814,7 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick wade'] }
+  expect { screen[6]['Lick   wade'] }
   expect { screen[9]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
   expect { File.exist?(history_file) }
   kill_session
@@ -826,7 +834,7 @@ do_test 'id-15b: play licks with controls between' do
   tms 'harpwise play a wade st-louis feeling-bad'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick wade'] }
+  expect { screen[6]['Lick   wade'] }
   sleep 4
   expect { screen[11]['h: show help with more keys (available now already)'] }
   expect { screen[12]['SPACE or RETURN for next lick'] }
@@ -857,11 +865,11 @@ do_test 'id-16b: cycle in play' do
   tms 'harpwise play a licks --iterate cycle'
   tms :ENTER
   sleep 2
-  expect { screen[8]['Lick wade    1/21'] }
+  expect { screen[8]['Lick   wade    1/21'] }
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[15]['Lick st-louis    2/21'] }
+  expect { screen[15]['Lick   st-louis    2/21'] }
   kill_session
 end
 
@@ -3100,16 +3108,16 @@ do_test 'id-100: tool diagnosis' do
   tms 'harpwise tool diag'
   tms :ENTER
   sleep 2
-  expect { screen[17]['Make some sound'] }
+  expect { screen[19]['Make some sound'] }
   tms :ENTER
   sleep 5
-  expect { screen[18]['Listen and check'] }
+  expect { screen[19]['Listen and check'] }
   tms :ENTER
   sleep 5
-  expect { screen[12]['Get hints on troubleshooting sox ?'] }
+  expect { screen[11]['Get hints on troubleshooting sound, especially sox ?'] }
   tms 'y'
   sleep 2
-  expect { screen[16]['Other options necessary for sox might be'] }
+  expect { screen[7]['Other options necessary for sox might be'] }
   kill_session
 end
 
@@ -3356,25 +3364,25 @@ do_test 'id-114: play licks next and previous' do
   tms 'harpwise play licks -i c'
   tms :ENTER
   sleep 6
-  expect { screen[8]['Lick wade'] }
+  expect { screen[8]['Lick   wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick st-louis'] }
+  expect { screen[15]['Lick   st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick feeling-bad'] }
+  expect { screen[15]['Lick   feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick chord-prog'] }
+  expect { screen[15]['Lick   chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick feeling-bad'] }
+  expect { screen[15]['Lick   feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick st-louis'] }
+  expect { screen[15]['Lick   st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick wade'] }
+  expect { screen[15]['Lick   wade'] }
   tms :BSPACE
   sleep 6
   expect { screen[13]['No previous lick available'] }
@@ -3395,10 +3403,10 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms 'harpwise play wade st-louis'
   tms :ENTER
   sleep 6
-  expect { screen[6]['Lick wade'] }
+  expect { screen[6]['Lick   wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick st-louis'] }
+  expect { screen[14]['Lick   st-louis'] }
   tms :ENTER
   sleep 6
   expect { screen[22]['$'] }
@@ -3497,7 +3505,7 @@ do_test 'id-120: comment with licks from commandline' do
   sleep 1
   tms '.'
   sleep 1
-  expect { screen[16]['Lick wade, rec in a, shifted to c'] }
+  expect { screen[16]['Lick   wade, rec in a, shifted to c'] }
   sleep 4
   tms 'l'
   expect { screen[16]['simple-turn'] }
@@ -3758,6 +3766,22 @@ do_test 'id-138: harpwise jamming play with a number' do
   tms "harpwise jamming play 1"
   tms :ENTER
   expect { screen[9]['play -q /home/ihm/harpwise/recordings/12bar.mp3']}  
+  kill_session
+end
+
+do_test 'id-139: jamming pause/resume for jamming' do
+  new_session
+  FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
+  tms "harpwise jamming 1"
+  tms :ENTER
+  sleep 4
+  expect { screen[23]['Waiting ..']}
+  tms ' '
+  sleep 1
+  expect { screen[20]['Paused:      (because SPACE has been pressed here)']}
+  File.write $remote_jamming_ps_rs, ""
+  sleep 1
+  expect { screen[21]["Paused .. go    (because 'j' has been pressed in 'harpwise listen')"]}
   kill_session
 end
 

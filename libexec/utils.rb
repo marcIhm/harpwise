@@ -1458,16 +1458,20 @@ def mostly_avoid_double_invocations
       pid = fields[1].to_i
       cmd = fields[-1]
       next unless cmd['ruby'] && cmd['harpwise']
+      next if Process.pid == pid
       $runningp_listen_fifo = true if pid == pid_listen_fifo
       $runningp_jamming = true if pid == pid_jamming
-      # if we are jamming, it is okay to have a fifo_listener (see mode_jamming.rb for even
-      # requiring this)
-      next if $mode == :jamming && pid == pid_listen_fifo
-      # If we are not jamming, we tolerate a jammer
+      # if we are jamming, we tolerate any other instance; see mode_jamming.rb where we
+      # require a fifo-listener, which in turn would barf about anything not a jammer
+      if $mode == :jamming
+        puts "\n\e[0m\e[2mThere is an instance of harpwise, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_fifo
+        next
+      end
+      # if we are not jamming, we tolerate a jammer
       next if $mode != :jamming && pid == pid_jamming
-      # if we are the fifo-listener, it is okay to have a jammer
-      next if $mode == :listen && $opts[:read_fifo] && pid == pid_jamming
-      err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'" if Process.pid != pid
+      # Remark: the fifo-listener does not strictly require a jammer to ever appear and will
+      # run merrily without; so we habe no code checking this
+      err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'"
     end
   end
   # we can write this only after checking all procs above; otherwise we might overwrite the

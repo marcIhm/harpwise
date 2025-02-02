@@ -831,22 +831,21 @@ def tool_diag
   puts_underlined 'Some help with diagnosing sound-problems'
 
   puts <<~end_of_intro
-  Harpwise uses the excellent program sox (aka rec aka play) under the
-  hood.  Normally, sox works just great, but it relies on correct
-  configuration of your sound system on correct settings and operation
-  of your sound hardware.
+  Harpwise uses the excellent program sox (aka rec, aka play).
+  Normally, sox works just great, but it relies on correct
+  configuration of your sound system on correct settings and
+  operation of your sound hardware.
 
   Therefore, this assistant will invoke sox (or rec or play, both are
   links to sox) in a typical way, giving you a chance to:
 
-    - Verify that sox (and therefore harpwise) can record and play
-      sounds
+    - Verify that sox (and therefore harpwise) can record and play sounds
     - Easily spot any warnings or error messages, that might appear;
-      these will be in \e[0;101mred\e[0m
+      these will be in \e[0;101m red \e[0m
 
   end_of_intro
 
-  FileUtils.rm file if File.exist?($diag_wav)
+  FileUtils.rm $diag_wav if File.exist?($diag_wav)
   print "\e[?25l"  ## hide cursor
 
   puts
@@ -865,12 +864,10 @@ def tool_diag
   to record any sound from your microphone.
   The recording will be stopped after 3 seconds.
 
-  You should:
+  Your part is:
 
-    - Make some sound (e.g. play on your harmonica), that can be
-      recorded
-    - Look out for any extra output e.g. WARNINGS or ERRORS that may
-      appear
+    - Make some sound that can be recorded, e.g. play your harp
+    - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
 
@@ -899,11 +896,10 @@ def tool_diag
 
   to replay the sound, that has just been recorded.
 
-  You should:
+  You part is:
 
     - Listen and check, if you hear, what has been recorded previously
-    - Look out for any extra output e.g. WARNINGS or ERRORS that may
-      appear
+    - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_play
 
@@ -916,55 +912,24 @@ def tool_diag
   puts "\e[0m\e[K\nDone.\n\n"
 
   puts
-  puts_underlined 'Get hints on troubleshooting sox ?'
+  puts_underlined 'Get hints on troubleshooting sound, especially sox ?'
   puts <<~end_of_however
   In many cases problems can be traced to incorrect settings,
   e.g. of your sound hardware (volume turned up ?).
 
-  However, if you saw error messages in \e[0;101mred\e[0m,
+  However, if you saw error messages in \e[0;101m red \e[0m,
   the problem might be with the configuration of sox.
-  In that case, there are some hints, that might help.
+  In that case, there is a collection of mixed technical
+  hints that might be useful.
   end_of_however
   
-  puts "\nType 'y' to read those hints (and anything else to end): "
+  puts "\nType 'y' to read those hints or anything else to end: "
   drain_chars
   if one_char == 'y'
-    puts "\n\e[32mSome hints:\e[0m\n"
-    puts <<end_of_guide
-
-  Even if the program sox is present on your system, you might need to
-  install support for more audio-formats; for linux this could be the
-  package libsox-fmt-all.
-
-  Sox-Errors, which mention "no default audio device" or "encode
-  0-bit Unknown or not applicable" can sometimes be solved by
-  setting and exporting the environment variable AUDIODRIVER to a
-  suitable value.
-
-  sox shows possible values for this when invoked without arguments;
-  just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
-  might be 'alsa oss ossdsp pulseaudio' (linux) or 'coreaudio'
-  (macOS).
-
-  So e.g. on linux setting and exporting AUDIODRIVER=alsa might
-  help.
-
-
-  If this is not enough to solve the problem, you may also set
-  AUDIODEV to a suitable value, which however must be understood by
-  your audio driver (as specified by AUDIODRIVER).
-
-  As a linux example lets assume, that you have set AUDIODRIVER=alsa
-  above. Then, setting AUDIODEV=hw:0 in addition (which will inform
-  alsa about the device to use) might work. Note, that for macOS
-  most surely different values will be needed.
-
-
-  Other options necessary for sox might be passed through the
-  environment variable SOX_OPTS. See the man-page of sox for
-  details; also see the documentation of your respective audio
-  driver, e.g. alsa (for linux) or coreaudio (for macOS).
-end_of_guide
+    puts "\n\e[32mSome hints:\e[0m\n\n"
+    audio_guide = ERB.new(IO.read("#{$dirs[:install]}/resources/audio_guide.txt")).result(binding).lines
+    audio_guide.pop while audio_guide[-1].strip.empty?
+    audio_guide.each {|l| print l}    
   else
     puts "\n\e[32mNo hints requested.\e[0m"
   end

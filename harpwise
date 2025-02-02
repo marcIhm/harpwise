@@ -135,12 +135,19 @@ end
 
 at_exit do
   end_all_other_threads
+  # give processes started by threads some time to terminate
+  sleep 0.1
+  # does not apply to 'tools spread-keys' which can be used in a subshell
   if STDIN.isatty && STDOUT.isatty
     sane_term
-    Kernel::print "\e[?25h"  ## show cursor
+    print "\e[?25h"  ## show cursor
+    print "\e[0m"
   end
-  # useful for 'tools spread-keys' which can be used in a subshell
-  print "\e[0m" if STDOUT.isatty
+
+  # take care to not remove too much, if something happens and $dirs
+  # would not be initialized completetly
+  FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
+
   write_dump 'end' if $testing
 
   # a user recording could still be going on
@@ -148,12 +155,6 @@ at_exit do
   
   # notice for lagging or jitter if appropriate
   print_afterthought if $initialized
-
-  # give processes started by threads some time to terminate
-  sleep 0.1
-  # take care to not remove too much, if something happens and $dirs
-  # would not be initialized completetly
-  FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
 
   if $opts && $opts[:debug] 
     print_debug_info

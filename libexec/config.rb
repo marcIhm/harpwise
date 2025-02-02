@@ -434,6 +434,8 @@ EOREADME
   $history_file = "#{$dirs[:data]}/history_#{$type}.json"
 
   $testing_log = "/tmp/#{File.basename($0)}_testing.log"
+  # most of the time there is no code to use this debug-log; but we keep it nevertheless for
+  # debugging hard problems in the future
   $debug_log = "/tmp/#{File.basename($0)}_debug.log"
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
