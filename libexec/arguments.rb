@@ -106,6 +106,8 @@ def parse_arguments_early
         min_holes: %w(--min-holes)}],
      [Set[:play], {
         lick_radio: %w(--radio --lick-radio)}],
+     [Set[:jamming], {
+        paused: %w(--paused)}],
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]

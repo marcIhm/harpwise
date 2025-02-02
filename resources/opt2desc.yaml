@@ -354,6 +354,12 @@ lick_radio:
     preset controls for endless playing of selected licks random or in
     a loop
 
+paused:
+  - |
+    For jamming, start up paused,
+    so that you have time to prepare, before the backing track
+    actually starts
+
 wave:
   - |
     choose waveform for generated samples,

@@ -50,6 +50,14 @@ def do_the_jamming json_short_or_num
   make_term_immediate
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler  
+
+  if $opts[:paused]
+    puts "\n\n\e[0m\e[32mPaused due to option --paused:\e[0m"
+    puts $to_pause % 'CONTINUE'    
+    jamming_sleep_wait_for_go
+    puts
+    puts
+  end
   
   # 
   # Transform timestamps; see also below for some further changes to list of actions
