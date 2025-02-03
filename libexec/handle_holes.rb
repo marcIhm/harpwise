@@ -541,7 +541,7 @@ def text_for_key
   end
   text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m" if $comment_licks && $comment_licks.length > 0
   text += '; journal-all ' if $journal_all
-  truncate_colored_text(text, $term_width - 12 ) + '    '
+  truncate_colored_text(text, $term_width - 16 ) + '        '
 end
 
 

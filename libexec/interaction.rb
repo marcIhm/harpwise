@@ -540,10 +540,6 @@ def handle_kb_mic
   if char == ' '
     txt = 'SPACE to continue'
     cnt = 0
-    if $mode == :listen && $opts[:read_fifo]
-      # this is picked up by harpwise jamming
-      File.write($remote_fifo_feedback, "pause\n")
-    end
     begin
       while $ctl_kb_queue.empty?
         ctl_response txt, hl: cnt / 10

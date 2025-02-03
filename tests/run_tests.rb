@@ -225,7 +225,7 @@ end
   end
 end
 
-do_test "id-1j: starter samples for key of c" do
+do_test "id-1j: starter samples for key of c and SPACE to pause" do
   some_samples_dir = "#{$dotdir_testing}/samples/richter/key_of_c"
   probe_file = "#{some_samples_dir}/g5.mp3"
   FileUtils.rm_r(some_samples_dir) if File.exist?(some_samples_dir)
@@ -233,6 +233,12 @@ do_test "id-1j: starter samples for key of c" do
   tms "harpwise listen c"
   tms :ENTER
   sleep 2
+  tms ' '
+  sleep 1
+  expect { screen[0]['SPACE to continue'] }
+  tms ' '
+  sleep 1
+  expect { screen[0]['and on !'] }
   tms 'q'
   sleep 2
   wait_for_end_of_harpwise

@@ -203,7 +203,7 @@ at_exit {
   if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
     $memo[:count] = $memo_count
     $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
-    File.write($memo_file, JSON.pretty_generate($memo)) if $fromon.empty?
   end
+  File.write($memo_file, JSON.pretty_generate($memo))
   system("killall aubiopitch >/dev/null 2>&1")
 }

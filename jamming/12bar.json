@@ -22,21 +22,38 @@
     // use this, if actions and music tend to drift; can be negative too (in which
     // case it is just subtracted to last timestamp)
     "sleep_after_iteration": 0.5,
-    // Try audacity and its text-label-feature to get the timestamps for such a list as
-    // below.  Timestamps-to-actions will be repeated forever; this assumes that the
-    // chord-structure of your song is regular and repeats too.  On from the second
-    // iteration, only entries after "loop-start" will be used.
-
-    // messages to be shown, may use the special variables %{comment}, %{iteration} and
-    // %{elapsed} to insert the comment from this file, the count of repeats and the number
-    // of seconds elapsed.
+    //
+    // The array "timestamps_to_actions" is the central data structure of this file.
+    // it is an array, where each element has one of these forms:
+    //
+    //   [timestamp, "message", message, secs_to_show]
+    //   [timestamp, "loop-start", message, secs_to_show] 
+    //   [timestamp, "keys", key1, key2, ... ]
+    //
+    // where "loop-start" behaves like "message" but also marks the entrypoint
+    // for the second and any further iterations, so that action before "loop-start"
+    // are only executed during the first iteration.
+    //
+    // To get the timestamps (in seconds), try audacity and its text-label-feature.
+    // timestamps-to-actions will be repeated forever; this assumes that the
+    // chord-structure of your song is regular and repeats too.
+    //
+    //
+    // Messages to be shown, may use these special variables:
+    //
+    //   %{comment}             :  comment from this file
+    //   %{iteration}           :  count of repeats (whole set of actions)
+    //   %{iteration_duration}  :  duration of one iteration
+    //   %{elapsed}             :  seconds elapsed
+    //   %{remaining}           :  time remaining of backing-track (mm:ss)
+    //
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise
         [0,"message","%{comment}",0],
         [0,"keys","L","S"],
         [-2,"message","In two secs ...",1.8],
 	// exactly one loop-start is needed
-        [6,"loop-start","Start of iteration %{iteration}; %{elapsed} secs after start",1.8],
+        [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",1.8],
         [-2,"message","Chord-change in two secs ...",1.8],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],
