@@ -183,13 +183,13 @@ def do_the_jamming json_short_or_num
         puts
       end
         
-      puts "Action #{j + 1 - disp_idx_offset}/#{disp_idx_max} (%.2f sec since program start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      puts "Action   #{j + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since program start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
       puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed: #{$jam_data[:elapsed]}, remaining: #{$jam_data[:remaining]}"
 
       jamming_do_action action
 
       sleep_between = tsy - tsx
-      puts "sleep %.2f sec" % sleep_between
+      puts "sleep until next:    \e[0m\e[34m%.2f sec\e[0m" % sleep_between
       my_sleep sleep_between
       puts
 
@@ -227,7 +227,7 @@ def jamming_send_keys keys, silent: false
       err "Could not write '#{key}' to #{fifo}.\nIs 'harpwise listen' still listening ?"
     end
   end
-  puts "sent keys \e[0m\e[2m#{keys.join(',')}\e[0m" unless silent
+  puts "sent keys:           \e[0m\e[34m#{keys.join(',')}\e[0m" unless silent
 end
 
 
@@ -244,7 +244,7 @@ def jamming_do_action action, noop: false
     $jam_data[:remaining] = Time.at($jam_pms['sound_file_length_secs'] - $pplayer.time_played).utc.strftime("%M:%S") if $pplayer
     File.write("#{Dir.home}/.harpwise/remote_message",
                ( action[1].chomp % $jam_data ) + "\n" + action[2].to_s + "\n")
-    puts "sent message \e[2m'#{action[1].chomp % $jam_data}'\e[0m"
+    puts "sent message:       \e[0m\e[34m'#{action[1].chomp % $jam_data}'\e[0m"
     jamming_send_keys ["ALT-m"], silent: true
   elsif action[0] == 'keys'
     return if noop
