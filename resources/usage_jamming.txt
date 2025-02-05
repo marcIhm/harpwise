@@ -70,7 +70,7 @@ Usage by Examples:
   The numbers, that 'jamming list' produces, can be used instead of
   giving the full filename, so
 
-    harpwise jamming 1
+    harpwise jam 1
 
   is valid too and refers to the file '12bar.json'.
 

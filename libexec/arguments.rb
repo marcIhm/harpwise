@@ -657,7 +657,7 @@ EOTEXT
     sleep 0.01 if STDOUT.isatty && idx < 10
   end
 
-  if $mode && $mode != :jamming
+  if $mode
     puts "\nCommandline Options:\n\n"
     puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
   end
