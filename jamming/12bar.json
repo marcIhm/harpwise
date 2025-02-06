@@ -19,8 +19,11 @@
     "timestamps_add": 0.0,
     // maybe give some extra time to grab your harp before anything starts
     "sleep_initially": 2.0,
-    // use this, if actions and music tend to drift; can be negative too (in which
+    // Use this, if actions and music tend to drift; can be negative too (in which
     // case it is just subtracted to last timestamp)
+    // For tracks with slightly uneven tempo, or to make room for a solo, this can
+    // also be an array either timestamps, e.g. [0, 0.2, 0, 12, 0, -0.1], which might
+    // also include appropriate messages, e.g. [0, 0.2, 0, [12, "solo"], 0, -0.1]
     "sleep_after_iteration": 0.5,
     //
     // The array "timestamps_to_actions" is the central data structure of this file.
@@ -79,4 +82,7 @@
 //  Admittedly, preparing those timestamps needs some technical work; however, your ear and
 //  good tools make this a matter of minutes. Try e.g. audacity and its feature of creating
 //  and exporting text-markers.
+//
+//  As an easier (but maybe less accurate) method, you may try 'harpwise jam play' and
+//  press 't' as appropriate.
 //

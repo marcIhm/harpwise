@@ -263,7 +263,8 @@ jamming:
     might be used instead of a filename
   play: |
     just play the backing-track; can be useful if you want to search
-    for a matching lick-progression without actually starting to jam
+    for a matching lick-progression without actually starting to jam;
+    may also record timestamps.
 develop:
   man: |
     produce man page from erb-template

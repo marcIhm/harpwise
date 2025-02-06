@@ -3712,7 +3712,7 @@ do_test 'id-134: invalid arg for mode jamming' do
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[17]["for mode jamming should belong to one of these 3"] }
+  expect { screen[18]["for mode jamming should belong to one of these 3"] }
   kill_session
 end
 

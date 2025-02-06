@@ -59,13 +59,37 @@ def do_the_jamming json_short_or_num
   puts "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}"
   puts "  - if negative, subtract it from last timestamp only"
   puts "  - if positive, add a new matching sleep-action"
+  puts "  - if an array (numbers only or pairs [number, text]), use each element"
+  puts "    one after the other for one iteration as described above;"
+  puts "    issue text (e.g. 'solo'), if given"
   puts "- multiplying each timestamp by timestamps_multiply = #{$jam_pms['timestamps_multiply']}\e[0m"
   puts
-  if $jam_pms['sleep_after_iteration'] <= 0  
-    actions[-1][0] += $jam_pms['sleep_after_iteration']
+
+  #
+  # Preprocess sleep_after_iteration as far as possible already
+  #
+  sl_a_iter = $jam_pms['sleep_after_iteration']  
+  if sl_a_iter.is_a?(Numeric)
+    # turn number into sufficiently large array of identical Arrays with one number each
+    sl_a_iter = Array.new(1000, [sl_a_iter, nil])
   else
-    actions << [actions[-1][0] + $jam_pms['sleep_after_iteration'], "message", "Done sleep_after_iteration #{$jam_pms['sleep_after_iteration']} sec", 0]
+    # Sleep is different for each iteration; for now, check its type only and bring them
+    # into a common structure
+    err "Parameter 'sleep_after_iteration' can only be a number or an array, however its type is '#{sl_a_iter.class}' and its value: #{sl_a_iter}" unless sl_a_iter.is_a?(Array)
+    sl_a_iter.map! do |sai|
+      case sai
+      in Numeric
+        [sai, nil]
+      in Numeric, String
+        err "If an element of 'sleep_after_iteration' has text, the duration needs to be >= 2 (to allow message to show); however this does not hold true for this element: #{sai}"  if sai[0] < 2
+        sai
+      else
+        err "Parameter 'sleep_after_iteration' should be an array (which is the case). Each element of this array can either be a  PLAIN NUMBER  or an  ARRAY  with a number and a string; however (and thats the problem) element #{idx} in #{sl_a_iter} is none of these but rather: #{sai}"
+      end
+    end
   end
+
+  # process other time-parameters
   actions.each_with_index do |ta,idx|
     ta[0] += $jam_pms['timestamps_add']
     ta[0] *= $jam_pms['timestamps_multiply']
@@ -151,11 +175,33 @@ def do_the_jamming json_short_or_num
     puts
     puts $to_pause % 'pause'
     puts
+
+    # Actions for each iteration can be different due to 'sleep_after_iteration'; need to
+    # clone deep because we may do some deep modifications below
+    this_actions = Marshal.load(Marshal.dump(actions))
+    sl_a_iter << 0 if sl_a_iter.length == 0
+
+    #
+    # Maybe create artificial sleep-actions after last given action
+    #
+    
+    # initially, we made sure, that sl_a_iter is an array of arrays
+    slp = sl_a_iter[0][0] * $jam_pms['timestamps_multiply']
+    if slp <= 0.5
+      # not enough time to actually display something
+      this_actions[-1][0] += slp
+    else
+      this_actions << [this_actions[-1][0], 'message',
+                       sl_a_iter[0][1] || 'Sleep after iteration',
+                       0]
+      this_actions << [this_actions[-1][0] + slp, 'message', 'Done', 0]
+    end
+    sl_a_iter.shift
     
     #
     # Loop: each pair of actions with sleep between
     #
-    actions.each_cons(2).each_with_index do |pair,j|
+    this_actions.each_cons(2).each_with_index do |pair,j|
 
       tsx, tsy = pair[0][0], pair[1][0]
       action = pair[0][1 .. -1]
@@ -168,18 +214,18 @@ def do_the_jamming json_short_or_num
       if j == 0 && iter == 1
         puts
         puts_underlined "BEFORE FIRST ITERATION"
-        actions[0 .. $jam_loop_start_idx - 1].each {|a| pp a}
+        this_actions[0 .. $jam_loop_start_idx - 1].each {|a| pp a}
         puts
       end
 
       if action[0] == 'loop-start'
         # after first iteration $jam_loop_start_idx will be adjusted and is itself 0 
-        disp_idx_max = actions.length - $jam_loop_start_idx
+        disp_idx_max = this_actions.length - $jam_loop_start_idx
         disp_idx_offset = $jam_loop_start_idx
         $jam_data[:iteration] = iter
         puts
         puts_underlined "ITERATION #{iter}"
-        actions[j .. -1].each {|a| pp a}
+        this_actions[j .. -1].each {|a| pp a}
         puts
       end
         
@@ -197,12 +243,13 @@ def do_the_jamming json_short_or_num
 
     # last action has not been included above, as we did only the first action of each pair;
     # so we have to do it now
-    puts "Final action #{actions.length}/#{actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"  
-    jamming_do_action actions[-1][1 .. -1]
-    puts "at ts %.2f sec" % actions[-1][0]
+    puts "Final action #{this_actions.length}/#{this_actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"  
+    jamming_do_action this_actions[-1][1 .. -1]
+    puts "at ts %.2f sec" % this_actions[-1][0]
 
     # as the actions before actual loop-start (e.g. intro) have been done once and should
-    # not be done again, we have to remove them now
+    # not be done again, we have to remove them now; we are acting on 'actions' rather then
+    # 'this_actions'
     if iter == 1
       while actions[0][1] != 'loop-start'
         actions.shift
@@ -349,7 +396,7 @@ def do_jamming_list
 end
 
 
-def my_sleep secs
+def my_sleep secs, collect_ts: false
   start_at = Time.now.to_f
   hinted = space_seen = false
   paused = false
@@ -360,7 +407,7 @@ def my_sleep secs
   
   begin  ## loop untils secs elapsed
 
-    space_seen, hinted = check_for_space_etc(hinted)
+    space_seen, hinted = check_for_space_etc(hinted, collect_ts: collect_ts)
 
     if space_seen || File.exist?($remote_jamming_ps_rs)
       paused = true
@@ -390,10 +437,10 @@ def my_sleep secs
       puts
       puts "Backing track has ended."
       puts
-      jamming_do_action ["message","Backing track has ended.",1]
+      jamming_do_action ['message','Backing track has ended.',1]
       exit 0
     end
-    sleep 0.1
+    sleep 0.05
   end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
   $pplayer.sum_pauses = 0 if $pplayer
 
@@ -488,9 +535,8 @@ end
 
 
 def do_the_playing json_short_or_num
-
+  
   $jam_pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
-
   make_term_immediate
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler    
@@ -498,7 +544,7 @@ def do_the_playing json_short_or_num
   puts
   puts "Starting:\n\n    #{$jam_pms['play_command']}\n\n"
   puts
-  puts "\e[32mPress SPACE or 'j' to pause.\e[0m"
+  puts "\e[32mPress   SPACE or 'j'   to pause, press   't'   to record a timestamp\e[0m"
   puts
 
   # allow for testing
@@ -510,20 +556,35 @@ def do_the_playing json_short_or_num
     
   $pplayer = PausablePlayer.new($jam_pms['play_command'])
   puts
-  my_sleep 1000000
+  $jam_ts_collected = [$jam_pms['sound_file_length_secs']]
+  my_sleep 1000000, collect_ts: true
 
 end
 
 
-def check_for_space_etc hinted
+def check_for_space_etc hinted, collect_ts: false
   space_seen = false
   if $ctl_kb_queue.length > 0
     while $ctl_kb_queue.length > 0
       char = $ctl_kb_queue.deq
       if char == ' ' || char == 'j'
         space_seen = true
+      elsif collect_ts && char == 't'
+        # conveniently handle collection of timestamps
+        $jam_ts_collected.insert(-2, $pplayer.time_played)
+        puts "\n\nNew timestamp recorded, #{$jam_ts_collected.length - 1} in total:"
+        puts
+        $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
+          x,y = pair
+          puts "\e[2m   %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
+               [('# ' + idx.to_s).rjust(5), x, Time.at(x).utc.strftime("%M:%S"), y-x]
+        end
+        puts "\e[2m End at:   %6.2f sec  (%s)\e[0m" % [$jam_pms['sound_file_length_secs'],
+                                             $jam_pms['sound_file_length']]
+        
+        print "\e[0m"
       elsif !hinted
-        print "\e[0m\e[2m (SPACE,j to pause, all other keys are ignored) \e[0m"
+        puts "\e[0m\e[2m (SPACE,j to pause#{collect_ts  ?  ', t for timestamp'  :  '' }, all other keys are ignored) \e[0m"
         hinted = true
       end
     end
