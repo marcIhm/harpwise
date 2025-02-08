@@ -360,6 +360,14 @@ paused:
     so that you have time to prepare, before the backing track
     actually starts
 
+print_only:
+  - |
+    For jamming: only print timestamps
+    and actions, but dont try to talk with 'harpwise listen'
+    and do not actually sleep. At the end, produce a list of
+    timestamps, which can be checked against e.g. those produced
+    by 'harpwise jam play'
+
 wave:
   - |
     choose waveform for generated samples,

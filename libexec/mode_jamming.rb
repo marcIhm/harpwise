@@ -5,6 +5,14 @@
 def do_jamming to_handle
 
   $to_pause = "\e[0mPress   \e[92mSPACE or 'j'\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
+
+  $jam_help_while_play = ["Press:   SPACE,j   to pause",
+                          "        RETURN,t   to mark a timestamp",
+                          "  BACKSPACE,LEFT   to skip back 10 secs",
+                          "           RIGHT      skip forward 10"]
+  $jam_play_prev_trim = 0
+  $jam_pretended_sleep = 0
+  $jam_pretended_actions_ts = []
   
   if ENV['HARPWISE_RESTARTED']
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
@@ -47,7 +55,7 @@ def do_the_jamming json_short_or_num
 
   $jam_pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
 
-  make_term_immediate
+  make_term_immediate if STDOUT.isatty
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler  
 
@@ -104,7 +112,7 @@ def do_the_jamming json_short_or_num
   puts "Comment:\n\n\e[32m" + wrap_text($jam_pms['comment'],cont: '').join("\n") + "\e[0m\n\n"
   puts
 
-  if $opts[:paused]
+  if $opts[:paused] && !$opts[:print_only]
     puts "\e[0m\e[32mPaused due to option --paused:\e[0m"
     puts $to_pause % 'CONTINUE'    
     jamming_sleep_wait_for_go
@@ -115,32 +123,30 @@ def do_the_jamming json_short_or_num
   #
   # Wait for listener
   #
-  if $runningp_listen_fifo
-    puts "Found 'harpwise listen' running."
+  if $opts[:print_only]
+    puts "Will not search for 'harpwise listen' and will not sleep due to given option --print-only"
   else
-    puts "Cannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $jam_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nSo you can stay with it and need not come back here.\n\n"
-    print "Waiting "
-    begin
-      pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
-      print '.'
-      if my_sleep(1)
-        print "\nStill waiting for 'harpwise listen' "
-      end
-    end until pid_listen_fifo
-    puts ' found it !'
-    sleep 1
+    if $runningp_listen_fifo
+      puts "Found 'harpwise listen' running."
+    else
+      puts "Cannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $jam_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nSo you can stay with it and need not come back here.\n\n"
+      print "Waiting "
+      begin
+        pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
+        print '.'
+        if my_sleep(1)
+          print "\nStill waiting for 'harpwise listen' "
+          break if ENV['HARPWISE_TESTING']
+        end
+      end until pid_listen_fifo
+      puts ' found it !'
+      sleep 1
+    end
   end
   #
   # Do not remove $remote_jamming_ps_rs initially, because we may want to start paused
   #
   puts
-
-  # allow for testing
-  if ENV["HARPWISE_TESTING"]
-    puts
-    puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
-    exit 0
-  end
 
   jamming_do_action ['message',
                      "sleep initially for %.1d secs; length of track is #{$jam_pms['sound_file_length']}" % $jam_pms['sleep_initially'],
@@ -148,12 +154,12 @@ def do_the_jamming json_short_or_num
                    
   my_sleep $jam_pms['sleep_initially']
   puts "Initial sleep %.2f sec" % $jam_pms['sleep_initially']    
-
   
   # start playing
   puts
-  puts "Starting:\n\n    #{$jam_pms['play_command']}\n\n"
-  $pplayer = PausablePlayer.new($jam_pms['play_command'])
+  play_command = jam_get_play_command
+  puts "Starting:\n\n    #{play_command}\n\n"
+  $pplayer = PausablePlayer.new(play_command)
   puts
 
   # sleep up to timestamp of first action
@@ -229,7 +235,10 @@ def do_the_jamming json_short_or_num
         puts
       end
         
-      puts "Action   #{j + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since program start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      puts "Action   #{j + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      if $opts[:print_only]
+        $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{j + 1 - disp_idx_offset}/#{disp_idx_max}" % $jam_data, action]
+      end
       puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed: #{$jam_data[:elapsed]}, remaining: #{$jam_data[:remaining]}"
 
       jamming_do_action action
@@ -243,7 +252,10 @@ def do_the_jamming json_short_or_num
 
     # last action has not been included above, as we did only the first action of each pair;
     # so we have to do it now
-    puts "Final action #{this_actions.length}/#{this_actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"  
+    puts "Final action #{this_actions.length}/#{this_actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"
+    if $opts[:print_only]
+      $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{this_actions.length}/#{this_actions.length}" % $jam_data,this_actions[-1][1 .. -1]]
+    end
     jamming_do_action this_actions[-1][1 .. -1]
     puts "at ts %.2f sec" % this_actions[-1][0]
 
@@ -258,23 +270,48 @@ def do_the_jamming json_short_or_num
       disp_idx_offset = 0
       puts "\nAfter first iteration: removed all actions before loop-start.\n\n"
     end
+    if $opts[:print_only] && $jam_pretended_sleep > $jam_pms['sound_file_length_secs']
+      puts
+      puts
+      puts "\e[0m\e[32mPretended sleep (#{jam_ta($jam_pretended_sleep)} secs) has exceeded length of sound file (#{jam_ta($jam_pms['sound_file_length_secs'])}).\nPlay would have ended naturally.\e[0m"
+      puts "\n\nCollected #{$jam_pretended_actions_ts.length} timestamps and descriptions:"
+      puts
+      fname = "#{$dirs[:data]}/jamming_timestamps"
+      file = File.open(fname, 'w')
+      file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
+      $jam_pretended_actions_ts.each do |ts,desc,act|
+        text = "  %6.2f  (#{jam_ta(ts)}):  #{desc}" % ts
+        text += ",  #{act}" unless $opts[:terse]
+        puts text
+        file.puts text
+      end
+      file.close
+      puts
+      puts "#{$jam_pretended_actions_ts.length} entries."
+      puts
+      puts "Find this list also in:   #{fname}"
+      puts
+      exit
+    end
+      
   end  ## Endless loop: one iteration after the other
   
 end
 
 
 def jamming_send_keys keys, silent: false
-  fifo = "#{Dir.home}/.harpwise/remote_fifo"
+  puts "sent keys:           \e[0m\e[34m#{keys.join(',')}\e[0m" unless silent
+  return if $opts[:print_only]
   keys.each do |key|
     begin
       Timeout::timeout(0.5) do
-        File.write(fifo, key + "\n")
+        File.write($remote_fifo, key + "\n") unless ENV['HARPWISE_TESTING']
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{fifo}.\nIs 'harpwise listen' still listening ?"
+      err "Could not write '#{key}' to #{$remote_fifo}.\nIs 'harpwise listen' still alive ?"
+
     end
   end
-  puts "sent keys:           \e[0m\e[34m#{keys.join(',')}\e[0m" unless silent
 end
 
 
@@ -287,11 +324,12 @@ def jamming_do_action action, noop: false
       err("Message to be sent can only be one line, but this has more: #{action[1]}")
     end
     return if noop
-    $jam_data[:elapsed] = Time.at($pplayer.time_played).utc.strftime("%M:%S") if $pplayer
-    $jam_data[:remaining] = Time.at($jam_pms['sound_file_length_secs'] - $pplayer.time_played).utc.strftime("%M:%S") if $pplayer
+    $jam_data[:elapsed] = jam_ta($pplayer.time_played) if $pplayer
+    $jam_data[:remaining] = jam_ta($jam_pms['sound_file_length_secs'] - $pplayer.time_played) if $pplayer
+    puts "sent message:       \e[0m\e[34m'#{action[1].chomp % $jam_data}'\e[0m"
+    return if $opts[:print_only]
     File.write("#{Dir.home}/.harpwise/remote_message",
                ( action[1].chomp % $jam_data ) + "\n" + action[2].to_s + "\n")
-    puts "sent message:       \e[0m\e[34m'#{action[1].chomp % $jam_data}'\e[0m"
     jamming_send_keys ["ALT-m"], silent: true
   elsif action[0] == 'keys'
     return if noop
@@ -396,19 +434,20 @@ def do_jamming_list
 end
 
 
-def my_sleep secs, collect_ts: false
+def my_sleep secs, fast: false, &blk
   start_at = Time.now.to_f
-  hinted = space_seen = false
+  space_seen = false
   paused = false
 
   #
   # Sleep but also check for pause-request
   #
-  
+
+  $jam_pretended_sleep += secs
+  return(false) if $opts[:print_only]
   begin  ## loop untils secs elapsed
 
-    space_seen, hinted = check_for_space_etc(hinted, collect_ts: collect_ts)
-
+    space_seen = check_for_space_etc(blk)
     if space_seen || File.exist?($remote_jamming_ps_rs)
       paused = true
       $ctl_kb_queue.clear
@@ -434,13 +473,13 @@ def my_sleep secs, collect_ts: false
     end
     
     if $pplayer && !$pplayer.alive?
+      jamming_do_action ['message','Backing track has ended.',1]
       puts
       puts "Backing track has ended."
       puts
-      jamming_do_action ['message','Backing track has ended.',1]
       exit 0
     end
-    sleep 0.05
+    sleep(fast  ?  0.01  :  0.1)
   end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
   $pplayer.sum_pauses = 0 if $pplayer
 
@@ -450,15 +489,15 @@ end
 
 def parse_and_preprocess_jamming_json json_short_or_num
   
-  json_file = get_jamming_json(json_short_or_num)
+  $jam_json = get_jamming_json(json_short_or_num)
   
   puts
-  puts "\e[2mSettings from: #{json_file}\e[0m\n\n"
+  puts "\e[2mSettings from: #{$jam_json}\e[0m\n\n"
   
   #
   # Process json-file with settings
   #
-  $jam_pms = JSON.parse(File.read(json_file).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
+  $jam_pms = JSON.parse(File.read($jam_json).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
   actions = $jam_pms['timestamps_to_actions']
   $ts_prog_start = Time.now.to_f
   $example = $jam_pms['example_harpwise']
@@ -469,9 +508,9 @@ def parse_and_preprocess_jamming_json json_short_or_num
   end  
 
   # check if all parameters present
-  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration play_command timestamps_multiply timestamps_add comment example_harpwise))
+  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration sound_file timestamps_multiply timestamps_add comment example_harpwise))
   given = Set.new($jam_pms.keys)
-  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{json_file}\n" +
+  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{$jam_json}\n" +
       if (given - wanted).length > 0
         "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
       else
@@ -482,8 +521,8 @@ def parse_and_preprocess_jamming_json json_short_or_num
       else
         ''
       end + "\n") if given != wanted
-  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{json_file})") unless actions.is_a?(Array)
-  err("Value of parameter 'example_harpwise' cannot be empty (see #{json_file})") if $example == ''
+  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
+  err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
 
   #
   # preprocess and check list of timestamps
@@ -514,17 +553,13 @@ def parse_and_preprocess_jamming_json json_short_or_num
     end
   end
   err("Need at least one timestamp with action 'loop-start'") unless $jam_loop_start_idx
-  $jam_data[:iteration_duration] = Time.at(actions[-1][0] - actions[$jam_loop_start_idx][0]).utc.strftime("%M:%S")
+  $jam_data[:iteration_duration] = jam_ta(actions[-1][0] - actions[$jam_loop_start_idx][0])
 
-  # try to figure out file and check if present
-  endings = %w(.mp3 .wav .ogg)
-  $jam_pms['play_command'] = $jam_pms['play_command'] % $jam_data
-  file = CSV::parse_line($jam_pms['play_command'],col_sep: ' ').find {|word| endings.any? {|ending| word.end_with?(ending)}} || err("Could not find filename in play_command  '#{$jam_pms['play_command']}'\nno word ends on any of: #{endings.join(' ')}")
-
+  # check if sound-file is present
+  file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
-    $jam_pms['sound_file'] = file
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
-    $jam_pms['sound_file_length'] = Time.at($jam_pms['sound_file_length_secs']).utc.strftime("%M:%S")
+    $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
     puts "\e[2mBacking track is:  #{file}    (#{$jam_pms['sound_file_length']})\e[0m\n\n"
   else
     err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
@@ -539,57 +574,83 @@ def do_the_playing json_short_or_num
   $jam_pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
   make_term_immediate
   $ctl_kb_queue.clear
-  jamming_check_and_prepare_sig_handler    
+  jamming_check_and_prepare_sig_handler
+  play_command = jam_get_play_command
   
   puts
-  puts "Starting:\n\n    #{$jam_pms['play_command']}\n\n"
-  puts
-  puts "\e[32mPress   SPACE or 'j'   to pause, press   't'   to record a timestamp\e[0m"
-  puts
-
-  # allow for testing
-  if ENV["HARPWISE_TESTING"]
-    puts
-    puts "Environment variable 'HARPWISE_TESTING' is set; exiting before play."
-    exit 0
-  end
+  puts "Starting:\n\n    #{play_command}\n\n"
+  puts"\e[32m"
+  $jam_help_while_play.each {|l| puts l}
+  puts "\e[0m"
     
-  $pplayer = PausablePlayer.new($jam_pms['play_command'])
-  puts
+  $pplayer = PausablePlayer.new(play_command)
   $jam_ts_collected = [$jam_pms['sound_file_length_secs']]
-  my_sleep 1000000, collect_ts: true
-
+  $jam_idxs_skip = []
+  my_sleep(1000000, fast: true) do |char|
+    case char
+    when 't','RETURN'
+      # handle collection of timestamps
+      $jam_ts_collected.insert(-2, $pplayer.time_played + $jam_play_prev_trim)
+      puts "\n\nNew timestamp recorded, #{$jam_ts_collected.length - 1} in total:"
+      puts
+      $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
+        x,y = pair
+        puts "\e[2m... skipped back here ...\e[0m" if $jam_idxs_skip.include?(idx)
+        puts "\e[2m... skipped forward here ...\e[0m" if $jam_idxs_skip.include?(-idx)
+        puts "\e[2m  %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
+             [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x]
+      end
+      puts "\e[2mEnd at:   %6.2f sec  (%s)\e[0m" % [$jam_pms['sound_file_length_secs'],
+                                                     $jam_pms['sound_file_length']]
+      
+      print "\e[0m"
+      :handled
+    when 'LEFT','BACKSPACE'
+      trim = $jam_play_prev_trim + $pplayer.time_played - 10
+      trim = 0 if trim < 0
+      $pplayer.kill
+      $pplayer = PausablePlayer.new(jam_get_play_command(trim))
+      puts ("Skipped back 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+      $jam_play_prev_trim = trim
+      $jam_idxs_skip << $jam_ts_collected.length - 1
+      $jam_idxs_skip.pop if $jam_idxs_skip[-1] == $jam_idxs_skip[-2]
+      :handled
+    when 'RIGHT'
+      trim = $jam_play_prev_trim + $pplayer.time_played + 10
+      trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
+      $pplayer.kill
+      $pplayer = PausablePlayer.new(jam_get_play_command(trim))
+      puts ("Skipped forward 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+      $jam_play_prev_trim = trim
+      $jam_idxs_skip << - ( $jam_ts_collected.length - 1 )
+      $jam_idxs_skip.pop if $jam_idxs_skip[-1] == $jam_idxs_skip[-2]
+      :handled
+    else
+      false
+    end
+  end
 end
 
 
-def check_for_space_etc hinted, collect_ts: false
+def check_for_space_etc blk
   space_seen = false
   if $ctl_kb_queue.length > 0
     while $ctl_kb_queue.length > 0
       char = $ctl_kb_queue.deq
       if char == ' ' || char == 'j'
         space_seen = true
-      elsif collect_ts && char == 't'
-        # conveniently handle collection of timestamps
-        $jam_ts_collected.insert(-2, $pplayer.time_played)
-        puts "\n\nNew timestamp recorded, #{$jam_ts_collected.length - 1} in total:"
+      elsif blk&.(char) == :handled
+        # the important thing has already happened in the call to blk
+      else
         puts
-        $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
-          x,y = pair
-          puts "\e[2m   %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
-               [('# ' + idx.to_s).rjust(5), x, Time.at(x).utc.strftime("%M:%S"), y-x]
-        end
-        puts "\e[2m End at:   %6.2f sec  (%s)\e[0m" % [$jam_pms['sound_file_length_secs'],
-                                             $jam_pms['sound_file_length']]
-        
-        print "\e[0m"
-      elsif !hinted
-        puts "\e[0m\e[2m (SPACE,j to pause#{collect_ts  ?  ', t for timestamp'  :  '' }, all other keys are ignored) \e[0m"
-        hinted = true
+        puts "\e[0mUnknown key: '#{char}'\e[2m" unless %w(h ?).include?(char)
+        puts $jam_help_while_play[0]
+        puts ($jam_help_while_play[1 .. -1].join("\n") + "\n") if blk
+        puts "All other keys ignored.\e[0m"
       end
     end
   end
-  [space_seen, hinted]
+  space_seen
 end
   
 
@@ -627,7 +688,7 @@ def jamming_sleep_wait_for_go
   space_seen = false
   FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
   
-  hinted = space_seen = false
+  space_seen = false
   count = 0
   loop do
     sleep 0.1
@@ -638,10 +699,29 @@ def jamming_sleep_wait_for_go
       FileUtils.rm($remote_jamming_ps_rs)
       break
     end
-    space_seen, hinted = check_for_space_etc(hinted)        
+    space_seen = check_for_space_etc(nil)
     break if space_seen
   end
   print " \e[0m\e[32mgo\e[0m    "
   
   space_seen
+end
+
+
+def jam_get_play_command trim = 0
+  if ENV["HARPWISE_TESTING"] || $opts[:print_only]
+    "sleep #{$jam_pms['sound_file_length_secs']}"
+  else
+    "play -q #{$jam_pms['sound_file']}" +
+      if trim == 0
+        ''
+      else
+        " trim #{trim}"
+      end
+  end
+end
+
+
+def jam_ta secs
+  Time.at(secs.round(0)).utc.strftime("%M:%S")
 end

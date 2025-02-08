@@ -1470,7 +1470,7 @@ def mostly_avoid_double_invocations
       # if we are not jamming, we tolerate a jammer
       next if $mode != :jamming && pid == pid_jamming
       # Remark: the fifo-listener does not strictly require a jammer to ever appear and will
-      # run merrily without; so we habe no code checking this
+      # run merrily without; so we have no code checking this
       err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'"
     end
   end

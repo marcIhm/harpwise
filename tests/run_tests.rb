@@ -3763,7 +3763,7 @@ do_test 'id-137: harpwise jamming edit with a number' do
   new_session
   tms "EDITOR=vi harpwise jamming edit 1"
   tms :ENTER
-  expect { screen[20]['hint for user on how to start harpwise']}  
+  expect { screen[19]['hint for user on how to start harpwise']}  
   kill_session
 end
 
@@ -3771,7 +3771,20 @@ do_test 'id-138: harpwise jamming play with a number' do
   new_session
   tms "harpwise jamming play 1"
   tms :ENTER
-  expect { screen[9]['play -q /home/ihm/harpwise/recordings/12bar.mp3']}  
+  expect { screen[4]['Backing track is:']}
+  sleep 1
+  tms :ENTER
+  expect { screen[19]['New timestamp recorded, 1 in total']}
+  sleep 4
+  tms 't'
+  sleep 1
+  tms :LEFT
+  sleep 1
+  tms 't'
+  sleep 1
+  expect { screen[19]['# 2']}
+  expect { screen[20]['... skipped back here ...']}
+  expect { screen[21]['# 3']}
   kill_session
 end
 
@@ -3786,8 +3799,19 @@ do_test 'id-139: jamming pause/resume for jamming' do
   sleep 1
   expect { screen[20]["Paused:      (because SPACE or 'j' has been pressed here)"]}
   File.write $remote_jamming_ps_rs, ""
-  sleep 1
-  expect { screen[21]["Paused .. go    (because 'j' has been pressed in 'harpwise listen')"]}
+  sleep 2
+  expect { screen[22]['sleep until next:    4.00 sec']}  
+  sleep 4
+  expect { screen[22]['sleep until next:    10.00 sec']}
+  kill_session
+end
+
+do_test 'id-140: jamming --print-only' do
+  new_session
+  tms "harpwise jamming 1 --print-only"
+  tms :ENTER
+  sleep 6
+  expect { screen[19]['102 entries.']}
   kill_session
 end
 

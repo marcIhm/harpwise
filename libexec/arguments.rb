@@ -88,7 +88,7 @@ def parse_arguments_early
         transpose_scale: %w(--transpose-scale)}],
      [Set[:samples], {
         wave: %w(--wave)}],
-     [Set[:print, :samples, :tools], {
+     [Set[:print, :samples, :tools, :jamming], {
         terse: %w(-T --terse)}],
      [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],
@@ -107,7 +107,8 @@ def parse_arguments_early
      [Set[:play], {
         lick_radio: %w(--radio --lick-radio)}],
      [Set[:jamming], {
-        paused: %w(--ps --paused)}],
+        paused: %w(--ps --paused),
+        print_only: %w(--print-only)}],
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
