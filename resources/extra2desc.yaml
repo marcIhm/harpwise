@@ -262,9 +262,11 @@ jamming:
     list available jamming-files and precede them by numbers, that
     might be used instead of a filename
   play: |
-    just play the backing-track; can be useful if you want to search
-    for a matching lick-progression without actually starting to jam;
-    may also record timestamps.
+    Play the backing-track; can be useful if you want to search
+    for a matching lick-progression before starting to jam.
+
+    Also useful when creating a new json for jamming, because it
+    allows to create a list of timestamps.
 develop:
   man: |
     produce man page from erb-template

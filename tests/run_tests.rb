@@ -3783,7 +3783,7 @@ do_test 'id-138: harpwise jamming play with a number' do
   tms 't'
   sleep 1
   expect { screen[19]['# 2']}
-  expect { screen[20]['... skipped back here ...']}
+  expect { screen[20]['... skipped backward here ...']}
   expect { screen[21]['# 3']}
   kill_session
 end

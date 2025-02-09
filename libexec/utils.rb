@@ -1450,6 +1450,7 @@ def mostly_avoid_double_invocations
   # below and maybe adjust these vars then. 'p' for 'predicate'
   $runningp_listen_fifo = ($mode == :listen && $opts[:read_fifo])
   $runningp_jamming = ($mode == :jamming)
+  runningp_other_jamming = false
 
   if ![:develop, :tools, :print].include?($mode)
     # go through process-list
@@ -1460,11 +1461,11 @@ def mostly_avoid_double_invocations
       next unless cmd['ruby'] && cmd['harpwise']
       next if Process.pid == pid
       $runningp_listen_fifo = true if pid == pid_listen_fifo
-      $runningp_jamming = true if pid == pid_jamming
+      $runningp_jamming = runningp_other_jamming = true if pid == pid_jamming
       # if we are jamming, we tolerate any other instance; see mode_jamming.rb where we
       # require a fifo-listener, which in turn would barf about anything not a jammer
       if $mode == :jamming
-        puts "\n\e[0m\e[2mThere is an instance of harpwise, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_fifo
+        puts "\n\e[0m\e[2mThere is an instance of harpwise already, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_fifo
         next
       end
       # if we are not jamming, we tolerate a jammer
@@ -1474,12 +1475,14 @@ def mostly_avoid_double_invocations
       err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'"
     end
   end
+  err "Another instance of 'harpwise jamming' (pid #{pid_jamming}) is already running" if $mode == :jamming && runningp_other_jamming && pid_jamming != Process.pid
   # we can write this only after checking all procs above; otherwise we might overwrite the
   # information of a process, that is still running
   File.write($pidfile_listen_fifo, "#{Process.pid}\n") if $mode == :listen && $opts[:read_fifo]
   File.write($pidfile_jamming, "#{Process.pid}\n") if $mode == :jamming
 
-  # remove stale files
+  # remove stale files (any origin, even if we did not write it) here, so that we dont need
+  # to do anything in exit-handler
   FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_fifo 
   FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
 end

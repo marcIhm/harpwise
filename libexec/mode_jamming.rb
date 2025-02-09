@@ -595,7 +595,7 @@ def do_the_playing json_short_or_num
       puts
       $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
         x,y = pair
-        puts "\e[2m... skipped back here ...\e[0m" if $jam_idxs_skip.include?(idx)
+        puts "\e[2m... skipped backward here ...\e[0m" if $jam_idxs_skip.include?(idx)
         puts "\e[2m... skipped forward here ...\e[0m" if $jam_idxs_skip.include?(-idx)
         puts "\e[2m  %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
              [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x]
@@ -610,7 +610,7 @@ def do_the_playing json_short_or_num
       trim = 0 if trim < 0
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim))
-      puts ("Skipped back 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+      puts ("Skipped backward 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
       $jam_play_prev_trim = trim
       $jam_idxs_skip << $jam_ts_collected.length - 1
       $jam_idxs_skip.pop if $jam_idxs_skip[-1] == $jam_idxs_skip[-2]
