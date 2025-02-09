@@ -9,7 +9,8 @@ def do_jamming to_handle
   $jam_help_while_play = ["Press:   SPACE,j   to pause",
                           "        RETURN,t   to mark a timestamp",
                           "  BACKSPACE,LEFT   to skip back 10 secs",
-                          "           RIGHT      skip forward 10"]
+                          "           RIGHT      skip forward 10",
+                          "             TAB   to jump to a timestamp"]
   $jam_play_prev_trim = 0
   $jam_pretended_sleep = 0
   $jam_pretended_actions_ts = []
@@ -99,10 +100,12 @@ def do_the_jamming json_short_or_num
 
   # process other time-parameters
   actions.each_with_index do |ta,idx|
+    # Remark: negative timestamps have already been resolved above in
+    # parse_and_preprocess_jamming_json; therefore we do not need to check for
+    # negative-values below (negative timestampts_add); because from now own only diffs
+    # between timestamps are used.
     ta[0] += $jam_pms['timestamps_add']
     ta[0] *= $jam_pms['timestamps_multiply']
-    err("Preprocessing above resulted in negative timestamp at index #{idx}: #{ta[0]} < 0; please adjust your settings\n" +
-        actions.each_with_index.map {|a,i| ("  %2d: " % i) + a.to_s + "\n"}.join) if ta[0] < 0
   end
 
   puts $to_pause % 'pause'
@@ -562,7 +565,7 @@ def parse_and_preprocess_jamming_json json_short_or_num
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
     puts "\e[2mBacking track is:  #{file}    (#{$jam_pms['sound_file_length']})\e[0m\n\n"
   else
-    err("File mentioned in play-command does not exist:  #{file}") unless File.exist?(file)
+    err("File given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
 
   [$jam_pms, actions]
@@ -585,7 +588,9 @@ def do_the_playing json_short_or_num
     
   $pplayer = PausablePlayer.new(play_command)
   $jam_ts_collected = [$jam_pms['sound_file_length_secs']]
-  $jam_idxs_skip = []
+  $jam_idxs_events = {skip_fore: [],
+                      skip_back: [],
+                      jump: []}
   my_sleep(1000000, fast: true) do |char|
     case char
     when 't','RETURN'
@@ -595,8 +600,9 @@ def do_the_playing json_short_or_num
       puts
       $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
         x,y = pair
-        puts "\e[2m... skipped backward here ...\e[0m" if $jam_idxs_skip.include?(idx)
-        puts "\e[2m... skipped forward here ...\e[0m" if $jam_idxs_skip.include?(-idx)
+        puts "\e[2m... skipped backward ...\e[0m" if $jam_idxs_events[:skip_back].include?(idx)
+        puts "\e[2m... skipped forward ...\e[0m" if $jam_idxs_events[:skip_fore].include?(idx)
+        puts "\e[2m... jumped ...\e[0m" if $jam_idxs_events[:jump].include?(idx)
         puts "\e[2m  %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
              [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x]
       end
@@ -610,20 +616,48 @@ def do_the_playing json_short_or_num
       trim = 0 if trim < 0
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim))
-      puts ("Skipped backward 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+      puts ("Skipped backward 10 secs to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
       $jam_play_prev_trim = trim
-      $jam_idxs_skip << $jam_ts_collected.length - 1
-      $jam_idxs_skip.pop if $jam_idxs_skip[-1] == $jam_idxs_skip[-2]
+      $jam_idxs_events[:skip_back] << $jam_ts_collected.length - 1
       :handled
     when 'RIGHT'
       trim = $jam_play_prev_trim + $pplayer.time_played + 10
       trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim))
-      puts ("Skipped forward 10 secs to    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+      puts ("Skipped forward 10 secs to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
       $jam_play_prev_trim = trim
-      $jam_idxs_skip << - ( $jam_ts_collected.length - 1 )
-      $jam_idxs_skip.pop if $jam_idxs_skip[-1] == $jam_idxs_skip[-2]
+      $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
+      :handled
+    when 'TAB'
+      $pplayer.pause      
+      puts "\nPlease enter an absolute timestamp to jump to;\neither a number of seconds or mm:ss"
+      puts
+      print "Timestamp: "
+      make_term_cooked
+      inp = gets_with_cursor
+      make_term_immediate
+      puts
+      trim = if md = inp.match(/^(\d+)$/)
+               md[1].to_i
+             elsif md = inp.match(/^(\d+):(\d+)$/)
+               md[1].to_i * 60 + md[2]
+             else
+               nil
+             end
+      if !trim
+        puts "Invalid input: '#{inp}'; cannot jump."
+        $pplayer.continue
+      elsif trim > $jam_pms['sound_file_length_secs']
+        puts "Your input is beyond length of sound_file; cannot jump."
+        $pplayer.continue
+      else
+        $pplayer.kill
+        $pplayer = PausablePlayer.new(jam_get_play_command(trim))
+        puts ("Jumped to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+        $jam_play_prev_trim = trim
+        $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
+      end
       :handled
     else
       false
