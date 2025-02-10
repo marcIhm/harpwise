@@ -19,6 +19,8 @@ def do_jamming to_handle
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   end
+
+  err "'harpwise jamming #{$extra}' needs an argument but none is given" if to_handle.length == 0 && !%w(list ls).include?($extra)
   
   if $extra
     
