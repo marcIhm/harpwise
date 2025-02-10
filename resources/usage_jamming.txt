@@ -74,7 +74,17 @@ Usage by Examples:
 
   is valid too and refers to the file '12bar.json'.
 
-  
+  If you want to abbreviate the name of the json-file, you may use the
+  extra-keyword 'with' and supply one or many strings that are part of
+  the filename (in the given sequence); e.g.:
+
+    harpwise jam over 12
+
+  or even (albeit too wordy)
+
+    harpwise jam with 12 bar
+
+
   Finally, here is the list of supported extra arguments:
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>

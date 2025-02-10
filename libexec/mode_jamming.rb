@@ -24,27 +24,39 @@ def do_jamming to_handle
     
     case $extra
     when 'list', 'ls'
-      
+
+      jam_barf_on_print_only
       err_args_not_allowed(to_handle) if to_handle.length > 0
+      
       do_jamming_list
       
-    when 'edit', 'ed'
+    when 'edit'
       
-      err "'harpwise jamming edit' needs exactly one additional argument, these args cannot be handled: #{to_handle[2..-1]}" if to_handle.length > 1
-      err "'harpwise jamming edit' needs exactly one additional argument but none is given" if to_handle.length == 0
-      tool_edit_file get_jamming_json(to_handle[0])
+      jam_barf_on_print_only
+      err "'harpwise jamming edit' needs at least one additional argument but none is given" if to_handle.length == 0
+      tool_edit_file(get_jamming_json(to_handle.join, graceful: true) ||
+                     match_jamming_file(to_handle, full: true))
 
     when 'play'
 
-      do_the_playing to_handle[0]
+      jam_barf_on_print_only
+      do_the_playing(get_jamming_json(to_handle.join, graceful: true) ||
+                     match_jamming_file(to_handle, full: true))
 
+    when 'with'
+
+      do_the_jamming(get_jamming_json(to_handle.join, graceful: true) ||
+                     match_jamming_file(to_handle, full: true))
+      
     else
+      
       fail "Internal error: unknown extra '#{$extra}'"
+      
     end
     
   else  ## no extra argument
 
-    err "'harpwise jammin' can handle only one additional argument" if to_handle.length > 1
+    err "'harpwise jamming' can handle only one additional argument" if to_handle.length > 1
     
     do_the_jamming to_handle[0]
     
@@ -281,7 +293,7 @@ def do_the_jamming json_short_or_num
       puts
       fname = "#{$dirs[:data]}/jamming_timestamps_json"
       file = File.open(fname, 'w')
-      file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
+      file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       $jam_pretended_actions_ts.each do |ts,desc,act|
         text = "  %6.2f  (#{jam_ta(ts)}):  #{desc}" % ts
         text += ",  #{act}" unless $opts[:terse]
@@ -367,7 +379,7 @@ def get_jamming_dirs_content
 end
 
 
-def get_jamming_json arg, extra_allowed: false
+def get_jamming_json arg, graceful: false
   
   # get json-file to handle
   if arg.match?(/^\d+$/)
@@ -381,17 +393,25 @@ def get_jamming_json arg, extra_allowed: false
     arg_w_ending = if arg.match?(/\.[a-zA-Z0-9]+$/)
                      arg
                    else
-                     puts "\n\e[32mRemark:\e[0m Adding required ending '.json' to given argument '#{arg}' for convenience.\e[0m\n\n"                    
+                     puts "\n\e[32mRemark:\e[0m Adding required ending '.json' to given argument '#{arg}' for convenience.\e[0m\n\n" unless graceful
                      arg + '.json'
                    end
     
-    explain = "\n\n\e[2mSome background on finding the required json-file with settings: If the given argument is a plain number, it is treated The given argument is tried as a filename; if it starts with a '/', it is assumed to be an absolute filename and is tried as such; on the contrary: if the filename does not start with '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
+    explain = "\n\n\e[2mSome background on finding the required json-file with settings: If the given argument is a plain number, it is matched against the output of 'harpwise jam ls'. Otherwise, the given argument is tried as a filename; if it starts with a '/', it is assumed to be an absolute filename and is tried as such. If it does not start with '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
 
     json_file = if arg_w_ending[0] == '/'
                   arg_w_ending
                 else                
-                  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")} or err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
-                  dir + '/' + arg_w_ending
+                  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")}
+                  if dir
+                    dir + '/' + arg_w_ending
+                  else
+                    if graceful
+                      return nil
+                    else
+                      err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
+                    end
+                  end
                 end
   end
   json_file
@@ -443,7 +463,7 @@ def my_sleep secs, fast: false, &blk
   paused = false
 
   #
-  # Sleep but also check for pause-request
+  # Sleep but also check for pause-request and chars for actions
   #
 
   $jam_pretended_sleep += secs
@@ -771,3 +791,40 @@ def jam_puts_log text, file, col = "\e[0m"
   puts col + ( text % {'n': "\e[0m", 'c': col})
   file&.puts text % {'n': '', 'c': ''}
 end
+
+
+def match_jamming_file words, full: false
+  candidates = []
+  short2full = Hash.new
+  $jamming_dirs_content.each do |dir,files|
+    files.each do |file|
+      short = file[dir.length + 1 .. -1]
+      short2full[short] = file
+      does = true
+      offset = 0
+      words.each do |word|
+        idx = short[offset .. -1].index(word)
+        if idx
+          offset += idx
+        else
+          does = false
+        end
+      end
+      candidates << short if does
+    end
+  end
+  case candidates.length
+  when 0
+    do_jamming_list
+    err "NONE of the available jamming-files (see above) are matched by your input   #{words.join(' ')}\n\nPlease check against the complete list of files above   or   shorten your input."
+  when 1
+    return ( full  ?  short2full[candidates[0]]  :  candidates[0] )
+  else
+    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
+  end
+end
+
+
+def jam_barf_on_print_only
+  err "Option   --print-only   does not make sense with   'harpwise jam #{$extra}'\n\nIt is only useful with 'harpwise jam'." if $opts[:print_only]
+end      

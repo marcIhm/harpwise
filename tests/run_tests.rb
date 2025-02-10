@@ -119,7 +119,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 112
+num_exp = 114
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -285,6 +285,7 @@ do_test "id-47b: generating samples for all keys" do
 end
 
 ensure_config_ini_testing
+FileUtils.cp "#{Dir.pwd}/tests/data/fancy_jamming.json", $dotdir_testing + '/jamming'
 puts "\n\n\e[32mNow we should have complete data ...\e[0m"
 
 do_test 'id-1a: config.ini, user prevails' do
@@ -3755,13 +3756,13 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['1:  12bar.json']}  
+  expect { screen[10]['2:  12bar.json']}  
   kill_session
 end
 
 do_test 'id-137: harpwise jamming edit with a number' do
   new_session
-  tms "EDITOR=vi harpwise jamming edit 1"
+  tms "EDITOR=vi harpwise jamming edit 12bar"
   tms :ENTER
   expect { screen[19]['hint for user on how to start harpwise']}  
   kill_session
@@ -3791,7 +3792,7 @@ end
 do_test 'id-139: jamming pause/resume for jamming' do
   new_session
   FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
-  tms "harpwise jamming 1"
+  tms "harpwise jamming 2"
   tms :ENTER
   sleep 4
   expect { screen[23]['Waiting ..']}
@@ -3811,7 +3812,16 @@ do_test 'id-140: jamming --print-only' do
   tms "harpwise jamming 1 --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[19]['102 entries.']}
+  expect { screen[19]['420 entries.']}
+  expect { screen[21]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps_json']}
+  kill_session
+end
+
+do_test 'id-141: jamming with with too much input' do
+  new_session
+  tms "harpwise jamming with 12bar foo"
+  tms :ENTER
+  expect { screen[13]['NONE of the available jamming-files']}
   kill_session
 end
 

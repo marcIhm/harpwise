@@ -40,7 +40,7 @@ print:
     option --start-with
   licks-starred: |
     show all starred licks
-  lick-progs, lick-progressions: |
+  lick-progressions, lick-progs: |
     print all known lick progressions. These can be narrowed by giving
     option -t (this is the only case, where this option applies to
     lick progressions instead of licks). Please note, that to print a
@@ -255,7 +255,7 @@ samples:
     By giving the argument 'all' you may delete all samples for all
     keys.
 jamming:
-  edit, ed: |
+  edit: |
     edit given jamming-file; either specified as a number (as given
     by 'list') or a filename
   list, ls: |
@@ -267,6 +267,14 @@ jamming:
 
     Also useful when creating a new json for jamming, because it
     allows to create a list of timestamps.
+  with: |
+    allows to match incomplete argument
+    against known files, then start jamming as usual
+
+    So 'harpwise jam with 12' is the same as 'harpwise jam 12bar'
+    but does not require the full name (12bar) to be typed; rather
+    it tries to match the partial name (12) given against all
+    available files.
 develop:
   man: |
     produce man page from erb-template

@@ -1,0 +1,18 @@
+{
+    // This is fancy because sleep_after_iteration is an array
+    "sound_file": "%{install_dir}/recordings/12bar.mp3",
+    "comment": "testing complex sleep_after_iteration",
+    "example_harpwise": "harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming",
+    "timestamps_multiply": 1.0,
+    "timestamps_add": 0.0,
+    "sleep_initially": 2.0,
+    "sleep_after_iteration": [[2,"foo"],1,-1],
+    "timestamps_to_actions": [
+        [0,"message","%{comment}",0],
+        [2,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",1.8],
+        [3,"keys","l","s"],
+        [4,"keys","l","s"],
+        [-1,"message","Turnaround in two secs ...",1.8],
+        [6,"keys","l","s"]
+    ]
+}
