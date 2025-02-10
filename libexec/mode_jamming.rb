@@ -279,7 +279,7 @@ def do_the_jamming json_short_or_num
       puts "\e[0m\e[32mPretended sleep (#{jam_ta($jam_pretended_sleep)} secs) has exceeded length of sound file (#{jam_ta($jam_pms['sound_file_length_secs'])}).\nPlay would have ended naturally.\e[0m"
       puts "\n\nCollected #{$jam_pretended_actions_ts.length} timestamps and descriptions:"
       puts
-      fname = "#{$dirs[:data]}/jamming_timestamps"
+      fname = "#{$dirs[:data]}/jamming_timestamps_json"
       file = File.open(fname, 'w')
       file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       $jam_pretended_actions_ts.each do |ts,desc,act|
@@ -292,7 +292,7 @@ def do_the_jamming json_short_or_num
       puts
       puts "#{$jam_pretended_actions_ts.length} entries."
       puts
-      puts "Find this list also in:   #{fname}"
+      puts "Find this list in:   #{fname}"
       puts
       exit
     end
@@ -591,25 +591,31 @@ def do_the_playing json_short_or_num
   $jam_idxs_events = {skip_fore: [],
                       skip_back: [],
                       jump: []}
+  fname = "#{$dirs[:data]}/jamming_timestamps_user"
   my_sleep(1000000, fast: true) do |char|
     case char
     when 't','RETURN'
-      # handle collection of timestamps
       $jam_ts_collected.insert(-2, $pplayer.time_played + $jam_play_prev_trim)
+      file = File.open(fname, 'w')
+      file.write "#\n# #{($jam_ts_collected.length - 1).to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
+      # handle collection of timestamps
       puts "\n\nNew timestamp recorded, #{$jam_ts_collected.length - 1} in total:"
       puts
       $jam_ts_collected.each_cons(2).each_with_index do |pair,idx|
         x,y = pair
-        puts "\e[2m... skipped backward ...\e[0m" if $jam_idxs_events[:skip_back].include?(idx)
-        puts "\e[2m... skipped forward ...\e[0m" if $jam_idxs_events[:skip_fore].include?(idx)
-        puts "\e[2m... jumped ...\e[0m" if $jam_idxs_events[:jump].include?(idx)
-        puts "\e[2m  %s   \e[0m%6.2f\e[2m sec  (%s),   \e[2mdiff to next:  %6.2f \e[0m" %
-             [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x]
+        jam_puts_log("... skipped backward ...",file,"\e[2m") if $jam_idxs_events[:skip_back].include?(idx)
+        jam_puts_log("... skipped forward ...",file,"\e[2m") if $jam_idxs_events[:skip_fore].include?(idx)
+        jam_puts_log("... jumped ...",file,"\e[2m") if $jam_idxs_events[:jump].include?(idx)
+        jam_puts_log("  %s   %%{n}%6.2f%%{c} sec  (%s),   %%{c}diff to next:  %6.2f " %
+                     [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x],file,"\e[2m")
       end
-      puts "\e[2mEnd at:   %6.2f sec  (%s)\e[0m" % [$jam_pms['sound_file_length_secs'],
-                                                     $jam_pms['sound_file_length']]
-      
-      print "\e[0m"
+      jam_puts_log("End at:   %6.2f sec  (%s)" % [$jam_pms['sound_file_length_secs'],
+                                                       $jam_pms['sound_file_length']],file,"\e[2m")
+
+      file.close
+      puts
+      puts "\e[2mFind this list in:   #{fname}\e[0m"
+      puts
       :handled
     when 'LEFT','BACKSPACE'
       trim = $jam_play_prev_trim + $pplayer.time_played - 10
@@ -631,7 +637,7 @@ def do_the_playing json_short_or_num
       :handled
     when 'TAB'
       $pplayer.pause      
-      puts "\nPlease enter an absolute timestamp to jump to;\neither a number of seconds or mm:ss"
+      puts "\e[0m\nPlease enter an absolute timestamp to jump to;\neither a number of   seconds   or   mm:ss"
       puts
       print "Timestamp: "
       make_term_cooked
@@ -641,7 +647,7 @@ def do_the_playing json_short_or_num
       trim = if md = inp.match(/^(\d+)$/)
                md[1].to_i
              elsif md = inp.match(/^(\d+):(\d+)$/)
-               md[1].to_i * 60 + md[2]
+               md[1].to_i * 60 + md[2].to_i
              else
                nil
              end
@@ -654,7 +660,7 @@ def do_the_playing json_short_or_num
       else
         $pplayer.kill
         $pplayer = PausablePlayer.new(jam_get_play_command(trim))
-        puts ("Jumped to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
+        puts(("\e[0mJumped to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim)
         $jam_play_prev_trim = trim
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end
@@ -758,4 +764,10 @@ end
 
 def jam_ta secs
   Time.at(secs.round(0)).utc.strftime("%M:%S")
+end
+
+
+def jam_puts_log text, file, col = "\e[0m"
+  puts col + ( text % {'n': "\e[0m", 'c': col})
+  file&.puts text % {'n': '', 'c': ''}
 end

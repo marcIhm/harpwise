@@ -3774,7 +3774,7 @@ do_test 'id-138: harpwise jamming play with a number' do
   expect { screen[4]['Backing track is:']}
   sleep 1
   tms :ENTER
-  expect { screen[19]['New timestamp recorded, 1 in total']}
+  expect { screen[16]['New timestamp recorded, 1 in total']}
   sleep 4
   tms 't'
   sleep 1
@@ -3782,9 +3782,9 @@ do_test 'id-138: harpwise jamming play with a number' do
   sleep 1
   tms 't'
   sleep 1
-  expect { screen[19]['# 2']}
-  expect { screen[20]['... skipped backward ...']}
-  expect { screen[21]['# 3']}
+  expect { screen[16]['# 2']}
+  expect { screen[17]['... skipped backward ...']}
+  expect { screen[18]['# 3']}
   kill_session
 end
 
