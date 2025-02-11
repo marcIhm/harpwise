@@ -267,11 +267,11 @@ jamming:
 
     Also useful when creating a new json for jamming, because it
     allows to create a list of timestamps.
-  with: |
+  along: |
     allows to match incomplete argument
     against known files, then start jamming as usual
 
-    So 'harpwise jam with 12' is the same as 'harpwise jam 12bar'
+    So 'harpwise jam along 12' is the same as 'harpwise jam 12bar'
     but does not require the full name (12bar) to be typed; rather
     it tries to match the partial name (12) given against all
     available files.

@@ -16,10 +16,10 @@ Usage by Examples:
   To use harpwise jamming, you need *two* terminals. In the first one
   start e.g.:
 
-    harpwise jamming 12bar
+    harpwise jam along 12bar
 
-  this will give you the command for the second terminal, and will stand
-  by until you have started it. For 'jamming 12bar' it will be like this:
+  this will give you the command for the second terminal, and will stand by
+  until you have started it. For 'jam along 12bar' it will be like this:
   
     harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming
 
@@ -67,22 +67,29 @@ Usage by Examples:
 
   to list them; if you have many files, you may create subdirectories.
 
+
   The numbers, that 'jamming list' produces, can be used instead of
-  giving the full filename, so
+  giving the full filename; in that case even the keyword 'along'
+  can be omitted. So
 
     harpwise jam 1
 
-  is valid too and refers to the file '12bar.json'.
+  is valid too and refers to the file '12bar.json'; and so is
 
-  If you want to abbreviate the name of the json-file, you may use the
-  extra-keyword 'with' and supply one or many strings that are part of
+    harpwise jam 12bar
+
+  which gives the full filename (ending .json not required).
+  
+
+  If you use the keyword 'along', you may abbreviate the name of the
+  json-file and supply one or many strings that appear in
   the filename (in the given sequence); e.g.:
 
-    harpwise jam over 12
+    harpwise jam along 2b       ## this saves us som typing 
 
   or even (albeit too wordy)
 
-    harpwise jam with 12 bar
+    harpwise jam along 2b r
 
 
   Finally, here is the list of supported extra arguments:

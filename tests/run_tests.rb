@@ -119,7 +119,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 114
+num_exp = 115
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -3817,9 +3817,9 @@ do_test 'id-140: jamming --print-only' do
   kill_session
 end
 
-do_test 'id-141: jamming with with too much input' do
+do_test 'id-141: jam along too much input' do
   new_session
-  tms "harpwise jamming with 12bar foo"
+  tms "harpwise jam along 12bar foo"
   tms :ENTER
   expect { screen[13]['NONE of the available jamming-files']}
   kill_session

@@ -19,8 +19,11 @@ def do_jamming to_handle
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   end
-
-  err "'harpwise jamming #{$extra}' needs an argument but none is given" if to_handle.length == 0 && !%w(list ls).include?($extra)
+  
+  if to_handle.length == 0 && !%w(list ls).include?($extra)
+    do_jamming_list
+    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose a number or a filename (parts of) as given above"
+  end
   
   if $extra
     
@@ -45,7 +48,7 @@ def do_jamming to_handle
       do_the_playing(get_jamming_json(to_handle.join, graceful: true) ||
                      match_jamming_file(to_handle, full: true))
 
-    when 'with'
+    when 'along'
 
       do_the_jamming(get_jamming_json(to_handle.join, graceful: true) ||
                      match_jamming_file(to_handle, full: true))
@@ -818,11 +821,11 @@ def match_jamming_file words, full: false
   case candidates.length
   when 0
     do_jamming_list
-    err "NONE of the available jamming-files (see above) are matched by your input   #{words.join(' ')}\n\nPlease check against the complete list of files above   or   shorten your input."
+    err "NONE of the available jamming-files (see above) are matched by your input:   #{words.join(' ')}\n\nPlease check against the complete list of files above   or   shorten your input."
   when 1
     return ( full  ?  short2full[candidates[0]]  :  candidates[0] )
   else
-    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
+    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
   end
 end
 
