@@ -390,9 +390,12 @@ def get_jamming_json arg, graceful: false
   if arg.match?(/^\d+$/)
     num = arg.to_i
     cont = $jamming_dirs_content.values.flatten
-    explain = "Use 'harpwise jamming list' to see the available jamming-files with numbers"
-    err "Given number '#{arg}' is less than one. #{explain}" if num < 1
-    err "Given number '#{arg}' is larger than maximum of #{cont.length}. #{explain}" if num > cont.length
+    explain = "See above for the available jamming-files with numbers."
+    if num < 1 || num > cont.length
+      do_jamming_list
+      err "Given number '#{arg}' is less than one. #{explain}" if num < 1
+      err "Given number '#{arg}' is larger than maximum of #{cont.length}. #{explain}" if num > cont.length
+    end
     json_file = cont[num - 1]
   else
     arg_w_ending = if arg.match?(/\.[a-zA-Z0-9]+$/)
@@ -446,7 +449,7 @@ def do_jamming_list
       else
         ppfx = pfx = ''
       end
-      print "\e[0m\e[2m%2d:\e[0m" % tcount
+      print "\e[0m\e[2m%3d:\e[0m" % tcount
       if pfx.length == 0 || pfx != ppfx
         puts "\e[0m  " + jfs
         ppfx = pfx
