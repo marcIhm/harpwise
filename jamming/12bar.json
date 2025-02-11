@@ -55,8 +55,8 @@
     //
     "timestamps_to_actions": [
 	// this will appear in message-area of harpwise
-        [0,"message","%{comment}",0],
         [0,"keys","L","S"],
+        [0,"message","%{comment}",0],
         [-2,"message","In two secs ...",1.8],
 	// exactly one loop-start is needed
         [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",1.8],
