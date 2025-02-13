@@ -154,7 +154,8 @@ def do_the_jamming json_file
        "start with the backing track as soon as 'harpwise listen' is running.",
        "So you can stay with 'listen' and need not come back here.",
        ""].each {|l| puts l}
-      print "Waiting "
+      print "\e[32m"
+      "Waiting ".each_char {|c| print c; sleep 0.02}
       begin
         pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
         print '.'
@@ -164,6 +165,7 @@ def do_the_jamming json_file
         end
       end until pid_listen_fifo
       puts ' found it !'
+      print "\e[0m"
       sleep 1
     end
   end
