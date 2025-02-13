@@ -66,31 +66,22 @@ Usage by Examples:
     harpwise jamming list
 
   to list them; if you have many files, you may create subdirectories.
-
-
-  The numbers, that 'jamming list' produces, can be used instead of
-  giving the full filename; in that case even the keyword 'along'
-  can be omitted. So
-
-    harpwise jam 1
-
-  is valid too and refers to the file '12bar.json'; and so is
-
-    harpwise jam 12bar
-
-  which gives the full filename (ending .json not required).
   
 
-  If you use the keyword 'along', you may abbreviate the name of the
-  json-file and supply one or many strings that appear in
+  With all subcommands of 'harpwise jam' (e.g. along), you may abbreviate
+  the name of the json-file and supply one or many strings that appear in
   the filename (in the given sequence); e.g.:
 
-    harpwise jam along 2b       ## this saves us som typing 
+    harpwise jam along 2b       ## this saves us some typing 
 
-  or even (albeit too wordy)
+  or even
 
     harpwise jam along 2b r
 
+  of course, the example above ('2b r') is too wordy; however, if you
+  create your own jamming-files and have multiple of them, this may
+  help to distinguish among files with similar names.
+  
 
   Finally, here is the list of supported extra arguments:
 

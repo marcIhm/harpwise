@@ -4,8 +4,9 @@
 
 def do_jamming to_handle
 
+  $jamming_dirs_content = get_jamming_dirs_content
+  
   $to_pause = "\e[0mPress   \e[92mSPACE or 'j'\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
-
   $jam_help_while_play = ["Press:   SPACE,j   to pause",
                           "        RETURN,t   to mark a timestamp",
                           "  BACKSPACE,LEFT   to skip back 10 secs",
@@ -22,74 +23,70 @@ def do_jamming to_handle
   
   if to_handle.length == 0 && !%w(list ls).include?($extra)
     do_jamming_list
-    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose a number or a filename (parts of) as given above"
+    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose    a filename   or parts of    as given above"
+  end
+
+  err "Option   --print-only   does not make sense with   'harpwise jam #{$extra}'\n\nIt is only useful with 'harpwise jam'." if $opts[:print_only] unless $extra == 'along'
+
+  unless %w(list ls).include?($extra)
+    err "'harpwise jamming #{$extra}' needs at least one additional argument but none is given" if to_handle.length == 0
+    json_file = match_jamming_file(to_handle)
   end
   
-  if $extra
+  case $extra
+  when 'along'
     
-    case $extra
-    when 'list', 'ls'
-
-      jam_barf_on_print_only
-      err_args_not_allowed(to_handle) if to_handle.length > 0
-      
-      do_jamming_list
-      
-    when 'edit'
-      
-      jam_barf_on_print_only
-      err "'harpwise jamming edit' needs at least one additional argument but none is given" if to_handle.length == 0
-      tool_edit_file(get_jamming_json(to_handle.join, graceful: true) ||
-                     match_jamming_file(to_handle, full: true))
-
-    when 'play'
-
-      jam_barf_on_print_only
-      do_the_playing(get_jamming_json(to_handle.join, graceful: true) ||
-                     match_jamming_file(to_handle, full: true))
-
-    when 'along'
-
-      do_the_jamming(get_jamming_json(to_handle.join, graceful: true) ||
-                     match_jamming_file(to_handle, full: true))
-      
-    else
-      
-      fail "Internal error: unknown extra '#{$extra}'"
-      
-    end
+    do_the_jamming(json_file)
     
-  else  ## no extra argument
-
-    err "'harpwise jamming' can handle only one additional argument" if to_handle.length > 1
+  when 'list', 'ls'
     
-    do_the_jamming to_handle[0]
+    err_args_not_allowed(to_handle) if to_handle.length > 0
+    
+    do_jamming_list
+    
+  when 'edit'
+    
+    tool_edit_file(json_file)
+    
+  when 'play'
+    
+    do_the_playing(json_file)
+    
+  else
+    
+    fail "Internal error: unknown extra '#{$extra}'"
     
   end
+    
 end
 
 
-def do_the_jamming json_short_or_num
+def do_the_jamming json_file
 
-  $jam_pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
+  $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)
 
   make_term_immediate if STDOUT.isatty
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler  
 
+  #
+  # Remark: We do slow scrolling with initial output, so that the user
+  # at least know, what has scrolled by
+  #
+  
   # 
   # Transform timestamps; see also below for some further changes to list of actions
   #
-  puts "Transforming timestamps:\e[0m\e[2m"
-  puts "- adding timestamps_add = #{$jam_pms['timestamps_add']} to each timestamp"
-  puts "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}"
-  puts "  - if negative, subtract it from last timestamp only"
-  puts "  - if positive, add a new matching sleep-action"
-  puts "  - if an array (numbers only or pairs [number, text]), use each element"
-  puts "    one after the other for one iteration as described above;"
-  puts "    issue text (e.g. 'solo'), if given"
-  puts "- multiplying each timestamp by timestamps_multiply = #{$jam_pms['timestamps_multiply']}\e[0m"
-  puts
+  ["Transforming timestamps:\e[0m\e[2m",
+  "- adding timestamps_add = #{$jam_pms['timestamps_add']} to each timestamp",
+  "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}",
+  "  - if negative, subtract it from last timestamp only",
+  "  - if positive, add a new matching sleep-action",
+  "  - if an array (numbers only or pairs [number, text]), use each element",
+  "    one after the other for one iteration as described above;",
+  "    issue text (e.g. 'solo'), if given",
+  "- multiplying each timestamp by timestamps_multiply = #{$jam_pms['timestamps_multiply']}\e[0m",
+  ""].each {|l| puts l; sleep 0.02}
 
   #
   # Preprocess sleep_after_iteration as far as possible already
@@ -125,12 +122,11 @@ def do_the_jamming json_short_or_num
     ta[0] *= $jam_pms['timestamps_multiply']
   end
 
-  puts $to_pause % 'pause'
-  puts
-  puts  
+  [$to_pause % 'pause', "", ""].each {|l| puts l; sleep 0.02}
     
-  puts "Comment:\n\n\e[32m" + wrap_text($jam_pms['comment'],cont: '').join("\n") + "\e[0m\n\n"
-  puts
+  ["Comment:\e[32m", "",
+   wrap_text($jam_pms['comment'],cont: ''),
+   "\e[0m",""].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
     puts "\e[0m\e[32mPaused due to option --paused:\e[0m"
@@ -149,7 +145,15 @@ def do_the_jamming json_short_or_num
     if $runningp_listen_fifo
       puts "Found 'harpwise listen' running."
     else
-      puts "Cannot find an instance of 'harpwise listen' that reads from fifo.\n\nPlease start it in a second terminal:\n\n  \e[32m#{$example % $jam_data}\e[0m\n\nuntil then this instance of 'harpwise jamming' will check repeatedly and\nstart with the backing track as soon as 'harpwise listen' is running.\nSo you can stay with it and need not come back here.\n\n"
+      ["Cannot find an instance of 'harpwise listen' that reads from fifo.",
+       "",
+       "Please start it in a second terminal:",
+       "\n",
+       "    \e[32m#{$example % $jam_data}\e[0m",
+       "\nuntil then this instance of 'harpwise jamming' will check repeatedly and",
+       "start with the backing track as soon as 'harpwise listen' is running.",
+       "So you can stay with 'listen' and need not come back here.",
+       ""].each {|l| puts l}
       print "Waiting "
       begin
         pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
@@ -384,48 +388,6 @@ def get_jamming_dirs_content
 end
 
 
-def get_jamming_json arg, graceful: false
-  
-  # get json-file to handle
-  if arg.match?(/^\d+$/)
-    num = arg.to_i
-    cont = $jamming_dirs_content.values.flatten
-    explain = "See above for the available jamming-files with numbers."
-    if num < 1 || num > cont.length
-      do_jamming_list
-      err "Given number '#{arg}' is less than one. #{explain}" if num < 1
-      err "Given number '#{arg}' is larger than maximum of #{cont.length}. #{explain}" if num > cont.length
-    end
-    json_file = cont[num - 1]
-  else
-    arg_w_ending = if arg.match?(/\.[a-zA-Z0-9]+$/)
-                     arg
-                   else
-                     puts "\n\e[32mRemark:\e[0m Adding required ending '.json' to given argument '#{arg}' for convenience.\e[0m\n\n" unless graceful
-                     arg + '.json'
-                   end
-    
-    explain = "\n\n\e[2mSome background on finding the required json-file with settings: If the given argument is a plain number, it is matched against the output of 'harpwise jam ls'. Otherwise, the given argument is tried as a filename; if it starts with a '/', it is assumed to be an absolute filename and is tried as such. If it does not start with '/', it is searched within these directories: #{$jamming_path.join(', ')}.\e[0m\n\n"
-
-    json_file = if arg_w_ending[0] == '/'
-                  arg_w_ending
-                else                
-                  dir = $jamming_path.find {|dir| File.exist?("#{dir}/#{arg_w_ending}")}
-                  if dir
-                    dir + '/' + arg_w_ending
-                  else
-                    if graceful
-                      return nil
-                    else
-                      err "Could not find file '#{arg_w_ending}' in any of: #{$jamming_path.join(', ')}#{explain}"
-                    end
-                  end
-                end
-  end
-  json_file
-end
-
-
 def do_jamming_list
   #
   # Try to make output pretty but also easy for copy and paste
@@ -449,7 +411,6 @@ def do_jamming_list
       else
         ppfx = pfx = ''
       end
-      print "\e[0m\e[2m%3d:\e[0m" % tcount
       if pfx.length == 0 || pfx != ppfx
         puts "\e[0m  " + jfs
         ppfx = pfx
@@ -457,11 +418,15 @@ def do_jamming_list
         puts "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
       end
       count += 1
+      sleep 0.02
       tcount += 1
     end
     puts "\e[0m  none" if count == 0
   end
   puts
+  puts "\e[2mTotal count: #{tcount}"
+  puts
+  sleep 0.05
 end
 
 
@@ -518,12 +483,13 @@ def my_sleep secs, fast: false, &blk
 end
 
 
-def parse_and_preprocess_jamming_json json_short_or_num
+def parse_and_preprocess_jamming_json json
   
-  $jam_json = get_jamming_json(json_short_or_num)
+  $jam_json = json
   
   puts
   puts "\e[2mSettings from: #{$jam_json}\e[0m\n\n"
+  sleep 0.05
   
   #
   # Process json-file with settings
@@ -600,9 +566,9 @@ def parse_and_preprocess_jamming_json json_short_or_num
 end
 
 
-def do_the_playing json_short_or_num
+def do_the_playing json_file
   
-  $jam_pms, actions = parse_and_preprocess_jamming_json(json_short_or_num)
+  $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)
   make_term_immediate
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler
@@ -664,8 +630,9 @@ def do_the_playing json_short_or_num
       $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
       :handled
     when 'TAB'
-      $pplayer.pause      
-      puts "\e[0m\nPlease enter an absolute timestamp to jump to;\neither a number of   seconds   or   mm:ss"
+      $pplayer.pause
+      curr = $jam_play_prev_trim + $pplayer.time_played + 10
+      puts "\e[0m\nPlease enter an absolute timestamp to jump to;\neither a number of   seconds   or   mm:ss\n\nCurrent location is:    %.2f  (#{jam_ta(curr)})" % curr
       puts
       print "Timestamp: "
       make_term_cooked
@@ -801,7 +768,7 @@ def jam_puts_log text, file, col = "\e[0m"
 end
 
 
-def match_jamming_file words, full: false
+def match_jamming_file words
   candidates = []
   short2full = Hash.new
   $jamming_dirs_content.each do |dir,files|
@@ -824,15 +791,10 @@ def match_jamming_file words, full: false
   case candidates.length
   when 0
     do_jamming_list
-    err "NONE of the available jamming-files (see above) are matched by your input:   #{words.join(' ')}\n\nPlease check against the complete list of files above   or   shorten your input."
+    err "None of the available jamming-files (see above) are matched by your input,\nwhich is:   #{words.join(' ')}\n\nPlease check against the complete list of files above and change or shorten your input."
   when 1
-    return ( full  ?  short2full[candidates[0]]  :  candidates[0] )
+    return short2full[candidates[0]]
   else
-    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
+    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input, which is:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
   end
 end
-
-
-def jam_barf_on_print_only
-  err "Option   --print-only   does not make sense with   'harpwise jam #{$extra}'\n\nIt is only useful with 'harpwise jam'." if $opts[:print_only]
-end      

@@ -143,11 +143,17 @@ Quick Start:
   
     harpwise listen c              
 
-  or try:
+  or:
 
     harpwise quiz random
 
-  for a fun way to improve your harmonica knowledge.
+  for a fun way to improve your harmonica knowledge
+
+  or:
+
+    harpwise jam along 12
+
+  to jam along a 12bar-blues.
 
 
 Version <%=$version%>

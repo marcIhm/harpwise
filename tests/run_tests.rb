@@ -119,7 +119,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 115
+num_exp = 114
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -456,7 +456,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'print' => [16, 'Please note, that options'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs'],
-                    'jamming' => [4, 'When printing notes, prefer sharps (e.g. as)'] }
+                    'jamming' => [8, 'instead of playing'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -3713,7 +3713,7 @@ do_test 'id-134: invalid arg for mode jamming' do
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[18]["for mode jamming should belong to one of these 3"] }
+  expect { screen[19]["for mode jamming should be one of these 5"] }
   kill_session
 end
 
@@ -3728,7 +3728,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   usg_cmd_hw = lines.find {|l| l.strip.start_with?('harpwise listen')}
   fail "Did not find suggested command for harpwise in output" unless usg_cmd_hw
   usg_cmd_hw.strip!
-  usg_cmd_jam = lines.find {|l| l['harpwise jamming 12bar']}
+  usg_cmd_jam = lines.find {|l| l['harpwise jam along 12bar']}
   fail "Did not find suggested command for jamming in output" unless usg_cmd_jam
   usg_cmd_jam.strip!
   
@@ -3756,7 +3756,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['2:  12bar.json']}  
+  expect { screen[10]['12bar.json']}  
   kill_session
 end
 
@@ -3792,7 +3792,7 @@ end
 do_test 'id-139: jamming pause/resume for jamming' do
   new_session
   FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
-  tms "harpwise jamming 2"
+  tms "harpwise jamm along  2"
   tms :ENTER
   sleep 4
   expect { screen[23]['Waiting ..']}
@@ -3807,9 +3807,9 @@ do_test 'id-139: jamming pause/resume for jamming' do
   kill_session
 end
 
-do_test 'id-140: jamming --print-only' do
+do_test 'id-140: jam along --print-only' do
   new_session
-  tms "harpwise jamming 1 --print-only"
+  tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
   expect { screen[19]['420 entries.']}
@@ -3821,7 +3821,7 @@ do_test 'id-141: jam along too much input' do
   new_session
   tms "harpwise jam along 12bar foo"
   tms :ENTER
-  expect { screen[13]['NONE of the available jamming-files']}
+  expect { screen[15]['None of the available jamming-files']}
   kill_session
 end
 

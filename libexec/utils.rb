@@ -739,11 +739,6 @@ def recognize_among val, choices, licks: $licks
       return choice if $intervals_inv[val]
     elsif choice == :last
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
-    elsif choice == :jamming_number
-      return choice if val.match(/^\d+$/) && val.to_i >= 1 && val.to_i <= $jamming_dirs_content.values.flatten.length
-    elsif choice == :jamming_file
-      files = $jamming_dirs_content.values.flatten
-      return choice if files.any? {|f| f.end_with?(val) || f.end_with?(val + '.json')}
     elsif choice == :extra
       return choice if $extra_kws[$mode].include?(val)
     elsif choice == :extra_w_wo_s
@@ -825,10 +820,6 @@ def print_amongs *choices
     when :last
       puts "\n- A symbolic name for one of the last licks"
       puts '    e.g. l, 2l, last'
-    when :jamming_number
-      puts "\n- A plain number between 1 and #{$jamming_dirs_content.values.flatten.length}, as enumerated by 'harpwise jamming list'"
-    when :jamming_file
-      puts "\n- The name of jamming-file, as given by 'harpwise jamming list'"
     else
       fail "Internal error: Unknown choice: '#{choice}'" 
     end

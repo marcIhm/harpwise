@@ -255,9 +255,14 @@ samples:
     By giving the argument 'all' you may delete all samples for all
     keys.
 jamming:
-  edit: |
-    edit given jamming-file; either specified as a number (as given
-    by 'list') or a filename
+  along: |
+    Start the jamming; this matches its arguments
+    against known files and starts the jamming; an example would be:
+
+      harpwise jam along 12
+
+    which would pick the pre-installed file '12bar'. If you have
+    jamming-files of your own, you may add more words.
   list, ls: |
     list available jamming-files and precede them by numbers, that
     might be used instead of a filename
@@ -267,14 +272,9 @@ jamming:
 
     Also useful when creating a new json for jamming, because it
     allows to create a list of timestamps.
-  along: |
-    allows to match incomplete argument
-    against known files, then start jamming as usual
-
-    So 'harpwise jam along 12' is the same as 'harpwise jam 12bar'
-    but does not require the full name (12bar) to be typed; rather
-    it tries to match the partial name (12) given against all
-    available files.
+  edit: |
+    edit given jamming-file; either specified as a number (as given
+    by 'list') or a filename
 develop:
   man: |
     produce man page from erb-template
