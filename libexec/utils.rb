@@ -827,9 +827,9 @@ def print_amongs *choices
 end
 
 
-def get_extra_desc_all extra_desc: $extra_desc, for_usage: false, exclude_meta: false
+def get_extra_desc_all extras_joined_to_desc: $extras_joined_to_desc, for_usage: false, exclude_meta: false
   lines = []
-  extra_desc[$mode].each do |k,v|
+  extras_joined_to_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
     lines << (for_usage ? '  ' : '') + "  - #{k}:"
@@ -842,7 +842,7 @@ end
 # this can handle keys like 'ran, random'
 def get_extra_desc_single key
   lines = []
-  $extra_desc[$mode].each do |k,v|
+  $extras_joined_to_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next unless ks.include?(key)
     lns = v.lines.map(&:strip)
@@ -1183,16 +1183,34 @@ end
 
 
 def write_invocation
-  ts = Time.now.to_s.split[0..1].join('  ')
-  file = "#{$invocations_dir}/#{$type}_#{$mode}" + ( $extra  ?  "_#{$extra}"  :  '' )
+  #
+  # See also:   utils/harpwise_historic_with_fzf.sh
+  #
+  # for an application of the files written here.
+  #
+  ts_clause = "   #  " + Time.now.to_s.split[0..1].join('  ')
+
+  # Take ENV into account, just like the script above does
+  commandline = if ENV['HARPWISE_COMMAND']
+                  ENV['HARPWISE_COMMAND'] + ' ' + $full_commandline.split(' ',2)[1]
+                else
+                  $full_commandline
+                end
+  
+  # Timestamps should be right-aligned within minimum terminal width if possible
+  # or at boundaries of 4
+  room = $conf[:term_min_width] - 4 - commandline.length - ts_clause.length
+  padding = ( room > 0  ?  (' ' * room)  :  ( ' ' * ( -commandline.length % 4 )))
+  file = "#{$invocations_dir}/#{$type}_#{$mode}" + ( $extra  ?  "_#{$extra_aliases[$mode][$extra]}"  :  '' )
   lines = if File.exist?(file)
-            File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == $full_commandline}
+            # remove repetitions, disrecarding time comments
+            File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == commandline}
           else
             []
-          end.append($full_commandline + (' ' * (-$full_commandline.length % 4)) + "   #  #{ts}\n")
+          end.append(commandline + padding + ts_clause + "\n")
   File.write(file, lines.last(20).join)
 
-  # and do something unrelated
+  # And finally do something totally unrelated
   File.write "#{$dirs[:data]}/path_to_install_dir", "#{$dirs[:install]}\n"
 end
 

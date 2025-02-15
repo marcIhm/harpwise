@@ -272,6 +272,10 @@ jamming:
 
     Also useful when creating a new json for jamming, because it
     allows to create a list of timestamps.
+
+    For this purpose you may even give the path to a simple .mp3-file
+    which will be played, thus allowing you to mark timestamps; so
+    no need to create a json-file up front.
   edit: |
     edit given jamming-file; either specified as a number (as given
     by 'list') or a filename

@@ -3768,9 +3768,9 @@ do_test 'id-137: harpwise jamming edit with a number' do
   kill_session
 end
 
-do_test 'id-138: harpwise jamming play with a number' do
+do_test 'id-138: harpwise jamming play' do
   new_session
-  tms "harpwise jamming play 1"
+  tms "harpwise jamming play 12"
   tms :ENTER
   expect { screen[4]['Backing track is:']}
   sleep 1
@@ -3786,6 +3786,17 @@ do_test 'id-138: harpwise jamming play with a number' do
   expect { screen[16]['# 2']}
   expect { screen[17]['... skipped backward ...']}
   expect { screen[18]['# 3']}
+  kill_session
+end
+
+do_test 'id-138a: harpwise jamming play an mp3' do
+  file = $installdir + '/recordings/12bar.mp3'
+  new_session
+  tms "harpwise jamming play #{file}"
+  tms :ENTER
+  sleep 1
+  tms ' '
+  expect { screen[15]['Paused']}
   kill_session
 end
 

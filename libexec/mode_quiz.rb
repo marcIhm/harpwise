@@ -2580,7 +2580,7 @@ def choose_flavour_or_collection collection
     end || collection
     choose_clean_up
     if answer == "describe-all"
-      puts "The #{$extra_desc[:quiz].length} available flavours and flavour-collections:"
+      puts "The #{$extras_joined_to_desc[:quiz].length} available flavours and flavour-collections:"
       puts
       puts get_extra_desc_all.join("\n")
       puts

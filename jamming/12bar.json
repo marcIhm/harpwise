@@ -80,8 +80,9 @@
 //  In addition you will need to create timestamps for chord-changes.
 //
 //  To prepare those timestamps for a new track, you may use 'harpwise jam play'
-//  and press  RETURN  at chord-changes.
+//  and press  RETURN  at chord-changes and turnarounds; as argument you may give
+//  a json-file (like this) or a plain mp3.
 //
-//  As an alternative you  try e.g. audacity and its feature of creating and
+//  As an alternative you may try e.g. audacity and its feature of creating and
 //  exporting text-markers.
 //

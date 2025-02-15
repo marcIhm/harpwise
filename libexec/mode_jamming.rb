@@ -30,11 +30,12 @@ def do_jamming to_handle
 
   unless %w(list ls).include?($extra)
     err "'harpwise jamming #{$extra}' needs at least one additional argument but none is given" if to_handle.length == 0
-    json_file = match_jamming_file(to_handle)
   end
   
   case $extra
   when 'along'
+    
+    json_file = match_jamming_file(to_handle)
     
     do_the_jamming(json_file)
     
@@ -45,12 +46,20 @@ def do_jamming to_handle
     do_jamming_list
     
   when 'edit'
+
+    json_file = match_jamming_file(to_handle)
     
     tool_edit_file(json_file)
     
   when 'play'
-    
-    do_the_playing(json_file)
+
+    file = if to_handle.length == 1 && to_handle[0].end_with?('.mp3')
+             to_handle[0]
+           else
+             match_jamming_file(to_handle)
+           end
+
+    do_the_playing(file)
     
   else
     
@@ -568,9 +577,18 @@ def parse_and_preprocess_jamming_json json
 end
 
 
-def do_the_playing json_file
-  
-  $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)
+def do_the_playing json_or_mp3
+
+  if json_or_mp3.end_with?('.mp3')
+    err "Named mp3-file does not exist:   #{json_or_mp3}" unless File.exist?(json_or_mp3)
+    $jam_pms = Hash.new
+    $jam_pms['sound_file_length_secs'] = sox_query(json_or_mp3, 'Length').to_i
+    $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
+    $jam_pms['sound_file'] = json_or_mp3
+  else
+    $jam_pms, _ = parse_and_preprocess_jamming_json(json_or_mp3)
+  end
+    
   make_term_immediate
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler

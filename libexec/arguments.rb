@@ -323,8 +323,8 @@ def parse_arguments_early
   # Now ARGV does not contain any options; process remaining non-option
   # arguments
 
-  # Mode has already been taken first, so we take type and key, by
-  # recognising them among other args by their content; then we process
+  # Mode has already been taken first, so we take type and key; we do this
+  # by recognising them among other args by their content; then we process
   # the scale, which is normally the only remaining argument.
 
   # type and key (further down below) are taken from front of args only if
@@ -478,16 +478,24 @@ end
 
 def initialize_extra_vars 
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
-  $extra_desc = yaml_parse(exfile).transform_keys!(&:to_sym)
+  extra2desc = yaml_parse(exfile).transform_keys!(&:to_sym)
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
   $extra_kws.each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
+  $extra_aliases = Hash.new
+  $extras_joined_to_desc = Hash.new
 
-  $extra_desc.each do |mode, _|
-    $extra_desc[mode].each do |extras,desc|
-      $extra_desc[mode][extras] = ERB.new(desc).result(binding)
-      $extra_desc[mode][extras].lines.each do |l|
+  extra2desc.each do |mode, _|
+    $extras_joined_to_desc[mode] = Hash.new
+    $extra_aliases[mode] = Hash.new
+    extra2desc[mode].each do |extras_joined, desc|
+      $extras_joined_to_desc[mode][extras_joined] = ERB.new(desc).result(binding)
+      desc.lines.each do |l|
         err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
-        extras.split(',').map(&:strip).each {|extra| $extra_kws[mode] << extra}
+        extras_joined.split(',').map(&:strip).each_with_index do |extra|
+          primary_extra ||= extra
+          $extra_kws[mode] << extra
+          $extra_aliases[mode][extra] = primary_extra
+        end
       end
     end
   end
@@ -538,11 +546,11 @@ def parse_arguments_for_mode
   amongs_clause = ''
 
   # Only some modes accept an extra argument, listen or licks e.g. do not
-  if $extra_desc[$mode]
+  if $extras_joined_to_desc[$mode]
     if [:play, :print].include?($mode)
       # These mode (play, print) are the only two modes, that allow
       # arguments on the commandline as well as an extra argument, which
-      # however is optional (quiz as a counterexample requires its extra
+      # however is optional (quiz, as a counterexample requires its extra
       # argument). Therefore the first argument for play and print can be
       # from any of large set of types
       
@@ -554,7 +562,7 @@ def parse_arguments_for_mode
       what = recognize_among(ARGV[0],
                              [$amongs[$mode], :extra, :extra_w_wo_s],
                              licks: $all_licks)
-      $extra = ARGV.shift if what == :extra
+      $extra = ARGV.shift if what == :extra      
       if !what
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
@@ -563,18 +571,19 @@ def parse_arguments_for_mode
         err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
       end
     else
-      # these modes (e.g. quiz, samples or jamming) require their extra argument
+      # these modes (e.g. quiz, samples or jamming) strictly require their
+      # extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra,
                                                        ($mode == :jamming  ?  []  :  :extra_w_wo_s)]) == :extra
       if !$extra
         print_amongs(:extra)
-        puts get_extra_desc_all(extra_desc: {quiz: {'choose' => 'ask user to choose one'}}).join("\n") if $mode == :quiz
-        extra_words = $extra_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
+        puts get_extra_desc_all(extras_joined_to_desc: {quiz: {'choose' => 'ask user to choose one'}}).join("\n") if $mode == :quiz
+        extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
         err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{wrap_words('  ',extra_words, '  ')} \n\e[0mas described above, but not '#{ARGV[0]}'"     
       end
     end
   end
-  
+
   to_handle = ARGV.clone
   ARGV.clear
 
