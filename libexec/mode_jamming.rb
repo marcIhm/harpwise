@@ -312,7 +312,7 @@ def do_the_jamming json_file
       puts "\e[0m\e[32mPretended sleep (#{jam_ta($jam_pretended_sleep)} secs) has exceeded length of sound file (#{jam_ta($jam_pms['sound_file_length_secs'])}).\nPlay would have ended naturally.\e[0m"
       puts "\n\nCollected #{$jam_pretended_actions_ts.length} timestamps and descriptions:"
       puts
-      fname = "#{$dirs[:data]}/jamming_timestamps_json"
+      fname = "#{$jamming_timestamps_dir}/derived-in-jam-along.txt"
       file = File.open(fname, 'w')
       file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       $jam_pretended_actions_ts.each do |ts,desc,act|
@@ -606,11 +606,27 @@ def do_the_playing json_or_mp3
   $jam_idxs_events = {skip_fore: [],
                       skip_back: [],
                       jump: []}
-  fname = "#{$dirs[:data]}/jamming_timestamps_user"
+  fname_tpl = "#{$jamming_timestamps_dir}/marked-by-user-in-jam-play-%d.txt"
+  backups_done = false
+  fname = ( fname_tpl % 1 )
+
   my_sleep(1000000, fast: true) do |char|
+
     case char
+
     when 't','RETURN'
+      #
+      # Generate full output on every invocation, even though only one timetamp has been
+      # added
+      #
       $jam_ts_collected.insert(-2, $pplayer.time_played + $jam_play_prev_trim)
+      unless backups_done
+        (1..8).to_a.reverse.each do |idx|
+          next unless File.exist?(fname_tpl % idx)
+          FileUtils.mv(fname_tpl % idx, fname_tpl % (idx + 1))
+        end
+        backups_done = true
+      end
       file = File.open(fname, 'w')
       file.write "#\n# #{($jam_ts_collected.length - 1).to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       # handle collection of timestamps
@@ -632,7 +648,9 @@ def do_the_playing json_or_mp3
       puts "\e[2mFind this list in:   #{fname}\e[0m"
       puts
       :handled
+
     when 'LEFT','BACKSPACE'
+
       trim = $jam_play_prev_trim + $pplayer.time_played - 10
       trim = 0 if trim < 0
       $pplayer.kill
@@ -641,7 +659,9 @@ def do_the_playing json_or_mp3
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_back] << $jam_ts_collected.length - 1
       :handled
+
     when 'RIGHT'
+
       trim = $jam_play_prev_trim + $pplayer.time_played + 10
       trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
       $pplayer.kill
@@ -650,7 +670,9 @@ def do_the_playing json_or_mp3
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
       :handled
+
     when 'TAB'
+
       $pplayer.pause
       curr = $jam_play_prev_trim + $pplayer.time_played + 10
       puts "\e[0m\nPlease enter an absolute timestamp to jump to;\neither a number of   seconds   or   mm:ss\n\nCurrent location is:    %.2f  (#{jam_ta(curr)})" % curr
@@ -681,13 +703,18 @@ def do_the_playing json_or_mp3
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end
       :handled
+
     when 'q'
+
       print "\n\e[0m#{$resources[:term_on_quit]}\n\n"
       exit 0
+
     else
+
       false
-    end
-  end
+
+    end ## case char
+  end ## block passed to my_sleep
 end
 
 

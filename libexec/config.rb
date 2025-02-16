@@ -382,6 +382,8 @@ def set_global_vars_late
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
   $jamming_path = ["#{$dirs[:data]}/jamming", "#{$dirs[:install]}/jamming"]
   FileUtils.mkdir_p($jamming_path[0]) unless File.directory?($jamming_path[0])
+  $jamming_timestamps_dir = "#{$dirs[:data]}/jamming_timestamps"
+  FileUtils.mkdir_p($jamming_timestamps_dir) unless File.directory?($jamming_timestamps_dir)
 
   # check and do this before read_samples is called in set_global_musical_vars
   if $type == 'richter' and $key == 'c'

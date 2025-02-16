@@ -3775,7 +3775,7 @@ do_test 'id-138: harpwise jamming play' do
   expect { screen[4]['Backing track is:']}
   sleep 1
   tms :ENTER
-  expect { screen[16]['New timestamp recorded, 1 in total']}
+  expect { screen[15]['New timestamp recorded, 1 in total']}
   sleep 4
   tms 't'
   sleep 1
@@ -3783,9 +3783,9 @@ do_test 'id-138: harpwise jamming play' do
   sleep 1
   tms 't'
   sleep 1
-  expect { screen[16]['# 2']}
-  expect { screen[17]['... skipped backward ...']}
-  expect { screen[18]['# 3']}
+  expect { screen[15]['# 2']}
+  expect { screen[16]['... skipped backward ...']}
+  expect { screen[17]['# 3']}
   kill_session
 end
 
@@ -3796,7 +3796,7 @@ do_test 'id-138a: harpwise jamming play an mp3' do
   tms :ENTER
   sleep 1
   tms ' '
-  expect { screen[15]['Paused']}
+  expect { screen[16]['Paused']}
   kill_session
 end
 
@@ -3823,8 +3823,8 @@ do_test 'id-140: jam along --print-only' do
   tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[19]['420 entries.']}
-  expect { screen[21]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps_json']}
+  expect { screen[18]['420 entries.']}
+  expect { screen[20]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps']}
   kill_session
 end
 
