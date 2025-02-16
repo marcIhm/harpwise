@@ -418,7 +418,8 @@ def parse_arguments_early
     ARGV.clear
     holes.each do |h|
       next if $harp_holes.include?(h)
-      err "Argument '#{h}' from the commandline is:\n  - neither a scale, any of:  #{$all_scales.join('  ')}\n  - nor a hole of a #{$type}-harp  (any of #{$harp_holes.join('  ')})  and can therefore not be part of an adhoc-scale"
+      ind = '      '
+      err "Argument '#{h}' from the commandline is:\n  - neither a scale, any of:\n#{wrap_words(ind,$all_scales,'  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind,$harp_holes,'  ')}\nand can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0

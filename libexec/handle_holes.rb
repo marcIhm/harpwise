@@ -515,7 +515,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if $ctl_mic[:quit]
-      print "\e[#{$lines[:hint_or_message]}H\e[K\e[0mTerminating on user request (quit) ...\n\n"
+      print "\e[#{$lines[:hint_or_message]}H\e[K\e[0m#{$resources[:term_on_quit]}\n\n"
       exit 0
     end
 

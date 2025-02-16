@@ -11,7 +11,8 @@ def do_jamming to_handle
                           "        RETURN,t   to mark a timestamp",
                           "  BACKSPACE,LEFT   to skip back 10 secs",
                           "           RIGHT      skip forward 10",
-                          "             TAB   to jump to a timestamp"]
+                          "             TAB   to jump to a timestamp",
+                          "               q   to quit"]
   $jam_play_prev_trim = 0
   $jam_pretended_sleep = 0
   $jam_pretended_actions_ts = []
@@ -680,6 +681,9 @@ def do_the_playing json_or_mp3
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end
       :handled
+    when 'q'
+      print "\n\e[0m#{$resources[:term_on_quit]}\n\n"
+      exit 0
     else
       false
     end

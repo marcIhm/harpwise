@@ -229,7 +229,8 @@ def set_global_vars_early
     hl_long_wheel: [32,92,0,92,32,92,0,92,32,92,0],
     hl_wheel2: ["\e[2m\e[34m", "\e[34m", "\e[94m"],
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
-    playing_on: "playing on"
+    playing_on: "playing on",
+    term_on_quit: "Terminating on user request (quit) ..."
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
