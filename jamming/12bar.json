@@ -14,8 +14,8 @@
     // global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
     // slowed down the backing track 
     "timestamps_multiply": 1.0,
-    // globally add to all timestamps; use this e.g. if you want to
-    // read the next lick with some forerun
+    // globally add to all timestamps; value can be negative too (in which case it delays
+    // playing); use this e.g. if you want to read the next lick in advance
     "timestamps_add": 0.0,
     // maybe give some extra time to grab your harp before anything starts
     "sleep_initially": 2.0,
@@ -33,9 +33,11 @@
     //   [timestamp, "loop-start", message, secs_to_show] 
     //   [timestamp, "keys", key1, key2, ... ]
     //
-    // where "loop-start" is just like "message" but also marks the entrypoint
-    // for the second and any further iterations, so that action before "loop-start"
-    // are only executed once.
+    // Where "message" makes the given message appear in "harpwise listen"; whereas "keys"
+    // sends the given keys to "harpwise listen", mostly for switching scales and licks;
+    // finally "loop-start" is just like "message" but also marks the entrypoint for the
+    // second and any further iterations, so that action before "loop-start" are only
+    // executed once.
     //
     // timestamps-to-actions will be repeated forever; this assumes that the
     // chord-structure of your song is regular and repeats too.
@@ -54,7 +56,8 @@
     // See remarks at the end of file this file on how to create your own jamming.
     //
     "timestamps_to_actions": [
-	// this will appear in message-area of harpwise
+	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
+	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
         [0,"message","%{comment}",0],
         [-2,"message","In two secs ...",1.8],

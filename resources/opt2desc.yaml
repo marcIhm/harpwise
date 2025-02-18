@@ -370,6 +370,11 @@ print_only:
     can be checked against e.g. those you may generat with
     'harpwise jam play'.
 
+over_again:
+  - |
+    For 'jam along': if the backing
+    track has ended, restart and play it over again.
+
 wave:
   - |
     choose waveform for generated samples,

@@ -456,7 +456,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'print' => [16, 'Please note, that options'],
                     'tools' => [8, 'same effect as --drop-tags-any'],
                     'develop' => [13, 'If lagging occurs'],
-                    'jamming' => [8, 'instead of playing'] }
+                    'jamming' => [6, 'instead of playing'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -3656,14 +3656,15 @@ end
 do_test 'id-131: check invocation logging' do
   idir = "#{$dotdir_testing}/invocations"
   ifile = "#{idir}/richter_tools_chart"
+  ENV.delete('HARPWISE_COMMAND')
   cmd = "harpwise tools chart"
   new_session
   FileUtils.rm_r(idir) if File.exist?(idir)
-  tms cmd
+  tms 'unset HARPWISE_COMMAND; ' + cmd
   tms :ENTER
   wait_for_end_of_harpwise
   content = File.read(ifile).chomp.gsub(/ *\#.*/,'')
-  expect(content, cmd) { content.end_with?(cmd) }
+  expect(ifile, content, cmd) { content.end_with?(cmd) }
 end
 
 do_test 'id-131a: info about utilities' do
@@ -3772,7 +3773,7 @@ do_test 'id-138: harpwise jamming play' do
   new_session
   tms "harpwise jamming play 12"
   tms :ENTER
-  expect { screen[4]['Backing track is:']}
+  expect { screen[3]['Backing track is:']}
   sleep 1
   tms :ENTER
   expect { screen[15]['New timestamp recorded, 1 in total']}
@@ -3796,7 +3797,7 @@ do_test 'id-138a: harpwise jamming play an mp3' do
   tms :ENTER
   sleep 1
   tms ' '
-  expect { screen[16]['Paused']}
+  expect { screen[17]['Paused']}
   kill_session
 end
 

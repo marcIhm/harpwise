@@ -27,7 +27,9 @@ def do_jamming to_handle
     err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose    a filename   or parts of    as given above"
   end
 
-  err "Option   --print-only   does not make sense with   'harpwise jam #{$extra}'\n\nIt is only useful with 'harpwise jam'." if $opts[:print_only] unless $extra == 'along'
+  [:print_only, :over_again].each do |opt|
+    puts "\nPlease note, that option   --#{opt.o2str}   has no effect for   'harpwise jam #{$extra}'   ; it is only useful for 'harpwise jam along'; accepting it nonetheless for convernience." if $opts[opt] && $extra != 'along'
+  end
 
   unless %w(list ls).include?($extra)
     err "'harpwise jamming #{$extra}' needs at least one additional argument but none is given" if to_handle.length == 0
@@ -78,6 +80,7 @@ def do_the_jamming json_file
   jamming_check_and_prepare_sig_handler  
 
   $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)
+  sleep 0.2
   
   #
   # Remark: We do slow scrolling with initial output, so that the user
@@ -163,7 +166,7 @@ def do_the_jamming json_file
        "    \e[32m#{$example % $jam_data}\e[0m",
        "\nuntil then this instance of 'harpwise jamming' will check repeatedly and",
        "start with the backing track as soon as 'harpwise listen' is running.",
-       "So you can stay with 'listen' and need not come back here.",
+       "This way you can stay with 'listen' and need not come back here.",
        ""].each {|l| puts l}
       print "\e[32m"
       "Waiting ".each_char {|c| print c; sleep 0.02}
@@ -334,7 +337,8 @@ def do_the_jamming json_file
       puts
       puts "Find this list in:   #{fname}"
       puts
-      exit
+      
+      exit 0
     end
       
   end  ## Endless loop: one iteration after the other
@@ -513,10 +517,19 @@ def my_sleep secs, fast_w_animation: false, &blk
         anm_pending = nil
         anm_cnt = anm_cnt_prev + anm_mod
       end
+
+      if $opts[:over_again]
+        # due to prior checks we are sure to have $extra == 'along' 
+        puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
+        jamming_do_action ['message','Backing track has ended; again',1]
+        sleep 1
+        jamming_prepare_for_restart
+        exec($full_commandline)
+      end
+
+      puts "\nBacking track has ended.\n\n"
       jamming_do_action ['message','Backing track has ended.',1]
-      puts
-      puts "Backing track has ended."
-      puts
+      
       exit 0
     end
 
@@ -613,10 +626,12 @@ def parse_and_preprocess_jamming_json json
   # check if sound-file is present
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
-    puts "\e[0m\e[2mScanning sound file ... "
+    puts "\e[0m\e[2mBacking track is:   #{file}"
+    print "Its duration is ... "
+    sleep 0.5
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
-    puts "\e[2mBacking track is:   #{file}     (#{$jam_pms['sound_file_length']})\e[0m\n\n"
+    puts "#{$jam_pms['sound_file_length']}\n\n"
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
@@ -639,6 +654,7 @@ def do_the_playing json_or_mp3
     $jam_pms['sound_file'] = json_or_mp3
   else
     $jam_pms, _ = parse_and_preprocess_jamming_json(json_or_mp3)
+    sleep 0.2
   end
     
   play_command = jam_get_play_command
@@ -809,21 +825,13 @@ def jamming_check_and_prepare_sig_handler
   %w(TSTP QUIT).each do |sig|
     Signal.trap(sig) do
       # do some actions of at_exit-handler here
-      sane_term
-      $pplayer&.kill
-      puts
-      puts
-      puts "\e[0m\e[34m ... jamming start over ... \e[0m\e[K"
-      sleep 0.2
-      if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-        File.write($pers_file, JSON.pretty_generate($pers_data))
-      end
-      ENV['HARPWISE_RESTARTED'] = 'yes'
+      jamming_prepare_for_restart
+      ENV['HARPWISE_RESTARTED_PROMPT'] = 'yes'      
       exec($full_commandline)
     end
   end
   
-  if ENV['HARPWISE_RESTARTED']
+  if ENV['HARPWISE_RESTARTED_PROMPT']
     puts "\n\n\e[0m\e[32mPaused after signal ctrl-z:\e[0m"
     puts $to_pause % 'CONTINUE'    
     jamming_sleep_wait_for_go
@@ -918,4 +926,19 @@ def match_jamming_file words
   else
     err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input, which is:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
   end
+end
+
+
+def jamming_prepare_for_restart
+  sane_term
+  $pplayer&.kill
+  puts
+  puts
+  puts "\e[0m\e[34m ... jamming start over ... \e[0m\e[K"
+  sleep 0.2
+  if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+    File.write($pers_file, JSON.pretty_generate($pers_data))
+  end
+  ENV['HARPWISE_RESTARTED'] = 'true'
+  ENV.delete('HARPWISE_RESTARTED_PROMPT')
 end

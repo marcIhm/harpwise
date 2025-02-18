@@ -37,7 +37,7 @@ def parse_arguments_early
   num_args_after_mode = ARGV.length
   
   # needed for error messages
-  $for_usage = "invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}' or invoke without any arguments for more general usage."
+  $for_usage = " invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}'  or  try 'harpwise #{mode}' for a list of options  or  invoke 'harpwise' without any arguments for more general usage."
 
 
   #
@@ -101,14 +101,17 @@ def parse_arguments_early
         tags_all: %w(-t --tags-all),
         tags_any: %w(--tags-any),
         drop_tags_all: %w(--drop-tags-all),
-        drop_tags_any: %w(-dt --drop-tags-any),
+        # '-dt' mirrors '-t' and so is allowed to have only one '-' but
+        # two letters 'dt'
+        drop_tags_any: %w(-dt --dt --drop-tags-any),
         max_holes: %w(--max-holes),
         min_holes: %w(--min-holes)}],
      [Set[:play], {
         lick_radio: %w(--radio --lick-radio)}],
      [Set[:jamming], {
         paused: %w(--ps --paused),
-        print_only: %w(--print-only)}],
+        print_only: %w(--print-only),
+        over_again: %w(--oa --over-again)}],
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
