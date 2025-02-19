@@ -1264,6 +1264,12 @@ class MsgBuf
   @@reset_at = Array.new
   
   def print text, min, max, group = nil, truncate: true, wrap: false
+
+    # min: keep message on stack and display it that long at minimum; is used in
+    # print_internal only, so this is checked only if a new message is about to be printed
+    #
+    # max: remove currently shown message, even if no new message is to be printed; is used
+    # in update only, which however is called in every loop of handle_holes
     
     # remove any outdated stuff
     if group
@@ -1272,7 +1278,7 @@ class MsgBuf
       idx = @@lines_durations.each_with_index.find {|x| x[0][3] == group}&.at(1)
       @@lines_durations.delete_at(idx) if idx
     end
-
+    
     if text
       if truncate && wrap
         fail "Internal error: both :truncate and :wrap are set" 
@@ -1339,7 +1345,7 @@ class MsgBuf
         @@printed_at = Time.now.to_f
         return true
       else
-        # no current message
+        # no messages
         @@printed_at = nil
         # just became empty, return true one more time
         return true
