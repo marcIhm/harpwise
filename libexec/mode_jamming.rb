@@ -91,15 +91,16 @@ def do_the_jamming json_file
   # Transform timestamps; see also below for some further changes to list of actions
   #
   ["Transforming timestamps:\e[0m\e[2m",
-   "- adding timestamps_add = #{$jam_pms['timestamps_add']} (if positive) to each timestamp;",
-   "  if negative, delay playing for its absolute value",
+   "- timestamps_add = #{$jam_pms['timestamps_add']}",
+   "  - if positive, add it to each timestamp",
+   "  - if negative, delay track accordingly",
    "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}",
    "  - if negative, subtract it from last timestamp only",
    "  - if positive, add a new matching sleep-action",
    "  - if an array (numbers only or pairs [number, text]), use each element",
    "    one after the other for one iteration as described above;",
    "    issue text (e.g. 'solo'), if given",
-   "- multiplying each timestamp by timestamps_multiply = #{$jam_pms['timestamps_multiply']}\e[0m",
+   "- timestamps_multiply = #{$jam_pms['timestamps_multiply']}: multiply each timestamp with this\e[0m",
    ""].each {|l| puts l; sleep 0.02}
 
   #
@@ -521,7 +522,7 @@ def my_sleep secs, fast_w_animation: false, &blk
       if $opts[:over_again]
         # due to prior checks we are sure to have $extra == 'along' 
         puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
-        jamming_do_action ['message','Backing track has ended; again',1]
+        jamming_do_action ['message','Backing track has ended; starting over again',1]
         sleep 1
         jamming_prepare_for_restart
         exec($full_commandline)
@@ -559,7 +560,7 @@ def parse_and_preprocess_jamming_json json
   $jam_json = json
   
   puts
-  puts "\e[2mSettings from: #{$jam_json}\e[0m"
+  puts "\e[2mSettings from:   #{$jam_json}\e[0m"
   sleep 0.05
   
   #
@@ -661,7 +662,7 @@ def do_the_playing json_or_mp3
 
   puts
   puts "Starting:\n\n    #{play_command}\n\n"
-  puts"\e[32m"
+  puts"\e[0m\e[32m"
   $jam_help_while_play.each {|l| puts l}
   puts "\e[0m"
     
