@@ -28,7 +28,7 @@ def do_jamming to_handle
   end
 
   [:print_only, :over_again].each do |opt|
-    puts "\nPlease note, that option   --#{opt.o2str}   has no effect for   'harpwise jam #{$extra}'   ; it is only useful for 'harpwise jam along'; accepting it nonetheless for convernience." if $opts[opt] && $extra != 'along'
+    puts "\e[0m\e[2m\nPlease note, that option   --#{opt.o2str}   has no effect for   'harpwise jam #{$extra}'   ; it is only useful for 'harpwise jam along'   ; accepting it nonetheless for commandline-convernience ...\e[0m" if $opts[opt] && $extra != 'along'
   end
 
   unless %w(list ls).include?($extra)
@@ -627,8 +627,8 @@ def parse_and_preprocess_jamming_json json
   # check if sound-file is present
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
-    puts "\e[0m\e[2mBacking track is:   #{file}"
-    print "Its duration is ... "
+    puts "\e[0m\e[2mBacking track:   #{file}"
+    print "Duration:   "
     sleep 0.5
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
