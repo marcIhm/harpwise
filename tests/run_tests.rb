@@ -3765,7 +3765,7 @@ do_test 'id-137: harpwise jamming edit with a number' do
   new_session
   tms "EDITOR=vi harpwise jamming edit 12bar"
   tms :ENTER
-  expect { screen[19]['hint for user on how to start harpwise']}  
+  expect { screen[21]['// Read on, only if you want to create a new jam.']}  
   kill_session
 end
 
@@ -3773,7 +3773,7 @@ do_test 'id-138: harpwise jamming play' do
   new_session
   tms "harpwise jamming play 12"
   tms :ENTER
-  expect { screen[3]['Backing track is:']}
+  expect { screen[3]['Backing track:']}
   sleep 1
   tms :ENTER
   expect { screen[15]['New timestamp recorded, 1 in total']}

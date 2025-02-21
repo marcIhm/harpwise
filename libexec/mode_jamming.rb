@@ -432,6 +432,7 @@ def do_jamming_list
       # dim, if there is a prefix, that did not change
       if md = jfs.match(/^(.*?\/)/)
         pfx = md[1]
+        puts if pfx != ppfx
       else
         ppfx = pfx = ''
       end
