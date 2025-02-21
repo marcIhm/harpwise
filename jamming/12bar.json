@@ -2,9 +2,22 @@
     //
     // See the usage-message of 'harpwise jamming' for instructions on how to use this
     // file; in short:
-    //                    harpwise jam 12bar
+    //
+    //                    harpwise jam along 12bar
     //
 
+    //
+    // See remarks at the end of file this file, on how to create your own jamming.
+    // (once you have tried this one ...)
+    //
+
+    //
+    // The remaining comments (lots of them) simply explain the individual parameters
+    // withing this file; you dont need to read them, if you just want to do this jam.
+    //
+    // Read on, only if you want to create a new jam.
+    //
+    
     // Track to play, can be anything playable by sox; %{install_dir} is the
     // installation-directory of harpwise
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
@@ -52,40 +65,59 @@
     //   %{remaining}           :  time remaining of backing-track (mm:ss)
     //   %{install_dir}         :  installation directory of harpwise
     //
-    //
-    // See remarks at the end of file this file on how to create your own jamming.
-    //
     "timestamps_to_actions": [
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
 	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
         [0,"message","%{comment}",0],
-        [-2,"message","In two secs ...",1.8],
+        [-2,"message","In two secs ...",2],
 	// exactly one loop-start is needed
-        [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",1.8],
-        [-2,"message","Chord-change in two secs ...",1.8],
+        [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",4],
+        [-2,"message","Chord-change in two secs ...",2],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],
-        [-2,"message","Chord-change in two secs ...",1.8],
+        [-2,"message","Chord-change in two secs ...",2],
         [24,"keys","l","s"],
-        [-2,"message","Three chord-changes in two secs ...",1.8],
+        [-2,"message","Three chord-changes in two secs ...",2],
         [30,"keys","l","s"],
         [33,"keys","l","s"],
         [36,"keys","l","s"],
-        [-2,"message","Turnaround in two secs ...",1.8],
+        [-2,"message","Turnaround in two secs ...",2],
         [42,"keys","l","s"]
     ]
 }
+// 
+//  How to create your own jam ?
+//  
+//  After some practice with the backing-track 12bar.mp3 you may want to try one of your own
+//  backing-tracks. For this you will need to prepare a new json-file using your favorite
+//  text-editor plus a few tools. For starters you may choose a simple 12-bar track with
+//  regular chord-changes (I-IV-I-V-IV-I), so that the structure will be very similar to
+//  12bar.json.
 //
-//  After some practice with the backing-track 12bar.mp3 you may want to try one
-//  of your own backing-tracks. For this you will need to prepare another
-//  json-file and put in the filename of your new backing-track.
-//  In addition you will need to create timestamps for chord-changes.
+//  First, make a copy of 12.bar.json, name it after your backing-track and put in the
+//  filename of your own track; maybe adjust parameters 'comments' and 'example_harpwise'.
 //
-//  To prepare those timestamps for a new track, you may use 'harpwise jam play'
-//  and press  RETURN  at chord-changes and turnarounds; as argument you may give
-//  a json-file (like this) or a plain mp3.
+//  In addition you will need to adjust the array 'timestamps_to_actions' in your new
+//  json-file, so that the timestamps match chord-changes and the turn-around of your track.
 //
-//  As an alternative you may try e.g. audacity and its feature of creating and
-//  exporting text-markers.
+//  To determine those timestamps for a new track, you may use 'harpwise jam play' and press
+//  RETURN at chord-changes and turnarounds; as argument you may give the json-file or the
+//  name of your mp3; the resuling set of timestamps will be displayed and written to disk.
+//
+//  After putting in your timestamps, you should try your new json with 'harpwise jam along'
+//  and check, if the actions executed are in sync with your track. It can be useful to jeep
+//  watching the output of 'harpwise jam along' instead of 'harpwise listen' for this
+//  check. If necessary, do some overall adjustments:
+//
+//  - If all timestamps seem to be off by a certain constant amount, try parameter
+//    'timestamps_add' (negative or positive)
+//
+//  - If timestamps tend to drift from turnaround to turnaround, or if there are solos in
+//    between, adjust parameter 'sleep_after_iteration'
+//
+//
+//  Once you have gone through these steps, everything should be ready for a new jam:
+//
+//    Have fun !
 //

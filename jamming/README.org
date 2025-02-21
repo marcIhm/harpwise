@@ -1,0 +1,9 @@
+
+Use the file 12.bar json like this:
+
+  harpwise jam along 12bar
+
+type 'harpwise jam' to learn about concepts.
+
+read the comments in '12bar.json' on how to create
+a new jam of your own.

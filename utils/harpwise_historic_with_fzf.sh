@@ -13,8 +13,14 @@
 #  RETURN again to execute it
 #
 
+#  See:
+#
+#       https://github.com/junegunn/fzf?tab=readme-ov-file#search-syntax
+#
+#  for search syntax, e.g. '!' to negate or '^' as anchor
+
 # Note for development: This needs to run under bash as well as zsh; so only the common
-# subset of features is available
+# subset of shell-features is available
 
 function hwh {
     
@@ -27,7 +33,7 @@ function hwh {
 	    # remove date, time and program-name from front, but keep all the rest
 	    # (including time/date-comment)
 	    cut -f4- -d' ' |
-	    # feed it to fzf; no need to sort; reverse order
+	    # feed it to fzf; no sort, because we have done that already; reverse order
 	    fzf -e --query "${*:-}" --no-sort --tac --prompt "${HARPWISE_COMMAND:-harpwise} " |
 	    # remove time/date-comment
 	    sed 's/ *#.*//'
