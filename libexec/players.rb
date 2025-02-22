@@ -75,15 +75,15 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'the recording of a lick', scroll_allowed,
-                        "SPACE: pause/continue            " + 
+                        "       SPACE: pause/continue            " + 
                         if $ctl_lk_hl[:can_star_unstar]
-                          "  *,/: star,unstar lick\n"
+                          "         *,/: star,unstar lick\n"
                         else
                           "\n"
                         end +
-                        "TAB,+: skip to end                  -.: back to start\n" +
-                        "  v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
-                        "    l: toggle loop over rec " +
+                        "TAB,+,RETURN: skip to end                  -.: back to start\n" +
+                        "         v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
+                        "           l: toggle loop over rec " +
                         ( loop_rec  ?  "(now ON)\n"  :  "(now OFF)\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
@@ -112,7 +112,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       # should be similar output to playing holes, e.g. holes first, then newline
       if loop_rec && !loop_message_printed
         # let the user know, how to end looping
-        print "\e[0m\e[2mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
+        print "\e[0m\e[2mloop (TAB,+,RETURN to skip, l to end loop) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
         loop_message_printed = true
       end
       
@@ -177,10 +177,10 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
-                        "  SPACE: pause/continue\n" + 
-                        "  TAB,+: skip to end           -: back to start\n" +
-                        "      v: decrease volume       V: increase volume by 3dB\n" +
-                        "      l: loop over recording"
+                        "         SPACE: pause/continue\n" + 
+                        "  TAB,+,RETURN: skip to end           -: back to start\n" +
+                        "             v: decrease volume       V: increase volume by 3dB\n" +
+                        "             l: loop over recording"
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
@@ -205,7 +205,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
       end
 
       if loop_rec && !loop_message_printed
-        print "\e[0m\e[32mloop (TAB,+ to skip, l to end)\e[0m "
+        print "\e[0m\e[32mloop (TAB,+,RETURN to skip, l to end loop)\e[0m "
         puts if scroll_allowed
         loop_message_printed = true
       end
@@ -838,9 +838,9 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
     end
     if $ctl_hole[:show_help]
       display_kb_help 'a series of holes or notes', true,  <<~end_of_content
-        SPACE: pause/continue
-        TAB,+: skip to end
-            v: decrease volume     V: increase volume by 3dB
+               SPACE: pause/continue
+        TAB,+,RETURN: skip to end
+                   v: decrease volume     V: increase volume by 3dB
       end_of_content
       # continue below help
       print "\n"
@@ -915,15 +915,15 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
       # react on keyboard input
       if $ctl_hole[:show_help]
         display_kb_help 'the holes of a lick', scroll_allowed,
-        "SPACE: pause/continue" +
+        "       SPACE: pause/continue" +
         if $ctl_lk_hl[:can_star_unstar]
           "          *,/: star,unstar lick\n"
         else
           "\n"
         end +
-        "TAB,+: skip to end\n" +
-        "  v,V: decrease,increase volume\n" +
-        "    l: toggle loop over holes " +
+        "TAB,+,RETURN: skip to end\n" +
+        "         v,V: decrease,increase volume\n" +
+        "           l: toggle loop over holes " +
         ( loop_holes  ?  "(now ON)\n"  :  "(now OFF)\n" )
         # continue below help (first round only)
         print "\n"
@@ -962,7 +962,7 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
     # should be similar output to playing recording, e.g. holes first, then newline
     if loop_holes && !loop_message_printed
       puts if scroll_allowed
-      print "\e[0m\e[2mloop (TAB,+ to skip, l to end) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
+      print "\e[0m\e[2mloop (TAB,+,RETURN to skip, l to end loop) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
       loop_message_printed = true
     end
 

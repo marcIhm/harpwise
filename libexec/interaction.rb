@@ -284,7 +284,7 @@ def handle_kb_play_holes_or_notes
     space_to_cont
     print "go \e[0m"
     sleep 0.5
-  elsif char == "TAB" || char == '+'
+  elsif char == 'TAB' || char == '+' || char == 'RETURN'
     $ctl_hole[:skip] = true
   elsif char == 'v'
     $ctl_hole[:vol_down] = true
@@ -324,7 +324,7 @@ def handle_kb_play_lick_recording
     $ctl_lk_hl[:toggle_loop] = true
   elsif char == 'h'
     $ctl_rec[:show_help] = true
-  elsif char == "TAB" || char == '+'
+  elsif char == 'TAB' || char == '+' || char == 'RETURN'
     $ctl_rec[:skip] = true
   elsif char == '*' && $ctl_lk_hl[:can_star_unstar]
     $ctl_lk_hl[:star_lick] = :up
@@ -355,7 +355,7 @@ def handle_kb_play_recording
     $ctl_rec[:replay] = true
   elsif char == '-'
     $ctl_rec[:replay] = true
-  elsif char == "TAB" || char == '+'
+  elsif char == 'TAB' || char == '+' || char == 'RETURN'
     $ctl_rec[:skip] = true
   else
     $ctl_rec[:invalid] = get_text_invalid(char)
@@ -431,7 +431,7 @@ def handle_kb_play_pitch
     $ctl_pitch[:wave_down] = true
   elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_pitch[:quit] = true
-  elsif char == "RETURN"
+  elsif char == 'RETURN'
     $ctl_pitch[:accept_or_repeat] = true
   else
     $ctl_pitch[:invalid] = get_text_invalid(char)
@@ -473,7 +473,7 @@ def handle_kb_play_inter
     $ctl_inter[:vol_down] = true
   elsif char == 'V'
     $ctl_inter[:vol_up] = true
-  elsif char == "RETURN"
+  elsif char == 'RETURN'
     $ctl_inter[:replay] = true
   else
     $ctl_inter[:invalid] = get_text_invalid(char)
@@ -507,7 +507,7 @@ def handle_kb_play_chord
     $ctl_chord[:wave_down] = true
   elsif char == 'h'
     $ctl_chord[:show_help] = true
-  elsif char == "RETURN"
+  elsif char == 'RETURN'
     $ctl_chord[:replay] = true
   elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_chord[:quit] = char

@@ -368,7 +368,7 @@ def parse_arguments_early
       puts
     end
     if but_for_mode.length > 0
-      puts "#{but_for_mode.length} options for mode #{$mode} that are unknown for this mode, but are known for other modes:"
+      puts "#{but_for_mode.length} options for mode #{$mode} that are unknown for this mode (#{$mode}), but are known for other modes:"
       puts but_for_mode.join("\n")
     end
     err("#{looks_like_opts.length} unknown options: #{looks_like_opts.join(', ')}. See above for details; #{$for_usage}")

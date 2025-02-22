@@ -402,7 +402,7 @@ def play_licks_controller licks, refill, sleep_between: false
           print '.' if i % 10 == 5
           break if !$ctl_kb_queue.empty?
         end
-        puts "\e[0m"
+        print "\e[0m"
       else
         sleep ( $opts[:fast] ? 0.25 : 0.5 )
       end
@@ -411,7 +411,7 @@ def play_licks_controller licks, refill, sleep_between: false
         lick = nil
         break
       end
-      case maybe_wait_for_key_and_decide_replay
+      case maybe_wait_for_key_and_decide_replay($ctl_lk_hl[:lick_lick])
       when :next
         prev_licks << lick if lick && lick != prev_licks[-1]
         lick = stock.shift
@@ -483,18 +483,27 @@ def play_licks_controller licks, refill, sleep_between: false
 end
 
 
-def maybe_wait_for_key_and_decide_replay
+def maybe_wait_for_key_and_decide_replay puts_pending
   show_help = false
   if $ctl_lk_hl[:lick_lick] && $ctl_kb_queue.empty?
     $ctl_kb_queue.clear
+    puts " \e[2mnext\e[0m" if puts_pending
     return :next
   else
     if $ctl_kb_queue.length > 0
       # different shortcuts apply before we even ask; these are similar to shortcuts during
       # previous play
       char = $ctl_kb_queue.deq
-      return :next if char == '+' || char == 'TAB'
-      show_help = true if char == 'h'
+      if char == '+' || char == 'TAB'
+        puts " \e[32mnext\e[0m" if puts_pending
+        return :next
+      end
+      if char == 'h'
+        show_help = true
+        puts " \e[32mhelp\e[0m"
+        puts
+        puts_pending = false
+      end
     end
 
     loop do
@@ -508,18 +517,25 @@ def maybe_wait_for_key_and_decide_replay
                     ['      L: toggle loop for all licks (now ',
                      ( $ctl_lk_hl[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
                     ["  2-9,0: set num loops fo all-licks looping (L) (now #{$ctl_lk_hl[:num_loops]})"],
-                    ["SPACE or RETURN for next lick ...\n"]]
-       lines = if show_help
-                 lines_long
+                    ["SPACE or RETURN for next lick ..."]]
+      lines = if show_help
+                lines_long
               else
                 [['Press:      h: show help with more keys (available now already)'],
-                 ["SPACE or RETURN for next lick ...\n"]]
+                 ["SPACE or RETURN for next lick ..."]]
               end
-       oldlines ||= lines
-       oldlines_long ||= lines_long
+      oldlines ||= lines
+      oldlines_long ||= lines_long
       $ctl_kb_queue.clear
+      if puts_pending
+        puts " \e[32mpause\e[0m"
+        puts
+      end
+      puts_pending = false
+
       # highlight diffs to initial state
-      lines.zip(oldlines).each do |line, oldline|
+      lines.zip(oldlines).each_with_index do |lns, idx|
+        line, oldline = lns
         print "\e[0m\e[2m"
         # not strings but rather arrays of segments
         line.zip(oldline).each do |seg, oldseg|
@@ -531,7 +547,7 @@ def maybe_wait_for_key_and_decide_replay
           print seg
           print "\e[0m\e[2m"
         end
-        puts
+        puts unless idx == [lines.length, oldlines.length].max - 1
         sleep 0.02
       end
       print "\e[0m"
@@ -539,28 +555,41 @@ def maybe_wait_for_key_and_decide_replay
       case char
       when 'BACKSPACE'
         $ctl_lk_hl[:lick_lick] = false
+        puts " \e[32mprevious\e[0m"
+        puts
         return :prev
       when 'n'
+        puts " \e[32mnamed lick\e[0m"
+        puts
         return :named
       when 'r','.'
+        puts " \e[32mredo\e[0m"
+        puts
         return :redo
       when 'e'
+        puts " \e[32medit\e[0m"
+        puts
         return :edit
       when 'h'
+        puts " \e[32mhelp\e[0m"
+        puts
         oldlines = nil
         show_help = true
         redo
       when 'c'
+        puts
         $ctl_lk_hl[:lick_lick] = !$ctl_lk_hl[:lick_lick]
         show_help = true
         oldlines = oldlines_long        
         redo
       when 'L'
+        puts
         $ctl_lk_hl[:loop_loop] = !$ctl_lk_hl[:loop_loop]
         show_help = true
         oldlines = oldlines_long        
         redo
       when '0'
+        puts
         $ctl_lk_hl[:num_loops] = 0
         show_help = true
         oldlines = oldlines_long
@@ -570,18 +599,25 @@ def maybe_wait_for_key_and_decide_replay
         puts
         redo
       when '2','3','4','5','6','7','8','9'
+        puts
         $ctl_lk_hl[:num_loops] = char.to_i
         show_help = true
         oldlines = oldlines_long
         redo
       when ' ', 'RETURN'
+        puts " \e[32mnext\e[0m"        
+        puts
         return :next
       when '*'
+        puts " \e[32mstar\e[0m"
+        puts
         return :star_up
       when '/'
+        puts " \e[32munstar\e[0m"
+        puts
         return :star_down        
       else
-        puts "\e[0mUnknown key: '#{char}'    \e[2m(but more keys available during play)"
+        puts "\e[0m Unknown key: '#{char}' \e[2m(but more keys in play)"
         puts
         oldlines = nil
         show_help = true

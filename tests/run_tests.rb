@@ -876,7 +876,7 @@ do_test 'id-16b: cycle in play' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[15]['Lick   st-louis    2/21'] }
+  expect { screen[16]['Lick   st-louis    2/21'] }
   kill_session
 end
 
@@ -3374,25 +3374,25 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[8]['Lick   wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick   st-louis'] }
+  expect { screen[16]['Lick   st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick   feeling-bad'] }
+  expect { screen[17]['Lick   feeling-bad'] }
   tms :ENTER
   sleep 6
-  expect { screen[15]['Lick   chord-prog'] }
+  expect { screen[17]['Lick   chord-prog'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick   feeling-bad'] }
+  expect { screen[17]['Lick   feeling-bad'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick   st-louis'] }
+  expect { screen[17]['Lick   st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[15]['Lick   wade'] }
+  expect { screen[17]['Lick   wade'] }
   tms :BSPACE
   sleep 6
-  expect { screen[13]['No previous lick available'] }
+  expect { screen[15]['No previous lick available'] }
   kill_session
 end
 
@@ -3583,7 +3583,7 @@ do_test 'id-126: error message refers to other modes' do
   wait_for_end_of_harpwise
   expect { screen[2]['1 options for mode listen that are unknown for any mode:'] }
   expect { screen[3]['--foo'] }
-  expect { screen[5]['unknown for this mode, but are known for'] }
+  expect { screen[5]['unknown for this mode (listen), but'] }
   expect { screen[7]['--fast-lick-switch  , for modes: licks'] }
   kill_session
 end
