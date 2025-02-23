@@ -24,7 +24,7 @@ def do_jamming to_handle
   
   if to_handle.length == 0 && !%w(list ls).include?($extra)
     do_jamming_list
-    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose    a filename   or parts of    as given above"
+    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose a filename, even partially, as given above"
   end
 
   [:print_only, :over_again].each do |opt|
@@ -520,7 +520,7 @@ def my_sleep secs, fast_w_animation: false, &blk
         anm_cnt = anm_cnt_prev + anm_mod
       end
 
-      if $opts[:over_again]
+      if $opts[:over_again] && $extra == 'along'
         # due to prior checks we are sure to have $extra == 'along' 
         puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
         jamming_do_action ['message','Backing track has ended; starting over again',1]
@@ -530,7 +530,7 @@ def my_sleep secs, fast_w_animation: false, &blk
       end
 
       puts "\nBacking track has ended.\n\n"
-      jamming_do_action ['message','Backing track has ended.',1]
+      jamming_do_action ['message','Backing track has ended.',1] if $extra == 'along'
       
       exit 0
     end
@@ -629,11 +629,11 @@ def parse_and_preprocess_jamming_json json
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
     puts "\e[0m\e[2mBacking track:   #{file}"
-    print "Duration:   "
+    print "Duration:   calculating ..."
     sleep 0.5
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
-    puts "#{$jam_pms['sound_file_length']}\n\n"
+    puts "\rDuration:   #{$jam_pms['sound_file_length']}\e[K\n\n"
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
@@ -744,13 +744,15 @@ def do_the_playing json_or_mp3
 
       $pplayer.pause
       curr = $jam_play_prev_trim + $pplayer.time_played + 10
-      puts "\e[0m\nPlease enter an absolute timestamp to jump to;\neither a number of   seconds   or   mm:ss\n\nCurrent location is:    %.2f  (#{jam_ta(curr)})" % curr
+      puts "\e[0m\nPlease enter an absolute timestamp to jump to; '-' to count from end;\neither a number of   seconds   or   mm:ss\n\nCurrent location is:    %.2f  (#{jam_ta(curr)})" % curr
       puts
       print "Timestamp: "
       make_term_cooked
       inp = gets_with_cursor
       make_term_immediate
       puts
+      neg = ( inp[0] == '-' )
+      inp[0] = '' if neg
       trim = if md = inp.match(/^(\d+)$/)
                md[1].to_i
              elsif md = inp.match(/^(\d+\.\d+)$/)
@@ -762,16 +764,26 @@ def do_the_playing json_or_mp3
              else
                nil
              end
+      if trim && neg
+        trim = $jam_pms['sound_file_length_secs'] - trim
+        puts "Subtracting input (-#{inp}) from length of sound file (#{$jam_pms['sound_file_length']})"
+        puts
+      end
       if !trim
-        puts "Invalid input: '#{inp}'; cannot jump."
+        puts "Invalid input: '#{inp}'; cannot jump"
         $pplayer.continue
       elsif trim > $jam_pms['sound_file_length_secs']
-        puts "Your input is beyond length of sound_file; cannot jump."
+        puts "Your input is beyond length of sound_file (#{$jam_pms['sound_file_length']}); cannot jump."
         $pplayer.continue
+      elsif trim < 0
+        puts "Your input is before start of sound_file; cannot jump."
+        $pplayer.continue        
       else
         $pplayer.kill
         $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
-        puts(("\e[0mJumped to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim)
+        rmng = $jam_pms['sound_file_length_secs'] - trim
+        puts(("\e[0mJumped to:  \e[32m%8.2f  (" + jam_ta(trim) + ")\e[0m") % trim)
+        puts(("\e[0m\e[2mremaining:  %8.2f  (" + jam_ta(rmng) + ")   up to end\e[0m") % rmng)
         $jam_play_prev_trim = trim
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end

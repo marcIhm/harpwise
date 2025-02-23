@@ -77,7 +77,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
         display_kb_help 'the recording of a lick', scroll_allowed,
                         "       SPACE: pause/continue            " + 
                         if $ctl_lk_hl[:can_star_unstar]
-                          "         *,/: star,unstar lick\n"
+                          "  *,/: star,unstar lick\n"
                         else
                           "\n"
                         end +

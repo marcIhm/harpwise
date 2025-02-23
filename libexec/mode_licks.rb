@@ -783,7 +783,7 @@ def play_lick_recording_and_handle_kb_plus lick, at_line:, shift_inter:, holes:
 
   skipped = play_lick_recording_and_handle_kb(lick, start, length, shift_inter, !!at_line)
 
-  print skipped ? " skip rest" : " done"
+  print " done" unless skipped
 end
 
 
