@@ -629,11 +629,11 @@ def parse_and_preprocess_jamming_json json
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
     puts "\e[0m\e[2mBacking track:   #{file}"
-    print "Duration:   calculating ..."
-    sleep 0.5
+    print "Duration:   --:--"
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
-    puts "\rDuration:   #{$jam_pms['sound_file_length']}\e[K\n\n"
+    print "\rDuration:   #{$jam_pms['sound_file_length']}\e[K"
+    2.times {sleep 0.1; puts}
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
@@ -722,8 +722,7 @@ def do_the_playing json_or_mp3
       trim = 0 if trim < 0
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
-      puts ("Skipped backward 10 secs to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
-      puts
+      jamming_play_print_current('Backward 10 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_back] << $jam_ts_collected.length - 1
       :handled
@@ -734,8 +733,7 @@ def do_the_playing json_or_mp3
       trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
-      puts ("Skipped forward 10 secs to:    \e[32m%.2f  (" + jam_ta(trim) + ")\e[0m") % trim
-      puts
+      jamming_play_print_current('Forward 10 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
       :handled
@@ -781,13 +779,10 @@ def do_the_playing json_or_mp3
       else
         $pplayer.kill
         $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
-        rmng = $jam_pms['sound_file_length_secs'] - trim
-        puts(("\e[0mJumped to:  \e[32m%8.2f  (" + jam_ta(trim) + ")\e[0m") % trim)
-        puts(("\e[0m\e[2mremaining:  %8.2f  (" + jam_ta(rmng) + ")   up to end\e[0m") % rmng)
+        jamming_play_print_current('Jumped to', trim)
         $jam_play_prev_trim = trim
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end
-      puts
       :handled
 
     when 'q'
@@ -955,4 +950,13 @@ def jamming_prepare_for_restart
   end
   ENV['HARPWISE_RESTARTED'] = 'true'
   ENV.delete('HARPWISE_RESTARTED_PROMPT')
+end
+
+
+def jamming_play_print_current txt, ts
+  rmng = $jam_pms['sound_file_length_secs'] - ts
+  puts(("\e[0m#{txt}:  %8.2f  (" + jam_ta(ts) + ")") % ts)
+  puts(("\e[0m\e[2m" + 'remaining'.rjust(txt.length) +
+        ":  %8.2f  (" + jam_ta(rmng) + ")\e[0m") % rmng)
+  puts
 end
