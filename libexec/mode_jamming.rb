@@ -356,7 +356,7 @@ def jamming_send_keys keys, silent: false
         File.write($remote_fifo, key + "\n") unless ENV['HARPWISE_TESTING']
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{$remote_fifo}.\nIs 'harpwise listen' still alive ?"
+      err "Could not write '#{key}' to #{$remote_fifo}.\n\nIs 'harpwise listen' still alive ?"
 
     end
   end
@@ -365,8 +365,11 @@ end
 
 def jamming_do_action action, noop: false
   if action[0] == 'message' || action[0] == 'loop-start'
-    if action.length != 3 || !action[1].is_a?(String) || !action[2].is_a?(Numeric)
-      err("Need exactly one string and a number after 'message'; not #{action}")
+    if action.length == 3 && ( !action[1].is_a?(String) || !action[2].is_a?(Numeric) )
+      err("A 3-element #{action[0]} needs one string and a number after '#{action[0]}'; not #{action}")
+    end
+    if action.length == 2 && !action[1].is_a?(String)
+      err("A 2-element #{action[0]} needs one string after '#{action[0]}'; not #{action}")
     end
     if action[1].lines.length > 1
       err("Message to be sent can only be one line, but this has more: #{action[1]}")
@@ -377,9 +380,12 @@ def jamming_do_action action, noop: false
     puts "sent message:       \e[0m\e[34m'#{action[1].chomp % $jam_data}'\e[0m"
     return if $opts[:print_only]
     File.write("#{Dir.home}/.harpwise/remote_message",
-               ( action[1].chomp % $jam_data ) + "\n" + action[2].to_s + "\n")
+               ( action[1].chomp % $jam_data ) + "\n" +
+               ( action[2] || 2 ).to_s + "\n")
     jamming_send_keys ["ALT-m"], silent: true
   elsif action[0] == 'keys'
+    err("Need at least one string (giving the key to be sent) after 'keys'; not #{action}") if action.length == 1
+    err("Only strings allowed after 'keys'; not #{action}") unless action[1..-1].all? {|a| a.is_a?(String)}
     return if noop
     jamming_send_keys action[1 .. -1]
   else

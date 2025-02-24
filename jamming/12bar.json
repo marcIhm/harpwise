@@ -8,7 +8,7 @@
 
     //
     // See remarks at the end of file this file, on how to create your own jamming.
-    // (once you have tried this one ...)
+    // (once you have tried this one and maybe want a nicer backing track ...)
     //
 
     //
@@ -18,7 +18,7 @@
     // Read on, only if you want to create a new jam.
     //
     
-    // Track to play, can be anything playable by sox; %{install_dir} is the
+    // Track to play, can be anything playable by sox; %{install_dir} (used below) is the
     // installation-directory of harpwise
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
     "comment": "A 12-bar backing-track of 334 sec and the 3-lick set 'box1'. Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc. Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation. Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
@@ -46,14 +46,23 @@
     //   [timestamp, "loop-start", message, secs_to_show] 
     //   [timestamp, "keys", key1, key2, ... ]
     //
-    // Where "message" makes the given message appear in "harpwise listen"; whereas "keys"
-    // sends the given keys to "harpwise listen", mostly for switching scales and licks;
-    // finally "loop-start" is just like "message" but also marks the entrypoint for the
-    // second and any further iterations, so that action before "loop-start" are only
-    // executed once.
+    // Where:
     //
-    // timestamps-to-actions will be repeated forever; this assumes that the
-    // chord-structure of your song is regular and repeats too.
+    // "message" makes the given message appear in "harpwise listen" for secs_to_show
+    // seconds; secs_to_show is optional and defaults to 2. In any case the next message
+    // given here will override its predecessor, so you rarely need to set this.
+    //
+    // "keys" sends the given keys to "harpwise listen", mostly for switching scales and
+    // licks or for doing a reset initially; hence "l","s","L","S" will be the the most
+    // frequent (only ?) choices..
+    //
+    // "loop-start" is just like "message" but also marks the entrypoint for the second and
+    // any further iterations, so that action before "loop-start" are only executed once.
+    //
+    // 
+    // The array timestamps-to-actions will be repeated forever, but from the second
+    // iteration on it will start at "loop-start".  This assumes that the chord-structure
+    // of your song repeats in a regular fashion too.
     //
     //
     // Messages to be shown (and most other strings), may use these special variables:
@@ -69,8 +78,8 @@
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
 	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
-        [0,"message","%{comment}",0],
-        [-2,"message","In two secs ...",2],
+        [0,"message","%{comment}"],
+        [-2,"message","In two secs ..."],
 	// exactly one loop-start is needed
         [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",4],
         [-2,"message","Chord-change in two secs ...",2],
@@ -90,20 +99,25 @@
 //  How to create your own jam ?
 //  
 //  After some practice with the backing-track 12bar.mp3 you may want to try one of your own
-//  backing-tracks. For this you will need to prepare a new json-file using your favorite
-//  text-editor plus a few tools. For starters you may choose a simple 12-bar track with
-//  regular chord-changes (I-IV-I-V-IV-I), so that the structure will be very similar to
-//  12bar.json.
+//  backing-tracks. A suitable track needs to have a regular chord-structure, probably with
+//  an intro and maybe a solo.
 //
-//  First, make a copy of 12.bar.json, name it after your backing-track and put in the
+//  To make a jam from such a track, you will need to prepare a new json-file using your
+//  favorite text-editor plus a few tools described below. For starters you may choose a
+//  simple 12-bar track with regular chord-changes (I-IV-I-V-IV-I), so that the structure
+//  will be very similar to 12bar.json.
+//
+//  First, make a copy of 12bar.json, name it after your backing-track and put in the
 //  filename of your own track; maybe adjust parameters 'comments' and 'example_harpwise'.
 //
 //  In addition you will need to adjust the array 'timestamps_to_actions' in your new
 //  json-file, so that the timestamps match chord-changes and the turn-around of your track.
 //
-//  To determine those timestamps for a new track, you may use 'harpwise jam play' and press
-//  RETURN at chord-changes and turnarounds; as argument you may give the json-file or the
-//  name of your mp3; the resuling set of timestamps will be displayed and written to disk.
+//  To determine those timestamps for a new track, you may employ 'harpwise jam play' and
+//  its ability to jump around in a track and mark timestamps. Press RETURN at chord-changes
+//  and turnarounds or jump back 10 secs, if you missed a chord-change. As argument to
+//  'harpwise jam play' you may give the json-file or the name of your mp3; the resuling set
+//  of timestamps will be displayed and written to disk.
 //
 //  After putting in your timestamps, you should try your new json with 'harpwise jam along'
 //  and check, if the actions executed are in sync with your track. It can be useful to jeep
