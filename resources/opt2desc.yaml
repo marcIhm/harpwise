@@ -293,6 +293,10 @@ lick_prog:
 
       --lick-prog my-lick-progression
 
+    you may also give a comma-separated list of licks, e.g.
+
+      --lick-prog wade,simple-turn
+      
     If you use this option, the tag-options for lick-selection are
     ignored.<% if $mode == :licks %>
     
