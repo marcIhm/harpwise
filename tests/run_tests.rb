@@ -429,7 +429,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'print' => [5, 'and prints them with additional'],
                      'tools' => [4, "The mode 'tools' offers some non-interactive"],
                      'develop' => [4, "This mode is useful only for the maintainer or developer"],
-                     'jamming' => [4, "The mode jamming works with 'harpwise listen' to provide"] }
+                     'jamming' => [4, "Scripted jamming along a backing track"] }
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -3824,7 +3824,7 @@ do_test 'id-140: jam along --print-only' do
   tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[18]['420 entries.']}
+  expect { screen[18]['550 entries.']}
   expect { screen[20]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps']}
   kill_session
 end

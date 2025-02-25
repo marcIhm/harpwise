@@ -90,51 +90,60 @@ def do_the_jamming json_file
   # 
   # Transform timestamps; see also below for some further changes to list of actions
   #
+
+  # Abbreviations for convenience
+  sl_a_iter = $jam_pms['sleep_after_iteration']
+  ts_mult = $jam_pms['timestamps_multiply']
+  ts_add = $jam_pms['timestamps_add']
+  
   ["Transforming timestamps:\e[0m\e[2m",
-   "- timestamps_add = #{$jam_pms['timestamps_add']}",
+   "- timestamps_add = #{ts_add}",
    "  - if positive, add it to each timestamp",
    "  - if negative, delay track accordingly",
    "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}",
-   "  - if negative, subtract it from last timestamp only",
-   "  - if positive, add a new matching sleep-action",
+   "  - if < 1, subtract it from last timestamp only",
+   "  - if >= 1, add a new explicit sleep-action",
    "  - if an array (numbers only or pairs [number, text]), use each element",
-   "    one after the other for one iteration as described above;",
+   "    one after the other for the current iteration as described above;",
    "    issue text (e.g. 'solo'), if given",
-   "- timestamps_multiply = #{$jam_pms['timestamps_multiply']}: multiply each timestamp with this\e[0m",
+   "- timestamps_multiply = #{ts_mult}: multiply each timestamp with this\e[0m",
    ""].each {|l| puts l; sleep 0.02}
 
   #
-  # Preprocess sleep_after_iteration as far as possible already
+  # Preprocess sleep_after_iteration as far as possible already; use timestamps_multiply
+  # only further down below
   #
-  sl_a_iter = $jam_pms['sleep_after_iteration']  
-  if sl_a_iter.is_a?(Numeric)
-    # turn number into sufficiently large array of identical Arrays with one number each
-    sl_a_iter = Array.new(1000, [sl_a_iter, nil])
-  else
-    # Sleep is different for each iteration; for now, check its type only and bring them
-    # into a common structure
-    err "Parameter 'sleep_after_iteration' can only be a number or an array, however its type is '#{sl_a_iter.class}' and its value: #{sl_a_iter}" unless sl_a_iter.is_a?(Array)
-    sl_a_iter.map! do |sai|
-      case sai
-      in Numeric
-        [sai, nil]
-      in Numeric, String
-        err "If an element of 'sleep_after_iteration' has text, the duration needs to be >= 2 (to allow message to show); however this does not hold true for this element: #{sai}"  if sai[0] < 2
-        sai
-      else
-        err "Parameter 'sleep_after_iteration' should be an array (which is the case). Each element of this array can either be a  PLAIN NUMBER  or an  ARRAY  with a number and a string; however (and thats the problem) element #{idx} in #{sl_a_iter} is none of these but rather: #{sai}"
-      end
-    end
-  end
+  sl_a_iter = if sl_a_iter.is_a?(Numeric)
+                # turn number into array
+                [[sl_a_iter * ts_mult, nil]]
+              else
+                # Sleep is different for each iteration; for now, check its type only and bring them
+                # into a common structure
+                err "Parameter 'sleep_after_iteration' can only be a number or an array, however its type is '#{sl_a_iter.class}' and its value: #{sl_a_iter}" unless sl_a_iter.is_a?(Array)
+                sl_a_iter.map do |sai|
+                  case sai
+                  in Numeric
+                    [sai * ts_mult, nil]
+                  in Numeric, String
+                    err "If an element of 'sleep_after_iteration' has text, the duration needs to be >= 2 (to allow message to show); however this does not hold true for this element: #{sai}"  if sai[0] < 2
+                    [sai[0] * ts_mult, sai[1]]
+                  else
+                    err "Parameter 'sleep_after_iteration' should be an array (which is the case). Each element of this array can either be a  PLAIN NUMBER  or an  ARRAY  with a number and a string; however (and thats the problem) element #{idx} in #{sl_a_iter} is none of these but rather: #{sai}"
+                  end
+                end
+              end
 
   # process other time-parameters
-  actions.each_with_index do |ta,idx|
+  ts_prev = actions[0][0]
+  actions.each_with_index do |ta, idx|
     # Remark: negative timestamps have already been resolved above in
     # parse_and_preprocess_jamming_json; therefore we do not need to check for
     # negative-values below (negative timestampts_add); because from now own only diffs
     # between timestamps are used.
-    ta[0] += $jam_pms['timestamps_add'] if $jam_pms['timestamps_add'] > 0
-    ta[0] *= $jam_pms['timestamps_multiply']
+    ta[0] += ts_add if ts_add > 0
+    ta[0] *= ts_mult
+    err "Timstamp of action #{idx}: #{ta} is earlier than its predecessor" if ta[0] < ts_prev
+    ts_prev = ta[0]
   end
 
   [$to_pause % 'pause', "", ""].each {|l| puts l; sleep 0.02}
@@ -184,9 +193,9 @@ def do_the_jamming json_file
       sleep 1
     end
   end
-  #
+
   # Do not remove $remote_jamming_ps_rs initially, because we may want to start paused
-  #
+  
   puts
 
   jamming_do_action ['message',
@@ -198,13 +207,13 @@ def do_the_jamming json_file
 
   # start playing
   puts
-  initial_silence = if $jam_pms['timestamps_add'] < 0
-                      $jam_pms['timestamps_add'].abs * $jam_pms['timestamps_multiply']
-                    else
-                      0
-                    end
-  puts("Inserting %.2f secs of silence at beginning of sound_file\nto handle negative value of parameter 'timestamps_add'.\n\n" % initial_silence) if initial_silence >= 0
-  play_command = jam_get_play_command(initial_silence: initial_silence)
+  init_silence = if ts_add < 0
+                   ts_add.abs * ts_mult
+                 else
+                   0
+                 end
+  puts("Inserting %.2f secs of silence at beginning of sound_file\nto handle negative value of parameter 'timestamps_add'.\n\n" % init_silence) if init_silence > 0
+  play_command = jam_get_play_command(init_silence: init_silence)
   puts "Starting:\n\n    #{play_command}\n\n"
   $pplayer = PausablePlayer.new(play_command)
   puts
@@ -232,29 +241,32 @@ def do_the_jamming json_file
     # Actions for each iteration can be different due to 'sleep_after_iteration'; need to
     # clone deep because we may do some deep modifications below
     this_actions = Marshal.load(Marshal.dump(actions))
-    sl_a_iter << 0 if sl_a_iter.length == 0
 
     #
     # Maybe create artificial sleep-actions after last given action
     #
     
-    # initially, we made sure, that sl_a_iter is an array of arrays
-    slp = sl_a_iter[0][0] * $jam_pms['timestamps_multiply']
-    if slp <= 0.5
-      # not enough time to actually display something
+    # initially, we made sure, that sl_a_iter is an array of arrays, but we did not multiply yet
+    slp = sl_a_iter[0][0]
+    if slp < 1
+      # not enough time to actually display something; maybe even negative
       this_actions[-1][0] += slp
+      err "After adding sleep_after_iter #{slp} to last timestamp, they are no longer ascending: #{this_actions[-2 .. -1]}" if this_actions[-1][0] < this_actions[-2][0]
+      sl_a_iter_msg = "(sleep_after_iteration #{slp} has been added to last timestamp)"
     else
-      this_actions << [this_actions[-1][0], 'message',
+      last_ts = this_actions[-1][0]
+      this_actions << [last_ts, 'message',
                        sl_a_iter[0][1] || 'Sleep after iteration',
                        0]
-      this_actions << [this_actions[-1][0] + slp, 'message', 'Done', 0]
+      this_actions << [last_ts + slp, 'message', 'Done', 0]
+      sl_a_iter_msg = "(new action for sleep_after_iteration #{slp} has been added above)"
     end
-    sl_a_iter.shift
+    sl_a_iter.shift unless sl_a_iter.length == 1
     
     #
     # Loop: each pair of actions with sleep between
     #
-    this_actions.each_cons(2).each_with_index do |pair,j|
+    this_actions.each_cons(2).each_with_index do |pair, idx|
 
       tsx, tsy = pair[0][0], pair[1][0]
       action = pair[0][1 .. -1]
@@ -264,7 +276,7 @@ def do_the_jamming json_file
       # before and after start-loop; later however all the actions before start-loop will be
       # removed.
       #
-      if j == 0 && iter == 1
+      if idx == 0 && iter == 1
         puts
         puts_underlined "BEFORE FIRST ITERATION"
         this_actions[0 .. $jam_loop_start_idx - 1].each {|a| pp a}
@@ -272,19 +284,22 @@ def do_the_jamming json_file
       end
 
       if action[0] == 'loop-start'
-        # after first iteration $jam_loop_start_idx will be adjusted and is itself 0 
+        # after first iteration $jam_loop_start_idx will be adjusted and is itself 0, so
+        # that below text ist diesplayed at start of loop
         disp_idx_max = this_actions.length - $jam_loop_start_idx
         disp_idx_offset = $jam_loop_start_idx
         $jam_data[:iteration] = iter
         puts
         puts_underlined "ITERATION #{iter}"
-        this_actions[j .. -1].each {|a| pp a}
+        this_actions[idx .. -1].each {|a| pp a}
+        puts
+        puts sl_a_iter_msg
         puts
       end
         
-      puts "Action   #{j + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      puts "Action   #{idx + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
       if $opts[:print_only]
-        $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{j + 1 - disp_idx_offset}/#{disp_idx_max}" % $jam_data, action]
+        $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{idx + 1 - disp_idx_offset}/#{disp_idx_max}" % $jam_data, action]
       end
       puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed: #{$jam_data[:elapsed]}, remaining: #{$jam_data[:remaining]}"
 
@@ -537,6 +552,7 @@ def my_sleep secs, fast_w_animation: false, &blk
 
       puts "\nBacking track has ended.\n\n"
       jamming_do_action ['message','Backing track has ended.',1] if $extra == 'along'
+      puts
       
       exit 0
     end
@@ -616,7 +632,6 @@ def parse_and_preprocess_jamming_json json
   end
   
   # check syntax of timestamps before actually starting
-  actions.sort_by! {|ta| ta[0]}
   $jam_loop_start_idx = nil
   actions.each_with_index do |ta,idx|
     err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start).include?(ta[1])
@@ -881,16 +896,16 @@ def jamming_sleep_wait_for_go
 end
 
 
-def jam_get_play_command trim: 0, initial_silence: 0
-  err "Internal error: both parameters trim and initial_silence are given" if trim > 0 && initial_silence > 0
+def jam_get_play_command trim: 0, init_silence: 0
+  err "Internal error: both parameters trim and init_silence are given" if trim > 0 && init_silence > 0
   if ENV["HARPWISE_TESTING"] || $opts[:print_only]
     "sleep #{$jam_pms['sound_file_length_secs']}"
   else
     "play -q #{$jam_pms['sound_file']}" +
-      if initial_silence == 0
+      if init_silence == 0
         ''
       else
-        " pad %.2f 0" % initial_silence
+        " pad %.2f 0" % init_silence
       end +
       if trim == 0
         ''
