@@ -1,8 +1,9 @@
 Overview:
 
-  The mode jamming works with 'harpwise listen' to provide impulse and
-  runway for improvisation. For this it includes a backing-track with
-  timestamps as well as matching sets of lick and chords.
+  Scripted jamming along a backing track. For this harpwise includes a
+  backing-track with timestamps as well as a matching set of licks and
+  chords. Two instances of harpwise then work together to display licks
+  and chords in sync with the track.
 
 
 Usage by Examples:

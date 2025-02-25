@@ -11,7 +11,7 @@ specifies the mode of operation; it can be one of:
     many different flavours. This is actually a fun way to start.
   - licks: Learn licks (some included, pointers for more) as a
     starting point for improvisations.
-  - jamming: Harpwise helps to jam along a backing-track.
+  - jamming: Scripted jamming along a backing-track.
 
 And, less interactive:
 
