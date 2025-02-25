@@ -29,15 +29,15 @@
     "timestamps_multiply": 1.0,
     // globally add to all timestamps; value can be negative too (in which case it delays
     // playing); use this e.g. if you want to read the next lick in advance
-    "timestamps_add": 0.0,
+    "timestamps_add": -0.2,
     // maybe give some extra time to grab your harp before anything starts
     "sleep_initially": 2.0,
-    // Use this, if actions and music tend to drift; can be negative too (in which
-    // case it is just subtracted to last timestamp)
-    // For tracks with slightly uneven tempo, or to make room for a solo, this can
-    // also be an array either timestamps, e.g. [0, 0.2, 0, 12, 0, -0.1], which might
-    // also include appropriate messages, e.g. [0, 0.2, 0, [12, "solo"], 0, -0.1]
-    "sleep_after_iteration": 0.5,
+    // Use this, if actions and music tend to drift; can be negative too (in which case it
+    // is just subtracted from last timestamp) For tracks with slightly uneven tempo, or to
+    // make room for a solo, this can also be an array, e.g. [0, 0.2, 0, 12, 0, -0.1], which
+    // might also include appropriate messages, e.g. [0, 0.2, 0, [12, "solo"], 0, -0.1]. The
+    // last value of this array is reused, if the array is smaller than number of iterations
+    "sleep_after_iteration": -0.1,
     //
     // The array "timestamps_to_actions" below is the central data structure of this file.
     // it is an array, where each element has one of these forms:
