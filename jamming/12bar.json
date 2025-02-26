@@ -73,6 +73,9 @@
     //   %{elapsed}             :  time elapsed (mm:ss)
     //   %{remaining}           :  time remaining of backing-track (mm:ss)
     //   %{install_dir}         :  installation directory of harpwise
+    //   %{loop_starter}        :  convenient comment for loop start including iteration, elapsed, etc
+    //
+    // These variables are updated for each iteration, but keep their values during one.
     //
     "timestamps_to_actions": [
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
@@ -81,7 +84,7 @@
         [0,"message","%{comment}"],
         [-2,"message","In two secs ..."],
 	// exactly one loop-start is needed
-        [6,"loop-start","Start of iteration %{iteration} (each %{iteration_duration}); elapsed: %{elapsed}, remaining: %{remaining}",4],
+        [6,"loop-start","%{loop_starter}",4],
         [-2,"message","Chord-change in two secs ...",2],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],

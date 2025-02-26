@@ -136,10 +136,6 @@ def do_the_jamming json_file
   # process other time-parameters
   ts_prev = actions[0][0]
   actions.each_with_index do |ta, idx|
-    # Remark: negative timestamps have already been resolved above in
-    # parse_and_preprocess_jamming_json; therefore we do not need to check for
-    # negative-values below (negative timestampts_add); because from now own only diffs
-    # between timestamps are used.
     ta[0] += ts_add if ts_add > 0
     ta[0] *= ts_mult
     err "Timstamp of action #{idx}: #{ta} is earlier than its predecessor" if ta[0] < ts_prev
@@ -222,8 +218,7 @@ def do_the_jamming json_file
   sleep_secs = actions[0][0]
   puts "Sleep before first action %.2f sec; total length is #{$jam_pms['sound_file_length']}" % sleep_secs
   my_sleep sleep_secs
-  disp_idx_offset = 0
-  disp_idx_max = $jam_loop_start_idx
+  $jam_data[:num_action_offset] = 0
 
   puts
   puts "\n\e[32mYou may now go over to 'harpwise listen' ...\e[0m"
@@ -269,7 +264,7 @@ def do_the_jamming json_file
     this_actions.each_cons(2).each_with_index do |pair, idx|
 
       tsx, tsy = pair[0][0], pair[1][0]
-      action = pair[0][1 .. -1]
+      action = pair[0]
 
       #
       # In first iteration, for user-visible output, we need to distinguish between actions
@@ -277,18 +272,19 @@ def do_the_jamming json_file
       # removed.
       #
       if idx == 0 && iter == 1
+        # In first iteration this produces the first heading
         puts
         puts_underlined "BEFORE FIRST ITERATION"
         this_actions[0 .. $jam_loop_start_idx - 1].each {|a| pp a}
         puts
       end
 
-      if action[0] == 'loop-start'
-        # after first iteration $jam_loop_start_idx will be adjusted and is itself 0, so
-        # that below text ist diesplayed at start of loop
-        disp_idx_max = this_actions.length - $jam_loop_start_idx
-        disp_idx_offset = $jam_loop_start_idx
+      if action[1] == 'loop-start'
+        # In first iteration this produces the second heading
+        # In second and any further iteration $jam_loop_start_idx will be 0
+        $jam_data[:num_action_offset] = $jam_loop_start_idx
         $jam_data[:iteration] = iter
+        $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
         puts
         puts_underlined "ITERATION #{iter}"
         this_actions[idx .. -1].each {|a| pp a}
@@ -296,14 +292,15 @@ def do_the_jamming json_file
         puts sl_a_iter_msg
         puts
       end
-        
-      puts "Action   #{idx + 1 - disp_idx_offset}/#{disp_idx_max}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
-      if $opts[:print_only]
-        $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{idx + 1 - disp_idx_offset}/#{disp_idx_max}" % $jam_data, action]
-      end
-      puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed: #{$jam_data[:elapsed]}, remaining: #{$jam_data[:remaining]}"
 
-      jamming_do_action action
+      $jam_data[:num_action] = idx + 1 - $jam_data[:num_action_offset]
+      $jam_data[:num_action_max] = this_actions.length - $jam_loop_start_idx
+      
+      puts "Action   #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      $jam_pretended_actions_ts << jamming_make_pretended_action_data(action[1 .. -1]) if $opts[:print_only]
+      puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed #{$jam_data[:elapsed]}, remaining #{$jam_data[:remaining]}"
+
+      jamming_do_action action[1 .. -1]
 
       sleep_between = tsy - tsx
       puts "sleep until next:    \e[0m\e[34m%.2f sec\e[0m" % sleep_between
@@ -314,10 +311,9 @@ def do_the_jamming json_file
 
     # last action has not been included above, as we did only the first action of each pair;
     # so we have to do it now
+    $jam_data[:num_action] += 1    
     puts "Final action #{this_actions.length}/#{this_actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"
-    if $opts[:print_only]
-      $jam_pretended_actions_ts << [$jam_pretended_sleep, "iteration #{$jam_data[:iteration]}, action #{this_actions.length}/#{this_actions.length}" % $jam_data,this_actions[-1][1 .. -1]]
-    end
+    $jam_pretended_actions_ts << jamming_make_pretended_action_data(this_actions[-1][1 .. -1]) if $opts[:print_only]
     jamming_do_action this_actions[-1][1 .. -1]
     puts "at ts %.2f sec" % this_actions[-1][0]
 
@@ -329,7 +325,7 @@ def do_the_jamming json_file
         actions.shift
         $jam_loop_start_idx -= 1
       end
-      disp_idx_offset = 0
+      $jam_data[:num_action_offset] = 0
       puts "\nAfter first iteration: removed all actions before loop-start.\n\n"
     end
     if $opts[:print_only] && $jam_pretended_sleep > $jam_pms['sound_file_length_secs']
@@ -341,7 +337,7 @@ def do_the_jamming json_file
       fname = "#{$jamming_timestamps_dir}/derived-in-jam-along.txt"
       file = File.open(fname, 'w')
       file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
-      $jam_pretended_actions_ts.each do |ts,desc,act|
+      $jam_pretended_actions_ts.each do |ts, desc, act|
         text = "  %6.2f  (#{jam_ta(ts)}):  #{desc}" % ts
         text += ",  #{act}" unless $opts[:terse]
         puts text
@@ -378,33 +374,40 @@ def jamming_send_keys keys, silent: false
 end
 
 
-def jamming_do_action action, noop: false
-  if action[0] == 'message' || action[0] == 'loop-start'
-    if action.length == 3 && ( !action[1].is_a?(String) || !action[2].is_a?(Numeric) )
-      err("A 3-element #{action[0]} needs one string and a number after '#{action[0]}'; not #{action}")
+def jamming_do_action act_wo_ts, noop: false
+  if act_wo_ts[0] == 'message' || act_wo_ts[0] == 'loop-start'
+    if act_wo_ts.length == 3 && ( !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) )
+      err("A 3-element #{act_wo_ts[0]} needs one string and a number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
     end
-    if action.length == 2 && !action[1].is_a?(String)
-      err("A 2-element #{action[0]} needs one string after '#{action[0]}'; not #{action}")
+    if act_wo_ts.length == 2 && !act_wo_ts[1].is_a?(String)
+      err("A 2-element #{act_wo_ts[0]} needs one string after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
     end
-    if action[1].lines.length > 1
-      err("Message to be sent can only be one line, but this has more: #{action[1]}")
+    if act_wo_ts[1].lines.length > 1
+      err("Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}")
     end
     return if noop
-    $jam_data[:elapsed] = jam_ta($pplayer.time_played) if $pplayer
-    $jam_data[:remaining] = jam_ta($jam_pms['sound_file_length_secs'] - $pplayer.time_played) if $pplayer
-    puts "sent message:       \e[0m\e[34m'#{action[1].chomp % $jam_data}'\e[0m"
+    if $opts[:print_only]
+      $jam_data[:elapsed_secs] = $jam_pretended_sleep.round(2)
+      $jam_data[:remaining] = jam_ta(($jam_pms['sound_file_length_secs'] - $jam_pretended_sleep).round(2))
+    else
+      $jam_data[:elapsed_secs] = $pplayer.time_played if $pplayer
+      $jam_data[:remaining] = jam_ta($jam_pms['sound_file_length_secs'] - $pplayer.time_played) if $pplayer
+    end
+    $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
+    $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
+    puts "sent message:       \e[0m\e[34m'#{act_wo_ts[1].chomp % $jam_data}'\e[0m"
     return if $opts[:print_only]
     File.write("#{Dir.home}/.harpwise/remote_message",
-               ( action[1].chomp % $jam_data ) + "\n" +
-               ( action[2] || 2 ).to_s + "\n")
+               ( act_wo_ts[1].chomp % $jam_data ) + "\n" +
+               ( act_wo_ts[2] || 2 ).to_s + "\n")
     jamming_send_keys ["ALT-m"], silent: true
-  elsif action[0] == 'keys'
-    err("Need at least one string (giving the key to be sent) after 'keys'; not #{action}") if action.length == 1
-    err("Only strings allowed after 'keys'; not #{action}") unless action[1..-1].all? {|a| a.is_a?(String)}
+  elsif act_wo_ts[0] == 'keys'
+    err("Need at least one string (giving the key to be sent) after 'keys'; not #{act_wo_ts}") if act_wo_ts.length == 1
+    err("Only strings allowed after 'keys'; not #{act_wo_ts}") unless act_wo_ts[1..-1].all? {|a| a.is_a?(String)}
     return if noop
-    jamming_send_keys action[1 .. -1]
+    jamming_send_keys act_wo_ts[1 .. -1]
   else
-    err("Unknown type '#{action[0]}'")
+    err("Unknown type '#{act_wo_ts[0]}'")
     return if noop
   end
 end
@@ -593,7 +596,18 @@ def parse_and_preprocess_jamming_json json
   actions = $jam_pms['timestamps_to_actions']
   $ts_prog_start = Time.now.to_f
   $example = $jam_pms['example_harpwise']
-  $jam_data = {comment: $jam_pms['comment'], iteration: 0, elapsed: '??:??', install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp, remaining: '??:??', iteration_duration: '??:??'}
+  $jam_loop_starter_template = "Start of iteration %{iteration}/%{iteration_max} (each %{iteration_duration}); elapsed %{elapsed}, remaining %{remaining}"
+  $jam_data = {comment: $jam_pms['comment'],
+               install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp,
+               elapsed: '??:??',
+               elapsed_secs: 0,
+               remaining: '??:??',
+               iteration: 0,
+               iteration_max: 0,
+               iteration_duration: '??:??',
+               num_action: 0,
+               num_action_max: 0}
+  $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
   
   at_exit do
     $pplayer&.kill
@@ -644,7 +658,8 @@ def parse_and_preprocess_jamming_json json
     end
   end
   err("Need at least one timestamp with action 'loop-start'") unless $jam_loop_start_idx
-  $jam_data[:iteration_duration] = jam_ta(actions[-1][0] - actions[$jam_loop_start_idx][0])
+  $jam_data[:iteration_duration_secs] = actions[-1][0] - actions[$jam_loop_start_idx][0]
+  $jam_data[:iteration_duration] = jam_ta($jam_data[:iteration_duration_secs])
 
   # check if sound-file is present
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
@@ -658,6 +673,7 @@ def parse_and_preprocess_jamming_json json
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
+  $jam_data[:iteration_max] = 1 + ($jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
   
   [$jam_pms, actions]
 end
@@ -980,4 +996,11 @@ def jamming_play_print_current txt, ts
   puts(("\e[0m\e[2m" + 'remaining'.rjust(txt.length) +
         ":  %8.2f  (" + jam_ta(rmng) + ")\e[0m") % rmng)
   puts
+end
+
+
+def jamming_make_pretended_action_data act_wo_ts
+  [$jam_pretended_sleep,
+   "iteration #{$jam_data[:iteration]}, action #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}",
+   act_wo_ts.map {|x| x.is_a?(String)  ?  x % $jam_data  :  x}]
 end
