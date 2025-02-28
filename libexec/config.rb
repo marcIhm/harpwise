@@ -211,12 +211,6 @@ def set_global_vars_early
   $maj_sc_st_abs = [0, 2, 4, 5, 7, 9, 11, 12]
   $maj_sc_st_diff = [2, 2, 1, 2, 2, 2, 1]
 
-  $remote_fifo = "#{$dirs[:data]}/remote_fifo"
-  $remote_jamming_ps_rs = "#{$dirs[:data]}/remote_jamming_pause_resume"
-  $remote_jamming_ps_rs_cnt = 0
-  $remote_message = "#{$dirs[:data]}/remote_message"
-  FileUtils.rm($remote_message) if File.exist?($remote_message)
-
   # strings that are used identically at different locations;
   # collected here to help consistency
   $resources = {
@@ -237,6 +231,53 @@ def set_global_vars_early
 
   # default is (sometimes) $all_waves[0]
   $all_waves = %w(pluck sawtooth square sine)
+
+  # for remote communication between jamming and listen
+  $jamming_path = ["#{$dirs[:data]}/jamming", "#{$dirs[:install]}/jamming"]
+  FileUtils.mkdir_p($jamming_path[0]) unless File.directory?($jamming_path[0])
+  $jamming_timestamps_dir = "#{$dirs[:data]}/jamming_timestamps"
+  FileUtils.mkdir_p($jamming_timestamps_dir) unless File.directory?($jamming_timestamps_dir)
+  $jamming_mission_override = nil
+  $remote_fifo = "#{$dirs[:data]}/remote_fifo"
+  $remote_jamming_ps_rs = "#{$dirs[:data]}/remote_jamming_pause_resume"
+  $remote_jamming_ps_rs_cnt = 0
+  $remote_message_dir = "#{$dirs[:data]}/remote_messages"
+  FileUtils.mkdir_p($remote_message_dir) unless File.directory?($remote_message_dir)
+  $remote_message_count = 0
+  
+  $invocations_dir = "#{$dirs[:data]}/invocations"
+  if !File.directory?($invocations_dir)
+    FileUtils.mkdir_p($invocations_dir)
+    File.write "#{$invocations_dir}/README.org", <<~EOREADME
+
+      The files in this directory contain the most recent
+      commandlines, that have been used to invoke harpwise. These are
+      grouped by mode and extra keyword, so each type may have its own
+      history.
+
+      The files can be used as a basis for an easy lookup of harpwise
+      commands; a sample script using fzf can be found in the
+      install-dir of harpwise, subdirectory util.
+
+EOREADME
+  end
+
+  #
+  # Prepare meta information about quiz flavours and their tags
+  #
+  $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
+    [subclass.to_s.underscore.tr('_', '-'), subclass]
+  end.to_h
+  $quiz_coll2flavs = Hash.new
+  # $q_cl2ts comes from the individual flavour classes
+  $q_class2colls.each do |clasz, colls|
+    flav = clasz.to_s.underscore.tr('_', '-')
+    colls.each do |co|
+      $quiz_coll2flavs[co] ||= Array.new
+      $quiz_coll2flavs[co] << flav
+    end
+  end
+  $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
   
 end
 
@@ -375,15 +416,16 @@ def calculate_screen_layout
 end
 
 
+#
+# This may be called repeatedly even after startup, e.g. when changing key in 'harpwise listen'
+# We also do some work here, that relies on options beeing processed already
+#
 def set_global_vars_late
+  
   $sample_dir = get_sample_dir($key)
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
   FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
-  $jamming_path = ["#{$dirs[:data]}/jamming", "#{$dirs[:install]}/jamming"]
-  FileUtils.mkdir_p($jamming_path[0]) unless File.directory?($jamming_path[0])
-  $jamming_timestamps_dir = "#{$dirs[:data]}/jamming_timestamps"
-  FileUtils.mkdir_p($jamming_timestamps_dir) unless File.directory?($jamming_timestamps_dir)
 
   # check and do this before read_samples is called in set_global_musical_vars
   if $type == 'richter' and $key == 'c'
@@ -398,22 +440,6 @@ def set_global_vars_late
     end
   end
   
-  $invocations_dir = "#{$dirs[:data]}/invocations"
-  if !File.directory?($invocations_dir)
-    FileUtils.mkdir_p($invocations_dir)
-    File.write "#{$invocations_dir}/README.org", <<~EOREADME
-
-      The files in this directory contain the most recent
-      commandlines, that have been used to invoke harpwise. These are
-      grouped by mode and extra keyword, so each type may have its own
-      history.
-
-      The files can be used as a basis for an easy lookup of harpwise
-      commands; a sample script using fzf can be found in the
-      install-dir of harpwise, subdirectory util.
-
-EOREADME
-  end
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
@@ -442,6 +468,12 @@ EOREADME
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type
+  
+  # Does not fit into find_and_check_dirs_early, because we need
+  # all_types
+  $conf[:all_types].each do |type|
+    create_dir "#{$dirs[:user_scales]}/#{type}"
+  end
 
   # Remark: The bufsizes below are powers of 2; if not (e.g. bufsize = 5120),
   # this may lead to aubio aborting with this error-message:
@@ -450,7 +482,6 @@ EOREADME
   #
   # so having a bufsize as a power of two makes harpwise more robust.
   #
-  
   # Format: [bufsize, hopsize]
   #
   # The values below (first two pairs only) stem from a restriction of aubiopitch on macos
@@ -459,27 +490,7 @@ EOREADME
                         medium: [4096, 1024],
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
-
-  # prepare meta information about flavours and their tags
-  $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
-    [subclass.to_s.underscore.tr('_', '-'), subclass]
-  end.to_h
-  $quiz_coll2flavs = Hash.new
-  # $q_cl2ts comes from the individual flavour classes
-  $q_class2colls.each do |clasz, colls|
-    flav = clasz.to_s.underscore.tr('_', '-')
-    colls.each do |co|
-      $quiz_coll2flavs[co] ||= Array.new
-      $quiz_coll2flavs[co] << flav
-    end
-  end
-  $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
-
-  # does not fit into find_and_check_dirs_early, because we need
-  # all_types
-  $conf[:all_types].each do |type|
-    create_dir "#{$dirs[:user_scales]}/#{type}"
-  end
+  
 end
 
 
@@ -1093,6 +1104,9 @@ def read_samples
 end
 
 
+#
+# See remarks before 'set_global_vars_late' which apply here as well
+#
 def set_global_musical_vars rotated: false
 
   $used_scales = get_used_scales($opts[:add_scales])

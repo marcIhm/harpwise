@@ -69,6 +69,7 @@
     //
     //   %{comment}             :  comment from this file
     //   %{iteration}           :  count of repeats (whole set of actions)
+    //   %{iteration_max}       :  total number of iterations (calculated from track length)
     //   %{iteration_duration}  :  duration of one iteration (secs)
     //   %{elapsed}             :  time elapsed (mm:ss)
     //   %{remaining}           :  time remaining of backing-track (mm:ss)

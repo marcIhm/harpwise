@@ -223,10 +223,12 @@ def do_the_jamming json_file
   puts "Sleep before first action %.2f sec; total length is #{$jam_pms['sound_file_length']}" % sleep_secs
   my_sleep sleep_secs
   $jam_data[:num_action_offset] = 0
+  jamming_do_action ['mission',"jamming: before first iteration" % $jam_data]
 
   puts
   puts "\n\e[32mYou may now go over to 'harpwise listen' ...\e[0m"
   puts
+
   
   #
   # Endless loop: one iteration after the other
@@ -292,6 +294,7 @@ def do_the_jamming json_file
         puts
         puts_underlined "ITERATION #{iter}"
         this_actions[idx .. -1].each {|a| pp a}
+        jamming_do_action ['mission',"jamming: iteration %{iteration}/%{iteration_max}" % $jam_data]
         puts
         puts sl_a_iter_msg
         puts
@@ -372,24 +375,30 @@ def jamming_send_keys keys, silent: false
       end
     rescue Timeout::Error, Errno::EINTR
       err "Could not write '#{key}' to #{$remote_fifo}.\n\nIs 'harpwise listen' still alive ?"
-
     end
   end
 end
 
 
 def jamming_do_action act_wo_ts, noop: false
-  if act_wo_ts[0] == 'message' || act_wo_ts[0] == 'loop-start'
+  if %w(message loop-start mission).include?(act_wo_ts[0])
     if act_wo_ts.length == 3 && ( !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) )
-      err("A 3-element #{act_wo_ts[0]} needs one string and a number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
+      err("A 3-element #{act_wo_ts[0]} needs one string and an optional number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
     end
     if act_wo_ts.length == 2 && !act_wo_ts[1].is_a?(String)
-      err("A 2-element #{act_wo_ts[0]} needs one string after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
+      err "A 2-element #{act_wo_ts[0]} needs one string after '#{act_wo_ts[0]}'; not #{act_wo_ts}"
+    end
+    if act_wo_ts[0] == 'mission' && act_wo_ts.length != 2
+      err "An action of type 'mission' needs exactly one more element; not #{act_wo_ts}"
     end
     if act_wo_ts[1].lines.length > 1
-      err("Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}")
+      err "Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}"
+    end
+    if act_wo_ts[1]['{{']
+      err "Message may not contain special string '{{', but this does: #{act_wo_ts[1]}"
     end
     return if noop
+    # update jamming data at least at loop start (or more often)
     if $opts[:print_only]
       $jam_data[:elapsed_secs] = $jam_pretended_sleep.round(2)
       $jam_data[:remaining] = jam_ta(($jam_pms['sound_file_length_secs'] - $jam_pretended_sleep).round(2))
@@ -399,10 +408,17 @@ def jamming_do_action act_wo_ts, noop: false
     end
     $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
     $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
-    puts "sent message:       \e[0m\e[34m'#{act_wo_ts[1].chomp % $jam_data}'\e[0m"
+    content = act_wo_ts[1].chomp % $jam_data
+    print(act_wo_ts[0] == 'mission'  ?  "sent mission:"  :  "sent message:")
+    puts "       \e[0m\e[34m'#{content}'\e[0m"
     return if $opts[:print_only]
-    File.write("#{Dir.home}/.harpwise/remote_message",
-               ( act_wo_ts[1].chomp % $jam_data ) + "\n" +
+    if $remote_message_count == 0
+      Dir[$remote_message_dir + '/[0-9]*.txt'].each {|fnm| FileUtils.rm(fnm)}
+    end
+    msg_file = $remote_message_dir + ('/%04d.txt' % $remote_message_count)
+    $remote_message_count += 1
+    File.write(msg_file,
+               ( act_wo_ts[0] == 'mission'  ?  "{{mission}}#{content}"  :  content) + "\n" +
                ( act_wo_ts[2] || 2 ).to_s + "\n")
     jamming_send_keys ["ALT-m"], silent: true
   elsif act_wo_ts[0] == 'keys'
