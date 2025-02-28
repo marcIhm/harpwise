@@ -395,6 +395,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     
     if $ctl_mic[:jamming_ps_rs]
       if $opts[:read_fifo]
+        # mabye user has restarted 'harpwise jamming'; so check state again
+        mostly_avoid_double_invocations
         if $runningp_jamming
           File.write($remote_jamming_ps_rs, Time.now)
           $remote_jamming_ps_rs_cnt += 1

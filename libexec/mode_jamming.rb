@@ -149,11 +149,15 @@ def do_the_jamming json_file
    "\e[0m",""].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
-    puts "\e[0m\e[32mPaused due to option --paused:\e[0m"
-    puts $to_pause % 'CONTINUE'    
+    puts "\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'."
+    puts
+    puts $to_pause % 'CONTINUE'
+    puts
     jamming_sleep_wait_for_go
     puts
     puts
+    # mabye user has stopped 'harpwise listen' while we were paused; so check state again
+    mostly_avoid_double_invocations
   end
   
   #
@@ -516,14 +520,16 @@ def my_sleep secs, fast_w_animation: false, &blk
       paused = true
       $ctl_kb_queue.clear
       $pplayer&.pause
-      print "\n\e[0m\e[32mPaused:\e[0m\e[2m      (because "
+      print "\n\e[0m\e[32m\nPaused:\e[0m\e[2m      (because "
       if space_seen
         print "SPACE or 'j' has been pressed here"
       else
         print "'j' has been pressed in 'harpwise listen'"
       end
       puts ")\e[0m"
+      puts
       puts $to_pause % 'CONTINUE'
+      puts
       space_seen = jamming_sleep_wait_for_go
       print "\e[2m(because "
       if space_seen
@@ -851,7 +857,7 @@ def check_for_space_etc blk, print_pending: nil
         # The important things have already happened in the call to blk ...
       else
         puts
-        puts "\n\e[0m\e[32mUnknown key: '#{char}'\e[0m\n\n" unless %w(h ?).include?(char)
+        puts "\n\e[0m\e[32mInvalid key: '#{char}'\e[0m\n\n" unless %w(h ?).include?(char)
         print "\e[0m"
         print "\e[2m" if blk
         puts $jam_help_while_play[0]
@@ -878,8 +884,10 @@ def jamming_check_and_prepare_sig_handler
   end
   
   if ENV['HARPWISE_RESTARTED_PROMPT']
-    puts "\n\n\e[0m\e[32mPaused after signal ctrl-z:\e[0m"
-    puts $to_pause % 'CONTINUE'    
+    puts "\n\n\e[0mPaused after signal ctrl-z."
+    puts
+    puts $to_pause % 'CONTINUE'
+    puts
     jamming_sleep_wait_for_go
     puts
     puts
@@ -888,7 +896,7 @@ end
 
 
 def jamming_sleep_wait_for_go
-  print "\e[0mPaused \e[0m"
+  print "\e[32mPaused ."
   space_seen = false
   FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
   
@@ -906,7 +914,7 @@ def jamming_sleep_wait_for_go
     space_seen, _ = check_for_space_etc(nil)
     break if space_seen
   end
-  print " \e[0m\e[32mgo\e[0m    "
+  print " \e[0m\e[32mgo !\e[0m    "
   
   space_seen
 end
