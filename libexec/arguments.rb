@@ -66,7 +66,7 @@ def parse_arguments_early
      [Set[:listen, :licks], {
         scale_prog: %w(--sc-prog --scale-prog --scale-progression),
         keyboard_translate: %w(--kb-tr --keyboard-translate),
-        read_fifo: %w(--jamming --read-fifo)}],
+        jamming: %w(--jamming)}],
      [Set[:listen, :licks, :play, :print], {
         # any mode that handles this option needs to make sure to reread licks
         lick_prog: %w(--li-prog --lick-prog --lick-progression)}],

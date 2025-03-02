@@ -207,12 +207,12 @@ terse:
     Be somewhat less verbose or silent than usual.
     Mostly used for mode print and samples.
   
-read_fifo:
+jamming:
   - |
-    When in the main listen-perspective,
-    read keys from fifo ~/.harpwise/remote_fifo too.
-    This is useful e.g. to allow cooperation between modes listen
-    and jamming.
+    When in the main listen-perspective, integrate with
+    another instance of harpwise in mode running and
+    switch along chords and licks as advised through
+    fifo ~/.harpwise/remote_fifo.
     
 difficulty:
   - |

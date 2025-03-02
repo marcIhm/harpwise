@@ -1451,8 +1451,8 @@ end
 
 def mostly_avoid_double_invocations
   # Avoid most cases of double invocations; only 'harpwise jamming' and 'harpwise listen
-  # --read-fifo' need each other. 'harpwise jamming' even requires the other one; see
-  # mode_jamming.rb for details. 'harpwise listen --read-fifo' has no such requirements.
+  # --jamming' need each other. 'harpwise jamming' even requires the other one; see
+  # mode_jamming.rb for details. 'harpwise listen --jamming' may run without the other
 
   # Here we only find out who is running and barf on unwanted others; see mode_jamming.rb
   # for code, that requires a second instance
@@ -1460,10 +1460,10 @@ def mostly_avoid_double_invocations
   # The files are named 'last' because they survive their creator
   $pidfile_listen_fifo = "#{$dirs[:data]}/pid_last_listen_fifo"
   $pidfile_jamming = "#{$dirs[:data]}/pid_last_jamming"
-  pid_listen_fifo, pid_jamming = [$pidfile_listen_fifo, $pidfile_jamming].map {|f| ( File.exist?(f) && File.read(f).to_i )}
+  pid_listen_jamming, pid_jamming = [$pidfile_listen_fifo, $pidfile_jamming].map {|f| ( File.exist?(f) && File.read(f).to_i )}
   # set initial values according to this processes owns mode and options; check other procs
   # below and maybe adjust these vars then. 'p' for 'predicate'
-  $runningp_listen_fifo = ($mode == :listen && $opts[:read_fifo])
+  $runningp_listen_jamming = ($mode == :listen && $opts[:jamming])
   $runningp_jamming = ($mode == :jamming)
   runningp_other_jamming = false
 
@@ -1475,12 +1475,12 @@ def mostly_avoid_double_invocations
       cmd = fields[-1]
       next unless cmd['ruby'] && cmd['harpwise']
       next if Process.pid == pid
-      $runningp_listen_fifo = true if pid == pid_listen_fifo
+      $runningp_listen_jamming = true if pid == pid_listen_jamming
       $runningp_jamming = runningp_other_jamming = true if pid == pid_jamming
       # if we are jamming, we tolerate any other instance; see mode_jamming.rb where we
       # require a fifo-listener, which in turn would barf about anything not a jammer
       if $mode == :jamming
-        puts "\n\e[0m\e[2mThere is an instance of harpwise already, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_fifo
+        puts "\n\e[0mThere is an instance of harpwise already, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_jamming
         next
       end
       # if we are not jamming, we tolerate a jammer
@@ -1493,11 +1493,11 @@ def mostly_avoid_double_invocations
   err "Another instance of 'harpwise jamming' (pid #{pid_jamming}) is already running" if $mode == :jamming && runningp_other_jamming && pid_jamming != Process.pid
   # we can write this only after checking all procs above; otherwise we might overwrite the
   # information of a process, that is still running
-  File.write($pidfile_listen_fifo, "#{Process.pid}\n") if $mode == :listen && $opts[:read_fifo]
+  File.write($pidfile_listen_fifo, "#{Process.pid}\n") if $mode == :listen && $opts[:jamming]
   File.write($pidfile_jamming, "#{Process.pid}\n") if $mode == :jamming
 
   # remove stale files (any origin, even if we did not write it) here, so that we dont need
   # to do anything in exit-handler
-  FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_fifo 
+  FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_jamming
   FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
 end

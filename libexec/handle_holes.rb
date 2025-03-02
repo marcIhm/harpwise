@@ -394,7 +394,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
     
     if $ctl_mic[:jamming_ps_rs]
-      if $opts[:read_fifo]
+      if $opts[:jamming]
         # mabye user has restarted 'harpwise jamming'; so check state again
         mostly_avoid_double_invocations
         if $runningp_jamming
@@ -751,16 +751,16 @@ def show_help mode = $mode, testing_only = false
   fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
   lines_offset = (( $term_height - max_lines_per_frame ) * 0.5).to_i
 
-  j_jou, j_jam, j_if = if $opts[:read_fifo]
-                         ['J','j','--jamming is omitted']
-                       else
-                         ['j','J','--jamming is given']
-                       end
+  j_spc = if $opts[:jamming]
+            'resume jamming'
+          else
+            'continue      '
+          end
   frames = Array.new
   frames << [" Help on keys in main view:",
              "",
              "",
-             "  SPACE:_pause and continue        CTRL-L:_redraw screen",
+             "  SPACE:_pause and #{j_spc}      CTRL-L:_redraw screen",
              "    d,D:_change display (upper part of screen)",
              "    c,C:_change comment (lower part of screen)",
              "      k:_change key of harp",
@@ -777,15 +777,12 @@ def show_help mode = $mode, testing_only = false
                         " CTRL-R:_record and play user (mode licks only)",
                         "      T:_toggle tracking progress in seq"])
   else
-    frames[-1].append(*["      #{j_jou}:_invoke journal-menu to handle your musical ideas;",
-                        "         swapped with #{j_jam} if #{j_if}",
+    frames[-1].append(*["      j:_invoke journal-menu to handle your musical ideas;",
                         "      w:_switch comment to warble and prepare",
                         "      p:_print details about player currently drifting by",
                         "      .:_play lick from --lick-prog (shown in comment-area)",
                         "      l:_rotate among those licks     ALT-l:_backward",
-                        "      L:_to first lick",
-                        "      #{j_jam}:_when jamming, pause/resume backing-track;",
-                        "         swapped with #{j_jou} if #{j_if}"])
+                        "      L:_to first lick"])
   end
   frames[-1] << "  ALT-m:_show remote message; used with --jamming"
   
@@ -1068,7 +1065,7 @@ end
 
 def show_remote_message
   special = '{{mission}}'
-  if $opts[:read_fifo]
+  if $opts[:jamming]
     $msgbuf.reset
     messages = Dir[$remote_message_dir + '/[0-9]*.txt'].sort
     if messages.length > 0
@@ -1098,6 +1095,6 @@ def show_remote_message
       $msgbuf.print "No remote message in #{$remote_message_dir}", 5, 5, :remote
     end
   else
-    $msgbuf.print "Need to give --jamming (or --read-fifo) before files from #{$remote_message_dir} can be shown", 5, 5, truncate: false, wrap: true
+    $msgbuf.print "Need to give --jamming before files from #{$remote_message_dir} can be shown", 5, 5, truncate: false, wrap: true
   end
 end

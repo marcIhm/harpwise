@@ -244,7 +244,7 @@ end
 def start_fifo_handler
   File.mkfifo($remote_fifo) unless File.exist?($remote_fifo)
   ftype = File.ftype($remote_fifo)
-  err "Fifo '#{$remote_fifo}' required for option --read-fifo does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
+  err "Fifo '#{$remote_fifo}' required for option --jamming does exist, but it is of type '#{ftype}' instead of 'fifo'" unless ftype == 'fifo'
 
   fifo = File.open($remote_fifo, 'r+')
   $ctl_fifo_queue.clear
@@ -265,14 +265,14 @@ end
 def make_term_immediate
   prepare_term
   start_kb_handler
-  start_fifo_handler if $opts[:read_fifo]
+  start_fifo_handler if $opts[:jamming]
 end
 
 
 def make_term_cooked
   sane_term
   stop_kb_handler
-  stop_fifo_handler if $opts[:read_fifo]
+  stop_fifo_handler if $opts[:jamming]
 end
 
 
@@ -516,7 +516,10 @@ def handle_kb_play_chord
   end
 end
 
-
+#
+# Handle keyboard when listening to microphone, i.e. during main interactive loop in
+# handle_holes
+#
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0 || $ctl_fifo_queue.length > 0
   char = if $ctl_kb_queue.length > 0
@@ -538,22 +541,26 @@ def handle_kb_mic
   waited = false
 
   if char == ' '
-    txt = 'SPACE to continue'
-    cnt = 0
-    begin
-      while $ctl_kb_queue.empty?
-        ctl_response txt, hl: cnt / 10
-        cnt += 1
-        sleep 0.1
+    if $opts[:jamming]
+      $ctl_mic[:jamming_ps_rs] = true
+    else
+      txt = 'SPACE to continue'
+      cnt = 0
+      begin
+        while $ctl_kb_queue.empty?
+          ctl_response txt, hl: cnt / 10
+          cnt += 1
+          sleep 0.1
+        end
+        char = $ctl_kb_queue.deq
+      end until char == ' '
+      txt = 'and on !'
+      [[false, 0.2], [0, 0.2], [2, 0.8], [false, 0]].each do |hl, slp|
+        ctl_response txt, hl: hl
+        sleep slp
       end
-      char = $ctl_kb_queue.deq
-    end until char == ' '
-    txt = 'and on !'
-    [[false, 0.2], [0, 0.2], [2, 0.8], [false, 0]].each do |hl, slp|
-      ctl_response txt, hl: hl
-      sleep slp
+      waited = true
     end
-    waited = true
   elsif char == 'RETURN'
     if [:quiz, :licks].include?($mode)
       $ctl_mic[:next] = true
@@ -606,15 +613,9 @@ def handle_kb_mic
   elsif char == 'm' && [:listen, :quiz, :licks].include?($mode)
     $ctl_mic[:switch_modes] = true
     text = 'Switch modes'
-  elsif ((char == 'J' && $opts[:read_fifo]) ||
-         (char == 'j' && !$opts[:read_fifo])) &&
-        $mode == :listen
+  elsif char == 'j' && $mode == :listen
     $ctl_mic[:journal_menu] = true
     text = 'Journal menu'
-  elsif ((char == 'j' && $opts[:read_fifo]) ||
-         (char == 'J' && !$opts[:read_fifo])) &&
-        $mode == :listen
-    $ctl_mic[:jamming_ps_rs] = true
   elsif char == 'w' && $mode == :listen
     $ctl_mic[:warbles_prepare] = true
     text = 'Prepare warbles'

@@ -3810,7 +3810,7 @@ do_test 'id-139: jamming pause/resume for jamming' do
   expect { screen[23]['Waiting ..']}
   tms ' '
   sleep 1
-  expect { screen[18]["Paused:      (because SPACE or 'j' has been pressed here)"]}
+  expect { screen[18]["Paused:      (because SPACE has been pressed here)"]}
   File.write $remote_jamming_ps_rs, ""
   sleep 2
   expect { screen[22]['sleep until next:    4.00 sec']}  

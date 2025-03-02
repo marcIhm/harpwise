@@ -6,8 +6,8 @@ def do_jamming to_handle
 
   $jamming_dirs_content = get_jamming_dirs_content
   
-  $to_pause = "\e[0mPress   \e[92mSPACE or 'j'\e\[0m   here or  \e[92m'j'\e[0m  in harpwise listen to %s,\n\e[92mctrl-z\e[0m   here to start over.\e[0m"
-  $jam_help_while_play = ["Press:   SPACE,j   to pause / continue",
+  $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m    \e[2mhere or in 'harpwise listen'\e[0m   to %s,\npress   \e[92mctrl-z\e[0m   \e[2mhere\e[0m   to start over.\e[0m"
+  $jam_help_while_play = ["Press:     SPACE   to pause / continue",
                           "        RETURN,t   to mark a timestamp",
                           "  BACKSPACE,LEFT   to skip back 10 secs",
                           "           RIGHT      skip forward 10",
@@ -96,19 +96,6 @@ def do_the_jamming json_file
   ts_mult = $jam_pms['timestamps_multiply']
   ts_add = $jam_pms['timestamps_add']
   
-  ["Transforming timestamps:\e[0m\e[2m",
-   "- timestamps_add = #{ts_add}",
-   "  - if positive, add it to each timestamp",
-   "  - if negative, delay track accordingly",
-   "- sleep_after_iteration = #{$jam_pms['sleep_after_iteration']}",
-   "  - if < 1, subtract it from last timestamp only",
-   "  - if >= 1, add a new explicit sleep-action",
-   "  - if an array (numbers only or pairs [number, text]), use each element",
-   "    one after the other for the current iteration as described above;",
-   "    issue text (e.g. 'solo'), if given",
-   "- timestamps_multiply = #{ts_mult}: multiply each timestamp with this\e[0m",
-   ""].each {|l| puts l; sleep 0.02}
-
   #
   # Preprocess sleep_after_iteration as far as possible already; use timestamps_multiply
   # only further down below
@@ -142,11 +129,9 @@ def do_the_jamming json_file
     ts_prev = ta[0]
   end
 
-  [$to_pause % 'pause', "", ""].each {|l| puts l; sleep 0.02}
-    
-  ["Comment:\e[32m", "",
-   wrap_text($jam_pms['comment'],cont: ''),
-   "\e[0m",""].flatten.each {|l| puts l; sleep 0.02}
+  ["\e[0mComment:\e[32m",'',
+   wrap_text($jam_pms['comment'],cont: '').map {|l| '    ' + l},
+   "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
     puts "\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'."
@@ -166,10 +151,10 @@ def do_the_jamming json_file
   if $opts[:print_only]
     puts "Will not search for 'harpwise listen' and will not sleep due to given option --print-only"
   else
-    if $runningp_listen_fifo
+    if $runningp_listen_jamming
       puts "Found 'harpwise listen' running."
     else
-      ["Cannot find an instance of 'harpwise listen' that reads from fifo.",
+      ["Cannot find an instance of 'harpwise listen' that partners in jamming.",
        "",
        "Please start it in a second terminal:",
        "\n",
@@ -181,17 +166,20 @@ def do_the_jamming json_file
       print "\e[32m"
       "Waiting ".each_char {|c| print c; sleep 0.02}
       begin
-        pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
+        pid_listen_jamming = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
         print '.'
         if my_sleep(1)
           print "\nStill waiting for 'harpwise listen' "
           break if ENV['HARPWISE_TESTING']
         end
-      end until pid_listen_fifo
+      end until pid_listen_jamming
       puts ' found it !'
       print "\e[0m"
-      sleep 1
+      sleep 0.5
     end
+
+    puts
+
   end
 
   # Do not remove $remote_jamming_ps_rs initially, because we may want to start paused
@@ -199,9 +187,10 @@ def do_the_jamming json_file
   puts
 
   jamming_do_action ['message',
-                     "sleep initially for %.1d secs; length of track is #{$jam_pms['sound_file_length']}" % $jam_pms['sleep_initially'],
+                     "Jamming: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}" % $jam_pms['sleep_initially'],
                      [0.0, $jam_pms['sleep_initially'] - 0.2].max.round(1)]
                    
+  jamming_do_action ['mission',"Jamming: before first iteration" % $jam_data]
   my_sleep $jam_pms['sleep_initially']
   puts "Initial sleep %.2f sec" % $jam_pms['sleep_initially']    
 
@@ -221,9 +210,8 @@ def do_the_jamming json_file
   # sleep up to timestamp of first action
   sleep_secs = actions[0][0]
   puts "Sleep before first action %.2f sec; total length is #{$jam_pms['sound_file_length']}" % sleep_secs
-  my_sleep sleep_secs
   $jam_data[:num_action_offset] = 0
-  jamming_do_action ['mission',"jamming: before first iteration" % $jam_data]
+  my_sleep sleep_secs
 
   puts
   puts "\n\e[32mYou may now go over to 'harpwise listen' ...\e[0m"
@@ -294,7 +282,7 @@ def do_the_jamming json_file
         puts
         puts_underlined "ITERATION #{iter}"
         this_actions[idx .. -1].each {|a| pp a}
-        jamming_do_action ['mission',"jamming: iteration %{iteration}/%{iteration_max}" % $jam_data]
+        jamming_do_action ['mission',"Jamming: iteration %{iteration}/%{iteration_max}" % $jam_data]
         puts
         puts sl_a_iter_msg
         puts
@@ -538,9 +526,9 @@ def my_sleep secs, fast_w_animation: false, &blk
       $pplayer&.pause
       print "\n\e[0m\e[32m\nPaused:\e[0m\e[2m      (because "
       if space_seen
-        print "SPACE or 'j' has been pressed here"
+        print "SPACE has been pressed here"
       else
-        print "'j' has been pressed in 'harpwise listen'"
+        print "SPACE has been pressed in 'harpwise listen'"
       end
       puts ")\e[0m"
       puts
@@ -549,9 +537,9 @@ def my_sleep secs, fast_w_animation: false, &blk
       space_seen = jamming_sleep_wait_for_go
       print "\e[2m(because "
       if space_seen
-        print "SPACE or 'j' has been pressed here"
+        print "SPACE has been pressed here"
       else
-        print "'j' has been pressed in 'harpwise listen'"
+        print "SPACE has been pressed in 'harpwise listen'"
       end
       puts ")\e[0m"
       puts
@@ -608,7 +596,7 @@ def parse_and_preprocess_jamming_json json
   $jam_json = json
   
   puts
-  puts "\e[2mSettings from:   #{$jam_json}\e[0m"
+  puts "\e[0mSettings from:   #{$jam_json}\e[0m"
   sleep 0.05
   
   #
@@ -686,16 +674,20 @@ def parse_and_preprocess_jamming_json json
   # check if sound-file is present
   file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
-    puts "\e[0m\e[2mBacking track:   #{file}"
+    puts "\e[0mBacking track:   #{file}"
     print "Duration:   --:--"
+    3.times {sleep 0.05; puts}
+    print "\e[3A"
     $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
-    print "\rDuration:   #{$jam_pms['sound_file_length']}\e[K"
-    2.times {sleep 0.1; puts}
+    $jam_data[:iteration_max] = 1 + ($jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
+    puts "\rDuration:   #{$jam_pms['sound_file_length']}\e[K"
+    puts "%{iteration_max} iterations, %{iteration_duration} each" % $jam_data    
+    sleep 0.1
+    puts
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
-  $jam_data[:iteration_max] = 1 + ($jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
   
   [$jam_pms, actions]
 end
@@ -867,7 +859,7 @@ def check_for_space_etc blk, print_pending: nil
     end
     while $ctl_kb_queue.length > 0
       char = $ctl_kb_queue.deq
-      if char == ' ' || char == 'j'
+      if char == ' '
         space_seen = true
       elsif blk&.(char) == :handled
         # The important things have already happened in the call to blk ...
