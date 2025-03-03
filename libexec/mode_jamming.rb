@@ -129,7 +129,7 @@ def do_the_jamming json_file
     ts_prev = ta[0]
   end
 
-  ["\e[0mComment:\e[32m",'',
+  ['',"\e[0mComment:\e[32m",'',
    wrap_text($jam_pms['comment'],cont: '').map {|l| '    ' + l},
    "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
 

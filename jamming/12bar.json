@@ -8,18 +8,17 @@
 
     //
     // See remarks at the end of file this file, on how to create your own jamming.
-    // (once you have tried this one and maybe want a nicer backing track ...)
+    // (once you have tried this one and maybe want your own backing track ...)
     //
 
     //
-    // The remaining comments (lots of them) simply explain the individual parameters
-    // withing this file; you dont need to read them, if you just want to do this jam.
-    //
-    // Read on, only if you want to create a new jam.
+    // The remaining comments (lots of them !) explain the individual parameters within this
+    // file; you dont need to read them, if you just want to jam.  Read on, only if you want
+    // to create a new jam.
     //
     
     // Track to play, can be anything playable by sox; %{install_dir} (used below) is the
-    // installation-directory of harpwise
+    // installation-directory of harpwise; the track 12bar.mp3 comes included with harpwise.
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
     "comment": "A 12-bar backing-track and the 3-lick set 'box1'. Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc. Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation. Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
     // hint for user on how to start harpwise
@@ -78,6 +77,22 @@
     //
     // These variables are updated for each iteration, but keep their values during one.
     //
+
+    //
+    // Some details on how 'harpwise jamming' will use some of the parameters abvove to
+    // transform the timestamps below:
+    //
+    //   - timestamps_add
+    //     - if positive, add it to each timestamp
+    //     - if negative, delay track accordingly
+    //   - sleep_after_iteration
+    //     - if < 1, subtract it from last timestamp only
+    //     - if >= 1, add a new explicit sleep-action
+    //     - if an array (numbers only or pairs [number, text]), use each element
+    //       one after the other for the current iteration as described above;
+    //       issue text (e.g. 'solo'), if given
+    //   - timestamps_multiply: multiply each timestamp with this\e[0m
+    //    
     "timestamps_to_actions": [
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
 	// that the same instance of "harpwise listen" can be used multiple times

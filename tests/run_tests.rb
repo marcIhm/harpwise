@@ -3765,7 +3765,7 @@ do_test 'id-137: harpwise jamming edit with a number' do
   new_session
   tms "EDITOR=vi harpwise jamming edit 12bar"
   tms :ENTER
-  expect { screen[22]['// Read on, only if you want to create a new jam.']}  
+  expect { screen[19]['you dont need to read them']}  
   kill_session
 end
 

@@ -58,7 +58,7 @@ Usage by Examples:
   The file '12bar.json' contains the required settings (e.g. location of
   the backing track) and has many comments, that can help to understand
   its content. This is not needed initially but becomes essential if you
-  want to use your own backing-tracks or licks.
+  want to jam along with your own backing-tracks.
 
 
   If, over time, you have created multiple json-files with settings
@@ -69,23 +69,22 @@ Usage by Examples:
   to list them; if you have many files, you may create subdirectories.
   
 
-  With all subcommands of 'harpwise jam' (e.g. along), you may abbreviate
+  With all subcommands of 'harpwise jam' (e.g. 'along'), you may abbreviate
   the name of the json-file and supply one or many strings that appear in
   the filename (in the given sequence); e.g.:
 
-    harpwise jam along 2b       ## this saves us some typing 
+    harpwise jam along 2b       
 
-  or even
+  which saves us some typing, compared to '12bar'. Or even
 
     harpwise jam along 2b r
 
-  of course, the example above ('2b r') is too wordy; however, if you
-  create your own jamming-files and have multiple of them, this may
-  help to distinguish among files with similar names.
+  which is too wordy, if you have one json-file only. However, if you
+  create your own jamming-files and have multiple of them, this may help
+  to distinguish among files with similar names.
   
 
-  Finally, here is the list of supported extra arguments:
+  Finally, here are all the extra-functions for 'harpwise jamming':
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
 
-  which can be helpful before you start jamming.
