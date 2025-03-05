@@ -327,7 +327,7 @@ def do_the_jamming json_file
       puts "\e[0m\e[32mPretended sleep (#{jam_ta($jam_pretended_sleep)} secs) has exceeded length of sound file (#{jam_ta($jam_pms['sound_file_length_secs'])}).\nPlay would have ended naturally.\e[0m"
       puts "\n\nCollected #{$jam_pretended_actions_ts.length} timestamps and descriptions:"
       puts
-      fname = "#{$jamming_timestamps_dir}/derived-in-jam-along.txt"
+      fname = "#{$jamming_timestamps_dir}/along.txt"
       file = File.open(fname, 'w')
       file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       $jam_pretended_actions_ts.each do |ts, desc, act|
@@ -722,9 +722,11 @@ def do_the_playing json_or_mp3
   $jam_idxs_events = {skip_fore: [],
                       skip_back: [],
                       jump: []}
-  fname_tpl = "#{$jamming_timestamps_dir}/marked-by-user-in-jam-play-%d.txt"
-  backups_done = false
-  fname = ( fname_tpl % 1 )
+
+  
+  fname_tpl = "#{$jamming_timestamps_dir}/play-%s.txt"
+  fname = fname_tpl % Time.now.strftime("%F_%T")
+  cleanup_done = false
 
   my_sleep(1000000, fast_w_animation: true) do |char|
 
@@ -736,13 +738,16 @@ def do_the_playing json_or_mp3
       # added
       #
       $jam_ts_collected.insert(-2, $pplayer.time_played + $jam_play_prev_trim)
-      unless backups_done
-        (1..8).to_a.reverse.each do |idx|
-          next unless File.exist?(fname_tpl % idx)
-          FileUtils.mv(fname_tpl % idx, fname_tpl % (idx + 1))
+      unless cleanup_done
+        rmcnt = 0
+        Dir[fname_tpl % '*'].each do |fn|
+          next if Time.now - File.mtime(fn) < 7 * 86400
+          FileUtils.rm(fn)
+          rmcnt += 1
         end
         puts "\e[0m\n\nPlease note, that the human reaction time and other factors may introduce a constant\n  delay in recorded timestamps.   However, this can later be compensated with a\n  negative value (e.g. -1.0) for parameter 'timestamps_add' in the json-file."
-        backups_done = true
+        puts "\e[0m\e[2m\nRemoved #{rmcnt} old timestamp-files." if rmcnt > 0
+        cleanup_done = true
       end
       file = File.open(fname, 'w')
       file.write "#\n# #{($jam_ts_collected.length - 1).to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"

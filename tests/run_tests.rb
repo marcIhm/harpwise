@@ -3824,8 +3824,8 @@ do_test 'id-140: jam along --print-only' do
   tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[18]['550 entries.']}
-  expect { screen[20]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps']}
+  expect { screen[19]['550 entries.']}
+  expect { screen[21]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps/along.txt']}
   kill_session
 end
 
