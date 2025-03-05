@@ -134,10 +134,8 @@ def do_the_jamming json_file
    "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
-    puts "\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'."
-    puts
-    puts $to_pause % 'CONTINUE'
-    puts
+    ["\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'.", '', '',
+     $to_pause % 'CONTINUE', ''].each {|l| puts l; sleep 0.02}
     jamming_sleep_wait_for_go
     puts
     puts
@@ -162,7 +160,7 @@ def do_the_jamming json_file
        "\nuntil then this instance of 'harpwise jamming' will check repeatedly and",
        "start with the backing track as soon as 'harpwise listen' is running.",
        "This way you can stay with 'listen' and need not come back here.",
-       ""].each {|l| puts l}
+       ""].each {|l| puts l; sleep 0.01}
       print "\e[32m"
       "Waiting ".each_char {|c| print c; sleep 0.02}
       begin
@@ -714,8 +712,9 @@ def do_the_playing json_or_mp3
 
   puts
   puts "Starting:\n\n    #{play_command}\n\n"
+  sleep 0.1
   puts"\e[0m\e[32m"
-  $jam_help_while_play.each {|l| puts l}
+  $jam_help_while_play.each {|l| puts l; sleep 0.02}
   puts "\e[0m"
     
   $pplayer = PausablePlayer.new(play_command)
