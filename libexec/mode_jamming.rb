@@ -79,7 +79,8 @@ def do_the_jamming json_file
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler  
 
-  $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)
+  $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)    
+
   sleep 0.2
   
   #
@@ -130,7 +131,7 @@ def do_the_jamming json_file
   end
 
   ['',"\e[0mComment:\e[32m",'',
-   wrap_text($jam_pms['comment'],cont: '').map {|l| '    ' + l},
+   wrap_text($jam_pms['comment'],term_width: -4, cont: '').map {|l| '    ' + l},
    "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
@@ -166,10 +167,8 @@ def do_the_jamming json_file
       begin
         pid_listen_jamming = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
         print '.'
-        if my_sleep(1)
-          print "\nStill waiting for 'harpwise listen' "
-          break if ENV['HARPWISE_TESTING']
-        end
+        print "\nStill waiting for 'harpwise listen' " if my_sleep(1)
+        break if ENV['HARPWISE_TESTING'] == 'remote'
       end until pid_listen_jamming
       puts ' found it !'
       print "\e[0m"
@@ -184,13 +183,17 @@ def do_the_jamming json_file
   
   puts
 
+  # switch key of harpwise listen to be in sync with jamming
+  jamming_do_action ['key', $key]
+  jamming_do_action ['mission',"Jamming: before first iteration" % $jam_data]
+  
   jamming_do_action ['message',
-                     "Jamming: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}" % $jam_pms['sleep_initially'],
+                     "Jamming: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
                      [0.0, $jam_pms['sleep_initially'] - 0.2].max.round(1)]
                    
-  jamming_do_action ['mission',"Jamming: before first iteration" % $jam_data]
-  my_sleep $jam_pms['sleep_initially']
   puts "Initial sleep %.2f sec" % $jam_pms['sleep_initially']    
+  my_sleep $jam_pms['sleep_initially']
+
 
   # start playing
   puts
@@ -200,8 +203,10 @@ def do_the_jamming json_file
                    0
                  end
   puts("Inserting %.2f secs of silence at beginning of sound_file\nto handle negative value of parameter 'timestamps_add'.\n\n" % init_silence) if init_silence > 0
-  play_command = jam_get_play_command(init_silence: init_silence)
+
+  play_command, text = jam_get_play_command(init_silence: init_silence)
   puts "Starting:\n\n    #{play_command}\n\n"
+  puts "#{text}\n\n" if text
   $pplayer = PausablePlayer.new(play_command)
   puts
 
@@ -367,15 +372,15 @@ end
 
 
 def jamming_do_action act_wo_ts, noop: false
-  if %w(message loop-start mission).include?(act_wo_ts[0])
+  if %w(message loop-start mission key).include?(act_wo_ts[0])
     if act_wo_ts.length == 3 && ( !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) )
       err("A 3-element #{act_wo_ts[0]} needs one string and an optional number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
     end
     if act_wo_ts.length == 2 && !act_wo_ts[1].is_a?(String)
       err "A 2-element #{act_wo_ts[0]} needs one string after '#{act_wo_ts[0]}'; not #{act_wo_ts}"
     end
-    if act_wo_ts[0] == 'mission' && act_wo_ts.length != 2
-      err "An action of type 'mission' needs exactly one more element; not #{act_wo_ts}"
+    if %w(mission key).include?(act_wo_ts[0]) && act_wo_ts.length != 2
+      err "An action of type '#{act_wo_ts[0]}' needs exactly one more element; not #{act_wo_ts}"
     end
     if act_wo_ts[1].lines.length > 1
       err "Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}"
@@ -395,7 +400,14 @@ def jamming_do_action act_wo_ts, noop: false
     $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
     $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
     content = act_wo_ts[1].chomp % $jam_data
-    print(act_wo_ts[0] == 'mission'  ?  "sent mission:"  :  "sent message:")
+    case act_wo_ts[0]
+    when 'mission'
+      print "sent mission:"
+    when 'key'
+      print "sent key of harp:"
+    else
+      print "sent message:"
+    end
     puts "       \e[0m\e[34m'#{content}'\e[0m"
     return if $opts[:print_only]
     if $remote_message_count == 0
@@ -403,9 +415,13 @@ def jamming_do_action act_wo_ts, noop: false
     end
     msg_file = $remote_message_dir + ('/%04d.txt' % $remote_message_count)
     $remote_message_count += 1
-    File.write(msg_file,
-               ( act_wo_ts[0] == 'mission'  ?  "{{mission}}#{content}"  :  content) + "\n" +
-               ( act_wo_ts[2] || 2 ).to_s + "\n")
+    txt, dur = case act_wo_ts[0]
+               when 'mission', 'key'
+                 ["{{#{act_wo_ts[0]}}}#{content}", 1]
+               else
+                 [content, act_wo_ts[2] || 2 ]
+               end
+    File.write(msg_file, txt + "\n" + dur.to_s + "\n")
     jamming_send_keys ["ALT-m"], silent: true
   elsif act_wo_ts[0] == 'keys'
     err("Need at least one string (giving the key to be sent) after 'keys'; not #{act_wo_ts}") if act_wo_ts.length == 1
@@ -447,7 +463,7 @@ def do_jamming_list
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\e[2m"
+  puts "Available jamming-files:\e[2m    # with keys song,harp"
   tcount = 1
   $jamming_path.each do |jdir|
     puts
@@ -467,11 +483,14 @@ def do_jamming_list
         ppfx = pfx = ''
       end
       if pfx.length == 0 || pfx != ppfx
-        puts "\e[0m  " + jfs
+        print "\e[0m  " + jfs
         ppfx = pfx
       else
-        puts "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
+        print "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
       end
+      pms = parse_jamming_json(jf)
+      print ' ' * (-jfs.length % 4)
+      puts "  \e[0m\e[2m   #  #{pms['sound_file_key']},#{pms['harp_key']}"
       count += 1
       sleep 0.02
       tcount += 1
@@ -546,6 +565,7 @@ def my_sleep secs, fast_w_animation: false, &blk
     end
     
     if $pplayer && !$pplayer.alive?
+      $pplayer.check
       if anm_pending
         print anm_pending 
         anm_pending = nil
@@ -590,22 +610,31 @@ end
 
 
 def parse_and_preprocess_jamming_json json
-  
-  $jam_json = json
-  
+    
   puts
-  puts "\e[0mSettings from:   #{$jam_json}\e[0m"
+  puts "\e[0mSettings from:   #{json}\e[0m"
   sleep 0.05
   
   #
   # Process json-file with settings
   #
-  $jam_pms = JSON.parse(File.read($jam_json).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
-  actions = $jam_pms['timestamps_to_actions']
+  jam_pms = parse_jamming_json(json)
+  $jam_json = json
+  actions = jam_pms['timestamps_to_actions']
+
+  # some checks
+  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{jam_json})") unless actions.is_a?(Array)
+  err("Value of parameter 'example_harpwise' cannot be empty (see #{jam_json})") if $example == ''
+  %w(sound_file_key harp_key).each do |pm|
+    key = jam_pms[pm]
+    err("Value of parameter '#{pm}' which is '#{key} is none of the available keys: #{$conf[:all_keys]} (see #{jam_json})") unless $conf[:all_keys].include?(key)  
+  end
+
+  # initialize some vars
   $ts_prog_start = Time.now.to_f
-  $example = $jam_pms['example_harpwise']
+  $example = jam_pms['example_harpwise']
   $jam_loop_starter_template = "Start of iteration %{iteration}/%{iteration_max} (each %{iteration_duration}); elapsed %{elapsed}, remaining %{remaining}"
-  $jam_data = {comment: $jam_pms['comment'],
+  $jam_data = {comment: jam_pms['comment'],
                install_dir: File.read("#{Dir.home}/.harpwise/path_to_install_dir").chomp,
                elapsed: '??:??',
                elapsed_secs: 0,
@@ -614,29 +643,13 @@ def parse_and_preprocess_jamming_json json
                iteration_max: 0,
                iteration_duration: '??:??',
                num_action: 0,
-               num_action_max: 0}
+               num_action_max: 0,
+               key: '?'}
   $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
-  
+
   at_exit do
     $pplayer&.kill
   end  
-
-  # check if all parameters present
-  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration sound_file timestamps_multiply timestamps_add comment example_harpwise))
-  given = Set.new($jam_pms.keys)
-  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{$jam_json}\n" +
-      if (given - wanted).length > 0
-        "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
-      else
-        ''
-      end +
-      if (wanted - given).length > 0
-        "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
-      else
-        ''
-      end + "\n") if given != wanted
-  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
-  err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
 
   #
   # preprocess and check list of timestamps
@@ -670,24 +683,41 @@ def parse_and_preprocess_jamming_json json
   $jam_data[:iteration_duration] = jam_ta($jam_data[:iteration_duration_secs])
 
   # check if sound-file is present
-  file = $jam_pms['sound_file'] = $jam_pms['sound_file'] % $jam_data
+  file = jam_pms['sound_file'] = jam_pms['sound_file'] % $jam_data
   if File.exist?(file)
     puts "\e[0mBacking track:   #{file}"
     print "Duration:   --:--"
     3.times {sleep 0.05; puts}
     print "\e[3A"
-    $jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
-    $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
-    $jam_data[:iteration_max] = 1 + ($jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
-    puts "\rDuration:   #{$jam_pms['sound_file_length']}\e[K"
+    jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
+    jam_pms['sound_file_length'] = jam_ta(jam_pms['sound_file_length_secs'])
+    $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
+    puts "\rDuration:   #{jam_pms['sound_file_length']}\e[K"
     puts "%{iteration_max} iterations, %{iteration_duration} each" % $jam_data    
     sleep 0.1
-    puts
   else
     err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
   end
+
+  # change my own key if appropriate
+  puts "Key of   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"
+  sleep 0.02
+  puts
   
-  [$jam_pms, actions]
+  if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
+    if $source_of[:key] == 'commandline'
+      puts "Got harp key   \e[32m#{$key}\e[0m   from commandline; shifting track."      
+    else
+      $key = jam_pms['harp_key']
+      set_global_vars_late
+      set_global_musical_vars
+      puts "Tuning in to harp key   \e[32m#{jam_pms['harp_key']}\e[0m   from json file."
+    end
+  else
+    puts "Already at harp key   #{jam_pms['harp_key']}   from json file."
+  end
+  
+  [jam_pms, actions]
 end
 
 
@@ -703,15 +733,18 @@ def do_the_playing json_or_mp3
     $jam_pms['sound_file_length_secs'] = sox_query(json_or_mp3, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
     $jam_pms['sound_file'] = json_or_mp3
+    # just assume something for
+    $jam_pms['sound_file_key'] = $key
+    $jam_pms['harp_key'] = $key 
   else
     $jam_pms, _ = parse_and_preprocess_jamming_json(json_or_mp3)
     sleep 0.2
   end
     
-  play_command = jam_get_play_command
-
+  play_command, text = jam_get_play_command
   puts
   puts "Starting:\n\n    #{play_command}\n\n"
+  puts "#{text}\n\n" if text  
   sleep 0.1
   puts"\e[0m\e[32m"
   $jam_help_while_play.each {|l| puts l; sleep 0.02}
@@ -776,7 +809,7 @@ def do_the_playing json_or_mp3
       trim = $jam_play_prev_trim + $pplayer.time_played - 10
       trim = 0 if trim < 0
       $pplayer.kill
-      $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
+      $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
       jamming_play_print_current('Backward 10 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_back] << $jam_ts_collected.length - 1
@@ -787,7 +820,7 @@ def do_the_playing json_or_mp3
       trim = $jam_play_prev_trim + $pplayer.time_played + 10
       trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
       $pplayer.kill
-      $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
+      $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
       jamming_play_print_current('Forward 10 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
@@ -833,7 +866,7 @@ def do_the_playing json_or_mp3
         $pplayer.continue        
       else
         $pplayer.kill
-        $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim))
+        $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
         jamming_play_print_current('Jumped to', trim)
         $jam_play_prev_trim = trim
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
@@ -934,21 +967,36 @@ end
 
 def jam_get_play_command trim: 0, init_silence: 0
   err "Internal error: both parameters trim and init_silence are given" if trim > 0 && init_silence > 0
-  if ENV["HARPWISE_TESTING"] || $opts[:print_only]
-    "sleep #{$jam_pms['sound_file_length_secs']}"
-  else
-    "play -q #{$jam_pms['sound_file']}" +
-      if init_silence == 0
-        ''
-      else
-        " pad %.2f 0" % init_silence
-      end +
-      if trim == 0
-        ''
-      else
-        " trim #{trim}"
-      end
-  end
+  
+  dsemi = diff_semitones($key, $jam_pms['harp_key'], strategy: :minimum_distance)
+  sf_key = $jam_pms['sound_file_key']
+  sf_key_new = semi2note(note2semi( sf_key + '4') + dsemi)[0..-2]
+  pitch_clause, text = if dsemi == 0
+                         ['', nil]
+                       else
+                         [" pitch #{dsemi * 100}",
+                          "shifted from #{sf_key} to #{sf_key_new} by   #{dsemi}   semitones" +
+                          (dsemi.abs >= 3  ?  ",   \e[32mwhich is a lot !\e[0m"  :  '')]
+                       end
+
+  cmd = if ENV["HARPWISE_TESTING"] || $opts[:print_only]
+          "sleep #{$jam_pms['sound_file_length_secs']}"
+        else
+          "play -q #{$jam_pms['sound_file']}" +
+            if init_silence == 0
+              ''
+            else
+              " pad %.2f 0" % init_silence
+            end +
+            if trim == 0
+              ''
+            else
+              " trim #{trim}"
+            end +
+            pitch_clause
+        end
+
+  [cmd, text]
 end
 
 
@@ -1023,4 +1071,25 @@ def jamming_make_pretended_action_data act_wo_ts
   [$jam_pretended_sleep,
    "iteration #{$jam_data[:iteration]}, action #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}",
    act_wo_ts.map {|x| x.is_a?(String)  ?  x % $jam_data  :  x}]
+end
+
+
+def parse_jamming_json jam_json
+  jam_pms = JSON.parse(File.read(jam_json).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
+  # check if all parameters present
+  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration sound_file sound_file_key harp_key timestamps_multiply timestamps_add comment example_harpwise))
+  given = Set.new(jam_pms.keys)
+  err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{jam_json}\n" +
+      if (given - wanted).length > 0
+        "\nthese parameters given are unknown:  #{(given - wanted).to_a.join(', ')}"
+      else
+        ''
+      end +
+      if (wanted - given).length > 0
+        "\nthese parameters are missing:  #{(wanted - given).to_a.join(', ')}"
+      else
+        ''
+      end + "\n") if given != wanted
+
+  jam_pms
 end

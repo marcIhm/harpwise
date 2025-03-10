@@ -99,7 +99,7 @@
 # Lick progressions (see below) are optional (e.g. we do not have
 # one for box2), they group licks, that may lead through the
 # chords of e.g. a 12-bar blues.  They may be selected for mode
-# licks via 'harpwise licks --lick-progression box1'
+# licks via 'harpwise licks --lick-prog box1'
 #
 # You may lookup these progressions via:
 #

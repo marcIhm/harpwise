@@ -1023,7 +1023,7 @@ class PausablePlayer
     exst = @wait_thr&.value&.exitstatus
     if exst && exst != 0
       @wait_thr.join
-      puts "Command:\n  #{@cmd}\nfailed with rc #{exst} and output:\n"
+      puts "\nCommand:\n  #{@cmd}\nfailed with rc #{exst} and output:\n"
       out = @stdout_err.read.lines.map {|l| '   >>  ' + l}.join
       puts ( out.length > 0  ?  out  :  '<no output>' )
       puts $sox_fail_however

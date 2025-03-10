@@ -573,5 +573,6 @@ def process_opt_lick_prog
     $msgbuf.print "Lick prog #{lpnames[0]}" + ( desc  ?  ", #{desc}"  :  '' ),
                   7, 7, :lick_prog, wrap: true, truncate: false
   end
+  
   lnames
 end

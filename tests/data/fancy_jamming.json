@@ -1,6 +1,8 @@
 {
     // This is fancy because sleep_after_iteration is an array
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
+    "sound_file_key": "g",
+    "harp_key": "c",
     "comment": "testing complex sleep_after_iteration",
     "example_harpwise": "harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming",
     "timestamps_multiply": 1.0,

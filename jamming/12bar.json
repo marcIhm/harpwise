@@ -20,9 +20,11 @@
     // Track to play, can be anything playable by sox; %{install_dir} (used below) is the
     // installation-directory of harpwise; the track 12bar.mp3 comes included with harpwise.
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
+    "sound_file_key": "g",
+    "harp_key": "c",
     "comment": "A 12-bar backing-track and the 3-lick set 'box1'. Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc. Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation. Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
     // hint for user on how to start harpwise
-    "example_harpwise": "harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming",
+    "example_harpwise": "harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
     // global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
     // slowed down the backing track 
     "timestamps_multiply": 1.0,

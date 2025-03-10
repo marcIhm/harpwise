@@ -119,7 +119,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 114
+num_exp = 115
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -932,7 +932,7 @@ end
 
 do_test 'id-17a: licks from lick-progression' do
   new_session
-  tms 'harpwise licks --lick-progression box1'
+  tms 'harpwise licks --lick-prog box1'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
@@ -1127,10 +1127,11 @@ do_test 'id-22b: print tries its first argument against various areas' do
   ["- musical events in () or []\n",
    "- holes:\n",
    "- notes:\n",
-   "- selected licks:\n",
-   "- selected licks:\n",
+   "- licks selected by tags:\n",
    "  , where set of licks has not been restricted by tags\n",
+   "- lick-progressions:\n",
    "- scales:\n",
+   "- scale-progressions:\n",
    "- A symbolic name for one of the last licks\n",
    "- extra arguments (specific for mode print):\n"].each_with_index do |exp,idx|
     expect(exp, $testing_output_file) { lines.include?(exp) }
@@ -3482,7 +3483,7 @@ end
 
 do_test 'id-119: rotate through blues progression' do
   new_session
-  tms 'harpwise listen a --sc-prog 12bar --keyboard-translate TAB=s,RETURN=s'
+  tms 'harpwise listen a --scale-prog 12bar --keyboard-translate TAB=s,RETURN=s'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -3553,7 +3554,7 @@ do_test 'id-123: error on ivalid value of lick-progression' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[1]['Cannot understand these arguments'] }
-  expect { screen[5]['selected licks'] }
+  expect { screen[5]['licks selected by tags'] }
   expect { screen[12]['lick-progressions'] }
   kill_session
 end
@@ -3590,7 +3591,7 @@ end
 
 do_test 'id-127: test two regressions 2024-08-25' do
   new_session  
-  tms 'harpwise licks --sc-prog 12bar --lick-prog box1 --fast-lick-switch'
+  tms 'harpwise licks --scale-prog 12bar --lick-prog box1 --fast-lick-switch'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'T'  ## this key should be functional
@@ -3604,7 +3605,7 @@ end
 
 do_test 'id-127a: explain commandline options' do
   new_session
-  cmd = 'harpwise licks --sc-prog 12bar --lick-prog box1'
+  cmd = 'harpwise licks --scale-prog 12bar --lick-prog box1'
   tms cmd
   tms :ENTER
   wait_for_start_of_pipeline
@@ -3720,7 +3721,6 @@ end
 
 do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   new_session
-
   # get suggested commands from usage message
   tms "harpwise jamming >#{$testing_output_file}"
   tms :ENTER
@@ -3813,9 +3813,7 @@ do_test 'id-139: jamming pause/resume for jamming' do
   expect { screen[18]["Paused:      (because SPACE has been pressed here)"]}
   File.write $remote_jamming_ps_rs, ""
   sleep 2
-  expect { screen[22]['sleep until next:    4.00 sec']}  
-  sleep 4
-  expect { screen[22]['sleep until next:    10.00 sec']}
+  expect { screen[20]["Paused ... go !    (because SPACE has been pressed in 'harpwise listen')"]}  
   kill_session
 end
 
@@ -3836,6 +3834,25 @@ do_test 'id-141: jam along too much input' do
   expect { screen[15]['None of the available jamming-files']}
   kill_session
 end
+
+ENV['HARPWISE_TESTING']='remote'
+
+do_test 'id-142: jamming with explicit key' do
+  Dir[$dotdir_testing +'/remote_messages/0*.txt'].each {|f| FileUtils.rm(f)}
+  new_session
+  tms "harpwise jamm d along 12bar >#{$testing_output_file}"
+  tms :ENTER
+  sleep 2
+  lines = File.read($testing_output_file).lines
+  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['shifting track'] }
+  sleep 2
+  lines = File.read($dotdir_testing +'/remote_messages/0000.txt').lines
+  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[0]['{key}}d'] }
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
+
 
 puts
 puts

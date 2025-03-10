@@ -22,7 +22,7 @@ Usage by Examples:
   this will give you the command for the second terminal, and will stand by
   until you have started it. For 'jam along 12bar' it will be like this:
   
-    harpwise listen c --sc-prog 12bar --lick-prog box1 --jamming
+    harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
 
   note, that advanced users may vary this command, e.g. by choosing
   a different lick-progression.
@@ -82,6 +82,16 @@ Usage by Examples:
   which is too wordy, if you have one json-file only. However, if you
   create your own jamming-files and have multiple of them, this may help
   to distinguish among files with similar names.
+  
+
+  The key for jamming comes (as usual) either from your configuration or
+  is given explicitly on the commandline:
+
+    harpwise jam g along 12bar
+
+  n response the wise will shift the backing-track accordingly and tell
+  'harpwise listen' to use this key too. However, if you do not specify a
+  key on the commandline, the key from the json-file prevails.
   
 
   Finally, here are all the extra-functions for 'harpwise jamming':

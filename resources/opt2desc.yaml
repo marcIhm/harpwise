@@ -18,7 +18,7 @@ add_scales:
 
     Note, that this option can be specified in your config.
 
-    Unlike the quite similar option --scale-progression (available for
+    Unlike the quite similar option --scale-prog (available for
     modes listen and licks), this option (--add-scales) is not
     primarily meant to accompany you through the progression of a
     song, but rather to adjust the harp-display. Also note, that both
@@ -251,7 +251,7 @@ scale_prog:
 
     The standard 12-bar blues would be:
 
-      --scale-progression 
+      --scale-prog
          chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7
 
     which wraps around and does not need to specify, the varying
@@ -267,7 +267,7 @@ scale_prog:
 
     Unlike the quite similar option --add-scales (available for most
     modes and meant to adjust the harp-display), this option
-    (--scale-progression) is primarily meant to accompany you through
+    (--scale-prog) is primarily meant to accompany you through
     the progression of a song. Also note, that both of these options,
     when given, do adjust the respective other, therefore it is enough
     to specify one of them only.

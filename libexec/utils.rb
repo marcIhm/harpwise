@@ -807,7 +807,7 @@ def print_amongs *choices
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
       any_of << 'licks'
-      puts "\n- selected licks:"
+      puts "\n- licks selected by tags:"
       print_in_columns all_lnames.sort, indent: 4, pad: :tabs
       if $licks == $all_licks
         puts "  , where set of licks has not been restricted by tags"
@@ -1150,6 +1150,7 @@ def wrap_text text, term_width: nil, cont: ' ...'
   line = ''
   lines = Array.new
   term_width ||= $term_width
+  term_width = $term_width + term_width if term_width < 0
   cont_len = ( cont&.length || 0 )
   # keeps the spaces in tokens
   text.split(/( +)/).each_with_index do |token, idx|
@@ -1221,7 +1222,7 @@ def set_testing_vars_mb
   tw_allowed = %w(1 true t yes y)
   if testing && !tw_allowed.include?(ENV['HARPWISE_TESTING'].downcase)
     testing_what = ENV["HARPWISE_TESTING"].downcase
-    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none))
+    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote))
     err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
     testing_what = testing_what.to_sym
   end

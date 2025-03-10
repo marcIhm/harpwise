@@ -1064,7 +1064,7 @@ end
 
 
 def show_remote_message
-  special = '{{mission}}'
+  specials = %w({{mission}} {{key}})
   if $opts[:jamming]
     $msgbuf.reset
     messages = Dir[$remote_message_dir + '/[0-9]*.txt'].sort
@@ -1072,8 +1072,8 @@ def show_remote_message
       lines = File.read(messages[0]).lines
       FileUtils.rm(messages[0])
       text = lines[0].chomp
-      if text.index('{{') && !text.start_with?(special)
-        err "Internal error: remote message from #{messages[0]}: if its first line contains special sequence '{{' anywhere, it must actually start with '#{special}' plus additional mission-text, but not: #{lines.pretty_inspect}"
+      if text.index('{{') && specials.none? {|s| text.start_with?(s)}
+        err "Internal error: remote message from #{messages[0]}: if its first line contains special sequence '{{' anywhere, it must actually start with any of '#{specials.join(", ")}' plus additional text, but not: #{lines.pretty_inspect}"
       end
       if lines.length != 2
         err "Internal error: remote message from #{messages[0]} needs exactly two lines but its content has not: #{lines.pretty_inspect}"
@@ -1084,10 +1084,22 @@ def show_remote_message
                    err "Second line of remote message from #{messages[0]} is not a number: '#{lines[1].chomp}'"
                  end
 
-      if text.start_with?(special)
-        $jamming_mission_override = text[special.length .. -1]
+      if text.start_with?('{{mission}}')
+        $jamming_mission_override = text[text.index('}}') + 2 .. -1]
         err("Internal error: no text after {{mission}}") if !$jamming_mission_override || $jamming_mission_override == ''
         print_mission(get_mission_override)
+      elsif text.start_with?('{{key}}')
+        key_was = $key
+        key = text[text.index('}}') + 2 .. -1]
+        err("Internal error: key '#{key} received from jamming is none of the available keys: #{$conf[:all_keys]}") unless $conf[:all_keys].include?(key)
+        $key = key
+        set_global_vars_late
+        set_global_musical_vars
+        if $key == key_was
+          $msgbuf.print "Key of harp unchanged:   #{$key}", duration, duration, :key
+        else
+          $msgbuf.print "Changed key of harp to   #{$key}", duration, duration, :key
+        end
       else
         $msgbuf.print "\e[2m>> \e[0m\e[32m#{text}", duration, duration, :remote
       end

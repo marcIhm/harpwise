@@ -64,12 +64,12 @@ def parse_arguments_early
         display: %w(-d --display),
         comment: %w(-c --comment)}],
      [Set[:listen, :licks], {
-        scale_prog: %w(--sc-prog --scale-prog --scale-progression),
+        scale_prog: %w(--scale-prog --scale-progression),
         keyboard_translate: %w(--kb-tr --keyboard-translate),
         jamming: %w(--jamming)}],
      [Set[:listen, :licks, :play, :print], {
         # any mode that handles this option needs to make sure to reread licks
-        lick_prog: %w(--li-prog --lick-prog --lick-progression)}],
+        lick_prog: %w(--lick-prog --lick-progression)}],
      [Set[:listen], {
         no_player_info: %w(--no-player-info)}],
      [Set[:listen, :quiz, :licks, :develop], {
@@ -397,7 +397,9 @@ def parse_arguments_early
   
   # Get key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
-  if !key
+  if key
+    $source_of[:key] = 'commandline'
+  else
     key = $conf[:key]
     $source_of[:key] = 'config'
   end
@@ -754,7 +756,7 @@ def override_scales_mb scale, opts
   else
     sc_prog = opts[:scale_prog].split(',')
   end
-  
+
   $msgbuf.print("Scale prog is #{opts[:scale_prog]}", 5, 5)
   $msgbuf.print("Adjusted scale to match option '--scale-progression'", 5, 5) if scale && scale != sc_prog[0]
 

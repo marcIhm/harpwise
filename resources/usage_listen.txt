@@ -39,7 +39,7 @@ Usage by Examples:
 
   To use the RETURN-key, which might be easier to hit, you may try:
 
-    harpwise listen --sc-prog 12bar --keyboard-translate RETURN=s
+    harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
 
   or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
   also make this option durable in your config.ini.
@@ -48,7 +48,7 @@ Usage by Examples:
   at hand (e.g. turnarounds), you may give them as an adhoc
   lick-progression:
   
-    harpwise listen --sc-prog 12bar --li-prog simple-turn,wade
+    harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
 
 
   As an advanced example, assume that you would like to play the minor

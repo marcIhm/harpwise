@@ -139,7 +139,7 @@ Diagnosis:
 
 Quick Start:
 
-  Feedback on what you are playing:
+  Feedback on holes and notes you are playing:
   
     harpwise listen c              
 
@@ -147,13 +147,13 @@ Quick Start:
 
     harpwise quiz random
 
-  for a fun way to improve your harmonica knowledge
+  for a playful way to improve your harmonica knowledge
 
   or:
 
     harpwise jam along 12
 
-  to jam along a 12bar-blues.
+  for a guided jam along a 12bar-blues.
 
 
 Version <%=$version%>
