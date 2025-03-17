@@ -448,15 +448,15 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} -o 2>/dev/null | tail -20"
     tms :ENTER
     sleep 2
-    expect_opts = { 'samples' => [4, 'prefer sharps'],
-                    'listen' => [16, 'on every invocation'],
-                    'quiz' => [1, 'pixel-in-terminal  or  pixel'],
-                    'licks' => [1, '--partial 1/3@b, 1/4@x or 1/2@e'],
-                    'play' => [8, '--max-holes NUMBER'],
-                    'print' => [16, 'Please note, that options'],
-                    'tools' => [8, 'same effect as --drop-tags-any'],
-                    'develop' => [13, 'If lagging occurs'],
-                    'jamming' => [6, 'instead of playing'] }
+    expect_opts = { 'samples' => [11, 'Be somewhat less'],
+                    'listen' => [17, 'on every invocation'],
+                    'quiz' => [10, 'char-in-terminal  or  char'],
+                    'licks' => [4, '--partial 1@b, 1@e or 2@x'],
+                    'play' => [6, '--max-holes NUMBER'],
+                    'print' => [17, 'Please note, that options'],
+                    'tools' => [6, 'same effect as --drop-tags-any'],
+                    'develop' => [11, 'If lagging occurs'],
+                    'jamming' => [4, 'instead of playing'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -467,6 +467,16 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
     kill_session
   end
+end
+
+do_test 'id-1z: describe a single option' do
+  sound 4, -14
+  new_session
+  tms 'harpwise listen -o --add-scales'
+  tms :ENTER
+  wait_for_end_of_harpwise  
+  expect { screen[1]['-a, --add-scales LIST_OF_SCALES : load these additional scales'] }
+  kill_session
 end
 
 do_test 'id-2: recording of samples' do
@@ -534,7 +544,7 @@ do_test 'id-5a: delete recorded samples' do
   tms :ENTER
   sleep 1
   tms 'Y'
-  sleep 1
+  sleep 2
   expect { screen[14]['Wrote   /home/ihm/dot_harpwise/samples/richter/key_of_c/frequencies.yaml']}
   expect { screen[18]['No recorded sound samples for key']}  
   kill_session
@@ -1829,7 +1839,7 @@ do_test 'id-52: tools chart' do
   new_session
   tms 'harpwise tools chart g'
   tms :ENTER
-  expect { screen[6]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
   kill_session
 end
 
@@ -1837,7 +1847,7 @@ do_test 'id-52a: tools chart, explicit flat' do
   new_session
   tms 'harpwise tools chart g --flat'
   tms :ENTER
-  expect { screen[6]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
+  expect { screen[5]['a3   d4   gf4  a4   c5   e5   gf5  a5   c6   e6'] }
   kill_session
 end
 
@@ -1845,7 +1855,7 @@ do_test 'id-52b: tools chart, explicit sharp' do
   new_session
   tms 'harpwise tools chart g --sharp'
   tms :ENTER
-  expect { screen[6]['a3   d4   fs4  a4   c5   e5   fs5  a5   c6   e6'] }
+  expect { screen[5]['a3   d4   fs4  a4   c5   e5   fs5  a5   c6   e6'] }
   kill_session
 end
 

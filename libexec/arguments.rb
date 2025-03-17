@@ -196,7 +196,13 @@ def parse_arguments_early
       odet = opts_all[osym]
       ARGV.delete_at(i)
       if odet[1]
-        opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
+        # special case for -o, which may appear alone or with an option to describe
+        if osym == :options
+          err("Option #{odet[0][-1]} accepts an optional argument describing an option, but not many: #{ARGV[i .. -1].join(' ')}") if ARGV.length - 1 > i
+          opts[osym] = ARGV[i] || 'all'
+        else
+          opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
+        end
         # convert options as described for configs
         opts[osym] = opts[osym].send($conf_meta[:conversions][osym]) unless [:ref, :hole, :partial].include?(osym)
         ARGV.delete_at(i)
@@ -219,7 +225,7 @@ def parse_arguments_early
   #
 
   if opts && opts[:options]
-    print_options opts_all
+    print_options(opts[:options],opts_all)
     exit 0
   end
 
@@ -681,22 +687,29 @@ EOTEXT
 end
 
 
-def print_options opts
-  puts "\nCommandline options for mode #{$mode}:\n\n"
+def print_options what, opts
   # check for maximum length; for performance, do this only on usage info (which is among tests)
-  pieces = opt_desc_text(opts, false)
+  pieces = opt_desc_text(what, opts, false)
   pieces.join.lines.each do |line|
     err "Internal error: line from opt2desc.yml too long: #{line.length} >= #{$conf[:term_min_width]}: '#{line}'" if line.length >= $conf[:term_min_width]
   end
   
   # now produce again (with color) and print
-  pieces = opt_desc_text(opts)
-  if pieces.length == 0
-    puts '  none'
+  pieces = opt_desc_text(what, opts)
+   if pieces.length == 0
+     puts "\nThese are the known options for mode #{$mode}:\n\n"
+     print_in_columns opts.values.select{|o| o[1]}.map {|o| o[0]}.flatten,
+                      indent: 4, pad: :space
+     err("Unknown option '#{what}', none of those given above")
+   end
+  if what == 'all'
+    puts "\nDescriptions of all commandline options for mode #{$mode}:\n\n"
   else
-    pieces.each {|p| print p}
-    puts "\n  Please note, that options, that you use on every invocation, may\n  also be put permanently into #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
+    puts "\nDescription of option #{what} only (try bare -o to read on all options):\n\n"
   end
+  pieces.each {|p| print p}
+  puts "\n  Name an option after -o (e.g.: -o --add-scales) to read its description only." if what == 'all'
+  puts "\n  Please note, that options, that you use on every invocation, may also\n  be put permanently into   #{$early_conf[:config_file_user]}\n  And for selected invocations you may clear them again by using\n  the special value '-', e.g. '--add-scales -'"
   puts
 end
 
@@ -724,10 +737,11 @@ def not_any_source_of
 end
 
 
-def opt_desc_text opts, with_color = true
+def opt_desc_text what, opts, with_color = true
   pieces = []
   opts.values.each do |odet|
     next unless odet[2]
+    next if what != 'all' && !odet[0].include?(what)
     pieces << "\e[0m\e[32m" if with_color
     pieces << '  ' + odet[0].join(', ')
     pieces << ' ' + odet[1] if odet[1]

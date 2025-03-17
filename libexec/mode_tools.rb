@@ -650,7 +650,16 @@ def tool_chart to_handle
     notes = holes_or_notes.map {|hon| $harp[hon]&.dig(:note) || hon}
   end
   to_print.each do |tp|
-    puts tp.to_s + ':'
+    puts tp[6 .. -1].to_s.capitalize.gsub('_',' ') + ':'
+    if tp == :chart_scales
+      puts("\e[2m" +
+           $used_scales.map do |sc|
+             sc + $scale2short[sc].then do |sh|
+               (sh && (':' + sh)) || ''
+             end
+           end.join(',') +
+           "\e[0m")
+    end
     $charts[tp].each_with_index do |row, ridx|
       print '  '
       row[0 .. -2].each_with_index do |cell, cidx|

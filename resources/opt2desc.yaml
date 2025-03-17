@@ -16,14 +16,18 @@ add_scales:
     given as a list of scales separated by comma.
     and show them, e.g. in harmonica-chart in upper half of screen.
 
-    Note, that this option can be specified in your config.
+    With each scale you may supply a shorthand to be used in
+    charts, e.g. 'blues:B'
+    
+    Note, that this option is already defined in the config-file as
+    
+      add_scales = chord-i,chord-iv,chord-v
 
-    Unlike the quite similar option --scale-prog (available for
-    modes listen and licks), this option (--add-scales) is not
-    primarily meant to accompany you through the progression of a
-    song, but rather to adjust the harp-display. Also note, that both
-    of these options, when given, do adjust the respective other to
-    match, therefore it is enough to specify one of them only.
+    and the shorthands are 1,4,5; as an option this would read:
+
+      --add-scales chord-i:1,chord-iv:4,chord-v:5
+
+    which you may change to your liking.
   - LIST_OF_SCALES
 
 remove_scales:
@@ -236,7 +240,17 @@ flats:
     
 options:
   - |
-    show full list of mode specific options
+    show full list of mode specific options.
+    You may call -o with a single argument, in which case
+    it will describe the specific option only; e.g.:
+
+      harpwise listen -o --add-scales
+
+    If you use -o without arguments, it will describe all known options:
+
+      harpwise listen -o
+      
+  - OPTION
 
 scale_prog:
   - |
@@ -261,7 +275,7 @@ scale_prog:
     There are some predefined progressions (like '12bar' for the
     example above), that you may learn about by invoking
 
-      harpwise print sclae-progressions
+      harpwise print scale-progressions
 
     Note, that this option can not be specified in your config.
 
