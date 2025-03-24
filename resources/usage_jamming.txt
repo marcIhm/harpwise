@@ -52,13 +52,14 @@ Usage by Examples:
 
 
   The argument '12bar' above is treated as a filename; it is expandeded to
-  '12bar.json' and searched in two directories: ~/.harpwise/jamming. and
-  the installation-dir of harpwise and
+  '12bar.json' and searched in two directories: ~/.harpwise/jamming and
+  the installation-dir of harpwise.
 
   The file '12bar.json' contains the required settings (e.g. location of
-  the backing track) and has many comments, that can help to understand
-  its content. This is not needed initially but becomes essential if you
-  want to jam along with your own backing-tracks.
+  the backing track) and has many comments (lots of them !), that can help
+  to understand its content. This is not needed initially but becomes
+  essential, if you want to jam along with your own backing-tracks; for
+  this you will need to create your own json-file.
 
 
   If, over time, you have created multiple json-files with settings
@@ -89,7 +90,7 @@ Usage by Examples:
 
     harpwise jam g along 12bar
 
-  n response the wise will shift the backing-track accordingly and tell
+  in response the wise will shift the backing-track accordingly and tell
   'harpwise listen' to use this key too. However, if you do not specify a
   key on the commandline, the key from the json-file prevails.
   
