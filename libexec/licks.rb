@@ -397,14 +397,16 @@ end
 
 
 def musical_event? hole_or_note, type = :general
-  is_event = (hole_or_note[0] == '(' && hole_or_note[-1] == ')') ||
-             (hole_or_note[0] == '[' && hole_or_note[-1] == ']')
+  has_paren = hole_or_note[0] == '(' && hole_or_note[-1] == ')'
+  has_brack = hole_or_note[0] == '[' && hole_or_note[-1] == ']'
+  has_head = hole_or_note.match?(/^(\.|~)\w*$/)
+  is_comma = hole_or_note == ','
   case type
   when :general
-    return is_event
+    return has_paren || has_brack || has_head || is_comma
   when :secs
-    return false unless is_event
-    return false unless hole_or_note[-2] == 's'
+    return false unless has_paren
+    return false unless hole_or_note[-2] == 's' 
     return ( !!Float(hole_or_note[1 .. -3]) rescue false )
   else
     err "Internal error: #{type}"
@@ -453,7 +455,7 @@ def desc_lick_select_opts indent: ''
     if relax.length == 0
       ")\n"
     else
-      "; relax with:   #{relax.join('   ')}  )\n"
+      "; relax them with:   #{relax.join('   ')}  )\n"
     end
 end
 
@@ -537,6 +539,7 @@ def find_lick_by_name name
   else
     puts "Unknown lick #{name}, none of:"
     print_in_columns($licks.map {|l| l[:name]}.sort, indent: 4, pad: :tabs)
+    puts
     if $licks == $all_licks
       puts "where set of licks has not been restricted by tags"
     else

@@ -712,7 +712,6 @@ end
 
 
 def recognize_among val, choices, licks: $licks
-  
   return nil unless val
   choices = [choices].flatten
   err("Internal error: :extra_w_wo_s should always be last, if it appears at all: #{choices}") if choices.index(:extra_w_wo_s)&.!=(choices.length - 1)
@@ -771,7 +770,7 @@ def print_amongs *choices
         # keys must be the same set of values as in recognize_among
     when :event
       any_of << 'musical events'
-      puts "\n- musical events in () or []\n    e.g. comments like '(warble)' or '[123]'"
+      puts "\n- musical events in () or [] or starting with . or ~:\n    e.g. comments like '(warble)' or '[123]' or a single . or ~"
     when :hole
       any_of << 'harp holes'
       puts "\n- holes:"

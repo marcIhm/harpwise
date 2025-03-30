@@ -219,29 +219,33 @@
 ## 
 ##   # A lick requires a series of holes ('holes =') to be played.
 ##   #
-##   # A lick may also contain inline comments (e.g. '(slide)' or
-##   # '[+123]'), that are recognized by the surrounding parens or
-##   # brackets; they may contain anything you choose and will not
-##   # be played; neither will you be expected to play them.
-##   #
-##   # Remark: An exception in beeing ignored would be a number
-##   #   in parens or brackets: If it follows a normal note,
-##   #   e.g. '+1 (0.4)', then harpwise would take it as a
-##   #   duration of 0.4 secs when playing the hole +1.
-##   #
-##   # To give different meanings to parens and brackets, you may or
-##   # may not adopt these simple convention:
-##   #
-##   # - Use '()' for any instructions that modify, how the whole
-##   #   written before should be played; an example would be:
-##   #   '+1 (slide) +4'.
-##   #
-##   # - Use '[]' for any musical event, that cannot be reconized by
-##   #   harpwise, but nevertheless should be played on its own; an
-##   #   example would be a chord '[+123]'.
-##   #
-##   # - For more complex inline comments you may also want to add a
-##   #   short note in the description.
+##   # Beside normal playable holes (e.g. '-2'), a lick may also contain	   
+##   # various forms of inline-comments. As explained by examples:		   
+##   # 									   
+##   # - '[+123]' : Any text in brackets. This example it would be the	   
+##   #   hint to play a blow-chord on holes 1, 2 and 3. By convention		   
+##   #   brackets can be used to write down things that harpwise cannot		   
+##   #   recognize or play (like chords), but which need to be played on	   
+##   #   their own.								   
+##   # - '(slow)' : Any text in parens. In this example the advice to play	   
+##   #   slowly. By conventions parens can be used to note hints on how to	   
+##   #   play the notes written before or after.				   
+##   # - '.' or '.2beats' : A single dot ('.') or any word starting with a	   
+##   #   dot. This can be used just like parens for any kind of comment, but	   
+##   #   especially the single dot lends itself to mark pauses.		   
+##   # - '~' or '~slide' : A single tilde ('~') or any word starting with a	   
+##   #   tilde. This can be used just like parens for any kind of comment,	   
+##   #   but especially the single tilde lends itself to mark a slide across	   
+##   #   the harmonica or the gradual lift of a bend.
+##   # - A single ',' e.g. to mark sections in a longer lick.
+##   # 
+##   # Please note, that parens, brackets and tilde might need to be quoted,
+##   # when used on the commandline which is not needed in the lickfile.
+##   # 									   
+##   # Remark: An exception of the general rule that comments are ignored	   
+##   # would be e.g. '+1 (0.4s)'. Harpwise would take this as an instruction	   
+##   # to play the hole +1 for 0.4 seconds.                           
+##   # 
 ## 
 ##   holes = -1 +1 -2 (pull) -1
 ##   # This tag adds a tag to those given by the defaults

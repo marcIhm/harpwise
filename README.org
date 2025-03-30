@@ -42,18 +42,18 @@ supports your jamming.
   
   It plays and hears single notes and can play (but not hear) chords.
 
-  The main operation modes of harpwise are 'listen', 'quiz' and 'licks';
-  these may help to:
+  The main operation modes of harpwise are 'listen', 'jamming', 'quiz'
+  and 'licks'; these may help to:
 
   - Learn scales and intervals
-  - Play through a chord progression with scales and licks
+  - Jam through a chord progression with scales and licks
   - Learn and memorize licks (a few samples included)
   - Train your ear and musical memory
   - Learn related music theory by the way of quiz
   - Help to gather and learn a collection of licks
   - Work on bends or warbles
 
-  Other things that harpwise can do:
+  Some of the other things, that harpwise can do:
 
   - Help to find the key of a song (with an adjustable pitch)
   - Interactively play intervals or note progressions

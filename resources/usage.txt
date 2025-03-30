@@ -103,6 +103,19 @@ ways of display or comment) can be changed interactively; type 'h' to
 see help on this.
 
 
+A Remark on writing holes: The wise supports different types of
+harmonica (e.g. richter or chromatic), that may have their own way of
+writing holes; however for the most common case of a richter-harp, this
+style and examples apply:
+
+- Blow-holes are written with a '+', e.g.:  +1  +6  +3
+- Draw-holes with a '-', e.g.:  -9  -2  -3
+- Bends (both draw and blow) with a '/', e.g.:  -2/  -3//  +10/
+- Comments in '()' or '[]' or starting with '.' or '~' or a single '|'
+
+See the initial lickfile (richter) for more details.
+
+
 The wise offers a broad set of features that can support your practice for
 a long time. However, it also has its limitations: The wise recognizes
 single notes and it may play chords for you, but it can not identify your

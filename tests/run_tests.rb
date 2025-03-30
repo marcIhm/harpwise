@@ -1134,7 +1134,7 @@ do_test 'id-22b: print tries its first argument against various areas' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["- musical events in () or []\n",
+  ["- musical events in () or [] or starting with . or ~:\n",
    "- holes:\n",
    "- notes:\n",
    "- licks selected by tags:\n",
@@ -3862,6 +3862,14 @@ do_test 'id-142: jamming with explicit key' do
 end
 
 ENV['HARPWISE_TESTING']='1'
+
+do_test 'id-143: various comments among holes' do
+  new_session
+  tms "harpwise play +1 +2 '(slow)' '[+123]' '~' ."
+  tms :ENTER
+  expect { screen[7]['+1 +2 (slow) [+123] ~ .']}
+  kill_session
+end
 
 
 puts
