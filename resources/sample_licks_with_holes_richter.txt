@@ -237,7 +237,7 @@
 ##   #   tilde. This can be used just like parens for any kind of comment,	   
 ##   #   but especially the single tilde lends itself to mark a slide across	   
 ##   #   the harmonica or the gradual lift of a bend.
-##   # - A single ',' e.g. to mark sections in a longer lick.
+##   # - A single ',' or ';' e.g. to mark sections in a longer lick.
 ##   # 
 ##   # Please note, that parens, brackets and tilde might need to be quoted,
 ##   # when used on the commandline which is not needed in the lickfile.

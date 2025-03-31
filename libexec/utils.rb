@@ -770,7 +770,7 @@ def print_amongs *choices
         # keys must be the same set of values as in recognize_among
     when :event
       any_of << 'musical events'
-      puts "\n- musical events in () or [] or starting with . or ~:\n    e.g. comments like '(warble)' or '[123]' or a single . or ~"
+      puts "\n- musical events in () or [] or starting with . ~ , or ;:\n    e.g. comments like '(warble)' or '[+123]' or '~' or '.pause.for.2beats'"
     when :hole
       any_of << 'harp holes'
       puts "\n- holes:"
