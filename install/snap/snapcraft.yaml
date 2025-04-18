@@ -12,6 +12,9 @@ parts:
   harpwise:
     plugin: dump
     source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
+    stage-packages:
+      - ruby
 apps:
   harpwise:
     command: harpwise 
+    

@@ -1,0 +1,5 @@
+Development cycle (in this dir):
+- snapcraft
+- sudo snap install harpwise_*_amd64.snap --devmode
+- which harpwise
+  
