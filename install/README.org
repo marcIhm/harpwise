@@ -7,6 +7,7 @@
 - [[#testing-your-sound-system][Testing your sound system]]
 - [[#uninstalling][Uninstalling]]
 - [[#testing-the-installer-scripts][Testing the installer-scripts]]
+- [[#building-a-snap-work-in-progress][Building a snap (work in progress)]]
 
 * Installing wsl2 on Windows
 
@@ -146,3 +147,9 @@
 
   As a maintainer, see tests/installer for a way to test the install
   scripts in a container.
+
+* Building a snap (work in progress)
+
+  Currently (April 2025) trying to build a snap for harpwise in
+  directory snap.  Eventually this will become the preferred way to
+  install an up-to-date version of harpwise.

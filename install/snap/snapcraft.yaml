@@ -1,0 +1,17 @@
+name: harpwise
+base: core24
+version: '6.10.2'
+summary: A harmonica tool for the commandline using microphone and speaker.
+description: |
+  Harpwise assists your daily practice with scales and licks. It offers various
+  tools, an explorable quiz and supports your jamming. It can be used with
+  diatonic (richter) or chromatic harmonicas in different keys.
+grade: devel
+confinement: devmode
+parts:
+  harpwise:
+    plugin: dump
+    source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
+apps:
+  harpwise:
+    command: harpwise 
