@@ -32,5 +32,8 @@ parts:
       - aubio-tools
       - figlet
       - toilet
-      
+
+layout:             
+  $SNAP/usr/bin/figlet:
+    symlink: $SNAP/usr/bin/figlet-figlet
     

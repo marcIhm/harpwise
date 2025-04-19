@@ -5,7 +5,11 @@
   - snap run --shell harpwise
     cd $SNAP
 
-* Examples of snaps involving ruby
+* Regarding ruby
 
   - https://github.com/ronin-rb/snap/blob/2b98d2ad9fd7077037d65d21639d057717684b5e/snap/snapcraft.yaml
   - https://github.com/kbsecret/kbsecret/issues/3
+
+* Regarding sound
+
+  - https://forum.snapcraft.io/t/is-it-possible-to-create-a-symlink-from-snap-etc-to-snap-data/31114/6
