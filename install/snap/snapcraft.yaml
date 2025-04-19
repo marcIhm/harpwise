@@ -8,13 +8,29 @@ description: |
   diatonic (richter) or chromatic harmonicas in different keys.
 grade: devel
 confinement: devmode
+
+apps:
+  harpwise:
+    environment:
+      # core24 includes ruby 3.2
+      # RUBYLIB is prepended to LOAD_PATH
+      RUBYLIB: $SNAP/usr/lib/ruby/3.2.0:$SNAP/usr/lib/x86_64-linux-gnu/ruby/3.2.0
+      GEM_PATH: $SNAP/usr/lib/ruby/3.2.0
+    command: usr/bin/ruby $SNAP/harpwise
+
 parts:
   harpwise:
     plugin: dump
     source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
     stage-packages:
       - ruby
-apps:
-  harpwise:
-    command: harpwise 
+      - libruby
+      - rubygems
+      - coreutils
+      - sox
+      - libsox-fmt-mp3 
+      - aubio-tools
+      - figlet
+      - toilet
+      
     

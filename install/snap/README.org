@@ -1,5 +1,11 @@
-Development cycle (in this dir):
-- snapcraft
-- sudo snap install harpwise_*_amd64.snap --devmode
-- which harpwise
-  
+* Development cycle (in this dir)
+
+  - snapcraft
+  - sudo snap install harpwise_*_amd64.snap --devmode
+  - snap run --shell harpwise
+    cd $SNAP
+
+* Examples of snaps involving ruby
+
+  - https://github.com/ronin-rb/snap/blob/2b98d2ad9fd7077037d65d21639d057717684b5e/snap/snapcraft.yaml
+  - https://github.com/kbsecret/kbsecret/issues/3
