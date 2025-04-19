@@ -1,6 +1,8 @@
 name: harpwise
+# we need core24 rather than core22, because our minimum ruby-version is 3.1
+# and core22 only includes 3.0
 base: core24
-version: '6.10.2'
+version: '6.10.3'
 summary: A harmonica tool for the commandline using microphone and speaker.
 description: |
   Harpwise assists your daily practice with scales and licks. It offers various
@@ -27,8 +29,8 @@ parts:
       - libruby
       - rubygems
       - coreutils
+      - libsox-fmt-all
       - sox
-      - libsox-fmt-mp3 
       - aubio-tools
       - figlet
       - toilet
@@ -36,4 +38,8 @@ parts:
 layout:             
   $SNAP/usr/bin/figlet:
     symlink: $SNAP/usr/bin/figlet-figlet
+
+lint:
+  ignore:
+    - library
     

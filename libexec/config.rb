@@ -503,7 +503,7 @@ def check_installation verbose: false
 
   # check, that sox understands mp3
   %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
-    err("Your installation of sox does not support mp3 (check with: sox -h); please install the appropriate package (e.g. libsox-fmt-all)")
+    err("Your installation of sox does not support mp3 (check with: 'sox -h' and look for line 'AUDIO FILE FORMATS'); please install the appropriate package (e.g. libsox-fmt-all)")
   puts "Sox is able to handle mp3." if verbose
 
   # Check some sample dirs and files
