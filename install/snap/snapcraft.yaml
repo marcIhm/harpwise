@@ -29,7 +29,7 @@ parts:
       - libruby
       - rubygems
       - coreutils
-      - libsox-fmt-all
+      - libsox-fmt-mp3
       - sox
       - aubio-tools
       - figlet
@@ -38,8 +38,12 @@ parts:
 layout:             
   $SNAP/usr/bin/figlet:
     symlink: $SNAP/usr/bin/figlet-figlet
+  # make mp3 available for aubiopitch, because setting LD_LIBRARY_PATH does not work
+  /usr/lib/x86_64-linux-gnu/sox:
+    bind: $SNAP/usr/lib/x86_64-linux-gnu/sox
 
 lint:
   ignore:
+    # otherwise we see a lot of warnings related to unused libraries
     - library
     

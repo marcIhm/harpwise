@@ -529,7 +529,7 @@ def check_installation verbose: false
     end
   end
   missing_fonts = $early_conf[:figlet_fonts] - $font2dir.keys
-  err "Could not find this fonts (neither in installation of figlet nor toilet): #{missing_fonts}" if missing_fonts.length > 0
+  err "Could not find these fonts (nowhere in #{font_dirs}): #{missing_fonts}" if missing_fonts.length > 0
   puts "All needed figlet fonts are verified to exist: #{$early_conf[:figlet_fonts]}" if verbose
 end
 

@@ -13,3 +13,4 @@
 * Regarding sound
 
   - https://forum.snapcraft.io/t/is-it-possible-to-create-a-symlink-from-snap-etc-to-snap-data/31114/6
+  - https://forum.snapcraft.io/t/snap-example-with-audio-playback-and-play-sox-command/24067/9
