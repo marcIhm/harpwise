@@ -2,7 +2,7 @@ name: harpwise
 # we need core24 rather than core22, because our minimum ruby-version is 3.1
 # and core22 only includes 3.0
 base: core24
-version: '6.10.3'
+version: '6.10.4'
 summary: A harmonica tool for the commandline using microphone and speaker.
 description: |
   Harpwise assists your daily practice with scales and licks. It offers various
@@ -41,6 +41,8 @@ layout:
   # make mp3 available for aubiopitch, because setting LD_LIBRARY_PATH does not work
   /usr/lib/x86_64-linux-gnu/sox:
     bind: $SNAP/usr/lib/x86_64-linux-gnu/sox
+  /usr/share/figlet:
+    bind: $SNAP/usr/share/figlet
 
 lint:
   ignore:
