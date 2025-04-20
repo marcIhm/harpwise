@@ -3,7 +3,8 @@
   - snapcraft
   - sudo snap install harpwise_*_amd64.snap --devmode
   - snap run --shell harpwise
-    cd $SNAP
+    - cd $SNAP
+  - harpwise listen c
 
 * Regarding ruby
 
@@ -14,3 +15,5 @@
 
   - https://forum.snapcraft.io/t/is-it-possible-to-create-a-symlink-from-snap-etc-to-snap-data/31114/6
   - https://forum.snapcraft.io/t/snap-example-with-audio-playback-and-play-sox-command/24067/9
+  - https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1879229
+  - https://github.com/ogra1/pulse-server/blob/main/snap/snapcraft.yaml

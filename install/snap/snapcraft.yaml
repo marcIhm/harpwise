@@ -1,15 +1,26 @@
 name: harpwise
-# we need core24 rather than core22, because our minimum ruby-version is 3.1
-# and core22 only includes 3.0
+
+#
+# This is a (the "official") snap for harpwise
+# See: https://github.com/marcIhm/harpwise
+#  
+
+# See:
+#   sound-support:   https://wiki.freepascal.org/Create_snap_package#Sound_support
+#   kitty terminal:  https://github.com/maxiberta/htop-snap/commit/a158b778e0e0c62a70e7693b4c3004081556e1fc
+
+# We need core24 rather than core22, because our minimum ruby-version
+# is 3.1 and core22 only includes 3.0
 base: core24
 version: '6.10.4'
-summary: A harmonica tool for the commandline using microphone and speaker.
+summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
-  Harpwise assists your daily practice with scales and licks. It offers various
-  tools, an explorable quiz and supports your jamming. It can be used with
+  Harpwise supports your daily practice with scales and licks. It offers various
+  tools, an explorable quiz and may guide your jamming. It can be used with
   diatonic (richter) or chromatic harmonicas in different keys.
 grade: devel
 confinement: devmode
+
 
 apps:
   harpwise:
@@ -18,7 +29,15 @@ apps:
       # RUBYLIB is prepended to LOAD_PATH
       RUBYLIB: $SNAP/usr/lib/ruby/3.2.0:$SNAP/usr/lib/x86_64-linux-gnu/ruby/3.2.0
       GEM_PATH: $SNAP/usr/lib/ruby/3.2.0
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio      
+      PULSE_SERVER: unix:/run/user/1000/pulse/native
+      TERMINFO_DIRS: $SNAP/lib/terminfo:$SNAP/usr/share/terminfo
     command: usr/bin/ruby $SNAP/harpwise
+    plugs:
+      - audio-playback
+      - audio-record
+      - pulseaudio
+      - alsa
 
 parts:
   harpwise:
@@ -29,23 +48,30 @@ parts:
       - libruby
       - rubygems
       - coreutils
-      - libsox-fmt-mp3
       - sox
+      - libsox-fmt-mp3
+      - libsox-fmt-pulse
+      - libpulse0
+      - alsa-utils
+      - pipewire-alsa
       - aubio-tools
       - figlet
       - toilet
+      - kitty-terminfo
+      - ncurses-base
+      - ncurses-term
 
 layout:             
   $SNAP/usr/bin/figlet:
     symlink: $SNAP/usr/bin/figlet-figlet
-  # make mp3 available for aubiopitch, because setting LD_LIBRARY_PATH does not work
   /usr/lib/x86_64-linux-gnu/sox:
     bind: $SNAP/usr/lib/x86_64-linux-gnu/sox
   /usr/share/figlet:
     bind: $SNAP/usr/share/figlet
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
 
 lint:
   ignore:
-    # otherwise we see a lot of warnings related to unused libraries
     - library
     
