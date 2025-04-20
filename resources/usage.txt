@@ -135,7 +135,7 @@ User Configuration:
 
   ~/.harpwise/config.ini
 
-Commandline Options:
+Command-line Options:
 
   Options are specific for each mode; as an example you may type
 

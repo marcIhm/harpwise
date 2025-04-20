@@ -3063,7 +3063,7 @@ end
 
 do_test 'id-99: widgets' do
   new_session
-  tms 'harpwise dev wt'
+  tms 'harpwise dev widgets'
   tms :ENTER
   sleep 1
   tms :RIGHT
@@ -3449,7 +3449,7 @@ do_test 'id-117: check errors for bogous lickfiles' do
   Dir[Dir.pwd + '/tests/data/bad_lickfiles/*'].each do |file|
     msg = ( file2err[File.basename(file)] || fail("Unknown bad lickfile #{file}") )
     new_session
-    tms "harpwise develop lf #{file}"
+    tms "harpwise dev lickfile #{file}"
     tms :ENTER
     expect(file,msg) { screen[2][msg] }
     kill_session
@@ -3458,7 +3458,7 @@ end
 
 do_test 'id-118: read and check a fancy lickfile' do
   new_session
-  tms "harpwise develop lf #{Dir.pwd}/tests/data/fancy_lickfile.txt"
+  tms "harpwise develop lickfile #{Dir.pwd}/tests/data/fancy_lickfile.txt"
   tms :ENTER
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')

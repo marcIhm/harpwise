@@ -5,10 +5,6 @@ name: harpwise
 # See: https://github.com/marcIhm/harpwise
 #  
 
-# See:
-#   sound-support:   https://wiki.freepascal.org/Create_snap_package#Sound_support
-#   kitty terminal:  https://github.com/maxiberta/htop-snap/commit/a158b778e0e0c62a70e7693b4c3004081556e1fc
-
 # We need core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
@@ -57,7 +53,6 @@ parts:
       - aubio-tools
       - figlet
       - toilet
-      - kitty-terminfo
       - ncurses-base
       - ncurses-term
 
