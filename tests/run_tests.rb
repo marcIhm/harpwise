@@ -12,6 +12,7 @@ require 'open3'
 require 'json'
 require 'tmpdir'
 require 'method_source'
+require 'net/http'
 require_relative 'test_utils.rb'
 
 #
@@ -69,28 +70,8 @@ File.readlines('libexec/config.rb').each do |line|
 end
 fail "Could not parse term size from libexec/config.rb" unless $term_min_width && $term_min_height
 
-#
-# Create read-only copy
-#
-if system("which harpwise >/dev/null 2>&1")
-  puts "Found harpwise in path, syncing it"
-  system('sudo rm -rf /usr/lib/harpwise 2>&1 >/dev/null')
-  sys('sudo rsync -av ~/harpwise/ /usr/lib/harpwise/ --exclude .git')
-  sys('sudo chown -R root:root /usr/lib/harpwise')
-  sys('sudo chmod -R 644 /usr/lib/harpwise')
-  sys('sudo find /usr/lib/harpwise -type d -exec chmod 755 {} +')
-  sys('sudo chmod 755 /usr/lib/harpwise/harpwise')
-  hw_abs = %x(which harpwise).chomp
-  # Check
-  content = File.read(hw_abs)
-  req_line = '/usr/lib/harpwise/harpwise $@'
-  fail "File #{hw_abs} does not contain required line !\ncontent:\n#{content}\nrequired line:\n#{req_line}\n(this is to make su, that the command 'harpwise' invokes the version from this directory)" unless content[req_line]
-  system("touch #{hw_abs} 2>/dev/null")
-  fail "#{hw_abs} is writeable" if $?.success?
-else
-  ENV['PATH'] = "#{$installdir}:" + ENV['PATH']
-  puts "Adding ~/harpwise to path."
-end
+ENV['PATH'] = "#{$installdir}:" + ENV['PATH']
+puts "Adding ~/harpwise to path."
 
 #
 # Check for needed progs
@@ -249,7 +230,7 @@ end
 %w(c a).each_with_index do |key,idx|
   do_test "id-1k#{idx}: check frequencies for key of #{key}" do
     new_session
-    tms "harpwise dev #{key} cf"
+    tms "harpwise dev #{key} check-frequencies"
     tms :ENTER
     sleep 2
     wait_for_end_of_harpwise
@@ -382,7 +363,7 @@ do_test 'id-1e: config.ini, take default key from config' do
   kill_session
 end
 
-do_test 'id-1f: config.ini, take key from commandline' do
+do_test 'id-1f: config.ini, take key from command line' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     key = c
@@ -397,7 +378,7 @@ do_test 'id-1f: config.ini, take key from commandline' do
   kill_session
 end
 
-do_test 'id-1g: config.ini, set value in config and clear again on commandline' do
+do_test 'id-1g: config.ini, set value in config and clear again on command line' do
   File.write $config_ini_testing, <<~end_of_content
   [quiz]
     add_scales = major_pentatonic
@@ -420,7 +401,7 @@ usage_types.keys.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} 2>/dev/null | head -20"
     tms :ENTER
     sleep 2
-    expect_usage = { 'none' => [2, "Harpwise ('wise' for short) supports the daily"],
+    expect_usage = { 'none' => [2, "A harmonica tool for the command line, using microphone and speaker."],
                      'samples' => [4, 'The wise needs a set of audio-samples'],
                      'listen' => [4, "The mode 'listen' shows information on the notes you play"],
                      'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
@@ -710,7 +691,7 @@ do_test 'id-9d: error on ambigous scale' do
   tms 'harpwise listen a chord'
   tms :ENTER
   sleep 1
-  expect { screen[2]["Argument 'chord' from the commandline is"] }
+  expect { screen[2]["Argument 'chord' from the command line is"] }
   kill_session
 end
 
@@ -3513,7 +3494,7 @@ do_test 'id-119: rotate through blues progression' do
   kill_session
 end
 
-do_test 'id-120: comment with licks from commandline' do
+do_test 'id-120: comment with licks from command line' do
   new_session
   tms 'harpwise listen --lick-prog wade,simple-turn --comment lick-holes'
   tms :ENTER
@@ -3613,7 +3594,7 @@ do_test 'id-127: test two regressions 2024-08-25' do
   kill_session
 end
 
-do_test 'id-127a: explain commandline options' do
+do_test 'id-127a: explain command line options' do
   new_session
   cmd = 'harpwise licks --scale-prog 12bar --lick-prog box1'
   tms cmd
@@ -3744,7 +3725,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   usg_cmd_jam.strip!
   
   # The usage-message of mode jamming and the error message from starting 'harpwise jamming'
-  # (which comes from the json-file) should suggest the same commandline for invoking
+  # (which comes from the json-file) should suggest the same command line for invoking
   # 'harpwise listen"
   tms usg_cmd_jam
   tms :ENTER
@@ -3871,6 +3852,51 @@ do_test 'id-143: various comments among holes' do
   kill_session
 end
 
+do_test 'id-144: check consistent usage of short and long description' do
+  short_desc = File.read("resources/short_description").strip
+  long_desc = File.read("resources/long_description").lines.map(&:strip).join(' ')
+
+  sd_readme = nil
+  ld_readme = []
+  in_summary = false
+  File.read("README.org").lines.map(&:strip).each do |line|
+    if in_summary
+      if line != ''
+        ld_readme << line if sd_readme
+        sd_readme ||= line 
+      end
+      break if line[0] == '*'
+    end
+    in_summary ||= ( line == '* Summary' )
+  end
+  ld_readme = ld_readme[0 ... -1].join(' ')
+  expect(short_desc, sd_readme) { short_desc == sd_readme }
+  expect(long_desc, ld_readme) { long_desc == ld_readme }
+
+  sd_usage = nil
+  ld_usage = []
+  File.read("resources/usage.txt").lines.map(&:strip).each do |line|
+    if line == ''
+      break if ld_usage.length > 0
+    else
+      ld_usage << line if sd_usage
+      sd_usage ||= line 
+    end
+  end
+  ld_usage = ld_usage.join(' ')
+  expect(short_desc, sd_usage) { short_desc == sd_usage }
+  expect(long_desc, ld_usage) { long_desc == ld_usage }
+
+  snap = YAML.load_file('install/snap/snapcraft.yaml')
+  sd_snap = snap['summary']
+  ld_snap = snap['description'].lines.map(&:chomp).join(' ')
+  expect(short_desc, sd_snap) { short_desc == sd_snap }
+  expect(long_desc, ld_snap) { long_desc == ld_snap }
+
+  response = Net::HTTP.get_response(URI('https://api.github.com/repos/marcihm/harpwise'))
+  sd_github = JSON.parse(response.body)['description']
+  expect(short_desc, sd_github) { short_desc == sd_github }
+end
 
 puts
 puts

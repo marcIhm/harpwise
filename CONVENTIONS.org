@@ -1,0 +1,7 @@
+Some coding or spelling conventions for harpwise:
+
+- Spelling of 'command-line':
+  - 'command line' if used as a noun (in code: command_line)
+  - 'command-line' if used as an adjective
+  - never: 'comandline'
+    

@@ -1,6 +1,8 @@
-Harpwise ('wise' for short) supports the daily practice of scales,
-intervals, licks or bends on a diatonic (richter) or chromatic
-harmonica for various keys.
+A harmonica tool for the command line, using microphone and speaker.
+
+Harpwise supports your daily practice with scales and licks. It offers
+various tools, an explorable quiz and may guide your jamming. It can be
+used with diatonic (richter) or chromatic harmonicas in different keys.
 
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
@@ -15,7 +17,7 @@ specifies the mode of operation; it can be one of:
 
 And, less interactive:
 
-  - play: Wise plays scales, holes, licks, intervals, chords, etc.
+  - play: The wise plays scales, holes, licks, intervals, chords, etc.
   - print: Print and annotate the holes of scales or licks given
     on the commandline. Also print various informationo about licks,
     scales and much more

@@ -2,9 +2,11 @@
 
 * Summary
 
-A harmonica tool for the command line, using microphone and speaker. It
-assists with scales and licks; it offers tools, an explorable quiz and
-supports your jamming.
+A harmonica tool for the command line, using microphone and speaker.
+
+Harpwise supports your daily practice with scales and licks. It offers
+various tools, an explorable quiz and may guide your jamming. It can be
+used with diatonic (richter) or chromatic harmonicas in different keys.
   
 * Table of Contents                                                   :TOC_1:
 
