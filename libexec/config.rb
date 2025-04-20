@@ -251,7 +251,7 @@ def set_global_vars_early
     File.write "#{$invocations_dir}/README.org", <<~EOREADME
 
       The files in this directory contain the most recent
-      commandlines, that have been used to invoke harpwise. These are
+      command lines, that have been used to invoke harpwise. These are
       grouped by mode and extra keyword, so each type may have its own
       history.
 
@@ -517,7 +517,7 @@ def check_installation verbose: false
 
   # check fonts and map fonts to figlet/toilet directory
   $font2dir = Hash.new
-  font_dirs = %w(figlet toilet).map {|prog| %x(#{prog} -I2).chomp}
+  font_dirs = %w(figlet toilet).map {|prog| %x(#{prog} -I2).chomp}.uniq
   $early_conf[:figlet_fonts].each do |font|
     font_dirs.each do |fdir|
       %w(flf tlf).each do |ending|
@@ -822,7 +822,7 @@ def read_and_parse_scale sname, harp = nil
   scale_holes, props, sfile = read_and_parse_scale_simple(sname, harp)
   
   unless $scale2short[sname]
-    # No short name given on commandline: use from scale properties or make one up
+    # No short name given on command line: use from scale properties or make one up
     if props[:short]
       short = props[:short]
     else
@@ -859,10 +859,10 @@ end
 
 def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_file: nil
 
-  # shortcut for scale given on commandline
+  # shortcut for scale given on command line
   if sname == 'adhoc-scale'
     $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
-    return [$adhoc_scale_holes, [{'short' => 'h'}], 'commandline']
+    return [$adhoc_scale_holes, [{'short' => 'h'}], 'command-line']
   end
 
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
@@ -1014,7 +1014,7 @@ def read_chart
           else
             shorts = $hole2scale_shorts[hole]
             shorts = '-' if shorts == ''
-            raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter srhornames for scales on the commandline like 'scale:x'") if shorts.length > len
+            raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter srhornames for scales on the command line like 'scale:x'") if shorts.length > len
             shorts.center(len)
           end
       end

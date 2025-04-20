@@ -15,13 +15,13 @@ def do_develop to_handle
     do_man
   when 'diff'
     do_diff
-  when 'selftest', 'st'
+  when 'selftest'
     do_selftest
-  when 'unittest', 'ut'
+  when 'unittest'
     do_unittest
-  when 'widgets', 'wt'
+  when 'widgets'
     do_widgets
-  when 'lickfile', 'lf'
+  when 'lickfile'
     do_lickfile to_handle
   when 'check-frequencies', 'cf'
     do_check_frequencies
@@ -62,7 +62,11 @@ def do_diff
   erase_line_usage_if_part = [/Version \d/]
 
   # Modifications for man; element seen: will be modified
-  man_sections = {:desc => {rx: /^DESCRIPTION$/,
+  man_sections = {:name => {rx: /^NAME$/,
+                            seen: false},
+                  :syn => {rx: /^SYNOPSIS$/,
+                           seen: false},
+                  :desc => {rx: /^DESCRIPTION$/,
                             seen: false},
                   :prim_start => {rx: /The primary documentation/,
                                   seen: false},
@@ -78,7 +82,7 @@ def do_diff
   replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
                   'USER CONFIGURATION' => 'USER CONFIGURATION:',
                   'DIAGNOSIS' => 'DIAGNOSIS:',
-                  'COMMANDLINE OPTIONS' => 'COMMANDLINE OPTIONS:',
+                  'COMMAND-LINE OPTIONS' => 'COMMAND-LINE OPTIONS:',
                   'QUICK START' => 'QUICK START:'}
 
   #
@@ -95,7 +99,7 @@ def do_diff
                     map {|l| l.chomp.strip.downcase}.
                     reject(&:empty?)
 
-  # Man pages are more formal and need more processing
+  # man pages are more formal and need more processing
   lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install_devel]}/man/harpwise.1).lines.
                   map {|l| l.strip}.
                   # use only some sections of man page
@@ -110,7 +114,16 @@ def do_diff
                     # omit lines based on our position within man page
                     if on_section_head
                       nil
-                    elsif !man_sections[:desc][:seen]
+                    elsif !man_sections[:name][:seen]
+                      nil
+                    elsif man_sections[:name][:seen] && !man_sections[:syn][:seen]
+                      name_head = 'harpwise -'
+                      if l[name_head]
+                        l[name_head.length .. -1]
+                      else
+                        l
+                      end
+                    elsif man_sections[:syn][:seen] && !man_sections[:desc][:seen]
                       nil
                     elsif man_sections[:prim_start][:seen] && !man_sections[:prim_end][:seen]
                       nil

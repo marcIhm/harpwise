@@ -25,7 +25,7 @@ def do_quiz to_handle
         File.write($pers_file, JSON.pretty_generate($pers_data))
       end
       ENV['HARPWISE_RESTARTED'] = 'yes'
-      exec($full_commandline)
+      exec($full_command_line)
     end
   end
 

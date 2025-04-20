@@ -1,5 +1,5 @@
 #
-# Play from the commandline
+# Play from the command line
 #
 
 def do_play to_play
@@ -7,7 +7,7 @@ def do_play to_play
   $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
 
   if !$extra
-    # We expect lick-names on commandline, so dont narrow to tag-selection
+    # We expect lick-names on command line, so dont narrow to tag-selection
     $licks = $all_licks 
   elsif $opts[:lick_prog]
     err "Options --lick-prog only useful for extra argument licks, not #{$extra}" if $extra != 'licks'

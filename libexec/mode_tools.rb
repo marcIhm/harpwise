@@ -700,7 +700,7 @@ def tool_transcribe to_handle
 
   puts
   to_play = if File.exist?(to_handle[0])
-              puts "Assuming this file is in key of #{$key}; please specify\ncorrect key on commandline if not."
+              puts "Assuming this file is in key of #{$key}; please specify\ncorrect key on command line if not."
               to_handle[0]
             elsif lick = $all_licks.find {|l| l[:name] == to_handle[0]}
               err "Lick #{lick[:name]} has no recording" unless lick[:rec]
@@ -841,9 +841,9 @@ def tool_diag
 
   puts <<~end_of_intro
   Harpwise uses the excellent program sox (aka rec, aka play).
-  Normally, sox works just great, but it relies on correct
-  configuration of your sound system on correct settings and
-  operation of your sound hardware.
+  Normally sox works just great but it relies on correct configuration
+  of your sound system and on correct settings and operation of your
+  sound hardware.
 
   Therefore, this assistant will invoke sox (or rec or play, both are
   links to sox) in a typical way, giving you a chance to:

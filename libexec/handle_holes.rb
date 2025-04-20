@@ -671,10 +671,10 @@ end
 def do_show_options_info
   clear_area_comment
   clear_area_message
-  puts "\e[#{$lines[:comment] + 1}H\e[0m Commandline for this instance of harpwise:"
+  puts "\e[#{$lines[:comment] + 1}H\e[0m Command line for this instance of harpwise:"
   puts "\e[32m"
-  short_commandline = 'harpwise' + $full_commandline[$0.length .. -1]
-  puts wrap_words('   ', short_commandline.split(/(?= --)/).map(&:strip), ' ')
+  short_command_line = 'harpwise' + $full_command_line[$0.length .. -1]
+  puts wrap_words('   ', short_command_line.split(/(?= --)/).map(&:strip), ' ')
   puts
   print "\e[0m\e[2m Any key for details ...\e[0m"
   $ctl_kb_queue.clear
@@ -788,7 +788,7 @@ def show_help mode = $mode, testing_only = false
   
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
-                      "      o:_print commandline with options and details",
+                      "      o:_print command line with options and details",
                       "      q:_quit harpwise                    h:_this help",
                       ""])
 

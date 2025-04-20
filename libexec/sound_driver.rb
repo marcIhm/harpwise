@@ -233,7 +233,7 @@ def sox_to_aubiopitch_to_queue
           while !(line = ppl_out.gets)
             sleep 0.5
             no_gets += 1
-            err "10 times no output from: #{cmd}" if no_gets > 10
+            err "10 times no output from:\n#{cmd}\n\nMaybe try:   harpwise tools diag   to investigate in detail" if no_gets > 10
           end
           line.chomp!
           $freqs_queue.enq Float(line.split(' ',2)[1])

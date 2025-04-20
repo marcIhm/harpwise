@@ -1,12 +1,12 @@
 # -*- fill-column: 74 -*-
 
 #
-# Parse arguments from commandline
+# Parse arguments from command line
 #
 
 def parse_arguments_early
   
-  # General idea of processing commandline:
+  # General idea of processing command line:
   #
   # We get the mode first, because set of available options depends on it.
   #  
@@ -28,7 +28,7 @@ def parse_arguments_early
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
     err "First argument can be one of\n\n   #{choices}\n\nnot #{none}.\n\n   Please invoke without argument for general usage information.\n\n" +
         if $conf[:all_keys].include?(ARGV[0])
-          "However your first argument '#{ARGV[0]}' is a key, which might be placed further right on the commandline, if you wish."
+          "However your first argument '#{ARGV[0]}' is a key, which might be placed further right on the command line, if you wish."
         else
           "\e[2m(note, that mode 'develop' is only useful for the maintainer or developer of harpwise.)\e[0m"
         end
@@ -348,7 +348,7 @@ def parse_arguments_early
   $type = type
   
   # prefetch a very small subset of musical config; this is needed to
-  # judge commandline arguments, e.g. scales
+  # judge command-line arguments, e.g. scales
   $all_scales, $scale2file, $harp_holes, $all_scale_progs, $sc_prog2file, $holes_file =
   read_and_set_musical_bootstrap_config
   
@@ -404,7 +404,7 @@ def parse_arguments_early
   # Get key
   key = ARGV.shift if $conf[:all_keys].include?(ARGV[0])
   if key
-    $source_of[:key] = 'commandline'
+    $source_of[:key] = 'command-line'
   else
     key = $conf[:key]
     $source_of[:key] = 'config'
@@ -430,7 +430,7 @@ def parse_arguments_early
     holes.each do |h|
       next if $harp_holes.include?(h)
       ind = '      '
-      err "Argument '#{h}' from the commandline is:\n  - neither a scale, any of:\n#{wrap_words(ind,$all_scales,'  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind,$harp_holes,'  ')}\nand can therefore not be part of an adhoc-scale"
+      err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{wrap_words(ind,$all_scales,'  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind,$harp_holes,'  ')}\nand can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0
@@ -440,7 +440,7 @@ def parse_arguments_early
         # allow for adhoc-scale
         scale = get_scale_from_sws('adhoc-scale:h')
         $adhoc_scale_holes = holes
-        $source_of[:scale] = 'adhoc-commandline'
+        $source_of[:scale] = 'adhoc-command-line'
       end
     end
     scale, opts[:add_scales], $scale_prog = override_scales_mb(scale, opts)
@@ -458,7 +458,7 @@ def parse_arguments_early
       ARGV[0] = scale
       case mode
       when :play, :print
-        # If we have only scales on the commandline, we assume that they all
+        # If we have only scales on the command line, we assume that they all
         # should be printed or played; the first scale than servers double
         # duty in also specifying the scale (besides beeing printed or
         # played).
@@ -561,7 +561,7 @@ def parse_arguments_for_mode
   if $extras_joined_to_desc[$mode]
     if [:play, :print].include?($mode)
       # These mode (play, print) are the only two modes, that allow
-      # arguments on the commandline as well as an extra argument, which
+      # arguments on the command line as well as an extra argument, which
       # however is optional (quiz, as a counterexample requires its extra
       # argument). Therefore the first argument for play and print can be
       # from any of large set of types
@@ -660,7 +660,7 @@ def print_usage_info mode = nil
   no_lick_selecting_options = <<-EOTEXT
   Note, that the above case does not use any of the extra arguments given
   above, but rather expects (maybe among others) lick-names on the
-  commandline; in this case the lick-selecting tag-options (e.g. -t) are
+  command line; in this case the lick-selecting tag-options (e.g. -t) are
   ignored (even those from your config.ini) and the given lick-names
   ('st-louis') are searched among ALL of your licks.
 EOTEXT
@@ -680,7 +680,7 @@ EOTEXT
   end
 
   if $mode
-    puts "\nCommandline Options:\n\n"
+    puts "\nCommand-line Options:\n\n"
     puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
   end
   puts
@@ -703,7 +703,7 @@ def print_options what, opts
      err("Unknown option '#{what}', none of those given above")
    end
   if what == 'all'
-    puts "\nDescriptions of all commandline options for mode #{$mode}:\n\n"
+    puts "\nDescriptions of all command-line options for mode #{$mode}:\n\n"
   else
     puts "\nDescription of option #{what} only (try bare -o to read on all options):\n\n"
   end

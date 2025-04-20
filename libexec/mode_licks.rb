@@ -6,9 +6,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
   if to_handle && to_handle.length > 0
 
-    err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the commandline #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
+    err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the command line #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
     
-    # We get lick-names on commandline, so dont narrow to tag-selection
+    # We get lick-names on command line, so dont narrow to tag-selection
     $licks = $all_licks    
     holes_or_notes, _, lnames, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
 
@@ -272,7 +272,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
     end # handling $ctl-commands and calculating the next holes
 
-    # Now that we are past possible commandline errors, we may initialize screen fully
+    # Now that we are past possible command-line errors, we may initialize screen fully
     if !$other_mode_saved[:conf] && first_round
       if !$splashed
         animate_splash_line
@@ -1150,7 +1150,7 @@ def read_tags_and_refresh_licks curr_lick
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 
-  # ignore licks given on commandline from now on, but we can still
+  # ignore licks given on command line from now on, but we can still
   $adhoc_lick_proc = nil if changed
   
   return changed

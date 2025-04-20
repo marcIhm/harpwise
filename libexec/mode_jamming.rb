@@ -28,7 +28,7 @@ def do_jamming to_handle
   end
 
   [:print_only, :over_again].each do |opt|
-    puts "\e[0m\e[2m\nPlease note, that option   --#{opt.o2str}   has no effect for   'harpwise jam #{$extra}'   ; it is only useful for 'harpwise jam along'   ; accepting it nonetheless for commandline-convernience ...\e[0m" if $opts[opt] && $extra != 'along'
+    puts "\e[0m\e[2m\nPlease note, that option   --#{opt.o2str}   has no effect for   'harpwise jam #{$extra}'   ; it is only useful for 'harpwise jam along'   ; accepting it nonetheless for command-line-convernience ...\e[0m" if $opts[opt] && $extra != 'along'
   end
 
   unless %w(list ls).include?($extra)
@@ -578,7 +578,7 @@ def my_sleep secs, fast_w_animation: false, &blk
         jamming_do_action ['message','Backing track has ended; starting over again',1]
         sleep 1
         jamming_prepare_for_restart
-        exec($full_commandline)
+        exec($full_command_line)
       end
 
       puts "\nBacking track has ended.\n\n"
@@ -705,8 +705,8 @@ def parse_and_preprocess_jamming_json json
   puts
   
   if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
-    if $source_of[:key] == 'commandline'
-      puts "Got harp key   \e[32m#{$key}\e[0m   from commandline; shifting track."      
+    if $source_of[:key] == 'command-line'
+      puts "Got harp key   \e[32m#{$key}\e[0m   from command line; shifting track."      
     else
       $key = jam_pms['harp_key']
       set_global_vars_late
@@ -924,7 +924,7 @@ def jamming_check_and_prepare_sig_handler
       # do some actions of at_exit-handler here
       jamming_prepare_for_restart
       ENV['HARPWISE_RESTARTED_PROMPT'] = 'yes'      
-      exec($full_commandline)
+      exec($full_command_line)
     end
   end
   

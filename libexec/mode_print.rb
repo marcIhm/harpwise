@@ -1,10 +1,10 @@
 #
-# Printfrom the commandline
+# Print from the command line
 #
 
 def do_print to_print
 
-  # We expect lick-names on commandline, so dont narrow to tag-selection
+  # We expect lick-names on command line, so dont narrow to tag-selection
   $licks = $all_licks if !$extra
   
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
@@ -622,7 +622,7 @@ def print_lick_progs pnames
       pnames = $all_lick_progs.keys
     else
       unknown = pnames - $all_lick_progs.keys
-      err "These lick progressions from commandline are unknown:  #{unknown.join(', ')}" if unknown.length > 0
+      err "These lick progressions from command line are unknown:  #{unknown.join(', ')}" if unknown.length > 0
     end
     pnames.map {|pn| $all_lick_progs[pn]}.
       select {|lp| keep_all.empty? || (keep_all.subset?(Set.new(lp[:tags])))}.

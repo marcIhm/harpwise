@@ -231,7 +231,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
 
   if $adhoc_lick_prog
     name2prog['adhoc'] = { lno: 1,
-                           desc: "Adhoc lick progression given on the commandline",
+                           desc: "Adhoc lick progression given on the command line",
                            licks: $adhoc_lick_prog }
     $adhoc_lick_prog.each {|lname| name2lick[lname][:progs] << 'adhoc'}
   end
@@ -299,11 +299,11 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       licks << lk
     end
 
-    # handle adhoc lick from commandline
+    # handle adhoc lick from command line
     if $adhoc_lick_holes
       lick = { name: 'adhoc',
                lno: 1,
-               desc: 'Lick given on the commandline',
+               desc: 'Lick given on the command line',
                holes: $adhoc_lick_holes.map do |hon|
                  ( $harp_holes.include?(hon) && hon ) ||
                    $note2hole[hon] ||

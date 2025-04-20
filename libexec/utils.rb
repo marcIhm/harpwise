@@ -96,7 +96,7 @@ def puts_context_sources
             nil
           end
     if val
-      "%-5s = #{val} (#{$source_of[var] || 'commandline'})" % var
+      "%-5s = #{val} (#{$source_of[var] || 'command-line'})" % var
     else
       "#{var} is not set"
     end
@@ -640,7 +640,7 @@ def switch_modes
 
   if $mode_switches == 1
     # switching the first time to a new mode; make some guesses on its
-    # arguments, that could have never been given on the commandline
+    # arguments, that could have never been given on the command line
     if $mode == :listen && [:quiz, :licks].include?(mode_prev)
       $opts[:no_progress] = false
       $opts[:comment] = :note
@@ -1121,7 +1121,7 @@ end
 
 def err_args_not_allowed args
   if args.length == 1 && $conf[:all_keys].include?(args[0])
-    err "'harpwise #{$mode} #{$extra}' does not take any arguments; however your argument '#{args[0]}' is a key, which might be placed further left on the commandline, if you wish"
+    err "'harpwise #{$mode} #{$extra}' does not take any arguments; however your argument '#{args[0]}' is a key, which might be placed further left on the command line, if you wish"
   else
     err "'harpwise #{$mode} #{$extra}' does not take any arguments, these cannot be handled:  #{args.join(' ')}"
   end
@@ -1191,23 +1191,23 @@ def write_invocation
   ts_clause = "   #  " + Time.now.to_s.split[0..1].join('  ')
 
   # Take ENV into account, just like the script above does
-  commandline = if ENV['HARPWISE_COMMAND']
-                  ENV['HARPWISE_COMMAND'] + ' ' + $full_commandline.split(' ',2)[1]
-                else
-                  $full_commandline
-                end
+  command_line = if ENV['HARPWISE_COMMAND']
+                   ENV['HARPWISE_COMMAND'] + ' ' + $full_command_line.split(' ',2)[1]
+                 else
+                   $full_command_line
+                 end
   
   # Timestamps should be right-aligned within minimum terminal width if possible
   # or at boundaries of 4
-  room = $conf[:term_min_width] - 4 - commandline.length - ts_clause.length
-  padding = ( room > 0  ?  (' ' * room)  :  ( ' ' * ( -commandline.length % 4 )))
+  room = $conf[:term_min_width] - 4 - command_line.length - ts_clause.length
+  padding = ( room > 0  ?  (' ' * room)  :  ( ' ' * ( -command_line.length % 4 )))
   file = "#{$invocations_dir}/#{$type}_#{$mode}" + ( $extra  ?  "_#{$extra_aliases[$mode][$extra]}"  :  '' )
   lines = if File.exist?(file)
             # remove repetitions, disrecarding time comments
-            File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == commandline}
+            File.read(file).lines.reject {|l| l.chomp.gsub(/ *\#.*/,'') == command_line}
           else
             []
-          end.append(commandline + padding + ts_clause + "\n")
+          end.append(command_line + padding + ts_clause + "\n")
   File.write(file, lines.last(20).join)
 
   # And finally do something totally unrelated
@@ -1487,7 +1487,7 @@ def mostly_avoid_double_invocations
       next if $mode != :jamming && pid == pid_jamming
       # Remark: the fifo-listener does not strictly require a jammer to ever appear and will
       # run merrily without; so we have no code checking this
-      err "An instance of this program is already running: pid: #{pid}, commandline: '#{cmd}'"
+      err "An instance of this program is already running: pid: #{pid}, command line: '#{cmd}'"
     end
   end
   err "Another instance of 'harpwise jamming' (pid #{pid_jamming}) is already running" if $mode == :jamming && runningp_other_jamming && pid_jamming != Process.pid
