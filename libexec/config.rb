@@ -293,10 +293,11 @@ def find_and_check_dirs_early
                             File.realpath(File.expand_path('~') + '/harpwise')
                           end
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
+  $dirs[:home] = ENV['SNAP_REAL_HOME'] || Dir.home
   $dirs[:data] = if $testing
-                   "#{Dir.home}/dot_#{File.basename($0)}"
+                   "#{$dirs[:home]}/dot_#{File.basename($0)}"
                  else
-                   "#{Dir.home}/.#{File.basename($0)}"
+                   "#{$dirs[:home]}/.#{File.basename($0)}"
                  end
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
   $dirs[:user_scales] = "#{$dirs[:data]}/scales"

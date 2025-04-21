@@ -297,3 +297,6 @@ develop:
     recalculate and check frequencies for current set of samples
   read-scale-with-notes: |
     read given scale (first arg) from file (second arg)
+  dump: |
+    dump internal data structures to stdout
+    

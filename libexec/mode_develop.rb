@@ -23,10 +23,12 @@ def do_develop to_handle
     do_widgets
   when 'lickfile'
     do_lickfile to_handle
-  when 'check-frequencies', 'cf'
+  when 'check-frequencies'
     do_check_frequencies
-  when 'read-scale-with-notes', 'rswn'
+  when 'read-scale-with-notes'
     do_read_scale_with_notes to_handle
+  when 'dump'
+    write_dump
   else
     fail "Internal error: unknown extra '#{$extra}'"
   end
