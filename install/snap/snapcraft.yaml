@@ -17,7 +17,6 @@ description: |
 grade: devel
 confinement: devmode
 
-
 apps:
   harpwise:
     environment:
@@ -34,6 +33,7 @@ apps:
       - audio-record
       - pulseaudio
       - alsa
+      - home
 
 parts:
   harpwise:
