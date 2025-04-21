@@ -163,18 +163,14 @@ Quick Start:
   
     harpwise listen c              
 
-  or:
+  Improve your harmonica knowledge:
 
     harpwise quiz random
 
-  for a playful way to improve your harmonica knowledge
-
-  or:
+  Guided jam along a 12bar-blues:
 
     harpwise jam along 12
-
-  for a guided jam along a 12bar-blues.
-
+  
 
 Version <%=$version%>
 Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
