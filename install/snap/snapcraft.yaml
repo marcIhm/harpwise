@@ -8,7 +8,7 @@ name: harpwise
 # We need core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.10.4'
+version: '6.10.6'
 summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
   Harpwise supports your daily practice with scales and licks. It offers various
@@ -38,7 +38,10 @@ apps:
 parts:
   harpwise:
     plugin: dump
-    source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
+    # during development use local dir directly; afterward, 
+    # to get a defined version, pull from github
+    source: harpwise
+#    source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
     stage-packages:
       - ruby
       - libruby
@@ -55,6 +58,7 @@ parts:
       - toilet
       - ncurses-base
       - ncurses-term
+      - pv
 
 layout:             
   $SNAP/usr/bin/figlet:

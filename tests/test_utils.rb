@@ -76,7 +76,11 @@ end
 
 
 def wait_for_end_of_harpwise numrep = 20
-  hw_full_name = %x(which harpwise).chomp
+  hw_full_name =  if $use_snap
+                    '/snap/harpwise'
+                  else
+                    %x(which harpwise).chomp
+                  end
   fail 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
   numrep.times do
     still_running = false

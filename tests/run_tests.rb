@@ -18,6 +18,11 @@ require_relative 'test_utils.rb'
 #
 # Set vars
 #
+$use_snap = if ARGV[0] == 'snap'
+              ARGV.shift
+            else
+              false
+            end
 $fromon = ARGV.join(' ')
 $last_test = "#{Dir.home}/.harpwise_testing_last_tried.json"
 $memo_file = "#{Dir.home}/.harpwise_testing_memo.json"
@@ -70,8 +75,13 @@ File.readlines('libexec/config.rb').each do |line|
 end
 fail "Could not parse term size from libexec/config.rb" unless $term_min_width && $term_min_height
 
-ENV['PATH'] = "#{$installdir}:" + ENV['PATH']
-puts "Adding ~/harpwise to path."
+if $use_snap
+  ENV['PATH'] = "/snap/bin:" + ENV['PATH']
+  puts "Adding /snap/bin to path."
+else
+  ENV['PATH'] = "#{$installdir}:" + ENV['PATH']
+  puts "Adding ~/harpwise to path."
+end
 
 #
 # Check for needed progs
@@ -111,7 +121,8 @@ FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
 system("killall aubiopitch >/dev/null 2>&1")
 
 puts "Testing"
-puts "\n\e[32mTo restart with a failed test use: '#{File.basename($0)} .'\e[0m\n"
+puts "\n\e[32mTo restart a failed test use: '#{File.basename($0)} .'\e[0m\n"
+puts "\e[2mTesting the installed snap.\e[0m\n" if $use_snap
 do_test 'id-0: man-page should process without errors' do
   mandir = "/tmp/harpwise_man/man1"
   FileUtils.mkdir_p mandir unless File.directory?(mandir)
