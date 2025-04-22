@@ -4,6 +4,8 @@
 # Main entry point: Load and orchestrate functions, handle global vars
 #
 
+# Version 3.1.0 is needed e.g. for pattern-matching (e.g. in utils.rb,
+# get_prior_history_records) or for method subclasses (e.g. in config.rb)
 min_ruby = '3.1.0'
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new(min_ruby)
   puts "\nERROR: Your Version of ruby #{RUBY_VERSION} is lower than minimum required version #{min_ruby}\n\n"

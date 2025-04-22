@@ -1,23 +1,15 @@
-* Prepare to build in ~
+* Prepare to build in ~/hw
 
-  We do this, because the source-property of a part can only access
-  files/directories from the same dir, where snapcraft.yaml resides.
-  So directories harpwise and file snapcraft.yaml need to be
+  We do this, because the source-property of a snap-part can only
+  access files/directories from the same dir, where snapcraft.yaml
+  resides.  So directories harpwise and file snapcraft.yaml need to be
   neighbours (live in same dir). On the other hand, we want
-  snapcraft.yaml to live within harpwise (and be part of repo).
-  
-  So we needed to reshuffle things like below.
+  snapcraft.yaml to be part of repo harpwise.
+    
+* Development cycle (in ~/hw)
 
-  - cd
-  - ln /home/ihm/harpwise/install/snap/snapcraft.yaml .    ## hard link
-  - snapcraft, etc. see below
+  ./harpwise/install/snap/rebuild.sh
   
-* Development cycle (in this dir)
-
-  – rm harpwise_*_amd64.snap
-  - sudo snap remove harpwise
-  - snapcraft clean ; snapcraft
-  - sudo snap install harpwise_*_amd64.snap --devmode
   - snap run --shell harpwise
     - cd $SNAP
   - harpwise listen c

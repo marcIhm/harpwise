@@ -5,7 +5,7 @@ name: harpwise
 # See: https://github.com/marcIhm/harpwise
 #  
 
-# We need core24 rather than core22, because our minimum ruby-version
+# We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
 version: '6.10.6'

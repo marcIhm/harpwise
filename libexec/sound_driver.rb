@@ -199,8 +199,8 @@ def sox_to_aubiopitch_to_queue
   if !IO.select([ppl_out], nil, nil, 4) || !wait_thr.alive?
     err(
       if IO.select([ppl_err], nil, nil, 2)
-        # we use sysread, because read would block (?)
         "Command terminated unexpectedly: #{cmd}\n" +
+          # we use sysread, because read would block (?)
           ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
       else
         "Command produced no output and no error message: #{cmd}"
@@ -212,9 +212,9 @@ def sox_to_aubiopitch_to_queue
   iters = 0
   last_queue_time_now = last_queue_time = last_queue_line = nil
   #
-  # Remark: The code below checks for several conditions, we have encountered when porting
-  # to homebrew/macos  or when switching to the one-piece pipeline. Read the comments
-  # twice, before streamlining.
+  # Remark: The code below checks for several conditions, we have encountered while porting
+  # to homebrew/macos  or  switching to the one-piece pipeline  or  building a snap.
+  # So please read the comments twice, before streamlining.
   #
   # The jitter checks tests for jitter, i.e. varying delays in samples beeing delivered by
   # aubiopitch (which seems to happen under wsl2 now and then).
@@ -233,7 +233,15 @@ def sox_to_aubiopitch_to_queue
           while !(line = ppl_out.gets)
             sleep 0.5
             no_gets += 1
-            err "10 times no output from:\n#{cmd}\n\nMaybe try:   harpwise tools diag   to investigate in detail" if no_gets > 10
+            err_out = if IO.select([ppl_err], nil, nil, 2)
+                        "Output from stderr is:\n" +
+                          # we use sysread, because read would block (?)
+                          ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
+                      else
+                        "No output from stderr either.\n"
+                      end
+
+            err "10 times no output from:\n#{cmd}\n#{err_out}\nMaybe try:   harpwise tools diag   to investigate in detail" if no_gets > 10
           end
           line.chomp!
           $freqs_queue.enq Float(line.split(' ',2)[1])
