@@ -142,6 +142,7 @@ def two_sounds secs1, semi1, secs2, semi2
   sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav /tmp/harpwise_testing.wav"
 end
 
+
 def do_test text
   $memo_count += 1
   if md = text.match(/#{$fromon_id_regex}/)

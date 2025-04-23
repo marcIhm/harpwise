@@ -129,9 +129,9 @@ def set_global_vars_early
   fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
 
   # will be created by test-driver
-  $test_wav = "/tmp/#{File.basename($0)}_testing.wav"
+  $test_wav = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing.wav"
   # tool diag
-  $diag_wav = "/tmp/#{File.basename($0)}_diag.wav"
+  $diag_wav = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_diag.wav"
   
   # for messages in hande_holes
   $msgbuf = MsgBuf.new
@@ -294,6 +294,7 @@ def find_and_check_dirs_early
                           end
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:home] = ENV['SNAP_REAL_HOME'] || Dir.home
+  $dirs[:testing_tmp] = "#{$dirs[:home]}/.harpwise_testing_tmp"
   $dirs[:data] = if $testing
                    "#{$dirs[:home]}/dot_#{File.basename($0)}"
                  else
@@ -462,10 +463,10 @@ def set_global_vars_late
   $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
   $history_file = "#{$dirs[:data]}/history_#{$type}.json"
 
-  $testing_log = "/tmp/#{File.basename($0)}_testing.log"
+  $testing_log = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing.log"
   # most of the time there is no code to use this debug-log; but we keep it nevertheless for
   # debugging hard problems in the future
-  $debug_log = "/tmp/#{File.basename($0)}_debug.log"
+  $debug_log = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_debug.log"
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type

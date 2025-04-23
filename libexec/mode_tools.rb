@@ -875,12 +875,14 @@ def tool_diag
 
   Your part is:
 
-    - Make some sound that can be recorded, e.g. play your harp
+    - Make some sound, that can be recorded, e.g. count up: one, two, three, ...
+      - Make sure, to start counting and recording together, so that you
+        may later spot delays in the recording
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
 
-  puts "Press any key to start: "
+  puts "Make sound and press any key to start: "
   drain_chars
   one_char
   print "\n\e[32mRecording started for 3 secs.\e[0m\n\e[0;101m"

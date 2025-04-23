@@ -26,6 +26,8 @@ $use_snap = if ARGV[0] == 'snap'
 $fromon = ARGV.join(' ')
 $last_test = "#{Dir.home}/.harpwise_testing_last_tried.json"
 $memo_file = "#{Dir.home}/.harpwise_testing_memo.json"
+$tmp_dir =  "#{Dir.home}/.harpwise_testing_tmp"
+FileUtils.mkdir($tmp_dir) unless File.directory?($tmp_dir)
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
@@ -41,11 +43,11 @@ if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
   $fromon_id = md[1]
 end
 $within = ( ARGV.length == 0 )
-$testing_dump_template = '/tmp/harpwise_testing_dumped_%s.json'
-$testing_output_file = '/tmp/harpwise_testing_output.txt'
-$testing_log_file = '/tmp/harpwise_testing.log'
+$testing_dump_template = "#{$tmp_dir}/harpwise_testing_dumped_%s.json"
+$testing_output_file = "#{$tmp_dir}/harpwise_testing_output.txt"
+$testing_log_file = "#{$tmp_dir}/harpwise_testing.log"
 $all_testing_licks = %w(wade st-louis feeling-bad chord-prog lick-blues lick-mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
-$pipeline_started = '/tmp/harpwise_pipeline_started'
+$pipeline_started = "#{$tmp_dir}/harpwise_pipeline_started"
 $installdir = "#{Dir.home}/harpwise"
 $started_at = Time.now.to_f
 $rc_marker = 'harpwise_testing_return_code_is'
@@ -115,8 +117,8 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 
 puts "\nPreparing data"
 # need a sound file
-system("sox -n /tmp/harpwise_testing.wav synth 1000.0 sawtooth 494")
-FileUtils.mv '/tmp/harpwise_testing.wav', '/tmp/harpwise_testing.wav_default'
+system("sox -n #{$tmp_dir}/harpwise_testing.wav synth 1000.0 sawtooth 494")
+FileUtils.cp "#{$tmp_dir}/harpwise_testing.wav", "#{$tmp_dir}/harpwise_testing.wav_default"
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -124,7 +126,7 @@ puts "Testing"
 puts "\n\e[32mTo restart a failed test use: '#{File.basename($0)} .'\e[0m\n"
 puts "\e[2mTesting the installed snap.\e[0m\n" if $use_snap
 do_test 'id-0: man-page should process without errors' do
-  mandir = "/tmp/harpwise_man/man1"
+  mandir = "#{$tmp_dir}/harpwise_man/man1"
   FileUtils.mkdir_p mandir unless File.directory?(mandir)
   FileUtils.cp "#{$installdir}/man/harpwise.1", mandir
   cmd = "MANPATH=#{mandir}/../ man harpwise 2>&1 >/dev/null"
@@ -226,13 +228,10 @@ do_test "id-1j: starter samples for key of c and SPACE to pause" do
   tms :ENTER
   sleep 2
   tms ' '
-  sleep 1
   expect { screen[0]['SPACE to continue'] }
   tms ' '
-  sleep 1
   expect { screen[0]['and on !'] }
   tms 'q'
-  sleep 2
   wait_for_end_of_harpwise
   expect(probe_file) { File.exist?(probe_file) }
   kill_session
@@ -480,7 +479,7 @@ do_test 'id-2: recording of samples' do
   tms :ENTER
   sleep 2
   tms 'r'
-  sleep 18
+  sleep 10
   expect { screen[-5]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
   expect { screen[17]['0.0         0.8          1.6           2.4          3.2         4.0'] }
   kill_session

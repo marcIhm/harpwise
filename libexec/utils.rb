@@ -242,7 +242,7 @@ end
 
 def write_dump marker = nil
   if marker
-    dumpfile = '/tmp/' + File.basename($0) + "_testing_dumped_#{marker}.json"
+    dumpfile = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing_dumped_#{marker}.json"
     File.delete(dumpfile) if File.exist?(dumpfile)
   end
   structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs}
