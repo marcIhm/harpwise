@@ -1,0 +1,48 @@
+* Prepare to build in ~/hw-snap
+
+  We do this, because the source-property of a snap-part can only
+  access files/directories from the same dir, where snapcraft.yaml
+  resides; so directories harpwise and file snapcraft.yaml need to be
+  neighbours (live in same dir).
+
+  On the other hand, we want snapcraft.yaml to be part of repo
+  harpwise. Therefore we use rebuild.sh, which updates things within
+  ~/hw-snap. rebuild.sh is a softlink, which needs to be created by
+  hand.
+
+  As ~/hw-snap is not part of the git repo, make sure not to edit there !
+    
+* Development cycle (in ~/hw-snap)
+
+  ./harpwise/snap/rebuild.sh
+  
+  - snap warnings
+  - sudo snap okay
+  
+  - snap run --shell harpwise
+    - cd $SNAP
+  - harpwise listen c
+
+  - snap connections harpwise
+  - snap connect harpwise:home
+    
+  – snapcraft login                                                                                                                      
+  – snapcraft upload --release=latest/edge harpwise_*_amd64.snap                                                                         
+
+* Useful links related for building snaps  
+** ruby
+
+   - https://github.com/ronin-rb/snap/blob/2b98d2ad9fd7077037d65d21639d057717684b5e/snap/snapcraft.yaml
+   - https://github.com/kbsecret/kbsecret/issues/3
+
+** sound
+
+   - https://forum.snapcraft.io/t/is-it-possible-to-create-a-symlink-from-snap-etc-to-snap-data/31114/6
+   - https://forum.snapcraft.io/t/snap-example-with-audio-playback-and-play-sox-command/24067/9
+   - https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1879229
+   - https://github.com/ogra1/pulse-server/blob/main/snap/snapcraft.yaml
+
+** Home
+
+   - https://snapcraft.io/docs/personal-files-interface
+   - https://forum.snapcraft.io/t/use-of-home-and-network-plugs/2587/20

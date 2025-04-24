@@ -15,12 +15,15 @@
   (macOS).
 
   So e.g. on linux setting and exporting AUDIODRIVER=alsa or
-  AUDIODRIVER=pulseaudio might help.
+  AUDIODRIVER=pulseaudio might help. Sox does not directly support
+  pipewire (yet) so the valie 'pipewire' is not an option, but this
+  is not necessary either as pipewire is compatible with pulseaudio.
 
 
-  If this is not enough to solve the problem, you may also set
-  AUDIODEV to a suitable value, which however must be understood by
-  your audio driver (as specified by AUDIODRIVER).
+  In case of AUDIODRIVER=alsa, this might not be enough for a working
+  setup and you may also need to set AUDIODEV to a suitable value. If
+  To get a list of all devices in your system, try 'aplay -L'
+  (speakers) or 'arecord -L' (mics).
 
   As a linux example lets assume, that you have set AUDIODRIVER=alsa
   above. Then, setting AUDIODEV=hw:0 in addition (which will inform
