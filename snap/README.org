@@ -46,3 +46,28 @@
 
    - https://snapcraft.io/docs/personal-files-interface
    - https://forum.snapcraft.io/t/use-of-home-and-network-plugs/2587/20
+
+* Comparison with audacity
+
+  Compare with:
+
+  https://github.com/diddlesnaps/audacity/blob/master/snap/snapcraft.yaml
+  
+  At startup the audacity snap suggests:
+
+  sudo snap connect audacity:alsa
+  
+  But this does not seem to help. In any case (for me) recording with
+  audacity starts with a crack and does not capture the first (or so)
+  second. But of course, that might be related with my ubuntu-25
+  install. In any case the problem is similar to the ones I have with
+  "harpwise tools diag".
+  
+  So:
+
+  sudo snap connect harpwise:alsa
+
+  does not seem to help; check with:
+
+  snap connections harpwise
+  

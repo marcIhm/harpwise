@@ -1,7 +1,7 @@
 name: harpwise
 
 #
-# This is a (the "official") snap for harpwise
+# This is the snap for harpwise
 # See: https://github.com/marcIhm/harpwise
 #  
 
@@ -14,6 +14,8 @@ description: |
   Harpwise supports your daily practice with scales and licks. It offers various
   tools, an explorable quiz and may guide your jamming. It can be used with
   diatonic (richter) or chromatic harmonicas in different keys.
+# Unfortunately we still have audio issues, but they may also be
+# related with ubuntu 25 beeing just released
 grade: devel
 confinement: devmode
 
@@ -29,10 +31,12 @@ apps:
       TERMINFO_DIRS: $SNAP/lib/terminfo:$SNAP/usr/share/terminfo
     command: usr/bin/ruby $SNAP/harpwise
     plugs:
+      - alsa
       - audio-playback
       - audio-record
       - pulseaudio
-      - alsa
+      # we read and write ~/.harpwise; and for testing ~/dot_harpwise
+      # as well as several dirs and files ~/.harpwise*
       - home
 
 parts:
