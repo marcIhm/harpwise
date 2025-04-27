@@ -128,10 +128,10 @@ def set_global_vars_early
   $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
   fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
 
-  # will be created by test-driver
+  # will be overwritten by run_tests.rb
   $test_wav = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing.wav"
   # tool diag
-  $diag_wav = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_diag.wav"
+  $diag_wav = "#{$dirs[:home]}/#{File.basename($0)}_diag.wav"
   
   # for messages in hande_holes
   $msgbuf = MsgBuf.new
@@ -370,8 +370,8 @@ EOREADME
   end
 
   $dirs.each do |k,v|
-    next if k == :install_devel
-    err "Directory #{v} for #{k} does not exist; installation looks bogus" unless File.directory?(v)
+    next if [:install_devel, :testing_tmp].include?(k)
+    err "Directory #{v} for key :#{k} does not exist; installation looks damaged" unless File.directory?(v)
   end
 end
 

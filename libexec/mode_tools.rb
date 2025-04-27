@@ -849,8 +849,8 @@ def tool_diag
   links to sox) in a typical way, giving you a chance to:
 
     - Verify that sox (and therefore harpwise) can record and play sounds
-    - Easily spot any warnings or error messages, that might appear;
-      these will be in \e[0;101m red \e[0m
+      in good quality
+    - Easily spot any warnings or error messages, that might appear
 
   end_of_intro
 
@@ -859,10 +859,12 @@ def tool_diag
 
   puts
   puts_underlined 'Recording sound'
+  see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
+  rec_time = 10
   cmd_rec = if $testing
               "sleep 100"
             else
-              "sox -d -q -r #{$conf[:sample_rate]} #{$diag_wav}"
+              "sox -d -r #{$conf[:sample_rate]} #{$diag_wav}"
             end
 
   puts <<~end_of_intro_rec
@@ -871,13 +873,13 @@ def tool_diag
     #{cmd_rec}
 
   to record any sound from your microphone.
-  The recording will be stopped after 3 seconds.
+  The recording will be stopped after #{rec_time} seconds.
 
   Your part is:
 
     - Make some sound, that can be recorded, e.g. count up: one, two, three, ...
-      - Make sure, to start counting and recording together, so that you
-        may later spot delays in the recording
+    - Watch the dynamic level display of sox/rec and check, that it moves in
+      sync with your counting
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
@@ -885,9 +887,13 @@ def tool_diag
   puts "Make sound and press any key to start: "
   drain_chars
   one_char
-  print "\n\e[32mRecording started for 3 secs.\e[0m\n\e[0;101m"
+  puts "\n\e[32mRecording started for #{rec_time} secs.\e[0m\n\n"
+  puts see_sox % ['START', 'rec']
   rec_pid = Process.spawn cmd_rec
-  sleep 3
+  sleep rec_time
+  puts
+  puts
+  puts see_sox % ['END', 'rec']
   puts "\e[0m\e[K\nDone.\n\n"
   Process.kill('HUP', rec_pid)
   Process.wait(rec_pid)
@@ -895,9 +901,9 @@ def tool_diag
   puts
   puts_underlined 'Replaying sound'
   cmd_play = if $testing
-              "sleep 3"
+              "sleep #{rec_time}"
             else
-              "play -q #{$diag_wav}"
+              "play #{$diag_wav}"
             end
 
   puts <<~end_of_intro_play
@@ -909,7 +915,8 @@ def tool_diag
 
   You part is:
 
-    - Listen and check, if you hear, what has been recorded previously
+    - Listen and check that you hear, what has been recorded
+    - Listen for initial cracks, distortion or overall poor audio quality
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_play
@@ -917,26 +924,34 @@ def tool_diag
   puts "Press any key to start: "
   drain_chars
   one_char
-  print "\n\e[32mReplay started, 3 secs expected.\e[0m\n\e[0;101m"
+  print "\n\e[32mReplay started, #{rec_time} secs expected.\e[0m\n\n"
+  puts see_sox % ['START', 'play']
   rec_pid = Process.spawn cmd_play
   Process.wait(rec_pid)
+  puts
+  puts see_sox % ['END', 'play']
   puts "\e[0m\e[K\nDone.\n\n"
 
   puts
-  puts_underlined 'Get hints on troubleshooting sound, especially sox ?'
+  puts_underlined 'Recording and playback okay ? Get some hints on troubleshooting'
   puts <<~end_of_however
-  In many cases problems can be traced to incorrect settings,
-  e.g. of your sound hardware (volume turned up ?).
+  In some cases problems can be traced to easily adjustable settings of
+  your sound system (e.g. recording level too low or wrong device selected).
 
-  However, if you saw error messages in \e[0;101m red \e[0m,
-  the problem might be with the configuration of sox.
-  In that case, there is a collection of mixed technical
-  hints that might be useful.
+  However, if you saw error messages in the output of sox, or heard
+  distortions or a noticable delay in recording, the problem might
+  rather with the configuration of your audio system and/or sox.
+
+  For these cases, there is a collection of mixed technical hints that
+  might be useful.
+
   end_of_however
   
-  puts "\nType 'y' to read those hints or anything else to end: "
+  print "\nType 'y' to read those hints or anything else to end.\n\n\e[2mYour input: "
   drain_chars
-  if one_char == 'y'
+  ch = one_char
+  puts ch + "\e[0m"
+  if ch == 'y'
     puts "\n\e[32mSome hints:\e[0m\n\n"
     audio_guide = ERB.new(IO.read("#{$dirs[:install]}/resources/audio_guide.txt")).result(binding).lines
     audio_guide.pop while audio_guide[-1].strip.empty?

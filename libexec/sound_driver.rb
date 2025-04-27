@@ -8,6 +8,7 @@ def record_sound secs, file, **opts
     FileUtils.cp $test_wav, file
     sleep secs
   else
+    pp "rec -q -c 1 -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
     cmd = "rec -q -c 1 -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
     sys "#{cmd} #{output_clause}", $sox_fail_however
   end

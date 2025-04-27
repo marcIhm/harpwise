@@ -38,7 +38,7 @@ def sys cmd
   stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
   out
 end
-  
+
 
 def tms cmd
   # let typed command appear on screen
@@ -128,18 +128,18 @@ def expect *failinfo, &block
 end
 
 def sound secs, semi
-    sys "sox -n /tmp/harpwise_testing.wav synth #{secs} sawtooth %#{semi} gain -n -3"
+  sys "sox -n #{$testing_wav} synth #{secs} sawtooth %#{semi} gain -n -3"
 end
 
 def warble count, secs, semi1, semi2
-    sys("sox -n /tmp/harpwise_testing.wav " + ( "synth 1 saw %#{semi1} : synth 1 saw %#{semi2} : " * 3 ) + Array.new(count, "synth #{secs} saw %#{semi1} : synth #{secs} saw %#{semi2}").join(' : '))
+  sys("sox -n #{$testing_wav} " + ( "synth 1 saw %#{semi1} : synth 1 saw %#{semi2} : " * 3 ) + Array.new(count, "synth #{secs} saw %#{semi1} : synth #{secs} saw %#{semi2}").join(' : '))
 end
 
 def two_sounds secs1, semi1, secs2, semi2
   sys "sox -n /tmp/harpwise_testing1.wav synth #{secs1} sawtooth %#{semi1} gain -n -3"
   sys "sox -n /tmp/harpwise_testing2.wav trim 0.0 0.5"
   sys "sox -n /tmp/harpwise_testing3.wav synth #{secs2} sawtooth %#{semi2} gain -n -3"
-  sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav /tmp/harpwise_testing.wav"
+  sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav #{$testing_wav}"
 end
 
 
@@ -166,11 +166,13 @@ def do_test text
   most_ian = klens[klens.length * 3.to_f / 4] || 0
   time = $memo[:durations][text]
   print "  #{text.ljust(most_ian)}   #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
-  FileUtils.cp '/tmp/harpwise_testing.wav_default','/tmp/harpwise_testing.wav'
+  # might be overwritten within test with a specialized sound file
+  FileUtils.cp "#{$tmp_dir}/harpwise_testing.wav_default", "#{$testing_wav}"
   start = Time.now.to_f
   yield
-  # these tend to accumulate, but as they are only testing-related, we do not investigate further
-  system('pkill -f "sh -c cat /tmp/harpwise_testing.wav /dev/zero"')
+  # once upon a time these tended to accumulate, but as they are only testing-related, we do
+  # not investigate further
+  system('pkill -f "sh -c cat ' + $testing_wav + ' /dev/zero"')
   $memo[:durations][text] = Time.now.to_f - start
 end
 

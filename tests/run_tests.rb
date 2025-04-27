@@ -27,6 +27,7 @@ $fromon = ARGV.join(' ')
 $last_test = "#{Dir.home}/.harpwise_testing_last_tried.json"
 $memo_file = "#{Dir.home}/.harpwise_testing_memo.json"
 $tmp_dir =  "#{Dir.home}/.harpwise_testing_tmp"
+$testing_wav =  "#{$tmp_dir}/harpwise_testing.wav"
 FileUtils.mkdir($tmp_dir) unless File.directory?($tmp_dir)
 $memo_count = 0
 $memo_seen = Set.new
@@ -117,8 +118,8 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 
 puts "\nPreparing data"
 # need a sound file
-system("sox -n #{$tmp_dir}/harpwise_testing.wav synth 1000.0 sawtooth 494")
-FileUtils.cp "#{$tmp_dir}/harpwise_testing.wav", "#{$tmp_dir}/harpwise_testing.wav_default"
+system("sox -n #{$testing_wav} synth 1000 sawtooth 494")
+FileUtils.cp "#{$testing_wav}", "#{$tmp_dir}/harpwise_testing.wav_default"
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -479,7 +480,7 @@ do_test 'id-2: recording of samples' do
   tms :ENTER
   sleep 2
   tms 'r'
-  sleep 10
+  sleep 14
   expect { screen[-5]['Frequency: 195, ET: 196, diff: -1   -1st:185 [.......I:........] +1st:208'] }
   expect { screen[17]['0.0         0.8          1.6           2.4          3.2         4.0'] }
   kill_session
@@ -1680,7 +1681,7 @@ usage_examples.each_with_index do |ex,idx|
       output = File.read($testing_output_file).lines
       tms 'echo ' + $rc_marker + ' \$?'
       tms :ENTER
-      expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
+      expect(output) { screen.find {|l| l[$rc_marker + ' 0']} }
     else
       # just create an OKAY-marker
       expect {true}
@@ -3897,7 +3898,7 @@ do_test 'id-144: check consistent usage of short and long description' do
   expect(short_desc, sd_usage) { short_desc == sd_usage }
   expect(long_desc, ld_usage) { long_desc == ld_usage }
 
-  snap = YAML.load_file('install/snap/snapcraft.yaml')
+  snap = YAML.load_file('snap/snapcraft.yaml')
   sd_snap = snap['summary']
   ld_snap = snap['description'].lines.map(&:chomp).join(' ')
   expect(short_desc, sd_snap) { short_desc == sd_snap }
@@ -3906,6 +3907,13 @@ do_test 'id-144: check consistent usage of short and long description' do
   response = Net::HTTP.get_response(URI('https://api.github.com/repos/marcihm/harpwise'))
   sd_github = JSON.parse(response.body)['description']
   expect(short_desc, sd_github) { short_desc == sd_github }
+end
+
+do_test 'id-145: check consistent version in version.txt and snapcraft.yaml' do
+  snap = YAML.load_file('snap/snapcraft.yaml')
+  v_snap = snap['version']
+  v_vers = File.read('resources/version.txt').chomp
+  expect(v_snap, v_vers) { v_snap == v_vers }
 end
 
 puts

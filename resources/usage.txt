@@ -159,7 +159,7 @@ Diagnosis:
 
 Quick Start:
 
-  Feedback on holes and notes you are playing:
+  Feedback on holes and notes you play:
   
     harpwise listen c              
 
