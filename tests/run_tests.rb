@@ -1740,7 +1740,9 @@ do_test 'id-49: edit lickfile' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'e'
-  sleep 1
+  sleep 2
+  # vi apparently behaves different in a snap
+  tms :ENTER if $use_snap
   expect { screen[14]['[wade]'] }
   kill_session
 end
@@ -2463,6 +2465,7 @@ do_test 'id-72: record user in licks' do
   tms 'harpwise licks a --start-with lick-mape'
   tms :ENTER
   wait_for_start_of_pipeline
+  sleep 4
   tms :C_R
   expect { screen[1]['-rec-'] }
   tms '1'
@@ -2473,8 +2476,8 @@ do_test 'id-72: record user in licks' do
     sleep 1
   }
   sleep 2
-  expect(rfile) { File.exist?(rfile) }
   expect { screen[-2][rfile] }
+  expect(rfile) { File.exist?(rfile) }
   kill_session
 end
 
@@ -3118,13 +3121,13 @@ do_test 'id-100: tool diagnosis' do
   tms 'harpwise tool diag'
   tms :ENTER
   sleep 2
-  expect { screen[19]['Make some sound'] }
+  expect { screen[16]['Make some sound'] }
   tms :ENTER
-  sleep 5
-  expect { screen[19]['Listen and check'] }
+  sleep 6
+  expect { screen[18]['Listen and check'] }
   tms :ENTER
-  sleep 5
-  expect { screen[11]['Get hints on troubleshooting sound, especially sox ?'] }
+  sleep 6
+  expect { screen[7]['Recording and playback okay ?'] }
   tms 'y'
   sleep 2
   expect { screen[7]['Other options necessary for sox might be'] }

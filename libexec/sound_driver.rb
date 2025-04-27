@@ -427,9 +427,9 @@ class UserLickRecording
   
   def start_rec
     stop_rec if @rec_pid
-    cmd = "sox -q %s -r #{$conf[:sample_rate]} #{@file_raw1}" %
-          ( $testing  ?  $test_wav  :  '-d' )
-    @rec_pid = Process.spawn "rec -q -r #{$conf[:sample_rate]} #{@file_raw1}"
+    FileUtils.cp($test_wav, @file_raw1) if $testing
+    @rec_pid = Process.spawn("rec -q -r #{$conf[:sample_rate]} %s" %
+                             ($testing  ?  '/dev/null'  :  @file_raw1 ))
     @first_hole_good_at = nil
     @rec_started_at = Time.now.to_f
     @has_rec = false

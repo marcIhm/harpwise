@@ -51,7 +51,8 @@ end
 
 def do_diff
 
-  abort("\nFile\n\n  #{$man_result}\n\nis older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if File.mtime($man_result) < File.mtime($man_template)
+  dsec = File.mtime($man_template) - File.mtime($man_result)
+  abort("\nFile\n\n  #{$man_result}\n\nis #{dsec} sec older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if dsec > 0.1
 
   # needed in erb
   types_with_scales = get_types_with_scales_for_usage
