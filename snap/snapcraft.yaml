@@ -14,8 +14,11 @@ description: |
   Harpwise supports your daily practice with scales and licks. It offers various
   tools, an explorable quiz and may guide your jamming. It can be used with
   diatonic (richter) or chromatic harmonicas in different keys.
-# Unfortunately we still have audio issues, but they may also be
-# related with ubuntu 25 beeing just released
+license: 'MIT'
+# Unfortunately we still have audio issues, but they are quite similar
+# to those encountered with the audacity snap; so maybe it is a more
+# general thing; maybe even related with ubuntu 25 beeing just
+# released.
 grade: devel
 confinement: devmode
 
