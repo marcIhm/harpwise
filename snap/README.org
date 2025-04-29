@@ -27,7 +27,7 @@
   - snap connect harpwise:home
     
   – snapcraft login                                                                                                                      
-  – snapcraft upload --release=latest/edge harpwise_*_amd64.snap                                                                         
+  – snapcraft upload --release=latest/stable harpwise_*_amd64.snap                                                                         
 
 * Useful links related for building snaps  
 ** ruby
