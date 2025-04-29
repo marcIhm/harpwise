@@ -8,7 +8,7 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.10.10'
+version: '6.11.0'
 summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
   Harpwise supports your daily practice with scales and licks. It offers various
@@ -19,8 +19,8 @@ license: 'MIT'
 # to those encountered with the audacity snap; so maybe it is a more
 # general thing; maybe even related with ubuntu 25 beeing just
 # released.
-grade: devel
-confinement: devmode
+grade: stable
+confinement: strict
 
 apps:
   harpwise:
