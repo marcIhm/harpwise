@@ -287,19 +287,55 @@ def find_and_check_dirs_early
   $dirs = Hash.new
   $dirs_data_created = false
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
-  $dirs[:install_devel] = if $testing || !File.directory?(File.expand_path('~') + '/harpwise')
-                            '/TESTING_SO_DIR_HARPWISE_DEVEL_SHOULD_NOT_EXIST'
+  $dirs[:install_devel] = if $testing
+                            '/TESTING_SO_DIR_HARPWISE_DEVEL_IS_SET_TO_THIS_PATH_WHICH_DOES_NOT_EXIST'
                           else
-                            File.realpath(File.expand_path('~') + '/harpwise')
+                            Dir.home + '/git/harpwise'
                           end
   $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
   $dirs[:home] = ENV['SNAP_REAL_HOME'] || Dir.home
   $dirs[:testing_tmp] = "#{$dirs[:home]}/.harpwise_testing_tmp"
   $dirs[:data] = if $testing
-                   "#{$dirs[:home]}/dot_#{File.basename($0)}"
+                   "#{$dirs[:home]}/testing_data_#{File.basename($0)}"
                  else
-                   "#{$dirs[:home]}/.#{File.basename($0)}"
+                   "#{$dirs[:home]}/#{File.basename($0)}"
                  end
+  
+  # version 6.11 has renamed ~/.harpwise into ~/harpwise, so that it tends to collide with
+  # the git repo on my developer machine, which was named ~/harpwise too. So we try to
+  # detect and react, if this is still the case
+  $dirs[:data_old] = if $testing
+                       "#{$dirs[:home]}/dot_#{File.basename($0)}"
+                     else
+                       "#{$dirs[:home]}/.#{File.basename($0)}"
+                     end
+
+  # prepare error messages here to be able to write the logic furher down below more clearly
+  err_dirs_equal = "The installation directory of harpwise   #{$dirs[:install]}\nis the same as the the prospective data directory.\nHowever, the data dir #{$dirs[:data]} needs to be created\nand filled with seed data, which would garble your current installation.\n\nPlease move or rename your installation directory, so that there is\nroom for the data dir to be created.\n\nYou may move your installation dir e.g. from #{$dirs[:install]}\nto #{$dirs[:install_devel]}; alternatively you may try harpwise\nas a snap.\n\nRemark: The data-directory has been moved from #{$dirs[:data_old]}\nto #{$dirs[:data]} with version 6.11.1"
+  err_data_old_head = "Directory   #{$dirs[:data_old]}   exists.  This has been the\nlocation of your personal harpwise-data with versions of harpwise\nprior to 6.11.1.  Now it has changed to   #{$dirs[:data]}\n\n"
+  err_data_old_and_new = "However, the new data dir   #{$dirs[:data]}   already exists too !\nPlease make sure, that it does not contain your valuable harpwise-data,\ne.g. your own licks.\n\nSpeculating, this might have happened in the past, if you have copied\n#{$dirs[:data_old]} to #{$dirs[:data]} instead of moving it.\n\nIn any case, the suggested remedy is to move:\n\n  mv #{$dirs[:data]} #{$dirs[:data]}-to-be-deleted\n\nand finally, after a few days of using harpwise without problems,\nremove harpwise-to-be-deleted."
+  err_data_old_only = "Please move it accordingly, e.g.\n\n  mv #{$dirs[:data_old]} #{$dirs[:data]}:"
+
+  if File.exist?($dirs[:data_old])
+    if File.exist?($dirs[:data])
+      # This check is repeated below
+      if $dirs[:install] == $dirs[:data]
+        # first, ask user to move install dir; once he has done this, he will get another
+        # error message to rename his data dir; this will only apply very few users
+        err err_dirs_equal
+      end
+      err err_data_old_head + err_data_old_and_new
+    else
+      err err_data_old_head + err_data_old_only
+    end
+  else
+    # no ~/.harpwise, wo we will simply create ~/harpwise further down below
+  end
+  
+  if $dirs[:install] == $dirs[:data]
+    err err_dirs_equal
+  end
+  
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
   $dirs[:user_scales] = "#{$dirs[:data]}/scales"
 
