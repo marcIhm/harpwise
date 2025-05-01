@@ -167,7 +167,7 @@ def do_test text
   time = $memo[:durations][text]
   print "  #{text.ljust(most_ian)}   #{$memo_count.to_s.rjust(2)} of #{$memo[:count].to_s.rjust(2)}    #{time ? ('%5.1f' % time) : '?'} secs ... "
   # might be overwritten within test with a specialized sound file
-  FileUtils.cp "#{$tmp_dir}/harpwise_testing.wav_default", "#{$testing_wav}"
+  FileUtils.cp "#{$exch_tt}/harpwise_testing.wav_default", "#{$testing_wav}"
   start = Time.now.to_f
   yield
   # once upon a time these tended to accumulate, but as they are only testing-related, we do

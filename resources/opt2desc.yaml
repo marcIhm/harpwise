@@ -216,7 +216,7 @@ jamming:
     When in the main listen-perspective, integrate with
     another instance of harpwise in mode running and
     switch along chords and licks as advised through
-    fifo ~/.harpwise/remote_fifo.
+    fifo ~/harpwise/remote_fifo.
     
 difficulty:
   - |

@@ -25,7 +25,7 @@
 function hwh {
     
     cmd=$( # read every file but the README
-	cat $(ls ~/.harpwise/invocations/* | grep -v README) | 
+	cat $(ls ~/harpwise/invocations/* | grep -v README) | 
 	    # puts date and time from lines first for sorting
 	    awk '{print $(NF-1), $NF, $0}' |
 	    # sort according to date and time

@@ -122,8 +122,8 @@
    initially.
 
    The data of harpwise (samples, licks, journal and much more) is
-   kept in the hidden directory ~/.harpwise, which you may or may not
-   want to remove too.
+   kept in directory ~/harpwise, which you may or may not want
+   to remove too.
 
 ** Uninstalling dependencies 
 

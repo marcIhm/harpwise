@@ -10,7 +10,7 @@ Overview:
   Please Note: This mode relies on a collection of licks, that you
   need to accumulate over time; only a simple starter set will
   be created at first start; typically it will be kept at:
-  ~/.harpwise/licks/richter/licks_with_holes.txt
+  ~/harpwise/licks/richter/licks_with_holes.txt
   similar e.g. for chromatic.
 
   When adding licks and you need to adjust start and end of the

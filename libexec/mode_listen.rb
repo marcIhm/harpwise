@@ -416,7 +416,7 @@ end
 
 
 def edit_journal initial_content = nil
-  tfile = Tempfile.new(File.basename($0))
+  tfile = Tempfile.new('harpwise')
   tfile.write(initial_content) if initial_content
   tfile.write("\n###\n### The current journal:\n###\n\n")
   tfile.write(tabify_plain($journal, true))

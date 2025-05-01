@@ -18,8 +18,8 @@
   Preparation:
   - in .bashrc:
     - PS1="\$ "
-    - alias harpwise='/home/ihm/harpwise/harpwise'
-  - in .harpwise/config.ini: difficulty auf 0
+    - alias harpwise='/home/ihm/git/harpwise/harpwise'
+  - in ~/git/harpwise/config.ini: difficulty auf 0
 
   Tools:
   - asciinema (from repositories)

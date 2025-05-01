@@ -39,7 +39,7 @@ Usage by Examples:
     harpwise samples c record
 
   this will ask you to play notes on your harp (key of c). The samples
-  will be stored in the hidden folder .harpwise within your home
+  will be stored in the folder harpwise within your home
   directory; frequencies will be extracted to the file
   frequencies.yaml.
 

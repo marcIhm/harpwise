@@ -133,7 +133,7 @@ Suggested Reading:
 
 User Configuration:
 
-  ~/.harpwise/config.ini
+  ~/harpwise/config.ini
 
 Command-line Options:
 

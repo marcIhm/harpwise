@@ -635,7 +635,7 @@ def parse_and_preprocess_jamming_json json
   $example = jam_pms['example_harpwise']
   $jam_loop_starter_template = "Start of iteration %{iteration}/%{iteration_max} (each %{iteration_duration}); elapsed %{elapsed}, remaining %{remaining}"
   $jam_data = {comment: jam_pms['comment'],
-               install_dir: File.read("#{$dirs[:home]}/.harpwise/path_to_install_dir").chomp,
+               install_dir: File.read("#{$dirs[:data]}/path_to_install_dir").chomp,
                elapsed: '??:??',
                elapsed_secs: 0,
                remaining: '??:??',

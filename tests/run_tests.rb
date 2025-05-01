@@ -15,6 +15,8 @@ require 'method_source'
 require 'net/http'
 require_relative 'test_utils.rb'
 
+fail "Cannot run as a snap" if ENV['SNAP_NAME']
+
 #
 # Set vars
 #
@@ -26,9 +28,11 @@ $use_snap = if ARGV[0] == 'snap'
 $fromon = ARGV.join(' ')
 $last_test = "#{Dir.home}/.harpwise_testing_last_tried.json"
 $memo_file = "#{Dir.home}/.harpwise_testing_memo.json"
-$tmp_dir =  "#{Dir.home}/.harpwise_testing_tmp"
-$testing_wav =  "#{$tmp_dir}/harpwise_testing.wav"
-FileUtils.mkdir($tmp_dir) unless File.directory?($tmp_dir)
+# needs to be the same as $dirs[:exch_tester_tested] in config.rb
+$exch_tt =  "#{Dir.home}/harpwise_exch_tester_tested"
+FileUtils.mkdir($exch_tt) unless File.directory?($exch_tt)
+# needs to be the same as $test_wav in config.rb
+$testing_wav =  "#{$exch_tt}/testing.wav"
 $memo_count = 0
 $memo_seen = Set.new
 $memo = File.exist?($memo_file)  ?  JSON.parse(File.read($memo_file))  :  {count: '?', durations: {}}
@@ -44,29 +48,29 @@ if md = ($fromon + ':').match(/#{$fromon_id_regex}/)
   $fromon_id = md[1]
 end
 $within = ( ARGV.length == 0 )
-$testing_dump_template = "#{$tmp_dir}/harpwise_testing_dumped_%s.json"
-$testing_output_file = "#{$tmp_dir}/harpwise_testing_output.txt"
-$testing_log_file = "#{$tmp_dir}/harpwise_testing.log"
+$testing_dump_template = "#{$exch_tt}/harpwise_testing_dumped_%s.json"
+$testing_output_file = "#{$exch_tt}/harpwise_testing_output.txt"
+$testing_log_file = "#{$exch_tt}/harpwise_testing.log"
 $all_testing_licks = %w(wade st-louis feeling-bad chord-prog lick-blues lick-mape box1-i box1-iv box1-v box2-i box2-iv box2-v boogie-i boogie-iv boogie-v simple-turn special one two three long)
-$pipeline_started = "#{$tmp_dir}/harpwise_pipeline_started"
-$installdir = "#{Dir.home}/harpwise"
+$pipeline_started = "#{$exch_tt}/harpwise_pipeline_started"
+$installdir = "#{Dir.home}/git/harpwise"
 $started_at = Time.now.to_f
 $rc_marker = 'harpwise_testing_return_code_is'
 
-# locations for our test-data; these dirs will be created as full
-# will be removed in test id-1
-$dotdir_testing = "#{Dir.home}/dot_harpwise"
-$config_ini_saved = $dotdir_testing + '/config_ini_saved'
-$config_ini_testing = $dotdir_testing + '/config.ini'
-$persistent_state_file = "#{$dotdir_testing}/persistent_state.json"
-$players_pictures = "#{$dotdir_testing}/players_pictures"
-$lickfile_testing = "#{$dotdir_testing}/licks/richter/licks_with_holes.txt"
-$scalefile_testing = "#{$dotdir_testing}/scales/richter/scale_foo_with_holes.yaml"
-$remote_jamming_ps_rs = "#{$dotdir_testing}/remote_jamming_pause_resume"
+# locations for our test-data; these dirs will be removed in test id-1
+# needs to be the same as $dirs[:data] (in case of testing) within config.rb
+$datadir = "#{Dir.home}/harpwise_testing"
+$config_ini_saved = $datadir + '/config_ini_saved'
+$config_ini_testing = $datadir + '/config.ini'
+$persistent_state_file = "#{$datadir}/persistent_state.json"
+$players_pictures = "#{$datadir}/players_pictures"
+$lickfile_testing = "#{$datadir}/licks/richter/licks_with_holes.txt"
+$scalefile_testing = "#{$datadir}/scales/richter/scale_foo_with_holes.yaml"
+$remote_jamming_ps_rs = "#{$datadir}/remote_jamming_pause_resume"
 
 # remove these to get clean even if we do not rebuild completely
-Dir["#{$dotdir_testing}/**/starred.yaml"].each {|s| FileUtils::rm s}
-# This will make harpwise look into $dotdir_testing
+Dir["#{$datadir}/**/starred.yaml"].each {|s| FileUtils::rm s}
+# This will make harpwise look into $datadir
 ENV['HARPWISE_TESTING']='1'
 
 Dir.chdir(%x(git rev-parse --show-toplevel).chomp)
@@ -119,7 +123,7 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 puts "\nPreparing data"
 # need a sound file
 system("sox -n #{$testing_wav} synth 1000 sawtooth 494")
-FileUtils.cp "#{$testing_wav}", "#{$tmp_dir}/harpwise_testing.wav_default"
+FileUtils.cp "#{$testing_wav}", "#{$exch_tt}/harpwise_testing.wav_default"
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -127,7 +131,7 @@ puts "Testing"
 puts "\n\e[32mTo restart a failed test use: '#{File.basename($0)} .'\e[0m\n"
 puts "\e[2mTesting the installed snap.\e[0m\n" if $use_snap
 do_test 'id-0: man-page should process without errors' do
-  mandir = "#{$tmp_dir}/harpwise_man/man1"
+  mandir = "#{$exch_tt}/harpwise_man/man1"
   FileUtils.mkdir_p mandir unless File.directory?(mandir)
   FileUtils.cp "#{$installdir}/man/harpwise.1", mandir
   cmd = "MANPATH=#{mandir}/../ man harpwise 2>&1 >/dev/null"
@@ -136,7 +140,7 @@ do_test 'id-0: man-page should process without errors' do
 end
 
 do_test 'id-0a: selftest without user dir' do
-  FileUtils.rm_r($dotdir_testing) if File.exist?($dotdir_testing)
+  FileUtils.rm_r($datadir) if File.exist?($datadir)
   new_session
   tms 'harpwise develop selftest'
   tms :ENTER
@@ -160,13 +164,13 @@ do_test 'id-0b: selftest with restricted locale' do
 end
 
 # Prepare test-data through harpwise and then some
-do_test 'id-1: start without dot_harpwise' do
+do_test 'id-1: start without ~/harpwise' do
   # keep this within test, so that we only remove, if we also try to recreate
-  FileUtils.rm_r($dotdir_testing) if File.exist?($dotdir_testing)
+  FileUtils.rm_r($datadir) if File.exist?($datadir)
   new_session
   tms 'harpwise'
   tms :ENTER
-  expect($dotdir_testing) {File.directory?($dotdir_testing)}
+  expect($datadir) {File.directory?($datadir)}
   expect($config_ini_testing) {File.exist?($config_ini_testing)}
   kill_session
   # now we have a user config
@@ -175,7 +179,7 @@ do_test 'id-1: start without dot_harpwise' do
 end
 
 do_test 'id-9b: mode licks to create simple lick file' do
-  lick_dir = "#{$dotdir_testing}/licks/richter"
+  lick_dir = "#{$datadir}/licks/richter"
   lick_file = "#{lick_dir}/licks_with_holes.txt"
   FileUtils.rm_r lick_dir if File.exist?(lick_dir)
   new_session
@@ -187,14 +191,14 @@ do_test 'id-9b: mode licks to create simple lick file' do
   kill_session
   # more test data
   # keep this within test, so that we only add, if we have just created
-  File.open("#{$dotdir_testing}/licks/richter/licks_with_holes.txt",'a') do |file|
+  File.open("#{$datadir}/licks/richter/licks_with_holes.txt",'a') do |file|
     file.write(File.read('tests/data/add_to_licks_with_holes.txt'))
   end
-  File.write "#{$dotdir_testing}/README.org", "This directory contains test-data for harpwise\nand will be recreated on each run of tests."
+  File.write "#{$datadir}/README.org", "This directory contains test-data for harpwise\nand will be recreated on each run of tests."
 end
 
 do_test 'id-9c: create simple lick file for chromatic' do
-  lick_dir = "#{$dotdir_testing}/licks/chromatic"
+  lick_dir = "#{$datadir}/licks/chromatic"
   lick_file = "#{lick_dir}/licks_with_holes.txt"
   FileUtils.rm_r lick_dir if File.exist?(lick_dir)
   new_session
@@ -221,7 +225,7 @@ end
 end
 
 do_test "id-1j: starter samples for key of c and SPACE to pause" do
-  some_samples_dir = "#{$dotdir_testing}/samples/richter/key_of_c"
+  some_samples_dir = "#{$datadir}/samples/richter/key_of_c"
   probe_file = "#{some_samples_dir}/g5.mp3"
   FileUtils.rm_r(some_samples_dir) if File.exist?(some_samples_dir)
   new_session
@@ -277,7 +281,7 @@ do_test "id-47b: generating samples for all keys" do
 end
 
 ensure_config_ini_testing
-FileUtils.cp "#{Dir.pwd}/tests/data/fancy_jamming.json", $dotdir_testing + '/jamming'
+FileUtils.cp "#{Dir.pwd}/tests/data/fancy_jamming.json", $datadir + '/jamming'
 puts "\n\n\e[32mNow we should have complete data ...\e[0m"
 
 do_test 'id-1a: config.ini, user prevails' do
@@ -537,7 +541,7 @@ do_test 'id-5a: delete recorded samples' do
   sleep 1
   tms 'Y'
   sleep 2
-  expect { screen[14]['Wrote   /home/ihm/dot_harpwise/samples/richter/key_of_c/frequencies.yaml']}
+  expect { screen[13]['Wrote   /home/ihm/harpwise_testing/samples/richter/key_of_c/frequencies']}
   expect { screen[18]['No recorded sound samples for key']}  
   kill_session
 end
@@ -562,7 +566,7 @@ end
 
 do_test 'id-6: listen without journal' do
   sound 8, 2
-  journal_file = "#{$dotdir_testing}/journal_richter.txt"
+  journal_file = "#{$datadir}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'harpwise listen a all'
@@ -817,7 +821,7 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
 end
 
 do_test 'id-15: play a lick with recording' do
-  history_file = "#{$dotdir_testing}/history_richter.json"
+  history_file = "#{$datadir}/history_richter.json"
   FileUtils.rm history_file if File.exist?(history_file)
   new_session
   tms 'harpwise play a wade'
@@ -1011,7 +1015,7 @@ do_test 'id-19a: cycle through displays and comments in licks ' do
 end
 
 do_test 'id-19b: prepare and get history of licks' do
-  history_file = "#{$dotdir_testing}/history_richter.json"
+  history_file = "#{$datadir}/history_richter.json"
   FileUtils.rm history_file if File.exist?(history_file)
   new_session
   # produce lick history
@@ -1304,7 +1308,7 @@ do_test 'id-30: use option --partial for wade' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/wade.mp3 trim 0.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{$datadir}/licks/richter/recordings/wade.mp3 trim 0.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -1314,7 +1318,7 @@ do_test 'id-31: use option --partial for st-louis' do
   tms :ENTER
   wait_for_start_of_pipeline
   tlog = read_testing_log
-  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{Dir.home}/dot_harpwise/licks/richter/recordings/st-louis.mp3 trim 3.0 1.0 pitch 300"] }
+  expect(tlog[-1]) { tlog[-1]["play -q --norm=-6 -V1 #{$datadir}/licks/richter/recordings/st-louis.mp3 trim 3.0 1.0 pitch 300"] }
   kill_session
 end
 
@@ -1628,7 +1632,7 @@ do_test 'id-44a: switch between modes quiz and listen' do
 end
 
 do_test 'id-45: star and unstar a lick' do
-  starred_file = Dir.home + '/dot_harpwise/licks/richter/starred.yaml'
+  starred_file = "#{$datadir}/licks/richter/starred.yaml"
   FileUtils.rm starred_file if File.exist?(starred_file)  
   new_session
   tms 'harpwise licks a --start-with wade'
@@ -1716,7 +1720,7 @@ end
 
 do_test 'id-48b: chromatic in a, scale blues; listen; creation of derived' do
   sound 8, 2
-  derived = "#{$dotdir_testing}/derived/chromatic/derived_scale_blues-middle_with_notes.yaml"
+  derived = "#{$datadir}/derived/chromatic/derived_scale_blues-middle_with_notes.yaml"
   FileUtils.rm derived if File.exist?(derived)
   new_session 92, 30
   tms 'harpwise listen chromatic a blues-middle --display chart-scales'
@@ -2143,7 +2147,7 @@ end
 do_test 'id-58: listen with journal on request, recall later' do
   sound 40, 2
   ENV['EDITOR']='vi'
-  journal_file = "#{$dotdir_testing}/journal_richter.txt"
+  journal_file = "#{$datadir}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
   tms 'EDITOR=vi harpwise listen a all'
@@ -2457,7 +2461,7 @@ end
 end
 
 do_test 'id-72: record user in licks' do
-  rfile = "#{$dotdir_testing}/usr_lick_rec.wav"
+  rfile = "#{$datadir}/usr_lick_rec.wav"
   FileUtils.rm(rfile) if File.exist?(rfile)
   sound 40, 2
   ENV['HARPWISE_TESTING']='player'
@@ -2484,7 +2488,7 @@ end
 ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-72a: play user recording' do
-  rfile = "#{$dotdir_testing}/usr_lick_rec.wav"
+  rfile = "#{$datadir}/usr_lick_rec.wav"
   new_session
   tms 'harpwise play user'
   tms :ENTER
@@ -2782,7 +2786,7 @@ do_test 'id-88: read from fifo' do
   tms 'harpwise listen c --jamming'
   tms :ENTER
   sleep 2
-  File.write("#{$dotdir_testing}/remote_fifo", "q\n")
+  File.write("#{$datadir}/remote_fifo", "q\n")
   wait_for_end_of_harpwise
   sleep 2
   expect { screen.any? {|l| l['Terminating on user request'] }}
@@ -3465,7 +3469,7 @@ do_test 'id-117: check errors for bogous lickfiles' do
     new_session
     tms "harpwise dev lickfile #{file}"
     tms :ENTER
-    expect(file,msg) { screen[2][msg] }
+    expect(file,msg) { screen[3][msg] }
     kill_session
   end
 end
@@ -3660,7 +3664,7 @@ do_test 'id-130: letter s missing in extra argument' do
 end
 
 do_test 'id-131: check invocation logging' do
-  idir = "#{$dotdir_testing}/invocations"
+  idir = "#{$datadir}/invocations"
   ifile = "#{idir}/richter_tools_chart"
   ENV.delete('HARPWISE_COMMAND')
   cmd = "harpwise tools chart"
@@ -3705,7 +3709,7 @@ ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-133: test for diff between man and usage' do
   new_session
-  tms "HARPWISE_TESTING=none ~/harpwise/harpwise dev diff"
+  tms "HARPWISE_TESTING=none ~/git/harpwise/harpwise dev diff"
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
@@ -3827,8 +3831,8 @@ do_test 'id-140: jam along --print-only' do
   tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[19]['550 entries.']}
-  expect { screen[21]['Find this list in:   /home/ihm/dot_harpwise/jamming_timestamps/along.txt']}
+  expect { screen[18]['550 entries.']}
+  expect { screen[20]['Find this list in:   /home/ihm/harpwise_testing/jamming_timestamps/along']}
   kill_session
 end
 
@@ -3843,7 +3847,7 @@ end
 ENV['HARPWISE_TESTING']='remote'
 
 do_test 'id-142: jamming with explicit key' do
-  Dir[$dotdir_testing +'/remote_messages/0*.txt'].each {|f| FileUtils.rm(f)}
+  Dir[$datadir +'/remote_messages/0*.txt'].each {|f| FileUtils.rm(f)}
   new_session
   tms "harpwise jamm d along 12bar >#{$testing_output_file}"
   tms :ENTER
@@ -3851,7 +3855,7 @@ do_test 'id-142: jamming with explicit key' do
   lines = File.read($testing_output_file).lines
   expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['shifting track'] }
   sleep 2
-  lines = File.read($dotdir_testing +'/remote_messages/0000.txt').lines
+  lines = File.read($datadir +'/remote_messages/0000.txt').lines
   expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[0]['{key}}d'] }
   kill_session
 end
@@ -3919,5 +3923,24 @@ do_test 'id-145: check consistent version in version.txt and snapcraft.yaml' do
   expect(v_snap, v_vers) { v_snap == v_vers }
 end
 
+do_test 'id-146: check error on preexisting dir .harpwise' do
+  dot_hw = "#{Dir.home}/.harpwise"
+  FileUtils.mkdir(dot_hw) unless File.exist?(dot_hw)
+  new_session
+  tms "harpwise listen c"
+  tms :ENTER
+  expect { screen[2]['ERROR: Directory   /home/ihm/.harpwise   exists.']}
+  kill_session
+  FileUtils.rmdir(dot_hw)
+end
+
 puts
+
+[$exch_tt, $datadir].each do |dir|
+  if File.exist?(dir)
+    FileUtils.rm_r(dir) 
+    puts "removed #{dir}"
+  end
+end
+
 puts

@@ -128,11 +128,11 @@ def set_global_vars_early
   $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
   fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
 
-  # will be overwritten by run_tests.rb
-  $test_wav = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing.wav"
-  # tool diag
-  $diag_wav = "#{$dirs[:home]}/#{File.basename($0)}_diag.wav"
-  
+  # file will be overwritten by run_tests.rb 
+  $test_wav = "#{$dirs[:exch_tester_tested]}/testing.wav"
+   # tool diag
+  $diag_wav = "#{$dirs[:data]}/diag.wav"
+
   # for messages in hande_holes
   $msgbuf = MsgBuf.new
 
@@ -144,7 +144,7 @@ def set_global_vars_early
   $scale_prog_file_templates = ["#{$dirs[:install]}/scales/%s/scale_progressions.yaml",
                                 "#{$dirs[:user_scales]}/%s/scale_progressions.yaml"]
 
-  
+
   $freqs_queue = Queue.new
 
   $first_round_ever_get_hole = true
@@ -179,14 +179,14 @@ def set_global_vars_early
                     {syn: %w(char-in-terminal char), desc: 'Render the image with unicode characters; ths requires chafa to be installed.'}]
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
-  
+
   # will be populated along with $scale and $used_scales
   $scale2short = Hash.new
   $short2scale = Hash.new
   $scale2desc = Hash.new
   $scale2short_count = 0
   $term_kb_handler = nil
-  
+
   $editor = ENV['EDITOR'] || ['editor'].find {|e| system("which #{e} >/dev/null 2>&1")} || 'vi'
   $messages_seen = Hash.new
 
@@ -203,7 +203,7 @@ def set_global_vars_early
   $ctl_response_default = 'SPACE to pause; h for help'
   # also sets $warbles and clears $warbles_other_hole
   clear_warbles
-  
+
   # The same volume for recordings and pitch
   $vol = Volume.new(-6)
 
@@ -244,22 +244,22 @@ def set_global_vars_early
   $remote_message_dir = "#{$dirs[:data]}/remote_messages"
   FileUtils.mkdir_p($remote_message_dir) unless File.directory?($remote_message_dir)
   $remote_message_count = 0
-  
+
   $invocations_dir = "#{$dirs[:data]}/invocations"
   if !File.directory?($invocations_dir)
     FileUtils.mkdir_p($invocations_dir)
     File.write "#{$invocations_dir}/README.org", <<~EOREADME
 
-      The files in this directory contain the most recent
-      command lines, that have been used to invoke harpwise. These are
-      grouped by mode and extra keyword, so each type may have its own
-      history.
+       The files in this directory contain the most recent
+       command lines, that have been used to invoke harpwise. These are
+       grouped by mode and extra keyword, so each type may have its own
+       history.
 
-      The files can be used as a basis for an easy lookup of harpwise
-      commands; a sample script using fzf can be found in the
-      install-dir of harpwise, subdirectory util.
+       The files can be used as a basis for an easy lookup of harpwise
+       commands; a sample script using fzf can be found in the
+       install-dir of harpwise, subdirectory util.
 
-EOREADME
+ EOREADME
   end
 
   #
@@ -278,7 +278,7 @@ EOREADME
     end
   end
   $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
-  
+
 end
 
 
@@ -288,33 +288,32 @@ def find_and_check_dirs_early
   $dirs_data_created = false
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
   $dirs[:install_devel] = if $testing
-                            '/TESTING_SO_DIR_HARPWISE_DEVEL_IS_SET_TO_THIS_PATH_WHICH_DOES_NOT_EXIST'
+                            '/TESTING_ANS_SO_DIR_HARPWISE_DEVEL_IS_SET_TO_THIS_PATH_WHICH_DOES_NOT_EXIST'
                           else
                             Dir.home + '/git/harpwise'
                           end
-  $dirs[:tmp] = Dir.mktmpdir(File.basename($0) + '_tmp_')
+  $dirs[:tmp] = Dir.mktmpdir('harpwise_tmp_')
   $dirs[:home] = ENV['SNAP_REAL_HOME'] || Dir.home
-  $dirs[:testing_tmp] = "#{$dirs[:home]}/.harpwise_testing_tmp"
   $dirs[:data] = if $testing
-                   "#{$dirs[:home]}/testing_data_#{File.basename($0)}"
+                   # needs to be the same as $datadir in run_tests.rb
+                   "#{$dirs[:home]}/harpwise_testing"
                  else
-                   "#{$dirs[:home]}/#{File.basename($0)}"
+                   "#{$dirs[:home]}/harpwise"
                  end
-  
+  # needs to be the same as $exch_tt in run_tests.rb and will be created there; Serves for
+  # data exchange between run_tests.rb and harpwise
+  $dirs[:exch_tester_tested] = "#{$dirs[:home]}/harpwise_exch_tester_tested"
+
   # version 6.11 has renamed ~/.harpwise into ~/harpwise, so that it tends to collide with
   # the git repo on my developer machine, which was named ~/harpwise too. So we try to
   # detect and react, if this is still the case
-  $dirs[:data_old] = if $testing
-                       "#{$dirs[:home]}/dot_#{File.basename($0)}"
-                     else
-                       "#{$dirs[:home]}/.#{File.basename($0)}"
-                     end
+  $dirs[:data_old] = "#{$dirs[:home]}/.harpwise"
 
   # prepare error messages here to be able to write the logic furher down below more clearly
   err_dirs_equal = "The installation directory of harpwise   #{$dirs[:install]}\nis the same as the the prospective data directory.\nHowever, the data dir #{$dirs[:data]} needs to be created\nand filled with seed data, which would garble your current installation.\n\nPlease move or rename your installation directory, so that there is\nroom for the data dir to be created.\n\nYou may move your installation dir e.g. from #{$dirs[:install]}\nto #{$dirs[:install_devel]}; alternatively you may try harpwise\nas a snap.\n\nRemark: The data-directory has been moved from #{$dirs[:data_old]}\nto #{$dirs[:data]} with version 6.11.1"
   err_data_old_head = "Directory   #{$dirs[:data_old]}   exists.  This has been the\nlocation of your personal harpwise-data with versions of harpwise\nprior to 6.11.1.  Now it has changed to   #{$dirs[:data]}\n\n"
-  err_data_old_and_new = "However, the new data dir   #{$dirs[:data]}   already exists too !\nPlease make sure, that it does not contain your valuable harpwise-data,\ne.g. your own licks.\n\nSpeculating, this might have happened in the past, if you have copied\n#{$dirs[:data_old]} to #{$dirs[:data]} instead of moving it.\n\nIn any case, the suggested remedy is to move:\n\n  mv #{$dirs[:data]} #{$dirs[:data]}-to-be-deleted\n\nand finally, after a few days of using harpwise without problems,\nremove harpwise-to-be-deleted."
-  err_data_old_only = "Please move it accordingly, e.g.\n\n  mv #{$dirs[:data_old]} #{$dirs[:data]}:"
+  err_data_old_and_new = "However, the new data dir   #{$dirs[:data]}\nalready exists too !\nPlease make sure, that it does not contain your valuable harpwise-data,\ne.g. your own licks.\n\nSpeculating, this might have happened in the past, if you have copied\n#{$dirs[:data_old]} to #{$dirs[:data]} instead of moving it.\n\nIn any case, the suggested remedy is to move:\n\n  mv #{$dirs[:data]} #{$dirs[:data]}-to-be-deleted\n\nand finally, after a few days of using harpwise without problems,\nremove harpwise-to-be-deleted."
+  err_data_old_only = "Please move it accordingly, e.g.\n\n  mv #{$dirs[:data_old]} #{$dirs[:data]}"
 
   if File.exist?($dirs[:data_old])
     if File.exist?($dirs[:data])
@@ -331,11 +330,11 @@ def find_and_check_dirs_early
   else
     # no ~/.harpwise, wo we will simply create ~/harpwise further down below
   end
-  
+
   if $dirs[:install] == $dirs[:data]
     err err_dirs_equal
   end
-  
+
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
   $dirs[:user_scales] = "#{$dirs[:data]}/scales"
 
@@ -343,53 +342,53 @@ def find_and_check_dirs_early
     created = create_dir($dirs[dirsym])
     $dirs_data_created = true if created && dirsym == :data
   end
-  
+
   readme = "#{$dirs[:data]}/README.org"
   unless File.exist?(readme)
     File.write readme, <<~EOREADME
 
-      The directory contains your personal data for harpwise,
-      e.g. your configuration file config.ini or your licks.
+       The directory contains your personal data for harpwise,
+       e.g. your configuration file config.ini or your licks.
 
-      Many of these files contain comments, others are explained in
-      the documentation of harpwise.
+       Many of these files contain comments, others are explained in
+       the documentation of harpwise.
 
-      Consider backing up this directory now and then.
+       Consider backing up this directory now and then.
 
-EOREADME
+ EOREADME
   end
-    
+
   $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
   $sox_fail_however = <<~end_of_however
 
-  sox (or play or rec) did work start correctly; see error-message above.
-  -----------------------------------------------------------------------
+   sox (or play or rec) did work start correctly; see error-message above.
+   -----------------------------------------------------------------------
 
-  Please try:
+   Please try:
 
-    harpwise tools diag
+     harpwise tools diag
 
-  which will execute a simple test, that can be diagnosed more easily.
+   which will execute a simple test, that can be diagnosed more easily.
 
-  end_of_however
+   end_of_however
 
   unless File.exist?($early_conf[:config_file_user])
     File.open($early_conf[:config_file_user], 'w') do |cfu|
       cfu.write(<<~end_of_content)
-      #
-      # Custom configuration
-      #
-      # This is a verbatim copy of the global config file
-      #
-      #   #{$early_conf[:config_file]}
-      #
-      # with every entry commented out (at least initially).
-      #
-      # The global config defines the defaults, which you may 
-      # override here.
-      #
-      end_of_content
+       #
+       # Custom configuration
+       #
+       # This is a verbatim copy of the global config file
+       #
+       #   #{$early_conf[:config_file]}
+       #
+       # with every entry commented out (at least initially).
+       #
+       # The global config defines the defaults, which you may 
+       # override here.
+       #
+       end_of_content
       past_head = false
       File.readlines($early_conf[:config_file]).each do |line|
         past_head = true if line[0] != '#'
@@ -406,7 +405,7 @@ EOREADME
   end
 
   $dirs.each do |k,v|
-    next if [:install_devel, :testing_tmp].include?(k)
+    next if [:install_devel, :exch_tester_tested, :data_old].include?(k)
     err "Directory #{v} for key :#{k} does not exist; installation looks damaged" unless File.directory?(v)
   end
 end
@@ -459,7 +458,7 @@ end
 # We also do some work here, that relies on options beeing processed already
 #
 def set_global_vars_late
-  
+
   $sample_dir = get_sample_dir($key)
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
@@ -477,7 +476,7 @@ def set_global_vars_late
       $msgbuf.print "Copied an initial set of samples for type 'richter' and key of 'c' to get you started. However, for a more natural sound, you may replace them with your own recordings later; see mode 'samples' for that.", 2, 5, wrap: true, truncate: false
     end
   end
-  
+
   $lick_file_template = "#{$lick_dir}/licks_with_%s.txt"
   $freq_file = "#{$sample_dir}/frequencies.yaml"
   $helper_wave = "#{$dirs[:tmp]}/helper.wav"
@@ -490,7 +489,7 @@ def set_global_vars_late
   # Concepts: 'journaling' is writing holes, that are played by user,
   # 'tracing' (nothing to do with 'debugging') is writing holes, that
   # are played by program.
-  
+
   $journal = Array.new
   # is journaling of all holes played ongoing ?
   $journal_all = false
@@ -499,10 +498,10 @@ def set_global_vars_late
   $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
   $history_file = "#{$dirs[:data]}/history_#{$type}.json"
 
-  $testing_log = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing.log"
+  $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
   # most of the time there is no code to use this debug-log; but we keep it nevertheless for
   # debugging hard problems in the future
-  $debug_log = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_debug.log"
+  $debug_log = "#{$dirs[:exch_tester_tested]}/harpwise_debug.log"
   File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
 
   $star_file = $star_file_template % $type
@@ -740,7 +739,7 @@ def read_and_set_musical_config
   harp_notes = harp.keys.map {|h| $hole2note[h]}
 
   harp_holes.each do |hole|
-   bare_note2holes[harp[hole][:note][0..-2]] << hole 
+    bare_note2holes[harp[hole][:note][0..-2]] << hole 
   end
 
   # process scales

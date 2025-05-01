@@ -108,7 +108,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
   - samples: record samples for holes or generate them
 
   As an optional step you may want to create samples for the program; the
-  resulting wav-files will be kept in directory ~/.harpwise
+  resulting wav-files will be kept in directory ~/harpwise
 
   Or, to get started quickly you may generate samples and frequencies
   (e.g. for the key of c):
@@ -120,7 +120,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
   recommended !), you will need to add new licks soon.  Add them to your
   own lick-file, which is typically located at:
 
-  ~/.harpwise/licks/richter/licks_with_holes.txt
+  ~/harpwise/licks/richter/licks_with_holes.txt
 
   this file is created on first invocation and filled with only a few
   sample-licks; however it contains extensive instructions on how to add
@@ -154,7 +154,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
   This is the user-modifyable configuration file, that will be created on
   first invocation:
 
-  ~/.harpwise/config.ini
+  ~/harpwise/config.ini
 
   There you may override many settings and programs default.  The file is
   commented extensively, so please read there for details on the various
@@ -217,7 +217,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
    decent lick collections (me beeing not connected with any of those).
    See your lick-file for pointers and instructions:
 
-    ~/.harpwise/licks/richter/licks_with_holes.txt
+    ~/harpwise/licks/richter/licks_with_holes.txt
     
 * Some technical concepts
 ** The reference hole

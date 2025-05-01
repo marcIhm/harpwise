@@ -8,7 +8,7 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.11.0'
+version: '6.11.1'
 summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
   Harpwise supports your daily practice with scales and licks. It offers various
@@ -38,8 +38,6 @@ apps:
     - audio-playback
     - audio-record
     - pulseaudio
-    # we read and write ~/.harpwise; and for testing ~/dot_harpwise
-    # as well as several dirs and files ~/.harpwise*
     - home
 
 parts:

@@ -52,7 +52,7 @@ Usage by Examples:
 
 
   The argument '12bar' above is treated as a filename; it is expandeded to
-  '12bar.json' and searched in two directories: ~/.harpwise/jamming and
+  '12bar.json' and searched in two directories: ~/harpwise/jamming and
   the installation-dir of harpwise.
 
   The file '12bar.json' contains the required settings (e.g. location of

@@ -80,7 +80,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     if $testing && !for_testing_touched
-      FileUtils.touch("#{$dirs[:testing_tmp]}/#{File.basename($0)}_pipeline_started")
+      FileUtils.touch("#{$dirs[:exch_tester_tested]}/harpwise_pipeline_started")
       for_testing_touched = true
     end
 

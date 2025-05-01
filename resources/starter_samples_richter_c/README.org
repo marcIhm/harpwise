@@ -1,5 +1,5 @@
 This directory contains a set of samples (created with sox); they will
-be copied over into .harpwise on first invocation with matching type
+be copied over into ~/harpwise on first invocation with matching type
 and key.
 
 Other types and keys will still ask for a separate sample creation.

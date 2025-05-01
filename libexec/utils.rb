@@ -242,7 +242,7 @@ end
 
 def write_dump marker = nil
   if marker
-    dumpfile = "#{$dirs[:testing_tmp]}/#{File.basename($0)}_testing_dumped_#{marker}.json"
+    dumpfile = "#{$dirs[:exch_tester_tested]}/harpwise_testing_dumped_#{marker}.json"
     File.delete(dumpfile) if File.exist?(dumpfile)
   end
   structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs}
@@ -1216,8 +1216,9 @@ def write_invocation
           end.append(command_line + padding + ts_clause + "\n")
   File.write(file, lines.last(20).join)
 
-  # And finally do something totally unrelated
-  File.write "#{$dirs[:data]}/path_to_install_dir", "#{$dirs[:install]}\n"
+  # And finally do something totally unrelated; the content of path_to_install_dir is used
+  # within jammin-files
+  File.write "#{$dirs[:data]}/path_to_install_dir", "#{$dirs[:install]}\n"  
 end
 
 
