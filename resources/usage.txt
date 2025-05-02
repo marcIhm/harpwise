@@ -153,7 +153,7 @@ Diagnosis:
   box. If you feel, that sox (and therefore harpwise) has problems
   with sounds or if you see spurious error messages, you may invoke:
 
-     harpwise tools diag
+    harpwise tools diag
 
   to execute two basic tests and get some advice.
 

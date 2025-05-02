@@ -4,16 +4,20 @@
 
 * How to produce screenshots
 
-  In full screen with: stty size = 25 78
+  In full screen with: stty size = 24 x 81 (o.ä.)
 
-  ./harpwise listen richter c blues --add-scales chord-v --display chart-notes --comment holes-some --screenshot
+  hw listen richter c blues --add-scales chord-i,chord-iv,chord-v --display chart-scales --comment note --screenshot
 
-  ./harpwise quiz replay 5 richter c blues --add-scales chord-v --display chart-notes --screenshot
+  In full screen with: stty size = 30 x 104 (o.ä.)
+  
+  harpwise quiz choose
 
+  und dann "describe-all" und "keep-tempo"
+  
 * How to produce ascii-casts as gifs
 
-  Termina:
-  - stty size = 25 84
+  Terminal:
+  - stty size = 24 x 81 (o.ä.)
 
   Preparation:
   - in .bashrc:
