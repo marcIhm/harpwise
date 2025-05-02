@@ -3929,11 +3929,12 @@ do_test 'id-146: check error on preexisting dir .harpwise' do
   new_session
   tms "harpwise listen c"
   tms :ENTER
-  expect { screen[2]['ERROR: Directory   /home/ihm/.harpwise   exists.']}
+  expect { screen[4]['However, the new data dir   /home/ihm/harpwise_testing']}
   kill_session
   FileUtils.rmdir(dot_hw)
 end
 
+puts
 puts
 
 [$exch_tt, $datadir].each do |dir|
