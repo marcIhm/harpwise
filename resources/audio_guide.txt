@@ -16,7 +16,7 @@
 
   So e.g. on linux setting and exporting AUDIODRIVER=alsa or
   AUDIODRIVER=pulseaudio might help. Sox does not directly support
-  pipewire (yet) so the valie 'pipewire' is not an option, but this
+  pipewire (yet) so the value 'pipewire' is not an option, but this
   is not necessary either as pipewire is compatible with pulseaudio.
 
 
