@@ -68,6 +68,16 @@ check_installation
 
 $conf = read_technical_config
 
+# When running as a snap, we need pulse. However, we have not access to pulseaudio-config of
+# the host, wo we need to make up PULSE_SERVER on our own.
+if ENV['SNAP']
+  ENV['PULSE_SERVER'] = if File.read("/proc/version")["WSL2"]
+                          'unix:/mnt/wslg/PulseServer'
+                        else
+                          'unix:/run/user/1000/pulse/native'
+                        end
+end
+
 # needed for usage
 initialize_extra_vars
 

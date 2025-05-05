@@ -245,7 +245,7 @@ def write_dump marker = nil
     dumpfile = "#{$dirs[:exch_tester_tested]}/harpwise_testing_dumped_#{marker}.json"
     File.delete(dumpfile) if File.exist?(dumpfile)
   end
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER']}
   if marker
     File.write(dumpfile, JSON.pretty_generate(structure))
   else

@@ -8,17 +8,13 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.11.2'
+version: '6.11.3'
 summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
   Harpwise supports your daily practice with scales and licks. It offers various
   tools, an explorable quiz and may guide your jamming. It can be used with
   diatonic (richter) or chromatic harmonicas in different keys.
 license: 'MIT'
-# Unfortunately we still have audio issues, but they are quite similar
-# to those encountered with the audacity snap; so maybe it is a more
-# general thing; maybe even related with ubuntu 25 beeing just
-# released.
 grade: stable
 confinement: strict
 
@@ -30,8 +26,10 @@ apps:
       RUBYLIB: $SNAP/usr/lib/ruby/3.2.0:$SNAP/usr/lib/x86_64-linux-gnu/ruby/3.2.0
       GEM_PATH: $SNAP/usr/lib/ruby/3.2.0
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio      
-      PULSE_SERVER: unix:/run/user/1000/pulse/native
       TERMINFO_DIRS: $SNAP/lib/terminfo:$SNAP/usr/share/terminfo
+      # we also need PULSE_SERVER, but we cannot set it here, because it need different
+      # values for ubuntu native and sl2
+      PULSE_SERVER: unix:/run/user/1000/pulse/native
     command: usr/bin/ruby $SNAP/harpwise
     plugs:
     - alsa
@@ -43,10 +41,7 @@ apps:
 parts:
   harpwise:
     plugin: dump
-    # during development use local dir directly; afterward, 
-    # to get a defined version, pull from github
     source: harpwise
-#    source: https://github.com/marcIhm/harpwise/archive/refs/tags/$SNAPCRAFT_PROJECT_VERSION.tar.gz
     stage-packages:
       - ruby
       - libruby
