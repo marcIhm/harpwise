@@ -32,10 +32,8 @@ apps:
       PULSE_SERVER: unix:/run/user/1000/pulse/native
     command: usr/bin/ruby $SNAP/harpwise
     plugs:
-    - alsa
     - audio-playback
     - audio-record
-    - pulseaudio
     - home
 
 parts:
@@ -43,16 +41,16 @@ parts:
     plugin: dump
     source: harpwise
     stage-packages:
+      - coreutils
       - ruby
       - libruby
       - rubygems
-      - coreutils
       - sox
       - libsox-fmt-mp3
       - libsox-fmt-pulse
       - libpulse0
+      - pulseaudio-utils
       - alsa-utils
-      - pipewire-alsa
       - aubio-tools
       - figlet
       - toilet

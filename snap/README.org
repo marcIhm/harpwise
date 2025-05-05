@@ -26,7 +26,9 @@
   - snap connections harpwise
   - snap connect harpwise:home
     
-  – snapcraft login                                                                                                                      
+  – snapcraft login
+  
+  – snapcraft upload --release=latest/edge harpwise_*_amd64.snap
   – snapcraft upload --release=latest/stable harpwise_*_amd64.snap                                                                         
 
 * Useful links related for building snaps  
@@ -39,6 +41,7 @@
 
    - https://forum.snapcraft.io/t/is-it-possible-to-create-a-symlink-from-snap-etc-to-snap-data/31114/6
    - https://forum.snapcraft.io/t/snap-example-with-audio-playback-and-play-sox-command/24067/9
+     - https://wiki.freepascal.org/Create_snap_package#Sound_support
    - https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1879229
    - https://github.com/ogra1/pulse-server/blob/main/snap/snapcraft.yaml
 
