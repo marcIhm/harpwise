@@ -80,8 +80,8 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
 
   (which may require you to enable the snapstore first)
 
-  for all other platforms, a more manual install is required; please see
-  the README within subdirectory install.
+  for other platforms, a more manual install is required; please see the
+  README within subdirectory install.
    
 * Invocation
 

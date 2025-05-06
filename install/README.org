@@ -10,9 +10,9 @@
 - [[#building-a-snap-work-in-progress][Building a snap (work in progress)]]
 
 Please see the main README first, which has a short and easy chapter on
-installing harpwise on some major platforms.
+installing harpwise on major platforms.
 
-Come back here only for special cases.
+Come back here for special cases only.
 
 * Installing wsl2 on Windows
 
