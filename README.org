@@ -40,7 +40,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
 
   A harmonica tool for the command line, using microphone and speaker.
   
-  Harpwise runs on the command line of Linux, MacOS and Windows/wsl2.
+  Harpwise runs on the command line of Linux, MacOS and WSL2/Windows.
   
   It plays and hears single notes and can play (but not hear) chords.
 
@@ -68,15 +68,20 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
 
 * Installation
 
-  For Linux or Windows/wsl2, try:
-
-  sudo snap install harpwise
-
-  for Ubuntu there is also a debian-package:
+  Harpwise is available from the ubuntu-repositories:
 
   sudo apt install harpwise
 
-  for all other platforms, please see the README within subdirectory install.
+  as a debian package; this also works fairly well for WSL2/Windows.
+  
+  For other variants of linux, you may try:
+
+  sudo snap install harpwise
+
+  (which may require you to enable the snapstore first)
+
+  for all other platforms, a more manual install is required; please see
+  the README within subdirectory install.
    
 * Invocation
 
@@ -279,7 +284,7 @@ used with diatonic (richter) or chromatic harmonicas in different keys.
   Also note, that harpwise uses figlet to display some information in
   large letters. The optical result of this may vary, and you may get a
   smoother appearance by choosing another font; personally I use 'Lucida
-  Console' (at least under Windows/wsl2).
+  Console' (at least under WSL2/Windows).
 
   Now if you start harpwise e.g. in mode listen, or licks or some flavours
   of quiz, you get a screen as shown in the screenshots above.

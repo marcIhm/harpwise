@@ -9,13 +9,18 @@
 - [[#testing-the-installer-scripts][Testing the installer-scripts]]
 - [[#building-a-snap-work-in-progress][Building a snap (work in progress)]]
 
+Please see the main README first, which has a short and easy chapter on
+installing harpwise on some major platforms.
+
+Come back here only for special cases.
+
 * Installing wsl2 on Windows
 
   wsl2 gives you a great installation of Linux within windows.
 
   It is a very useful and interesting system by itself and it might
   take some time to master it. The small set of commands however, that
-  is required to install and use harpwise however, is spelled out
+  is required to install and use harpwise, is spelled out
   below in detail.
 
   The internet has many guides that explain the process of installing
@@ -25,7 +30,7 @@
   After that you have a full Linux system (Ubuntu) under Windows, so
   that you can open the wsl2 commandline and proceed with the general
   and Linux-specific instructions below (downloading, dependencies, or
-  the 'shorter way' via apt)
+  the 'shorter way' via apt).
 
 * A shorter way for Linux (Ubuntu)
 
@@ -148,8 +153,6 @@
   As a maintainer, see tests/installer for a way to test the install
   scripts in a container.
 
-* Building a snap (work in progress)
+* Building a snap
 
-  Currently (April 2025) trying to build a snap for harpwise in
-  directory snap.  Eventually this will become the preferred way to
-  install an up-to-date version of harpwise.
+  Harpwise is available as a snap; see directory snap for details.
