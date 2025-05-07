@@ -68,14 +68,10 @@ check_installation
 
 $conf = read_technical_config
 
-# When running as a snap, we need pulse. However, we have not access to pulseaudio-config of
-# the host, wo we need to make up PULSE_SERVER on our own.
-if ENV['SNAP']
-  ENV['PULSE_SERVER'] = if File.read("/proc/version")["WSL2"]
-                          'unix:/mnt/wslg/PulseServer'
-                        else
-                          'unix:/run/user/1000/pulse/native'
-                        end
+# We set PULSE_SERVER in snapcraft.yaml already; however, for WSL2 we need a different
+# value; so we check and set here (maybe override)
+if ENV['SNAP'] && File.read("/proc/version")["WSL2"]
+  ENV['PULSE_SERVER'] = 'unix:/mnt/wslg/PulseServer'
 end
 
 # needed for usage

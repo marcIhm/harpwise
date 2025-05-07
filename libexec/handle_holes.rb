@@ -565,7 +565,7 @@ def fit_into_comment lines
   start = if lines.length >= $lines[:hint_or_message] - $lines[:comment_tall]
             $lines[:comment_tall]
           else
-            print "\e[#{$lines[:comment_tall]}H\e[K"
+            print "\e[#{$lines[:comment_tall]}H\e[K" if $lines[:comment_tall] != $lines[:comment]
             $lines[:comment]
           end
   print "\e[#{start}H\e[0m"
@@ -871,9 +871,9 @@ def show_help mode = $mode, testing_only = false
                'Help done; SPACE or ESC to leave'
              end +
              if fidx > 0 
-               ', BACKSPACE for prev'
+               ', BACKSPACE for prev,'
              else
-               ''
+               ','
              end
     frame << "   any other key to highlight its specific line of help ..."
   end

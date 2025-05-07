@@ -8,12 +8,13 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.11.3'
+version: '6.11.4'
 summary: A harmonica tool for the command line, using microphone and speaker.
 description: |
-  Harpwise supports your daily practice with scales and licks. It offers various
-  tools, an explorable quiz and may guide your jamming. It can be used with
-  diatonic (richter) or chromatic harmonicas in different keys.
+  Harpwise supports your daily harmonica practice with scales, chords and
+  licks. It offers various tools, an explorable quiz and may guide your
+  jamming. It can be used with diatonic (richter) or chromatic harmonicas
+  in different keys.
 license: 'MIT'
 grade: stable
 confinement: strict
@@ -27,8 +28,8 @@ apps:
       GEM_PATH: $SNAP/usr/lib/ruby/3.2.0
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio      
       TERMINFO_DIRS: $SNAP/lib/terminfo:$SNAP/usr/share/terminfo
-      # we also need PULSE_SERVER, but we cannot set it here, because it need different
-      # values for ubuntu native and sl2
+      # We set PULSE_SERVER here but may override it from within harpwise. This is because
+      # ubuntu in WSL2 needs a different value.
       PULSE_SERVER: unix:/run/user/1000/pulse/native
     command: usr/bin/ruby $SNAP/harpwise
     plugs:
