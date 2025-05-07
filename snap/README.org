@@ -6,15 +6,15 @@
   neighbours (live in same dir).
 
   On the other hand, we want snapcraft.yaml to be part of repo
-  harpwise. Therefore we use rebuild.sh, which updates things within
-  ~/hw-snap. rebuild.sh is a softlink, which needs to be created by
+  harpwise. Therefore we use build.sh, which updates things within
+  ~/hw-snap. build.sh is a softlink, which needs to be created by
   hand.
 
   As ~/hw-snap is not part of the git repo, make sure not to edit there !
     
 * Development cycle (in ~/hw-snap)
 
-  ./harpwise/snap/rebuild.sh
+  ./harpwise/snap/build.sh
   
   - snap warnings
   - sudo snap okay
