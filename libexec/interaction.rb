@@ -14,7 +14,7 @@ def check_screen graceful: false, hint_on_large_term: false
   begin
     # check screen-size
     if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
-      raise ArgumentError.new("Terminal is too small:\n[#{$term_width}, #{$term_height}] (actual)  <  [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (configured minimum)")
+      raise ArgumentError.new("Terminal is too small:\n[#{$term_width}, #{$term_height}] (actual)  <  [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] (needed)")
     end
 
     # check if enough room between lines for various fonts
@@ -1060,9 +1060,9 @@ def handle_win_change
   while !check_screen(graceful: true)
     puts "\e[2m"
     puts "\n\n\e[0mScreensize is not acceptable, see above !"
-    puts "\nPlease resize screen right now to continue."
+    puts "\nYou may resize screen right away to continue,"
     puts
-    puts "Or press ctrl-c to break out of this checking loop."
+    puts "or press ctrl-c to break."
     $ctl_sig_winch = false
     while !$ctl_sig_winch
       sleep 0.2

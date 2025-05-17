@@ -461,7 +461,7 @@ def play_licks_controller licks, refill, sleep_between: false
 
     if !lick && stock.length == 0
       if refill
-        print "\n\e[0mEvery licks played once, "
+        print "\n\e[0mEvery lick played once, "
         if $opts[:iterate] == :random
           stock = refill.shuffle
           print "shuffled in random sequence."
