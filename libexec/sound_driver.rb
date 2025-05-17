@@ -242,7 +242,7 @@ def sox_to_aubiopitch_to_queue
                         "No output from stderr either.\n"
                       end
 
-            err "10 times no output from:\n#{cmd}\n#{err_out}\nMaybe try:   harpwise tools diag   to investigate in detail" if no_gets > 10
+            err "10 times no output from:\n#{cmd}\n#{err_out}\nMaybe try:   harpwise tools diag2   to investigate in detail" if no_gets > 10
           end
           line.chomp!
           $freqs_queue.enq Float(line.split(' ',2)[1])

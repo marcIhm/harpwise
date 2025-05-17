@@ -49,6 +49,8 @@ def do_tools to_handle
     tool_chords
   when 'diag'
     tool_diag
+  when 'diag2'
+    tool_diag2
   when 'utils', 'utilities'
     tool_utils
   else
@@ -877,14 +879,15 @@ def tool_diag
 
   Your part is:
 
-    - Make some sound, that can be recorded, e.g. count up: one, two, three, ...
+    - Make some sound, that can be recorded, e.g. count up:
+        one -- two -- three -- four -- five ...
     - Watch the dynamic level display of sox/rec and check, that it moves in
       sync with your counting
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
 
-  puts "Make sound and press any key to start: "
+  puts "Start making sound and press any key to start: "
   drain_chars
   one_char
   puts "\n\e[32mRecording started for #{rec_time} secs.\e[0m\n\n"
@@ -936,18 +939,19 @@ def tool_diag
   puts_underlined 'Recording and playback okay ? Get some hints on troubleshooting'
   puts <<~end_of_however
   In some cases problems can be traced to easily adjustable settings of
-  your sound system (e.g. recording level too low or wrong device selected).
+  your sound system. E.g. the recording level might be set too low or the
+  wrong audio-device could be selected.
 
   However, if you saw error messages in the output of sox, or heard
   distortions or a noticable delay in recording, the problem might
-  rather with the configuration of your audio system and/or sox.
+  rather be with the configuration of your audio system and/or sox.
 
   For these cases, there is a collection of mixed technical hints that
   might be useful.
 
   end_of_however
   
-  print "\nType 'y' to read those hints or anything else to end.\n\n\e[2mYour input: "
+  print "\nType 'y' to read those hints or anything else to end.\n\n\Your input: "
   drain_chars
   ch = one_char
   puts ch + "\e[0m"
@@ -960,8 +964,118 @@ def tool_diag
     puts "\n\e[32mNo hints requested.\e[0m"
   end
   
-  puts "\nDiagnosis done.\n\n"  
+  puts "\nDiagnosis done.\n\nYou may also want to test the frequency recognition;\nfor this try:   harpwise tools diag2\n\n"  
   
+end
+
+
+def tool_diag2
+  cmd_aub = if $testing
+              "yes"
+            else
+              get_pipeline_cmd(:sox, '-d')
+            end
+
+  puts "\n\n"
+  puts_underlined 'Testing the frequency recognition'
+
+  puts <<~end_of_intro
+  Please note: This tests requires sound recording to work properly;
+  you may want to test this first with:    harpwise tools diag
+  and then come back here.
+
+
+  Harpwise uses the program aubiopitch to convert the audio (which is
+  recorded by sox) into a series of frequency-values; all in real time.
+
+  Both programs are connected in a pipeline like this:
+
+    #{cmd_aub}
+
+  this pipeline emits a stream of timestamps + frequencies, which in
+  turn will be consumed by harpwise.
+
+  The test will start the pipeline above and print its results for
+  10 seconds; the first 10 lines will also be captured and printed again
+  after termination so that you may inspect them for errors.
+  
+  Please note, that a few error-messages are okay, as long as after
+  that the stream of timestamps + frequencies sets in.
+
+  Your part is:
+
+    - Make some sound, e.g. play your harmonica; also play lower and
+      higher to see if the printed frequencies change accordingly
+    - After the pipeline has been terminated, scan the re-printed output
+      for error messages
+
+  end_of_intro
+
+  print "\e[?25l"  ## hide cursor
+
+  puts
+  puts_underlined 'Converting sound to frequencies'
+  aub_time = 10
+
+  puts "Start making sound and press any key to start: "
+  drain_chars
+  one_char
+  puts "\n\e[32mFrequency pipeline started for #{aub_time} secs.\e[0m\n\n"
+  puts "\e[34m===== START of output of sox + aubiopitch =====\e[0m"
+  puts
+
+  #
+  # Remark: The code below is deliberately similar to the one in sox_to_aubiopitch_to_queue,
+  # see there too for some explanations
+  # 
+  _, ppl_out_err, wait_thr = Open3.popen2e(cmd_aub)
+  # cmd may need some time to terminate in the case of startup problems
+  sleep 0.2
+  if !wait_thr.alive? && !IO.select([ppl_out_err], nil, nil, 2)
+    err "Command terminated unexpectedly, please see errors above"
+  end
+  line = nil
+  lines = []
+  no_gets = 0
+  started = Time.now
+  loop do
+    # gets (below) might block, so guard it by timeout
+    begin
+      Timeout.timeout(2) do
+        # gets might return nil for unknown reasons (e.g. in an unpatched homebrew-setup)
+        while !(line = ppl_out_err.gets)
+          sleep 0.5
+          no_gets += 1
+          err "10 times no output from command" if no_gets > 10
+        end
+        line.chomp!
+        puts line
+      end
+    rescue Timeout::Error
+      err "No output from comand"
+    end  # check for timeout in gets
+    
+    sleep 0.02 if $testing
+    lines << line if lines.length < 10
+    
+    break if Time.now - started > 10
+  end
+  
+  puts
+  puts "\e[0m\nPipeline done."
+  puts
+  puts "Have timestamps + frequencies been printed above ?"
+  puts "Did they vary according to the pitch of your sounds ?"
+  puts 
+  puts "Here are the first ten lines repeated for inspection:\e[2m"
+  puts
+  lines.each {|l| puts l}
+  puts
+  puts "\e[0mSome initial warnings or error messages are okay, as long as they are\nfollowed by the expected data."
+  puts
+  puts "Diagnosis done."
+  puts
+  Process.kill('KILL', wait_thr.pid) if wait_thr.alive?
 end
 
 

@@ -2608,7 +2608,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[16]['First argument for mode tools should be one of these'] }
+  expect { screen[15]['First argument for mode tools should be one of these'] }
   kill_session
 end
 
@@ -3120,7 +3120,7 @@ do_test 'id-99: widgets' do
   kill_session
 end
 
-do_test 'id-100: tool diagnosis' do
+do_test 'id-100: tool diag' do
   new_session
   tms 'harpwise tool diag'
   tms :ENTER
@@ -3131,10 +3131,22 @@ do_test 'id-100: tool diagnosis' do
   expect { screen[18]['Listen and check'] }
   tms :ENTER
   sleep 6
-  expect { screen[7]['Recording and playback okay ?'] }
+  expect { screen[6]['Recording and playback okay ?'] }
   tms 'y'
   sleep 2
-  expect { screen[7]['Other options necessary for sox might be'] }
+  expect { screen[4]['Other options necessary for sox might be'] }
+  kill_session
+end
+
+do_test 'id-100a: tool diag2' do
+  new_session
+  tms 'harpwise tool diag2'
+  tms :ENTER
+  sleep 2
+  expect { screen[8]['Please note, that a few error-messages are okay'] }
+  tms :ENTER
+  sleep 6
+  expect { screen[5]['Here are the first ten lines repeated for inspection'] }
   kill_session
 end
 

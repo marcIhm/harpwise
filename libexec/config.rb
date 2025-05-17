@@ -300,9 +300,10 @@ def find_and_check_dirs_early
                  else
                    "#{$dirs[:home]}/harpwise"
                  end
-  # needs to be the same as $exch_tt in run_tests.rb and will be created there; Serves for
-  # data exchange between run_tests.rb and harpwise
+  # needs to be the same as $exch_tt in run_tests.rb. Serves for data exchange between
+  # run_tests.rb and harpwise
   $dirs[:exch_tester_tested] = "#{$dirs[:home]}/harpwise_exch_tester_tested"
+  FileUtils.mkdir_p($dirs[:exch_tester_tested]) if $testing && !File.directory?($dirs[:exch_tester_tested])
 
   # version 6.11 has renamed ~/.harpwise into ~/harpwise, so that it tends to collide with
   # the git repo on my developer machine, which was named ~/harpwise too. So we try to
