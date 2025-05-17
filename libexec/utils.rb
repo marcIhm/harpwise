@@ -893,7 +893,7 @@ class FamousPlayers
         next if group == 'name'
         @has_details[name] = false if lines.length == 0
         sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
-        lines.each {|l| err "Internal error: Has not been read as a string: '#{l}'" unless l.is_a?(String)}
+        lines.each {|l| err "Internal error: Line for '#{name}' in group '#{group}' from #{pfile} not been read as a string: '#{l}'" unless l.is_a?(String)}
         next if group == 'image'
         lines.each do |l|
           gl = "#{group.capitalize}: #{l}"

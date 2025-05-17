@@ -67,7 +67,7 @@ def check_screen graceful: false, hint_on_large_term: false
   rescue ArgumentError => e
     puts "\n[width, height] = [#{$term_width}, #{$term_height}]"
     puts
-    err e.to_s unless graceful
+    err e.to_s + "\nPlease resize screen and try again." unless graceful
     puts "\e[0m#{e}"
     return false
   end
