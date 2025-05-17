@@ -61,7 +61,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
-        $msgbuf.print "Terminal [width, height] = [#{$term_width}, #{$term_height}] is #{$term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]  ?  "\e[0;101mON THE EDGE\e[0;2m of"  :  'above'} minimum [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}]", 2, 5, :term
+        proximity = if $term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]
+                      "\e[0;101mON THE EDGE\e[0;2m of"
+                    elsif  $term_width == $conf[:term_min_width] + 1 || $term_height == $conf[:term_min_height] + 1
+                      "\e[0;101mnear the edge\e[0;2m of"
+                    else
+                      'above'
+                    end
+        $msgbuf.print "Terminal [width,height] = [#{$term_width},#{$term_height}] is #{proximity} minimum [#{$conf[:term_min_width]},#{$conf[:term_min_height]}]", 2, 5, :term
       end
       # updates messages and returns true, if hint is allowed
       hints_old = nil if $msgbuf.update(tntf, refresh: true)
