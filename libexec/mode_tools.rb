@@ -1041,7 +1041,7 @@ def tool_diag2
   loop do
     # gets (below) might block, so guard it by timeout
     begin
-      Timeout.timeout(2) do
+      Timeout.timeout(10) do
         # gets might return nil for unknown reasons (e.g. in an unpatched homebrew-setup)
         while !(line = ppl_out_err.gets)
           sleep 0.5
@@ -1066,8 +1066,10 @@ def tool_diag2
   puts
   puts "Have timestamps + frequencies been printed above ?"
   puts "Did they vary according to the pitch of your sounds ?"
+  puts
+  puts "When when there was no sound, did the frequency read 0.000 ?\nOtherwise you microphone's input-level might be set too low."
   puts 
-  puts "Here are the first ten lines repeated for inspection:\e[2m"
+  puts "Here are the first 10 lines repeated for inspection:\e[2m"
   puts
   lines.each {|l| puts l}
   puts
