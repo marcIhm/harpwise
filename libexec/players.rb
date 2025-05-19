@@ -381,16 +381,15 @@ def play_interactive_interval semi1, semi2
   puts "(type 'h' for help)\e[0m\n\n"
 
   delta_semi = semi2 - semi1
-  tfiles = [1, 2].map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   gap = ConfinedValue.new(0.2, 0.2, 0, 2)
   len = ConfinedValue.new(3, 1, 1, 8)
+  tfiles = synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
   cmd_template = if $testing
                    "sleep 1"
                  else
                    "play --norm=%s -q --combine mix #{tfiles[0]} #{tfiles[1]}"
                  end
   cmd = cmd_template % $vol.to_i
-  synth_for_inter_or_chord([semi1, semi2], tfiles, gap.val, len.val)
   new_sound = true
   paused = false
   pplayer = nil
@@ -412,7 +411,7 @@ def play_interactive_interval semi1, semi2
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          synth_for_inter_or_chord([semi1, semi2], tfiles, gap.val, len.val)
+          tfiles = synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
           puts
           print_interval semi1, semi2
           puts "\e[0m\e[2m\n  Gap: #{gap.val}, length: #{len.val}\e[0m\n\n"
@@ -523,20 +522,19 @@ def play_interactive_chord semis, args_orig
   puts "\e[0m\e[2mPlaying in loop.\n"
   puts "(type 'h' for help)\e[0m\n\n"
 
-  tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   wave = 'sawtooth'
   gap = ConfinedValue.new(0.2, 0.1, 0, 2)
   len = ConfinedValue.new(6, 1, 1, 16)
   # chord dscription and sound description
   cdesc = semis.zip(args_orig).map {|s,o| "#{o} (#{s}st)"}.join('  ')
   sdesc = get_sound_description(wave, gap.val, len.val)
+  tfiles = synth_for_inter_or_chord(semis, gap.val, len.val, wave)
   cmd_template = if $testing
                    "sleep 1"
                  else
                    "play --norm=%s -q --combine mix #{tfiles.join(' ')}"
                  end
   cmd = cmd_template % $vol.to_i
-  synth_for_inter_or_chord(semis, tfiles, gap.val, len.val, wave)
   new_sound = false
   paused = false
   pplayer = nil
@@ -560,7 +558,7 @@ def play_interactive_chord semis, args_orig
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          synth_for_inter_or_chord(semis, tfiles, gap.val, len.val, wave)
+          tfiles = synth_for_inter_or_chord(semis, gap.val, len.val, wave)
           sdesc = get_sound_description(wave, gap.val, len.val)
           new_sound = false
         end

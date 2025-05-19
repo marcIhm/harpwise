@@ -967,6 +967,87 @@ class HearInter < QuizFlavour
 end
 
 
+class HearChord < QuizFlavour
+
+  $q_class2colls[self] = %w(no-mic)
+  
+  def initialize first_round
+    super
+    
+    @choices = $chords_quiz[$opts[:difficulty]].keys
+    @choices_orig = @choices.clone
+    @key = $common_harp_keys.sample
+    @base = @key + '4'
+
+    begin
+      @solution = @choices.sample
+      @semis = $chords_quiz[$opts[:difficulty]][@solution].sample.map {|s| s- note2semi('a4') + note2semi(@base)}
+    end while @@prevs.include?(@semis)
+    @@prevs << @semis
+    @@prevs.shift if @@prevs.length > 2
+
+    @prompt = 'Choose the Chord you have heard:'
+    @help_head = 'Chord'
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+      ", taking #{$chords_quiz[$opts[:difficulty]].length} chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations"
+  end
+
+  def after_solve
+    puts "Not yet implemented."
+  end
+  
+  def issue_question
+    puts "\e[94mKey of #{@key.upcase}\e[34m: Playing the base note #{@base} and then an unknown chord to ask for its name\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    tfiles = synth_for_inter_or_chord(@semis, 0, 1, 'pluck')
+    sleep 0.1
+    print "\nBase note #{@base}:\n  #{@base}"
+    wfile = this_or_equiv("#{$sample_dir}/%s", @base, %w(.wav .mp3))
+    sys "play -q --norm=#{$vol.to_i} #{wfile} trim 0 1", $sox_fail_however
+    sleep 0.1
+    print "\nChord in question:\n  ?"
+    cmd = if $testing
+            "sleep 1"
+          else
+            "play -q --norm=#{$vol.to_i} --combine mix " + tfiles.join(' ')
+          end
+    sys cmd, $sox_fail_however
+    puts
+  end
+
+  def help2
+    puts "Playing chord with gaps:"
+    puts "Not yet implemented."
+  end
+
+  def help2_desc
+    ['.help-gapped', 'Play chord with gaps']
+  end
+
+  def help3
+    puts "Playing variations:"
+    puts "Not yet implemented."
+  end
+
+  def help3_desc
+    ['.help-play-variations', 'Play all variations of chord']
+  end
+
+  def help4
+    puts "Printing chord:"
+    puts "Not yet implemented."
+  end
+
+  def help4_desc
+    ['.help-print', 'Print notes of chord']
+  end
+
+end
+
+
 class AddInter < QuizFlavour
 
   $q_class2colls[self] = %w(silent inters no-mic)
@@ -1006,7 +1087,6 @@ class AddInter < QuizFlavour
   end
   
   def issue_question
-    puts
     puts "\e[34mTake hole \e[94m#{@holes[0]}\e[34m and #{@verb} interval '\e[94m#{$intervals[@dsemi.abs][0]}\e[34m'\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1605,9 +1685,8 @@ class HearKey < QuizFlavour
     $ctl_kb_queue.clear
     if @seq == :chord
       semis = [0, 4, 7].map {|s| isemi + s}
-      tfiles = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
       unless @wavs_created
-        synth_for_inter_or_chord(semis, tfiles, 0.2, 2, :sawtooth)
+        tfiles = synth_for_inter_or_chord(semis, 0.2, 2, :sawtooth)
         @wavs_created = true
       end
       play_recording_and_handle_kb tfiles

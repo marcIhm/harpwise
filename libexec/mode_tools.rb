@@ -609,10 +609,10 @@ end
 def tool_chords
 
   puts "\nChords for harp in key of #{$key} played in second position:\n\n"
-  # offset for playing in second position i.e. for staring with the fifth note
   st_abs = $maj_sc_st_abs.clone
   # chord-v wraps to next octave, so we need to extend scale
   st_abs << $maj_sc_st_abs[-1] + $maj_sc_st_diff[0]
+  # offset for playing in second position i.e. for staring with the fifth note
   offset = st_abs[5-1]
   names = %w(i iv v)
   [[1, 3, 5], [4, 6, 8], [5, 7, 9]].each do |chord|
@@ -993,7 +993,7 @@ def tool_diag2
     #{cmd_aub}
 
   this pipeline emits a stream of timestamps + frequencies, which in
-  turn will be consumed by harpwise.
+  turn will be read and displayed by harpwise.
 
   The test will start the pipeline above and print its results for
   10 seconds; the first 10 lines will also be captured and printed again
@@ -1067,7 +1067,7 @@ def tool_diag2
   puts "Have timestamps + frequencies been printed above ?"
   puts "Did they vary according to the pitch of your sounds ?"
   puts
-  puts "When when there was no sound, did the frequency read 0.000 ?\nOtherwise you microphone's input-level might be set too low."
+  puts "When when there was no sound, did the frequency actually read  0.000  ?\nOtherwise you microphone's amplification might be set too high\nor your environment might be too noisy."
   puts 
   puts "Here are the first 10 lines repeated for inspection:\e[2m"
   puts

@@ -211,6 +211,10 @@ quiz:
     plays a tempo and asks for its bpm
   replay: |
     harpwise plays a sequence of holes and asks you to play it back
+  hear-chord: |
+    wise chooses a base note and a chord; it names the base note and
+    plays it as well as the chord. Then you are expected to identify
+    the chord
 samples:
   record: |
     harpwise assists while you play the holes for the given type and

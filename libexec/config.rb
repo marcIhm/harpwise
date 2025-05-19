@@ -815,7 +815,7 @@ def read_and_set_musical_config
     # dont use prepend here
     intervals[-st] = intervals[st].map {|i| '-' + i}
   end
-  
+
   # intervals inverted
   intervals_inv = Hash.new
   intervals.each do |k,vv|
@@ -837,6 +837,18 @@ def read_and_set_musical_config
     harp[hole][:shifted_by][0] = hole
   end
   
+  $chords_quiz = {easy: {'I' => [[0,4,7]],
+                         'IV' => [[5,9,12]],
+                         'V' => [[7,11,14]]}}
+  $chords_quiz[:hard] = {}
+  $chords_quiz[:easy].each_key {|c| $chords_quiz[:hard][c] = $chords_quiz[:easy][c].clone}
+  $chords_quiz[:hard]['I'] << [4,7,12]
+  $chords_quiz[:hard]['IV'] << [0,5,9]
+  $chords_quiz[:hard]['V'] << [2,7,11]
+  $chords_quiz[:hard]['I7'] = [[0,4,7,10]]
+  $chords_quiz[:hard]['IV7'] = [[5,9,12,15]]
+  $chords_quiz[:hard]['V7'] = [[7,11,14,17]]
+
   [ harp,
     harp_holes,
     harp_notes,

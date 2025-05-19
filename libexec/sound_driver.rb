@@ -347,8 +347,8 @@ def play_hole_or_note_and_collect_kb hon, duration
 end
 
 
-def synth_for_inter_or_chord semis, files, gap, len, wave = 'pluck'
-  fail 'Internal error: unequal param len' unless semis.length == files.length
+def synth_for_inter_or_chord semis, gap, len, wave = 'pluck'
+  files = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   im_files = [1, 2].map {|i| "#{$dirs[:tmp]}/intermediate_#{i}.wav"}
   times = (0 ... semis.length).map {|i| 0.3 + i*gap}
   files.zip(semis, times).each do |f, s, t|
@@ -359,6 +359,7 @@ def synth_for_inter_or_chord semis, files, gap, len, wave = 'pluck'
     # append those two
     sys("sox -q #{im_files[0]} #{im_files[1]} #{f}") 
   end
+  return files
 end
 
 
