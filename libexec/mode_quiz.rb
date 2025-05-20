@@ -250,7 +250,7 @@ class QuizFlavour
                     ',describe' => 'Repeat initial description of flavour',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
-    [help2_desc, help3_desc, help4_desc, help5_desc].each_with_index do |desc, idx|
+    [help2_desc, help3_desc, help4_desc, help5_desc, help6_desc].each_with_index do |desc, idx|
       next unless desc
       all_choices << desc[0]
       choices_desc[desc[0]] = desc[1]
@@ -324,6 +324,9 @@ class QuizFlavour
     when all_helps[4]
       help5
       return :reask
+    when all_helps[5]
+      help6
+      return :reask
     else
       stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
       @choices.delete(answer)
@@ -363,6 +366,10 @@ class QuizFlavour
   end
 
   def help5_desc
+    nil
+  end
+
+  def help6_desc
     nil
   end
 
@@ -699,7 +706,6 @@ class HearScale < QuizFlavour
     ['.help-play-compare', 'Select a scale and play it for comparison']
   end
 
-  
 end
 
 
@@ -970,20 +976,33 @@ end
 class HearChord < QuizFlavour
 
   $q_class2colls[self] = %w(no-mic)
+
+  def get_variations chord
+    $chords_quiz[:hard][chord].map do |var|
+      var.map do |sm|
+        sm - note2semi('a4') + note2semi(@base)
+      end
+    end    
+  end
   
   def initialize first_round
     super
     
     @choices = $chords_quiz[$opts[:difficulty]].keys
     @choices_orig = @choices.clone
-    @key = $common_harp_keys.sample
-    @base = @key + '4'
+    @base = $key + '4'
 
     begin
       @solution = @choices.sample
-      @semis = $chords_quiz[$opts[:difficulty]][@solution].sample.map {|s| s- note2semi('a4') + note2semi(@base)}
+      @variations = get_variations @solution
+      @semis = if $opts[:difficulty] == :hard
+                 @variations.sample
+               else
+                 @variations[0]
+               end
     end while @@prevs.include?(@semis)
     @@prevs << @semis
+    
     @@prevs.shift if @@prevs.length > 2
 
     @prompt = 'Choose the Chord you have heard:'
@@ -995,54 +1014,130 @@ class HearChord < QuizFlavour
       ", taking #{$chords_quiz[$opts[:difficulty]].length} chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations"
   end
 
-  def after_solve
-    puts "Not yet implemented."
-  end
-  
-  def issue_question
-    puts "\e[94mKey of #{@key.upcase}\e[34m: Playing the base note #{@base} and then an unknown chord to ask for its name\e[0m"
-    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
-    tfiles = synth_for_inter_or_chord(@semis, 0, 1, 'pluck')
-    sleep 0.1
-    print "\nBase note #{@base}:\n  #{@base}"
+  def play_base_note
+    print "Base note:  #{@base}"
     wfile = this_or_equiv("#{$sample_dir}/%s", @base, %w(.wav .mp3))
-    sys "play -q --norm=#{$vol.to_i} #{wfile} trim 0 1", $sox_fail_however
-    sleep 0.1
-    print "\nChord in question:\n  ?"
+    cmd = if $testing
+            "sleep 1"
+          else
+            "play -q --norm=#{$vol.to_i} #{wfile} trim 0 1"
+          end
+    sys cmd, $sox_fail_however
+  end
+
+  def play_chord gap: 0, dura: 1, semis: @semis
+    tfiles = synth_for_inter_or_chord(semis, gap, dura, 'pluck')
     cmd = if $testing
             "sleep 1"
           else
             "play -q --norm=#{$vol.to_i} --combine mix " + tfiles.join(' ')
           end
     sys cmd, $sox_fail_however
+  end
+  
+  def after_solve
+    puts
+    play_base_note
+    puts "\nChord as single notes:"
+    tfiles = synth_for_inter_or_chord(@semis, 0, 1, 'pluck')
+    @semis.zip(tfiles).each do |s,w|
+      print '  ' + semi2note(s)
+      cmd = if $testing
+              "sleep 1"
+            else
+              "play -q --norm=#{$vol.to_i} " + w
+            end
+      sys cmd, $sox_fail_however    
+    end
+    puts "\nChord as a whole:\n  " + @semis.map {|s| semi2note(s)}.join('  ')
+    play_chord
+  end
+
+  def issue_question
+    puts "\e[94mKey of #{$key.upcase}\e[34m: Playing the base note #{@base} and then an unknown chord to ask for its name\e[0m"
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+    sleep 0.1
+    puts
+    play_base_note
+    sleep 0.1
+    print "\nChord in question:  ?"
+    play_chord
     puts
   end
 
   def help2
-    puts "Playing chord with gaps:"
-    puts "Not yet implemented."
+    print 'Playing chord with gaps ... '
+    play_chord gap: 0.3, dura: 3
+    puts 'done'
   end
 
   def help2_desc
     ['.help-gapped', 'Play chord with gaps']
   end
 
+  def plpr_vars show: false, vars: @variations, head: true
+    if head
+      puts "Playing variations #{vars.length} variations of chord, where 1 of them is already known:"
+      puts
+    end
+    print '  '
+    play_base_note
+    puts
+    vars.each_with_index do |var, idx|
+      sleep 0.5 if idx > 0
+      print "Variation #{idx+1}:"
+      if show
+        print "  \e[32m"
+        print var.map {|s| semi2note(s)}.join('  ')
+        print "\e[0m  "
+      else
+        print '  ?'
+      end
+      play_chord semis: var
+      puts
+    end
+  end
+
   def help3
-    puts "Playing variations:"
-    puts "Not yet implemented."
+    plpr_vars show: false
   end
 
   def help3_desc
-    ['.help-play-variations', 'Play all variations of chord']
+    ['.help-play-vars', 'Play all variations of chord']
   end
 
   def help4
-    puts "Printing chord:"
-    puts "Not yet implemented."
+    plpr_vars show: true
   end
 
   def help4_desc
-    ['.help-print', 'Print notes of chord']
+    ['.help-play-print-vars', 'Play and print all variations of chord']
+  end
+
+  def help5
+    puts "Printing chord,"
+    print "      as notes:  "
+    puts @semis.map {|s| semi2note(s)}.join('  ')
+    print "  as semitones:  "
+    puts @semis.join('  ')
+    puts
+  end
+
+  def help5_desc
+    ['.help-print', 'Print notes and semitones of chord']
+  end
+
+  def help6
+    puts "Playing all chords with all variations:"
+    @choices_orig.each do |chord|
+      puts
+      puts "\e[32mChord #{chord}\e[0m"
+      plpr_vars vars: get_variations(chord), head: false
+    end
+  end
+
+  def help6_desc
+    ['.help-play-all-chords', 'Play all chords with all variations']
   end
 
 end

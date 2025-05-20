@@ -2835,7 +2835,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   new_session
   tms 'harpwise quiz hear-scale --difficulty easy'
   tms :ENTER
-  sleep 2
+  sleep 4
   tms :ENTER
   sleep 2
   expect { screen[10]["difficulty is 'EASY', taking one scale out of 4"] }
@@ -2907,7 +2907,7 @@ do_test 'id-94: quiz-flavour add-inter and change key' do
   tms 'skip'
   tms :ENTER
   tms :TAB
-  expect { screen[7]['New question and new key of'] }  
+  expect { screen[8]['New question and new key of'] }  
   kill_session
 end
 
@@ -3146,7 +3146,7 @@ do_test 'id-100a: tool diag2' do
   expect { screen[8]['Please note, that a few error-messages are okay'] }
   tms :ENTER
   sleep 6
-  expect { screen[5]['Here are the first ten lines repeated for inspection'] }
+  expect { screen[5]['Here are the first 10 lines repeated for inspection'] }
   kill_session
 end
 
@@ -3172,7 +3172,7 @@ do_test 'id-102: help on flavours via TAB' do
   sleep 1
   tms 'describe-all'
   tms :ENTER
-  expect { screen[20]['harpwise plays a sequence'] }
+  expect { screen[16]['harpwise plays a sequence'] }
   kill_session
 end
 
@@ -3373,12 +3373,25 @@ do_test 'id-112: quiz-flavour play-shifted' do
   kill_session
 end
 
+do_test 'id-112a: quiz-flavour hear-chord' do
+  new_session
+  tms 'harpwise quiz hear-chord --difficulty easy'
+  tms :ENTER
+  sleep 3
+  expect { screen[13]['Taking the harp key as base, the wise chooses a chord'] }
+  tms :ENTER
+  tms 'SKIP'
+  tms :ENTER
+  expect { screen[11]['The correct answer is'] }
+  kill_session
+end
+
 do_test 'id-113: quiz-flavour choose' do
   new_session
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 20 (all) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 21 (all) flavours and 7 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
@@ -3949,11 +3962,9 @@ end
 puts
 puts
 
-[$exch_tt, $datadir].each do |dir|
-  if File.exist?(dir)
-    FileUtils.rm_r(dir) 
-    puts "removed #{dir}"
-  end
+if File.exist?($exch_tt)
+  FileUtils.rm_r($exch_tt) 
+  puts "removed #{$exch_tt}"
 end
 
 puts
