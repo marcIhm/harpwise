@@ -2838,7 +2838,7 @@ do_test 'id-92: quiz-flavour hear-scale easy' do
   sleep 4
   tms :ENTER
   sleep 2
-  expect { screen[10]["difficulty is 'EASY', taking one scale out of 4"] }
+  expect { screen[10]["difficulty is EASY, taking one scale out of 4"] }
   expect { screen[16]['Choose the scale you have heard:'] }  
   tms 'help-narrow'
   tms :ENTER
@@ -2853,7 +2853,7 @@ do_test 'id-92a: quiz-flavour hear-scale hard' do
   sleep 2
   tms :ENTER
   sleep 8
-  expect { screen[10]["difficulty is 'HARD', taking one scale out of 6"] }
+  expect { screen[10]["difficulty is HARD, taking one scale out of 6"] }
   expect { screen[16]['Choose the scale you have heard:'] }
   kill_session
 end
@@ -2876,7 +2876,7 @@ do_test 'id-93: quiz-flavour hear-inter' do
   sleep 2
   tms :ENTER
   sleep 2  
-  expect { screen[10]["difficulty is 'EASY'"] }  
+  expect { screen[10]["difficulty is EASY"] }  
   expect { screen[16]['Choose the Interval you have heard:'] }
   tms 'SKIP'
   tms :ENTER

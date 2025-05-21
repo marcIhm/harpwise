@@ -250,7 +250,7 @@ class QuizFlavour
                     ',describe' => 'Repeat initial description of flavour',
                     all_helps[0] => 'Remove some solutions, leaving less choices'}
     
-    [help2_desc, help3_desc, help4_desc, help5_desc, help6_desc].each_with_index do |desc, idx|
+    [help2_desc, help3_desc, help4_desc, help5_desc, help6_desc, help7_desc].each_with_index do |desc, idx|
       next unless desc
       all_choices << desc[0]
       choices_desc[desc[0]] = desc[1]
@@ -327,6 +327,9 @@ class QuizFlavour
     when all_helps[5]
       help6
       return :reask
+    when all_helps[6]
+      help7
+      return :reask
     else
       stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
       @choices.delete(answer)
@@ -335,7 +338,7 @@ class QuizFlavour
   end
 
   def self.difficulty_head
-    "difficulty is '#{$opts[:difficulty].upcase}'"
+    "difficulty is \e[0m\e[34m#{$opts[:difficulty].upcase}\e[0m\e[2m"
   end
 
   def play_hons hide: nil, reverse: false, hons: nil, newline: true
@@ -370,6 +373,10 @@ class QuizFlavour
   end
 
   def help6_desc
+    nil
+  end
+
+  def help7_desc
     nil
   end
 
@@ -1049,6 +1056,7 @@ class HearChord < QuizFlavour
             end
       sys cmd, $sox_fail_however    
     end
+    puts
     puts "\nChord as a whole:\n  " + @semis.map {|s| semi2note(s)}.join('  ')
     play_chord
   end
@@ -1059,13 +1067,19 @@ class HearChord < QuizFlavour
     sleep 0.1
     puts
     play_base_note
+    puts
     sleep 0.1
-    print "\nChord in question:  ?"
-    play_chord
+    print 'Chord in question: '
+    3.times do
+      print ' ?'
+      play_chord
+    end
     puts
   end
 
   def help2
+    play_base_note
+    puts
     print 'Playing chord with gaps ... '
     play_chord gap: 0.3, dura: 3
     puts 'done'
@@ -1077,14 +1091,14 @@ class HearChord < QuizFlavour
 
   def plpr_vars show: false, vars: @variations, head: true
     if head
-      puts "Playing variations #{vars.length} variations of chord, where 1 of them is already known:"
+      puts "Playing variations #{vars.length} variations of chord (3 times each),\nwhere 1 of them is already known:"
       puts
     end
-    print '  '
-    play_base_note
-    puts
     vars.each_with_index do |var, idx|
       sleep 0.5 if idx > 0
+      print '  '
+      play_base_note
+      puts
       print "Variation #{idx+1}:"
       if show
         print "  \e[32m"
@@ -1093,7 +1107,7 @@ class HearChord < QuizFlavour
       else
         print '  ?'
       end
-      play_chord semis: var
+      3.times {play_chord semis: var}
       puts
     end
   end
@@ -1115,29 +1129,51 @@ class HearChord < QuizFlavour
   end
 
   def help5
-    puts "Printing chord,"
-    print "      as notes:  "
-    puts @semis.map {|s| semi2note(s)}.join('  ')
-    print "  as semitones:  "
-    puts @semis.join('  ')
+    puts "Playing all chords (one variation only), 3 times each:"
+    @choices_orig.each do |chord|
+      play_base_note
+      puts
+      print "\e[32mChord #{chord}\e[0m "
+      semis = if chord == @solution
+                @semis
+              else
+                get_variations(chord)[0]
+              end
+      3.times do
+        print '.'
+        play_chord semis: semis
+      end
     puts
+    end
   end
 
   def help5_desc
-    ['.help-print', 'Print notes and semitones of chord']
+    ['.help-play-all-chords', 'Play all chords one variation each']
   end
 
   def help6
-    puts "Playing all chords with all variations:"
+    puts "Playing all chords with all variations, 3 times each:"
     @choices_orig.each do |chord|
-      puts
       puts "\e[32mChord #{chord}\e[0m"
       plpr_vars vars: get_variations(chord), head: false
     end
   end
 
   def help6_desc
-    ['.help-play-all-chords', 'Play all chords with all variations']
+    ['.help-play-all-chords-vars', 'Play all chords with all variations']
+  end
+
+  def help7
+    puts "Printing chord,"
+    print "      as notes:  "
+    puts @semis.map {|s| semi2note(s)}.join('  ')
+    print "  as semitones:  "
+    puts @semis.join('  ')
+    puts  "      \e[2m(a4 = 0)\e[0m"
+  end
+
+  def help7_desc
+    ['.help-print', 'Print notes and semitones of chord']
   end
 
 end
