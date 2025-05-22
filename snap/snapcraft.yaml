@@ -9,7 +9,7 @@ name: harpwise
 # is 3.1 and core22 only includes 3.0
 base: core24
 version: '6.12.1'
-summary: A harmonica tool for the command line, using microphone and speaker.
+summary: A harmonica tool for the command line, using microphone and speaker
 description: |
   Harpwise supports your daily harmonica practice with scales, chords and
   licks. It offers various tools, an explorable quiz and may guide your

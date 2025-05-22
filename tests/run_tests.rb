@@ -3896,7 +3896,8 @@ do_test 'id-143: various comments among holes' do
 end
 
 do_test 'id-144: check consistent usage of short and long description' do
-  short_desc = File.read("resources/short_description").strip
+  # Do not care for punctuation or whitespace at line ending
+  short_desc = File.read("resources/short_description").gsub(/([[:punct:]]|\s)*$/,"")
   long_desc = File.read("resources/long_description").lines.map(&:strip).join(' ')
 
   sd_readme = nil
@@ -3912,6 +3913,7 @@ do_test 'id-144: check consistent usage of short and long description' do
     end
     in_summary ||= ( line == '* Summary' )
   end
+  sd_readme.gsub!(/([[:punct:]]|\s)*$/,"")
   ld_readme = ld_readme[0 ... -1].join(' ')
   expect(short_desc, sd_readme) { short_desc == sd_readme }
   expect(long_desc, ld_readme) { long_desc == ld_readme }
@@ -3926,18 +3928,19 @@ do_test 'id-144: check consistent usage of short and long description' do
       sd_usage ||= line 
     end
   end
+  sd_usage.gsub!(/([[:punct:]]|\s)*$/,"")
   ld_usage = ld_usage.join(' ')
   expect(short_desc, sd_usage) { short_desc == sd_usage }
   expect(long_desc, ld_usage) { long_desc == ld_usage }
 
   snap = YAML.load_file('snap/snapcraft.yaml')
-  sd_snap = snap['summary']
+  sd_snap = snap['summary'].gsub!(/([[:punct:]]|\s)*$/,"")
   ld_snap = snap['description'].lines.map(&:chomp).join(' ')
   expect(short_desc, sd_snap) { short_desc == sd_snap }
   expect(long_desc, ld_snap) { long_desc == ld_snap }
 
   response = Net::HTTP.get_response(URI('https://api.github.com/repos/marcihm/harpwise'))
-  sd_github = JSON.parse(response.body)['description']
+  sd_github = JSON.parse(response.body)['description'].gsub!(/([[:punct:]]|\s)*$/,"")
   expect(short_desc, sd_github) { short_desc == sd_github }
 end
 
