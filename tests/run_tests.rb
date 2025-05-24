@@ -3172,7 +3172,7 @@ do_test 'id-102: help on flavours via TAB' do
   sleep 1
   tms 'describe-all'
   tms :ENTER
-  expect { screen[16]['harpwise plays a sequence'] }
+  expect { screen[15]['harpwise plays a sequence'] }
   kill_session
 end
 
