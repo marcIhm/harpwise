@@ -1018,7 +1018,8 @@ class HearChord < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", taking #{$chords_quiz[$opts[:difficulty]].length} chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations"
+      ", taking #{$chords_quiz[$opts[:difficulty]].length} " +
+      ($opts[:difficulty] == :hard  ?  "chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations"  :  'simple chords')
   end
 
   def play_base_note
@@ -1046,7 +1047,7 @@ class HearChord < QuizFlavour
     puts
     play_base_note
     puts "\nChord as single notes:"
-    tfiles = synth_for_inter_or_chord(@semis, 0, 1, 'pluck')
+    tfiles = synth_for_inter_or_chord(@semis, 0, 0.7, 'pluck')
     @semis.zip(tfiles).each do |s,w|
       print '  ' + semi2note(s)
       cmd = if $testing
@@ -1078,11 +1079,14 @@ class HearChord < QuizFlavour
   end
 
   def help2
-    play_base_note
     puts
-    print 'Playing chord with gaps ... '
-    play_chord gap: 0.3, dura: 3
-    puts 'done'
+    3.times do
+      play_base_note
+      puts
+      print 'Playing chord with gaps: '
+      play_chord gap: 0.2, dura: 3
+      puts '?'
+    end
   end
 
   def help2_desc
@@ -1091,7 +1095,11 @@ class HearChord < QuizFlavour
 
   def plpr_vars show: false, vars: @variations, head: true
     if head
-      puts "Playing variations #{vars.length} variations of chord (3 times each),\nwhere 1 of them is already known:"
+      if vars.length == 1
+        puts "For this chord and difficulty there is only one variation. Playing it:"
+      else
+        puts "Playing #{vars.length} variations of chord (3 times each),\nwhere 1 of them is already known:"
+      end
       puts
     end
     vars.each_with_index do |var, idx|
@@ -1117,7 +1125,11 @@ class HearChord < QuizFlavour
   end
 
   def help3_desc
-    ['.help-play-vars', 'Play all variations of chord']
+    if $opts[:difficulty] == :hard
+      ['.help-play-vars', 'Play all variations of chord']
+    else
+      nil
+    end
   end
 
   def help4
@@ -1125,11 +1137,16 @@ class HearChord < QuizFlavour
   end
 
   def help4_desc
-    ['.help-play-print-vars', 'Play and print all variations of chord']
+    if $opts[:difficulty] == :hard
+      ['.help-play-print-vars', 'Play and print all variations of chord']
+    else
+      nil
+    end
   end
 
   def help5
-    puts "Playing all chords (one variation only), 3 times each:"
+    puts "Playing all chords%s, 3 times each:" %
+         ($opts[:difficulty] == :hard  ?  ' (one variation only)'  :  '')
     @choices_orig.each do |chord|
       play_base_note
       puts
@@ -1148,7 +1165,11 @@ class HearChord < QuizFlavour
   end
 
   def help5_desc
-    ['.help-play-all-chords', 'Play all chords one variation each']
+    if $opts[:difficulty] == :hard
+      ['.help-play-all-chords', 'Play all chords one variation each']
+    else
+      ['.help-play-all-chords', 'Play all chords']
+    end
   end
 
   def help6
@@ -1160,7 +1181,11 @@ class HearChord < QuizFlavour
   end
 
   def help6_desc
-    ['.help-play-all-chords-vars', 'Play all chords with all variations']
+    if $opts[:difficulty] == :hard
+      ['.help-play-all-chords-vars', 'Play all chords with all variations']
+    else
+      nil
+    end
   end
 
   def help7

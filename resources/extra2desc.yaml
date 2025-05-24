@@ -213,8 +213,9 @@ quiz:
     harpwise plays a sequence of holes and asks you to play it back
   hear-chord: |
     taking the harp key as base, the wise chooses a chord (e.g. IV)
-    and maybe one of its variations; then it plays the base note as
-    well as the chord. You are expected to identify the chord
+    then it plays the base note as well as the chord. You are expected
+    to identify the chord. For difficulty HARD there are additional
+    chords and for some chords also variations
 samples:
   record: |
     harpwise assists while you play the holes for the given type and
