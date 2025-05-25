@@ -1080,13 +1080,11 @@ class HearChord < QuizFlavour
 
   def help2
     puts
-    3.times do
-      play_base_note
-      puts
-      print 'Playing chord with gaps: '
-      play_chord gap: 0.2, dura: 3
-      puts '?'
-    end
+    play_base_note
+    puts
+    print 'Playing chord with gaps: '
+    play_chord gap: 0.2, dura: 3
+    puts '?'
   end
 
   def help2_desc
@@ -1189,12 +1187,11 @@ class HearChord < QuizFlavour
   end
 
   def help7
-    puts "Printing chord,"
-    print "      as notes:  "
+    puts "Printing chord (base #{$key}4),"
+    print "                as notes:  "
     puts @semis.map {|s| semi2note(s)}.join('  ')
-    print "  as semitones:  "
-    puts @semis.join('  ')
-    puts  "      \e[2m(a4 = 0)\e[0m"
+    print "  diff semitones to base:  "
+    puts $chords_quiz[:hard][@solution].join('  ')
   end
 
   def help7_desc
