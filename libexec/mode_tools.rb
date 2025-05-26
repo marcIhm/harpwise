@@ -143,6 +143,7 @@ def tool_make_scale holes
   holes.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
+  holes = holes.uniq.sort_by {|h| $harp[h][:semis]}
   room = "\n\n\e[2A"
   line = "\n" + ' ' * ( $term_width / 8 ) + "\e[2m" + '-' * ( $term_width / 2 ) + "\e[0m\n\n"
   cont = {'holes' => holes}
@@ -197,9 +198,9 @@ def tool_make_scale holes
   puts
   puts "\e[2m#{ycont}\e[0m"
   puts
-  puts "has been written to:\n\e[2m#{sfile}\e[0m"
+  puts "has been written to:\n\n\e[2m#{sfile}\e[0m"
   puts
-  puts "New scale   \e[32m'#{sname}'\e[0m   has been created and may be used from now on."
+  puts "New scale   \e[32m'#{sname}'\e[0m   with #{holes.length} holes has been created."
   puts
   puts
 end

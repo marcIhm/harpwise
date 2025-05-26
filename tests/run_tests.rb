@@ -1771,7 +1771,7 @@ end
 do_test 'id-50c: tools make-scale' do
   FileUtils.rm($scalefile_testing) if File.exist?($scalefile_testing)
   new_session
-  tms 'harpwise tools make-scale +1'
+  tms 'harpwise tools make-scale +1 +2 +3 +1 +1'
   tms :ENTER
   sleep 1
   tms 'foo'
@@ -1782,8 +1782,9 @@ do_test 'id-50c: tools make-scale' do
   sleep 1
   tms 'for testing'
   tms :ENTER
-  expect { screen[13]['short: f'] }
-  expect { screen[14]['desc: for testing'] }
+  expect { screen[12]['short: f'] }
+  expect { screen[13]['desc: for testing'] }
+  expect { screen[20]['with 3 holes'] }
   expect($scalefile_testing) { File.exist?($scalefile_testing) }
   wait_for_end_of_harpwise
 
