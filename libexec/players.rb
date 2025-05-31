@@ -523,18 +523,11 @@ def play_interactive_chord semis, args_orig
   puts "(type 'h' for help)\e[0m\n\n"
 
   wave = 'sawtooth'
-  gap = ConfinedValue.new(0.2, 0.1, 0, 2)
-  len = ConfinedValue.new(6, 1, 1, 16)
+  single = false
+  gap = ConfinedValue.new(0.0, 0.1, 0, 2)
+  len = ConfinedValue.new(4, 1, 1, 16)
   # chord dscription and sound description
-  cdesc = semis.zip(args_orig).map {|s,o| "#{o} (#{s}st)"}.join('  ')
-  sdesc = get_sound_description(wave, gap.val, len.val)
-  tfiles = synth_for_inter_or_chord(semis, gap.val, len.val, wave)
-  cmd_template = if $testing
-                   "sleep 1"
-                 else
-                   "play --norm=%s -q --combine mix #{tfiles.join(' ')}"
-                 end
-  cmd = cmd_template % $vol.to_i
+  cmd, sdesc, cdesc = get_sound_and_desc(semis, args_orig, wave, gap.val, len.val, single)
   new_sound = false
   paused = false
   pplayer = nil
@@ -557,9 +550,7 @@ def play_interactive_chord semis, args_orig
           pplayer.check
         end
         if new_sound
-          cmd = cmd_template % $vol.to_i
-          tfiles = synth_for_inter_or_chord(semis, gap.val, len.val, wave)
-          sdesc = get_sound_description(wave, gap.val, len.val)
+          cmd, sdesc, cdesc = get_sound_and_desc(semis, args_orig, wave, gap.val, len.val, single)
           new_sound = false
         end
         if $testing
@@ -597,6 +588,18 @@ def play_interactive_chord semis, args_orig
         $vol.dec
         puts "\e[0m\e[2m#{$vol}\e[0m"
         new_sound = true
+      elsif $ctl_chord[:single]
+        single = if single
+                   rotate_among(single, :up, args_orig)
+                 else
+                   args_orig[0]
+                 end
+        new_sound = true
+        puts "\e[0m\e[2msingle #{single}\e[0m"
+      elsif $ctl_chord[:unsingle]
+        single = false
+        new_sound = true
+        puts "\e[0m\e[2munison\e[0m"
       elsif $ctl_chord[:wave_up]
         wave = rotate_among(wave, :up, $all_waves)
         new_sound = true
@@ -630,6 +633,8 @@ def play_interactive_chord semis, args_orig
                         "  SPACE: pause/continue  ESC,x,q: quit\n" +
                         "      w: change waveform       W: change waveform back\n" +
                         "      g: decrease time gap     G: increase\n" +
+                        "      s: play one note single; again for next note\n" +
+                        "      S: play in unison again\n" +
                         "      l: decrease length       L: increase\n" +
                         "      v: decrease volume       V: increase volume by 3dB\n" +
                         " RETURN: play again",
@@ -1064,8 +1069,29 @@ class ConfinedValue
 end
 
 
-def get_sound_description wave, gap, len
-  "Wave: #{wave}, Gap: #{gap}, Len: #{len}"
+def get_sound_and_desc semis, args_orig, wave, gap, len, single
+  arg2semi = args_orig.zip(semis).to_h
+  semi2arg = arg2semi.invert
+  cmd = if $testing
+          "sleep 2"
+        else
+          if single
+            tfile = "#{$dirs[:tmp]}/semi#{semi2arg[single]}.wav"
+            sys("sox -q -n #{tfile} synth #{len} #{wave} %#{arg2semi[single]}")
+            "play --norm=#{$vol.to_i} -q #{tfile}"
+          else
+            tfiles = synth_for_inter_or_chord(semis, gap, len, wave)
+            "play --norm=#{$vol.to_i} -q --combine mix #{tfiles.join(' ')}"
+          end
+        end
+  cdesc = if single
+            "#{single} (#{arg2semi[single]})"
+          else
+            semis.map {|s| "#{semi2arg[s]} (#{s}st)"}.join('  ')
+          end
+  [cmd,
+   "Wave: #{wave}, Gap: #{gap}, Len: #{len}",
+   cdesc]
 end
 
 

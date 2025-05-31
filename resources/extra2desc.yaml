@@ -19,7 +19,8 @@ play:
     two or more progressions with a dot (.) between; those can then
     be switched for each iteration.
   chord: |
-    play the given holes or notes simultanously as a chord
+    play the given holes or notes simultanously as a chord; also
+    useful for tongue-splits.
   user: |
     play back (if any), what you (the user) have recorded in mode
     'licks' before

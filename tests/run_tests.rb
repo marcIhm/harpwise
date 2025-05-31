@@ -2667,19 +2667,22 @@ do_test 'id-80: play chord' do
   tms :ENTER
   sleep 2
   expect { screen[8]['+1 (-9st)  +2 (-5st)  +3 (-2st)  -3/ (1st)'] }
-  expect { screen[10]['Wave: sawtooth, Gap: 0.2, Len: 6'] }
+  expect { screen[10]['Wave: sawtooth, Gap: 0.0, Len: 4'] }
   tms 'w'
   sleep 2
   expect { screen[12]['pluck'] }
   tms 'L'
   sleep 2
-  expect { screen[13]['Len: 7'] }
+  expect { screen[13]['Len: 5'] }
   tms 'G'
   sleep 2
-  expect { screen[14]['Gap: 0.3'] }
+  expect { screen[14]['Gap: 0.1'] }
+  tms 's'
+  sleep 2
+  expect { screen[15]['single +1'] }
   tms 'h'
   sleep 2
-  expect { screen[16]['Keys available while playing a chord'] }
+  expect { screen[14]['Keys available while playing a chord'] }
   kill_session
 end
 

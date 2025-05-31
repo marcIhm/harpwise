@@ -49,7 +49,7 @@ def set_global_vars_early
                                    :immediate => :to_b, :loop => :to_b, :fast => :to_b,
                                    :add_scales => :empty2nil})
   $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :any, :invalid]
-  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any, :invalid]
+  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any, :invalid, :single, :unsingle]
   $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down, :invalid]
   $conf_meta[:ctrls_play_prog] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :prev_prog, :next_prog, :quit, :invalid]
   

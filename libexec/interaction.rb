@@ -506,6 +506,10 @@ def handle_kb_play_chord
     $ctl_chord[:wave_up] = true
   elsif char == 'w'
     $ctl_chord[:wave_down] = true
+  elsif char == 's'
+    $ctl_chord[:single] = true
+  elsif char == 'S'
+    $ctl_chord[:unsingle] = true
   elsif char == 'h'
     $ctl_chord[:show_help] = true
   elsif char == 'RETURN'
