@@ -815,6 +815,10 @@ class MatchScale < QuizFlavour
     puts "Playing #{@others ? 'shortest' : 'single'} solution scale #{@solution}:"
     sleep 0.2
     play_hons hons: @holes_scale
+    sleep 0.5
+    puts
+    @state[:hide_holes] = nil
+    help3
     puts
     sleep 0.5
     puts "Playing the holes in question:"
@@ -1254,24 +1258,6 @@ class AddInter < QuizFlavour
   end
 
   def help3
-    puts "Show holes as notes:"
-    print_chart_holes_as_notes
-  end
-
-  def help3_desc
-    ['.help-chart-notes', 'Show chart with notes']
-  end
-
-  def help4
-    puts "Show holes as semitones:"
-    print_chart_holes_as_semitones
-  end
-
-  def help4_desc
-    ['.help-chart-semis', 'Show chart with holes as semitones']
-  end
-
-  def help5
     puts "Printing intervals semitones and names:"
     puts "\e[2m"
     $intervals_quiz[$opts[:difficulty]].each do |st|
@@ -1280,8 +1266,26 @@ class AddInter < QuizFlavour
     puts "\e[0m"
   end
 
-  def help5_desc
+  def help3_desc
     ['.help-show-intervals', 'Show intervals and semitones']
+  end
+
+  def help4
+    puts "Show holes as notes:"
+    print_chart_holes_as_notes
+  end
+
+  def help4_desc
+    ['.help-chart-notes', 'Show solution in chart with notes']
+  end
+
+  def help5
+    puts "Show holes as semitones:"
+    print_chart_holes_as_semitones
+  end
+
+  def help5_desc
+    ['.help-chart-semis', 'Show solution in chart with holes as semitones']
   end
 
 end
