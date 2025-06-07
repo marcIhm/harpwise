@@ -160,7 +160,7 @@ def tool_make_scale holes
   sfile = $scale_files_templates[1] % [$type, sname, 'holes']
   if File.exist?(sfile)
     puts
-    puts "Look: The new user-defined scale   '#{sname}'   already exists as a file:\n\e[2m#{sfile}\e[0m"
+    puts "Look, the new user-defined scale   '#{sname}'   already exists as a file:\n\n  \e[2m#{sfile}\e[0m"
     puts
     puts "Do you want to overwite it ?"
     print room
@@ -198,7 +198,9 @@ def tool_make_scale holes
   puts
   puts "\e[2m#{ycont}\e[0m"
   puts
-  puts "has been written to:\n\n\e[2m#{sfile}\e[0m"
+  puts "has been written to:\n\n  \e[2m#{sfile}\e[0m"
+  puts
+  puts "\e[2m(if later you want to remove the scale, just remove this file)\e[0m"
   puts
   puts "New scale   \e[32m'#{sname}'\e[0m   with #{holes.length} holes has been created."
   puts

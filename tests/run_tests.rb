@@ -1782,15 +1782,15 @@ do_test 'id-50c: tools make-scale' do
   sleep 1
   tms 'for testing'
   tms :ENTER
-  expect { screen[12]['short: f'] }
-  expect { screen[13]['desc: for testing'] }
+  expect { screen[10]['short: f'] }
+  expect { screen[11]['desc: for testing'] }
   expect { screen[20]['with 3 holes'] }
   expect($scalefile_testing) { File.exist?($scalefile_testing) }
   wait_for_end_of_harpwise
 
   tms 'harpwise print scales -T'
   tms :ENTER
-  expect { screen[15]['foo'] }
+  expect { screen[13]['foo'] }
   kill_session
 end
 

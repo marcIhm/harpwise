@@ -698,10 +698,11 @@ end
   
 
 def puts_user_defined_hint what
+  nscales = Dir[$scale_files_templates[1] % [$type, '*', '*']].length
   case what
   when :scales
-    puts "\e[2mUser-defined scales (if any) in: " +
-         File.dirname($scale_files_templates[1] % [$type, '-', '-']) + "\e[0m"
+    puts "\e[2mThe #{nscales} user-defined scales above are defined by files in\n  " + File.dirname($scale_files_templates[1] % [$type, '-', '-'])
+    puts "you may simply remove files there to drop the corresponding scales.\e[0m"
     puts
   when :scale_progs
     puts "\e[2mUser-defined scale-progression (if any) in: #{$scale_prog_file_templates[1] % $type}"
