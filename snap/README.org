@@ -18,10 +18,11 @@
   
   - snap warnings
   - sudo snap okay
-  
-  - snap run --shell harpwise
-    - cd $SNAP
-  - harpwise listen c
+
+  - Debugging:
+    - snap run --shell harpwise
+      - cd $SNAP
+    - harpwise listen c
 
   - snap connections harpwise
   - snap connect harpwise:home

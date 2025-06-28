@@ -1006,12 +1006,12 @@ class FamousPlayers
     # three more lines (adding to those, that have already been printed) will
     # be printed below
     txt_lines += 2
-    
+
     needed = []
     puts "\e[32mImage:\e[0m"
 
     if !file
-      puts "\e[2m  You may store a player image to be shown in:\n    #{@picture_dirs[name]}\e[0m"
+      puts "\e[2m  You may store player images to be shown in:\n    #{@picture_dirs[name]}\e[0m"
       return
     end
     

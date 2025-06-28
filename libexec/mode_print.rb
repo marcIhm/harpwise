@@ -588,6 +588,12 @@ end
 
 def print_player player, in_loop = false
   puts_underlined player['name']
+  if !player['image']
+    puts "\e[4A"
+    ["no image yet", "see below on how", "to add one"].each do |line|
+      puts "\e[#{$term_width - 6 - line.length}C\e[0m\e[2m#{line}\e[0m"
+    end
+  end
   # from puts_underlined
   lines = 3
   twidth = 0
