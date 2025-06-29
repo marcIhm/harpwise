@@ -2739,7 +2739,7 @@ do_test 'id-85: print info about a specifc player' do
   tms '1'
   sleep 2
   expect { screen[4]['Aleck Rice Miller'] }
-  expect { screen[19]['You may store a player image'] }
+  expect { screen[19]['You may store player images'] }
   kill_session
 end
 
