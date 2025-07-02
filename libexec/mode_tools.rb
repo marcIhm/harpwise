@@ -809,18 +809,19 @@ end
 
 def tool_translate to_handle
 
-  err "Tool 'translate' does not accept arguments; rather enter your piece of hole notation when prompted" if to_handle.length > 0
+  err "Tool 'translate' does not accept arguments (because of expected problems with shell-quoting); rather enter some holes when prompted" if to_handle.length > 0
 
   notations = { parens: {desc: ["Blow is 1, draw is (2), bends are not known (yet)"],
                         example: "(1)  2  (2)  ?  3  ?  ?  (2)"},
                 harpwise: {desc: ["The standard notation of harpwise (richter); blow is +1,",
-                                  "draw is -2, bends are -1/, -2//, +10/. All other notations",
+                                  "draw is -2, bends are -1/, -2//, +10/.  All other notations",
                                   "will betranslated into this one."],
                            example: "-1  +2  -2  -3/  +3  -3/  -3//  -2"}, 
                 quotes: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\""],
                          example: "-1  +2  -2  -3'  3  -3'  -3\"  -2"},
-                notes: {desc: ["Just the notes rather than any harmonica-specific notation; you may",
-                               "also try 'harpwise print' for this, as it will give a lot more info."],
+                notes: {desc: ["Just the notes rather than any harmonica-specific notation;",
+                               "you may also try 'harpwise print' for this, as it will give",
+                               "much more info."],
                         example: "d4  e4  g4  as4  g4  as4  a4  g4"} }
   
   puts
@@ -832,14 +833,19 @@ def tool_translate to_handle
     puts "    \e[2mExample:  \e[2m#{nota[:example]}\e[0m"
   end
   puts
-  puts "Please enter a single line of harmonica notation (e.g. similar to one of the examples above);"
-  puts "harpwise then will try to figure out, which notation has been used and will translate it"
-  puts "into its own standard notation."
+  puts "Please enter a single line of harmonica notation; harpwise then will"
+  puts "try to figure out, which notation has been used and will translate"
+  puts "it into its own standard notation."
   puts
-  print "Your input: "
+  print "Your input:  "
   foreign = gets.chomp.strip
   puts
   foreigns = foreign.split
+  if foreigns.length == 0
+    puts "No input provided."
+    puts
+    exit
+  end
   translations = {}
   notations.keys.each do |nname|
     translations[nname] = []
@@ -852,15 +858,34 @@ def tool_translate to_handle
   end
   counts = translations.map {|nm, hls| [nm, hls.select {|h| h}.length]}.to_h
   mx = counts.values.max
+  if mx == 0
+    puts "None of the available notations could match *any* hole from your input."
+    puts
+    exit
+  end
   # gather translations which translate the maximum number of holes
   best = counts.keys.group_by {|nname| counts[nname]}[mx]
   # but although the translate the same (maximum) number of holes, their translations can
   # still be different
   best_trs = best.group_by {|nname| translations[nname]}.invert
-  
-  puts "This is covered best (#{mx} of #{foreigns.length} holes) by #{best.length} notations:"
+
+  if best.length == 1
+    if mx == foreigns.length
+      print "is fully covered by"
+    else
+      print "is covered best (#{mx} of #{foreigns.length} holes) by"
+    end
+  else
+    if mx == foreigns.length
+      print "is fully covered by #{best.length} notations"
+    else
+      print "is covered best (#{mx} of #{foreigns.length} holes) by #{best.length} notations"
+    end
+  end
+  puts " and translates to:"
+  puts
   best_trs.each do |trs, hls|
-    print "  \e[32m#{trs.join(',')}:"
+    print "  \e[32m#{trs.join(',')}:\e[0m"
     hls.each_with_index do |hl, idx|
       print '  '
       if hl
@@ -870,6 +895,10 @@ def tool_translate to_handle
       end
     end
     puts "\e[0m"
+  end
+  puts
+  if mx != foreigns.length
+    puts ", where holes that could not be translated are \e[2mdim.\e[0m"
   end
   puts
 end
@@ -892,16 +921,22 @@ end
 
 
 def tool_translate_notation_quotes hole
-  return hole[0 .. -3] + '///' if hole[-2 .. -1] == '"\'' || hole[-2 .. -1] == '\'"'
-  return hole[0 .. -2] + '//' if hole[-1] == '"'
-  return hole[0 .. -3] + '//' if hole[-2 .. -1] == "''"
-  return hole[0 .. -2] + '/' if hole[-1] == "'"
-  return hole
+  if md = hole.match(/^(-|\+)?(\d)"'$/) || hole.match(/^(-|\+)?(\d)'"$/)
+    return (md[1] || '+') + "#{md[2]}///"
+  elsif md = hole.match(/^(-|\+)?(\d)"$/) || hole.match(/^(-|\+)?(\d)''$/)
+    return (md[1] || '+') + "#{md[2]}//"
+  elsif md = hole.match(/^(-|\+)?(\d)'$/)
+    return (md[1] || '+') + "#{md[2]}"
+  elsif md = hole.match(/^(-|\+)?(\d)$/)
+    return (md[1] || '+') + "#{md[2]}"
+  else
+    return false
+  end
 end
 
 
 def tool_translate_notation_notes hole
-  return $note2hole[hole]
+  return $note2hole[hole] || false
 end
 
 

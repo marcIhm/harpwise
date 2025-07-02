@@ -3715,6 +3715,18 @@ do_test 'id-131a: info about utilities' do
   kill_session
 end
 
+do_test 'id-131b: translate harp notations' do
+  new_session
+  tms 'harpwise tools translate'
+  tms :ENTER
+  sleep 0.2
+  tms '(1) 2 (2)'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[20]['parens:  -1  +2  -2'] }
+  kill_session
+end
+
 ENV['HARPWISE_TESTING']='opts'
 
 do_test 'id-132: some cases of opts processing' do
