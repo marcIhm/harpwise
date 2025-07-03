@@ -711,7 +711,7 @@ def parse_and_preprocess_jamming_json json
       $key = jam_pms['harp_key']
       set_global_vars_late
       set_global_musical_vars
-      puts "Tuning in to harp key   \e[32m#{jam_pms['harp_key']}\e[0m   from json file."
+      puts "Switching to harp key   \e[32m#{jam_pms['harp_key']}\e[0m   as given in json file."
     end
   else
     puts "Already at harp key   #{jam_pms['harp_key']}   from json file."

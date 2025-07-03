@@ -833,9 +833,9 @@ def tool_translate to_handle
     puts "    \e[2mExample:  \e[2m#{nota[:example]}\e[0m"
   end
   puts
-  puts "Please enter a single line of harmonica notation; harpwise then will"
-  puts "try to figure out, which notation has been used and will translate"
-  puts "it into its own standard notation."
+  puts "Please enter a single line of harmonica notation; harpwise will pick"
+  puts "the notation, that matches best and will translate the given holes"
+  puts "into its own standard."
   puts
   print "Your input:  "
   foreign = gets.chomp.strip
