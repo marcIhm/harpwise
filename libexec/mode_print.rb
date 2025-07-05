@@ -516,14 +516,16 @@ def print_players args
     end
 
   elsif args.length == 1 && 'all'.start_with?(args[0])
-    $players.all_with_details.shuffle.each do |name|
+    all_players = $players.all_with_details.shuffle
+    all_players.each_with_index do |name, idx|
       puts
       puts
       print_player $players.structured[name], true
-      if $opts[:viewer] != 'window' || !$players.structured[name]['image']
+      if idx + 1 < all_players.length &&
+         ( $opts[:viewer] != 'window' || !$players.structured[name]['image'] )
         make_term_immediate
         puts
-        puts "\e[2mPress any key for next Player ...\e[0m"
+        puts "\e[2m#{idx + 1} of #{all_players.length}; press any key for next Player ...\e[0m" 
         $ctl_kb_queue.clear
         $ctl_kb_queue.deq
         make_term_cooked
