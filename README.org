@@ -4,10 +4,10 @@
 
 A harmonica tool for the command line, using microphone and speaker.
 
-Harpwise supports your daily harmonica practice with scales, chords and
-licks. It offers various tools, an explorable quiz and may guide your
-jamming. It can be used with diatonic (richter) or chromatic harmonicas
-in different keys.
+Harpwise supports your harmonica practice with scales, chords and licks.
+It offers various tools, an explorable quiz and may guide your jamming.
+It can be used with diatonic (richter) or chromatic harmonicas in
+different keys.
   
 * Table of Contents                                                   :TOC_1:
 
@@ -25,7 +25,7 @@ in different keys.
 * Screencasts
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
-  beeing played and can help to write them down. No sound has been
+  beeing played and how it can help to write them down. No sound has been
   recorded however, so some accustic imagination is required ...
   
   [[images/harpwise-listen.gif]]
@@ -43,24 +43,23 @@ in different keys.
   
   Harpwise runs on the command line of Linux, MacOS and WSL2/Windows.
   
-  It plays and hears single notes and can play (but not hear) chords.
+  It plays and perceives single notes and can play chords.
 
   The main operation modes of harpwise are 'listen', 'jamming', 'quiz'
   and 'licks'; these may help to:
 
   - Learn scales and intervals
-  - Jam through a chord progression with scales and licks
+  - Jam through a chord progression guided by scales and licks
   - Learn and memorize licks (a few samples included)
-  - Train your ear and musical memory
-  - Learn related music theory by the way of quiz
-  - Help to gather and learn a collection of licks
-  - Work on bends or warbles
+  - Train your ear and musical memory and learn related
+    music theory by the way of quiz
 
   Some of the other things, that harpwise can do:
 
   - Help to find the key of a song (with an adjustable pitch)
   - Interactively play intervals or note progressions
   - Help in writing down a sequence of holes (journal)
+  - Work on bends or warbles
   - Transpose a sequence of holes from one key of harp to another
   - Provide an overview table of positions and keys of songs and harp
   - Print notes layed out on a harmonica chart

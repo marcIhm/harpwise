@@ -114,7 +114,7 @@ usage_types.values.map {|p| p[0]}.each do |fname|
 end
 usage_examples.map {|l| l.gsub!('\\','')}
 # remove known false positives
-known_not = ['supports the daily', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
+known_not = ['harpwise supports', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
 num_exp = 115
@@ -2748,7 +2748,7 @@ do_test 'id-86: print details of players' do
   tms 'harpwise print players all'
   tms :ENTER
   sleep 8
-  expect { screen[18..24].any? {|l| l['Press any key for next Player']} }  
+  expect { screen[18..24].any? {|l| l['press any key for next Player']} }  
   kill_session
 end
 

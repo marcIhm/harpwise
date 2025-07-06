@@ -8,13 +8,13 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.14.0'
+version: '6.14.1'
 summary: A harmonica tool for the command line, using microphone and speaker
 description: |
-  Harpwise supports your daily harmonica practice with scales, chords and
-  licks. It offers various tools, an explorable quiz and may guide your
-  jamming. It can be used with diatonic (richter) or chromatic harmonicas
-  in different keys.
+  Harpwise supports your harmonica practice with scales, chords and licks.
+  It offers various tools, an explorable quiz and may guide your jamming.
+  It can be used with diatonic (richter) or chromatic harmonicas in
+  different keys.
 license: 'MIT'
 grade: stable
 confinement: strict

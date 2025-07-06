@@ -1,9 +1,9 @@
 A harmonica tool for the command line, using microphone and speaker.
 
-Harpwise supports your daily harmonica practice with scales, chords and
-licks. It offers various tools, an explorable quiz and may guide your
-jamming. It can be used with diatonic (richter) or chromatic harmonicas
-in different keys.
+Harpwise supports your harmonica practice with scales, chords and licks.
+It offers various tools, an explorable quiz and may guide your jamming.
+It can be used with diatonic (richter) or chromatic harmonicas in
+different keys.
 
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
