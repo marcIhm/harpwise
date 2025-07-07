@@ -292,8 +292,7 @@ jamming:
     which will be played, thus allowing you to mark timestamps; so
     no need to create a json-file up front.
   edit: |
-    edit given jamming-file; either specified as a number (as given
-    by 'list') or a filename
+    edit given jamming-file
 develop:
   man: |
     produce man page from erb-template

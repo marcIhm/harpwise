@@ -238,6 +238,7 @@ def set_global_vars_early
   $jamming_timestamps_dir = "#{$dirs[:data]}/jamming_timestamps"
   FileUtils.mkdir_p($jamming_timestamps_dir) unless File.directory?($jamming_timestamps_dir)
   $jamming_mission_override = nil
+  $jamming_timer_start = $jamming_timer_end = $jamming_timer_update_next = nil
   $remote_fifo = "#{$dirs[:data]}/remote_fifo"
   $remote_jamming_ps_rs = "#{$dirs[:data]}/remote_jamming_pause_resume"
   $remote_jamming_ps_rs_cnt = 0

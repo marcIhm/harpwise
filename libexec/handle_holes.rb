@@ -49,9 +49,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
 
-    if first_round || $ctl_mic[:redraw]
+    if first_round || $ctl_mic[:redraw] ||
+       ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
       system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       print_mission(get_mission_override || lambda_mission.call)
+    end
+
+    if first_round || $ctl_mic[:redraw]
       if first_round
         ctl_response
       else
@@ -723,7 +727,7 @@ end
 
 def do_rotate_scale_add_scales_reset
   unless $sc_prog_init
-    $msgbuf.print "Scales have not been rotated yet", 0, 2
+    $msgbuf.print("Scales have not been rotated yet", 0, 2) unless $opts[:jamming]
     return
   end
   $scale_prog = $sc_prog_init.clone
@@ -735,8 +739,30 @@ end
 
 
 def get_mission_override
-  $jamming_mission_override ||
+  if $jamming_mission_override
+    tntf = Time.now.to_f
+    $jamming_mission_override +
+      if $jamming_timer_update_next
+        txt = '...timer...'
+        extra_ticks = $jamming_timer_end - $jamming_timer_start - txt.length / 2.0
+        if extra_ticks > 0
+          pad = '.' * [extra_ticks.to_i, 5].min
+          txt = pad + txt + pad
+        end
+        tlen = txt.length
+        if tntf > $jamming_timer_update_next
+          $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start) / ( tlen + 2)
+          $jamming_timer_update_next = nil if $jamming_timer_update_next > $jamming_timer_end
+        end
+        cnt = [((tlen + 1) * (tntf - $jamming_timer_start) / ($jamming_timer_end - $jamming_timer_start)).to_i,
+               tlen].min
+        "  \e[32m[" + ('#' * cnt ) + "\e[0m\e[2m" + txt[cnt .. -1] + "\e[0m\e[32m]\e[0m"
+      else
+        ''
+      end
+  else
     ( $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil )
+  end
 end
 
 
@@ -1071,7 +1097,7 @@ end
 
 
 def show_remote_message
-  specials = %w({{mission}} {{key}})
+  specials = %w({{mission}} {{key}} {{timer}})
   if $opts[:jamming]
     $msgbuf.reset
     messages = Dir[$remote_message_dir + '/[0-9]*.txt'].sort
@@ -1107,8 +1133,23 @@ def show_remote_message
         else
           $msgbuf.print "Changed key of harp to   #{$key}", duration, duration, :key
         end
+      elsif text.start_with?('{{timer}}')
+        dtext = text[text.index('}}') + 2 .. -1]
+        dura = begin
+                 Float(dtext)
+               rescue ArgumentError
+                 err "Internal error: after {{mission}} there needs to be a number, not: '#{dtext}'"
+               end
+        $jamming_timer_start = Time.now.to_f
+        $jamming_timer_end = $jamming_timer_start + dura
+        $jamming_timer_update_next = $jamming_timer_start - 1
+        print_mission(get_mission_override)
       else
-        $msgbuf.print "\e[2m>> \e[0m\e[32m#{text}", duration, duration, :remote
+        if text[0] == '*'
+          $msgbuf.print "\e[2m>> \e[0m\e[34m#{text[1..]}", duration, duration, :remote
+        else
+          $msgbuf.print "\e[2m>> \e[0m\e[32m#{text}", duration, duration, :remote
+        end
       end
     else
       $msgbuf.print "No remote message in #{$remote_message_dir}", 5, 5, :remote

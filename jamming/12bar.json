@@ -44,14 +44,17 @@
     // it is an array, where each element has one of these forms:
     //
     //   [timestamp, "message", message, secs_to_show]
-    //   [timestamp, "loop-start", message, secs_to_show] 
     //   [timestamp, "keys", key1, key2, ... ]
+    //   [timestamp, "loop-start", message, secs_to_show] 
+    //   [timestamp, "timer", secs_to_elapse]
     //
     // Where:
     //
     // "message" makes the given message appear in "harpwise listen" for secs_to_show
     // seconds; secs_to_show is optional and defaults to 2. In any case the next message
     // given here will override its predecessor, so you rarely need to set this.
+    // If a message starts with a tar '*' it is printed in a different color, which
+    // may e.g. help the user to spot messages about coming chord changes.
     //
     // "keys" sends the given keys to "harpwise listen", mostly for switching scales and
     // licks or for doing a reset initially; hence "l","s","L","S" will be the the most
@@ -60,6 +63,8 @@
     // "loop-start" is just like "message" but also marks the entrypoint for the second and
     // any further iterations, so that action before "loop-start" are only executed once.
     //
+    // "timer" initiates a timer, that is shown in "harpwise listen" and may be used
+    // to indicate the time-distance up to the next chord-change.
     // 
     // The array timestamps-to-actions will be repeated forever, but from the second
     // iteration on it will start at "loop-start".  This assumes that the chord-structure
@@ -100,19 +105,24 @@
 	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
         [0,"message","Comment: %{comment}"],
-        [-2,"message","In two secs ..."],
+        [-2,"message","*In two secs ..."],
 	// exactly one loop-start is needed
         [6,"loop-start","%{loop_starter}",4],
-        [-2,"message","Chord-change in two secs ...",2],
+	[6,"timer","18-6"],
+        [-2,"message","*Chord-change in two secs ...",2],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],
-        [-2,"message","Chord-change in two secs ...",2],
+	[18,"timer","24-18"],
+        [-2,"message","*Chord-change in two secs ...",2],
         [24,"keys","l","s"],
-        [-2,"message","Three chord-changes in two secs ...",2],
+	[24,"timer","30-24"],
+        [-2,"message","*Three chord-changes in two secs ...",2],
         [30,"keys","l","s"],
+	[30,"timer","36-30"],
         [33,"keys","l","s"],
         [36,"keys","l","s"],
-        [-2,"message","Turnaround in two secs ...",2],
+	[36,"timer","42-36"],
+        [-2,"message","*Turnaround in two secs ...",2],
         [42,"keys","l","s"]
     ]
 }

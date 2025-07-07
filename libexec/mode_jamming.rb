@@ -316,7 +316,7 @@ def do_the_jamming json_file
     puts "at ts %.2f sec" % this_actions[-1][0]
 
     # as the actions before actual loop-start (e.g. intro) have been done once and should
-    # not be done again, we have to remove them now; we are acting on 'actions' rather then
+    # not be done again, we want to remove them now; we are acting on 'actions' rather then
     # 'this_actions'
     if iter == 1
       while actions[0][1] != 'loop-start'
@@ -372,7 +372,7 @@ end
 
 
 def jamming_do_action act_wo_ts, noop: false
-  if %w(message loop-start mission key).include?(act_wo_ts[0])
+  if %w(message loop-start mission key timer).include?(act_wo_ts[0])
     if act_wo_ts.length == 3 && ( !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) )
       err("A 3-element #{act_wo_ts[0]} needs one string and an optional number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
     end
@@ -399,12 +399,34 @@ def jamming_do_action act_wo_ts, noop: false
     end
     $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
     $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
-    content = act_wo_ts[1].chomp % $jam_data
+    content = if act_wo_ts[0] == 'timer'
+                expr = act_wo_ts[1]
+                dura = if expr.is_a?(Numeric)
+                         expr
+                       elsif expr.is_a?(String)
+                         expr.strip!
+                         if expr.match(/^\d+(\.\d*)?$/)
+                           expr.to_f
+                         elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)$/)
+                           md[1].to_f - md[3].to_f
+                         else
+                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
+                         end
+                       else
+                         err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
+                       end
+                err "Timer-duration is less than one second: #{expr}" if dura < 1
+                dura * $jam_pms['timestamps_multiply']
+              else
+                act_wo_ts[1].chomp % $jam_data
+              end
     case act_wo_ts[0]
     when 'mission'
       print "sent mission:"
     when 'key'
       print "sent key of harp:"
+    when 'timer'
+      print "sent start timer:"
     else
       print "sent message:"
     end
@@ -416,7 +438,7 @@ def jamming_do_action act_wo_ts, noop: false
     msg_file = $remote_message_dir + ('/%04d.txt' % $remote_message_count)
     $remote_message_count += 1
     txt, dur = case act_wo_ts[0]
-               when 'mission', 'key'
+               when 'mission', 'key', 'timer'
                  ["{{#{act_wo_ts[0]}}}#{content}", 1]
                else
                  [content, act_wo_ts[2] || 2 ]
@@ -669,7 +691,7 @@ def parse_and_preprocess_jamming_json json
   # check syntax of timestamps before actually starting
   $jam_loop_start_idx = nil
   actions.each_with_index do |ta,idx|
-    err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start).include?(ta[1])
+    err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start timer).include?(ta[1])
     err("Timestamp #{ta[0]} (index #{idx}, #{ta}) is less than zero") if ta[0] < 0
     # test actions
     jamming_do_action ta[1 ..], noop: true
