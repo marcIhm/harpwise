@@ -409,8 +409,10 @@ def jamming_do_action act_wo_ts, noop: false
                            expr.to_f
                          elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)$/)
                            md[1].to_f - md[3].to_f
+                         elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)-(\s*\d+(\.\d*)?)$/)
+                           md[1].to_f - md[3].to_f - md[5].to_f
                          else
-                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
+                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\") or a difference of thee numbers (e.g. \"16.3 - 2.44 - 0.5\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
                          end
                        else
                          err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
@@ -426,7 +428,7 @@ def jamming_do_action act_wo_ts, noop: false
     when 'key'
       print "sent key of harp:"
     when 'timer'
-      print "sent start timer:"
+      print "sent start timer ('#{act_wo_ts[1]}'):"
     else
       print "sent message:"
     end

@@ -737,29 +737,44 @@ def do_rotate_scale_add_scales_reset
   $msgbuf.print "Reset scale of harp to initial \e[0m\e[32m#{$scale}\e[0m\e[2m", 0, 5, :scale
 end
 
-
 def get_mission_override
   if $jamming_mission_override
     tntf = Time.now.to_f
-    $jamming_mission_override +
-      if $jamming_timer_update_next
-        txt = '...timer...'
+    if $jamming_timer_update_next
+      # We need text (initial version) even before it is beeing updated the first time; so
+      # do not compare $jamming_timer_update_next with tntf here
+      if !$jamming_timer_text[0]
+        # we have a timer but no text yet; so prepare it in advance in a global array
+        txt = '...chord...'
         extra_ticks = $jamming_timer_end - $jamming_timer_start - txt.length / 2.0
         if extra_ticks > 0
           pad = '.' * [extra_ticks.to_i, 5].min
           txt = pad + txt + pad
         end
-        tlen = txt.length
-        if tntf > $jamming_timer_update_next
-          $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start) / ( tlen + 2)
-          $jamming_timer_update_next = nil if $jamming_timer_update_next > $jamming_timer_end
+        $jamming_timer_text = ['[','',txt,']',txt.length]
+      elsif tntf > $jamming_timer_update_next
+        # change text only if it has been shown once in its original form
+        if $jamming_timer_text[2].length > 0
+          $jamming_timer_text[1] += '#'
+          $jamming_timer_text[2][0] = ''
         end
-        cnt = [((tlen + 1) * (tntf - $jamming_timer_start) / ($jamming_timer_end - $jamming_timer_start)).to_i,
-               tlen].min
-        "  \e[32m[" + ('#' * cnt ) + "\e[0m\e[2m" + txt[cnt .. -1] + "\e[0m\e[32m]\e[0m"
-      else
-        ''
       end
+      if tntf > $jamming_timer_update_next
+        # we cannot do this after updating text; see comments there
+        $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start) / ( $jamming_timer_text[4] + 2)
+      end
+      jm_txt = "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
+               "\e[0m\e[2m" + $jamming_timer_text[2] +
+               "\e[0m\e[32m" + $jamming_timer_text[3]
+      if $jamming_timer_update_next > $jamming_timer_end
+        # we return text once more, even though timer has already elapsed
+        $jamming_timer_update_next = nil
+        $jamming_timer_text = [nil, nil, nil, nil, 0]
+      end
+      $jamming_mission_override + jm_txt
+    else
+      $jamming_mission_override
+    end
   else
     ( $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil )
   end

@@ -63,8 +63,10 @@
     // "loop-start" is just like "message" but also marks the entrypoint for the second and
     // any further iterations, so that action before "loop-start" are only executed once.
     //
-    // "timer" initiates a timer, that is shown in "harpwise listen" and may be used
-    // to indicate the time-distance up to the next chord-change.
+    // "timer" initiates a timer, that is shown in the first line of "harpwise listen" and
+    // may be used to indicate the time-span up to the next chord change.  Its duration
+    // must be a string in any case, but can be written as a difference of timestamps for
+    // convenience.
     // 
     // The array timestamps-to-actions will be repeated forever, but from the second
     // iteration on it will start at "loop-start".  This assumes that the chord-structure
@@ -105,6 +107,7 @@
 	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
         [0,"message","Comment: %{comment}"],
+	[0,"timer","6"],
         [-2,"message","*In two secs ..."],
 	// exactly one loop-start is needed
         [6,"loop-start","%{loop_starter}",4],
