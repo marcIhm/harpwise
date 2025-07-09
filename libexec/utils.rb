@@ -255,7 +255,7 @@ end
 
 
 def print_mission text
-  print "\e[#{$lines[:mission]}H\e[0m#{text.ljust($term_width - $ctl_response_width)}\e[0m"
+  print "\e[#{$lines[:mission]}H\e[0m#{text.ljust($term_width - $ctl_response_width + $jamming_timer_text[5])}\e[0m"
   $ulrec.print_rec_sign_mb
 end
 

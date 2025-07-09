@@ -185,7 +185,7 @@ def do_the_jamming json_file
 
   # switch key of harpwise listen to be in sync with jamming
   jamming_do_action ['key', $key]
-  jamming_do_action ['mission',"Jamming: before first iteration" % $jam_data]
+  jamming_do_action ['mission',"Jamming: intro" % $jam_data]
   
   jamming_do_action ['message',
                      "Jamming: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],

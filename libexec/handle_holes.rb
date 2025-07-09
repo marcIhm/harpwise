@@ -742,13 +742,13 @@ end
 
 def get_mission_override
   if $jamming_mission_override
-    tntf = Time.now.to_f
-    # Using this margin can be considered cheating. however: we expect the user to set timer
-    # up to next update of scales etc. (e.g. key 's') after which the display will change
-    # considerably.  Therefore we make sure, that our timer is done slightly *before* its
-    # ordered duration.
-    margin = 0.2
     if $jamming_timer_update_next
+      tntf = Time.now.to_f
+      # Using this margin can be considered cheating. however: we expect the user to set timer
+      # up to next update of scales etc. (e.g. key 's') after which the display will change
+      # considerably.  Therefore we make sure, that our timer is done slightly *before* its
+      # ordered duration.
+      margin = 0.2
       if !$jamming_timer_text[0]
         # We have a timer but no text yet; so prepare it
         txt = '%.1fs' % ($jamming_timer_end - $jamming_timer_start)
@@ -757,8 +757,9 @@ def get_mission_override
         # calculation for update intervals below rests on the chosen text.
         extra_ticks = [[$jamming_timer_end - $jamming_timer_start - txt.length, 2].max, 16].min
         txt = '.' * extra_ticks + txt
-        # last element is the number of times, the text should be shown
-        $jamming_timer_text = ['[', '', txt, ']', txt.length + 1]
+        # element 5 is the number of times, the text should be shown; element 6 is the
+        # number of coloring characters, which needs to be subtracted from length
+        $jamming_timer_text = ['[', '', txt, ']', txt.length + 1, 22]
       elsif tntf > $jamming_timer_update_next
         # Do this in elsif-branch, so that text is shown once in its original form, before
         # beeing updated the next time.  Also: If time has come, we do not calculate new state of
@@ -776,7 +777,7 @@ def get_mission_override
       jm_txt = "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
                "\e[0m\e[2m" + $jamming_timer_text[2] +
                "\e[0m\e[32m" + $jamming_timer_text[3]
-      
+
       if tntf > $jamming_timer_update_next
         # Schedule next update for next due change in timer-text; we want timer to be
         # finished slightly early (by margin secs) rather than slightly late.
@@ -786,7 +787,7 @@ def get_mission_override
       if $jamming_timer_update_next > $jamming_timer_end - margin / 2
         # we are done, make sure, that next call will return no timer
         $jamming_timer_update_next = nil
-        $jamming_timer_text = [nil, nil, nil, nil, 0]
+        $jamming_timer_text = [nil, nil, nil, nil, 0, 0]
       end
       
       $jamming_mission_override + jm_txt
@@ -1176,6 +1177,7 @@ def show_remote_message
         $jamming_timer_start = Time.now.to_f
         $jamming_timer_end = $jamming_timer_start + dura
         $jamming_timer_update_next = $jamming_timer_start - 1
+        $jamming_timer_text = [nil, nil, nil, nil, 0]        
         print_mission(get_mission_override)
       else
         if text[0] == '*'
