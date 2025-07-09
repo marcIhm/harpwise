@@ -412,12 +412,12 @@ def jamming_do_action act_wo_ts, noop: false
                          elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)-(\s*\d+(\.\d*)?)$/)
                            md[1].to_f - md[3].to_f - md[5].to_f
                          else
-                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\") or a difference of thee numbers (e.g. \"16.3 - 2.44 - 0.5\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
+                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\") or a difference of three numbers (e.g. \"16.3 - 2.44 - 0.5\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
                          end
                        else
                          err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
                        end
-                err "Timer-duration is less than one second: #{expr}" if dura < 1
+                err "Timer-duration is less than three seconds; probably too fast to follow: #{expr}" if dura < 4
                 dura * $jam_pms['timestamps_multiply']
               else
                 act_wo_ts[1].chomp % $jam_data

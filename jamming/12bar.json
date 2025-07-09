@@ -63,7 +63,7 @@
     // "loop-start" is just like "message" but also marks the entrypoint for the second and
     // any further iterations, so that action before "loop-start" are only executed once.
     //
-    // "timer" initiates a timer, that is shown in the first line of "harpwise listen" and
+    // "timer" initiates a timer, that is shown in the topmost line of "harpwise listen" and
     // may be used to indicate the time-span up to the next chord change.  Its duration
     // must be a string in any case, but can be written as a difference of timestamps for
     // convenience.

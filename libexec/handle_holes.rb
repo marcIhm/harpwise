@@ -49,9 +49,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
 
+    if first_round || ($ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear))
+      system('clear')
+    end
+
     if first_round || $ctl_mic[:redraw] ||
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
-      system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       print_mission(get_mission_override || lambda_mission.call)
     end
 
@@ -740,37 +743,52 @@ end
 def get_mission_override
   if $jamming_mission_override
     tntf = Time.now.to_f
+    # Using this margin can be considered cheating. however: we expect the user to set timer
+    # up to next update of scales etc. (e.g. key 's') after which the display will change
+    # considerably.  Therefore we make sure, that our timer is done slightly *before* its
+    # ordered duration.
+    margin = 0.2
     if $jamming_timer_update_next
-      # We need text (initial version) even before it is beeing updated the first time; so
-      # do not compare $jamming_timer_update_next with tntf here
       if !$jamming_timer_text[0]
-        # we have a timer but no text yet; so prepare it in advance in a global array
-        txt = '...chord...'
-        extra_ticks = $jamming_timer_end - $jamming_timer_start - txt.length / 2.0
-        if extra_ticks > 0
-          pad = '.' * [extra_ticks.to_i, 5].min
-          txt = pad + txt + pad
-        end
-        $jamming_timer_text = ['[','',txt,']',txt.length]
+        # We have a timer but no text yet; so prepare it
+        txt = '%.1fs' % ($jamming_timer_end - $jamming_timer_start)
+        # aim for one tick every second; or more often, if timer is really short; or less
+        # often, if timer is really long.  We are free with our timer text here, because the
+        # calculation for update intervals below rests on the chosen text.
+        extra_ticks = [[$jamming_timer_end - $jamming_timer_start - txt.length, 2].max, 16].min
+        txt = '.' * extra_ticks + txt
+        # last element is the number of times, the text should be shown
+        $jamming_timer_text = ['[', '', txt, ']', txt.length + 1]
       elsif tntf > $jamming_timer_update_next
-        # change text only if it has been shown once in its original form
+        # Do this in elsif-branch, so that text is shown once in its original form, before
+        # beeing updated the next time.  Also: If time has come, we do not calculate new state of
+        # timer-text, but rather we advance it unconditionally; this way we have neither
+        # double-updates nor null-updates.
         if $jamming_timer_text[2].length > 0
+          # make sure, that we do not overfill timer
           $jamming_timer_text[1] += '#'
           $jamming_timer_text[2][0] = ''
         end
       end
-      if tntf > $jamming_timer_update_next
-        # we cannot do this after updating text; see comments there
-        $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start) / ( $jamming_timer_text[4] + 2)
-      end
+
+      # construct text first (which might by last text of timer), only then handle
+      # timer-conditions
       jm_txt = "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
                "\e[0m\e[2m" + $jamming_timer_text[2] +
                "\e[0m\e[32m" + $jamming_timer_text[3]
-      if $jamming_timer_update_next > $jamming_timer_end
-        # we return text once more, even though timer has already elapsed
+      
+      if tntf > $jamming_timer_update_next
+        # Schedule next update for next due change in timer-text; we want timer to be
+        # finished slightly early (by margin secs) rather than slightly late.
+        $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start - margin) / $jamming_timer_text[4]
+      end
+
+      if $jamming_timer_update_next > $jamming_timer_end - margin / 2
+        # we are done, make sure, that next call will return no timer
         $jamming_timer_update_next = nil
         $jamming_timer_text = [nil, nil, nil, nil, 0]
       end
+      
       $jamming_mission_override + jm_txt
     else
       $jamming_mission_override
