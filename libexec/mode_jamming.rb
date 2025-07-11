@@ -230,11 +230,13 @@ def do_the_jamming json_file
     puts $to_pause % 'pause'
     puts
 
-    # Actions (timestamps) for each iteration can be different due to
-    # 'sleep_after_iteration' beeing an array.  So we cannot do our calculations
-    # once-and-for-all initially.
+    # Actions (= this_actions) and timestamps for each iteration can be different due to two
+    # reasons: First, because we have actions before loop, which are removed (further down)
+    # after first iteration.  Second, because 'sleep_after_iteration' can be an array with
+    # different values for each iteration.  Therefore we cannot do our calculations
+    # once-and-for-all (and on actions) initially.
     
-    # we need to clone deep, because we may do some deep modifications below
+    # We need to clone deep, because we may do some deep modifications below
     this_actions = Marshal.load(Marshal.dump(actions))
 
     #
@@ -293,8 +295,10 @@ def do_the_jamming json_file
 
       $jam_data[:num_action] = idx + 1 - $jam_data[:num_action_offset]
       $jam_data[:num_action_max] = this_actions.length - $jam_loop_start_idx
-      
-      puts "Action   #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % action[0]
+
+      head = ( idx == this_actions.length - 1  ?  'Final action'  :  'Action' )
+      puts "#{head}   #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % action[0]
+
       $jam_pretended_actions_ts << jamming_make_pretended_action_data(action[1 .. -1]) if $opts[:print_only]
       puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed #{$jam_data[:elapsed]}, remaining #{$jam_data[:remaining]}"
 
@@ -306,9 +310,9 @@ def do_the_jamming json_file
         next_timer_idx = nil
         secs_to_next_timer = -action[0]
         # Search from first action; if nothing found search again from loop start.  We can
-        # be sure to find at least the current timer.
+        # mostly be sure to find at least the current timer.
+        next_timer_idx = nil
         [idx + 1, $jam_loop_start_idx].each do |start_search|
-          next_timer_idx = nil
           next_timer_idx = (start_search ... this_actions.length).
                              find {|ix| this_actions[ix][1] == 'timer'}
           if next_timer_idx
@@ -321,6 +325,10 @@ def do_the_jamming json_file
             # above.
             secs_to_next_timer += $jam_data[:iteration_duration_secs]
           end
+        end
+        if !next_timer_idx
+          # This happens, if there is only one timer and placed before loop start
+          secs_to_next_timer = this_actions[$jam_loop_start_idx][0] - action[0]
         end
         action.append('up-to-next-timer', "%.f" % secs_to_next_timer)
       end
@@ -340,23 +348,16 @@ def do_the_jamming json_file
       end
 
     end  ## loop: each action 
-
-    # last action has not been included above, as we did only the first action of each pair;
-    # so we have to do it now
-    $jam_data[:num_action] += 1    
-    puts "Final action #{this_actions.length}/#{this_actions.length} (elapsed #{$jam_data[:elapsed]} secs, iteration #{$jam_data[:iteration]}):"
-    $jam_pretended_actions_ts << jamming_make_pretended_action_data(this_actions[-1][1 .. -1]) if $opts[:print_only]
-    jamming_do_action this_actions[-1][1 .. -1]
-    puts "at ts %.2f sec" % this_actions[-1][0]
-
+    
     # as the actions before actual loop-start (e.g. intro) have been done once and should
-    # not be done again, we want to remove them now; we are acting on 'actions' rather then
+    # not be done again, we need to remove them now; we are acting on 'actions' rather then
     # 'this_actions'
     if iter == 1
       while actions[0][1] != 'loop-start'
         actions.shift
         $jam_loop_start_idx -= 1
       end
+      err "Internal error: not zero: #{$jam_loop_start_idx}" if $jam_loop_start_idx != 0
       $jam_data[:num_action_offset] = 0
       puts "\nAfter first iteration: removed all actions before loop-start.\n\n"
     end
