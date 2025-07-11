@@ -230,22 +230,27 @@ def do_the_jamming json_file
     puts $to_pause % 'pause'
     puts
 
-    # Actions for each iteration can be different due to 'sleep_after_iteration'; need to
-    # clone deep because we may do some deep modifications below
+    # Actions (timestamps) for each iteration can be different due to
+    # 'sleep_after_iteration' beeing an array.  So we cannot do our calculations
+    # once-and-for-all initially.
+    
+    # we need to clone deep, because we may do some deep modifications below
     this_actions = Marshal.load(Marshal.dump(actions))
 
     #
     # Maybe create artificial sleep-actions after last given action
     #
     
-    # initially, we made sure, that sl_a_iter is an array of arrays, but we did not multiply yet
+    # Initially, we made sure, that sl_a_iter is an array of arrays, but we did not add it yet
     slp = sl_a_iter[0][0]
     if slp < 1
-      # not enough time to actually display something; maybe even negative
+      # not enough time to actually display something (maybe even negative); so add slp
+      # into last action
       this_actions[-1][0] += slp
       err "After adding sleep_after_iter #{slp} to last timestamp, they are no longer ascending: #{this_actions[-2 .. -1]}" if this_actions[-1][0] < this_actions[-2][0]
       sl_a_iter_msg = "(sleep_after_iteration #{slp} has been added to last timestamp)"
     else
+      # add dedicated message and sleep
       last_ts = this_actions[-1][0]
       this_actions << [last_ts, 'message',
                        sl_a_iter[0][1] || 'Sleep after iteration',
@@ -254,14 +259,11 @@ def do_the_jamming json_file
       sl_a_iter_msg = "(new action for sleep_after_iteration #{slp} has been added above)"
     end
     sl_a_iter.shift unless sl_a_iter.length == 1
-    
-    #
-    # Loop: each pair of actions with sleep between
-    #
-    this_actions.each_cons(2).each_with_index do |pair, idx|
 
-      tsx, tsy = pair[0][0], pair[1][0]
-      action = pair[0]
+    #
+    # Loop: each action
+    #
+    this_actions.each_with_index do |action, idx|
 
       #
       # In first iteration, for user-visible output, we need to distinguish between actions
@@ -269,7 +271,6 @@ def do_the_jamming json_file
       # removed.
       #
       if idx == 0 && iter == 1
-        # In first iteration this produces the first heading
         puts
         puts_underlined "BEFORE FIRST ITERATION"
         this_actions[0 .. $jam_loop_start_idx - 1].each {|a| pp a}
@@ -277,7 +278,6 @@ def do_the_jamming json_file
       end
 
       if action[1] == 'loop-start'
-        # In first iteration this produces the second heading
         # In second and any further iteration $jam_loop_start_idx will be 0
         $jam_data[:num_action_offset] = $jam_loop_start_idx
         $jam_data[:iteration] = iter
@@ -294,18 +294,52 @@ def do_the_jamming json_file
       $jam_data[:num_action] = idx + 1 - $jam_data[:num_action_offset]
       $jam_data[:num_action_max] = this_actions.length - $jam_loop_start_idx
       
-      puts "Action   #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % tsx
+      puts "Action   #{$jam_data[:num_action]}/#{$jam_data[:num_action_max]}   (%.2f sec since start); Iteration #{$jam_data[:iteration]} (each #{$jam_data[:iteration_duration]})" % action[0]
       $jam_pretended_actions_ts << jamming_make_pretended_action_data(action[1 .. -1]) if $opts[:print_only]
       puts "Backing-track: total: #{$jam_pms['sound_file_length']}, elapsed #{$jam_data[:elapsed]}, remaining #{$jam_data[:remaining]}"
 
+      #
+      # Handle timer
+      #
+      if action[1] == 'timer' && action.length == 2
+        # No duration given, so search for next timer and calculate duration
+        next_timer_idx = nil
+        secs_to_next_timer = -action[0]
+        # Search from first action; if nothing found search again from loop start.  We can
+        # be sure to find at least the current timer.
+        [idx + 1, $jam_loop_start_idx].each do |start_search|
+          next_timer_idx = nil
+          next_timer_idx = (start_search ... this_actions.length).
+                             find {|ix| this_actions[ix][1] == 'timer'}
+          if next_timer_idx
+            # Found next timer
+            secs_to_next_timer += this_actions[next_timer_idx][0]
+            break
+          else
+            # Our search wraps around; add duration of whole loop. We do not need to care
+            # for sleep_after_iteration, because this has already been worked into actions
+            # above.
+            secs_to_next_timer += $jam_data[:iteration_duration_secs]
+          end
+        end
+        action.append('up-to-next-timer', "%.f" % secs_to_next_timer)
+      end
+
+      
+      #
+      # Actually do the action
+      #
       jamming_do_action action[1 .. -1]
 
-      sleep_between = tsy - tsx
-      puts "sleep until next:    \e[0m\e[34m%.2f sec\e[0m" % sleep_between
-      my_sleep sleep_between
-      puts
+      
+      if idx < this_actions.length - 1
+        sleep_between = this_actions[idx + 1][0] - action[0]
+        puts "sleep until next:    \e[0m\e[34m%.2f sec\e[0m" % sleep_between
+        my_sleep sleep_between
+        puts
+      end
 
-    end  ## loop: each pair of actions with sleep between
+    end  ## loop: each action 
 
     # last action has not been included above, as we did only the first action of each pair;
     # so we have to do it now
@@ -373,8 +407,14 @@ end
 
 def jamming_do_action act_wo_ts, noop: false
   if %w(message loop-start mission key timer).include?(act_wo_ts[0])
-    if act_wo_ts.length == 3 && ( !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) )
-      err("A 3-element #{act_wo_ts[0]} needs one string and an optional number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
+    if act_wo_ts.length == 3
+      if act_wo_ts[0] == 'timer'
+        if act_wo_ts[1] != 'up-to-next-timer' || !act_wo_ts[2].is_a?(String)
+          err("A 3-element timer needs string 'up-to-next-timer' and a second string after 'timer'; not #{act_wo_ts}")
+        end
+      elsif !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) 
+        err("A 3-element #{act_wo_ts[0]} needs one string and an (optional) number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
+      end
     end
     if act_wo_ts.length == 2 && !act_wo_ts[1].is_a?(String)
       err "A 2-element #{act_wo_ts[0]} needs one string after '#{act_wo_ts[0]}'; not #{act_wo_ts}"
@@ -382,11 +422,13 @@ def jamming_do_action act_wo_ts, noop: false
     if %w(mission key).include?(act_wo_ts[0]) && act_wo_ts.length != 2
       err "An action of type '#{act_wo_ts[0]}' needs exactly one more element; not #{act_wo_ts}"
     end
-    if act_wo_ts[1].lines.length > 1
-      err "Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}"
-    end
-    if act_wo_ts[1]['{{']
-      err "Message may not contain special string '{{', but this does: #{act_wo_ts[1]}"
+    if act_wo_ts.length > 1
+      if act_wo_ts[1].lines.length > 1
+        err "Message to be sent can only be one line, but this has more: #{act_wo_ts[1]}"
+      end
+      if act_wo_ts[1]['{{']
+        err "Message may not contain special string '{{', but this does: #{act_wo_ts[1]}"
+      end
     end
     return if noop
     # update jamming data at least at loop start (or more often)
@@ -400,7 +442,11 @@ def jamming_do_action act_wo_ts, noop: false
     $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
     $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
     content = if act_wo_ts[0] == 'timer'
-                expr = act_wo_ts[1]
+                expr = if act_wo_ts[1] == 'up-to-next-timer'
+                         act_wo_ts[2]
+                       else
+                         act_wo_ts[1]
+                       end
                 dura = if expr.is_a?(Numeric)
                          expr
                        elsif expr.is_a?(String)
@@ -690,7 +736,7 @@ def parse_and_preprocess_jamming_json json
     actions[i_neg][0] = ts_abs
   end
   
-  # check syntax of timestamps before actually starting
+  # Check syntax of actions before actually starting
   $jam_loop_start_idx = nil
   actions.each_with_index do |ta,idx|
     err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start timer).include?(ta[1])

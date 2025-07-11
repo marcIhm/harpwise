@@ -46,7 +46,8 @@
     //   [timestamp, "message", message, secs_to_show]
     //   [timestamp, "keys", key1, key2, ... ]
     //   [timestamp, "loop-start", message, secs_to_show] 
-    //   [timestamp, "timer", secs_to_elapse]
+    //   [timestamp, "timer"]
+    //   [timestamp, "timer", "secs_to_elapse"]
     //
     // Where:
     //
@@ -64,9 +65,12 @@
     // any further iterations, so that action before "loop-start" are only executed once.
     //
     // "timer" initiates a timer, that is shown in the topmost line of "harpwise listen" and
-    // may be used to indicate the time-span up to the next chord change.  Its duration
-    // must be a string in any case, but can be written as a difference of timestamps for
-    // convenience.
+    // may be used to indicate a time-span, typically up to the next chord change.
+    // If there is no string after "timer", harpwise calculates and uses the duration
+    // up to the next timer.  However, you may also specify an explicit duration as a
+    // string, wich can also be written as a difference of timestamps (e.g. "12.4-6.3")
+    // for convenience.  In any case the a 0.2 sec margin is subtracted to keep the timer
+    // from overlapping into next action.
     // 
     // The array timestamps-to-actions will be repeated forever, but from the second
     // iteration on it will start at "loop-start".  This assumes that the chord-structure
@@ -82,7 +86,7 @@
     //   %{elapsed}             :  time elapsed (mm:ss)
     //   %{remaining}           :  time remaining of backing-track (mm:ss)
     //   %{install_dir}         :  installation directory of harpwise
-    //   %{loop_starter}        :  convenient comment for loop start including iteration, elapsed, etc
+    //   %{loop_starter}        :  convenient comment for loop start including iteration, elapsed, etc.
     //
     // These variables are updated for each iteration, but keep their values during one.
     //
@@ -107,24 +111,24 @@
 	// that the same instance of "harpwise listen" can be used multiple times
         [0,"keys","L","S"],
         [0,"message","Comment: %{comment}"],
-	[0,"timer","6"],
+	[0,"timer"],
         [-2,"message","*In two secs ..."],
 	// exactly one loop-start is needed
         [6,"loop-start","%{loop_starter}",4],
-	[6,"timer","18-6"],
+	[6,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],
-	[18,"timer","24-18"],
+	[18,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
         [24,"keys","l","s"],
-	[24,"timer","30-24"],
+	[24,"timer"],
         [-2,"message","*Three chord-changes in two secs ...",2],
         [30,"keys","l","s"],
-	[30,"timer","36-30"],
+	[30,"timer"],
         [33,"keys","l","s"],
         [36,"keys","l","s"],
-	[36,"timer","42-36"],
+	[36,"timer"],
         [-2,"message","*Turnaround in two secs ...",2],
         [42,"keys","l","s"]
     ]
