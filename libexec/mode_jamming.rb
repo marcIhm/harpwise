@@ -130,6 +130,10 @@ def do_the_jamming json_file
     ts_prev = ta[0]
   end
 
+  #
+  # Done with parameter and data processing, make contact with user and 'harpwise listen'
+  #
+  
   ['',"\e[0mComment:\e[32m",'',
    wrap_text($jam_pms['comment'],term_width: -4, cont: '').map {|l| '    ' + l},
    "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
@@ -153,7 +157,7 @@ def do_the_jamming json_file
     if $runningp_listen_jamming
       puts "Found 'harpwise listen' running."
     else
-      ["Cannot find an instance of 'harpwise listen' that partners in jamming.",
+      ["Cannot find an instance of 'harpwise listen' that takes part in jamming.",
        "",
        "Please start it in a second terminal:",
        "\n",
@@ -185,10 +189,10 @@ def do_the_jamming json_file
 
   # switch key of harpwise listen to be in sync with jamming
   jamming_do_action ['key', $key]
-  jamming_do_action ['mission',"Jamming: intro" % $jam_data]
+  jamming_do_action ['mission',"Jam: intro" % $jam_data]
   
   jamming_do_action ['message',
-                     "Jamming: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
+                     "Jam: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
                      [0.0, $jam_pms['sleep_initially'] - 0.2].max.round(1)]
                    
   puts "Initial sleep %.2f sec" % $jam_pms['sleep_initially']    
@@ -262,6 +266,8 @@ def do_the_jamming json_file
     end
     sl_a_iter.shift unless sl_a_iter.length == 1
 
+    $jam_data[:num_timer] = 0
+    
     #
     # Loop: each action
     #
@@ -287,7 +293,7 @@ def do_the_jamming json_file
         puts
         puts_underlined "ITERATION #{iter}"
         this_actions[idx .. -1].each {|a| pp a}
-        jamming_do_action ['mission',"Jamming: iteration %{iteration}/%{iteration_max}" % $jam_data]
+        jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}" % $jam_data]
         puts
         puts sl_a_iter_msg
         puts
@@ -305,32 +311,40 @@ def do_the_jamming json_file
       #
       # Handle timer
       #
-      if action[1] == 'timer' && action.length == 2
-        # No duration given, so search for next timer and calculate duration
-        next_timer_idx = nil
-        secs_to_next_timer = -action[0]
-        # Search from first action; if nothing found search again from loop start.  We can
-        # mostly be sure to find at least the current timer.
-        next_timer_idx = nil
-        [idx + 1, $jam_loop_start_idx].each do |start_search|
-          next_timer_idx = (start_search ... this_actions.length).
-                             find {|ix| this_actions[ix][1] == 'timer'}
-          if next_timer_idx
-            # Found next timer
-            secs_to_next_timer += this_actions[next_timer_idx][0]
-            break
-          else
-            # Our search wraps around; add duration of whole loop. We do not need to care
-            # for sleep_after_iteration, because this has already been worked into actions
-            # above.
-            secs_to_next_timer += $jam_data[:iteration_duration_secs]
+      if action[1] == 'timer'
+        
+        if idx > $jam_loop_start_idx
+          $jam_data[:num_timer] += 1
+          jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}" % $jam_data]
+        end
+          
+        if action.length == 2
+          # No duration given, so search for next timer and calculate duration
+          next_timer_idx = nil
+          secs_to_next_timer = -action[0]
+          # Search from first action; if nothing found search again from loop start.  We can
+          # mostly be sure to find at least the current timer.
+          next_timer_idx = nil
+          [idx + 1, $jam_loop_start_idx].each do |start_search|
+            next_timer_idx = (start_search ... this_actions.length).
+                               find {|ix| this_actions[ix][1] == 'timer'}
+            if next_timer_idx
+              # Found next timer
+              secs_to_next_timer += this_actions[next_timer_idx][0]
+              break
+            else
+              # Our search wraps around; add duration of whole loop. We do not need to care
+              # for sleep_after_iteration, because this has already been worked into actions
+              # above.
+              secs_to_next_timer += $jam_data[:iteration_duration_secs]
+            end
           end
+          if !next_timer_idx
+            # This happens, if there is only one timer and placed before loop start
+            secs_to_next_timer = this_actions[$jam_loop_start_idx][0] - action[0]
+          end
+          action.append('up-to-next-timer', "%.f" % secs_to_next_timer)
         end
-        if !next_timer_idx
-          # This happens, if there is only one timer and placed before loop start
-          secs_to_next_timer = this_actions[$jam_loop_start_idx][0] - action[0]
-        end
-        action.append('up-to-next-timer', "%.f" % secs_to_next_timer)
       end
 
       
@@ -715,6 +729,8 @@ def parse_and_preprocess_jamming_json json
                iteration_duration: '??:??',
                num_action: 0,
                num_action_max: 0,
+               num_timer: 0,
+               num_timer_max: 0,
                key: '?'}
   $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
 
@@ -747,6 +763,8 @@ def parse_and_preprocess_jamming_json json
     if ta[1] == 'loop-start'
       err("Action 'loop-start' already appeared with index #{$jam_loop_start_idx}: #{actions[$jam_loop_start_idx]}, cannot appear again with index #{idx}: #{ta}") if $jam_loop_start_idx
       $jam_loop_start_idx = idx
+    elsif ta[1] == 'timer'
+      $jam_data[:num_timer_max] += 1 if $jam_loop_start_idx
     end
   end
   err("Need at least one timestamp with action 'loop-start'") unless $jam_loop_start_idx
