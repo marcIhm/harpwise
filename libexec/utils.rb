@@ -305,7 +305,7 @@ def print_debug_info
   puts '$perfctr:'
   pp $perfctr
   puts '$freqs_queue.length:'
-  puts $freqs_queue.length    
+  puts $freqs_queue.length
 end
 
 

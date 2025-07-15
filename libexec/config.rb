@@ -117,6 +117,7 @@ def set_global_vars_early
   $ctl_reponse_default = ''
   $ctl_response_width = 32
   $ctl_response_non_def_ts = nil
+  $ctl_response_last_was_def = nil
 
   $all_licks = $licks = nil
 
@@ -454,6 +455,7 @@ def calculate_screen_layout
   end
   lines[:message_bottom] = [lines[:hint_or_message], lines[:message2]].max
   lines[:help] = lines[:comment_tall]
+
   lines
 end
 

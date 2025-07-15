@@ -478,7 +478,7 @@ def jamming_do_action act_wo_ts, noop: false
                        else
                          err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
                        end
-                err "Timer-duration is less than three seconds; probably too fast to follow: #{expr}" if dura < 4
+                err "Timer-duration is less than three seconds; probably too fast to follow: #{expr}" if dura < 3
                 dura * $jam_pms['timestamps_multiply']
               else
                 act_wo_ts[1].chomp % $jam_data

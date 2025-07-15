@@ -735,22 +735,28 @@ def handle_kb_mic
   elsif char.length > 0
     text = get_text_invalid(char, true)
   end
-  ctl_response text if text && !waited
+  ctl_response(text) if text && !waited
   waited
 end
 
-
-def ctl_response text = nil, hl: false
+def ctl_response text = nil, hl: false, tntf: Time.now.to_f
+  # Immediate acknowledge to user input. Also, after a while, display default text if no
+  # input has been given
   if text
-    $ctl_response_non_def_ts = Time.now.to_f 
+    # remember timestamo of non-default text
+    $ctl_response_non_def_ts = tntf
+    $ctl_response_last_was_def = false
   else
-    return if $ctl_response_non_def_ts && Time.now.to_f - $ctl_response_non_def_ts < 3
+    # let any non-default text stand for 3 secs
+    return if $ctl_response_non_def_ts && tntf < $ctl_response_non_def_ts + 3
+    return if $ctl_response_last_was_def
     text = $ctl_response_default
+    $ctl_response_last_was_def = true
   end
   text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
-  print "\e[1;#{$term_width - $ctl_response_width}H\e[0m"
-  wheel = $resources[:hl_wheel]
+  print "\e[#{$lines[:mission]};#{$term_width - $ctl_response_width}H\e[0m"
   if hl.is_a?(Numeric)
+    wheel = $resources[:hl_wheel]
     print "\e[0m\e[#{wheel[hl % wheel.length]}m"
   elsif text == $ctl_response_default || hl == :low
     print "\e[2m"

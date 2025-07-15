@@ -35,6 +35,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
 
   first_round = true
   for_testing_touched = false
+  jmg_tm_ud_nx_was = $jamming_timer_update_next  
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_freq] = nil
@@ -44,8 +45,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   end
   $msgbuf.ready
   
-  loop do   # over each new frequency from pipeline, until var done or skip
-
+  loop do   # over each new frequency from pipeline, until done or skip
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
 
@@ -54,11 +54,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     if first_round || $ctl_mic[:redraw] ||
-       ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
-      print_mission(get_mission_override || lambda_mission.call)
+       ( $jamming_timer_update_next && tntf > $jamming_timer_update_next ) ||
+       # jamming timer has ended in iteration before
+       ( !!$jamming_timer_update_next && jmg_tm_ud_nx_was ) 
+         print_mission(get_mission_override || lambda_mission.call)
+         jmg_tm_ud_nx_was = $jamming_timer_update_next
     end
 
     if first_round || $ctl_mic[:redraw]
+      $perfctr[:handle_holes_redraw] += 1
       if first_round
         ctl_response
       else
@@ -83,6 +87,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       $ctl_mic[:redraw] = false
       $ctl_mic[:update_comment] = true
     end
+
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
@@ -121,7 +126,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     # also restores default text after a while
-    ctl_response
+    ctl_response tntf: tntf
 
     handle_win_change if $ctl_sig_winch
     
@@ -203,7 +208,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
       end
       $hole_held_inter = hole_held
     end
-    
+
+    # Get opinion of caller on current hole
     good,
     done,
     was_good = if $opts[:screenshot]
@@ -1162,6 +1168,7 @@ def show_remote_message
         $key = key
         set_global_vars_late
         set_global_musical_vars
+        print "\e[#{$lines[:key]}H" + text_for_key        
         if $key == key_was
           $msgbuf.print "Key of harp unchanged:   #{$key}", duration, duration, :key
         else
