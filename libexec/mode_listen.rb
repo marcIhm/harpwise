@@ -367,6 +367,7 @@ END
     
     if $ctl_mic[:comment_lick_next]
       $ctl_mic[:comment_lick_next] = false
+      $ctl_mic[:redraw] = Set[:silent]
       if $comment_licks.length > 0
         $comment_licks.rotate!
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])

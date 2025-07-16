@@ -117,7 +117,7 @@ def set_global_vars_early
   $ctl_reponse_default = ''
   $ctl_response_width = 32
   $ctl_response_non_def_ts = nil
-  $ctl_response_last_was_def = nil
+  $ctl_response_last_text = nil
 
   $all_licks = $licks = nil
 

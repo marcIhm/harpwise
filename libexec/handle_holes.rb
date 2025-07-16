@@ -4,19 +4,44 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_comment, lambda_hint, lambda_star_lick
-  samples = Array.new
-  $move_down_on_exit = true
+def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
+                 lambda_comment, lambda_hint, lambda_star_lick
+
+  #
+  # Please bear in mind, that we may enter this function multiple times during one run of
+  # harpwise. E.g. for mode listen we leave this function on certain keys pressed
+  # (i.e. those, that can only be handled by the caller, e.g. 'L') and enter it again
+  # soon after.
+  #
+
+  # Not taking account the above has caused debugging-trouble in at least two cases:
+  # - $hole_was_for_disp needs to be persistant over invocations and cannot be set here
+  # - first_round as a local variable was replaced for the better fit
+  #   $first_round_ever_get_hole
+
+  
+  # One-time initialize
+  if $first_round_ever_get_hole
+    $move_down_on_exit = true
+    $msgbuf.ready
+    if $hole_ref
+      $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
+      $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+    end
+    $ctl_mic[:redraw] = Set[:silent]    
+  end
+
   longest_hole_name = $harp_holes.max_by(&:length)
-  # we cache time for (assumed) performance reasons
+  # We cache time for (assumed) performance
   tntf = Time.now.to_f
-  # Remark: $hole_was_for_disp needs to be persistant over invocations
-  # and cannot be set here
 
   hole = nil
   hole_since = tntf
   hole_since_ticks = $total_freq_ticks
+  for_testing_touched = false
+  warbles_announced = false
 
+  #
   # Use ticks (e.g. cycles in handle_holes), because this is
   # potentially more precise than time-spans.  If this is set shorter,
   # the journal will pick up spurious notes
@@ -26,47 +51,41 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
   hole_held = hole_journal = hole_journal_since = nil
 
   was_good = was_was_good = was_good_since = nil
-  $msgbuf.update(tntf, refresh: true)
   hints_refreshed_at = tntf - 1000.0
   hints = hints_old = nil
 
   warbles_first_hole_seen = false
-  warbles_announced = false
 
-  first_round = true
-  for_testing_touched = false
   jmg_tm_ud_nx_was = $jamming_timer_update_next  
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_freq] = nil
-  if $hole_ref
-    $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-    $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
-  end
-  $msgbuf.ready
-  
+
+  $msgbuf.update(tntf, refresh: true)
+
   loop do   # over each new frequency from pipeline, until done or skip
+
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
 
-    if first_round || ($ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear))
+    if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       system('clear')
     end
 
-    if first_round || $ctl_mic[:redraw] ||
+    if $ctl_mic[:redraw] ||
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next ) ||
        # jamming timer has ended in iteration before
        ( !!$jamming_timer_update_next && jmg_tm_ud_nx_was ) 
-         print_mission(get_mission_override || lambda_mission.call)
-         jmg_tm_ud_nx_was = $jamming_timer_update_next
+      print_mission(get_mission_override || lambda_mission.call)
+      jmg_tm_ud_nx_was = $jamming_timer_update_next
     end
 
-    if first_round || $ctl_mic[:redraw]
+    if $ctl_mic[:redraw]
       $perfctr[:handle_holes_redraw] += 1
-      if first_round
-        ctl_response
+      if $first_round_ever_get_hole
+        ctl_response(redraw: true)
       else
-        ctl_response('Redraw', hl: :low) unless $ctl_mic[:redraw].include?(:silent)
+        ctl_response('Redraw', hl: :low, redraw: true) unless $ctl_mic[:redraw].include?(:silent)
       end
       print "\e[#{$lines[:key]}H" + text_for_key
       print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
@@ -542,7 +561,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip, lambda_
     end
 
     $msgbuf.clear if done
-    first_round = $first_round_ever_get_hole = false
+    $first_round_ever_get_hole = false
   end  # loop until var done or skip
 end
 
@@ -1179,12 +1198,12 @@ def show_remote_message
         dura = begin
                  Float(dtext)
                rescue ArgumentError
-                 err "Internal error: after {{mission}} there needs to be a number, not: '#{dtext}'"
+                 err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
                end
         $jamming_timer_start = Time.now.to_f
         $jamming_timer_end = $jamming_timer_start + dura
         $jamming_timer_update_next = $jamming_timer_start - 1
-        $jamming_timer_text = [nil, nil, nil, nil, 0]        
+        $jamming_timer_text = [nil, nil, nil, nil, 0, 0]        
         print_mission(get_mission_override)
       else
         if text[0] == '*'

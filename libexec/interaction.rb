@@ -739,20 +739,24 @@ def handle_kb_mic
   waited
 end
 
-def ctl_response text = nil, hl: false, tntf: Time.now.to_f
+
+def ctl_response text = nil, hl: false, tntf: Time.now.to_f, redraw: false
   # Immediate acknowledge to user input. Also, after a while, display default text if no
   # input has been given
-  if text
-    # remember timestamo of non-default text
-    $ctl_response_non_def_ts = tntf
-    $ctl_response_last_was_def = false
+  if redraw
+    text = $ctl_response_last_text || $ctl_response_default
   else
-    # let any non-default text stand for 3 secs
-    return if $ctl_response_non_def_ts && tntf < $ctl_response_non_def_ts + 3
-    return if $ctl_response_last_was_def
-    text = $ctl_response_default
-    $ctl_response_last_was_def = true
+    if text
+      # remember timestamp of non-default text
+      $ctl_response_non_def_ts = tntf
+    else
+      # let any non-default text stand for 3 secs
+      return if $ctl_response_non_def_ts && tntf < $ctl_response_non_def_ts + 3
+      text = $ctl_response_default
+    end
+    return if $ctl_response_last_text == text
   end
+  $ctl_response_last_text = text
   text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
   print "\e[#{$lines[:mission]};#{$term_width - $ctl_response_width}H\e[0m"
   if hl.is_a?(Numeric)
