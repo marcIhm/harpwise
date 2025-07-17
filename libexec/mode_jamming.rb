@@ -661,13 +661,17 @@ def my_sleep secs, fast_w_animation: false, &blk
         # due to prior checks we are sure to have $extra == 'along' 
         puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
         jamming_do_action ['message','Backing track has ended; starting over again',1]
+        jamming_do_action ['mission','Starting over',1]
         sleep 1
         jamming_prepare_for_restart
         exec($full_command_line)
       end
 
       puts "\nBacking track has ended.\n\n"
-      jamming_do_action ['message','Backing track has ended.',1] if $extra == 'along'
+      if $extra == 'along'
+        jamming_do_action ['message','Backing track has ended.',1] 
+        jamming_do_action ['mission','Track has ended',1]
+      end
       puts
       
       exit 0

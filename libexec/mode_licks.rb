@@ -642,6 +642,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       # handle user recording during lick
       if $ctl_mic[:toggle_record_user]
         $ulrec.toggle_active
+        $ctl_mic[:redraw] = Set[:silent]
         seq_just_played_initially = true
         $ctl_mic[:toggle_record_user] = false
       end

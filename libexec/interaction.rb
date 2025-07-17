@@ -602,7 +602,7 @@ def handle_kb_mic
     text = 'Option info'    
   elsif char == 'CTRL-R' && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
-    text = 'Record user'
+    text = 'Toggle record'
   elsif char == '#' && $mode == :licks
     $ctl_mic[:shift_inter] = true
     text = 'Choose shift interval'

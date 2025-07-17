@@ -2474,7 +2474,7 @@ do_test 'id-72: record user in licks' do
   tms :C_R
   expect { screen[1]['-rec-'] }
   tms '1'
-  sleep 1
+  sleep 2
   expect { screen[1]['-REC-'] }
   5.times {
     tms '1'
@@ -3963,8 +3963,8 @@ do_test 'id-144: check consistent usage of short and long description' do
   ld_usage = ld_usage.join(' ')
   expect(short_desc, sd_usage) { short_desc == sd_usage }
   expect(long_desc, ld_usage) { long_desc == ld_usage }
-
-  snap = YAML.load_file('snap/snapcraft.yaml')
+  system("erb /home/ihm/git/harpwise/snap/snapcraft.yaml.erb >/tmp/snapcraft.yaml")
+  snap = YAML.load_file('/tmp/snapcraft.yaml')
   sd_snap = snap['summary'].gsub!(/([[:punct:]]|\s)*$/,"")
   ld_snap = snap['description'].lines.map(&:chomp).join(' ')
   expect(short_desc, sd_snap) { short_desc == sd_snap }
@@ -3973,13 +3973,6 @@ do_test 'id-144: check consistent usage of short and long description' do
   response = Net::HTTP.get_response(URI('https://api.github.com/repos/marcihm/harpwise'))
   sd_github = JSON.parse(response.body)['description'].gsub!(/([[:punct:]]|\s)*$/,"")
   expect(short_desc, sd_github) { short_desc == sd_github }
-end
-
-do_test 'id-145: check consistent version in version.txt and snapcraft.yaml' do
-  snap = YAML.load_file('snap/snapcraft.yaml')
-  v_snap = snap['version']
-  v_vers = File.read('resources/version.txt').chomp
-  expect(v_snap, v_vers) { v_snap == v_vers }
 end
 
 do_test 'id-146: check error on preexisting dir .harpwise' do

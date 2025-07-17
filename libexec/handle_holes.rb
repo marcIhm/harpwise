@@ -71,7 +71,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       system('clear')
     end
-
+    
     if $ctl_mic[:redraw] ||
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next ) ||
        # jamming timer has ended in iteration before
@@ -116,6 +116,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
     end
 
+    $ulrec.print_rec_sign_mb if $ulrec.active?
+    
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     if $testing && !for_testing_touched
       FileUtils.touch("#{$dirs[:exch_tester_tested]}/harpwise_pipeline_started")
