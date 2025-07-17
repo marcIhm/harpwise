@@ -8,7 +8,8 @@ name: harpwise
 # We require core24 rather than core22, because our minimum ruby-version
 # is 3.1 and core22 only includes 3.0
 base: core24
-version: '6.15.4'
+
+version: '<%= File.read('/home/ihm/git/harpwise/resources/version.txt').chomp %>'
 summary: A harmonica tool for the command line, using microphone and speaker
 description: |
   Harpwise supports your harmonica practice with scales, chords and licks.

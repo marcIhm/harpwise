@@ -1,6 +1,7 @@
 set -v
+cd ~/hw-snap
 rsync -av /home/ihm/git/harpwise . --exclude .git
-cp /home/ihm/git/harpwise/snap/snapcraft.yaml .
+erb /home/ihm/git/harpwise/snap/snapcraft.yaml.erb >./snapcraft.yaml
 rm harpwise_*_amd64.snap
 sudo snap remove harpwise
 snapcraft clean ; snapcraft
