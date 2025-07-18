@@ -62,7 +62,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   $perfctr[:handle_holes_this_first_freq] = nil
 
   $msgbuf.update(tntf, refresh: true)
-
+  $ulrec.print_rec_sign_mb if $ulrec.active?
+    
   loop do   # over each new frequency from pipeline, until done or skip
 
     $perfctr[:handle_holes_this_loops] += 1
@@ -116,8 +117,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
     end
 
-    $ulrec.print_rec_sign_mb if $ulrec.active?
-    
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     if $testing && !for_testing_touched
       FileUtils.touch("#{$dirs[:exch_tester_tested]}/harpwise_pipeline_started")

@@ -648,9 +648,9 @@ def handle_kb_mic
   elsif char == 'q'
     $ctl_mic[:quit] = true
     text = nil
-  elsif char == '1'
+  elsif char == '1' && $mode == :licks
     $ctl_mic[:hole_given] = true
-    text = 'One for free'
+    text = 'One hole given'
   elsif char == '!' && $opts[:debug]
     $ctl_mic[:debug] = !$ctl_mic[:debug]
     text = "Debug: #{$ctl_mic[:debug]}"

@@ -5,9 +5,9 @@ Overview:
 
     - Hole
     - Note
+    - Membership of played note in various scales
     - Interval to previous note
     - Difference to a reference note, e.g. to practice bends
-    - Membership of played note in various scales
     - Speed of warbles
 
   When playing, you may switch on journal to get a simple
@@ -17,8 +17,8 @@ Overview:
 Usage by Examples:
 
   The wise listens, while your are playing a richter harp of key c and
-  it shows the holes, that you played; green if from the scale, red
-  otherwise:
+  it shows the holes, that you played; green if from the blues-scale,
+  blue otherwise:
 
     harpwise listen richter c blues
 
