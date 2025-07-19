@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise listen':
 
   The mode 'listen' shows information on the notes you play; depending
   on settings for display and comment this can be:

@@ -59,7 +59,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   jmg_tm_ud_nx_was = $jamming_timer_update_next  
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
-  $perfctr[:handle_holes_this_first_freq] = nil
+  $perfctr[:handle_holes_this_first_mic] = nil
 
   $msgbuf.update(tntf, refresh: true)
   $ulrec.print_rec_sign_mb if $ulrec.active?
@@ -117,6 +117,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
     end
 
+    #
+    # Here we get our most important input; which is acoustic
+    #
     freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
     if $testing && !for_testing_touched
       FileUtils.touch("#{$dirs[:exch_tester_tested]}/harpwise_pipeline_started")
@@ -124,10 +127,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     $total_freq_ticks += 1
-    $perfctr[:handle_holes_this_first_freq] ||= Time.now.to_f
+    $perfctr[:handle_holes_this_first_mic] ||= Time.now.to_f
 
     return if lambda_skip && lambda_skip.call()
 
+    #
+    # Here we get out keyboard input
+    #
     pipeline_catch_up if handle_kb_mic
     
     behind = $freqs_queue.length * $time_slice_secs
@@ -184,7 +190,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # remember old value to allow detecting change below
     held_min_ticks = ( hole ? hole_held_min_ticks : hole_held_min_ticks_nil )
     hole_held_was = hole_held
-    hole_held = hole if $total_freq_ticks - hole_since_ticks >= held_min_ticks
+    if $total_freq_ticks - hole_since_ticks >= held_min_ticks
+      hole_held = hole 
+      $first_hole_held ||= tntf if hole_held
+    end
 
     #
     # This generates journal entries for holes that have been held

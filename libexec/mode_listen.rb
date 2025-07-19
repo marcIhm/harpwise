@@ -159,7 +159,7 @@ def do_listen
       
       # lambda_hint
       -> (hole) do
-        if Time.now.to_f - $program_start < 3
+        if Time.now.to_f - $program_start < 6
           []
         else
           if $opts[:comment] == :journal
@@ -170,6 +170,8 @@ def do_listen
             ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
           elsif $opts[:no_player_info]
             []
+          elsif !$first_hole_held
+            ["You may blow your harp harp now ....      (key of #{$key})"]
           else
             [$players.line_stream_current]
           end

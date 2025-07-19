@@ -157,17 +157,20 @@ def do_the_jamming json_file
     if $runningp_listen_jamming
       puts "Found 'harpwise listen' running."
     else
-      ["Cannot find an instance of 'harpwise listen' that takes part in jamming.",
+      ["Cannot find a running instance of 'harpwise listen'.",
        "",
-       "Please start it in a second terminal:",
+       "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
        "\n",
        "    \e[32m#{$example % $jam_data}\e[0m",
-       "\nuntil then this instance of 'harpwise jamming' will check repeatedly and",
-       "start with the backing track as soon as 'harpwise listen' is running.",
-       "This way you can stay with 'listen' and need not come back here.",
+       "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
+       "start with the backing track as soon as  'harpwise listen'  is running.",
+       "",
+       "This way you can stay with  'listen'  and need not come back here.",
        ""].each {|l| puts l; sleep 0.01}
       print "\e[32m"
-      "Waiting ".each_char {|c| print c; sleep 0.02}
+      "Waiting ".each_char {|c| print c; sleep 0.04}
+      2.times {puts; sleep 0.08}
+      print "\e[2AWaiting "
       begin
         pid_listen_jamming = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
         print '.'
@@ -777,20 +780,17 @@ def parse_and_preprocess_jamming_json json
 
   # check if sound-file is present
   file = jam_pms['sound_file'] = jam_pms['sound_file'] % $jam_data
-  if File.exist?(file)
-    puts "\e[0mBacking track:   #{file}"
-    print "Duration:   --:--"
-    3.times {sleep 0.05; puts}
-    print "\e[3A"
-    jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
-    jam_pms['sound_file_length'] = jam_ta(jam_pms['sound_file_length_secs'])
-    $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
-    puts "\rDuration:   #{jam_pms['sound_file_length']}\e[K"
-    puts "%{iteration_max} iterations, %{iteration_duration} each" % $jam_data    
-    sleep 0.1
-  else
-    err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
-  end
+  err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
+  puts "\e[0mBacking track:   #{file}"
+  print "Duration:   --:--  \e[2m(calculating)\e[0m"
+  3.times {sleep 0.05; puts}
+  jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
+  jam_pms['sound_file_length'] = jam_ta(jam_pms['sound_file_length_secs'])
+  $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
+  print "\e[3A"
+  puts "Duration:   #{jam_pms['sound_file_length']}\e[K"
+  puts "%{iteration_max} iterations, %{iteration_duration} each" % $jam_data    
+  sleep 0.1
 
   # change my own key if appropriate
   puts "Key of   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"

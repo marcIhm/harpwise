@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise quiz':
 
   The mode 'quiz' is a quiz on music theory, ear and memory. It is
   meant as a fun way to increase your musical abilities. Quiz comes in

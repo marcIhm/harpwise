@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise develop':
 
   This mode is useful only for the maintainer or developer of
   harpwise; it is therefore not listed in the general usage

@@ -668,7 +668,7 @@ EOTEXT
   if !mode && STDOUT.isatty
     print "\e[?25l"  ## hide cursor      
     animate_splash_line
-    puts "\e[2mOverview:\e[0m"
+    puts "\e[0mOverview:"
     sleep 0.5
     print "\e[?25h"  ## show cursor
   end
@@ -676,7 +676,9 @@ EOTEXT
   lines = ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'').lines
   lines.each_with_index do |line, idx|
     print line
-    sleep 0.01 if STDOUT.isatty && idx < 10
+    sleep 0.5 if idx == 0 && mode
+    sleep 0.02 if STDOUT.isatty && idx < 5
+    sleep 0.02 if STDOUT.isatty && idx < 10
   end
 
   if $mode

@@ -299,8 +299,8 @@ def print_debug_info
   puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
   puts '$quiz_sample_stats:'
   pp $quiz_sample_stats
-  if $perfctr[:handle_holes_this_first_freq]
-    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_freq] )
+  if $perfctr[:handle_holes_this_first_mic]
+    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
   end
   puts '$perfctr:'
   pp $perfctr

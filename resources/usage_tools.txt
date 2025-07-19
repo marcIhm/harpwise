@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise tools':
 
   The mode 'tools' offers some non-interactive but useful utilities,
   which are mostly related to basic harmonica theory; they do not use

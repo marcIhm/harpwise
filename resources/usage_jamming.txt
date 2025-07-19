@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise jamming':
 
   Scripted jamming along a backing track. For this harpwise includes a
   backing-track with timestamps as well as a matching set of licks and

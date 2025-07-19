@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise play':
 
   The mode 'play' takes its arguments (holes, notes, semitones, licks,
   scales) and plays them.  It also handles some extra keywords.

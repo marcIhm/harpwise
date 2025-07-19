@@ -3804,7 +3804,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms usg_cmd_jam
   tms :ENTER
   sleep 4
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[17].strip == usg_cmd_hw }
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[14].strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
   kill_session
@@ -3872,7 +3872,7 @@ do_test 'id-139: jamming pause/resume for jamming' do
   tms "harpwise jamm along  2"
   tms :ENTER
   sleep 4
-  expect { screen[23]['Waiting ..']}
+  expect { screen[21]['Waiting ..']}
   tms ' '
   sleep 1
   expect { screen[18]["Paused:      (because SPACE has been pressed here)"]}

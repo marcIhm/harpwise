@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise print':
 
   The mode 'print' takes its arguments (holes, notes, licks, scales,
   semitones or special keywords) and prints them with additional

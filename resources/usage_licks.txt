@@ -1,4 +1,4 @@
-Overview:
+Overview of 'harpwise licks':
 
   The mode 'licks' helps to learn and memorize licks.  Typically it
   plays a random lick from your collection and asks you to play it
