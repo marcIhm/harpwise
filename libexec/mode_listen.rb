@@ -171,7 +171,7 @@ def do_listen
           elsif $opts[:no_player_info]
             []
           elsif !$first_hole_held
-            ["You may blow your harp harp now ....      (key of #{$key})"]
+            ["You may blow your harp now ....      (key of #{$key})"]
           else
             [$players.line_stream_current]
           end
