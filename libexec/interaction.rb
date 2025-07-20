@@ -648,7 +648,7 @@ def handle_kb_mic
   elsif char == 'q'
     $ctl_mic[:quit] = true
     text = nil
-  elsif char == '1' && $mode == :licks
+  elsif char == '1' && [:quiz, :licks].include?($mode)
     $ctl_mic[:hole_given] = true
     text = 'One hole given'
   elsif char == '!' && $opts[:debug]
