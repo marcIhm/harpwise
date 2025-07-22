@@ -664,7 +664,7 @@ def my_sleep secs, fast_w_animation: false, &blk
         # due to prior checks we are sure to have $extra == 'along' 
         puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
         jamming_do_action ['message','Backing track has ended; starting over again',1]
-        jamming_do_action ['mission','Starting over',1]
+        jamming_do_action ['mission','Starting over']
         sleep 1
         jamming_prepare_for_restart
         exec($full_command_line)
@@ -673,7 +673,7 @@ def my_sleep secs, fast_w_animation: false, &blk
       puts "\nBacking track has ended.\n\n"
       if $extra == 'along'
         jamming_do_action ['message','Backing track has ended.',1] 
-        jamming_do_action ['mission','Track has ended',1]
+        jamming_do_action ['mission','Track has ended']
       end
       puts
       
@@ -789,17 +789,17 @@ def parse_and_preprocess_jamming_json json
   $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
   print "\e[3A"
   puts "Duration:   #{jam_pms['sound_file_length']}\e[K"
-  puts "%{iteration_max} iterations, %{iteration_duration} each" % $jam_data    
+  puts "%{iteration_max} iterations (%{iteration_duration} each);   %{num_timer_max} timers" % $jam_data    
   sleep 0.1
 
   # change my own key if appropriate
-  puts "Key of   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"
+  puts "Key   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"
   sleep 0.02
   puts
   
   if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
     if $source_of[:key] == 'command-line'
-      puts "Got harp key   \e[32m#{$key}\e[0m   from command line; shifting track."      
+      puts "Got harp key   \e[32m#{$key}\e[0m   from command line;  \e[32mchanging pitch of track accordingly !\e[0m\n\n\e[2mIf you want to play the track unchanged, just omit the key (here: #{$key}) from the\ncommandline.  But for this you will need to have a harmonica in the key of #{jam_pms['harp_key']}.\n"      
     else
       $key = jam_pms['harp_key']
       set_global_vars_late
@@ -807,7 +807,7 @@ def parse_and_preprocess_jamming_json json
       puts "Switching to harp key   \e[32m#{jam_pms['harp_key']}\e[0m   as given in json file."
     end
   else
-    puts "Already at harp key   #{jam_pms['harp_key']}   from json file."
+    puts "Already at harp key   #{jam_pms['harp_key']}   as given in json file."
   end
   
   [jam_pms, actions]
