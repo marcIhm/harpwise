@@ -21,7 +21,7 @@ def do_jamming to_handle
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   end
-  
+
   if to_handle.length == 0 && !%w(list ls).include?($extra)
     do_jamming_list
     err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose a filename, even partially, as given above"
@@ -177,11 +177,15 @@ def do_the_jamming json_file
         print "\nStill waiting for 'harpwise listen' " if my_sleep(1)
         break if ENV['HARPWISE_TESTING'] == 'remote'
       end until pid_listen_jamming
+
       puts ' found it !'
       print "\e[0m"
       sleep 0.5
     end
 
+    # remember last-used time only, if we did some real jamming
+    $pers_data['jamming_last_used_day'] ||= Hash.new
+    $pers_data['jamming_last_used_day'][File.basename(json_file)] = DateTime.now.mjd
     puts
 
   end
@@ -551,7 +555,7 @@ def do_jamming_list
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\e[2m    # with keys song,harp"
+  puts "Available jamming-files:\e[2m    # with keys harp,song ; last used"
   tcount = 1
   $jamming_path.each do |jdir|
     puts
@@ -578,7 +582,23 @@ def do_jamming_list
       end
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
-      puts "  \e[0m\e[2m   #  #{pms['sound_file_key']},#{pms['harp_key']}"
+      print "  \e[0m\e[2m   #  #{pms['harp_key']},#{pms['sound_file_key']}"
+      if jflu = $pers_data['jamming_last_used_day']&.dig(File.basename(jf))
+        ago = DateTime.now.mjd - jflu
+        print " ;  " +
+              if ago == 0
+                'today'
+              elsif ago == 1
+                'yesterday'
+              elsif ago <= 28
+                "#{ago} days ago"
+              elsif ago <= 90
+                "#{(ago/7.0).round} weeks ago"
+              else
+                "#{(ago/30.0).round} months ago"
+              end
+      end
+      puts
       count += 1
       sleep 0.02
       tcount += 1
@@ -759,6 +779,11 @@ def parse_and_preprocess_jamming_json json
     err("When adding   #{loc_neg}   to   #{loc_pos_after_neg}   we come up with a negative absolute time: #{ts_abs}") if ts_abs < 0
     actions[i_neg][0] = ts_abs
   end
+
+  # preprocess to allow a timestamp of 0 to be the same as the preceding one
+  (1 .. actions.length - 1).to_a.each do |idx|
+    actions[idx][0] = actions[idx - 1][0] if actions[idx][0] == 0
+  end
   
   # Check syntax of actions before actually starting
   $jam_loop_start_idx = nil
@@ -793,7 +818,7 @@ def parse_and_preprocess_jamming_json json
   sleep 0.1
 
   # change my own key if appropriate
-  puts "Key   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"
+  puts "Keys   song: #{jam_pms['sound_file_key']}   harp: #{jam_pms['harp_key']}"
   sleep 0.02
   puts
   
@@ -1144,7 +1169,7 @@ def jamming_prepare_for_restart
   puts "\e[0m\e[34m ... jamming start over ... \e[0m\e[K"
   sleep 0.2
   if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-    File.write($pers_file, JSON.pretty_generate($pers_data))
+    File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
   end
   ENV['HARPWISE_RESTARTED'] = 'true'
   ENV.delete('HARPWISE_RESTARTED_PROMPT')

@@ -3909,7 +3909,7 @@ do_test 'id-142: jamming with explicit key' do
   tms :ENTER
   sleep 2
   lines = File.read($testing_output_file).lines
-  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['shifting track'] }
+  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['changing pitch'] }
   sleep 2
   lines = File.read($datadir +'/remote_messages/0000.txt').lines
   expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[0]['{key}}d'] }

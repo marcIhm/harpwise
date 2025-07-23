@@ -22,7 +22,7 @@ def do_quiz to_handle
       puts "\e[0m\e[34m ... quiz start over ... \e[0m\e[K"
       puts "\e[K"
       if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-        File.write($pers_file, JSON.pretty_generate($pers_data))
+        File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
       end
       ENV['HARPWISE_RESTARTED'] = 'yes'
       exec($full_command_line)

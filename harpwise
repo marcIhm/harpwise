@@ -24,6 +24,7 @@ require 'tempfile'
 require 'strscan'
 require 'pp'  ## for pretty_inspect
 require 'csv'
+require 'date'
 require_relative 'libexec/utils'
 require_relative 'libexec/arguments'
 require_relative 'libexec/config'
@@ -170,7 +171,7 @@ at_exit do
   end
     
   if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-    File.write($pers_file, JSON.pretty_generate($pers_data))
+    File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
   end
 end
 

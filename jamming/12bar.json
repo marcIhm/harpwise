@@ -51,6 +51,10 @@
     //
     // Where:
     //
+    // "timestamp" is the number of seconds after start of backing track. It may be given as 0
+    // which means to repeat the preceding timestamp. A negative value is relative to the
+    // following timestamp. See some of the comments below.
+    //
     // "message" makes the given message appear in "harpwise listen" for secs_to_show
     // seconds; secs_to_show is optional and defaults to 2. In any case the next message
     // given here will override its predecessor, so you rarely need to set this.
@@ -112,23 +116,25 @@
         [0,"keys","L","S"],
         [0,"message","Comment: %{comment}"],
 	[0,"timer"],
+	// negative timestamp is subtraced from the follwing one (i.e. 6 - 2)
         [-2,"message","*In two secs ..."],
 	// exactly one loop-start is needed
         [6,"loop-start","%{loop_starter}",4],
-	[6,"timer"],
+	// timestamp of zero below, means to repeat the preceding one (i.e. "6")
+	[0,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
 	// these two keys will switch lick- and scale-progression in unison	
         [18,"keys","l","s"],
-	[18,"timer"],
+	[0,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
         [24,"keys","l","s"],
-	[24,"timer"],
+	[0,"timer"],
         [-2,"message","*Three chord-changes in two secs ...",2],
         [30,"keys","l","s"],
-	[30,"timer"],
+	[0,"timer"],
         [33,"keys","l","s"],
         [36,"keys","l","s"],
-	[36,"timer"],
+	[0,"timer"],
         [-2,"message","*Turnaround in two secs ...",2],
         [42,"keys","l","s"]
     ]
