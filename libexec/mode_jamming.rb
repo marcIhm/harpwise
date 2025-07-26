@@ -814,7 +814,7 @@ def parse_and_preprocess_jamming_json json
   $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i  
   print "\e[3A"
   puts "Duration:   #{jam_pms['sound_file_length']}\e[K"
-  puts "%{iteration_max} iterations (%{iteration_duration} each);   %{num_timer_max} timers" % $jam_data    
+  puts "%{iteration_max}  iterations (%{iteration_duration} each);   each with  %{num_timer_max}  timers" % $jam_data    
   sleep 0.1
 
   # change my own key if appropriate

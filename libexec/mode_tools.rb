@@ -817,7 +817,8 @@ def tool_translate to_handle
                                   "draw is -2, bends are -1/, -2//, +10/.  All other notations",
                                   "will betranslated into this one."],
                            example: "-1  +2  -2  -3/  +3  -3/  -3//  -2"}, 
-                quotes: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\""],
+                quotes: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\"",
+                                "this notation is e.g. used by harmonica.com"],
                          example: "-1  +2  -2  -3'  3  -3'  -3\"  -2"},
                 notes: {desc: ["Just the notes rather than any harmonica-specific notation;",
                                "you may also try 'harpwise print' for this, as it will give",
@@ -833,14 +834,54 @@ def tool_translate to_handle
     puts "    \e[2mExample:  \e[2m#{nota[:example]}\e[0m"
   end
   puts
-  puts "Please enter a single line of harmonica notation; harpwise will pick"
+  puts "Please enter one or many lines of harmonica notation; harpwise will pick"
   puts "the notation, that matches best and will translate the given holes"
-  puts "into its own standard."
+  puts "into its own standard notation (richter)."
   puts
-  print "Your input:  "
-  foreign = gets.chomp.strip
+  puts "Please note: To allow multi-line input, this will keep reading until"
+  puts "you finish your input with two empty lines, i.e. hit RETURN twice."
   puts
-  foreigns = foreign.split
+  eiar = 0  ## empties in a row
+  nl_after_holes = []
+  foreigns = []
+  print 'Your input:  '
+  begin
+    fgn = gets.chomp.strip
+    # allow continuation lines ending with \; ignore it though
+    fgn[-1] = '' if fgn[-1] == '\\'
+    foreigns.append(*fgn.split)
+    nl_after_holes << foreigns.length if fgn != ''
+    eiar = if fgn == ''
+             eiar + 1
+           else
+             0
+           end
+
+    # if user pastes a multi-line input all at once, we dont want to print too many prompts
+    
+    # Remark: we cannot coalasce the two statements below, because during sleep, new input
+    # might arrive (which is the purpose of this sleep)
+
+    # Terminal-driver normally processes all input until RETURN is hit; so select below will
+    # return false on lines that are not ending with newline
+    sleep 0.1 unless IO.select([STDIN], nil, nil, 0)
+    if !IO.select([STDIN], nil, nil, 0)
+      system("stty -echo -icanon min 1 time 0")
+      # Now, that we have changed terminal processing, the select below will check if there
+      # is any input at all, even input not ending with newline
+      if IO.select([STDIN], nil, nil, 0)
+        print "\n\nPress RETURN to finish last line of input:  "
+      elsif eiar == 0
+        print "\e[2mYour input (cont.):  \e[0m"
+      elsif eiar == 1
+        print "\e[2mYour input (empty to finish):  \e[0m"
+      end
+      system("stty sane")
+    end
+    
+  end while eiar < 2
+  puts
+
   if foreigns.length == 0
     puts "No input provided."
     puts
@@ -859,7 +900,7 @@ def tool_translate to_handle
   counts = translations.map {|nm, hls| [nm, hls.select {|h| h}.length]}.to_h
   mx = counts.values.max
   if mx == 0
-    puts "None of the available notations could match *any* hole from your input."
+    puts "None of the available notations could match  \e[1many\e[0m  hole from your input !"
     puts
     exit
   end
@@ -869,11 +910,12 @@ def tool_translate to_handle
   # still be different
   best_trs = best.group_by {|nname| translations[nname]}.invert
 
+  print 'You input '
   if best.length == 1
     if mx == foreigns.length
-      print "is fully covered by"
+      print "is fully covered by one notation"
     else
-      print "is covered best (#{mx} of #{foreigns.length} holes) by"
+      print "is covered best (#{mx} of #{foreigns.length} holes) by one notation"
     end
   else
     if mx == foreigns.length
@@ -882,10 +924,13 @@ def tool_translate to_handle
       print "is covered best (#{mx} of #{foreigns.length} holes) by #{best.length} notations"
     end
   end
-  puts " and translates to:"
+  puts " (see below)\nand translates into harpwise-richter as:"
   puts
+  idx = 0
+  nl_after_holes.pop
   best_trs.each do |trs, hls|
     print "  \e[32m#{trs.join(',')}:\e[0m"
+    print "\n  " if nl_after_holes.length > 0
     hls.each_with_index do |hl, idx|
       print '  '
       if hl
@@ -893,6 +938,8 @@ def tool_translate to_handle
       else
         print "\e[2m#{foreigns[idx]}"
       end
+      idx += 1
+      print "\n  " if nl_after_holes.include?(idx)
     end
     puts "\e[0m"
   end
@@ -909,6 +956,10 @@ def tool_translate_notation_parens hole
     return "+#{md[1]}"
   elsif md = hole.match(/^\((\d)\)$/)
     return "-#{md[1]}"
+  elsif hole == '123'
+    return '+123'
+  elsif hole == '(123)'
+    return '[-123]'
   else
     return false
   end
@@ -916,22 +967,52 @@ end
 
 
 def tool_translate_notation_harpwise hole
-  return ( $harp_holes.include?(hole)  ?  hole  :  false )
+  if $harp_holes.include?(hole)
+    return hole
+  elsif hole.match(/^\(.*\)$/) || hole.match(/^\[.*\]$/)
+    return hole
+  else
+    return false
+  end
 end
 
 
 def tool_translate_notation_quotes hole
+
+  # try normal ascii-quotes (single and double) first
   if md = hole.match(/^(-|\+)?(\d)"'$/) || hole.match(/^(-|\+)?(\d)'"$/)
     return (md[1] || '+') + "#{md[2]}///"
   elsif md = hole.match(/^(-|\+)?(\d)"$/) || hole.match(/^(-|\+)?(\d)''$/)
     return (md[1] || '+') + "#{md[2]}//"
   elsif md = hole.match(/^(-|\+)?(\d)'$/)
+    return (md[1] || '+') + "#{md[2]}/"
+  end
+
+  # Right quotes as used by harmonica.com
+  # \u2019 = Right Single Quotation Mark
+  # \u201D = Right Double Quotation Mark
+  if md = hole.match(/^(-|\+)?(\d)\u201D\u2019$/) || hole.match(/^(-|\+)?(\d)\u2019\u201D$/)
+    return (md[1] || '+') + "#{md[2]}///"
+  elsif md = hole.match(/^(-|\+)?(\d)\u201D$/) || hole.match(/^(-|\+)?(\d)\u2019\u2019$/)
+    return (md[1] || '+') + "#{md[2]}//"
+  elsif md = hole.match(/^(-|\+)?(\d)\u2019$/)
+    return (md[1] || '+') + "#{md[2]}/"
+  end
+
+  # no quotes at all
+  if md = hole.match(/^(-|\+)?(\d)$/)
     return (md[1] || '+') + "#{md[2]}"
-  elsif md = hole.match(/^(-|\+)?(\d)$/)
-    return (md[1] || '+') + "#{md[2]}"
+  end
+
+  # chords
+  if hole == '-123'
+    return '[-123]'
+  elsif hole == '123'
+    return '[+123]'
   else
     return false
   end
+  
 end
 
 

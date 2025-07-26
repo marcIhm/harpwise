@@ -3732,13 +3732,21 @@ end
 
 do_test 'id-131b: translate harp notations' do
   new_session
-  tms 'harpwise tools translate'
-  tms :ENTER
-  sleep 0.2
-  tms '(1) 2 (2)'
-  tms :ENTER
-  wait_for_end_of_harpwise
-  expect { screen[20]['parens:  -1  +2  -2'] }
+  [[['(1) 2 (2)', '1 2 3'], 19, '-1  +2  -2'],
+   # leading space in order not to confuse tmux ("unknown flag -3")
+   [[' -2” -2 -3 -4 4 -3’ -2'], 20, '-2// -2  -3  -4  +4  -3/  -2']].each do |inputs, oline, output|
+    tms 'harpwise tools translate'
+    tms :ENTER
+    sleep 0.2
+    inputs.each do |inp|
+      tms inp
+      tms :ENTER
+    end
+    tms :ENTER
+    tms :ENTER
+    wait_for_end_of_harpwise
+    expect(line, output) { screen[oline][output] }
+  end
   kill_session
 end
 

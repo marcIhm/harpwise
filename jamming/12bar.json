@@ -51,9 +51,9 @@
     //
     // Where:
     //
-    // "timestamp" is the number of seconds after start of backing track. It may be given as 0
+    // "timestamp" is the number of seconds after start of backing track. It may also be 0,
     // which means to repeat the preceding timestamp. A negative value is relative to the
-    // following timestamp. See some of the comments below.
+    // following timestamp. See some comments below in "timestamps_to_actions".
     //
     // "message" makes the given message appear in "harpwise listen" for secs_to_show
     // seconds; secs_to_show is optional and defaults to 2. In any case the next message
