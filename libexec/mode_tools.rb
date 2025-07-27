@@ -841,43 +841,63 @@ def tool_translate to_handle
   puts "Please note: To allow multi-line input, this will keep reading until"
   puts "you finish your input with two empty lines, i.e. hit RETURN twice."
   puts
+
   eiar = 0  ## empties in a row
+  first_round = true
   nl_after_holes = []
   foreigns = []
-  print 'Your input:  '
+
+  # loop as long as there is input
   begin
+
+    # If user pastes a multi-line input all at once, we dont want to print too many prompts.
+
+    # Remark: we cannot coalasce the two select-statements below, because during sleep, new
+    # input might arrive (which is the purpose of this sleep)
+    #
+    # Terminal-driver normally processes all input until RETURN is hit; so select below will
+    # return false on the last line of several pasted lines, if it is not ending with
+    # newline
+    
+    sleep 0.1 unless IO.select([STDIN], nil, nil, 0)
+    
+    if !IO.select([STDIN], nil, nil, 0)
+      # We seem to have no input; but on pasting we might have an incomplete line without
+      # newline. So we need to check more thoroughly.
+      
+      # return input on every char, no wait
+      system("stty -echo -icanon min 1 time 0")
+      # change in terminal processing affects not only gets, but select too; so the line
+      # below will also sense, if there is any input at all, even input not ending with
+      # newline
+      if IO.select([STDIN], nil, nil, 0)
+        # Cursor still at end of line after incomplete input; it should be clear for the
+        # user, that he needs to press RETURN
+      elsif first_round
+        print 'Your input:  '
+      elsif eiar == 0
+        print "\e[2mYour input (cont.):  \e[0m"
+      elsif eiar == 1
+        print "\e[2mYour input (empty to finish):  \e[0m"
+      end
+      # back to normal line-discipline
+      system("stty sane")
+    end
+
     fgn = gets.chomp.strip
+
     # allow continuation lines ending with \; ignore it though
     fgn[-1] = '' if fgn[-1] == '\\'
-    foreigns.append(*fgn.split)
-    nl_after_holes << foreigns.length if fgn != ''
     eiar = if fgn == ''
              eiar + 1
            else
              0
            end
 
-    # if user pastes a multi-line input all at once, we dont want to print too many prompts
-    
-    # Remark: we cannot coalasce the two statements below, because during sleep, new input
-    # might arrive (which is the purpose of this sleep)
+    foreigns.append(*fgn.split)
+    nl_after_holes << foreigns.length if fgn != ''
 
-    # Terminal-driver normally processes all input until RETURN is hit; so select below will
-    # return false on lines that are not ending with newline
-    sleep 0.1 unless IO.select([STDIN], nil, nil, 0)
-    if !IO.select([STDIN], nil, nil, 0)
-      system("stty -echo -icanon min 1 time 0")
-      # Now, that we have changed terminal processing, the select below will check if there
-      # is any input at all, even input not ending with newline
-      if IO.select([STDIN], nil, nil, 0)
-        print "\n\nPress RETURN to finish last line of input:  "
-      elsif eiar == 0
-        print "\e[2mYour input (cont.):  \e[0m"
-      elsif eiar == 1
-        print "\e[2mYour input (empty to finish):  \e[0m"
-      end
-      system("stty sane")
-    end
+    first_round = false
     
   end while eiar < 2
   puts
@@ -887,7 +907,9 @@ def tool_translate to_handle
     puts
     exit
   end
+  
   translations = {}
+  # Try all notations
   notations.keys.each do |nname|
     translations[nname] = []
     foreigns.each do |frgn|
@@ -897,6 +919,8 @@ def tool_translate to_handle
       translations[nname] << send("tool_translate_notation_#{nname}", frgn)
     end
   end
+
+  # Count number of translated holes for each notation
   counts = translations.map {|nm, hls| [nm, hls.select {|h| h}.length]}.to_h
   mx = counts.values.max
   if mx == 0
@@ -904,12 +928,14 @@ def tool_translate to_handle
     puts
     exit
   end
-  # gather translations which translate the maximum number of holes
+
+  # Collect translations which translate the maximum number of holes, i.e. which are best
   best = counts.keys.group_by {|nname| counts[nname]}[mx]
-  # but although the translate the same (maximum) number of holes, their translations can
-  # still be different
+  # But although the translate the same (i.e. maximum) number of holes, their translations
+  # can still be different
   best_trs = best.group_by {|nname| translations[nname]}.invert
 
+  # Report how well the notations dd
   print 'You input '
   if best.length == 1
     if mx == foreigns.length
@@ -926,6 +952,9 @@ def tool_translate to_handle
   end
   puts " (see below)\nand translates into harpwise-richter as:"
   puts
+
+
+  # Actually output results
   idx = 0
   nl_after_holes.pop
   best_trs.each do |trs, hls|
