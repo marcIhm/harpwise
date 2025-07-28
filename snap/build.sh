@@ -1,4 +1,3 @@
-set -v
 cd ~/hw-snap
 rsync -av /home/ihm/git/harpwise . --exclude .git
 erb /home/ihm/git/harpwise/snap/snapcraft.yaml.erb >./snapcraft.yaml
