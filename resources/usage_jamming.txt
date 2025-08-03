@@ -99,3 +99,6 @@ Usage by Examples:
 
 <%= get_extra_desc_all(for_usage: true).join("\n") %>
 
+Quick Start:
+
+    harpwise jam along 12

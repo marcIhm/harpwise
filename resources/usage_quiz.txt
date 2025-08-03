@@ -53,3 +53,7 @@ Usage by Examples:
   Wise plays a scale and asks you for its name:
 
     harpwise quiz hear-scale
+
+Quick Start:
+
+    harpwise quiz ran
