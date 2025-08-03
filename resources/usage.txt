@@ -19,20 +19,19 @@ specifies the mode of operation; it can be one of:
   - listen: The wise listens to your playing (e.g. for scales or
     bends) and helps to steer through a chord progression
   - quiz: Train your ear, memory and knowledge of music theory with
-    many different flavours. This is actually a fun way to start.
+    more than 20 flavours; a fun way to start with harpwise
+  - jamming: Scripted jamming along a backing-track
   - licks: Learn licks (some included, pointers for more) as a
-    starting point for improvisations.
-  - jamming: Scripted jamming along a backing-track.
+    starting point for improvisations
 
 And, less interactive:
 
   - play: The wise plays scales, holes, licks, intervals, chords, etc.
-  - print: Print and annotate the holes of scales or licks given
-    on the commandline. Also print various informationo about licks,
-    scales and much more
-  - tools: Some non-interactive tools related to basic harmonica theory
+  - print: Print and annotate the holes or scales or licks given; in
+    general everything, that the wise knows about
+  - tools: More then 20 tools for various harmonica needs
   - samples: The wise assists in recording your own samples or generates
-    them for you; this is a prerequisite for using many other modes, so
+    them for you; this is a prerequisite for using some other modes, so
     you will be asked to invoke it, when necessary
 
 to read more details, usage examples and options for the individual

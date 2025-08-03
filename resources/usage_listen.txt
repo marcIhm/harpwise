@@ -96,3 +96,7 @@ Usage by Examples:
   experiment with --time-slice:
 
     harpwise listen c --time-slice short
+
+Quick Start:
+
+    harpwise listen c              
