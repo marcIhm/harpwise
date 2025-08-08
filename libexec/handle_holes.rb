@@ -46,7 +46,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   # potentially more precise than time-spans.  If this is set shorter,
   # the journal will pick up spurious notes
   #
-  hole_held_min_ticks = 3
+  hole_held_min_ticks = 2
   hole_held_min_ticks_nil = 2
   hole_held = hole_journal = hole_journal_since = nil
 
@@ -54,7 +54,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   hints_refreshed_at = tntf - 1000.0
   hints = hints_old = nil
 
-  warbles_first_hole_seen = false
+  # remember for each cycle of warbling, if we have seen first fole
+  last_warbles_hole = nil
 
   jmg_tm_ud_nx_was = $jamming_timer_update_next  
   $perfctr[:handle_holes_calls] += 1
@@ -168,22 +169,24 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # detect and update warbling
     if $opts[:comment] == :warbles
       if hole_held && ( !$warbles_holes[0] || !$warbles_holes[1] )
-        # defining warbel holes
-        $warbles_holes[0] = hole_held if !$warbles_holes[0] && hole_held != $warbles_holes[1]
-        $warbles_holes[1] = hole_held if !$warbles_holes[1] && hole_held != $warbles_holes[0]
+        # defining warble holes
+        $warbles_holes[0] ||= hole_held if hole_held != $warbles_holes[1]
+        $warbles_holes[1] ||= hole_held if hole_held != $warbles_holes[0]
         if !warbles_announced && $warbles_holes[0] && $warbles_holes[1]
           $msgbuf.print "Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}", 5, 5, :warble
           warbles_announced = true
         end
       end
       add_warble = false
+      # add new entry to $warble every time we reach hole two; see clear_warbles for its
+      # structure
       if hole == $warbles_holes[0]
-        warbles_first_hole_seen = true
+        last_warbles_hole = 0
       elsif hole == $warbles_holes[1]
-        add_warble = warbles_first_hole_seen
-        warbles_first_hole_seen = false
+        add_warble = ( last_warbles_hole == 0 )
+        last_warbles_hole = 1
       end
-      add_and_del_warbles(tntf, add_warble)
+      warbles_add_del(tntf, add_warble)
     end
 
     # distinguish deliberate playing from noise: compute hole_held
@@ -393,7 +396,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         clear_area_display
         print_chart
       end
-      clear_warbles 
+      clear_warbles
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
@@ -1124,23 +1127,27 @@ def show_help mode = $mode, testing_only = false
 end
 
 
-def clear_warbles standby = false
+def clear_warbles
   $warbles = {short: {times: Array.new,
                       val: 0.0,
                       max: 0.0,
-                      window: 1},
+                      window: 2},
               long: {times: Array.new,
                      val: 0.0,
                      max: 0.0,
-                     window: 3},
-              scale: 10,
-              standby: standby}
+                     window: 4},
+              scale: 10}
   $warbles_holes = Array.new(2)
 end
 
 
-def add_and_del_warbles tntf, add_warble
+def warbles_add_del tntf, add_warble
 
+  # See clear_warbles for structure of $warbles
+  
+  # add_warble becomes true every time we reach hole two after having reached hole one
+  # before
+  
   [:short, :long].each do |type|
 
     $warbles[type][:times] << tntf if add_warble
@@ -1150,14 +1157,29 @@ def add_and_del_warbles tntf, add_warble
                    tntf - $warbles[type][:times][0] > $warbles[type][:window] )
     $warbles[type][:times].shift if del_warble
     
-    if ( add_warble || del_warble )
-      $warbles[type][:val] = if $warbles[type][:times].length > 0
-                               $warbles[type][:times].length / $warbles[type][:window].to_f
+    if add_warble || del_warble
+      $warbles[type][:val] = if $warbles[type][:times].length > 1
+                               # enough values to compute warbling
+                               tspan = $warbles[type][:times][-1] - $warbles[type][:times][0]
+                               if tspan > $warbles[type][:window] / 2.0
+                                 # tspan of timestamps is comparable to window
+                                 if add_warble
+                                   ($warbles[type][:times].length - 1) / tspan
+                                 else
+                                   $warbles[type][:val]
+                                 end
+                               else
+                                 # time span too short; but this is an approximation and
+                                 # decays gracefully to zero
+                                 $warbles[type][:times].length / $warbles[type][:window].to_f
+                               end
                              else
-                               0
+                               0.0
                              end
-      $warbles[type][:max] = [ $warbles[type][:val],
-                               $warbles[type][:max] ].max
+      if add_warble
+        $warbles[type][:max] = [ $warbles[type][:val],
+                                 $warbles[type][:max] ].max
+      end
       # maybe adjust scale
       $warbles[:scale] += 5 while $warbles[:scale] < $warbles[type][:max]
     end

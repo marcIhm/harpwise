@@ -1511,21 +1511,37 @@ def prepare_warbles
     $opts[:comment] = :warbles
   else
     $warbles_holes = Array.new(2)
-    [0, 1].each do |idx|
-      $warbles_holes[idx] = choose_interactive("Please set   \e[32m#{%w(FIRST SECOND)[idx]}\e[0m   warble hole: ", $harp_holes)
-      clear_area_comment
-      print "\e[0m\e[32m"
-      puts
-      do_figlet_unwrapped $warbles_holes[idx] || '-', 'mono9'
-      print "\e[0m"
-      sleep 0.7
-      break unless $warbles_holes[idx]
+    clear_area_comment
+    print "\e[#{$lines[:comment_tall] + 2}H\e[0m"
+    puts "   Setting holes for warbling:"
+    puts
+    puts "     Press \e[32mm\e[0m to choose from menu"
+    puts "     or \e[32mw\e[0m or \e[32many other key\e[0m to choose by playing."
+    $ctl_kb_queue.clear
+    char = $ctl_kb_queue.deq
+    if char == 'm'
+      [0, 1].each do |idx|
+        $warbles_holes[idx] = choose_interactive("Please set   \e[32m#{%w(FIRST SECOND)[idx]}\e[0m   hole for warbling: ", $harp_holes)
+        clear_area_comment
+        print "\e[0m\e[32m"
+        puts
+        do_figlet_unwrapped $warbles_holes[idx] || '-', 'mono9'
+        print "\e[0m"
+        sleep 0.7
+        break unless $warbles_holes[idx]
+      end
     end
     if $warbles_holes.any?(:nil?) || $warbles_holes[0] == $warbles_holes[1]
       $warbles_holes = Array.new(2)
-      $msgbuf.print "Warbling canceled", 2, 4
+      if $warbles_holes[0] && $warbles_holes[0] == $warbles_holes[1]
+        $msgbuf.print "Cannot choose the same hole twice; warbling canceled", 2, 4
+      else
+        $msgbuf.print "Warbling holes have not been set", 2, 4
+      end
+      clear_warbles
+    else
+      $msgbuf.print "Warbling holes set", 2, 4
     end
-    $warbles[:standby] = true
     $freqs_queue.clear
   end
 end

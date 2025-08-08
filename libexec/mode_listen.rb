@@ -98,23 +98,22 @@ def do_listen
                    "set ref"
                  end
                when :warbles
-                 if $warbles[:short][:max] == 0 && $warbles[:long][:max] == 0 &&
-                    !$warbles[:standby]
+                 if !$warbles_holes[0] || !$warbles_holes[1]
                    return ["\e[K",
-                           "   Warbling between two holes; start slow to define them\e[K",
-                           "   or type 'w' to set directly. Clear with BACKSPACE.\e[K",
+                           "   Warbling between two holes; start slow to set them \e[32mby playing\e[0m\e[K",
+                           "   or type \e[32mw\e[0m then \e[32mm\e[0m to set by menu. Clear max with \e[0m\e[32mBACKSPACE\e[0m\e[K",
                            "\e[K",
                            case $opts[:time_slice]
                            when :short
-                             ["   \e[2mMax warble speed is above 10; this is already the highest\e[K",
-                              "   value, that can be realized with option --time-slice\e[K"]
+                             ["   \e[2mMax possible warble speed is above 10; this is already the\e[K",
+                              "   highest value, that can be realized with option: --time-slice\e[K"]
                            when :medium
                              # The stated limit 10 is what we get from test id-68
-                             ["   \e[2mMax warble speed is around 10, but you may try to\e[K",
-                              "   raise this by giving option '--time-slice short'\e[K"]
+                             ["   \e[2mMax possible warble speed is around 10, but you may\e[K",
+                              "   try to raise this by giving option: --time-slice short\e[K"]
                            when :long
-                             ["   \e[2mMax warble speed is below 10, but you may try to\e[K",
-                              "   raise this by giving option '--time-slice medium'\e[K"]
+                             ["   \e[2mMax possible warble speed is below 10, but you may\e[K",
+                              "   try to raise this by giving option: --time-slice medium\e[K"]
                            end].flatten
                  else
                    return ["\e[K",
@@ -411,8 +410,8 @@ END
 
     if $ctl_mic[:warbles_clear]
       $ctl_mic[:warbles_clear] = false
-      clear_warbles(true)
-      $msgbuf.print 'Cleared warbles', 2, 5
+      $warbles[:short][:max] = $warbles[:long][:max] = 0
+      $msgbuf.print 'Cleared warbles maxima', 2, 5
     end
   end
 end

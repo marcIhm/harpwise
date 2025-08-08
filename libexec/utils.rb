@@ -297,15 +297,29 @@ end
 
 def print_debug_info
   puts "\e[#{$lines[:message2]}H\e[0m\n\n\n"
+  puts 'Time.now.to_f:'
+  puts Time.now.to_f
+
+  puts
   puts '$quiz_sample_stats:'
   pp $quiz_sample_stats
+
   if $perfctr[:handle_holes_this_first_mic]
     $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
   end
+  puts
   puts '$perfctr:'
   pp $perfctr
+
+  puts
   puts '$freqs_queue.length:'
   puts $freqs_queue.length
+
+  if $opts[:comment] == :warbles
+    puts
+    puts '$warbles:'
+    pp $warbles
+  end
 end
 
 
