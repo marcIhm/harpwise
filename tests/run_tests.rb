@@ -117,7 +117,7 @@ usage_examples.map {|l| l.gsub!('\\','')}
 known_not = ['harpwise supports', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 usage_examples.reject! {|l| known_not.any? {|kn| l[kn]}}
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 115
+num_exp = 118
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 
 puts "\nPreparing data"
@@ -2386,9 +2386,9 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 8
-    {16 => [/^   1s avg +(\d+\.\d) =====/, wsensed_short],
+    {16 => [/^   2s avg +(\d+\.\d) =====/, wsensed_short],
      17 => [/^  max avg +(\d+\.\d) =====/, wsensed_short],
-     19 => [/^   3s avg +(\d+\.\d) =====/, wsensed_long],
+     19 => [/^   4s avg +(\d+\.\d) =====/, wsensed_long],
      20 => [/^  max avg +(\d+\.\d) =====/, wsensed_long]}.each do |lno, rr|
       regex, range = rr
       expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
@@ -2403,6 +2403,8 @@ do_test 'id-68b: set warble holes explicitly' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'w'
+  sleep 1
+  tms 'm'
   tms :ENTER
   sleep 2
   tms :RIGHT
@@ -2443,7 +2445,7 @@ do_test 'id-69b: detect jitter' do
 end
 
 [['', (30 .. 50)],
- [' --time-slice medium', (30 .. 55)],
+ [' --time-slice medium', (40 .. 55)],
  [' --time-slice short', (90 .. 110)],
  [' --time-slice long', (10 .. 30)]].each_with_index do |vals, idx|
   extra_args, lpsrange = vals
@@ -2455,7 +2457,7 @@ end
     wait_for_start_of_pipeline
     sleep 6
     tms 'q'
-    expect(vals) { ( md = screen[20].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
+    expect(vals) { ( md = screen[19].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
                    lpsrange.include?(md[1].to_f) }
     kill_session
   end

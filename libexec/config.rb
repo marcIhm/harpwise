@@ -494,8 +494,10 @@ def set_global_vars_late
   # these need (?) to be global vars, as the should persist over invocations
   $hole_held_inter = $hole_held_inter_was = nil
 
-  $display_choices_desc[$opts[:display]] += ' (initial choice)'
-  $comment_choices_desc[$opts[:comment]] += ' (initial choice)'
+  if $opts && $opts[:display] && $opts[:comment]
+    $display_choices_desc[$opts[:display]] += ' (initial choice)'
+    $comment_choices_desc[$opts[:comment]] += ' (initial choice)'
+  end
   
   # Concepts: 'journaling' is writing holes, that are played by user,
   # 'tracing' (nothing to do with 'debugging') is writing holes, that
