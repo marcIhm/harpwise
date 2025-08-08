@@ -277,7 +277,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # Handle intervals
     #
     hole_for_inter = $hole_ref || $hole_held_inter_was
-    inter_semi, inter_text, _, _ = describe_inter($hole_held_inter, hole_for_inter)
+    inter_semi, inter_text, _, _ = describe_inter($hole_held_inter, hole_for_inter, sane: true)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{$hole_held_inter.rjust(4)}  to #{hole_for_inter.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else

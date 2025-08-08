@@ -4,6 +4,9 @@
 # Main entry point: Load and orchestrate functions, handle global vars
 #
 
+# For profiling e.g.:
+# cd ~/git/harpwise ; ruby-prof -f profile harpwise listen c
+
 # Version 3.1.0 is needed e.g. for pattern-matching (e.g. in utils.rb,
 # get_prior_history_records) or for method subclasses (e.g. in config.rb)
 min_ruby = '3.1.0'

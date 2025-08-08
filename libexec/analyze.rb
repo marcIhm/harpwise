@@ -95,8 +95,12 @@ def notes_equiv note
 end
 
 
-def describe_inter hon1, hon2, prefer_plus: false
-  return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2) 
+def describe_inter hon1, hon2, prefer_plus: false, sane: false
+  if sane
+    return [nil, nil, nil, nil] if !hon1 || !hon2
+  else
+    return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2) 
+  end
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
       $harp[hon][:semi]

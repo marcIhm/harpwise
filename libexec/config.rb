@@ -1202,7 +1202,7 @@ def set_global_musical_vars rotated: false
   end
 
   if [:play, :print, :licks, :listen].include?($mode)
-    # might be reread later. Pass use_opt_lick_prog = false on very
+    # might be reread later. Pass use_opt_lick_prog = false on every
     # first invocation, where $all_licks has not yet been set
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end

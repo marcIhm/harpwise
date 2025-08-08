@@ -399,8 +399,8 @@ end
 def musical_event? hole_or_note, type = :general
   has_paren = hole_or_note[0] == '(' && hole_or_note[-1] == ')'
   has_brack = hole_or_note[0] == '[' && hole_or_note[-1] == ']'
-  has_head = hole_or_note.match?(/^(\.|~)\w*$/)
-  is_comma = ( hole_or_note == ',' || hole_or_note == ';' )
+  has_head = hole_or_note[0] == '.' || hole_or_note[0] == '~' 
+  is_comma = hole_or_note == ',' || hole_or_note == ';' 
   case type
   when :general
     return has_paren || has_brack || has_head || is_comma
