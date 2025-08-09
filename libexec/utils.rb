@@ -328,19 +328,22 @@ def print_afterthought
   # collect this in string, so we may print it starting slow
   thought = []
 
+  this_happened = <<~end_of_content
+     This happened for the instance of harpwise beeing started at:
+        #{Time.at($program_start)}
+     Note, that this might not have been the most recent invocation.
+  end_of_content
+  
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
     lagging_file = "#{$dirs[:data]}/lagging_info"
     pct_lost = "%.1f%%" % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))
     thought << "Lagging detected (#{pct_lost} lost), see #{lagging_file} for details."
-    content =  <<~end_of_content    
+    content = <<~end_of_content    
     
      Lagging detected
      ----------------
 
-     This happened for the instance of harpwise beeing started at:
-        #{Time.at($program_start)}
-     Note, that this might not have been the most recent invocation.
-
+     #{this_happened}
      Harpwise has been lagging behind at least once;
      #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
 
@@ -368,10 +371,7 @@ def print_afterthought
      Jitter detected
      ---------------
 
-     This happened for the instance of harpwise beeing started at:
-        #{Time.at($program_start)}
-     Note, that this might not have been the most recent invocation.
-
+     #{this_happened}
      The frequency pipeline had a maximum jitter of #{jitter_secs}, which
      happened #{($max_jitter_at - $program_start).to_i} secs after program start, #{(Time.now.to_f - $max_jitter_at).to_i} secs before its end.
 
