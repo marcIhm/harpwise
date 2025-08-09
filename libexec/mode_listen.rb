@@ -116,11 +116,11 @@ def do_listen
                               "   try to raise this by giving option: --time-slice medium\e[K"]
                            end].flatten
                  else
-                   return ["\e[K",
-                           warble_comment(:short),
+                   return [warble_comment(:short),
                            "\e[K",
                            warble_comment(:long),
-                           "\e[K"].flatten
+                           "\e[K",
+                           "   \e[2mholes #{$warbles_holes[0]} and #{$warbles_holes[1]}\e[K\e[0m"].flatten
                  end
                when :journal
                  return ["\e[K",
@@ -162,15 +162,9 @@ def do_listen
         if Time.now.to_f - $program_start < 6
           []
         else
-          if $opts[:comment] == :journal
-            # the same hint as below is also produced right after each
-            # hole within handle_holes
-            ["#{journal_length} holes"]
-          elsif $opts[:comment] == :warbles && $warbles_holes[0] && $warbles_holes[1]
-            ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
-          elsif !$first_hole_held
+          if !$first_hole_held
             ["You may blow your harp now ....      (key of #{$key})"]
-          elsif $opts[:no_player_info]
+          elsif $opts[:no_player_info] || $opts[:comment] == :journal
             []
           else
             [$players.line_stream_current]
@@ -412,7 +406,7 @@ END
     if $ctl_mic[:warbles_clear]
       $ctl_mic[:warbles_clear] = false
       $warbles[:short][:max] = $warbles[:long][:max] = 0
-      $msgbuf.print 'Cleared warbles maxima', 2, 5
+      $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
     end
   end
 end

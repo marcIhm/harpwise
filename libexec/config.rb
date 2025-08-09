@@ -204,7 +204,7 @@ def set_global_vars_early
   $mode_switches = 0
   $ctl_response_default = 'SPACE to pause; h for help'
   # also sets $warbles and clears $warbles_other_hole
-  clear_warbles
+  clear_warbles(true)
 
   # The same volume for recordings and pitch
   $vol = Volume.new(-6)

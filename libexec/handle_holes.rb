@@ -396,7 +396,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         clear_area_display
         print_chart
       end
-      clear_warbles
+      clear_warbles(true)
       $ctl_mic[:set_ref] = false
       $ctl_mic[:update_comment] = true
     end
@@ -423,7 +423,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     if $ctl_mic[:change_comment]
-      clear_warbles
+      clear_warbles(true)
       if $ctl_mic[:change_comment] == :choose
         choices = $comment_choices[$mode].map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:comment]
@@ -1127,7 +1127,7 @@ def show_help mode = $mode, testing_only = false
 end
 
 
-def clear_warbles
+def clear_warbles silent = false
   $warbles = {short: {times: Array.new,
                       val: 0.0,
                       max: 0.0,
@@ -1138,6 +1138,7 @@ def clear_warbles
                      window: 4},
               scale: 10}
   $warbles_holes = Array.new(2)
+  $msgbuf.print("Reset holes for warbling", 5, 5, :warble) unless silent
 end
 
 
