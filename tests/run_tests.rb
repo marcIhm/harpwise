@@ -2425,7 +2425,7 @@ do_test 'id-69: detect lag' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[2..10].any? {|l| l['Harpwise has been lagging behind at least once']} }
+  expect { screen[20]['Lagging detected'] }
   kill_session
 end
 
@@ -2440,7 +2440,7 @@ do_test 'id-69b: detect jitter' do
   sleep 8
   tms 'q'
   ENV['HARPWISE_TESTING']='1'
-  expect { screen[21]['Jitter detected'] }
+  expect { screen[20]['Jitter detected'] }
   kill_session
 end
 

@@ -119,7 +119,8 @@ def do_listen
                    return ["\e[K",
                            warble_comment(:short),
                            "\e[K",
-                           warble_comment(:long)].flatten
+                           warble_comment(:long),
+                           "\e[K"].flatten
                  end
                when :journal
                  return ["\e[K",
@@ -167,10 +168,10 @@ def do_listen
             ["#{journal_length} holes"]
           elsif $opts[:comment] == :warbles && $warbles_holes[0] && $warbles_holes[1]
             ["Warbling between holes #{$warbles_holes[0]} and #{$warbles_holes[1]}"]
-          elsif $opts[:no_player_info]
-            []
           elsif !$first_hole_held
             ["You may blow your harp now ....      (key of #{$key})"]
+          elsif $opts[:no_player_info]
+            []
           else
             [$players.line_stream_current]
           end
@@ -479,7 +480,7 @@ def warble_comment type
   wb = $warbles[type]
   sc = $warbles[:scale]
   [val_with_meter("   #{wb[:window]}s avg", wb[:val], sc),
-   val_with_meter("  max avg", wb[:max], sc)]
+   val_with_meter("      max", wb[:max], sc)]
 end
 
 

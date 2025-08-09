@@ -114,20 +114,18 @@ write_dump 'start' if $testing
 Thread.report_on_exception = true
 
 Signal.trap('SIGINT') do
-  end_all_other_threads  
   print "\e[#{$lines[:message_bottom]}H" if $move_down_on_exit
   fail "\n\n\n\e[0mexit on ctrl-c" if $opts[:debug]
-  puts "\n\n\n\e[0mexit on ctrl-c\e[K"
+  puts "\n\n\e[K\n\e[0mexit on ctrl-c\e[K"
   puts "\e[K"
   print "\e[K"
   exit 1
 end
 
 %W(TSTP QUIT).each do |sig|
-  end_all_other_threads  
   Signal.trap(sig) do
     print "\e[#{$lines[:message2]}H" if $move_down_on_exit
-    puts "\n\n\n\e[0mThis signal (#{sig}) is handled in modes quiz and jamming only; exiting ..."
+    puts "\n\n\e[K\n\e[0mThis signal (#{sig}) is handled in modes quiz and jamming only; exiting ..."
     puts "\e[K"
     print "\e[K"
     exit 1
@@ -146,7 +144,6 @@ if [:listen, :quiz, :licks].include?($mode)
 end
 
 at_exit do
-  end_all_other_threads
   # give processes started by threads some time to terminate
   sleep 0.1
   # does not apply to 'tools spread-keys' which can be used in a subshell

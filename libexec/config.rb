@@ -170,7 +170,7 @@ def set_global_vars_early
                            interval: 'Named interval to previous hole',
                            cents_to_ref: 'Cents to ref',
                            gauge_to_ref: 'Instrument for freq diff to ref',
-                           warbles: 'Counting warble speed',
+                           warbles: 'Measure and show your speed in warbling',
                            journal: 'Journal of selected notes you played',
                            lick_holes: "Show holes of a lick given via '--lick-prog'",
                            lick_holes_large: "The same as lick_holes but with large letters"}

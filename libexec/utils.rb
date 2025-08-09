@@ -326,18 +326,23 @@ end
 def print_afterthought
 
   # collect this in string, so we may print it starting slow
-  thought = ''
-  has_lagging = false
+  thought = []
 
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
-    has_lagging = true
-    thought += <<~end_of_content
-
+    lagging_file = "#{$dirs[:data]}/lagging_info"
+    pct_lost = "%.1f%%" % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))
+    thought << "Lagging detected (#{pct_lost} lost), see #{lagging_file} for details."
+    content =  <<~end_of_content    
+    
      Lagging detected
      ----------------
 
+     This happened for the instance of harpwise beeing started at:
+        #{Time.at($program_start)}
+     Note, that this might not have been the most recent invocation.
+
      Harpwise has been lagging behind at least once;
-     #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples #{'(= %.1f%%)' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))} have been lost.
+     #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
 
      If you notice such a lag frequently and and want to reduce it,
      you may try to set option   --time-slice   or config   time_slice
@@ -350,23 +355,15 @@ def print_afterthought
 
 
      end_of_content
+    IO.write lagging_file, content
   end
 
   # $max_jitter is only set, if it exceeds $jitter_threshold
   if $max_jitter > 0
     jitter_file = "#{$dirs[:data]}/jitter_info"
-    if has_lagging
-      thought += <<~end_of_content
-      Jitter detected
-      ---------------
-
-      For details, see   #{jitter_file}
-
-      end_of_content
-    else
-      thought = "\e[2mJitter detected; for details, see   #{jitter_file}\n\n"
-    end
-    content =  <<~end_of_content
+    jitter_secs = "%.2f secs" % $max_jitter
+    thought << "Jitter detected (#{jitter_secs}), see #{jitter_file} for details."
+    content = <<~end_of_content
 
      Jitter detected
      ---------------
@@ -375,7 +372,7 @@ def print_afterthought
         #{Time.at($program_start)}
      Note, that this might not have been the most recent invocation.
 
-     The frequency pipeline had a maximum jitter of #{'%.2f' % $max_jitter} secs, which
+     The frequency pipeline had a maximum jitter of #{jitter_secs}, which
      happened #{($max_jitter_at - $program_start).to_i} secs after program start, #{(Time.now.to_f - $max_jitter_at).to_i} secs before its end.
 
      A total of #{$jitter_checks_total} jitter-checks have been performed, one every #{$jitter_check_after_iters} iterations;
@@ -397,11 +394,11 @@ def print_afterthought
   end
 
   if thought.length > 0
-    print "\e[#{$lines[:message2]}H\e[0m" 
-    thought.lines.each_with_index do |line, idx|
+    print "\e[#{$lines[:message2]}H\e[0m\e[2m" 
+    thought.each do |line|
       puts line.chomp + "\e[K\n"
-      sleep 0.02 if idx < 8      
     end
+    puts
   end
   print "\e[0m"
 end
@@ -1452,15 +1449,6 @@ def print_chart_with_notes notes, strip_octave: false
     end
     puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
-end
-
-
-def end_all_other_threads
-  Thread.report_on_exception = false  
-  Thread.list.each do |thread|
-    # do kill in an attempt to keep any thread from calling exit itself
-    thread.kill.join unless thread == Thread.current
-  end  
 end
 
 
