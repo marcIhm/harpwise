@@ -116,11 +116,12 @@ def do_listen
                               "   try to raise this by giving option: --time-slice medium\e[K"]
                            end].flatten
                  else
-                   return [warble_comment(:short),
+                   return ["\e[K",
+                           warble_comment(:short),
                            "\e[K",
                            warble_comment(:long),
                            "\e[K",
-                           "   \e[2mholes #{$warbles_holes[0]} and #{$warbles_holes[1]}\e[K\e[0m"].flatten
+                           "   \e[2m" + "#{$warbles_holes[0]} <-> #{$warbles_holes[1]}".rjust($term_width - 5) + "\e[K\e[0m"].flatten
                  end
                when :journal
                  return ["\e[K",
@@ -405,7 +406,10 @@ END
 
     if $ctl_mic[:warbles_clear]
       $ctl_mic[:warbles_clear] = false
-      $warbles[:short][:max] = $warbles[:long][:max] = 0
+      $warbles[:short][:val] = $warbles[:short][:max] = 0.0
+      $warbles[:long][:val] = $warbles[:long][:max] = 0.0
+      $warbles[:short][:times] = Array.new
+      $warbles[:long][:times] = Array.new
       $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
     end
   end
@@ -473,17 +477,21 @@ end
 def warble_comment type
   wb = $warbles[type]
   sc = $warbles[:scale]
-  [val_with_meter("   #{wb[:window]}s avg", wb[:val], sc),
-   val_with_meter("      max", wb[:max], sc)]
+  head1 = "   #{$warbles[type][:window]}s avg"
+  head2 = 'max'.rjust(head1.length)
+  room = $term_width - head1.length - 8
+  active = ( room * $warbles[type][:val] / $warbles[:scale].to_f ).to_i
+  allmax = ( room * $warbles[type][:max] / $warbles[:scale].to_f ).to_i
+  if active == 0 && allmax > 0
+    meter1 = "\e[2m  " + ( ' ' * (allmax - 1) ) + "\e[0m\e[32m|\e[0m\e[K"
+    meter2 = "\e[2m ." + ( ' ' * (allmax - 1) ) + "\e[0m\e[32m|\e[0m\e[K"
+  else
+    meter1 = meter2 = "\e[2m " + ( ':' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[32m|\e[0m\e[K"
+  end
+  ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
+   "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]
 end
 
-
-def val_with_meter head, val, scale
-  meter = "\e[32m" + ( '=' * (($term_width - head.length - 4 - 2 - 2) * val / scale.to_f ).to_i)
-  meter = "\e[2m." if meter[-1] == 'm'
-  "\e[2m" + head + "\e[0m" + ( " %4.1f" % val ) + " " + meter + "\e[0m\e[K"
-end
-    
 
 def get_journal_comment
   make_term_cooked

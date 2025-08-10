@@ -2386,10 +2386,10 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 8
-    {16 => [/^   2s avg +(\d+\.\d) =====/, wsensed_short],
-     17 => [/^  max avg +(\d+\.\d) =====/, wsensed_short],
-     19 => [/^   4s avg +(\d+\.\d) =====/, wsensed_long],
-     20 => [/^  max avg +(\d+\.\d) =====/, wsensed_long]}.each do |lno, rr|
+    {16 => [/^   2s avg +(\d+\.\d) :::::/, wsensed_short],
+     17 => [/^      max +(\d+\.\d) :::::/, wsensed_short],
+     19 => [/^   4s avg +(\d+\.\d) :::::/, wsensed_long],
+     20 => [/^      max +(\d+\.\d) :::::/, wsensed_long]}.each do |lno, rr|
       regex, range = rr
       expect(lno, regex, range) { ( md = screen[lno].match(regex) ) && range.include?(md[1].to_f) }
     end
@@ -2410,7 +2410,7 @@ do_test 'id-68b: set warble holes explicitly' do
   tms :RIGHT
   tms :ENTER
   sleep 2
-  expect { screen[23]['Warbling between holes +1 and -1/'] }
+  expect { screen[22]['+1 <-> -1/'] }
   kill_session
 end
 

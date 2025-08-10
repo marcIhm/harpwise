@@ -1162,7 +1162,7 @@ def warbles_add_del tntf, add_warble
       $warbles[type][:val] = if $warbles[type][:times].length > 1
                                # enough values to compute warbling
                                tspan = $warbles[type][:times][-1] - $warbles[type][:times][0]
-                               if tspan > $warbles[type][:window] / 2.0
+                               if tspan > $warbles[type][:window] * 0.7
                                  # tspan of timestamps is comparable to window
                                  if add_warble
                                    ($warbles[type][:times].length - 1) / tspan
@@ -1182,7 +1182,12 @@ def warbles_add_del tntf, add_warble
                                  $warbles[type][:max] ].max
       end
       # maybe adjust scale
-      $warbles[:scale] += 5 while $warbles[:scale] < $warbles[type][:max]
+      rescaled = false
+      while $warbles[:scale] < $warbles[type][:max] do
+        $warbles[:scale] += 5
+        rescaled = true
+      end
+      $msgbuf.print("Adjusted scale of warble-meter to #{$warbles[:scale]}",5,5) if rescaled
     end
   end
 end
