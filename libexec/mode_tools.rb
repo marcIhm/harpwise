@@ -49,10 +49,14 @@ def do_tools to_handle
     tool_progression to_handle
   when 'chords'
     tool_chords
-  when 'diag'
-    tool_diag
+  when 'diag1'
+    tool_diag1
   when 'diag2'
     tool_diag2
+  when 'diag3'
+    tool_diag3
+  when 'diag-hints'
+    tool_diag_hints
   when 'utils', 'utilities'
     tool_utils
   else
@@ -1090,7 +1094,8 @@ def tool_diag
   puts_underlined 'Some help with diagnosing sound-problems'
 
   puts <<~end_of_intro
-  Harpwise uses the excellent program sox (aka rec, aka play).
+  Harpwise uses the excellent program sox (aka rec, aka play) for
+  audio recording and replay.
   Normally sox works just great but it relies on correct configuration
   of your sound system and on correct settings and operation of your
   sound hardware.
@@ -1098,8 +1103,8 @@ def tool_diag
   Therefore, this assistant will invoke sox (or rec or play, both are
   links to sox) in a typical way, giving you a chance to:
 
-    - Verify that sox (and therefore harpwise) can record and play sounds
-      in good quality
+    - Verify that sox (and therefore harpwise) can record and play
+      sounds in good quality
     - Easily spot any warnings or error messages, that might appear
 
   end_of_intro
@@ -1130,7 +1135,7 @@ def tool_diag
     - Make some sound, that can be recorded, e.g. count up:
         one -- two -- three -- four -- five ...
     - Watch the dynamic level display of sox/rec and check, that it moves in
-      sync with your counting
+      sync  (i.e. without delay) with your counting
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
@@ -1188,14 +1193,14 @@ def tool_diag
   puts <<~end_of_however
   In some cases problems can be traced to easily adjustable settings of
   your sound system. E.g. the recording level might be set too low or the
-  wrong audio-device could be selected.
+  wrong audio-device might be selected.
 
   However, if you saw error messages in the output of sox, or heard
   distortions or a noticable delay in recording, the problem might
   rather be with the configuration of your audio system and/or sox.
 
-  For these cases, there is a collection of mixed technical hints that
-  might be useful.
+  For these cases, there is a collection of technical hints, that have
+  been proven useful.
 
   end_of_however
   
@@ -1211,13 +1216,41 @@ def tool_diag
   else
     puts "\n\e[32mNo hints requested.\e[0m"
   end
-  
-  puts "\nDiagnosis done.\n\nYou may also want to test the frequency recognition;\nfor this try:   harpwise tools diag2\n\n"  
+
+  puts <<~end_of_outro
+
+  Diagnosis done.
+
+
+  You may also want to try the other diag-tools:
+
+  - diag2: test mp3-playback
+  - diag3: check frequency recognition
+  - diag-hints: some proven suggestion on how to fix common
+    problems
+
+  end_of_outro
   
 end
 
 
 def tool_diag2
+  puts <<~end_of_intro
+
+
+  Hapwise uses sox to replay mp3, e.g. the licks that come with harpwise
+  or that you have collected.
+
+  This test will test this by playing an mp3.
+
+  Your part is:
+
+    - Listen if the mp3 is played at all and in reasonable quality.
+
+  end_of_intro
+end
+
+def tool_diag3
   cmd_aub = if $testing
               "yes"
             else
@@ -1229,7 +1262,7 @@ def tool_diag2
 
   puts <<~end_of_intro
   Please note: This tests requires sound recording to work properly;
-  you may want to test this first with:    harpwise tools diag
+  you may want to test this first with:    harpwise tools diag1
   and then come back here.
 
 

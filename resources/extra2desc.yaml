@@ -124,13 +124,18 @@ tools:
   edit-config: |
     invoke editor on your personal config file
     <%= $early_conf[:config_file_user] %>
-  diag: |
-    help with diagnosing problems with your sound system; i.e.
-    check if recording and replay work properly.
+  diag, diag1: |
+    help to diagnose problems with your sound system; i.e.
+    check that recording and replay work properly.
   diag2: |
-    check if frequencies picked up by your microphone can be
+    check that mp3 can be played without problems.
+  diag3: |
+    check that frequencies picked up by your microphone can be
     recognized properly; for this the check 'diag' should have
     been performed sucessfully first.
+  diag-hints: |
+    read technical hints on how to fix some of the problems, that
+    might have come up with the diag-tools.
 quiz:
   all, ran, random: |
     all flavours, one at random
