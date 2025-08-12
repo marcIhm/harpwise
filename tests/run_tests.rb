@@ -3996,6 +3996,24 @@ do_test 'id-146: check error on preexisting dir .harpwise' do
   FileUtils.rmdir(dot_hw)
 end
 
+do_test 'id-147: tool diag' do
+  new_session
+  tms 'harpwise tool diag'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 3
+  expect { screen.any? {|l| l['Sample Rate    : 48000']} }  
+  sleep 3
+  expect { screen[7]['Replay'] }
+  tms :ENTER
+  sleep 3
+  expect { screen[1]['[      |      ]'] }
+  wait_for_end_of_harpwise
+  expect { screen[12]['Diagnosis done'] }
+  kill_session
+end
+
 puts
 puts
 

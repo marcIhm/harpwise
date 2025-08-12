@@ -1118,11 +1118,8 @@ def tool_diag1
   puts_underlined 'Record'
   see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
   rec_time = 10
-  cmd_rec = if $testing
-              "sleep 100"
-            else
-              "sox -d -r #{$conf[:sample_rate]} #{$diag_wav}"
-            end
+  cmd_rec = "sox -d -r #{$conf[:sample_rate]} #{$diag_wav}"
+  cmd_rec += ' trim 0 2' if $testing
 
   txt = <<~end_of_intro_rec
   This will invoke:
@@ -1161,12 +1158,12 @@ def tool_diag1
   puts
   puts_underlined 'Replay'
   cmd_play = if $testing
-              "sleep #{rec_time}"
-            else
-              "play #{$diag_wav}"
-            end
+               "play -v 0 #{$diag_wav}"
+             else
+               "play #{$diag_wav}"
+             end
 
-  puts <<~end_of_intro_play
+  txt = <<~end_of_intro_play
   This will invoke:
 
     #{cmd_play}
@@ -1181,6 +1178,8 @@ def tool_diag1
 
   end_of_intro_play
 
+  txt.lines.each {|l| print l; sleep 0.01}
+  
   puts "Press any key to start: "
   drain_chars
   one_char
@@ -1192,7 +1191,7 @@ def tool_diag1
   puts see_sox % ['END', 'play']
   puts "\e[0m\e[K\nDone.\n\n"
 
-  puts <<~end_of_outro
+  txt = <<~end_of_outro
 
   Diagnosis done.
 
@@ -1206,6 +1205,8 @@ def tool_diag1
     \e[32mdiag-hints\e[0m: some proven suggestion on how to fix common problems
 
   end_of_outro
+  
+  txt.lines.each {|l| print l; sleep 0.01}
   
 end
 
@@ -1399,7 +1400,7 @@ def tool_diag_hints
   the use of any of the diagnosis-tools (e.g. harpwise tools diag).
 
   In some cases such problems can be solved easily by adjusting the
-  settings of your sound system. E.g. the recording level might simply be
+  settings of your sound system. E.g. the recording level might be
   set too low or the wrong audio-device might be selected.
 
   However, if you saw error messages in the output of sox, or heard
