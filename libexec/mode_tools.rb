@@ -49,7 +49,7 @@ def do_tools to_handle
     tool_progression to_handle
   when 'chords'
     tool_chords
-  when 'diag1'
+  when 'diag', 'diag1'
     tool_diag1
   when 'diag2'
     tool_diag2
@@ -1089,11 +1089,11 @@ def tool_notes to_handle
 end
 
 
-def tool_diag
+def tool_diag1
   puts "\n\n"
-  puts_underlined 'Some help with diagnosing sound-problems'
+  puts_underlined 'Record and replay sound'
 
-  puts <<~end_of_intro
+  txt = <<~end_of_intro
   Harpwise uses the excellent program sox (aka rec, aka play) for
   audio recording and replay.
   Normally sox works just great but it relies on correct configuration
@@ -1109,11 +1109,13 @@ def tool_diag
 
   end_of_intro
 
+  txt.lines.each {|l| print l; sleep 0.01}
+  
   FileUtils.rm $diag_wav if File.exist?($diag_wav)
   print "\e[?25l"  ## hide cursor
 
   puts
-  puts_underlined 'Recording sound'
+  puts_underlined 'Record'
   see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
   rec_time = 10
   cmd_rec = if $testing
@@ -1122,7 +1124,7 @@ def tool_diag
               "sox -d -r #{$conf[:sample_rate]} #{$diag_wav}"
             end
 
-  puts <<~end_of_intro_rec
+  txt = <<~end_of_intro_rec
   This will invoke:
 
     #{cmd_rec}
@@ -1140,6 +1142,8 @@ def tool_diag
 
   end_of_intro_rec
 
+  txt.lines.each {|l| print l; sleep 0.01}
+  
   puts "Start making sound and press any key to start: "
   drain_chars
   one_char
@@ -1155,7 +1159,7 @@ def tool_diag
   Process.wait(rec_pid)
 
   puts
-  puts_underlined 'Replaying sound'
+  puts_underlined 'Replay'
   cmd_play = if $testing
               "sleep #{rec_time}"
             else
@@ -1188,46 +1192,18 @@ def tool_diag
   puts see_sox % ['END', 'play']
   puts "\e[0m\e[K\nDone.\n\n"
 
-  puts
-  puts_underlined 'Recording and playback okay ? Get some hints on troubleshooting'
-  puts <<~end_of_however
-  In some cases problems can be traced to easily adjustable settings of
-  your sound system. E.g. the recording level might be set too low or the
-  wrong audio-device might be selected.
-
-  However, if you saw error messages in the output of sox, or heard
-  distortions or a noticable delay in recording, the problem might
-  rather be with the configuration of your audio system and/or sox.
-
-  For these cases, there is a collection of technical hints, that have
-  been proven useful.
-
-  end_of_however
-  
-  print "\nType 'y' to read those hints or anything else to end.\n\n\Your input: "
-  drain_chars
-  ch = one_char
-  puts ch + "\e[0m"
-  if ch == 'y'
-    puts "\n\e[32mSome hints:\e[0m\n\n"
-    audio_guide = ERB.new(IO.read("#{$dirs[:install]}/resources/audio_guide.txt")).result(binding).lines
-    audio_guide.pop while audio_guide[-1].strip.empty?
-    audio_guide.each {|l| print l}    
-  else
-    puts "\n\e[32mNo hints requested.\e[0m"
-  end
-
   puts <<~end_of_outro
 
   Diagnosis done.
 
-
   You may also want to try the other diag-tools:
 
-  - diag2: test mp3-playback
-  - diag3: check frequency recognition
-  - diag-hints: some proven suggestion on how to fix common
-    problems
+    diag2: test mp3-playback
+    diag3: check frequency recognition
+
+  and, if there have been problems:
+
+    \e[32mdiag-hints\e[0m: some proven suggestion on how to fix common problems
 
   end_of_outro
   
@@ -1235,20 +1211,55 @@ end
 
 
 def tool_diag2
-  puts <<~end_of_intro
 
+  cmd_play = if $testing
+               "sleep 4"
+             else
+               "play #{$dirs[:install]}/recordings/wade.mp3"
+             end
 
-  Hapwise uses sox to replay mp3, e.g. the licks that come with harpwise
+  puts "\n\n"
+  puts_underlined 'Playing an mp3'
+
+  txt = <<~end_of_intro
+  Hapwise uses sox to play mp3-files, e.g. the licks that come with harpwise
   or that you have collected.
 
-  This test will test this by playing an mp3.
+  Therefore this test will try to play an mp3 like this:
+
+    #{cmd_play}
 
   Your part is:
 
-    - Listen if the mp3 is played at all and in reasonable quality.
+    - Listen if the mp3 is played at all and in good quality.
 
   end_of_intro
+
+  txt.lines.each {|l| print l; sleep 0.01}
+
+  print "\e[?25l"  ## hide cursor
+
+  puts "Press any key to start: "
+  drain_chars
+  one_char
+  puts "\n\e[32mPlay started.\e[0m\n\n"
+  see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
+  puts see_sox % ['START', 'play']
+  system(cmd_play)
+  puts see_sox % ['END', 'play']
+
+  puts <<~end_of_outro
+
+  Diagnosis done.
+
+  If there have been any problems, try:
+
+    \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
+
+  end_of_outro
+
 end
+
 
 def tool_diag3
   cmd_aub = if $testing
@@ -1260,7 +1271,7 @@ def tool_diag3
   puts "\n\n"
   puts_underlined 'Testing the frequency recognition'
 
-  puts <<~end_of_intro
+  txt = <<~end_of_intro
   Please note: This tests requires sound recording to work properly;
   you may want to test this first with:    harpwise tools diag1
   and then come back here.
@@ -1292,6 +1303,7 @@ def tool_diag3
 
   end_of_intro
 
+  txt.lines.each {|l| print l; sleep 0.01}  
   print "\e[?25l"  ## hide cursor
 
   puts
@@ -1342,23 +1354,75 @@ def tool_diag3
     break if Time.now - started > 10
   end
   
-  puts
-  puts "\e[0m\nPipeline done."
-  puts
-  puts "Have timestamps + frequencies been printed above ?"
-  puts "Did they vary according to the pitch of your sounds ?"
-  puts
-  puts "When when there was no sound, did the frequency actually read  0.000  ?\nOtherwise you microphone's amplification might be set too high\nor your environment might be too noisy."
-  puts 
-  puts "Here are the first 10 lines repeated for inspection:\e[2m"
-  puts
+  txt = <<~end_of_outro
+
+  \e[0mPipeline done.
+
+  Have timestamps + frequencies been printed above ?
+  Did they vary according to the pitch of your sounds ?
+
+  When when there was no sound, did the frequency actually read  0.000  ?
+  Otherwise you microphone's amplification might be set too high
+  or your environment might be too noisy.
+
+  Here are the first 10 lines repeated for inspection:\e[2m
+
+  end_of_outro
+
+  txt.lines.each {|l| print l; sleep 0.01}
+
   lines.each {|l| puts l}
   puts
   puts "\e[0mSome initial warnings or error messages are okay, as long as they are\nfollowed by the expected data."
-  puts
-  puts "Diagnosis done."
-  puts
+
+  puts <<~end_of_outro
+
+  Diagnosis done.
+
+  If there have been any problems, try:
+
+    \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
+
+  end_of_outro
+
   Process.kill('KILL', wait_thr.pid) if wait_thr.alive?
+end
+
+
+def tool_diag_hints
+  puts "\n\n"
+  puts_underlined 'Some hints on troubleshooting '
+  
+  txt = <<~end_of_intro
+
+  These hints can help to solve problems, that have come up during
+  the use of any of the diagnosis-tools (e.g. harpwise tools diag).
+
+  In some cases such problems can be solved easily by adjusting the
+  settings of your sound system. E.g. the recording level might simply be
+  set too low or the wrong audio-device might be selected.
+
+  However, if you saw error messages in the output of sox, or heard
+  distortions or a noticable delay in recording, the problem might
+  rather be with the configuration of your audio system and/or sox.
+
+  For these cases, there is a collection of technical hints, that have
+  been proven useful.
+
+  end_of_intro
+
+  txt.lines.each {|l| print l; sleep 0.01}
+  
+  puts "Press any key to read them: "
+  drain_chars
+  one_char
+
+  puts "\n\e[32mSome hints\n----------\e[0m\n"
+  audio_guide = ERB.new(IO.read("#{$dirs[:install]}/resources/audio_guide.txt")).result(binding).lines
+  audio_guide.pop while audio_guide[-1].strip.empty?
+  audio_guide.each {|l| print l; sleep 0.01}    
+  puts "\n\e[2mEnd of hints.\e[0m\n\n"
+
 end
 
 

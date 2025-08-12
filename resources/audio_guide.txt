@@ -1,71 +1,71 @@
 
-  Problems with volume
-  --------------------
+Problems with volume
+--------------------
 
-  During the record and play, that has just taken place, you might
-  have noticed any of these:
+During the record and play, that has just taken place, you might
+have noticed any of these:
+
+- Sound recording was distorted (i.e. sounds bad)
+- Input-level during recording was constantly at max [!=====|======]
+  instead at least sometimes at a medium level [ -=|==- ]
+
+It may then simply be enough to reduce the input volume, e.g. within
+gnome audio-settings.
+
+
+Problems with audio driver
+--------------------------
+
+Sox-Errors, which mention "no default audio device" or "encode
+0-bit Unknown or not applicable" can sometimes be solved by
+setting and exporting the environment variable AUDIODRIVER to a
+suitable value.
+
+sox shows possible values for this when invoked without arguments;
+just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
+might be 'alsa oss ossdsp pulseaudio' (linux) or 'coreaudio'
+(macOS).
+
+So e.g. on linux setting and exporting AUDIODRIVER=alsa or
+AUDIODRIVER=pulseaudio might help. Sox does not directly support
+pipewire (yet) so the value 'pipewire' is not an option, but this
+is not necessary either, as pipewire is compatible with pulseaudio.
+
+
+In case of AUDIODRIVER=alsa, this might not be enough for a working
+setup and you may also need to set AUDIODEV to a suitable value.
+To get a list of all devices in your system, try 'aplay -L'
+(speakers) or 'arecord -L' (mics).
+
+As a linux example lets assume, that you have set AUDIODRIVER=alsa
+above. Then, setting AUDIODEV=hw:0 in addition (which will inform
+alsa about the device to use) might work. Note, that for macOS
+most surely different values will be needed.
+
+
+Other options necessary for sox might be passed through the
+environment variable SOX_OPTS. See the man-page of sox for
+details; also see the documentation of your respective audio
+driver, e.g. alsa (for linux) or coreaudio (for macOS).
+
+
+Problems with audio formats
+---------------------------
+
+If later you see errors while trying to play an mp3-file
+(e.g. harpwise play wade), it might be necessary to install
+sox-support for additional audio-formats; for linux this could be
+the package libsox-fmt-all.
+
+
+Problems under WSL
+------------------
+
+If you use WSL (Windows Subsystem for Linux): Audio is complicated
+(pipewire -> pulseaudio -> rdp -> windows) but generally works just
+fine; in my case (2025-01-26) however it was necessary to do:
+
+  sudo systemctl stop systemd-timesyncd.service
   
-  - Sound recording was distorted (i.e. sounds bad)
-  - Input-level during recording was constantly at max [!=====|======]
-    instead at least sometimes at a medium level [ -=|==- ]
-
-  It may then simply be enough to reduce the input volume, e.g. within
-  gnome audio-settings.
-
-  
-  Problems with audio driver
-  --------------------------
-  
-  Sox-Errors, which mention "no default audio device" or "encode
-  0-bit Unknown or not applicable" can sometimes be solved by
-  setting and exporting the environment variable AUDIODRIVER to a
-  suitable value.
-
-  sox shows possible values for this when invoked without arguments;
-  just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
-  might be 'alsa oss ossdsp pulseaudio' (linux) or 'coreaudio'
-  (macOS).
-
-  So e.g. on linux setting and exporting AUDIODRIVER=alsa or
-  AUDIODRIVER=pulseaudio might help. Sox does not directly support
-  pipewire (yet) so the value 'pipewire' is not an option, but this
-  is not necessary either, as pipewire is compatible with pulseaudio.
-
-
-  In case of AUDIODRIVER=alsa, this might not be enough for a working
-  setup and you may also need to set AUDIODEV to a suitable value.
-  To get a list of all devices in your system, try 'aplay -L'
-  (speakers) or 'arecord -L' (mics).
-
-  As a linux example lets assume, that you have set AUDIODRIVER=alsa
-  above. Then, setting AUDIODEV=hw:0 in addition (which will inform
-  alsa about the device to use) might work. Note, that for macOS
-  most surely different values will be needed.
-
-
-  Other options necessary for sox might be passed through the
-  environment variable SOX_OPTS. See the man-page of sox for
-  details; also see the documentation of your respective audio
-  driver, e.g. alsa (for linux) or coreaudio (for macOS).
-
-
-  Problems with audio formats
-  ---------------------------
-  
-  If later you see errors while trying to play an mp3-file
-  (e.g. harpwise play wade), it might be necessary to install
-  sox-support for additional audio-formats; for linux this could be
-  the package libsox-fmt-all.
-
-
-  Problems under WSL
-  ------------------
-
-  If you use WSL (Windows Subsystem for Linux): Audio is complicated
-  (pipewire -> pulseaudio -> rdp -> windows) but generally works just
-  fine; in my case (2025-01-26) however it was necessary to do:
-  
-    sudo systemctl stop systemd-timesyncd.service
-    
-  to prevent audio from stuttering or even stopping.
+to prevent audio from stuttering or even stopping.
 
