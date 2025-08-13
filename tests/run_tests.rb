@@ -3141,36 +3141,6 @@ do_test 'id-99: widgets' do
   kill_session
 end
 
-do_test 'id-100: tool diag' do
-  new_session
-  tms 'harpwise tool diag'
-  tms :ENTER
-  sleep 2
-  expect { screen[16]['Make some sound'] }
-  tms :ENTER
-  sleep 6
-  expect { screen[18]['Listen and check'] }
-  tms :ENTER
-  sleep 6
-  expect { screen[6]['Recording and playback okay ?'] }
-  tms 'y'
-  sleep 2
-  expect { screen[4]['Other options necessary for sox might be'] }
-  kill_session
-end
-
-do_test 'id-100a: tool diag2' do
-  new_session
-  tms 'harpwise tool diag2'
-  tms :ENTER
-  sleep 2
-  expect { screen[8]['Please note, that a few error-messages are okay'] }
-  tms :ENTER
-  sleep 6
-  expect { screen[5]['Here are the first 10 lines repeated for inspection'] }
-  kill_session
-end
-
 do_test 'id-101: change quiz flavour via TAB' do
   new_session
   tms 'harpwise quiz hear-key'
@@ -4011,6 +3981,43 @@ do_test 'id-147: tool diag' do
   expect { screen[1]['[      |      ]'] }
   wait_for_end_of_harpwise
   expect { screen[12]['Diagnosis done'] }
+  kill_session
+end
+
+do_test 'id-148: tool diag2' do
+  new_session
+  tms 'harpwise tool diag2'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 3
+  expect { screen.any? {|l| l['[      |      ]']} }  
+  wait_for_end_of_harpwise
+  expect { screen.any? {|l| l['Diagnosis done']} }  
+  kill_session
+end
+
+do_test 'id-149: tool diag3' do
+  new_session
+  tms 'harpwise tool diag3'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 3
+  wait_for_end_of_harpwise
+  expect { screen[1]['AUBIO ERROR: source_avcodec: Failed opening - (No such file or directory)'] }
+  expect { screen[17]['Diagnosis done'] }
+  kill_session
+end
+
+do_test 'id-150: tool diag-hints' do
+  new_session
+  tms 'harpwise tool diag-hints'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[21]['End of hints.'] }
   kill_session
 end
 

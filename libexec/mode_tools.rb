@@ -1105,7 +1105,7 @@ def tool_diag1
 
     - Verify that sox (and therefore harpwise) can record and play
       sounds in good quality
-    - Easily spot any warnings or error messages, that might appear
+    - Easily spot any warnings or errors, that might appear
 
   end_of_intro
 
@@ -1133,15 +1133,17 @@ def tool_diag1
 
     - Make some sound, that can be recorded, e.g. count up:
         one -- two -- three -- four -- five ...
+
     - Watch the dynamic level display of sox/rec and check, that it moves in
       sync  (i.e. without delay) with your counting
+
     - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
   end_of_intro_rec
 
   txt.lines.each {|l| print l; sleep 0.01}
   
-  puts "Start making sound and press any key to start: "
+  puts "Start making sound and press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   puts "\n\e[32mRecording started for #{rec_time} secs.\e[0m\n\n"
@@ -1180,7 +1182,7 @@ def tool_diag1
 
   txt.lines.each {|l| print l; sleep 0.01}
   
-  puts "Press any key to start: "
+  puts "Press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   print "\n\e[32mReplay started, #{rec_time} secs expected.\e[0m\n\n"
@@ -1214,7 +1216,7 @@ end
 def tool_diag2
 
   cmd_play = if $testing
-               "sleep 4"
+               "play -v 0 #{$dirs[:install]}/recordings/wade.mp3"
              else
                "play #{$dirs[:install]}/recordings/wade.mp3"
              end
@@ -1240,7 +1242,7 @@ def tool_diag2
 
   print "\e[?25l"  ## hide cursor
 
-  puts "Press any key to start: "
+  puts "Press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   puts "\n\e[32mPlay started.\e[0m\n\n"
@@ -1263,11 +1265,8 @@ end
 
 
 def tool_diag3
-  cmd_aub = if $testing
-              "yes"
-            else
-              get_pipeline_cmd(:sox, '-d')
-            end
+
+  cmd_aub = get_pipeline_cmd(:sox, '-d')
 
   puts "\n\n"
   puts_underlined 'Testing the frequency recognition'
@@ -1299,8 +1298,9 @@ def tool_diag3
 
     - Make some sound, e.g. play your harmonica; also play lower and
       higher to see if the printed frequencies change accordingly
+
     - After the pipeline has been terminated, scan the re-printed output
-      for error messages
+      for unexpected errors
 
   end_of_intro
 
@@ -1311,7 +1311,7 @@ def tool_diag3
   puts_underlined 'Converting sound to frequencies'
   aub_time = 10
 
-  puts "Start making sound and press any key to start: "
+  puts "Start making sound and press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   puts "\n\e[32mFrequency pipeline started for #{aub_time} secs.\e[0m\n\n"
@@ -1374,7 +1374,9 @@ def tool_diag3
 
   lines.each {|l| puts l}
   puts
-  puts "\e[0mSome initial warnings or error messages are okay, as long as they are\nfollowed by the expected data."
+  puts "\e[0mSome initial warnings or errors are okay, as long as they are\nfollowed by the expected data."
+  puts
+  puts "\e[0mThe expected data would be a stream of lines with two numbers each,\njust like this (e.g.):  3.328000 159.699326"
 
   puts <<~end_of_outro
 
@@ -1414,16 +1416,25 @@ def tool_diag_hints
 
   txt.lines.each {|l| print l; sleep 0.01}
   
-  puts "Press any key to read them: "
+  puts "Press \e[32many key\e[0m to read them (\e[32ml\e[0m or \e[32mm\e[0m for less or more): "
   drain_chars
-  one_char
+  char = one_char
 
-  puts "\n\e[32mSome hints\n----------\e[0m\n"
-  audio_guide = ERB.new(IO.read("#{$dirs[:install]}/resources/audio_guide.txt")).result(binding).lines
-  audio_guide.pop while audio_guide[-1].strip.empty?
-  audio_guide.each {|l| print l; sleep 0.01}    
-  puts "\n\e[2mEnd of hints.\e[0m\n\n"
-
+  gfile = "#{$dirs[:install]}/resources/audio_guide.txt"
+  if char == 'l' || char == 'm'
+    pgr = Hash[*%w(l less m more)].to_h[char]
+    puts "\npaging  #{gfile}  with #{pgr} ... "
+    sleep 0.5
+    system("#{pgr} #{gfile}")
+    puts 'Done.'
+    puts
+  else
+    puts "\n\e[32mSome hints\n----------\e[0m\n"
+    audio_guide = ERB.new(IO.read(gfile)).result(binding).lines
+    audio_guide.pop while audio_guide[-1].strip.empty?
+    audio_guide.each {|l| print l; sleep 0.01}    
+    puts "\n\e[2mEnd of hints.\e[0m\n\n"
+  end
 end
 
 

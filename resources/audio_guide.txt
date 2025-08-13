@@ -7,7 +7,7 @@ have noticed any of these:
 
 - Sound recording was distorted (i.e. sounds bad)
 - Input-level during recording was constantly at max [!=====|======]
-  instead at least sometimes at a medium level [ -=|==- ]
+  instead, at least sometimes, at a medium level [ -=|==- ]
 
 It may then simply be enough to reduce the input volume, e.g. within
 gnome audio-settings.
@@ -19,7 +19,7 @@ Problems with audio driver
 Sox-Errors, which mention "no default audio device" or "encode
 0-bit Unknown or not applicable" can sometimes be solved by
 setting and exporting the environment variable AUDIODRIVER to a
-suitable value.
+suitable value:
 
 sox shows possible values for this when invoked without arguments;
 just search for the line 'AUDIO DEVICE DRIVERS'. Possible values
@@ -49,11 +49,11 @@ details; also see the documentation of your respective audio
 driver, e.g. alsa (for linux) or coreaudio (for macOS).
 
 
-Problems with audio formats
----------------------------
+Problems with mp3
+-----------------
 
 If later you see errors while trying to play an mp3-file
-(e.g. harpwise play wade), it might be necessary to install
+(e.g. harpwise tools diag2), it might be necessary to install
 sox-support for additional audio-formats; for linux this could be
 the package libsox-fmt-all.
 
