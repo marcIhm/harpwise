@@ -483,10 +483,10 @@ def warble_comment type
   active = ( room * $warbles[type][:val] / $warbles[:scale].to_f ).to_i
   allmax = ( room * $warbles[type][:max] / $warbles[:scale].to_f ).to_i
   if active == 0 && allmax > 0
-    meter1 = "\e[2m  " + ( ' ' * (allmax - 1) ) + "\e[0m\e[32m|\e[0m\e[K"
-    meter2 = "\e[2m ." + ( ' ' * (allmax - 1) ) + "\e[0m\e[32m|\e[0m\e[K"
+    meter1 = "\e[2m  " + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
+    meter2 = "\e[2m ." + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
   else
-    meter1 = meter2 = "\e[2m " + ( ':' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[32m|\e[0m\e[K"
+    meter1 = meter2 = " \e[2m" + ( '|' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[92m|\e[0m\e[K"
   end
   ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
    "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]

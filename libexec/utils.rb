@@ -337,7 +337,7 @@ def print_afterthought
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
     lagging_file = "#{$dirs[:data]}/lagging_info"
     pct_lost = "%.1f%%" % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))
-    thought << "Lagging detected (#{pct_lost} lost), see #{lagging_file} for details."
+    thought << "Lagging detected (#{pct_lost} loss), see #{lagging_file} for details."
     content = <<~end_of_content    
     
      Lagging detected
@@ -877,7 +877,7 @@ class FamousPlayers
     raw = YAML.load_file(pfile)
     @lines_pool = ['',
                    'Notes about famous players will be drifting by ...',
-                   '(use "p" or "print players" to read them on their own)']
+                   "(use 'p' or 'harpwise print players' to read them on their own)"]
     @lines_pool_last = nil
     @lines_pool_when = Time.now.to_f - 1000
     @stream_current = nil
