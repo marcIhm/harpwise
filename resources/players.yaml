@@ -710,3 +710,27 @@
   - Shuffle the deck
   - "Book: \"No, Seriously, I Play Harmonica\""
   - Somewhere over the rainbow
+
+- name: Stevie Wonder
+  bio:
+  - May 13, 1950 -
+  - American and Ghanaian singer-songwriter, musician,
+  - keyboard and chromatic harmonica, and record producer.
+  - Blind since shortly after his birth, he was a child prodigy
+  - who signed with Motown's Tamla label at the age of 11.
+  source: https://en.wikipedia.org/wiki/Stevie_Wonder
+  notes:
+  - Regarded as one of the most influential musicians of
+  - the 20th century.
+  - He has won 25 Grammy Awards (the most by a male solo artist)
+  - Also played the Hohner Clavinet (e.g. for Superstitous)
+  - One of the best-selling music artists of all time, with sales
+  - of over 100 million records worldwide.
+  songs:
+  - Isn't She Lovely (with harmonica)
+  - There must be an Angel (Eurythmics, harmonica by Stevie Wonder)
+  - Isn't She Lovely
+  - Superstition
+  - Happy Birthday
+
+# Next: DeFord Bailey, Stevie Wonder, Larry Adler, Adam Gussow, Boris Plotnikov, Alex Paclin, Toots Thielemans, Bob Dylan
