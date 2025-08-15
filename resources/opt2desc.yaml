@@ -183,19 +183,20 @@ partial:
 time_slice:
   - |
     time slice (one of short,
-    medium, long) for sensing holes played. In each time slice a
-    predefined number of holes can be recognized. The default value is
-    'medium', but if your computer is slow, 'long' might be more
-    appropriate. If your computer is fast, 'short' might work too,
-    which will allow harpwise to follow your playing faster
-    (e.g. during warbles).
+    medium, long) for sensing the holes played. In each time slice a
+    single frequency and thus of holes can be recognized. Therefore a
+    short time slice lets harpwise measure the currently played hole more
+    often. The default value is 'medium', but if your computer is slow,
+    'long' might be more appropriate. If your computer is fast, 'short'
+    might work too, which will allow harpwise to follow your playing
+    faster (e.g. during warbles).
 
     However, if you choose 'short' and your computer cannot keep up,
     harpwise will lag behind and show holes only (long) after you have
     played them; in such cases harpwise will issue a warning message
     now and then.
 
-    If lagging occurs, you will get a detailed message on program
+    If lagging has happened, you will get a detailed message on program
     termination, that will allow to judge the situation.
   - SHORT_MEDIUM_LONG
 

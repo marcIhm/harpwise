@@ -156,7 +156,7 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
     $figlet_cache[cmdt].each do |line|
       print "#{line.chomp}\e[K\n"
     end
-    print"\e[0m"
+    print "\e[0m"
   end
 end
 
@@ -1088,6 +1088,7 @@ def handle_win_change
     puts
   end
   $figlet_cache = Hash.new
+  $warble_cache = Hash.new
   $freqs_queue.clear
   $ctl_mic[:redraw] = Set.new()
   $ctl_sig_winch = false

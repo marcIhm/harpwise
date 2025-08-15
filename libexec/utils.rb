@@ -344,8 +344,10 @@ def print_afterthought
      ----------------
 
      #{this_happened}
-     Harpwise has been lagging behind at least once;
-     #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
+     Harpwise has been lagging behind at least once; i.e. harpwise
+     sensed the hole you were playing only with a (small) delay; and to
+     catch up, it discarded some of your playing.
+     Therefore #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
 
      If you notice such a lag frequently and and want to reduce it,
      you may try to set option   --time-slice   or config   time_slice
@@ -355,7 +357,6 @@ def print_afterthought
 
      Note however, that setting this to 'long' without need could make
      harpwise sluggish in sensing holes.
-
 
      end_of_content
     IO.write lagging_file, content

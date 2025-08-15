@@ -133,7 +133,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     return if lambda_skip && lambda_skip.call()
 
     #
-    # Here we get out keyboard input
+    # Here we get our keyboard input
     #
     pipeline_catch_up if handle_kb_mic
     
