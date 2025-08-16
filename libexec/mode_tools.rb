@@ -824,6 +824,9 @@ def tool_translate to_handle
                 quotes: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\"",
                                 "this notation is e.g. used by harmonica.com"],
                          example: "-1  +2  -2  -3'  3  -3'  -3\"  -2"},
+                ricci: {desc: ["Draw has 'd' appended, blow nothing, quotes for bends;",
+                               "this notation is used by Jason Ricci"],
+                        example: "2d  3'  3d  2  3'  3d  4d  4  3d  2d"},
                 notes: {desc: ["Just the notes rather than any harmonica-specific notation;",
                                "you may also try 'harpwise print' for this, as it will give",
                                "much more info."],
@@ -985,14 +988,31 @@ end
 
 
 def tool_translate_notation_parens hole
-  if md = hole.match(/^(\d)$/)
+  if md = hole.match(/^(\d+)$/)
     return "+#{md[1]}"
-  elsif md = hole.match(/^\((\d)\)$/)
+  elsif md = hole.match(/^\((\d+)\)$/)
     return "-#{md[1]}"
   elsif hole == '123'
     return '+123'
   elsif hole == '(123)'
     return '[-123]'
+  else
+    return false
+  end
+end
+
+
+def tool_translate_notation_ricci hole
+  if md = hole.match(/^(\d+)$/)
+    return "+#{md[1]}"
+  elsif md = hole.match(/^(\d+)d$/)
+    return "-#{md[1]}"
+  elsif md = hole.match(/^(\d+)"'$/) || hole.match(/^(-|\+)?(\d+)'"$/)
+    return "-#{md[1]}///"
+  elsif md = hole.match(/^(\d+)"$/) || hole.match(/^(\d+)''$/)
+    return "-#{md[1]}//"
+  elsif md = hole.match(/^(\d+)'$/)
+    return "-#{md[1]}/"
   else
     return false
   end
@@ -1013,27 +1033,27 @@ end
 def tool_translate_notation_quotes hole
 
   # try normal ascii-quotes (single and double) first
-  if md = hole.match(/^(-|\+)?(\d)"'$/) || hole.match(/^(-|\+)?(\d)'"$/)
+  if md = hole.match(/^(-|\+)?(\d+)"'$/) || hole.match(/^(-|\+)?(\d+)'"$/)
     return (md[1] || '+') + "#{md[2]}///"
-  elsif md = hole.match(/^(-|\+)?(\d)"$/) || hole.match(/^(-|\+)?(\d)''$/)
+  elsif md = hole.match(/^(-|\+)?(\d+)"$/) || hole.match(/^(-|\+)?(\d+)''$/)
     return (md[1] || '+') + "#{md[2]}//"
-  elsif md = hole.match(/^(-|\+)?(\d)'$/)
+  elsif md = hole.match(/^(-|\+)?(\d+)'$/)
     return (md[1] || '+') + "#{md[2]}/"
   end
 
   # Right quotes as used by harmonica.com
   # \u2019 = Right Single Quotation Mark
   # \u201D = Right Double Quotation Mark
-  if md = hole.match(/^(-|\+)?(\d)\u201D\u2019$/) || hole.match(/^(-|\+)?(\d)\u2019\u201D$/)
+  if md = hole.match(/^(-|\+)?(\d+)\u201D\u2019$/) || hole.match(/^(-|\+)?(\d+)\u2019\u201D$/)
     return (md[1] || '+') + "#{md[2]}///"
-  elsif md = hole.match(/^(-|\+)?(\d)\u201D$/) || hole.match(/^(-|\+)?(\d)\u2019\u2019$/)
+  elsif md = hole.match(/^(-|\+)?(\d+)\u201D$/) || hole.match(/^(-|\+)?(\d+)\u2019\u2019$/)
     return (md[1] || '+') + "#{md[2]}//"
-  elsif md = hole.match(/^(-|\+)?(\d)\u2019$/)
+  elsif md = hole.match(/^(-|\+)?(\d+)\u2019$/)
     return (md[1] || '+') + "#{md[2]}/"
   end
 
   # no quotes at all
-  if md = hole.match(/^(-|\+)?(\d)$/)
+  if md = hole.match(/^(-|\+)?(\d+)$/)
     return (md[1] || '+') + "#{md[2]}"
   end
 
