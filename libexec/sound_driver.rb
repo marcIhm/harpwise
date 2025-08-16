@@ -217,7 +217,7 @@ def sox_to_aubiopitch_to_queue
   # to homebrew/macos  or  switching to the one-piece pipeline  or  building a snap.
   # So please read the comments twice, before streamlining.
   #
-  # The jitter checks tests for jitter, i.e. varying delays in samples beeing delivered by
+  # The jitter-checks test for jitter, i.e. varying delays in samples beeing delivered by
   # aubiopitch (which seems to happen under wsl2 now and then).
   #
   pipeline_started = Time.now.to_f
@@ -234,17 +234,21 @@ def sox_to_aubiopitch_to_queue
           while !(line = ppl_out.gets)
             sleep 0.5
             no_gets += 1
-            err_out = if IO.select([ppl_err], nil, nil, 2)
-                        "Output from stderr is:\n" +
-                          # we use sysread, because read would block (?)
-                          ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
-                      else
-                        "No output from stderr either.\n"
-                      end
+            if no_gets > 10
+              err_out = if IO.select([ppl_err], nil, nil, 2)
+                          "Output from stderr is:\n" +
+                            # we use sysread, because read would block (?)
+                            ppl_err.sysread(65536).lines.map {|l| " >> #{l}"}.join
+                        else
+                          "No output from stderr either.\n"
+                        end
 
-            err "10 times no output from:\n#{cmd}\n#{err_out}\nMaybe try:   harpwise tools diag2   to investigate in detail" if no_gets > 10
+              err "10 times no output from:\n#{cmd}\n#{err_out}\nMaybe try:   harpwise tools diag2   to investigate in detail"
+            end
           end
           line.chomp!
+
+          # queue is read by handle_holes
           $freqs_queue.enq Float(line.split(' ',2)[1])
 
           # Check for jitter now and then. This will not find every case
@@ -267,9 +271,11 @@ def sox_to_aubiopitch_to_queue
                 jitter = ((queue_time - last_queue_time) - (now - last_queue_time_now)).abs
                 $jitter_checks_total += 1
                 # ignore jitter within first two secs
-                if now > pipeline_started + 2 && jitter > $jitter_threshold 
+                if now > pipeline_started + 2 && jitter > $jitter_threshold
+                  # we have a case of jitter
                   $jitter_checks_bad += 1
                   if jitter > $max_jitter
+                    # worst jitter so far
                     $max_jitter = jitter.abs
                     $max_jitter_at = now
                     $max_jitter_info = [[last_queue_time_now, last_queue_line.split], [now, line.split]]
@@ -299,12 +305,14 @@ def get_pipeline_cmd(what, wav_from)
 
   err "Internal error: #{what}" unless [:pv, :sox].include?(what)
   #
-  # Regarding "pv" below: 192000 = 48000 * 4 (sample rate, 32 Bit, 1
+  # Regarding 'pv' below: 192000 = 48000 * 4 (sample rate, 32 Bit, 1
   # Chanel) is the rate of our sox-generated testing-files
   #
-  # Regarding "sox" below: We tried "rec" instead of "sox -d" but this
+  # Regarding 'sox' below: We tried 'rec' instead of 'sox -d' but this
   # did not work within a pipeline for unknown reasons
   #
+  # Regarding 'stdbuf': sox and aubiopitch communicate unbuffered, because they exchange
+  # binary data; whereas aubiopitch to ruby can be line-buffered
   templates = [{pv: "pv -qL 192000 %s",
                 sox: "stdbuf -o0 sox -q %s -r #{$conf[:sample_rate]} -t wav -"},
                "stdbuf -i0 -oL aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]

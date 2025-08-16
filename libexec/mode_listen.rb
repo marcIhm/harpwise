@@ -480,7 +480,7 @@ def warble_comment type
   room = $term_width - 14
   active = ( room * $warbles[type][:val] / $warbles[:scale].to_f ).to_i
   allmax = ( room * $warbles[type][:max] / $warbles[:scale].to_f ).to_i
-  unless $warble_cache[[active, allmax]]
+  unless $warble_cache[[type, active, allmax]]
     head1 = "   #{$warbles[type][:window]}s avg"
     head2 = 'max'.rjust(head1.length)
     if active == 0 && allmax > 0
@@ -489,10 +489,10 @@ def warble_comment type
     else
       meter1 = meter2 = " \e[2m" + ( '|' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[92m|\e[0m\e[K"
     end
-    $warble_cache[[active, allmax]] = ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
+    $warble_cache[[type, active, allmax]] = ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
                                        "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]
   end
-  return $warble_cache[[active, allmax]] || ['', ''] ## default may save us after resize
+  return $warble_cache[[type, active, allmax]] || ['', ''] ## default may save us after resize
 end
 
 

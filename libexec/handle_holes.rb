@@ -463,7 +463,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
         
     if $ctl_mic[:show_help]
+      if $perfctr[:handle_holes_this_first_mic]
+        $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
+      end
       show_help
+      $perfctr[:handle_holes_this_first_mic] = nil
+      $perfctr[:handle_holes_this_loops] = 0
       ctl_response 'continue', hl: true
       $ctl_mic[:show_help] = false
       $ctl_mic[:redraw] = Set[:clear, :silent]
@@ -499,7 +504,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $ctl_mic[:redraw] = Set[:clear, :silent]
         $freqs_queue.clear
       else
-        $msgbuf.print("Featuring players not yet started, please stand by ...", 2, 5, :replay)
+        $msgbuf.print("Featuring players has not yet started, please stand by ...", 2, 5, :replay)
       end
     end
 
@@ -937,11 +942,10 @@ def show_help mode = $mode, testing_only = false
     end
   end
 
-  frames << []
+  frames << ["",
+             " Translated keys:",
+             ""]
   if $keyboard_translations.length > 0
-    frames[-1].append(*["",
-                        " Translated keys:",
-                        ""])
     maxlen = $keyboard_translations.keys.map(&:length).max
     $keyboard_translations.each_slice(2) do |slice|
       frames[-1] << '      '
@@ -949,19 +953,32 @@ def show_help mode = $mode, testing_only = false
         frames[-1][-1] += ( "    %#{maxlen}s=_%s" % [from, [to].flatten.join('+')] ).ljust(24)
       end
     end
+  else
+    frames[-1] << '     none'
   end
   frames[-1].append(*["",
-                      " Further reading:",
+                      " Performance info:",
                       "",
-                      "   Invoke 'harpwise' without arguments for introduction, options",
-                      "   and pointers to more help.",
+                      "     Update loops per second:   " + ('%8.2f' % $perfctr[:handle_holes_this_loops_per_second]),
+                      "        \e[0m\e[2mbased on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m",
                       "",
-                      "   Note, that other keys and help apply while harpwise plays",
-                      "   itself; type 'h' then for details.",
-                      "",
-                      " Questions and suggestions welcome to:     \e[92mmarc@ihm.name\e[32m",
-                      "",
-                      "                  Harpwise version is:     \e[92m#{$version}\e[32m"])
+                      "     Time slice (per config):      #{$opts[:time_slice]}",
+                      "     Maximum jitter:               " + ($max_jitter > 0  ?  ('%8.2f sec' % $max_jitter)  :  'none'),
+
+                      "     Samples lost due to lagging:  #{$lagging_freqs_lost}"])
+  
+  frames << ["",
+             " Further reading:",
+             "",
+             "   Invoke 'harpwise' without arguments for introduction, options",
+             "   and pointers to more help.",
+             "",
+             "   Note, that other keys and help apply e.g. while harpwise plays",
+             "   itself; type 'h' then for details.",
+             "",
+             " Questions and suggestions welcome to:     \e[92mmarc@ihm.name\e[32m",
+             "",
+             "                  Harpwise version is:     \e[92m#{$version}\e[32m"]
 
   # add prompt and frame count
   frames.each_with_index do |frame, fidx|
