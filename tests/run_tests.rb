@@ -451,7 +451,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'play' => [6, '--max-holes NUMBER'],
                     'print' => [17, 'Please note, that options'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
-                    'develop' => [11, 'If lagging occurs'],
+                    'develop' => [11, 'If lagging has happened'],
                     'jamming' => [4, 'instead of playing'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }

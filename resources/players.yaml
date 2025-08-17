@@ -775,4 +775,30 @@
   - I Got Rhythm
   - Begin the Beguine
 
-# Next: DeFord Bailey, Stevie Wonder, Larry Adler, Adam Gussow, Boris Plotnikov, Alex Paclin, Toots Thielemans, Bob Dylan
+- name: DeFord Bailey
+  bio:
+  - December 14, 1899 - July 2, 1982
+  - American old-time musician and songwriter
+  - Inducted into the Country Music Hall of Fame in 2005
+  source: https://en.wikipedia.org/wiki/DeFord_Bailey
+  notes:
+  - Considered to be the first African American country music star
+  - Born in Tennessee where at least one of his grandfathers had been
+  - enslaved
+  - All of his family was involved in music
+  - Learned how to play the harmonica and mandolin at the age of 3
+  - In 1918 the family moved to Nashville
+  - Toured and performed with Roy Acuff and many well-known country
+  - artists during the 1930s
+  - Was fired 1941 due to conflicts in the music industrie and made
+  - his living with a shoe shining company
+  - Continued to play the harmonica, he rarely performed publicly
+  songs:
+  - Pan-American Blues
+  - John Henry
+  - Fox Chase
+
+# Formatting hints: Regarding long sentences that must be split on two
+# lines: they start with a capital letter but do not end with a dot (.)
+
+# Next: Adam Gussow, Bob Dylan
