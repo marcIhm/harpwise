@@ -163,7 +163,7 @@ def do_listen
         if Time.now.to_f - $program_start < 6
           []
         else
-          if !$first_hole_held
+          if !$first_hole_held && Time.now.to_f - $program_start < 10
             ["You may blow your harp now ....      (key of #{$key})"]
           elsif $opts[:no_player_info] || $opts[:comment] == :journal
             []

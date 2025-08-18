@@ -874,8 +874,7 @@ class FamousPlayers
   attr_reader :structured, :printable, :all_groups, :stream_current, :text_width
 
   def initialize
-    pfile = "#{$dirs[:install]}/resources/players.yaml"
-    raw = YAML.load_file(pfile)
+    
     @lines_pool = ['',
                    'Notes about famous players will be drifting by ...',
                    "(use 'p' or 'harpwise print players' to read them on their own)"]
@@ -887,26 +886,81 @@ class FamousPlayers
     @names = Array.new
     @has_details = Hash.new
     @with_details = Array.new
-    @all_groups = %w(name bio notes source songs)
+    @all_groups = %w(name bio notes songs sources)
     @all_text_width = 0
 
-    raw.each do |info|
+    pfile = "#{$dirs[:install]}/resources/players.org"
+    #
+    # We process the well-known org-format into a hash equivalent to the prior yaml-file,
+    # which should looks like this:
+    #
+    # [{'name'    => 'name1',
+    #   'bio'     => ['line', 'line'],
+    #   'notes'   => ['line', 'line'],
+    #   'sources' => ['line', 'line'],
+    #   'songs'   => ['line', 'line']},
+    #  {'name'    => 'name1',
+    #   'bio'     => ['line', 'line'],
+    #   'notes'   => ['line', 'line'],
+    #   'sources' => ['line', 'line'],
+    #   'songs'   => ['line', 'line']}]
+    #
+    semiraw = []
+    inner = []
+    group = nil
+    # Add artificial heading to trigger processing of last regular one
+    (File.read(pfile) + "\n* end").lines.to_a.each_with_index do |line, lno|
+      # ignore initial comment
+      next if lno == 0
+      line.chomp!
+      if line.start_with?('*')
+        if inner.length > 0
+          fail "Internal error: no prior group (#{group}), #{pfile}, line #{lno}" unless group
+          inner.each do |ils|  # item-lines, for items that have multiple line
+            next if ils.length == 1
+            next if %w(. ? ! ; ,).include?(ils[-1][-1])
+            ils[-1] += '.'
+          end
+          semiraw[-1][group] = inner.flatten
+          inner = []
+        end
+      end
+
+      if line.strip == ''
+      # ignore empty lines
+      elsif md = line.match(/^\* (.*)$/)
+        name = md[1].strip
+        break if name == 'end'
+        semiraw << {'name' => name}
+      elsif md = line.match(/^\*\* (.*)$/)
+        fail "Internal error: no name yet, #{pfile}, line #{lno}" unless semiraw[-1]
+        group = md[1].strip
+        fail "Internal error: Unknown group #{group}, #{pfile}, line #{lno}" unless @all_groups.include?(group)
+      elsif md = line.match(/^ +-(.*)$/)
+        inner << [md[1].strip]
+      else
+        fail "Internal error: not in list, #{pfile}, line #{lno}" if inner.length == 0
+        inner[-1] << line.strip
+      end
+    end
+    
+    semiraw.each do |info|
       sorted_info = Hash.new
       name = sorted_info['name'] = info['name']
       fail "Internal error: No 'name' given for #{info}" unless name
       fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
       pplayer = [name]
       @has_details[name] = true
-      fail "Internal error: Set of groups for #{name} in #{pfile} #{info.keys.sort} is not a subset of required Groups #{@all_groups.sort}" unless Set[*info.keys].subset?(Set[*@all_groups])
+
       # print information in order given by @all_groups
       lcount = 0
       @all_groups.each do |group|
         lines = info[group] || []
         next if group == 'name'
         @has_details[name] = false if lines.length == 0
-        sorted_info[group] = lines = ( lines.is_a?(String)  ?  [lines]  :  lines )
-        lines.each {|l| err "Internal error: Line for '#{name}' in group '#{group}' from #{pfile} not been read as a string: '#{l}'" unless l.is_a?(String)}
+        sorted_info[group] = lines
         next if group == 'image'
+        next if group == 'sources'
         lines.each do |l|
           gl = "#{group.capitalize}: #{l}"
           lcount += 1
@@ -916,14 +970,14 @@ class FamousPlayers
         end
       end
       if pplayer.length == 1
-        pplayer[0] = "Not yet featured: #{name}"
+        pplayer[0] = "Nothing known about #{name} yet"
       else
-        pplayer[0] = "Featuring: #{name}"
+        pplayer[0] = "Featuring #{name}"
         pplayer.unshift pplayer[0]
-        pplayer << "Done for: #{name}"
+        pplayer << "Featured #{name}"
       end
       pplayer.each do |line|
-        fail "Internal error: This line has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width]}: '#{line}'" if line.length > $conf[:term_min_width]
+        fail "Internal error: This line from #{pfile} has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width]}: '#{line}'" if line.length > $conf[:term_min_width]
       end
 
       # handle pictures

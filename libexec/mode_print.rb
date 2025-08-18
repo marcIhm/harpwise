@@ -603,6 +603,7 @@ def print_player player, in_loop = false
     end
     $players.all_groups.each do |group|
       next if group == 'name' || player[group].length == 0
+      next if group == 'sources'
       puts "\e[32m#{group.capitalize}:\e[0m"
       lines += 1
       player[group].each do |line|
@@ -612,7 +613,11 @@ def print_player player, in_loop = false
         twidth = [twidth, txt.length].max
       end
     end
-    puts "\e[2mSearch (and mb download images):\e[0m"
+    puts "\e[2mSources and Search (mb download images):"
+    player['sources'].each do |line|
+      puts "  #{line}"
+      lines += 1
+    end
     puts "  \e[2mhttps://www.google.com/search?q=" +  player['name'].downcase.tr('"','').split.join('+') + "\e[0m"
 
     $players.show_picture(player['image'], player['name'], in_loop, lines, twidth)
