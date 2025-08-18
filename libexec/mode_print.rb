@@ -535,6 +535,7 @@ def print_players args
     puts "#{$players.all_with_details.length} players with their details."
 
   else
+
     selected_by_name, selected_by_content = $players.select(args)
     selected = (selected_by_name + selected_by_content).uniq
     total = selected.length
@@ -611,6 +612,9 @@ def print_player player, in_loop = false
         twidth = [twidth, txt.length].max
       end
     end
+    puts "\e[2mSearch (and mb download images):\e[0m"
+    puts "  \e[2mhttps://www.google.com/search?q=" +  player['name'].downcase.tr('"','').split.join('+') + "\e[0m"
+
     $players.show_picture(player['image'], player['name'], in_loop, lines, twidth)
   else
     puts "\n\e[2mNot enough details known yet.\e[0m"

@@ -1020,7 +1020,7 @@ class FamousPlayers
     txt_lines += 2
 
     needed = []
-    puts "\e[32mImage:\e[0m"
+    puts "\e[0m\e[2mImage:\e[0m"
 
     if !file
       puts "\e[2m  You may store player images to be shown in:\n    #{@picture_dirs[name]}\e[0m"
