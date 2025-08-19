@@ -555,8 +555,9 @@ def print_players args
           selected_by_name.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
         end
         if selected_by_content.length > 0
-          puts "\e[2mMatches in content:\e[0m"
-          selected_by_content.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
+          puts "\n\e[2mMatches in content:\e[0m"
+          puts
+          selected_by_content.each_with_index {|p,i| puts "  #{i+1+selected_by_name.length}: " + $players.dimfor(p) + p + "\e[0m"}
         end
         make_term_immediate
         $ctl_kb_queue.clear
@@ -573,13 +574,13 @@ def print_players args
           puts "\n----------------------\n\n"
           print_player $players.structured[selected[char.to_i - 1]]
         else
-          print "Invalid input: #{char}"
+          puts "Invalid input: #{char}"
         end
       else
         puts "\e[2mMatches in name:\e[0m"
-        selected_by_name.each {|p,i| puts "  " + p}
+        selected_by_name.each {|p| puts "  " + p}
         puts "\e[2mMatches in content:\e[0m"
-        selected_by_content.each {|p,i| puts "  " + p}
+        selected_by_content.each {|p| puts "  " + p}
         puts
         puts "Too many matches (#{selected.length}); please be more specific"
       end
