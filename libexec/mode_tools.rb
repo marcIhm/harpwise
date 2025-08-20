@@ -1003,7 +1003,7 @@ end
 
 
 def tool_translate_notation_ricci hole
-  if md = hole.match(/^(\d+)$/)
+  if md = hole.match(/^(\d+)$/) || hole.match(/^(\d+)b$/)
     return "+#{md[1]}"
   elsif md = hole.match(/^(\d+)d$/)
     return "-#{md[1]}"
