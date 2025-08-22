@@ -319,7 +319,6 @@ def do_the_jamming json_file
       # Handle timer
       #
       if action[1] == 'timer'
-        
         if idx > $jam_loop_start_idx
           $jam_data[:num_timer] += 1
           jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}" % $jam_data]
@@ -350,7 +349,7 @@ def do_the_jamming json_file
             # This happens, if there is only one timer and placed before loop start
             secs_to_next_timer = this_actions[$jam_loop_start_idx][0] - action[0]
           end
-          action.append('up-to-next-timer', "%.f" % secs_to_next_timer)
+          action.append('up-to-next-timer', "%.1f" % secs_to_next_timer)
         end
       end
 
