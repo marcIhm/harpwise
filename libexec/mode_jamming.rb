@@ -219,6 +219,8 @@ def do_the_jamming json_file
   puts "Starting:\n\n    #{play_command}\n\n"
   puts "#{text}\n\n" if text
   $pplayer = PausablePlayer.new(play_command)
+  play_started = Time.now.to_f
+  sum_sleeps = 0
   puts
 
   # sleep up to timestamp of first action
@@ -226,6 +228,7 @@ def do_the_jamming json_file
   puts "Sleep before first action %.2f sec; total length is #{$jam_pms['sound_file_length']}" % sleep_secs
   $jam_data[:num_action_offset] = 0
   my_sleep sleep_secs
+  sum_sleeps += sleep_secs
 
   puts
   puts "\n\e[32mYou may now go over to 'harpwise listen' ...\e[0m"
@@ -357,13 +360,45 @@ def do_the_jamming json_file
       #
       # Actually do the action
       #
+      
       jamming_do_action action[1 .. -1]
-
       
       if idx < this_actions.length - 1
+        tntf = Time.now.to_f
         sleep_between = this_actions[idx + 1][0] - action[0]
-        puts "sleep until next:    \e[0m\e[34m%.2f sec\e[0m" % sleep_between
-        my_sleep sleep_between
+
+        # Actions (above) and other parts of the loop may take up some small amount of time
+        # too; this adds up and leads to drift between the actual elapsed time and the sum
+        # of sleeps; therefore we need to adjust.
+
+        # When playing is paused (which is possible only during sleep), the sleep is
+        # extended by the pause-time; however this is not counted in sum_sleeps, so we have
+        # to adjust explicitly
+        sleep_and_pause = sum_sleeps + $pplayer.sum_pauses
+
+        puts("Sum:   sleep:  \e[0m\e[34m%.2f sec\e[0m,   pause:  \e[0m\e[34m%.2f sec\e[0m" %
+             [sum_sleeps, $pplayer.sum_pauses]) if $pplayer.sum_pauses > 0.2
+        
+        # Would be zero, if all actions were instantanous
+        secs_lost = tntf - play_started - sleep_and_pause
+        puts(("Since start:   " +
+              "elapsed:  \e[0m\e[34m%.2f sec\e[0m,   " +
+              "sleep + pause:  \e[0m\e[34m%.2f sec\e[0m,   " +
+              "lost:  \e[0m\e[34m%.2f sec\e[0m") %
+             [tntf - play_started, sleep_and_pause, secs_lost])
+
+        sleep_between_adjusted = [sleep_between - secs_lost, 0].max
+        puts(("Sleep until next:    \e[0m\e[34m%.2f sec\e[0m,      " +
+              "adjusted:    \e[0m\e[34m%.2f sec\e[0m") %
+             [sleep_between, sleep_between_adjusted])
+        
+        my_sleep sleep_between_adjusted
+
+        # If beeing paused, my_sleep will actually take exactly that much longer (for a good
+        # reason; see there). However we still just add he requested sleep-intervals and
+        # count the pauses seperately.  Also: dont used sleep_between_adjusted here, because
+        # sum_sleeps is our purely theoretical value, which we compare with reality elsewhere
+        sum_sleeps += sleep_between
         puts
       end
 
@@ -412,7 +447,7 @@ end
 
 
 def jamming_send_keys keys, silent: false
-  puts "sent keys:           \e[0m\e[34m#{keys.join(',')}\e[0m" unless silent
+  puts "\e[0m\e[32mSENT KEYS:           #{keys.join(',')}\e[0m" unless silent
   return if $opts[:print_only]
   keys.each do |key|
     begin
@@ -484,20 +519,21 @@ def jamming_do_action act_wo_ts, noop: false
                        else
                          err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
                        end
-                err "Timer-duration is less than three seconds; probably too fast to follow: #{expr}" if dura < 3
+                # handle_holes.rb relies on us not to send a shorter timer; search there for 'mode_jamming.rb'
+                err "Timer-duration is less than three seconds; this is assumed to be too fast to follow: #{expr}\nTo avoid this error, please merge two or more timers into one." if dura < 3
                 dura * $jam_pms['timestamps_multiply']
               else
                 act_wo_ts[1].chomp % $jam_data
               end
     case act_wo_ts[0]
     when 'mission'
-      print "sent mission:"
+      print "Sent mission:"
     when 'key'
-      print "sent key of harp:"
+      print "Sent key of harp:"
     when 'timer'
-      print "sent start timer ('#{act_wo_ts[1]}'):"
+      print "Sent start timer ('#{act_wo_ts[1]}'):"
     else
-      print "sent message:"
+      print "Sent message:"
     end
     puts "       \e[0m\e[34m'#{content}'\e[0m"
     return if $opts[:print_only]
@@ -615,6 +651,7 @@ def my_sleep secs, fast_w_animation: false, &blk
   start_at = Time.now.to_f
   space_seen = false
   paused = false
+  sum_pauses_initially = $pplayer&.sum_pauses || 0.0
 
   #
   # Sleep but also check for pause-request and chars for actions
@@ -709,11 +746,13 @@ def my_sleep secs, fast_w_animation: false, &blk
       end
       anm_cnt += 1
     else
-      sleep 0.1
+      sleep 0.01
     end
-    
-  end while Time.now.to_f - start_at < secs + ($pplayer  ?  $pplayer.sum_pauses  :  0)
-  $pplayer.sum_pauses = 0 if $pplayer
+
+    sum_pauses_here = ( $pplayer&.sum_pauses || 0.0 ) - sum_pauses_initially
+    # If sleep and therefore play have been paused, we add the amount of pause to our
+    # sleep-time
+  end while Time.now.to_f - start_at < secs + sum_pauses_here
   print anm_pending if anm_pending
 
   paused

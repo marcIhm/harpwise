@@ -977,7 +977,8 @@ end
 
 class PausablePlayer
 
-  attr_accessor :sum_pauses
+  attr_reader :sum_pauses
+  
   def initialize cmd
     @cmd = cmd
     _, @stdout_err, @wait_thr  = Open3.popen2e(cmd)

@@ -57,7 +57,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   # remember for each cycle of warbling, if we have seen first fole
   last_warbles_hole = nil
 
-  jmg_tm_ud_nx_was = $jamming_timer_update_next  
   $perfctr[:handle_holes_calls] += 1
   $perfctr[:handle_holes_this_loops] = 0
   $perfctr[:handle_holes_this_first_mic] = nil
@@ -75,11 +74,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
     
     if $ctl_mic[:redraw] ||
-       ( $jamming_timer_update_next && tntf > $jamming_timer_update_next ) ||
-       # jamming timer has ended in iteration before
-       ( !!$jamming_timer_update_next && jmg_tm_ud_nx_was ) 
+       # next update of jamming timer due ?
+       ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
       print_mission(get_mission_override || lambda_mission.call)
-      jmg_tm_ud_nx_was = $jamming_timer_update_next
     end
 
     if $ctl_mic[:redraw]
@@ -286,11 +283,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
     hole_color = "\e[0m\e[%dm" %
-                 if $opts[:no_progress]
-                   get_hole_color_inactive(hole)
-                 else
-                   get_hole_color_active(hole, good, was_good, was_good_since)
-                 end
+                 get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $opts[:display]
     when :chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis
@@ -473,12 +466,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       $ctl_mic[:show_help] = false
       $ctl_mic[:redraw] = Set[:clear, :silent]
       $freqs_queue.clear
-    end
-
-    if $ctl_mic[:toggle_progress]
-      $opts[:no_progress] = !$opts[:no_progress]
-      $ctl_mic[:toggle_progress] = false
-      print_mission(get_mission_override || lambda_mission.call)
     end
 
     if $ctl_mic[:auto_replay]
@@ -758,6 +745,7 @@ def do_show_options_info
   $ctl_kb_queue.deq
 end
 
+
 $sc_prog_init = nil
 def do_rotate_scale_add_scales for_bak
   step = ( for_bak == :forward  ?  1  :  -1 )
@@ -783,63 +771,94 @@ def do_rotate_scale_add_scales_reset
   $msgbuf.print "Reset scale of harp to initial \e[0m\e[32m#{$scale}\e[0m\e[2m", 0, 5, :scale
 end
 
+
 def get_mission_override
   if $jamming_mission_override
-    if $jamming_timer_update_next
-      tntf = Time.now.to_f
-      # Using this margin can be considered cheating. however: we expect the user to set timer
-      # up to next update of scales etc. (e.g. key 's') after which the display will change
-      # considerably.  Therefore we make sure, that our timer is done slightly *before* its
-      # ordered duration.
-      margin = 0.2
-      if !$jamming_timer_text[0]
-        # We have a timer but no text yet; so prepare it
-        txt = '%.1fs' % ($jamming_timer_end - $jamming_timer_start)
-        # aim for one tick every second; or more often, if timer is really short; or less
-        # often, if timer is really long.  We are free with our timer text here, because the
-        # calculation for update intervals below rests on the chosen text.
-        extra_ticks = [[$jamming_timer_end - $jamming_timer_start - txt.length, 2].max, 16].min
-        txt = '.' * extra_ticks + txt
-        # element 5 is the number of times, the text should be shown; element 6 is the
-        # number of coloring characters, which needs to be subtracted from length
-        $jamming_timer_text = ['[', '', txt, ']', txt.length + 1, 22]
-      elsif tntf > $jamming_timer_update_next
-        # Do this in elsif-branch, so that text is shown once in its original form, before
-        # beeing updated the next time.  Also: If time has come, we do not calculate new state of
-        # timer-text, but rather we advance it unconditionally; this way we have neither
-        # double-updates nor null-updates.
-        if $jamming_timer_text[2].length > 0
-          # make sure, that we do not overfill timer
-          $jamming_timer_text[1] += '#'
-          $jamming_timer_text[2][0] = ''
-        end
+    $jamming_mission_override +
+      if $jamming_timer_update_next
+        get_jamming_timer_text
+      else
+        ''
       end
+  else
+    nil
+  end 
+end
 
-      # construct text first (which might by last text of timer), only then handle
-      # timer-conditions
-      jm_txt = "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
-               "\e[0m\e[2m" + $jamming_timer_text[2] +
-               "\e[0m\e[32m" + $jamming_timer_text[3]
 
-      if tntf > $jamming_timer_update_next
-        # Schedule next update for next due change in timer-text; we want timer to be
-        # finished slightly early (by margin secs) rather than slightly late.
-        $jamming_timer_update_next = tntf + ($jamming_timer_end - $jamming_timer_start - margin) / $jamming_timer_text[4]
-      end
+def get_jamming_timer_text
+  
+  tntf = Time.now.to_f
 
-      if $jamming_timer_update_next > $jamming_timer_end - margin / 2
-        # we are done, make sure, that next call will return no timer
+  # we assume equality, if values are within tepsilon
+  tepsilon = 0.1
+  
+  dura = $jamming_timer_end - $jamming_timer_start
+
+  if !$jamming_timer_text[0]
+    # We have a timer but no text yet; so prepare it. $jamming_timer_text at index [1]
+    # and [2] are changed timer updates, the rest is constant.
+
+    # To find the matching code, search in in mode_jamming.rb for 'handle_holes.rb'
+    err "Internal error: mode_jamming.rb should not send us a timer shorter than 3 secs, but we got #{dura}" if dura < 3
+    sc_txt = '%.1fs' % dura
+
+    # Aim for two '#' every second. Giving short durations a longer stretch of '#' eases the
+    # rounding-error below. Pad our text accordingly (so its overall length should be the
+    # number of half secs). Really long timers will be updated less often.  We are free with
+    # our timer text here, because the calculation for update intervals below rests on the
+    # length of the chosen text.  Note, e.g. that a duration of 8.7 and of 9.2 secs will get
+    # the same padded text. Not, that a timer (e.g.) of length 4s gets a bar of length 3,
+    # to allow 4 states [...] to [###]; hence '- 1' below
+    pd_txt = sc_txt.rjust([( 2 * (dura - 1)).round, 16].min, '.')
+    # Index [4] is the number of times, the text should be shown; index [5] is the
+    # number of coloring characters, which needs to be subtracted from length.
+    
+    $jamming_timer_text = ['[', '', pd_txt, ']', pd_txt.length, 22]
+    
+  elsif tntf > $jamming_timer_update_next
+    # Advance the number of #-signs.  Do this in elsif-branch, so that text is shown
+    # once in its original form, before beeing updated the next time.  Also: If time has
+    # come, we do not calculate new state of timer-text, but rather we advance it
+    # unconditionally; this way we have neither double-updates nor null-updates.
+    if $jamming_timer_text[2].length > 0
+      $jamming_timer_text[1] += '#'
+      $jamming_timer_text[2][0] = ''
+    end
+  end  ## if !$jamming_timer_text[0]
+
+  # These vars do not change often, but we nevertheless construct them in every call,
+  # because we do not want to use global vars here
+  
+  # See above for reasonwing about subtracting 1
+  tdelta = (dura - 1) / $jamming_timer_text[4]
+  tend = $jamming_timer_end
+  tfull = tend - tdelta / 2.0
+  
+  if tntf > $jamming_timer_update_next
+    # Its time for updating text
+    
+    $jamming_timer_update_next = tntf + tdelta
+
+    if tntf > tend - tepsilon
+      # We are done
+      if tntf > tend + tdelta / 2 - tepsilon
+        # We are overdue
         $jamming_timer_update_next = nil
         $jamming_timer_text = [nil, nil, nil, nil, 0, 0]
+        return ''
+      else
+        # This will be our last update, make sure to fill text completely with '#'
+        $jamming_timer_text[1] += '#' * $jamming_timer_text[2].length
+        $jamming_timer_text[2] = ''
       end
-      
-      $jamming_mission_override + jm_txt
-    else
-      $jamming_mission_override
     end
-  else
-    ( $opts[:no_progress]  ?  "\e[0m\e[2mNot tracking progress."  :  nil )
   end
+    
+  "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
+    "\e[0m\e[2m" + $jamming_timer_text[2] +
+    "\e[0m\e[32m" + $jamming_timer_text[3]
+  
 end
 
 
@@ -884,8 +903,7 @@ def show_help mode = $mode, testing_only = false
              ""]
   if [:quiz, :licks].include?(mode)
     frames[-1].append(*["      j:_journal-menu; write holes (mode listen only)",
-                        " CTRL-R:_record and play user (mode licks only)",
-                        "      T:_toggle tracking progress in seq"])
+                        " CTRL-R:_record and play user (mode licks only)"])
   else
     frames[-1].append(*["      j:_invoke journal-menu to handle your musical ideas;",
                         "      w:_switch comment to warble and prepare",

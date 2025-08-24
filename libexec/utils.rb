@@ -660,7 +660,6 @@ def switch_modes
     # switching the first time to a new mode; make some guesses on its
     # arguments, that could have never been given on the command line
     if $mode == :listen && [:quiz, :licks].include?(mode_prev)
-      $opts[:no_progress] = false
       $opts[:comment] = :note
     elsif $mode == :licks && [:listen].include?(mode_prev)
       $opts[:comment] = :holes_notes
