@@ -79,7 +79,6 @@ def parse_arguments_early
         no_fast: %w(--no-fast)}],
      [Set[:quiz, :licks], {
         immediate: %w(--immediate),
-        no_progress: %w(--no-progress),
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
      [Set[:quiz], {

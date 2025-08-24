@@ -701,13 +701,8 @@ def handle_kb_mic
   elsif (char == '0' || char == '-') && [:quiz, :licks].include?($mode)
     $ctl_mic[:forget] = true
     text = 'Forget'
-  elsif char == 'T' && [:quiz, :licks].include?($mode)
-    $ctl_mic[:toggle_progress] = true
-    # $opts[:no_progress] will be toggled later
-    text = $opts[:no_progress]  ?  'Track progress'  :  'Do not track progress'
   elsif char == 'n' && $mode == :quiz && $extra == 'replay'
     $ctl_mic[:change_num_quiz_replay] = true
-    # $opts[:no_progress] will be toggled later
     text = 'Change num of holes'
   elsif char == 'BACKSPACE'
     if [:quiz, :licks].include?($mode)
@@ -1020,8 +1015,6 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
     cell = $charts[$opts[:display]][xy[1]][xy[0]]
     hole_color = if state == :inactive
                    "\e[%dm" % get_hole_color_inactive(hole)
-                 elsif $opts[:no_progress]
-                   "\e[%dm\e[7m" % get_hole_color_inactive(hole)
                  else
                    "\e[%dm\e[7m" % get_hole_color_active(hole, good, was_good, was_good_since)
                  end

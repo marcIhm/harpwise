@@ -78,11 +78,6 @@ no_fast:
 immediate:
   - show correct sequence of holes right away
 
-no_progress:
-  - |
-    do not check for correctness of played holes,
-    just show, what you play
-
 fast_lick_switch:
   - do not echo action between licks
   
