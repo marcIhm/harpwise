@@ -122,11 +122,11 @@ def do_the_jamming json_file
               end
 
   # process other time-parameters
-  ts_prev = actions[0][0]
+  ts_prev = nil
   actions.each_with_index do |ta, idx|
     ta[0] += ts_add if ts_add > 0
     ta[0] *= ts_mult
-    err "Timstamp of action #{idx}: #{ta} is earlier than its predecessor" if ta[0] < ts_prev
+    err "Timstamp of action #{idx}: #{ta} is earlier than its predecessor (action #{idx-1}: #{actions[idx-1]})" if ts_prev && ta[0] < ts_prev
     ts_prev = ta[0]
   end
 
@@ -197,7 +197,7 @@ def do_the_jamming json_file
   # switch key of harpwise listen to be in sync with jamming
   jamming_do_action ['key', $key]
   jamming_do_action ['mission',"Jam: intro" % $jam_data]
-  
+
   jamming_do_action ['message',
                      "Jam: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
                      [0.0, $jam_pms['sleep_initially'] - 0.2].max.round(1)]
@@ -377,7 +377,7 @@ def do_the_jamming json_file
         sleep_and_pause = sum_sleeps + $pplayer.sum_pauses
 
         puts("Sum:   sleep:  \e[0m\e[34m%.2f sec\e[0m,   pause:  \e[0m\e[34m%.2f sec\e[0m" %
-             [sum_sleeps, $pplayer.sum_pauses]) if $pplayer.sum_pauses > 0.2
+             [sum_sleeps, $pplayer.sum_pauses]) if $pplayer.sum_pauses > 0.1
         
         # Would be zero, if all actions were instantanous
         secs_lost = tntf - play_started - sleep_and_pause
@@ -416,6 +416,7 @@ def do_the_jamming json_file
       $jam_data[:num_action_offset] = 0
       puts "\nAfter first iteration: removed all actions before loop-start.\n\n"
     end
+
     if $opts[:print_only] && $jam_pretended_sleep > $jam_pms['sound_file_length_secs']
       puts
       puts
@@ -773,12 +774,14 @@ def parse_and_preprocess_jamming_json json
   actions = jam_pms['timestamps_to_actions']
 
   # some checks
-  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{jam_json})") unless actions.is_a?(Array)
-  err("Value of parameter 'example_harpwise' cannot be empty (see #{jam_json})") if $example == ''
+  err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
+  err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
   %w(sound_file_key harp_key).each do |pm|
     key = jam_pms[pm]
-    err("Value of parameter '#{pm}' which is '#{key} is none of the available keys: #{$conf[:all_keys]} (see #{jam_json})") unless $conf[:all_keys].include?(key)  
+    err("Value of parameter '#{pm}' which is '#{key} is none of the available keys: #{$conf[:all_keys]} (see #{$jam_json})") unless $conf[:all_keys].include?(key)  
   end
+  err("Value of parameter 'sleep_initially' is negative (#{jam_pms['sleep_initially']}) but should be > 0 (see #{$jam_json}); maybe try negative value of 'timestamp_add' for a similar effect.") if jam_pms['sleep_initially'] < 0
+  
 
   # initialize some vars
   $ts_prog_start = Time.now.to_f
