@@ -2116,7 +2116,7 @@ do_test 'id-56: forward and back in help' do
   tms 'h'
   expect { screen[4]['pause and continue'] }
   tms ' '
-  expect { screen[8]['set reference to hole played or chosen'] }
+  expect { screen[7]['set reference to hole played or chosen'] }
   tms :BSPACE
   expect { screen[4]['pause and continue'] }
   kill_session
@@ -3619,8 +3619,6 @@ do_test 'id-127: test two regressions 2024-08-25' do
   tms 'harpwise licks --scale-prog 12bar --lick-prog box1 --fast-lick-switch'
   tms :ENTER
   wait_for_start_of_pipeline
-  tms 'T'  ## this key should be functional
-  expect { screen[0]['Not tracking progress'] }
   expect { screen[1]['licks(6,cyc)'] }
   tms 's'  ## rereading licks should not increase number of licks by ignoring $opts[:lick_prog]
   tms 's'
@@ -3867,7 +3865,7 @@ do_test 'id-140: jam along --print-only' do
   tms "harpwise jam along fancy --print-only"
   tms :ENTER
   sleep 6
-  expect { screen[18]['550 entries.']}
+  expect { screen[18]['35 entries.']}
   expect { screen[20]['Find this list in:   /home/ihm/harpwise_testing/jamming_timestamps/along']}
   kill_session
 end

@@ -794,7 +794,8 @@ def get_jamming_timer_text
   tepsilon = 0.1
   
   dura = $jamming_timer_end - $jamming_timer_start
-
+  $perfctr[:get_jamming_timer_text] += 1
+  
   if !$jamming_timer_text[0]
     # We have a timer but no text yet; so prepare it. $jamming_timer_text at index [1]
     # and [2] are changed timer updates, the rest is constant.

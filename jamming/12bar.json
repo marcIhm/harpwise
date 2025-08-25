@@ -23,21 +23,23 @@
     "sound_file_key": "g",
     "harp_key": "c",
     "comment": "A 12-bar backing-track and the 3-lick set 'box1'. Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc. Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation. Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
-    // hint for user on how to start harpwise
+    // Hint for user on how to start harpwise:
     "example_harpwise": "harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
-    // global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
-    // slowed down the backing track 
+    // Global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
+    // slowed down the backing track after creating timestamps:
     "timestamps_multiply": 1.0,
-    // globally add to all timestamps; value can be negative too (in which case it delays
-    // playing); use this e.g. if you want to read the next lick in advance
+    // Globally add to all timestamps; value can be negative too (in which case it delays
+    // playing); use this e.g. if you want to switch licks and scales early e.g. to read
+    // the next lick in advance:
     "timestamps_add": -0.2,
-    // maybe give some extra time to grab your harp before anything starts
+    // Maybe give some extra time to grab your harp before anything starts. This acts on
+    // both, backing track and actions:
     "sleep_initially": 2.0,
     // Use this, if actions and music tend to drift; can be negative too (in which case it
     // is just subtracted from last timestamp) For tracks with slightly uneven tempo, or to
     // make room for a solo, this can also be an array, e.g. [0, 0.2, 0, 12, 0, -0.1], which
     // might also include appropriate messages, e.g. [0, 0.2, 0, [12, "solo"], 0, -0.1]. The
-    // last value of this array is reused, if the array is smaller than number of iterations
+    // last value of this array is reused, if the array is smaller than number of iterations:
     "sleep_after_iteration": -0.1,
     //
     // The array "timestamps_to_actions" below is the central data structure of this file.
@@ -112,18 +114,18 @@
     //    
     "timestamps_to_actions": [
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
-	// that the same instance of "harpwise listen" can be used multiple times
+	// that the same instance of "harpwise listen" can be used multiple times:
         [0,"keys","L","S"],
         [0,"message","Comment: %{comment}"],
 	[0,"timer"],
-	// negative timestamp is subtraced from the follwing one (i.e. 6 - 2)
+	// Negative timestamp is subtraced from the follwing one (i.e. 6 - 2):
         [-2,"message","*In two secs ..."],
-	// exactly one loop-start is needed
+	// Exactly one loop-start is needed:
         [6,"loop-start","%{loop_starter}",4],
-	// timestamp of zero below, means to repeat the preceding one (i.e. "6")
+	// Timestamp of zero below, means to repeat the preceding one (i.e. "6"):
 	[0,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
-	// these two keys will switch lick- and scale-progression in unison	
+	// These two keys will switch lick- and scale-progression in unison:
         [18,"keys","l","s"],
 	[0,"timer"],
         [-2,"message","*Chord-change in two secs ...",2],
