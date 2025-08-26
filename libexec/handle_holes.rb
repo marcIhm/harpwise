@@ -787,78 +787,92 @@ end
 
 
 def get_jamming_timer_text
+
+  # This gets called when next timer update is due, but also on redraw-events
   
   tntf = Time.now.to_f
-
-  # we assume equality, if values are within tepsilon
-  tepsilon = 0.1
-  
-  dura = $jamming_timer_end - $jamming_timer_start
   $perfctr[:get_jamming_timer_text] += 1
-  
-  if !$jamming_timer_text[0]
-    # We have a timer but no text yet; so prepare it. $jamming_timer_text at index [1]
-    # and [2] are changed timer updates, the rest is constant.
 
+  # We assume equality, if values are within epsilon
+  epsilon = 0.1
+  first_delta = nil
+
+  # reduce typing
+  jts = $jamming_timer_state
+  
+  if !jts
+    # Prepare state of timer
+
+    jts = Hash.new
+    jts[:total_secs] = $jamming_timer_end - $jamming_timer_start
+    
     # To find the matching code, search in in mode_jamming.rb for 'handle_holes.rb'
-    err "Internal error: mode_jamming.rb should not send us a timer shorter than 3 secs, but we got #{dura}" if dura < 3
-    sc_txt = '%.1fs' % dura
-
-    # Aim for two '#' every second. Giving short durations a longer stretch of '#' eases the
-    # rounding-error below. Pad our text accordingly (so its overall length should be the
-    # number of half secs). Really long timers will be updated less often.  We are free with
-    # our timer text here, because the calculation for update intervals below rests on the
-    # length of the chosen text.  Note, e.g. that a duration of 8.7 and of 9.2 secs will get
-    # the same padded text. Not, that a timer (e.g.) of length 4s gets a bar of length 3,
-    # to allow 4 states [...] to [###]; hence '- 1' below
-    pd_txt = sc_txt.rjust([( 2 * (dura - 1)).round, 16].min, '.')
-    # Index [4] is the number of times, the text should be shown; index [5] is the
-    # number of coloring characters, which needs to be subtracted from length.
+    err "Internal error: mode_jamming.rb should not send us a timer shorter than 3 secs, but we got #{jts[:total_secs]}" if jts[:total_secs] < 3
     
-    $jamming_timer_text = ['[', '', pd_txt, ']', pd_txt.length, 22]
+    # Depending on total duration we have one update every half, full, two, four, ... seconds
+    jts[:halfs_per_tick] = 1
     
-  elsif tntf > $jamming_timer_update_next
-    # Advance the number of #-signs.  Do this in elsif-branch, so that text is shown
-    # once in its original form, before beeing updated the next time.  Also: If time has
-    # come, we do not calculate new state of timer-text, but rather we advance it
-    # unconditionally; this way we have neither double-updates nor null-updates.
-    if $jamming_timer_text[2].length > 0
-      $jamming_timer_text[1] += '#'
-      $jamming_timer_text[2][0] = ''
+    # For now we want the same symbol for all cases; but maybe this will change in the future
+    tick_syms = ['#', '#'] + Array.new(100, '#')
+    while true
+      # Duration of 2.3 leads to 5 ticks
+      jts[:total_ticks] = (jts[:total_secs] * 2.0 / jts[:halfs_per_tick]).to_i
+      jts[:tick_sym] = tick_syms.shift
+      break if jts[:total_ticks] <= 16
+      jts[:halfs_per_tick] *= 2
     end
-  end  ## if !$jamming_timer_text[0]
 
-  # These vars do not change often, but we nevertheless construct them in every call,
-  # because we do not want to use global vars here
-  
-  # See above for reasonwing about subtracting 1
-  tdelta = (dura - 1) / $jamming_timer_text[4]
-  tend = $jamming_timer_end
-  tfull = tend - tdelta / 2.0
-  
-  if tntf > $jamming_timer_update_next
-    # Its time for updating text
+    jts[:delta_secs] = 0.5 * jts[:halfs_per_tick]
+    first_delta = jts[:total_secs] - jts[:delta_secs] * jts[:total_ticks]
+
+    jts[:head] = '['
+    jts[:left] = ''
+    jts[:right] = ('%.1fs' % jts[:total_secs]).rjust(jts[:total_ticks], '.')
+    jts[:tail] = ']'
+    jts[:ncol_chars] = 22
+
+  elsif tntf > $jamming_timer_update_next - epsilon
     
-    $jamming_timer_update_next = tntf + tdelta
+    # Advance the number of tick-signs.  Do this in elsif-branch, so that text is shown once
+    # in its original form, before beeing updated the next time.  Also: We do not calculate
+    # new state of timer-text, but rather we advance it unconditionally; this way we have
+    # neither double-updates nor null-updates.
+    if jts[:right].length > 0
+      jts[:left] += jts[:tick_sym]
+      jts[:right][0] = ''
+    end
+    
+  end  ## if !jts
 
-    if tntf > tend - tepsilon
+  
+  if tntf > $jamming_timer_update_next - epsilon
+    # Its time for updating text
+
+    $jamming_timer_update_next = tntf + ( first_delta  ?  first_delta  :  jts[:delta_secs] )
+
+    if tntf > $jamming_timer_end - epsilon
       # We are done
-      if tntf > tend + tdelta / 2 - tepsilon
+      if tntf > $jamming_timer_end + jts[:delta_secs] / 2 - epsilon
         # We are overdue
         $jamming_timer_update_next = nil
-        $jamming_timer_text = [nil, nil, nil, nil, 0, 0]
+        jts = nil
         return ''
       else
-        # This will be our last update, make sure to fill text completely with '#'
-        $jamming_timer_text[1] += '#' * $jamming_timer_text[2].length
-        $jamming_timer_text[2] = ''
+        # This will be our last update, make sure to fill text completely
+        jts[:left] += jts[:tick_sym] * jts[:right].length
+        jts[:right] = ''
       end
     end
+  else
+    # Probably a redraw-event
   end
-    
-  "  \e[32m" + $jamming_timer_text[0] + $jamming_timer_text[1] +
-    "\e[0m\e[2m" + $jamming_timer_text[2] +
-    "\e[0m\e[32m" + $jamming_timer_text[3]
+
+  # write back (e.g. if jts == nil)
+  $jamming_timer_state = jts
+  
+  "  \e[32m" + jts[:head] + jts[:left] +
+    "\e[0m\e[2m" + jts[:right] +
+    "\e[0m\e[32m" + jts[:tail]
   
 end
 
@@ -1277,7 +1291,7 @@ def show_remote_message
         $jamming_timer_start = Time.now.to_f
         $jamming_timer_end = $jamming_timer_start + dura
         $jamming_timer_update_next = $jamming_timer_start - 1
-        $jamming_timer_text = [nil, nil, nil, nil, 0, 0]        
+        $jamming_timer_state = nil
         print_mission(get_mission_override)
       else
         if text[0] == '*'
