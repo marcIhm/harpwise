@@ -812,13 +812,19 @@ def get_jamming_timer_text
     # Depending on total duration we have one update every half, full, two, four, ... seconds
     jts[:halfs_per_tick] = 1
     
-    # For now we want the same symbol for all cases; but maybe this will change in the future
-    tick_syms = ['#', '#'] + Array.new(100, '#')
+    tick_syms = ['#', '#'] + Array.new(20, '=')
+    tick_cols = [94, 32, 34] + Array.new(20, 32)
     while true
       # Duration of 2.3 leads to 5 ticks
       jts[:total_ticks] = (jts[:total_secs] * 2.0 / jts[:halfs_per_tick]).to_i
       jts[:tick_sym] = tick_syms.shift
-      break if jts[:total_ticks] <= 16
+      jts[:tick_col] = tick_cols.shift
+
+      # See print_mission on how to calculate the number below
+      # $conf[:term_min_width] - $ctl_response_width - "Jm: ti 10/12, tm 10/15".length - "  []".length =
+      # 75 - 32 - 22 - 4 = 17
+
+      break if jts[:total_ticks] <= ($term_width > 80  ?  16  :  20)
       jts[:halfs_per_tick] *= 2
     end
 
@@ -829,7 +835,8 @@ def get_jamming_timer_text
     jts[:left] = ''
     jts[:right] = ('%.1fs' % jts[:total_secs]).rjust(jts[:total_ticks], '.')
     jts[:tail] = ']'
-    jts[:ncol_chars] = 22
+    # Total number of coloring chars (e.g. \e[32m = 5); go to end of function to count.
+    jts[:ncol_chars] = 27
 
   elsif tntf > $jamming_timer_update_next - epsilon
     
@@ -870,7 +877,7 @@ def get_jamming_timer_text
   # write back (e.g. if jts == nil)
   $jamming_timer_state = jts
   
-  "  \e[32m" + jts[:head] + jts[:left] +
+  "  \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
     "\e[0m\e[2m" + jts[:right] +
     "\e[0m\e[32m" + jts[:tail]
   

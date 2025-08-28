@@ -324,7 +324,7 @@ def do_the_jamming json_file
       if action[1] == 'timer'
         if idx > $jam_loop_start_idx
           $jam_data[:num_timer] += 1
-          jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}" % $jam_data]
+          jamming_do_action ['mission',"Jm: it %{iteration}/%{iteration_max}, tm %{num_timer}/%{num_timer_max}" % $jam_data]
         end
           
         if action.length == 2
