@@ -163,7 +163,7 @@ Diagnosis:
 
     harpwise tools diag
 
-  to execute two basic tests and get some advice.
+  to execute some basic tests and get advice on how to fix common problems.
 
 Quick Start:
 

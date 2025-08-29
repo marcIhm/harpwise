@@ -822,9 +822,10 @@ def get_jamming_timer_text
 
       # See print_mission on how to calculate the number below
       # $conf[:term_min_width] - $ctl_response_width - "Jm: ti 10/12, tm 10/15".length - "  []".length =
-      # 75 - 32 - 22 - 4 = 17
+      # 75 - 32 - 22 - 4 = 17 = 16 (with margin)
 
-      break if jts[:total_ticks] <= ($term_width > 80  ?  16  :  20)
+      max_ticks = [16, $term_width - 75 + 16, 24].sort[1]
+      break if jts[:total_ticks] <= max_ticks
       jts[:halfs_per_tick] *= 2
     end
 
