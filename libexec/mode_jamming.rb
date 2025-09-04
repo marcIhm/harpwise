@@ -133,9 +133,16 @@ def do_the_jamming json_file
   #
   # Done with parameter and data processing, make contact with user and 'harpwise listen'
   #
-  
+      
   ['',"\e[0mComment:\e[32m",'',
-   wrap_text($jam_pms['comment'],term_width: -4, cont: '').map {|l| '    ' + l},
+   [$jam_pms['comment']].flatten.map do |cl|
+     wr = wrap_text(cl, term_width: -4, cont: '')
+     if wr.length == 0
+       ['    ']
+     else 
+       wr.map {|l| '    ' + l}
+     end
+   end,
    "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
@@ -183,9 +190,18 @@ def do_the_jamming json_file
       sleep 0.5
     end
 
-    # remember last-used time only, if we did some real jamming
-    $pers_data['jamming_last_used_day'] ||= Hash.new
-    $pers_data['jamming_last_used_day'][File.basename(json_file)] = DateTime.now.mjd
+    # Remember last-used time only late, if we already did at least some real jamming
+    $pers_data['jamming_last_used_days'] ||= Hash.new
+    $pers_data['jamming_last_used_days'][File.basename(json_file)].then do |jluds|
+      jluds ||= Array.new
+      day = DateTime.now.mjd
+      jluds << day unless jluds[-1] == day
+      # remove old entries
+      while day - jluds[0] > $jamming_last_used_days_max
+        jluds.shift
+      end 
+    end
+
     puts
 
   end
@@ -591,7 +607,7 @@ def do_jamming_list
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\e[2m    # with keys harp,song ; last used"
+  puts "Available jamming-files:\e[2m\n# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 1
   $jamming_path.each do |jdir|
     puts
@@ -618,10 +634,12 @@ def do_jamming_list
       end
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
-      print "  \e[0m\e[2m   #  #{pms['harp_key']},#{pms['sound_file_key']}"
-      if jflu = $pers_data['jamming_last_used_day']&.dig(File.basename(jf))
-        ago = DateTime.now.mjd - jflu
-        print " ;  " +
+      print "  \e[0m\e[2m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
+      jluds = $pers_data['jamming_last_used_days']&.dig(File.basename(jf))      
+      if jluds
+        day = DateTime.now.mjd
+        ago = day - jluds[-1]
+        print "\e[32m  ; " +
               if ago == 0
                 'today'
               elsif ago == 1
@@ -633,6 +651,13 @@ def do_jamming_list
               else
                 "#{(ago/30.0).round} months ago"
               end
+        # remove old entries
+        while day - jluds[0] > $jamming_last_used_days_max
+          jluds.shift
+        end 
+        if jluds.length > 1
+          print " + #{jluds.length - 1}"
+        end
       end
       puts
       count += 1
@@ -775,6 +800,7 @@ def parse_and_preprocess_jamming_json json
 
   # some checks
   err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
+  err("Value of parameter 'comment' which is:\n\n#{jam_pms['comment']}\n\nshould be a string or an array of strings but is not (see #{$jam_json})") unless jam_pms['comment'].is_a?(String) || (jam_pms['comment'].is_a?(Array) && jam_pms['comment'].all? {|e| e.is_a?(String)})
   err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
   %w(sound_file_key harp_key).each do |pm|
     key = jam_pms[pm]
@@ -1193,7 +1219,7 @@ def match_jamming_file words
   case candidates.length
   when 0
     do_jamming_list
-    err "None of the available jamming-files (see above) are matched by your input,\nwhich is:   #{words.join(' ')}\n\nPlease check against the complete list of files above and change or shorten your input."
+    err "None of the available jamming-files (see above) is matched by your input:   #{words.join(' ')}\n\nPlease check against the complete list of files above and change or shorten your input."
   when 1
     return short2full[candidates[0]]
   else

@@ -193,11 +193,15 @@ def set_global_vars_early
   $messages_seen = Hash.new
 
   $pers_file = "#{$dirs[:data]}/persistent_state.json"
-  begin
+  $pers_file_old = "#{$dirs[:data]}/persistent_state_old.json"
+  if File.exist?($pers_file)
     $pers_data = JSON.parse(File.read($pers_file))
-  rescue Errno::ENOENT, JSON::ParserError
+  else
     $pers_data = Hash.new
   end
+  # Migrate; e.g. delete keys no longer needed
+  $pers_data.delete('jamming_last_used_day')
+
   $pers_fingerprint = $pers_data.hash
 
   $splashed = false
@@ -238,6 +242,7 @@ def set_global_vars_early
   $jamming_path = ["#{$dirs[:data]}/jamming", "#{$dirs[:install]}/jamming"]
   FileUtils.mkdir_p($jamming_path[0]) unless File.directory?($jamming_path[0])
   $jamming_timestamps_dir = "#{$dirs[:data]}/jamming_timestamps"
+  $jamming_last_used_days_max = 180
   FileUtils.mkdir_p($jamming_timestamps_dir) unless File.directory?($jamming_timestamps_dir)
   $jamming_mission_override = nil
   # we use $jamming_timer_update_next as a timestamp and in addition as a flag, that a timer

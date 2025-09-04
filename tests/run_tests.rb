@@ -13,6 +13,7 @@ require 'json'
 require 'tmpdir'
 require 'method_source'
 require 'net/http'
+require 'date'
 require_relative 'test_utils.rb'
 
 fail "Cannot run as a snap" if ENV['SNAP_NAME']
@@ -3796,11 +3797,27 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
 end
 
 do_test 'id-136: harpwise jamming list' do
+  day = DateTime.now.mjd
+  File.write $persistent_state_file, <<~end_of_content
+{
+  "jamming_last_used_days": {
+    "12bar.json": [
+      #{day - 200},
+      #{day - 2},
+      #{day - 1}
+    ]
+  }
+}
+  end_of_content
   new_session
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10]['12bar.json']}  
+  expect { screen[11]['12bar.json']}  
+  expect { screen[11]['yesterday + 1']}
+  state = JSON.parse(File.read($persistent_state_file))
+  # day-200 is too far in the past and should be gone then 
+  expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
   kill_session
 end
 
@@ -3874,7 +3891,7 @@ do_test 'id-141: jam along too much input' do
   new_session
   tms "harpwise jam along 12bar foo"
   tms :ENTER
-  expect { screen[15]['None of the available jamming-files']}
+  expect { screen[16]['None of the available jamming-files']}
   kill_session
 end
 
