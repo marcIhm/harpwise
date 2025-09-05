@@ -656,7 +656,7 @@ def do_jamming_list
           jluds.shift
         end 
         if jluds.length > 1
-          print " + #{jluds.length - 1}"
+          print " + #{jluds.length - 1} more"
         end
       end
       puts
