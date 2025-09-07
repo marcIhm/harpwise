@@ -37,7 +37,7 @@ def parse_arguments_early
   num_args_after_mode = ARGV.length
   
   # needed for error messages
-  $for_usage = " invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}'  or  try 'harpwise #{mode}' for a list of options  or  invoke 'harpwise' without any arguments for more general usage."
+  $for_usage = " invoke 'harpwise #{mode}' for usage information specific for mode '#{mode}'  or  try 'harpwise #{mode} -o' for a list of options  or  invoke 'harpwise' without any arguments for more general usage."
 
 
   #
@@ -88,7 +88,7 @@ def parse_arguments_early
      [Set[:samples], {
         wave: %w(--wave)}],
      [Set[:print, :samples, :tools, :jamming], {
-        terse: %w(-T --terse)}],
+        terse: %w(-T --terse -q)}],
      [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],
      [Set[:licks, :play], {

@@ -52,7 +52,8 @@ print:
   holes-history: |
     show, which holes you played recently, from any mode
   scales: |
-    list of all scales with hole count
+    For all scales or the scales given as arguments: print them with
+    their details; with --terse only liste their names
   scale-progs, scale-progressions: |
     print all known scale progressions
   intervals: |

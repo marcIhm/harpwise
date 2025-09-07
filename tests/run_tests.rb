@@ -1791,7 +1791,7 @@ do_test 'id-50c: tools make-scale' do
 
   tms 'harpwise print scales -T'
   tms :ENTER
-  expect { screen[13]['foo'] }
+  expect { screen[14]['foo'] }
   kill_session
 end
 
@@ -2023,22 +2023,27 @@ do_test 'id-54e: print list of all scales' do
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
 
-  [" all                \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles:  32     \e[2mShort: A\e[0m\n",
-   "   \e[2mDesc: all holes of the harmonica\e[0m\n",
-   " blues              \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles:  18     \e[2mShort: b\e[0m\n",
-   "   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
-   " blues-middle       \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles:   7     \e[2mShort: b\e[0m\n",
-   "   \e[2mDesc: middle octave of the blues scale\e[0m\n",
-   " chord-i            \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles:   8     \e[2mShort: 1\e[0m\n",
-   "   \e[2mDesc: major chord I without flat seventh\e[0m\n",
-   " chord-i7           \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles:  10     \e[2mShort: 1\e[0m\n",
-   "   \e[2mDesc: major chord I with added flat seventh\e[0m\n"].each_with_index do |exp,idx|
-    expect(lines.each_with_index.map {|l,i| [i,l]}, idx + 7, exp) { lines[7+idx] == exp }
+  [" all                [2m(builtin)[0m:\n",
+   "   [2mHoles(32):  +1  -1/  -1  -2  +2  -2//  -2/  -2  -3///  -3//  -3/  -3  +4  -4/  -4  +5  -5  +6  -6/  -6  -7  +7  -8  +8/  +8  -9  +9/  +9  -10  +10//  +10/  +10\n",
+   "   [2mShort: A[0m\n",
+   "   [2mDesc: all holes of the harmonica[0m\n",
+   " blues              [2m(builtin)[0m:\n",
+   "   [2mHoles(18):  +1  -1/  -1  -2//  -2  -3/  +4  -4/  -4  -5  +6  -6/  -6  +7  -8  -9  +9  -10\n",
+   "   [2mShort: b[0m\n",
+   "   [2mDesc: the full blues scales over all octaves[0m\n",
+   " blues-middle       [2m(builtin)[0m:\n",
+   "   [2mHoles(7):  -2  -3/  +4  -4/  -4  -5  +6\n",
+   "   [2mShort: b[0m\n",
+   "   [2mDesc: middle octave of the blues scale[0m\n",
+   " chord-i            [2m(builtin)[0m:\n",
+   "   [2mHoles(8):  -2  -3  -4  +6  -7  -8  +9  +10/\n",
+   "   [2mShort: 1[0m\n",
+   "   [2mDesc: major chord I without flat seventh[0m\n",
+   " chord-i7           [2m(builtin)[0m:\n",
+   "   [2mHoles(10):  -2  -3  -4  -5  +6  -7  -8  -9  +9  +10/\n",
+   "   [2mShort: 1[0m\n",
+   "   [2mDesc: major chord I with added flat seventh[0m\n"].each_with_index do |exp,idx|
+    expect(lines.each_with_index.map {|l,i| [i,l]}, idx + 7, exp, $testing_output_file) { lines[idx + 7] == exp }
   end
   kill_session
 end
@@ -2066,7 +2071,17 @@ do_test 'id-54g: print scale with flats' do
 end
 
 
-do_test 'id-54h: print list of licks by hole-count' do
+do_test 'id-54h: print scales summary' do
+  new_session
+  tms "harpwise print scales --terse"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[4] == '  all     blues   blues-middle    chord-i     chord-i7    chord-iv' }
+  kill_session
+end
+
+
+do_test 'id-54i: print list of licks by hole-count' do
   new_session
   tms "harpwise print licks-list --max-holes 12 --min-holes 8"
   tms :ENTER

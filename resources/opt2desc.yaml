@@ -204,7 +204,7 @@ viewer:
   
 terse:
   - |
-    Be somewhat less verbose or silent than usual.
+    Be somewhat less verbose (or more silent) than usual.
     Mostly used for mode print and samples.
   
 jamming:

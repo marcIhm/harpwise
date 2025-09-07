@@ -23,7 +23,7 @@ def do_print to_print
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions scale scales).include?($extra) && args_for_extra.length > 0
 
   
   if !$extra
@@ -160,25 +160,7 @@ def do_print to_print
 
     when 'scales'
 
-      if $opts[:terse]
-        print_in_columns($all_scales, pad: :tabs)
-      else
-        puts_underlined 'All scales:'
-        puts
-        maxs = $all_scales.map {|s| s.length}.max
-        $all_scales.each do |sname|
-          scale_holes = read_and_parse_scale(sname)
-          from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )
-          puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
-          print "   \e[2mHoles: #{scale_holes.length.to_s.rjust(3)}  "
-          print "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
-          puts
-          puts "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
-        end
-      end
-      puts
-      puts_user_defined_hint(:scales)
-      puts "\e[2mTotal count of scales printed: \e[0m#{$all_scales.length}"
+      print_scales args_for_extra
 
     when 'scale-progs', 'scale-progressions'
 
@@ -429,6 +411,44 @@ def print_last_holes_from_history licks
   puts
   puts "\e[2m(from #{$history_file})\e[0m"
   puts
+end
+
+
+def print_scales scales
+  if scales.length == 0
+    scales = $all_scales
+    scales_given = false
+  else
+    scales.each do |s|
+      err "Scale '#{s}' given as argument is unknown among all scales:  #{$all_scales.join(' ')}" unless $all_scales.include?(s)
+    end
+    scales_given = true
+  end
+  if $opts[:terse]
+    print_in_columns(scales, pad: :tabs)
+  else
+    unless scales_given
+      puts_underlined 'All scales:'
+      puts
+    end
+    maxs = scales.map {|s| s.length}.max
+    scales.each do |sname|
+      # need this to fill scale2short
+      read_and_parse_scale(sname)
+      scale_holes, props, sfile = read_and_parse_scale_simple(sname, $harp)
+      from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )
+      puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
+      puts"   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"
+      puts "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
+      puts "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+      puts "   \e[2mFile: #{sfile}\e[0m" if scales.length == 1
+    end
+  end
+  puts
+  unless scales_given
+    puts_user_defined_hint(:scales)
+    puts "\e[2mTotal count of scales printed: \e[0m#{scales.length}"
+  end
 end
 
 
@@ -720,7 +740,6 @@ def puts_user_defined_hint what
   case what
   when :scales
     puts "\e[2mThe #{nscales} user-defined scales above are defined by files in\n  " + File.dirname($scale_files_templates[1] % [$type, '-', '-'])
-    puts "you may simply remove files there to drop the corresponding scales.\e[0m"
     puts
   when :scale_progs
     puts "\e[2mUser-defined scale-progression (if any) in: #{$scale_prog_file_templates[1] % $type}"
