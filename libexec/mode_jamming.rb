@@ -395,7 +395,12 @@ def do_the_jamming json_file
              [sum_sleeps, $pplayer.sum_pauses]) if $pplayer.sum_pauses > 0.1
         
         # Would be zero, if all actions were instantanous
-        secs_lost = tntf - play_started - sleep_and_pause
+        secs_lost =  if $opts[:print_only]
+                       0
+                     else
+                       tntf - play_started - sleep_and_pause
+                     end
+        
         puts(("Since start:   " +
               "elapsed:  \e[0m\e[34m%.2f sec\e[0m,   " +
               "sleep + pause:  \e[0m\e[34m%.2f sec\e[0m,   " +
@@ -403,11 +408,12 @@ def do_the_jamming json_file
              [tntf - play_started, sleep_and_pause, secs_lost])
 
         sleep_between_adjusted = [sleep_between - secs_lost, 0].max
+        
         puts(("Sleep until next:    \e[0m\e[34m%.2f sec\e[0m,      " +
               "adjusted:    \e[0m\e[34m%.2f sec\e[0m") %
              [sleep_between, sleep_between_adjusted])
         
-        my_sleep($opts[:print_only]  ?  sleep_between  :  sleep_between_adjusted)
+        my_sleep sleep_between_adjusted
 
         # If beeing paused, my_sleep will actually take exactly that much longer (for a good
         # reason; see there). However we still just add he requested sleep-intervals and
