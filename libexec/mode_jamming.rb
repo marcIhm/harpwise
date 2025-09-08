@@ -191,9 +191,8 @@ def do_the_jamming json_file
     end
 
     # Remember last-used time only late, if we already did at least some real jamming
-    $pers_data['jamming_last_used_days'] ||= Hash.new
-    $pers_data['jamming_last_used_days'][File.basename(json_file)].then do |jluds|
-      jluds ||= Array.new
+    base = File.basename(json_file)
+    (($pers_data['jamming_last_used_days'] ||= Hash.new)[base] ||= Array.new).then do |jluds|
       day = DateTime.now.mjd
       jluds << day unless jluds[-1] == day
       # remove old entries
@@ -408,7 +407,7 @@ def do_the_jamming json_file
               "adjusted:    \e[0m\e[34m%.2f sec\e[0m") %
              [sleep_between, sleep_between_adjusted])
         
-        my_sleep sleep_between_adjusted
+        my_sleep($opts[:print_only]  ?  sleep_between  :  sleep_between_adjusted)
 
         # If beeing paused, my_sleep will actually take exactly that much longer (for a good
         # reason; see there). However we still just add he requested sleep-intervals and
@@ -743,7 +742,6 @@ def my_sleep secs, fast_w_animation: false, &blk
       end
 
       if $opts[:over_again] && $extra == 'along'
-        # due to prior checks we are sure to have $extra == 'along' 
         puts "\nBacking track has ended, but playing it again because of option '--over-again'\n\n"
         jamming_do_action ['message','Backing track has ended; starting over again',1]
         jamming_do_action ['mission','Starting over']

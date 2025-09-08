@@ -174,12 +174,15 @@
 //  'harpwise jam play' you may give the json-file or the name of your mp3; the resuling set
 //  of timestamps will be displayed and written to disk.
 //
-//  If yu want more graphical tools to get timestamps for chord changes, you may try
+//  If you want more graphical tools to get timestamps for chord changes, you may try
 //  audacity or transcribe. Both are excellent tools with broad (but different) areas of
 //  expertise. And both allow to mark and export timestamps along the waveform.
 //
+//  Once you have your timestamps you need to enter them into your json-file; for a
+//  quick and silent check you may try 'harpwise jam along FILE.json --print-only'.
+//
 //  After putting in your timestamps, you should try your new json with 'harpwise jam along'
-//  and check, if the actions executed are in sync with your track. It can be useful to jeep
+//  and check, if the actions executed are in sync with your track. It can be useful to keep
 //  watching the output of 'harpwise jam along' instead of 'harpwise listen' for this
 //  check. If necessary, do some overall adjustments:
 //
@@ -187,7 +190,7 @@
 //    'timestamps_add' (negative or positive)
 //
 //  - If timestamps tend to drift from turnaround to turnaround, or if there are solos in
-//    between, adjust parameter 'sleep_after_iteration'
+//    between, adjust parameter 'sleep_after_iteration', which is described above.
 //
 //  Once you have gone through these steps, everything should be ready for a new jam.
 //
