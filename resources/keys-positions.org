@@ -1,6 +1,6 @@
 |         | Keys of Song in respective Position   |       |
 | Key of  |---------+---------+---------+---------| Semi  |
-| Harp    | 1st Pos | 2nd Pos | 3rd Pos | 4th Pos | tones |
+| Harp    |   1st   |   2nd   |   3rd   |   4th   | tones |
 |---------+---------+---------+---------+---------+-------|
 | G       | G       | D       | A       | E       |   %s |
 |---------+---------+---------+---------+---------+-------|

@@ -73,7 +73,14 @@ tools:
     octaves. This can be useful to find variations of a
     hole-sequences, e.g. for improvisation
   keys: |
-    print a chart with keys and positions centered around current key
+    For a diatonic harmonica: print a chart with keys and positions
+    centered around current key; this tool accepts two optional extra
+    arguments, which control coloured emphasis in the otherwise fixed
+    chart.  The first argument is the key of the song, the second the
+    key of the harp; use '.' to skip emphasising the song.
+
+    Use option --terse to print a version shortend to the most common
+    keys and position.
   spread-notes: |
     take a list of notes (e.g. a, a4, b, cs) as arguments and turn
     them into a list of holes that produce them. As the octave is

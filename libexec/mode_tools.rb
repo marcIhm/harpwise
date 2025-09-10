@@ -67,23 +67,39 @@ end
 
 def tool_key_positions to_handle
 
-  harp_key = 'c'
-  harp_color = "\e[0m\e[32m"
+  if $opts[:terse]
+    err "This tool does not accept arguments, if option --terse is present" if to_handle.length > 0
+    puts
+    puts "\e[2mMatching keys of most common richter harmonicas,\nplayed in second position, with keys of songs:"
+    puts
+    puts "\e[2m  Harp\e[0m      G   A   C   D"
+    puts "\e[2m  Song\e[0m      D   E   G   A"
+    puts
+    puts
+    return
+  end
+  
+  harp_key = $key
+  harp_color = if $source_of[:key] == 'command-line'
+                 "\e[0m\e[32m"
+               else
+                 "\e[0m"
+               end
   song_key = nil
   song_color = ''
 
   err "Can handle only one or two (optional) argument, not these: #{to_handle}" if to_handle.length > 2
 
-  if to_handle.length >= 1
-    harp_key = to_handle[0].downcase
-    err "Key   #{to_handle[0]}   is unknown among key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
-    harp_color += "\e[7m"
+  if to_handle.length >= 1 && to_handle[0] != '.'
+    song_key = to_handle[0].downcase
+    err "Key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
+    song_color = "\e[0m\e[34m\e[7m"
   end
 
-  if to_handle.length == 2
-    song_key = to_handle[1].downcase
-    err "Key   #{to_handle[1]}   is unknown among keys  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
-    song_color = "\e[0m\e[34m\e[7m"
+  if to_handle.length >= 2 && to_handle[1] != '.'
+    harp_key = to_handle[1].downcase
+    err "Key   #{to_handle[1]}   is neither '.' not any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
+    harp_color = "\e[0m\e[32m\e[7m"
   end
 
   lines = File.read("#{$dirs[:install]}/resources/keys-positions.org").lines
@@ -105,7 +121,7 @@ def tool_key_positions to_handle
       print "\e[0m"
       idx += 1
     else
-      print line
+      print "\e[0m\e[2m" + line + "\e[0m"
     end
   end
   puts
@@ -215,14 +231,14 @@ end
 
 
 def colorize_word_cell plain, word, color_word, color_normal
-  colored = "\e[0m"
+  colored = "\e[0m\e[2m"
   plain.strip.split('|').each_with_index do |field, idx|
     colored += if word && idx >= 2 && field.downcase.match?(/\b#{word}\b/)
                  color_word
                else
                  color_normal
                end
-    colored += field + "\e[0m|"
+    colored += field + "\e[0m\e[2m|\e[0m"
   end
   return colored + "\n"
 end

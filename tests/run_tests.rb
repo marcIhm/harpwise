@@ -1754,9 +1754,9 @@ end
 
 do_test 'id-50a: tools keys' do
   new_session
-  tms 'harpwise tools keys b'
+  tms 'harpwise tools b keys'
   tms :ENTER
-  expect { screen[1]['-3'] }
+  expect { screen[7]['B       | B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0'] }
   kill_session
 end
 
