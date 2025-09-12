@@ -807,7 +807,7 @@ def get_jamming_timer_text
     jts[:total_secs] = $jamming_timer_end - $jamming_timer_start
     
     # To find the matching code, search in in mode_jamming.rb for 'handle_holes.rb'
-    err "Internal error: mode_jamming.rb should not send us a timer shorter than 3 secs, but we got #{jts[:total_secs]}" if jts[:total_secs] < 3
+    err "Internal error: mode_jamming.rb should not send us a timer shorter than 2.5 secs, but we got #{jts[:total_secs]}" if jts[:total_secs] < 2.5
     
     # Depending on total duration we have one update every half, full, two, four, ... seconds
     jts[:halfs_per_tick] = 1

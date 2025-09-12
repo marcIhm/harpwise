@@ -464,7 +464,7 @@ def write_history play_type, name, holes = []
   end
 
   File.open($history_file, 'a') do |history|
-    tstamps = [Time.now.strftime("%Y-%m-%d %H:%M"), Time.now.to_i]
+    tstamps = [Time.now.strftime('%Y-%m-%d %H:%M'), Time.now.to_i]
     data = { rec_type: 'start',
              mode: $mode,
              timestamps: tstamps }
@@ -1565,4 +1565,13 @@ def mostly_avoid_double_invocations
   # to do anything in exit-handler
   FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_jamming
   FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
+end
+
+
+def maybe_write_pers_data
+  if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+    FileUtils.cp($pers_file, $pers_file_old) if File.exist?($pers_file)
+    File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
+    $pers_fingerprint = $pers_data.hash
+  end
 end

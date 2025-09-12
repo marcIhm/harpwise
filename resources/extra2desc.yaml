@@ -289,13 +289,20 @@ jamming:
 
       harpwise jam along 12
 
-    which would pick the pre-installed file '12bar'. If you have
-    jamming-files of your own, you may add more words.
+    which would pick the pre-installed file '12bar'. If you have many
+    jamming-files of your own, you may give longer or more words to make
+    selection uniq.
+
+    Please note, that this kind of fuzzy selection applies to other
+    extra-commands within mode jamming too.
   list, ls: |
-    list available jamming-files and precede them by numbers, that
-    might be used instead of a filename
+    list available jamming-files with date of last usage and any stored
+    processing notes.
+
+    You may also add arguments to name a single file, in which case the
+    comment will also be displayed.
   play: |
-    Play the backing-track; can be useful if you want to search
+    Play the given backing-track; can be useful if you want to search
     for a matching lick-progression before starting to jam.
 
     Also useful when creating a new json for jamming, because it
@@ -305,7 +312,12 @@ jamming:
     which will be played, thus allowing you to mark timestamps; so
     no need to create a json-file up front.
   edit: |
-    edit given jamming-file
+    edit given jamming-file (fuzzy selection)
+  note: |
+    For the given jamming-file Invoke your editor to enter or edit the
+    note, that will be shown in "harpwise jam list".
+
+    An empty (or whitespace only) note will be removed altogether.
 develop:
   man: |
     produce man page from erb-template

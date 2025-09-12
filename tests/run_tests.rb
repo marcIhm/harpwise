@@ -1746,7 +1746,7 @@ do_test 'id-49: edit lickfile' do
   wait_for_start_of_pipeline
   tms 'e'
   sleep 2
-  # vi apparently behaves different in a snap
+  # vi apparently behaves different in a snap (?)
   tms :ENTER if $use_snap
   expect { screen[14]['[wade]'] }
   kill_session
@@ -3774,7 +3774,7 @@ do_test 'id-134: invalid arg for mode jamming' do
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[19]["for mode jamming should be one of these 5"] }
+  expect { screen[19]["for mode jamming should be one of these 6"] }
   kill_session
 end
 
@@ -3836,11 +3836,29 @@ do_test 'id-136: harpwise jamming list' do
   kill_session
 end
 
-do_test 'id-137: harpwise jamming edit with a number' do
+do_test 'id-137: harpwise jamming edit' do
   new_session
   tms "EDITOR=vi harpwise jamming edit 12bar"
   tms :ENTER
   expect { screen[19]['you dont need to read them']}  
+  kill_session
+end
+
+do_test 'id-137a: harpwise jamming note' do
+  File.write $persistent_state_file, "{}"
+  new_session
+  tms "EDITOR=vi harpwise jam note 12bar"
+  tms :ENTER
+  expect { screen[1]['Current notes for   12bar.json']}
+  tms "a"
+  tms "foo bar"
+  tms :ESCAPE
+  tms ':wq'
+  tms :ENTER
+  tms "harpwise jam ls"
+  tms :ENTER
+  expect { screen[18]['12bar.json']}
+  expect { screen[19]['foo bar']}
   kill_session
 end
 
@@ -3906,7 +3924,7 @@ do_test 'id-141: jam along too much input' do
   new_session
   tms "harpwise jam along 12bar foo"
   tms :ENTER
-  expect { screen[16]['None of the available jamming-files']}
+  expect { screen[17]['None of the available jamming-files']}
   kill_session
 end
 

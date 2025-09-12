@@ -169,11 +169,8 @@ at_exit do
     print_debug_info
     puts "Note: A debug log has been written: #{$debug_log}" if File.exist?($debug_log)
   end
-    
-  if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-    FileUtils.cp($pers_file, $pers_file_old) if File.exist?($pers_file)
-    File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
-  end
+
+  maybe_write_pers_data
 end
 
 report_name_collisions_mb

@@ -3,8 +3,6 @@
 #
 
 def do_jamming to_handle
-
-  $jamming_dirs_content = get_jamming_dirs_content
   
   $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m    \e[2mhere or in 'harpwise listen'\e[0m   to %s,\npress   \e[92mctrl-z\e[0m   \e[2mhere\e[0m   to start over.\e[0m"
   $jam_help_while_play = ["Press:     SPACE   to pause / continue",
@@ -40,13 +38,17 @@ def do_jamming to_handle
     
     json_file = match_jamming_file(to_handle)
     
-    do_the_jamming(json_file)
+    do_the_jamming json_file
     
   when 'list', 'ls'
-    
-    err_args_not_allowed(to_handle) if to_handle.length > 0
-    
-    do_jamming_list
+
+    json_file = if to_handle.length == 0
+                  nil
+                else
+                  match_jamming_file(to_handle)
+                end
+
+    do_jamming_list json_file
     
   when 'edit'
 
@@ -63,6 +65,11 @@ def do_jamming to_handle
            end
 
     do_the_playing(file)
+
+  when 'note', 'notes'
+
+    json_file = match_jamming_file(to_handle)
+    do_the_edit_note json_file
     
   else
     
@@ -542,7 +549,7 @@ def jamming_do_action act_wo_ts, noop: false
                          err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
                        end
                 # handle_holes.rb relies on us not to send a shorter timer; search there for 'mode_jamming.rb'
-                err "Timer-duration is less than three seconds; this is assumed to be too fast to follow: #{expr}\nTo avoid this error, please merge two or more timers into one." if dura < 3
+                err "Timer-duration is less than 2.5 seconds; this is assumed to be too fast to follow: #{expr}\nTo avoid this error, please merge two or more timers into one." if dura < 2.5
                 dura * $jam_pms['timestamps_multiply']
               else
                 act_wo_ts[1].chomp % $jam_data
@@ -607,44 +614,67 @@ def get_jamming_dirs_content
 end
 
 
-def do_jamming_list
+def do_jamming_list just_this = nil
   #
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\e[2m\n# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
+  puts "Available jamming-files:\n\e[2m\e[34m# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 1
+  jamming_dirs_content = get_jamming_dirs_content
+
   $jamming_path.each do |jdir|
+
+    next if just_this && !File.dirname(just_this).start_with?(jdir)
     puts
-    puts "\e[2mFrom \e[0m\e[32m#{jdir}\e[0m\e[2m/"
+    puts "\e[0m\e[2mfrom   \e[0m\e[32m#{jdir}\e[0m\e[2m/"
     puts
     count = 0
     # prefixes for coloring
     ppfx = pfx = ''
-    # sort files in toplevel dir first and then all subdirs
-    $jamming_dirs_content[jdir].each do |jf|
+
+    # Sort files in toplevel dir first and then all subdirs
+    jamming_dirs_content[jdir].each do |jf|
+
+      next if just_this && just_this != jf
+      
+      # path relative to jdir
       jfs = jf[(jdir.length + 1) .. -1]
-      # dim, if there is a prefix, that did not change
+
+      #
+      # Print common part of filenames dim, if there is a directory prefix, that did not
+      # change
+      #
+
+      # Compute unchanged prefix, current and previous
       if md = jfs.match(/^(.*?\/)/)
+        # file is within subdir of jdir
         pfx = md[1]
-        puts if pfx != ppfx
+        puts if pfx != ppfx && !just_this
       else
         ppfx = pfx = ''
       end
+
+      # Use prefixes for coloring
       if pfx.length == 0 || pfx != ppfx
         print "\e[0m  " + jfs
         ppfx = pfx
       else
         print "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
       end
+
+      #
+      # Append keys and time-information
+      #
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
-      print "  \e[0m\e[2m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
+      print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
       jluds = $pers_data['jamming_last_used_days']&.dig(File.basename(jf))      
       if jluds
         day = DateTime.now.mjd
         ago = day - jluds[-1]
-        print "\e[32m  ; " +
+        # format number of days in words
+        print "\e[0m\e[32m  ; " +
               if ago == 0
                 'today'
               elsif ago == 1
@@ -663,16 +693,41 @@ def do_jamming_list
         if jluds.length > 1
           print " + #{jluds.length - 1} more"
         end
-      end
+      end  ## if jluds
       puts
+
+      #
+      # Add notes (if any)
+      #
+      notes = $pers_data.dig('jamming_notes',File.basename(jf))
+      if !$opts[:terse]
+        print "\e[0m\e[2m"
+        if just_this
+          puts
+          puts '  Comment:'
+          [pms['comment']].flatten.each {|cl| puts "    #{cl}"}
+          puts
+        end
+        if notes && notes.length > 0
+          if just_this
+            puts "  Notes from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')}:"
+          end
+          notes[1..-1].each {|nl| puts "    #{nl}"}
+        elsif just_this
+          puts "  Notes:   none"
+        end
+        print "\e[0m"
+      end
+      
       count += 1
       sleep 0.02
       tcount += 1
-    end
+
+    end  ## each jamming file
     puts "\e[0m  none" if count == 0
   end
   puts
-  puts "\e[2mTotal count: #{tcount}"
+  puts "\e[0m\e[2mTotal count: #{tcount}" unless just_this
   puts
   sleep 0.05
 end
@@ -1076,6 +1131,38 @@ def do_the_playing json_or_mp3
 end
 
 
+def do_the_edit_note file
+
+  short = File.basename(file)
+  
+  tfile = Tempfile.new('harpwise')
+  old = $pers_data.dig('jamming_notes',short)
+  tfile.write("#\n#   Current notes for   #{short}\n#\n#")
+  tfile.write("   last change at  " + Time.at(old[0]).to_datetime.strftime('%Y-%m-%d %H:%M')) if old
+  tfile.write("\n#   #{file}\n#\n\n")
+  tfile.write([old].flatten[1..-1].map {|l| l + "\n"}.join) if old
+  tfile.close
+  puts
+  system("#{$editor} +7 #{tfile.path}") || err("Editing  #{tfile.path}  failed; see above")
+
+  rlines = File.readlines(tfile.path).map {|l| l.gsub(/#.*/,"").chomp.strip}
+  rlines.pop while rlines.length > 0 && rlines[-1].length == 0
+  rlines.shift while rlines.length > 0 && rlines[0].length == 0
+
+  puts
+  if rlines.length > 0 
+    ($pers_data['jamming_notes'] ||= Hash.new)[short] = [Time.now.to_i,rlines].flatten
+    puts "Stored  #{rlines.length}  lines of notes for   \e[32m#{short}\e[0m\n\nRead them in   harpwise jam ls"
+  else
+    $pers_data['jamming_notes']&.delete(short)
+    puts "Removed notes for   #{short}"
+  end
+  maybe_write_pers_data
+  puts
+  
+end
+
+
 def check_for_space_etc blk, print_pending: nil
   space_seen = pending_printed = false
   if $ctl_kb_queue.length > 0
@@ -1203,7 +1290,7 @@ end
 def match_jamming_file words
   candidates = []
   short2full = Hash.new
-  $jamming_dirs_content.each do |dir,files|
+  get_jamming_dirs_content.each do |dir,files|
     files.each do |file|
       short = file[dir.length + 1 .. -1]
       short2full[short] = file
