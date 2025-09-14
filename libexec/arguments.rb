@@ -511,34 +511,51 @@ def initialize_extra_vars
     end
   end
 
-  # construct variants of keywords (with and without s) for giving hints
-  $extra_kws_w_wo_s = Hash.new
-  # there might be a more elegant recursive solution, but for now only the
-  # result counts
+  #
+  # Construct variants (with and without s) of multi-token keywords
+  # (e.g. 'hole-note'). Use this for giving hints. e.g. the quiz
+  # extra-keyword 'hole-note' should be hinted as 'holes-note',
+  # 'hole-notes', etc.  The hash $extra_kws_w_wo_s should map all these
+  # variants to the canonical 'hole-note'.
+  #
+  # Keep in mind, that $extra_kws_wwos2canon is (currently) only used to
+  # create useful hints on certain unknown extras.  But it does not make
+  # them valid variants.  All valid variants of an extra still have to be
+  # listed in extra2desc.yaml and handled e.g. in mode_jamming.rb
+  #
+  # wwos = with without space
+  $extra_kws_wwos2canon = Hash.new
   $extra_kws.each do |mode, extras|
+    $extra_kws_wwos2canon[mode] ||= Hash.new
     extras.each do |extra|
-      multi_variants = extra.split('-').map do |word|
-        [word, ( word.end_with?('s')  ?  word[0..-2]  :  word + 's' )]
+      # add explicitly, because this case will be skipped below, if it
+      # appears as a variant; see there for rationale.  Note that we would
+      # not even need this for our current usage pattern.
+      $extra_kws_wwos2canon[mode][extra] = extra      
+      pairs_wwos = extra.split('-').map do |word|
+        word.chomp!('s')
+        [word, word + 's']
       end
-      # the if below cannot be made simpler (?), because product for
-      # arrays has no neutral element (aka '1'), which we could use for
-      # inject
-      if multi_variants.length == 1
-        multi_variants[0]
-      else
-        multi_variants[1..-1].inject(multi_variants[0]) do |variants, w_wo_s|
-          variants.product(w_wo_s)
-        end.map {|variants| variants.join('-')}
-      end.each do |variant|
-        $extra_kws_w_wo_s[mode] ||= Hash.new
-        if mode == :print && %w(player players).include?(variant)
-          # handle special case for mode print: both player and players
-          # exist and mean different things
-          $extra_kws_w_wo_s[mode][extra] = extra
-        else
-          fail "Internal error: ambigous variant '#{variant}' maps both to '#{extra}' and '#{$extra_kws_w_wo_s[mode][variant]}'" if $extra_kws_w_wo_s[mode][variant]
-          $extra_kws_w_wo_s[mode][variant] = extra
+      
+      pairs_wwos.inject([nil]) do |variant, wwos|  ## variant is an array of nested arrays
+        variant.product(wwos)
+      end.map(&:flatten).map(&:compact).map do |variant|  ## variant is an array of flat arrays
+        variant.join('-')
+      end.each do |variant|  ## variant is a string
+        # Skip variants, that are extras already (without even beeing
+        # varied).  This applies regardless whether, they have the same
+        # (mode jamming: note, notes) or different (mode print: player,
+        # players) function.
+        next if $extra_kws[mode].include?(variant)
+        # Catch e.g. case of two non-equivalent extras 'foo-bars-baz' and
+        # 'foos-bar-baz', which would collide in 'foos-bars-baz'. However
+        # do not complain, if there are two equivialent extras (e.g. 'foo'
+        # and 'foos')
+        if $extra_kws_wwos2canon[mode][variant]
+          fail "Internal error: variant '#{variant}' of '#{extra}' is also a variant of '#{$extra_kws_wwos2canon[mode][variant]}'"
         end
+        # remember first of multiple equivalent extras
+        $extra_kws_wwos2canon[mode][variant] ||= extra
       end
     end
   end
@@ -571,7 +588,7 @@ def parse_arguments_for_mode
       # removed) will later be checked again, but only against
       # $amongs[$mode]
       what = recognize_among(ARGV[0],
-                             [$amongs[$mode], :extra, :extra_w_wo_s],
+                             [$amongs[$mode], :extra, :extra_wwos],
                              licks: $all_licks)
       $extra = ARGV.shift if what == :extra      
       if !what
@@ -584,8 +601,7 @@ def parse_arguments_for_mode
     else
       # these modes (e.g. quiz, samples or jamming) strictly require their
       # extra argument
-      $extra = ARGV.shift if recognize_among(ARGV[0], [:extra,
-                                                       ($mode == :jamming  ?  []  :  :extra_w_wo_s)]) == :extra
+      $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_wwos]) == :extra
       if !$extra
         print_amongs(:extra)
         puts get_extra_desc_all(extras_joined_to_desc: {quiz: {'choose' => 'ask user to choose one'}}).join("\n") if $mode == :quiz

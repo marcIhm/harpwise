@@ -80,6 +80,11 @@ end
 
 # needed for usage
 initialize_extra_vars
+if $testing_what == :extra
+  puts JSON.pretty_generate({extra_kws_wwos2canon: $extra_kws_wwos2canon})
+  exit
+end
+
 
 # get debug info early to help e.g. for error messages
 $opts = {debug: true} if ARGV.include?('--debug')

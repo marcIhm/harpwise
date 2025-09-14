@@ -173,7 +173,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   other = []
 
   amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
-  err("Internal error: #{amongs} includes :extra_w_wo_s") if amongs.include?(:extra_w_wo_s)
+  err("Internal error: #{amongs} includes :extra_wwos") if amongs.include?(:extra_wwos)
 
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|

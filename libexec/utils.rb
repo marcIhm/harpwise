@@ -733,7 +733,7 @@ end
 def recognize_among val, choices, licks: $licks
   return nil unless val
   choices = [choices].flatten
-  err("Internal error: :extra_w_wo_s should always be last, if it appears at all: #{choices}") if choices.index(:extra_w_wo_s)&.!=(choices.length - 1)
+  err("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
   choices.each do |choice|
     # keys must be the same as in print_amongs
     if choice == :hole
@@ -759,10 +759,10 @@ def recognize_among val, choices, licks: $licks
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
     elsif choice == :extra
       return choice if $extra_kws[$mode].include?(val)
-    elsif choice == :extra_w_wo_s
-      # As a unique exception, we take the liberty to err-out if we think so;
-      # therefore :extra_w_wo_s should always be last in amongs (see above)
-      should = $extra_kws_w_wo_s[$mode][val]
+    elsif choice == :extra_wwos
+      # As a unique exception, we take here the liberty to err-out if we think so; therefore
+      # :extra_wwos should always be last in amongs (see above)
+      should = $extra_kws_wwos2canon[$mode][val]
       if should
         puts
         puts "Did you mean '#{should}' instead of '#{val}' ?"
@@ -1295,7 +1295,7 @@ def set_testing_vars_mb
   tw_allowed = %w(1 true t yes y)
   if testing && !tw_allowed.include?(ENV['HARPWISE_TESTING'].downcase)
     testing_what = ENV["HARPWISE_TESTING"].downcase
-    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote))
+    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote extra))
     err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
     testing_what = testing_what.to_sym
   end
@@ -1573,5 +1573,20 @@ def maybe_write_pers_data
     FileUtils.cp($pers_file, $pers_file_old) if File.exist?($pers_file)
     File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
     $pers_fingerprint = $pers_data.hash
+  end
+end
+
+
+def days_ago_in_words ago
+  if ago == 0
+    'today'
+  elsif ago == 1
+    'yesterday'
+  elsif ago <= 28
+    "#{ago} days ago"
+  elsif ago <= 90
+    "#{(ago/7.0).round} weeks ago"
+  else
+    "#{(ago/30.0).round} months ago"
   end
 end
