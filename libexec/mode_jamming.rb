@@ -702,22 +702,21 @@ def do_jamming_list_single file
   notes = $pers_data.dig('jamming_notes',File.basename(file))
   
   puts
-  puts "Details for   " + File.basename(file)
+  puts "Details for:  \e[32m" + File.basename(file)
   puts
 
-  puts "       Path:  #{file}"
+  puts "\e[0m       Path:  #{file}"
   
-  puts "Key of harp:  #{pms['harp_key']}"
-  puts "    of song:  #{pms['sound_file_key']}"
   ago, more = get_and_age_jamming_last_used_days(file)
   print "  Last used:  "
   if ago
     print(days_ago_in_words(ago))
-    print("\e[2m and on \e[0m#{more} more \e[2mdays from last 180\e[0m")
+    puts("\e[2m and on \e[0m#{more} more \e[2mdays from last 180\e[0m")
   else
-    print 'unknown'
+    puts 'unknown'
   end
-  puts
+  puts "Key of harp:  \e[34m#{pms['harp_key']}\e[0m"
+  puts "    of song:  \e[34m#{pms['sound_file_key']}\e[0m"
 
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
@@ -725,15 +724,16 @@ def do_jamming_list_single file
   puts "  Lick Prog:  " + ( md[1] || 'unknown' )
   puts 
   print "\e[0m"
-  puts '    Comment:'
+  puts "    Comment:\e[2m"
   [pms['comment']].flatten.each {|cl| puts "        #{cl}"}
-  puts
+  puts "\e[0m"
   if notes && notes.length > 0
-    puts "      Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})"
+    puts "      Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})\e[2m"
     notes[1..-1].each {|nl| puts "        #{nl}"}
   else
-    puts "      Notes:   none"
+    puts "      Notes:   \e[2mnone"
   end
+  puts "\e[0m"
   puts
 end
 
