@@ -3757,6 +3757,27 @@ end
 
 ENV['HARPWISE_TESTING']='1'
 
+ENV['HARPWISE_TESTING']='extra'
+
+do_test 'id-132a: some cases of extra processing' do
+  new_session
+  tms "harpwise >#{$testing_output_file}"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  wwos = JSON.parse(File.read($testing_output_file))['extra_kws_wwos2canon']
+  [%w(print player player),
+   %w(print players players),
+   %w(jamming notes notes),
+   %w(jamming note note),
+   %w(jamming alongs along),
+   %w(quiz hears-chords hear-chord)].each do |ws|
+    expect(ws, wwos) { wwos[ws[0]][ws[1]] == ws[2] }
+  end
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='1'
+
 do_test 'id-133: test for diff between man and usage' do
   new_session
   tms "HARPWISE_TESTING=none ~/git/harpwise/harpwise dev diff"
@@ -3774,7 +3795,7 @@ do_test 'id-134: invalid arg for mode jamming' do
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[19]["for mode jamming should be one of these 6"] }
+  expect { screen[19]["for mode jamming should be one of these 7"] }
   kill_session
 end
 
@@ -3821,6 +3842,12 @@ do_test 'id-136: harpwise jamming list' do
       #{day - 2},
       #{day - 1}
     ]
+  },
+  "jamming_notes": {
+    "12bar.json": [
+      #{Time.now.to_i},
+      "foo"
+    ]
   }
 }
   end_of_content
@@ -3833,6 +3860,12 @@ do_test 'id-136: harpwise jamming list' do
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
+  tms "clear"
+  tms :ENTER
+  tms "harpwise jamming list 12bar"
+  tms :ENTER
+  expect { screen[4]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
+  expect { screen[20]['Notes:   (from']}  
   kill_session
 end
 
@@ -3847,7 +3880,7 @@ end
 do_test 'id-137a: harpwise jamming note' do
   File.write $persistent_state_file, "{}"
   new_session
-  tms "EDITOR=vi harpwise jam note 12bar"
+  tms "EDITOR=vi harpwise jam notes 12bar"
   tms :ENTER
   expect { screen[1]['Current notes for   12bar.json']}
   tms "a"

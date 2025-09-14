@@ -42,13 +42,13 @@ def do_jamming to_handle
     
   when 'list', 'ls'
 
-    json_file = if to_handle.length == 0
-                  nil
-                else
-                  match_jamming_file(to_handle)
-                end
+    if to_handle.length == 0
+      do_jamming_list
+    else
+      json_file = match_jamming_file(to_handle)
+      do_jamming_list_single json_file
+    end
 
-    do_jamming_list json_file
     
   when 'edit'
 
@@ -66,10 +66,10 @@ def do_jamming to_handle
 
     do_the_playing(file)
 
-  when 'note', 'notes'
+  when 'notes', 'note'
 
     json_file = match_jamming_file(to_handle)
-    do_the_edit_note json_file
+    do_the_edit_notes json_file
     
   else
     
@@ -614,7 +614,7 @@ def get_jamming_dirs_content
 end
 
 
-def do_jamming_list just_this = nil
+def do_jamming_list
   #
   # Try to make output pretty but also easy for copy and paste
   #
@@ -622,12 +622,11 @@ def do_jamming_list just_this = nil
   puts "Available jamming-files:\n\e[2m\e[34m# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 1
   jamming_dirs_content = get_jamming_dirs_content
-
+  
   $jamming_path.each do |jdir|
 
-    next if just_this && !File.dirname(just_this).start_with?(jdir)
     puts
-    puts "\e[0m\e[2mfrom   \e[0m\e[32m#{jdir}\e[0m\e[2m/"
+    puts "\e[0m\e[2mFrom   \e[0m\e[32m#{jdir}\e[0m\e[2m/"
     puts
     count = 0
     # prefixes for coloring
@@ -636,21 +635,18 @@ def do_jamming_list just_this = nil
     # Sort files in toplevel dir first and then all subdirs
     jamming_dirs_content[jdir].each do |jf|
 
-      next if just_this && just_this != jf
-      
       # path relative to jdir
       jfs = jf[(jdir.length + 1) .. -1]
 
       #
-      # Print common part of filenames dim, if there is a directory prefix, that did not
-      # change
+      # Print common part of filenames dim, if there is an unchanged directory prefix
       #
 
       # Compute unchanged prefix, current and previous
       if md = jfs.match(/^(.*?\/)/)
         # file is within subdir of jdir
         pfx = md[1]
-        puts if pfx != ppfx && !just_this
+        puts if pfx != ppfx
       else
         ppfx = pfx = ''
       end
@@ -669,31 +665,9 @@ def do_jamming_list just_this = nil
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
-      jluds = $pers_data['jamming_last_used_days']&.dig(File.basename(jf))      
-      if jluds
-        day = DateTime.now.mjd
-        ago = day - jluds[-1]
-        # format number of days in words
-        print "\e[0m\e[32m  ; " +
-              if ago == 0
-                'today'
-              elsif ago == 1
-                'yesterday'
-              elsif ago <= 28
-                "#{ago} days ago"
-              elsif ago <= 90
-                "#{(ago/7.0).round} weeks ago"
-              else
-                "#{(ago/30.0).round} months ago"
-              end
-        # remove old entries
-        while day - jluds[0] > $jamming_last_used_days_max
-          jluds.shift
-        end 
-        if jluds.length > 1
-          print " + #{jluds.length - 1} more"
-        end
-      end  ## if jluds
+      ago, more = get_and_age_jamming_last_used_days(jf)
+      print("\e[0m\e[32m  ; " + days_ago_in_words(ago)) if ago
+      print(" + #{more} more") if more
       puts
 
       #
@@ -702,21 +676,9 @@ def do_jamming_list just_this = nil
       notes = $pers_data.dig('jamming_notes',File.basename(jf))
       if !$opts[:terse]
         print "\e[0m\e[2m"
-        if just_this
-          puts
-          puts '  Comment:'
-          [pms['comment']].flatten.each {|cl| puts "    #{cl}"}
-          puts
-        end
         if notes && notes.length > 0
-          if just_this
-            puts "  Notes from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')}:"
-          end
           notes[1..-1].each {|nl| puts "    #{nl}"}
-        elsif just_this
-          puts "  Notes:   none"
         end
-        print "\e[0m"
       end
       
       count += 1
@@ -727,9 +689,70 @@ def do_jamming_list just_this = nil
     puts "\e[0m  none" if count == 0
   end
   puts
-  puts "\e[0m\e[2mTotal count: #{tcount}" unless just_this
+  puts "\e[0m\e[2mTotal count: #{tcount}\e[0m"
   puts
   sleep 0.05
+end
+
+
+def do_jamming_list_single file
+
+  pms = parse_jamming_json(file)
+  jam_data = jamming_make_jam_data(pms)  
+  notes = $pers_data.dig('jamming_notes',File.basename(file))
+  
+  puts
+  puts "Details for   " + File.basename(file)
+  puts
+
+  puts "       Path:  #{file}"
+  
+  puts "Key of harp:  #{pms['harp_key']}"
+  puts "    of song:  #{pms['sound_file_key']}"
+  ago, more = get_and_age_jamming_last_used_days(file)
+  print "  Last used:  "
+  if ago
+    print(days_ago_in_words(ago))
+    print("\e[2m and on \e[0m#{more} more \e[2mdays from last 180\e[0m")
+  else
+    print 'unknown'
+  end
+  puts
+
+  puts
+  puts " Sound File:  " + (pms['sound_file'] % jam_data)
+  md = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)
+  puts "  Lick Prog:  " + ( md[1] || 'unknown' )
+  puts 
+  print "\e[0m"
+  puts '    Comment:'
+  [pms['comment']].flatten.each {|cl| puts "        #{cl}"}
+  puts
+  if notes && notes.length > 0
+    puts "      Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})"
+    notes[1..-1].each {|nl| puts "        #{nl}"}
+  else
+    puts "      Notes:   none"
+  end
+  puts
+end
+
+
+def get_and_age_jamming_last_used_days jf
+  ago = more = nil
+  jluds = $pers_data['jamming_last_used_days']&.dig(File.basename(jf))
+  if jluds
+    day = DateTime.now.mjd
+    ago = day - jluds[-1]
+    # remove old entries
+    while day - jluds[0] > $jamming_last_used_days_max
+      jluds.shift
+    end 
+    if jluds.length > 1
+      more = jluds.length - 1
+    end
+  end
+  return [ago, more]
 end
 
 
@@ -872,21 +895,8 @@ def parse_and_preprocess_jamming_json json
   $ts_prog_start = Time.now.to_f
   $example = jam_pms['example_harpwise']
   $jam_loop_starter_template = "Start of iteration %{iteration}/%{iteration_max} (each %{iteration_duration}); elapsed %{elapsed}, remaining %{remaining}"
-  $jam_data = {comment: jam_pms['comment'],
-               install_dir: File.read("#{$dirs[:data]}/path_to_install_dir").chomp,
-               elapsed: '??:??',
-               elapsed_secs: 0,
-               remaining: '??:??',
-               iteration: 0,
-               iteration_max: 0,
-               iteration_duration: '??:??',
-               num_action: 0,
-               num_action_max: 0,
-               num_timer: 0,
-               num_timer_max: 0,
-               key: '?'}
+  $jam_data = jamming_make_jam_data(jam_pms)
   $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
-
   at_exit do
     $pplayer&.kill
   end  
@@ -1131,7 +1141,7 @@ def do_the_playing json_or_mp3
 end
 
 
-def do_the_edit_note file
+def do_the_edit_notes file
 
   short = File.basename(file)
   
@@ -1151,7 +1161,7 @@ def do_the_edit_note file
 
   puts
   if rlines.length > 0 
-    ($pers_data['jamming_notes'] ||= Hash.new)[short] = [Time.now.to_i,rlines].flatten
+    ($pers_data['jamming_notes'] ||= Hash.new)[short] = [Time.now.to_i, rlines].flatten
     puts "Stored  #{rlines.length}  lines of notes for   \e[32m#{short}\e[0m\n\nRead them in   harpwise jam ls"
   else
     $pers_data['jamming_notes']&.delete(short)
@@ -1368,4 +1378,21 @@ def parse_jamming_json jam_json
       end + "\n") if given != wanted
 
   jam_pms
+end
+
+
+def jamming_make_jam_data jam_pms
+  {comment: jam_pms['comment'],
+   install_dir: File.read("#{$dirs[:data]}/path_to_install_dir").chomp,
+   elapsed: '??:??',
+   elapsed_secs: 0,
+   remaining: '??:??',
+   iteration: 0,
+   iteration_max: 0,
+   iteration_duration: '??:??',
+   num_action: 0,
+   num_action_max: 0,
+   num_timer: 0,
+   num_timer_max: 0,
+   key: '?'}
 end

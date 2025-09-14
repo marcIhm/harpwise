@@ -300,7 +300,7 @@ jamming:
     processing notes.
 
     You may also add arguments to name a single file, in which case the
-    comment will also be displayed.
+    comment and additional details will be shown too.
   play: |
     Play the given backing-track; can be useful if you want to search
     for a matching lick-progression before starting to jam.
@@ -313,9 +313,9 @@ jamming:
     no need to create a json-file up front.
   edit: |
     edit given jamming-file (fuzzy selection)
-  note: |
+  notes, note: |
     For the given jamming-file Invoke your editor to enter or edit the
-    note, that will be shown in "harpwise jam list".
+    notes, that will be shown in "harpwise jam list".
 
     An empty (or whitespace only) note will be removed altogether.
 develop:

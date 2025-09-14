@@ -19,6 +19,7 @@ def new_session x = $term_min_width, y = $term_min_height
   FileUtils.rm($pipeline_started) if File.exist?($pipeline_started)
   sys "tmux new-session -d -x #{x} -y #{y} -s harpwise \\; new-window bash \\; kill-window -t 0"
   tms 'set +o history'
+  tms :ENTER
   tms 'cd ~'
   tms :ENTER
   tms 'PS1=\"\$ \"'
