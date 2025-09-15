@@ -697,7 +697,7 @@ end
 
 def do_jamming_list_single file
 
-  pms = parse_jamming_json(file)
+  pms, _ = parse_and_preprocess_jamming_json(file, simple: true)
   jam_data = jamming_make_jam_data(pms)  
   notes = $pers_data.dig('jamming_notes',File.basename(file))
   
@@ -711,7 +711,8 @@ def do_jamming_list_single file
   print "  Last used:  "
   if ago
     print(days_ago_in_words(ago))
-    puts("\e[2m and on \e[0m#{more} more \e[2mdays from last 180\e[0m")
+    print("\e[2m and on \e[0m#{more} more \e[2mdays from last #{$jamming_last_used_days_max}\e[0m") if more
+    puts
   else
     puts 'unknown'
   end
@@ -722,6 +723,7 @@ def do_jamming_list_single file
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
   md = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)
   puts "  Lick Prog:  " + ( md[1] || 'unknown' )
+  puts " Num Timers:  #{$jam_data[:num_timer_max]}   \e[2m(in loop)\e[0m"
   puts 
   print "\e[0m"
   puts "    Comment:\e[2m"
@@ -867,11 +869,13 @@ def my_sleep secs, fast_w_animation: false, &blk
 end
 
 
-def parse_and_preprocess_jamming_json json
-    
-  puts
-  puts "\e[0mSettings from:   #{json}\e[0m"
-  sleep 0.05
+def parse_and_preprocess_jamming_json json, simple: false
+
+  unless simple
+    puts
+    puts "\e[0mSettings from:   #{json}\e[0m"
+    sleep 0.05
+  end
   
   #
   # Process json-file with settings
@@ -939,6 +943,8 @@ def parse_and_preprocess_jamming_json json
   $jam_data[:iteration_duration_secs] = actions[-1][0] - actions[$jam_loop_start_idx][0]
   $jam_data[:iteration_duration] = jam_ta($jam_data[:iteration_duration_secs])
 
+  return([jam_pms, actions]) if simple
+  
   # check if sound-file is present
   file = jam_pms['sound_file'] = jam_pms['sound_file'] % $jam_data
   err("\nFile given as sound_file does not exist:  #{file}") unless File.exist?(file)
