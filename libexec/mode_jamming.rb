@@ -727,7 +727,11 @@ def do_jamming_list_single file
   puts 
   print "\e[0m"
   puts "    Comment:\e[2m"
-  [pms['comment']].flatten.each {|cl| puts "        #{cl}"}
+  [pms['comment']].flatten.each do |cl|
+    puts if cl.strip.length == 0
+    wr = wrap_text(cl, term_width: -8, cont: '')
+    wr.each {|l| puts '        ' + l}
+  end
   puts "\e[0m"
   if notes && notes.length > 0
     puts "      Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})\e[2m"
