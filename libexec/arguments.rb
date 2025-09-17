@@ -88,7 +88,7 @@ def parse_arguments_early
      [Set[:samples], {
         wave: %w(--wave)}],
      [Set[:print, :samples, :tools, :jamming], {
-        terse: %w(-T --terse -q)}],
+        brief: %w(--brief -b)}],
      [Set[:listen, :print, :quiz], {
         viewer: %w(--viewer)}],
      [Set[:licks, :play], {

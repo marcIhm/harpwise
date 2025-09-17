@@ -93,7 +93,7 @@ e.g. 'harpwise record #{$key}'
 EOINTRO
 
       puts "\nNow, type   'y'   to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m."
-      unless $opts[:terse]
+      unless $opts[:brief]
         puts
         puts "\e[2mThese samples will also be played in the process.\e[0m"
       end
@@ -113,7 +113,7 @@ EOINTRO
     
     hole2freq = Hash.new
     num_wavs_uniq = $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
-    terse = do_all_keys || $opts[:terse]
+    terse = do_all_keys || $opts[:brief]
     $harp_holes.each_with_index do |hole, idx|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.mp3"
       synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: terse

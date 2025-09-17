@@ -919,6 +919,7 @@ end
 
 
 def scaleify holes_or_notes
+  return [] if !holes_or_notes || holes_or_notes.length == 0
   hon_maxlen = holes_or_notes.max_by(&:length).length
   shorts_maxlen = holes_or_notes.map {|hon| $hole2scale_shorts[$note2hole[hon] || hon]}.max_by(&:length).length
   holes_or_notes.each.map do |hon|
@@ -928,6 +929,7 @@ end
 
 
 def intervalify holes_or_notes, prefer_names: true
+  return [] if !holes_or_notes || holes_or_notes.length == 0  
   inters = []
   holes_or_notes.each_with_index do |hon, idx|
     j = idx - 1
@@ -951,6 +953,7 @@ end
 
 
 def intervalify_to_first holes, prefer_names: true, prefer_plus: false
+  return [] if !holes || holes.length == 0  
   inters = []
   holes.each_with_index do |hole,idx|
     isemi ,_ ,itext, semi = describe_inter(hole, holes[0], prefer_plus: prefer_plus)
@@ -997,6 +1000,7 @@ end
 
 
 def holeify_noteify_get_maxlens holes_or_notes
+  return [] if !holes_or_notes || holes_or_notes.length == 0
   holes_maxlen = holes_or_notes.max_by(&:length).length
   notes_maxlen = holes_or_notes.map do |hon|
     if musical_event?(hon)

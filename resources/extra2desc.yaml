@@ -26,11 +26,11 @@ play:
     'licks' before
 print:
   licks-details: |
-    all licks currently selected (e.g. by option -t) with details
+    all licks currently selected (e.g. by option -t) with all details
   licks-list: |
-    terse list of selected licks (e.g. by option -t) with hole count
+    short list of selected licks (e.g. by option -t) with hole count only
   licks-list-all: |
-    terse list of all licks (disregarding e.g option -t)
+    short list of all licks (disregarding e.g option -t); hole count only
   licks-with-tags: |
     list licks (each with its tags) according to the various tag-options
   licks-tags-stats: |
@@ -53,7 +53,7 @@ print:
     show, which holes you played recently, from any mode
   scales: |
     For all scales or the scales given as arguments: print them with
-    their details; with --terse only liste their names
+    their details; with --brief only liste their names
   scale-progs, scale-progressions: |
     print all known scale progressions
   intervals: |
@@ -79,14 +79,14 @@ tools:
     chart.  The first argument is the key of the song, the second the
     key of the harp; use '.' to skip emphasising the song.
 
-    Use option --terse to print a version shortend to the most common
+    Use option --brief to print a version shortend to the most common
     keys and position.
   spread-notes: |
     take a list of notes (e.g. a, a4, b, cs) as arguments and turn
     them into a list of holes that produce them. As the octave is
     deliberately not taken into account, you may give "a" as an
     argument just as well as "a4". Also shows these holes in the
-    harmonica chart. When invoked with option --terse, this tool can
+    harmonica chart. When invoked with option --brief, this tool can
     be used as a subcommand on the commandline, in which case it just
     returns the list of holes, to be used e.g. as an adhoc-scale.
   make-scale: |

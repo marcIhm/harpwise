@@ -67,7 +67,7 @@ end
 
 def tool_key_positions to_handle
 
-  if $opts[:terse]
+  if $opts[:brief]
     err "This tool does not accept arguments, if option --terse is present" if to_handle.length > 0
     puts
     puts "\e[2mMatching keys of most common richter harmonicas,\nplayed in second position, with keys of songs:"
@@ -129,7 +129,7 @@ end
 
 
 def tool_spread_notes notes
-  if !$opts[:terse]
+  if !$opts[:brief]
     puts
     puts "\e[2mAll holes, that produce the given notes in any octave:"
     puts "As a chart:\e[0m"
@@ -146,7 +146,7 @@ def tool_spread_notes notes
   end
   holes.sort_by! {|h| $harp[h][:semi]}.map! {|h| $harp[h][:canonical]}.uniq!
   
-  if $opts[:terse]
+  if $opts[:brief]
     puts holes.join('  ')
     exit
   end

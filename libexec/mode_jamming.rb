@@ -456,7 +456,7 @@ def do_the_jamming json_file
       file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
       $jam_pretended_actions_ts.each do |ts, desc, act|
         text = "  %6.2f  (#{jam_ta(ts)}):  #{desc}" % ts
-        text += ",  #{act}" unless $opts[:terse]
+        text += ",  #{act}" unless $opts[:brief]
         puts text
         file.puts text
       end
@@ -674,7 +674,7 @@ def do_jamming_list
       # Add notes (if any)
       #
       notes = $pers_data.dig('jamming_notes',File.basename(jf))
-      if !$opts[:terse]
+      if !$opts[:brief]
         print "\e[0m\e[2m"
         if notes && notes.length > 0
           notes[1..-1].each {|nl| puts "    #{nl}"}

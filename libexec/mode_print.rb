@@ -58,7 +58,7 @@ def do_print to_print
         puts if snames.length > 1
       end
       puts_user_defined_hint :scales
-      puts "#{snames.length} scales printed." unless $opts[:terse]
+      puts "#{snames.length} scales printed." unless $opts[:brief]
 
     elsif spnames.length > 0
 
@@ -76,7 +76,7 @@ def do_print to_print
         print_single_lick lname
         puts if lnames.length > 1        
       end
-      puts "#{lnames.length} licks printed." unless $opts[:terse]
+      puts "#{lnames.length} licks printed." unless $opts[:brief]
 
     elsif lpnames.length > 0
 
@@ -98,16 +98,16 @@ def do_print to_print
 
     when 'licks-details'
 
-      puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:terse]
+      puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:brief]
       $licks.each do |lick|
-        if $opts[:terse]
+        if $opts[:brief]
           puts "#{lick[:name]}:"
         else
           puts
           puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         end
         print_holes_and_more lick[:holes_wo_events]
-        print_lick_meta lick unless $opts[:terse]                
+        print_lick_meta lick unless $opts[:brief]                
       end
       puts
       puts "\e[2mTotal count of licks printed: \e[0m#{$licks.length}"
@@ -118,6 +118,13 @@ def do_print to_print
         puts_underlined 'All licks as a list:'
         licks = $all_licks
       else
+        print "\e[2m"
+        if $licks == $all_licks
+          puts "where set of licks has not been restricted by tags"
+        else
+          puts "after applying these options: #{desc_lick_select_opts}"
+        end
+        puts "\e[0m"
         puts_underlined 'Selected licks as a list:'
         licks = $licks
       end
@@ -202,10 +209,17 @@ def print_holes_and_more holes_or_notes
 
   holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
   notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
-  
-  puts "\e[2mHoles or notes given:\e[0m" unless $opts[:terse]
+
+  unless $opts[:brief]
+    print "\e[2mHoles or notes given:"
+    if holes_or_notes.length == 0
+      puts "  none\e[0m"
+      return
+    end
+    puts "\e[0m"
+  end
   print_in_columns holes_or_notes, pad: :tabs
-  return if $opts[:terse]
+  return if $opts[:brief]
   puts
   if $used_scales[0] == 'all'
     puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
@@ -424,7 +438,7 @@ def print_scales scales
     end
     scales_given = true
   end
-  if $opts[:terse]
+  if $opts[:brief]
     print_in_columns(scales, pad: :tabs)
   else
     unless scales_given
@@ -662,31 +676,59 @@ def print_lick_progs pnames
       unknown = pnames - $all_lick_progs.keys
       err "These lick progressions from command line are unknown:  #{unknown.join(', ')}" if unknown.length > 0
     end
+    lick2prog = Hash.new 
+    nlicks2progs = Hash.new
     pnames.map {|pn| $all_lick_progs[pn]}.
       select {|lp| keep_all.empty? || (keep_all.subset?(Set.new(lp[:tags])))}.
       each do |lp|
       print_single_lick_prog(lp)
+      (nlicks2progs[lp[:licks].length] ||= Array.new) << lp[:name]
+      lp[:licks].uniq.each do |l|
+        (lick2prog[l] ||= Array.new) << lp[:name]
+      end
       printed += 1
     end
+
+    unless $opts[:brief]
+      # licks in multiple lick progression
+      ls_mul = lick2prog.select {|l, lps| lps.length > 1}
+      if ls_mul.length == 0
+        puts "\e[2mNo licks are part of mutliple lick progressions."
+      else
+        puts "\e[2mThese licks are part of multiple lick progressions:"
+        lm_g = ls_mul.keys.group_by {|l| ls_mul[l]}.invert
+        lm_g.each do |ls, lps|
+          puts '  ' + ls.join(', ') + ' :  ' + lps.join(', ')
+        end
+      end
+      puts "\e[0m"
+
+      # count
+      puts "\e[2mNumber of licks per progression:"
+      nlicks2progs.keys.sort.each do |nl|
+        puts "  #{nl.to_s.rjust(3)}:  #{nlicks2progs[nl].join(', ')}"
+      end
+      puts "\e[0m"
+    end
+
     if $opts[:tags_all] != ''
       puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}'\nfrom file #{$lick_file}"
     else
       puts "#{$all_lick_progs.length} lick progressions from file #{$lick_file}"
     end
   end
-  
 end
 
 
 def print_single_lick_prog lp
   puts "#{lp[:name]}:"
-  if $opts[:terse]
+  if $opts[:brief]
     puts("     Desc:  " + lp[:desc]) if lp[:desc]
   else
     puts "     Desc:  " + ( lp[:desc] || 'none' )
   end
   puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
-  unless $opts[:terse]
+  unless $opts[:brief]
     puts "     Line:  #{lp[:lno]}"
     puts "     Tags:  #{lp[:tags].join('  ')}" if lp[:tags].length > 0
     puts "\e[2mLicks contained:"
@@ -752,8 +794,8 @@ end
 
 def print_single_lick lname
   puts_underlined "#{lname}:", '-', dim: false
-  puts unless $opts[:terse]
+  puts unless $opts[:brief]
   lick = $licks.find {|l| l[:name] == lname}
   print_holes_and_more lick[:holes_wo_events]
-  print_lick_meta lick unless $opts[:terse]
+  print_lick_meta lick unless $opts[:brief]
 end

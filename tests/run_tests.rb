@@ -66,6 +66,7 @@ $config_ini_testing = $datadir + '/config.ini'
 $persistent_state_file = "#{$datadir}/persistent_state.json"
 $players_pictures = "#{$datadir}/players_pictures"
 $lickfile_testing = "#{$datadir}/licks/richter/licks_with_holes.txt"
+$lickfile_testing_saved = "#{$datadir}/licks/richter/licks_with_holes_saved.txt"
 $scalefile_testing = "#{$datadir}/scales/richter/scale_foo_with_holes.yaml"
 $remote_jamming_ps_rs = "#{$datadir}/remote_jamming_pause_resume"
 
@@ -124,7 +125,7 @@ fail "Unexpected number of examples #{usage_examples.length} instead of #{num_ex
 puts "\nPreparing data"
 # need a sound file
 system("sox -n #{$testing_wav} synth 1000 sawtooth 494")
-FileUtils.cp "#{$testing_wav}", "#{$exch_tt}/harpwise_testing.wav_default"
+FileUtils.cp $testing_wav, "#{$exch_tt}/harpwise_testing.wav_default"
 # on error we tend to leave aubiopitch behind
 system("killall aubiopitch >/dev/null 2>&1")
 
@@ -445,7 +446,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} -o 2>/dev/null | tail -20"
     tms :ENTER
     sleep 2
-    expect_opts = { 'samples' => [11, 'Be somewhat less'],
+    expect_opts = { 'samples' => [11, 'Produce shorter and more dense output than usual'],
                     'listen' => [17, 'on every invocation'],
                     'quiz' => [10, 'char-in-terminal  or  char'],
                     'licks' => [4, '--partial 1@b, 1@e or 2@x'],
@@ -1125,7 +1126,21 @@ do_test 'id-22a: print finds a lick ignoring tag-selection' do
   kill_session
 end
 
-do_test 'id-22b: print tries its first argument against various areas' do
+do_test 'id-22b: print a lick without holes' do
+  FileUtils.cp $lickfile_testing, $lickfile_testing_saved
+  File.write($lickfile_testing,
+             "\n[solo]\n  desc = invitation to play a solo; no holes\n  holes = [...SOLO...]\n",
+             mode: 'a+')
+  new_session
+  tms 'harpwise print solo'
+  tms :ENTER
+  FileUtils.mv $lickfile_testing_saved, $lickfile_testing
+  wait_for_end_of_harpwise
+  expect { screen[9]['Holes or notes given:  none'] }
+  kill_session
+end
+
+do_test 'id-22c: print tries its first argument against various areas' do
   new_session
   tms "harpwise print none-of-possible-choices >#{$testing_output_file}"
   tms :ENTER
@@ -1789,7 +1804,7 @@ do_test 'id-50c: tools make-scale' do
   expect($scalefile_testing) { File.exist?($scalefile_testing) }
   wait_for_end_of_harpwise
 
-  tms 'harpwise print scales -T'
+  tms 'harpwise print scales -b'
   tms :ENTER
   expect { screen[14]['foo'] }
   kill_session
@@ -1933,9 +1948,9 @@ do_test 'id-53d: print with scale' do
   kill_session
 end
 
-do_test 'id-53e: print with scales but terse' do
+do_test 'id-53e: print with scales but brief' do
   new_session
-  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --terse'
+  tms 'harpwise print chord-i st-louis --add-scales chord-iv,chord-v --brief'
   tms :ENTER
   expect { screen[10] == '$' }
   kill_session
@@ -2000,7 +2015,7 @@ do_test 'id-54c: print list of selected licks' do
   tms "harpwise print licks-list --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[10] == ' st-louis    :   8' }
+  expect { screen[14] == ' st-louis    :   8' }
   kill_session
 end
 
@@ -2073,7 +2088,7 @@ end
 
 do_test 'id-54h: print scales summary' do
   new_session
-  tms "harpwise print scales --terse"
+  tms "harpwise print scales --brief"
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[4] == '  all     blues   blues-middle    chord-i     chord-i7    chord-iv' }
@@ -2086,7 +2101,7 @@ do_test 'id-54i: print list of licks by hole-count' do
   tms "harpwise print licks-list --max-holes 12 --min-holes 8"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[19] == 'Total count of licks printed: 9' }
+  expect { screen[21] == 'Total count of licks printed: 9' }
   sleep 1
   tms "harpwise print licks-list --max-holes 20 --min-holes 4"
   tms :ENTER
@@ -3864,8 +3879,8 @@ do_test 'id-136: harpwise jamming list' do
   tms :ENTER
   tms "harpwise jamming list 12bar"
   tms :ENTER
-  expect { screen[4]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
-  expect { screen[20]['Notes:   (from']}  
+  expect { screen[1]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
+  expect { screen[19]['Notes:   (from']}  
   kill_session
 end
 

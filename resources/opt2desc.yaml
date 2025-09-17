@@ -202,10 +202,10 @@ viewer:
     <%=get_viewers_desc%>
   - VIEWER
   
-terse:
+brief:
   - |
-    Be somewhat less verbose (or more silent) than usual.
-    Mostly used for mode print and samples.
+    Produce shorter and more dense output than usual.
+    Mostly used for modes print and tools.
   
 jamming:
   - |
