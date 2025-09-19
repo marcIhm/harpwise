@@ -1,5 +1,5 @@
 #
-# Set some global vars directly and read configuration for others
+# Set some global vars directly and read configuration for others; this is called only once
 #
 
 def set_global_vars_early
@@ -289,7 +289,7 @@ def set_global_vars_early
     end
   end
   $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
-
+  $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"  
 end
 
 
@@ -475,7 +475,7 @@ def set_global_vars_late
   $sample_dir = get_sample_dir($key)
   $lick_dir = "#{$dirs[:data]}/licks/#{$type}"
   $derived_dir = "#{$dirs[:data]}/derived/#{$type}"
-  FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)
+  FileUtils.mkdir_p($derived_dir) unless File.directory?($derived_dir)  
 
   # check and do this before read_samples is called in set_global_musical_vars
   if $type == 'richter' and $key == 'c'
@@ -515,14 +515,7 @@ def set_global_vars_late
   # filenames for user-readable persistant data
   $journal_file = "#{$dirs[:data]}/journal_#{$type}.txt"
   $history_file = "#{$dirs[:data]}/history_#{$type}.json"
-
-  $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
-  # most of the time there is no code to use this debug-log; but we keep it nevertheless for
-  # debugging hard problems in the future
-  $debug_log = "#{$dirs[:exch_tester_tested]}/harpwise_debug.log"
-  File.delete($debug_log) if $opts && $opts[:debug] && File.exist?($debug_log)
-
-  $star_file = $star_file_template % $type
+  $star_file = $star_file_template % $type  
   
   # Does not fit into find_and_check_dirs_early, because we need
   # all_types

@@ -95,6 +95,7 @@ if $testing_what == :argv
 end
 
 mostly_avoid_double_invocations
+initialize_debugging_mb
 
 
 # we need to have mode for this, so calculate it late
@@ -120,7 +121,7 @@ Thread.report_on_exception = true
 
 Signal.trap('SIGINT') do
   print "\e[#{$lines[:message_bottom]}H" if $move_down_on_exit
-  fail "\n\n\n\e[0mexit on ctrl-c" if $opts[:debug]
+  puts("\nCall stack:\n" + caller.map {|l| l + "\n"}.join) if $opts[:debug]
   puts "\n\n\e[K\n\e[0mexit on ctrl-c\e[K"
   puts "\e[K"
   print "\e[K"
@@ -172,7 +173,14 @@ at_exit do
 
   if $opts && $opts[:debug] 
     print_debug_info
-    puts "Note: A debug log has been written: #{$debug_log}" if File.exist?($debug_log)
+    $debug_log.close if $debug_log
+    if File.exist?($debug_log_file)
+      if File.size($debug_log_file) == 0
+        File.delete($debug_log_file)
+      else
+        puts "Note: A debug log has been written to:   #{$debug_log_file}" if File.exist?($debug_log_file)
+      end
+    end
   end
 
   maybe_write_pers_data

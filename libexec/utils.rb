@@ -303,8 +303,8 @@ def print_debug_info
   puts Time.now.to_f
 
   puts
-  puts '$quiz_sample_stats:'
-  pp $quiz_sample_stats
+  puts '$debug_info:'
+  pp $debug_info
 
   if $perfctr[:handle_holes_this_first_mic]
     $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
@@ -1565,6 +1565,17 @@ def mostly_avoid_double_invocations
   # to do anything in exit-handler
   FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_jamming
   FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
+end
+
+
+def initialize_debugging_mb
+  # most of the time there is no code to use this debug-log; but we keep it nevertheless for
+  # debugging hard problems in the future
+  $debug_log_file = "#{$dirs[:data]}/debug.log"
+  if $opts && $opts[:debug]
+    $debug_log = File.open($debug_log_file, 'w')
+  end
+  $debug_info = Hash.new  
 end
 
 

@@ -83,9 +83,7 @@
     // may be used to indicate a time-span, typically up to the next chord change.
     // If there is no string after "timer", harpwise calculates and uses the duration
     // up to the next timer.  However, you may also specify an explicit duration as a
-    // string, wich can also be written as a difference of timestamps (e.g. "12.4-6.3")
-    // for convenience.  In any case the a 0.2 sec margin is subtracted to keep the timer
-    // from overlapping into next action.
+    // number.
     // 
     // The array timestamps-to-actions will be repeated forever, but from the second
     // iteration on it will start at "loop-start".  This assumes that the chord-structure

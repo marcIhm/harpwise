@@ -2838,10 +2838,10 @@ do_test 'id-88a: jamming mission and timer' do
   File.write("#{$datadir}/remote_messages/0000.txt", "{{mission}}testing\n1\n")
   File.write("#{$datadir}/remote_fifo", "ALT-m\n")
   sleep 1
-  File.write("#{$datadir}/remote_messages/0001.txt", "{{timer}}10\n1\n")
+  File.write("#{$datadir}/remote_messages/0001.txt", "{{timer}}#{Time.now.to_f + 10}\n1\n")
   File.write("#{$datadir}/remote_fifo", "ALT-m\n")
   sleep 2
-  expect { screen[0]['testing  [#####'] }
+  expect { screen[0]['testing  [====='] }
   kill_session
 end
 

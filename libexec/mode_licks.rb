@@ -664,8 +664,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 end
 
 
-$quiz_sample_stats = Hash.new {|h,k| h[k] = 0}
-
 def get_quiz_sample num
   # construct chains of holes within scale and added scale
   holes = Array.new
@@ -728,7 +726,6 @@ def get_quiz_sample num
       holes[i] = $scale_holes.sample
       what[i] = :middle_end_fallback
     end
-    $quiz_sample_stats[what[i]] += 1
   end
 
   holes

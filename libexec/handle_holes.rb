@@ -791,11 +791,12 @@ def get_jamming_timer_text
   # This gets called when next timer update is due, but also on redraw-events
   
   tntf = Time.now.to_f
+  $debug_log&.puts("\nJM: tntf now #{tntf} = #{Time.at(tntf).strftime('%H:%M:%S')}")
   $perfctr[:get_jamming_timer_text] += 1
+  $jamming_timer_debug_info ||= Array.new
 
-  # We assume equality, if values are within epsilon
-  epsilon = 0.1
   first_delta = nil
+  epsilon = 1.0 / 16.0
 
   # reduce typing
   jts = $jamming_timer_state
@@ -804,47 +805,57 @@ def get_jamming_timer_text
     # Prepare state of timer
 
     jts = Hash.new
-    jts[:total_secs] = $jamming_timer_end - $jamming_timer_start
+    # put these in for debugging
+    jts[:start] = tntf
+    jts[:end] = $jamming_timer_end
+    jts[:total_secs] = $jamming_timer_end - tntf
+
+    # Depending on total duration we have one update every eight, quarter, half, full, two,
+    # four, ... seconds
+    jts[:eights_per_tick] = 2
     
-    # To find the matching code, search in in mode_jamming.rb for 'handle_holes.rb'
-    err "Internal error: mode_jamming.rb should not send us a timer shorter than 2.5 secs, but we got #{jts[:total_secs]}" if jts[:total_secs] < 2.5
-    
-    # Depending on total duration we have one update every half, full, two, four, ... seconds
-    jts[:halfs_per_tick] = 1
-    
-    tick_syms = ['#', '#'] + Array.new(20, '=')
-    tick_cols = [94, 32, 34] + Array.new(20, 32)
+    tick_syms = ['#', '#', '=', '='] + Array.new(20, '-')
+    tick_cols = [94, 92, 94, 92] + Array.new(20, 32)
+    # See print_mission on how to calculate the number below
+    # $conf[:term_min_width] - $ctl_response_width - "Jm: ti 10/12, tm 10/15".length - "  []".length =
+    # 75 - 32 - 22 - 4 = 17 = 16 (with margin)
+    max_ticks = [16, $term_width - 75 + 16, 24].sort[1]
     while true
-      # Duration of 2.3 leads to 5 ticks
-      jts[:total_ticks] = (jts[:total_secs] * 2.0 / jts[:halfs_per_tick]).to_i
+      jts[:total_ticks] = (jts[:total_secs] * 8.0 / jts[:eights_per_tick]).to_i
       jts[:tick_sym] = tick_syms.shift
       jts[:tick_col] = tick_cols.shift
 
-      # See print_mission on how to calculate the number below
-      # $conf[:term_min_width] - $ctl_response_width - "Jm: ti 10/12, tm 10/15".length - "  []".length =
-      # 75 - 32 - 22 - 4 = 17 = 16 (with margin)
-
-      max_ticks = [16, $term_width - 75 + 16, 24].sort[1]
       break if jts[:total_ticks] <= max_ticks
-      jts[:halfs_per_tick] *= 2
+      jts[:eights_per_tick] *= 2
     end
 
-    jts[:delta_secs] = 0.5 * jts[:halfs_per_tick]
+    jts[:delta_secs] = jts[:eights_per_tick] / 8.0
     first_delta = jts[:total_secs] - jts[:delta_secs] * jts[:total_ticks]
+    if first_delta < jts[:delta_secs] / 3
+      # avoid first_delta beeing too short
+      first_delta += jts[:delta_secs]
+      jts[:total_ticks] -= 1
+    end
+    jts[:first_delta] = first_delta
 
+    jts[:update_next] = [tntf + first_delta]
+    jts[:total_ticks].times { jts[:update_next] << jts[:update_next][-1] + jts[:delta_secs] }
+    # schedule final update slightly early to avoid overlap with next timer, that may follow
+    # without a gap
+    jts[:update_next][-1] -= 0.1
+    
     jts[:head] = '['
     jts[:left] = ''
     jts[:right] = ('%.1fs' % jts[:total_secs]).rjust(jts[:total_ticks], '.')
     jts[:tail] = ']'
     # Total number of coloring chars (e.g. \e[32m = 5); go to end of function to count.
     jts[:ncol_chars] = 27
+    $debug_log&.puts("New timer\n#{jts.pretty_inspect}")
 
-  elsif tntf > $jamming_timer_update_next - epsilon
-    
+  elsif tntf > $jamming_timer_update_next
+
     # Advance the number of tick-signs.  Do this in elsif-branch, so that text is shown once
-    # in its original form, before beeing updated the next time.  Also: We do not calculate
-    # new state of timer-text, but rather we advance it unconditionally; this way we have
-    # neither double-updates nor null-updates.
+    # in its original form, before beeing updated the next time.
     if jts[:right].length > 0
       jts[:left] += jts[:tick_sym]
       jts[:right][0] = ''
@@ -853,24 +864,19 @@ def get_jamming_timer_text
   end  ## if !jts
 
   
-  if tntf > $jamming_timer_update_next - epsilon
-    # Its time for updating text
+  if tntf > $jamming_timer_update_next
 
-    $jamming_timer_update_next = tntf + ( first_delta  ?  first_delta  :  jts[:delta_secs] )
-
-    if tntf > $jamming_timer_end - epsilon
-      # We are done
-      if tntf > $jamming_timer_end + jts[:delta_secs] / 2 - epsilon
-        # We are overdue
-        $jamming_timer_update_next = nil
-        jts = nil
-        return ''
-      else
-        # This will be our last update, make sure to fill text completely
-        jts[:left] += jts[:tick_sym] * jts[:right].length
-        jts[:right] = ''
-      end
+    if jts[:update_next].length == 0
+      $debug_log&.puts( "Last update; clearing space")
+      $jamming_timer_update_next = jts = nil      
+      return ''
     end
+
+    $jamming_timer_update_next = jts[:update_next].shift
+
+    $debug_log&.puts("Update timer\n  [:left] : #{jts[:left]}\n  [:right] : #{jts[:right]}")
+    $debug_log&.puts("Scheduling next timer update for #{$jamming_timer_update_next}")
+    
   else
     # Probably a redraw-event
   end
@@ -1291,13 +1297,13 @@ def show_remote_message
         end
       elsif text.start_with?('{{timer}}')
         dtext = text[text.index('}}') + 2 .. -1]
-        dura = begin
-                 Float(dtext)
-               rescue ArgumentError
-                 err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
-               end
+        ts_end = begin
+                   Float(dtext)
+                 rescue ArgumentError
+                   err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
+                 end
         $jamming_timer_start = Time.now.to_f
-        $jamming_timer_end = $jamming_timer_start + dura
+        $jamming_timer_end = ts_end
         $jamming_timer_update_next = $jamming_timer_start - 1
         $jamming_timer_state = nil
         print_mission(get_mission_override)

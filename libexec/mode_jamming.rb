@@ -374,7 +374,7 @@ def do_the_jamming json_file
             # This happens, if there is only one timer and placed before loop start
             secs_to_next_timer = this_actions[$jam_loop_start_idx][0] - action[0]
           end
-          action.append('up-to-next-timer', "%.1f" % secs_to_next_timer)
+          action.append('up-to-next-timer', secs_to_next_timer.round(1))
         end
       end
 
@@ -494,8 +494,8 @@ def jamming_do_action act_wo_ts, noop: false
   if %w(message loop-start mission key timer).include?(act_wo_ts[0])
     if act_wo_ts.length == 3
       if act_wo_ts[0] == 'timer'
-        if act_wo_ts[1] != 'up-to-next-timer' || !act_wo_ts[2].is_a?(String)
-          err("A 3-element timer needs string 'up-to-next-timer' and a second string after 'timer'; not #{act_wo_ts}")
+        if act_wo_ts[1] != 'up-to-next-timer' || !act_wo_ts[2].is_a?(Numeric)
+          err("A 3-element timer needs to start with 'timer', followed by 'up-to-next-timer' and finally a number; but not #{act_wo_ts}")
         end
       elsif !act_wo_ts[1].is_a?(String) || !act_wo_ts[2].is_a?(Numeric) 
         err("A 3-element #{act_wo_ts[0]} needs one string and an (optional) number after '#{act_wo_ts[0]}'; not #{act_wo_ts}")
@@ -527,30 +527,14 @@ def jamming_do_action act_wo_ts, noop: false
     $jam_data[:elapsed] = jam_ta($jam_data[:elapsed_secs])
     $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
     content = if act_wo_ts[0] == 'timer'
-                expr = if act_wo_ts[1] == 'up-to-next-timer'
+                dura = if act_wo_ts[1] == 'up-to-next-timer'
                          act_wo_ts[2]
-                       else
+                       elsif act_wo_ts[1].is_a?(number)
                          act_wo_ts[1]
-                       end
-                dura = if expr.is_a?(Numeric)
-                         expr
-                       elsif expr.is_a?(String)
-                         expr.strip!
-                         if expr.match(/^\d+(\.\d*)?$/)
-                           expr.to_f
-                         elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)$/)
-                           md[1].to_f - md[3].to_f
-                         elsif md = expr.match(/^(\d+(\.\d*)?\s*)-(\s*\d+(\.\d*)?)-(\s*\d+(\.\d*)?)$/)
-                           md[1].to_f - md[3].to_f - md[5].to_f
-                         else
-                           err "String-argument to action of type 'timer' must either be a simple number (e.g. \"1.23\" or \"2\") or a difference of two simple numbers (e.g. \"16.3 - 2.44\") or a difference of three numbers (e.g. \"16.3 - 2.44 - 0.5\"); where the quotes (\"\") are required for valid json. However, this has been found: \"#{expr}\""
-                         end
                        else
-                         err "Action of type 'timer' needs a string or a number as an argument; not #{act_wo_ts}"
+                         err "Argument to action of type 'timer' must be a number. However, this has been found: '#{expr}'"
                        end
-                # handle_holes.rb relies on us not to send a shorter timer; search there for 'mode_jamming.rb'
-                err "Timer-duration is less than 2.5 seconds; this is assumed to be too fast to follow: #{expr}\nTo avoid this error, please merge two or more timers into one." if dura < 2.5
-                dura * $jam_pms['timestamps_multiply']
+                Time.now.to_f + dura * $jam_pms['timestamps_multiply']
               else
                 act_wo_ts[1].chomp % $jam_data
               end
