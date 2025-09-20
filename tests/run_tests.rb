@@ -1911,8 +1911,8 @@ do_test 'id-53a: print holes' do
   lines = File.read($testing_output_file).lines
   {11 => 'Notes:',
    12 => 'e4  c4  g4  d5  df5',
-   36 => 'With intervals to first as positive semitones (maybe minus octaves)',
-   37 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
+   35 => 'With intervals to first as positive semitones (maybe minus octaves)',
+   36 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -3879,7 +3879,7 @@ do_test 'id-136: harpwise jamming list' do
   tms :ENTER
   tms "harpwise jamming list 12bar"
   tms :ENTER
-  expect { screen[1]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
+  expect { screen[0]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
   expect { screen[19]['Notes:   (from']}  
   kill_session
 end
@@ -3983,12 +3983,12 @@ do_test 'id-142: jamming with explicit key' do
   new_session
   tms "harpwise jamm d along 12bar >#{$testing_output_file}"
   tms :ENTER
-  sleep 2
+  sleep 6
   lines = File.read($testing_output_file).lines
-  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['changing pitch'] }
+  expect($testing_output_file, lines.each_with_index.map {|l,i| [i,l]}) {lines[10]['changing pitch'] }
   sleep 2
   lines = File.read($datadir +'/remote_messages/0000.txt').lines
-  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[0]['{key}}d'] }
+  expect($testing_output_file, lines.each_with_index.map {|l,i| [i,l]}) {lines[0]['{key}}d'] }
   kill_session
 end
 

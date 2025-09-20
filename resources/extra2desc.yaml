@@ -301,6 +301,9 @@ jamming:
 
     You may also add arguments to name a single file, in which case the
     comment and additional details will be shown too.
+
+    If you give the argument 'all' alone, details for all files will
+    be printed.
   play: |
     Play the given backing-track; can be useful if you want to search
     for a matching lick-progression before starting to jam.

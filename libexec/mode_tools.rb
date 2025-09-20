@@ -1,5 +1,5 @@
 #
-#  Non-interactive tools
+#  Some non-interactive tools
 #
 
 def do_tools to_handle
@@ -410,7 +410,7 @@ end
 
 def tool_search_holes_in_licks to_handle
 
-  err "Need at least one hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
+  err "Need at least one hole to search (e.g. '-1')" unless to_handle.length > 0
 
   to_handle.reject! {|h| musical_event?(h)}
   to_handle.each do |hole|

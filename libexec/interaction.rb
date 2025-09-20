@@ -4,7 +4,7 @@
 
 
 def prepare_screen
-  return [24, 80] unless STDIN.isatty
+  return [24, 80] unless STDOUT.isatty
   STDOUT.sync = true
   %x(stty size).split.map(&:to_i)
 end
@@ -213,7 +213,7 @@ end
 
 
 def sane_term
-  system("stty sane")
+  system("stty sane") if STDOUT.isatty
   # This is not the exact opposite of prepare_term, because it does not show cursor; the
   # only place where this is needed (at_exit) does this explicitly
 end

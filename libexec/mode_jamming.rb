@@ -22,7 +22,7 @@ def do_jamming to_handle
 
   if to_handle.length == 0 && !%w(list ls).include?($extra)
     do_jamming_list
-    err "'harpwise jamming #{$extra}' needs an argument but none is given; please choose a filename, even partially, as given above"
+    err "'harpwise jamming #{$extra}' needs an argument but none is given; please select a single file from those given above. Do this by giving one or multiple words (sequences of chars), so that only the wanted filename contains them all. Mostly that means, that you only need to type a characteristic word from the filename; e.g. 'baz' to match 'foo-bar-baz' and distinguish it from 'foo-bar-qux'."
   end
 
   [:print_only, :over_again].each do |opt|
@@ -44,6 +44,14 @@ def do_jamming to_handle
 
     if to_handle.length == 0
       do_jamming_list
+    elsif to_handle == ['all']
+      files = get_jamming_dirs_content.values.flatten
+      puts "\n\nShowing details for all   \e[32m#{files.length}\e[0m   known jamming files:"
+      puts
+      files.each do |file|
+        puts "\e[2m" + ('~' * 60 ) + "\e[0m\n\n"
+        do_jamming_list_single file
+      end
     else
       json_file = match_jamming_file(to_handle)
       do_jamming_list_single json_file
@@ -91,12 +99,12 @@ def do_the_jamming json_file
   sleep 0.2
   
   #
-  # Remark: We do slow scrolling with initial output, so that the user
-  # at least know, what has scrolled by
+  #  Remark: We do slow scrolling with initial output, so that the user
+  #  at least know, what has scrolled by
   #
   
   # 
-  # Transform timestamps; see also below for some further changes to list of actions
+  #  Transform timestamps; see also below for some further changes to list of actions
   #
 
   # Abbreviations for convenience
@@ -105,8 +113,8 @@ def do_the_jamming json_file
   ts_add = $jam_pms['timestamps_add']
   
   #
-  # Preprocess sleep_after_iteration as far as possible already; use timestamps_multiply
-  # only further down below
+  #  Preprocess sleep_after_iteration as far as possible already; use timestamps_multiply
+  #  only further down below
   #
   sl_a_iter = if sl_a_iter.is_a?(Numeric)
                 # turn number into array
@@ -128,7 +136,7 @@ def do_the_jamming json_file
                 end
               end
 
-  # process other time-parameters
+  # Process other time-parameters
   ts_prev = nil
   actions.each_with_index do |ta, idx|
     ta[0] += ts_add if ts_add > 0
@@ -138,7 +146,7 @@ def do_the_jamming json_file
   end
 
   #
-  # Done with parameter and data processing, make contact with user and 'harpwise listen'
+  #  Make contact with user and 'harpwise listen'
   #
       
   ['',"\e[0mComment:\e[32m",'',
@@ -163,7 +171,7 @@ def do_the_jamming json_file
   end
   
   #
-  # Wait for listener
+  #  Wait for listener
   #
   if $opts[:print_only]
     puts "Will not search for 'harpwise listen' and will not sleep due to given option --print-only"
@@ -577,6 +585,8 @@ end
 
 def get_jamming_dirs_content
   cont = Hash.new
+  # files directly in any dir of $jamming_path should come first. Otherwise all should be
+  # sorted alphabetically
   $jamming_path.each do |jdir|
     cont[jdir] = Dir["#{jdir}/**/*.json"].sort do |a,b|
       # short versions without dir from jpath
@@ -682,9 +692,9 @@ end
 def do_jamming_list_single file
 
   pms, _ = parse_and_preprocess_jamming_json(file, simple: true)
+  
   jam_data = jamming_make_jam_data(pms)  
   notes = $pers_data.dig('jamming_notes',File.basename(file))
-  
   puts
   puts "Details for:  \e[32m" + File.basename(file)
   puts
@@ -707,7 +717,8 @@ def do_jamming_list_single file
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
   md = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)
   puts "  Lick Prog:  " + ( md[1] || 'unknown' )
-  puts " Num Timers:  #{$jam_data[:num_timer_max]}   \e[2m(in loop)\e[0m"
+  puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper\e[0m"
+  puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[2mloop\e[0m"
   puts 
   print "\e[0m"
   puts "    Comment:\e[2m"
@@ -882,7 +893,6 @@ def parse_and_preprocess_jamming_json json, simple: false
   end
   err("Value of parameter 'sleep_initially' is negative (#{jam_pms['sleep_initially']}) but should be > 0 (see #{$jam_json}); maybe try negative value of 'timestamp_add' for a similar effect.") if jam_pms['sleep_initially'] < 0
   
-
   # initialize some vars
   $ts_prog_start = Time.now.to_f
   $example = jam_pms['example_harpwise']
@@ -912,10 +922,10 @@ def parse_and_preprocess_jamming_json json, simple: false
   (1 .. actions.length - 1).to_a.each do |idx|
     actions[idx][0] = actions[idx - 1][0] if actions[idx][0] == 0
   end
-  
+
   # Check syntax of actions before actually starting
   $jam_loop_start_idx = nil
-  actions.each_with_index do |ta,idx|
+  actions.each_with_index do |ta, idx|
     err("First word after timestamp must either be 'message', 'keys' or 'loop-start', but here (index #{idx}) it is '#{ta[1]}':  #{ta}") unless %w(message keys loop-start timer).include?(ta[1])
     err("Timestamp #{ta[0]} (index #{idx}, #{ta}) is less than zero") if ta[0] < 0
     # test actions
@@ -927,6 +937,7 @@ def parse_and_preprocess_jamming_json json, simple: false
       $jam_data[:num_timer_max] += 1 if $jam_loop_start_idx
     end
   end
+
   err("Need at least one timestamp with action 'loop-start'") unless $jam_loop_start_idx
   $jam_data[:iteration_duration_secs] = actions[-1][0] - actions[$jam_loop_start_idx][0]
   $jam_data[:iteration_duration] = jam_ta($jam_data[:iteration_duration_secs])
