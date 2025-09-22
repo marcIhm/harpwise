@@ -659,9 +659,9 @@ end
 def tool_chart to_handle
   puts
   puts
-  holes_or_notes, _, _, _, _, _ = partition_for_mode_or_amongs(to_handle,
-                                                               amongs: [:hole, :note],
-                                                               extra_allowed: false)
+  holes_or_notes, _, _, _, _, _, _ = partition_for_mode_or_amongs(to_handle,
+                                                                  amongs: [:hole, :note],
+                                                                  extra_allowed: false)
 
   to_print = [:chart_notes]
   notes = []

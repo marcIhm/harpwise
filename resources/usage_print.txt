@@ -16,7 +16,11 @@ Overview of 'harpwise print':
     - notes (e.g. 'a4')
     - semitones (e.g. '+12st')
     - licks (e.g. 'st-louis')
+    - lick progressions
     - scales (e.g. 'chord-i')
+    - scale progressions
+    - jams
+    - 'l', '2l', for the last lick, 2nd-to-last, etc.
 
   or one of the known extra arguments (that themselves might require
   additional arguments):

@@ -10,7 +10,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     
     # We get lick-names on command line, so dont narrow to tag-selection
     $licks = $all_licks    
-    holes_or_notes, _, lnames, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
+    holes_or_notes, _, lnames, _, _, _, _ = partition_for_mode_or_amongs(to_handle, extra_allowed: false)
 
     if holes_or_notes.length > 0
       $adhoc_lick_holes = holes_or_notes

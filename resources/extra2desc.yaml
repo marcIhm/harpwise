@@ -61,6 +61,10 @@ print:
   player, players: |
     print details about players matching argument or a list of all
     known players
+  jams: |
+    List available jamming-files. This is much like "harpwise jam ls",
+    which however has a more relaxed way of specifying the jam.
+    See there for details.
 tools:
   transpose: |
     transpose a sequence of holes between keys

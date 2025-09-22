@@ -107,6 +107,8 @@ def parse_arguments_early
         min_holes: %w(--min-holes)}],
      [Set[:play], {
         lick_radio: %w(--radio --lick-radio)}],
+     [Set[:play, :print], {
+        what: %w(-w --what)}],
      [Set[:jamming], {
         paused: %w(--ps --paused),
         print_only: %w(--print-only),
@@ -121,8 +123,20 @@ def parse_arguments_early
   end
   fail "Internal error; at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
 
-  # construct hash opts_all with options specific for mode; take
-  # descriptions from file with embedded ruby
+  # Construct hash opts_all with options specific for mode; take
+  # descriptions from file opt2desc.yaml with embedded ruby
+  #
+  # opts_all has this form (only two entries shown):
+  #
+  # {:tags_any=>
+  #  [["--tags-any"],
+  #   "TAG1,TAG2,...",
+  #   "filter licks and keep those\n" + "having ANY of the given tags (example: --tags-any scales,classic).\n"],
+  #  :brief=>
+  #   [["--brief", "-b"],
+  #    nil,
+  #    "Produce shorter and more dense output than usual.\n" + "Mostly used for modes print and tools.\n"]}
+  #
   opt2desc = yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
   opts_all = Hash.new
   oabbr2osym = Hash.new {|h,k| h[k] = Array.new}
@@ -155,7 +169,7 @@ def parse_arguments_early
   if $conf_meta[:sections].include?(mode)
     $conf[mode].each {|k,v| $conf[k] = v}
   end
-  
+
   # preset options from config (maybe overriden later)
   $conf_meta[:keys_for_modes].each do |k|
     if opts_all[k]
@@ -308,6 +322,17 @@ def parse_arguments_early
 
   opts[:no_player_info] = true if opts[:scale_prog]
 
+
+  if opts[:what] && !$what_abbrevs.values.flatten.include?(opts[:what])
+    puts "\nThese are the known values for option '--what' along with their description:\n\n"
+    $amongs_desc.each do |am, dsc|
+      puts '  ' + $what_abbrevs[am].join(',') + ":"
+      dsc.each {|l| puts "    \e[2m" + l + "\e[0m"}
+    end
+    err "Value '#{opts[:what]}' for option '--what' is none of the allowed values, see above"
+  end
+  opts[:what] = opts[:what] && $what_abbrevs.keys.find {|k| $what_abbrevs[k].include?(opts[:what])}
+  
   # parse mini-language for keyboard translations; guide with good error messages
   $keyboard_translations = parse_keyboard_translate(opts[:keyboard_translate])
 
@@ -318,13 +343,14 @@ def parse_arguments_early
   [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
     $initial_tag_options[opt] = opts[opt]
   end
-  
+
   # usage info specific for mode
   if opts[:help] || num_args_after_mode == 0
     print_usage_info mode
     exit 0
   end  
 
+  
   # used to issue current state of processing in error messages
   $err_binding = binding
 
@@ -564,11 +590,6 @@ end
 
 def parse_arguments_for_mode
 
-  $amongs = Hash.new
-  $amongs[:play] = [:hole, :note, :event, :scale, :lick, :last, :lick_prog, :semi_note]
-  $amongs[:print] = [$amongs[:play], :lick_prog, :scale_prog].flatten
-  $amongs[:licks] = [:hole, :note, :lick]
-
   $extra = nil
   okay = true
   amongs_clause = ''
@@ -596,7 +617,11 @@ def parse_arguments_for_mode
         # against $all_licks above
         $licks = $all_licks
         any_of = print_amongs($amongs[$mode], :extra)
-        err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
+        if $opts[:what]
+          err "First argument for mode #{$mode} can only be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   but '#{ARGV[0]}' is not.\nHowever you may omit option --what to try within a broader range of types."
+        else
+          err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
+        end
       end
     else
       # these modes (e.g. quiz, samples or jamming) strictly require their

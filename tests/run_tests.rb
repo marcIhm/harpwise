@@ -450,8 +450,8 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'listen' => [17, 'on every invocation'],
                     'quiz' => [10, 'char-in-terminal  or  char'],
                     'licks' => [4, '--partial 1@b, 1@e or 2@x'],
-                    'play' => [6, '--max-holes NUMBER'],
-                    'print' => [17, 'Please note, that options'],
+                    'play' => [1, '--min-holes NUMBER'],
+                    'print' => [6, 'disamiguate given arguments'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
                     'develop' => [11, 'If lagging has happened'],
                     'jamming' => [4, 'instead of playing'] }
@@ -788,7 +788,7 @@ do_test 'id-14: play a lick' do
   tms 'harpwise play a box1-i'
   tms :ENTER
   sleep 2
-  expect { screen[8]['-2 -4 -5 +6'] }
+  expect { screen[10]['-2 -4 -5 +6'] }
   kill_session
 end
 
@@ -797,7 +797,7 @@ do_test 'id-14a: play a lick reverse' do
   tms 'harpwise play a box1-i --reverse'
   tms :ENTER
   sleep 2
-  expect { screen[8]['+6 -5 -4 -2'] }
+  expect { screen[10]['+6 -5 -4 -2'] }
   kill_session
 end
 
@@ -829,8 +829,8 @@ do_test 'id-15: play a lick with recording' do
   tms 'harpwise play a wade'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick   wade'] }
-  expect { screen[9]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
+  expect { screen[8]['Lick   wade'] }
+  expect { screen[11]['-2 -3/ -2 -3/ -2 -2 -2 -2/ -1 -2/ -2'] }
   expect { File.exist?(history_file) }
   kill_session
 end
@@ -849,10 +849,10 @@ do_test 'id-15b: play licks with controls between' do
   tms 'harpwise play a wade st-louis feeling-bad'
   tms :ENTER
   sleep 2
-  expect { screen[6]['Lick   wade'] }
+  expect { screen[8]['Lick   wade'] }
   sleep 4
-  expect { screen[11]['h: show help with more keys (available now already)'] }
-  expect { screen[12]['SPACE or RETURN for next lick'] }
+  expect { screen[13]['h: show help with more keys (available now already)'] }
+  expect { screen[14]['SPACE or RETURN for next lick'] }
   kill_session
 end
 
@@ -862,7 +862,7 @@ do_test 'id-16: play some holes and notes' do
   tms 'harpwise play a -1 a5 +4 d2'
   tms :ENTER
   sleep 2
-  expect { screen[7]['-1 a5 +4'] }
+  expect { screen[8]['-1 a5 +4'] }
   kill_session
 end
 
@@ -923,7 +923,7 @@ do_test 'id-16d: play some semitones' do
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 1
-  expect { screen[7]['a4 df5'] }
+  expect { screen[8]['a4 df5'] }
   kill_session
 end
 
@@ -1146,16 +1146,16 @@ do_test 'id-22c: print tries its first argument against various areas' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  ["- musical events in () or [] or starting with . ~ , or ;:\n",
-   "- holes:\n",
-   "- notes:\n",
+  ["- musical events in () or [] or starting with . ~ , or ;\n",
+   "- holes of the harmonica:\n",
+   "- notes\n",
    "- licks selected by tags:\n",
    "  , where set of licks has not been restricted by tags\n",
    "- lick-progressions:\n",
    "- scales:\n",
    "- scale-progressions:\n",
    "- A symbolic name for one of the last licks\n",
-   "- extra arguments (specific for mode print):\n"].each_with_index do |exp,idx|
+   "- extra arguments (specific for this mode):\n"].each_with_index do |exp,idx|
     expect(exp, $testing_output_file) { lines.include?(exp) }
   end
   kill_session
@@ -2719,6 +2719,15 @@ do_test 'id-80: play chord' do
   kill_session
 end
 
+do_test 'id-80a: play a jam' do
+  new_session
+  tms 'harpwise play 12bar'
+  tms :ENTER
+  sleep 2
+  expect { screen[23]['Playing ...'] }
+  kill_session
+end
+
 do_test "id-81: listen with adhoc scale" do
   new_session
   tms 'harpwise listen c +1 +2 +3'
@@ -2804,6 +2813,18 @@ do_test 'id-86b: print scale progressions' do
   tms :ENTER
   sleep 2
   expect { screen[12]['Desc:  standard 12-bar blues progression, based on flat-7th chords'] }
+  kill_session
+end
+
+do_test 'id-86c: print jams' do
+  File.write $persistent_state_file, "{}"  
+  new_session
+  tms 'harpwise print jams'
+  tms :ENTER
+  sleep 2
+  expect { screen[10]['fancy_jamming'] }
+  expect { !screen[10]['.json'] }
+  expect { screen[16]['Total count: 2'] }
   kill_session
 end
 
@@ -3467,13 +3488,13 @@ do_test 'id-115: play two licks with no prompt after last' do
   tms 'harpwise play wade st-louis'
   tms :ENTER
   sleep 6
-  expect { screen[6]['Lick   wade'] }
+  expect { screen[8]['Lick   wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[14]['Lick   st-louis'] }
+  expect { screen[15]['Lick   st-louis'] }
   tms :ENTER
   sleep 6
-  expect { screen[22]['$'] }
+  expect { screen[23]['$'] }
   kill_session
 end
 
@@ -3624,15 +3645,6 @@ do_test 'id-124: print single lick-progression' do
   kill_session
 end
 
-do_test 'id-125: print single scale-progression' do
-  new_session
-  tms 'harpwise print 12bar'
-  tms :ENTER
-  wait_for_end_of_harpwise
-  expect { screen[7]['standard 12-bar blues progression, based on flat-7th chords'] }
-  kill_session
-end
-
 do_test 'id-126: error message refers to other modes' do
   new_session
   tms 'harpwise listen c --fast-lick-switch --foo'
@@ -3681,9 +3693,9 @@ do_test 'id-128: error message on invalid key during play' do
   tms :ENTER
   sleep 1
   tms 'x'
-  expect { screen[13]['invalid key \'x\''] }
+  expect { screen[15]['invalid key \'x\''] }
   tms 'h'
-  expect { screen[15]['Keys available while playing the recording of a lick:'] }
+  expect { screen[17]['Keys available while playing the recording of a lick:'] }
   kill_session
 end
 
@@ -3870,8 +3882,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[11]['12bar.json']}  
-  expect { screen[11]['yesterday + 1']}
+  expect { screen[11]['12bar        #  c,g  ; yesterday + 1 more']}  
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
@@ -3905,7 +3916,7 @@ do_test 'id-137a: harpwise jamming note' do
   tms :ENTER
   tms "harpwise jam ls"
   tms :ENTER
-  expect { screen[18]['12bar.json']}
+  expect { screen[18]['12bar        #  c,g']}
   expect { screen[19]['foo bar']}
   kill_session
 end
@@ -3998,7 +4009,7 @@ do_test 'id-143: various comments among holes' do
   new_session
   tms "harpwise play +1 +2 '(slow)' '[+123]' '~' . , ';'"
   tms :ENTER
-  expect { screen[7]['+1 +2 (slow) [+123] ~ . , ;']}
+  expect { screen[8]['+1 +2 (slow) [+123] ~ . , ;']}
   kill_session
 end
 
@@ -4116,6 +4127,44 @@ do_test 'id-150: tool diag-hints' do
   expect { screen[21]['End of hints.'] }
   kill_session
 end
+
+do_test 'id-151: option --what for print' do
+  new_session
+  tms 'harpwise print foo --what x'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[20]["ERROR: Value 'x' for option '--what' is none of the allowed values"] }
+  kill_session
+end
+
+do_test "id-152: print scale progression '12bar'" do
+  new_session
+  tms 'harpwise print 12bar --what sp'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[4]['Printing scale progressions given as arguments.'] }
+  expect { screen[7]['standard 12-bar blues progression, based on flat-7th chords'] }
+  kill_session
+end
+
+do_test "id-153: print jam '12bar'" do
+  new_session
+  tms 'harpwise print 12bar --what j'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[5]['A 12-bar backing-track and the 3-lick set'] }
+  kill_session
+end
+
+do_test 'id-154: resolve ambigous argument and without --what to jam' do
+  new_session
+  tms 'harpwise print 12bar'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[5]['A 12-bar backing-track and the 3-lick set'] }
+  kill_session
+end
+
 
 puts
 puts

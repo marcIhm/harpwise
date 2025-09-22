@@ -269,6 +269,9 @@ def print_in_columns names, indent: 2, pad: :space
                  when :tabs
                    names.map {|nm| ' ' + nm + ' '}.
                      map {|nm| nm + ' ' * (-nm.length % 4)}
+                 when :long_tabs
+                   names.map {|nm| ' ' + nm + ' '}.
+                     map {|nm| nm + ' ' * (-nm.length % 8)}
                  when :space
                    names.map {|nm| '  ' + nm}
                  when :fill
@@ -735,7 +738,8 @@ def recognize_among val, choices, licks: $licks
   choices = [choices].flatten
   err("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
   choices.each do |choice|
-    # keys must be the same as in print_amongs
+    next if $opts[:what] && $opts[:what] != choice    
+    # keys must be the same as in $amongs
     if choice == :hole
       return choice if $harp_holes.include?(val)
     elsif choice == :note
@@ -757,6 +761,8 @@ def recognize_among val, choices, licks: $licks
       return choice if $intervals_inv[val]
     elsif choice == :last
       return choice if val.match(/^(\dlast|\dl)$/) || val == 'last' || val == 'l'
+    elsif choice == :jam
+      return choice if $jamming_rel2abs[val]
     elsif choice == :extra
       return choice if $extra_kws[$mode].include?(val)
     elsif choice == :extra_wwos
@@ -783,49 +789,41 @@ end
 
 
 def print_amongs *choices
-  any_of = Set.new
   choices.flatten.each do |choice|
+    next if $opts[:what] && $opts[:what] != choice
+    adc = $amongs_desc[choice]
     case choice
-        # keys must be the same set of values as in recognize_among
+        # keys must be the same set of values as $amongs
     when :event
-      any_of << 'musical events'
-      puts "\n- musical events in () or [] or starting with . ~ , or ;:\n    e.g. comments like '(warble)' or '[+123]' or '~' or '.pause.for.2beats'"
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
     when :hole
-      any_of << 'harp holes'
-      puts "\n- holes:"
+      puts "\n- #{adc[0]}:"
       print_in_columns $harp_holes, indent: 4, pad: :tabs
     when :note
-      any_of << 'notes'
-      puts "\n- notes:"
-      puts '    all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
     when :semi_note
-      any_of << 'semitones'
-      puts "\n- Semitones (as note values):"
-      puts '    e.g. 12st, -2st, +3st'
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
     when :semi_inter
-      any_of << 'semitones'
-      puts "\n- Semitones (as intervals):"
-      puts '    e.g. 12st, -2st, +3st'
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
     when :scale
-      any_of << 'scales'
-      puts "\n- scales:"
+      puts "\n- #{adc[0]}:"
       print_in_columns $all_scales, indent: 4, pad: :tabs
     when :scale_prog
-      any_of << 'scale-progressions'
-      puts "\n- scale-progressions:"
+      puts "\n- #{adc[0]}:"
       print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
     when :extra
-      any_of << 'extra arguments'
-      puts "\n- extra arguments (specific for mode #{$mode}):"
+      puts "\n- #{adc[0]}:"
       puts get_extra_desc_all.join("\n")
     when :inter
-      any_of << 'named intervals'
-      puts "\n- named interval, i.e. one of: "
+      puts "\n- #{adc[0]}:"
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
-      any_of << 'licks'
-      puts "\n- licks selected by tags:"
+      puts "\n- #{adc[0]}:"
       print_in_columns all_lnames.sort, indent: 4, pad: :tabs
       if $licks == $all_licks
         puts "  , where set of licks has not been restricted by tags"
@@ -833,11 +831,14 @@ def print_amongs *choices
         puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
       end
     when :lick_prog
-      puts "\n- lick-progressions:"
+      puts "\n- #{adc[0]}:"
       print_in_columns $all_lick_progs.keys.sort, indent: 4, pad: :tabs
     when :last
-      puts "\n- A symbolic name for one of the last licks"
-      puts '    e.g. l, 2l, last'
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
+    when :jam
+      puts "\n- #{adc[0]}:"
+      print_in_columns $jamming_rel2abs.keys.sort, indent: 4, pad: :long_tabs
     else
       fail "Internal error: Unknown choice: '#{choice}'" 
     end

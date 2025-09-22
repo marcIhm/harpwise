@@ -256,6 +256,18 @@ def set_global_vars_early
   FileUtils.mkdir_p($remote_message_dir) unless File.directory?($remote_message_dir)
   $remote_message_count = 0
 
+  # Other stuff for jamming; might be used both from mode_print.rb and mode_jamming.rb
+  $jam_help_while_play = ["Press:     SPACE   to pause / continue",
+                          "        RETURN,t   to mark a timestamp",
+                          "  BACKSPACE,LEFT   to skip back 10 secs",
+                          "           RIGHT      skip forward 10",
+                          "             TAB   to jump to a timestamp",
+                          "               q   to quit"]
+  $jam_play_prev_trim = 0
+  $jam_pretended_sleep = 0
+  $jam_pretended_actions_ts = []
+  
+
   $invocations_dir = "#{$dirs[:data]}/invocations"
   if !File.directory?($invocations_dir)
     FileUtils.mkdir_p($invocations_dir)
@@ -289,7 +301,52 @@ def set_global_vars_early
     end
   end
   $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
-  $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"  
+  $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
+
+  # Among processing e.g. for modes 'play' or 'prin'
+  $amongs = Hash.new
+  $amongs[:play] = [:hole, :note, :event, :scale, :lick, :last, :lick_prog, :semi_note, :jam]
+  $amongs[:print] = [$amongs[:play], :scale_prog].flatten
+  $amongs[:licks] = [:hole, :note, :lick]
+
+  # need to be the same set of keys as all the amongs above 
+  $amongs_desc = {event: ["musical events in () or [] or starting with . ~ , or ;",
+                          "e.g. comments like '(warble)' or '[+123]' or '~' or '.pause.for.2beats'"],
+                  hole: ["holes of the harmonica"],
+                  note: ["notes",
+                          "all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7"],
+                  semi_note: ["Semitones (as note values)",
+                              "e.g. 12st, -2st, +3st"],
+                  semi_inter: ["Semitones (as intervals)",
+                               "e.g. 12st, -2st, +3st"],
+                  scale: ["scales"],
+                  scale_prog: ["scale-progressions"],
+                  extra: ["extra arguments (specific for this mode)"],
+                  inter: ["named intervals"],
+                  lick: ["licks selected by tags"],
+                  lick_prog: ["lick-progressions"],
+                  last: ["A symbolic name for one of the last licks",
+                         "e.g. l, 2l, last"],
+                  jam: ["The relative file-name of a jamming-file, without the final '.json'"]}
+
+  $what_abbrevs = {event: %w(event),
+                   hole: %w(h holes),
+                   note: %w(n notes),
+                   semi_note: %w(sn semi-notes),
+                   semi_inter: %w(si semi-inter),
+                   scale: %w(s scales),
+                   scale_prog: %w(sp scale-progs scale-progressions),
+                   extra: %w(e extra extras),
+                   inter: %w(ni named-intervals),
+                   lick: %w(l licks),
+                   lick_prog: %w(lp lick-progs lick-progressions),
+                   last: %w(last),
+                   jam: %w(j jam)}
+
+  ambig = $what_abbrevs.values.flatten.tally.select {|k,v| v > 1}
+  err("Internal error: ambigous abbreviations: #{ambig}") if ambig.length > 0
+  err("Internal error with $what_abbrevs") if Set.new($what_abbrevs.keys) != Set.new($amongs_desc.keys)
+  
 end
 
 
@@ -1205,6 +1262,10 @@ def set_global_musical_vars rotated: false
     # might be reread later. Pass use_opt_lick_prog = false on every
     # first invocation, where $all_licks has not yet been set
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
+  end
+
+  if [:play, :print, :jamming].include?($mode)
+    $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content
   end
   
   $freq2hole = read_samples if $samples_needed

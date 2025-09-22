@@ -22,16 +22,16 @@
     "sound_file": "%{install_dir}/recordings/12bar.mp3",
     "sound_file_key": "g",
     "harp_key": "c",
-    // Comment should be an orientation for the user; can be either a string or an
-    // array of strings; the comment below is rather long and gives an describes the
-    // whole process of jamming
-    "comment": ["A 12-bar backing-track and the 3-lick set 'box1'.",
-		"",
-		"Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc.",
-		"",
-		"Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation.",
-		"",
-		"Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track."],
+    // Description should be an orientation for the user; can be either a string or an
+    // array of strings; the description below is rather long and gives an overview of
+    // the whole process of jamming
+    "description": ["A 12-bar backing-track and the 3-lick set 'box1'.",
+		    "",
+		    "Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc.",
+		    "",
+		    "Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation.",
+		    "",
+		    "Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track."],
     // Hint for user on how to start harpwise:
     "example_harpwise": "harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
     // Global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
@@ -92,14 +92,14 @@
     //
     // Messages to be shown (and most other strings), may use these special variables:
     //
-    //   %{comment}             :  comment from this file
+    //   %{description}         :  description from this file
     //   %{iteration}           :  count of repeats (whole set of actions)
     //   %{iteration_max}       :  total number of iterations (calculated from track length)
     //   %{iteration_duration}  :  duration of one iteration (secs)
     //   %{elapsed}             :  time elapsed (mm:ss)
     //   %{remaining}           :  time remaining of backing-track (mm:ss)
     //   %{install_dir}         :  installation directory of harpwise
-    //   %{loop_starter}        :  convenient comment for loop start including iteration, elapsed, etc.
+    //   %{loop_starter}        :  convenient message for loop start including iteration, elapsed, etc.
     //
     // These variables are updated for each iteration, but keep their values during one.
     //
@@ -123,7 +123,6 @@
 	// Sending "L" and "S" resets licks-progression and scale to their initial value, so
 	// that the same instance of "harpwise listen" can be used multiple times:
         [0,"keys","L","S"],
-        [0,"message","Comment: %{comment}"],
 	[0,"timer"],
 	// Negative timestamp is subtraced from the follwing one (i.e. 6 - 2):
         [-2,"message","*In two secs ..."],
@@ -161,7 +160,7 @@
 //  will be very similar to 12bar.json.
 //
 //  First, make a copy of 12bar.json, name it after your backing-track and put in the
-//  filename of your own track; maybe adjust parameters 'comments' and 'example_harpwise'.
+//  filename of your own track, mb adjust parameters 'description' and 'example_harpwise'.
 //
 //  In addition you will need to adjust the array 'timestamps_to_actions' in your new
 //  json-file, so that the timestamps match chord-changes and the turn-around of your track.

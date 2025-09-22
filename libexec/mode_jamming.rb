@@ -5,15 +5,6 @@
 def do_jamming to_handle
   
   $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m    \e[2mhere or in 'harpwise listen'\e[0m   to %s,\npress   \e[92mctrl-z\e[0m   \e[2mhere\e[0m   to start over.\e[0m"
-  $jam_help_while_play = ["Press:     SPACE   to pause / continue",
-                          "        RETURN,t   to mark a timestamp",
-                          "  BACKSPACE,LEFT   to skip back 10 secs",
-                          "           RIGHT      skip forward 10",
-                          "             TAB   to jump to a timestamp",
-                          "               q   to quit"]
-  $jam_play_prev_trim = 0
-  $jam_pretended_sleep = 0
-  $jam_pretended_actions_ts = []
   
   if ENV['HARPWISE_RESTARTED']
     do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
@@ -42,15 +33,19 @@ def do_jamming to_handle
     
   when 'list', 'ls'
 
+    if to_handle.length > 0
+      $all_licks, $licks, $all_lick_progs = read_licks    
+    end
+    
     if to_handle.length == 0
       do_jamming_list
     elsif to_handle == ['all']
-      files = get_jamming_dirs_content.values.flatten
+      files = $jamming_dirs_content.values.flatten
       puts "\n\nShowing details for all   \e[32m#{files.length}\e[0m   known jamming files:"
       puts
       files.each do |file|
         puts "\e[2m" + ('~' * 60 ) + "\e[0m\n\n"
-        do_jamming_list_single file
+        do_jamming_list_single file, multi: true
       end
     else
       json_file = match_jamming_file(to_handle)
@@ -72,12 +67,12 @@ def do_jamming to_handle
              match_jamming_file(to_handle)
            end
 
-    do_the_playing(file)
+    do_the_jam_playing(file)
 
   when 'notes', 'note'
 
     json_file = match_jamming_file(to_handle)
-    do_the_edit_notes json_file
+    do_the_jam_edit_notes json_file
     
   else
     
@@ -149,8 +144,8 @@ def do_the_jamming json_file
   #  Make contact with user and 'harpwise listen'
   #
       
-  ['',"\e[0mComment:\e[32m",'',
-   [$jam_pms['comment']].flatten.map do |cl|
+  ['',"\e[0mDescription:\e[32m",'',
+   [$jam_pms['description']].flatten.map do |cl|
      wr = wrap_text(cl, term_width: -4, cont: '')
      if wr.length == 0
        ['    ']
@@ -585,6 +580,7 @@ end
 
 def get_jamming_dirs_content
   cont = Hash.new
+  rel2abs = Hash.new
   # files directly in any dir of $jamming_path should come first. Otherwise all should be
   # sorted alphabetically
   $jamming_path.each do |jdir|
@@ -603,8 +599,14 @@ def get_jamming_dirs_content
       end
     end
   end
-
-  cont
+  cont.map do |jdir, files|
+    files.each do |file|
+      short = file[(jdir.length + 1) .. -6]
+      err("Two files map to the same relative name #{short}:\n  #{file}\n  #{rel2abs[short]}\nplease rename one.") if rel2abs[short]
+      rel2abs[short] = file
+    end
+  end
+  return [cont, rel2abs]
 end
 
 
@@ -614,8 +616,7 @@ def do_jamming_list
   #
   puts
   puts "Available jamming-files:\n\e[2m\e[34m# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
-  tcount = 1
-  jamming_dirs_content = get_jamming_dirs_content
+  tcount = 0
   
   $jamming_path.each do |jdir|
 
@@ -627,7 +628,7 @@ def do_jamming_list
     ppfx = pfx = ''
 
     # Sort files in toplevel dir first and then all subdirs
-    jamming_dirs_content[jdir].each do |jf|
+    $jamming_dirs_content[jdir].each do |jf|
 
       # path relative to jdir
       jfs = jf[(jdir.length + 1) .. -1]
@@ -647,7 +648,7 @@ def do_jamming_list
 
       # Use prefixes for coloring
       if pfx.length == 0 || pfx != ppfx
-        print "\e[0m  " + jfs
+        print "\e[0m  " + jfs.gsub('.json','')
         ppfx = pfx
       else
         print "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
@@ -676,8 +677,8 @@ def do_jamming_list
       end
       
       count += 1
-      sleep 0.02
       tcount += 1
+      sleep 0.02
 
     end  ## each jamming file
     puts "\e[0m  none" if count == 0
@@ -689,14 +690,15 @@ def do_jamming_list
 end
 
 
-def do_jamming_list_single file
+def do_jamming_list_single file, multi: false
 
   pms, _ = parse_and_preprocess_jamming_json(file, simple: true)
   
   jam_data = jamming_make_jam_data(pms)  
   notes = $pers_data.dig('jamming_notes',File.basename(file))
-  puts
-  puts "Details for:  \e[32m" + File.basename(file)
+  puts unless multi
+  print(multi  ?  "  "  :  "Details for:  ")
+  puts "\e[32m" + File.basename(file).gsub('.json','')
   puts
 
   puts "\e[0m       Path:  #{file}"
@@ -715,14 +717,19 @@ def do_jamming_list_single file
 
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
-  md = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)
-  puts "  Lick Prog:  " + ( md[1] || 'unknown' )
-  puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper\e[0m"
-  puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[2mloop\e[0m"
+  prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1)
+  print "  Lick Prog:  "
+  if prg
+    puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
+  else
+    puts 'unknown'
+  end
+  puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mPer loop\e[0m"
+  puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
   puts 
   print "\e[0m"
-  puts "    Comment:\e[2m"
-  [pms['comment']].flatten.each do |cl|
+  puts "    Description:\e[2m"
+  [pms['description']].flatten.each do |cl|
     puts if cl.strip.length == 0
     wr = wrap_text(cl, term_width: -8, cont: '')
     wr.each {|l| puts '        ' + l}
@@ -735,7 +742,7 @@ def do_jamming_list_single file
     puts "      Notes:   \e[2mnone"
   end
   puts "\e[0m"
-  puts
+  puts unless multi
 end
 
 
@@ -885,7 +892,7 @@ def parse_and_preprocess_jamming_json json, simple: false
 
   # some checks
   err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
-  err("Value of parameter 'comment' which is:\n\n#{jam_pms['comment']}\n\nshould be a string or an array of strings but is not (see #{$jam_json})") unless jam_pms['comment'].is_a?(String) || (jam_pms['comment'].is_a?(Array) && jam_pms['comment'].all? {|e| e.is_a?(String)})
+  err("Value of parameter 'description' which is:\n\n#{jam_pms['description']}\n\nshould be a string or an array of strings but is not (see #{$jam_json})") unless jam_pms['description'].is_a?(String) || (jam_pms['description'].is_a?(Array) && jam_pms['description'].all? {|e| e.is_a?(String)})
   err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
   %w(sound_file_key harp_key).each do |pm|
     key = jam_pms[pm]
@@ -980,7 +987,7 @@ def parse_and_preprocess_jamming_json json, simple: false
 end
 
 
-def do_the_playing json_or_mp3
+def do_the_jam_playing json_or_mp3
 
   make_term_immediate
   $ctl_kb_queue.clear
@@ -1146,7 +1153,7 @@ def do_the_playing json_or_mp3
 end
 
 
-def do_the_edit_notes file
+def do_the_jam_edit_notes file
 
   short = File.basename(file)
   
@@ -1305,7 +1312,7 @@ end
 def match_jamming_file words
   candidates = []
   short2full = Hash.new
-  get_jamming_dirs_content.each do |dir,files|
+  $jamming_dirs_content.each do |dir,files|
     files.each do |file|
       short = file[dir.length + 1 .. -1]
       short2full[short] = file
@@ -1368,7 +1375,7 @@ end
 def parse_jamming_json jam_json
   jam_pms = JSON.parse(File.read(jam_json).lines.reject {|l| l.match?(/^\s*\/\//)}.join)
   # check if all parameters present
-  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration sound_file sound_file_key harp_key timestamps_multiply timestamps_add comment example_harpwise))
+  wanted = Set.new(%w(timestamps_to_actions sleep_initially sleep_after_iteration sound_file sound_file_key harp_key timestamps_multiply timestamps_add description example_harpwise))
   given = Set.new(jam_pms.keys)
   err("Found keys:\n\n  #{given.to_a.sort.join("\n  ")}\n\n, but wanted:\n\n  #{wanted.to_a.sort.join("\n  ")}\n\nin #{jam_json}\n" +
       if (given - wanted).length > 0
@@ -1387,7 +1394,7 @@ end
 
 
 def jamming_make_jam_data jam_pms
-  {comment: jam_pms['comment'],
+  {description: jam_pms['description'],
    install_dir: File.read("#{$dirs[:data]}/path_to_install_dir").chomp,
    elapsed: '??:??',
    elapsed_secs: 0,

@@ -24,7 +24,7 @@ def do_play to_play
   if $extra
     args_for_extra = to_play
   else
-    holes_or_notes, semis, lnames, lpnames, snames, _ = partition_for_mode_or_amongs(to_play, extra_allowed: true)
+    holes_or_notes, semis, lnames, lpnames, snames, _, jmnames = partition_for_mode_or_amongs(to_play, extra_allowed: true)
   end
 
   # common error checking
@@ -37,13 +37,16 @@ def do_play to_play
 
     if holes_or_notes.length > 0
 
-      puts "Some holes or notes"
+      puts "Playing holes or notes given as arguments."
+      puts
       play_holes_or_notes_and_handle_kb holes_or_notes
       puts
       write_history('holes or notes', 'adhoc-holes', holes_or_notes)
       
     elsif snames.length > 0
       
+      puts "Playing scales given as arguments."
+      puts
       snames.each do |sname|
         scale_holes, _, _ = read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
@@ -54,13 +57,16 @@ def do_play to_play
       
     elsif lnames.length > 0
 
+      puts "Playing licks given as arguments."
+      puts
       $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: false)
 
     elsif semis.length > 0
 
+      puts "Playing semitones given as arguments and converted to notes (a4 = 0st)."
+      puts
       notes = semis.map {|s| semi2note(s.to_i)}
-      puts "Some semitones converted to notes (a4 = 0st)"
       play_holes_or_notes_and_handle_kb notes
       puts
       write_history('semitones converted to notes', 'adhoc-semitones', notes)
@@ -69,10 +75,20 @@ def do_play to_play
 
       err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
 
+      puts "Playing lick progression given as argument."
+      puts
       print_single_lick_prog($all_lick_progs[lpnames[0]])      
       lnames = $all_lick_progs[lpnames[0]][:licks]
       $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: true)
+
+    elsif jmnames.length > 0
+      
+      err "Can only play only one jam, not: #{lpnames.join(',')}" if jmnames.length > 1
+
+      puts "Playing jam given as argument."
+      puts
+      do_the_jam_playing($jamming_rel2abs[jmnames[0]])
       
     else
 
@@ -170,6 +186,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   lpnames = []
   snames = []
   spnames = []
+  jmnames = []
   other = []
 
   amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
@@ -179,7 +196,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   to_handle.join(' ').split.each do |th|
 
     what = recognize_among(th, amongs)
-
+    
     if what == :note
       holes_or_notes << sf_norm(th)
     elsif what == :hole
@@ -200,6 +217,8 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
       $all_licks, $licks, $all_lick_progs = read_licks
       record = shortcut2history_record(th)
       lnames << record[:name]
+    elsif what == :jam
+      jmnames << th
     else
       other << th
     end
@@ -209,7 +228,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   # Check results for consistency
   # 
 
-  types_count = [holes_or_notes, semis, lnames, snames].select {|x| x.length > 0}.length
+  types_count = [holes_or_notes, semis, lnames, snames, jmnames].select {|x| x.length > 0}.length
 
   if other.length > 0 
     puts
@@ -239,12 +258,13 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     puts "              Licks: #{lnames.join(' ')}" if lnames.length > 0
     puts "  Lick progressions: #{lpnames.join(' ')}" if lpnames.length > 0
     puts "             Scales: #{snames.join(' ')}" if snames.length > 0
-    puts " Scale progressions: #{lpnames.join(' ')}" if spnames.length > 0
+    puts " Scale progressions: #{spnames.join(' ')}" if spnames.length > 0
+    puts "               Jams: #{jmnames.join(' ')}" if jmnames.length > 0
     puts
     err 'See above'
   end
 
-  return [holes_or_notes, semis, lnames, lpnames, snames, spnames]
+  return [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
 
 end
 

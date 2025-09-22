@@ -396,4 +396,14 @@ wave:
     string; give somthing invalid (e.g. 'x') for full set of
     choices. However, these (e.g. 'sawtooth') sound less natural.
   - WAVEFORM
-    
+
+what:
+  - |
+    disamiguate given arguments;
+    useful for modes 'play' and 'print', that can handle many different
+    types of arguments so that name clashes might occur. E.g. '12bar'
+    can be either a scale progression or a jam. To tell harpwise, what
+    you mean for such cases you may guide harpwise with the option
+    '--what sp' or '--what jm'; try '--what x' for a full list
+    of choices.
+  - ONE-WHAT

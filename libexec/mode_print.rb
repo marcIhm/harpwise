@@ -19,7 +19,7 @@ def do_print to_print
       $all_licks, $licks, $all_lick_progs = read_licks    
     end
   else
-    holes_or_notes, semis, lnames, lpnames, snames, spnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
+    holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
   end
 
   # common error checking
@@ -30,17 +30,20 @@ def do_print to_print
 
     if holes_or_notes.length > 0
       
-      puts_underlined 'Printing Holes or notes given as arguments.', ' ', dim: false
+      puts "Printing holes or notes given as arguments."
+      puts
       print_holes_and_more holes_or_notes
 
     elsif semis.length > 0
 
-      puts_underlined 'Printing Semitones given as arguments.', ' ', dim: false
+      puts "Printing semitones given as arguments."
+      puts
       print_semis semis
       
     elsif snames.length > 0
 
-      puts_underlined 'Printing scales given as arguments.', ' ', dim: false
+      puts "Printing scales given as arguments."
+      puts
       snames.each do |sn|
         sname = get_scale_from_sws(sn)
         from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )          
@@ -62,7 +65,8 @@ def do_print to_print
 
     elsif spnames.length > 0
 
-      puts_underlined 'Printing scale progressions given as arguments.', ' ', dim: false
+      puts "Printing scale progressions given as arguments."
+      puts
       spnames.each do |spnm|
         print_single_scale_prog(spnm)
       end
@@ -71,7 +75,8 @@ def do_print to_print
       
     elsif lnames.length > 0
       
-      puts_underlined 'Printing licks given as arguments.', ' ', dim: false
+      puts "Printing licks given as arguments."
+      puts
       lnames.each do |lname|
         print_single_lick lname
         puts if lnames.length > 1        
@@ -80,10 +85,19 @@ def do_print to_print
 
     elsif lpnames.length > 0
 
-      puts_underlined 'Printing lick progressions given as arguments.', ' ', dim: false
+      puts "Printing lick progressions given as arguments."
+      puts
       lpnames.each do |lpnm|
         lp = $all_lick_progs.values.find {|lp| lp[:name] == lpnm}
         print_single_lick_prog(lp)
+      end
+
+    elsif jmnames.length > 0
+
+      puts "Printing jams given as arguments."
+      puts
+      jmnames.each do |jmnm|
+        do_jamming_list_single $jamming_rel2abs[jmnm]
       end
       
     else
@@ -192,6 +206,10 @@ def do_print to_print
 
       $players = FamousPlayers.new
       print_players args_for_extra
+
+    when 'jams'
+      
+      do_jamming_list
       
     else
 
