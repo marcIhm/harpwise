@@ -3,9 +3,11 @@
   tags = one two
 [vars]
   $foo = bar
+[vars]
+  $baz = thud
 [lick1]
   holes = +2
-  desc = $foo, qux
+  desc = $foo, qux, $baz
 [prog three]
   desc = for testing
   licks = lick0

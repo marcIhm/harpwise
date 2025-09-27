@@ -54,7 +54,7 @@ def do_print to_print
         if $scale2desc[sname] || $scale2short[sname]
           puts
           print "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
-          print "\e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+          print "\e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
           puts
         end
         puts
@@ -472,7 +472,7 @@ def print_scales scales
       puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
       puts"   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"
       puts "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
-      puts "   \e[2mDesc: #{$scale2desc[sname]}\e[0m" if $scale2desc[sname]
+      puts "   \e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
       puts "   \e[2mFile: #{sfile}\e[0m" if scales.length == 1
     end
   end
@@ -748,7 +748,7 @@ def print_single_lick_prog lp
   puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
   unless $opts[:brief]
     puts "     Line:  #{lp[:lno]}"
-    puts "     Tags:  #{lp[:tags].join('  ')}" if lp[:tags].length > 0
+    puts "     Tags:  #{lp[:tags].join(', ')}" if lp[:tags].length > 0
     puts "\e[2mLicks contained:"
     lnames = lp[:licks].uniq
     lnames.each do |lname|
@@ -764,7 +764,7 @@ def print_single_scale_prog spname
   sp = $all_scale_progs[spname]
   from = ( $sc_prog2file[spname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )  
   puts "#{spname}   \e[2m(#{from})\e[0m:"
-  puts "        Desc:  #{sp[:desc]}"
+  puts "        Desc:  #{sp[:desc] || 'none'}"
   puts "   %2d Scales:  #{sp[:scales].join(' ')}" % sp[:scales].length
   puts
 end
@@ -772,8 +772,9 @@ end
 
 def print_lick_meta lick
   puts
-  puts "\e[2m     Desc:\e[0m  #{lick[:desc]}"
-  puts "\e[2m     Tags:\e[0m  #{lick[:tags].join(' ')}"
+  puts "\e[2mOther properties:\e[0m"
+  puts "\e[2m     Desc:\e[0m  #{lick[:desc] || 'none'}"
+  puts "\e[2m     Tags:\e[0m  #{lick[:tags].join(', ')}"
   puts "\e[2m  rec-Key:\e[0m  #{lick[:rec_key]}"
   puts
 end

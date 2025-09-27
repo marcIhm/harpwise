@@ -720,6 +720,7 @@ def do_jamming_list_single file, multi: false
   prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1)
   print "  Lick Prog:  "
   if prg
+    err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
     puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
   else
     puts 'unknown'

@@ -103,7 +103,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     # Assign variable like, $var = value
     elsif md = line.match(/^ *(\$#{$word_re}) *= *(.*) *$/)
       var, value = md[1..2]
-      err "Variable assignment (here: #{var}) is not allowed outside a [var]-section; this section is [#{section}] (#{where})" if sec_type != :vars 
+      err "Variable assignment (here: #{var}) is not allowed outside a [vars]-section; so it cannot be used in this section [#{section}] (#{where})" if sec_type != :vars 
       vars[var] = value
       
     # tags

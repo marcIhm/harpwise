@@ -326,7 +326,7 @@ def parse_arguments_early
   if opts[:what] && !$what_abbrevs.values.flatten.include?(opts[:what])
     puts "\nThese are the known values for option '--what' along with their description:\n\n"
     $amongs_desc.each do |am, dsc|
-      puts '  ' + $what_abbrevs[am].join(',') + ":"
+      puts '  ' + $what_abbrevs[am].join(', ') + ":"
       dsc.each {|l| puts "    \e[2m" + l + "\e[0m"}
     end
     err "Value '#{opts[:what]}' for option '--what' is none of the allowed values, see above"

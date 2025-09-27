@@ -1249,8 +1249,8 @@ def set_global_musical_vars rotated: false
   end
   
   # semitone shifts that will be tagged and can be traversed
-  $licks_semi_shifts = {0 => nil, 5 => 'shifts_four',
-                        7 => 'shifts_five', 12 => 'shifts_eight'}
+  $licks_semi_shifts = {0 => nil, 5 => 'shifts_four', 7 => 'shifts_five',
+                        10 => 'shifts_flat_seventh', 12 => 'shifts_eight'}
 
   $charts, $hole2chart = read_chart
   if $hole_ref

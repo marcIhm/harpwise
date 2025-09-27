@@ -364,9 +364,9 @@ def play_and_print_lick lick, extra = ''
          ( $key == lick[:rec_key]  ?  ''  :  ", shifted to #{$key}" ) +
          "    (h for help)\e[0m\e[2m"
     sleep 0.02
-    puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
+    puts "Tags:  #{lick[:tags].join(', ')}" if lick[:tags]
     sleep 0.02
-    puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
+    puts "Desc:  #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     puts lick[:holes].join(' ')
     play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], 0, true
@@ -374,9 +374,9 @@ def play_and_print_lick lick, extra = ''
     puts ( $opts[:reverse]  ?  ' in reverse'  :  '' ) +
          "    (h for help)\e[0m\e[2m"
     sleep 0.02
-    puts "Tags: #{lick[:tags].join(', ')}" if lick[:tags]
+    puts "Tags:  #{lick[:tags].join(', ')}" if lick[:tags]
     sleep 0.02
-    puts "Desc: #{lick[:desc]}" unless lick[:desc].to_s.empty?
+    puts "Desc:  #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     play_lick_holes_and_handle_kb ( $opts[:reverse]  ?  lick[:holes].reverse  :  lick[:holes] ),
                                   lick: lick,
