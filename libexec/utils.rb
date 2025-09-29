@@ -1516,56 +1516,97 @@ end
 
 
 def mostly_avoid_double_invocations
-  # Avoid most cases of double invocations; only 'harpwise jamming' and 'harpwise listen
-  # --jamming' need each other. 'harpwise jamming' even requires the other one; see
-  # mode_jamming.rb for details. 'harpwise listen --jamming' may run without the other
 
+  # Avoid most cases of double invocations; epecially if both instances may use microphone
+  # or speaker or fifo.
+  #
   # Here we only find out who is running and barf on unwanted others; see mode_jamming.rb
-  # for code, that requires a second instance
+  # for code, that actually requires a second instance
   
-  # The files are named 'last' because they survive their creator
+  # The files are named 'last' because they still exist after program end. These files will
+  # be written or removed at the end of this method
   $pidfile_listen_fifo = "#{$dirs[:data]}/pid_last_listen_fifo"
-  $pidfile_jamming = "#{$dirs[:data]}/pid_last_jamming"
-  pid_listen_jamming, pid_jamming = [$pidfile_listen_fifo, $pidfile_jamming].map {|f| ( File.exist?(f) && File.read(f).to_i )}
-  # set initial values according to this processes owns mode and options; check other procs
-  # below and maybe adjust these vars then. 'p' for 'predicate'
-  $runningp_listen_jamming = ($mode == :listen && $opts[:jamming])
-  $runningp_jamming = ($mode == :jamming)
-  runningp_other_jamming = false
+  pidfile_jamming = "#{$dirs[:data]}/pid_last_jamming"
 
-  if ![:develop, :tools, :print].include?($mode)
-    # go through process-list
-    IO.popen('ps -ef').each_line do |line|
-      fields = line.chomp.split(' ',8)
-      pid = fields[1].to_i
-      cmd = fields[-1]
-      next unless cmd['ruby'] && cmd['harpwise']
-      next if Process.pid == pid
-      $runningp_listen_jamming = true if pid == pid_listen_jamming
-      $runningp_jamming = runningp_other_jamming = true if pid == pid_jamming
-      # if we are jamming, we tolerate any other instance; see mode_jamming.rb where we
-      # require a fifo-listener, which in turn would barf about anything not a jammer
-      if $mode == :jamming
-        puts "\n\e[0mThere is an instance of harpwise already, that cannot be part of jamming: '#{cmd}'" if pid != pid_listen_jamming
-        next
-      end
-      # if we are not jamming, we tolerate a jammer
-      next if $mode != :jamming && pid == pid_jamming
-      # Remark: the fifo-listener does not strictly require a jammer to ever appear and will
-      # run merrily without; so we have no code checking this
-      err "An instance of this program is already running: pid: #{pid}, command line: '#{cmd}'"
-    end
+  # mb = maybe, because we cannot be sure that these processes still exist. Therefore, below
+  # we only act if their pid appears in the process list, which confirms their existence
+  pid_listen_fifo_mb, pid_jamming_mb = [$pidfile_listen_fifo, pidfile_jamming].map do |f|
+    File.exist?(f) && File.read(f).to_i
   end
-  err "Another instance of 'harpwise jamming' (pid #{pid_jamming}) is already running" if $mode == :jamming && runningp_other_jamming && pid_jamming != Process.pid
-  # we can write this only after checking all procs above; otherwise we might overwrite the
-  # information of a process, that is still running
-  File.write($pidfile_listen_fifo, "#{Process.pid}\n") if $mode == :listen && $opts[:jamming]
-  File.write($pidfile_jamming, "#{Process.pid}\n") if $mode == :jamming
 
-  # remove stale files (any origin, even if we did not write it) here, so that we dont need
-  # to do anything in exit-handler
-  FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_jamming
-  FileUtils.rm($pidfile_jamming) if File.exist?($pidfile_jamming) && !$runningp_jamming
+  # Set initial values according to this processes owns mode and options; check other procs
+  # below and maybe set these vars to true then. 'p' stands for 'predicate',
+  # 'we_listen_fifo' for 'we would like to listen for fifo'
+  #
+  $runningp_listen_fifo = we_listen_fifo = ($mode == :listen && $opts[:jamming])
+  $runningp_jamming = we_jamming = ($mode == :jamming)
+
+  # Some modes never use microphone or speaker or fifo
+  return if [:develop, :print].include?($mode)
+
+  #
+  # Go through process-list and bail out via 'next' if we find, that visited process does
+  # not collide; but throw error at end of loop if we get there
+  #
+  
+  IO.popen('ps -ef').each_line do |line|
+    
+    it_pid, it_cmd = line.chomp.split(' ',8).then {|it| [it[1].to_i, it[-1]]}
+
+    # Skip non-harpwise processes
+    next unless it_cmd['ruby'] && it_cmd['harpwise']
+
+    # Skip ourself, so that only other processes (and rather not this one) will be
+    # considered and checked below
+    next if Process.pid == it_pid
+
+    #
+    # While we are here: Collect information about instances of harpwise, that are related
+    # with jamming
+    #
+    
+    if it_pid == pid_listen_fifo_mb
+      # Now we know, that the process for pid_listen_fifo_mb is still running
+      err("There is an instance of harpwise (pid #{pid_listen_fifo_mb}) already, that is listening on fifo:  '#{it_cmd}'\nHowever, this (the current) instance of harpwise would like to listen on fifo too;  exiting to avoid double-listen;  please check.") if we_listen_fifo
+      $runningp_listen_fifo = true
+    end
+
+    if it_pid == pid_jamming_mb
+      # Now we know, that the process for pid_jamming_mb is still running
+      err("Another instance of 'harpwise jamming' (pid #{pid_jamming_mb}) is already running:  '#{it_cmd}'") if $mode == :jamming
+      $runningp_jamming = true
+    end
+
+    #
+    # Now check for colliding instances of harpwise
+    #
+    
+    # Here we have the two acceptable cases
+    if $mode == :jamming
+      # If we are jamming, we tolerate anything; the case of another instance of harpwise,
+      # that wants to read the fifo too, has already been handled above
+      next
+    else
+      # If we are not jamming, we tolerate a jammer; e.g. user might want to play the
+      # lick-progression while jam along is already running
+      next if it_pid == pid_jamming_mb
+    end
+
+    # None of the resolving conditions above applies, so we probably would collide with the
+    # other process
+    err "An instance of this program is already running: pid: #{it_pid}, command line: '#{it_cmd}'"
+
+  end
+  
+  # We can write this only after checking all procs above; otherwise we might overwrite the
+  # information of a process, that is still running.
+  File.write($pidfile_listen_fifo, "#{Process.pid}\n") if we_listen_fifo
+  File.write(pidfile_jamming, "#{Process.pid}\n") if we_jamming
+
+  # Remove stale files (of any origin) here, so that we dont need to do this in the
+  # exit-handler
+  FileUtils.rm($pidfile_listen_fifo) if File.exist?($pidfile_listen_fifo) && !$runningp_listen_fifo
+  FileUtils.rm(pidfile_jamming) if File.exist?(pidfile_jamming) && !$runningp_jamming
 end
 
 

@@ -618,7 +618,7 @@ def parse_arguments_for_mode
         $licks = $all_licks
         any_of = print_amongs($amongs[$mode], :extra)
         if $opts[:what]
-          err "First argument for mode #{$mode} can only be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   but '#{ARGV[0]}' is not.\nHowever you may omit option --what to try within a broader range of types."
+          err "First argument for mode #{$mode} can only be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types."
         else
           err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
         end
@@ -642,7 +642,7 @@ def parse_arguments_for_mode
   # do this check late, because we have more specific error messages before
   err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :samples, :jamming].include?($mode)
 
-  return to_handle
+  return $extra, to_handle
 end
 
 

@@ -85,18 +85,20 @@ if $testing_what == :extra
   exit
 end
 
-
-# get debug info early to help e.g. for error messages
+# Find out very early, if debugging is requested; so we may already adhere while parsing
+# arguments
 $opts = {debug: true} if ARGV.include?('--debug')
+
 $mode, $type, $key, $scale, $opts = parse_arguments_early
+
 if $testing_what == :argv
   puts JSON.pretty_generate({mode: $mode, type: $type, key: $key, scale: $scale, argv: ARGV})
   exit
 end
 
-mostly_avoid_double_invocations
 initialize_debugging_mb
 
+mostly_avoid_double_invocations
 
 # we need to have mode for this, so calculate it late
 $lines = calculate_screen_layout
@@ -109,14 +111,14 @@ set_global_musical_vars
 
 $initialized = true
 
-to_handle = parse_arguments_for_mode
+$extra, to_handle = parse_arguments_for_mode
 
 check_screen(hint_on_large_term: true) if [:listen, :quiz, :licks].include?($mode)
 
 write_dump 'start' if $testing
 
-# We need this to be true, because otherwise exceptions in started
-# threads go unnoticed and may stall the hole program
+# We need this to be true, because otherwise exceptions in threads go unnoticed and may
+# stall the hole program
 Thread.report_on_exception = true
 
 Signal.trap('SIGINT') do

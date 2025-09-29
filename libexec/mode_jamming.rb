@@ -171,10 +171,10 @@ def do_the_jamming json_file
   if $opts[:print_only]
     puts "Will not search for 'harpwise listen' and will not sleep due to given option --print-only"
   else
-    if $runningp_listen_jamming
+    if $runningp_listen_fifo
       puts "Found 'harpwise listen' running."
     else
-      ["Cannot find a running instance of 'harpwise listen'.",
+      ["Cannot find a running instance of 'harpwise listen' with option --jamming.",
        "",
        "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
        "\n",
@@ -189,11 +189,11 @@ def do_the_jamming json_file
       2.times {puts; sleep 0.08}
       print "\e[2AWaiting "
       begin
-        pid_listen_jamming = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
+        pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
         print '.'
         print "\nStill waiting for 'harpwise listen' " if my_sleep(1)
         break if ENV['HARPWISE_TESTING'] == 'remote'
-      end until pid_listen_jamming
+      end until pid_listen_fifo
 
       puts ' found it !'
       print "\e[0m"
@@ -717,10 +717,11 @@ def do_jamming_list_single file, multi: false
 
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
-  prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1)
+  prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
+        err("Could not find option  --lick-prog  in example-command:  '#{pms['example_harpwise']}'")
+  err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
   print "  Lick Prog:  "
   if prg
-    err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
     puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
   else
     puts 'unknown'

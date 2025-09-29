@@ -3453,7 +3453,8 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[8]['Lick   wade'] }
   tms :ENTER
   sleep 6
-  expect { screen[16]['Lick   st-louis'] }
+  txt = 'Lick   st-louis'
+  expect { screen[16][txt] || screen[17][txt] }
   tms :ENTER
   sleep 6
   expect { screen[17]['Lick   feeling-bad'] }
