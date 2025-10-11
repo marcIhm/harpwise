@@ -167,9 +167,6 @@ quiz:
     flavours, that revolve around intervals
   layout: |
     flavours, that deal with the layout (holes to notes) of the harp
-  choose: |
-    choose flavour right away, no suggestion from harpwise
-    (only as extra-argument on commandline)
   players: |
     harpwise shows details about a famous player and asks for his or
     her name
@@ -238,6 +235,9 @@ quiz:
     then it plays the base note as well as the chord. You are expected
     to identify the chord. For difficulty HARD there are additional
     chords and for some chords also variations
+  choose: |
+    choose flavour interactively
+    (only as extra-argument on commandline)
 samples:
   record: |
     harpwise assists while you play the holes for the given type and

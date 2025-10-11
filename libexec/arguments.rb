@@ -519,6 +519,7 @@ def initialize_extra_vars
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
   $extra_kws.each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
   $extra_aliases = Hash.new
+  # Map strings of extra-keywords (joined with comma) to description
   $extras_joined_to_desc = Hash.new
 
   extra2desc.each do |mode, _|
@@ -616,11 +617,11 @@ def parse_arguments_for_mode
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
-        any_of = print_amongs($amongs[$mode], :extra)
+        any_of = print_amongs($amongs[$mode], :extra, highlight_extra: ARGV[0])
         if $opts[:what]
           err "First argument for mode #{$mode} can only be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types."
         else
-          err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\nas detailed above, but not '#{ARGV[0]}'"
+          err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\neach of these types brings various choices (as detailed above) from which you may choose;\nhowever your argument is not among them (for any type):  #{ARGV[0]}"
         end
       end
     else
@@ -628,10 +629,11 @@ def parse_arguments_for_mode
       # extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_wwos]) == :extra
       if !$extra
-        print_amongs(:extra)
-        puts get_extra_desc_all(extras_joined_to_desc: {quiz: {'choose' => 'ask user to choose one'}}).join("\n") if $mode == :quiz
+        print_amongs(:extra, highlight_extra: ARGV[0], )
         extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
-        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{wrap_words('  ',extra_words, '  ')} \n\e[0mas described above, but not '#{ARGV[0]}'"     
+        wrapped = wrap_words('  ', extra_words, '  ')
+        colored = wrapped.gsub(ARGV[0], "\e[0m\e[32m" + ARGV[0] + "\e[0m\e[2m")
+        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not '#{ARGV[0]}'"     
       end
     end
   end

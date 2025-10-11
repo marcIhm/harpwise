@@ -1593,7 +1593,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[17]['First argument for mode print should belong to one of these 11 types'] }
+  expect { screen[15]['First argument for mode print should belong to one of these 11 types'] }
   kill_session
 end
 
@@ -2662,7 +2662,7 @@ do_test 'id-77a: error on abbreviated type' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[21]["not 'chrom'"] }
+  expect { screen[21]["not among them (for any type):  chrom"] }
   kill_session
 end
 
@@ -3216,7 +3216,7 @@ do_test 'id-102: help on flavours via TAB' do
   sleep 1
   tms 'describe-all'
   tms :ENTER
-  expect { screen[15]['harpwise plays a sequence'] }
+  expect { screen[12]['harpwise plays a sequence'] }
   kill_session
 end
 

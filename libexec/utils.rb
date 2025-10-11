@@ -788,7 +788,7 @@ def recognize_among val, choices, licks: $licks
 end
 
 
-def print_amongs *choices
+def print_amongs *choices, **kws
   choices.flatten.each do |choice|
     next if $opts[:what] && $opts[:what] != choice
     adc = $amongs_desc[choice]
@@ -817,7 +817,7 @@ def print_amongs *choices
       print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
     when :extra
       puts "\n- #{adc[0]}:"
-      puts get_extra_desc_all.join("\n")
+      puts get_extra_desc_all(highlight: kws[:highlight_extra]).join("\n")
     when :inter
       puts "\n- #{adc[0]}:"
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
@@ -846,12 +846,17 @@ def print_amongs *choices
 end
 
 
-def get_extra_desc_all extras_joined_to_desc: $extras_joined_to_desc, for_usage: false, exclude_meta: false
+def get_extra_desc_all highlight: nil, for_usage: false, exclude_meta: false
   lines = []
-  extras_joined_to_desc[$mode].each do |k,v|
+  $extras_joined_to_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
-    lines << (for_usage ? '  ' : '') + "  - #{k}:"
+    khl = if highlight
+            k.gsub(highlight, "\e[0m\e[32m" + highlight + "\e[0m")
+          else
+            k
+          end
+    lines << (for_usage ? '  ' : '') + "  - #{khl}:"
     lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
   end
   lines
