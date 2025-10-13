@@ -26,13 +26,14 @@ def parse_arguments_early
 
   # get mode
   $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
-    err "First argument can be one of\n\n   #{choices}\n\nnot #{none}.\n\n   Please invoke without argument for general usage information.\n\n" +
+    err "First argument can be one of\n\n   #{choices}\n\nbut not:  #{none}.\n\nPlease invoke without argument for general usage information.\n\n" +
         if $conf[:all_keys].include?(ARGV[0])
           "However your first argument '#{ARGV[0]}' is a key, which should be placed as a second argument on the command line."
         else
           "\e[2m(note, that mode 'develop' is only useful for the maintainer or developer of harpwise.)\e[0m"
         end
   end.to_sym
+  err "Your first argument '#{ARGV[0]}' can be read as a key and as an abbreviation for mode #{$mode}; please supply more characters to avoid ambiguity." if $conf[:all_keys].include?(ARGV[0])
   ARGV.shift
   num_args_after_mode = ARGV.length
   
