@@ -868,7 +868,7 @@ def get_jamming_timer_text
 
     if jts[:update_next].length == 0
       $debug_log&.puts( "Last update; clearing space")
-      $jamming_timer_update_next = jts = nil      
+      $jamming_timer_update_next = jts = nil
       return ''
     end
 
@@ -887,7 +887,7 @@ def get_jamming_timer_text
   "  \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
     "\e[0m\e[2m" + jts[:right] +
     "\e[0m\e[32m" + jts[:tail]
-  
+
 end
 
 
