@@ -350,7 +350,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         redo
       end
 
-      print_mission "Listen ... and !" unless oride_l_message2
+      print_mission("Listen ... and !") unless oride_l_message2
       sleep 0.3
 
       if first_round

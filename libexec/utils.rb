@@ -254,15 +254,8 @@ def write_dump marker = nil
 end
 
 
-def print_mission text
-  # we also require \e, because sometimes we may have an space-only string while jamming
-  ncol = if $jamming_timer_state && text["\e"]
-           $jamming_timer_state[:ncol_chars]
-         else
-           0
-         end
+def print_mission text, ncol = 0
   print "\e[#{$lines[:mission]}H\e[0m#{text.ljust($term_width - $ctl_response_width + ncol)}\e[0m"
-  $ulrec.print_rec_sign_mb
 end
 
 

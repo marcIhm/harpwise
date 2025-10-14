@@ -76,7 +76,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $ctl_mic[:redraw] ||
        # next update of jamming timer due ?
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
-      print_mission(get_mission_override || lambda_mission.call)
+      if movr = get_mission_override
+        print_mission(*movr)
+      else
+        print_mission(lambda_mission.call)
+      end
     end
 
     if $ctl_mic[:redraw]
@@ -774,12 +778,12 @@ end
 
 def get_mission_override
   if $jamming_mission_override
-    $jamming_mission_override +
-      if $jamming_timer_update_next
-        get_jamming_timer_text
-      else
-        ''
-      end
+    if $jamming_timer_update_next
+      jtt = get_jamming_timer_text
+      [$jamming_mission_override + jtt[0], jtt[1]]
+    else
+      [$jamming_mission_override, 0]
+    end
   else
     nil
   end 
@@ -848,8 +852,6 @@ def get_jamming_timer_text
     jts[:left] = ''
     jts[:right] = ('%.1fs' % jts[:total_secs]).rjust(jts[:total_ticks], '.')
     jts[:tail] = ']'
-    # Total number of coloring chars (e.g. \e[32m = 5); go to end of function to count.
-    jts[:ncol_chars] = 27
     $debug_log&.puts("New timer\n#{jts.pretty_inspect}")
 
   elsif tntf > $jamming_timer_update_next
@@ -869,7 +871,7 @@ def get_jamming_timer_text
     if jts[:update_next].length == 0
       $debug_log&.puts( "Last update; clearing space")
       $jamming_timer_update_next = jts = nil
-      return ''
+      return ['', 0]
     end
 
     $jamming_timer_update_next = jts[:update_next].shift
@@ -884,9 +886,11 @@ def get_jamming_timer_text
   # write back (e.g. if jts == nil)
   $jamming_timer_state = jts
   
-  "  \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
-    "\e[0m\e[2m" + jts[:right] +
-    "\e[0m\e[32m" + jts[:tail]
+  ["  \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
+   "\e[0m\e[2m" + jts[:right] +
+   "\e[0m\e[32m" + jts[:tail],
+   # Total number of coloring chars in string above (e.g. \e[32m = 5)
+   27]
 
 end
 
@@ -1282,7 +1286,7 @@ def show_remote_message
       if text.start_with?('{{mission}}')
         $jamming_mission_override = text[text.index('}}') + 2 .. -1]
         err("Internal error: no text after {{mission}}") if !$jamming_mission_override || $jamming_mission_override == ''
-        print_mission(get_mission_override)
+        print_mission(*get_mission_override)
       elsif text.start_with?('{{key}}')
         key_was = $key
         key = text[text.index('}}') + 2 .. -1]
@@ -1307,7 +1311,7 @@ def show_remote_message
         $jamming_timer_end = ts_end
         $jamming_timer_update_next = $jamming_timer_start - 1
         $jamming_timer_state = nil
-        print_mission(get_mission_override)
+        print_mission(*get_mission_override)
       else
         if text[0] == '*'
           $msgbuf.print "\e[2m>> \e[0m\e[34m#{text[1..]}", duration, duration, :remote
