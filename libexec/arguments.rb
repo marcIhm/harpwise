@@ -620,9 +620,9 @@ def parse_arguments_for_mode
         $licks = $all_licks
         any_of = print_amongs($amongs[$mode], :extra, highlight_extra: ARGV[0])
         if $opts[:what]
-          err "First argument for mode #{$mode} can only be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types."
+          err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types."
         else
-          err "First argument for mode #{$mode} should belong to one of these #{any_of.length} types:\n\e[2m  #{any_of.map {|a| a.to_s.gsub('_','-')}.join('   ')}\e[0m\neach of these types brings various choices (as detailed above) from which you may choose;\nhowever your argument is not among them (for any type):  #{ARGV[0]}"
+          err "First argument for mode #{$mode} should belong to one of the #{any_of.length} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  #{ARGV[0]}"
         end
       end
     else
