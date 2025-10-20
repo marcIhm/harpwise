@@ -618,23 +618,23 @@ def parse_arguments_for_mode
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
-        any_of = print_amongs($amongs[$mode], :extra, highlight_extra: ARGV[0])
+        summary = print_amongs($amongs[$mode], :extra, highlight: ARGV[0])
         if $opts[:what]
-          err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types."
+          err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types." + summary[:highlight][:explain]
         else
-          err "First argument for mode #{$mode} should belong to one of the #{any_of.length} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  #{ARGV[0]}"
+          err "First argument for mode #{$mode} should belong to one of the #{summary[:types][:count]} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  #{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
         end
       end
     else
-      # these modes (e.g. quiz, samples or jamming) strictly require their
+      # These modes (e.g. quiz, samples or jamming) strictly require their
       # extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_wwos]) == :extra
       if !$extra
-        print_amongs(:extra, highlight_extra: ARGV[0], )
+        print_amongs(:extra, highlight: ARGV[0])
         extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
         wrapped = wrap_words('  ', extra_words, '  ')
         colored = wrapped.gsub(ARGV[0], "\e[0m\e[32m" + ARGV[0] + "\e[0m\e[2m")
-        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not '#{ARGV[0]}'"     
+        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not '#{ARGV[0]}'" 
       end
     end
   end
@@ -907,3 +907,5 @@ def get_viewers_desc
       end
   end.join("\n")
 end
+
+

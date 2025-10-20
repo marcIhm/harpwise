@@ -259,7 +259,7 @@ def print_mission text, ncol = 0
 end
 
 
-def print_in_columns names, indent: 2, pad: :space
+def print_in_columns names, indent: 2, pad: :space, highlight: nil
   head = ' ' * indent
   line = ''
   padded_names = case pad
@@ -279,11 +279,13 @@ def print_in_columns names, indent: 2, pad: :space
                  end
   padded_names.each do |nm|
     if (head + line + nm).length > $term_width - 4
+      line = highlight_helper(line, highlight)
       puts head + line.strip
       line = ''
     end
     line += nm
   end
+  line = highlight_helper(line, highlight)
   puts head + line.strip unless line.strip.empty?
 end
 
@@ -786,8 +788,18 @@ end
 
 
 def print_amongs *choices, **kws
+  hl_text = kws[:highlight]
+  summary = {highlight:
+               if hl_text && hl_text.length > 1
+                 { what: hl_text, count: 0, color: '' }
+               else
+                 nil
+               end,
+             types: { count: 0 }}
+
   choices.flatten.each do |choice|
     next if $opts[:what] && $opts[:what] != choice
+    summary[:types][:count] += 1
     adc = $amongs_desc[choice]
     case choice
         # keys must be the same set of values as $amongs
@@ -803,25 +815,25 @@ def print_amongs *choices, **kws
     when :semi_note
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
-    when :semi_inter
+    when :semi_OBinter
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
     when :scale
       puts "\n- #{adc[0]}:"
-      print_in_columns $all_scales, indent: 4, pad: :tabs
+      print_in_columns $all_scales, indent: 4, pad: :tabs, highlight: summary[:highlight]
     when :scale_prog
       puts "\n- #{adc[0]}:"
-      print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs      
+      print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs, highlight: summary[:highlight]
     when :extra
       puts "\n- #{adc[0]}:"
-      puts get_extra_desc_all(highlight: kws[:highlight_extra]).join("\n")
+      puts get_extra_desc_all(highlight: summary[:highlight]).join("\n")
     when :inter
       puts "\n- #{adc[0]}:"
-      print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs
+      print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs, highlight: summary[:highlight]
     when :lick
       all_lnames = $licks.map {|l| l[:name]}
       puts "\n- #{adc[0]}:"
-      print_in_columns all_lnames.sort, indent: 4, pad: :tabs
+      print_in_columns all_lnames.sort, indent: 4, pad: :tabs, highlight: summary[:highlight]
       if $licks == $all_licks
         puts "  , where set of licks has not been restricted by tags"
       else
@@ -829,17 +841,30 @@ def print_amongs *choices, **kws
       end
     when :lick_prog
       puts "\n- #{adc[0]}:"
-      print_in_columns $all_lick_progs.keys.sort, indent: 4, pad: :tabs
+      print_in_columns $all_lick_progs.keys.sort, indent: 4, pad: :tabs, highlight: summary[:highlight]
     when :last
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
     when :jam
       puts "\n- #{adc[0]}:"
-      print_in_columns $jamming_rel2abs.keys.sort, indent: 4, pad: :long_tabs
+      print_in_columns $jamming_rel2abs.keys.sort, indent: 4, pad: :long_tabs, highlight: summary[:highlight]
     else
       fail "Internal error: Unknown choice: '#{choice}'" 
     end
-  end  
+  end
+
+  if summary[:highlight]
+    summary[:highlight][:explain] = if summary[:highlight][:count] > 0
+                                      summary[:highlight][:color] = "\e[0m\e[7m\e[32m"
+                                      "\nIt appeared however  #{summary[:highlight][:count]}  times as part of a valid choice and has been marked."
+                                    else
+                                      "\nYour input is not even part of any valid choice."
+                                    end
+  else
+    summary[:highlight] = {explain: ''}
+  end
+  
+  summary
 end
 
 
@@ -848,12 +873,8 @@ def get_extra_desc_all highlight: nil, for_usage: false, exclude_meta: false
   $extras_joined_to_desc[$mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
-    khl = if highlight
-            k.gsub(highlight, "\e[0m\e[32m" + highlight + "\e[0m")
-          else
-            k
-          end
-    lines << (for_usage ? '  ' : '') + "  - #{khl}:"
+    k = highlight_helper(k, highlight)
+    lines << (for_usage ? '  ' : '') + "  - #{k}:"
     lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
   end
   lines
@@ -1643,5 +1664,18 @@ def days_ago_in_words ago
     "#{(ago/7.0).round} weeks ago"
   else
     "#{(ago/30.0).round} months ago"
+  end
+end
+
+
+def highlight_helper text, highlight
+  # do highlight and count their number
+  if highlight
+    text.gsub(highlight[:what]) do |m|
+      highlight[:count] += 1
+      "\e[0m\e[7m\e[32m" + m + "\e[0m"
+    end || text
+  else
+    text
   end
 end
