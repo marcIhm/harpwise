@@ -61,7 +61,7 @@ def yaml_parse file
   rescue Psych::SyntaxError => e
     err "Cannot parse #{file}: #{e.message}"
   rescue Errno::ENOENT => e
-    err "File #{file} does not exist !"
+    err "File #{file} does not exist!"
   end
 end
 
@@ -421,7 +421,7 @@ def animate_splash_line single_line = false, as_string: false
     print "\e[A\e[A"
   end
   if $testing
-    testing_clause = "\e[0;101mWARNING: env HARPWISE_TESTING is set !\e[0m"
+    testing_clause = "\e[0;101mWARNING: env HARPWISE_TESTING is set!\e[0m"
     if single_line
       print testing_clause
     else
@@ -712,7 +712,7 @@ def edit_file file, lno = nil
     return true
   else
     make_term_immediate
-    puts "\e[0;101mEDITING FAILED !\e[0m\e[k"
+    puts "\e[0;101mEDITING FAILED!\e[0m\e[k"
     puts "#{$resources[:any_key]}\e[K"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
@@ -770,7 +770,7 @@ def recognize_among val, choices, licks: $licks
       should = $extra_kws_wwos2canon[$mode][val]
       if should
         puts
-        puts "Did you mean '#{should}' instead of '#{val}' ?"
+        puts "Did you mean '#{should}' instead of '#{val}'?"
         puts
         puts "Its description is:   #{should}:"
         puts get_extra_desc_single(should)[1..-1].
@@ -791,7 +791,7 @@ def print_amongs *choices, **kws
   hl_text = kws[:highlight]
   summary = {highlight:
                if hl_text && hl_text.length > 1
-                 { what: hl_text, count: 0, color: '' }
+                 { what: hl_text, count: 0, color: "\e[1m" }
                else
                  nil
                end,
@@ -855,13 +855,19 @@ def print_amongs *choices, **kws
 
   if summary[:highlight]
     summary[:highlight][:explain] = if summary[:highlight][:count] > 0
-                                      summary[:highlight][:color] = "\e[0m\e[7m\e[32m"
-                                      "\nIt appeared however  #{summary[:highlight][:count]}  times as part of a valid choice and has been marked."
+                                      summary[:highlight][:color] = "\e[0m\e[7m\e[92m"
+                                      "\nBut it still appears and has been highlighted #{summary[:highlight][:count]} times as part of valid choices."
                                     else
-                                      "\nYour input is not even part of any valid choice."
+                                      "\nIt is not even a substring of any valid choice."
                                     end
-  else
-    summary[:highlight] = {explain: ''}
+  elsif hl_text
+    summary[:highlight] = 
+      {explain:
+         if hl_text.length == 1
+           "\nYou may supply a longer string to see it highlighted as part of any choice."
+         else
+           ''
+         end}
   end
   
   summary
@@ -1673,7 +1679,7 @@ def highlight_helper text, highlight
   if highlight
     text.gsub(highlight[:what]) do |m|
       highlight[:count] += 1
-      "\e[0m\e[7m\e[32m" + m + "\e[0m"
+      "\e[0m\e[7m\e[92m" + m + "\e[0m"
     end || text
   else
     text

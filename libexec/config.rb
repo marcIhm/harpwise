@@ -381,7 +381,7 @@ def find_and_check_dirs_early
   # prepare error messages here to be able to write the logic furher down below more clearly
   err_dirs_equal = "Harpwise is installed and has been invoked from this\ndirectory:   \e[1m#{$dirs[:install]}\e[0m\nHowever for later version of harpwise this directory is needed to\nhold your harpwise related-data and this would garble your current\ninstallation.\n\nPlease \e[1mmove or rename\e[0m your installation directory, so that the new\ndata directory can be created.\n\nYou may move your installation dir e.g. from   #{$dirs[:install]}\nto   #{$dirs[:install_devel]}  ; alternatively you may try harpwise\nas a snap.\n\nHistorical remark: This move of the data directory from\n#{$dirs[:data_old]}   to   #{$dirs[:data]}   is part of\nversion 6.11.1."
   err_data_old_head = "Old directory   \e[1m#{$dirs[:data_old]}\e[0m   still exists.  This has been\nthe location of your personal harpwise-related data with older versions\nof harpwise, prior to 6.11.1.\nBut now it has changed to the \e[1mnew path   #{$dirs[:data]}\e[0m\n\n"
-  err_data_old_and_new = "However, the new data dir   #{$dirs[:data]}\nalready exists too !\n\nTherefore, you need to decide, which of both directories you want to keep\nand which one is \e[1mnot needed\e[0m any more.  This is especially important, if you\nhave added your own licks and other content in the past !\n\nAfter inspecting both dirs, you may execute \e[1mexactly one\e[0m of these commands:\n\n    mv  #{$dirs[:data]}   #{$dirs[:data]}-to-be-deleted\nor\n    mv  #{$dirs[:home]}/.harpwise  #{$dirs[:home]}/dot_harpwise-to-be-deleted\n\nAfter that invoke harpwise again.  Depending on the command you have chosen,\nharpwise may even suggest another move, but after that will start\nwithout problems and with all the content you may have added."
+  err_data_old_and_new = "However, the new data dir   #{$dirs[:data]}\nalready exists too!\n\nTherefore, you need to decide, which of both directories you want to keep\nand which one is \e[1mnot needed\e[0m any more.  This is especially important, if you\nhave added your own licks and other content in the past!\n\nAfter inspecting both dirs, you may execute \e[1mexactly one\e[0m of these commands:\n\n    mv  #{$dirs[:data]}   #{$dirs[:data]}-to-be-deleted\nor\n    mv  #{$dirs[:home]}/.harpwise  #{$dirs[:home]}/dot_harpwise-to-be-deleted\n\nAfter that invoke harpwise again.  Depending on the command you have chosen,\nharpwise may even suggest another move, but after that will start\nwithout problems and with all the content you may have added."
   err_data_old_only = "Please move accordingly:\n\n    mv  #{$dirs[:data_old]}  #{$dirs[:data]}\n\nAnd then start harpwise again."
 
   if File.exist?($dirs[:data_old])
@@ -1185,13 +1185,13 @@ end
 
 
 def read_samples
-  err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first !\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
+  err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first!\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
   unless Set.new($harp_holes) == Set.new(hole2freq.keys)
-    err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples !\n\n#{for_sample_generation}"
+    err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples!\n\n#{for_sample_generation}"
   end
   hole2freq.each do |hole, freq|
-    err "The frequency for hole   #{hole}   in #{$freq_file} is zero. Probably you need to re-record this sample or delete it !" if freq == 0
+    err "The frequency for hole   #{hole}   in #{$freq_file} is zero. Probably you need to re-record this sample or delete it!" if freq == 0
   end
   $harp_holes.each_cons(2).all? do |ha, hb|
     fa = hole2freq[ha]

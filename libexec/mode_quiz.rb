@@ -165,7 +165,7 @@ def do_quiz to_handle
           puts
           puts get_dim_hline
           puts
-          puts "\e[0mWhat's next ?"
+          puts "\e[0mWhat's next?"
           puts 
           puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
           drain_chars
@@ -265,17 +265,17 @@ class QuizFlavour
     # @solution might be string or array
     if [@solution].flatten.include?(answer)
       if self.respond_to?(:after_solve)
-        stand_out "Yes, '#{answer}' is RIGHT !\n\nSome extra info below.", all_green: true
+        stand_out "Yes, '#{answer}' is RIGHT!\n\nSome extra info below.", all_green: true
         after_solve
       else
-        stand_out "Yes, '#{answer}' is RIGHT !", all_green: true
+        stand_out "Yes, '#{answer}' is RIGHT!", all_green: true
       end
       puts
       return next_or_reissue_and_set_key_plus_difficulty
     end
     case answer
     when nil
-      stand_out "No input or invalid key ?\nPlease try again or\nterminate with ctrl-c ..."
+      stand_out "No input or invalid key?\nPlease try again or\nterminate with ctrl-c ..."
       return :reask
     when ',again'
       stand_out 'Asking question again.'
@@ -399,7 +399,7 @@ class QuizFlavour
     puts
     puts get_dim_hline
     puts
-    puts "\e[0mWhat's next ?"
+    puts "\e[0mWhat's next?"
     puts
     if @key_contributes_to_solution > 0
       puts "\e[32m\e[92mAny key\e[0m\e[32m for next   \e[34m#{$quiz_flavour}\e[0m\e[32m   with a new random key"
@@ -1879,7 +1879,7 @@ class HearKey < QuizFlavour
     compare_key_harp = play_interactive_pitch explain: false, start_key: compare_key_harp, return_accepts: true
     make_term_cooked
     @compare_key = harp2song[compare_key_harp]
-    puts "\nPlease note, that this key '#{@compare_key}' is not among possible solutions !\n" unless @choices.map(&:downcase).include?(@compare_key)
+    puts "\nPlease note, that this key '#{@compare_key}' is not among possible solutions!\n" unless @choices.map(&:downcase).include?(@compare_key)
     puts "\nNow compare key '#{@compare_key}' back to sequence:"
     issue_question silent: true
   end
@@ -2062,7 +2062,7 @@ class KeepTempo < QuizFlavour
     silence = quiz_generate_tempo('s', 120, 0, 1, 0)
     @template = quiz_generate_tempo('t', @tempo, @beats_intro, @beats_keep, @beats_outro)
 
-    puts "\e[2K\r\e[0mReady to play ?\n\nThen press any key, wait for count-down and start playing in sync ..."
+    puts "\e[2K\r\e[0mReady to play?\n\nThen press any key, wait for count-down and start playing in sync ..."
     puts "\e[2mOr press BACKSPACE to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
     return false if one_char == 'BACKSPACE'
@@ -2093,7 +2093,7 @@ class KeepTempo < QuizFlavour
     end
     Process.kill('HUP', rec_pid)
     Process.wait(rec_pid)
-    puts "\e[0mGO !\n\n"
+    puts "\e[0mGO!\n\n"
 
     # play and record
     wait_thr = Thread.new do
@@ -2153,7 +2153,7 @@ class KeepTempo < QuizFlavour
     puts "\e[2m  Length of played template = %.2f sec, length of untrimmed recording = %.2f\e[0m" % [len_tempo, len_rec]
 
     @warned = if (len_tempo - len_rec).abs > @slice / 4
-                puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec} !\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n      \e[32mBut you can still judge by ear !\n\n      Have you still been   \e[34mIN TIME\e[32m   at the end ?\n\n\e[0m  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"                
+                puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec}!\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n      \e[32mBut you can still judge by ear!\n\n      Have you still been   \e[34mIN TIME\e[32m   at the end?\n\n\e[0m  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"                
                 true
               else
                 false
@@ -2258,7 +2258,7 @@ class KeepTempo < QuizFlavour
     elsif @beats_found.length != @beats_keep
       lom = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' )
       what = lom + '  than expected'
-      stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep}) !\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
+      stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep})!\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
       @@history << 'you-played-' + lom.downcase + '-than-expected'
 
     else
@@ -2373,7 +2373,7 @@ class NotInScale < QuizFlavour
     @choices = @holes.map {|h| @hide[h]}
     @choices_orig = @choices.clone
     @solution = @hide[@hole_notin]
-    @prompt = "Which hole does not belong to scale '#{@scale_name}' ?"
+    @prompt = "Which hole does not belong to scale '#{@scale_name}'?"
     @help_head = 'Hole (in disguise)'
   end
 

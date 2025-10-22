@@ -204,7 +204,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     h2n[lick[:holes].reject {|h| musical_event?(h)}] << lick[:name]
   end
   h2n = h2n.to_a.select {|p| p[1].length > 1}.to_h
-  err "Some hole-sequences appear under more than one name: #{h2n.inspect} ! (add tag 'dup' to avoid this error) (file #{lfile})" if h2n.length > 0
+  err "Some hole-sequences appear under more than one name: #{h2n.inspect}! (add tag 'dup' to avoid this error) (file #{lfile})" if h2n.length > 0
 
   # check progressions and add info
   name2prog.keys.each do |pname|
@@ -326,7 +326,7 @@ end
 
 def create_initial_lick_library lfile
   if $type == 'richter'
-    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !"
+    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist!"
     puts "\nCreating it with five sample licks and loads of comments,"
     puts "explaining the format."
     puts
@@ -356,7 +356,7 @@ def create_initial_lick_library lfile
     puts "(where you may also reread these and more suggestions)"
     puts
   else
-    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist !\n\n"
+    puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist!\n\n"
     puts "Creating an empty initial version for type '#{$type}'.\n\n"
     try_richter = ERB.new(IO.read("#{$dirs[:install]}/resources/try_richter.txt")).result(binding).lines
     try_richter.pop while try_richter[-1].strip.empty?

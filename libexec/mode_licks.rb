@@ -350,7 +350,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         redo
       end
 
-      print_mission("Listen ... and !") unless oride_l_message2
+      print_mission("Listen ... and!") unless oride_l_message2
       sleep 0.3
 
       if first_round
@@ -449,10 +449,10 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
             else
               if $num_quiz_replay == 1 
-                "Play the note you have heard !"
+                "Play the note you have heard!"
               else
                 "Play note \e[32m#{idx+1}\e[0m of" +
-                  " #{to_play[:all_wanted].length} you have heard !"
+                  " #{to_play[:all_wanted].length} you have heard!"
               end
             end
           end,
@@ -620,12 +620,12 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         print "\e[#{$lines[:hint_or_message]}H\e[K"
         unless [:replay, :replay_menu, :shift_inter, :change_partial, :forget, :next, :change_lick, :edit_lick_file, :change_tags, :reverse_holes, :shuffle_holes, :lick_info, :toggle_record_user, :change_num_quiz_replay, :quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
-            print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right !  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
+            print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right!  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
             print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true)
             sleep 0.5
           else
-            print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'} !\e[0m\e[K"
+            print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'}!\e[0m\e[K"
           end
           full_seq_shown = true
           sleep 0.5 unless cmnt_text

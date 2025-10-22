@@ -622,7 +622,7 @@ def parse_arguments_for_mode
         if $opts[:what]
           err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types." + summary[:highlight][:explain]
         else
-          err "First argument for mode #{$mode} should belong to one of the #{summary[:types][:count]} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  #{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
+          err "First argument for mode #{$mode} should belong to one of the #{summary[:types][:count]} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
         end
       end
     else

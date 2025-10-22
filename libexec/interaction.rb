@@ -1067,7 +1067,7 @@ def handle_win_change
   print "\e[s\e[2J\e[u"
   while !check_screen(graceful: true)
     puts "\e[2m"
-    puts "\n\n\e[0mScreensize is not acceptable, see above !"
+    puts "\n\n\e[0mScreensize is not acceptable, see above!"
     puts "\nYou may resize screen right away to continue,"
     puts
     puts "or press ctrl-c to break."
@@ -1190,7 +1190,7 @@ def choose_interactive prompt, names, &block
     elsif key == 'RETURN'
 
       if matching.length == 0
-        $chia_no_matches_text ="\e[0;101m NO MATCHES ! \e[0m Please shorten input '#{input}' above or type ESC to abort !"
+        $chia_no_matches_text ="\e[0;101m NO MATCHES! \e[0m Please shorten input '#{input}' above or type ESC to abort!"
 
       elsif matching[idx_hili][0] == ';'
         clear_area_comment(2)

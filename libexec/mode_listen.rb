@@ -268,7 +268,7 @@ def do_listen
 
     if $ctl_mic[:journal_clear]
       clear_area_comment
-      print "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[0;101mSure to clear journal ?\e[0m\n\n"
+      print "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[0;101mSure to clear journal?\e[0m\n\n"
       print "\e[0m  'c' to save and clear, 'C' (upcase) to clear without save,\n\n   \e[2many other key to cancel ...\e[0m"
       $ctl_kb_queue.clear
       char = $ctl_kb_queue.deq
@@ -526,7 +526,7 @@ end
 
 def tell_no_comment_licks
   clear_area_comment
-  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified !\n  try option   --licks"
+  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified!\n  try option   --licks"
   puts "\n\n\e[2m  #{$resources[:any_key]}\e[2m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq

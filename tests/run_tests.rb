@@ -1594,7 +1594,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms :ENTER
   sleep 2
   expect { screen[16]['First argument for mode print should belong to one of the 11 types'] }
-  expect { screen[20]['It appeared however  2  times as part of a valid choice'] }
+  expect { screen[20]['But it still appears and has been highlighted 2 times as part of valid'] }
   kill_session
 end
 
@@ -3052,7 +3052,7 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[19]['Ready to play ?'] }
+  expect { screen[19]['Ready to play?'] }
   tms :ENTER
   sleep 12
   expect { screen[5]['no beats found'] }
@@ -3720,7 +3720,7 @@ do_test 'id-130: letter s missing in extra argument' do
   tms 'harpwise print lick-prog'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[2]["Did you mean 'lick-progs' instead of 'lick-prog' ?"] }
+  expect { screen[2]["Did you mean 'lick-progs' instead of 'lick-prog'?"] }
 end
 
 do_test 'id-131: check invocation logging' do
@@ -3968,7 +3968,7 @@ do_test 'id-139: jamming pause/resume for jamming' do
   expect { screen[18]["Paused:      (because SPACE has been pressed here)"]}
   File.write $remote_jamming_ps_rs, ""
   sleep 2
-  expect { screen[20]["Paused ... go !    (because SPACE has been pressed in 'harpwise listen')"]}  
+  expect { screen[20]["Paused ... go!    (because SPACE has been pressed in 'harpwise listen')"]}  
   kill_session
 end
 

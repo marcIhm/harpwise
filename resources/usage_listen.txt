@@ -55,7 +55,7 @@ Usage by Examples:
   pentatonic scale in fourth position. However, harpwise only knows it
   in second position (i.e. starting on -2).
 
-  How would you move this scale from second to fourth position ?
+  How would you move this scale from second to fourth position?
 
   The first step would be to get the notes of the minor-pentatonic
   scale:

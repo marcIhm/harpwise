@@ -169,10 +169,10 @@ def analyze_with_aubio file
     if ( maxf - minf ) > 0.1 * aver
       puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
       puts "\n\e[0;101mWARNING:\e[0m\e[33m\nMin and max of recorded samples are too far apart: %5.2f .. %5.2f Hz" % [minf, maxf, aver]
-      puts "Maybe repeat recording more steadily ?\e[0m\n\n"
+      puts "Maybe repeat recording more steadily?\e[0m\n\n"
     end
   else
-    puts "\n\e[0m\e[33mNo frequencies found ! Probably you need to record again.\e[0m\n\n"
+    puts "\n\e[0m\e[33mNo frequencies found! Probably you need to record again.\e[0m\n\n"
   end
   aver
 end
@@ -199,7 +199,7 @@ def inspect_recorded hole, file
     puts "  ET one semitone lower:  #{freq_et_m1.round(1)}"
     puts "  ET one semitone higher: #{freq_et_p1.round(1)}"
     puts "You played much   #{too_low ? 'LOWER' : 'HIGHER'}   than expected for hole #{hole}."
-    puts "\nMaybe repeat recording with the right hole and pitch ?\e[0m\n\n"
+    puts "\nMaybe repeat recording with the right hole and pitch?\e[0m\n\n"
   end
   return freq
 end

@@ -487,7 +487,7 @@ def jamming_send_keys keys, silent: false
         File.write($remote_fifo, key + "\n") unless ENV['HARPWISE_TESTING']
       end
     rescue Timeout::Error, Errno::EINTR
-      err "Could not write '#{key}' to #{$remote_fifo}.\n\nIs 'harpwise listen' still alive ?"
+      err "Could not write '#{key}' to #{$remote_fifo}.\n\nIs 'harpwise listen' still alive?"
     end
   end
 end
@@ -974,7 +974,7 @@ def parse_and_preprocess_jamming_json json, simple: false
   
   if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
     if $source_of[:key] == 'command-line'
-      puts "Got harp key   \e[32m#{$key}\e[0m   from command line;  \e[32mchanging pitch of track accordingly !\e[0m\n\n\e[2mIf you want to play the track unchanged, just omit the key (here: #{$key}) from the\ncommandline.  But for this you will need to have a harmonica in the key of #{jam_pms['harp_key']}.\n"      
+      puts "Got harp key   \e[32m#{$key}\e[0m   from command line;  \e[32mchanging pitch of track accordingly!\e[0m\n\n\e[2mIf you want to play the track unchanged, just omit the key (here: #{$key}) from the\ncommandline.  But for this you will need to have a harmonica in the key of #{jam_pms['harp_key']}.\n"      
     else
       $key = jam_pms['harp_key']
       set_global_vars_late
@@ -1259,7 +1259,7 @@ def jamming_sleep_wait_for_go
     space_seen, _ = check_for_space_etc(nil)
     break if space_seen
   end
-  print " \e[0m\e[32mgo !\e[0m    "
+  print " \e[0m\e[32mgo!\e[0m    "
   
   space_seen
 end
@@ -1276,7 +1276,7 @@ def jam_get_play_command trim: 0, init_silence: 0
                        else
                          [" pitch #{dsemi * 100}",
                           "shifted from #{sf_key} to #{sf_key_new} by   #{dsemi}   semitones" +
-                          (dsemi.abs >= 3  ?  ",   \e[32mwhich is a lot !\e[0m"  :  '')]
+                          (dsemi.abs >= 3  ?  ",   \e[32mwhich is a lot!\e[0m"  :  '')]
                        end
 
   cmd = if ENV["HARPWISE_TESTING"] || $opts[:print_only]

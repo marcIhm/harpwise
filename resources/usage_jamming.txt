@@ -56,7 +56,7 @@ Usage by Examples:
   the installation-dir of harpwise.
 
   The file '12bar.json' contains the required settings (e.g. location of
-  the backing track) and has many comments (lots of them !), that can help
+  the backing track) and has many comments (lots of them!), that can help
   to understand its content. This is not needed initially but becomes
   essential, if you want to jam along with your own backing-tracks; for
   this you will need to create your own json-file.

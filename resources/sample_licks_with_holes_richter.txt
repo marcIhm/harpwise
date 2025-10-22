@@ -191,7 +191,7 @@
 # becomes cumbersome ...
 
 #
-# Once you have defined more than a dozen licks (recommended !),
+# Once you have defined more than a dozen licks (recommended!),
 # you may or may not want to reduce typing effort when adding a
 # new lick. This can be done by setting some default-information
 # and reusing it in many licks.

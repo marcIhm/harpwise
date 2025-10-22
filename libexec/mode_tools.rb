@@ -184,7 +184,7 @@ def tool_make_scale holes
     puts
     puts "Look, the new user-defined scale   '#{sname}'   already exists as a file:\n\n  \e[2m#{sfile}\e[0m"
     puts
-    puts "Do you want to overwite it ?"
+    puts "Do you want to overwrite it?"
     print room
     print "Enter 'y' to overwrite, anything else to cancel: "
     answer = gets.chomp.strip
@@ -947,7 +947,7 @@ def tool_translate to_handle
   counts = translations.map {|nm, hls| [nm, hls.select {|h| h}.length]}.to_h
   mx = counts.values.max
   if mx == 0
-    puts "None of the available notations could match  \e[1many\e[0m  hole from your input !"
+    puts "None of the available notations could match  \e[1many\e[0m  hole from your input!"
     puts
     exit
   end

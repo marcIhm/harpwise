@@ -324,7 +324,7 @@ def record_and_review_hole hole
         play_wave sample_file, 5
         puts 'done'
       else
-        print "\e[91mFile #{sample_file} does not exist !\e[0m\n"
+        print "\e[91mFile #{sample_file} does not exist!\e[0m\n"
       end
     when :draw
       do_draw = true
@@ -475,7 +475,7 @@ def samples_check to_handle
       counts.keys.sort.each {|w| puts "#{head}  #{w.rjust(maxlen)}:  #{counts[w]}"}
       puts
     else
-      puts "No samples for key #{$key} yet; maybe record or create some ?\n\e[2m#{for_sample_generation}\e[0m"
+      puts "No samples for key #{$key} yet; maybe record or create some?\n\e[2m#{for_sample_generation}\e[0m"
     end
     puts
   end
@@ -490,7 +490,7 @@ def samples_delete to_handle
   
   puts
   if do_all_keys
-    puts "About to   \e[91mdelete\e[0m   recorded samples for   \e[91mall #{these_keys.length} keys !\e[0m"
+    puts "About to   \e[91mdelete\e[0m   recorded samples for   \e[91mall #{these_keys.length} keys!\e[0m"
     puts
     puts mindful
     puts
@@ -588,7 +588,7 @@ def create_frequency_file_from_mp3s sample_dir
     end
   end
   if missing.length > 0
-    puts "After deleting recorded samples, there are no generated sample for these holes:   #{missing.join(' ')}\nProbably you need to generate them first !"
+    puts "After deleting recorded samples, there are no generated sample for these holes:   #{missing.join(' ')}\nProbably you need to generate them first!"
   else
     freq_file = "#{sample_dir}/frequencies.yaml"
     write_freq_file hole2freq, freq_file
