@@ -124,7 +124,7 @@ def do_play to_play
       
     when 'progression', 'prog'
       
-      err "Need at a base hole or note and some semitone diffs or intervals, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
+      err "Need a base hole or note and some semitone diffs or intervals to play a progression, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
       progs = args_for_extra.
                 # replace dot by something unlikely, because some day
                 # it might also be part of a hole-notation

@@ -10,6 +10,10 @@ screenshot:
 help:
   -
 
+license:
+  - |
+    produce license information for harpwise
+
 add_scales:
   - |
     load these additional scales,

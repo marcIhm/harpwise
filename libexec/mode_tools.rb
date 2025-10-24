@@ -609,7 +609,7 @@ end
 
 
 def tool_progression to_handle
-  err "Need at a base note and some distances, e.g. 'a4 4st 10st'" unless to_handle.length >= 1
+  err "Need a base note and some distances to construct a progression, e.g. 'a4 4st 10st'" unless to_handle.length >= 1
 
   puts
   puts_underlined 'Progression:'

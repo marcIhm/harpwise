@@ -21,6 +21,14 @@ def parse_arguments_early
     exit 0
   end
   
+  # produce license
+  if ARGV.include?('--license')
+    puts
+    puts File.read("#{$dirs[:install]}/LICENSE")
+    puts
+    exit 0
+  end
+  
   # source of mode, type, scale, key for better diagnostic
   $source_of = {mode: nil, type: nil, key: nil, scale: nil, extra: nil}
 
@@ -53,6 +61,7 @@ def parse_arguments_early
         help: %w(-h --help -? --usage),
         sharps: %w(--sharps),
         flats: %w(--flats),
+        license: %w(--license),
         options: %w(--show-options -o)}],
      [Set[:samples, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
@@ -630,11 +639,11 @@ def parse_arguments_for_mode
       # extra argument
       $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_wwos]) == :extra
       if !$extra
-        print_amongs(:extra, highlight: ARGV[0])
+        summary = print_amongs(:extra, highlight: ARGV[0])
         extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
         wrapped = wrap_words('  ', extra_words, '  ')
-        colored = wrapped.gsub(ARGV[0], "\e[0m\e[32m" + ARGV[0] + "\e[0m\e[2m")
-        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not '#{ARGV[0]}'" 
+        colored = wrapped.gsub(ARGV[0], "\e[0m\e[7m\e[32m" + ARGV[0] + "\e[0m\e[2m")
+        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
       end
     end
   end

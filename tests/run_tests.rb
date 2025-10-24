@@ -2644,7 +2644,8 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[15]['First argument for mode tools should be one of these'] }
+  expect { screen[14]['First argument for mode tools should be one of these'] }
+  expect { screen[21]['You may supply a longer string to see it highlighted'] }
   kill_session
 end
 
@@ -3825,7 +3826,7 @@ do_test 'id-134: invalid arg for mode jamming' do
   tms "harpwise jamming x"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[19]["for mode jamming should be one of these 7"] }
+  expect { screen[18]["for mode jamming should be one of these 7"] }
   kill_session
 end
 
@@ -4165,6 +4166,16 @@ do_test 'id-154: resolve ambigous argument and without --what to jam' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[5]['A 12-bar backing-track and the 3-lick set'] }
+  kill_session
+end
+
+
+do_test 'id-155: show license' do
+  new_session
+  tms 'harpwise --license'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[15]['FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT'] }
   kill_session
 end
 
