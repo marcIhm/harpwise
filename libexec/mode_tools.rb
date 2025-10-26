@@ -7,7 +7,7 @@ def do_tools to_handle
   $lick_file ||= get_lick_file
 
   # common error checking
-  err_args_not_allowed(to_handle) if %w(edit-licks edit-config chords).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if %w(edit-config chords).include?($extra) && to_handle.length > 0
 
   case $extra
   when 'transpose'
@@ -30,10 +30,12 @@ def do_tools to_handle
     tool_licks_from_scale to_handle
   when 'chart'
     tool_chart to_handle
-  when 'edit-licks'
-    tool_edit_file $lick_file, to_handle
+  when 'edit', 'edit-licks'
+    tool_edit_lick to_handle
   when 'edit-config'
     tool_edit_file $early_conf[:config_file_user], to_handle
+  when 'edit-jam'
+    tool_edit_jam to_handle
   when 'transcribe'
     tool_transcribe to_handle
   when 'translate'
@@ -709,12 +711,14 @@ def tool_chart to_handle
 end
 
 
-def tool_edit_file file, to_handle = []
-
-  err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 0
-  puts "\nInvoking #{$editor} on \e[0m\e[32m#{file}\e[0m\n\n"
+def tool_edit_file file, to_handle = [], lno: nil
+  puts "\nInvoking #{$editor} on \e[0m\e[32m#{file}" +
+       (lno  ?  ", line number #{lno}"  :  '') +
+       "\e[0m\n\n"
   sleep 1 
-  exec($editor + ' ' + file)
+  exec($editor + ' ' +
+       (lno  ?  "+#{lno} "  :  '') +
+       file)
 end
 
 
@@ -1512,4 +1516,44 @@ def tool_utils
   puts
   puts "Find these utilities in:   #{$dirs[:install]}/utils"
   puts
+end
+
+
+def tool_edit_lick to_handle
+  lno = nil
+  case to_handle.length
+  when 0
+  # do nothing
+  when 1
+    amongs = [:lick, :lick_prog]
+    $all_licks, $licks, $all_lick_progs = read_licks      
+    what = recognize_among(to_handle[0], amongs)
+    if !what
+      summary = print_amongs(amongs, highlight: to_handle[0])
+      err(($resources[:err_among] % ['harpwise tools edit-licks',
+                                     summary[:types][:count],
+                                     summary[:highlight][:color],
+                                     to_handle[0]]) +
+          summary[:highlight][:explain])
+    end
+    # having the name, we still dont know if it is a lick or a lick-progression
+    lno = $all_licks.find {|lk| lk[:name] == to_handle[0]}.then {|lk| lk && lk[:lno]} ||
+          $all_lick_progs.find {|lp| lp[1][:name] == to_handle[0]}.then {|lp| lp && lp[1][:lno]} ||
+          err("Internal error: could not figure out line-number for '#{to_handle[0]}' in #{$lick_file}")
+  else
+    err "'harpwise tools edit-licks' only accepts zero or one arguments, but not #{to_handle.length}: #{to_handle}"
+  end
+  tool_edit_file $lick_file, to_handle, lno: lno
+end
+
+
+def tool_edit_jam to_handle
+  err("'harpwise tools edit-jam' only requires a single (but not #{to_handle.length}) arguments : #{to_handle}") unless to_handle.length == 1
+  if !$jamming_rel2abs[to_handle[0]]
+    puts
+    puts "Known jams:"
+    print_in_columns($jamming_rel2abs.keys, pad: :tabs)
+    err("Given jam name '#{to_handle[0]}' is unknown, see above for choices.")
+  end
+  tool_edit_file($jamming_rel2abs[to_handle[0]])
 end

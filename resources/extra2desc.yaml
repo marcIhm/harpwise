@@ -131,11 +131,16 @@ tools:
   utils, utilities: |
     Describe some utilities, that come with harpwise and need
     to be invoked seperately.
-  edit-licks: |
-    invoke editor on your lickfile 
+  edit, edit-licks: |
+    invoke editor on your lickfile
+    optionally add name of lick or lick-progression to land on
   edit-config: |
     invoke editor on your personal config file
     <%= $early_conf[:config_file_user] %>
+  edit-jam: |
+    edit given jamming-file. This is much like "harpwise jam edit",
+    which however has a more relaxed way of specifying the jam.
+    See there for details.
   diag, diag1: |
     help to diagnose problems with your sound system; i.e.
     check that recording and replay work properly.

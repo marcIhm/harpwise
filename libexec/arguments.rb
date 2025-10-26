@@ -38,7 +38,7 @@ def parse_arguments_early
         if $conf[:all_keys].include?(ARGV[0])
           "However your first argument '#{ARGV[0]}' is a key, which should be placed as a second argument on the command line."
         else
-          "\e[2m(note, that mode 'develop' is only useful for the maintainer or developer of harpwise.)\e[0m"
+          "\e[2m(note, that mode 'develop' is only useful when developing harpwise.)\e[0m"
         end
   end.to_sym
   err "Your first argument '#{ARGV[0]}' can be read as a key and as an abbreviation for mode #{$mode}; please supply more characters to avoid ambiguity." if $conf[:all_keys].include?(ARGV[0])
@@ -631,7 +631,11 @@ def parse_arguments_for_mode
         if $opts[:what]
           err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_','-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types." + summary[:highlight][:explain]
         else
-          err "First argument for mode #{$mode} should belong to one of the #{summary[:types][:count]} types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
+          err(($resources[:err_among] % ["mode #{$mode}",
+                                         summary[:types][:count],
+                                         summary[:highlight][:color],
+                                         ARGV[0]]) +
+              summary[:highlight][:explain]    )
         end
       end
     else

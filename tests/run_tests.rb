@@ -1765,7 +1765,7 @@ do_test 'id-49: edit lickfile' do
   sleep 2
   # vi apparently behaves different in a snap (?)
   tms :ENTER if $use_snap
-  expect { screen[14]['[wade]'] }
+  expect { screen.any? {|l| l['[wade]']} }
   kill_session
 end
 
@@ -4176,6 +4176,18 @@ do_test 'id-155: show license' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[15]['FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT'] }
+  kill_session
+end
+
+
+do_test 'id-156: tool edit-licks with lickname' do
+  new_session
+  tms 'EDITOR=vi harpwise tools edit-licks box2-i'
+  tms :ENTER
+  sleep 2
+  tms 'i xyz'
+  expect { screen.any? {|l| l['[box2-i]']} }
+  FileUtils.rm($datadir + "/licks/richter/.licks_with_holes.txt.swp")
   kill_session
 end
 

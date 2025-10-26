@@ -24,7 +24,7 @@ def set_global_vars_early
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks jamming play print samples tools develop)
+  $early_conf[:modes] = %w(listen quiz licks jamming play print tools samples develop)
 
   # expectations for config-file
   $conf_meta = Hash.new
@@ -230,7 +230,8 @@ def set_global_vars_early
     hl_wheel2: ["\e[2m\e[34m", "\e[34m", "\e[94m"],
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
     playing_on: "playing on",
-    term_on_quit: "Terminating on user request (quit) ..."
+    term_on_quit: "Terminating on user request (quit) ...",
+    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  \e[1m%s%s\e[0m"
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
@@ -1264,7 +1265,7 @@ def set_global_musical_vars rotated: false
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
 
-  if [:play, :print, :jamming].include?($mode)
+  if [:play, :print, :jamming, :tools].include?($mode)
     $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content
   end
   
