@@ -3,7 +3,8 @@ rsync -av /home/ihm/git/harpwise . --exclude .git --delete
 erb /home/ihm/git/harpwise/snap/snapcraft.yaml.erb >./snapcraft.yaml
 rm harpwise_*_amd64.snap
 sudo snap remove harpwise
-snapcraft clean ; snapcraft
+snapcraft clean
+snapcraft pack
 sudo snap install harpwise_*_amd64.snap --devmode
 
 echo "When satisified, then do:"
