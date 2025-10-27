@@ -717,6 +717,7 @@ def do_jamming_list_single file, multi: false
 
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
+  puts " Ex. Listen:  #{pms['example_harpwise']}"
   prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
         err("Could not find option  --lick-prog  in example-command:  '#{pms['example_harpwise']}'")
   err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
