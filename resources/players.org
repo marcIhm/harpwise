@@ -1,4 +1,4 @@
-# -*- fill-column: 72 -*-
+# -*- fill-column: 61 -*-
 
 * Little Walter
   
@@ -10,17 +10,20 @@
 
 ** notes
 
-  - Born as Marion Walter Jacobs.  Quit school by the age of 12, working
-    and busking in New Orleans, Memphis and St. Louis
-  - Performed with Sonny Boy Williamson II, Sunnyland Slim, Honeyboy
-    Edwards, and others on guitar and harmonica
+  - Born as Marion Walter Jacobs.  Quit school by the age of
+    12, working and busking in New Orleans, Memphis and
+    St. Louis
+  - Performed with Sonny Boy Williamson II, Sunnyland Slim,
+    Honeyboy Edwards, and others on guitar and harmonica
   - Joined Muddy Waters' band in 1948
-  - 14 top-ten hits on the Billboard R&B charts between 1952 and 1958
-  - His song "Juke" is the only harmonica instrumental ever to be a
-    number one hit on the Billboard R&B chart
-  - He was the "king of all post-war blues harpists", who "took the
-    humble mouth organ in dazzling amplified directions that were
-    unimaginable prior to his ascendancy." (Bill Dahl)
+  - 14 top-ten hits on the Billboard R&B charts between 1952
+    and 1958
+  - His song "Juke" is the only harmonica instrumental ever
+    to be a number one hit on the Billboard R&B chart
+  - He was the "king of all post-war blues harpists", who
+    "took the humble mouth organ in dazzling amplified
+    directions that were unimaginable prior to his
+    ascendancy." (Bill Dahl)
 
 ** sources
   
@@ -71,7 +74,8 @@
    
   - Forms a world class blues-duo with Paul Rishell
   - Sings and plays mandoline and piano too
-  - Worked with the Tarbox Ramblers and the Susan Tedeschi Band
+  - Worked with the Tarbox Ramblers and the Susan Tedeschi
+    Band
 
 ** sources
   
@@ -95,12 +99,14 @@
 
 ** notes
    
-  - Her father was a minister in a Baptist church, her mother a singer
-  - Toured with the American Folk Blues Festival in Europe in 1965
-  - She was given her nickname, "Big Mama," because of her strong voice,
-    size, and personality.
-  - Thornton has been praised for subverting traditional roles of
-    African-American women.
+  - Her father was a minister in a Baptist church, her mother
+    a singer
+  - Toured with the American Folk Blues Festival in Europe in
+    1965
+  - She was given her nickname, "Big Mama," because of her
+    strong voice, size, and personality.
+  - Thornton has been praised for subverting traditional
+    roles of African-American women.
 
 ** sources
   
@@ -120,12 +126,14 @@
 
 ** notes
    
-  - Robert Palmer named him as "one of the three great harmonica
-    soloists of modern blues" with the two others being cited as Little
-    Walter and Sonny Boy Williamson II.
+  - Robert Palmer named him as "one of the three great
+    harmonica soloists of modern blues" with the two others
+    being cited as Little Walter and Sonny Boy Williamson II.
   - Known for his unique tongue-blocking techniques and tone
-  - Toured extensively in places such as Germany, Finland, and England
-  - Accompanied John Lee Hooker in the 1980 film The Blues Brothers
+  - Toured extensively in places such as Germany, Finland,
+    and England
+  - Accompanied John Lee Hooker in the 1980 film The Blues
+    Brothers
 
 ** sources
   
@@ -143,12 +151,14 @@
 ** bio
      
   - March 28, 1941 -
-  - American session musician, harmonica player and multi-instrumentalist
+  - American session musician, harmonica player and
+    multi-instrumentalist
   - Inducted into the Country Music Hall of Fame in 2009
 
 ** notes
    
-  - His playing is heard on recordings by Elvis Presley, Bob Dylan,
+  - His playing is heard on recordings by Elvis Presley, Bob
+    Dylan,
   - Johnny Cash, Chet Atkins, Waylon Jennings, Roy Orbison,
   - Leon Russell, and Loretta Lynn
 
@@ -172,11 +182,11 @@
 
 ** notes
    
-  - Journey through the blues from his birth in Mississippi to Memphis,
-    Chicago and California
+  - Journey through the blues from his birth in Mississippi
+    to Memphis, Chicago and California
   - Fifty years of nonstop touring, released over 20 albums
-  - Reportedly the inspiration for Elwood Blues from the film "The Blues
-    Brothers"
+  - Reportedly the inspiration for Elwood Blues from the film
+    "The Blues Brothers"
 
 ** sources
   
@@ -195,16 +205,17 @@
 ** bio
      
   - April 20, 1958 - September 23, 2007
-  - American blues harmonica player, singer, guitarist and songwriter
+  - American blues harmonica player, singer, guitarist and
+    songwriter
 
 ** notes
    
-  - His Album Mr. Freeze was named as on of the 20 best blues albums of
-    the 1990s
-  - Recorded with Steve James, Nick Curran, Jimmie Vaughan and many
-    others
-  - Released an instructional double CD, Blues Harmonica: "The Blues And
-    Beyond"
+  - His Album Mr. Freeze was named as on of the 20 best blues
+    albums of the 1990s
+  - Recorded with Steve James, Nick Curran, Jimmie Vaughan
+    and many others
+  - Released an instructional double CD, Blues Harmonica:
+    "The Blues And Beyond"
 
 ** sources
   
@@ -230,7 +241,8 @@
 
 ** sources
   
-  - https://en.wikipedia.org/wiki/George_%22Harmonica%22_Smith
+  -
+    https://en.wikipedia.org/wiki/George_%22Harmonica%22_Smith
 
 ** songs
    
@@ -242,20 +254,20 @@
 ** bio
      
   - July 31, 1951 -
-  - American multi-instrumentalist, keyboardist and virtuoso harmonica
-    player
-  - Grammy Award for Best Pop Instrumental and Best Instrumental
-    Composition
+  - American multi-instrumentalist, keyboardist and virtuoso
+    harmonica player
+  - Grammy Award for Best Pop Instrumental and Best
+    Instrumental Composition
 
 ** notes
    
-  - Plays in many genres: jazz, classical, rock, folk, Latin, blues,
-    country, and world music
-  - Discovered the overblow and overdraw techniques for chromatic
-    playing in 1970
-  - Has been realistically presented as one of the most important and
-    radical harmonica innovators of the twentieth century (quote from
-    https://www.allmusic.com)
+  - Plays in many genres: jazz, classical, rock, folk, Latin,
+    blues, country, and world music
+  - Discovered the overblow and overdraw techniques for
+    chromatic playing in 1970
+  - Has been realistically presented as one of the most
+    important and radical harmonica innovators of the
+    twentieth century (quote from https://www.allmusic.com)
 
 ** sources
   
@@ -273,13 +285,14 @@
   - June 10, 1910 - January 10, 1976
   - Born as Chester Arthur Burnett
   - American blues singer and guitarist
-  - Inducted in the Blues Hall of Fame in 1980 and the Rock and Roll Hall
-    of Fame in 1991
+  - Inducted in the Blues Hall of Fame in 1980 and the Rock
+    and Roll Hall of Fame in 1991
 
 ** notes
    
   - Learned from Charley Patton and Sonny Boy Williamson II
-  - Known for his booming voice and physical presence at 6 ft, 6 in
+  - Known for his booming voice and physical presence at 6
+    ft, 6 in
   - One of the most influential blues musicians of all time
   - Had a pioneering electric blues Band in Memphis
   - Played with Son House, had a show on KWEM radio station
@@ -330,9 +343,10 @@
 ** notes
    
   - Began taking piano lessons at the age of four
-  - Has been compared with Raymond Chandler (for the story in his songs)
-  - "Harman had one of the tightest bands anywhere" (Mary Katherine
-    Aldin)
+  - Has been compared with Raymond Chandler (for the story in
+    his songs)
+  - "Harman had one of the tightest bands anywhere" (Mary
+    Katherine Aldin)
 
 ** sources
   
@@ -355,7 +369,8 @@
 
 ** notes
    
-  - Was named "Best Harmonica Player" at the 2010 Blues Music Awards
+  - Was named "Best Harmonica Player" at the 2010 Blues Music
+    Awards
 
 ** sources
   
@@ -374,16 +389,18 @@
      
   - September 6, 1925 - August 29, 1976
   - American blues musician and songwriter
-  - Inducted into the Blues Hall of Fame in 1980 and the Rock and Roll
-    Hall of Fame in 1991
+  - Inducted into the Blues Hall of Fame in 1980 and the Rock
+    and Roll Hall of Fame in 1991
 
 ** notes
    
-  - Reed influenced other musicians, such as Elvis Presley, Hank
-    Williams Jr., and the Rolling Stones, who recorded his songs
-  - Toured Europe with the American Folk Blues Festival in 1968
-  - "Perhaps the most influential bluesman of all," due to his easily
-    accessible style (quote Cub Koda)
+  - Reed influenced other musicians, such as Elvis Presley,
+    Hank Williams Jr., and the Rolling Stones, who recorded
+    his songs
+  - Toured Europe with the American Folk Blues Festival in
+    1968
+  - "Perhaps the most influential bluesman of all," due to
+    his easily accessible style (quote Cub Koda)
 
 ** sources
   
@@ -428,8 +445,8 @@
 ** notes
    
   - Performs up to 300 concert dates per year
-  - In 2016 he won a Blues Music Award in the category Instrumentalist -
-    Harmonica
+  - In 2016 he won a Blues Music Award in the category
+    Instrumentalist - Harmonica
   - Founder of the "The Fabulous Thunderbirds"
 
 ** sources
@@ -448,16 +465,18 @@
 ** bio
      
   - March 24, 1948 -
-  - Danish harmonica player, vocalist and harmonica manufacturer
+  - Danish harmonica player, vocalist and harmonica
+    manufacturer
 
 ** notes
    
-  - Moved to New York at the age of 18 with little more than a harmonica
-    in his pocket
-  - Together with Eric Burdon formed the crossover band 'War' where he
-    formed a horn section together with the saxophone
-  - "...among the best rock-blues-soul harmonica players" (quote Bill
-    Snyder)
+  - Moved to New York at the age of 18 with little more than
+    a harmonica in his pocket
+  - Together with Eric Burdon formed the crossover band 'War'
+    where he formed a horn section together with the
+    saxophone
+  - "...among the best rock-blues-soul harmonica players"
+    (quote Bill Snyder)
   - His company sells harmonicas in many different tunings
 
 ** sources
@@ -505,7 +524,8 @@
 ** notes
    
   - Born in Chicago, met Muddy Waters and other blues greats
-  - Combined electric Chicago blues with a rock urgency and jazz fusion
+  - Combined electric Chicago blues with a rock urgency and
+    jazz fusion
   - Formed one of the first racially integrated blues groups
   - Played at Fillmore, Monterey and Woodstock
 
@@ -527,9 +547,10 @@
 
 ** notes
    
-  - "If the world were a hipper place, Paul deLay would have been a
-    superstar." (quote Rick Estrin)
-  - His work on the chromatic harp is considered by many to be unrivaled
+  - "If the world were a hipper place, Paul deLay would have
+    been a superstar." (quote Rick Estrin)
+  - His work on the chromatic harp is considered by many to
+    be unrivaled
 
 ** sources
   
@@ -552,8 +573,8 @@
 ** notes
    
   - Formed the duo Cephas & Wiggins with John Cephas
-  - They toured the USA, as well as Africa, Asia, South and Central
-    America, and the Soviet Union
+  - They toured the USA, as well as Africa, Asia, South and
+    Central America, and the Soviet Union
   - Known for his "blistering harmonica solos"
   - National Heritage Fellow
 
@@ -575,16 +596,19 @@
 
 ** notes
    
-  - Won the 1994 Blues Music Award for Song of the Year for his
-    composition "My Next Ex-Wife"
-  - Won the 2013 Blues Music Award for Best Instrumentalist - Harmonica
-  - Played around the world with his band "Rick Estrin & The Nightcats"
-  - Muddy Waters tried to hire Estrin as a sideman but Estrin did not
-    receive the phone call
+  - Won the 1994 Blues Music Award for Song of the Year for
+    his composition "My Next Ex-Wife"
+  - Won the 2013 Blues Music Award for Best Instrumentalist -
+    Harmonica
+  - Played around the world with his band "Rick Estrin & The
+    Nightcats"
+  - Muddy Waters tried to hire Estrin as a sideman but Estrin
+    did not receive the phone call
 
 ** sources
   
-  - https://en.wikipedia.org/wiki/Rick_Estrin_%26_The_Nightcats
+  -
+    https://en.wikipedia.org/wiki/Rick_Estrin_%26_The_Nightcats
 
 ** songs
    
@@ -603,8 +627,8 @@
    
   - Born in California, started with guitar at age of 6 or 7
   - Has toured US, Canada and Europe
-  - With his wife Honey, forms The Mighty Flyers; their boogie sound
-    combines the styles of jump blues,
+  - With his wife Honey, forms The Mighty Flyers; their
+    boogie sound combines the styles of jump blues,
   - West Coast blues and Chicago blues
 
 ** sources
@@ -654,9 +678,10 @@
 
 ** notes
    
-  - One of the most recorded blues musicians of the 1930s and 1940s
-  - Was a mentor to blue musicians in the chicago area, including Muddy
-    Waters
+  - One of the most recorded blues musicians of the 1930s and
+    1940s
+  - Was a mentor to blue musicians in the chicago area,
+    including Muddy Waters
   - Has been called "the father of modern blues harp"
 
 ** sources
@@ -680,9 +705,9 @@
 
 ** notes
    
-  - Known for his energetic blues harmonica style, which frequently
-    included vocal whoops and hollers and occasionally imitations of
-    trains and fox hunts
+  - Known for his energetic blues harmonica style, which
+    frequently included vocal whoops and hollers and
+    occasionally imitations of trains and fox hunts
   - Recorded numerous songs with Brownie McGhee
   - Went blind at the age of 16
 
@@ -706,8 +731,9 @@
 
 ** notes
    
-  - Clarke was a master of both cross and chromatic harmonica styles and
-    many consider him among the blues harmonica greats
+  - Clarke was a master of both cross and chromatic harmonica
+    styles and many consider him among the blues harmonica
+    greats
   - Played regularly with George "Harmonica" Smith
 
 ** sources
@@ -730,11 +756,11 @@
 
 ** notes
    
-  - Co-founder, lead vocalist, and frontman of the rock band Blues
-    Traveler
+  - Co-founder, lead vocalist, and frontman of the rock band
+    Blues Traveler
   - Known for switching keys several times within a song
-  - On stage uses a special Microphone with switches for the audio
-    effects
+  - On stage uses a special Microphone with switches for the
+    audio effects
   - Hat with band of flattened Harmonica cover plates
 
 ** sources
@@ -761,7 +787,8 @@
    
   - Uses overblows regularly, learned from Howard Levy
   - Formed the blues/jazz fusion band the Delcomos in 1990
-  - Worked with Kevin Breit, Bruce Cockburn, Holly Cole and Kim Mitchell
+  - Worked with Kevin Breit, Bruce Cockburn, Holly Cole and
+    Kim Mitchell
 
 ** sources
   
@@ -783,11 +810,12 @@
 
 ** notes
    
-  - Best known for playing on the 1978 Rolling Stones album Some Girls
+  - Best known for playing on the 1978 Rolling Stones album
+    Some Girls
   - Partnered with the blues guitarist Louisiana Red
   - Appeared with Brownie McGhee in the film Angel Heart
-  - "At times, it sounds as if two harps were working at once..."
-    (quote Chicago Tribune)
+  - "At times, it sounds as if two harps were working at
+    once..."  (quote Chicago Tribune)
 
 ** sources
   
@@ -810,7 +838,8 @@
    
   - Also played bass guitar
   - Inducted into the Blues Hall of Fame in 2023
-  - Taught himself how to play; proficient by the age of eight
+  - Taught himself how to play; proficient by the age of
+    eight
 
 ** sources
 
@@ -826,14 +855,14 @@
 ** bio
      
   - Born 1967 in Giessen, Germany
-  - American blues harmonica player, teacher and maker of customized
-    harmonicas
+  - American blues harmonica player, teacher and maker of
+    customized harmonicas
 
 ** notes
    
   - Forms a duo with Eric Noden
-  - Arguably the worlds foremost authority on nearly all aspects of the
-    diatonic harmonica
+  - Arguably the worlds foremost authority on nearly all
+    aspects of the diatonic harmonica
 
 ** sources
   
@@ -873,7 +902,8 @@
 ** bio
      
   - July 4, 1943 – September 3, 1970
-  - Co-founder, leader, singer, and primary composer of Canned Heat
+  - Co-founder, leader, singer, and primary composer of
+    Canned Heat
 
 ** notes
    
@@ -898,9 +928,10 @@
 
 ** notes
    
-  - Played with Yves Montand, Eddy Mitchell, Charles Aznavour and others
-  - Received the award Victoires de la musique (best blues album) in
-    2001 and the Sacem Grand Prix du Jazz in 2003
+  - Played with Yves Montand, Eddy Mitchell, Charles Aznavour
+    and others
+  - Received the award Victoires de la musique (best blues
+    album) in 2001 and the Sacem Grand Prix du Jazz in 2003
   - Plays in the genres of Blues, Bluegrass and Jazz
   - Plays with Mighty Mo Rodgers as well as with Greg Zlap
   - Toured more than 60 countries together with Manu Galvin
@@ -920,18 +951,22 @@
 ** bio
      
   - July 22, Year unknown (but was underage 1990) -
-  - American electric blues harmonicist, songwriter, record producer and
-    radio DJ
+  - American electric blues harmonicist, songwriter, record
+    producer and radio DJ
 
 ** notes
    
-  - Has been awarded the title of 'Best Modern Blues Harmonica Player'
-    three years in a row by Real Blues magazine
-  - Inspired by Little Walter, Lester Young and Illinois Jacquet
-  - Jammed with Snooky Pryor, Homesick James, Pinetop Perkins, A.C. Reed
+  - Has been awarded the title of 'Best Modern Blues
+    Harmonica Player' three years in a row by Real Blues
+    magazine
+  - Inspired by Little Walter, Lester Young and Illinois
+    Jacquet
+  - Jammed with Snooky Pryor, Homesick James, Pinetop
+    Perkins, A.C. Reed
   - Customizes bullet mikes; plays chromatic and diatonic
   - Featuring in the Nick Moss Band
-  - Won a Blues Music Award for "Instrumentalist - Harmonica" in 2019
+  - Won a Blues Music Award for "Instrumentalist - Harmonica"
+    in 2019
 
 ** sources
   
@@ -950,18 +985,18 @@
      
   - March 18, 1960 -
   - Born in Chilton, Wisconsin
-  - American electric blues harmonicist, singer, songwriter and record
-    producer
+  - American electric blues harmonicist, singer, songwriter
+    and record producer
 
 ** notes
    
-  - Was the youngest of four brothers, all of whom were proficient in a
-    musical instrument
+  - Was the youngest of four brothers, all of whom were
+    proficient in a musical instrument
   - Began playing the harmonica aged nine and ten
-  - Played with Percy Strother, Milwaukee Slim, Sonny Rogers, George
-    "Mojo" Buford, and Lazy Bill Lucas.
-  - "AllMusic noted: He resurrects the glory days of '50s Chicago
-    harp-playing..."
+  - Played with Percy Strother, Milwaukee Slim, Sonny Rogers,
+    George "Mojo" Buford, and Lazy Bill Lucas.
+  - "AllMusic noted: He resurrects the glory days of '50s
+    Chicago harp-playing..."
 
 ** sources
   
@@ -983,16 +1018,16 @@
 
 ** notes
    
-  - Came to germany in 1976, worked with Tony Sheridan and Franz Josef
-    Degenhardt
-  - Worked as a studio musicion with Dieter Bohlen, Truck Stop, Hannes
-    Wader and others
-  - As a hohner endorser and consultant helped to develop many new
-    harmonica-models
+  - Came to germany in 1976, worked with Tony Sheridan and
+    Franz Josef Degenhardt
+  - Worked as a studio musicion with Dieter Bohlen, Truck
+    Stop, Hannes Wader and others
+  - As a hohner endorser and consultant helped to develop
+    many new harmonica-models
   - He created several books with playalongs and step-by-step
     instructions
-  - Together with Abi Wallenstein und Martin Röttger formed the band
-    "BluesCulture".
+  - Together with Abi Wallenstein und Martin Röttger formed
+    the band "BluesCulture".
   - Published his first Solo-Album "Perfect Getaway" in 2018
 
 ** sources
@@ -1018,9 +1053,10 @@
    
   - Arrived in France in the late 80 with his harmonica
   - Studied computer science and discovered clubs in paris
-  - Worked with musicians such as Jean-Jacques, Milteau Jean-Marie Ecay
-    or Olivier Ker Ourio
-  - Beeing on tour he worked with Bill Deraime or Paul Personne
+  - Worked with musicians such as Jean-Jacques, Milteau
+    Jean-Marie Ecay or Olivier Ker Ourio
+  - Beeing on tour he worked with Bill Deraime or Paul
+    Personne
 
 ** sources
   
@@ -1039,7 +1075,8 @@
 ** bio
      
   - October 30, 1953 -
-  - American singer, songwriter, guitar player and harmonica player
+  - American singer, songwriter, guitar player and harmonica
+    player
 
 ** notes
    
@@ -1072,8 +1109,8 @@
    
   - Invented and popularized the "Harp Wah"
   - 45 year caeer as a live and studio harmonica player
-  - Has been recorded on over 1,700 individual album cuts, movie scores
-    and national jingles
+  - Has been recorded on over 1,700 individual album cuts,
+    movie scores and national jingles
   - Plays Swing, Country Rock, R&B & Traditional Jazz
   - Wrote the Book: "No, Seriously, I Play Harmonica"
     
@@ -1087,10 +1124,11 @@
 ** bio
      
   - May 13, 1950 -
-  - American and Ghanaian singer-songwriter, musician, keyboard and
-    chromatic harmonica, and record producer
-  - Blind since shortly after his birth, he was a child prodigy who signed
-    with Motown's Tamla label at the age of 11
+  - American and Ghanaian singer-songwriter, musician,
+    keyboard and chromatic harmonica, and record producer
+  - Blind since shortly after his birth, he was a child
+    prodigy who signed with Motown's Tamla label at the age
+    of 11
 
 ** sources
   
@@ -1098,17 +1136,19 @@
 
 ** notes
    
-  - Regarded as one of the most influential musicians of the 20th
-    century
-  - He has won 25 Grammy Awards (the most by a male solo artist)
+  - Regarded as one of the most influential musicians of the
+    20th century
+  - He has won 25 Grammy Awards (the most by a male solo
+    artist)
   - Also played the Hohner Clavinet (e.g. for Superstitous)
-  - One of the best-selling music artists of all time, with sales of
-    over 100 million records worldwide
+  - One of the best-selling music artists of all time, with
+    sales of over 100 million records worldwide
 
 ** songs
    
   - Isn't She Lovely (with harmonica)
-  - There must be an Angel (Eurythmics, harmonica by Stevie Wonder)
+  - There must be an Angel (Eurythmics, harmonica by Stevie
+    Wonder)
   - Isn't She Lovely
   - Superstition
   - Happy Birthday
@@ -1130,9 +1170,12 @@
   - Made the Harmonica a "legitimate voice in jazz"
   - Started to make music at the age of three
   - Was influenced by Django Reinhardt
-  - Played with Benny Goodman, Ella Fitzgerald, Dizzy Gillespie,
-  - Quincy Jones, Natalie Cole, Billy Joel, Paul Simon and others
-  - Was awarded "Jazz Master" by The National Endowment for the Arts
+  - Played with Benny Goodman, Ella Fitzgerald, Dizzy
+    Gillespie,
+  - Quincy Jones, Natalie Cole, Billy Joel, Paul Simon and
+    others
+  - Was awarded "Jazz Master" by The National Endowment for
+    the Arts
   - A metro station in Brussels is named after him
 
 ** songs
@@ -1148,7 +1191,8 @@
   - February 10, 1914 - August 6, 2001
   - American harmonica player and film composer
   - Played professionally at the age of 14
-  - During the McCarthy era he was accused of being a communist
+  - During the McCarthy era he was accused of being a
+    communist
   - Moved to the United Kingdom in 1951 and settled in London
 
 ** sources
@@ -1157,14 +1201,14 @@
 
 ** notes
    
-  - Was one of the first harmonica players to perform major works
-    written for the instrument, often written for him
-  - Played the Rhapsody in Blue for Gershwin who exclaimed "the Goddam
-    thing sounds as if I wrote it for you!"
-  - During the 1940s, Adler and the dancer Paul Draper formed an act and
-    toured nationally and internationally
-  - During his later career, he collaborated with Sting, Elton John and
-    Kate Bush
+  - Was one of the first harmonica players to perform major
+    works written for the instrument, often written for him
+  - Played the Rhapsody in Blue for Gershwin who exclaimed
+    "the Goddam thing sounds as if I wrote it for you!"
+  - During the 1940s, Adler and the dancer Paul Draper formed
+    an act and toured nationally and internationally
+  - During his later career, he collaborated with Sting,
+    Elton John and Kate Bush
 
 ** songs
    
@@ -1187,17 +1231,20 @@
 
 ** notes
    
-  - Considered to be the first African American country music star
-  - Born in Tennessee where at least one of his grandfathers had been
-    enslaved
+  - Considered to be the first African American country music
+    star
+  - Born in Tennessee where at least one of his grandfathers
+    had been enslaved
   - All of his family was involved in music
-  - Learned how to play the harmonica and mandolin at the age of 3
+  - Learned how to play the harmonica and mandolin at the age
+    of 3
   - In 1918 the family moved to Nashville
-  - Toured and performed with Roy Acuff and many well-known country
-    artists during the 1930s
-  - Was fired 1941 due to conflicts in the music industrie and made his
-    living with a shoe shining company
-  - Continued to play the harmonica, but he rarely performed publicly
+  - Toured and performed with Roy Acuff and many well-known
+    country artists during the 1930s
+  - Was fired 1941 due to conflicts in the music industrie
+    and made his living with a shoe shining company
+  - Continued to play the harmonica, but he rarely performed
+    publicly
 
 ** songs
    
@@ -1219,20 +1266,20 @@
 
 ** notes
    
-  - Son of a Jewish father and Protestant mother,[3] and was educated at
-    Princeton University and Columbia University
+  - Son of a Jewish father and Protestant mother,[3] and was
+    educated at Princeton University and Columbia University
   - Credits his music career to the mentorship of two older
-    African-American performers: Nat Riddles, a New York harmonica
-    player, and guitarist Sterling Magee
-  - One of the first amplified blues harp players to make overblows a
-    key element of his stylistic approach
+    African-American performers: Nat Riddles, a New York
+    harmonica player, and guitarist Sterling Magee
+  - One of the first amplified blues harp players to make
+    overblows a key element of his stylistic approach
   - Author of ModernBluesHarmonica.com
-  - Gussow's YouTube channel features more than 500 videos and tutorials
-    teaching on playing blues harmonica
-  - His first solo album, Kick and Stomp, (2010) features him as a
-    one-man band, playing harmonica and percussion.
-  - Professor of English and Southern Studies at the University of
-    Mississippi
+  - Gussow's YouTube channel features more than 500 videos
+    and tutorials teaching on playing blues harmonica
+  - His first solo album, Kick and Stomp, (2010) features him
+    as a one-man band, playing harmonica and percussion.
+  - Professor of English and Southern Studies at the
+    University of Mississippi
 
 ** songs
    

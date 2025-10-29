@@ -936,6 +936,8 @@ class FamousPlayers
     #   'sources' => ['line', 'line'],
     #   'songs'   => ['line', 'line']}]
     #
+    # Some day we may want to merge this with the later processing steps, but this does not
+    # seem urgent.
     semiraw = []
     inner = []
     group = nil
@@ -1008,7 +1010,8 @@ class FamousPlayers
         pplayer << "Featured #{name}"
       end
       pplayer.each do |line|
-        fail "Internal error: This line from #{pfile} has #{line.length} chars, which is more than maximum of #{$conf[:term_min_width]}: '#{line}'" if line.length > $conf[:term_min_width]
+        min = $conf[:term_min_width] - 10
+        fail "Internal error: This line from #{pfile} has #{line.length} chars, which is more than maximum of #{min}: '#{line}'" if line.length > min
       end
 
       # handle pictures
@@ -1033,12 +1036,12 @@ class FamousPlayers
     result_in_names = []
     result_in_printable = []
     @names.each do |name|
-      result_in_names << name if parts.all? {|p| name.downcase[p.downcase]}
+      result_in_names << name if parts.all? {|pa| name.downcase[pa.downcase]}
     end
     @with_details.each do |name|
-      result_in_printable << name if parts.all? {|pa| @printable[name].any? {|pr| pr.downcase[pa]}}
+      result_in_printable << name if parts.all? {|pa| @printable[name].any? {|pr| pr.downcase[pa.downcase]}}
     end
-    result_in_printable = result_in_printable - result_in_names
+    result_in_printable -= result_in_names
     [result_in_names, result_in_printable]
   end
 
@@ -1052,14 +1055,6 @@ class FamousPlayers
   
   def has_details?
     @has_details
-  end
-
-  def dimfor name
-    if @has_details[name]
-      "\e[0m"
-    else
-      "\e[2m"
-    end
   end
 
   def line_stream_current

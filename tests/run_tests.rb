@@ -3894,7 +3894,7 @@ do_test 'id-136: harpwise jamming list' do
   tms :ENTER
   tms "harpwise jamming list 12bar"
   tms :ENTER
-  expect { screen[0]['Sound File:  /home/ihm/git/harpwise/recordings/12bar.mp3']}  
+  expect { screen[0]['Ex. Listen:  harpwise listen --scale-prog 12bar --lick-prog box1 --jamming']}  
   expect { screen[19]['Notes:   (from']}  
   kill_session
 end

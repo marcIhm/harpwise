@@ -540,7 +540,7 @@ def print_players args
 
   if args.length == 0
     puts_underlined "Players known to harpwise"
-    $players.all.each {|p| puts '  ' + $players.dimfor(p) + p + "\e[0m"}
+    $players.all.each {|p| puts '  ' + p + "\e[0m"}
     puts
     puts "\e[2m  r,random: pick one of these at random"
     puts "  l,last: last player (if any) featured in listen"
@@ -568,6 +568,7 @@ def print_players args
     end
 
   elsif args.length == 1 && 'all'.start_with?(args[0])
+
     all_players = $players.all_with_details.shuffle
     all_players.each_with_index do |name, idx|
       puts
@@ -596,20 +597,35 @@ def print_players args
     elsif selected_by_name.length == 1
       print_player $players.structured[selected_by_name[0]]
     elsif selected_by_name.length == 0 && selected_by_content.length == 1
+      puts "\e[2mPlease note, that your input matches only the content for this player, but not its name.\e[0m"
+      puts
       print_player $players.structured[selected_by_content[0]]
     else
       puts "Multiple players match your input:\n"
       puts
-      if total <= 9
-        if selected_by_name.length > 0
-          puts "\e[2mMatches in name:\e[0m"
-          puts
-          selected_by_name.each_with_index {|p,i| puts "  #{i+1}: " + $players.dimfor(p) + p + "\e[0m"}
-        end
+      if selected_by_name.length <= 9
         if selected_by_content.length > 0
-          puts "\n\e[2mMatches in content:\e[0m"
+          puts "\e[2mMatches in content:\e[0m"
           puts
-          selected_by_content.each_with_index {|p,i| puts "  #{i+1+selected_by_name.length}: " + $players.dimfor(p) + p + "\e[0m"}
+          selected_by_content.each_with_index do |p,i|
+            j = i + 1 + selected_by_name.length
+            if j > 9
+              puts "\e[2m  ... more matches omitted\e[0m"
+              break
+            end
+            puts(("  %2d: " % (i + 1 + selected_by_name.length)) + p + "\e[0m")
+          end
+        end
+        if selected_by_name.length > 0
+          puts "\n\e[2mMatches in name:\e[0m"
+          puts
+          selected_by_name.each_with_index do |p,i|
+            pcol = p.clone
+            args.each do |ar|
+              pcol.gsub!(/(#{Regexp.escape(ar)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
+            end
+            puts(("  %2d: " % (i + 1)) + pcol + "\e[0m")            
+          end
         end
         make_term_immediate
         $ctl_kb_queue.clear
@@ -618,7 +634,7 @@ def print_players args
           sleep 0.04
         end
         print "\e[3A"
-        print "Please type one of (1..#{total}) to read details: "
+        print "Please type one of (1..#{[total,9].min}) to read details: "
         char = $ctl_kb_queue.deq
         make_term_cooked
         if (1 .. total).map(&:to_s).include?(char)
@@ -629,10 +645,10 @@ def print_players args
           puts "Invalid input: #{char}"
         end
       else
-        puts "\e[2mMatches in name:\e[0m"
-        selected_by_name.each {|p| puts "  " + p}
         puts "\e[2mMatches in content:\e[0m"
         selected_by_content.each {|p| puts "  " + p}
+        puts "\e[2mMatches in name:\e[0m"
+        selected_by_name.each {|p| puts "  " + p}
         puts
         puts "Too many matches (#{selected.length}); please be more specific"
       end
