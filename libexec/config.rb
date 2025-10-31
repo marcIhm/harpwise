@@ -432,8 +432,8 @@ def find_and_check_dirs_early
   $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
   $sox_fail_however = <<~end_of_however
 
-   sox (or play or rec) did work start correctly; see error-message above.
-   -----------------------------------------------------------------------
+   sox (or play or rec) did not start correctly; see error-message above.
+   ----------------------------------------------------------------------
 
    Please try:
 

@@ -1824,7 +1824,7 @@ class HearKey < QuizFlavour
     
     @prompt = "Key of sequence that has been played:"
     @help_head = "Key"
-    @wavs_created = false
+    @wavs_created = nil
   end
 
   def self.describe_difficulty
@@ -1842,11 +1842,8 @@ class HearKey < QuizFlavour
     $ctl_kb_queue.clear
     if @seq == :chord
       semis = [0, 4, 7].map {|s| isemi + s}
-      unless @wavs_created
-        tfiles = synth_for_inter_or_chord(semis, 0.2, 2, :sawtooth)
-        @wavs_created = true
-      end
-      play_recording_and_handle_kb tfiles
+      @wavs_created ||= synth_for_inter_or_chord(semis, 0.2, 2, :sawtooth)
+      play_recording_and_handle_kb @wavs_created
     elsif @seq.is_a?(Array)
       notes = @seq.map {|s| semi2note(isemi + s)}
       puts
