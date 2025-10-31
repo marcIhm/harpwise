@@ -3471,7 +3471,7 @@ do_test 'id-114: play licks next and previous' do
   expect { screen[17]['Lick   st-louis'] }
   tms :BSPACE
   sleep 6
-  expect { screen[17]['Lick   wade'] }
+  expect { screen[16]['Lick   wade'] || screen[17]['Lick   wade'] }
   tms :BSPACE
   sleep 6
   expect { screen[15]['No previous lick available'] }

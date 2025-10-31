@@ -573,7 +573,7 @@ def print_players args
     all_players.each_with_index do |name, idx|
       puts
       puts
-      print_player $players.structured[name], true
+      print_player $players.structured[name], in_loop: true
       if idx + 1 < all_players.length &&
          ( $opts[:viewer] != 'window' || !$players.structured[name]['image'] )
         make_term_immediate
@@ -597,9 +597,9 @@ def print_players args
     elsif selected_by_name.length == 1
       print_player $players.structured[selected_by_name[0]]
     elsif selected_by_name.length == 0 && selected_by_content.length == 1
-      puts "\e[2mPlease note, that your input matches only the content for this player, but not its name.\e[0m"
+      puts "\e[2mPlease note, that your input matches the \e[0mcontent only\e[2m for this player, but not its name.\e[0m"
       puts
-      print_player $players.structured[selected_by_content[0]]
+      print_player $players.structured[selected_by_content[0]], highlight: args 
     else
       puts "Multiple players match your input:\n"
       puts
@@ -640,7 +640,7 @@ def print_players args
         if (1 .. total).map(&:to_s).include?(char)
           puts char
           puts "\n----------------------\n\n"
-          print_player $players.structured[selected[char.to_i - 1]]
+          print_player $players.structured[selected[char.to_i - 1]], highlight: args
         else
           puts "Invalid input: #{char}"
         end
@@ -658,7 +658,7 @@ def print_players args
 end
 
 
-def print_player player, in_loop = false
+def print_player player, highlight: nil, in_loop: false
   puts_underlined player['name']
   # from puts_underlined
   lines = 3
@@ -677,6 +677,11 @@ def print_player player, in_loop = false
       lines += 1
       player[group].each do |line|
         txt = "  #{line}"
+        if highlight
+          highlight.each do |hl|
+            txt.gsub!(/(#{Regexp.escape(hl)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
+          end
+        end
         puts txt
         lines += 1
         twidth = [twidth, txt.length].max
