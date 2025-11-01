@@ -606,6 +606,7 @@ def get_jamming_dirs_content
       rel2abs[short] = file
     end
   end
+  rel2abs.keys.each {|jm| $name_collisions_mb[jm] << 'jam'}
   return [cont, rel2abs]
 end
 

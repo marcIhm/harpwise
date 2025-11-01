@@ -1272,11 +1272,13 @@ def report_name_collisions_mb
   puts
   puts "There are #{collisions.length} name collisions:"
   puts
+  tset = Set.new
   maxnm = collisions.keys.map(&:length).max
   collisions.each do |name, set|
-    puts "  -  '#{name}'" + (' ' * (maxnm - name.length)) + "  can be any of:   #{set.to_a.sort.join(', ')}"
+    puts "   #{name}" + (' ' * (maxnm - name.length)) + "  \e[2mcan be any of\e[0m   #{set.to_a.sort.join(', ')}"
+    tset |= set
   end
-  err "Please fix them; probably by giving a unique name to those entries in:\n  #{$lick_file}"
+  err "Please fix them by renaming the #{tset.to_a[0..-2].join(',')} or #{tset.to_a[-1]}"
 end
 
 

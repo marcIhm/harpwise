@@ -19,6 +19,7 @@ def set_global_vars_early
   $jitter_threshold = 0.2
   $total_freq_ticks = 0
   $first_hole_held = nil
+  # for each name collect the types (lick, scale, ...) it appears as
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
 
   # two more entries will be set in find_and_check_dirs_early
