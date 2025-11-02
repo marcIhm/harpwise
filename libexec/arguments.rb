@@ -54,9 +54,10 @@ def parse_arguments_early
   #
   
   opts = Hash.new
+  full_set = Set[:samples, :listen, :quiz, :licks, :play, :print, :develop, :tools, :jamming]
   # will be enriched with descriptions and arguments below
   modes2opts = 
-    [[Set[:samples, :listen, :quiz, :licks, :play, :print, :develop, :tools, :jamming], {
+    [[full_set, {
         debug: %w(--debug),
         help: %w(-h --help -? --usage),
         sharps: %w(--sharps),
@@ -119,6 +120,8 @@ def parse_arguments_early
         lick_radio: %w(--radio --lick-radio)}],
      [Set[:play, :print], {
         what: %w(-w --what)}],
+     [Set[:print], {
+        verbose: %w(-v --verbose)}],
      [Set[:jamming], {
         paused: %w(--ps --paused),
         print_only: %w(--print-only),
@@ -126,12 +129,14 @@ def parse_arguments_early
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
-
+  
+  found_set = modes2opts.map {|m2o| m2o[0]}.inject {|un, st| un.union(st)}
+  fail "Internal error: full set of options #{full_set} differs from union of all sets found #{found_set}" unless full_set == found_set
   double_sets = modes2opts.map {|m2o| m2o[0]}
   double_sets.uniq.each do |del|
     double_sets.delete_at(double_sets.index(del))
   end
-  fail "Internal error; at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
+  fail "Internal error: at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
 
   # Construct hash opts_all with options specific for mode; take
   # descriptions from file opt2desc.yaml with embedded ruby
@@ -332,7 +337,8 @@ def parse_arguments_early
 
   opts[:no_player_info] = true if opts[:scale_prog]
 
-
+  err "Option '--brief' and '--verbose' are both set" if opts[:brief] && opts[:verbose]
+  
   if opts[:what] && !$what_abbrevs.values.flatten.include?(opts[:what])
     puts "\nThese are the known values for option '--what' along with their description:\n\n"
     $amongs_desc.each do |am, dsc|
@@ -405,11 +411,13 @@ def parse_arguments_early
     end
     if not_for_any_mode.length > 0
       puts "#{not_for_any_mode.length} options for mode #{$mode} that are unknown for any mode:"
+      puts
       puts not_for_any_mode.join("\n")
       puts
     end
     if but_for_mode.length > 0
       puts "#{but_for_mode.length} options for mode #{$mode} that are unknown for this mode (#{$mode}), but are known for other modes:"
+      puts
       puts but_for_mode.join("\n")
     end
     err("#{looks_like_opts.length} unknown options: #{looks_like_opts.join(', ')}. See above for details; #{$for_usage}")

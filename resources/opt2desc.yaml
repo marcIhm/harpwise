@@ -411,3 +411,9 @@ what:
     '--what sp' or '--what jm'; try '--what x' for a full list
     of choices.
   - ONE-WHAT
+
+verbose:
+  - |
+    for mode 'print': be more verbose;
+    make some selected cases of printing (e.g. lick-progs)
+    more verbose, i.e. add more details to the output.
