@@ -856,9 +856,9 @@ def print_amongs *choices, **kws
   if summary[:highlight]
     summary[:highlight][:explain] = if summary[:highlight][:count] > 0
                                       summary[:highlight][:color] = "\e[0m\e[7m\e[92m"
-                                      "\nBut it still appears and has been highlighted #{summary[:highlight][:count]} times as part of valid choices."
+                                      "\nBut it still appears and has been  \e[1mhighlighted  \e[0m#{summary[:highlight][:count]} times as part of valid choices."
                                     else
-                                      "\nIt is not even a substring of any valid choice."
+                                      "\nIt is  \e[1mnot even a substring  \e[0mof any valid choice."
                                     end
   elsif hl_text
     summary[:highlight] = 

@@ -232,7 +232,7 @@ def set_global_vars_early
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
     playing_on: "playing on",
     term_on_quit: "Terminating on user request (quit) ...",
-    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is not among these choices (for any type):  \e[1m%s%s\e[0m"
+    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is  \e[1mnot among  \e[0mthese choices (for any type):  \e[1m%s%s\e[0m"
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']

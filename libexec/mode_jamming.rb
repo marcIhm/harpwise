@@ -616,7 +616,7 @@ def do_jamming_list
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\n\e[2m\e[34m# with keys harp,song  \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
+  puts "Available jamming-files:\n\e[34m# with keys harp,song  \e[35m; lick-prog \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 0
   
   $jamming_path.each do |jdir|
@@ -661,8 +661,10 @@ def do_jamming_list
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
+
+      print "\e[0m\e[35m  ; #{pms['lick_prog']}"
       ago, more = get_and_age_jamming_last_used_days(jf)
-      print("\e[0m\e[32m  ; " + days_ago_in_words(ago)) if ago
+      print("\e[0m\e[32m  ; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
       print(" + #{more} more") if more
       puts
 
@@ -719,15 +721,10 @@ def do_jamming_list_single file, multi: false
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
   puts " Ex. Listen:  #{pms['example_harpwise']}"
-  prg = pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
-        err("Could not find option  --lick-prog  in example-command:  '#{pms['example_harpwise']}'")
+  prg = pms['lick_prog']
   err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
   print "  Lick Prog:  "
-  if prg
-    puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
-  else
-    puts 'unknown'
-  end
+  puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
   puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mPer loop\e[0m"
   puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
   puts 
@@ -1392,6 +1389,9 @@ def parse_jamming_json jam_json
       else
         ''
       end + "\n") if given != wanted
+
+  jam_pms['lick_prog'] = jam_pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
+                         err("Could not find option  --lick-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
 
   jam_pms
 end

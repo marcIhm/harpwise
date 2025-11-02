@@ -451,7 +451,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'quiz' => [10, 'char-in-terminal  or  char'],
                     'licks' => [4, '--partial 1@b, 1@e or 2@x'],
                     'play' => [1, '--min-holes NUMBER'],
-                    'print' => [6, 'disamiguate given arguments'],
+                    'print' => [3, 'disamiguate given arguments'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
                     'develop' => [11, 'If lagging has happened'],
                     'jamming' => [4, 'instead of playing'] }
@@ -1118,9 +1118,9 @@ do_test 'id-22a: print finds a lick ignoring tag-selection' do
   tms 'harpwise print --tags-all favorites one'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[17]['Tags:'] }
+  expect { screen[16]['Tags:'] }
   # tags do not contain 'favorites'
-  expect { !screen[18]['favorites'] }
+  expect { !screen.any? {|l| l['favorites']} }
   # but the lick is still found
   expect { screen[21]['1 licks printed'] }
   kill_session
@@ -1594,7 +1594,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms :ENTER
   sleep 2
   expect { screen[16]['First argument for mode print should belong to one of the 11 types'] }
-  expect { screen[20]['But it still appears and has been highlighted 2 times as part of valid'] }
+  expect { screen[20]['But it still appears and has been  highlighted  2 times as part of valid'] }
   kill_session
 end
 
@@ -2027,8 +2027,8 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[2]['In chart with notes'] }
-  expect { screen[14]['Other properties'] }
+  expect { screen[1]['In chart with notes'] }
+  expect { screen[13]['Other properties'] }
   kill_session
 end
 
@@ -2664,7 +2664,7 @@ do_test 'id-77a: error on abbreviated type' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[20]["not among these choices (for any type):  chrom"] }
+  expect { screen[20]["not among  these choices (for any type):  chrom"] }
   kill_session
 end
 
@@ -2825,9 +2825,10 @@ do_test 'id-86c: print jams' do
   tms 'harpwise print jams'
   tms :ENTER
   sleep 2
-  expect { screen[10]['fancy_jamming'] }
-  expect { !screen[10]['.json'] }
-  expect { screen[16]['Total count: 2'] }
+  expect { screen[11]['fancy_jamming'] }
+  expect { screen[11]['c,g  ; box1  ; unknown'] }
+  expect { !screen[11]['.json'] }
+  expect { screen[17]['Total count: 2'] }
   kill_session
 end
 
@@ -3649,15 +3650,24 @@ do_test 'id-124: print single lick-progression' do
   kill_session
 end
 
+do_test 'id-125: print lick-progression verbose' do
+  new_session
+  tms "harpwise print box1 -v"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[17]['no recording'] }
+  kill_session
+end
+
 do_test 'id-126: error message refers to other modes' do
   new_session
   tms 'harpwise listen c --fast-lick-switch --foo'
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[2]['1 options for mode listen that are unknown for any mode:'] }
-  expect { screen[3]['--foo'] }
-  expect { screen[5]['unknown for this mode (listen), but'] }
-  expect { screen[7]['--fast-lick-switch  , for modes: licks'] }
+  expect { screen[4]['--foo'] }
+  expect { screen[6]['unknown for this mode (listen), but'] }
+  expect { screen[9]['--fast-lick-switch  , for modes: licks'] }
   kill_session
 end
 
@@ -3886,7 +3896,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[11]['12bar        #  c,g  ; yesterday + 1 more']}  
+  expect { screen[12]['12bar        #  c,g  ; box1  ; yesterday + 1 more']}  
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}

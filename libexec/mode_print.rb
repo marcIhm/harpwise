@@ -775,6 +775,7 @@ def print_single_lick_prog lp
     lnames.each do |lname|
       lick = $all_licks.find {|l| l[:name] == lname}
       puts "   #{lname}:    " + lick[:holes].join('  ')
+      puts(' ' * (lname.length + 8) + (lick[:rec] || 'no recording')) if $opts[:verbose]
     end
   end
   puts "\e[0m"
@@ -794,9 +795,10 @@ end
 def print_lick_meta lick
   puts
   puts "\e[2mOther properties:\e[0m"
-  puts "\e[2m     Desc:\e[0m  #{lick[:desc] || 'none'}"
-  puts "\e[2m     Tags:\e[0m  #{lick[:tags].join(', ')}"
-  puts "\e[2m  rec-Key:\e[0m  #{lick[:rec_key]}"
+  puts "\e[2m       Desc:\e[0m  #{lick[:desc] || 'none'}"
+  puts "\e[2m       Tags:\e[0m  #{lick[:tags].join(', ')}"
+  puts "\e[2m  recording:\e[0m  #{lick[:rec] || 'none'}"
+  puts "\e[2m    rec-Key:\e[0m  #{lick[:rec_key]}"
   puts
 end
 
