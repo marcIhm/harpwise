@@ -4202,6 +4202,16 @@ do_test 'id-156: tool edit-licks with lickname' do
 end
 
 
+do_test 'id-157: tool search-scale-in-licks' do
+  new_session
+  tms 'harpwise tools search-scale-in-licks chord-i'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[15]['box1-i  box2-i  three'] }
+  kill_session
+end
+
+
 puts
 puts
 

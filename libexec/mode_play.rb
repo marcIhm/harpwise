@@ -404,7 +404,9 @@ def play_licks_controller licks, refill, sleep_between: false
   else
     puts "in given order."
   end
+  puts "Please note, that different help and commands apply while playing and in pauses."
   puts "\e[0m"
+  
   
   loop do  ## one lick after the other
 

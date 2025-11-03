@@ -119,6 +119,9 @@ tools:
     search given lick or sequence of holes (or equiv) in all scales;
     ordering of holes is not important; this may give an idea, to
     which of all scales a given lick can be played
+  search-scale-in-licks: |
+    search given scale in all licks; this may give an idea, which
+    licks can be played over a scale
   licks-from-scale: |
     For all licks, find percentage of holes, that are taken from the
     given scale and group and sort them accordingly.  This may give an

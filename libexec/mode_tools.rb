@@ -26,6 +26,8 @@ def do_tools to_handle
     tool_search_holes_in_licks to_handle
   when 'search-lick-in-scales'
     tool_search_lick_in_scales to_handle
+  when 'search-scale-in-licks'
+    tool_search_scale_in_licks to_handle
   when 'licks-from-scale'
     tool_licks_from_scale to_handle
   when 'chart'
@@ -502,6 +504,75 @@ def tool_search_lick_in_scales to_handle
     cnt += 1
   end
   puts "Nothing found." if cnt == 0
+  puts
+end
+
+
+def tool_search_scale_in_licks to_handle
+
+  err "Need exactly one scale-name as an argument; #{to_handle.inspect} is not enough" unless to_handle.length == 1
+
+  $all_licks, $licks, $all_lick_progs = read_licks
+  sc_holes = read_and_parse_scale(to_handle[0], $harp)
+  
+  matches_but = Hash.new {|h,k| h[k] = Array.new}
+  
+#  $all_licks = $all_licks.select {|lk| lk[:name] == 'test'}
+  $all_licks.each do |lick|
+    lk_holes = lick[:holes].
+                 reject {|h| musical_event?(h)}.
+                 map {|h| $harp[h][:canonical]}.
+                 uniq.
+                 sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+
+    # take larger and larger subsets of lick holes
+    (1 .. lk_holes.length).each do |len|
+      # go through each subset of size n until we find one that is fully contained in scale
+      if lk_holes.combination(len).any? do |sbst_holes|
+           (sbst_holes - sc_holes).length == 0
+         end
+        matches_but[lk_holes.length - len] << lick[:name]
+      end
+    end
+  end
+
+  puts
+  puts "Given scale  \e[32m#{to_handle[0]}\e[0m , this tool has checked for each lick,"
+  puts "if all its holes are contained within the scale."
+  puts
+  puts "However, to make it fully contained, one may need to remove 0,1,2, ..."
+  puts "different holes (any occurance) from the lick."
+  puts
+  puts "Find the result below, i.e. the number of holes removed and the list of licks"
+  puts "then contained within the scale respectively."
+  puts
+  puts
+
+  (0 .. matches_but.keys.max).each do |nrm|
+    print "\e[32m#{nrm} holes removed"
+    print(", i.e. full lick") if nrm == 0
+    print ":\e[0m"
+    if matches_but[nrm].length > 0
+      puts "    \e[2m(#{matches_but[nrm].length} licks)\e[0m"
+    else
+      puts
+    end
+    
+    mb = matches_but[nrm]
+    if nrm > 0 && mb.length > $all_licks.length / 4
+      puts '    Too many licks, skipping all the rest'
+      puts
+      break
+    end
+    if matches_but[nrm].length == 0
+      puts '    none'
+    else
+      print_in_columns matches_but[nrm], indent: 4
+    end
+    puts
+  end
+  puts
+  puts "\e[2m(#{$all_licks.length} licks have been checked.)"
   puts
 end
 
