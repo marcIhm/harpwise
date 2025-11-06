@@ -417,3 +417,11 @@ verbose:
     for mode 'print': be more verbose;
     make some selected cases of printing (e.g. lick-progs)
     more verbose, i.e. add more details to the output.
+
+shuffle_licks:
+  - |
+    shuffle licks at random,
+    so that, e.g. 'harpwise print licks-list' gives them in a
+    different order for each invocation. Without this option,
+    licks usually appear in the sequence of the lickfile.
+    

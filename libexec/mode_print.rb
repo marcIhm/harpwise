@@ -50,11 +50,11 @@ def do_print to_print
         puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
         scale_holes = read_and_parse_scale(sname)
-        print_holes_and_more scale_holes
+        print_holes_and_more scale_holes, brief: ( true && !$opts[:verbose] )
         if $scale2desc[sname] || $scale2short[sname]
           puts
-          print "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
-          print "\e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
+          puts "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
+          puts "\e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
           puts
         end
         puts
@@ -120,11 +120,11 @@ def do_print to_print
           puts
           puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         end
-        print_holes_and_more lick[:holes_wo_events]
+        print_holes_and_more lick[:holes_wo_events], brief: ( true && !$opts[:verbose] )
         print_lick_meta lick unless $opts[:brief]                
       end
       puts
-      puts "\e[2mTotal count of licks printed: \e[0m#{$licks.length}"
+      puts "\e[2mTotal count of licks printed:  \e[0m#{$licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
 
     when 'licks-list', 'licks-list-all'
 
@@ -132,24 +132,27 @@ def do_print to_print
         puts_underlined 'All licks as a list:'
         licks = $all_licks
       else
+        puts_underlined 'Selected licks as a list:'
         print "\e[2m"
         if $licks == $all_licks
           puts "where set of licks has not been restricted by tags"
         else
-          puts "after applying these options: #{desc_lick_select_opts}"
+          puts "after applying these tag-options: #{desc_lick_select_opts}"
         end
         puts "\e[0m"
-        puts_underlined 'Selected licks as a list:'
         licks = $licks
       end
-      puts ' (name : holes)'
+      puts "  \e[2m(name : holes : description)\e[0m"
       puts
       maxl = licks.map {|l| l[:name].length}.max
       licks.each do |lick|
-        puts " #{lick[:name].ljust(maxl)} : #{lick[:holes].length.to_s.rjust(3)}"
+        puts "  #{lick[:name].ljust(maxl)} \e[2m: #{lick[:holes].length.to_s.rjust(3)}  :  #{lick[:desc]}\e[0m"
       end
       puts
-      puts "\e[2mTotal count of licks printed: \e[0m#{licks.length}"
+      puts "\e[2mThe same for cut-and-paste:"
+      puts '  ' + licks.map {|l| l[:name]}.join(' ')
+      puts
+      puts "\e[2mTotal count of licks printed:  \e[0m#{licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
 
     when 'licks-with-tags'
 
@@ -223,21 +226,24 @@ def do_print to_print
 end
 
 
-def print_holes_and_more holes_or_notes
+def print_holes_and_more holes_or_notes, brief: false
 
   holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
   notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
 
-  unless $opts[:brief]
-    print "\e[2mHoles or notes given:"
-    if holes_or_notes.length == 0
-      puts "  none\e[0m"
-      return
-    end
-    puts "\e[0m"
+  print "\e[2mHoles or notes given:"
+  if holes_or_notes.length == 0
+    puts "  none\e[0m"
+    return
+  end
+  puts "\e[0m"
+
+  if brief || $opts[:brief] 
+    puts holes_or_notes.join('  ')
+    return 
   end
   print_in_columns holes_or_notes, pad: :tabs
-  return if $opts[:brief]
+  
   puts
   if $used_scales[0] == 'all'
     puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
@@ -479,7 +485,7 @@ def print_scales scales
   puts
   unless scales_given
     puts_user_defined_hint(:scales)
-    puts "\e[2mTotal count of scales printed: \e[0m#{scales.length}"
+    puts "\e[2mTotal count of scales printed:  \e[0m#{scales.length}"
   end
 end
 
@@ -838,6 +844,6 @@ def print_single_lick lname
   puts_underlined "#{lname}:", '-', dim: false
   puts unless $opts[:brief]
   lick = $licks.find {|l| l[:name] == lname}
-  print_holes_and_more lick[:holes_wo_events]
+  print_holes_and_more lick[:holes_wo_events], brief: ( true && !$opts[:verbose] )
   print_lick_meta lick unless $opts[:brief]
 end

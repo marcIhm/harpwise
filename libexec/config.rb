@@ -991,8 +991,8 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
             globs = $scale_files_templates.map {|t| t % [$type, sname, '{holes,notes}']}
             sfiles = globs.map {|g| Dir[g]}.flatten
             if sfiles.length != 1
-              err "Unknown scale '#{sname}' (none of #{$all_scales.join(', ')}) as there is no file matching #{glob}" if sfiles.length == 0
-              err "Invalid scale '#{sname}' (none of #{$all_scales.join(', ')}) as there are multiple files matching #{glob}"
+              err "Unknown scale '#{sname}' (none of #{$all_scales.join(', ')}) as there is no file matching #{globs}" if sfiles.length == 0
+              err "Invalid scale '#{sname}' (none of #{$all_scales.join(', ')}) as there are multiple files matching #{globs}"
             end
             sfiles[0]
           end
@@ -1251,8 +1251,11 @@ def set_global_musical_vars rotated: false
   end
   
   # semitone shifts that will be tagged and can be traversed
-  $licks_semi_shifts = {0 => nil, 5 => 'shifts_four', 7 => 'shifts_five',
-                        10 => 'shifts_flat_seventh', 12 => 'shifts_eight'}
+  $licks_semi_shifts = {0 => nil, 5 => 'shifts-four', 7 => 'shifts-five',
+                        10 => 'shifts-flat-seventh', 12 => 'shifts-eight'}
+
+  # chords to be checked and tagged for licks contained
+  $scale_lick_tags = %w(chord-i chord-iv chord-v blues mape)
 
   $charts, $hole2chart = read_chart
   if $hole_ref
@@ -1300,7 +1303,7 @@ $warned_for_double_short = Hash.new
 def warn_if_double_short short, long
   if $short2scale[short] && long != $short2scale[short] && !$warned_for_double_short[short]
     $warned_for_double_short[short] = true
-    $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, wrap: true, truncate: false) if [:listen, :quiz, :licks].include?($mode)
+    $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, :double_short, wrap: true, truncate: false) if [:listen, :quiz, :licks].include?($mode)
   end
 end
 

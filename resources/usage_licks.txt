@@ -7,18 +7,21 @@ Overview of 'harpwise licks':
   For harpwise, a 'lick' is a short musical phrase with a sequence of
   holes and an mp3-recording. It will be transposed as necessary.
 
-  Please Note: This mode relies on a collection of licks, that you
-  need to accumulate over time; only a simple starter set will
-  be created at first start; typically it will be kept at:
-  ~/harpwise/licks/richter/licks_with_holes.txt
-  similar e.g. for chromatic.
+  Please Note: This mode relies on a collection of licks, that you need
+  to accumulate over time; only a simple starter set will be created at
+  first start; typically it will be kept at:
+  ~/harpwise/licks/richter/licks_with_holes.txt similar e.g. for
+  chromatic.
 
   When adding licks and you need to adjust start and end of the
   recording, the mode 'play' might help, to check your results.
 
-  Personally I have paid for some good lick collections (see the
-  sample lick file for pointers), so that I have 50 or so licks, that
-  really sound great for me.
+  You may want to collect licks, that you dig and even pay for some good
+  lick collections until you tens or hundreds of licks, that sound good.
+  Once having that many licks, you may want to categorize them with tags
+  (e.g. for artist or style). Harpwise helps with this by adding some
+  automatic tags (see below); in addition there are some tools to select
+  licks based on their affinity to a given scale or chord.
 
   If you get comfortable with a lick and want to explore it beyond its
   written wholes, you may find it useful to switch to mode listen,
@@ -32,26 +35,26 @@ Usage by Examples:
     harpwise licks c
 
 
-  Similar, but only choose from licks with tags 'fav' and 'has_rec'
+  Similar, but only choose from licks with tags 'fav' and 'has-rec'
 
-    harpwise licks c --tags-all fav,has_rec
+    harpwise licks c --tags-all fav,has-rec
 
-  this employs the automatic tag 'has_rec', which is added to each
-  lick, that has a recording. The opposite is 'no_rec'.
+  this employs the automatic tag 'has-rec', which is added to each
+  lick, that has a recording. The opposite is 'no-rec'.
 
 
-  Another automatic tag is 'shifts_four', which is added to each lick,
+  Another automatic tag is 'shifts-four', which is added to each lick,
   which, when shifted by a major fourth, can still be played on the
-  chosen harmonica. Similar tags are 'shifts_five' and 'shifts_eight'.
+  chosen harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
 
   So
 
-    harpwise licks a -t shifts_four,shifts_five
+    harpwise licks a -t shifts-four,shifts-five
 
-  selects all licks, that can be shifted by four and notes without
-  loosing any holes; these licks may therefore accompany a
-  blues-progression. The keys used (<,>,%) to actually shift those
-  licks, are described in help-screen (type 'h').
+  selects all licks, that can be shifted by four or five notes without
+  loosing any hole; these licks may therefore accompany a
+  blues-progression alone. The keys used to actually shift those licks,
+  are described in the help-screen (type 'h').
   
 
   Similar, but only choose from licks with tags 'fav' or 'scales'
@@ -64,6 +67,16 @@ Usage by Examples:
 
     harpwise print licks-list --tags-any fav,scales
 
+
+  To find licks, that are mostly (i.e. all holes or all but one)
+  contained in the chords chord-i, chord-iv or chord-v, use the
+  respective automatic tags, e.g.:
+
+    harpwise licks c -t mostly-chord-v
+
+  currently there are 5 automatic 'mostly'-tags for scales
+  chord-i, chord-iv, chord-v, blues and mipe.
+  
 
   Select licks (if any), that have been starred by pressing '*' while
   it is beeing or has been played played:

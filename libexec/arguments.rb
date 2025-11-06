@@ -70,7 +70,8 @@ def parse_arguments_early
         add_scales: %w(-a --add-scales ),
         ref: %w(-r --reference ),
         remove_scales: %w(--remove-scales),
-        no_add_holes: %w(--no-add-holes)}],
+        no_add_holes: %w(--no-add-holes),
+        shuffle_licks: %w(--shuffle-licks)}],
      [Set[:listen, :quiz, :licks], {
         display: %w(-d --display),
         comment: %w(-c --comment)}],

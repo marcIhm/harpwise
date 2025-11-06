@@ -117,16 +117,22 @@ tools:
     expand on a given sequence of holes
   search-lick-in-scales: |
     search given lick or sequence of holes (or equiv) in all scales;
-    ordering of holes is not important; this may give an idea, to
-    which of all scales a given lick can be played
+    ordering of holes is not important; this may give an idea, to which
+    of all scales a given lick can be played. See also the somewhat
+    inverse tool search-scale-in-licks.
   search-scale-in-licks: |
-    search given scale in all licks; this may give an idea, which
-    licks can be played over a scale
+    search given scale in all licks; this computes the uniq holes of a
+    lick and, taking away 0,1,2 ... holes, checks if the remaining holes
+    are contained in the scale.  This can give an idea, which licks can
+    be played over the given scale (e.g. chord-iv). See also the very
+    similar tool licks-from-scale and the somewhat inverse
+    search-lick-in-scales.
   licks-from-scale: |
     For all licks, find percentage of holes, that are taken from the
     given scale and group and sort them accordingly.  This may give an
     idea, which of all licks can be played over the given scale
-    (e.g. chord-i or blues)
+    (e.g. chord-i or blues). See also the very similar tool
+    seach-scale-in-licks.
   translate: |
     Recognize and translate alternate harmonica notations into the
     format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";

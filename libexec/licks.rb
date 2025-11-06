@@ -273,7 +273,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
         else
           print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
           print_in_columns tags_licks.to_a.sort, pad: :tabs
-          err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected. (see above for a list of all tags)."
+          err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected (see above for a list of all tags)."
         end
       end
     end
@@ -319,6 +319,11 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
 
   end  ## $opts[:lick_prog]
 
+  if $opts[:shuffle_licks]
+    all_licks.shuffle!
+    licks.shuffle!
+  end
+  
   [all_licks, licks, name2prog]
 
 end
@@ -476,7 +481,7 @@ def process_lick lick, name, vars, default
                               [lick[:tags_add] || default[:tags_add]] +
                               star_tag
                              ).flatten.compact,name).sort.uniq
-  lick[:tags] << ( lick[:rec]  ?  'has_rec'  :  'no_rec' )
+  lick[:tags] << ( lick[:rec]  ?  'has-rec'  :  'no-rec' )
   
   lick[:desc] = lick[:desc] || default[:desc] || ''
   if lick[:desc_add] && lick[:desc_add].length > 0
@@ -488,6 +493,7 @@ def process_lick lick, name, vars, default
   lick[:rec_key] ||= ( default[:rec_key] || 'c' )
   lick[:rec_key] = replace_vars(vars,[lick[:rec_key]],name)[0]
 
+  # add tags (e.g. shifts-four), if lick shifts by certain number of semitones
   $licks_semi_shifts.keys.select {_1 > 0}.each do |st|
     tag = $licks_semi_shifts[st]
     num_shiftable = lick[:holes].inject(0) do |sum, hole|
@@ -496,6 +502,23 @@ def process_lick lick, name, vars, default
     end
     lick[:tags] << tag if lick[:holes].length == num_shiftable
   end
+
+  # add tags (e.g. mostly-chord-i), if lick is mostly contained in certain scales
+  $scale_lick_tags.each do |scale|
+    sc_holes = read_and_parse_scale_simple(scale, $harp)[0].
+                 map {|h| $harp[h][:canonical]}
+    lk_holes = lick[:holes].
+                 reject {|h| musical_event?(h)}.
+                 uniq.
+                 map {|h| $harp[h][:canonical]}
+    [lk_holes, *lk_holes.combination(lk_holes.length - 1)].each do |subset|
+      if subset - sc_holes == []
+        lick[:tags] << "mostly-#{scale}"
+        break
+      end
+    end
+  end
+  
   lick[:progs] = []
   lick
 end
@@ -543,7 +566,7 @@ def find_lick_by_name name
     if $licks == $all_licks
       puts "where set of licks has not been restricted by tags"
     else
-      puts "after applying these options: #{desc_lick_select_opts}"
+      puts "after applying these tag-options: #{desc_lick_select_opts}"
     end
     err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
   end

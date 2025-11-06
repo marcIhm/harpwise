@@ -460,47 +460,50 @@ def tool_search_lick_in_scales to_handle
 
   err "Need at least one lick-name or hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
-  holes = if to_handle.length == 1
-            $all_licks, $licks, $all_lick_progs = read_licks
-            lick = $all_licks.find {|l| l[:name] == to_handle[0]}
-            err "Given single argument '#{to_handle[0]}' is not the name of a lick" unless lick
-            lick[:holes_wo_events]
-          else
-            to_handle.each do |hole|
-              err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
-            end
-            to_handle
-          end
+  lk_holes = if to_handle.length == 1
+               $all_licks, $licks, $all_lick_progs = read_licks
+               lick = $all_licks.find {|l| l[:name] == to_handle[0]}
+               err "Given single argument '#{to_handle[0]}' is not the name of a lick" unless lick
+               lick[:holes_wo_events]
+             else
+               to_handle.each do |hole|
+                 err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
+               end
+               to_handle
+             end
   puts
-  puts " Given holes: #{holes.join(' ')}"
+  puts "\e[32mGiven\e[0m holes: #{lk_holes.join(' ')}"
 
-  holes = holes.map {|h| $harp[h][:canonical]}.uniq.
-            sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+  lk_holes = lk_holes.map {|h| $harp[h][:canonical]}.
+               uniq.
+               sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
   
-  # match against scales
+  # match lick against scales
   mt_scales_all = Array.new
-  sc_hls = Hash.new
+  sc2hole = Hash.new
   $all_scales.each do |scale|
-    hls = read_and_parse_scale(scale, $harp)
-    sc_hls[scale] = hls.map {|h| $harp[h][:canonical]}.uniq.
-                      sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
-    mt_scales_all << scale if (holes - sc_hls[scale]).empty?
+    sc2hole[scale] = read_and_parse_scale_simple(scale, $harp)[0].
+                        map {|h| $harp[h][:canonical]}.
+                        uniq.
+                        sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+    mt_scales_all << scale if (lk_holes - sc2hole[scale]).empty?
   end
   
 
-  puts "these unique: #{holes.join(' ')}"
+  puts "     unique: #{lk_holes.join(' ')}"
   puts
-  puts "Scales containing all given holes:"
+  puts "Scales containing  \e[32mall\e[0m  given holes:"
   print_in_columns(mt_scales_all, pad: :tabs)
   puts
-  puts "Removing each of the given holes to get matches with more scales:"
+  puts "\e[32mNow removing\e[0m  each of the given holes to get matches with more scales:"
   puts
   cnt = 0
-  holes.each do |hole|
-    mt_scales = sc_hls.keys.select {|s| (holes - [hole] - sc_hls[s]).empty?}
+  lk_holes.each do |hole|
+    mt_scales = sc2hole.keys.select {|s| (lk_holes - [hole] - sc2hole[s]).empty?}
     next if mt_scales == mt_scales_all
-    puts "Scales containing all given holes but #{hole}:"
+    puts "Scales containing all given holes but  \e[32m#{hole}\e[0m:"
     print_in_columns(mt_scales, pad: :tabs)
+    puts
     cnt += 1
   end
   puts "Nothing found." if cnt == 0
@@ -513,12 +516,12 @@ def tool_search_scale_in_licks to_handle
   err "Need exactly one scale-name as an argument; #{to_handle.inspect} is not enough" unless to_handle.length == 1
 
   $all_licks, $licks, $all_lick_progs = read_licks
-  sc_holes = read_and_parse_scale(to_handle[0], $harp)
+  sc_holes = read_and_parse_scale_simple(to_handle[0], $harp)[0].
+               map {|h| $harp[h][:canonical]}
   
   matches_but = Hash.new {|h,k| h[k] = Array.new}
   
-#  $all_licks = $all_licks.select {|lk| lk[:name] == 'test'}
-  $all_licks.each do |lick|
+  $licks.each do |lick|
     lk_holes = lick[:holes].
                  reject {|h| musical_event?(h)}.
                  map {|h| $harp[h][:canonical]}.
@@ -537,21 +540,16 @@ def tool_search_scale_in_licks to_handle
   end
 
   puts
-  puts "Given scale  \e[32m#{to_handle[0]}\e[0m , this tool has checked for each lick,"
-  puts "if all its holes are contained within the scale."
+  puts "Given scale  \e[32m#{to_handle[0]}\e[0m , this tool checks for each lick, if all"
+  puts "lick-holes are from the scale."
   puts
-  puts "However, to make it fully contained, one may need to remove 0,1,2, ..."
-  puts "different holes (any occurance) from the lick."
-  puts
-  puts "Find the result below, i.e. the number of holes removed and the list of licks"
-  puts "then contained within the scale respectively."
+  puts "However, sometimes 0,1,2, ... (different) holes of the lick are not"
+  puts "from the scale; these cases are listed too."
   puts
   puts
 
   (0 .. matches_but.keys.max).each do |nrm|
-    print "\e[32m#{nrm} holes removed"
-    print(", i.e. full lick") if nrm == 0
-    print ":\e[0m"
+    print( nrm == 0  ?  "\e[32mall holes:\e[0m"  :  "\e[32mall but #{nrm} holes:\e[0m" )
     if matches_but[nrm].length > 0
       puts "    \e[2m(#{matches_but[nrm].length} licks)\e[0m"
     else
@@ -559,8 +557,13 @@ def tool_search_scale_in_licks to_handle
     end
     
     mb = matches_but[nrm]
-    if nrm > 0 && mb.length > $all_licks.length / 4
-      puts '    Too many licks, skipping all the rest'
+    if nrm >= 4
+      puts '    Too many holes removed, skipping all the rest.'
+      puts
+      break
+    end
+    if nrm > 0 && mb.length > $licks.length / 4
+      puts '    Too many licks, skipping all the rest.'
       puts
       break
     end
@@ -572,7 +575,11 @@ def tool_search_scale_in_licks to_handle
     puts
   end
   puts
-  puts "\e[2m(#{$all_licks.length} licks have been checked.)"
+  if $licks.length == $all_licks.length
+    puts "\e[2m(all #{$licks.length} licks have been checked)"
+  else
+    puts "\e[2m(#{$licks.length} licks, selected by tags among a total of #{$all_licks.length}, have been checked)"
+  end
   puts
 end
 
@@ -591,7 +598,7 @@ def tool_licks_from_scale to_handle
 
   lick_name = th_grouped[:lick]&.at(0)
   scale = th_grouped[:scale][0]
-  scale_holes = read_and_parse_scale(scale, $harp)
+  scale_holes = read_and_parse_scale_simple(scale, $harp)[0]
   # _cus stands for canonical, uniq, sorted
   scale_holes_cus = scale_holes.map {|h| $harp[h][:canonical]}.uniq.
                       sort {|h1,h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
@@ -670,12 +677,12 @@ def tool_licks_from_scale to_handle
         print "\e[32m"
         print_in_columns licks_grouped[group].map {|l| l[:name]}, pad: :tabs
         puts
-        puts "\e[0mcount: #{licks_grouped[group].length}"
+        puts "\e[0m\e[2mcount: #{licks_grouped[group].length}\e[0m"
       end
       puts
     end
     puts
-    puts "Fore more details about a single lick, invoke again with its name as an additional argument."
+    puts "For more details about a single lick, invoke again with its name as an additional argument."
     puts
   end
 end
