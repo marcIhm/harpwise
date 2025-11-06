@@ -725,6 +725,7 @@ def do_jamming_list_single file, multi: false
   err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
   print "  Lick Prog:  "
   puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
+  puts "       desc:  #{$all_lick_progs[prg][:desc]}"
   puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mPer loop\e[0m"
   puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
   puts 

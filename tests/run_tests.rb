@@ -1124,11 +1124,11 @@ do_test 'id-22a: print finds a lick ignoring tag-selection' do
   tms 'harpwise print --tags-all favorites one'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['Tags:'] }
+  expect { screen[14]['Tags:'] }
   # tags do not contain 'favorites'
   expect { !screen[1 .. -1].any? {|l| l['favorites']} }
   # but the lick is still found
-  expect { screen[18]['1 licks printed'] }
+  expect { screen[19]['1 licks printed'] }
   kill_session
 end
 
