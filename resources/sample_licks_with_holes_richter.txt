@@ -96,10 +96,10 @@
   tags = v-chord box box1
 
 #
-# Lick progressions (see below) are optional (e.g. we do not have
-# one for box2), they group licks, that may lead through the
-# chords of e.g. a 12-bar blues.  They may be selected for mode
-# licks via 'harpwise licks --lick-prog box1'
+# Lick progressions (see below) are optional, they group licks,
+# that may lead through the chords of (e.g. ) a 12-bar blues.  They
+# may be selected for mode licks via 'harpwise licks --lick-prog
+# box1'
 #
 # You may lookup these progressions via:
 #
@@ -113,6 +113,10 @@
   desc = Progression of licks for box-pattern 1, with turnaround
   licks = box1-i box1-iv box1-i box1-v box1-iv box1-i
   tags = fav
+
+[prog box2]
+  desc = Descending box pattern
+  licks = box2-i box2-iv box2-i box2-v box2-iv box2-i
 
 #
 # Descending box pattern for i, iv and v

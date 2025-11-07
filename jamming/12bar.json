@@ -31,7 +31,9 @@
 		    "",
 		    "Note, that always the current, matching chord (scale) is highlighted in the harmonica-chart to hint on holes for improvisation.",
 		    "",
-		    "Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track."],
+		    "Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
+		    "",
+		    "This jam can also be used with lick progression box2."],
     // Hint for user on how to start harpwise:
     "example_harpwise": "harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
     // Global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have

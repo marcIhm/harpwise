@@ -1137,6 +1137,7 @@ do_test 'id-22b: print a lick without holes' do
   File.write($lickfile_testing,
              "\n[solo]\n  desc = invitation to play a solo; no holes\n  holes = [...SOLO...]\n",
              mode: 'a+')
+  sleep 1
   new_session
   tms 'harpwise print solo'
   tms :ENTER
@@ -2108,12 +2109,12 @@ do_test 'id-54i: print list of licks by hole-count' do
   tms "harpwise print licks-list --max-holes 12 --min-holes 8"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[21] == 'Total count of licks printed: 9' }
+  expect { screen[21] == 'Total count of licks printed:  9  (out of 21)' }
   sleep 1
   tms "harpwise print licks-list --max-holes 20 --min-holes 4"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[21] == 'Total count of licks printed: 18' }
+  expect { screen[21] == 'Total count of licks printed:  18  (out of 21)' }
   kill_session
 end
 
@@ -2807,11 +2808,11 @@ do_test 'id-86a: print lick progressions' do
   tms 'harpwise print lick-progs'
   tms :ENTER
   sleep 2
-  expect { screen[5]['Desc:  Progression of licks for box-pattern 1'] }
+  expect { screen[7]['Desc:  Descending box pattern'] }
   tms 'harpwise print lick-progs -t fav'
   tms :ENTER
   sleep 2
-  expect { screen[20]['1 of 1 lick progressions'] }
+  expect { screen[20]['2 lick progressions'] }
   kill_session
 end
 
@@ -3897,7 +3898,7 @@ do_test 'id-136: harpwise jamming list' do
   }
 }
   end_of_content
-  new_session
+  new_session 80,40
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
@@ -3909,8 +3910,8 @@ do_test 'id-136: harpwise jamming list' do
   tms :ENTER
   tms "harpwise jamming list 12bar"
   tms :ENTER
-  expect { screen[0]['Ex. Listen:  harpwise listen --scale-prog 12bar --lick-prog box1 --jamming']}  
-  expect { screen[19]['Notes:   (from']}  
+  expect { screen[10]['Ex. Listen:  harpwise listen --scale-prog 12bar --lick-prog box1 --jamming']}  
+  expect { screen[31]['Notes:   (from']}  
   kill_session
 end
 
@@ -4171,16 +4172,16 @@ do_test "id-153: print jam '12bar'" do
   tms 'harpwise print 12bar --what j'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[5]['A 12-bar backing-track and the 3-lick set'] }
+  expect { screen[3]['A 12-bar backing-track and the 3-lick set'] }
   kill_session
 end
 
-do_test 'id-154: resolve ambigous argument and without --what to jam' do
+do_test 'id-154: resolve ambigous argument to jam without need for option --what' do
   new_session
   tms 'harpwise print 12bar'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[5]['A 12-bar backing-track and the 3-lick set'] }
+  expect { screen[3]['A 12-bar backing-track and the 3-lick set'] }
   kill_session
 end
 

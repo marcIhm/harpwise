@@ -35,7 +35,14 @@ Not beeing connected with any of these offerings, I found these paid
 source invaluable in collecting the 60 or so favorite licks, that I am
 practicing regularly.
 
+Of course there are a lot of excellent licks available on the web for
+free, so that over time you may build a great library. An excellent
+starting point would be Jason Ricci and his wonderful lesson on the
+"T-Bone Shuffle": https://www.youtube.com/watch?v=dGFfLe2tWBw
+
+
 Note, that When adding licks to this file by copying them from a book or
-from the web, you probably will need to adjust the notation for holes;
-let the initial error messages be your guide or look at the file
-<%= "#{$dirs[:install]}/config/richter/holes.yaml" %>
+from the web, you probably will need to adjust the notation for holes.
+Maybe the "harpwise tool translate" can be of help with this.
+
+

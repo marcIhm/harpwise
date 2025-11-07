@@ -405,11 +405,15 @@ what:
   - |
     disamiguate given arguments;
     useful for modes 'play' and 'print', that can handle many different
-    types of arguments so that name clashes might occur. E.g. '12bar'
+    types of arguments so that name collisions might occur. E.g. '12bar'
     can be either a scale progression or a jam. To tell harpwise, what
     you mean for such cases you may guide harpwise with the option
     '--what sp' or '--what jm'; try '--what x' for a full list
     of choices.
+    
+    Please note, that name collisions are usually detected on startup,
+    asking you to rename one or the other. So this option is not needed
+    often.
   - ONE-WHAT
 
 verbose:
