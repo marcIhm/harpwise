@@ -643,7 +643,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         puts
         return :star_down        
       else
-        puts "\e[0m Unknown key: '#{char}' \e[2m(but more keys in play)"
+        puts "\n\n\e[0mUnknown key: '#{char}' \e[2m(but more keys in play)"
         puts
         oldlines = nil
         show_help = true
