@@ -530,21 +530,22 @@ def maybe_wait_for_key_and_decide_replay puts_pending
 
     loop do
       # lines are devided in segments, which are highlighted if they change
-      lines_long = [["\e[0mPress:\e[2m      h: this help        .r: replay this lick    e: edit lickfile"],
-                    ['    BACKSPACE: previous lick    */: star,unstar most recent lick'],
-                    ['            n: choose lick by name'],
-                    ['More keys (also while playing recordings but not holes):'],
-                    ['      c: toggle continue without this menu (now ',
-                     ( $ctl_lk_hl[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
-                    ['      L: toggle loop for all licks (now ',
-                     ( $ctl_lk_hl[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
-                    ["  2-9,0: set num loops fo all-licks looping (L) (now #{$ctl_lk_hl[:num_loops]})"],
-                    ["SPACE or RETURN for next lick ..."]]
+      lines_long = [["\e[0mPress:      \e[92mh\e[32m: this help        \e[92m.r\e[32m: replay this lick    \e[92me\e[32m: edit lickfile"],
+                    ["    \e[92mBACKSPACE\e[32m: previous lick    \e[92m*/\e[32m: star,unstar most recent lick"],
+                    ["            \e[92mn\e[32m: choose lick by name"],
+                    ["More keys (also while playing recordings but not holes):"],
+                    ["      \e[92mc\e[32m: toggle continuous play, i.e. without a menu (now ",
+                     ( $ctl_lk_hl[:lick_lick]  ?  " ON"  :  "OFF" ), ")"],
+                    ["      \e[92mL\e[32m: toggle loop for all licks (now ",
+                     ( $ctl_lk_hl[:loop_loop]  ?  " ON"  :  "OFF" ), ")"],
+                    ["  \e[92m2-9,0\e[32m: set num loops fo all-licks looping (L) (now ",
+                     "#{$ctl_lk_hl[:num_loops]}",")"],
+                    ["\e[92mSPACE or RETURN\e[32m for next lick ..."]]
       lines = if show_help
                 lines_long
               else
-                [['Press:      h: show help with more keys (available now already)'],
-                 ["SPACE or RETURN for next lick ..."]]
+                [["\e[2mPress:      h: show help with more keys (available now already)"],
+                 ["\e[2mSPACE or RETURN for next lick ..."]]
               end
       oldlines ||= lines
       oldlines_long ||= lines_long
@@ -558,16 +559,18 @@ def maybe_wait_for_key_and_decide_replay puts_pending
       # highlight diffs to initial state
       lines.zip(oldlines).each_with_index do |lns, idx|
         line, oldline = lns
-        print "\e[0m\e[2m"
+        print "\e[0m"
         # not strings but rather arrays of segments
         line.zip(oldline).each do |seg, oldseg|
           if seg != oldseg
-            print "\e[0m\e[32m"
+            print "\e[0m\e[34m"
+            print seg.gsub(/\e.*?m/,'')
             # modify, so that highlight persists
             oldseg[0] = '#'
+          else
+            print seg
           end
-          print seg
-          print "\e[0m\e[2m"
+          print "\e[0m"
         end
         puts unless idx == [lines.length, oldlines.length].max - 1
         sleep 0.02
@@ -617,7 +620,8 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         oldlines = oldlines_long
         redo
       when '1'
-        puts "\e[0m\e[2m#{$resources[:nloops_not_one]}"
+        puts
+        puts "\e[0m#{$resources[:nloops_not_one]}"
         puts
         redo
       when '2','3','4','5','6','7','8','9'
