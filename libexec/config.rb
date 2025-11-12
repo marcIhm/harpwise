@@ -232,7 +232,7 @@ def set_global_vars_early
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
     playing_on: "playing on",
     term_on_quit: "Terminating on user request (quit) ...",
-    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is  \e[1mnot among  \e[0mthese choices (for any type):  \e[1m%s%s\e[0m"
+    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is  \e[1mnot among  \e[0mthese choices (for any type):  \e[1m%s%s\e[0m",
   }
 
   $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a' .. 'z').to_a + ('A' .. 'Z').to_a + ('0' .. '9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
@@ -259,12 +259,13 @@ def set_global_vars_early
   $remote_message_count = 0
 
   # Other stuff for jamming; might be used both from mode_print.rb and mode_jamming.rb
-  $jam_help_while_play = ["Press:     SPACE   to pause / continue",
-                          "        RETURN,t   to mark a timestamp",
-                          "  BACKSPACE,LEFT   to skip back 10 secs",
-                          "           RIGHT      skip forward 10",
-                          "             TAB   to jump to a timestamp",
-                          "               q   to quit"]
+  $jam_help_while_play = ["Press:     SPACE  to pause / continue",
+                          "        RETURN,t     mark a timestamp",
+                          "  BACKSPACE,LEFT     skip back 4 secs",
+                          "           RIGHT     skip forward 4",
+                          "             TAB     go to a timestamp",
+                          "             l/L     jump to start of next/prev loop-iteration",
+                          "               q     to quit"]
   $jam_play_prev_trim = 0
   $jam_pretended_sleep = 0
   $jam_pretended_actions_ts = []

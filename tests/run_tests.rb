@@ -447,7 +447,7 @@ end
 
 usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
   do_test "id-1i#{idx}: options mode #{mode}" do
-    new_session
+    new_session 
     tms "harpwise #{usage_types[mode][1]} -o 2>/dev/null | tail -20"
     tms :ENTER
     sleep 2
@@ -455,8 +455,8 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'listen' => [17, 'on every invocation'],
                     'quiz' => [10, 'char-in-terminal  or  char'],
                     'licks' => [4, '--partial 1@b, 1@e or 2@x'],
-                    'play' => [1, '--min-holes NUMBER'],
-                    'print' => [3, 'disamiguate given arguments'],
+                    'play' => [2, 'disamiguate given arguments'],
+                    'print' => [7, 'name collisions are usually detected'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
                     'develop' => [11, 'If lagging has happened'],
                     'jamming' => [4, 'instead of playing'] }
@@ -3516,7 +3516,7 @@ do_test "id-116: show help for specific key" do
   sleep 2
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[1]['Help on keys in main view'] }
+  expect { screen[1]['Help - first on keys in main view'] }
   tms 'p'
   expect { screen[1]['More help on keys'] }
   # 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
@@ -3954,10 +3954,14 @@ do_test 'id-138: harpwise jamming play' do
   sleep 1
   tms :LEFT
   sleep 1
+  tms 'l'
+  sleep 1
   tms 't'
   sleep 1
-  expect { screen[15]['# 2']}
-  expect { screen[16]['... skipped backward ...']}
+  expect { screen[14]['# 2']}
+  expect { screen[15]['... skipped backward ...']}
+  expect { screen[16]['... next loop ...']}
+  expect { screen[4]['FORWARD to end of iteration, to:']}
   expect { screen[17]['# 3']}
   kill_session
 end
@@ -3968,6 +3972,9 @@ do_test 'id-138a: harpwise jamming play an mp3' do
   tms "harpwise jamming play #{file}"
   tms :ENTER
   sleep 1
+  tms 'l'
+  expect { screen[19]['Pressing keys too quickly might bring unexpected results']}
+  expect { screen[22]['There is no loop defined when playing an mp3; cannot jump']}
   tms ' '
   expect { screen[23]['Paused']}
   kill_session

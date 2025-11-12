@@ -169,9 +169,9 @@
 //
 //  To determine those timestamps for a new track, you may employ 'harpwise jam play' and
 //  its ability to jump around in a track and mark timestamps. Press RETURN at chord-changes
-//  and turnarounds or jump back 10 secs, if you missed a chord-change. As argument to
-//  'harpwise jam play' you may give the json-file or the name of your mp3; the resuling set
-//  of timestamps will be displayed and written to disk.
+//  and turnarounds or jump back 4 secs, if you missed a chord-change or jump from loop end
+//  to end. As argument to 'harpwise jam play' you may give the json-file or the name of
+//  your mp3; the resuling set of timestamps will be displayed and written to disk.
 //
 //  If you want more graphical tools to get timestamps for chord changes, you may try
 //  audacity or transcribe. Both are excellent tools with broad (but different) areas of

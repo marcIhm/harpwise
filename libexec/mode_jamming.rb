@@ -103,7 +103,6 @@ def do_the_jamming json_file
   #
 
   # Abbreviations for convenience
-  sl_a_iter = $jam_pms['sleep_after_iteration']
   ts_mult = $jam_pms['timestamps_multiply']
   ts_add = $jam_pms['timestamps_add']
   
@@ -111,25 +110,7 @@ def do_the_jamming json_file
   #  Preprocess sleep_after_iteration as far as possible already; use timestamps_multiply
   #  only further down below
   #
-  sl_a_iter = if sl_a_iter.is_a?(Numeric)
-                # turn number into array
-                [[sl_a_iter * ts_mult, nil]]
-              else
-                # Sleep is different for each iteration; for now, check its type only and bring them
-                # into a common structure
-                err "Parameter 'sleep_after_iteration' can only be a number or an array, however its type is '#{sl_a_iter.class}' and its value: #{sl_a_iter}" unless sl_a_iter.is_a?(Array)
-                sl_a_iter.map do |sai|
-                  case sai
-                  in Numeric
-                    [sai * ts_mult, nil]
-                  in Numeric, String
-                    err "If an element of 'sleep_after_iteration' has text, the duration needs to be >= 2 (to allow message to show); however this does not hold true for this element: #{sai}"  if sai[0] < 2
-                    [sai[0] * ts_mult, sai[1]]
-                  else
-                    err "Parameter 'sleep_after_iteration' should be an array (which is the case). Each element of this array can either be a  PLAIN NUMBER  or an  ARRAY  with a number and a string; however (and thats the problem) element #{idx} in #{sl_a_iter} is none of these but rather: #{sai}"
-                  end
-                end
-              end
+  sl_a_iter = jam_process_sl_a_iter($jam_pms['sleep_after_iteration'], ts_mult)
 
   # Process other time-parameters
   ts_prev = nil
@@ -948,7 +929,9 @@ def parse_and_preprocess_jamming_json json, simple: false
   end
 
   err("Need at least one timestamp with action 'loop-start'") unless $jam_loop_start_idx
-  $jam_data[:iteration_duration_secs] = actions[-1][0] - actions[$jam_loop_start_idx][0]
+  jam_pms['loop_start_secs'] = actions[$jam_loop_start_idx][0]
+  jam_pms['loop_end_secs'] = actions[-1][0]
+  $jam_data[:iteration_duration_secs] = jam_pms['loop_end_secs'] - jam_pms['loop_start_secs']
   $jam_data[:iteration_duration] = jam_ta($jam_data[:iteration_duration_secs])
 
   return([jam_pms, actions]) if simple
@@ -989,6 +972,8 @@ def parse_and_preprocess_jamming_json json, simple: false
 end
 
 
+$warned_for_ts_add = false
+
 def do_the_jam_playing json_or_mp3
 
   make_term_immediate
@@ -1005,7 +990,7 @@ def do_the_jam_playing json_or_mp3
     $jam_pms['sound_file_key'] = $key
     $jam_pms['harp_key'] = $key 
   else
-    $jam_pms, _ = parse_and_preprocess_jamming_json(json_or_mp3)
+    $jam_pms, action = parse_and_preprocess_jamming_json(json_or_mp3)
     sleep 0.2
   end
     
@@ -1022,6 +1007,8 @@ def do_the_jam_playing json_or_mp3
   $jam_ts_collected = [$jam_pms['sound_file_length_secs']]
   $jam_idxs_events = {skip_fore: [],
                       skip_back: [],
+                      next_loop_iter: [],
+                      prev_loop_iter: [],
                       jump: []}
 
   
@@ -1031,8 +1018,9 @@ def do_the_jam_playing json_or_mp3
 
   my_sleep(1000000, fast_w_animation: true) do |char|
 
+    puts "Currently at %.2f secs" % ( $pplayer.time_played + $jam_play_prev_trim )
     case char
-
+        
     when 't','RETURN'
       #
       # Generate full output on every invocation, even though only one timetamp has been
@@ -1060,6 +1048,8 @@ def do_the_jam_playing json_or_mp3
         jam_puts_log("... skipped backward ...",file,"\e[2m") if $jam_idxs_events[:skip_back].include?(idx)
         jam_puts_log("... skipped forward ...",file,"\e[2m") if $jam_idxs_events[:skip_fore].include?(idx)
         jam_puts_log("... jumped ...",file,"\e[2m") if $jam_idxs_events[:jump].include?(idx)
+        jam_puts_log("... next loop ...",file,"\e[2m") if $jam_idxs_events[:next_loop_iter].include?(idx)
+        jam_puts_log("... prev loop ...",file,"\e[2m") if $jam_idxs_events[:prev_loop_iter].include?(idx)
         jam_puts_log("  %s   %%{n}%6.2f%%{c} sec  (%s),   %%{c}diff to next:  %6.2f " %
                      [('# ' + (idx + 1).to_s).rjust(5), x, jam_ta(x), y-x],file,"\e[2m")
       end
@@ -1072,24 +1062,24 @@ def do_the_jam_playing json_or_mp3
       puts
       :handled
 
-    when 'LEFT','BACKSPACE'
+    when 'LEFT', 'BACKSPACE'
 
-      trim = $jam_play_prev_trim + $pplayer.time_played - 10
+      trim = $jam_play_prev_trim + $pplayer.time_played - 4
       trim = 0 if trim < 0
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
-      jamming_play_print_current('Backward 10 secs to', trim)
+      jamming_play_print_current('BACK 4 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_back] << $jam_ts_collected.length - 1
       :handled
 
     when 'RIGHT'
 
-      trim = $jam_play_prev_trim + $pplayer.time_played + 10
+      trim = $jam_play_prev_trim + $pplayer.time_played + 4
       trim = $jam_pms['sound_file_length_sec'] if trim > $jam_pms['sound_file_length_secs']
       $pplayer.kill
       $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
-      jamming_play_print_current('Forward 10 secs to', trim)
+      jamming_play_print_current('FORWARD 4 secs to', trim)
       $jam_play_prev_trim = trim
       $jam_idxs_events[:skip_fore] << $jam_ts_collected.length - 1
       :handled
@@ -1135,12 +1125,92 @@ def do_the_jam_playing json_or_mp3
       else
         $pplayer.kill
         $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
-        jamming_play_print_current('Jumped to', trim)
+        jamming_play_print_current('JUMPED to', trim)
         $jam_play_prev_trim = trim
         $jam_idxs_events[:jump] << $jam_ts_collected.length - 1
       end
       :handled
 
+    when 'l', 'L'
+      
+      if $pplayer.time_played < 2
+        puts "\n\e[2mPlease note: Pressing keys too quickly might bring unexpected results\ndue to minus 2 secs of margin applied when jumping loops.\e[0m"
+        puts
+      end
+
+      $jam_pms['timestamps_multiply']
+      if json_or_mp3.end_with?('.mp3')
+        puts "There is no loop defined when playing an mp3; cannot jump"
+
+      else
+
+        if (ts_mult = $jam_pms['timestamps_multiply']) != 1
+          err "Cannot handle parameter 'timestamps_multiply' != 1.0; its value is #{ts_mult}"
+        end
+        
+        if (ts_add = $jam_pms['timestamps_add']) != 0 && !$warned_for_ts_add
+          puts "\nWARNING: Parameter 'timestamps_add' is ignored when jumping loops! Its value is #{ts_add}"
+          puts
+          $warned_for_ts_add = true
+        end
+        
+        # For this to be useful, we need to take sleep_after_iteration into account; so we
+        # need to process it; however we do not use timestamps_add or timestamps_multiply
+        sl_a_iter = jam_process_sl_a_iter($jam_pms['sleep_after_iteration'], 1.0)
+
+        span_start = 0
+        span_start_prev = nil
+        span_end = $jam_pms['loop_end_secs'] + sl_a_iter[0][0]
+        sl_a_iter.shift if sl_a_iter.length > 1
+        iter = 1
+        trim = $jam_play_prev_trim + $pplayer.time_played
+
+        while trim > span_end
+          span_start_prev = span_start
+          span_start = span_end
+          span_end += ($jam_pms['loop_end_secs'] - $jam_pms['loop_start_secs']) + sl_a_iter[0][0]
+          sl_a_iter.shift if sl_a_iter.length > 1
+          iter += 1
+        end
+
+        msg = nil
+        if char == 'l'
+          if span_end > $jam_pms['sound_file_length_secs']
+            puts "In loop-iteration #{iter}: cannot jump beyond end of sound-file"
+          else
+            msg = "FORWARD to end of iteration, to"
+            trim = span_end
+          end
+          $jam_idxs_events[:next_loop_iter] << $jam_ts_collected.length - 1
+        else
+          if trim <= span_start + 2
+            if span_start_prev
+              msg = "BACK to start of previous iteration, to"
+              trim = span_start_prev
+            else
+              msg = "BACK to start of current iteration, to"
+              trim = span_start
+            end
+          else
+            msg = "BACK to start of current iteration, to"
+            trim = span_start
+          end
+          $jam_idxs_events[:prev_loop_iter] << $jam_ts_collected.length - 1
+        end
+        if msg
+          puts "In loop-iteration #{iter}:"
+          if trim > 2
+            trim -= 2
+            puts ' and including minus 2 secs of margin:'
+          end
+          $pplayer.kill
+          $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
+          jamming_play_print_current(msg, trim)
+          $jam_play_prev_trim = trim
+        end
+      end
+      :handled
+      
     when 'q'
 
       print "\n\e[0m#{$resources[:term_on_quit]}\n\n"
@@ -1412,4 +1482,27 @@ def jamming_make_jam_data jam_pms
    num_timer: 0,
    num_timer_max: 0,
    key: '?'}
+end
+
+
+def jam_process_sl_a_iter sl_a_iter, ts_mult
+  if sl_a_iter.is_a?(Numeric)
+    # turn number into array
+    [[sl_a_iter * ts_mult, nil]]
+  else
+    # Sleep is different for each iteration; for now, check its type only and bring them
+    # into a common structure
+    err "Parameter 'sleep_after_iteration' can only be a number or an array, however its type is '#{sl_a_iter.class}' and its value: #{sl_a_iter}" unless sl_a_iter.is_a?(Array)
+    sl_a_iter.map do |sai|
+      case sai
+      in Numeric
+        [sai * ts_mult, nil]
+      in Numeric, String
+        err "If an element of 'sleep_after_iteration' has text, the duration needs to be >= 2 (to allow message to show); however this does not hold true for this element: #{sai}"  if sai[0] < 2
+        [sai[0] * ts_mult, sai[1]]
+      else
+        "Parameter 'sleep_after_iteration' should be an array (which is the case). Each element of this array can either be a  PLAIN NUMBER  or an  ARRAY  with a number and a string; however (and thats the problem) element #{idx} in #{sl_a_iter} is none of these but rather: #{sai}"
+      end
+    end
+  end
 end
