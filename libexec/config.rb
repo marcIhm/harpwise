@@ -265,6 +265,7 @@ def set_global_vars_early
                           "           RIGHT     skip forward 4",
                           "             TAB     go to a timestamp",
                           "             l/L     jump to start of next/prev loop-iteration",
+                          "               e     echo number of secs elapsed",
                           "               q     to quit"]
   $jam_play_prev_trim = 0
   $jam_pretended_sleep = 0

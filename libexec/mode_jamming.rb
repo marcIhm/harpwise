@@ -1018,7 +1018,7 @@ def do_the_jam_playing json_or_mp3
 
   my_sleep(1000000, fast_w_animation: true) do |char|
 
-    puts "Currently at %.2f secs" % ( $pplayer.time_played + $jam_play_prev_trim )
+    puts "\nCurrently at %.2f secs" % ( $pplayer.time_played + $jam_play_prev_trim )
     case char
         
     when 't','RETURN'
@@ -1138,29 +1138,26 @@ def do_the_jam_playing json_or_mp3
         puts
       end
 
-      $jam_pms['timestamps_multiply']
       if json_or_mp3.end_with?('.mp3')
         puts "There is no loop defined when playing an mp3; cannot jump"
 
       else
 
-        if (ts_mult = $jam_pms['timestamps_multiply']) != 1
-          err "Cannot handle parameter 'timestamps_multiply' != 1.0; its value is #{ts_mult}"
-        end
+        ts_mult = $jam_pms['timestamps_multiply']
         
         if (ts_add = $jam_pms['timestamps_add']) != 0 && !$warned_for_ts_add
-          puts "\nWARNING: Parameter 'timestamps_add' is ignored when jumping loops! Its value is #{ts_add}"
+          puts "\nNOTE: Parameter 'timestamps_add' is purposeful ignored when jumping loops. Its value is #{ts_add}"
           puts
           $warned_for_ts_add = true
         end
         
         # For this to be useful, we need to take sleep_after_iteration into account; so we
         # need to process it; however we do not use timestamps_add or timestamps_multiply
-        sl_a_iter = jam_process_sl_a_iter($jam_pms['sleep_after_iteration'], 1.0)
+        sl_a_iter = jam_process_sl_a_iter($jam_pms['sleep_after_iteration'], ts_mult)
 
         span_start = 0
         span_start_prev = nil
-        span_end = $jam_pms['loop_end_secs'] + sl_a_iter[0][0]
+        span_end = $jam_pms['loop_end_secs'] * ts_mult + sl_a_iter[0][0]
         sl_a_iter.shift if sl_a_iter.length > 1
         iter = 1
         trim = $jam_play_prev_trim + $pplayer.time_played
@@ -1168,7 +1165,7 @@ def do_the_jam_playing json_or_mp3
         while trim > span_end
           span_start_prev = span_start
           span_start = span_end
-          span_end += ($jam_pms['loop_end_secs'] - $jam_pms['loop_start_secs']) + sl_a_iter[0][0]
+          span_end += ($jam_pms['loop_end_secs'] - $jam_pms['loop_start_secs']) * ts_mult + sl_a_iter[0][0]
           sl_a_iter.shift if sl_a_iter.length > 1
           iter += 1
         end
@@ -1209,6 +1206,12 @@ def do_the_jam_playing json_or_mp3
           $jam_play_prev_trim = trim
         end
       end
+      :handled
+
+    when 'e'
+
+      # echo has already been done above
+      puts
       :handled
       
     when 'q'
