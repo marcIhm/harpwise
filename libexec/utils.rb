@@ -183,14 +183,16 @@ def display_kb_help what, scroll_allowed, body, wait_for_key: true
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
     puts
+    if scroll_allowed
+      puts "\e[0m\e[2mdone with help.\e[0m" 
+      puts
+    end
   end
-  if scroll_allowed
-    puts "\e[0m\e[2mdone with help.\e[0m"
-    puts
-  else
+  if !scroll_allowed
     clear_area_comment
     ctl_response 'continue'
   end
+  print "\e[0m"
 end
 
 

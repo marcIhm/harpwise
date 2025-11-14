@@ -3961,7 +3961,7 @@ do_test 'id-138: harpwise jamming play' do
   expect { screen[14]['# 2']}
   expect { screen[15]['... skipped backward ...']}
   expect { screen[16]['... next loop ...']}
-  expect { screen[4]['FORWARD to end of iteration, to:']}
+  expect { screen[3]['FORWARD to end of iteration, to:']}
   expect { screen[17]['# 3']}
   kill_session
 end

@@ -171,8 +171,8 @@ def do_the_jamming json_file
       print "\e[2AWaiting "
       begin
         pid_listen_fifo = ( File.exist?($pidfile_listen_fifo) && File.read($pidfile_listen_fifo).to_i )
-        print '.'
-        print "\nStill waiting for 'harpwise listen' " if my_sleep(1)
+        print "\e[0m\e[32m."
+        print "\n\e[0m\e[32mStill waiting for 'harpwise listen' " if my_sleep(1)
         break if ENV['HARPWISE_TESTING'] == 'remote'
       end until pid_listen_fifo
 
@@ -766,7 +766,7 @@ def my_sleep secs, fast_w_animation: false, &blk
   anm_cnt_prev = 0
   # make sure that first loop will already print animation
   anm_cnt = anm_cnt_prev + anm_mod
-  anm_txt = 'Playing ...'
+  anm_txt = 'Playing ... '  
   anm_pending = nil
   
   begin  ## loop untils secs elapsed
@@ -838,6 +838,7 @@ def my_sleep secs, fast_w_animation: false, &blk
     if fast_w_animation
       sleep 0.01
       if anm_cnt >= anm_cnt_prev + anm_mod
+        anm_txt = 'Playing ... ' + jam_ta($pplayer.time_played + $jam_play_prev_trim)
         print "\e[0m\e[#{wheel[( anm_cnt / 100 ) % wheel.length]}m#{anm_txt}\e[0m"
         print "\r"
         anm_pending = "\e[0m\e[2m#{anm_txt}\e[0m\n"
@@ -1002,6 +1003,7 @@ def do_the_jam_playing json_or_mp3
   puts"\e[0m\e[32m"
   $jam_help_while_play.each {|l| puts l; sleep 0.02}
   puts "\e[0m"
+  jam_play_show_kb_help
     
   $pplayer = PausablePlayer.new(play_command)
   $jam_ts_collected = [$jam_pms['sound_file_length_secs']]
@@ -1275,14 +1277,17 @@ def check_for_space_etc blk, print_pending: nil
         # The important things have already happened in the call to blk ...
       else
         puts
-        puts "\n\e[0m\e[32mInvalid key: '#{char}'\e[0m\n\n" unless %w(h ?).include?(char)
+        puts "\n\e[0m\e[32mInvalid key: '#{char}'\e[0m\n" unless %w(h ?).include?(char)
         print "\e[0m"
-        print "\e[2m" if blk
-        puts $jam_help_while_play[0]
-        puts ($jam_help_while_play[1 .. -1].join("\n") + "\n") if blk
-        puts "All other keys ignored.\e[0m"
+        if blk
+          jam_play_show_kb_help
+        else
+          puts "\n\e[0mKeys available while beeing paused:"
+          puts "   \e[0m\e[92mSPACE\e[32m: pause / continue"
+          puts
+        end
+        puts "\e[0mAll other keys ignored."
         puts
-        print "\e[0mPaused \e[0m" unless blk
       end
     end
   end
@@ -1323,7 +1328,7 @@ def jamming_sleep_wait_for_go
   loop do
     sleep 0.1
     paused = true
-    print "." if count % 10 == 0
+    print "\e[0m\e[32m." if count % 10 == 0
     count += 1
     if File.exist?($remote_jamming_ps_rs)
       FileUtils.rm($remote_jamming_ps_rs)
@@ -1508,4 +1513,15 @@ def jam_process_sl_a_iter sl_a_iter, ts_mult
       end
     end
   end
+end
+
+
+def jam_play_show_kb_help
+  display_kb_help 'a jam track', true,
+                  "           SPACE: pause / continue    RETURN,t: mark timestamp\n" +
+                  "  BACKSPACE,LEFT: skip back 4 secs       RIGHT: skip forward 4\n" +
+                  "             TAB: go to a timestamp          e: show secs elapsed\n" +
+                  "             l/L: jump to start of next/prev loop-iteration\n" +
+                  "               q: quit\n",
+                  wait_for_key: false
 end
