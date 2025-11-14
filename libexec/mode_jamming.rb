@@ -999,10 +999,6 @@ def do_the_jam_playing json_or_mp3
   puts
   puts "Starting:\n\n    #{play_command}\n\n"
   puts "#{text}\n\n" if text  
-  sleep 0.1
-  puts"\e[0m\e[32m"
-  $jam_help_while_play.each {|l| puts l; sleep 0.02}
-  puts "\e[0m"
   jam_play_show_kb_help
     
   $pplayer = PausablePlayer.new(play_command)

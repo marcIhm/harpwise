@@ -259,14 +259,6 @@ def set_global_vars_early
   $remote_message_count = 0
 
   # Other stuff for jamming; might be used both from mode_print.rb and mode_jamming.rb
-  $jam_help_while_play = ["Press:     SPACE  to pause / continue",
-                          "        RETURN,t     mark a timestamp",
-                          "  BACKSPACE,LEFT     skip back 4 secs",
-                          "           RIGHT     skip forward 4",
-                          "             TAB     go to a timestamp",
-                          "             l/L     jump to start of next/prev loop-iteration",
-                          "               e     echo number of secs elapsed",
-                          "               q     to quit"]
   $jam_play_prev_trim = 0
   $jam_pretended_sleep = 0
   $jam_pretended_actions_ts = []
