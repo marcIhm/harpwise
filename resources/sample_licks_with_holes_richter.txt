@@ -207,6 +207,9 @@
 #              Once a variable is defined it keeps in value
 #              until overwritten; so multiple [vars] sections
 #              can contribute.
+#              If a variable is used, but has not been defined
+#              within your lickfile, it is tried as an environment
+#              variable as a fallback.
 #   [default]  define values, that will be included in any lick;
 #              only allowed, for tags; in an individual lick you
 #              may override or add to this.
@@ -263,7 +266,7 @@
 ##   # unfortunately no recording
 ## 
 ## [vars]
-##   # Variables may help to save typing; they are useful in tags
+##   # Variables may help to save typing; they are useful e.g. in tags
 ##   $source = theory
 ## 
 ## [default]
