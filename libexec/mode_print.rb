@@ -150,7 +150,7 @@ def do_print to_print
       end
       puts
       puts "\e[2mThe same for cut-and-paste:"
-      puts '  ' + licks.map {|l| l[:name]}.join(' ')
+      puts licks.map {|l| l[:name]}.join(' ')
       puts
       puts "\e[2mTotal count of licks printed:  \e[0m#{licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
 
