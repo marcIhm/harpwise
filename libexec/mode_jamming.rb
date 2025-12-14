@@ -973,7 +973,8 @@ def parse_and_preprocess_jamming_json json, simple: false
 end
 
 
-$warned_for_ts_add = false
+$jam_warned_ts_add = false
+$jam_warned_keys_quick = false
 
 def do_the_jam_playing json_or_mp3
 
@@ -991,7 +992,7 @@ def do_the_jam_playing json_or_mp3
     $jam_pms['sound_file_key'] = $key
     $jam_pms['harp_key'] = $key 
   else
-    $jam_pms, action = parse_and_preprocess_jamming_json(json_or_mp3)
+    $jam_pms, actions = parse_and_preprocess_jamming_json(json_or_mp3)
     sleep 0.2
   end
     
@@ -1131,33 +1132,35 @@ def do_the_jam_playing json_or_mp3
 
     when 'l', 'L'
       
-      if $pplayer.time_played < 2
-        puts "\n\e[2mPlease note: Pressing keys too quickly might bring unexpected results\ndue to minus 2 secs of margin applied when jumping loops.\e[0m"
-        puts
-      end
-
       if json_or_mp3.end_with?('.mp3')
         puts "There is no loop defined when playing an mp3; cannot jump"
 
       else
 
+        if $pplayer.time_played < 2 && !$jam_warned_keys_quick
+          puts "\e[2mPlease note, that pressing keys too quickly might bring unexpected results\ndue to minus 2 secs of margin applied when jumping loops.\e[0m"
+          $jam_warned_keys_quick = true
+        end
+        
         ts_mult = $jam_pms['timestamps_multiply']
         
-        if (ts_add = $jam_pms['timestamps_add']) != 0 && !$warned_for_ts_add
+        if (ts_add = $jam_pms['timestamps_add']) != 0 && !$jam_warned_ts_add
           puts "\nNOTE: Parameter 'timestamps_add' is purposeful ignored when jumping loops. Its value is #{ts_add}"
           puts
-          $warned_for_ts_add = true
+          $jam_warned_ts_add = true
         end
         
         # For this to be useful, we need to take sleep_after_iteration into account; so we
-        # need to process it; however we do not use timestamps_add or timestamps_multiply
+        # need to process timestamps fully, just like while playing; however we do not use
+        # timestamps_add or timestamps_multiply
         sl_a_iter = jam_process_sl_a_iter($jam_pms['sleep_after_iteration'], ts_mult)
 
         span_start = 0
         span_start_prev = nil
         span_end = $jam_pms['loop_end_secs'] * ts_mult + sl_a_iter[0][0]
         sl_a_iter.shift if sl_a_iter.length > 1
-        iter = 1
+        iter = ( $jam_data[:num_action_offset] == 0  ?  1  :  0 )
+                 
         trim = $jam_play_prev_trim + $pplayer.time_played
 
         while trim > span_end
@@ -1173,30 +1176,35 @@ def do_the_jam_playing json_or_mp3
           if span_end > $jam_pms['sound_file_length_secs']
             puts "In loop-iteration #{iter}: cannot jump beyond end of sound-file"
           else
-            msg = "FORWARD to end of iteration, to"
+            msg = "FORWARD to end of this iteration #{iter}, to"
             trim = span_end
           end
           $jam_idxs_events[:next_loop_iter] << $jam_ts_collected.length - 1
         else
           if trim <= span_start + 2
             if span_start_prev
-              msg = "BACK to start of previous iteration, to"
+              msg = "BACK to start of previous iteration #{iter-1}, to"
               trim = span_start_prev
             else
-              msg = "BACK to start of current iteration, to"
+              msg = "BACK to start of current iteration #{iter}, to"
               trim = span_start
             end
           else
-            msg = "BACK to start of current iteration, to"
+            msg = "BACK to start of current iteration #{iter}, to"
             trim = span_start
           end
           $jam_idxs_events[:prev_loop_iter] << $jam_ts_collected.length - 1
         end
+
         if msg
-          puts "In loop-iteration #{iter}:"
+          if iter == 0
+            puts " before first loop-iteration"
+          else
+            puts " at start of loop-iteration #{iter}"
+          end
           if trim > 2
             trim -= 2
-            puts ' and including minus 2 secs of margin:'
+            puts ' but actually minus 2 secs before'
           end
           $pplayer.kill
           $pplayer = PausablePlayer.new(jam_get_play_command(trim: trim)[0])
@@ -1211,6 +1219,20 @@ def do_the_jam_playing json_or_mp3
       # echo has already been done above
       puts
       :handled
+      
+    when 'a'
+
+      if json_or_mp3.end_with?('.mp3')
+        puts "There are no actions defined when playing an mp3; cannot dump then"
+
+      else
+        puts
+        puts "\e[0m\e[32mDumping actions as is:\e[0m\n\e[0m\e[2m(neither timestamps_multiply nor _add have been applied)\e[0m\n\n"
+        pp actions
+        puts "\n\e[32mEnd of dump\n\n\e[0m"
+        
+        :handled
+      end
       
     when 'q'
 
@@ -1518,6 +1540,6 @@ def jam_play_show_kb_help
                   "  BACKSPACE,LEFT: skip back 4 secs       RIGHT: skip forward 4\n" +
                   "             TAB: go to a timestamp          e: show secs elapsed\n" +
                   "             l/L: jump to start of next/prev loop-iteration\n" +
-                  "               q: quit\n",
+                  "               a: dump list of actions       q: quit\n",
                   wait_for_key: false
 end
