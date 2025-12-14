@@ -437,7 +437,7 @@ def replace_vars vars, strings, name
     while md = string.match(/^(.*?)\$(#{$word_re})(.*?)$/)
       word = '$' + md[2]
       val = vars[word] || ENV[md[2]]
-      err("Unknown variable '#{word}' used in string '#{string_orig}' for lick #{name}; it is not among these: #{vars.keys.join(',')}\nneither is it known as an environment variable") unless val
+      err("Unknown variable '#{word}' used in string '#{string_orig}' for lick #{name} in #{$lick_file}; it is not among these: #{vars.keys.join(',')}\nneither is it known as an environment variable") unless val
       string = md[1] + val + md[3]
     end
     err "This string contains a '$'-sign, but cannot be handled as a variable: '#{string}'; lick is #{name}" if string['$']
