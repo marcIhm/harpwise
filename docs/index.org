@@ -1,4 +1,4 @@
-#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readthedocs.setup
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 
 Documentation.
 
