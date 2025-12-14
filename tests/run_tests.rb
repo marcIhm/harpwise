@@ -3555,12 +3555,12 @@ end
 
 do_test 'id-118: read and check a fancy lickfile' do
   new_session
-  tms "harpwise develop lickfile #{Dir.pwd}/tests/data/fancy_lickfile.txt"
+  tms "CORGE=grault harpwise develop lickfile #{Dir.pwd}/tests/data/fancy_lickfile.txt"
   tms :ENTER
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
   expect(dump[:licks][0]) { dump[:licks][0][:name] == 'lick0' }
-  expect(dump[:licks][1]) { dump[:licks][1][:desc] == 'bar, qux, thud' }
+  expect(dump[:licks][1]) { dump[:licks][1][:desc] == 'bar, qux, thud, grault' }
   expect(dump[:licks][0]) { dump[:licks][0][:tags] == %w(one two no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-i mostly-chord-iv mostly-chord-v mostly-blues mostly-mape) }
   expect(dump[:licks][2]) { dump[:licks][2][:tags] == %w(five four no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-iv mostly-blues) }
   expect(dump[:licks][2]) { dump[:licks][2][:desc] == 'pix thud' }

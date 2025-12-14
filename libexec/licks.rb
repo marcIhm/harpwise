@@ -61,6 +61,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
         section[:tags] ||= []
         name2prog[sec_title] = section
         err "Progression #{sec_title} does not contain any licks" unless section[:licks]
+        section[:licks] = replace_vars(vars, section[:licks], sec_title)
         $name_collisions_mb[sec_title] << 'lick-progression'
       elsif sec_type == :lick
         # a lick
@@ -208,7 +209,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
 
   # check progressions and add info
   name2prog.keys.each do |pname|
-    err "There is progression and a lick both with name '#{pname}'" if name2lick[pname]
+    err "There is progression and a lick both with name '#{pname}'; please rename one of them" if name2lick[pname]
     name2prog[pname][:licks].each do |lname|
       err "Lick progression '#{pname}' contains unknown lick #{lname} (file #{lfile})" unless name2lick[lname]
       name2lick[lname][:progs] << pname
@@ -437,7 +438,7 @@ def replace_vars vars, strings, name
     while md = string.match(/^(.*?)\$(#{$word_re})(.*?)$/)
       word = '$' + md[2]
       val = vars[word] || ENV[md[2]]
-      err("Unknown variable '#{word}' used in string '#{string_orig}' for lick #{name} in #{$lick_file}; it is not among these: #{vars.keys.join(',')}\nneither is it known as an environment variable") unless val
+      err("Unknown variable '#{word}' used in string '#{string_orig}' for lick or lick-progression #{name} in #{$lick_file}; it is not among these: #{vars.keys.join(',')}\nneither is it known as an environment variable") unless val
       string = md[1] + val + md[3]
     end
     err "This string contains a '$'-sign, but cannot be handled as a variable: '#{string}'; lick is #{name}" if string['$']

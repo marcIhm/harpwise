@@ -7,7 +7,7 @@
   $baz = thud
 [lick1]
   holes = +2
-  desc = $foo, qux, $baz
+  desc = $foo, qux, $baz, $CORGE
 [prog three]
   desc = for testing
   licks = lick0
