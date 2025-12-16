@@ -7,5 +7,25 @@ Overview of 'harpwise develop':
   The required additional argument specifies a task to perform; it can be
   one of:
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
-  
+    - man-proc:
+  [2m    process/produce man page from erb-template[0m
+    - man-diff:
+  [2m    compare produced man page with usage[0m
+    - doc-proc:
+  [2m    process org-erb-templates for usage information and generate html[0m
+  [2m    docu with org-publish[0m
+    - selftest:
+  [2m    perform selftest with special regard to the environment[0m
+    - unittest:
+  [2m    unittest for features, that cannot easily be tested within the[0m
+  [2m    main test program[0m
+    - widgets:
+  [2m    excercise selected widgets to be tested[0m
+    - lickfile:
+  [2m    load and parse a lickfile[0m
+    - check-frequencies:
+  [2m    recalculate and check frequencies for current set of samples[0m
+    - read-scale-with-notes:
+  [2m    read given scale (first arg) from file (second arg)[0m
+    - dump:
+  [2m    dump internal data structures to stdout[0m
