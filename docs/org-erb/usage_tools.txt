@@ -1,0 +1,122 @@
+Overview of 'harpwise tools':
+
+  The mode 'tools' offers some non-interactive but useful utilities,
+  which are mostly related to basic harmonica theory; they do not use
+  microphone or speaker.
+
+  The required additional argument specifies the tool to run;
+  it can be one of:
+
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
+  
+
+Usage by Examples:
+
+  Transpose a sequence of notes (some specified as holes) from
+  the key of c to g (keeping the notes/pitches constant):
+
+    harpwise tools transpose c g -1 +2 -3
+
+  when playing the result on the g-harp you will have the exact same
+  pitches as on the original c-harp.
+
+
+  Shift a sequence of holes up 12 semitones:
+
+    harpwise tools shift 12st -1 +2 -3
+
+  This is different from transposing the notes/pitches as given
+  before, as it changes the pitches of the notes.
+
+  You may then let harpwise play the resulting notes, even if they
+  have no hole on the harp (with mode play)
+
+
+  Print a simple table of keys and positions:
+  
+    harpwise tools keys
+
+  Center the semitone-column around a specific key of harp (bf) and
+  mark it in the table:
+
+    harpwise tools keys bf
+
+  The same and mark a key of song (d) too:
+
+    harpwise tools keys bf d
+
+  If you have a g-harp and want to know what song-keys and positions
+  are available:
+
+    harpwise tools keys g g
+    
+
+  Print a harmonica chart for the key of g:
+
+    harpwise tools chart g
+
+  The same chart, but with arguments rearranged
+
+    harpwise tools g chart
+    
+  Two charts, the second with scale-content (chord-i)
+
+    harpwise tools g chord-i chart --add-scales -
+
+  Four charts, the third and fourth with intervals of each hole to the
+  given reference:
+
+    harpwise tools chord-i chart --ref -4
+
+
+  How to get the holes of the pentatonic scale in an adhoc fashion:
+
+  Assuming, that you know its notes  g a b d e:
+
+    harpwise tools spread-notes g a b d e
+
+  the resulting long list of 16 holes may then be used as an adhoc
+  scale for mode listen.
+
+
+  Advanced users, that are not satisfied with the builtin set of
+  scales, may want to create their own from a list of holes, e.g.:
+
+    harpwise tools make-scale +1 +2 +3
+
+
+  The notes of the major scale starting at c:
+
+    harpwise tools notes c
+
+  this also gives the notes of the major scale one fifth down,
+  i.e. starting at f, so that you may follow the circle of fifths in
+  both directions if you wish.
+
+
+  Print a note progression:
+
+    harpwise tools prog e3 7st 9st oct
+
+  which will give you all the notes starting at e3 and the 7, 9, 12
+  semitones up.
+    
+
+  Print the interval over the base note:
+
+    harpwise tools interval c4 oct
+
+    harpwise tools interval c4 +12st
+
+
+  print the chords i, iv and v for the current key:
+
+    harpwise tools chords
+
+
+  Transcribe and audio-file given on the commandline approximately:
+
+    harpwise tools transcribe wade.mp3
+
+  for simple harmonica content this will give you sequence of holes
+  played in lick wade.mp3 (from current working dir)

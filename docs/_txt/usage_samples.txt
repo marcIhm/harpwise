@@ -1,0 +1,91 @@
+Overview of 'harpwise samples':
+
+  The wise needs a set of audio-samples; these are the sounds-files
+  (recorded or generated) of each of the holes of your harmonica;
+  blow, draw, bend.
+  
+  The samples are used to:
+  
+  - Play a series of holes, e.g. for modes play or quiz
+  - Judge the frequencies of your playing against the frequencies of the
+    samples to find out, which note you are actually playing
+
+  You may either record those samples under the guidance of this mode,
+  or you may let the wise generate them for you; adding some helper
+  functions, this gives the following choice of extra arguments:
+
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
+
+
+  The samples need to be generated for each key, but only once in the
+  lifetime of your harp; you may start with the key of c only.
+  After that you are ready to use the other modes of the wise.
+
+  Samples that have been recorded will not be overwritten with
+  samples, that the wise generates.  Moreover, recorded samples are
+  always preferred over generated samples, when harpwise has to play
+  holes; remove recorded samples, if (for the moment) you prefer
+  generated samples.
+  
+  By its nature, this mode only accepts arguments for type and key,
+  but not for scale.
+  
+
+Usage by Examples:
+
+  Record samples to teach the wise abut the frequencies of the harp
+  you are using:
+
+    harpwise samples c record
+
+  this will ask you to play notes on your harp (key of c). The samples
+  will be stored in the folder harpwise within your home
+  directory; frequencies will be extracted to the file
+  frequencies.yaml.
+
+  You may cancel the process of recording samples after any hole whle
+  still keeping the samples recorded so far (but you may 'delete'
+  them, if you choose). If later, you want to continue recording from
+  where you left, simply give the respective hole as an argument, e.g.
+
+    harpwise samples c record +4
+
+
+  If at a later time, you just want to review the samples, you have
+  created, simply use play, e.g.:
+
+    harpwise play +4
+
+  or even:
+
+    harpwise play all
+
+
+  Compared with the process of recording samples, the alternative of
+  generating samples automatically is the quickest way to get started.
+  The wise may create all the audio samples for you (using sox);
+  however, this cannot match the characteristics of your own harp and
+  your own playing style, but it gives a good quick start.  For
+  auto-generation, type:
+
+    harpwise samples a generate
+
+
+  Or, to generate everything, all holes, all keys, in a single run:
+
+    harpwise samples generate all
+
+  With this, only when first changing the type of harmonica, e.g. from
+  richter (default) to chromatic, you will need to create samples
+  again.
+
+
+  If later, you want to remove some samples, that you have recorded
+  previously, try (for the key of d):
+
+    harpwise samples d delete
+
+  this applies to recorded samples only; there is no need to delete
+  generated samples, as they can allways be generated and overwritten
+  or shadowed by recorded samples.
+  

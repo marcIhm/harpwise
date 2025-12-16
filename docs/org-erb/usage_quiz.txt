@@ -1,0 +1,59 @@
+Overview of 'harpwise quiz':
+
+  The mode 'quiz' is a quiz on music theory, ear and memory. It is
+  meant as a fun way to increase your musical abilities. Quiz comes in
+  different flavours. It issues questions and asks for an answer. Most
+  flavours involve holes beeing played either as part of the question
+  or the answer.
+
+  Every time you invoke harpwise with mode 'quiz', a flavour is
+  chosen; to try another flavour, just restart harpwise, e.g. by
+  pressing ctrl-z.  For a chosen flavour, questions of this flavour
+  are asked in an endless loop.
+
+The available <%= $extras_joined_to_desc[:quiz].length %> flavours are:
+
+<%= get_extra_desc_all(for_usage: true).join("\n") %>
+  
+Usage by Examples:
+
+  The wise chooses a quiz-flavour at random (key of c):
+
+    harpwise quiz c random
+
+  this is the preferred way to get used to this mode.
+
+  To switch to a different, random mode, issue signal ctrl-z.
+
+
+  Some examples that choose a quiz flavour explicitly:
+  
+
+  Wise plays 3 notes from the scale major_pentatonic for a
+  chromatic harmonica of key a and then asks you to play them
+  back (then repeat):
+
+    harpwise quiz chromatic a blues replay 5
+
+  In the examples above, the type of harmonica (e.g. richter or
+  chromatic), the key (e.g. c or a) or the number of holes may be
+  omitted and are then taken from the config or defaults; so
+
+    harpwise q major replay
+
+  is valid as well (but would choose a richter harp).
+
+  This example removes drawbends from the scale 'all':
+
+    harpwise quiz all replay 5 --remove-scales drawbends
+
+  this example also relies on the default of 5 holes to be played.
+
+
+  Wise plays a scale and asks you for its name:
+
+    harpwise quiz hear-scale
+
+Quick Start:
+
+    harpwise quiz ran
