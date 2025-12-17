@@ -39,7 +39,6 @@ end
 
 
 def do_man_proc
-
   # needed in erb
   types_with_scales = get_types_with_scales_for_usage
 
@@ -200,18 +199,8 @@ def do_doc_proc
   dir_suff = [[dst_org_dir, '.org'],
               [dst_txt_dir, '.txt']]
 
-  # Prepare some vars for erb
-  #
-  # Get content of all harmonica-types to be inserted
+  # needed for erb
   types_with_scales = get_types_with_scales_for_usage
-  # Used for play and print
-  no_lick_selecting_options = <<-EOTEXT
-  Note, that the above case does not use any of the extra arguments given
-  above, but rather expects (maybe among others) lick-names on the
-  command line; in this case the lick-selecting tag-options (e.g. -t) are
-  ignored (even those from your config.ini) and the given lick-names
-  ('st-louis') are searched among ALL of your licks.
-EOTEXT
   
   puts "\nChecking and writing files ...\n\n"
   src_files_short.each do |file_short|
@@ -243,7 +232,7 @@ EOTEXT
           cmd = "git diff --exit-code #{dst_file}"
           # We do this twice so that we get no output for the good case but full output for
           # the bad case
-          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above!")
+          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above! Rather make shure, these changes are present in the upstream file from erb-org")
         end
       end
 

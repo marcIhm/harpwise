@@ -130,8 +130,13 @@ def file2scale file, type = $type
 end
 
 
-def scales_for_type type, check
-  files = $scale_files_templates.map do |template|
+def scales_for_type type, check, builtin_only: false
+  templates = if builtin_only
+                [$scale_files_templates[0]]
+              else
+                $scale_files_templates
+              end
+  files = templates.map do |template|
     Dir[template % [type, '*', '{holes,notes}']]
   end.flatten
   if check

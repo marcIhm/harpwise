@@ -42,9 +42,6 @@ Usage by Examples:
 
     harpwise print st-louis
 
-<%= no_lick_selecting_options %>
-
-
   Print holes and notes of a scale (blues):
 
     harpwise print blues

@@ -34,9 +34,6 @@ Usage by Examples:
   
     harpwise play d wade
 
-<%= no_lick_selecting_options %>    
-
-
   Play an earlier lick:
 
     harpwise play 3l

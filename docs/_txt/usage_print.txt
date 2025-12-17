@@ -63,14 +63,6 @@ Usage by Examples:
 
     harpwise print st-louis
 
-  Note, that the above case does not use any of the extra arguments given
-  above, but rather expects (maybe among others) lick-names on the
-  command line; in this case the lick-selecting tag-options (e.g. -t) are
-  ignored (even those from your config.ini) and the given lick-names
-  ('st-louis') are searched among ALL of your licks.
-
-
-
   Print holes and notes of a scale (blues):
 
     harpwise print blues

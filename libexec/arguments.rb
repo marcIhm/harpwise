@@ -722,13 +722,6 @@ def print_usage_info mode = nil
   # get content of all harmonica-types to be inserted
   types_with_scales = get_types_with_scales_for_usage
   # used for play and print
-  no_lick_selecting_options = <<-EOTEXT
-  Note, that the above case does not use any of the extra arguments given
-  above, but rather expects (maybe among others) lick-names on the
-  command line; in this case the lick-selecting tag-options (e.g. -t) are
-  ignored (even those from your config.ini) and the given lick-names
-  ('st-louis') are searched among ALL of your licks.
-EOTEXT
 
   if !mode && STDOUT.isatty
     print "\e[?25l"  ## hide cursor      
@@ -785,8 +778,8 @@ def get_types_with_scales_for_usage
   $conf[:all_types].map do |type|
     next if type == 'testing'
     txt = "scales for #{type}: "
-    scales_for_type(type,false).each do |scale|
-      txt += "\n    " if (txt + scale).lines[-1].length > 80
+    scales_for_type(type, false, builtin_only: true).each do |scale|
+      txt += "\n    " if (txt + scale).lines[-1].length > 78
       txt += scale + ', '
     end
     txt.chomp(', ')
