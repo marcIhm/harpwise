@@ -232,7 +232,7 @@ def do_doc_proc
           cmd = "git diff --exit-code #{dst_file}"
           # We do this twice so that we get no output for the good case but full output for
           # the bad case
-          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above! Rather make shure, these changes are present in the upstream file from erb-org")
+          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above! Rather make shure, these changes are present in the upstream file from erb-org or simply add and commit the named downstream file")
         end
       end
 

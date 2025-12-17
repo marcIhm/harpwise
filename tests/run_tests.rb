@@ -3860,13 +3860,13 @@ do_test 'id-133b: correct version is shown in usage' do
   kill_session
 end
 
-do_test 'id-133c: check usage-message for erb-artefacts' do
+do_test 'id-133c: no erb-tags left in usage-message' do
   new_session
   tms 'harpwise | head -110'
   tms :ENTER
   sleep 2
-  expect { screen[8]['The possible scales depend on the chosen type of harmonica']}
-  expect { screen[10]['scales for chromatic: all, blues']}
+  expect { screen[9]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[11]['scales for chromatic: all, blues']}
   tms 'clear'
   tms :ENTER
   tms 'harpwise | grep -c +begin_'
