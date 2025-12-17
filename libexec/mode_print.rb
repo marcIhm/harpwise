@@ -149,7 +149,7 @@ def do_print to_print
         puts "  #{lick[:name].ljust(maxl)} \e[2m: #{lick[:holes].length.to_s.rjust(3)}  :  #{lick[:desc]}\e[0m"
       end
       puts
-      puts "\e[2mThe same for cut-and-paste:"
+      puts "\e[2mThe lick-names for cut-and-paste:"
       puts licks.map {|l| l[:name]}.join(' ')
       puts
       puts "\e[2mTotal count of licks printed:  \e[0m#{licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"

@@ -11,10 +11,13 @@ def do_develop to_handle
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
 
   case $extra
-  when 'man'
-    do_man
-  when 'diff'
-    do_diff
+  when 'man-proc'
+    do_man_proc
+  when 'man-diff'
+    do_man_diff
+    do_man_proc
+  when 'doc-proc'
+    do_doc_proc
   when 'selftest'
     do_selftest
   when 'unittest'
@@ -35,7 +38,7 @@ def do_develop to_handle
 end
 
 
-def do_man
+def do_man_proc
 
   # needed in erb
   types_with_scales = get_types_with_scales_for_usage
@@ -49,7 +52,7 @@ def do_man
 end
 
 
-def do_diff
+def do_man_diff
 
   dsec = File.mtime($man_template) - File.mtime($man_result)
   abort("\nFile\n\n  #{$man_result}\n\nis #{dsec} sec older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if dsec > 0.1
@@ -94,7 +97,7 @@ def do_diff
   #
 
   # handling usage is simpler, because it does not contain formatting commands
-  lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/resources/usage.txt")).
+  lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/docs/_txt/usage.txt")).
                     result(binding).lines.
                     map do |l|
                       erase_line_usage_if_part.any? {|rgx| l.match?(rgx)} ? nil : l
@@ -178,6 +181,74 @@ def do_diff
       puts "Hint: A common problem would be a line of text starting with a single quote ('),\nwhich would be misinterpreted by man.\e[0m"
       puts
       exit 1
+    end
+  end
+end
+
+
+def do_doc_proc
+  src_erb_dir = "#{$dirs[:install]}/docs/erb-org"
+  dst_txt_dir = "#{$dirs[:install]}/docs/_txt"
+  dst_org_dir = "#{$dirs[:install]}/docs/_org"
+  src_files_short = Dir["#{src_erb_dir}/*"].map {|f| File.basename(f).chomp(".erb.org")}
+  found = src_files_short.map {|f| "#{f}.erb.org"}
+  expected = $early_conf[:modes].map {|m| "usage_#{m}.erb.org"}
+  expected.append('index.erb.org', 'usage.erb.org')
+  expected.sort!
+  fail "Inernal error for dir #{src_erb_dir}: List of files found\n  " + found.join(' ') + "\ndiffers from expected\n  " + expected.join(' ') + "\n" unless found == expected
+
+  dir_suff = [[dst_org_dir, '.org'],
+              [dst_txt_dir, '.txt']]
+
+  # Prepare some vars for erb
+  #
+  # Get content of all harmonica-types to be inserted
+  types_with_scales = get_types_with_scales_for_usage
+  # Used for play and print
+  no_lick_selecting_options = <<-EOTEXT
+  Note, that the above case does not use any of the extra arguments given
+  above, but rather expects (maybe among others) lick-names on the
+  command line; in this case the lick-selecting tag-options (e.g. -t) are
+  ignored (even those from your config.ini) and the given lick-names
+  ('st-louis') are searched among ALL of your licks.
+EOTEXT
+  
+  puts "\nChecking and writing files ...\n\n"
+  src_files_short.each do |file_short|
+    dir_suff.each do |dir, suff|
+      dst_file = "#{dir}/#{file_short}#{suff}"
+
+      puts dst_file
+      new_cont = if suff == '.org'
+                   ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
+                     result(binding).gsub(/(^\s*\n)+\Z/,'')
+                 else
+                   IO.read("#{dst_org_dir}/#{file_short}.org").
+                     lines.reject {|l| l.start_with?('#+')}.join
+                 end
+
+      if File.exist?(dst_file)
+        old_cont = IO.read(dst_file)
+
+        if new_cont == old_cont
+          puts "  content would not change; skipping"
+          next
+        else
+          puts "  content has changed"
+        end
+      
+        # Make sure not to clobber any changes in destination file
+        Dir.chdir($dirs[:install]) do
+          system("git ls-files --error-unmatch #{dst_file}") or fail("Error while making sure, that file  #{file_short}#{suff}  is tracked by git; see above!")
+          cmd = "git diff --exit-code #{dst_file}"
+          # We do this twice so that we get no output for the good case but full output for
+          # the bad case
+          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above!")
+        end
+      end
+
+      File.write(dst_file, new_cont)
+      puts "  updated"
     end
   end
 end

@@ -111,7 +111,7 @@ usage_examples2type = Hash.new
 known_not = ['harpwise supports', 'harpwise tools transcribe wade.mp3', 'harpwise licks a -t starred']
 
 usage_types.values.map {|p| p[0]}.each do |fname|
-  File.read("resources/#{fname}.txt").lines.map(&:strip).each do |l|
+  File.read("docs/_txt/#{fname}.txt").lines.map(&:strip).each do |l|
     usage_examples[-1] += ' ' + l if (usage_examples[-1] || '')[-1] == '\\'
     if l.start_with?('harpwise ')
       l.gsub!('\\','')
@@ -1136,7 +1136,7 @@ do_test 'id-22b: print a lick without holes' do
   FileUtils.cp $lickfile_testing, $lickfile_testing_saved
   File.write($lickfile_testing,
              "\n[solo]\n  desc = invitation to play a solo; no holes\n  holes = [...SOLO...]\n",
-             mode: 'a+')
+             mode: 'a')
   sleep 1
   new_session
   tms 'harpwise print solo'
@@ -1821,6 +1821,7 @@ do_test 'id-50c: tools make-scale' do
   tms 'harpwise print scales -b'
   tms :ENTER
   expect { screen[14]['foo'] }
+  FileUtils.rm($scalefile_testing) if File.exist?($scalefile_testing)
   kill_session
 end
 
@@ -3825,9 +3826,21 @@ end
 
 ENV['HARPWISE_TESTING']='1'
 
-do_test 'id-133: test for diff between man and usage' do
+do_test 'id-133: process and git-check erb.org-files' do
   new_session
-  tms "HARPWISE_TESTING=none ~/git/harpwise/harpwise dev diff"
+  tms "harpwise dev doc-proc"
+  tms :ENTER
+  wait_for_end_of_harpwise
+  sleep 2
+  tms 'echo ' + $rc_marker + ' \$?'
+  tms :ENTER
+  expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
+  kill_session  
+end
+
+do_test 'id-133a: test for diff between man and usage' do
+  new_session
+  tms "HARPWISE_TESTING=none harpwise dev man-diff"
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
@@ -3835,6 +3848,31 @@ do_test 'id-133: test for diff between man and usage' do
   tms :ENTER
   expect($rc_marker) { screen.find {|l| l[$rc_marker + ' 0']} }
   kill_session
+end
+
+do_test 'id-133b: correct version is shown in usage' do
+  new_session
+  version = File.read("resources/version.txt").chomp
+  tms "harpwise"
+  tms :ENTER
+  sleep 3
+  expect(version) { screen[17][version] }
+  kill_session
+end
+
+do_test 'id-133c: check usage-message for erb-artefacts' do
+  new_session
+  tms 'harpwise | head -110'
+  tms :ENTER
+  sleep 2
+  expect { screen[8]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[10]['scales for chromatic: all, blues']}
+  tms 'clear'
+  tms :ENTER
+  tms 'harpwise | grep -c +begin_'
+  tms :ENTER
+  sleep 2
+  expect { screen[1]['0']}
 end
 
 do_test 'id-134: invalid arg for mode jamming' do
@@ -3961,8 +3999,11 @@ do_test 'id-138: harpwise jamming play' do
   expect { screen[14]['# 2']}
   expect { screen[15]['... skipped backward ...']}
   expect { screen[16]['... next loop ...']}
-  expect { screen[3]['FORWARD to end of iteration, to:']}
+  expect { screen[3]['FORWARD to end of this iteration 0']}
   expect { screen[17]['# 3']}
+  sleep 1
+  tms 'a'
+  expect { screen[20]['End of dump']}
   kill_session
 end
 
@@ -3973,8 +4014,7 @@ do_test 'id-138a: harpwise jamming play an mp3' do
   tms :ENTER
   sleep 1
   tms 'l'
-  expect { screen[19]['Pressing keys too quickly might bring unexpected results']}
-  expect { screen[22]['There is no loop defined when playing an mp3; cannot jump']}
+  expect { screen[18]['There is no loop defined when playing an mp3; cannot jump']}
   tms ' '
   expect { screen[23]['Paused']}
   kill_session
@@ -4065,7 +4105,7 @@ do_test 'id-144: check consistent usage of short and long description' do
 
   sd_usage = nil
   ld_usage = []
-  File.read("resources/usage.txt").lines.map(&:strip).each do |line|
+  File.read("docs/_txt/usage.txt").lines.map(&:strip).each do |line|
     if line == ''
       break if ld_usage.length > 0
     else

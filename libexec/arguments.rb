@@ -738,7 +738,7 @@ EOTEXT
     print "\e[?25h"  ## show cursor
   end
   puts
-  lines = ERB.new(IO.read("#{$dirs[:install]}/resources/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt")).result(binding).gsub(/(^\s*\n)+\Z/,'').lines
+  lines = IO.read("#{$dirs[:install]}/docs/_txt/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt").gsub(/(^\s*\n)+\Z/,'').lines
   lines.each_with_index do |line, idx|
     print line
     sleep 0.5 if idx == 0 && mode

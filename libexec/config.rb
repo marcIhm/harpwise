@@ -608,7 +608,7 @@ def check_installation verbose: false
   puts "Sox is able to handle mp3." if verbose
 
   # Check some sample dirs and files
-  some_needed_files = %w(resources/usage.txt config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3)
+  some_needed_files = %w(docs/erb-org/usage.erb.org config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3)
   some_needed_files.each do |file|
     if !File.exist?($dirs[:install] + '/' + file)
       err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"

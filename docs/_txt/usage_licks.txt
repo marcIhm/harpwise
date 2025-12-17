@@ -86,7 +86,7 @@ Usage by Examples:
   and use mode print to see details about starred licks.
   Which licks are starred is kept in file (e.g)
 
-    /home/ihm/harpwise/licks/richter/starred.yaml
+    /home/ihm/harpwise_testing/licks/richter/starred.yaml
 
 
   There are some more options to *filter* the set of available licks

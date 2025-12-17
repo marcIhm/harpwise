@@ -340,10 +340,13 @@ jamming:
 
     An empty (or whitespace only) note will be removed altogether.
 develop:
-  man: |
-    produce man page from erb-template
-  diff: |
+  man-proc: |
+    process/produce man page from erb-template
+  man-diff: |
     compare produced man page with usage
+  doc-proc: |
+    process org-erb-templates for usage information and generate html
+    docu with org-publish
   selftest: |
     perform selftest with special regard to the environment
   unittest: |

@@ -1,0 +1,11 @@
+Basic workflow:
+
+- Write org in subdir erb-org
+
+- hw dev doc-proc
+  - to process things from erb-org to _org and _txt
+    
+- Load export.el
+- Export with orgmode from _org to _html
+  - C-u M-x org-publish
+  - project: harpwise
