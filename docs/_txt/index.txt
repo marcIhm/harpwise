@@ -9,19 +9,6 @@ It offers various tools, an explorable quiz and may guide your jamming.
 It can be used with diatonic (richter) or chromatic harmonicas in
 different keys.
   
-* Table of Contents                                                   :TOC_1:
-
-- [[#screencasts][Screencasts]]
-- [[#introduction][Introduction]]
-- [[#installation][Installation]]
-- [[#Invocation][Invocation]]
-- [[#getting-started][Getting started]]
-- [[#getting-help][Getting help]]
-- [[#configuration][Configuration]]
-- [[#some-musical-concepts][Some musical concepts]]
-- [[#some-technical-concepts][Some technical concepts]]
-- [[#a-closer-look-at-the-screen][A closer look at the Screen]]
-  
 * Screencasts
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
