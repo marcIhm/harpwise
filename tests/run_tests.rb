@@ -3860,7 +3860,7 @@ do_test 'id-133b: correct version is shown in usage' do
   kill_session
 end
 
-do_test 'id-133c: no erb-tags left in usage-message' do
+do_test 'id-133c: no org-tags left in usage-message' do
   new_session
   tms 'harpwise | head -110'
   tms :ENTER
@@ -3873,6 +3873,16 @@ do_test 'id-133c: no erb-tags left in usage-message' do
   tms :ENTER
   sleep 2
   expect { screen[1]['0']}
+  kill_session
+end
+
+do_test 'id-133d: publish to html' do
+  new_session
+  tms 'harpwise dev html-proc'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[1]['Successfully published to']}
+  kill_session
 end
 
 do_test 'id-134: invalid arg for mode jamming' do

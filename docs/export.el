@@ -1,4 +1,5 @@
-(setq org-export-with-broken-links false)
+(require 'org)
+(setq org-export-with-broken-links nil)
 (setq org-publish-project-alist
       '(("harpwise-org"
 	 :base-directory "~/git/harpwise/docs/_org"
@@ -18,3 +19,5 @@
          :publishing-function org-publish-attachment)
 
     ("harpwise" :components ("harpwise-org" "harpwise-images"))))
+
+(org-publish "harpwise" t)

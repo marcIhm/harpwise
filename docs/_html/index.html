@@ -1,0 +1,793 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-12-18 Thu 05:32 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="author" content="notebook-marc" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org9af297a">1. Summary</a></li>
+<li><a href="#orge4ac90e">2. Screencasts</a></li>
+<li><a href="#orgc11cb22">3. Introduction</a></li>
+<li><a href="#org9b79959">4. Installation</a></li>
+<li><a href="#org71e4a26">5. Invocation</a></li>
+<li><a href="#orgf901529">6. Getting started</a></li>
+<li><a href="#orgd9e41b9">7. Getting help</a></li>
+<li><a href="#org471e4dd">8. Configuration</a></li>
+<li><a href="#org01c666e">9. Some musical concepts</a>
+<ul>
+<li><a href="#org327d493">9.1. Scales</a></li>
+<li><a href="#orga6f45f5">9.2. Licks</a></li>
+</ul>
+</li>
+<li><a href="#org60e1e56">10. Some technical concepts</a>
+<ul>
+<li><a href="#orga5711c3">10.1. The reference hole</a></li>
+<li><a href="#orgde33f91">10.2. When multiple holes produce the same note</a></li>
+<li><a href="#orgfde44fe">10.3. Tuning</a></li>
+</ul>
+</li>
+<li><a href="#orgfe2a2a9">11. A closer look at the Screen</a>
+<ul>
+<li><a href="#orgaddb3c3">11.1. The header</a></li>
+<li><a href="#org3e0d723">11.2. The 'display'</a></li>
+<li><a href="#orgbc18e39">11.3. The middle part of the screen</a></li>
+<li><a href="#orgc183f9c">11.4. The 'comment'</a></li>
+<li><a href="#org16dd742">11.5. The footer</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org9af297a" class="outline-2">
+<h2 id="org9af297a"><span class="section-number-2">1.</span> Summary</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+A harmonica tool for the command line, using microphone and speaker.
+</p>
+
+<p>
+Harpwise supports your harmonica practice with scales, chords and licks.
+It offers various tools, an explorable quiz and may guide your jamming.
+It can be used with diatonic (richter) or chromatic harmonicas in
+different keys.
+</p>
+</div>
+</div>
+<div id="outline-container-orge4ac90e" class="outline-2">
+<h2 id="orge4ac90e"><span class="section-number-2">2.</span> Screencasts</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The screencast below, shows how harpwise (mode 'listen') reacts on notes
+beeing played and how it can help to write them down. No sound has been
+recorded however, so some accustic imagination is required &#x2026;
+</p>
+
+
+<div id="org85753ec" class="figure">
+<p><img src="../../images/harpwise-listen.gif" alt="harpwise-listen.gif" />
+</p>
+</div>
+
+<p>
+The second screencast is from mode 'quiz', showing three of the many
+flavours: hear-key, players and keep-tempo.
+</p>
+
+
+<div id="org902cc7a" class="figure">
+<p><img src="../../images/harpwise-quiz.gif" alt="harpwise-quiz.gif" />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc11cb22" class="outline-2">
+<h2 id="orgc11cb22"><span class="section-number-2">3.</span> Introduction</h2>
+<div class="outline-text-2" id="text-3">
+
+<div id="org8942fb2" class="figure">
+<p><img src="../../images/harmonica3.png" alt="harmonica3.png" />
+</p>
+</div>
+
+<p>
+A harmonica tool for the command line, using microphone and speaker.
+</p>
+
+<p>
+Harpwise runs on the command line of Linux, MacOS and WSL2/Windows.
+</p>
+
+<p>
+It plays and perceives single notes and can play chords.
+</p>
+
+<p>
+The main operation modes of harpwise are 'listen', 'jamming', 'quiz'
+and 'licks'; these may help to:
+</p>
+
+<ul class="org-ul">
+<li>Learn scales and intervals</li>
+<li>Jam through a chord progression guided by scales and licks</li>
+<li>Learn and memorize licks (a few samples included)</li>
+<li>Train your ear and musical memory and learn related
+music theory by the way of quiz</li>
+</ul>
+
+<p>
+Some of the other things, that harpwise can do:
+</p>
+
+<ul class="org-ul">
+<li>Help to find the key of a song (with an adjustable pitch)</li>
+<li>Interactively play intervals or note progressions</li>
+<li>Help in writing down a sequence of holes (journal)</li>
+<li>Work on bends or warbles</li>
+<li>Transpose a sequence of holes from one key of harp to another</li>
+<li>Provide an overview table of positions and keys of songs and harp</li>
+<li>Print notes layed out on a harmonica chart</li>
+<li>Print or play chords or scales</li>
+<li>Show full help on its usage</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org9b79959" class="outline-2">
+<h2 id="org9b79959"><span class="section-number-2">4.</span> Installation</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Harpwise is available from the ubuntu-repositories:
+</p>
+
+<p>
+sudo apt install harpwise
+</p>
+
+<p>
+as a debian package; this also works fairly well for WSL2/Windows.
+</p>
+
+<p>
+For other variants of linux, you may try:
+</p>
+
+<p>
+sudo snap install harpwise
+</p>
+
+<p>
+(which may require you to enable the snapstore first)
+</p>
+
+<p>
+for other platforms, a more manual install is required; please see the
+README within subdirectory install.
+</p>
+</div>
+</div>
+<div id="outline-container-org71e4a26" class="outline-2">
+<h2 id="org71e4a26"><span class="section-number-2">5.</span> Invocation</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Once you have installed harpwise, go to the commandline and type:
+</p>
+
+<p>
+if you have downloaded from Github:
+</p>
+
+<ul class="org-ul">
+<li>cd ~/harpwise</li>
+<li>./harpwise</li>
+</ul>
+
+<p>
+or if you installed harpwise from the Ubuntu repositories:
+</p>
+
+<p>
+harpwise
+</p>
+
+<p>
+In either case, harpwise will print a usage information to get you
+started quickly.  Or read below for additional details.
+</p>
+</div>
+</div>
+<div id="outline-container-orgf901529" class="outline-2">
+<h2 id="orgf901529"><span class="section-number-2">6.</span> Getting started</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+Get usage information, especially a section on "Quick Start" by invoking
+harpwise without arguments:
+</p>
+
+<p>
+./harpwise
+</p>
+
+
+<p>
+This will show examples and options for its main operations:
+</p>
+
+<ul class="org-ul">
+<li>listen: listen to your playing, e.g. to monitor bends or scales</li>
+<li>quiz: train your ear, memory and knowledge of music theory with
+many different flavours. This is actually fun and an engaging way
+to start with harpwise.</li>
+<li>licks: learn licks ! A few are included and some pointers to more</li>
+<li>play: wise plays scales, holes, licks, chords, intervals, progressions
+or a reference pitch</li>
+<li>print: print licks, scales, etc. or produce various reports</li>
+<li>tools: utilities, mostly related to basic harmonica theory</li>
+<li>samples: record samples for holes or generate them</li>
+</ul>
+
+<p>
+As an optional step you may want to create samples for the program; the
+resulting wav-files will be kept in directory ~/harpwise
+</p>
+
+<p>
+Or, to get started quickly you may generate samples and frequencies
+(e.g. for the key of c):
+</p>
+
+<p>
+harpwise samples generate c
+</p>
+
+
+<p>
+If you want to work with mode licks to learn and memorize licks (highly
+recommended !), you will need to add new licks soon.  Add them to your
+own lick-file, which is typically located at:
+</p>
+
+<p>
+~/harpwise/licks/richter/licks<sub>with</sub><sub>holes.txt</sub>
+</p>
+
+<p>
+this file is created on first invocation and filled with only a few
+sample-licks; however it contains extensive instructions on how to add
+new licks and some pointers to sources for more (printed and online,
+payed and free).
+</p>
+</div>
+</div>
+<div id="outline-container-orgd9e41b9" class="outline-2">
+<h2 id="orgd9e41b9"><span class="section-number-2">7.</span> Getting help</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+If you have problems, questions or just want to give feedback, please
+drop me a note: marc@ihm.name
+</p>
+
+<p>
+If you have a github-account and prefer a more structured approach, you
+may also open a github-issue.
+</p>
+
+<p>
+In addition harpwise comes with a number of help sources:
+</p>
+
+<ul class="org-ul">
+<li>This README gives some general background and context information</li>
+<li>The program harpwise comes with a general usage text as well as texts
+specific to each mode. These texts are shown, if harpwise is invoked
+without arguments and contain lots of examples and descriptions for
+invoking harpwise and for the form of its arguments and options.</li>
+<li>When harpwise is running, especially in its main listen-perspective
+(see screenshots), you can press 'h' to get a short overview of all
+available keys.</li>
+<li>The main menu facility of harpwise (which, at times, covers the lower
+half of the screen and offers to choose between various items), often
+shows one-line descriptions of its items at the bottom.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org471e4dd" class="outline-2">
+<h2 id="org471e4dd"><span class="section-number-2">8.</span> Configuration</h2>
+<div class="outline-text-2" id="text-8">
+<p>
+This is the user-modifyable configuration file, that will be created on
+first invocation:
+</p>
+
+<p>
+~/harpwise/config.ini
+</p>
+
+<p>
+There you may override many settings and programs default.  The file is
+commented extensively, so please read there for details on the various
+settings. Initially this config-file is a copy of the programs central
+config-file.
+</p>
+
+<p>
+See also the usage-information, which lists all of the command line
+options, which in many cases mirror the settings from your config.ini.
+</p>
+</div>
+</div>
+<div id="outline-container-org01c666e" class="outline-2">
+<h2 id="org01c666e"><span class="section-number-2">9.</span> Some musical concepts</h2>
+<div class="outline-text-2" id="text-9">
+</div>
+<div id="outline-container-org327d493" class="outline-3">
+<h3 id="org327d493"><span class="section-number-3">9.1.</span> Scales</h3>
+<div class="outline-text-3" id="text-9-1">
+<p>
+Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
+playing the harmonica. E.g. when improvising, you may stick to a
+specific scale.
+</p>
+
+<p>
+Therefore, harpwise shows information about the scales, that a given
+hole belongs to; it can also play scales or print their content or quiz
+you about them.
+</p>
+
+<p>
+For this to work best, you may:
+</p>
+
+<ul class="org-ul">
+<li>Give the name of your favorite scale as an argument when starting
+harpwise. The default is often 'blues', but you may also use
+e.g. 'mape' (for major pentatonic). Use 'harpwise print scales' to
+learn about the available scales.</li>
+<li>To include other scales beyound the main scale, you may add the
+option &#x2013;add-scales on the commandline, e.g.  '&#x2013;add-scales
+chord-i,chord-iv,chord-v' In many modes of harpwise you may rotate
+among scales by pressing 's'.</li>
+</ul>
+
+
+<p>
+So a typical invocation would be:
+</p>
+
+<p>
+harpwise listen c blues &#x2013;add-scales chord-i,chord-iv,chord-v
+</p>
+
+<p>
+which shows, which of the four given scales the notes you play belong
+to respectively. This command line may be shortend by moving the option
+&#x2013;add-scale to your configuration.
+</p>
+
+
+<p>
+The wise already comes with a large set of scales; but if you still miss
+something, you may create your own using the tool make-scale.
+</p>
+
+<p>
+You may even use an adhoc-scale by giving its holes on the commandline;
+see mode listen for an example.
+</p>
+</div>
+</div>
+<div id="outline-container-orga6f45f5" class="outline-3">
+<h3 id="orga6f45f5"><span class="section-number-3">9.2.</span> Licks</h3>
+<div class="outline-text-3" id="text-9-2">
+<p>
+Licks help you to grasp the style and ideas of other players. Harpwise
+allows to build and organize a whole collection of licks. For each lick
+there is a recording and the sequence of holes that (mostly) make it
+up.
+</p>
+
+<p>
+Out of the factory, harpwise only has a few older licks with expired
+copyright and amateur recordings; an example would be a lick from the
+St-Louis blues.
+</p>
+
+<p>
+To work fruitfully with licks, you should record your own or buy some
+decent lick collections (me beeing not connected with any of those).
+See your lick-file for pointers and instructions:
+</p>
+
+<p>
+~/harpwise/licks/richter/licks<sub>with</sub><sub>holes.txt</sub>
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org60e1e56" class="outline-2">
+<h2 id="org60e1e56"><span class="section-number-2">10.</span> Some technical concepts</h2>
+<div class="outline-text-2" id="text-10">
+</div>
+<div id="outline-container-orga5711c3" class="outline-3">
+<h3 id="orga5711c3"><span class="section-number-3">10.1.</span> The reference hole</h3>
+<div class="outline-text-3" id="text-10-1">
+<p>
+The wise can remember a hole that you have played and later refer to
+it; this is useful e.g. to show the interval between the current hole
+and the reference, or to show the deviation from the currently played
+frequency to the nominal frequency of the hole, e.g. when practicing
+bends.
+</p>
+
+<p>
+To set the reference, you simply play the desired note and hit the key
+'r' at the same time. To clear the reference you just hit 'r' when not
+playing anything.
+</p>
+</div>
+</div>
+<div id="outline-container-orgde33f91" class="outline-3">
+<h3 id="orgde33f91"><span class="section-number-3">10.2.</span> When multiple holes produce the same note</h3>
+<div class="outline-text-3" id="text-10-2">
+<p>
+Many harps produce identical notes on certain holes; e.g. the diatonic
+harmonica on holes -2 and +3. There are even more cases e.g. for a
+chromatic harmonica.
+</p>
+
+<p>
+Harpwise cannot distinguish between such holes either and treats them
+alike in all aspects (display, quiz, notation).
+</p>
+
+<p>
+For writing down licks however, you are free to use any of those
+multiple holes.
+</p>
+</div>
+</div>
+<div id="outline-container-orgfde44fe" class="outline-3">
+<h3 id="orgfde44fe"><span class="section-number-3">10.3.</span> Tuning</h3>
+<div class="outline-text-3" id="text-10-3">
+<p>
+The harp wise does not make assumptions about the tuning of your
+harmonica; e.g. it works equally well with 'equal temperament' (ET) or
+'just intonation'.  Simply because, it asks you to play your own harp
+to generate samples (whatever its tuning might be). It then computes
+frequency values from these samples. (Remark: for a quick start you may
+have skipped this step using automatic sample generation)
+</p>
+
+<p>
+However, sometimes harpwise has to choose one tuning, e.g. when doing
+sample generation or when your samples need to be judged against some
+standard. In such cases it generally uses 'equal temperament' (ET for
+short).
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgfe2a2a9" class="outline-2">
+<h2 id="orgfe2a2a9"><span class="section-number-2">11.</span> A closer look at the Screen</h2>
+<div class="outline-text-2" id="text-11">
+<p>
+Please note, that the wise tries to adapt itself to different screen
+(terminal) sizes. If your terminal window supports changing the screen
+size, then harpwise will react accordingly and you do not need to
+restart it.
+</p>
+
+<p>
+You probaby get the best experience if you use a larger font and a
+terminal with a modest size, e.g. 80 cloumns and 25 rows.
+</p>
+
+<p>
+Also note, that harpwise uses figlet to display some information in
+large letters. The optical result of this may vary, and you may get a
+smoother appearance by choosing another font; personally I use 'Lucida
+Console' (at least under WSL2/Windows).
+</p>
+
+<p>
+Now if you start harpwise e.g. in mode listen, or licks or some flavours
+of quiz, you get a screen as shown in the screenshots above.
+</p>
+
+<p>
+Its structure is as follows (top to bottom):
+</p>
+
+<ul class="org-ul">
+<li>Header: topmost 2 lines</li>
+<li>The 'display': a larger area taking up most of the upper half of the
+screen</li>
+<li>The middle part of the screen, three lines in the middle of the screen</li>
+<li>The 'comment': a larger area taking up most of the lower half of the
+screen</li>
+<li>Footer: the bottommost 2 Lines</li>
+</ul>
+</div>
+<div id="outline-container-orgaddb3c3" class="outline-3">
+<h3 id="orgaddb3c3"><span class="section-number-3">11.1.</span> The header</h3>
+<div class="outline-text-3" id="text-11-1">
+<p>
+Two topmost two lines, that show e.g.
+</p>
+<ul class="org-ul">
+<li>The current mission, i.e. what you are supposed to do</li>
+<li>Immediate feedback on keys beeing pressed or a hint on how to get
+help</li>
+<li>A summary of the settings mode, type, key and scales</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org3e0d723" class="outline-3">
+<h3 id="org3e0d723"><span class="section-number-3">11.2.</span> The 'display'</h3>
+<div class="outline-text-3" id="text-11-2">
+<p>
+This part of the screen (i.e. most of its upper half) shows different
+versions of a harmonica chart as known from textbooks. In addition, the
+holes, that you are playing are highlighted in colours, e.g. according
+to the scale.
+</p>
+
+<p>
+To change the display type 'd' repeatedly or type 'D' to get a menu
+with descriptions.
+</p>
+</div>
+</div>
+<div id="outline-container-orgbc18e39" class="outline-3">
+<h3 id="orgbc18e39"><span class="section-number-3">11.3.</span> The middle part of the screen</h3>
+<div class="outline-text-3" id="text-11-3">
+<p>
+The three middle lines of the screen show:
+</p>
+
+<ul class="org-ul">
+<li>The hole and note, that you are playing and the reference hole, if
+set. In addtion ('Rem') the scales the hole belongs to</li>
+<li>The Frequency you are playing; featuring a small frequncy gauge</li>
+<li>The interval of the current hole to the reference hole or to the last
+hole played</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgc183f9c" class="outline-3">
+<h3 id="orgc183f9c"><span class="section-number-3">11.4.</span> The 'comment'</h3>
+<div class="outline-text-3" id="text-11-4">
+<p>
+This part of the screen (i.e. most of its lower half) shows comments;
+e.g. when in mode licks, harpwise expects you to play a sequence of
+holes, the comment-region shows the sequence of holes that you have
+already played or are expected to play.
+</p>
+
+<p>
+To change the comment type 'c' repeatedly or type 'C' to get a menu
+with one-line descriptions.
+</p>
+</div>
+</div>
+<div id="outline-container-org16dd742" class="outline-3">
+<h3 id="org16dd742"><span class="section-number-3">11.5.</span> The footer</h3>
+<div class="outline-text-3" id="text-11-5">
+<p>
+Within those two lines at the bottom, harpwise shows hints and various
+remarks on its operation.
+</p>
+
+<p>
+For example:
+</p>
+
+<ul class="org-ul">
+<li>In mode licks, details about the current lick</li>
+<li>In mode listen, if idle, notes about famous harp-players</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: notebook-marc</p>
+<p class="date">Created: 2025-12-18 Thu 05:32</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

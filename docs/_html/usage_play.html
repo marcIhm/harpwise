@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-12-18 Thu 05:32 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="author" content="notebook-marc" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<p>
+Overview of 'harpwise play':
+</p>
+
+<p>
+The mode 'play' takes its arguments (holes, notes, semitones, licks,
+scales) and plays them.  It also handles some extra keywords.
+</p>
+
+<p>
+Its arguments (which mostly can not be mixed) can be any of these:
+</p>
+
+<ul class="org-ul">
+<li>holes (e.g. '-1') or notes</li>
+<li>notes (e.g. 'a4')</li>
+<li>semitones (e.g. '+12st')</li>
+<li>licks (e.g. 'st-louis')</li>
+<li>lick progressions</li>
+<li>scales (e.g. 'chord-i')</li>
+<li>jams, i.e. its mp3</li>
+<li>'l', '2l', for the last lick, 2nd-to-last, etc.</li>
+</ul>
+
+<p>
+or one of the known extra arguments (that themselves might require
+additional arguments):
+</p>
+
+<ul class="org-ul">
+<li>man-proc:</li>
+</ul>
+<p>
+[2m    process/produce man page from erb-template[0m
+</p>
+<ul class="org-ul">
+<li>man-diff:</li>
+</ul>
+<p>
+[2m    compare produced man page with usage[0m
+</p>
+<ul class="org-ul">
+<li>doc-proc:</li>
+</ul>
+<p>
+[2m    process org-erb-templates for usage information and generate html[0m
+[2m    docu with org-publish[0m
+</p>
+<ul class="org-ul">
+<li>selftest:</li>
+</ul>
+<p>
+[2m    perform selftest with special regard to the environment[0m
+</p>
+<ul class="org-ul">
+<li>unittest:</li>
+</ul>
+<p>
+[2m    unittest for features, that cannot easily be tested within the[0m
+[2m    main test program[0m
+</p>
+<ul class="org-ul">
+<li>widgets:</li>
+</ul>
+<p>
+[2m    excercise selected widgets to be tested[0m
+</p>
+<ul class="org-ul">
+<li>lickfile:</li>
+</ul>
+<p>
+[2m    load and parse a lickfile[0m
+</p>
+<ul class="org-ul">
+<li>check-frequencies:</li>
+</ul>
+<p>
+[2m    recalculate and check frequencies for current set of samples[0m
+</p>
+<ul class="org-ul">
+<li>read-scale-with-notes:</li>
+</ul>
+<p>
+[2m    read given scale (first arg) from file (second arg)[0m
+</p>
+<ul class="org-ul">
+<li>dump:</li>
+</ul>
+<p>
+[2m    dump internal data structures to stdout[0m
+</p>
+
+
+<p>
+Usage by Examples:
+</p>
+
+<p>
+Play a few holes and notes on a harp of key c:
+</p>
+
+<p>
+harpwise play c +1 -2 c4
+</p>
+
+<p>
+Play a few semitones:
+</p>
+
+<p>
+harpwise play c +1st -4st
+</p>
+
+<p>
+Play the lick 'wade'; transpose it to d:
+</p>
+
+<p>
+harpwise play d wade
+</p>
+
+<p>
+Play an earlier lick:
+</p>
+
+<p>
+harpwise play 3l
+</p>
+
+<p>
+To see a list of earlier licks:
+</p>
+
+<p>
+harpwise print licks-history
+</p>
+
+
+<p>
+Various ways to play all licks:
+</p>
+
+<p>
+Shuffled and in random order, without end:
+</p>
+
+<p>
+harpwise play licks
+</p>
+
+<p>
+or play them one after another as they appear in your lickfile:
+</p>
+
+<p>
+harpwise play licks &#x2013;iterate cycle
+</p>
+
+<p>
+or shorter:
+</p>
+
+<p>
+harpwise play licks -i c
+</p>
+
+<p>
+Only play favorite licks (tag 'fav'):
+</p>
+
+<p>
+harpwise play licks &#x2013;tags-all fav
+</p>
+
+<p>
+or shorter:
+</p>
+
+<p>
+harpwise play licks -t fav
+</p>
+
+<p>
+Play licks from a progression:
+</p>
+
+<p>
+harpwise play licks &#x2013;lick-prog box1
+</p>
+
+<p>
+Play endless, no questions asked, but various controls available:
+</p>
+
+<p>
+harpwise play licks &#x2013;lick-radio
+</p>
+
+
+<p>
+Play an interactive, adjustable pitch:
+</p>
+
+<p>
+harpwise play pitch
+</p>
+
+<p>
+this may help to find the key of a song that is playing: change the
+pitch by semitones, fiths or octaves until both match.
+</p>
+
+<p>
+harpwise play pitch c
+</p>
+
+<p>
+Exactly the same result as above, but with the key of c given
+explicit. This will actually start of playing g, the root note in
+second position (cross-harp).
+</p>
+
+<p>
+Note: As an alternative, you may try to hum the root note (or tonal
+center) of the song to find its key. Which is the preferred method,
+because it does not need a computer; but this command may help to
+get you started anyway.
+</p>
+
+
+<p>
+Play an interval:
+</p>
+
+<p>
+harpwise play inter c4 d4
+</p>
+
+<p>
+while this is beeing played you may move it around or widen or
+narrow it by semitones.
+</p>
+
+<p>
+There are multiple ways to specify an interval:
+</p>
+<ul class="org-ul">
+<li>Either as two notes or holes</li>
+<li>Or as one note or hole plus one interval (named or as semitones)</li>
+</ul>
+
+<p>
+So these are more ways to play an interval:
+</p>
+
+<p>
+harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+</p>
+
+<p>
+harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+</p>
+
+<p>
+The error message (if any) will list valid values.
+</p>
+
+
+<p>
+Play a note progression:
+</p>
+
+<p>
+harpwise play prog e3 7st 10st oct
+</p>
+
+<p>
+this plays the classic box pattern interactively, you may loop it or
+shift it by semitones. Holes for the harmonica (if any) are printed
+along.
+</p>
+
+<p>
+A similar progression would be:
+</p>
+
+<p>
+harpwise play prog +1 5st 7st 10st
+</p>
+
+
+<p>
+Building on the above, you may want to use the box pattern and the
+interactive features of 'harpwise play prog' to play (sort of) a
+full 12-bar blues: Start with the progression above, switch on loop
+and let it repeat 4 times (i.e. for 4 bars); this is the
+i-chord. Then shift by 5 Semitones up or 7 down, to get the
+iv-chord, and let this play another two times; then 5 semitones down
+to get the i-chord again, then 7 etc., etc. until all 12 bars have
+been played.
+</p>
+
+<p>
+If you want to switch between multiple progressions, separate them
+by a dot ('.') like so (using both progressions from above):
+</p>
+
+<p>
+harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+</p>
+
+
+<p>
+Alternatively (and without using the progression feature) you may
+get a similar result by playing predefined licks. As harpwise comes
+with licks of the 'box pattern' for chords i, iv and v, you may ask
+the wise to play the bass-line of a 12-bar blues like this:
+</p>
+
+<p>
+harpwise play box1-i box1-i box1-i box1-i box1-iv
+  box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
+</p>
+
+<p>
+which also uses the simple-turn lick at the end; you may also
+replace 'box1' with 'box2' for a variant.
+</p>
+
+
+<p>
+harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+</p>
+
+<p>
+which might be a starting point for improvisation.
+</p>
+
+
+<p>
+Another way of playing would be:
+</p>
+
+<p>
+harpwise play chord +1 +2 +3 -3/
+</p>
+
+<p>
+plays the given holes (notes may be given too) simultanously; the
+given example is (by the way) a flat-seventh-chord, what you may
+find out by using print:
+</p>
+
+<p>
+harpwise print +1 +2 +3 -3/
+</p>
+
+
+<p>
+If you record yourself during lick-practice,
+</p>
+
+<p>
+harpwise play user
+</p>
+
+<p>
+plays what you have recorded before in mode 'licks' (where you need to
+trigger the recording explicitly).
+</p>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: notebook-marc</p>
+<p class="date">Created: 2025-12-18 Thu 05:32</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

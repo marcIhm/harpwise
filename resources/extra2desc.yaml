@@ -345,8 +345,11 @@ develop:
   man-diff: |
     compare produced man page with usage
   doc-proc: |
-    process org-erb-templates for usage information and generate html
-    docu with org-publish
+    process template from docs/erb-org and produce files
+    in _org and _txt
+  html-proc: |
+    process org-files with org-publish from docs/_org and produce
+    file in _html
   selftest: |
     perform selftest with special regard to the environment
   unittest: |

@@ -18,6 +18,8 @@ def do_develop to_handle
     do_man_proc
   when 'doc-proc'
     do_doc_proc
+  when 'html-proc'
+    do_html_proc
   when 'selftest'
     do_selftest
   when 'unittest'
@@ -240,6 +242,16 @@ def do_doc_proc
       puts "  updated"
     end
   end
+end
+
+
+def do_html_proc
+  Dir.chdir($dirs[:install] + '/docs') do
+    cmd = "/usr/bin/emacs -Q --batch -l export.el"
+    puts "Publishing html: #{cmd}"
+    system(cmd) or fail("\nError, see above")
+  end
+  puts "Successfully published to #{$dirs[:install]}/docs/_html"
 end
 
 

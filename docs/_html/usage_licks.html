@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-12-18 Thu 05:32 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="author" content="notebook-marc" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<p>
+Overview of 'harpwise licks':
+</p>
+
+<p>
+The mode 'licks' helps to learn and memorize licks.  Typically it
+plays a random lick from your collection and asks you to play it
+back, note by note. If successful, the next lick will be asked for.
+</p>
+
+<p>
+For harpwise, a 'lick' is a short musical phrase with a sequence of
+holes and an mp3-recording. It will be transposed as necessary.
+</p>
+
+<p>
+Please Note: This mode relies on a collection of licks, that you need
+to accumulate over time; only a simple starter set will be created at
+first start; typically it will be kept at:
+~/harpwise/licks/richter/licks<sub>with</sub><sub>holes.txt</sub> similar e.g. for
+chromatic.
+</p>
+
+<p>
+When adding licks and you need to adjust start and end of the
+recording, the mode 'play' might help, to check your results.
+</p>
+
+<p>
+You may want to collect licks, that you dig and even pay for some good
+lick collections until you tens or hundreds of licks, that sound good.
+Once having that many licks, you may want to categorize them with tags
+(e.g. for artist or style). Harpwise helps with this by adding some
+automatic tags (see below); in addition there are some tools to select
+licks based on their affinity to a given scale or chord.
+</p>
+
+<p>
+If you get comfortable with a lick and want to explore it beyond its
+written wholes, you may find it useful to switch to mode listen,
+which can be done by typing 'm' without stopping the wise first.
+</p>
+
+<p>
+Usage by Examples:
+</p>
+
+<p>
+Play licks from your collection; transpose them (i.e. their
+recordings) to the key of c, if necessary:
+</p>
+
+<p>
+harpwise licks c
+</p>
+
+
+<p>
+Similar, but only choose from licks with tags 'fav' and 'has-rec'
+</p>
+
+<p>
+harpwise licks c &#x2013;tags-all fav,has-rec
+</p>
+
+<p>
+this employs the automatic tag 'has-rec', which is added to each
+lick, that has a recording. The opposite is 'no-rec'.
+</p>
+
+
+<p>
+Another automatic tag is 'shifts-four', which is added to each lick,
+which, when shifted by a major fourth, can still be played on the
+chosen harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
+</p>
+
+<p>
+So
+</p>
+
+<p>
+harpwise licks a -t shifts-four,shifts-five
+</p>
+
+<p>
+selects all licks, that can be shifted by four or five notes without
+loosing any hole; these licks may therefore accompany a
+blues-progression alone. The keys used to actually shift those licks,
+are described in the help-screen (type 'h').
+</p>
+
+
+<p>
+Similar, but only choose from licks with tags 'fav' or 'scales'
+</p>
+
+<p>
+harpwise licks c &#x2013;tags-any fav,scales
+</p>
+
+
+<p>
+Show the licks selected by the previous example, employing the
+mode 'print':
+</p>
+
+<p>
+harpwise print licks-list &#x2013;tags-any fav,scales
+</p>
+
+
+<p>
+To find licks, that are mostly (i.e. all holes or all but one)
+contained in the chords chord-i, chord-iv or chord-v, use the
+respective automatic tags, e.g.:
+</p>
+
+<p>
+harpwise licks c -t mostly-chord-v
+</p>
+
+<p>
+currently there are 5 automatic 'mostly'-tags for scales
+chord-i, chord-iv, chord-v, blues and mipe.
+</p>
+
+
+<p>
+Select licks (if any), that have been starred by pressing '*' while
+it is beeing or has been played played:
+</p>
+
+<p>
+harpwise licks a -t starred
+</p>
+
+<p>
+and use mode print to see details about starred licks.
+Which licks are starred is kept in file (e.g)
+</p>
+
+<p>
+/home/ihm/harpwise<sub>testing</sub>/licks/richter/starred.yaml
+</p>
+
+
+<p>
+There are some more options to <b>filter</b> the set of available licks
+(see below); see also the lick-file created initially on more
+explanation on the concept of tags.
+</p>
+
+<p>
+Here is a more sophisticated example. It helps to memorize licks,
+but not scales and shows the scales for each hole:
+</p>
+
+<p>
+harpwise licks c blues &#x2013;loop &#x2013;imm &#x2013;drop-tags-any scales \
+    &#x2013;add-scales chord-i,chord-iv,chord-v \
+    &#x2013;display chart-scales &#x2013;comment holes-all
+</p>
+
+<p>
+However, if you find yourself using these options for mode licks
+over and over again (and if you do not want to set them
+interactively, once the wise is running) you may move them to your
+config.ini and shorten the above command line to:
+</p>
+
+<p>
+harpwise licks blues
+</p>
+
+
+<p>
+Alternatively to using the tag-options described above, you may give
+licks as arguments on the commandline (especially for a 12-bar blues):
+</p>
+
+<p>
+harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
+</p>
+
+<p>
+would start with the lick box1-i and switch from one to the next per your
+request; all other licks that you may have (e.g. wade, st-louis) are ignored.
+</p>
+
+<p>
+Note, that the lick box1-i (e.g.) appears more than once in the
+commandline above, because during a 12-bar blues, this chord appears
+multiple times.
+</p>
+
+
+<p>
+If you find yourself using such a commandline as given above over
+and over, you may define them as a lick-progression in your
+lick-file (see there for explanation); a predefined example could be
+used like this:
+</p>
+
+<p>
+harpwise licks &#x2013;lick-progression box1
+</p>
+
+<p>
+knowing these licks in and out would allow for basic accompaniment
+of e.g. a 12-bar blues.
+</p>
+
+
+<p>
+This option can fruitfully be combined with a scale-progression:
+</p>
+
+<p>
+harpwise licks &#x2013;scale-prog 12bar &#x2013;lick-prog box1
+  &#x2013;kb-tr RIGHT=s+RETURN,LEFT=S+L
+</p>
+
+<p>
+which employs the key 'RIGHT' to switch both scale-progression and
+lick-progression at once; whereas 'LEFT' resets them to their
+initial values.
+</p>
+
+
+<p>
+If you want to explore a single lick, that is not yet in your
+lick-file (take +1 +2 +3 as a simple example), you may specify it
+adhoc by giving its holes on the commandline:
+</p>
+
+<p>
+harpwise licks +1 +2 +3
+</p>
+
+<p>
+later, if satisfied, you may add this lick (and maybe a recording)
+to your lickfile.
+</p>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: notebook-marc</p>
+<p class="date">Created: 2025-12-18 Thu 05:32</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
