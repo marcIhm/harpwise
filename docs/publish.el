@@ -9,6 +9,7 @@
 	 :publishing-function org-html-publish-to-html
 	 :headline-levels 4
 	 :html-extension "html"
+	 :html-postamble nil
 	 :table-of-contents t
 	 :body-only nil)
 
