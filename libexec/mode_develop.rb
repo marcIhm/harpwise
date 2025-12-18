@@ -264,18 +264,15 @@ def do_html_proc
   puts "\n\e[32mMove and process index.html (avoiding random IDs)\e[0m"
   FileUtils.mv "#{hdir}/index.html", ddir
   lines = IO.read("#{ddir}/index.html").lines
-  in_toc = false
   href_ids = Hash.new
   id_cnt = 0
   File.open("#{ddir}/index.html", 'w') do |html|
     lines.each do |line|
-      in_toc = false if line.start_with?("<div")
-      in_toc = true if line['text-table-of-contents']
-      if in_toc
-        if md = line.match(/\"#(org[0-9a-z]+)\"/)
-          href_ids[md[1]] = "org%07d" % id_cnt
-          id_cnt += 1
-        end
+      if md = ( line.match(/^<li><a href=\"#(org[0-9a-z]+)\"/) ||
+                line.match(/^<div id=\"(org[0-9a-z]+)\"/))
+        href_ids[md[1]] = "org%07d" % id_cnt
+        id_cnt += 1
+        puts line
       end
       href_ids.keys.each do |oid|
         line.sub! oid, href_ids[oid]
