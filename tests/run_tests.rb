@@ -3882,6 +3882,7 @@ do_test 'id-133d: publish to html' do
   tms :ENTER
   wait_for_end_of_harpwise
   expect { screen[1]['Successfully published to']}
+  expect { screen[1]['index.html']}
   kill_session
 end
 

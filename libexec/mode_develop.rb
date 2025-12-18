@@ -246,12 +246,46 @@ end
 
 
 def do_html_proc
-  Dir.chdir($dirs[:install] + '/docs') do
-    cmd = "/usr/bin/emacs -Q --batch -l export.el"
-    puts "Publishing html: #{cmd}"
+  ddir = $dirs[:install] + '/docs'
+  hdir = $dirs[:install] + '/docs/_html'
+  Dir.chdir(ddir) do
+    cmd = "/usr/bin/emacs -Q --batch -l publish.el"
+    puts "\n\e[32mPublish html:\e[0m #{cmd}"
     system(cmd) or fail("\nError, see above")
   end
-  puts "Successfully published to #{$dirs[:install]}/docs/_html"
+
+  puts
+  puts "\e[32mRemove timestamp-comments:\e[0m"
+  Dir["#{hdir}/*.html"].each do |html|
+    puts html
+    File.write(html, IO.read(html).lines.reject {|l| l.start_with?("<!-- ")}.join)
+  end
+
+  puts "\n\e[32mMove and process index.html (avoiding random IDs)\e[0m"
+  FileUtils.mv "#{hdir}/index.html", ddir
+  lines = IO.read("#{ddir}/index.html").lines
+  in_toc = false
+  href_ids = Hash.new
+  id_cnt = 0
+  File.open("#{ddir}/index.html", 'w') do |html|
+    lines.each do |line|
+      in_toc = false if line.start_with?("<div")
+      in_toc = true if line['text-table-of-contents']
+      if in_toc
+        if md = line.match(/\"#(org[0-9a-z]+)\"/)
+          href_ids[md[1]] = "org%07d" % id_cnt
+          id_cnt += 1
+        end
+      end
+      href_ids.keys.each do |oid|
+        line.sub! oid, href_ids[oid]
+      end
+      html.write line
+    end
+  end
+
+  puts "\n\e[32mSuccessfully published to\e[0m #{ddir}/index.html"
+  puts
 end
 
 
