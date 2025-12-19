@@ -3860,7 +3860,7 @@ do_test 'id-133b: correct version is shown in usage' do
   kill_session
 end
 
-do_test 'id-133c: no org-tags left in usage-message' do
+do_test 'id-133c: correct erb-processing and no org-tags in usage' do
   new_session
   tms 'harpwise | head -110'
   tms :ENTER
@@ -3869,7 +3869,7 @@ do_test 'id-133c: no org-tags left in usage-message' do
   expect { screen[11]['scales for chromatic: all, blues']}
   tms 'clear'
   tms :ENTER
-  tms 'harpwise | grep -c +begin_'
+  tms 'harpwise | grep -c \#+'
   tms :ENTER
   sleep 2
   expect { screen[1]['0']}
@@ -3886,7 +3886,20 @@ do_test 'id-133d: publish to html' do
   kill_session
 end
 
-do_test 'id-133e: all again with docs-all' do
+do_test 'id-133e: no org-tags left in txt' do
+  new_session
+  tms "cd #{$installdir}/docs"
+  tms :ENTER
+  # org-tags start with '#+'; grep outputs one line per file with count; keep only the
+  # non-zero lines and count
+  tms 'grep -c \#+ _txt/* | grep -v :0 | wc -l'
+  tms :ENTER
+  sleep 2
+  expect { screen[2] == '0'}
+  kill_session
+end
+
+do_test 'id-133f: all again with docs-all' do
   new_session
   tms 'harpwise dev docs-all'
   tms :ENTER

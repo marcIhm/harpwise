@@ -1,3 +1,5 @@
+* Uage examples for harpwise, mode jamming
+
 Overview of 'harpwise jamming':
 
   Scripted jamming along a backing track. For this harpwise includes a

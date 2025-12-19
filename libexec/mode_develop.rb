@@ -217,42 +217,27 @@ def do_docs_make_org_txt
   # needed for erb
   types_with_scales = get_types_with_scales_for_usage
   
-  puts "\nChecking and writing files ...\n\n"
+  puts "\nWriting files ...\n\n"
   src_files_short.each do |file_short|
     dir_suff.each do |dir, suff|
       dst_file = "#{dir}/#{file_short}#{suff}"
 
-      puts dst_file
       new_cont = if suff == '.org'
+                   if file_short == 'index'
+                     ''
+                   elsif file_short == 'usage'
+                     "* Harpwise\n\n"
+                   else
+                     "* Uage examples for harpwise, mode #{file_short.split('_')[1]}\n\n"
+                   end +
                    ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
                      result(binding).gsub(/(^\s*\n)+\Z/,'')
                  else
                    IO.read("#{dst_org_dir}/#{file_short}.org").
-                     lines.reject {|l| l.start_with?('#+')}.join
+                     lines[2 .. -1].reject {|l| l['#+']}.join
                  end
-
-      if File.exist?(dst_file)
-        old_cont = IO.read(dst_file)
-
-        if new_cont == old_cont
-          puts "  content would not change; skipping"
-          next
-        else
-          puts "  content has changed"
-        end
-      
-        # Make sure not to clobber any changes in destination file
-        Dir.chdir($dirs[:install]) do
-          system("git ls-files --error-unmatch #{dst_file}") or fail("Error while making sure, that file  #{file_short}#{suff}  is tracked by git; see above!")
-          cmd = "git diff --exit-code #{dst_file}"
-          # We do this twice so that we get no output for the good case but full output for
-          # the bad case
-          system("#{cmd} >/dev/null 2>&1") or system(cmd) or fail("Error while making sure, that tracked file  #{file_short}#{suff}  has no changes; see above! Rather make shure, these changes are present in the upstream file from erb-org or simply add and commit the named downstream file")
-        end
-      end
-
       File.write(dst_file, new_cont)
-      puts "  updated"
+      puts dst_file
     end
   end
 end
@@ -295,6 +280,7 @@ def do_docs_make_html
   id_cnt = 0
   File.open("#{ddir}/index.html", 'w') do |html|
     lines.each do |line|
+      # collect and replace random ids with predictable ones
       if md = ( line.match(/^<li><a href=\"#(org[0-9a-z]+)\"/) ||
                 line.match(/^<div id=\"(org[0-9a-z]+)\"/))
         href_ids[md[1]] = "org%07d" % id_cnt
@@ -304,6 +290,10 @@ def do_docs_make_html
       href_ids.keys.each do |oid|
         line.sub! oid, href_ids[oid]
       end
+
+      # correct directory of usage files; this is necessary, because we have moved
+      # index.html up one directory
+      line.gsub!(/href="(usage[_a-z]*.html")/, 'href="_html/\1')
       html.write line
     end
   end

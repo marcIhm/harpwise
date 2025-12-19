@@ -1,3 +1,4 @@
+#+SETUPFILE: <%= $org_theme_file %>
 A harmonica tool for the command line, using microphone and speaker.
 
 Harpwise supports your harmonica practice with scales, chords and licks.
@@ -37,7 +38,9 @@ And, less interactive:
 to read more details, usage examples and options for the individual
 modes, invoke them without arguments, e.g.
 
+  #+begin_src 
   harpwise listen
+  #+end_src
 
 
 After the first argument (which specifies the mode) some additional
@@ -69,22 +72,30 @@ e.g. 'harpwise listen') for details.
 
 An example using all these arguments would be:
 
+  #+begin_src 
   harpwise listen richter c blues
+  #+end_src
 
 this does listen to your playing, while marking notes from the
 blues-scale.  However, relying on defaults, this could also be written
 shorter as:
 
+  #+begin_src 
   harpwise listen blues
+  #+end_src
 
 or shorter:
 
+  #+begin_src 
   harpwise listen c
+  #+end_src
 
 as 'blues' and 'c' are also the defaults, one might be tempted to
 write even shorter:
 
+  #+begin_src 
   harpwise listen
+  #+end_src
 
 but that would (on purpose) produce the usage-message of mode listen.
 
@@ -92,7 +103,9 @@ but that would (on purpose) produce the usage-message of mode listen.
 This example would listen especially for the first three notes of the
 blues-scale, which are given as arguments and form an adhoc scale:
 
+  #+begin_src 
   harpwise listen -2 -3 +4
+  #+end_src
 
 
 The possible scales depend on the chosen type of harmonica:
@@ -135,7 +148,9 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 Suggested Reading:
 
   - Usage information for the individual modes, e.g.
+    #+begin_src 
     harpwise listen
+    #+end_src
   - The top level file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
@@ -147,7 +162,9 @@ Command-line Options:
 
   Options are specific for each mode; as an example you may type
 
+    #+begin_src 
     harpwise listen -o
+    #+end_src
 
   to read options for mode listen.
 
@@ -161,7 +178,9 @@ Diagnosis:
   box. If you feel, that sox (and therefore harpwise) has problems
   with sound or if you see spurious error messages, you may invoke:
 
+    #+begin_src 
     harpwise tools diag
+    #+end_src
 
   to execute some basic tests and get advice on how to fix common problems.
 
@@ -169,15 +188,21 @@ Quick Start:
 
   Feedback on holes and notes you play:
   
+    #+begin_src 
     harpwise listen c              
+    #+end_src
 
   Improve your harmonica knowledge:
 
+    #+begin_src 
     harpwise quiz random
+    #+end_src
 
   Guided jam along a 12bar-blues:
 
+    #+begin_src 
     harpwise jam along 12
+    #+end_src
   
 
 Version <%=$version%>

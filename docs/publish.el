@@ -1,11 +1,15 @@
 (require 'org)
 (setq org-export-with-broken-links nil)
+(setq org-export-with-section-numbers nil)
 (setq org-publish-project-alist
       '(("harpwise-org"
 	 :base-directory "~/git/harpwise/docs/_org"
 	 :base-extension "org"
 	 :publishing-directory "~/git/harpwise/docs/_html"
 	 :recursive t
+	 :with-toc nil
+	 :num: nil
+	 :section-numbers: nil
 	 :publishing-function org-html-publish-to-html
 	 :headline-levels 4
 	 :html-extension "html"

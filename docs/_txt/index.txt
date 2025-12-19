@@ -1,5 +1,3 @@
-# -*- fill-column: 74 -*-
-
 * Summary
 
 A harmonica tool for the command line, using microphone and speaker.
@@ -15,16 +13,16 @@ different keys.
   beeing played and how it can help to write them down. No sound has been
   recorded however, so some accustic imagination is required ...
   
-  [[../../images/harpwise-listen.gif]]
+  [[../images/harpwise-listen.gif]]
   
   The second screencast is from mode 'quiz', showing three of the many
   flavours: hear-key, players and keep-tempo.
   
-  [[../../images/harpwise-quiz.gif]]
+  [[../images/harpwise-quiz.gif]]
   
 * Introduction
 
-  [[../../images/harmonica3.png]]
+  [[../images/harmonica3.png]]
 
   A harmonica tool for the command line, using microphone and speaker.
   
@@ -333,3 +331,7 @@ different keys.
    
    - In mode licks, details about the current lick
    - In mode listen, if idle, notes about famous harp-players
+
+* Usage
+
+  - [[file:usage.org][foo]]

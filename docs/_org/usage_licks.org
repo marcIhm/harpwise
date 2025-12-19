@@ -1,3 +1,5 @@
+* Uage examples for harpwise, mode licks
+
 Overview of 'harpwise licks':
 
   The mode 'licks' helps to learn and memorize licks.  Typically it
@@ -84,9 +86,9 @@ Usage by Examples:
     harpwise licks a -t starred
 
   and use mode print to see details about starred licks.
-  Which licks are starred is kept in file (e.g)
+  The list of starred licks is kept e.g. in:
 
-    /home/ihm/harpwise_testing/licks/richter/starred.yaml
+    ~/harpwise/licks/richter/starred.yaml
 
 
   There are some more options to *filter* the set of available licks
