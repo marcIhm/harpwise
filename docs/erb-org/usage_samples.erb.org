@@ -14,7 +14,7 @@ Overview of 'harpwise samples':
   or you may let the wise generate them for you; adding some helper
   functions, this gives the following choice of extra arguments:
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(mode: :samples, for_usage: true).join("\n") %>
 
 
   The samples need to be generated for each key, but only once in the

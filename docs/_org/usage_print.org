@@ -25,28 +25,46 @@ Overview of 'harpwise print':
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-    - man-proc:
-  [2m    process/produce man page from erb-template[0m
-    - man-diff:
-  [2m    compare produced man page with usage[0m
-    - doc-proc:
-  [2m    process org-erb-templates for usage information and generate html[0m
-  [2m    docu with org-publish[0m
-    - selftest:
-  [2m    perform selftest with special regard to the environment[0m
-    - unittest:
-  [2m    unittest for features, that cannot easily be tested within the[0m
-  [2m    main test program[0m
-    - widgets:
-  [2m    excercise selected widgets to be tested[0m
-    - lickfile:
-  [2m    load and parse a lickfile[0m
-    - check-frequencies:
-  [2m    recalculate and check frequencies for current set of samples[0m
-    - read-scale-with-notes:
-  [2m    read given scale (first arg) from file (second arg)[0m
-    - dump:
-  [2m    dump internal data structures to stdout[0m
+    - licks-details:
+  [2m    all licks currently selected (e.g. by option -t) with all details[0m
+    - licks-list:
+  [2m    short list of selected licks (e.g. by option -t) with hole count only[0m
+    - licks-list-all:
+  [2m    short list of all licks (disregarding e.g option -t); hole count only[0m
+    - licks-with-tags:
+  [2m    list licks (each with its tags) according to the various tag-options[0m
+    - licks-tags-stats:
+  [2m    statistics for all known licks and their tags[0m
+    - licks-history:
+  [2m    show, which licks you played recently in mode licks; the shortcuts[0m
+  [2m    ('l', '2l', ...) from the output can be used as arguments to[0m
+  [2m    option --start-with[0m
+    - licks-starred:
+  [2m    show all starred licks[0m
+    - lick-progressions, lick-progs:
+  [2m    print all known lick progressions. These can be narrowed by giving[0m
+  [2m    option -t (this is the only case, where this option applies to[0m
+  [2m    lick progressions instead of licks). Please note, that to print a[0m
+  [2m    single lick-progression, you may just give its name on the[0m
+  [2m    commandline without any extra-keyword[0m
+    - licks-dump:
+  [2m    dump all selected licks in json-format[0m
+    - holes-history:
+  [2m    show, which holes you played recently, from any mode[0m
+    - scales:
+  [2m    For all scales or the scales given as arguments: print them with[0m
+  [2m    their details; with --brief only liste their names[0m
+    - scale-progs, scale-progressions:
+  [2m    print all known scale progressions[0m
+    - intervals:
+  [2m    print all known intervals[0m
+    - player, players:
+  [2m    print details about players matching argument or a list of all[0m
+  [2m    known players[0m
+    - jams:
+  [2m    List available jamming-files. This is much like "harpwise jam ls",[0m
+  [2m    which however has a more relaxed way of specifying the jam.[0m
+  [2m    See there for details.[0m
 
   
 Usage by Examples:

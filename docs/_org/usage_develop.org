@@ -12,8 +12,11 @@ Overview of 'harpwise develop':
     - man-diff:
   [2m    compare produced man page with usage[0m
     - doc-proc:
-  [2m    process org-erb-templates for usage information and generate html[0m
-  [2m    docu with org-publish[0m
+  [2m    process template from docs/erb-org and produce files[0m
+  [2m    in _org and _txt[0m
+    - html-proc:
+  [2m    process org-files with org-publish from docs/_org and produce[0m
+  [2m    file in _html[0m
     - selftest:
   [2m    perform selftest with special regard to the environment[0m
     - unittest:

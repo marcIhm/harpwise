@@ -17,28 +17,28 @@ Overview of 'harpwise play':
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-    - man-proc:
-  [2m    process/produce man page from erb-template[0m
-    - man-diff:
-  [2m    compare produced man page with usage[0m
-    - doc-proc:
-  [2m    process org-erb-templates for usage information and generate html[0m
-  [2m    docu with org-publish[0m
-    - selftest:
-  [2m    perform selftest with special regard to the environment[0m
-    - unittest:
-  [2m    unittest for features, that cannot easily be tested within the[0m
-  [2m    main test program[0m
-    - widgets:
-  [2m    excercise selected widgets to be tested[0m
-    - lickfile:
-  [2m    load and parse a lickfile[0m
-    - check-frequencies:
-  [2m    recalculate and check frequencies for current set of samples[0m
-    - read-scale-with-notes:
-  [2m    read given scale (first arg) from file (second arg)[0m
-    - dump:
-  [2m    dump internal data structures to stdout[0m
+    - licks:
+  [2m    all licks selected (e.g. by option -t). Add option '--lick-radio'[0m
+  [2m    to make harpwise play licks without interruption (but repeats);[0m
+  [2m    as an optional argument you may give the number of repeats[0m
+    - pitch:
+  [2m    play an interactive, adjustable pitch; this may help to find the[0m
+  [2m    key of a song by ear-comparison; the initial key, e.g. 'a4' can be[0m
+  [2m    supplied as an optional argument[0m
+    - interval, inter:
+  [2m    interactive, adjustable interval given as arguments[0m
+    - progression, prog:
+  [2m    take a base and some semitone diffs, then play it in a loop,[0m
+  [2m    allowing e.g. to shift each iteration by some semitones e.g.[0m
+  [2m    through a chord-progression of i-iv-v. Moreover you may specify[0m
+  [2m    two or more progressions with a dot (.) between; those can then[0m
+  [2m    be switched for each iteration.[0m
+    - chord:
+  [2m    play the given holes or notes simultanously as a chord; also[0m
+  [2m    useful for tongue-splits.[0m
+    - user:
+  [2m    play back (if any), what you (the user) have recorded in mode[0m
+  [2m    'licks' before[0m
 
 
 Usage by Examples:

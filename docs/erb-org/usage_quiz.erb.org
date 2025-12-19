@@ -13,7 +13,7 @@ Overview of 'harpwise quiz':
 
 The available <%= $extras_joined_to_desc[:quiz].length %> flavours are:
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(mode: :quiz, for_usage: true).join("\n") %>
   
 Usage by Examples:
 

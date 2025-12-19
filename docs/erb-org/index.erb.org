@@ -1,4 +1,5 @@
 # -*- fill-column: 74 -*-
+#+SETUPFILE: comfy_inline.theme
 
 * Summary
 

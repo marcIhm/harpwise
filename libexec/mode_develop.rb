@@ -196,7 +196,7 @@ def do_doc_proc
   expected = $early_conf[:modes].map {|m| "usage_#{m}.erb.org"}
   expected.append('index.erb.org', 'usage.erb.org')
   expected.sort!
-  fail "Inernal error for dir #{src_erb_dir}: List of files found\n  " + found.join(' ') + "\ndiffers from expected\n  " + expected.join(' ') + "\n" unless found == expected
+  fail "Inernal error for dir #{src_erb_dir}: List of files found\n  " + found.sort.join("\n  ") + "\ndiffers from expected\n  " + expected.sort.join("\n  ") + "\n" unless found == expected
 
   dir_suff = [[dst_org_dir, '.org'],
               [dst_txt_dir, '.txt']]
@@ -246,22 +246,36 @@ end
 
 
 def do_html_proc
+  
   ddir = $dirs[:install] + '/docs'
   hdir = $dirs[:install] + '/docs/_html'
+  odir = $dirs[:install] + '/docs/_org'
+
+  puts
+  puts "\e[32mPlease consider doing 'harpwise dev doc-proc' first"
+  sleep 1
+  puts
+  puts "\e[32mCopy theme from #{ddir} to #{odir} and checking index.org\e[0m"
+  puts $org_theme_file
+  FileUtils.cp "#{ddir}/#{$org_theme_file}", odir
+  fail("#{$org_theme_file} not used in #{odir}/index.org") unless File.read("#{odir}/index.org").lines.select {|l| l["#+SETUPFILE: #{$org_theme_file}"]}.length == 1
+  
+  puts
+  puts "\e[32mPublish html\e[0m"
   Dir.chdir(ddir) do
     cmd = "/usr/bin/emacs -Q --batch -l publish.el"
-    puts "\n\e[32mPublish html:\e[0m #{cmd}"
+    puts cmd
     system(cmd) or fail("\nError, see above")
   end
 
   puts
-  puts "\e[32mRemove timestamp-comments:\e[0m"
+  puts "\e[32mRemove timestamp-comments\e[0m"
   Dir["#{hdir}/*.html"].each do |html|
     puts html
     File.write(html, IO.read(html).lines.reject {|l| l.start_with?("<!-- ")}.join)
   end
 
-  puts "\n\e[32mMove and process index.html (avoiding random IDs)\e[0m"
+  puts "\n\e[32mMove and process index.html (replacing random IDs)\e[0m"
   FileUtils.mv "#{hdir}/index.html", ddir
   lines = IO.read("#{ddir}/index.html").lines
   href_ids = Hash.new

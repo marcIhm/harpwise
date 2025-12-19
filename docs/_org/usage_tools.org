@@ -7,28 +7,102 @@ Overview of 'harpwise tools':
   The required additional argument specifies the tool to run;
   it can be one of:
 
-    - man-proc:
-  [2m    process/produce man page from erb-template[0m
-    - man-diff:
-  [2m    compare produced man page with usage[0m
-    - doc-proc:
-  [2m    process org-erb-templates for usage information and generate html[0m
-  [2m    docu with org-publish[0m
-    - selftest:
-  [2m    perform selftest with special regard to the environment[0m
-    - unittest:
-  [2m    unittest for features, that cannot easily be tested within the[0m
-  [2m    main test program[0m
-    - widgets:
-  [2m    excercise selected widgets to be tested[0m
-    - lickfile:
-  [2m    load and parse a lickfile[0m
-    - check-frequencies:
-  [2m    recalculate and check frequencies for current set of samples[0m
-    - read-scale-with-notes:
-  [2m    read given scale (first arg) from file (second arg)[0m
-    - dump:
-  [2m    dump internal data structures to stdout[0m
+    - transpose:
+  [2m    transpose a sequence of holes between keys[0m
+    - shift:
+  [2m    shift a sequence of holes or notes or a single lick by the given[0m
+  [2m    number of semitones (first argument)[0m
+    - shift-to-groups:
+  [2m    Starts off like 'shift' (see there), but also shows groups of[0m
+  [2m    alternative holes, that give the same note only in different[0m
+  [2m    octaves. This can be useful to find variations of a[0m
+  [2m    hole-sequences, e.g. for improvisation[0m
+    - keys:
+  [2m    For a diatonic harmonica: print a chart with keys and positions[0m
+  [2m    centered around current key; this tool accepts two optional extra[0m
+  [2m    arguments, which control coloured emphasis in the otherwise fixed[0m
+  [2m    chart.  The first argument is the key of the song, the second the[0m
+  [2m    key of the harp; use '.' to skip emphasising the song.[0m
+  [2m    [0m
+  [2m    Use option --brief to print a version shortend to the most common[0m
+  [2m    keys and position.[0m
+    - spread-notes:
+  [2m    take a list of notes (e.g. a, a4, b, cs) as arguments and turn[0m
+  [2m    them into a list of holes that produce them. As the octave is[0m
+  [2m    deliberately not taken into account, you may give "a" as an[0m
+  [2m    argument just as well as "a4". Also shows these holes in the[0m
+  [2m    harmonica chart. When invoked with option --brief, this tool can[0m
+  [2m    be used as a subcommand on the commandline, in which case it just[0m
+  [2m    returns the list of holes, to be used e.g. as an adhoc-scale.[0m
+    - make-scale:
+  [2m    accepts a list of holes on the commandline, asks some additional[0m
+  [2m    questions and writes a new user-defined scale.[0m
+    - chart:
+  [2m    various harmonica charts for current key; add option --ref for[0m
+  [2m    more charts. If you supply holes or notes as arguments (optional),[0m
+  [2m    only these are printed in the chart of holes and the other charts[0m
+  [2m    are skipped.[0m
+    - notes-major, notes:
+  [2m    print notes of major scale for given key[0m
+    - progression, prog:
+  [2m    take a base and some semitone diffs, then spell them out[0m
+    - interval, inter:
+  [2m    calculate and print interval between two notes[0m
+    - chords:
+  [2m    print chords i, iv and v for current key[0m
+    - transcribe:
+  [2m    transcribe given audio-file approximately[0m
+    - search-holes-in-licks:
+  [2m    search given sequence of holes (or equiv) in all licks; the same[0m
+  [2m    ordering of holes is required; this can help to find licks that[0m
+  [2m    expand on a given sequence of holes[0m
+    - search-lick-in-scales:
+  [2m    search given lick or sequence of holes (or equiv) in all scales;[0m
+  [2m    ordering of holes is not important; this may give an idea, to which[0m
+  [2m    of all scales a given lick can be played. See also the somewhat[0m
+  [2m    inverse tool search-scale-in-licks.[0m
+    - search-scale-in-licks:
+  [2m    search given scale in all licks; this computes the uniq holes of a[0m
+  [2m    lick and, taking away 0,1,2 ... holes, checks if the remaining holes[0m
+  [2m    are contained in the scale.  This can give an idea, which licks can[0m
+  [2m    be played over the given scale (e.g. chord-iv). See also the very[0m
+  [2m    similar tool licks-from-scale and the somewhat inverse[0m
+  [2m    search-lick-in-scales.[0m
+    - licks-from-scale:
+  [2m    For all licks, find percentage of holes, that are taken from the[0m
+  [2m    given scale and group and sort them accordingly.  This may give an[0m
+  [2m    idea, which of all licks can be played over the given scale[0m
+  [2m    (e.g. chord-i or blues). See also the very similar tool[0m
+  [2m    seach-scale-in-licks.[0m
+    - translate:
+  [2m    Recognize and translate alternate harmonica notations into the[0m
+  [2m    format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";[0m
+  [2m    Currently this is optimized for diatonic harmonicas.[0m
+    - utils, utilities:
+  [2m    Describe some utilities, that come with harpwise and need[0m
+  [2m    to be invoked seperately.[0m
+    - edit, edit-licks:
+  [2m    invoke editor on your lickfile[0m
+  [2m    optionally add name of lick or lick-progression to land on[0m
+    - edit-config:
+  [2m    invoke editor on your personal config file[0m
+  [2m    /home/ihm/harpwise/config.ini[0m
+    - edit-jam:
+  [2m    edit given jamming-file. This is much like "harpwise jam edit",[0m
+  [2m    which however has a more relaxed way of specifying the jam.[0m
+  [2m    See there for details.[0m
+    - diag, diag1:
+  [2m    help to diagnose problems with your sound system; i.e.[0m
+  [2m    check that recording and replay work properly.[0m
+    - diag2:
+  [2m    check that mp3 can be played without problems.[0m
+    - diag3:
+  [2m    check that frequencies picked up by your microphone can be[0m
+  [2m    recognized properly; for this the check 'diag1' should have[0m
+  [2m    been performed sucessfully first.[0m
+    - diag-hints:
+  [2m    read technical hints on how to fix some of the problems, that[0m
+  [2m    might have come up with the other diag-tools.[0m
   
 
 Usage by Examples:

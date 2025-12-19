@@ -97,7 +97,7 @@ Usage by Examples:
 
   Finally, here are all the extra-functions for 'harpwise jamming':
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(mode: :jamming, for_usage: true).join("\n") %>
 
 Quick Start:
 

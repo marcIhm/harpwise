@@ -237,66 +237,104 @@ additional arguments):
 </p>
 
 <ul class="org-ul">
-<li>man-proc:</li>
+<li>licks-details:</li>
 </ul>
 <p>
-[2m    process/produce man page from erb-template[0m
+[2m    all licks currently selected (e.g. by option -t) with all details[0m
 </p>
 <ul class="org-ul">
-<li>man-diff:</li>
+<li>licks-list:</li>
 </ul>
 <p>
-[2m    compare produced man page with usage[0m
+[2m    short list of selected licks (e.g. by option -t) with hole count only[0m
 </p>
 <ul class="org-ul">
-<li>doc-proc:</li>
+<li>licks-list-all:</li>
 </ul>
 <p>
-[2m    process org-erb-templates for usage information and generate html[0m
-[2m    docu with org-publish[0m
+[2m    short list of all licks (disregarding e.g option -t); hole count only[0m
 </p>
 <ul class="org-ul">
-<li>selftest:</li>
+<li>licks-with-tags:</li>
 </ul>
 <p>
-[2m    perform selftest with special regard to the environment[0m
+[2m    list licks (each with its tags) according to the various tag-options[0m
 </p>
 <ul class="org-ul">
-<li>unittest:</li>
+<li>licks-tags-stats:</li>
 </ul>
 <p>
-[2m    unittest for features, that cannot easily be tested within the[0m
-[2m    main test program[0m
+[2m    statistics for all known licks and their tags[0m
 </p>
 <ul class="org-ul">
-<li>widgets:</li>
+<li>licks-history:</li>
 </ul>
 <p>
-[2m    excercise selected widgets to be tested[0m
+[2m    show, which licks you played recently in mode licks; the shortcuts[0m
+[2m    ('l', '2l', &#x2026;) from the output can be used as arguments to[0m
+[2m    option &#x2013;start-with[0m
 </p>
 <ul class="org-ul">
-<li>lickfile:</li>
+<li>licks-starred:</li>
 </ul>
 <p>
-[2m    load and parse a lickfile[0m
+[2m    show all starred licks[0m
 </p>
 <ul class="org-ul">
-<li>check-frequencies:</li>
+<li>lick-progressions, lick-progs:</li>
 </ul>
 <p>
-[2m    recalculate and check frequencies for current set of samples[0m
+[2m    print all known lick progressions. These can be narrowed by giving[0m
+[2m    option -t (this is the only case, where this option applies to[0m
+[2m    lick progressions instead of licks). Please note, that to print a[0m
+[2m    single lick-progression, you may just give its name on the[0m
+[2m    commandline without any extra-keyword[0m
 </p>
 <ul class="org-ul">
-<li>read-scale-with-notes:</li>
+<li>licks-dump:</li>
 </ul>
 <p>
-[2m    read given scale (first arg) from file (second arg)[0m
+[2m    dump all selected licks in json-format[0m
 </p>
 <ul class="org-ul">
-<li>dump:</li>
+<li>holes-history:</li>
 </ul>
 <p>
-[2m    dump internal data structures to stdout[0m
+[2m    show, which holes you played recently, from any mode[0m
+</p>
+<ul class="org-ul">
+<li>scales:</li>
+</ul>
+<p>
+[2m    For all scales or the scales given as arguments: print them with[0m
+[2m    their details; with &#x2013;brief only liste their names[0m
+</p>
+<ul class="org-ul">
+<li>scale-progs, scale-progressions:</li>
+</ul>
+<p>
+[2m    print all known scale progressions[0m
+</p>
+<ul class="org-ul">
+<li>intervals:</li>
+</ul>
+<p>
+[2m    print all known intervals[0m
+</p>
+<ul class="org-ul">
+<li>player, players:</li>
+</ul>
+<p>
+[2m    print details about players matching argument or a list of all[0m
+[2m    known players[0m
+</p>
+<ul class="org-ul">
+<li>jams:</li>
+</ul>
+<p>
+[2m    List available jamming-files. This is much like "harpwise jam ls",[0m
+[2m    which however has a more relaxed way of specifying the jam.[0m
+[2m    See there for details.[0m
 </p>
 
 

@@ -17,7 +17,7 @@ Overview of 'harpwise play':
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(mode: :play, for_usage: true).join("\n") %>
 
 
 Usage by Examples:

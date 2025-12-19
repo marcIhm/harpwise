@@ -1,11 +1,20 @@
-Basic workflow:
+* Directories
 
-- Write org in subdir erb-org
+  All dirs, that start with underscore (e.g. _org) can safely be empties, because
+  their content is generated on every run.
+  
+* Basic workflow:
 
-- hw dev doc-proc
-  - to process things from erb-org to _org and _txt
-    
-- Load export.el
-- Export with orgmode from _org to _html
-  - C-u M-x org-publish
-  - project: harpwise
+  - Write org in subdir erb-org
+
+  - hw dev doc-proc
+    - to process things from erb-org to _org and _txt
+
+  - Load export.el
+  - Export with orgmode from _org to _html
+    - C-u M-x org-publish
+    - project: harpwise
+
+* More Themes
+
+  https://olmon.gitlab.io/org-themes/

@@ -833,7 +833,7 @@ def print_amongs *choices, **kws
       print_in_columns $all_scale_progs.keys.sort, indent: 4, pad: :tabs, highlight: summary[:highlight]
     when :extra
       puts "\n- #{adc[0]}:"
-      puts get_extra_desc_all(highlight: summary[:highlight]).join("\n")
+      puts get_extra_desc_all(mode: $mode, highlight: summary[:highlight]).join("\n")
     when :inter
       puts "\n- #{adc[0]}:"
       print_in_columns $intervals_inv.keys.reject {_1[' ']}, indent: 4, pad: :tabs, highlight: summary[:highlight]
@@ -881,9 +881,9 @@ def print_amongs *choices, **kws
 end
 
 
-def get_extra_desc_all highlight: nil, for_usage: false, exclude_meta: false
+def get_extra_desc_all mode: $mode, highlight: nil, for_usage: false, exclude_meta: false
   lines = []
-  $extras_joined_to_desc[$mode].each do |k,v|
+  $extras_joined_to_desc[mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
     k = highlight_helper(k, highlight)

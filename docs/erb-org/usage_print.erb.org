@@ -25,7 +25,7 @@ Overview of 'harpwise print':
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-<%= get_extra_desc_all(for_usage: true).join("\n") %>
+<%= get_extra_desc_all(mode: :print, for_usage: true).join("\n") %>
 
   
 Usage by Examples:
