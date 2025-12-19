@@ -11,15 +11,24 @@ def do_develop to_handle
   $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
 
   case $extra
-  when 'man-proc'
-    do_man_proc
-  when 'man-diff'
-    do_man_diff
-    do_man_proc
-  when 'doc-proc'
-    do_doc_proc
-  when 'html-proc'
-    do_html_proc
+  when 'docs-make-man'
+    do_docs_make_man
+  when 'docs-diff-man'
+    do_docs_diff_man
+    do_docs_make_man
+  when 'docs-make-org-txt'
+    do_docs_make_org_txt
+  when 'docs-make-html'
+    do_docs_make_html
+  when 'docs-all'
+    %w(do_docs_make_org_txt do_docs_make_html do_docs_diff_man do_docs_make_man).each do |met|
+      puts "\e[34m"
+      do_figlet_unwrapped met , 'smblock'
+      puts "\e[0m"
+      sleep 0.5
+      eval(met)
+      sleep 1
+    end
   when 'selftest'
     do_selftest
   when 'unittest'
@@ -40,7 +49,7 @@ def do_develop to_handle
 end
 
 
-def do_man_proc
+def do_docs_make_man
   # needed in erb
   types_with_scales = get_types_with_scales_for_usage
 
@@ -53,8 +62,9 @@ def do_man_proc
 end
 
 
-def do_man_diff
+def do_docs_diff_man
 
+  pp $man_template, $man_result
   dsec = File.mtime($man_template) - File.mtime($man_result)
   abort("\nFile\n\n  #{$man_result}\n\nis #{dsec} sec older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if dsec > 0.1
 
@@ -184,10 +194,13 @@ def do_man_diff
       exit 1
     end
   end
+  puts
+  puts "No diff."
+  puts
 end
 
 
-def do_doc_proc
+def do_docs_make_org_txt
   src_erb_dir = "#{$dirs[:install]}/docs/erb-org"
   dst_txt_dir = "#{$dirs[:install]}/docs/_txt"
   dst_org_dir = "#{$dirs[:install]}/docs/_org"
@@ -245,14 +258,14 @@ def do_doc_proc
 end
 
 
-def do_html_proc
+def do_docs_make_html
   
   ddir = $dirs[:install] + '/docs'
   hdir = $dirs[:install] + '/docs/_html'
   odir = $dirs[:install] + '/docs/_org'
 
   puts
-  puts "\e[32mPlease consider doing 'harpwise dev doc-proc' first"
+  puts "\e[32mPlease consider doing 'harpwise dev docs-proc' first"
   sleep 1
   puts
   puts "\e[32mCopy theme from #{ddir} to #{odir} and checking index.org\e[0m"

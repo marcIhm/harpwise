@@ -85,8 +85,7 @@ Overview of 'harpwise tools':
   [2m    invoke editor on your lickfile[0m
   [2m    optionally add name of lick or lick-progression to land on[0m
     - edit-config:
-  [2m    invoke editor on your personal config file[0m
-  [2m    /home/ihm/harpwise/config.ini[0m
+  [2m    invoke editor on your personal config file ~/harpwise/config.ini[0m
     - edit-jam:
   [2m    edit given jamming-file. This is much like "harpwise jam edit",[0m
   [2m    which however has a more relaxed way of specifying the jam.[0m

@@ -352,11 +352,7 @@ def find_and_check_dirs_early
   $dirs = Hash.new
   $dirs_data_created = false
   $dirs[:install] = File.dirname(File.realpath(File.expand_path(__FILE__) + '/..'))
-  $dirs[:install_devel] = if $testing
-                            '/TESTING_ANS_SO_DIR_HARPWISE_DEVEL_IS_SET_TO_THIS_PATH_WHICH_DOES_NOT_EXIST'
-                          else
-                            Dir.home + '/git/harpwise'
-                          end
+  $dirs[:install_devel] = Dir.home + '/git/harpwise'
   $dirs[:tmp] = Dir.mktmpdir('harpwise_tmp_')
   $dirs[:home] = ENV['SNAP_REAL_HOME'] || Dir.home
   $dirs[:data] = if $testing

@@ -144,8 +144,7 @@ tools:
     invoke editor on your lickfile
     optionally add name of lick or lick-progression to land on
   edit-config: |
-    invoke editor on your personal config file
-    <%= $early_conf[:config_file_user] %>
+    invoke editor on your personal config file ~/harpwise/config.ini
   edit-jam: |
     edit given jamming-file. This is much like "harpwise jam edit",
     which however has a more relaxed way of specifying the jam.
@@ -340,16 +339,18 @@ jamming:
 
     An empty (or whitespace only) note will be removed altogether.
 develop:
-  man-proc: |
-    process/produce man page from erb-template
-  man-diff: |
+  docs-make-man: |
+    process/produce man page from its own erb-template
+  docs-diff-man: |
     compare produced man page with usage
-  doc-proc: |
+  docs-make-org-txt: |
     process template from docs/erb-org and produce files
     in _org and _txt
-  html-proc: |
+  docs-make-html: |
     process org-files with org-publish from docs/_org and produce
     file in _html
+  docs-all: |
+    all docs-xyz extras one after the other
   selftest: |
     perform selftest with special regard to the environment
   unittest: |

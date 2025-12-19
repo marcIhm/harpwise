@@ -3828,7 +3828,7 @@ ENV['HARPWISE_TESTING']='1'
 
 do_test 'id-133: process and git-check erb.org-files' do
   new_session
-  tms "harpwise dev doc-proc"
+  tms "harpwise dev docs-make-org-txt"
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
@@ -3838,9 +3838,9 @@ do_test 'id-133: process and git-check erb.org-files' do
   kill_session  
 end
 
-do_test 'id-133a: test for diff between man and usage' do
+do_test 'id-133a: produce man and test for diff between man and usage' do
   new_session
-  tms "HARPWISE_TESTING=none harpwise dev man-diff"
+  tms "HARPWISE_TESTING=none harpwise dev docs-diff-man"
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
@@ -3878,11 +3878,20 @@ end
 
 do_test 'id-133d: publish to html' do
   new_session
-  tms 'harpwise dev html-proc'
+  tms 'harpwise dev docs-make-html'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[1]['Successfully published to']}
-  expect { screen[1]['index.html']}
+  expect { screen[21]['Successfully published to']}
+  expect { screen[21]['index.html']}
+  kill_session
+end
+
+do_test 'id-133e: all again with docs-all' do
+  new_session
+  tms 'harpwise dev docs-all'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[18]['Redirect stdout to see any errors']}
   kill_session
 end
 
