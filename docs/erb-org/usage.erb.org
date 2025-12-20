@@ -1,4 +1,3 @@
-#+SETUPFILE: <%= $org_theme_file %>
 A harmonica tool for the command line, using microphone and speaker.
 
 Harpwise supports your harmonica practice with scales, chords and licks.

@@ -336,7 +336,7 @@ different keys.
    - In mode licks, details about the current lick
    - In mode listen, if idle, notes about famous harp-players
 
-* Usage
+* Harpwise and its modes
 
   A harmonica tool for the command line, using microphone and speaker.
 
@@ -547,3 +547,1304 @@ Quick Start:
     #+begin_src 
     harpwise jam along 12
     #+end_src
+
+
+* The various modes of harpwise
+** Listen
+
+  [[../images/harpwise-listen.gif]]
+  
+   Overview of 'harpwise listen':
+
+  The mode 'listen' shows information on the notes you play; depending
+  on settings for display and comment this can be:
+
+    - Hole
+    - Note
+    - Membership of played note in various scales
+    - Interval to previous note
+    - Difference to a reference note, e.g. to practice bends
+    - Speed of warbles
+
+  When playing, you may switch on journal to get a simple
+  transcription of the holes played.
+
+
+Usage by Examples:
+
+  The wise listens, while your are playing a richter harp of key c and
+  it shows the holes, that you played; green if from the blues-scale,
+  blue otherwise:
+
+    #+begin_src 
+    harpwise listen richter c blues
+    #+end_src
+
+  The same, but relying on the defaults for type (richter) and key (c):
+
+    #+begin_src 
+    harpwise listen blues
+    #+end_src
+
+  The same, but also showing the notes from the one-chord (chord-i):
+
+    #+begin_src 
+    harpwise listen blues --add-scales chord-i --display chart-scales
+    #+end_src
+
+
+  If you want to follow the chord-progression of a 12-bar blues, you may try
+
+    #+begin_src 
+    harpwise listen --scale-progression 12bar
+    #+end_src
+
+  to switch from one chord to the next, every time you press 's'.
+
+  To use the RETURN-key, which might be easier to hit, you may try:
+
+    #+begin_src 
+    harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
+    #+end_src
+
+  or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
+  also make this option durable in your config.ini.
+
+  If, in addition to the scale-progression, you want one or more licks
+  at hand (e.g. turnarounds), you may give them as an adhoc
+  lick-progression:
+  
+    #+begin_src 
+    harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
+    #+end_src
+
+
+  As an advanced example, assume that you would like to play the minor
+  pentatonic scale in fourth position. However, harpwise only knows it
+  in second position (i.e. starting on -2).
+
+  How would you move this scale from second to fourth position?
+
+  The first step would be to get the notes of the minor-pentatonic
+  scale:
+
+    #+begin_src 
+    harpwise print mipe
+    #+end_src
+
+  then take those notes and shift them from second to fourth position
+  by moving up two fifths up in the circle of fifths.
+
+  And because a fifth is 7 semitones (you may check this via: harpwise
+  print intervals), this would be 2 * 7 = 14 semitones.
+
+  In addition one would move one ocatve (= 12 semitones) down to reach
+  the lower end of the harp (for more expressiveness): 14 - 12 = 2
+  semitones.
+
+  So we would have to shift the notes of the minor pentatonic scale by
+  2 semitones to get from second to fourth position:
+
+    #+begin_src 
+    harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
+    #+end_src
+
+  Using the resulting holes as an adhoc scale for listen, we would be
+  able to tell harpwise, that we want to play the minor pentatonic in
+  fourth position:
+
+    #+begin_src 
+    harpwise listen -3// +4 -4 +5 +6 -6
+    #+end_src
+
+  However, you could get the same effect also like this:
+
+    #+begin_src 
+    harpwise listen mipe --transpose-scale +2st
+    #+end_src
+
+  which uses the fact (as explained above), that moving two positions
+  up are just two semitones.
+
+
+  Finally, as a quite technical note: If you find harpwise sluggish or
+  if you get a warning on lagging and lost samples, you may want to
+  experiment with --time-slice:
+
+    #+begin_src 
+    harpwise listen c --time-slice short
+    #+end_src
+
+Quick Start:
+
+    #+begin_src 
+    harpwise listen c              
+    #+end_src
+
+
+** Quiz
+
+  [[../images/harpwise-quiz.gif]]
+  
+   Overview of 'harpwise quiz':
+
+  The mode 'quiz' is a quiz on music theory, ear and memory. It is
+  meant as a fun way to increase your musical abilities. Quiz comes in
+  different flavours. It issues questions and asks for an answer. Most
+  flavours involve holes beeing played either as part of the question
+  or the answer.
+
+  Every time you invoke harpwise with mode 'quiz', a flavour is
+  chosen; to try another flavour, just restart harpwise, e.g. by
+  pressing ctrl-z.  For a chosen flavour, questions of this flavour
+  are asked in an endless loop.
+
+The available 29 flavours are:
+
+    - all, ran, random:
+  [2m    all flavours, one at random[0m
+    - scales:
+  [2m    flavours related with scales at random[0m
+    - mic:
+  [2m    flavours, that use the microphone; most of them switch to[0m
+  [2m    listen-perspective[0m
+    - no-mic:
+  [2m    flavours, that do not use the microphone, so that no harp is[0m
+  [2m    needed; but these flavours are not necessarily silent and may[0m
+  [2m    still play sounds themselves[0m
+    - silent:
+  [2m    flavours, that can be tried with muted speakers, although some[0m
+  [2m    of the help might not be as useful[0m
+    - inters:
+  [2m    flavours, that revolve around intervals[0m
+    - layout:
+  [2m    flavours, that deal with the layout (holes to notes) of the harp[0m
+    - players:
+  [2m    harpwise shows details about a famous player and asks for his or[0m
+  [2m    her name[0m
+    - hear-scale:
+  [2m    harpwise plays the holes of a scale and asks for its name[0m
+    - not-in-scale:
+  [2m    harpwise picks a scale at random and modifies it: holes are[0m
+  [2m    shuffled and one is replaced with a foreign hole; this modified[0m
+  [2m    scale is played and you should find the foreign hole. The holes[0m
+  [2m    are disguised as h1, h2, and so on[0m
+    - match-scale:
+  [2m    plays a random sequence of holes, that are either a subset of one[0m
+  [2m    or many scales and asks for the name of the single or shortest[0m
+  [2m    scale containing all these holes[0m
+    - play-scale:
+  [2m    gives the name of a scale and asks to play it[0m
+    - hear-inter:
+  [2m    plays an interval and asks for its name[0m
+    - add-inter:
+  [2m    gives a hole and an interval and asks for the resulting hole,[0m
+  [2m    which is obtained by either adding or subtracting[0m
+    - play-inter:
+  [2m    names a hole and an interval which resolves to a hole; then asks[0m
+  [2m    to play back both holes[0m
+    - tell-inter:
+  [2m    names two holes and asks for the interval between[0m
+    - hear-key:
+  [2m    picks a random key and its matching note (from octaves 4 or[0m
+  [2m    5); plays a sequence of notes starting from this note; asks for[0m
+  [2m    the key[0m
+    - hear-hole:
+  [2m    picks a random key and a named hole-set; then plays a hole from[0m
+  [2m    this set and asks for its name[0m
+    - play-shifted:
+  [2m    wise computes a sequence of holes, that can be shifted by an[0m
+  [2m    interval; it plays the original unshifted sequence and names and[0m
+  [2m    plays the first hole of the shifted sequence; then you should play[0m
+  [2m    BOTH the unshifted and shifted sequence together[0m
+    - key-harp-song:
+  [2m    gives a key of harmonica and asks for the matching[0m
+  [2m    key of song (2nd position) or vice versa[0m
+    - hole-note:
+  [2m    the wise picks a harp-key then gives a hole and asks for the note[0m
+  [2m    or vice versa[0m
+    - hole-note-key:
+  [2m    picks (and hides) a new key for the harp at random; then, for a[0m
+  [2m    named hole-set (e.g. 'blow'), gives holes and matching notes[0m
+  [2m    (which depend on the hidden key of harp); then asks for the key[0m
+    - hole-hide-note:
+  [2m    picks a new key at random and a named hole-set; then shows the[0m
+  [2m    hole-set, but hides one note; then asks for the hidden note[0m
+    - hear-hole-set:
+  [2m    picks a new key at random and a named hole set; then plays it,[0m
+  [2m    holes hidden; then asks for the key and the hole set[0m
+    - keep-tempo:
+  [2m    plays a number of beats defining a certain tempo; then some[0m
+  [2m    silence and then some final beats. You are expected to play along[0m
+  [2m    and keep the given tempo throughout; harpwise records your playing[0m
+  [2m    and checks, how well you kept the tempo[0m
+    - hear-tempo:
+  [2m    plays a tempo and asks for its bpm[0m
+    - replay:
+  [2m    harpwise plays a sequence of holes and asks you to play it back[0m
+    - hear-chord:
+  [2m    taking the harp key as base, the wise chooses a chord (e.g. IV)[0m
+  [2m    then it plays the base note as well as the chord. You are expected[0m
+  [2m    to identify the chord. For difficulty HARD there are additional[0m
+  [2m    chords and for some chords also variations[0m
+    - choose:
+  [2m    choose flavour interactively[0m
+  [2m    (only as extra-argument on commandline)[0m
+  
+Usage by Examples:
+
+  The wise chooses a quiz-flavour at random (key of c):
+
+    #+begin_src 
+    harpwise quiz c random
+    #+end_src
+
+  this is the preferred way to get used to this mode.
+
+  To switch to a different, random mode, issue signal ctrl-z.
+
+
+  Some examples that choose a quiz flavour explicitly:
+  
+
+  Wise plays 3 notes from the scale major_pentatonic for a
+  chromatic harmonica of key a and then asks you to play them
+  back (then repeat):
+
+    #+begin_src 
+    harpwise quiz chromatic a blues replay 5
+    #+end_src
+
+  In the examples above, the type of harmonica (e.g. richter or
+  chromatic), the key (e.g. c or a) or the number of holes may be
+  omitted and are then taken from the config or defaults; so
+
+    #+begin_src 
+    harpwise q major replay
+    #+end_src
+
+  is valid as well (but would choose a richter harp).
+
+  This example removes drawbends from the scale 'all':
+
+    #+begin_src 
+    harpwise quiz all replay 5 --remove-scales drawbends
+    #+end_src
+
+  this example also relies on the default of 5 holes to be played.
+
+
+  Wise plays a scale and asks you for its name:
+
+    #+begin_src 
+    harpwise quiz hear-scale
+    #+end_src
+
+Quick Start:
+
+    #+begin_src 
+    harpwise quiz ran
+    #+end_src
+
+
+** Jamming
+
+   Overview of 'harpwise jamming':
+
+  Scripted jamming along a backing track. For this harpwise includes a
+  backing-track with timestamps as well as a matching set of licks and
+  chords. Two instances of harpwise then work together to display licks
+  and chords in sync with the track.
+
+
+Usage by Examples:
+
+  The mode jamming is a remote control and helper for harpwise in mode
+  listen; jamming plays a backing-track while making listen switch licks
+  and chords (scales). This happens in time with the chord-changes of the
+  track by means of a time-table (see below).
+
+
+  To use harpwise jamming, you need *two* terminals. In the first one
+  start e.g.:
+
+    #+begin_src 
+    harpwise jam along 12bar
+    #+end_src
+
+  this will give you the command for the second terminal, and will stand by
+  until you have started it. For 'jam along 12bar' it will be like this:
+  
+    #+begin_src 
+    harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
+    #+end_src
+
+  note, that advanced users may vary this command, e.g. by choosing
+  a different lick-progression.
+  
+  As soon as both instances of harpwise are running, grab your harp and
+  get into the flow.
+
+
+  Once started, 'harpwise listen' (as usual) shows your playing on the
+  harmonica-chart and indicates, how it matches the current chord; all
+  with respect to the backing track beeing played. The scale-progression
+  '12bar' is really a chord-progression (I,IV,V) and is switched along by
+  mode jamming. This mode uses the timestamps from the file 12bar.json to
+  trigger harpwise at the right moments.
+
+  With the scripted chord-progression '12bar' you always see, which are
+  the notes (holes) from the chord and may check easily, if you play
+  within the current chord or not. In addition you have the licks of the
+  lick-progression 'box1' (whose name comes from the box-pattern on
+  guitar). These licks are switched along as the backing-track progresses
+  (just like the chords). Start by playing the licks unil you feel in the
+  mood for some improvisation, e.g. over the chords.
+
+  Note, that in this accustic setup you may either need headphones or a
+  hand-held microphone to keep apart your playing from the backing track
+  beeing played.
+
+
+  The argument '12bar' above is treated as a filename; it is expandeded to
+  '12bar.json' and searched in two directories: ~/harpwise/jamming and
+  the installation-dir of harpwise.
+
+  The file '12bar.json' contains the required settings (e.g. location of
+  the backing track) and has many comments (lots of them!), that can help
+  to understand its content. This is not needed initially but becomes
+  essential, if you want to jam along with your own backing-tracks; for
+  this you will need to create your own json-file.
+
+
+  If, over time, you have created multiple json-files with settings
+  (e.g. different backing-tracks), you may use:
+
+    #+begin_src 
+    harpwise jamming list
+    #+end_src
+
+  to list them; if you have many files, you may create subdirectories.
+  
+
+  With all subcommands of 'harpwise jam' (e.g. 'along'), you may abbreviate
+  the name of the json-file and supply one or many strings that appear in
+  the filename (in the given sequence); e.g.:
+
+    #+begin_src 
+    harpwise jam along 2b       
+    #+end_src
+
+  which saves us some typing, compared to '12bar'. Or even
+
+    #+begin_src 
+    harpwise jam along 2b r
+    #+end_src
+
+  which is too wordy, if you have one json-file only. However, if you
+  create your own jamming-files and have multiple of them, this may help
+  to distinguish among files with similar names.
+  
+
+  The key for jamming comes (as usual) either from your configuration or
+  is given explicitly on the commandline:
+
+    #+begin_src 
+    harpwise jam g along 12bar
+    #+end_src
+
+  in response the wise will shift the backing-track accordingly and tell
+  'harpwise listen' to use this key too. However, if you do not specify a
+  key on the commandline, the key from the json-file prevails.
+  
+
+  Finally, here are all the extra-functions for 'harpwise jamming':
+
+    - along:
+  [2m    Start the jamming; this matches its arguments[0m
+  [2m    against known files and starts the jamming; an example would be:[0m
+  [2m    [0m
+  [2m    harpwise jam along 12[0m
+  [2m    [0m
+  [2m    which would pick the pre-installed file '12bar'. If you have many[0m
+  [2m    jamming-files of your own, you may give longer or more words to make[0m
+  [2m    selection uniq.[0m
+  [2m    [0m
+  [2m    Please note, that this kind of fuzzy selection applies to other[0m
+  [2m    extra-commands within mode jamming too.[0m
+    - list, ls:
+  [2m    list available jamming-files with date of last usage and any stored[0m
+  [2m    processing notes.[0m
+  [2m    [0m
+  [2m    You may also add arguments to name a single file, in which case the[0m
+  [2m    comment and additional details will be shown too.[0m
+  [2m    [0m
+  [2m    If you give the argument 'all' alone, details for all files will[0m
+  [2m    be printed.[0m
+    - play:
+  [2m    Play the given backing-track; can be useful if you want to search[0m
+  [2m    for a matching lick-progression before starting to jam.[0m
+  [2m    [0m
+  [2m    Also useful when creating a new json for jamming, because it[0m
+  [2m    allows to create a list of timestamps.[0m
+  [2m    [0m
+  [2m    For this purpose you may even give the path to a simple .mp3-file[0m
+  [2m    which will be played, thus allowing you to mark timestamps; so[0m
+  [2m    no need to create a json-file up front.[0m
+    - edit:
+  [2m    edit given jamming-file (fuzzy selection)[0m
+    - notes, note:
+  [2m    For the given jamming-file Invoke your editor to enter or edit the[0m
+  [2m    notes, that will be shown in "harpwise jam list".[0m
+  [2m    [0m
+  [2m    An empty (or whitespace only) note will be removed altogether.[0m
+
+Quick Start:
+
+    #+begin_src 
+    harpwise jam along 12
+    #+end_src
+
+
+** Licks
+
+   Overview of 'harpwise licks':
+
+  The mode 'licks' helps to learn and memorize licks.  Typically it
+  plays a random lick from your collection and asks you to play it
+  back, note by note. If successful, the next lick will be asked for.
+
+  For harpwise, a 'lick' is a short musical phrase with a sequence of
+  holes and an mp3-recording. It will be transposed as necessary.
+
+  Please Note: This mode relies on a collection of licks, that you need
+  to accumulate over time; only a simple starter set will be created at
+  first start; typically it will be kept at:
+  ~/harpwise/licks/richter/licks_with_holes.txt similar e.g. for
+  chromatic.
+
+  When adding licks and you need to adjust start and end of the
+  recording, the mode 'play' might help, to check your results.
+
+  You may want to collect licks, that you dig and even pay for some good
+  lick collections until you tens or hundreds of licks, that sound good.
+  Once having that many licks, you may want to categorize them with tags
+  (e.g. for artist or style). Harpwise helps with this by adding some
+  automatic tags (see below); in addition there are some tools to select
+  licks based on their affinity to a given scale or chord.
+
+  If you get comfortable with a lick and want to explore it beyond its
+  written wholes, you may find it useful to switch to mode listen,
+  which can be done by typing 'm' without stopping the wise first.
+  
+Usage by Examples:
+
+  Play licks from your collection; transpose them (i.e. their
+  recordings) to the key of c, if necessary:
+  
+    #+begin_src 
+    harpwise licks c
+    #+end_src
+
+
+  Similar, but only choose from licks with tags 'fav' and 'has-rec'
+
+    #+begin_src 
+    harpwise licks c --tags-all fav,has-rec
+    #+end_src
+
+  this employs the automatic tag 'has-rec', which is added to each
+  lick, that has a recording. The opposite is 'no-rec'.
+
+
+  Another automatic tag is 'shifts-four', which is added to each lick,
+  which, when shifted by a major fourth, can still be played on the
+  chosen harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
+
+  So
+
+    #+begin_src 
+    harpwise licks a -t shifts-four,shifts-five
+    #+end_src
+
+  selects all licks, that can be shifted by four or five notes without
+  loosing any hole; these licks may therefore accompany a
+  blues-progression alone. The keys used to actually shift those licks,
+  are described in the help-screen (type 'h').
+  
+
+  Similar, but only choose from licks with tags 'fav' or 'scales'
+
+    #+begin_src 
+    harpwise licks c --tags-any fav,scales
+    #+end_src
+
+
+  Show the licks selected by the previous example, employing the
+  mode 'print':
+
+    #+begin_src 
+    harpwise print licks-list --tags-any fav,scales
+    #+end_src
+
+
+  To find licks, that are mostly (i.e. all holes or all but one)
+  contained in the chords chord-i, chord-iv or chord-v, use the
+  respective automatic tags, e.g.:
+
+    #+begin_src 
+    harpwise licks c -t mostly-chord-v
+    #+end_src
+
+  currently there are 5 automatic 'mostly'-tags for scales
+  chord-i, chord-iv, chord-v, blues and mipe.
+  
+
+  Select licks (if any), that have been starred by pressing '*' while
+  it is beeing or has been played played:
+
+    #+begin_src 
+    harpwise licks a -t starred
+    #+end_src
+
+  and use mode print to see details about starred licks.
+  The list of starred licks is kept e.g. in:
+
+    ~/harpwise/licks/richter/starred.yaml
+
+
+  There are some more options to *filter* the set of available licks
+  (see below); see also the lick-file created initially on more
+  explanation on the concept of tags.
+  
+  Here is a more sophisticated example. It helps to memorize licks,
+  but not scales and shows the scales for each hole:
+
+    #+begin_src 
+    harpwise licks c blues --loop --imm --drop-tags-any scales \
+        --add-scales chord-i,chord-iv,chord-v \
+        --display chart-scales --comment holes-all
+    #+end_src
+
+  However, if you find yourself using these options for mode licks
+  over and over again (and if you do not want to set them
+  interactively, once the wise is running) you may move them to your
+  config.ini and shorten the above command line to:
+
+    #+begin_src 
+    harpwise licks blues
+    #+end_src
+
+
+  Alternatively to using the tag-options described above, you may give
+  licks as arguments on the commandline (especially for a 12-bar blues):
+
+    #+begin_src 
+    harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
+    #+end_src
+
+  would start with the lick box1-i and switch from one to the next per your
+  request; all other licks that you may have (e.g. wade, st-louis) are ignored.
+
+  Note, that the lick box1-i (e.g.) appears more than once in the
+  commandline above, because during a 12-bar blues, this chord appears
+  multiple times.
+
+
+  If you find yourself using such a commandline as given above over
+  and over, you may define them as a lick-progression in your
+  lick-file (see there for explanation); a predefined example could be
+  used like this:
+
+    #+begin_src 
+    harpwise licks --lick-progression box1
+    #+end_src
+
+  knowing these licks in and out would allow for basic accompaniment
+  of e.g. a 12-bar blues.
+
+
+  This option can fruitfully be combined with a scale-progression:
+
+    #+begin_src 
+    harpwise licks --scale-prog 12bar --lick-prog box1
+      --kb-tr RIGHT=s+RETURN,LEFT=S+L
+    #+end_src
+
+  which employs the key 'RIGHT' to switch both scale-progression and
+  lick-progression at once; whereas 'LEFT' resets them to their
+  initial values.
+  
+
+  If you want to explore a single lick, that is not yet in your
+  lick-file (take +1 +2 +3 as a simple example), you may specify it
+  adhoc by giving its holes on the commandline:
+
+    #+begin_src 
+    harpwise licks +1 +2 +3
+    #+end_src
+
+  later, if satisfied, you may add this lick (and maybe a recording)
+  to your lickfile.
+
+
+** Play
+
+   Overview of 'harpwise play':
+
+  The mode 'play' takes its arguments (holes, notes, semitones, licks,
+  scales) and plays them.  It also handles some extra keywords.
+
+  Its arguments (which mostly can not be mixed) can be any of these:
+
+    - holes (e.g. '-1') or notes
+    - notes (e.g. 'a4')
+    - semitones (e.g. '+12st')
+    - licks (e.g. 'st-louis')
+    - lick progressions
+    - scales (e.g. 'chord-i')
+    - jams, i.e. its mp3
+    - 'l', '2l', for the last lick, 2nd-to-last, etc.
+
+  or one of the known extra arguments (that themselves might require
+  additional arguments):
+
+    - licks:
+  [2m    all licks selected (e.g. by option -t). Add option '--lick-radio'[0m
+  [2m    to make harpwise play licks without interruption (but repeats);[0m
+  [2m    as an optional argument you may give the number of repeats[0m
+    - pitch:
+  [2m    play an interactive, adjustable pitch; this may help to find the[0m
+  [2m    key of a song by ear-comparison; the initial key, e.g. 'a4' can be[0m
+  [2m    supplied as an optional argument[0m
+    - interval, inter:
+  [2m    interactive, adjustable interval given as arguments[0m
+    - progression, prog:
+  [2m    take a base and some semitone diffs, then play it in a loop,[0m
+  [2m    allowing e.g. to shift each iteration by some semitones e.g.[0m
+  [2m    through a chord-progression of i-iv-v. Moreover you may specify[0m
+  [2m    two or more progressions with a dot (.) between; those can then[0m
+  [2m    be switched for each iteration.[0m
+    - chord:
+  [2m    play the given holes or notes simultanously as a chord; also[0m
+  [2m    useful for tongue-splits.[0m
+    - user:
+  [2m    play back (if any), what you (the user) have recorded in mode[0m
+  [2m    'licks' before[0m
+
+
+Usage by Examples:
+
+  Play a few holes and notes on a harp of key c:
+
+    #+begin_src 
+    harpwise play c +1 -2 c4
+    #+end_src
+
+  Play a few semitones:
+
+    #+begin_src 
+    harpwise play c +1st -4st
+    #+end_src
+
+  Play the lick 'wade'; transpose it to d:
+  
+    #+begin_src 
+    harpwise play d wade
+    #+end_src
+
+  Play an earlier lick:
+
+    #+begin_src 
+    harpwise play 3l
+    #+end_src
+
+  To see a list of earlier licks:
+
+    #+begin_src 
+    harpwise print licks-history
+    #+end_src
+
+
+  Various ways to play all licks:
+
+  Shuffled and in random order, without end:
+
+    #+begin_src 
+    harpwise play licks
+    #+end_src
+
+  or play them one after another as they appear in your lickfile:
+
+    #+begin_src 
+    harpwise play licks --iterate cycle
+    #+end_src
+
+  or shorter:
+  
+    #+begin_src 
+    harpwise play licks -i c
+    #+end_src
+
+  Only play favorite licks (tag 'fav'):
+
+    #+begin_src 
+    harpwise play licks --tags-all fav
+    #+end_src
+
+  or shorter:
+
+    #+begin_src 
+    harpwise play licks -t fav
+    #+end_src
+
+  Play licks from a progression:
+
+    #+begin_src 
+    harpwise play licks --lick-prog box1
+    #+end_src
+
+  Play endless, no questions asked, but various controls available:
+
+    #+begin_src 
+    harpwise play licks --lick-radio
+    #+end_src
+
+
+  Play an interactive, adjustable pitch:
+
+    #+begin_src 
+    harpwise play pitch
+    #+end_src
+
+  this may help to find the key of a song that is playing: change the
+  pitch by semitones, fiths or octaves until both match.
+
+    #+begin_src 
+    harpwise play pitch c
+    #+end_src
+
+  Exactly the same result as above, but with the key of c given
+  explicit. This will actually start of playing g, the root note in
+  second position (cross-harp).
+
+  Note: As an alternative, you may try to hum the root note (or tonal
+  center) of the song to find its key. Which is the preferred method,
+  because it does not need a computer; but this command may help to
+  get you started anyway.
+
+
+  Play an interval:
+
+    #+begin_src 
+    harpwise play inter c4 d4
+    #+end_src
+
+  while this is beeing played you may move it around or widen or
+  narrow it by semitones.
+
+  There are multiple ways to specify an interval:
+  - Either as two notes or holes
+  - Or as one note or hole plus one interval (named or as semitones)
+
+  So these are more ways to play an interval:
+
+    #+begin_src 
+    harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+    #+end_src
+
+    #+begin_src 
+    harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+    #+end_src
+
+  The error message (if any) will list valid values.
+
+
+  Play a note progression:
+
+    #+begin_src 
+    harpwise play prog e3 7st 10st oct
+    #+end_src
+
+  this plays the classic box pattern interactively, you may loop it or
+  shift it by semitones. Holes for the harmonica (if any) are printed
+  along.
+
+  A similar progression would be:
+
+    #+begin_src 
+    harpwise play prog +1 5st 7st 10st
+    #+end_src
+
+
+  Building on the above, you may want to use the box pattern and the
+  interactive features of 'harpwise play prog' to play (sort of) a
+  full 12-bar blues: Start with the progression above, switch on loop
+  and let it repeat 4 times (i.e. for 4 bars); this is the
+  i-chord. Then shift by 5 Semitones up or 7 down, to get the
+  iv-chord, and let this play another two times; then 5 semitones down
+  to get the i-chord again, then 7 etc., etc. until all 12 bars have
+  been played.
+
+  If you want to switch between multiple progressions, separate them
+  by a dot ('.') like so (using both progressions from above):
+
+    #+begin_src 
+    harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+    #+end_src
+
+
+  Alternatively (and without using the progression feature) you may
+  get a similar result by playing predefined licks. As harpwise comes
+  with licks of the 'box pattern' for chords i, iv and v, you may ask
+  the wise to play the bass-line of a 12-bar blues like this:
+
+    #+begin_src 
+    harpwise play box1-i box1-i box1-i box1-i box1-iv
+      box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
+    #+end_src
+
+  which also uses the simple-turn lick at the end; you may also
+  replace 'box1' with 'box2' for a variant.
+
+
+    #+begin_src 
+    harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+    #+end_src
+
+  which might be a starting point for improvisation.
+
+
+  Another way of playing would be:
+
+    #+begin_src 
+    harpwise play chord +1 +2 +3 -3/
+    #+end_src
+
+  plays the given holes (notes may be given too) simultanously; the
+  given example is (by the way) a flat-seventh-chord, what you may
+  find out by using print:
+
+    #+begin_src 
+    harpwise print +1 +2 +3 -3/
+    #+end_src
+
+
+  If you record yourself during lick-practice,
+
+    #+begin_src 
+    harpwise play user
+    #+end_src
+
+  plays what you have recorded before in mode 'licks' (where you need to
+  trigger the recording explicitly).
+
+
+** Tools
+
+   Overview of 'harpwise tools':
+
+  The mode 'tools' offers some non-interactive but useful utilities,
+  which are mostly related to basic harmonica theory; they do not use
+  microphone or speaker.
+
+  The required additional argument specifies the tool to run;
+  it can be one of:
+
+    - transpose:
+  [2m    transpose a sequence of holes between keys[0m
+    - shift:
+  [2m    shift a sequence of holes or notes or a single lick by the given[0m
+  [2m    number of semitones (first argument)[0m
+    - shift-to-groups:
+  [2m    Starts off like 'shift' (see there), but also shows groups of[0m
+  [2m    alternative holes, that give the same note only in different[0m
+  [2m    octaves. This can be useful to find variations of a[0m
+  [2m    hole-sequences, e.g. for improvisation[0m
+    - keys:
+  [2m    For a diatonic harmonica: print a chart with keys and positions[0m
+  [2m    centered around current key; this tool accepts two optional extra[0m
+  [2m    arguments, which control coloured emphasis in the otherwise fixed[0m
+  [2m    chart.  The first argument is the key of the song, the second the[0m
+  [2m    key of the harp; use '.' to skip emphasising the song.[0m
+  [2m    [0m
+  [2m    Use option --brief to print a version shortend to the most common[0m
+  [2m    keys and position.[0m
+    - spread-notes:
+  [2m    take a list of notes (e.g. a, a4, b, cs) as arguments and turn[0m
+  [2m    them into a list of holes that produce them. As the octave is[0m
+  [2m    deliberately not taken into account, you may give "a" as an[0m
+  [2m    argument just as well as "a4". Also shows these holes in the[0m
+  [2m    harmonica chart. When invoked with option --brief, this tool can[0m
+  [2m    be used as a subcommand on the commandline, in which case it just[0m
+  [2m    returns the list of holes, to be used e.g. as an adhoc-scale.[0m
+    - make-scale:
+  [2m    accepts a list of holes on the commandline, asks some additional[0m
+  [2m    questions and writes a new user-defined scale.[0m
+    - chart:
+  [2m    various harmonica charts for current key; add option --ref for[0m
+  [2m    more charts. If you supply holes or notes as arguments (optional),[0m
+  [2m    only these are printed in the chart of holes and the other charts[0m
+  [2m    are skipped.[0m
+    - notes-major, notes:
+  [2m    print notes of major scale for given key[0m
+    - progression, prog:
+  [2m    take a base and some semitone diffs, then spell them out[0m
+    - interval, inter:
+  [2m    calculate and print interval between two notes[0m
+    - chords:
+  [2m    print chords i, iv and v for current key[0m
+    - transcribe:
+  [2m    transcribe given audio-file approximately[0m
+    - search-holes-in-licks:
+  [2m    search given sequence of holes (or equiv) in all licks; the same[0m
+  [2m    ordering of holes is required; this can help to find licks that[0m
+  [2m    expand on a given sequence of holes[0m
+    - search-lick-in-scales:
+  [2m    search given lick or sequence of holes (or equiv) in all scales;[0m
+  [2m    ordering of holes is not important; this may give an idea, to which[0m
+  [2m    of all scales a given lick can be played. See also the somewhat[0m
+  [2m    inverse tool search-scale-in-licks.[0m
+    - search-scale-in-licks:
+  [2m    search given scale in all licks; this computes the uniq holes of a[0m
+  [2m    lick and, taking away 0,1,2 ... holes, checks if the remaining holes[0m
+  [2m    are contained in the scale.  This can give an idea, which licks can[0m
+  [2m    be played over the given scale (e.g. chord-iv). See also the very[0m
+  [2m    similar tool licks-from-scale and the somewhat inverse[0m
+  [2m    search-lick-in-scales.[0m
+    - licks-from-scale:
+  [2m    For all licks, find percentage of holes, that are taken from the[0m
+  [2m    given scale and group and sort them accordingly.  This may give an[0m
+  [2m    idea, which of all licks can be played over the given scale[0m
+  [2m    (e.g. chord-i or blues). See also the very similar tool[0m
+  [2m    seach-scale-in-licks.[0m
+    - translate:
+  [2m    Recognize and translate alternate harmonica notations into the[0m
+  [2m    format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";[0m
+  [2m    Currently this is optimized for diatonic harmonicas.[0m
+    - utils, utilities:
+  [2m    Describe some utilities, that come with harpwise and need[0m
+  [2m    to be invoked seperately.[0m
+    - edit, edit-licks:
+  [2m    invoke editor on your lickfile[0m
+  [2m    optionally add name of lick or lick-progression to land on[0m
+    - edit-config:
+  [2m    invoke editor on your personal config file ~/harpwise/config.ini[0m
+    - edit-jam:
+  [2m    edit given jamming-file. This is much like "harpwise jam edit",[0m
+  [2m    which however has a more relaxed way of specifying the jam.[0m
+  [2m    See there for details.[0m
+    - diag, diag1:
+  [2m    help to diagnose problems with your sound system; i.e.[0m
+  [2m    check that recording and replay work properly.[0m
+    - diag2:
+  [2m    check that mp3 can be played without problems.[0m
+    - diag3:
+  [2m    check that frequencies picked up by your microphone can be[0m
+  [2m    recognized properly; for this the check 'diag1' should have[0m
+  [2m    been performed sucessfully first.[0m
+    - diag-hints:
+  [2m    read technical hints on how to fix some of the problems, that[0m
+  [2m    might have come up with the other diag-tools.[0m
+  
+
+Usage by Examples:
+
+  Transpose a sequence of notes (some specified as holes) from
+  the key of c to g (keeping the notes/pitches constant):
+
+    #+begin_src 
+    harpwise tools transpose c g -1 +2 -3
+    #+end_src
+
+  when playing the result on the g-harp you will have the exact same
+  pitches as on the original c-harp.
+
+
+  Shift a sequence of holes up 12 semitones:
+
+    #+begin_src 
+    harpwise tools shift 12st -1 +2 -3
+    #+end_src
+
+  This is different from transposing the notes/pitches as given
+  before, as it changes the pitches of the notes.
+
+  You may then let harpwise play the resulting notes, even if they
+  have no hole on the harp (with mode play)
+
+
+  Print a simple table of keys and positions:
+  
+    #+begin_src 
+    harpwise tools keys
+    #+end_src
+
+  Center the semitone-column around a specific key of harp (bf) and
+  mark it in the table:
+
+    #+begin_src 
+    harpwise tools keys bf
+    #+end_src
+
+  The same and mark a key of song (d) too:
+
+    #+begin_src 
+    harpwise tools keys bf d
+    #+end_src
+
+  If you have a g-harp and want to know what song-keys and positions
+  are available:
+
+    #+begin_src 
+    harpwise tools keys g g
+    #+end_src
+    
+
+  Print a harmonica chart for the key of g:
+
+    #+begin_src 
+    harpwise tools chart g
+    #+end_src
+
+  The same chart, but with arguments rearranged
+
+    #+begin_src 
+    harpwise tools g chart
+    #+end_src
+    
+  Two charts, the second with scale-content (chord-i)
+
+    #+begin_src 
+    harpwise tools g chord-i chart --add-scales -
+    #+end_src
+
+  Four charts, the third and fourth with intervals of each hole to the
+  given reference:
+
+    #+begin_src 
+    harpwise tools chord-i chart --ref -4
+    #+end_src
+
+
+  How to get the holes of the pentatonic scale in an adhoc fashion:
+
+  Assuming, that you know its notes  g a b d e:
+
+    #+begin_src 
+    harpwise tools spread-notes g a b d e
+    #+end_src
+
+  the resulting long list of 16 holes may then be used as an adhoc
+  scale for mode listen.
+
+
+  Advanced users, that are not satisfied with the builtin set of
+  scales, may want to create their own from a list of holes, e.g.:
+
+    #+begin_src 
+    harpwise tools make-scale +1 +2 +3
+    #+end_src
+
+
+  The notes of the major scale starting at c:
+
+    #+begin_src 
+    harpwise tools notes c
+    #+end_src
+
+  this also gives the notes of the major scale one fifth down,
+  i.e. starting at f, so that you may follow the circle of fifths in
+  both directions if you wish.
+
+
+  Print a note progression:
+
+    #+begin_src 
+    harpwise tools prog e3 7st 9st oct
+    #+end_src
+
+  which will give you all the notes starting at e3 and the 7, 9, 12
+  semitones up.
+    
+
+  Print the interval over the base note:
+
+    #+begin_src 
+    harpwise tools interval c4 oct
+    #+end_src
+
+    #+begin_src 
+    harpwise tools interval c4 +12st
+    #+end_src
+
+
+  print the chords i, iv and v for the current key:
+
+    #+begin_src 
+    harpwise tools chords
+    #+end_src
+
+
+  Transcribe and audio-file given on the commandline approximately:
+
+    #+begin_src 
+    harpwise tools transcribe wade.mp3
+    #+end_src
+
+  for simple harmonica content this will give you sequence of holes
+  played in lick wade.mp3 (from current working dir)
+
+
+** Samples
+
+   Overview of 'harpwise samples':
+
+  The wise needs a set of audio-samples; these are the sounds-files
+  (recorded or generated) of each of the holes of your harmonica;
+  blow, draw, bend.
+  
+  The samples are used to:
+  
+  - Play a series of holes, e.g. for modes play or quiz
+  - Judge the frequencies of your playing against the frequencies of the
+    samples to find out, which note you are actually playing
+
+  You may either record those samples under the guidance of this mode,
+  or you may let the wise generate them for you; adding some helper
+  functions, this gives the following choice of extra arguments:
+
+    - record:
+  [2m    harpwise assists while you play the holes for the given type and[0m
+  [2m    key of harmonica. After each recording you may hear back and trim.[0m
+  [2m    [0m
+  [2m    These samples capture your style of playing and the specific sound[0m
+  [2m    of your harmonica as far as possible and brings them into[0m
+  [2m    harpwise. This way of creating samples gives more interesting[0m
+  [2m    results than 'generate' but requires some work from your side;[0m
+  [2m    consider recording the most important keys (or even holes) first[0m
+  [2m    and use 'generate' for the others. Even 'generate all', as your[0m
+  [2m    recordings would not be overwritten.[0m
+  [2m    [0m
+  [2m    To redo the recording for a single hole, give it as an argument on[0m
+  [2m    the commandline.[0m
+  [2m    [0m
+  [2m    You may even combine this method of recording hole-samples with[0m
+  [2m    'generate', as your recorded samples will be kept and preferred[0m
+  [2m    over generated samples unless you explicitly use the extra-command[0m
+  [2m    'delete'.[0m
+    - generate:
+  [2m    as a faster alternative to 'record', you may let harpwise generate[0m
+  [2m    samples for each hole.  This gives fast results, that, however[0m
+  [2m    lack the typical harmonica sound.  You may try different waveforms[0m
+  [2m    (e.g. 'sine') with option --wave (with a default of 'pluck').[0m
+  [2m    [0m
+  [2m    To generate samples for all keys in one pass, you may give 'all'[0m
+  [2m    as an additional argument; otherwise samples are created for the[0m
+  [2m    current key only.[0m
+  [2m    [0m
+  [2m    'generate' never overwrites samples that you play during 'record';[0m
+  [2m    use 'delete' for this, if required.[0m
+    - check:
+  [2m    For the current type and key of harmonica, check out and summarize[0m
+  [2m    available samples; especially show, which samples have been[0m
+  [2m    recorded and which ones generated. Use 'all' to get a summary for[0m
+  [2m    each and every key.[0m
+    - delete:
+  [2m    For the current key, ask for confirmation to delete your recorded[0m
+  [2m    samples, if any. As these recorded samples had precedence over any[0m
+  [2m    generated samples, this might be necessary to make harpwise use[0m
+  [2m    the generated samples (or maybe suggest to use 'generate' first).[0m
+  [2m    [0m
+  [2m    This can be useful, if you prefer the (maybe) more precise samples[0m
+  [2m    that harpwise generates.[0m
+  [2m    [0m
+  [2m    By giving the argument 'all' you may delete all samples for all[0m
+  [2m    keys.[0m
+
+
+  The samples need to be generated for each key, but only once in the
+  lifetime of your harp; you may start with the key of c only.
+  After that you are ready to use the other modes of the wise.
+
+  Samples that have been recorded will not be overwritten with
+  samples, that the wise generates.  Moreover, recorded samples are
+  always preferred over generated samples, when harpwise has to play
+  holes; remove recorded samples, if (for the moment) you prefer
+  generated samples.
+  
+  By its nature, this mode only accepts arguments for type and key,
+  but not for scale.
+  
+
+Usage by Examples:
+
+  Record samples to teach the wise abut the frequencies of the harp
+  you are using:
+
+    #+begin_src 
+    harpwise samples c record
+    #+end_src
+
+  this will ask you to play notes on your harp (key of c). The samples
+  will be stored in the folder harpwise within your home
+  directory; frequencies will be extracted to the file
+  frequencies.yaml.
+
+  You may cancel the process of recording samples after any hole whle
+  still keeping the samples recorded so far (but you may 'delete'
+  them, if you choose). If later, you want to continue recording from
+  where you left, simply give the respective hole as an argument, e.g.
+
+    #+begin_src 
+    harpwise samples c record +4
+    #+end_src
+
+
+  If at a later time, you just want to review the samples, you have
+  created, simply use play, e.g.:
+
+    #+begin_src 
+    harpwise play +4
+    #+end_src
+
+  or even:
+
+    #+begin_src 
+    harpwise play all
+    #+end_src
+
+
+  Compared with the process of recording samples, the alternative of
+  generating samples automatically is the quickest way to get started.
+  The wise may create all the audio samples for you (using sox);
+  however, this cannot match the characteristics of your own harp and
+  your own playing style, but it gives a good quick start.  For
+  auto-generation, type:
+
+    #+begin_src 
+    harpwise samples a generate
+    #+end_src
+
+
+  Or, to generate everything, all holes, all keys, in a single run:
+
+    #+begin_src 
+    harpwise samples generate all
+    #+end_src
+
+  With this, only when first changing the type of harmonica, e.g. from
+  richter (default) to chromatic, you will need to create samples
+  again.
+
+
+  If later, you want to remove some samples, that you have recorded
+  previously, try (for the key of d):
+
+    #+begin_src 
+    harpwise samples d delete
+    #+end_src
+
+  this applies to recorded samples only; there is no need to delete
+  generated samples, as they can allways be generated and overwritten
+  or shadowed by recorded samples.

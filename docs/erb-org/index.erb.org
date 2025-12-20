@@ -336,6 +336,40 @@ different keys.
    - In mode licks, details about the current lick
    - In mode listen, if idle, notes about famous harp-players
 
-* Usage
+* Harpwise and its modes
 
-  <%= IO.read("../_org/usage.org").lines.reject {|l| l["SETUPFILE"]}.join %>
+  <%= IO.read("../_org/usage.org") %>
+
+* The various modes of harpwise
+** Listen
+
+  [[../images/harpwise-listen.gif]]
+  
+   <%= IO.read("../_org/usage_listen.org") %>
+
+** Quiz
+
+  [[../images/harpwise-quiz.gif]]
+  
+   <%= IO.read("../_org/usage_quiz.org") %>
+
+** Jamming
+
+   <%= IO.read("../_org/usage_jamming.org") %>
+
+** Licks
+
+   <%= IO.read("../_org/usage_licks.org") %>
+
+** Play
+
+   <%= IO.read("../_org/usage_play.org") %>
+
+** Tools
+
+   <%= IO.read("../_org/usage_tools.org") %>
+
+** Samples
+
+   <%= IO.read("../_org/usage_samples.org") %>
+                  
