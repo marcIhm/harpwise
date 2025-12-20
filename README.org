@@ -11,6 +11,9 @@ different keys.
 
   [[docs/images/harmonica3.png]]
 
-See: https://marcihm.github.io/harpwise for full documentation.
+See:
+
+- https://marcihm.github.io/harpwise for full documentation or
+- screenshot below for a first impression
 
   [[docs/images/harpwise-listen.gif]]
