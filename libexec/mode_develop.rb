@@ -31,7 +31,7 @@ def do_develop to_handle
     end
     puts
     puts "\e[34mOpening browser on index.html; close with CTRL-W ...\e[0m"
-    sleep 1
+    sleep 0.5
     system("wslview #{$dirs[:install]}/docs/index.html")
     puts
   when 'selftest'
