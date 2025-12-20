@@ -29,6 +29,11 @@ def do_develop to_handle
       eval(met)
       sleep 1
     end
+    puts
+    puts "\e[34mOpening browser on index.html; close with CTRL-W ...\e[0m"
+    sleep 1
+    system("wslview #{$dirs[:install]}/docs/index.html")
+    puts
   when 'selftest'
     do_selftest
   when 'unittest'
@@ -222,21 +227,16 @@ def do_docs_make_org_txt
     dir_suff.each do |dir, suff|
       dst_file = "#{dir}/#{file_short}#{suff}"
 
-      new_cont = if suff == '.org'
-                   if file_short == 'index'
-                     ''
-                   elsif file_short == 'usage'
-                     "* Harpwise\n\n"
+      Dir.chdir(src_erb_dir) do
+        new_cont = if suff == '.org'
+                     ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
+                       result(binding).gsub(/(^\s*\n)+\Z/,'')
                    else
-                     "* Uage examples for harpwise, mode #{file_short.split('_')[1]}\n\n"
-                   end +
-                   ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
-                     result(binding).gsub(/(^\s*\n)+\Z/,'')
-                 else
-                   IO.read("#{dst_org_dir}/#{file_short}.org").
-                     lines[2 .. -1].reject {|l| l['#+']}.join
-                 end
-      File.write(dst_file, new_cont)
+                     IO.read("#{dst_org_dir}/#{file_short}.org").
+                       lines.reject {|l| l['#+']}.join
+                   end
+        File.write(dst_file, new_cont)
+      end
       puts dst_file
     end
   end
@@ -250,13 +250,10 @@ def do_docs_make_html
   odir = $dirs[:install] + '/docs/_org'
 
   puts
-  puts "\e[32mPlease consider doing 'harpwise dev docs-proc' first"
-  sleep 1
-  puts
   puts "\e[32mCopy theme from #{ddir} to #{odir} and checking index.org\e[0m"
   puts $org_theme_file
   FileUtils.cp "#{ddir}/#{$org_theme_file}", odir
-  fail("#{$org_theme_file} not used in #{odir}/index.org") unless File.read("#{odir}/index.org").lines.select {|l| l["#+SETUPFILE: #{$org_theme_file}"]}.length == 1
+  fail("#{$org_theme_file} not used in #{odir}/index.org") unless File.read("#{odir}/index.org").lines.select {|l| l["#+SETUPFILE: #{$org_theme_file}"]}.length > 0
   
   puts
   puts "\e[32mPublish html\e[0m"
@@ -273,7 +270,7 @@ def do_docs_make_html
     File.write(html, IO.read(html).lines.reject {|l| l.start_with?("<!-- ")}.join)
   end
 
-  puts "\n\e[32mMove and process index.html (replacing random IDs)\e[0m"
+  puts "\n\e[32mMove index.html, replace random IDs, correct links\e[0m"
   FileUtils.mv "#{hdir}/index.html", ddir
   lines = IO.read("#{ddir}/index.html").lines
   href_ids = Hash.new
@@ -294,6 +291,10 @@ def do_docs_make_html
       # correct directory of usage files; this is necessary, because we have moved
       # index.html up one directory
       line.gsub!(/href="(usage[_a-z]*.html")/, 'href="_html/\1')
+      
+      # correct directory of image files
+      line.gsub!(/src="\.\.\/images\//, 'src="images/')
+      
       html.write line
     end
   end

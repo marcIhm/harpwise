@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode tools
-
 Overview of 'harpwise tools':
 
   The mode 'tools' offers some non-interactive but useful utilities,

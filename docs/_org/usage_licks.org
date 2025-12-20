@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode licks
-
 Overview of 'harpwise licks':
 
   The mode 'licks' helps to learn and memorize licks.  Typically it

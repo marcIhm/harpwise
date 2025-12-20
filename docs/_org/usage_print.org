@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode print
-
 Overview of 'harpwise print':
 
   The mode 'print' takes its arguments (holes, notes, licks, scales,

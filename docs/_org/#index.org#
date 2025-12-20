@@ -1,5 +1,5 @@
 # -*- fill-column: 74 -*-
-#+SETUPFILE: <%= $org_theme_file %>
+#+SETUPFILE: comfy_inline.theme
 #+OPTIONS: toc:t
 * Summary
 
@@ -14,18 +14,18 @@ different keys.
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
   beeing played and how it can help to write them down. No sound has been
-  recorded however, so some acoustic imagination is required.
-  
-  [[../images/harpwise-listen.gif]]
+  recorded however, so some accustic imagination is required.
+
+  [[images/harpwise-listen.gif]]
   
   The second screencast is from mode 'quiz', showing three of the many
   flavours: hear-key, players and keep-tempo.
   
-  [[../images/harpwise-quiz.gif]]
+  [[images/harpwise-quiz.gif]]
   
 * Introduction
 
-  [[../images/harmonica3.png]]
+  [[images/harmonica3.png]]
 
   A harmonica tool for the command line, using microphone and speaker.
   
@@ -337,4 +337,212 @@ different keys.
 
 * Usage
 
-  <%= IO.read("../_org/usage.org").lines.reject {|l| l["SETUPFILE"]}.join %>
+  A harmonica tool for the command line, using microphone and speaker.
+
+Harpwise supports your harmonica practice with scales, chords and licks.
+It offers various tools, an explorable quiz and may guide your jamming.
+It can be used with diatonic (richter) or chromatic harmonicas in
+different keys.
+
+A note for beginners: 'richter' is the most common and affordable type
+of harmonica and the default for harpwise.  It has 10 holes but no
+slider and is also known as the 'blues harp'.  A single harmonica
+(e.g. in the key of c or a) is enough to get started.  This program
+(harpwise) by itself does not teach you how to play harmonica; rather it
+is a tool and meant to be helpful and motivating all along your
+learning-journey.  Start with: 'harpwise listen c'.
+
+When invoking harpwise, the first argument on the command line
+specifies the mode of operation; it can be one of:
+
+  - listen: The wise listens to your playing (e.g. for scales or
+    bends) and helps to steer through a chord progression
+  - quiz: Train your ear, memory and knowledge of music theory with
+    more than 20 flavours; a fun way to start with harpwise
+  - jamming: Scripted jamming along a backing-track
+  - licks: Learn licks (some included, pointers for more) as a
+    starting point for improvisations
+
+And, less interactive:
+
+  - play: The wise plays scales, holes, licks, intervals, chords, etc.
+  - print: Print and annotate the holes or scales or licks given; in
+    general everything, that the wise knows about
+  - tools: More then 20 tools for various harmonica needs
+  - samples: The wise assists in recording your own samples or generates
+    them for you; this is a prerequisite for using some other modes, so
+    you will be asked to invoke it, when necessary
+
+to read more details, usage examples and options for the individual
+modes, invoke them without arguments, e.g.
+
+  #+begin_src 
+  harpwise listen
+  #+end_src
+
+
+After the first argument (which specifies the mode) some additional
+arguments may be given:
+
+  - type: mostly 'richter' or 'chromatic' but other choices might be
+    defined. If omitted, this defaults to 'richter'.
+
+  - key: key of harp, e.g. 'c' or 'g' or 'af' (a flat) or
+    'ds' (d sharp). If omitted, this defaults to 'c'.
+
+  - scale: scale on which you want to concentrate, e.g. 'blues',
+    'major_pentatonic' or 'all'; defaults to 'blues'.
+
+    Note, that most scales are notated in second position (e.g. key of
+    g for a c-harp); you may use the option --transpose-scale to
+    change this.
+
+    Harmonica-charts (e.g. in mode listen) show a one-letter shorthand
+    of the scale, e.g. 'b' for 'blues'; you may supply your own letter
+    after a colon, e.g. 'blues:B', which results in 'B' instead of the
+    default 'b' beeing shown.
+
+
+Some modes (e.g. listen, licks, play) accept additional arguments on
+the commandline. See their individual usage messages for details (type
+e.g. 'harpwise listen') for details.
+
+
+An example using all these arguments would be:
+
+  #+begin_src 
+  harpwise listen richter c blues
+  #+end_src
+
+this does listen to your playing, while marking notes from the
+blues-scale.  However, relying on defaults, this could also be written
+shorter as:
+
+  #+begin_src 
+  harpwise listen blues
+  #+end_src
+
+or shorter:
+
+  #+begin_src 
+  harpwise listen c
+  #+end_src
+
+as 'blues' and 'c' are also the defaults, one might be tempted to
+write even shorter:
+
+  #+begin_src 
+  harpwise listen
+  #+end_src
+
+but that would (on purpose) produce the usage-message of mode listen.
+
+
+This example would listen especially for the first three notes of the
+blues-scale, which are given as arguments and form an adhoc scale:
+
+  #+begin_src 
+  harpwise listen -2 -3 +4
+  #+end_src
+
+
+The possible scales depend on the chosen type of harmonica:
+
+  scales for chromatic: all, blues, blues-middle, chord-i, chord-i7, chord-iv, 
+    chord-iv7, chord-v, chord-v7, mape, one, two
+  scales for richter: all, blues, blues-middle, chord-i, chord-i7, chord-iv, 
+    chord-iv7, chord-v, chord-v7, drawbends, major, major-full, 
+    major-pentatonic, mape, mape4, mape5, middle, minor, minor-pentatonic, 
+    mipe, mixolydian
+
+Note that advanced users may try to create their own scales. See
+usage of mode tools for an example.
+
+
+Besides the arguments for type, key and scale, there are a lot of
+options (introduced by '-' or '--'), some requiring an argument
+themselves. Options are specific for each mode and are described on
+request, i.e. if you give the special option '-o'.
+
+Also note, that for most modes, the behaviour of the wise (e.g. the
+ways of display or comment) can be changed interactively; type 'h' to
+see help on this.
+
+
+A Remark on writing holes: The wise supports different types of
+harmonica (e.g. richter or chromatic), that may have their own way of
+writing holes; however for the most common case of a richter-harp, this
+style and examples apply:
+
+- Blow-holes are written with a '+', e.g.:  +1  +6  +3
+- Draw-holes with a '-', e.g.:  -9  -2  -3
+- Bends (both draw and blow) with a '/', e.g.:  -2/  -3//  +10/
+- Comments in '()' or '[]' or starting with '.' or '~' or a single '|'
+
+See the initial lickfile (richter) for more details.
+
+
+The wise offers a broad set of features that can support your practice for
+a long time. However, it also has its limitations: The wise recognizes
+single notes and it may play chords for you, but it can not identify your
+chords. It knows a bit about tempo, but has no notion of rhythm.
+
+
+Suggested Reading:
+
+  - Usage information for the individual modes, e.g.
+    #+begin_src 
+    harpwise listen
+    #+end_src
+  - The top level file README.org, also available at:
+    https://github.com/marcIhm/harpwise/blob/main/README.org
+
+User Configuration:
+
+  ~/harpwise/config.ini
+
+Command-line Options:
+
+  Options are specific for each mode; as an example you may type
+
+    #+begin_src 
+    harpwise listen -o
+    #+end_src
+
+  to read options for mode listen.
+
+Diagnosis:
+
+  Harpwise uses the excellent program sox (aka play, aka rec) to
+  interact with your sound system. Sox handles all playing and
+  recording of sounds.
+
+  However, sometimes, sox might not be configured correctly out of the
+  box. If you feel, that sox (and therefore harpwise) has problems
+  with sound or if you see spurious error messages, you may invoke:
+
+    #+begin_src 
+    harpwise tools diag
+    #+end_src
+
+  to execute some basic tests and get advice on how to fix common problems.
+
+Quick Start:
+
+  Feedback on holes and notes you play:
+  
+    #+begin_src 
+    harpwise listen c              
+    #+end_src
+
+  Improve your harmonica knowledge:
+
+    #+begin_src 
+    harpwise quiz random
+    #+end_src
+
+  Guided jam along a 12bar-blues:
+
+    #+begin_src 
+    harpwise jam along 12
+    #+end_src

@@ -3,6 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
+<!-- 2025-12-20 Sat 08:03 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -195,360 +196,148 @@
 </head>
 <body>
 <div id="content" class="content">
+<div id="outline-container-org54278d9" class="outline-2">
+<h2 id="org54278d9">Source and lincense information about these images</h2>
+<div class="outline-text-2" id="text-org54278d9">
 <p>
-Overview of 'harpwise play':
+Pictures (camera or screenshot) by Marc Ihm, subject to MIT License.
+</p>
+</div>
+</div>
+<div id="outline-container-org08b77f2" class="outline-2">
+<h2 id="org08b77f2">How to produce screenshots</h2>
+<div class="outline-text-2" id="text-org08b77f2">
+<p>
+In full screen with: stty size = 24 x 81 (o.ä.)
 </p>
 
 <p>
-The mode 'play' takes its arguments (holes, notes, semitones, licks,
-scales) and plays them.  It also handles some extra keywords.
+hw listen richter c blues &#x2013;add-scales chord-i,chord-iv,chord-v &#x2013;display chart-scales &#x2013;comment note &#x2013;screenshot
 </p>
 
 <p>
-Its arguments (which mostly can not be mixed) can be any of these:
+In full screen with: stty size = 30 x 104 (o.ä.)
 </p>
 
+<p>
+harpwise quiz choose
+</p>
+
+<p>
+und dann "describe-all" und "keep-tempo"
+</p>
+</div>
+</div>
+<div id="outline-container-orge2e0e59" class="outline-2">
+<h2 id="orge2e0e59">How to produce ascii-casts as gifs</h2>
+<div class="outline-text-2" id="text-orge2e0e59">
+<p>
+Terminal:
+</p>
 <ul class="org-ul">
-<li>holes (e.g. '-1') or notes</li>
-<li>notes (e.g. 'a4')</li>
-<li>semitones (e.g. '+12st')</li>
-<li>licks (e.g. 'st-louis')</li>
-<li>lick progressions</li>
-<li>scales (e.g. 'chord-i')</li>
-<li>jams, i.e. its mp3</li>
-<li>'l', '2l', for the last lick, 2nd-to-last, etc.</li>
+<li>stty size = 24 x 81 (o.ä.)</li>
 </ul>
 
 <p>
-or one of the known extra arguments (that themselves might require
-additional arguments):
-</p>
-
-<ul class="org-ul">
-<li>licks:</li>
-</ul>
-<p>
-[2m    all licks selected (e.g. by option -t). Add option '&#x2013;lick-radio'[0m
-[2m    to make harpwise play licks without interruption (but repeats);[0m
-[2m    as an optional argument you may give the number of repeats[0m
+Preparation:
 </p>
 <ul class="org-ul">
-<li>pitch:</li>
-</ul>
-<p>
-[2m    play an interactive, adjustable pitch; this may help to find the[0m
-[2m    key of a song by ear-comparison; the initial key, e.g. 'a4' can be[0m
-[2m    supplied as an optional argument[0m
-</p>
+<li>in .bashrc:
 <ul class="org-ul">
-<li>interval, inter:</li>
-</ul>
-<p>
-[2m    interactive, adjustable interval given as arguments[0m
-</p>
-<ul class="org-ul">
-<li>progression, prog:</li>
-</ul>
-<p>
-[2m    take a base and some semitone diffs, then play it in a loop,[0m
-[2m    allowing e.g. to shift each iteration by some semitones e.g.[0m
-[2m    through a chord-progression of i-iv-v. Moreover you may specify[0m
-[2m    two or more progressions with a dot (.) between; those can then[0m
-[2m    be switched for each iteration.[0m
-</p>
-<ul class="org-ul">
-<li>chord:</li>
-</ul>
-<p>
-[2m    play the given holes or notes simultanously as a chord; also[0m
-[2m    useful for tongue-splits.[0m
-</p>
-<ul class="org-ul">
-<li>user:</li>
-</ul>
-<p>
-[2m    play back (if any), what you (the user) have recorded in mode[0m
-[2m    'licks' before[0m
-</p>
-
-
-<p>
-Usage by Examples:
-</p>
-
-<p>
-Play a few holes and notes on a harp of key c:
-</p>
-
-<p>
-harpwise play c +1 -2 c4
-</p>
-
-<p>
-Play a few semitones:
-</p>
-
-<p>
-harpwise play c +1st -4st
-</p>
-
-<p>
-Play the lick 'wade'; transpose it to d:
-</p>
-
-<p>
-harpwise play d wade
-</p>
-
-<p>
-Play an earlier lick:
-</p>
-
-<p>
-harpwise play 3l
-</p>
-
-<p>
-To see a list of earlier licks:
-</p>
-
-<p>
-harpwise print licks-history
-</p>
-
-
-<p>
-Various ways to play all licks:
-</p>
-
-<p>
-Shuffled and in random order, without end:
-</p>
-
-<p>
-harpwise play licks
-</p>
-
-<p>
-or play them one after another as they appear in your lickfile:
-</p>
-
-<p>
-harpwise play licks &#x2013;iterate cycle
-</p>
-
-<p>
-or shorter:
-</p>
-
-<p>
-harpwise play licks -i c
-</p>
-
-<p>
-Only play favorite licks (tag 'fav'):
-</p>
-
-<p>
-harpwise play licks &#x2013;tags-all fav
-</p>
-
-<p>
-or shorter:
-</p>
-
-<p>
-harpwise play licks -t fav
-</p>
-
-<p>
-Play licks from a progression:
-</p>
-
-<p>
-harpwise play licks &#x2013;lick-prog box1
-</p>
-
-<p>
-Play endless, no questions asked, but various controls available:
-</p>
-
-<p>
-harpwise play licks &#x2013;lick-radio
-</p>
-
-
-<p>
-Play an interactive, adjustable pitch:
-</p>
-
-<p>
-harpwise play pitch
-</p>
-
-<p>
-this may help to find the key of a song that is playing: change the
-pitch by semitones, fiths or octaves until both match.
-</p>
-
-<p>
-harpwise play pitch c
-</p>
-
-<p>
-Exactly the same result as above, but with the key of c given
-explicit. This will actually start of playing g, the root note in
-second position (cross-harp).
-</p>
-
-<p>
-Note: As an alternative, you may try to hum the root note (or tonal
-center) of the song to find its key. Which is the preferred method,
-because it does not need a computer; but this command may help to
-get you started anyway.
-</p>
-
-
-<p>
-Play an interval:
-</p>
-
-<p>
-harpwise play inter c4 d4
-</p>
-
-<p>
-while this is beeing played you may move it around or widen or
-narrow it by semitones.
-</p>
-
-<p>
-There are multiple ways to specify an interval:
-</p>
-<ul class="org-ul">
-<li>Either as two notes or holes</li>
-<li>Or as one note or hole plus one interval (named or as semitones)</li>
+<li>PS1="\$ "</li>
+<li>alias harpwise='/home/ihm/git/harpwise/harpwise'</li>
+</ul></li>
+<li>in ~/git/harpwise/config.ini: difficulty auf 0</li>
 </ul>
 
 <p>
-So these are more ways to play an interval:
+Tools:
+</p>
+<ul class="org-ul">
+<li>asciinema (from repositories)</li>
+<li>agg  (<a href="https://github.com/asciinema/agg">https://github.com/asciinema/agg</a>)</li>
+</ul>
+</div>
+<div id="outline-container-org776ea1d" class="outline-3">
+<h3 id="org776ea1d">Listen</h3>
+<div class="outline-text-3" id="text-org776ea1d">
+<p>
+asciinema rec -t "harpwise listen" &#x2013;overwrite harpwise-listen.cast
+</p>
+
+<ul class="org-ul">
+<li>harpwise listen c</li>
+
+<li>Spielen
+<ul class="org-ul">
+<li>-4 +4 -4 -3 +3 +2 -1 -3 -2</li>
+</ul></li>
+<li>Help
+<ul class="org-ul">
+<li>j</li>
+</ul></li>
+<li>Journal
+<ul class="org-ul">
+<li>-4 +4 -4 -3 +3 +2 -1 -3 -2</li>
+</ul></li>
+<li>ctrl-c</li>
+</ul>
+
+<p>
+edit cast-file remove everything after "exit on ctrl-c"
 </p>
 
 <p>
-harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+~/.cargo/bin/agg &#x2013;line-height 1.2 &#x2013;font-size 14 harpwise-listen.cast harpwise-listen.gif
+</p>
+</div>
+</div>
+<div id="outline-container-org05b5d6a" class="outline-3">
+<h3 id="org05b5d6a">quiz</h3>
+<div class="outline-text-3" id="text-org05b5d6a">
+<p>
+asciinema rec -t "harpwise quiz" &#x2013;overwrite harpwise-quiz.cast
+</p>
+
+<ul class="org-ul">
+<li>harpwise quiz choose &#x2013;difficulty easy</li>
+</ul>
+
+<p>
+Then:
+</p>
+<ul class="org-ul">
+<li>'describe' (choose by typing 'down')
+<ul class="org-ul">
+<li>do not scroll</li>
+</ul></li>
+<li>'hear-key' (three times 'right')
+<ul class="org-ul">
+<li>',solve'</li>
+<li>ctrl-z</li>
+<li>tab</li>
+</ul></li>
+<li>'players' (choose by typing name)
+<ul class="org-ul">
+<li>wrong try</li>
+<li>',solve'</li>
+<li>ctrl-z</li>
+<li>tab</li>
+</ul></li>
+<li>'keep-tempo' (choose by typing name)</li>
+<li>ctrl-c</li>
+</ul>
+
+<p>
+edit cast-file and remove everything after "exit on ctrl-c"
 </p>
 
 <p>
-harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+.cargo/bin/agg &#x2013;line-height 1.2 &#x2013;font-size 14 harpwise-quiz.cast harpwise-quiz.gif
 </p>
-
-<p>
-The error message (if any) will list valid values.
-</p>
-
-
-<p>
-Play a note progression:
-</p>
-
-<p>
-harpwise play prog e3 7st 10st oct
-</p>
-
-<p>
-this plays the classic box pattern interactively, you may loop it or
-shift it by semitones. Holes for the harmonica (if any) are printed
-along.
-</p>
-
-<p>
-A similar progression would be:
-</p>
-
-<p>
-harpwise play prog +1 5st 7st 10st
-</p>
-
-
-<p>
-Building on the above, you may want to use the box pattern and the
-interactive features of 'harpwise play prog' to play (sort of) a
-full 12-bar blues: Start with the progression above, switch on loop
-and let it repeat 4 times (i.e. for 4 bars); this is the
-i-chord. Then shift by 5 Semitones up or 7 down, to get the
-iv-chord, and let this play another two times; then 5 semitones down
-to get the i-chord again, then 7 etc., etc. until all 12 bars have
-been played.
-</p>
-
-<p>
-If you want to switch between multiple progressions, separate them
-by a dot ('.') like so (using both progressions from above):
-</p>
-
-<p>
-harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
-</p>
-
-
-<p>
-Alternatively (and without using the progression feature) you may
-get a similar result by playing predefined licks. As harpwise comes
-with licks of the 'box pattern' for chords i, iv and v, you may ask
-the wise to play the bass-line of a 12-bar blues like this:
-</p>
-
-<p>
-harpwise play box1-i box1-i box1-i box1-i box1-iv
-  box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
-</p>
-
-<p>
-which also uses the simple-turn lick at the end; you may also
-replace 'box1' with 'box2' for a variant.
-</p>
-
-
-<p>
-harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
-</p>
-
-<p>
-which might be a starting point for improvisation.
-</p>
-
-
-<p>
-Another way of playing would be:
-</p>
-
-<p>
-harpwise play chord +1 +2 +3 -3/
-</p>
-
-<p>
-plays the given holes (notes may be given too) simultanously; the
-given example is (by the way) a flat-seventh-chord, what you may
-find out by using print:
-</p>
-
-<p>
-harpwise print +1 +2 +3 -3/
-</p>
-
-
-<p>
-If you record yourself during lick-practice,
-</p>
-
-<p>
-harpwise play user
-</p>
-
-<p>
-plays what you have recorded before in mode 'licks' (where you need to
-trigger the recording explicitly).
-</p>
+</div>
+</div>
+</div>
 </div>
 </body>
 </html>

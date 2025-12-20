@@ -203,9 +203,3 @@ Quick Start:
     #+begin_src 
     harpwise jam along 12
     #+end_src
-  
-
-Version <%=$version%>
-Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
-Harpwise is subject to the MIT License, type 'harpwise --license' for details.
-Source code available at https://github.com/marcIhm/harpwise

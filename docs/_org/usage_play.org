@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode play
-
 Overview of 'harpwise play':
 
   The mode 'play' takes its arguments (holes, notes, semitones, licks,

@@ -742,6 +742,17 @@ def print_usage_info mode = nil
   if $mode
     puts "\nCommand-line Options:\n\n"
     puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
+    puts
+    puts "Full documentation at https://marcihm.github.io/harpwise"
+
+  else
+    puts <<EOFOOTER
+Version #{$version}
+Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
+Harpwise is subject to the MIT License, type 'harpwise --license' for details.
+Source code available at  https://github.com/marcIhm/harpwise
+Full documentation at https://marcihm.github.io/harpwise
+EOFOOTER
   end
   puts
 end

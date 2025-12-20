@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode listen
-
 Overview of 'harpwise listen':
 
   The mode 'listen' shows information on the notes you play; depending

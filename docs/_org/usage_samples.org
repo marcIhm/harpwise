@@ -1,5 +1,3 @@
-* Uage examples for harpwise, mode samples
-
 Overview of 'harpwise samples':
 
   The wise needs a set of audio-samples; these are the sounds-files
