@@ -1,6 +1,7 @@
 # -*- fill-column: 74 -*-
 #+SETUPFILE: <%= $org_theme_file %>
 #+OPTIONS: toc:t
+#+TITLE: Harpwise
 * Summary
 
 A harmonica tool for the command line, using microphone and speaker.

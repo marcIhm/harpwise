@@ -247,18 +247,20 @@ Play licks from your collection; transpose them (i.e. their
 recordings) to the key of c, if necessary:
 </p>
 
-<p>
-harpwise licks c
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks c
+</pre>
+</div>
 
 
 <p>
 Similar, but only choose from licks with tags 'fav' and 'has-rec'
 </p>
 
-<p>
-harpwise licks c &#x2013;tags-all fav,has-rec
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks c --tags-all fav,has-rec
+</pre>
+</div>
 
 <p>
 this employs the automatic tag 'has-rec', which is added to each
@@ -276,9 +278,10 @@ chosen harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
 So
 </p>
 
-<p>
-harpwise licks a -t shifts-four,shifts-five
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks a -t shifts-four,shifts-five
+</pre>
+</div>
 
 <p>
 selects all licks, that can be shifted by four or five notes without
@@ -292,9 +295,10 @@ are described in the help-screen (type 'h').
 Similar, but only choose from licks with tags 'fav' or 'scales'
 </p>
 
-<p>
-harpwise licks c &#x2013;tags-any fav,scales
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks c --tags-any fav,scales
+</pre>
+</div>
 
 
 <p>
@@ -302,9 +306,10 @@ Show the licks selected by the previous example, employing the
 mode 'print':
 </p>
 
-<p>
-harpwise print licks-list &#x2013;tags-any fav,scales
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-list --tags-any fav,scales
+</pre>
+</div>
 
 
 <p>
@@ -313,9 +318,10 @@ contained in the chords chord-i, chord-iv or chord-v, use the
 respective automatic tags, e.g.:
 </p>
 
-<p>
-harpwise licks c -t mostly-chord-v
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks c -t mostly-chord-v
+</pre>
+</div>
 
 <p>
 currently there are 5 automatic 'mostly'-tags for scales
@@ -328,9 +334,10 @@ Select licks (if any), that have been starred by pressing '*' while
 it is beeing or has been played played:
 </p>
 
-<p>
-harpwise licks a -t starred
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks a -t starred
+</pre>
+</div>
 
 <p>
 and use mode print to see details about starred licks.
@@ -353,11 +360,12 @@ Here is a more sophisticated example. It helps to memorize licks,
 but not scales and shows the scales for each hole:
 </p>
 
-<p>
-harpwise licks c blues &#x2013;loop &#x2013;imm &#x2013;drop-tags-any scales \
-    &#x2013;add-scales chord-i,chord-iv,chord-v \
-    &#x2013;display chart-scales &#x2013;comment holes-all
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks c blues --loop --imm --drop-tags-any scales \
+    --add-scales chord-i,chord-iv,chord-v \
+    --display chart-scales --comment holes-all
+</pre>
+</div>
 
 <p>
 However, if you find yourself using these options for mode licks
@@ -366,9 +374,10 @@ interactively, once the wise is running) you may move them to your
 config.ini and shorten the above command line to:
 </p>
 
-<p>
-harpwise licks blues
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks blues
+</pre>
+</div>
 
 
 <p>
@@ -376,9 +385,10 @@ Alternatively to using the tag-options described above, you may give
 licks as arguments on the commandline (especially for a 12-bar blues):
 </p>
 
-<p>
-harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
+</pre>
+</div>
 
 <p>
 would start with the lick box1-i and switch from one to the next per your
@@ -399,9 +409,10 @@ lick-file (see there for explanation); a predefined example could be
 used like this:
 </p>
 
-<p>
-harpwise licks &#x2013;lick-progression box1
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks --lick-progression box1
+</pre>
+</div>
 
 <p>
 knowing these licks in and out would allow for basic accompaniment
@@ -413,10 +424,11 @@ of e.g. a 12-bar blues.
 This option can fruitfully be combined with a scale-progression:
 </p>
 
-<p>
-harpwise licks &#x2013;scale-prog 12bar &#x2013;lick-prog box1
-  &#x2013;kb-tr RIGHT=s+RETURN,LEFT=S+L
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks --scale-prog 12bar --lick-prog box1
+  --kb-tr RIGHT=s+RETURN,LEFT=S+L
+</pre>
+</div>
 
 <p>
 which employs the key 'RIGHT' to switch both scale-progression and
@@ -431,9 +443,10 @@ lick-file (take +1 +2 +3 as a simple example), you may specify it
 adhoc by giving its holes on the commandline:
 </p>
 
-<p>
-harpwise licks +1 +2 +3
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise licks +1 +2 +3
+</pre>
+</div>
 
 <p>
 later, if satisfied, you may add this lick (and maybe a recording)

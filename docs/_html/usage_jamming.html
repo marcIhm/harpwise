@@ -224,18 +224,20 @@ To use harpwise jamming, you need <b>two</b> terminals. In the first one
 start e.g.:
 </p>
 
-<p>
-harpwise jam along 12bar
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jam along 12bar
+</pre>
+</div>
 
 <p>
 this will give you the command for the second terminal, and will stand by
 until you have started it. For 'jam along 12bar' it will be like this:
 </p>
 
-<p>
-harpwise listen &#x2013;scale-prog 12bar &#x2013;lick-prog box1 &#x2013;jamming
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
+</pre>
+</div>
 
 <p>
 note, that advanced users may vary this command, e.g. by choosing
@@ -294,9 +296,10 @@ If, over time, you have created multiple json-files with settings
 (e.g. different backing-tracks), you may use:
 </p>
 
-<p>
-harpwise jamming list
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jamming list
+</pre>
+</div>
 
 <p>
 to list them; if you have many files, you may create subdirectories.
@@ -309,17 +312,19 @@ the name of the json-file and supply one or many strings that appear in
 the filename (in the given sequence); e.g.:
 </p>
 
-<p>
-harpwise jam along 2b       
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jam along 2b       
+</pre>
+</div>
 
 <p>
 which saves us some typing, compared to '12bar'. Or even
 </p>
 
-<p>
-harpwise jam along 2b r
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jam along 2b r
+</pre>
+</div>
 
 <p>
 which is too wordy, if you have one json-file only. However, if you
@@ -333,9 +338,10 @@ The key for jamming comes (as usual) either from your configuration or
 is given explicitly on the commandline:
 </p>
 
-<p>
-harpwise jam g along 12bar
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jam g along 12bar
+</pre>
+</div>
 
 <p>
 in response the wise will shift the backing-track accordingly and tell
@@ -411,9 +417,10 @@ Finally, here are all the extra-functions for 'harpwise jamming':
 Quick Start:
 </p>
 
-<p>
-harpwise jam along 12
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise jam along 12
+</pre>
+</div>
 </div>
 </body>
 </html>

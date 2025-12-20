@@ -416,9 +416,10 @@ Transpose a sequence of notes (some specified as holes) from
 the key of c to g (keeping the notes/pitches constant):
 </p>
 
-<p>
-harpwise tools transpose c g -1 +2 -3
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools transpose c g -1 +2 -3
+</pre>
+</div>
 
 <p>
 when playing the result on the g-harp you will have the exact same
@@ -430,9 +431,10 @@ pitches as on the original c-harp.
 Shift a sequence of holes up 12 semitones:
 </p>
 
-<p>
-harpwise tools shift 12st -1 +2 -3
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools shift 12st -1 +2 -3
+</pre>
+</div>
 
 <p>
 This is different from transposing the notes/pitches as given
@@ -449,69 +451,77 @@ have no hole on the harp (with mode play)
 Print a simple table of keys and positions:
 </p>
 
-<p>
-harpwise tools keys
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools keys
+</pre>
+</div>
 
 <p>
 Center the semitone-column around a specific key of harp (bf) and
 mark it in the table:
 </p>
 
-<p>
-harpwise tools keys bf
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools keys bf
+</pre>
+</div>
 
 <p>
 The same and mark a key of song (d) too:
 </p>
 
-<p>
-harpwise tools keys bf d
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools keys bf d
+</pre>
+</div>
 
 <p>
 If you have a g-harp and want to know what song-keys and positions
 are available:
 </p>
 
-<p>
-harpwise tools keys g g
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools keys g g
+</pre>
+</div>
 
 
 <p>
 Print a harmonica chart for the key of g:
 </p>
 
-<p>
-harpwise tools chart g
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools chart g
+</pre>
+</div>
 
 <p>
 The same chart, but with arguments rearranged
 </p>
 
-<p>
-harpwise tools g chart
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools g chart
+</pre>
+</div>
 
 <p>
 Two charts, the second with scale-content (chord-i)
 </p>
 
-<p>
-harpwise tools g chord-i chart &#x2013;add-scales -
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools g chord-i chart --add-scales -
+</pre>
+</div>
 
 <p>
 Four charts, the third and fourth with intervals of each hole to the
 given reference:
 </p>
 
-<p>
-harpwise tools chord-i chart &#x2013;ref -4
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools chord-i chart --ref -4
+</pre>
+</div>
 
 
 <p>
@@ -522,9 +532,10 @@ How to get the holes of the pentatonic scale in an adhoc fashion:
 Assuming, that you know its notes  g a b d e:
 </p>
 
-<p>
-harpwise tools spread-notes g a b d e
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools spread-notes g a b d e
+</pre>
+</div>
 
 <p>
 the resulting long list of 16 holes may then be used as an adhoc
@@ -537,18 +548,20 @@ Advanced users, that are not satisfied with the builtin set of
 scales, may want to create their own from a list of holes, e.g.:
 </p>
 
-<p>
-harpwise tools make-scale +1 +2 +3
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools make-scale +1 +2 +3
+</pre>
+</div>
 
 
 <p>
 The notes of the major scale starting at c:
 </p>
 
-<p>
-harpwise tools notes c
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools notes c
+</pre>
+</div>
 
 <p>
 this also gives the notes of the major scale one fifth down,
@@ -561,9 +574,10 @@ both directions if you wish.
 Print a note progression:
 </p>
 
-<p>
-harpwise tools prog e3 7st 9st oct
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools prog e3 7st 9st oct
+</pre>
+</div>
 
 <p>
 which will give you all the notes starting at e3 and the 7, 9, 12
@@ -575,31 +589,35 @@ semitones up.
 Print the interval over the base note:
 </p>
 
-<p>
-harpwise tools interval c4 oct
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools interval c4 oct
+</pre>
+</div>
 
-<p>
-harpwise tools interval c4 +12st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools interval c4 +12st
+</pre>
+</div>
 
 
 <p>
 print the chords i, iv and v for the current key:
 </p>
 
-<p>
-harpwise tools chords
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools chords
+</pre>
+</div>
 
 
 <p>
 Transcribe and audio-file given on the commandline approximately:
 </p>
 
-<p>
-harpwise tools transcribe wade.mp3
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools transcribe wade.mp3
+</pre>
+</div>
 
 <p>
 for simple harmonica content this will give you sequence of holes

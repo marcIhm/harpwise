@@ -19,7 +19,9 @@ Usage by Examples:
 
   The wise chooses a quiz-flavour at random (key of c):
 
+    #+begin_src 
     harpwise quiz c random
+    #+end_src
 
   this is the preferred way to get used to this mode.
 
@@ -33,27 +35,37 @@ Usage by Examples:
   chromatic harmonica of key a and then asks you to play them
   back (then repeat):
 
+    #+begin_src 
     harpwise quiz chromatic a blues replay 5
+    #+end_src
 
   In the examples above, the type of harmonica (e.g. richter or
   chromatic), the key (e.g. c or a) or the number of holes may be
   omitted and are then taken from the config or defaults; so
 
+    #+begin_src 
     harpwise q major replay
+    #+end_src
 
   is valid as well (but would choose a richter harp).
 
   This example removes drawbends from the scale 'all':
 
+    #+begin_src 
     harpwise quiz all replay 5 --remove-scales drawbends
+    #+end_src
 
   this example also relies on the default of 5 holes to be played.
 
 
   Wise plays a scale and asks you for its name:
 
+    #+begin_src 
     harpwise quiz hear-scale
+    #+end_src
 
 Quick Start:
 
+    #+begin_src 
     harpwise quiz ran
+    #+end_src

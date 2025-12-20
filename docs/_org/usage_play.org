@@ -45,64 +45,92 @@ Usage by Examples:
 
   Play a few holes and notes on a harp of key c:
 
+    #+begin_src 
     harpwise play c +1 -2 c4
+    #+end_src
 
   Play a few semitones:
 
+    #+begin_src 
     harpwise play c +1st -4st
+    #+end_src
 
   Play the lick 'wade'; transpose it to d:
   
+    #+begin_src 
     harpwise play d wade
+    #+end_src
 
   Play an earlier lick:
 
+    #+begin_src 
     harpwise play 3l
+    #+end_src
 
   To see a list of earlier licks:
 
+    #+begin_src 
     harpwise print licks-history
+    #+end_src
 
 
   Various ways to play all licks:
 
   Shuffled and in random order, without end:
 
+    #+begin_src 
     harpwise play licks
+    #+end_src
 
   or play them one after another as they appear in your lickfile:
 
+    #+begin_src 
     harpwise play licks --iterate cycle
+    #+end_src
 
   or shorter:
   
+    #+begin_src 
     harpwise play licks -i c
+    #+end_src
 
   Only play favorite licks (tag 'fav'):
 
+    #+begin_src 
     harpwise play licks --tags-all fav
+    #+end_src
 
   or shorter:
 
+    #+begin_src 
     harpwise play licks -t fav
+    #+end_src
 
   Play licks from a progression:
 
+    #+begin_src 
     harpwise play licks --lick-prog box1
+    #+end_src
 
   Play endless, no questions asked, but various controls available:
 
+    #+begin_src 
     harpwise play licks --lick-radio
+    #+end_src
 
 
   Play an interactive, adjustable pitch:
 
+    #+begin_src 
     harpwise play pitch
+    #+end_src
 
   this may help to find the key of a song that is playing: change the
   pitch by semitones, fiths or octaves until both match.
 
+    #+begin_src 
     harpwise play pitch c
+    #+end_src
 
   Exactly the same result as above, but with the key of c given
   explicit. This will actually start of playing g, the root note in
@@ -116,7 +144,9 @@ Usage by Examples:
 
   Play an interval:
 
+    #+begin_src 
     harpwise play inter c4 d4
+    #+end_src
 
   while this is beeing played you may move it around or widen or
   narrow it by semitones.
@@ -127,16 +157,22 @@ Usage by Examples:
 
   So these are more ways to play an interval:
 
+    #+begin_src 
     harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+    #+end_src
 
+    #+begin_src 
     harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+    #+end_src
 
   The error message (if any) will list valid values.
 
 
   Play a note progression:
 
+    #+begin_src 
     harpwise play prog e3 7st 10st oct
+    #+end_src
 
   this plays the classic box pattern interactively, you may loop it or
   shift it by semitones. Holes for the harmonica (if any) are printed
@@ -144,7 +180,9 @@ Usage by Examples:
 
   A similar progression would be:
 
+    #+begin_src 
     harpwise play prog +1 5st 7st 10st
+    #+end_src
 
 
   Building on the above, you may want to use the box pattern and the
@@ -159,7 +197,9 @@ Usage by Examples:
   If you want to switch between multiple progressions, separate them
   by a dot ('.') like so (using both progressions from above):
 
+    #+begin_src 
     harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+    #+end_src
 
 
   Alternatively (and without using the progression feature) you may
@@ -167,32 +207,42 @@ Usage by Examples:
   with licks of the 'box pattern' for chords i, iv and v, you may ask
   the wise to play the bass-line of a 12-bar blues like this:
 
+    #+begin_src 
     harpwise play box1-i box1-i box1-i box1-i box1-iv
       box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
+    #+end_src
 
   which also uses the simple-turn lick at the end; you may also
   replace 'box1' with 'box2' for a variant.
 
 
+    #+begin_src 
     harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+    #+end_src
 
   which might be a starting point for improvisation.
 
 
   Another way of playing would be:
 
+    #+begin_src 
     harpwise play chord +1 +2 +3 -3/
+    #+end_src
 
   plays the given holes (notes may be given too) simultanously; the
   given example is (by the way) a flat-seventh-chord, what you may
   find out by using print:
 
+    #+begin_src 
     harpwise print +1 +2 +3 -3/
+    #+end_src
 
 
   If you record yourself during lick-practice,
 
+    #+begin_src 
     harpwise play user
+    #+end_src
 
   plays what you have recorded before in mode 'licks' (where you need to
   trigger the recording explicitly).

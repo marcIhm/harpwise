@@ -346,74 +346,83 @@ Usage by Examples:
 Print lots of information for given holes or notes:
 </p>
 
-<p>
-harpwise print +1 +2 a4 bf5
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print +1 +2 a4 bf5
+</pre>
+</div>
 
 <p>
 Map semitones to holes and notes (which are probably more familiar):
 </p>
 
-<p>
-harpwise print +0st +11st -1st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print +0st +11st -1st
+</pre>
+</div>
 
 <p>
 Print holes and notes of a lick:
 </p>
 
-<p>
-harpwise print st-louis
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print st-louis
+</pre>
+</div>
 
 <p>
 Print holes and notes of a scale (blues):
 </p>
 
-<p>
-harpwise print blues
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print blues
+</pre>
+</div>
 
 <p>
 Print the scales, each note belongs to too:
 </p>
 
-<p>
-harpwise print chord-i feeling-bad &#x2013;add-scales chord-iv,chord-v
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
+</pre>
+</div>
 
 <p>
 Print the major pentatonic scale but shift it down by 7 semitones:
 </p>
 
-<p>
-harpwise print mape &#x2013;transpose-scale -7st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print mape --transpose-scale -7st
+</pre>
+</div>
 
 <p>
 nearly the same result can be achieved by
 </p>
 
-<p>
-harpwise print mape
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print mape
+</pre>
+</div>
 
 <p>
 and then take these holes as input for tools:
 </p>
 
-<p>
-harpwise tools shift -7st -2 -3// -3 -4 +5 +6
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools shift -7st -2 -3// -3 -4 +5 +6
+</pre>
+</div>
 
 
 <p>
 Print all details for favorite licks:
 </p>
 
-<p>
-harpwise print licks-details &#x2013;tags-any favorites
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-details --tags-any favorites
+</pre>
+</div>
 
 <p>
 (if you have tagged some licks with tag favorites)
@@ -423,35 +432,39 @@ harpwise print licks-details &#x2013;tags-any favorites
 or narrow to a lick-progression and reduce amount of output:
 </p>
 
-<p>
-harpwise print licks-details &#x2013;brief &#x2013;lick-prog box1
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-details --brief --lick-prog box1
+</pre>
+</div>
 
 
 <p>
 Print a list of licks (only those selected e.g. by -t)
 </p>
 
-<p>
-harpwise print licks-list -t fav
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-list -t fav
+</pre>
+</div>
 
 <p>
 A longer list of all known licks:
 </p>
 
-<p>
-harpwise print licks-list-all
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-list-all
+</pre>
+</div>
 
 
 <p>
 A report showing licks with stats regarding tags:
 </p>
 
-<p>
-harpwise print licks-with-tags
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-with-tags
+</pre>
+</div>
 
 <p>
 (which might help to find underused or duplicate tags)
@@ -462,26 +475,29 @@ harpwise print licks-with-tags
 Print licks with tags 'fav' first, and then all
 </p>
 
-<p>
-harpwise print licks-tags-stats -t fav
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-tags-stats -t fav
+</pre>
+</div>
 
 <p>
 which is (by using defaults) the same as:
 </p>
 
-<p>
-harpwise print richter licks-tags-stats -t fav
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print richter licks-tags-stats -t fav
+</pre>
+</div>
 
 <p>
 If you have collected licks for the chromatic harmonica, you may
 also use:
 </p>
 
-<p>
-harpwise print chromatic licks-tags-stats
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print chromatic licks-tags-stats
+</pre>
+</div>
 
 
 <p>
@@ -489,9 +505,10 @@ Show the licks you played recently along with their shortcuts 'l',
 '2l', &#x2026;
 </p>
 
-<p>
-harpwise print licks-history
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-history
+</pre>
+</div>
 
 
 <p>
@@ -499,9 +516,10 @@ List all the licks, that you have starred (press '*' in mode licks,
 while it is beeing played):
 </p>
 
-<p>
-harpwise print licks-starred
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-starred
+</pre>
+</div>
 
 <p>
 Remark: In other modes you may access these licks through the
@@ -513,18 +531,20 @@ tag 'starred', which they get assigned automatically.
 Show all known scales:
 </p>
 
-<p>
-harpwise print scales
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print scales
+</pre>
+</div>
 
 
 <p>
 Show the names of all known intervals:
 </p>
 
-<p>
-harpwise print intervals
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print intervals
+</pre>
+</div>
 
 
 <p>
@@ -537,17 +557,19 @@ Harpwise comes with a short list of famous players and information
 about them; you may request this list to be printed:
 </p>
 
-<p>
-harpwise print players
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print players
+</pre>
+</div>
 
 <p>
 Or details for a specific player:
 </p>
 
-<p>
-harpwie print player miller
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwie print player miller
+</pre>
+</div>
 
 <p>
 This is the same information, that is printed line by line in mode

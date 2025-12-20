@@ -71,88 +71,124 @@ Usage by Examples:
 
   Print lots of information for given holes or notes:
 
+    #+begin_src 
     harpwise print +1 +2 a4 bf5
+    #+end_src
 
   Map semitones to holes and notes (which are probably more familiar):
 
+    #+begin_src 
     harpwise print +0st +11st -1st
+    #+end_src
 
   Print holes and notes of a lick:
 
+    #+begin_src 
     harpwise print st-louis
+    #+end_src
 
   Print holes and notes of a scale (blues):
 
+    #+begin_src 
     harpwise print blues
+    #+end_src
 
   Print the scales, each note belongs to too:
 
+    #+begin_src 
     harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
+    #+end_src
 
   Print the major pentatonic scale but shift it down by 7 semitones:
 
+    #+begin_src 
     harpwise print mape --transpose-scale -7st
+    #+end_src
 
   nearly the same result can be achieved by
 
+    #+begin_src 
     harpwise print mape
+    #+end_src
 
   and then take these holes as input for tools:
 
+    #+begin_src 
     harpwise tools shift -7st -2 -3// -3 -4 +5 +6
+    #+end_src
 
 
   Print all details for favorite licks:
 
+    #+begin_src 
     harpwise print licks-details --tags-any favorites
+    #+end_src
 
   (if you have tagged some licks with tag favorites)
 
   or narrow to a lick-progression and reduce amount of output:
 
+    #+begin_src 
     harpwise print licks-details --brief --lick-prog box1
+    #+end_src
 
 
   Print a list of licks (only those selected e.g. by -t)
 
+    #+begin_src 
     harpwise print licks-list -t fav
+    #+end_src
 
   A longer list of all known licks:
 
+    #+begin_src 
     harpwise print licks-list-all
+    #+end_src
 
 
   A report showing licks with stats regarding tags:
 
+    #+begin_src 
     harpwise print licks-with-tags
+    #+end_src
 
   (which might help to find underused or duplicate tags)
 
 
   Print licks with tags 'fav' first, and then all
 
+    #+begin_src 
     harpwise print licks-tags-stats -t fav
+    #+end_src
 
   which is (by using defaults) the same as:
   
+    #+begin_src 
     harpwise print richter licks-tags-stats -t fav
+    #+end_src
 
   If you have collected licks for the chromatic harmonica, you may
   also use:
 
+    #+begin_src 
     harpwise print chromatic licks-tags-stats
+    #+end_src
 
 
   Show the licks you played recently along with their shortcuts 'l',
   '2l', ...
   
+    #+begin_src 
     harpwise print licks-history
+    #+end_src
 
 
   List all the licks, that you have starred (press '*' in mode licks,
   while it is beeing played):
 
+    #+begin_src 
     harpwise print licks-starred
+    #+end_src
 
   Remark: In other modes you may access these licks through the
   tag 'starred', which they get assigned automatically.
@@ -160,12 +196,16 @@ Usage by Examples:
 
   Show all known scales:
 
+    #+begin_src 
     harpwise print scales
+    #+end_src
 
 
   Show the names of all known intervals:
 
+    #+begin_src 
     harpwise print intervals
+    #+end_src
 
 
   You may also check out mode tools for some more helpers.
@@ -174,11 +214,15 @@ Usage by Examples:
   Harpwise comes with a short list of famous players and information
   about them; you may request this list to be printed:
 
+    #+begin_src 
     harpwise print players
+    #+end_src
 
   Or details for a specific player:
 
+    #+begin_src 
     harpwie print player miller
+    #+end_src
 
   This is the same information, that is printed line by line in mode
   listen.

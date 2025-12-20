@@ -82,7 +82,9 @@ Usage by Examples:
   Record samples to teach the wise abut the frequencies of the harp
   you are using:
 
+    #+begin_src 
     harpwise samples c record
+    #+end_src
 
   this will ask you to play notes on your harp (key of c). The samples
   will be stored in the folder harpwise within your home
@@ -94,17 +96,23 @@ Usage by Examples:
   them, if you choose). If later, you want to continue recording from
   where you left, simply give the respective hole as an argument, e.g.
 
+    #+begin_src 
     harpwise samples c record +4
+    #+end_src
 
 
   If at a later time, you just want to review the samples, you have
   created, simply use play, e.g.:
 
+    #+begin_src 
     harpwise play +4
+    #+end_src
 
   or even:
 
+    #+begin_src 
     harpwise play all
+    #+end_src
 
 
   Compared with the process of recording samples, the alternative of
@@ -114,12 +122,16 @@ Usage by Examples:
   your own playing style, but it gives a good quick start.  For
   auto-generation, type:
 
+    #+begin_src 
     harpwise samples a generate
+    #+end_src
 
 
   Or, to generate everything, all holes, all keys, in a single run:
 
+    #+begin_src 
     harpwise samples generate all
+    #+end_src
 
   With this, only when first changing the type of harmonica, e.g. from
   richter (default) to chromatic, you will need to create samples
@@ -129,7 +141,9 @@ Usage by Examples:
   If later, you want to remove some samples, that you have recorded
   previously, try (for the key of d):
 
+    #+begin_src 
     harpwise samples d delete
+    #+end_src
 
   this applies to recorded samples only; there is no need to delete
   generated samples, as they can allways be generated and overwritten

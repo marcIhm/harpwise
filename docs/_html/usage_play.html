@@ -280,41 +280,46 @@ Usage by Examples:
 Play a few holes and notes on a harp of key c:
 </p>
 
-<p>
-harpwise play c +1 -2 c4
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play c +1 -2 c4
+</pre>
+</div>
 
 <p>
 Play a few semitones:
 </p>
 
-<p>
-harpwise play c +1st -4st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play c +1st -4st
+</pre>
+</div>
 
 <p>
 Play the lick 'wade'; transpose it to d:
 </p>
 
-<p>
-harpwise play d wade
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play d wade
+</pre>
+</div>
 
 <p>
 Play an earlier lick:
 </p>
 
-<p>
-harpwise play 3l
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play 3l
+</pre>
+</div>
 
 <p>
 To see a list of earlier licks:
 </p>
 
-<p>
-harpwise print licks-history
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print licks-history
+</pre>
+</div>
 
 
 <p>
@@ -325,75 +330,84 @@ Various ways to play all licks:
 Shuffled and in random order, without end:
 </p>
 
-<p>
-harpwise play licks
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks
+</pre>
+</div>
 
 <p>
 or play them one after another as they appear in your lickfile:
 </p>
 
-<p>
-harpwise play licks &#x2013;iterate cycle
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks --iterate cycle
+</pre>
+</div>
 
 <p>
 or shorter:
 </p>
 
-<p>
-harpwise play licks -i c
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks -i c
+</pre>
+</div>
 
 <p>
 Only play favorite licks (tag 'fav'):
 </p>
 
-<p>
-harpwise play licks &#x2013;tags-all fav
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks --tags-all fav
+</pre>
+</div>
 
 <p>
 or shorter:
 </p>
 
-<p>
-harpwise play licks -t fav
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks -t fav
+</pre>
+</div>
 
 <p>
 Play licks from a progression:
 </p>
 
-<p>
-harpwise play licks &#x2013;lick-prog box1
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks --lick-prog box1
+</pre>
+</div>
 
 <p>
 Play endless, no questions asked, but various controls available:
 </p>
 
-<p>
-harpwise play licks &#x2013;lick-radio
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play licks --lick-radio
+</pre>
+</div>
 
 
 <p>
 Play an interactive, adjustable pitch:
 </p>
 
-<p>
-harpwise play pitch
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play pitch
+</pre>
+</div>
 
 <p>
 this may help to find the key of a song that is playing: change the
 pitch by semitones, fiths or octaves until both match.
 </p>
 
-<p>
-harpwise play pitch c
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play pitch c
+</pre>
+</div>
 
 <p>
 Exactly the same result as above, but with the key of c given
@@ -413,9 +427,10 @@ get you started anyway.
 Play an interval:
 </p>
 
-<p>
-harpwise play inter c4 d4
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play inter c4 d4
+</pre>
+</div>
 
 <p>
 while this is beeing played you may move it around or widen or
@@ -434,13 +449,15 @@ There are multiple ways to specify an interval:
 So these are more ways to play an interval:
 </p>
 
-<p>
-harpwise play inter c4 12st    ## Note c4 and 12 Semitones
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+</pre>
+</div>
 
-<p>
-harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+</pre>
+</div>
 
 <p>
 The error message (if any) will list valid values.
@@ -451,9 +468,10 @@ The error message (if any) will list valid values.
 Play a note progression:
 </p>
 
-<p>
-harpwise play prog e3 7st 10st oct
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play prog e3 7st 10st oct
+</pre>
+</div>
 
 <p>
 this plays the classic box pattern interactively, you may loop it or
@@ -465,9 +483,10 @@ along.
 A similar progression would be:
 </p>
 
-<p>
-harpwise play prog +1 5st 7st 10st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play prog +1 5st 7st 10st
+</pre>
+</div>
 
 
 <p>
@@ -486,9 +505,10 @@ If you want to switch between multiple progressions, separate them
 by a dot ('.') like so (using both progressions from above):
 </p>
 
-<p>
-harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+</pre>
+</div>
 
 
 <p>
@@ -498,10 +518,11 @@ with licks of the 'box pattern' for chords i, iv and v, you may ask
 the wise to play the bass-line of a 12-bar blues like this:
 </p>
 
-<p>
-harpwise play box1-i box1-i box1-i box1-i box1-iv
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play box1-i box1-i box1-i box1-i box1-iv
   box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
-</p>
+</pre>
+</div>
 
 <p>
 which also uses the simple-turn lick at the end; you may also
@@ -509,9 +530,10 @@ replace 'box1' with 'box2' for a variant.
 </p>
 
 
-<p>
-harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+</pre>
+</div>
 
 <p>
 which might be a starting point for improvisation.
@@ -522,9 +544,10 @@ which might be a starting point for improvisation.
 Another way of playing would be:
 </p>
 
-<p>
-harpwise play chord +1 +2 +3 -3/
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play chord +1 +2 +3 -3/
+</pre>
+</div>
 
 <p>
 plays the given holes (notes may be given too) simultanously; the
@@ -532,18 +555,20 @@ given example is (by the way) a flat-seventh-chord, what you may
 find out by using print:
 </p>
 
-<p>
-harpwise print +1 +2 +3 -3/
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print +1 +2 +3 -3/
+</pre>
+</div>
 
 
 <p>
 If you record yourself during lick-practice,
 </p>
 
-<p>
-harpwise play user
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise play user
+</pre>
+</div>
 
 <p>
 plays what you have recorded before in mode 'licks' (where you need to

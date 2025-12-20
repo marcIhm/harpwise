@@ -32,12 +32,16 @@ Usage by Examples:
   Play licks from your collection; transpose them (i.e. their
   recordings) to the key of c, if necessary:
   
+    #+begin_src 
     harpwise licks c
+    #+end_src
 
 
   Similar, but only choose from licks with tags 'fav' and 'has-rec'
 
+    #+begin_src 
     harpwise licks c --tags-all fav,has-rec
+    #+end_src
 
   this employs the automatic tag 'has-rec', which is added to each
   lick, that has a recording. The opposite is 'no-rec'.
@@ -49,7 +53,9 @@ Usage by Examples:
 
   So
 
+    #+begin_src 
     harpwise licks a -t shifts-four,shifts-five
+    #+end_src
 
   selects all licks, that can be shifted by four or five notes without
   loosing any hole; these licks may therefore accompany a
@@ -59,20 +65,26 @@ Usage by Examples:
 
   Similar, but only choose from licks with tags 'fav' or 'scales'
 
+    #+begin_src 
     harpwise licks c --tags-any fav,scales
+    #+end_src
 
 
   Show the licks selected by the previous example, employing the
   mode 'print':
 
+    #+begin_src 
     harpwise print licks-list --tags-any fav,scales
+    #+end_src
 
 
   To find licks, that are mostly (i.e. all holes or all but one)
   contained in the chords chord-i, chord-iv or chord-v, use the
   respective automatic tags, e.g.:
 
+    #+begin_src 
     harpwise licks c -t mostly-chord-v
+    #+end_src
 
   currently there are 5 automatic 'mostly'-tags for scales
   chord-i, chord-iv, chord-v, blues and mipe.
@@ -81,7 +93,9 @@ Usage by Examples:
   Select licks (if any), that have been starred by pressing '*' while
   it is beeing or has been played played:
 
+    #+begin_src 
     harpwise licks a -t starred
+    #+end_src
 
   and use mode print to see details about starred licks.
   The list of starred licks is kept e.g. in:
@@ -96,22 +110,28 @@ Usage by Examples:
   Here is a more sophisticated example. It helps to memorize licks,
   but not scales and shows the scales for each hole:
 
+    #+begin_src 
     harpwise licks c blues --loop --imm --drop-tags-any scales \
         --add-scales chord-i,chord-iv,chord-v \
         --display chart-scales --comment holes-all
+    #+end_src
 
   However, if you find yourself using these options for mode licks
   over and over again (and if you do not want to set them
   interactively, once the wise is running) you may move them to your
   config.ini and shorten the above command line to:
 
+    #+begin_src 
     harpwise licks blues
+    #+end_src
 
 
   Alternatively to using the tag-options described above, you may give
   licks as arguments on the commandline (especially for a 12-bar blues):
 
+    #+begin_src 
     harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
+    #+end_src
 
   would start with the lick box1-i and switch from one to the next per your
   request; all other licks that you may have (e.g. wade, st-louis) are ignored.
@@ -126,7 +146,9 @@ Usage by Examples:
   lick-file (see there for explanation); a predefined example could be
   used like this:
 
+    #+begin_src 
     harpwise licks --lick-progression box1
+    #+end_src
 
   knowing these licks in and out would allow for basic accompaniment
   of e.g. a 12-bar blues.
@@ -134,8 +156,10 @@ Usage by Examples:
 
   This option can fruitfully be combined with a scale-progression:
 
+    #+begin_src 
     harpwise licks --scale-prog 12bar --lick-prog box1
       --kb-tr RIGHT=s+RETURN,LEFT=S+L
+    #+end_src
 
   which employs the key 'RIGHT' to switch both scale-progression and
   lick-progression at once; whereas 'LEFT' resets them to their
@@ -146,7 +170,9 @@ Usage by Examples:
   lick-file (take +1 +2 +3 as a simple example), you may specify it
   adhoc by giving its holes on the commandline:
 
+    #+begin_src 
     harpwise licks +1 +2 +3
+    #+end_src
 
   later, if satisfied, you may add this lick (and maybe a recording)
   to your lickfile.

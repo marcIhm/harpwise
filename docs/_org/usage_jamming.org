@@ -17,12 +17,16 @@ Usage by Examples:
   To use harpwise jamming, you need *two* terminals. In the first one
   start e.g.:
 
+    #+begin_src 
     harpwise jam along 12bar
+    #+end_src
 
   this will give you the command for the second terminal, and will stand by
   until you have started it. For 'jam along 12bar' it will be like this:
   
+    #+begin_src 
     harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
+    #+end_src
 
   note, that advanced users may vary this command, e.g. by choosing
   a different lick-progression.
@@ -65,7 +69,9 @@ Usage by Examples:
   If, over time, you have created multiple json-files with settings
   (e.g. different backing-tracks), you may use:
 
+    #+begin_src 
     harpwise jamming list
+    #+end_src
 
   to list them; if you have many files, you may create subdirectories.
   
@@ -74,11 +80,15 @@ Usage by Examples:
   the name of the json-file and supply one or many strings that appear in
   the filename (in the given sequence); e.g.:
 
+    #+begin_src 
     harpwise jam along 2b       
+    #+end_src
 
   which saves us some typing, compared to '12bar'. Or even
 
+    #+begin_src 
     harpwise jam along 2b r
+    #+end_src
 
   which is too wordy, if you have one json-file only. However, if you
   create your own jamming-files and have multiple of them, this may help
@@ -88,7 +98,9 @@ Usage by Examples:
   The key for jamming comes (as usual) either from your configuration or
   is given explicitly on the commandline:
 
+    #+begin_src 
     harpwise jam g along 12bar
+    #+end_src
 
   in response the wise will shift the backing-track accordingly and tell
   'harpwise listen' to use this key too. However, if you do not specify a
@@ -138,4 +150,6 @@ Usage by Examples:
 
 Quick Start:
 
+    #+begin_src 
     harpwise jam along 12
+    #+end_src

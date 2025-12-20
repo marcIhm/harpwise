@@ -229,34 +229,38 @@ it shows the holes, that you played; green if from the blues-scale,
 blue otherwise:
 </p>
 
-<p>
-harpwise listen richter c blues
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen richter c blues
+</pre>
+</div>
 
 <p>
 The same, but relying on the defaults for type (richter) and key (c):
 </p>
 
-<p>
-harpwise listen blues
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen blues
+</pre>
+</div>
 
 <p>
 The same, but also showing the notes from the one-chord (chord-i):
 </p>
 
-<p>
-harpwise listen blues &#x2013;add-scales chord-i &#x2013;display chart-scales
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen blues --add-scales chord-i --display chart-scales
+</pre>
+</div>
 
 
 <p>
 If you want to follow the chord-progression of a 12-bar blues, you may try
 </p>
 
-<p>
-harpwise listen &#x2013;scale-progression 12bar
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen --scale-progression 12bar
+</pre>
+</div>
 
 <p>
 to switch from one chord to the next, every time you press 's'.
@@ -266,9 +270,10 @@ to switch from one chord to the next, every time you press 's'.
 To use the RETURN-key, which might be easier to hit, you may try:
 </p>
 
-<p>
-harpwise listen &#x2013;scale-prog 12bar &#x2013;keyboard-translate RETURN=s
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
+</pre>
+</div>
 
 <p>
 or use (shorter) '&#x2013;kb-tr TAB=s' to employ the TAB key. And you may
@@ -281,9 +286,10 @@ at hand (e.g. turnarounds), you may give them as an adhoc
 lick-progression:
 </p>
 
-<p>
-harpwise listen &#x2013;scale-prog 12bar &#x2013;lick-prog simple-turn,wade
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
+</pre>
+</div>
 
 
 <p>
@@ -301,9 +307,10 @@ The first step would be to get the notes of the minor-pentatonic
 scale:
 </p>
 
-<p>
-harpwise print mipe
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise print mipe
+</pre>
+</div>
 
 <p>
 then take those notes and shift them from second to fourth position
@@ -326,9 +333,10 @@ So we would have to shift the notes of the minor pentatonic scale by
 2 semitones to get from second to fourth position:
 </p>
 
-<p>
-harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
+</pre>
+</div>
 
 <p>
 Using the resulting holes as an adhoc scale for listen, we would be
@@ -336,17 +344,19 @@ able to tell harpwise, that we want to play the minor pentatonic in
 fourth position:
 </p>
 
-<p>
-harpwise listen -3// +4 -4 +5 +6 -6
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen -3// +4 -4 +5 +6 -6
+</pre>
+</div>
 
 <p>
 However, you could get the same effect also like this:
 </p>
 
-<p>
-harpwise listen mipe &#x2013;transpose-scale +2st
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen mipe --transpose-scale +2st
+</pre>
+</div>
 
 <p>
 which uses the fact (as explained above), that moving two positions
@@ -360,17 +370,19 @@ if you get a warning on lagging and lost samples, you may want to
 experiment with &#x2013;time-slice:
 </p>
 
-<p>
-harpwise listen c &#x2013;time-slice short
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen c --time-slice short
+</pre>
+</div>
 
 <p>
 Quick Start:
 </p>
 
-<p>
-harpwise listen c              
-</p>
+<div class="org-src-container">
+<pre class="src src-nil">harpwise listen c              
+</pre>
+</div>
 </div>
 </body>
 </html>

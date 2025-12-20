@@ -20,26 +20,36 @@ Usage by Examples:
   it shows the holes, that you played; green if from the blues-scale,
   blue otherwise:
 
+    #+begin_src 
     harpwise listen richter c blues
+    #+end_src
 
   The same, but relying on the defaults for type (richter) and key (c):
 
+    #+begin_src 
     harpwise listen blues
+    #+end_src
 
   The same, but also showing the notes from the one-chord (chord-i):
 
+    #+begin_src 
     harpwise listen blues --add-scales chord-i --display chart-scales
+    #+end_src
 
 
   If you want to follow the chord-progression of a 12-bar blues, you may try
 
+    #+begin_src 
     harpwise listen --scale-progression 12bar
+    #+end_src
 
   to switch from one chord to the next, every time you press 's'.
 
   To use the RETURN-key, which might be easier to hit, you may try:
 
+    #+begin_src 
     harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
+    #+end_src
 
   or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
   also make this option durable in your config.ini.
@@ -48,7 +58,9 @@ Usage by Examples:
   at hand (e.g. turnarounds), you may give them as an adhoc
   lick-progression:
   
+    #+begin_src 
     harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
+    #+end_src
 
 
   As an advanced example, assume that you would like to play the minor
@@ -60,7 +72,9 @@ Usage by Examples:
   The first step would be to get the notes of the minor-pentatonic
   scale:
 
+    #+begin_src 
     harpwise print mipe
+    #+end_src
 
   then take those notes and shift them from second to fourth position
   by moving up two fifths up in the circle of fifths.
@@ -75,17 +89,23 @@ Usage by Examples:
   So we would have to shift the notes of the minor pentatonic scale by
   2 semitones to get from second to fourth position:
 
+    #+begin_src 
     harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
+    #+end_src
 
   Using the resulting holes as an adhoc scale for listen, we would be
   able to tell harpwise, that we want to play the minor pentatonic in
   fourth position:
 
+    #+begin_src 
     harpwise listen -3// +4 -4 +5 +6 -6
+    #+end_src
 
   However, you could get the same effect also like this:
 
+    #+begin_src 
     harpwise listen mipe --transpose-scale +2st
+    #+end_src
 
   which uses the fact (as explained above), that moving two positions
   up are just two semitones.
@@ -95,8 +115,12 @@ Usage by Examples:
   if you get a warning on lagging and lost samples, you may want to
   experiment with --time-slice:
 
+    #+begin_src 
     harpwise listen c --time-slice short
+    #+end_src
 
 Quick Start:
 
+    #+begin_src 
     harpwise listen c              
+    #+end_src

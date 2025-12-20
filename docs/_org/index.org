@@ -1,6 +1,7 @@
 # -*- fill-column: 74 -*-
 #+SETUPFILE: comfy_inline.theme
 #+OPTIONS: toc:t
+#+TITLE: Harpwise
 * Summary
 
 A harmonica tool for the command line, using microphone and speaker.
