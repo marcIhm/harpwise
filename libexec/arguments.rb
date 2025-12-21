@@ -721,7 +721,6 @@ def print_usage_info mode = nil
 
   # get content of all harmonica-types to be inserted
   types_with_scales = get_types_with_scales_for_usage
-  # used for play and print
 
   if !mode && STDOUT.isatty
     print "\e[?25l"  ## hide cursor      
@@ -739,19 +738,20 @@ def print_usage_info mode = nil
     sleep 0.02 if STDOUT.isatty && idx < 10
   end
 
+  full = "Full documentation at   https://marcihm.github.io/harpwise"
   if $mode
     puts "\nCommand-line Options:\n\n"
     puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
     puts
-    puts "Full documentation at https://marcihm.github.io/harpwise"
-
+    puts "\e[2m#{full}\e[0m"
   else
     puts <<EOFOOTER
-Version #{$version}
+
+\e[2mVersion #{$version}
 Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
 Harpwise is subject to the MIT License, type 'harpwise --license' for details.
-Source code available at  https://github.com/marcIhm/harpwise
-Full documentation at https://marcihm.github.io/harpwise
+Source code at   https://github.com/marcIhm/harpwise
+#{full}\e[0m
 EOFOOTER
   end
   puts

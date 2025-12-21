@@ -2154,6 +2154,8 @@ do_test 'id-56: forward and back in help' do
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'h'
+  expect { screen[6]['Full documentation at   https://marcihm.github.io/harpwise'] }
+  tms ' '
   expect { screen[4]['pause and continue'] }
   tms ' '
   expect { screen[7]['set reference to hole played or chosen'] }
@@ -2177,6 +2179,8 @@ help_samples.keys.each_with_index do |cmd, idx|
     end
     wait_for_start_of_pipeline
     tms 'h'
+    sleep 1
+    tms ' '
     help_samples[cmd].each do |line,text|
       expect(line,text) { screen[line][text] }
       tms :ENTER
@@ -3517,7 +3521,7 @@ do_test "id-116: show help for specific key" do
   sleep 2
   wait_for_start_of_pipeline
   tms 'h'
-  expect { screen[1]['Help - first on keys in main view'] }
+  expect { screen[1]['Help - Overview'] }
   tms 'p'
   expect { screen[1]['More help on keys'] }
   # 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich; evtl vereinfachen;
@@ -3856,17 +3860,17 @@ do_test 'id-133b: correct version is shown in usage' do
   tms "harpwise"
   tms :ENTER
   sleep 3
-  expect(version) { screen[17][version] }
+  expect(version) { screen[16][version] }
   kill_session
 end
 
 do_test 'id-133c: correct erb-processing and no org-tags in usage' do
   new_session
-  tms 'harpwise | head -110'
+  tms 'harpwise | head -105'
   tms :ENTER
   sleep 2
-  expect { screen[9]['The possible scales depend on the chosen type of harmonica']}
-  expect { screen[11]['scales for chromatic: all, blues']}
+  expect { screen[1]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[3]['scales for chromatic: all, blues']}
   tms 'clear'
   tms :ENTER
   tms 'harpwise | grep -c \#+'
@@ -3904,7 +3908,8 @@ do_test 'id-133f: all again with docs-all' do
   tms 'harpwise dev docs-all'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[18]['Redirect stdout to see any errors']}
+  expect { screen[4]['Redirect stdout to see any errors']}
+  expect { screen[21]['Opening browser on index.html; close with CTRL-W']}
   kill_session
 end
 
@@ -4123,16 +4128,17 @@ do_test 'id-144: check consistent usage of short and long description' do
   in_summary = false
   File.read("README.org").lines.map(&:strip).each do |line|
     if in_summary
+      break if line['[[']
       if line != ''
         ld_readme << line if sd_readme
         sd_readme ||= line 
       end
       break if line[0] == '*'
     end
-    in_summary ||= ( line == '* Summary' )
+    in_summary ||= ( line == '* Harpwise' )
   end
   sd_readme.gsub!(/([[:punct:]]|\s)*$/,"")
-  ld_readme = ld_readme[0 ... -1].join(' ')
+  ld_readme = ld_readme[0 .. -1].join(' ')
   expect(short_desc, sd_readme) { short_desc == sd_readme }
   expect(long_desc, ld_readme) { long_desc == ld_readme }
 

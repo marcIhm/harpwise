@@ -2,15 +2,53 @@
 #+SETUPFILE: <%= $org_theme_file %>
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
-* Summary
 
-A harmonica tool for the command line, using microphone and speaker.
+* Introduction
 
-Harpwise supports your harmonica practice with scales, chords and licks.
-It offers various tools, an explorable quiz and may guide your jamming.
-It can be used with diatonic (richter) or chromatic harmonicas in
-different keys.
+  A harmonica tool for the command line, using microphone and speaker.
+
+  [[../images/harmonica3.png]]
   
+  Harpwise supports your harmonica practice with scales, chords and licks.
+  It offers various tools, an explorable quiz and may guide your jamming.
+  It can be used with diatonic (richter) or chromatic harmonicas in
+  different keys.
+
+  It runs on the command line of Linux and WSL2/Windows and probably
+  MacOS.
+  
+  Its main operation modes are 'listen', 'jamming', 'quiz' and 'licks';
+  these may help to:
+
+  - Learn scales and intervals
+  - Jam through a chord progression guided by scales and licks
+  - Learn and memorize licks (a few samples included)
+  - Train your ear and musical memory and learn related
+    music theory by the way of quiz
+
+    
+  Some of the other things, that harpwise can do:
+
+  - Help to find the key of a song (with an adjustable pitch)
+  - Interactively play intervals or note progressions
+  - Help in writing down a sequence of holes (journal)
+  - Work on bends or warbles
+  - Transpose a sequence of holes from one key of harp to another
+  - Provide an overview table of positions and keys of songs and harp
+  - Print notes layed out on a harmonica chart
+  - Print or play chords or scales
+  - Show full help on its usage
+  
+* A note for Beginners
+  
+  'richter' is the most common and affordable type of harmonica and the
+  default for harpwise.  It has 10 holes but no slider and is also known
+  as the 'blues harp'.  A single harmonica (e.g. in the key of c or a) is
+  enough to get started.  This program (harpwise) by itself does not teach
+  you how to play harmonica; rather it is a tool and meant to be helpful
+  and motivating all along your learning-journey.  Start with: 'harpwise
+  listen c'.
+
 * Screencasts
     
   The screencast below, shows how harpwise (mode 'listen') reacts on notes
@@ -24,111 +62,58 @@ different keys.
   
   [[../images/harpwise-quiz.gif]]
   
-* Introduction
-
-  [[../images/harmonica3.png]]
-
-  A harmonica tool for the command line, using microphone and speaker.
-  
-  Harpwise runs on the command line of Linux, MacOS and WSL2/Windows.
-  
-  It plays and perceives single notes and can play chords.
-
-  The main operation modes of harpwise are 'listen', 'jamming', 'quiz'
-  and 'licks'; these may help to:
-
-  - Learn scales and intervals
-  - Jam through a chord progression guided by scales and licks
-  - Learn and memorize licks (a few samples included)
-  - Train your ear and musical memory and learn related
-    music theory by the way of quiz
-
-  Some of the other things, that harpwise can do:
-
-  - Help to find the key of a song (with an adjustable pitch)
-  - Interactively play intervals or note progressions
-  - Help in writing down a sequence of holes (journal)
-  - Work on bends or warbles
-  - Transpose a sequence of holes from one key of harp to another
-  - Provide an overview table of positions and keys of songs and harp
-  - Print notes layed out on a harmonica chart
-  - Print or play chords or scales
-  - Show full help on its usage
-
-* Installation
-
-  Harpwise is available from the ubuntu-repositories:
-
-  sudo apt install harpwise
-
-  as a debian package; this also works fairly well for WSL2/Windows.
-  
-  For other variants of linux, you may try:
-
-  sudo snap install harpwise
-
-  (which may require you to enable the snapstore first)
-
-  for other platforms, a more manual install is required; please see the
-  README within subdirectory install.
-   
-* Invocation
-
-  Once you have installed harpwise, go to the commandline and type:
-
-  if you have downloaded from Github:
-
-  - cd ~/harpwise
-  - ./harpwise
-
-  or if you installed harpwise from the Ubuntu repositories:
-
-  harpwise
-
-  In either case, harpwise will print a usage information to get you
-  started quickly.  Or read below for additional details.
-
 * Getting started
 
-  Get usage information, especially a section on "Quick Start" by invoking
-  harpwise without arguments:
+  <%= cleanup_for_html(IO.read("../_org/usage.org")) %>
+
+* The Modes
+
+  These correspond with the broad use cases of harpwise. On the
+  commandline the mode comes as a the second argument, e.g. 'listen' in
+  'harpwise listen'.
   
-  ./harpwise
+** Listen
 
-
-  This will show examples and options for its main operations:
+  [[../images/harpwise-listen.gif]]
   
-  - listen: listen to your playing, e.g. to monitor bends or scales
-  - quiz: train your ear, memory and knowledge of music theory with
-    many different flavours. This is actually fun and an engaging way
-    to start with harpwise.
-  - licks: learn licks ! A few are included and some pointers to more
-  - play: wise plays scales, holes, licks, chords, intervals, progressions
-    or a reference pitch
-  - print: print licks, scales, etc. or produce various reports
-  - tools: utilities, mostly related to basic harmonica theory
-  - samples: record samples for holes or generate them
+   <%= cleanup_for_html(IO.read("../_org/usage_listen.org")) %>
 
-  As an optional step you may want to create samples for the program; the
-  resulting wav-files will be kept in directory ~/harpwise
+** Quiz
 
-  Or, to get started quickly you may generate samples and frequencies
-  (e.g. for the key of c):
-
-  harpwise samples generate c
-
+  [[../images/harpwise-quiz.gif]]
   
-  If you want to work with mode licks to learn and memorize licks (highly
-  recommended !), you will need to add new licks soon.  Add them to your
-  own lick-file, which is typically located at:
+   <%= cleanup_for_html(IO.read("../_org/usage_quiz.org")) %>
 
-  ~/harpwise/licks/richter/licks_with_holes.txt
+** Jamming
 
-  this file is created on first invocation and filled with only a few
-  sample-licks; however it contains extensive instructions on how to add
-  new licks and some pointers to sources for more (printed and online,
-  payed and free).
+   <%= cleanup_for_html(IO.read("../_org/usage_jamming.org")) %>
 
+** Licks
+
+   <%= cleanup_for_html(IO.read("../_org/usage_licks.org")) %>
+
+** Play
+
+   <%= cleanup_for_html(IO.read("../_org/usage_play.org")) %>
+
+** Tools
+
+   <%= cleanup_for_html(IO.read("../_org/usage_tools.org")) %>
+
+** Samples
+
+   <%= cleanup_for_html(IO.read("../_org/usage_samples.org")) %>
+                  
+* Installation
+
+  The latest version of harpwise is a available as a snap:
+
+  #+begin_src
+    sudo snap install harpwise
+  #+end_src
+  
+  this also works quite well for WSL2/Windows.
+     
 * Getting help
 
   If you have problems, questions or just want to give feedback, please
@@ -136,20 +121,6 @@ different keys.
 
   If you have a github-account and prefer a more structured approach, you
   may also open a github-issue.
-
-  In addition harpwise comes with a number of help sources:
-
-  - This README gives some general background and context information
-  - The program harpwise comes with a general usage text as well as texts
-    specific to each mode. These texts are shown, if harpwise is invoked
-    without arguments and contain lots of examples and descriptions for
-    invoking harpwise and for the form of its arguments and options.
-  - When harpwise is running, especially in its main listen-perspective
-    (see screenshots), you can press 'h' to get a short overview of all
-    available keys.
-  - The main menu facility of harpwise (which, at times, covers the lower
-    half of the screen and offers to choose between various items), often
-    shows one-line descriptions of its items at the bottom.
   
 * Configuration
 
@@ -336,40 +307,3 @@ different keys.
    - In mode licks, details about the current lick
    - In mode listen, if idle, notes about famous harp-players
 
-* Harpwise and its modes
-
-  <%= IO.read("../_org/usage.org") %>
-
-* The various modes of harpwise
-** Listen
-
-  [[../images/harpwise-listen.gif]]
-  
-   <%= IO.read("../_org/usage_listen.org") %>
-
-** Quiz
-
-  [[../images/harpwise-quiz.gif]]
-  
-   <%= IO.read("../_org/usage_quiz.org") %>
-
-** Jamming
-
-   <%= IO.read("../_org/usage_jamming.org") %>
-
-** Licks
-
-   <%= IO.read("../_org/usage_licks.org") %>
-
-** Play
-
-   <%= IO.read("../_org/usage_play.org") %>
-
-** Tools
-
-   <%= IO.read("../_org/usage_tools.org") %>
-
-** Samples
-
-   <%= IO.read("../_org/usage_samples.org") %>
-                  

@@ -21,7 +21,7 @@ def do_develop to_handle
   when 'docs-make-html'
     do_docs_make_html
   when 'docs-all'
-    %w(do_docs_make_org_txt do_docs_make_html do_docs_diff_man do_docs_make_man).each do |met|
+    %w(do_docs_make_org_txt do_docs_make_html do_docs_make_man do_docs_diff_man).each do |met|
       puts "\e[34m"
       do_figlet_unwrapped met , 'smblock'
       puts "\e[0m"
@@ -32,7 +32,7 @@ def do_develop to_handle
     puts
     puts "\e[34mOpening browser on index.html; close with CTRL-W ...\e[0m"
     sleep 0.5
-    system("wslview #{$dirs[:install]}/docs/index.html")
+    system("wslview #{$dirs[:install]}/docs/index.html") unless $testing
     puts
   when 'selftest'
     do_selftest

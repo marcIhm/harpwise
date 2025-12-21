@@ -919,7 +919,17 @@ def show_help mode = $mode, testing_only = false
             'continue      '
           end
   frames = Array.new
-  frames << [" Help - first on keys in main view:",
+  frames << [" Help - Overview",
+             "",
+             "",
+             "  A harmonica tool for the command line, using microphone and speaker.",
+             "",
+             "  Full documentation at   https://marcihm.github.io/harpwise",
+             "",
+             "",
+             "  Read on here for help on available keys"]
+
+  frames << [" Help on keys in main view",
              "",
              "",
              "  SPACE:_pause and #{j_spc}      CTRL-L:_redraw screen",
@@ -1025,7 +1035,7 @@ def show_help mode = $mode, testing_only = false
              "   Invoke 'harpwise' without arguments for introduction, options",
              "   and pointers to more help.",
              "",
-             "   Also see:  https://github.com/marcIhm/harpwise/blob/main/README.org",
+             "   Full documentation at   https://marcihm.github.io/harpwise",
              "",
              "   Note, that other keys and help apply e.g. while harpwise plays",
              "   itself; type 'h' then for details.",

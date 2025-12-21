@@ -2,18 +2,19 @@
 
 * Harpwise
 
-A harmonica tool for the command line, using microphone and speaker.
+  A harmonica tool for the command line, using microphone and speaker.
 
-Harpwise supports your harmonica practice with scales, chords and licks.
-It offers various tools, an explorable quiz and may guide your jamming.
-It can be used with diatonic (richter) or chromatic harmonicas in
-different keys.
+  Harpwise supports your harmonica practice with scales, chords and licks.
+  It offers various tools, an explorable quiz and may guide your jamming.
+  It can be used with diatonic (richter) or chromatic harmonicas in
+  different keys.
 
-[[docs/images/harmonica3.png]]
+  [[docs/images/harmonica3.png]]
 
-See:
+** Full documentation at
+   
+   https://marcihm.github.io/harpwise
 
-- https://marcihm.github.io/harpwise for full documentation or
-- Screenshot below for a first impression
-
-  [[docs/images/harpwise-listen.gif]]
+** A screenshot
+   
+   [[docs/images/harpwise-listen.gif]]
