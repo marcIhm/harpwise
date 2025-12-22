@@ -21,7 +21,7 @@ def set_global_vars_early
   $first_hole_held = nil
   # for each name collect the types (lick, scale, ...) it appears as
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
-  $org_theme_file = 'comfy_inline.theme'
+  $org_theme_file = 'floating_toc.theme'
 
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new

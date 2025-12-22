@@ -1,0 +1,78 @@
+<!--
+Source - https://stackoverflow.com/a/45442563
+Posted by Adrian Chira
+Retrieved 2025-12-21, License - CC BY-SA 3.0
+-->
+
+#+HTML_HEAD: <style>  /* TOC inspired by http://jashkenas.github.com/coffee-script */
+#+HTML_HEAD_EXTRA:   @media all
+#+HTML_HEAD_EXTRA:   {
+#+HTML_HEAD_EXTRA:   html {
+#+HTML_HEAD_EXTRA:     font-family: Arial, sans-serif;
+#+HTML_HEAD_EXTRA:     line-height: 1.15;
+#+HTML_HEAD_EXTRA:     -ms-text-size-adjust: 100%;
+#+HTML_HEAD_EXTRA:     -webkit-text-size-adjust: 100%
+#+HTML_HEAD_EXTRA:   }
+#+HTML_HEAD_EXTRA:   #table-of-contents {
+#+HTML_HEAD_EXTRA:     font-size: 10pt;
+#+HTML_HEAD_EXTRA:     position: fixed;
+#+HTML_HEAD_EXTRA:     right: 2em;
+#+HTML_HEAD_EXTRA:     top: 0em;
+#+HTML_HEAD_EXTRA:     background: #2b2b2b;
+#+HTML_HEAD_EXTRA:     color: #dcdccc;
+#+HTML_HEAD_EXTRA:     z-index: 1000;
+#+HTML_HEAD_EXTRA:     -webkit-box-shadow: 0 0 1em #777777;
+#+HTML_HEAD_EXTRA:     -moz-box-shadow: 0 0 1em #777777;
+#+HTML_HEAD_EXTRA:     -webkit-border-bottom-left-radius: 5px;
+#+HTML_HEAD_EXTRA:     -moz-border-radius-bottomleft: 5px;
+#+HTML_HEAD_EXTRA:     text-align: right;
+#+HTML_HEAD_EXTRA:     /* ensure doesn't flow off the screen when expanded */
+#+HTML_HEAD_EXTRA:     max-height: 80%;
+#+HTML_HEAD_EXTRA:     overflow: auto; }
+#+HTML_HEAD_EXTRA:     #table-of-contents h2 {
+#+HTML_HEAD_EXTRA:       font-size: 10pt;
+#+HTML_HEAD_EXTRA:       max-width: 8em;
+#+HTML_HEAD_EXTRA:       font-weight: normal;
+#+HTML_HEAD_EXTRA:       padding-left: 0.5em;
+#+HTML_HEAD_EXTRA:       padding-left: 0.5em;
+#+HTML_HEAD_EXTRA:       padding-top: 0.05em;
+#+HTML_HEAD_EXTRA:       padding-bottom: 0.05em; }
+#+HTML_HEAD_EXTRA:     #table-of-contents #text-table-of-contents {
+#+HTML_HEAD_EXTRA:       display: none;
+#+HTML_HEAD_EXTRA:       text-align: left; }
+#+HTML_HEAD_EXTRA:     #table-of-contents:hover #text-table-of-contents {
+#+HTML_HEAD_EXTRA:       display: block;
+#+HTML_HEAD_EXTRA:       padding: 0.5em;
+#+HTML_HEAD_EXTRA:       margin-top: -1.5em; }
+#+HTML_HEAD_EXTRA:     #table-of-contents {
+#+HTML_HEAD_EXTRA:       color: black;
+#+HTML_HEAD_EXTRA:       background: #FFF;
+#+HTML_HEAD_EXTRA:       font-size: 80%;
+#+HTML_HEAD_EXTRA:       padding: .5em;
+#+HTML_HEAD_EXTRA:       margin: 1em -2em 1em 1em;
+#+HTML_HEAD_EXTRA:       display: block;
+#+HTML_HEAD_EXTRA:     }
+#+HTML_HEAD_EXTRA:     #table-of-contents a  {
+#+HTML_HEAD_EXTRA:       color: #003333;
+#+HTML_HEAD_EXTRA:     }
+#+HTML_HEAD_EXTRA:     #table-of-contents a:hover {
+#+HTML_HEAD_EXTRA:       color: #003333;
+#+HTML_HEAD_EXTRA:       text-decoration: underline;
+#+HTML_HEAD_EXTRA:     }
+#+HTML_HEAD_EXTRA:     #table-of-contents li  {
+#+HTML_HEAD_EXTRA:       margin: .2em;
+#+HTML_HEAD_EXTRA:     }
+#+HTML_HEAD_EXTRA:     #table-of-contents h2 {
+#+HTML_HEAD_EXTRA:       margin-top: .2em;
+#+HTML_HEAD_EXTRA:       border: none;
+#+HTML_HEAD_EXTRA:     }
+#+HTML_HEAD_EXTRA:   } /* END OF @media all */
+#+HTML_HEAD_EXTRA:   @media screen {
+#+HTML_HEAD_EXTRA:       #table-of-contents {
+#+HTML_HEAD_EXTRA:         float: right;
+#+HTML_HEAD_EXTRA:         border: 1px solid #CCC;
+#+HTML_HEAD_EXTRA:         max-width: 50%;
+#+HTML_HEAD_EXTRA:         overflow: auto;
+#+HTML_HEAD_EXTRA:       }
+#+HTML_HEAD_EXTRA:     } /* END OF @media screen */
+#+HTML_HEAD_EXTRA:   </style>

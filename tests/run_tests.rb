@@ -3869,8 +3869,8 @@ do_test 'id-133c: correct erb-processing and no org-tags in usage' do
   tms 'harpwise | head -105'
   tms :ENTER
   sleep 2
-  expect { screen[1]['The possible scales depend on the chosen type of harmonica']}
-  expect { screen[3]['scales for chromatic: all, blues']}
+  expect { screen[6]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[8]['scales for chromatic: all, blues']}
   tms 'clear'
   tms :ENTER
   tms 'harpwise | grep -c \#+'
