@@ -7,21 +7,13 @@ def do_develop to_handle
   # common error checking
   err_args_not_allowed(to_handle) if $extra && !%w(lickfile lf read-scale-with-notes rswn).include?($extra) && to_handle.length > 0
 
-  $man_template = "#{$dirs[:install_devel]}/resources/harpwise.man.erb"
-  $man_result = "#{$dirs[:install_devel]}/man/harpwise.1"
-
   case $extra
-  when 'docs-make-man'
-    do_docs_make_man
-  when 'docs-diff-man'
-    do_docs_diff_man
-    do_docs_make_man
   when 'docs-make-org-txt'
     do_docs_make_org_txt
   when 'docs-make-html'
     do_docs_make_html
   when 'docs-all'
-    %w(do_docs_make_org_txt do_docs_make_html do_docs_make_man do_docs_diff_man).each do |met|
+    %w(do_docs_make_org_txt do_docs_make_html).each do |met|
       puts "\e[34m"
       do_figlet_unwrapped met , 'smblock'
       puts "\e[0m"
@@ -54,157 +46,6 @@ def do_develop to_handle
 end
 
 
-def do_docs_make_man
-  # needed in erb
-  types_with_scales = get_types_with_scales_for_usage
-
-  File.write($man_result, ERB.new(IO.read($man_template)).result(binding).chomp)
-
-  puts
-  system("ls -l #{$man_template} #{$man_result}")
-  puts "\nTo read it:\n\n  man -l #{$dirs[:install_devel]}/man/harpwise.1\n\n"
-  puts "\nRedirect stdout to see any errors:\n\n  man --warnings -E UTF-8 -l -Tutf8 -Z -l #{$dirs[:install_devel]}/man/harpwise.1 >/dev/null\n\n"
-end
-
-
-def do_docs_diff_man
-
-  pp $man_template, $man_result
-  dsec = File.mtime($man_template) - File.mtime($man_result)
-  abort("\nFile\n\n  #{$man_result}\n\nis #{dsec} sec older than\n\n  #{$man_template}\n\nProbably you should process the man page first ...\n\n") if dsec > 0.1
-
-  # needed in erb
-  types_with_scales = get_types_with_scales_for_usage
-
-  lines = Hash.new
-  line = Hash.new
-  srcs = [:usage, :man]
-
-  # Modifications for usage
-  erase_line_usage_if_part = [/Version \d/]
-
-  # Modifications for man; element seen: will be modified
-  man_sections = {:name => {rx: /^NAME$/,
-                            seen: false},
-                  :syn => {rx: /^SYNOPSIS$/,
-                           seen: false},
-                  :desc => {rx: /^DESCRIPTION$/,
-                            seen: false},
-                  :prim_start => {rx: /The primary documentation/,
-                                  seen: false},
-                  :prim_end => {rx: /not available as man-pages/,
-                                seen: false},
-                  :exa_start => {rx: /^EXAMPLES$/,
-                                 seen: false},
-                  :exa_end => {rx: /^COPYRIGHT$/,
-                               seen: false}}
-  
-  erase_part_man = ['<hy>', '<beginning of page>']
-  erase_line_man = %w(MODE ARGUMENTS OPTIONS)
-  replaces_man = {'SUGGESTED READING' => 'SUGGESTED READING:',
-                  'USER CONFIGURATION' => 'USER CONFIGURATION:',
-                  'DIAGNOSIS' => 'DIAGNOSIS:',
-                  'COMMAND-LINE OPTIONS' => 'COMMAND-LINE OPTIONS:',
-                  'QUICK START' => 'QUICK START:'}
-
-  #
-  # Bring usage information and man page into canonical form by
-  # applying modifications
-  #
-
-  # handling usage is simpler, because it does not contain formatting commands
-  lines[:usage] = ERB.new(IO.read("#{$dirs[:install_devel]}/docs/_txt/usage.txt")).
-                    result(binding).lines.
-                    map do |l|
-                      erase_line_usage_if_part.any? {|rgx| l.match?(rgx)} ? nil : l
-                    end.compact.
-                    map {|l| l.chomp.strip.downcase}.
-                    reject(&:empty?)
-
-  # man pages are more formal and need more processing
-  lines[:man] = %x(groff -man -a -Tascii #{$dirs[:install_devel]}/man/harpwise.1).lines.
-                  map {|l| l.strip}.
-                  # use only some sections of man page
-                  map do |l|
-                    on_section_head = false
-                    man_sections.each do |nm, sec|
-                      if l.strip.match?(sec[:rx])
-                        sec[:seen] = true
-                        on_section_head = true
-                      end
-                    end
-                    # omit lines based on our position within man page
-                    if on_section_head
-                      nil
-                    elsif !man_sections[:name][:seen]
-                      nil
-                    elsif man_sections[:name][:seen] && !man_sections[:syn][:seen]
-                      name_head = 'harpwise -'
-                      if l[name_head]
-                        l[name_head.length .. -1]
-                      else
-                        l
-                      end
-                    elsif man_sections[:syn][:seen] && !man_sections[:desc][:seen]
-                      nil
-                    elsif man_sections[:prim_start][:seen] && !man_sections[:prim_end][:seen]
-                      nil
-                    elsif man_sections[:exa_start][:seen] && !man_sections[:exa_end][:seen]
-                      nil
-                    else
-                      l
-                    end
-                  end.compact.
-                  map do |l|
-                    # erase parts of lines
-                    erase_part_man.each {|e| l.gsub!(e,'')}
-                    l
-                  end.
-                  map do |l|
-                    # erase whole lines
-                    erase_line_man.any? {|e| e == l.strip} ? nil : l
-                  end.compact.
-                  map {|l| replaces_man[l] || l}.
-                  map {|l| l.strip.downcase}.reject(&:empty?).compact
-
-  srcs.each {|s| line[s] = lines[s].shift}
-
-  last_common = Array.new
-
-  # compare results by eating up usage and man against each other
-  while srcs.all? {|s| lines[s].length > 0}
-    clen = 0
-    clen += 1 while line[:usage][clen] && line[:usage][clen] == line[:man][clen]
-    if clen > 0
-      last_common << [line[:usage][0, clen], line[:man][0, clen]] 
-      srcs.each do |s|
-        line[s][0, clen] = ''
-        line[s].strip!
-        line[s] = lines[s].shift.strip if line[s].empty?
-      end
-    else
-      puts
-      puts "Comparison between   \e[32musage\e[0m   and   \e[32mman\e[0m   always in that order,\ni.e. usage first:"
-      puts
-      puts "Last two pairs of common lines or line-fragments that are equal:\e[2m"
-      pp last_common[-2 .. -1]
-      puts "\e[0m\nThe first pair of lines or line-fragments, that differ:\e[2m"
-      pp [line[:usage], line[:man]]
-      puts "\e[0m\nError: #{srcs} differ; see above"
-      puts
-      puts "\e[2mHint: Make sure to edit the file\n  #{$man_template}\ninstead of the processed man page"
-      puts
-      puts "Hint: A common problem would be a line of text starting with a single quote ('),\nwhich would be misinterpreted by man.\e[0m"
-      puts
-      exit 1
-    end
-  end
-  puts
-  puts "No diff."
-  puts
-end
-
-
 def do_docs_make_org_txt
   src_erb_dir = "#{$dirs[:install]}/docs/erb-org"
   dst_txt_dir = "#{$dirs[:install]}/docs/_txt"
@@ -228,14 +69,22 @@ def do_docs_make_org_txt
       dst_file = "#{dir}/#{file_short}#{suff}"
 
       Dir.chdir(src_erb_dir) do
-        new_cont = if suff == '.org'
-                     ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
-                       result(binding).gsub(/(^\s*\n)+\Z/,'')
-                   else
-                     IO.read("#{dst_org_dir}/#{file_short}.org").
-                       lines.reject {|l| l['#+']}.join
-                   end
-        File.write(dst_file, new_cont)
+        if suff == '.org'
+          File.write(dst_file,
+                    ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
+                      result(binding).gsub(/(^\s*\n)+\Z/,''))
+        else
+          next if file_short == 'index'          
+          cmd = "/usr/bin/emacs -Q --batch " +
+                "-eval \"(require 'org)\" " +
+                "--insert #{dst_org_dir}/#{file_short}.org " +
+                "--eval \"(setq org-export-with-toc nil)\" " +
+                "--eval \"(setq org-export-with-author nil)\" " +
+                "--eval \"(org-ascii-export-as-ascii nil nil nil nil '(:ascii-charset ascii))\" " +
+                "--eval \"(write-file \\\"#{dst_file}\\\")\" " +
+                "--kill"
+          system(cmd) or fail("Command failed; see above for output: #{cmd}") 
+        end
       end
       puts dst_file
     end

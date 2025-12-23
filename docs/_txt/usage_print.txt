@@ -1,184 +1,232 @@
 Overview of 'harpwise print':
 
-  The mode 'print' takes its arguments (holes, notes, licks, scales,
-  semitones or special keywords) and prints them with additional
-  information.
+The mode 'print' takes its arguments (holes, notes, licks, scales,
+semitones or special keywords) and prints them with additional
+information.
 
-  Moreover it has various reports about the licks or the scales and
-  intervals that are known harpwise.
+Moreover it has various reports about the licks or the scales and
+intervals that are known harpwise.
 
-  If you specify a scale (optional) too, the scale-membership of the
-  the notes will be shown.
+If you specify a scale (optional) too, the scale-membership of the the
+notes will be shown.
 
-  Its argument can be any of:
+Its argument can be any of:
 
-    - holes (e.g. '-1')
-    - notes (e.g. 'a4')
-    - semitones (e.g. '+12st')
-    - licks (e.g. 'st-louis')
-    - lick progressions
-    - scales (e.g. 'chord-i')
-    - scale progressions
-    - jams
-    - 'l', '2l', for the last lick, 2nd-to-last, etc.
+- holes (e.g. '-1')
+- notes (e.g. 'a4')
+- semitones (e.g. '+12st')
+- licks (e.g. 'st-louis')
+- lick progressions
+- scales (e.g. 'chord-i')
+- scale progressions
+- jams
+- 'l', '2l', for the last lick, 2nd-to-last, etc.
 
-  or one of the known extra arguments (that themselves might require
-  additional arguments):
+or one of the known extra arguments (that themselves might require
+additional arguments):
 
-    - licks-details:
-  [2m    all licks currently selected (e.g. by option -t) with all details[0m
-    - licks-list:
-  [2m    short list of selected licks (e.g. by option -t) with hole count only[0m
-    - licks-list-all:
-  [2m    short list of all licks (disregarding e.g option -t); hole count only[0m
-    - licks-with-tags:
-  [2m    list licks (each with its tags) according to the various tag-options[0m
-    - licks-tags-stats:
-  [2m    statistics for all known licks and their tags[0m
-    - licks-history:
-  [2m    show, which licks you played recently in mode licks; the shortcuts[0m
-  [2m    ('l', '2l', ...) from the output can be used as arguments to[0m
-  [2m    option --start-with[0m
-    - licks-starred:
-  [2m    show all starred licks[0m
-    - lick-progressions, lick-progs:
-  [2m    print all known lick progressions. These can be narrowed by giving[0m
-  [2m    option -t (this is the only case, where this option applies to[0m
-  [2m    lick progressions instead of licks). Please note, that to print a[0m
-  [2m    single lick-progression, you may just give its name on the[0m
-  [2m    commandline without any extra-keyword[0m
-    - licks-dump:
-  [2m    dump all selected licks in json-format[0m
-    - holes-history:
-  [2m    show, which holes you played recently, from any mode[0m
-    - scales:
-  [2m    For all scales or the scales given as arguments: print them with[0m
-  [2m    their details; with --brief only liste their names[0m
-    - scale-progs, scale-progressions:
-  [2m    print all known scale progressions[0m
-    - intervals:
-  [2m    print all known intervals[0m
-    - player, players:
-  [2m    print details about players matching argument or a list of all[0m
-  [2m    known players[0m
-    - jams:
-  [2m    List available jamming-files. This is much like "harpwise jam ls",[0m
-  [2m    which however has a more relaxed way of specifying the jam.[0m
-  [2m    See there for details.[0m
+- licks-details:
+[2m all licks currently selected (e.g. by option -t) with all
+details[0m
+- licks-list:
+[2m short list of selected licks (e.g. by option -t) with hole count
+only[0m
+- licks-list-all:
+[2m short list of all licks (disregarding e.g option -t); hole count
+only[0m
+- licks-with-tags:
+[2m list licks (each with its tags) according to the various
+tag-options[0m
+- licks-tags-stats:
+[2m statistics for all known licks and their tags[0m
+- licks-history:
+[2m show, which licks you played recently in mode licks; the
+shortcuts[0m [2m ('l', '2l', ...) from the output can be used as
+arguments to[0m [2m option --start-with[0m
+- licks-starred:
+[2m show all starred licks[0m
+- lick-progressions, lick-progs:
+[2m print all known lick progressions. These can be narrowed by
+giving[0m [2m option -t (this is the only case, where this option
+applies to[0m [2m lick progressions instead of licks). Please note,
+that to print a[0m [2m single lick-progression, you may just give
+its name on the[0m [2m commandline without any extra-keyword[0m
+- licks-dump:
+[2m dump all selected licks in json-format[0m
+- holes-history:
+[2m show, which holes you played recently, from any mode[0m
+- scales:
+[2m For all scales or the scales given as arguments: print them
+with[0m [2m their details; with --brief only liste their names[0m
+- scale-progs, scale-progressions:
+[2m print all known scale progressions[0m
+- intervals:
+[2m print all known intervals[0m
+- player, players:
+[2m print details about players matching argument or a list of
+all[0m [2m known players[0m
+- jams:
+[2m List available jamming-files. This is much like "harpwise jam
+ls",[0m [2m which however has a more relaxed way of specifying the
+jam.[0m [2m See there for details.[0m
 
-  
+
 Usage by Examples:
 
-  Print lots of information for given holes or notes:
+Print lots of information for given holes or notes:
 
-    harpwise print +1 +2 a4 bf5
+,----
+| harpwise print +1 +2 a4 bf5
+`----
 
-  Map semitones to holes and notes (which are probably more familiar):
+Map semitones to holes and notes (which are probably more familiar):
 
-    harpwise print +0st +11st -1st
+,----
+| harpwise print +0st +11st -1st
+`----
 
-  Print holes and notes of a lick:
+Print holes and notes of a lick:
 
-    harpwise print st-louis
+,----
+| harpwise print st-louis
+`----
 
-  Print holes and notes of a scale (blues):
+Print holes and notes of a scale (blues):
 
-    harpwise print blues
+,----
+| harpwise print blues
+`----
 
-  Print the scales, each note belongs to too:
+Print the scales, each note belongs to too:
 
-    harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
+,----
+| harpwise print chord-i feeling-bad --add-scales chord-iv,chord-v
+`----
 
-  Print the major pentatonic scale but shift it down by 7 semitones:
+Print the major pentatonic scale but shift it down by 7 semitones:
 
-    harpwise print mape --transpose-scale -7st
+,----
+| harpwise print mape --transpose-scale -7st
+`----
 
-  nearly the same result can be achieved by
+nearly the same result can be achieved by
 
-    harpwise print mape
+,----
+| harpwise print mape
+`----
 
-  and then take these holes as input for tools:
+and then take these holes as input for tools:
 
-    harpwise tools shift -7st -2 -3// -3 -4 +5 +6
-
-
-  Print all details for favorite licks:
-
-    harpwise print licks-details --tags-any favorites
-
-  (if you have tagged some licks with tag favorites)
-
-  or narrow to a lick-progression and reduce amount of output:
-
-    harpwise print licks-details --brief --lick-prog box1
-
-
-  Print a list of licks (only those selected e.g. by -t)
-
-    harpwise print licks-list -t fav
-
-  A longer list of all known licks:
-
-    harpwise print licks-list-all
+,----
+| harpwise tools shift -7st -2 -3// -3 -4 +5 +6
+`----
 
 
-  A report showing licks with stats regarding tags:
+Print all details for favorite licks:
 
-    harpwise print licks-with-tags
+,----
+| harpwise print licks-details --tags-any favorites
+`----
 
-  (which might help to find underused or duplicate tags)
+(if you have tagged some licks with tag favorites)
 
+or narrow to a lick-progression and reduce amount of output:
 
-  Print licks with tags 'fav' first, and then all
-
-    harpwise print licks-tags-stats -t fav
-
-  which is (by using defaults) the same as:
-  
-    harpwise print richter licks-tags-stats -t fav
-
-  If you have collected licks for the chromatic harmonica, you may
-  also use:
-
-    harpwise print chromatic licks-tags-stats
+,----
+| harpwise print licks-details --brief --lick-prog box1
+`----
 
 
-  Show the licks you played recently along with their shortcuts 'l',
-  '2l', ...
-  
-    harpwise print licks-history
+Print a list of licks (only those selected e.g. by -t)
+
+,----
+| harpwise print licks-list -t fav
+`----
+
+A longer list of all known licks:
+
+,----
+| harpwise print licks-list-all
+`----
 
 
-  List all the licks, that you have starred (press '*' in mode licks,
-  while it is beeing played):
+A report showing licks with stats regarding tags:
 
-    harpwise print licks-starred
+,----
+| harpwise print licks-with-tags
+`----
 
-  Remark: In other modes you may access these licks through the
-  tag 'starred', which they get assigned automatically.
-
-
-  Show all known scales:
-
-    harpwise print scales
+(which might help to find underused or duplicate tags)
 
 
-  Show the names of all known intervals:
+Print licks with tags 'fav' first, and then all
 
-    harpwise print intervals
+,----
+| harpwise print licks-tags-stats -t fav
+`----
+
+which is (by using defaults) the same as:
+
+,----
+| harpwise print richter licks-tags-stats -t fav
+`----
+
+If you have collected licks for the chromatic harmonica, you may also
+use:
+
+,----
+| harpwise print chromatic licks-tags-stats
+`----
 
 
-  You may also check out mode tools for some more helpers.
-  
+Show the licks you played recently along with their shortcuts 'l', '2l',
+...
 
-  Harpwise comes with a short list of famous players and information
-  about them; you may request this list to be printed:
+,----
+| harpwise print licks-history
+`----
 
-    harpwise print players
 
-  Or details for a specific player:
+List all the licks, that you have starred (press '*' in mode licks,
+while it is beeing played):
 
-    harpwie print player miller
+,----
+| harpwise print licks-starred
+`----
 
-  This is the same information, that is printed line by line in mode
-  listen.
+Remark: In other modes you may access these licks through the tag
+'starred', which they get assigned automatically.
+
+
+Show all known scales:
+
+,----
+| harpwise print scales
+`----
+
+
+Show the names of all known intervals:
+
+,----
+| harpwise print intervals
+`----
+
+
+You may also check out mode tools for some more helpers.
+
+
+Harpwise comes with a short list of famous players and information about
+them; you may request this list to be printed:
+
+,----
+| harpwise print players
+`----
+
+Or details for a specific player:
+
+,----
+| harpwie print player miller
+`----
+
+This is the same information, that is printed line by line in mode
+listen.

@@ -1,141 +1,150 @@
 Overview of 'harpwise jamming':
 
-  Scripted jamming along a backing track. For this harpwise includes a
-  backing-track with timestamps as well as a matching set of licks and
-  chords. Two instances of harpwise then work together to display licks
-  and chords in sync with the track.
+Scripted jamming along a backing track. For this harpwise includes a
+backing-track with timestamps as well as a matching set of licks and
+chords. Two instances of harpwise then work together to display licks
+and chords in sync with the track.
 
 
 Usage by Examples:
 
-  The mode jamming is a remote control and helper for harpwise in mode
-  listen; jamming plays a backing-track while making listen switch licks
-  and chords (scales). This happens in time with the chord-changes of the
-  track by means of a time-table (see below).
+The mode jamming is a remote control and helper for harpwise in mode
+listen; jamming plays a backing-track while making listen switch licks
+and chords (scales). This happens in time with the chord-changes of the
+track by means of a time-table (see below).
 
 
-  To use harpwise jamming, you need *two* terminals. In the first one
-  start e.g.:
+To use harpwise jamming, you need *two* terminals. In the first one
+start e.g.:
 
-    harpwise jam along 12bar
+,----
+| harpwise jam along 12bar
+`----
 
-  this will give you the command for the second terminal, and will stand by
-  until you have started it. For 'jam along 12bar' it will be like this:
-  
-    harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
+this will give you the command for the second terminal, and will stand
+by until you have started it. For 'jam along 12bar' it will be like
+this:
 
-  note, that advanced users may vary this command, e.g. by choosing
-  a different lick-progression.
-  
-  As soon as both instances of harpwise are running, grab your harp and
-  get into the flow.
+,----
+| harpwise listen --scale-prog 12bar --lick-prog box1 --jamming
+`----
 
+note, that advanced users may vary this command, e.g. by choosing a
+different lick-progression.
 
-  Once started, 'harpwise listen' (as usual) shows your playing on the
-  harmonica-chart and indicates, how it matches the current chord; all
-  with respect to the backing track beeing played. The scale-progression
-  '12bar' is really a chord-progression (I,IV,V) and is switched along by
-  mode jamming. This mode uses the timestamps from the file 12bar.json to
-  trigger harpwise at the right moments.
-
-  With the scripted chord-progression '12bar' you always see, which are
-  the notes (holes) from the chord and may check easily, if you play
-  within the current chord or not. In addition you have the licks of the
-  lick-progression 'box1' (whose name comes from the box-pattern on
-  guitar). These licks are switched along as the backing-track progresses
-  (just like the chords). Start by playing the licks unil you feel in the
-  mood for some improvisation, e.g. over the chords.
-
-  Note, that in this accustic setup you may either need headphones or a
-  hand-held microphone to keep apart your playing from the backing track
-  beeing played.
+As soon as both instances of harpwise are running, grab your harp and
+get into the flow.
 
 
-  The argument '12bar' above is treated as a filename; it is expandeded to
-  '12bar.json' and searched in two directories: ~/harpwise/jamming and
-  the installation-dir of harpwise.
+Once started, 'harpwise listen' (as usual) shows your playing on the
+harmonica-chart and indicates, how it matches the current chord; all
+with respect to the backing track beeing played. The scale-progression
+'12bar' is really a chord-progression (I,IV,V) and is switched along by
+mode jamming. This mode uses the timestamps from the file 12bar.json to
+trigger harpwise at the right moments.
 
-  The file '12bar.json' contains the required settings (e.g. location of
-  the backing track) and has many comments (lots of them!), that can help
-  to understand its content. This is not needed initially but becomes
-  essential, if you want to jam along with your own backing-tracks; for
-  this you will need to create your own json-file.
+With the scripted chord-progression '12bar' you always see, which are
+the notes (holes) from the chord and may check easily, if you play
+within the current chord or not. In addition you have the licks of the
+lick-progression 'box1' (whose name comes from the box-pattern on
+guitar). These licks are switched along as the backing-track progresses
+(just like the chords). Start by playing the licks unil you feel in the
+mood for some improvisation, e.g. over the chords.
+
+Note, that in this accustic setup you may either need headphones or a
+hand-held microphone to keep apart your playing from the backing track
+beeing played.
 
 
-  If, over time, you have created multiple json-files with settings
-  (e.g. different backing-tracks), you may use:
+The argument '12bar' above is treated as a filename; it is expandeded to
+'12bar.json' and searched in two directories: ~/harpwise/jamming and the
+installation-dir of harpwise.
 
-    harpwise jamming list
+The file '12bar.json' contains the required settings (e.g. location of
+the backing track) and has many comments (lots of them!), that can help
+to understand its content. This is not needed initially but becomes
+essential, if you want to jam along with your own backing-tracks; for
+this you will need to create your own json-file.
 
-  to list them; if you have many files, you may create subdirectories.
-  
 
-  With all subcommands of 'harpwise jam' (e.g. 'along'), you may abbreviate
-  the name of the json-file and supply one or many strings that appear in
-  the filename (in the given sequence); e.g.:
+If, over time, you have created multiple json-files with settings
+(e.g. different backing-tracks), you may use:
 
-    harpwise jam along 2b       
+,----
+| harpwise jamming list
+`----
 
-  which saves us some typing, compared to '12bar'. Or even
+to list them; if you have many files, you may create subdirectories.
 
-    harpwise jam along 2b r
 
-  which is too wordy, if you have one json-file only. However, if you
-  create your own jamming-files and have multiple of them, this may help
-  to distinguish among files with similar names.
-  
+With all subcommands of 'harpwise jam' (e.g. 'along'), you may
+abbreviate the name of the json-file and supply one or many strings that
+appear in the filename (in the given sequence); e.g.:
 
-  The key for jamming comes (as usual) either from your configuration or
-  is given explicitly on the commandline:
+,----
+| harpwise jam along 2b       
+`----
 
-    harpwise jam g along 12bar
+which saves us some typing, compared to '12bar'. Or even
 
-  in response the wise will shift the backing-track accordingly and tell
-  'harpwise listen' to use this key too. However, if you do not specify a
-  key on the commandline, the key from the json-file prevails.
-  
+,----
+| harpwise jam along 2b r
+`----
 
-  Finally, here are all the extra-functions for 'harpwise jamming':
+which is too wordy, if you have one json-file only. However, if you
+create your own jamming-files and have multiple of them, this may help
+to distinguish among files with similar names.
 
-    - along:
-  [2m    Start the jamming; this matches its arguments[0m
-  [2m    against known files and starts the jamming; an example would be:[0m
-  [2m    [0m
-  [2m    harpwise jam along 12[0m
-  [2m    [0m
-  [2m    which would pick the pre-installed file '12bar'. If you have many[0m
-  [2m    jamming-files of your own, you may give longer or more words to make[0m
-  [2m    selection uniq.[0m
-  [2m    [0m
-  [2m    Please note, that this kind of fuzzy selection applies to other[0m
-  [2m    extra-commands within mode jamming too.[0m
-    - list, ls:
-  [2m    list available jamming-files with date of last usage and any stored[0m
-  [2m    processing notes.[0m
-  [2m    [0m
-  [2m    You may also add arguments to name a single file, in which case the[0m
-  [2m    comment and additional details will be shown too.[0m
-  [2m    [0m
-  [2m    If you give the argument 'all' alone, details for all files will[0m
-  [2m    be printed.[0m
-    - play:
-  [2m    Play the given backing-track; can be useful if you want to search[0m
-  [2m    for a matching lick-progression before starting to jam.[0m
-  [2m    [0m
-  [2m    Also useful when creating a new json for jamming, because it[0m
-  [2m    allows to create a list of timestamps.[0m
-  [2m    [0m
-  [2m    For this purpose you may even give the path to a simple .mp3-file[0m
-  [2m    which will be played, thus allowing you to mark timestamps; so[0m
-  [2m    no need to create a json-file up front.[0m
-    - edit:
-  [2m    edit given jamming-file (fuzzy selection)[0m
-    - notes, note:
-  [2m    For the given jamming-file Invoke your editor to enter or edit the[0m
-  [2m    notes, that will be shown in "harpwise jam list".[0m
-  [2m    [0m
-  [2m    An empty (or whitespace only) note will be removed altogether.[0m
+
+The key for jamming comes (as usual) either from your configuration or
+is given explicitly on the commandline:
+
+,----
+| harpwise jam g along 12bar
+`----
+
+in response the wise will shift the backing-track accordingly and tell
+'harpwise listen' to use this key too. However, if you do not specify a
+key on the commandline, the key from the json-file prevails.
+
+
+Finally, here are all the extra-functions for 'harpwise jamming':
+
+- along:
+[2m Start the jamming; this matches its arguments[0m [2m against
+known files and starts the jamming; an example would be:[0m [2m
+[0m [2m harpwise jam along 12[0m [2m [0m [2m which would
+pick the pre-installed file '12bar'. If you have many[0m [2m
+jamming-files of your own, you may give longer or more words to
+make[0m [2m selection uniq.[0m [2m [0m [2m Please note, that
+this kind of fuzzy selection applies to other[0m [2m extra-commands
+within mode jamming too.[0m
+- list, ls:
+[2m list available jamming-files with date of last usage and any
+stored[0m [2m processing notes.[0m [2m [0m [2m You may also
+add arguments to name a single file, in which case the[0m [2m
+comment and additional details will be shown too.[0m [2m [0m [2m
+If you give the argument 'all' alone, details for all files will[0m
+[2m be printed.[0m
+- play:
+[2m Play the given backing-track; can be useful if you want to
+search[0m [2m for a matching lick-progression before starting to
+jam.[0m [2m [0m [2m Also useful when creating a new json for
+jamming, because it[0m [2m allows to create a list of
+timestamps.[0m [2m [0m [2m For this purpose you may even give
+the path to a simple .mp3-file[0m [2m which will be played, thus
+allowing you to mark timestamps; so[0m [2m no need to create a
+json-file up front.[0m
+- edit:
+[2m edit given jamming-file (fuzzy selection)[0m
+- notes, note:
+[2m For the given jamming-file Invoke your editor to enter or edit
+the[0m [2m notes, that will be shown in "harpwise jam list".[0m
+[2m [0m [2m An empty (or whitespace only) note will be removed
+altogether.[0m
 
 Quick Start:
 
-    harpwise jam along 12
+,----
+| harpwise jam along 12
+`----

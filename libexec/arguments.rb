@@ -741,7 +741,12 @@ def print_usage_info mode = nil
   full = "Full documentation at   https://marcihm.github.io/harpwise"
   if $mode
     puts "\nCommand-line Options:\n\n"
-    puts "  For an extensive, mode-specific list type:\n\n    harpwise #{$mode} -o\n"
+    puts "  For an extensive, mode-specific list type:"
+    puts
+    # Mimic format produced by org-export
+    puts ",----"
+    puts "| harpwise listen -o"
+    puts "`----"
     puts
     puts "\e[2m#{full}\e[0m"
   else

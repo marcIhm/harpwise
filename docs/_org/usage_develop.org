@@ -7,10 +7,6 @@ Overview of 'harpwise develop':
   The required additional argument specifies a task to perform; it can be
   one of:
 
-    - docs-make-man:
-  [2m    process/produce man page from its own erb-template[0m
-    - docs-diff-man:
-  [2m    compare produced man page with usage[0m
     - docs-make-org-txt:
   [2m    process template from docs/erb-org and produce files[0m
   [2m    in _org and _txt[0m

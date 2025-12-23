@@ -1,198 +1,248 @@
 Overview of 'harpwise play':
 
-  The mode 'play' takes its arguments (holes, notes, semitones, licks,
-  scales) and plays them.  It also handles some extra keywords.
+The mode 'play' takes its arguments (holes, notes, semitones, licks,
+scales) and plays them.  It also handles some extra keywords.
 
-  Its arguments (which mostly can not be mixed) can be any of these:
+Its arguments (which mostly can not be mixed) can be any of these:
 
-    - holes (e.g. '-1') or notes
-    - notes (e.g. 'a4')
-    - semitones (e.g. '+12st')
-    - licks (e.g. 'st-louis')
-    - lick progressions
-    - scales (e.g. 'chord-i')
-    - jams, i.e. its mp3
-    - 'l', '2l', for the last lick, 2nd-to-last, etc.
+- holes (e.g. '-1') or notes
+- notes (e.g. 'a4')
+- semitones (e.g. '+12st')
+- licks (e.g. 'st-louis')
+- lick progressions
+- scales (e.g. 'chord-i')
+- jams, i.e. its mp3
+- 'l', '2l', for the last lick, 2nd-to-last, etc.
 
-  or one of the known extra arguments (that themselves might require
-  additional arguments):
+or one of the known extra arguments (that themselves might require
+additional arguments):
 
-    - licks:
-  [2m    all licks selected (e.g. by option -t). Add option '--lick-radio'[0m
-  [2m    to make harpwise play licks without interruption (but repeats);[0m
-  [2m    as an optional argument you may give the number of repeats[0m
-    - pitch:
-  [2m    play an interactive, adjustable pitch; this may help to find the[0m
-  [2m    key of a song by ear-comparison; the initial key, e.g. 'a4' can be[0m
-  [2m    supplied as an optional argument[0m
-    - interval, inter:
-  [2m    interactive, adjustable interval given as arguments[0m
-    - progression, prog:
-  [2m    take a base and some semitone diffs, then play it in a loop,[0m
-  [2m    allowing e.g. to shift each iteration by some semitones e.g.[0m
-  [2m    through a chord-progression of i-iv-v. Moreover you may specify[0m
-  [2m    two or more progressions with a dot (.) between; those can then[0m
-  [2m    be switched for each iteration.[0m
-    - chord:
-  [2m    play the given holes or notes simultanously as a chord; also[0m
-  [2m    useful for tongue-splits.[0m
-    - user:
-  [2m    play back (if any), what you (the user) have recorded in mode[0m
-  [2m    'licks' before[0m
+- licks:
+[2m all licks selected (e.g. by option -t). Add option
+'--lick-radio'[0m [2m to make harpwise play licks without
+interruption (but repeats);[0m [2m as an optional argument you may
+give the number of repeats[0m
+- pitch:
+[2m play an interactive, adjustable pitch; this may help to find
+the[0m [2m key of a song by ear-comparison; the initial key,
+e.g. 'a4' can be[0m [2m supplied as an optional argument[0m
+- interval, inter:
+[2m interactive, adjustable interval given as arguments[0m
+- progression, prog:
+[2m take a base and some semitone diffs, then play it in a loop,[0m
+[2m allowing e.g. to shift each iteration by some semitones e.g.[0m
+[2m through a chord-progression of i-iv-v. Moreover you may
+specify[0m [2m two or more progressions with a dot (.) between;
+those can then[0m [2m be switched for each iteration.[0m
+- chord:
+[2m play the given holes or notes simultanously as a chord; also[0m
+[2m useful for tongue-splits.[0m
+- user:
+[2m play back (if any), what you (the user) have recorded in mode[0m
+[2m 'licks' before[0m
 
 
 Usage by Examples:
 
-  Play a few holes and notes on a harp of key c:
+Play a few holes and notes on a harp of key c:
 
-    harpwise play c +1 -2 c4
+,----
+| harpwise play c +1 -2 c4
+`----
 
-  Play a few semitones:
+Play a few semitones:
 
-    harpwise play c +1st -4st
+,----
+| harpwise play c +1st -4st
+`----
 
-  Play the lick 'wade'; transpose it to d:
-  
-    harpwise play d wade
+Play the lick 'wade'; transpose it to d:
 
-  Play an earlier lick:
+,----
+| harpwise play d wade
+`----
 
-    harpwise play 3l
+Play an earlier lick:
 
-  To see a list of earlier licks:
+,----
+| harpwise play 3l
+`----
 
-    harpwise print licks-history
+To see a list of earlier licks:
 
+,----
+| harpwise print licks-history
+`----
 
-  Various ways to play all licks:
 
-  Shuffled and in random order, without end:
+Various ways to play all licks:
 
-    harpwise play licks
+Shuffled and in random order, without end:
 
-  or play them one after another as they appear in your lickfile:
+,----
+| harpwise play licks
+`----
 
-    harpwise play licks --iterate cycle
+or play them one after another as they appear in your lickfile:
 
-  or shorter:
-  
-    harpwise play licks -i c
+,----
+| harpwise play licks --iterate cycle
+`----
 
-  Only play favorite licks (tag 'fav'):
+or shorter:
 
-    harpwise play licks --tags-all fav
+,----
+| harpwise play licks -i c
+`----
 
-  or shorter:
+Only play favorite licks (tag 'fav'):
 
-    harpwise play licks -t fav
+,----
+| harpwise play licks --tags-all fav
+`----
 
-  Play licks from a progression:
+or shorter:
 
-    harpwise play licks --lick-prog box1
+,----
+| harpwise play licks -t fav
+`----
 
-  Play endless, no questions asked, but various controls available:
+Play licks from a progression:
 
-    harpwise play licks --lick-radio
+,----
+| harpwise play licks --lick-prog box1
+`----
 
+Play endless, no questions asked, but various controls available:
 
-  Play an interactive, adjustable pitch:
+,----
+| harpwise play licks --lick-radio
+`----
 
-    harpwise play pitch
 
-  this may help to find the key of a song that is playing: change the
-  pitch by semitones, fiths or octaves until both match.
+Play an interactive, adjustable pitch:
 
-    harpwise play pitch c
+,----
+| harpwise play pitch
+`----
 
-  Exactly the same result as above, but with the key of c given
-  explicit. This will actually start of playing g, the root note in
-  second position (cross-harp).
+this may help to find the key of a song that is playing: change the
+pitch by semitones, fiths or octaves until both match.
 
-  Note: As an alternative, you may try to hum the root note (or tonal
-  center) of the song to find its key. Which is the preferred method,
-  because it does not need a computer; but this command may help to
-  get you started anyway.
+,----
+| harpwise play pitch c
+`----
 
+Exactly the same result as above, but with the key of c given
+explicit. This will actually start of playing g, the root note in second
+position (cross-harp).
 
-  Play an interval:
+Note: As an alternative, you may try to hum the root note (or tonal
+center) of the song to find its key. Which is the preferred method,
+because it does not need a computer; but this command may help to get
+you started anyway.
 
-    harpwise play inter c4 d4
 
-  while this is beeing played you may move it around or widen or
-  narrow it by semitones.
+Play an interval:
 
-  There are multiple ways to specify an interval:
-  - Either as two notes or holes
-  - Or as one note or hole plus one interval (named or as semitones)
+,----
+| harpwise play inter c4 d4
+`----
 
-  So these are more ways to play an interval:
+while this is beeing played you may move it around or widen or narrow it
+by semitones.
 
-    harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+There are multiple ways to specify an interval:
+- Either as two notes or holes
+- Or as one note or hole plus one interval (named or as semitones)
 
-    harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+So these are more ways to play an interval:
 
-  The error message (if any) will list valid values.
+,----
+| harpwise play inter c4 12st    ## Note c4 and 12 Semitones
+`----
 
+,----
+| harpwise play inter +2 pfi     ## Hole +2 and a perfect fifth
+`----
 
-  Play a note progression:
+The error message (if any) will list valid values.
 
-    harpwise play prog e3 7st 10st oct
 
-  this plays the classic box pattern interactively, you may loop it or
-  shift it by semitones. Holes for the harmonica (if any) are printed
-  along.
+Play a note progression:
 
-  A similar progression would be:
+,----
+| harpwise play prog e3 7st 10st oct
+`----
 
-    harpwise play prog +1 5st 7st 10st
+this plays the classic box pattern interactively, you may loop it or
+shift it by semitones. Holes for the harmonica (if any) are printed
+along.
 
+A similar progression would be:
 
-  Building on the above, you may want to use the box pattern and the
-  interactive features of 'harpwise play prog' to play (sort of) a
-  full 12-bar blues: Start with the progression above, switch on loop
-  and let it repeat 4 times (i.e. for 4 bars); this is the
-  i-chord. Then shift by 5 Semitones up or 7 down, to get the
-  iv-chord, and let this play another two times; then 5 semitones down
-  to get the i-chord again, then 7 etc., etc. until all 12 bars have
-  been played.
+,----
+| harpwise play prog +1 5st 7st 10st
+`----
 
-  If you want to switch between multiple progressions, separate them
-  by a dot ('.') like so (using both progressions from above):
 
-    harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+Building on the above, you may want to use the box pattern and the
+interactive features of 'harpwise play prog' to play (sort of) a full
+12-bar blues: Start with the progression above, switch on loop and let
+it repeat 4 times (i.e. for 4 bars); this is the i-chord. Then shift by
+5 Semitones up or 7 down, to get the iv-chord, and let this play another
+two times; then 5 semitones down to get the i-chord again, then 7 etc.,
+etc. until all 12 bars have been played.
 
+If you want to switch between multiple progressions, separate them by a
+dot ('.') like so (using both progressions from above):
 
-  Alternatively (and without using the progression feature) you may
-  get a similar result by playing predefined licks. As harpwise comes
-  with licks of the 'box pattern' for chords i, iv and v, you may ask
-  the wise to play the bass-line of a 12-bar blues like this:
+,----
+| harpwise play prog e3 7st 10st oct . +1 5st 7st 10st
+`----
 
-    harpwise play box1-i box1-i box1-i box1-i box1-iv
-      box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
 
-  which also uses the simple-turn lick at the end; you may also
-  replace 'box1' with 'box2' for a variant.
+Alternatively (and without using the progression feature) you may get a
+similar result by playing predefined licks. As harpwise comes with licks
+of the 'box pattern' for chords i, iv and v, you may ask the wise to
+play the bass-line of a 12-bar blues like this:
 
+,----
+| harpwise play box1-i box1-i box1-i box1-i box1-iv
+|   box1-iv box1-i box1-i box1-v box1-iv box1-i simple-turn
+`----
 
-    harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+which also uses the simple-turn lick at the end; you may also replace
+'box1' with 'box2' for a variant.
 
-  which might be a starting point for improvisation.
 
+,----
+| harpwise play boogie-i boogie-i boogie-iv boogie-v boogie-iv boogie-i simple-turn
+`----
 
-  Another way of playing would be:
+which might be a starting point for improvisation.
 
-    harpwise play chord +1 +2 +3 -3/
 
-  plays the given holes (notes may be given too) simultanously; the
-  given example is (by the way) a flat-seventh-chord, what you may
-  find out by using print:
+Another way of playing would be:
 
-    harpwise print +1 +2 +3 -3/
+,----
+| harpwise play chord +1 +2 +3 -3/
+`----
 
+plays the given holes (notes may be given too) simultanously; the given
+example is (by the way) a flat-seventh-chord, what you may find out by
+using print:
 
-  If you record yourself during lick-practice,
+,----
+| harpwise print +1 +2 +3 -3/
+`----
 
-    harpwise play user
 
-  plays what you have recorded before in mode 'licks' (where you need to
-  trigger the recording explicitly).
+If you record yourself during lick-practice,
+
+,----
+| harpwise play user
+`----
+
+plays what you have recorded before in mode 'licks' (where you need to
+trigger the recording explicitly).

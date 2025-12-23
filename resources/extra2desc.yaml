@@ -339,10 +339,6 @@ jamming:
 
     An empty (or whitespace only) note will be removed altogether.
 develop:
-  docs-make-man: |
-    process/produce man page from its own erb-template
-  docs-diff-man: |
-    compare produced man page with usage
   docs-make-org-txt: |
     process template from docs/erb-org and produce files
     in _org and _txt
