@@ -355,63 +355,74 @@ Finally, here are all the extra-functions for 'harpwise jamming':
 </p>
 
 <ul class="org-ul">
-<li>along:</li>
-</ul>
-<p>
-[2m    Start the jamming; this matches its arguments[0m
-[2m    against known files and starts the jamming; an example would be:[0m
-[2m    [0m
-[2m    harpwise jam along 12[0m
-[2m    [0m
-[2m    which would pick the pre-installed file '12bar'. If you have many[0m
-[2m    jamming-files of your own, you may give longer or more words to make[0m
-[2m    selection uniq.[0m
-[2m    [0m
-[2m    Please note, that this kind of fuzzy selection applies to other[0m
-[2m    extra-commands within mode jamming too.[0m
+<li><p>
+along:
+Start the jamming; this matches its arguments
+against known files and starts the jamming; an example would be:
 </p>
-<ul class="org-ul">
-<li>list, ls:</li>
-</ul>
+
 <p>
-[2m    list available jamming-files with date of last usage and any stored[0m
-[2m    processing notes.[0m
-[2m    [0m
-[2m    You may also add arguments to name a single file, in which case the[0m
-[2m    comment and additional details will be shown too.[0m
-[2m    [0m
-[2m    If you give the argument 'all' alone, details for all files will[0m
-[2m    be printed.[0m
+harpwise jam along 12
 </p>
-<ul class="org-ul">
-<li>play:</li>
-</ul>
+
 <p>
-[2m    Play the given backing-track; can be useful if you want to search[0m
-[2m    for a matching lick-progression before starting to jam.[0m
-[2m    [0m
-[2m    Also useful when creating a new json for jamming, because it[0m
-[2m    allows to create a list of timestamps.[0m
-[2m    [0m
-[2m    For this purpose you may even give the path to a simple .mp3-file[0m
-[2m    which will be played, thus allowing you to mark timestamps; so[0m
-[2m    no need to create a json-file up front.[0m
+which would pick the pre-installed file '12bar'. If you have many
+jamming-files of your own, you may give longer or more words to make
+selection uniq.
 </p>
-<ul class="org-ul">
-<li>edit:</li>
-</ul>
+
 <p>
-[2m    edit given jamming-file (fuzzy selection)[0m
+Please note, that this kind of fuzzy selection applies to other
+extra-commands within mode jamming too.
+</p></li>
+
+<li><p>
+list, ls:
+list available jamming-files with date of last usage and any stored
+processing notes.
 </p>
-<ul class="org-ul">
-<li>notes, note:</li>
-</ul>
+
 <p>
-[2m    For the given jamming-file Invoke your editor to enter or edit the[0m
-[2m    notes, that will be shown in "harpwise jam list".[0m
-[2m    [0m
-[2m    An empty (or whitespace only) note will be removed altogether.[0m
+You may also add arguments to name a single file, in which case the
+comment and additional details will be shown too.
 </p>
+
+<p>
+If you give the argument 'all' alone, details for all files will
+be printed.
+</p></li>
+
+<li><p>
+play:
+Play the given backing-track; can be useful if you want to search
+for a matching lick-progression before starting to jam.
+</p>
+
+<p>
+Also useful when creating a new json for jamming, because it
+allows to create a list of timestamps.
+</p>
+
+<p>
+For this purpose you may even give the path to a simple .mp3-file
+which will be played, thus allowing you to mark timestamps; so
+no need to create a json-file up front.
+</p></li>
+
+<li>edit:
+edit given jamming-file (fuzzy selection)</li>
+
+<li><p>
+notes, note:
+For the given jamming-file Invoke your editor to enter or edit the
+notes, that will be shown in "harpwise jam list".
+</p>
+
+<p>
+An empty (or whitespace only) note will be removed altogether.
+</p></li>
+</ul>
+
 
 <p>
 Quick Start:

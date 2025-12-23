@@ -211,200 +211,131 @@ it can be one of:
 </p>
 
 <ul class="org-ul">
-<li>transpose:</li>
-</ul>
-<p>
-[2m    transpose a sequence of holes between keys[0m
+<li>transpose:
+transpose a sequence of holes between keys</li>
+
+<li>shift:
+shift a sequence of holes or notes or a single lick by the given
+number of semitones (first argument)</li>
+
+<li>shift-to-groups:
+Starts off like 'shift' (see there), but also shows groups of
+alternative holes, that give the same note only in different
+octaves. This can be useful to find variations of a
+hole-sequences, e.g. for improvisation</li>
+
+<li><p>
+keys:
+For a diatonic harmonica: print a chart with keys and positions
+centered around current key; this tool accepts two optional extra
+arguments, which control coloured emphasis in the otherwise fixed
+chart.  The first argument is the key of the song, the second the
+key of the harp; use '.' to skip emphasising the song.
 </p>
-<ul class="org-ul">
-<li>shift:</li>
-</ul>
+
 <p>
-[2m    shift a sequence of holes or notes or a single lick by the given[0m
-[2m    number of semitones (first argument)[0m
-</p>
-<ul class="org-ul">
-<li>shift-to-groups:</li>
+Use option &#x2013;brief to print a version shortend to the most common
+keys and position.
+</p></li>
+
+<li>spread-notes:
+take a list of notes (e.g. a, a4, b, cs) as arguments and turn
+them into a list of holes that produce them. As the octave is
+deliberately not taken into account, you may give "a" as an
+argument just as well as "a4". Also shows these holes in the
+harmonica chart. When invoked with option &#x2013;brief, this tool can
+be used as a subcommand on the commandline, in which case it just
+returns the list of holes, to be used e.g. as an adhoc-scale.</li>
+
+<li>make-scale:
+accepts a list of holes on the commandline, asks some additional
+questions and writes a new user-defined scale.</li>
+
+<li>chart:
+various harmonica charts for current key; add option &#x2013;ref for
+more charts. If you supply holes or notes as arguments (optional),
+only these are printed in the chart of holes and the other charts
+are skipped.</li>
+
+<li>notes-major, notes:
+print notes of major scale for given key</li>
+
+<li>progression, prog:
+take a base and some semitone diffs, then spell them out</li>
+
+<li>interval, inter:
+calculate and print interval between two notes</li>
+
+<li>chords:
+print chords i, iv and v for current key</li>
+
+<li>transcribe:
+transcribe given audio-file approximately</li>
+
+<li>search-holes-in-licks:
+search given sequence of holes (or equiv) in all licks; the same
+ordering of holes is required; this can help to find licks that
+expand on a given sequence of holes</li>
+
+<li>search-lick-in-scales:
+search given lick or sequence of holes (or equiv) in all scales;
+ordering of holes is not important; this may give an idea, to which
+of all scales a given lick can be played. See also the somewhat
+inverse tool search-scale-in-licks.</li>
+
+<li>search-scale-in-licks:
+search given scale in all licks; this computes the uniq holes of a
+lick and, taking away 0,1,2 &#x2026; holes, checks if the remaining holes
+are contained in the scale.  This can give an idea, which licks can
+be played over the given scale (e.g. chord-iv). See also the very
+similar tool licks-from-scale and the somewhat inverse
+search-lick-in-scales.</li>
+
+<li>licks-from-scale:
+For all licks, find percentage of holes, that are taken from the
+given scale and group and sort them accordingly.  This may give an
+idea, which of all licks can be played over the given scale
+(e.g. chord-i or blues). See also the very similar tool
+seach-scale-in-licks.</li>
+
+<li>translate:
+Recognize and translate alternate harmonica notations into the
+format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";
+Currently this is optimized for diatonic harmonicas.</li>
+
+<li>utils, utilities:
+Describe some utilities, that come with harpwise and need
+to be invoked seperately.</li>
+
+<li>edit, edit-licks:
+invoke editor on your lickfile
+optionally add name of lick or lick-progression to land on</li>
+
+<li>edit-config:
+invoke editor on your personal config file ~/harpwise/config.ini</li>
+
+<li>edit-jam:
+edit given jamming-file. This is much like "harpwise jam edit",
+which however has a more relaxed way of specifying the jam.
+See there for details.</li>
+
+<li>diag, diag1:
+help to diagnose problems with your sound system; i.e.
+check that recording and replay work properly.</li>
+
+<li>diag2:
+check that mp3 can be played without problems.</li>
+
+<li>diag3:
+check that frequencies picked up by your microphone can be
+recognized properly; for this the check 'diag1' should have
+been performed sucessfully first.</li>
+
+<li>diag-hints:
+read technical hints on how to fix some of the problems, that
+might have come up with the other diag-tools.</li>
 </ul>
-<p>
-[2m    Starts off like 'shift' (see there), but also shows groups of[0m
-[2m    alternative holes, that give the same note only in different[0m
-[2m    octaves. This can be useful to find variations of a[0m
-[2m    hole-sequences, e.g. for improvisation[0m
-</p>
-<ul class="org-ul">
-<li>keys:</li>
-</ul>
-<p>
-[2m    For a diatonic harmonica: print a chart with keys and positions[0m
-[2m    centered around current key; this tool accepts two optional extra[0m
-[2m    arguments, which control coloured emphasis in the otherwise fixed[0m
-[2m    chart.  The first argument is the key of the song, the second the[0m
-[2m    key of the harp; use '.' to skip emphasising the song.[0m
-[2m    [0m
-[2m    Use option &#x2013;brief to print a version shortend to the most common[0m
-[2m    keys and position.[0m
-</p>
-<ul class="org-ul">
-<li>spread-notes:</li>
-</ul>
-<p>
-[2m    take a list of notes (e.g. a, a4, b, cs) as arguments and turn[0m
-[2m    them into a list of holes that produce them. As the octave is[0m
-[2m    deliberately not taken into account, you may give "a" as an[0m
-[2m    argument just as well as "a4". Also shows these holes in the[0m
-[2m    harmonica chart. When invoked with option &#x2013;brief, this tool can[0m
-[2m    be used as a subcommand on the commandline, in which case it just[0m
-[2m    returns the list of holes, to be used e.g. as an adhoc-scale.[0m
-</p>
-<ul class="org-ul">
-<li>make-scale:</li>
-</ul>
-<p>
-[2m    accepts a list of holes on the commandline, asks some additional[0m
-[2m    questions and writes a new user-defined scale.[0m
-</p>
-<ul class="org-ul">
-<li>chart:</li>
-</ul>
-<p>
-[2m    various harmonica charts for current key; add option &#x2013;ref for[0m
-[2m    more charts. If you supply holes or notes as arguments (optional),[0m
-[2m    only these are printed in the chart of holes and the other charts[0m
-[2m    are skipped.[0m
-</p>
-<ul class="org-ul">
-<li>notes-major, notes:</li>
-</ul>
-<p>
-[2m    print notes of major scale for given key[0m
-</p>
-<ul class="org-ul">
-<li>progression, prog:</li>
-</ul>
-<p>
-[2m    take a base and some semitone diffs, then spell them out[0m
-</p>
-<ul class="org-ul">
-<li>interval, inter:</li>
-</ul>
-<p>
-[2m    calculate and print interval between two notes[0m
-</p>
-<ul class="org-ul">
-<li>chords:</li>
-</ul>
-<p>
-[2m    print chords i, iv and v for current key[0m
-</p>
-<ul class="org-ul">
-<li>transcribe:</li>
-</ul>
-<p>
-[2m    transcribe given audio-file approximately[0m
-</p>
-<ul class="org-ul">
-<li>search-holes-in-licks:</li>
-</ul>
-<p>
-[2m    search given sequence of holes (or equiv) in all licks; the same[0m
-[2m    ordering of holes is required; this can help to find licks that[0m
-[2m    expand on a given sequence of holes[0m
-</p>
-<ul class="org-ul">
-<li>search-lick-in-scales:</li>
-</ul>
-<p>
-[2m    search given lick or sequence of holes (or equiv) in all scales;[0m
-[2m    ordering of holes is not important; this may give an idea, to which[0m
-[2m    of all scales a given lick can be played. See also the somewhat[0m
-[2m    inverse tool search-scale-in-licks.[0m
-</p>
-<ul class="org-ul">
-<li>search-scale-in-licks:</li>
-</ul>
-<p>
-[2m    search given scale in all licks; this computes the uniq holes of a[0m
-[2m    lick and, taking away 0,1,2 &#x2026; holes, checks if the remaining holes[0m
-[2m    are contained in the scale.  This can give an idea, which licks can[0m
-[2m    be played over the given scale (e.g. chord-iv). See also the very[0m
-[2m    similar tool licks-from-scale and the somewhat inverse[0m
-[2m    search-lick-in-scales.[0m
-</p>
-<ul class="org-ul">
-<li>licks-from-scale:</li>
-</ul>
-<p>
-[2m    For all licks, find percentage of holes, that are taken from the[0m
-[2m    given scale and group and sort them accordingly.  This may give an[0m
-[2m    idea, which of all licks can be played over the given scale[0m
-[2m    (e.g. chord-i or blues). See also the very similar tool[0m
-[2m    seach-scale-in-licks.[0m
-</p>
-<ul class="org-ul">
-<li>translate:</li>
-</ul>
-<p>
-[2m    Recognize and translate alternate harmonica notations into the[0m
-[2m    format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";[0m
-[2m    Currently this is optimized for diatonic harmonicas.[0m
-</p>
-<ul class="org-ul">
-<li>utils, utilities:</li>
-</ul>
-<p>
-[2m    Describe some utilities, that come with harpwise and need[0m
-[2m    to be invoked seperately.[0m
-</p>
-<ul class="org-ul">
-<li>edit, edit-licks:</li>
-</ul>
-<p>
-[2m    invoke editor on your lickfile[0m
-[2m    optionally add name of lick or lick-progression to land on[0m
-</p>
-<ul class="org-ul">
-<li>edit-config:</li>
-</ul>
-<p>
-[2m    invoke editor on your personal config file ~/harpwise/config.ini[0m
-</p>
-<ul class="org-ul">
-<li>edit-jam:</li>
-</ul>
-<p>
-[2m    edit given jamming-file. This is much like "harpwise jam edit",[0m
-[2m    which however has a more relaxed way of specifying the jam.[0m
-[2m    See there for details.[0m
-</p>
-<ul class="org-ul">
-<li>diag, diag1:</li>
-</ul>
-<p>
-[2m    help to diagnose problems with your sound system; i.e.[0m
-[2m    check that recording and replay work properly.[0m
-</p>
-<ul class="org-ul">
-<li>diag2:</li>
-</ul>
-<p>
-[2m    check that mp3 can be played without problems.[0m
-</p>
-<ul class="org-ul">
-<li>diag3:</li>
-</ul>
-<p>
-[2m    check that frequencies picked up by your microphone can be[0m
-[2m    recognized properly; for this the check 'diag1' should have[0m
-[2m    been performed sucessfully first.[0m
-</p>
-<ul class="org-ul">
-<li>diag-hints:</li>
-</ul>
-<p>
-[2m    read technical hints on how to fix some of the problems, that[0m
-[2m    might have come up with the other diag-tools.[0m
-</p>
+
 
 
 <p>

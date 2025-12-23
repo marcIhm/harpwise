@@ -13,101 +13,97 @@ loop.
 
 The available 29 flavours are:
 
-- all, ran, random:
-[2m all flavours, one at random[0m
-- scales:
-[2m flavours related with scales at random[0m
-- mic:
-[2m flavours, that use the microphone; most of them switch to[0m
-[2m listen-perspective[0m
-- no-mic:
-[2m flavours, that do not use the microphone, so that no harp is[0m
-[2m needed; but these flavours are not necessarily silent and may[0m
-[2m still play sounds themselves[0m
-- silent:
-[2m flavours, that can be tried with muted speakers, although
-some[0m [2m of the help might not be as useful[0m
-- inters:
-[2m flavours, that revolve around intervals[0m
-- layout:
-[2m flavours, that deal with the layout (holes to notes) of the
-harp[0m
-- players:
-[2m harpwise shows details about a famous player and asks for his
-or[0m [2m her name[0m
-- hear-scale:
-[2m harpwise plays the holes of a scale and asks for its name[0m
-- not-in-scale:
-[2m harpwise picks a scale at random and modifies it: holes are[0m
-[2m shuffled and one is replaced with a foreign hole; this
-modified[0m [2m scale is played and you should find the foreign
-hole. The holes[0m [2m are disguised as h1, h2, and so on[0m
-- match-scale:
-[2m plays a random sequence of holes, that are either a subset of
-one[0m [2m or many scales and asks for the name of the single or
-shortest[0m [2m scale containing all these holes[0m
-- play-scale:
-[2m gives the name of a scale and asks to play it[0m
-- hear-inter:
-[2m plays an interval and asks for its name[0m
-- add-inter:
-[2m gives a hole and an interval and asks for the resulting hole,[0m
-[2m which is obtained by either adding or subtracting[0m
-- play-inter:
-[2m names a hole and an interval which resolves to a hole; then
-asks[0m [2m to play back both holes[0m
-- tell-inter:
-[2m names two holes and asks for the interval between[0m
-- hear-key:
-[2m picks a random key and its matching note (from octaves 4 or[0m
-[2m 5); plays a sequence of notes starting from this note; asks
-for[0m [2m the key[0m
-- hear-hole:
-[2m picks a random key and a named hole-set; then plays a hole
-from[0m [2m this set and asks for its name[0m
-- play-shifted:
-[2m wise computes a sequence of holes, that can be shifted by an[0m
-[2m interval; it plays the original unshifted sequence and names
-and[0m [2m plays the first hole of the shifted sequence; then you
-should play[0m [2m BOTH the unshifted and shifted sequence
-together[0m
-- key-harp-song:
-[2m gives a key of harmonica and asks for the matching[0m [2m key
-of song (2nd position) or vice versa[0m
-- hole-note:
-[2m the wise picks a harp-key then gives a hole and asks for the
-note[0m [2m or vice versa[0m
-- hole-note-key:
-[2m picks (and hides) a new key for the harp at random; then, for
-a[0m [2m named hole-set (e.g. 'blow'), gives holes and matching
-notes[0m [2m (which depend on the hidden key of harp); then asks for
-the key[0m
-- hole-hide-note:
-[2m picks a new key at random and a named hole-set; then shows
-the[0m [2m hole-set, but hides one note; then asks for the hidden
-note[0m
-- hear-hole-set:
-[2m picks a new key at random and a named hole set; then plays
-it,[0m [2m holes hidden; then asks for the key and the hole set[0m
-- keep-tempo:
-[2m plays a number of beats defining a certain tempo; then some[0m
-[2m silence and then some final beats. You are expected to play
-along[0m [2m and keep the given tempo throughout; harpwise records
-your playing[0m [2m and checks, how well you kept the tempo[0m
-- hear-tempo:
-[2m plays a tempo and asks for its bpm[0m
-- replay:
-[2m harpwise plays a sequence of holes and asks you to play it
-back[0m
-- hear-chord:
-[2m taking the harp key as base, the wise chooses a chord
-(e.g. IV)[0m [2m then it plays the base note as well as the
-chord. You are expected[0m [2m to identify the chord. For difficulty
-HARD there are additional[0m [2m chords and for some chords also
-variations[0m
-- choose:
-[2m choose flavour interactively[0m [2m (only as extra-argument on
-commandline)[0m
+- all, ran, random: all flavours, one at random
+
+- scales: flavours related with scales at random
+
+- mic: flavours, that use the microphone; most of them switch to
+  listen-perspective
+
+- no-mic: flavours, that do not use the microphone, so that no harp is
+  needed; but these flavours are not necessarily silent and may still
+  play sounds themselves
+
+- silent: flavours, that can be tried with muted speakers, although some
+  of the help might not be as useful
+
+- inters: flavours, that revolve around intervals
+
+- layout: flavours, that deal with the layout (holes to notes) of the
+  harp
+
+- players: harpwise shows details about a famous player and asks for his
+  or her name
+
+- hear-scale: harpwise plays the holes of a scale and asks for its name
+
+- not-in-scale: harpwise picks a scale at random and modifies it: holes
+  are shuffled and one is replaced with a foreign hole; this modified
+  scale is played and you should find the foreign hole. The holes are
+  disguised as h1, h2, and so on
+
+- match-scale: plays a random sequence of holes, that are either a
+  subset of one or many scales and asks for the name of the single or
+  shortest scale containing all these holes
+
+- play-scale: gives the name of a scale and asks to play it
+
+- hear-inter: plays an interval and asks for its name
+
+- add-inter: gives a hole and an interval and asks for the resulting
+  hole, which is obtained by either adding or subtracting
+
+- play-inter: names a hole and an interval which resolves to a hole;
+  then asks to play back both holes
+
+- tell-inter: names two holes and asks for the interval between
+
+- hear-key: picks a random key and its matching note (from octaves 4 or
+  5); plays a sequence of notes starting from this note; asks for the
+  key
+
+- hear-hole: picks a random key and a named hole-set; then plays a hole
+  from this set and asks for its name
+
+- play-shifted: wise computes a sequence of holes, that can be shifted
+  by an interval; it plays the original unshifted sequence and names and
+  plays the first hole of the shifted sequence; then you should play
+  BOTH the unshifted and shifted sequence together
+
+- key-harp-song: gives a key of harmonica and asks for the matching key
+  of song (2nd position) or vice versa
+
+- hole-note: the wise picks a harp-key then gives a hole and asks for
+  the note or vice versa
+
+- hole-note-key: picks (and hides) a new key for the harp at random;
+  then, for a named hole-set (e.g. 'blow'), gives holes and matching
+  notes (which depend on the hidden key of harp); then asks for the key
+
+- hole-hide-note: picks a new key at random and a named hole-set; then
+  shows the hole-set, but hides one note; then asks for the hidden note
+
+- hear-hole-set: picks a new key at random and a named hole set; then
+  plays it, holes hidden; then asks for the key and the hole set
+
+- keep-tempo: plays a number of beats defining a certain tempo; then
+  some silence and then some final beats. You are expected to play along
+  and keep the given tempo throughout; harpwise records your playing and
+  checks, how well you kept the tempo
+
+- hear-tempo: plays a tempo and asks for its bpm
+
+- replay: harpwise plays a sequence of holes and asks you to play it
+  back
+
+- hear-chord: taking the harp key as base, the wise chooses a chord
+  (e.g. IV) then it plays the base note as well as the chord. You are
+  expected to identify the chord. For difficulty HARD there are
+  additional chords and for some chords also variations
+
+- choose: choose flavour interactively (only as extra-argument on
+  commandline)
+
 
 Usage by Examples:
 

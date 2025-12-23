@@ -8,25 +8,34 @@ Overview of 'harpwise develop':
   one of:
 
     - docs-make-org-txt:
-  [2m    process template from docs/erb-org and produce files[0m
-  [2m    in _org and _txt[0m
+      process template from docs/erb-org and produce files
+      in _org and _txt
+
     - docs-make-html:
-  [2m    process org-files with org-publish from docs/_org and produce[0m
-  [2m    file in _html[0m
+      process org-files with org-publish from docs/_org and produce
+      file in _html
+
     - docs-all:
-  [2m    all docs-xyz extras one after the other[0m
+      all docs-xyz extras one after the other
+
     - selftest:
-  [2m    perform selftest with special regard to the environment[0m
+      perform selftest with special regard to the environment
+
     - unittest:
-  [2m    unittest for features, that cannot easily be tested within the[0m
-  [2m    main test program[0m
+      unittest for features, that cannot easily be tested within the
+      main test program
+
     - widgets:
-  [2m    excercise selected widgets to be tested[0m
+      excercise selected widgets to be tested
+
     - lickfile:
-  [2m    load and parse a lickfile[0m
+      load and parse a lickfile
+
     - check-frequencies:
-  [2m    recalculate and check frequencies for current set of samples[0m
+      recalculate and check frequencies for current set of samples
+
     - read-scale-with-notes:
-  [2m    read given scale (first arg) from file (second arg)[0m
+      read given scale (first arg) from file (second arg)
+
     - dump:
-  [2m    dump internal data structures to stdout[0m
+      dump internal data structures to stdout

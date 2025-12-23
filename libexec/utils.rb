@@ -883,12 +883,14 @@ end
 
 def get_extra_desc_all mode: $mode, highlight: nil, for_usage: false, exclude_meta: false
   lines = []
+  indent = ( for_usage ? '  ' : '' )
   $extras_joined_to_desc[mode].each do |k,v|
     ks = k.split(',').map(&:strip)
     next if exclude_meta && ks.any? {|kk| $quiz_tag2flavours[:meta].include?(kk)}
     k = highlight_helper(k, highlight)
-    lines << (for_usage ? '  ' : '') + "  - #{k}:"
-    lines.append(v.lines.map {|l| (for_usage ? '  ' : '') + "\e[2m    #{l.strip}\e[0m"})
+    lines << indent + "  - #{k}:"
+    lines.append(v.lines.map {|l| indent + "    #{l.strip}"})
+    lines << ''
   end
   lines
 end

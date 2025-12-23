@@ -17,29 +17,28 @@ Its arguments (which mostly can not be mixed) can be any of these:
 or one of the known extra arguments (that themselves might require
 additional arguments):
 
-- licks:
-[2m all licks selected (e.g. by option -t). Add option
-'--lick-radio'[0m [2m to make harpwise play licks without
-interruption (but repeats);[0m [2m as an optional argument you may
-give the number of repeats[0m
-- pitch:
-[2m play an interactive, adjustable pitch; this may help to find
-the[0m [2m key of a song by ear-comparison; the initial key,
-e.g. 'a4' can be[0m [2m supplied as an optional argument[0m
-- interval, inter:
-[2m interactive, adjustable interval given as arguments[0m
-- progression, prog:
-[2m take a base and some semitone diffs, then play it in a loop,[0m
-[2m allowing e.g. to shift each iteration by some semitones e.g.[0m
-[2m through a chord-progression of i-iv-v. Moreover you may
-specify[0m [2m two or more progressions with a dot (.) between;
-those can then[0m [2m be switched for each iteration.[0m
-- chord:
-[2m play the given holes or notes simultanously as a chord; also[0m
-[2m useful for tongue-splits.[0m
-- user:
-[2m play back (if any), what you (the user) have recorded in mode[0m
-[2m 'licks' before[0m
+- licks: all licks selected (e.g. by option -t). Add option
+  '--lick-radio' to make harpwise play licks without interruption (but
+  repeats); as an optional argument you may give the number of repeats
+
+- pitch: play an interactive, adjustable pitch; this may help to find
+  the key of a song by ear-comparison; the initial key, e.g. 'a4' can be
+  supplied as an optional argument
+
+- interval, inter: interactive, adjustable interval given as arguments
+
+- progression, prog: take a base and some semitone diffs, then play it
+  in a loop, allowing e.g. to shift each iteration by some semitones
+  e.g.  through a chord-progression of i-iv-v. Moreover you may specify
+  two or more progressions with a dot (.) between; those can then be
+  switched for each iteration.
+
+- chord: play the given holes or notes simultanously as a chord; also
+  useful for tongue-splits.
+
+- user: play back (if any), what you (the user) have recorded in mode
+  'licks' before
+
 
 
 Usage by Examples:

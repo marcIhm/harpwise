@@ -222,68 +222,78 @@ functions, this gives the following choice of extra arguments:
 </p>
 
 <ul class="org-ul">
-<li>record:</li>
-</ul>
-<p>
-[2m    harpwise assists while you play the holes for the given type and[0m
-[2m    key of harmonica. After each recording you may hear back and trim.[0m
-[2m    [0m
-[2m    These samples capture your style of playing and the specific sound[0m
-[2m    of your harmonica as far as possible and brings them into[0m
-[2m    harpwise. This way of creating samples gives more interesting[0m
-[2m    results than 'generate' but requires some work from your side;[0m
-[2m    consider recording the most important keys (or even holes) first[0m
-[2m    and use 'generate' for the others. Even 'generate all', as your[0m
-[2m    recordings would not be overwritten.[0m
-[2m    [0m
-[2m    To redo the recording for a single hole, give it as an argument on[0m
-[2m    the commandline.[0m
-[2m    [0m
-[2m    You may even combine this method of recording hole-samples with[0m
-[2m    'generate', as your recorded samples will be kept and preferred[0m
-[2m    over generated samples unless you explicitly use the extra-command[0m
-[2m    'delete'.[0m
+<li><p>
+record:
+harpwise assists while you play the holes for the given type and
+key of harmonica. After each recording you may hear back and trim.
 </p>
-<ul class="org-ul">
-<li>generate:</li>
-</ul>
+
 <p>
-[2m    as a faster alternative to 'record', you may let harpwise generate[0m
-[2m    samples for each hole.  This gives fast results, that, however[0m
-[2m    lack the typical harmonica sound.  You may try different waveforms[0m
-[2m    (e.g. 'sine') with option &#x2013;wave (with a default of 'pluck').[0m
-[2m    [0m
-[2m    To generate samples for all keys in one pass, you may give 'all'[0m
-[2m    as an additional argument; otherwise samples are created for the[0m
-[2m    current key only.[0m
-[2m    [0m
-[2m    'generate' never overwrites samples that you play during 'record';[0m
-[2m    use 'delete' for this, if required.[0m
+These samples capture your style of playing and the specific sound
+of your harmonica as far as possible and brings them into
+harpwise. This way of creating samples gives more interesting
+results than 'generate' but requires some work from your side;
+consider recording the most important keys (or even holes) first
+and use 'generate' for the others. Even 'generate all', as your
+recordings would not be overwritten.
 </p>
-<ul class="org-ul">
-<li>check:</li>
-</ul>
+
 <p>
-[2m    For the current type and key of harmonica, check out and summarize[0m
-[2m    available samples; especially show, which samples have been[0m
-[2m    recorded and which ones generated. Use 'all' to get a summary for[0m
-[2m    each and every key.[0m
+To redo the recording for a single hole, give it as an argument on
+the commandline.
 </p>
-<ul class="org-ul">
-<li>delete:</li>
-</ul>
+
 <p>
-[2m    For the current key, ask for confirmation to delete your recorded[0m
-[2m    samples, if any. As these recorded samples had precedence over any[0m
-[2m    generated samples, this might be necessary to make harpwise use[0m
-[2m    the generated samples (or maybe suggest to use 'generate' first).[0m
-[2m    [0m
-[2m    This can be useful, if you prefer the (maybe) more precise samples[0m
-[2m    that harpwise generates.[0m
-[2m    [0m
-[2m    By giving the argument 'all' you may delete all samples for all[0m
-[2m    keys.[0m
+You may even combine this method of recording hole-samples with
+'generate', as your recorded samples will be kept and preferred
+over generated samples unless you explicitly use the extra-command
+'delete'.
+</p></li>
+
+<li><p>
+generate:
+as a faster alternative to 'record', you may let harpwise generate
+samples for each hole.  This gives fast results, that, however
+lack the typical harmonica sound.  You may try different waveforms
+(e.g. 'sine') with option &#x2013;wave (with a default of 'pluck').
 </p>
+
+<p>
+To generate samples for all keys in one pass, you may give 'all'
+as an additional argument; otherwise samples are created for the
+current key only.
+</p>
+
+<p>
+'generate' never overwrites samples that you play during 'record';
+use 'delete' for this, if required.
+</p></li>
+
+<li>check:
+For the current type and key of harmonica, check out and summarize
+available samples; especially show, which samples have been
+recorded and which ones generated. Use 'all' to get a summary for
+each and every key.</li>
+
+<li><p>
+delete:
+For the current key, ask for confirmation to delete your recorded
+samples, if any. As these recorded samples had precedence over any
+generated samples, this might be necessary to make harpwise use
+the generated samples (or maybe suggest to use 'generate' first).
+</p>
+
+<p>
+This can be useful, if you prefer the (maybe) more precise samples
+that harpwise generates.
+</p>
+
+<p>
+By giving the argument 'all' you may delete all samples for all
+keys.
+</p></li>
+</ul>
+
 
 
 <p>
