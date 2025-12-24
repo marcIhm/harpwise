@@ -426,93 +426,122 @@ The available 29 flavours are:
 
     - all, ran, random:
       all flavours, one at random
+
     - scales:
       flavours related with scales at random
+
     - mic:
       flavours, that use the microphone; most of them switch to
       listen-perspective
+
     - no-mic:
       flavours, that do not use the microphone, so that no harp is
       needed; but these flavours are not necessarily silent and may
       still play sounds themselves
+
     - silent:
       flavours, that can be tried with muted speakers, although some
       of the help might not be as useful
+
     - inters:
       flavours, that revolve around intervals
+
     - layout:
       flavours, that deal with the layout (holes to notes) of the harp
+
     - players:
       harpwise shows details about a famous player and asks for his or
       her name
+
     - hear-scale:
       harpwise plays the holes of a scale and asks for its name
+
     - not-in-scale:
       harpwise picks a scale at random and modifies it: holes are
       shuffled and one is replaced with a foreign hole; this modified
       scale is played and you should find the foreign hole. The holes
       are disguised as h1, h2, and so on
+
     - match-scale:
       plays a random sequence of holes, that are either a subset of one
       or many scales and asks for the name of the single or shortest
       scale containing all these holes
+
     - play-scale:
       gives the name of a scale and asks to play it
+
     - hear-inter:
       plays an interval and asks for its name
+
     - add-inter:
       gives a hole and an interval and asks for the resulting hole,
       which is obtained by either adding or subtracting
+
     - play-inter:
       names a hole and an interval which resolves to a hole; then asks
       to play back both holes
+
     - tell-inter:
       names two holes and asks for the interval between
+
     - hear-key:
       picks a random key and its matching note (from octaves 4 or
       5); plays a sequence of notes starting from this note; asks for
       the key
+
     - hear-hole:
       picks a random key and a named hole-set; then plays a hole from
       this set and asks for its name
+
     - play-shifted:
       wise computes a sequence of holes, that can be shifted by an
       interval; it plays the original unshifted sequence and names and
       plays the first hole of the shifted sequence; then you should play
       BOTH the unshifted and shifted sequence together
+
     - key-harp-song:
       gives a key of harmonica and asks for the matching
       key of song (2nd position) or vice versa
+
     - hole-note:
       the wise picks a harp-key then gives a hole and asks for the note
       or vice versa
+
     - hole-note-key:
       picks (and hides) a new key for the harp at random; then, for a
       named hole-set (e.g. 'blow'), gives holes and matching notes
       (which depend on the hidden key of harp); then asks for the key
+
     - hole-hide-note:
       picks a new key at random and a named hole-set; then shows the
       hole-set, but hides one note; then asks for the hidden note
+
     - hear-hole-set:
       picks a new key at random and a named hole set; then plays it,
       holes hidden; then asks for the key and the hole set
+
     - keep-tempo:
       plays a number of beats defining a certain tempo; then some
       silence and then some final beats. You are expected to play along
       and keep the given tempo throughout; harpwise records your playing
       and checks, how well you kept the tempo
+
     - hear-tempo:
       plays a tempo and asks for its bpm
+
     - replay:
       harpwise plays a sequence of holes and asks you to play it back
+
     - hear-chord:
       taking the harp key as base, the wise chooses a chord (e.g. IV)
       then it plays the base note as well as the chord. You are expected
       to identify the chord. For difficulty HARD there are additional
       chords and for some chords also variations
+
     - choose:
       choose flavour interactively
       (only as extra-argument on commandline)
+
   
 Usage by Examples:
 
@@ -695,6 +724,7 @@ Usage by Examples:
       
       Please note, that this kind of fuzzy selection applies to other
       extra-commands within mode jamming too.
+
     - list, ls:
       list available jamming-files with date of last usage and any stored
       processing notes.
@@ -704,6 +734,7 @@ Usage by Examples:
       
       If you give the argument 'all' alone, details for all files will
       be printed.
+
     - play:
       Play the given backing-track; can be useful if you want to search
       for a matching lick-progression before starting to jam.
@@ -714,13 +745,16 @@ Usage by Examples:
       For this purpose you may even give the path to a simple .mp3-file
       which will be played, thus allowing you to mark timestamps; so
       no need to create a json-file up front.
+
     - edit:
       edit given jamming-file (fuzzy selection)
+
     - notes, note:
       For the given jamming-file Invoke your editor to enter or edit the
       notes, that will be shown in "harpwise jam list".
       
       An empty (or whitespace only) note will be removed altogether.
+
 
 Quick Start:
 
@@ -936,24 +970,30 @@ Usage by Examples:
       all licks selected (e.g. by option -t). Add option '--lick-radio'
       to make harpwise play licks without interruption (but repeats);
       as an optional argument you may give the number of repeats
+
     - pitch:
       play an interactive, adjustable pitch; this may help to find the
       key of a song by ear-comparison; the initial key, e.g. 'a4' can be
       supplied as an optional argument
+
     - interval, inter:
       interactive, adjustable interval given as arguments
+
     - progression, prog:
       take a base and some semitone diffs, then play it in a loop,
       allowing e.g. to shift each iteration by some semitones e.g.
       through a chord-progression of i-iv-v. Moreover you may specify
       two or more progressions with a dot (.) between; those can then
       be switched for each iteration.
+
     - chord:
       play the given holes or notes simultanously as a chord; also
       useful for tongue-splits.
+
     - user:
       play back (if any), what you (the user) have recorded in mode
       'licks' before
+
 
 
 Usage by Examples:
@@ -1176,14 +1216,17 @@ Usage by Examples:
 
     - transpose:
       transpose a sequence of holes between keys
+
     - shift:
       shift a sequence of holes or notes or a single lick by the given
       number of semitones (first argument)
+
     - shift-to-groups:
       Starts off like 'shift' (see there), but also shows groups of
       alternative holes, that give the same note only in different
       octaves. This can be useful to find variations of a
       hole-sequences, e.g. for improvisation
+
     - keys:
       For a diatonic harmonica: print a chart with keys and positions
       centered around current key; this tool accepts two optional extra
@@ -1193,6 +1236,7 @@ Usage by Examples:
       
       Use option --brief to print a version shortend to the most common
       keys and position.
+
     - spread-notes:
       take a list of notes (e.g. a, a4, b, cs) as arguments and turn
       them into a list of holes that produce them. As the octave is
@@ -1201,33 +1245,43 @@ Usage by Examples:
       harmonica chart. When invoked with option --brief, this tool can
       be used as a subcommand on the commandline, in which case it just
       returns the list of holes, to be used e.g. as an adhoc-scale.
+
     - make-scale:
       accepts a list of holes on the commandline, asks some additional
       questions and writes a new user-defined scale.
+
     - chart:
       various harmonica charts for current key; add option --ref for
       more charts. If you supply holes or notes as arguments (optional),
       only these are printed in the chart of holes and the other charts
       are skipped.
+
     - notes-major, notes:
       print notes of major scale for given key
+
     - progression, prog:
       take a base and some semitone diffs, then spell them out
+
     - interval, inter:
       calculate and print interval between two notes
+
     - chords:
       print chords i, iv and v for current key
+
     - transcribe:
       transcribe given audio-file approximately
+
     - search-holes-in-licks:
       search given sequence of holes (or equiv) in all licks; the same
       ordering of holes is required; this can help to find licks that
       expand on a given sequence of holes
+
     - search-lick-in-scales:
       search given lick or sequence of holes (or equiv) in all scales;
       ordering of holes is not important; this may give an idea, to which
       of all scales a given lick can be played. See also the somewhat
       inverse tool search-scale-in-licks.
+
     - search-scale-in-licks:
       search given scale in all licks; this computes the uniq holes of a
       lick and, taking away 0,1,2 ... holes, checks if the remaining holes
@@ -1235,40 +1289,51 @@ Usage by Examples:
       be played over the given scale (e.g. chord-iv). See also the very
       similar tool licks-from-scale and the somewhat inverse
       search-lick-in-scales.
+
     - licks-from-scale:
       For all licks, find percentage of holes, that are taken from the
       given scale and group and sort them accordingly.  This may give an
       idea, which of all licks can be played over the given scale
       (e.g. chord-i or blues). See also the very similar tool
       seach-scale-in-licks.
+
     - translate:
       Recognize and translate alternate harmonica notations into the
       format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";
       Currently this is optimized for diatonic harmonicas.
+
     - utils, utilities:
       Describe some utilities, that come with harpwise and need
       to be invoked seperately.
+
     - edit, edit-licks:
       invoke editor on your lickfile
       optionally add name of lick or lick-progression to land on
+
     - edit-config:
       invoke editor on your personal config file ~/harpwise/config.ini
+
     - edit-jam:
       edit given jamming-file. This is much like "harpwise jam edit",
       which however has a more relaxed way of specifying the jam.
       See there for details.
+
     - diag, diag1:
       help to diagnose problems with your sound system; i.e.
       check that recording and replay work properly.
+
     - diag2:
       check that mp3 can be played without problems.
+
     - diag3:
       check that frequencies picked up by your microphone can be
       recognized properly; for this the check 'diag1' should have
       been performed sucessfully first.
+
     - diag-hints:
       read technical hints on how to fix some of the problems, that
       might have come up with the other diag-tools.
+
   
 
 Usage by Examples:
@@ -1456,6 +1521,7 @@ Usage by Examples:
       'generate', as your recorded samples will be kept and preferred
       over generated samples unless you explicitly use the extra-command
       'delete'.
+
     - generate:
       as a faster alternative to 'record', you may let harpwise generate
       samples for each hole.  This gives fast results, that, however
@@ -1468,11 +1534,13 @@ Usage by Examples:
       
       'generate' never overwrites samples that you play during 'record';
       use 'delete' for this, if required.
+
     - check:
       For the current type and key of harmonica, check out and summarize
       available samples; especially show, which samples have been
       recorded and which ones generated. Use 'all' to get a summary for
       each and every key.
+
     - delete:
       For the current key, ask for confirmation to delete your recorded
       samples, if any. As these recorded samples had precedence over any
@@ -1484,6 +1552,7 @@ Usage by Examples:
       
       By giving the argument 'all' you may delete all samples for all
       keys.
+
 
 
   The samples need to be generated for each key, but only once in the

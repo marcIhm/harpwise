@@ -216,7 +216,7 @@ end
     sleep 1
     tms 'y'
     sleep 4
-    wait_for_end_of_harpwise
+    wait_for_end_of_harpwise 30
     expect { screen[-4]['Sample generation done.'] }
     kill_session
   end
@@ -260,7 +260,7 @@ end
     sleep 2
     tms 'y'
     sleep 12
-    wait_for_end_of_harpwise
+    wait_for_end_of_harpwise 30
     expect { screen[-4]['Sample generation done.'] }
     kill_session
   end
@@ -3221,7 +3221,7 @@ do_test 'id-102: help on flavours via TAB' do
   sleep 1
   tms 'describe-all'
   tms :ENTER
-  expect { screen[12]['harpwise plays a sequence'] }
+  expect { screen[10]['harpwise plays a sequence'] }
   kill_session
 end
 
@@ -4112,9 +4112,9 @@ do_test 'id-143: various comments among holes' do
 end
 
 do_test 'id-144: check consistent usage of short and long description' do
-  # Do not care for punctuation or whitespace at line ending
-  short_desc = File.read("resources/short_description").gsub(/([[:punct:]]|\s)*$/,"").gsub(/ +/,' ').downcase
-  long_desc = File.read("resources/long_description").lines.map(&:strip).join(' ').gsub(/ +/,' ').downcase
+
+  short_desc = File.read("resources/short_description").desc2canon
+  long_desc = File.read("resources/long_description").lines.join.desc2canon
 
   sd_readme = nil
   ld_readme = []
@@ -4130,8 +4130,8 @@ do_test 'id-144: check consistent usage of short and long description' do
     end
     in_summary ||= ( line == '* Harpwise' )
   end
-  sd_readme.gsub!(/([[:punct:]]|\s)*$/,"").gsub!(/ +/,' ').downcase!
-  ld_readme = ld_readme[0 .. -1].join(' ').gsub!(/ +/,' ').downcase!
+  sd_readme = sd_readme.desc2canon
+  ld_readme = ld_readme[0 .. -1].join.desc2canon
   expect(short_desc, sd_readme) { short_desc == sd_readme }
   expect(long_desc, ld_readme) { long_desc == ld_readme }
 
@@ -4145,15 +4145,15 @@ do_test 'id-144: check consistent usage of short and long description' do
       sd_usage ||= line 
     end
   end
-  sd_usage.gsub!(/([[:punct:]]|\s)*$/,"").gsub!(/ +/,' ').downcase!
-  ld_usage = ld_usage.join(' ').gsub(/ +/,' ').downcase
+  sd_usage = sd_usage.desc2canon
+  ld_usage = ld_usage.join.desc2canon
   expect(short_desc, sd_usage) { short_desc == sd_usage }
   expect(long_desc, ld_usage) { long_desc == ld_usage }
 
   system("erb /home/ihm/git/harpwise/snap/snapcraft.yaml.erb >/tmp/snapcraft.yaml")
   snap = YAML.load_file('/tmp/snapcraft.yaml')
-  sd_snap = snap['summary'].gsub!(/([[:punct:]]|\s)*$/,"").gsub(/ +/,' ').downcase
-  ld_snap = snap['description'].lines.map(&:chomp).join(' ').gsub(/ +/,' ').downcase
+  sd_snap = snap['summary'].desc2canon
+  ld_snap = snap['description'].desc2canon
   expect(short_desc, sd_snap) { short_desc == sd_snap }
   expect(long_desc, ld_snap) { long_desc == ld_snap }
 
@@ -4172,14 +4172,13 @@ do_test 'id-144: check consistent usage of short and long description' do
     after = line if %w(NAME DESCRIPTION).include?(line)
   end
   sd_man['harpwise - '] = ''
-  sd_man['.'] = ''
-  sd_man.gsub!(/ +/,' ').downcase!
-  ld_man = ld_man.join(' ').gsub(/ +/,' ').downcase
+  sd_man = sd_man.desc2canon
+  ld_man = ld_man.join.desc2canon
   expect(short_desc, sd_man) { short_desc == sd_man }
   expect(long_desc, ld_man) { long_desc == ld_man }
   
   response = Net::HTTP.get_response(URI('https://api.github.com/repos/marcihm/harpwise'))
-  sd_github = JSON.parse(response.body)['description'].gsub!(/([[:punct:]]|\s)*$/,"").downcase
+  sd_github = JSON.parse(response.body)['description'].desc2canon
   expect(short_desc, sd_github) { short_desc == sd_github }
 end
 

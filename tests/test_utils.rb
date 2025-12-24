@@ -216,3 +216,10 @@ at_exit {
   File.write($memo_file, JSON.pretty_generate($memo))
   system("killall aubiopitch >/dev/null 2>&1")
 }
+
+
+class String
+  def desc2canon
+    self.gsub(/[[:punct:]]/,'').gsub(/\n/,' ').gsub(/\s+/,'').gsub(/\./,'').strip.downcase
+  end
+end
