@@ -275,41 +275,42 @@ overflow: auto;
 <li><a href="#org0000000">Introduction</a></li>
 <li><a href="#org0000001">A note for Beginners</a></li>
 <li><a href="#org0000002">Screencasts</a></li>
-<li><a href="#org0000003">Getting started</a></li>
-<li><a href="#org0000004">The Modes</a>
+<li><a href="#org0000003">Invoking harpwise</a></li>
+<li><a href="#org0000004">Getting started with harpwise</a></li>
+<li><a href="#org0000005">The Modes</a>
 <ul>
-<li><a href="#org0000005">Listen</a></li>
-<li><a href="#org0000006">Quiz</a></li>
-<li><a href="#org0000007">Jamming</a></li>
-<li><a href="#org0000008">Licks</a></li>
-<li><a href="#org0000009">Play</a></li>
-<li><a href="#org0000010">Tools</a></li>
-<li><a href="#org0000011">Samples</a></li>
+<li><a href="#org0000006">Listen</a></li>
+<li><a href="#org0000007">Quiz</a></li>
+<li><a href="#org0000008">Jamming</a></li>
+<li><a href="#org0000009">Licks</a></li>
+<li><a href="#org0000010">Play</a></li>
+<li><a href="#org0000011">Tools</a></li>
+<li><a href="#org0000012">Samples</a></li>
 </ul>
 </li>
-<li><a href="#org0000012">Installation</a></li>
-<li><a href="#org0000013">Getting help</a></li>
-<li><a href="#org0000014">Configuration</a></li>
-<li><a href="#org0000015">Some musical concepts</a>
+<li><a href="#org0000013">Installation</a></li>
+<li><a href="#org0000014">Getting help</a></li>
+<li><a href="#org0000015">Configuration</a></li>
+<li><a href="#org0000016">Some musical concepts</a>
 <ul>
-<li><a href="#org0000016">Scales</a></li>
-<li><a href="#org0000017">Licks</a></li>
+<li><a href="#org0000017">Scales</a></li>
+<li><a href="#org0000018">Licks</a></li>
 </ul>
 </li>
-<li><a href="#org0000018">Some technical concepts</a>
+<li><a href="#org0000019">Some technical concepts</a>
 <ul>
-<li><a href="#org0000019">The reference hole</a></li>
-<li><a href="#org0000020">When multiple holes produce the same note</a></li>
-<li><a href="#org0000021">Tuning</a></li>
+<li><a href="#org0000020">The reference hole</a></li>
+<li><a href="#org0000021">When multiple holes produce the same note</a></li>
+<li><a href="#org0000022">Tuning</a></li>
 </ul>
 </li>
-<li><a href="#org0000022">A closer look at the Screen</a>
+<li><a href="#org0000023">A closer look at the Screen (mode listen)</a>
 <ul>
-<li><a href="#org0000023">The header</a></li>
-<li><a href="#org0000024">The 'display'</a></li>
-<li><a href="#org0000025">The middle part of the screen</a></li>
-<li><a href="#org0000026">The 'comment'</a></li>
-<li><a href="#org0000027">The footer</a></li>
+<li><a href="#org0000024">The header</a></li>
+<li><a href="#org0000025">The 'display'</a></li>
+<li><a href="#org0000026">The middle part of the screen</a></li>
+<li><a href="#org0000027">The 'comment'</a></li>
+<li><a href="#org0000028">The footer</a></li>
 </ul>
 </li>
 </ul>
@@ -323,7 +324,7 @@ A harmonica tool for the command line, using microphone and speaker.
 </p>
 
 
-<div id="org0000028" class="figure">
+<div id="org0000029" class="figure">
 <p><img src="images/harmonica3.png" alt="harmonica3.png" />
 </p>
 </div>
@@ -395,7 +396,7 @@ recorded however, so some acoustic imagination is required.
 </p>
 
 
-<div id="org0000029" class="figure">
+<div id="org0000030" class="figure">
 <p><img src="images/harpwise-listen.gif" alt="harpwise-listen.gif" />
 </p>
 </div>
@@ -406,15 +407,59 @@ flavours: hear-key, players and keep-tempo.
 </p>
 
 
-<div id="org0000030" class="figure">
+<div id="org0000031" class="figure">
 <p><img src="images/harpwise-quiz.gif" alt="harpwise-quiz.gif" />
 </p>
 </div>
 </div>
 </div>
 <div id="outline-container-org0000003" class="outline-2">
-<h2 id="org0000003">Getting started</h2>
+<h2 id="org0000003">Invoking harpwise</h2>
 <div class="outline-text-2" id="text-org0000003">
+<p>
+Harpwise is a commandline-program, so you need to open a termnal. The
+terminal should have black (dark) background to match the colors used by
+harpwise. Your terminal should use a fixed-width font.
+</p>
+
+<p>
+Please note, that harpwise tries to adapt itself to different screen
+(terminal) sizes. If change the size of your terminal-window (assuming
+that you have a grafical desktop), then harpwise will react accordingly
+and you do not need to restart it.
+</p>
+
+<p>
+You probaby get the best experience if you use a larger font and a
+terminal with a modest size, e.g. 90 cloumns and 30 rows.
+</p>
+
+<p>
+Also note, that harpwise uses figlet to display some information in
+large letters. The optical result of this may vary, and you may get a
+smoother appearance by choosing another font; personally I use 'Lucida
+Console' (at least under WSL2/Windows).
+</p>
+
+<p>
+With that, and if harpwise is installed correctly, invoking harpwise is simple:
+</p>
+
+<p>
+#+begin<sub>src</sub>
+  harpwise
+#end<sub>src</sub>
+</p>
+
+<p>
+this will issue a text on using harpwise, that you may also read in the
+next section of this page.
+</p>
+</div>
+</div>
+<div id="outline-container-org0000004" class="outline-2">
+<h2 id="org0000004">Getting started with harpwise</h2>
+<div class="outline-text-2" id="text-org0000004">
 <p>
 A harmonica tool for the command line, using microphone and speaker.
 </p>
@@ -718,20 +763,20 @@ Guided jam along a 12bar-blues:
 </div>
 </div>
 </div>
-<div id="outline-container-org0000004" class="outline-2">
-<h2 id="org0000004">The Modes</h2>
-<div class="outline-text-2" id="text-org0000004">
+<div id="outline-container-org0000005" class="outline-2">
+<h2 id="org0000005">The Modes</h2>
+<div class="outline-text-2" id="text-org0000005">
 <p>
 These correspond with the broad use cases of harpwise. On the
 commandline the mode comes as a the second argument, e.g. 'listen' in
 'harpwise listen'.
 </p>
 </div>
-<div id="outline-container-org0000005" class="outline-3">
-<h3 id="org0000005">Listen</h3>
-<div class="outline-text-3" id="text-org0000005">
+<div id="outline-container-org0000006" class="outline-3">
+<h3 id="org0000006">Listen</h3>
+<div class="outline-text-3" id="text-org0000006">
 
-<div id="org0000031" class="figure">
+<div id="org0000032" class="figure">
 <p><img src="images/harpwise-listen.gif" alt="harpwise-listen.gif" />
 </p>
 </div>
@@ -926,11 +971,11 @@ Quick Start:
 </div>
 </div>
 </div>
-<div id="outline-container-org0000006" class="outline-3">
-<h3 id="org0000006">Quiz</h3>
-<div class="outline-text-3" id="text-org0000006">
+<div id="outline-container-org0000007" class="outline-3">
+<h3 id="org0000007">Quiz</h3>
+<div class="outline-text-3" id="text-org0000007">
 
-<div id="org0000032" class="figure">
+<div id="org0000033" class="figure">
 <p><img src="images/harpwise-quiz.gif" alt="harpwise-quiz.gif" />
 </p>
 </div>
@@ -1165,9 +1210,9 @@ Quick Start:
 </div>
 </div>
 </div>
-<div id="outline-container-org0000007" class="outline-3">
-<h3 id="org0000007">Jamming</h3>
-<div class="outline-text-3" id="text-org0000007">
+<div id="outline-container-org0000008" class="outline-3">
+<h3 id="org0000008">Jamming</h3>
+<div class="outline-text-3" id="text-org0000008">
 <p>
 Overview of 'harpwise jamming':
 </p>
@@ -1407,9 +1452,9 @@ Quick Start:
 </div>
 </div>
 </div>
-<div id="outline-container-org0000008" class="outline-3">
-<h3 id="org0000008">Licks</h3>
-<div class="outline-text-3" id="text-org0000008">
+<div id="outline-container-org0000009" class="outline-3">
+<h3 id="org0000009">Licks</h3>
+<div class="outline-text-3" id="text-org0000009">
 <p>
 Overview of 'harpwise licks':
 </p>
@@ -1669,9 +1714,9 @@ to your lickfile.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000009" class="outline-3">
-<h3 id="org0000009">Play</h3>
-<div class="outline-text-3" id="text-org0000009">
+<div id="outline-container-org0000010" class="outline-3">
+<h3 id="org0000010">Play</h3>
+<div class="outline-text-3" id="text-org0000010">
 <p>
 Overview of 'harpwise play':
 </p>
@@ -2037,9 +2082,9 @@ trigger the recording explicitly).
 </p>
 </div>
 </div>
-<div id="outline-container-org0000010" class="outline-3">
-<h3 id="org0000010">Tools</h3>
-<div class="outline-text-3" id="text-org0000010">
+<div id="outline-container-org0000011" class="outline-3">
+<h3 id="org0000011">Tools</h3>
+<div class="outline-text-3" id="text-org0000011">
 <p>
 Overview of 'harpwise tools':
 </p>
@@ -2401,9 +2446,9 @@ played in lick wade.mp3 (from current working dir)
 </p>
 </div>
 </div>
-<div id="outline-container-org0000011" class="outline-3">
-<h3 id="org0000011">Samples</h3>
-<div class="outline-text-3" id="text-org0000011">
+<div id="outline-container-org0000012" class="outline-3">
+<h3 id="org0000012">Samples</h3>
+<div class="outline-text-3" id="text-org0000012">
 <p>
 Overview of 'harpwise samples':
 </p>
@@ -2628,9 +2673,9 @@ or shadowed by recorded samples.
 </div>
 </div>
 </div>
-<div id="outline-container-org0000012" class="outline-2">
-<h2 id="org0000012">Installation</h2>
-<div class="outline-text-2" id="text-org0000012">
+<div id="outline-container-org0000013" class="outline-2">
+<h2 id="org0000013">Installation</h2>
+<div class="outline-text-2" id="text-org0000013">
 <p>
 The latest version of harpwise is a available as a snap:
 </p>
@@ -2645,9 +2690,9 @@ this also works quite well for WSL2/Windows.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000013" class="outline-2">
-<h2 id="org0000013">Getting help</h2>
-<div class="outline-text-2" id="text-org0000013">
+<div id="outline-container-org0000014" class="outline-2">
+<h2 id="org0000014">Getting help</h2>
+<div class="outline-text-2" id="text-org0000014">
 <p>
 If you have problems, questions or just want to give feedback, please
 drop me a note: marc@ihm.name
@@ -2659,9 +2704,9 @@ may also open a github-issue.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000014" class="outline-2">
-<h2 id="org0000014">Configuration</h2>
-<div class="outline-text-2" id="text-org0000014">
+<div id="outline-container-org0000015" class="outline-2">
+<h2 id="org0000015">Configuration</h2>
+<div class="outline-text-2" id="text-org0000015">
 <p>
 This is the user-modifyable configuration file, that will be created on
 first invocation:
@@ -2684,13 +2729,13 @@ options, which in many cases mirror the settings from your config.ini.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000015" class="outline-2">
-<h2 id="org0000015">Some musical concepts</h2>
-<div class="outline-text-2" id="text-org0000015">
+<div id="outline-container-org0000016" class="outline-2">
+<h2 id="org0000016">Some musical concepts</h2>
+<div class="outline-text-2" id="text-org0000016">
 </div>
-<div id="outline-container-org0000016" class="outline-3">
-<h3 id="org0000016">Scales</h3>
-<div class="outline-text-3" id="text-org0000016">
+<div id="outline-container-org0000017" class="outline-3">
+<h3 id="org0000017">Scales</h3>
+<div class="outline-text-3" id="text-org0000017">
 <p>
 Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
 playing the harmonica. E.g. when improvising, you may stick to a
@@ -2745,9 +2790,9 @@ see mode listen for an example.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000017" class="outline-3">
-<h3 id="org0000017">Licks</h3>
-<div class="outline-text-3" id="text-org0000017">
+<div id="outline-container-org0000018" class="outline-3">
+<h3 id="org0000018">Licks</h3>
+<div class="outline-text-3" id="text-org0000018">
 <p>
 Licks help you to grasp the style and ideas of other players. Harpwise
 allows to build and organize a whole collection of licks. For each lick
@@ -2773,13 +2818,13 @@ See your lick-file for pointers and instructions:
 </div>
 </div>
 </div>
-<div id="outline-container-org0000018" class="outline-2">
-<h2 id="org0000018">Some technical concepts</h2>
-<div class="outline-text-2" id="text-org0000018">
+<div id="outline-container-org0000019" class="outline-2">
+<h2 id="org0000019">Some technical concepts</h2>
+<div class="outline-text-2" id="text-org0000019">
 </div>
-<div id="outline-container-org0000019" class="outline-3">
-<h3 id="org0000019">The reference hole</h3>
-<div class="outline-text-3" id="text-org0000019">
+<div id="outline-container-org0000020" class="outline-3">
+<h3 id="org0000020">The reference hole</h3>
+<div class="outline-text-3" id="text-org0000020">
 <p>
 The wise can remember a hole that you have played and later refer to
 it; this is useful e.g. to show the interval between the current hole
@@ -2795,9 +2840,9 @@ playing anything.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000020" class="outline-3">
-<h3 id="org0000020">When multiple holes produce the same note</h3>
-<div class="outline-text-3" id="text-org0000020">
+<div id="outline-container-org0000021" class="outline-3">
+<h3 id="org0000021">When multiple holes produce the same note</h3>
+<div class="outline-text-3" id="text-org0000021">
 <p>
 Many harps produce identical notes on certain holes; e.g. the diatonic
 harmonica on holes -2 and +3. There are even more cases e.g. for a
@@ -2815,9 +2860,9 @@ multiple holes.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000021" class="outline-3">
-<h3 id="org0000021">Tuning</h3>
-<div class="outline-text-3" id="text-org0000021">
+<div id="outline-container-org0000022" class="outline-3">
+<h3 id="org0000022">Tuning</h3>
+<div class="outline-text-3" id="text-org0000022">
 <p>
 The harp wise does not make assumptions about the tuning of your
 harmonica; e.g. it works equally well with 'equal temperament' (ET) or
@@ -2836,27 +2881,43 @@ short).
 </div>
 </div>
 </div>
-<div id="outline-container-org0000022" class="outline-2">
-<h2 id="org0000022">A closer look at the Screen</h2>
-<div class="outline-text-2" id="text-org0000022">
+<div id="outline-container-org0000023" class="outline-2">
+<h2 id="org0000023">A closer look at the Screen (mode listen)</h2>
+<div class="outline-text-2" id="text-org0000023">
 <p>
-Please note, that the wise tries to adapt itself to different screen
-(terminal) sizes. If your terminal window supports changing the screen
-size, then harpwise will react accordingly and you do not need to
-restart it.
+The Screenshot below is from mode listen. This view presents a lot of
+information about the holes you are playing, including its musical
+context. Note the added line-numbers, that will be used in the
+explanations below.
 </p>
 
-<p>
-You probaby get the best experience if you use a larger font and a
-terminal with a modest size, e.g. 80 cloumns and 25 rows.
-</p>
-
-<p>
-Also note, that harpwise uses figlet to display some information in
-large letters. The optical result of this may vary, and you may get a
-smoother appearance by choosing another font; personally I use 'Lucida
-Console' (at least under WSL2/Windows).
-</p>
+<div class="org-src-container">
+<pre class="src src-text"><span class="linenr"> 1: </span>Play from 4 scales                              SPACE to pause; h for help
+<span class="linenr"> 2: </span>listen richter c blues,1,4,5
+<span class="linenr"> 3: </span>                                                    4     full bend
+<span class="linenr"> 4: </span>                                          -    5    1     half bend
+<span class="linenr"> 5: </span>      b4    4   b14  b45   4   b14  b45   4   b14  45     blow
+<span class="linenr"> 6: </span>
+<span class="linenr"> 7: </span>     --1----2----3----4----5----6----7----8----9---10---------
+<span class="linenr"> 8: </span>
+<span class="linenr"> 9: </span>      b5   b14   1   b15  b1   b5    1   b15  b1   b5     draw
+<span class="linenr">10: </span>       b    5   b4    b         b                         half bend
+<span class="linenr">11: </span>            b    5                                        full bend
+<span class="linenr">12: </span>                 -                                         3/2 bend
+<span class="linenr">13: </span>Hole:    +4, Note:   c5, Ref:   --
+<span class="linenr">14: </span>Frequency:   531.0 Hz,   26 Cnt  [.........:....I....]
+<span class="linenr">15: </span>Interval:   +4  to   +1  is 12 st  , Octave
+<span class="linenr">16: </span>
+<span class="linenr">17: </span>                               ▄▄▄▄▄
+<span class="linenr">18: </span>                         ▄▄▄   █
+<span class="linenr">19: </span>                        █▀  ▀  ▀▀▀▀▄▄
+<span class="linenr">20: </span>                        █           █
+<span class="linenr">21: </span>                        ▀█▄▄▀  ▀▄▄▄█▀
+<span class="linenr">22: </span>
+<span class="linenr">23: </span>
+<span class="linenr">24: </span>Featuring Sonny Boy Williamson
+</pre>
+</div>
 
 <p>
 Now if you start harpwise e.g. in mode listen, or licks or some flavours
@@ -2868,18 +2929,16 @@ Its structure is as follows (top to bottom):
 </p>
 
 <ul class="org-ul">
-<li>Header: topmost 2 lines</li>
-<li>The 'display': a larger area taking up most of the upper half of the
-screen</li>
-<li>The middle part of the screen, three lines in the middle of the screen</li>
-<li>The 'comment': a larger area taking up most of the lower half of the
-screen</li>
-<li>Footer: the bottommost 2 Lines</li>
+<li>Header, the first two lines 1 and 2</li>
+<li>The 'display', lines 3 to 12</li>
+<li>The middle part of the screen, lines 13 to 15</li>
+<li>The 'comment', lines 16 to 22</li>
+<li>Footer, the two bottommost 2 lines, 23 and 24</li>
 </ul>
 </div>
-<div id="outline-container-org0000023" class="outline-3">
-<h3 id="org0000023">The header</h3>
-<div class="outline-text-3" id="text-org0000023">
+<div id="outline-container-org0000024" class="outline-3">
+<h3 id="org0000024">The header</h3>
+<div class="outline-text-3" id="text-org0000024">
 <p>
 Two topmost two lines, that show e.g.
 </p>
@@ -2891,9 +2950,9 @@ help</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org0000024" class="outline-3">
-<h3 id="org0000024">The 'display'</h3>
-<div class="outline-text-3" id="text-org0000024">
+<div id="outline-container-org0000025" class="outline-3">
+<h3 id="org0000025">The 'display'</h3>
+<div class="outline-text-3" id="text-org0000025">
 <p>
 This part of the screen (i.e. most of its upper half) shows different
 versions of a harmonica chart as known from textbooks. In addition, the
@@ -2907,9 +2966,9 @@ with descriptions.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000025" class="outline-3">
-<h3 id="org0000025">The middle part of the screen</h3>
-<div class="outline-text-3" id="text-org0000025">
+<div id="outline-container-org0000026" class="outline-3">
+<h3 id="org0000026">The middle part of the screen</h3>
+<div class="outline-text-3" id="text-org0000026">
 <p>
 The three middle lines of the screen show:
 </p>
@@ -2923,9 +2982,9 @@ hole played</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org0000026" class="outline-3">
-<h3 id="org0000026">The 'comment'</h3>
-<div class="outline-text-3" id="text-org0000026">
+<div id="outline-container-org0000027" class="outline-3">
+<h3 id="org0000027">The 'comment'</h3>
+<div class="outline-text-3" id="text-org0000027">
 <p>
 This part of the screen (i.e. most of its lower half) shows comments;
 e.g. when in mode licks, harpwise expects you to play a sequence of
@@ -2939,9 +2998,9 @@ with one-line descriptions.
 </p>
 </div>
 </div>
-<div id="outline-container-org0000027" class="outline-3">
-<h3 id="org0000027">The footer</h3>
-<div class="outline-text-3" id="text-org0000027">
+<div id="outline-container-org0000028" class="outline-3">
+<h3 id="org0000028">The footer</h3>
+<div class="outline-text-3" id="text-org0000028">
 <p>
 Within those two lines at the bottom, harpwise shows hints and various
 remarks on its operation.

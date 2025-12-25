@@ -21,11 +21,6 @@ def do_develop to_handle
       eval(met)
       sleep 1
     end
-    puts
-    puts "\e[34mOpening browser on index.html; close with CTRL-W ...\e[0m"
-    sleep 0.5
-    system("wslview #{$dirs[:install]}/docs/index.html") unless $testing
-    puts
   when 'selftest'
     do_selftest
   when 'unittest'

@@ -61,8 +61,36 @@
   flavours: hear-key, players and keep-tempo.
   
   [[../images/harpwise-quiz.gif]]
+
+* Invoking harpwise
+
+  Harpwise is a commandline-program, so you need to open a termnal. The
+  terminal should have black (dark) background to match the colors used by
+  harpwise. Your terminal should use a fixed-width font.
   
-* Getting started
+  Please note, that harpwise tries to adapt itself to different screen
+  (terminal) sizes. If change the size of your terminal-window (assuming
+  that you have a grafical desktop), then harpwise will react accordingly
+  and you do not need to restart it.
+
+  You probaby get the best experience if you use a larger font and a
+  terminal with a modest size, e.g. 90 cloumns and 30 rows.
+
+  Also note, that harpwise uses figlet to display some information in
+  large letters. The optical result of this may vary, and you may get a
+  smoother appearance by choosing another font; personally I use 'Lucida
+  Console' (at least under WSL2/Windows).
+
+  With that, and if harpwise is installed correctly, invoking harpwise is simple:
+
+  #+begin_src
+    harpwise
+  #end_src
+
+  this will issue a text on using harpwise, that you may also read in the
+  next section of this page.
+
+* Getting started with harpwise
 
   <%= cleanup_for_html(IO.read("../_org/usage.org")) %>
 
@@ -231,33 +259,50 @@
    standard. In such cases it generally uses 'equal temperament' (ET for
    short).
 
-* A closer look at the Screen
+* A closer look at the Screen (mode listen)
 
-  Please note, that the wise tries to adapt itself to different screen
-  (terminal) sizes. If your terminal window supports changing the screen
-  size, then harpwise will react accordingly and you do not need to
-  restart it.
+  The Screenshot below is from mode listen. This view presents a lot of
+  information about the holes you are playing, including its musical
+  context. Note the added line-numbers, that will be used in the
+  explanations below.
+  
+  #+begin_src text -n
+Play from 4 scales                              SPACE to pause; h for help
+listen richter c blues,1,4,5
+                                                    4     full bend
+                                          -    5    1     half bend
+      b4    4   b14  b45   4   b14  b45   4   b14  45     blow
 
-  You probaby get the best experience if you use a larger font and a
-  terminal with a modest size, e.g. 80 cloumns and 25 rows.
+     --1----2----3----4----5----6----7----8----9---10---------
 
-  Also note, that harpwise uses figlet to display some information in
-  large letters. The optical result of this may vary, and you may get a
-  smoother appearance by choosing another font; personally I use 'Lucida
-  Console' (at least under WSL2/Windows).
+      b5   b14   1   b15  b1   b5    1   b15  b1   b5     draw
+       b    5   b4    b         b                         half bend
+            b    5                                        full bend
+                 -                                         3/2 bend
+Hole:    +4, Note:   c5, Ref:   --
+Frequency:   531.0 Hz,   26 Cnt  [.........:....I....]
+Interval:   +4  to   +1  is 12 st  , Octave
 
+                               ▄▄▄▄▄
+                         ▄▄▄   █
+                        █▀  ▀  ▀▀▀▀▄▄
+                        █           █
+                        ▀█▄▄▀  ▀▄▄▄█▀
+
+
+Featuring Sonny Boy Williamson
+  #+end_src
+  
   Now if you start harpwise e.g. in mode listen, or licks or some flavours
   of quiz, you get a screen as shown in the screenshots above.
 
   Its structure is as follows (top to bottom):
 
-  - Header: topmost 2 lines 
-  - The 'display': a larger area taking up most of the upper half of the
-    screen
-  - The middle part of the screen, three lines in the middle of the screen
-  - The 'comment': a larger area taking up most of the lower half of the
-    screen
-  - Footer: the bottommost 2 Lines
+  - Header, the first two lines 1 and 2
+  - The 'display', lines 3 to 12
+  - The middle part of the screen, lines 13 to 15
+  - The 'comment', lines 16 to 22
+  - Footer, the two bottommost 2 lines, 23 and 24
 
 ** The header
 
