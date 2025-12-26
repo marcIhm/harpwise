@@ -1,178 +1,181 @@
-Overview of 'harpwise licks':
+Overview of 'harpwise licks'
+============================
 
-The mode 'licks' helps to learn and memorize licks.  Typically it plays
-a random lick from your collection and asks you to play it back, note by
-note. If successful, the next lick will be asked for.
+  The mode 'licks' helps to learn and memorize licks.  Typically it
+  plays a random lick from your collection and asks you to play it back,
+  note by note. If successful, the next lick will be asked for.
 
-For harpwise, a 'lick' is a short musical phrase with a sequence of
-holes and an mp3-recording. It will be transposed as necessary.
+  For harpwise, a 'lick' is a short musical phrase with a sequence of
+  holes and an mp3-recording. It will be transposed as necessary.
 
-Please Note: This mode relies on a collection of licks, that you need to
-accumulate over time; only a simple starter set will be created at first
-start; typically it will be kept at:
-~/harpwise/licks/richter/licks_with_holes.txt similar e.g. for
-chromatic.
+  Please Note: This mode relies on a collection of licks, that you need
+  to accumulate over time; only a simple starter set will be created at
+  first start; typically it will be kept at:
+  ~/harpwise/licks/richter/licks_with_holes.txt similar e.g. for
+  chromatic.
 
-When adding licks and you need to adjust start and end of the recording,
-the mode 'play' might help, to check your results.
+  When adding licks and you need to adjust start and end of the
+  recording, the mode 'play' might help, to check your results.
 
-You may want to collect licks, that you dig and even pay for some good
-lick collections until you tens or hundreds of licks, that sound good.
-Once having that many licks, you may want to categorize them with tags
-(e.g. for artist or style). Harpwise helps with this by adding some
-automatic tags (see below); in addition there are some tools to select
-licks based on their affinity to a given scale or chord.
+  You may want to collect licks, that you dig and even pay for some good
+  lick collections until you tens or hundreds of licks, that sound good.
+  Once having that many licks, you may want to categorize them with tags
+  (e.g. for artist or style). Harpwise helps with this by adding some
+  automatic tags (see below); in addition there are some tools to select
+  licks based on their affinity to a given scale or chord.
 
-If you get comfortable with a lick and want to explore it beyond its
-written wholes, you may find it useful to switch to mode listen, which
-can be done by typing 'm' without stopping the wise first.
-
-Usage by Examples:
-
-Play licks from your collection; transpose them (i.e. their recordings)
-to the key of c, if necessary:
-
-,----
-| harpwise licks c
-`----
+  If you get comfortable with a lick and want to explore it beyond its
+  written wholes, you may find it useful to switch to mode listen, which
+  can be done by typing 'm' without stopping the wise first.
 
 
-Similar, but only choose from licks with tags 'fav' and 'has-rec'
+Usage by Examples
+=================
 
-,----
-| harpwise licks c --tags-all fav,has-rec
-`----
+  Play licks from your collection; transpose them (i.e. their
+  recordings) to the key of c, if necessary:
 
-this employs the automatic tag 'has-rec', which is added to each lick,
-that has a recording. The opposite is 'no-rec'.
-
-
-Another automatic tag is 'shifts-four', which is added to each lick,
-which, when shifted by a major fourth, can still be played on the chosen
-harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
-
-So
-
-,----
-| harpwise licks a -t shifts-four,shifts-five
-`----
-
-selects all licks, that can be shifted by four or five notes without
-loosing any hole; these licks may therefore accompany a
-blues-progression alone. The keys used to actually shift those licks,
-are described in the help-screen (type 'h').
+  ,----
+  | harpwise licks c
+  `----
 
 
-Similar, but only choose from licks with tags 'fav' or 'scales'
+  Similar, but only choose from licks with tags 'fav' and 'has-rec'
 
-,----
-| harpwise licks c --tags-any fav,scales
-`----
+  ,----
+  | harpwise licks c --tags-all fav,has-rec
+  `----
 
-
-Show the licks selected by the previous example, employing the mode
-'print':
-
-,----
-| harpwise print licks-list --tags-any fav,scales
-`----
+  this employs the automatic tag 'has-rec', which is added to each lick,
+  that has a recording. The opposite is 'no-rec'.
 
 
-To find licks, that are mostly (i.e. all holes or all but one) contained
-in the chords chord-i, chord-iv or chord-v, use the respective automatic
-tags, e.g.:
+  Another automatic tag is 'shifts-four', which is added to each lick,
+  which, when shifted by a major fourth, can still be played on the
+  chosen harmonica. Similar tags are 'shifts-five' and 'shifts-eight'.
 
-,----
-| harpwise licks c -t mostly-chord-v
-`----
+  So
 
-currently there are 5 automatic 'mostly'-tags for scales chord-i,
-chord-iv, chord-v, blues and mipe.
+  ,----
+  | harpwise licks a -t shifts-four,shifts-five
+  `----
 
-
-Select licks (if any), that have been starred by pressing '*' while it
-is beeing or has been played played:
-
-,----
-| harpwise licks a -t starred
-`----
-
-and use mode print to see details about starred licks.  The list of
-starred licks is kept e.g. in:
-
-~/harpwise/licks/richter/starred.yaml
+  selects all licks, that can be shifted by four or five notes without
+  loosing any hole; these licks may therefore accompany a
+  blues-progression alone. The keys used to actually shift those licks,
+  are described in the help-screen (type 'h').
 
 
-There are some more options to *filter* the set of available licks (see
-below); see also the lick-file created initially on more explanation on
-the concept of tags.
+  Similar, but only choose from licks with tags 'fav' or 'scales'
 
-Here is a more sophisticated example. It helps to memorize licks, but
-not scales and shows the scales for each hole:
-
-,----
-| harpwise licks c blues --loop --imm --drop-tags-any scales \
-|     --add-scales chord-i,chord-iv,chord-v \
-|     --display chart-scales --comment holes-all
-`----
-
-However, if you find yourself using these options for mode licks over
-and over again (and if you do not want to set them interactively, once
-the wise is running) you may move them to your config.ini and shorten
-the above command line to:
-
-,----
-| harpwise licks blues
-`----
+  ,----
+  | harpwise licks c --tags-any fav,scales
+  `----
 
 
-Alternatively to using the tag-options described above, you may give
-licks as arguments on the commandline (especially for a 12-bar blues):
+  Show the licks selected by the previous example, employing the mode
+  'print':
 
-,----
-| harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
-`----
-
-would start with the lick box1-i and switch from one to the next per
-your request; all other licks that you may have (e.g. wade, st-louis)
-are ignored.
-
-Note, that the lick box1-i (e.g.) appears more than once in the
-commandline above, because during a 12-bar blues, this chord appears
-multiple times.
+  ,----
+  | harpwise print licks-list --tags-any fav,scales
+  `----
 
 
-If you find yourself using such a commandline as given above over and
-over, you may define them as a lick-progression in your lick-file (see
-there for explanation); a predefined example could be used like this:
+  To find licks, that are mostly (i.e. all holes or all but one)
+  contained in the chords chord-i, chord-iv or chord-v, use the
+  respective automatic tags, e.g.:
 
-,----
-| harpwise licks --lick-progression box1
-`----
+  ,----
+  | harpwise licks c -t mostly-chord-v
+  `----
 
-knowing these licks in and out would allow for basic accompaniment of
-e.g. a 12-bar blues.
-
-
-This option can fruitfully be combined with a scale-progression:
-
-,----
-| harpwise licks --scale-prog 12bar --lick-prog box1
-|   --kb-tr RIGHT=s+RETURN,LEFT=S+L
-`----
-
-which employs the key 'RIGHT' to switch both scale-progression and
-lick-progression at once; whereas 'LEFT' resets them to their initial
-values.
+  currently there are 5 automatic 'mostly'-tags for scales chord-i,
+  chord-iv, chord-v, blues and mipe.
 
 
-If you want to explore a single lick, that is not yet in your lick-file
-(take +1 +2 +3 as a simple example), you may specify it adhoc by giving
-its holes on the commandline:
+  Select licks (if any), that have been starred by pressing '*' while it
+  is beeing or has been played played:
 
-,----
-| harpwise licks +1 +2 +3
-`----
+  ,----
+  | harpwise licks a -t starred
+  `----
 
-later, if satisfied, you may add this lick (and maybe a recording) to
-your lickfile.
+  and use mode print to see details about starred licks.  The list of
+  starred licks is kept e.g. in:
+
+  ~/harpwise/licks/richter/starred.yaml
+
+
+  There are some more options to *filter* the set of available licks
+  (see below); see also the lick-file created initially on more
+  explanation on the concept of tags.
+
+  Here is a more sophisticated example. It helps to memorize licks, but
+  not scales and shows the scales for each hole:
+
+  ,----
+  | harpwise licks c blues --loop --imm --drop-tags-any scales \
+  |     --add-scales chord-i,chord-iv,chord-v \
+  |     --display chart-scales --comment holes-all
+  `----
+
+  However, if you find yourself using these options for mode licks over
+  and over again (and if you do not want to set them interactively, once
+  the wise is running) you may move them to your config.ini and shorten
+  the above command line to:
+
+  ,----
+  | harpwise licks blues
+  `----
+
+
+  Alternatively to using the tag-options described above, you may give
+  licks as arguments on the commandline (especially for a 12-bar blues):
+
+  ,----
+  | harpwise licks box1-i box1-iv box1-i box1-v box1-iv box1-v box1-i simple-turn
+  `----
+
+  would start with the lick box1-i and switch from one to the next per
+  your request; all other licks that you may have (e.g. wade, st-louis)
+  are ignored.
+
+  Note, that the lick box1-i (e.g.) appears more than once in the
+  commandline above, because during a 12-bar blues, this chord appears
+  multiple times.
+
+
+  If you find yourself using such a commandline as given above over and
+  over, you may define them as a lick-progression in your lick-file (see
+  there for explanation); a predefined example could be used like this:
+
+  ,----
+  | harpwise licks --lick-progression box1
+  `----
+
+  knowing these licks in and out would allow for basic accompaniment of
+  e.g. a 12-bar blues.
+
+
+  This option can fruitfully be combined with a scale-progression:
+
+  ,----
+  | harpwise licks --scale-prog 12bar --lick-prog box1
+  |   --kb-tr RIGHT=s+RETURN,LEFT=S+L
+  `----
+
+  which employs the key 'RIGHT' to switch both scale-progression and
+  lick-progression at once; whereas 'LEFT' resets them to their initial
+  values.
+
+
+  If you want to explore a single lick, that is not yet in your
+  lick-file (take +1 +2 +3 as a simple example), you may specify it
+  adhoc by giving its holes on the commandline:
+
+  ,----
+  | harpwise licks +1 +2 +3
+  `----
+
+  later, if satisfied, you may add this lick (and maybe a recording) to
+  your lickfile.

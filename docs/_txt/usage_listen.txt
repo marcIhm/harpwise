@@ -1,124 +1,131 @@
-Overview of 'harpwise listen':
+Overview of 'harpwise listen'
+=============================
 
-The mode 'listen' shows information on the notes you play; depending on
-settings for display and comment this can be:
+  The mode 'listen' shows information on the notes you play; depending
+  on settings for display and comment this can be:
 
-- Hole
-- Note
-- Membership of played note in various scales
-- Interval to previous note
-- Difference to a reference note, e.g. to practice bends
-- Speed of warbles
+  - Hole
+  - Note
+  - Membership of played note in various scales
+  - Interval to previous note
+  - Difference to a reference note, e.g. to practice bends
+  - Speed of warbles
 
-When playing, you may switch on journal to get a simple transcription of
-the holes played.
+  When playing, you may switch on journal to get a simple transcription
+  of the holes played.
 
 
 Usage by Examples:
+==================
 
-The wise listens, while your are playing a richter harp of key c and it
-shows the holes, that you played; green if from the blues-scale, blue
-otherwise:
+  The wise listens, while your are playing a richter harp of key c and
+  it shows the holes, that you played; green if from the blues-scale,
+  blue otherwise:
 
-,----
-| harpwise listen richter c blues
-`----
+  ,----
+  | harpwise listen richter c blues
+  `----
 
-The same, but relying on the defaults for type (richter) and key (c):
+  The same, but relying on the defaults for type (richter) and key (c):
 
-,----
-| harpwise listen blues
-`----
+  ,----
+  | harpwise listen blues
+  `----
 
-The same, but also showing the notes from the one-chord (chord-i):
+  The same, but also showing the notes from the one-chord (chord-i):
 
-,----
-| harpwise listen blues --add-scales chord-i --display chart-scales
-`----
-
-
-If you want to follow the chord-progression of a 12-bar blues, you may
-try
-
-,----
-| harpwise listen --scale-progression 12bar
-`----
-
-to switch from one chord to the next, every time you press 's'.
-
-To use the RETURN-key, which might be easier to hit, you may try:
-
-,----
-| harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
-`----
-
-or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may also
-make this option durable in your config.ini.
-
-If, in addition to the scale-progression, you want one or more licks at
-hand (e.g. turnarounds), you may give them as an adhoc lick-progression:
-
-,----
-| harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
-`----
+  ,----
+  | harpwise listen blues --add-scales chord-i --display chart-scales
+  `----
 
 
-As an advanced example, assume that you would like to play the minor
-pentatonic scale in fourth position. However, harpwise only knows it in
-second position (i.e. starting on -2).
+  If you want to follow the chord-progression of a 12-bar blues, you may
+  try
 
-How would you move this scale from second to fourth position?
+  ,----
+  | harpwise listen --scale-progression 12bar
+  `----
 
-The first step would be to get the notes of the minor-pentatonic scale:
+  to switch from one chord to the next, every time you press 's'.
 
-,----
-| harpwise print mipe
-`----
+  To use the RETURN-key, which might be easier to hit, you may try:
 
-then take those notes and shift them from second to fourth position by
-moving up two fifths up in the circle of fifths.
+  ,----
+  | harpwise listen --scale-prog 12bar --keyboard-translate RETURN=s
+  `----
 
-And because a fifth is 7 semitones (you may check this via: harpwise
-print intervals), this would be 2 * 7 = 14 semitones.
+  or use (shorter) '--kb-tr TAB=s' to employ the TAB key. And you may
+  also make this option durable in your config.ini.
 
-In addition one would move one ocatve (= 12 semitones) down to reach the
-lower end of the harp (for more expressiveness): 14 - 12 = 2 semitones.
+  If, in addition to the scale-progression, you want one or more licks
+  at hand (e.g. turnarounds), you may give them as an adhoc
+  lick-progression:
 
-So we would have to shift the notes of the minor pentatonic scale by 2
-semitones to get from second to fourth position:
-
-,----
-| harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
-`----
-
-Using the resulting holes as an adhoc scale for listen, we would be able
-to tell harpwise, that we want to play the minor pentatonic in fourth
-position:
-
-,----
-| harpwise listen -3// +4 -4 +5 +6 -6
-`----
-
-However, you could get the same effect also like this:
-
-,----
-| harpwise listen mipe --transpose-scale +2st
-`----
-
-which uses the fact (as explained above), that moving two positions up
-are just two semitones.
+  ,----
+  | harpwise listen --scale-prog 12bar --lick-prog simple-turn,wade
+  `----
 
 
-Finally, as a quite technical note: If you find harpwise sluggish or if
-you get a warning on lagging and lost samples, you may want to
-experiment with --time-slice:
+  As an advanced example, assume that you would like to play the minor
+  pentatonic scale in fourth position. However, harpwise only knows it
+  in second position (i.e. starting on -2).
 
-,----
-| harpwise listen c --time-slice short
-`----
+  How would you move this scale from second to fourth position?
+
+  The first step would be to get the notes of the minor-pentatonic
+  scale:
+
+  ,----
+  | harpwise print mipe
+  `----
+
+  then take those notes and shift them from second to fourth position by
+  moving up two fifths up in the circle of fifths.
+
+  And because a fifth is 7 semitones (you may check this via: harpwise
+  print intervals), this would be 2 * 7 = 14 semitones.
+
+  In addition one would move one ocatve (= 12 semitones) down to reach
+  the lower end of the harp (for more expressiveness): 14 - 12 = 2
+  semitones.
+
+  So we would have to shift the notes of the minor pentatonic scale by 2
+  semitones to get from second to fourth position:
+
+  ,----
+  | harpwise tools shift +2st -2 -3/ +4 -4 -5 +6
+  `----
+
+  Using the resulting holes as an adhoc scale for listen, we would be
+  able to tell harpwise, that we want to play the minor pentatonic in
+  fourth position:
+
+  ,----
+  | harpwise listen -3// +4 -4 +5 +6 -6
+  `----
+
+  However, you could get the same effect also like this:
+
+  ,----
+  | harpwise listen mipe --transpose-scale +2st
+  `----
+
+  which uses the fact (as explained above), that moving two positions up
+  are just two semitones.
+
+
+  Finally, as a quite technical note: If you find harpwise sluggish or
+  if you get a warning on lagging and lost samples, you may want to
+  experiment with --time-slice:
+
+  ,----
+  | harpwise listen c --time-slice short
+  `----
+
 
 Quick Start:
+============
 
-,----
-| harpwise listen c              
-`----
+  ,----
+  | harpwise listen c              
+  `----

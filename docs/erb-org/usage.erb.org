@@ -1,3 +1,5 @@
+** Overview
+
 A harmonica tool for the command line, using microphone and speaker.
 
 Harpwise supports your harmonica practice with scales, chords and licks.
@@ -136,7 +138,7 @@ single notes and it may play chords for you, but it can not identify your
 chords. It knows a bit about tempo, but has no notion of rhythm.
 
 
-Suggested Reading:
+** Suggested Reading
 
   - Usage information for the individual modes, e.g.
     #+begin_src 
@@ -145,11 +147,11 @@ Suggested Reading:
   - The top level file README.org, also available at:
     https://github.com/marcIhm/harpwise/blob/main/README.org
 
-User Configuration:
+** User Configuration
 
   ~/harpwise/config.ini
 
-Command-line Options:
+** Command-line Options
 
   Options are specific for each mode; as an example you may type
 
@@ -159,7 +161,7 @@ Command-line Options:
 
   to read options for mode listen.
 
-Diagnosis:
+** Diagnosis
 
   Harpwise uses the excellent program sox (aka play, aka rec) to
   interact with your sound system. Sox handles all playing and
@@ -175,7 +177,7 @@ Diagnosis:
 
   to execute some basic tests and get advice on how to fix common problems.
 
-Quick Start:
+** Quick Start
 
   Feedback on holes and notes you play:
   

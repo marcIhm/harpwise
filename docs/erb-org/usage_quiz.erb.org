@@ -1,4 +1,4 @@
-Overview of 'harpwise quiz':
+*** Overview of 'harpwise quiz'
 
   The mode 'quiz' is a quiz on music theory, ear and memory. It is
   meant as a fun way to increase your musical abilities. Quiz comes in
@@ -15,7 +15,7 @@ The available <%= $extras_joined_to_desc[:quiz].length %> flavours are:
 
 <%= get_extra_desc_all(mode: :quiz, for_usage: true).join("\n") %>
   
-Usage by Examples:
+*** Usage by Examples
 
   The wise chooses a quiz-flavour at random (key of c):
 
@@ -64,7 +64,7 @@ Usage by Examples:
     harpwise quiz hear-scale
     #+end_src
 
-Quick Start:
+*** Quick Start
 
     #+begin_src 
     harpwise quiz ran

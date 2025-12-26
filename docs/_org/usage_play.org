@@ -1,4 +1,4 @@
-Overview of 'harpwise play':
+*** Overview of 'harpwise play'
 
   The mode 'play' takes its arguments (holes, notes, semitones, licks,
   scales) and plays them.  It also handles some extra keywords.
@@ -47,7 +47,7 @@ Overview of 'harpwise play':
 
 
 
-Usage by Examples:
+*** Usage by Examples
 
   Play a few holes and notes on a harp of key c:
 

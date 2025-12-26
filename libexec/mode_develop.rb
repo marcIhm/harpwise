@@ -75,6 +75,7 @@ def do_docs_make_org_txt
                 "--insert #{dst_org_dir}/#{file_short}.org " +
                 "--eval \"(setq org-export-with-toc nil)\" " +
                 "--eval \"(setq org-export-with-author nil)\" " +
+                "--eval \"(setq org-export-with-section-numbers nil)\" " +
                 "--eval \"(org-ascii-export-as-ascii nil nil nil nil '(:ascii-charset ascii))\" " +
                 "--eval \"(write-file \\\"#{dst_file}\\\")\" " +
                 "--kill"

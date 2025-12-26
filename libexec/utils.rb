@@ -1692,9 +1692,3 @@ def highlight_helper text, highlight
   end
 end
 
-
-def cleanup_for_html txt
-  txt.
-    gsub("\e[2m",'').
-    gsub("\e[0m",'')
-end

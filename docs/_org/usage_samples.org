@@ -1,4 +1,4 @@
-Overview of 'harpwise samples':
+*** Overview of 'harpwise samples'
 
   The wise needs a set of audio-samples; these are the sounds-files
   (recorded or generated) of each of the holes of your harmonica;
@@ -81,7 +81,7 @@ Overview of 'harpwise samples':
   but not for scale.
   
 
-Usage by Examples:
+*** Usage by Examples
 
   Record samples to teach the wise abut the frequencies of the harp
   you are using:

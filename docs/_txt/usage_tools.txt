@@ -1,254 +1,256 @@
-Overview of 'harpwise tools':
+Overview of 'harpwise tools'
+============================
 
-The mode 'tools' offers some non-interactive but useful utilities, which
-are mostly related to basic harmonica theory; they do not use microphone
-or speaker.
+  The mode 'tools' offers some non-interactive but useful utilities,
+  which are mostly related to basic harmonica theory; they do not use
+  microphone or speaker.
 
-The required additional argument specifies the tool to run; it can be
-one of:
+  The required additional argument specifies the tool to run; it can be
+  one of:
 
-- transpose: transpose a sequence of holes between keys
+  - transpose: transpose a sequence of holes between keys
 
-- shift: shift a sequence of holes or notes or a single lick by the
-  given number of semitones (first argument)
+  - shift: shift a sequence of holes or notes or a single lick by the
+    given number of semitones (first argument)
 
-- shift-to-groups: Starts off like 'shift' (see there), but also shows
-  groups of alternative holes, that give the same note only in different
-  octaves. This can be useful to find variations of a hole-sequences,
-  e.g. for improvisation
+  - shift-to-groups: Starts off like 'shift' (see there), but also shows
+    groups of alternative holes, that give the same note only in
+    different octaves. This can be useful to find variations of a
+    hole-sequences, e.g. for improvisation
 
-- keys: For a diatonic harmonica: print a chart with keys and positions
-  centered around current key; this tool accepts two optional extra
-  arguments, which control coloured emphasis in the otherwise fixed
-  chart.  The first argument is the key of the song, the second the key
-  of the harp; use '.' to skip emphasising the song.
+  - keys: For a diatonic harmonica: print a chart with keys and
+    positions centered around current key; this tool accepts two
+    optional extra arguments, which control coloured emphasis in the
+    otherwise fixed chart.  The first argument is the key of the song,
+    the second the key of the harp; use '.' to skip emphasising the
+    song.
 
-  Use option --brief to print a version shortend to the most common keys
-  and position.
+    Use option --brief to print a version shortend to the most common
+    keys and position.
 
-- spread-notes: take a list of notes (e.g. a, a4, b, cs) as arguments
-  and turn them into a list of holes that produce them. As the octave is
-  deliberately not taken into account, you may give "a" as an argument
-  just as well as "a4". Also shows these holes in the harmonica
-  chart. When invoked with option --brief, this tool can be used as a
-  subcommand on the commandline, in which case it just returns the list
-  of holes, to be used e.g. as an adhoc-scale.
+  - spread-notes: take a list of notes (e.g. a, a4, b, cs) as arguments
+    and turn them into a list of holes that produce them. As the octave
+    is deliberately not taken into account, you may give "a" as an
+    argument just as well as "a4". Also shows these holes in the
+    harmonica chart. When invoked with option --brief, this tool can be
+    used as a subcommand on the commandline, in which case it just
+    returns the list of holes, to be used e.g. as an adhoc-scale.
 
-- make-scale: accepts a list of holes on the commandline, asks some
-  additional questions and writes a new user-defined scale.
+  - make-scale: accepts a list of holes on the commandline, asks some
+    additional questions and writes a new user-defined scale.
 
-- chart: various harmonica charts for current key; add option --ref for
-  more charts. If you supply holes or notes as arguments (optional),
-  only these are printed in the chart of holes and the other charts are
-  skipped.
+  - chart: various harmonica charts for current key; add option --ref
+    for more charts. If you supply holes or notes as arguments
+    (optional), only these are printed in the chart of holes and the
+    other charts are skipped.
 
-- notes-major, notes: print notes of major scale for given key
+  - notes-major, notes: print notes of major scale for given key
 
-- progression, prog: take a base and some semitone diffs, then spell
-  them out
+  - progression, prog: take a base and some semitone diffs, then spell
+    them out
 
-- interval, inter: calculate and print interval between two notes
+  - interval, inter: calculate and print interval between two notes
 
-- chords: print chords i, iv and v for current key
+  - chords: print chords i, iv and v for current key
 
-- transcribe: transcribe given audio-file approximately
+  - transcribe: transcribe given audio-file approximately
 
-- search-holes-in-licks: search given sequence of holes (or equiv) in
-  all licks; the same ordering of holes is required; this can help to
-  find licks that expand on a given sequence of holes
+  - search-holes-in-licks: search given sequence of holes (or equiv) in
+    all licks; the same ordering of holes is required; this can help to
+    find licks that expand on a given sequence of holes
 
-- search-lick-in-scales: search given lick or sequence of holes (or
-  equiv) in all scales; ordering of holes is not important; this may
-  give an idea, to which of all scales a given lick can be played. See
-  also the somewhat inverse tool search-scale-in-licks.
+  - search-lick-in-scales: search given lick or sequence of holes (or
+    equiv) in all scales; ordering of holes is not important; this may
+    give an idea, to which of all scales a given lick can be played. See
+    also the somewhat inverse tool search-scale-in-licks.
 
-- search-scale-in-licks: search given scale in all licks; this computes
-  the uniq holes of a lick and, taking away 0,1,2 ... holes, checks if
-  the remaining holes are contained in the scale.  This can give an
-  idea, which licks can be played over the given scale
-  (e.g. chord-iv). See also the very similar tool licks-from-scale and
-  the somewhat inverse search-lick-in-scales.
+  - search-scale-in-licks: search given scale in all licks; this
+    computes the uniq holes of a lick and, taking away 0,1,2 ... holes,
+    checks if the remaining holes are contained in the scale.  This can
+    give an idea, which licks can be played over the given scale
+    (e.g. chord-iv). See also the very similar tool licks-from-scale and
+    the somewhat inverse search-lick-in-scales.
 
-- licks-from-scale: For all licks, find percentage of holes, that are
-  taken from the given scale and group and sort them accordingly.  This
-  may give an idea, which of all licks can be played over the given
-  scale (e.g. chord-i or blues). See also the very similar tool
-  seach-scale-in-licks.
+  - licks-from-scale: For all licks, find percentage of holes, that are
+    taken from the given scale and group and sort them accordingly.
+    This may give an idea, which of all licks can be played over the
+    given scale (e.g. chord-i or blues). See also the very similar tool
+    seach-scale-in-licks.
 
-- translate: Recognize and translate alternate harmonica notations into
-  the format required for harpwise; e.g. turn "2 (2) 3" into "+2 -2 +3";
-  Currently this is optimized for diatonic harmonicas.
+  - translate: Recognize and translate alternate harmonica notations
+    into the format required for harpwise; e.g. turn "2 (2) 3" into "+2
+    -2 +3"; Currently this is optimized for diatonic harmonicas.
 
-- utils, utilities: Describe some utilities, that come with harpwise and
-  need to be invoked seperately.
+  - utils, utilities: Describe some utilities, that come with harpwise
+    and need to be invoked seperately.
 
-- edit, edit-licks: invoke editor on your lickfile optionally add name
-  of lick or lick-progression to land on
+  - edit, edit-licks: invoke editor on your lickfile optionally add name
+    of lick or lick-progression to land on
 
-- edit-config: invoke editor on your personal config file
-  ~/harpwise/config.ini
+  - edit-config: invoke editor on your personal config file
+    ~/harpwise/config.ini
 
-- edit-jam: edit given jamming-file. This is much like "harpwise jam
-  edit", which however has a more relaxed way of specifying the jam.
-  See there for details.
+  - edit-jam: edit given jamming-file. This is much like "harpwise jam
+    edit", which however has a more relaxed way of specifying the jam.
+    See there for details.
 
-- diag, diag1: help to diagnose problems with your sound system; i.e.
-  check that recording and replay work properly.
+  - diag, diag1: help to diagnose problems with your sound system; i.e.
+    check that recording and replay work properly.
 
-- diag2: check that mp3 can be played without problems.
+  - diag2: check that mp3 can be played without problems.
 
-- diag3: check that frequencies picked up by your microphone can be
-  recognized properly; for this the check 'diag1' should have been
-  performed sucessfully first.
+  - diag3: check that frequencies picked up by your microphone can be
+    recognized properly; for this the check 'diag1' should have been
+    performed sucessfully first.
 
-- diag-hints: read technical hints on how to fix some of the problems,
-  that might have come up with the other diag-tools.
+  - diag-hints: read technical hints on how to fix some of the problems,
+    that might have come up with the other diag-tools.
 
 
+Usage by Examples
+=================
 
-Usage by Examples:
+  Transpose a sequence of notes (some specified as holes) from the key
+  of c to g (keeping the notes/pitches constant):
 
-Transpose a sequence of notes (some specified as holes) from the key of
-c to g (keeping the notes/pitches constant):
+  ,----
+  | harpwise tools transpose c g -1 +2 -3
+  `----
 
-,----
-| harpwise tools transpose c g -1 +2 -3
-`----
+  when playing the result on the g-harp you will have the exact same
+  pitches as on the original c-harp.
 
-when playing the result on the g-harp you will have the exact same
-pitches as on the original c-harp.
 
+  Shift a sequence of holes up 12 semitones:
 
-Shift a sequence of holes up 12 semitones:
+  ,----
+  | harpwise tools shift 12st -1 +2 -3
+  `----
 
-,----
-| harpwise tools shift 12st -1 +2 -3
-`----
+  This is different from transposing the notes/pitches as given before,
+  as it changes the pitches of the notes.
 
-This is different from transposing the notes/pitches as given before, as
-it changes the pitches of the notes.
+  You may then let harpwise play the resulting notes, even if they have
+  no hole on the harp (with mode play)
 
-You may then let harpwise play the resulting notes, even if they have no
-hole on the harp (with mode play)
 
+  Print a simple table of keys and positions:
 
-Print a simple table of keys and positions:
+  ,----
+  | harpwise tools keys
+  `----
 
-,----
-| harpwise tools keys
-`----
+  Center the semitone-column around a specific key of harp (bf) and mark
+  it in the table:
 
-Center the semitone-column around a specific key of harp (bf) and mark
-it in the table:
+  ,----
+  | harpwise tools keys bf
+  `----
 
-,----
-| harpwise tools keys bf
-`----
+  The same and mark a key of song (d) too:
 
-The same and mark a key of song (d) too:
+  ,----
+  | harpwise tools keys bf d
+  `----
 
-,----
-| harpwise tools keys bf d
-`----
+  If you have a g-harp and want to know what song-keys and positions are
+  available:
 
-If you have a g-harp and want to know what song-keys and positions are
-available:
+  ,----
+  | harpwise tools keys g g
+  `----
 
-,----
-| harpwise tools keys g g
-`----
 
+  Print a harmonica chart for the key of g:
 
-Print a harmonica chart for the key of g:
+  ,----
+  | harpwise tools chart g
+  `----
 
-,----
-| harpwise tools chart g
-`----
+  The same chart, but with arguments rearranged
 
-The same chart, but with arguments rearranged
+  ,----
+  | harpwise tools g chart
+  `----
 
-,----
-| harpwise tools g chart
-`----
+  Two charts, the second with scale-content (chord-i)
 
-Two charts, the second with scale-content (chord-i)
+  ,----
+  | harpwise tools g chord-i chart --add-scales -
+  `----
 
-,----
-| harpwise tools g chord-i chart --add-scales -
-`----
+  Four charts, the third and fourth with intervals of each hole to the
+  given reference:
 
-Four charts, the third and fourth with intervals of each hole to the
-given reference:
+  ,----
+  | harpwise tools chord-i chart --ref -4
+  `----
 
-,----
-| harpwise tools chord-i chart --ref -4
-`----
 
+  How to get the holes of the pentatonic scale in an adhoc fashion:
 
-How to get the holes of the pentatonic scale in an adhoc fashion:
+  Assuming, that you know its notes g a b d e:
 
-Assuming, that you know its notes g a b d e:
+  ,----
+  | harpwise tools spread-notes g a b d e
+  `----
 
-,----
-| harpwise tools spread-notes g a b d e
-`----
+  the resulting long list of 16 holes may then be used as an adhoc scale
+  for mode listen.
 
-the resulting long list of 16 holes may then be used as an adhoc scale
-for mode listen.
 
+  Advanced users, that are not satisfied with the builtin set of scales,
+  may want to create their own from a list of holes, e.g.:
 
-Advanced users, that are not satisfied with the builtin set of scales,
-may want to create their own from a list of holes, e.g.:
+  ,----
+  | harpwise tools make-scale +1 +2 +3
+  `----
 
-,----
-| harpwise tools make-scale +1 +2 +3
-`----
 
+  The notes of the major scale starting at c:
 
-The notes of the major scale starting at c:
+  ,----
+  | harpwise tools notes c
+  `----
 
-,----
-| harpwise tools notes c
-`----
+  this also gives the notes of the major scale one fifth down,
+  i.e. starting at f, so that you may follow the circle of fifths in
+  both directions if you wish.
 
-this also gives the notes of the major scale one fifth down,
-i.e. starting at f, so that you may follow the circle of fifths in both
-directions if you wish.
 
+  Print a note progression:
 
-Print a note progression:
+  ,----
+  | harpwise tools prog e3 7st 9st oct
+  `----
 
-,----
-| harpwise tools prog e3 7st 9st oct
-`----
+  which will give you all the notes starting at e3 and the 7, 9, 12
+  semitones up.
 
-which will give you all the notes starting at e3 and the 7, 9, 12
-semitones up.
 
+  Print the interval over the base note:
 
-Print the interval over the base note:
+  ,----
+  | harpwise tools interval c4 oct
+  `----
 
-,----
-| harpwise tools interval c4 oct
-`----
+  ,----
+  | harpwise tools interval c4 +12st
+  `----
 
-,----
-| harpwise tools interval c4 +12st
-`----
 
+  print the chords i, iv and v for the current key:
 
-print the chords i, iv and v for the current key:
+  ,----
+  | harpwise tools chords
+  `----
 
-,----
-| harpwise tools chords
-`----
 
+  Transcribe and audio-file given on the commandline approximately:
 
-Transcribe and audio-file given on the commandline approximately:
+  ,----
+  | harpwise tools transcribe wade.mp3
+  `----
 
-,----
-| harpwise tools transcribe wade.mp3
-`----
-
-for simple harmonica content this will give you sequence of holes played
-in lick wade.mp3 (from current working dir)
+  for simple harmonica content this will give you sequence of holes
+  played in lick wade.mp3 (from current working dir)
