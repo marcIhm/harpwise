@@ -1,4 +1,4 @@
-*** Overview of 'harpwise quiz'
+** Overview of 'harpwise quiz'
 
   The mode 'quiz' is a quiz on music theory, ear and memory. It is
   meant as a fun way to increase your musical abilities. Quiz comes in
@@ -132,7 +132,7 @@ The available 29 flavours are:
       (only as extra-argument on commandline)
 
   
-*** Usage by Examples
+** Usage by Examples
 
   The wise chooses a quiz-flavour at random (key of c):
 
@@ -181,7 +181,7 @@ The available 29 flavours are:
     harpwise quiz hear-scale
     #+end_src
 
-*** Quick Start
+** Quick Start
 
     #+begin_src 
     harpwise quiz ran

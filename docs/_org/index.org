@@ -307,17 +307,17 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     #+end_src
 
 
-* The Modes
+* The Modes of harpwise
 
   These correspond with the broad use cases of harpwise. On the
   commandline the mode comes as a the second argument, e.g. 'listen' in
   'harpwise listen'.
   
-** Listen
+* harpwise listen
 
   [[../images/harpwise-listen.gif]]
   
-*** Overview of 'harpwise listen'
+** Overview of 'harpwise listen'
 
   The mode 'listen' shows information on the notes you play; depending
   on settings for display and comment this can be:
@@ -333,7 +333,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   transcription of the holes played.
 
 
-*** Usage by Examples:
+** Usage by Examples:
 
   The wise listens, while your are playing a richter harp of key c and
   it shows the holes, that you played; green if from the blues-scale,
@@ -438,18 +438,18 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     harpwise listen c --time-slice short
     #+end_src
 
-*** Quick Start:
+** Quick Start
 
     #+begin_src 
     harpwise listen c              
     #+end_src
 
 
-** Quiz
+* harpwise quiz
 
   [[../images/harpwise-quiz.gif]]
   
-*** Overview of 'harpwise quiz'
+** Overview of 'harpwise quiz'
 
   The mode 'quiz' is a quiz on music theory, ear and memory. It is
   meant as a fun way to increase your musical abilities. Quiz comes in
@@ -583,7 +583,7 @@ The available 29 flavours are:
       (only as extra-argument on commandline)
 
   
-*** Usage by Examples
+** Usage by Examples
 
   The wise chooses a quiz-flavour at random (key of c):
 
@@ -632,16 +632,16 @@ The available 29 flavours are:
     harpwise quiz hear-scale
     #+end_src
 
-*** Quick Start
+** Quick Start
 
     #+begin_src 
     harpwise quiz ran
     #+end_src
 
 
-** Jamming
+* harpwise jamming
 
-*** Overview of 'harpwise jamming'
+** Overview of 'harpwise jamming'
 
   Scripted jamming along a backing track. For this harpwise includes a
   backing-track with timestamps as well as a matching set of licks and
@@ -649,12 +649,15 @@ The available 29 flavours are:
   and chords in sync with the track.
 
 
-*** Usage by Examples
+** Usage by Examples
 
   The mode jamming is a remote control and helper for harpwise in mode
   listen; jamming plays a backing-track while making listen switch licks
   and chords (scales). This happens in time with the chord-changes of the
   track by means of a time-table (see below).
+
+  The screen of listen, shows iteration, current chord and seconds left in the first line,
+  making orientation easy.
 
 
   To use harpwise jamming, you need *two* terminals. In the first one
@@ -796,16 +799,16 @@ The available 29 flavours are:
       An empty (or whitespace only) note will be removed altogether.
 
 
-*** Quick Start
+** Quick Start
 
     #+begin_src 
     harpwise jam along 12
     #+end_src
 
 
-** Licks
+* harpwise licks
 
-*** Overview of 'harpwise licks'
+** Overview of 'harpwise licks'
 
   The mode 'licks' helps to learn and memorize licks.  Typically it
   plays a random lick from your collection and asks you to play it
@@ -834,7 +837,7 @@ The available 29 flavours are:
   written wholes, you may find it useful to switch to mode listen,
   which can be done by typing 'm' without stopping the wise first.
   
-*** Usage by Examples
+** Usage by Examples
 
   Play licks from your collection; transpose them (i.e. their
   recordings) to the key of c, if necessary:
@@ -985,9 +988,9 @@ The available 29 flavours are:
   to your lickfile.
 
 
-** Play
+* harpwise play
 
-*** Overview of 'harpwise play'
+** Overview of 'harpwise play'
 
   The mode 'play' takes its arguments (holes, notes, semitones, licks,
   scales) and plays them.  It also handles some extra keywords.
@@ -1036,7 +1039,7 @@ The available 29 flavours are:
 
 
 
-*** Usage by Examples
+** Usage by Examples
 
   Play a few holes and notes on a harp of key c:
 
@@ -1243,9 +1246,9 @@ The available 29 flavours are:
   trigger the recording explicitly).
 
 
-** Tools
+* harpwise tools
 
-*** Overview of 'harpwise tools'
+** Overview of 'harpwise tools'
 
   The mode 'tools' offers some non-interactive but useful utilities,
   which are mostly related to basic harmonica theory; they do not use
@@ -1376,7 +1379,7 @@ The available 29 flavours are:
 
   
 
-*** Usage by Examples
+** Usage by Examples
 
   Transpose a sequence of notes (some specified as holes) from
   the key of c to g (keeping the notes/pitches constant):
@@ -1524,9 +1527,9 @@ The available 29 flavours are:
   played in lick wade.mp3 (from current working dir)
 
 
-** Samples
+* harpwise samples
 
-*** Overview of 'harpwise samples'
+** Overview of 'harpwise samples'
 
   The wise needs a set of audio-samples; these are the sounds-files
   (recorded or generated) of each of the holes of your harmonica;
@@ -1609,7 +1612,7 @@ The available 29 flavours are:
   but not for scale.
   
 
-*** Usage by Examples
+** Usage by Examples
 
   Record samples to teach the wise abut the frequencies of the harp
   you are using:
@@ -1682,6 +1685,32 @@ The available 29 flavours are:
   or shadowed by recorded samples.
 
                   
+* Command-line options
+
+  The command line of harpwise accepts a broad range of options; many of
+  them are specific for one of the modes of harpwise (e.g. 'harpwise
+  listen').
+
+  Many of the options appear in the usage-examples for the individual
+  modes. However for a comprehensive list, invoke with the option '-o'.
+  E.g. for mode 'listen' type:
+
+  #+begin_src
+    harpwise listen -o
+  #+end_src
+  
+  this will give you a long colored, list of all options, that 'harpwise
+  listen' accepts. The list will contain options, that are specific for
+  mode 'listen' (.e.g '--display' or '-d') as well as options, that can be
+  applied to many (or all) modes (e.g. '--sharps').
+
+  If you only want to read the description of a specific option
+  (e.g. '-d'), you may add it to the command line right away, e.g.:
+
+  #+begin_src
+    harpwise listen -o -d
+  #+end_src
+  
 * A closer look at the Screen (mode listen)
 
   The Screenshot below is from mode listen. This view presents a lot of
@@ -1730,16 +1759,21 @@ Featuring Sonny Boy Williamson
 ** The header
 
    Two topmost two lines, that show e.g.
-   - The current mission, i.e. what you are supposed to do
-   - Immediate feedback on keys beeing pressed or a hint on how to get
-     help
-   - A summary of the settings mode, type, key and scales
+   - The current mission, i.e. what you are supposed to do; in the example
+     this is simply 'Play from 4 scales'.
+   - As a special case, when mode 'listen' takes part in a jam, this line
+     shows your exact position within the scale progression (iteration,
+     chord and second)
+   - In the top-right corner you get immediate feedback on keys beeing
+     pressed or a hint on how to get help
+   - A summary of the current settings: mode, harmonica-type, key and
+     scales
 
 ** The 'display'
 
    This part of the screen (i.e. most of its upper half) shows different
    versions of a harmonica chart as known from textbooks. In addition, the
-   holes, that you are playing are highlighted in colours, e.g. according
+   holes, that you are playing are highlighted in colours according
    to the scale.
 
    To change the display type 'd' repeatedly or type 'D' to get a menu
@@ -1750,15 +1784,16 @@ Featuring Sonny Boy Williamson
    The three middle lines of the screen show:
 
    - The hole and note, that you are playing and the reference hole, if
-     set. In addtion ('Rem') the scales the hole belongs to
-   - The Frequency you are playing; featuring a small frequncy gauge
+     set
+   - The Frequency (in Herz), that you are playing; featuring a small
+     frequncy gauge
    - The interval of the current hole to the reference hole or to the last
      hole played
         
 ** The 'comment'
 
-   This part of the screen (i.e. most of its lower half) shows comments;
-   e.g. when in mode licks, harpwise expects you to play a sequence of
+   This part of the screen (i.e. most of its lower half) shows comments.
+   E.g. when in mode licks, harpwise expects you to play a sequence of
    holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
 
@@ -1767,8 +1802,8 @@ Featuring Sonny Boy Williamson
 
 ** The footer
 
-   Within those two lines at the bottom, harpwise shows hints and various
-   remarks on its operation.
+   Within those two lines at the bottom, harpwise shows hints and issues
+   various remarks on its operation.
 
    For example:
    
@@ -1777,11 +1812,17 @@ Featuring Sonny Boy Williamson
 
 * Getting help
 
-  If you have problems, questions or just want to give feedback, please
-  drop me a note: marc@ihm.name
+  Within harpwise, you may press 'h' to get help on the keys, that are
+  currently accepted.
+
+  This page https://marcihm.github.io/harpwise/ collects all other written
+  documentation (overview, background, usage, concepts, etc.).
+  
+  If you still have problems, questions or just want to give feedback,
+  please drop me a note: marc@ihm.name
 
   If you have a github-account and prefer a more structured approach, you
-  may also open a github-issue.
+  may also open a github-issue at https://marcihm.github.io/harpwise/
   
 * Configuration
 

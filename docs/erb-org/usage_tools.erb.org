@@ -1,4 +1,4 @@
-*** Overview of 'harpwise tools'
+** Overview of 'harpwise tools'
 
   The mode 'tools' offers some non-interactive but useful utilities,
   which are mostly related to basic harmonica theory; they do not use
@@ -10,7 +10,7 @@
 <%= get_extra_desc_all(mode: :tools, for_usage: true).join("\n") %>
   
 
-*** Usage by Examples
+** Usage by Examples
 
   Transpose a sequence of notes (some specified as holes) from
   the key of c to g (keeping the notes/pitches constant):

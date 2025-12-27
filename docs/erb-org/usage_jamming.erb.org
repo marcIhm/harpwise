@@ -1,4 +1,4 @@
-*** Overview of 'harpwise jamming'
+** Overview of 'harpwise jamming'
 
   Scripted jamming along a backing track. For this harpwise includes a
   backing-track with timestamps as well as a matching set of licks and
@@ -6,7 +6,7 @@
   and chords in sync with the track.
 
 
-*** Usage by Examples
+** Usage by Examples
 
   The mode jamming is a remote control and helper for harpwise in mode
   listen; jamming plays a backing-track while making listen switch licks
@@ -114,7 +114,7 @@
 
 <%= get_extra_desc_all(mode: :jamming, for_usage: true).join("\n") %>
 
-*** Quick Start
+** Quick Start
 
     #+begin_src 
     harpwise jam along 12

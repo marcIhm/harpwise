@@ -1,4 +1,4 @@
-*** Overview of 'harpwise licks'
+** Overview of 'harpwise licks'
 
   The mode 'licks' helps to learn and memorize licks.  Typically it
   plays a random lick from your collection and asks you to play it
@@ -27,7 +27,7 @@
   written wholes, you may find it useful to switch to mode listen,
   which can be done by typing 'm' without stopping the wise first.
   
-*** Usage by Examples
+** Usage by Examples
 
   Play licks from your collection; transpose them (i.e. their
   recordings) to the key of c, if necessary:

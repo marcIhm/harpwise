@@ -123,8 +123,8 @@ Usage by Examples:
   `----
 
 
-Quick Start:
-============
+Quick Start
+===========
 
   ,----
   | harpwise listen c              

@@ -1,4 +1,4 @@
-*** Overview of 'harpwise listen'
+** Overview of 'harpwise listen'
 
   The mode 'listen' shows information on the notes you play; depending
   on settings for display and comment this can be:
@@ -14,7 +14,7 @@
   transcription of the holes played.
 
 
-*** Usage by Examples:
+** Usage by Examples:
 
   The wise listens, while your are playing a richter harp of key c and
   it shows the holes, that you played; green if from the blues-scale,
@@ -119,7 +119,7 @@
     harpwise listen c --time-slice short
     #+end_src
 
-*** Quick Start:
+** Quick Start
 
     #+begin_src 
     harpwise listen c              

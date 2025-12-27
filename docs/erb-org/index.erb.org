@@ -104,44 +104,70 @@
 
 <%= IO.read("../_org/usage.org") %>
 
-* The Modes
+* The Modes of harpwise
 
   These correspond with the broad use cases of harpwise. On the
   commandline the mode comes as a the second argument, e.g. 'listen' in
   'harpwise listen'.
   
-** Listen
+* harpwise listen
 
   [[../images/harpwise-listen.gif]]
   
 <%= IO.read("../_org/usage_listen.org") %>
 
-** Quiz
+* harpwise quiz
 
   [[../images/harpwise-quiz.gif]]
   
 <%= IO.read("../_org/usage_quiz.org") %>
 
-** Jamming
+* harpwise jamming
 
 <%= IO.read("../_org/usage_jamming.org") %>
 
-** Licks
+* harpwise licks
 
 <%= IO.read("../_org/usage_licks.org") %>
 
-** Play
+* harpwise play
 
 <%= IO.read("../_org/usage_play.org") %>
 
-** Tools
+* harpwise tools
 
 <%= IO.read("../_org/usage_tools.org") %>
 
-** Samples
+* harpwise samples
 
 <%= IO.read("../_org/usage_samples.org") %>
                   
+* Command-line options
+
+  The command line of harpwise accepts a broad range of options; many of
+  them are specific for one of the modes of harpwise (e.g. 'harpwise
+  listen').
+
+  Many of the options appear in the usage-examples for the individual
+  modes. However for a comprehensive list, invoke with the option '-o'.
+  E.g. for mode 'listen' type:
+
+  #+begin_src
+    harpwise listen -o
+  #+end_src
+  
+  this will give you a long colored, list of all options, that 'harpwise
+  listen' accepts. The list will contain options, that are specific for
+  mode 'listen' (.e.g '--display' or '-d') as well as options, that can be
+  applied to many (or all) modes (e.g. '--sharps').
+
+  If you only want to read the description of a specific option
+  (e.g. '-d'), you may add it to the command line right away, e.g.:
+
+  #+begin_src
+    harpwise listen -o -d
+  #+end_src
+  
 * A closer look at the Screen (mode listen)
 
   The Screenshot below is from mode listen. This view presents a lot of
