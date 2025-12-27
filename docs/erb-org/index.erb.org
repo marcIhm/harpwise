@@ -190,16 +190,21 @@ Featuring Sonny Boy Williamson
 ** The header
 
    Two topmost two lines, that show e.g.
-   - The current mission, i.e. what you are supposed to do
-   - Immediate feedback on keys beeing pressed or a hint on how to get
-     help
-   - A summary of the settings mode, type, key and scales
+   - The current mission, i.e. what you are supposed to do; in the example
+     this is simply 'Play from 4 scales'.
+   - As a special case, when mode 'listen' takes part in a jam, this line
+     shows your exact position within the scale progression (iteration,
+     chord and second)
+   - In the top-right corner you get immediate feedback on keys beeing
+     pressed or a hint on how to get help
+   - A summary of the current settings: mode, harmonica-type, key and
+     scales
 
 ** The 'display'
 
    This part of the screen (i.e. most of its upper half) shows different
    versions of a harmonica chart as known from textbooks. In addition, the
-   holes, that you are playing are highlighted in colours, e.g. according
+   holes, that you are playing are highlighted in colours according
    to the scale.
 
    To change the display type 'd' repeatedly or type 'D' to get a menu
@@ -210,15 +215,16 @@ Featuring Sonny Boy Williamson
    The three middle lines of the screen show:
 
    - The hole and note, that you are playing and the reference hole, if
-     set. In addtion ('Rem') the scales the hole belongs to
-   - The Frequency you are playing; featuring a small frequncy gauge
+     set
+   - The Frequency (in Herz), that you are playing; featuring a small
+     frequncy gauge
    - The interval of the current hole to the reference hole or to the last
      hole played
         
 ** The 'comment'
 
-   This part of the screen (i.e. most of its lower half) shows comments;
-   e.g. when in mode licks, harpwise expects you to play a sequence of
+   This part of the screen (i.e. most of its lower half) shows comments.
+   E.g. when in mode licks, harpwise expects you to play a sequence of
    holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
 
@@ -227,8 +233,8 @@ Featuring Sonny Boy Williamson
 
 ** The footer
 
-   Within those two lines at the bottom, harpwise shows hints and various
-   remarks on its operation.
+   Within those two lines at the bottom, harpwise shows hints and issues
+   various remarks on its operation.
 
    For example:
    
@@ -237,11 +243,17 @@ Featuring Sonny Boy Williamson
 
 * Getting help
 
-  If you have problems, questions or just want to give feedback, please
-  drop me a note: marc@ihm.name
+  Within harpwise, you may press 'h' to get help on the keys, that are
+  currently accepted.
+
+  This page https://marcihm.github.io/harpwise/ collects all other written
+  documentation (overview, background, usage, concepts, etc.).
+  
+  If you still have problems, questions or just want to give feedback,
+  please drop me a note: marc@ihm.name
 
   If you have a github-account and prefer a more structured approach, you
-  may also open a github-issue.
+  may also open a github-issue at https://marcihm.github.io/harpwise/
   
 * Configuration
 

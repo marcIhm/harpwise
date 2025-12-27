@@ -13,6 +13,9 @@
   and chords (scales). This happens in time with the chord-changes of the
   track by means of a time-table (see below).
 
+  The screen of listen, shows iteration, current chord and seconds left in the first line,
+  making orientation easy.
+
 
   To use harpwise jamming, you need *two* terminals. In the first one
   start e.g.:
