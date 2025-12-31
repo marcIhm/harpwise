@@ -80,6 +80,7 @@ end
 
 # needed for usage
 initialize_extra_vars
+
 if $testing_what == :extra
   puts JSON.pretty_generate({extra_kws_wwos2canon: $extra_kws_wwos2canon})
   exit
@@ -110,6 +111,9 @@ set_global_vars_late
 set_global_musical_vars
 
 $initialized = true
+
+$extra_kws[$mode].each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
+report_name_collisions_mb
 
 $extra, to_handle = parse_arguments_for_mode
 
@@ -187,8 +191,6 @@ at_exit do
 
   maybe_write_pers_data
 end
-
-report_name_collisions_mb
 
 write_invocation
 

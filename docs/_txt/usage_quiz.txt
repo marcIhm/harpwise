@@ -12,11 +12,11 @@ Overview of 'harpwise quiz'
   ctrl-z.  For a chosen flavour, questions of this flavour are asked in
   an endless loop.
 
-  The available 29 flavours are:
+  The available 30 flavours are:
 
-  - all, ran, random: all flavours, one at random
+  - all, ran, random: any and all flavours, one at random
 
-  - scales: flavours related with scales at random
+  - scales: flavours related with scales
 
   - mic: flavours, that use the microphone; most of them switch to
     listen-perspective
@@ -51,6 +51,10 @@ Overview of 'harpwise quiz'
   - play-scale: gives the name of a scale and asks to play it
 
   - hear-inter: plays an interval and asks for its name
+
+  - inter-song: names an interval and ask for the mnemonic-song that
+    starts with this interval. Or the other way around from song to
+    interval
 
   - add-inter: gives a hole and an interval and asks for the resulting
     hole, which is obtained by either adding or subtracting
@@ -143,10 +147,10 @@ Usage by Examples
 
   is valid as well (but would choose a richter harp).
 
-  This example removes drawbends from the scale 'all':
+  This example removes drawbends from the scale 'fulll':
 
   ,----
-  | harpwise quiz all replay 5 --remove-scales drawbends
+  | harpwise quiz full replay 5 --remove-scales drawbends
   `----
 
   this example also relies on the default of 5 holes to be played.

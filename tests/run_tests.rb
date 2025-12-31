@@ -414,16 +414,16 @@ usage_types.keys.each_with_index do |mode, idx|
     tms "harpwise #{usage_types[mode][1]} 2>/dev/null | head -20"
     tms :ENTER
     sleep 2
-    expect_usage = { 'none' => [2, "A harmonica tool for the command line, using microphone and speaker."],
-                     'samples' => [4, 'The wise needs a set of audio-samples'],
-                     'listen' => [4, "The mode 'listen' shows information on the notes you play"],
-                     'quiz' => [4, "The mode 'quiz' is a quiz on music theory, ear and"],
-                     'licks' => [4, "The mode 'licks' helps to learn and memorize licks."],
-                     'play' => [4, "The mode 'play' takes its arguments"],
+    expect_usage = { 'none' => [5, "A harmonica tool for the command line, using microphone and speaker."],
+                     'samples' => [5, 'The wise needs a set of audio-samples'],
+                     'listen' => [5, "The mode 'listen' shows information on the notes you play"],
+                     'quiz' => [5, "The mode 'quiz' is a quiz on music theory, ear and"],
+                     'licks' => [5, "The mode 'licks' helps to learn and memorize licks."],
+                     'play' => [5, "The mode 'play' takes its arguments"],
                      'print' => [5, 'and prints them with additional'],
-                     'tools' => [4, "The mode 'tools' offers some non-interactive"],
-                     'develop' => [4, "This mode is useful only for the maintainer or developer"],
-                     'jamming' => [4, "Scripted jamming along a backing track"] }
+                     'tools' => [5, "The mode 'tools' offers some non-interactive"],
+                     'develop' => [5, "This mode is useful only for the maintainer or developer"],
+                     'jamming' => [5, "Scripted jamming along a backing track"] }
     
     expect(mode, expect_usage[mode]) { screen[expect_usage[mode][0]][expect_usage[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -567,7 +567,7 @@ do_test 'id-6: listen without journal' do
   journal_file = "#{$datadir}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
-  tms 'harpwise listen a all'
+  tms 'harpwise listen a full'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -581,7 +581,7 @@ end
 
 do_test 'id-6a: listen and change display and comment' do
   new_session
-  tms 'harpwise listen a all --ref +2'
+  tms 'harpwise listen a full --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   # just cycle (more than once) through display and comments without errors
@@ -598,7 +598,7 @@ end
 
 do_test 'id-6b: listen and change display and comment with menu' do
   new_session
-  tms 'harpwise listen a all --ref +2'
+  tms 'harpwise listen a full --ref +2'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'D'
@@ -618,7 +618,7 @@ end
 
 do_test 'id-7: change key of harp' do
   new_session
-  tms 'harpwise listen richter a all'
+  tms 'harpwise listen richter a full'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'k'
@@ -626,13 +626,13 @@ do_test 'id-7: change key of harp' do
   tms 'c'
   tms :ENTER
   sleep 1
-  expect { screen[1]['listen richter c all'] }
+  expect { screen[1]['listen richter c full'] }
   kill_session
 end
 
 do_test 'id-7a: change scale of harp' do
   new_session
-  tms 'harpwise listen a all'
+  tms 'harpwise listen a full'
   tms :ENTER
   wait_for_start_of_pipeline
   tms '$'
@@ -647,7 +647,7 @@ end
 
 do_test 'id-7b: rotate scale of harp' do
   new_session
-  tms 'harpwise listen a all'
+  tms 'harpwise listen a full'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 's'
@@ -658,7 +658,7 @@ end
 
 do_test 'id-7c: change key of harp with adjustable pitch' do
   new_session
-  tms 'harpwise listen richter c all'
+  tms 'harpwise listen richter c full'
   tms :ENTER
   wait_for_start_of_pipeline
   tms 'K'
@@ -667,7 +667,7 @@ do_test 'id-7c: change key of harp with adjustable pitch' do
   3.times {tms 'S'}
   tms :ENTER
   sleep 1
-  expect { screen[1]['listen richter a all'] }
+  expect { screen[1]['listen richter a full'] }
   kill_session
 end
 
@@ -682,7 +682,7 @@ end
 
 do_test 'id-9: listen with removed scale' do
   new_session
-  tms 'harpwise listen a all --remove drawbends'
+  tms 'harpwise listen a full --remove drawbends'
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
@@ -692,7 +692,7 @@ end
 
 do_test 'id-9a: error on ambigous option' do
   new_session
-  tms 'harpwise listen a all --r drawbends'
+  tms 'harpwise listen a full --r drawbends'
   tms :ENTER
   sleep 1
   expect { screen[2]['ERROR: Argument'] }
@@ -723,7 +723,7 @@ end
 do_test 'id-10a: displays and comments in quiz' do
   sound 40, 2
   new_session
-  tms 'harpwise quiz c all replay 2 --ref +2'
+  tms 'harpwise quiz c full replay 2 --ref +2'
   tms :ENTER
   sleep 2
   tms :ENTER
@@ -1718,7 +1718,7 @@ end
 do_test 'id-48: chromatic in c; listen' do
   sound 8, 2
   new_session 92, 30
-  tms 'harpwise listen chromatic c all --add-scales - --display chart-notes'
+  tms 'harpwise listen chromatic c full --add-scales - --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
@@ -1731,7 +1731,7 @@ end
 do_test 'id-48a: chromatic in a; listen' do
   sound 8, 2
   new_session 92, 30
-  tms 'harpwise listen chromatic a all --display chart-notes'
+  tms 'harpwise listen chromatic a full --display chart-notes'
   tms :ENTER
   wait_for_start_of_pipeline
   # adjust lines 
@@ -2036,29 +2036,33 @@ do_test 'id-54e: print list of all scales' do
   tms "harpwise print scales >#{$testing_output_file}"
   tms :ENTER
   wait_for_end_of_harpwise
-  lines = File.read($testing_output_file).lines
+  file_lines = File.read($testing_output_file).lines
 
-  [" all                [2m(builtin)[0m:\n",
-   "   [2mHoles(32):  +1  -1/  -1  -2  +2  -2//  -2/  -2  -3///  -3//  -3/  -3  +4  -4/  -4  +5  -5  +6  -6/  -6  -7  +7  -8  +8/  +8  -9  +9/  +9  -10  +10//  +10/  +10\n",
-   "   [2mShort: A[0m\n",
-   "   [2mDesc: all holes of the harmonica[0m\n",
-   " blues              [2m(builtin)[0m:\n",
-   "   [2mHoles(18):  +1  -1/  -1  -2//  -2  -3/  +4  -4/  -4  -5  +6  -6/  -6  +7  -8  -9  +9  -10\n",
-   "   [2mShort: b[0m\n",
-   "   [2mDesc: the full blues scales over all octaves[0m\n",
-   " blues-middle       [2m(builtin)[0m:\n",
-   "   [2mHoles(7):  -2  -3/  +4  -4/  -4  -5  +6\n",
-   "   [2mShort: b[0m\n",
-   "   [2mDesc: middle octave of the blues scale[0m\n",
-   " chord-i            [2m(builtin)[0m:\n",
-   "   [2mHoles(8):  -2  -3  -4  +6  -7  -8  +9  +10/\n",
-   "   [2mShort: 1[0m\n",
-   "   [2mDesc: major chord I without flat seventh[0m\n",
-   " chord-i7           [2m(builtin)[0m:\n",
-   "   [2mHoles(10):  -2  -3  -4  -5  +6  -7  -8  -9  +9  +10/\n",
-   "   [2mShort: 1[0m\n",
-   "   [2mDesc: major chord I with added flat seventh[0m\n"].each_with_index do |exp,idx|
-    expect(lines.each_with_index.map {|l,i| [i,l]}, idx + 7, exp, $testing_output_file) { lines[idx + 7] == exp }
+  [" blues              \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(18):  +1  -1/  -1  -2//  -2  -3/  +4  -4/  -4  -5  +6  -6/  -6  +7  -8  -9  +9  -10\n",
+   "   \e[2mShort: b\e[0m\n",
+   "   \e[2mDesc: the full blues scales over all octaves\e[0m\n",
+   " blues-middle       \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(7):  -2  -3/  +4  -4/  -4  -5  +6\n",
+   "   \e[2mShort: b\e[0m\n",
+   "   \e[2mDesc: middle octave of the blues scale\e[0m\n",
+   " chord-i            \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(8):  -2  -3  -4  +6  -7  -8  +9  +10/\n",
+   "   \e[2mShort: 1\e[0m\n",
+   "   \e[2mDesc: major chord I without flat seventh\e[0m\n",
+   " chord-i7           \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(10):  -2  -3  -4  -5  +6  -7  -8  -9  +9  +10/\n",
+   "   \e[2mShort: 1\e[0m\n",
+   "   \e[2mDesc: major chord I with added flat seventh\e[0m\n",
+   " chord-iv           \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(10):  +1  +2  -2  +4  +5  +6  +7  +8  +9  +10\n",
+   "   \e[2mShort: 4\e[0m\n",
+   "   \e[2mDesc: major chord IV without flat seventh\e[0m\n",
+   " chord-iv7          \e[2m(builtin)\e[0m:\n",
+   "   \e[2mHoles(12):  +1  +2  -2  -3/  +4  +5  +6  +7  +8  +9  +10//  +10\n",
+   "   \e[2mShort: 4\e[0m\n"].each_with_index do |expected, expected_idx|
+    file_idx = expected_idx + 7
+    expect(file_idx, file_lines[file_idx], expected_idx, expected, $testing_output_file) { file_lines[file_idx] == expected }
   end
   kill_session
 end
@@ -2091,7 +2095,7 @@ do_test 'id-54h: print scales summary' do
   tms "harpwise print scales --brief"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[4] == '  all     blues   blues-middle    chord-i     chord-i7    chord-iv' }
+  expect { screen[4] == '  blues   blues-middle    chord-i     chord-i7    chord-iv' }
   kill_session
 end
 
@@ -2186,7 +2190,7 @@ do_test 'id-58: listen with journal on request, recall later' do
   journal_file = "#{$datadir}/journal_richter.txt"
   FileUtils.rm journal_file if File.exist?(journal_file)
   new_session
-  tms 'EDITOR=vi harpwise listen a all'
+  tms 'EDITOR=vi harpwise listen a full'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -2224,7 +2228,7 @@ do_test 'id-59: listen and edit journal' do
   sound 40, 2
   new_session
   # dont know why we need to set it here too (at least ubuntu)
-  tms 'EDITOR=vi harpwise listen a all --comment journal'
+  tms 'EDITOR=vi harpwise listen a full --comment journal'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -2250,7 +2254,7 @@ do_test 'id-60: listen with auto journal' do
   ENV['EDITOR']='vi'
   two_sounds 10, 2, 16, 8
   new_session
-  tms 'EDITOR=vi harpwise listen a all --comment journal'
+  tms 'EDITOR=vi harpwise listen a full --comment journal'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -2277,7 +2281,7 @@ end
 do_test 'id-60a: set reference from sound' do
   sound 16, 8
   new_session
-  tms 'harpwise listen a all'
+  tms 'harpwise listen a full'
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
@@ -2394,7 +2398,7 @@ do_test 'id-66a: tool search-lick-in-scales' do
   tms 'harpwise tool search-lick-in-scales wade'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[11]['all     blues   minor   minor-pentatonic'] }
+  expect { screen[11]['blues   full    minor   minor-pentatonic'] }
   kill_session
 end
 
@@ -3435,18 +3439,31 @@ do_test 'id-112a: quiz-flavour hear-chord' do
   kill_session
 end
 
+do_test 'id-112b: quiz-flavour inter-song' do
+  new_session
+  tms 'harpwise quiz inter-song --difficulty easy'
+  tms :ENTER
+  sleep 3
+  expect { screen[13]['Names an interval and ask for the mnemonic-song'] }
+  tms :ENTER
+  tms 'SKIP'
+  tms :ENTER
+  expect { screen[11]['The correct answer is'] }
+  kill_session
+end
+
 do_test 'id-113: quiz-flavour choose' do
   new_session
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 21 (all) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 22 (all) flavours and 7 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
   sleep 1
   tms :TAB
-  expect { screen[16]['Please choose among 7 (silent) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 8 (silent) flavours and 7 collections'] }
   kill_session
 end
 
@@ -3863,8 +3880,8 @@ do_test 'id-133c: correct erb-processing and no org-tags in usage' do
   tms 'harpwise | head -120'
   tms :ENTER
   sleep 2
-  expect { screen[5]['The possible scales depend on the chosen type of harmonica']}
-  expect { screen[7]['scales for chromatic: all, blues']}
+  expect { screen[9]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[11]['scales for chromatic: blues, blues-middle']}
   tms 'clear'
   tms :ENTER
   tms 'harpwise | grep -c \#+'
@@ -3902,7 +3919,7 @@ do_test 'id-133f: all again with docs-all' do
   tms 'harpwise dev docs-all'
   tms :ENTER
   wait_for_end_of_harpwise 60
-  expect { screen[21]['Opening browser on index.html; close with CTRL-W']}
+  expect { screen[21]['Successfully published to']}
   kill_session
 end
 
@@ -4137,7 +4154,7 @@ do_test 'id-144: check consistent usage of short and long description' do
 
   sd_usage = nil
   ld_usage = []
-  File.read("docs/_txt/usage.txt").lines.map(&:strip).each do |line|
+  File.read("docs/_txt/usage.txt").lines.map(&:strip)[2..-1].each do |line|
     if line == ''
       break if ld_usage.length > 0
     else

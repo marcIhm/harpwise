@@ -115,7 +115,7 @@ Usage by Examples
   or even:
 
   ,----
-  | harpwise play all
+  | harpwise play full
   `----
 
 

@@ -240,7 +240,7 @@ def parse_arguments_early
       end
     end
   end  ## loop over argv
-
+  
   # clear options with special value '-'
   opts.each_key {|k| opts[k] = nil if opts[k] == '-'}
 
@@ -474,7 +474,7 @@ def parse_arguments_early
     holes.each do |h|
       next if $harp_holes.include?(h)
       ind = '      '
-      err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{wrap_words(ind,$all_scales,'  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind,$harp_holes,'  ')}\nand can therefore not be part of an adhoc-scale"
+      err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{wrap_words(ind, $all_scales,'  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind,$harp_holes,'  ')}\nand can therefore not be part of an adhoc-scale"
     end
     if !scale
       if holes.length == 0
@@ -536,7 +536,6 @@ def initialize_extra_vars
   exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
   extra2desc = yaml_parse(exfile).transform_keys!(&:to_sym)
   $extra_kws = Hash.new {|h,k| h[k] = Set.new}
-  $extra_kws.each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
   $extra_aliases = Hash.new
   # Map strings of extra-keywords (joined with comma) to description
   $extras_joined_to_desc = Hash.new
@@ -655,8 +654,12 @@ def parse_arguments_for_mode
         summary = print_amongs(:extra, highlight: ARGV[0])
         extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
         wrapped = wrap_words('  ', extra_words, '  ')
-        colored = wrapped.gsub(ARGV[0], "\e[0m\e[7m\e[32m" + ARGV[0] + "\e[0m\e[2m")
-        err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
+        if ARGV[0]
+          colored = wrapped.gsub(ARGV[0], "\e[0m\e[7m\e[32m" + ARGV[0] + "\e[0m\e[2m")
+          err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
+        else
+          err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{wrapped} \n\e[0mas described above. However, no argument at all has been given."
+        end
       end
     end
   end

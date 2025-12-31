@@ -49,10 +49,10 @@ The available <%= $extras_joined_to_desc[:quiz].length %> flavours are:
 
   is valid as well (but would choose a richter harp).
 
-  This example removes drawbends from the scale 'all':
+  This example removes drawbends from the scale 'fulll':
 
     #+begin_src 
-    harpwise quiz all replay 5 --remove-scales drawbends
+    harpwise quiz full replay 5 --remove-scales drawbends
     #+end_src
 
   this example also relies on the default of 5 holes to be played.

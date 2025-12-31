@@ -1,32 +1,33 @@
-Overview of 'harpwise develop':
+Overview of 'harpwise develop'
+==============================
 
-This mode is useful only for the maintainer or developer of harpwise; it
-is therefore not listed in the general usage information.
+  This mode is useful only for the maintainer or developer of harpwise;
+  it is therefore not listed in the general usage information.
 
-The required additional argument specifies a task to perform; it can be
-one of:
+  The required additional argument specifies a task to perform; it can
+  be one of:
 
-- docs-make-org-txt: process template from docs/erb-org and produce
-  files in _org and _txt
+  - docs-make-org-txt: process template from docs/erb-org and produce
+    files in _org and _txt
 
-- docs-make-html: process org-files with org-publish from docs/_org and
-  produce file in _html
+  - docs-make-html: process org-files with org-publish from docs/_org
+    and produce file in _html
 
-- docs-all: all docs-xyz extras one after the other
+  - docs-all: all docs-xyz extras one after the other
 
-- selftest: perform selftest with special regard to the environment
+  - selftest: perform selftest with special regard to the environment
 
-- unittest: unittest for features, that cannot easily be tested within
-  the main test program
+  - unittest: unittest for features, that cannot easily be tested within
+    the main test program
 
-- widgets: excercise selected widgets to be tested
+  - widgets: excercise selected widgets to be tested
 
-- lickfile: load and parse a lickfile
+  - lickfile: load and parse a lickfile
 
-- check-frequencies: recalculate and check frequencies for current set
-  of samples
+  - check-frequencies: recalculate and check frequencies for current set
+    of samples
 
-- read-scale-with-notes: read given scale (first arg) from file (second
-  arg)
+  - read-scale-with-notes: read given scale (first arg) from file
+    (second arg)
 
-- dump: dump internal data structures to stdout
+  - dump: dump internal data structures to stdout

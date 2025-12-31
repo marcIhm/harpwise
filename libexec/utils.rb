@@ -1275,7 +1275,8 @@ def wrap_text text, term_width: nil, cont: ' ...'
 end
 
 
-def report_name_collisions_mb
+def report_name_collisions_mb  
+
   collisions = $name_collisions_mb.select {|_, s| s.length > 1}
   return if collisions.length == 0
   puts

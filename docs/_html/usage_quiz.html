@@ -214,15 +214,15 @@ are asked in an endless loop.
 </p>
 
 <p>
-The available 29 flavours are:
+The available 30 flavours are:
 </p>
 
 <ul class="org-ul">
 <li>all, ran, random:
-all flavours, one at random</li>
+any and all flavours, one at random</li>
 
 <li>scales:
-flavours related with scales at random</li>
+flavours related with scales</li>
 
 <li>mic:
 flavours, that use the microphone; most of them switch to
@@ -266,6 +266,10 @@ gives the name of a scale and asks to play it</li>
 
 <li>hear-inter:
 plays an interval and asks for its name</li>
+
+<li>inter-song:
+names an interval and ask for the mnemonic-song that starts with
+this interval. Or the other way around from song to interval</li>
 
 <li>add-inter:
 gives a hole and an interval and asks for the resulting hole,
@@ -391,11 +395,11 @@ is valid as well (but would choose a richter harp).
 </p>
 
 <p>
-This example removes drawbends from the scale 'all':
+This example removes drawbends from the scale 'fulll':
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise quiz all replay 5 --remove-scales drawbends
+<pre class="src src-nil">harpwise quiz full replay 5 --remove-scales drawbends
 </pre>
 </div>
 

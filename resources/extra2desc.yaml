@@ -163,9 +163,9 @@ tools:
     might have come up with the other diag-tools.
 quiz:
   all, ran, random: |
-    all flavours, one at random
+    any and all flavours, one at random
   scales: |
-    flavours related with scales at random
+    flavours related with scales
   mic: |
     flavours, that use the microphone; most of them switch to
     listen-perspective
@@ -198,6 +198,9 @@ quiz:
     gives the name of a scale and asks to play it
   hear-inter: |
     plays an interval and asks for its name
+  inter-song: |
+    names an interval and ask for the mnemonic-song that starts with
+    this interval. Or the other way around from song to interval
   add-inter: |
     gives a hole and an interval and asks for the resulting hole,
     which is obtained by either adding or subtracting

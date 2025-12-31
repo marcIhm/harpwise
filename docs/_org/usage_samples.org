@@ -115,7 +115,7 @@
   or even:
 
     #+begin_src 
-    harpwise play all
+    harpwise play full
     #+end_src
 
 

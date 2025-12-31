@@ -761,6 +761,7 @@ def read_and_set_musical_bootstrap_config
       all_sc_progs[name] = prog
     end
   end
+  all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
   return [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
 end
@@ -909,6 +910,26 @@ def read_and_set_musical_config
   $chords_quiz[:hard]['IV7'] = [[5,9,12,15]]
   $chords_quiz[:hard]['V7'] = [[7,11,14,17]]
 
+  # See:  https://en.wikipedia.org/wiki/Interval_recognition
+  $quiz_interval2song = {1 => ['Rule, Britannia', 'As time goes by'],
+                         2 => ['Frere Jaques', 'Rudolph the red-nosed reindeer', 'Silent Night'],
+                         3 => ['The Sound of Silence', 'Greensleeves', 'Smoke on the Water'],
+                         4 => ['Oh when the Saints go Marching in (on Oh-when)', 'Kumbaya'],
+                         5 => ['Auld Lang Syne', 'Oh Tannenbaum'],
+                         6 => ['Maria (from West Side Story)'],
+                         7 => ['Can\'t Help Falling in Love (on Wise Man)', 'Scarborough Fair (on go-ing)'],
+                         8 => ['The Entertainer (big interval after pick-up)'],
+                         9 => ['For He\'s a Jolly Good Fellow', 'My Bonnie Lies over the Ocean'],
+                         10 => ['The Winner Takes it all (Abba)', 'Lady Madonna (Beatles)'],
+                         11 => ['Take on Me (Aha)'],
+                         12 => ['Heigh-Ho (from Snow White)'] }
+
+  $quiz_interval2song.values.each do |ts|
+    ts.each do |t|
+      fail "Song title '#{t}' is too long #{t.length} >= #{$conf[:term_min_width] - 4}" if t.length >= $conf[:term_min_width] - 4
+    end
+  end
+  
   [ harp,
     harp_holes,
     harp_notes,

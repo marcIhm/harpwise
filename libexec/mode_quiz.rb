@@ -112,12 +112,16 @@ def do_quiz to_handle
   elsif $quiz_flavour == 'play-inter'
 
     holes_inter = get_random_interval_as_holes
+    holes_inter << $quiz_interval2song[holes_inter[2].abs].sample
     back_to_comment_after_mode_switch
-    puts "\e[34mInterval to play is:\e[0m\e[2m"
+    puts
+    puts "\e[34mInterval to play is:\e[0m"
     puts
     puts
-    do_figlet_unwrapped holes_inter[4], 'smblock'
+    puts "\e[94m   #{holes_inter[4]}\e[34m"
     puts
+    puts
+    puts "The same as (upward) in song:  \e[94m" + holes_inter[5] + "\e[0m"
     puts
     sleep 2
     prepare_listen_perspective_for_quiz
@@ -911,7 +915,7 @@ class HearInter < QuizFlavour
       @holes = inter[0..1]
       @dsemi = inter[2]
       @solution = inter[3]
-    end while @@prevs.include?(@holes)
+    end while @@prevs.include?(@holes) || @dsemi == 0
     @@prevs << @holes
     @@prevs.shift if @@prevs.length > 2
 
@@ -979,6 +983,17 @@ class HearInter < QuizFlavour
 
   def help4_desc
     ['.help-move-octave', 'Play interval one octave lower or higher']
+  end
+
+  def help5
+    puts "One of the mnemonic songs (upward) for this interval is:"
+    puts
+    puts "  \e[94m" + $quiz_interval2song[@dsemi.abs].sample + "\e[0m"
+    puts
+  end
+
+  def help5_desc
+    ['.help-inter-song', 'Name the mnemonic song associated with this interval']
   end
 
 end
@@ -1258,10 +1273,11 @@ class AddInter < QuizFlavour
   end
 
   def help3
-    puts "Printing intervals semitones and names:"
+    puts "Printing intervals semitones and names as well as a mnemonic song:"
     puts "\e[2m"
     $intervals_quiz[$opts[:difficulty]].each do |st|
       puts "  %3dst: #{$intervals[st][0]}" % st
+      puts "         " + $quiz_interval2song[st].sample
     end
     puts "\e[0m"
   end
@@ -1286,6 +1302,110 @@ class AddInter < QuizFlavour
 
   def help5_desc
     ['.help-chart-semis', 'Show solution in chart with holes as semitones']
+  end
+
+end
+
+
+class InterSong < QuizFlavour
+
+  $q_class2colls[self] = %w(silent inters no-mic)
+
+  def initialize first_round
+    super
+
+    @interval2song = $intervals_quiz[$opts[:difficulty]].
+                       select {|i| i > 0}.
+                       map {|inter| [inter, $quiz_interval2song[inter].sample]}.to_h
+    
+    @qdesc, @adesc, qi2ai = if rand > 0.5
+                              ['interval', 'song', @interval2song]
+                            else 
+                              ['song', 'interval', @interval2song.invert]
+                            end
+    
+    @choices = qi2ai.values
+        
+    begin
+      @qitem = qi2ai.keys.sample
+    end while @@prevs.include?(@qitem)
+    @@prevs << @qitem
+    @@prevs.shift if @@prevs.length > 2
+
+    @solution = qi2ai[@qitem]
+    @base_semi = note2semi($key + '4')
+    if @qdesc == 'interval'
+      @inter_semi = @qitem
+      @song = @solution
+    else
+      @inter_semi = qi2ai[@qitem]
+      @choices.map! {|c| describe_inter_semis(c)}
+      @solution = describe_inter_semis(@solution)
+      @song = @qitem
+    end
+    @choices_orig = @choices.clone
+
+    @prompt = "Matching #{@adesc}:"
+  end
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+      ", taking #{$intervals_quiz[$opts[:difficulty]].length} intervals out of #{$quiz_interval2song.length}"
+  end
+
+  def after_solve
+    puts
+    puts "Playing interval \e[32m#{describe_inter_semis(@inter_semi)}\e[0m starting at #{semi2note(@base_semi)};\nthis is the same interval as in song '#{@song}':"
+    play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)]
+  end
+  
+  def issue_question
+    if @qdesc == 'interval'
+      puts "\e[34mGiven the interval of \e[94m#{describe_inter_semis(@qitem)}\e[34m, name the song, that starts with this interval\e[0m"
+    else
+      puts "\e[34mGiven the song '\e[94m#{@qitem}\e[34m', name the the interval, that this song starts with\e[0m"
+    end
+    puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
+  end
+
+  def help2
+    if @qdesc == 'interval'
+      print "Playing interval \e[32m#{describe_inter_semis(@inter_semi)}\e[0m:  "
+    else
+      print "Playing interval from song \e[32m'#{@qitem}'\e[0m:  "
+    end
+    play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)], newline: false
+  end
+
+  def help2_desc
+    ['.help-play-inter', 'Play interval']
+  end
+
+  def help3
+    @interval2song.each do |inter, song|
+      if @qdesc == 'interval'
+        print "Playing interval \e[32m#{describe_inter_semis(inter)}\e[0m:  "
+      else
+        print "Playing interval from song \e[32m'#{song}'\e[0m:  "
+      end
+      play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + inter)], newline: false
+    end
+  end
+
+  def help3_desc
+    ['.help-play-all-inters', 'Play all intervals']
+  end
+
+  def help4
+    @interval2song.each do |inter, song|
+      puts "Interval: \e[32m#{describe_inter_semis(inter)}\e[0m"
+      puts "    Song: \e[32m'#{song}'\e[0m"
+      puts
+    end
+  end
+
+  def help4_desc
+    ['.help-print-all-inters', 'Print all intervals along with their mnemonic song']
   end
 
 end
@@ -1358,6 +1478,17 @@ class TellInter < QuizFlavour
 
   def help4_desc
     ['.help-chart-semis', 'Show chart with holes as semitones']
+  end
+  
+  def help5
+    puts "One of the mnemonic songs (upward) for this interval is:"
+    puts
+    puts "  \e[94m" + $quiz_interval2song[@dsemi.abs].sample + "\e[0m"
+    puts
+  end
+  
+  def help5_desc
+    ['.help-inter-song', 'Name the mnemonic song associated with this interval']
   end
   
 end
@@ -2462,8 +2593,8 @@ def get_random_interval_as_holes sorted: false
         holes_inter << $intervals[inter][0]
         # some compositions for consistency and convenience
         holes_inter << holes_inter[0] +
-                       '..' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + '..' +
-                       holes_inter[3] + ( '..%+dst' % holes_inter[2] )
+                       ' ' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + ' ' +
+                       holes_inter[3] + ( ' (%+dst)' % holes_inter[2] )
         # 0,1: holes,
         #   2: numerical semitone-interval with sign
         #   3: interval long name
