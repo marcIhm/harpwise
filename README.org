@@ -11,7 +11,7 @@
 
   [[docs/images/harmonica3.png]]
 
-** Full documentation at
+** Full documentation
    
    https://marcihm.github.io/harpwise
 

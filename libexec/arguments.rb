@@ -757,7 +757,7 @@ def print_usage_info mode = nil
     puts <<EOFOOTER
 
 \e[2mVersion #{$version}
-Copyright (c) 2021-2025 by Marc Ihm (marc@ihm.name) 
+Copyright (c) 2021-2026 by Marc Ihm (marc@ihm.name) 
 Harpwise is subject to the MIT License, type 'harpwise --license' for details.
 Source code at   https://github.com/marcIhm/harpwise
 #{full}\e[0m

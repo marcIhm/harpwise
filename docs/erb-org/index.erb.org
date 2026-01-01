@@ -3,6 +3,8 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
+/Version  <%=$version%>/
+
 * Introduction
 
   A harmonica tool for the command line, using microphone and speaker.

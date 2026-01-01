@@ -75,6 +75,12 @@ def do_quiz to_handle
   # which have their own methods of checking the answer; then the
   # generic case, which presents a list of choices.
 
+  # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find related pieces
+  # of code in other files
+  
+  # Describing the question is done here for the first question, but from the second
+  # question on it is done in mode_licks.rb
+  
   if $quiz_flavour == 'replay'
 
     back_to_comment_after_mode_switch
@@ -112,17 +118,8 @@ def do_quiz to_handle
   elsif $quiz_flavour == 'play-inter'
 
     holes_inter = get_random_interval_as_holes
-    holes_inter << $quiz_interval2song[holes_inter[2].abs].sample
     back_to_comment_after_mode_switch
-    puts
-    puts "\e[34mInterval to play is:\e[0m"
-    puts
-    puts
-    puts "\e[94m   #{holes_inter[4]}\e[34m"
-    puts
-    puts
-    puts "The same as (upward) in song:  \e[94m" + holes_inter[5] + "\e[0m"
-    puts
+    prompt_for_quiz_interval holes_inter
     sleep 2
     prepare_listen_perspective_for_quiz
     $hole_ref = holes_inter[0]
@@ -2595,16 +2592,29 @@ def get_random_interval_as_holes sorted: false
         holes_inter << holes_inter[0] +
                        ' ' + ( holes_inter[2] > 0 ? 'up' : 'down' ) + ' ' +
                        holes_inter[3] + ( ' (%+dst)' % holes_inter[2] )
+        holes_inter << $quiz_interval2song[holes_inter[2].abs].sample
         # 0,1: holes,
         #   2: numerical semitone-interval with sign
         #   3: interval long name
         #   4: description, e.g. '+1 ... up ... maj Third'
+        #   5: mnemonic song
         return holes_inter
       end
     end
   end
 end
 
+def prompt_for_quiz_interval holes_inter
+  puts
+  puts "\e[34mInterval to play is:\e[0m"
+  puts
+  puts
+  puts "\e[94m   #{holes_inter[4]}\e[34m"
+  puts
+  puts
+  puts "The same as (upward) in song:  \e[94m" + holes_inter[5] + "\e[0m"
+  puts
+end
 
 def get_holes_shifts
 

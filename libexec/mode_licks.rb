@@ -152,6 +152,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       # figure out holes to play
       if $mode == :quiz
 
+        # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find related
+        # pieces of code in other files
+
         re_calculate_quiz_difficulty unless first_round
 
         # erase previous solution if any
@@ -168,6 +171,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             $num_quiz_replay_explicit = true
             $ctl_mic[:change_num_quiz_replay] = false
           end
+          $ctl_mic[:redraw_mission] = true
           to_play.set_all_wanted get_quiz_sample($num_quiz_replay)
           $msgbuf.print Replay.describe_difficulty, 2, 5, :dicu
 
@@ -183,6 +187,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             print "\e[#{$lines[:comment]}H\e[0m\e[34m"
             do_figlet_unwrapped quiz_scale_name, 'smblock'
             sleep 2
+            $ctl_mic[:redraw_mission] = true
           end
           to_play.set_all_wanted read_and_parse_scale_simple(quiz_scale_name, $harp)[0]
           $msgbuf.print HearScale.describe_difficulty, 2, 5, :dicu
@@ -197,8 +202,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             clear_area_comment
             $hole_ref = quiz_holes_inter[0]
             print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-            do_figlet_unwrapped quiz_holes_inter[4], 'smblock'
+            prompt_for_quiz_interval quiz_holes_inter
             sleep 2
+            $ctl_mic[:redraw_mission] = true
           end
           to_play.set_all_wanted quiz_holes_inter[0..1]
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
@@ -213,6 +219,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           end
           to_play.set_all_wanted quiz_holes_shifts[3]
           to_play[:replacement_for_play] = quiz_holes_shifts[0]
+          $ctl_mic[:redraw_mission] = true          
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
 
         when 'shift-holes'
@@ -228,6 +235,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             sleep 2
           end
           to_play.set_all_wanted quiz_holes_inter[0..1]
+          $ctl_mic[:redraw_mission] = true          
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
 
         else
@@ -441,6 +449,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           
           # lambda_mission
           -> () do
+            # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find
+            # related pieces of code in other files
             if quiz_scale_name
               "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
             elsif quiz_holes_inter

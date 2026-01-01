@@ -73,7 +73,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       system('clear')
     end
     
-    if $ctl_mic[:redraw] ||
+    if $ctl_mic[:redraw] || $ctl_mic[:redraw_mission] ||
        # next update of jamming timer due ?
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
       if movr = get_mission_override
@@ -81,6 +81,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       else
         print_mission(lambda_mission.call)
       end
+      $ctl_mic[:redraw_mission] = false
     end
 
     if $ctl_mic[:redraw]

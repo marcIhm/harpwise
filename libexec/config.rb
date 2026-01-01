@@ -70,7 +70,7 @@ def set_global_vars_early
   $ctl_sig_winch = false
   
   # Variables that may be set by pressing keys when listening to microphone
-  ks = [:skip, :redraw, :hole_given, :next, :back, :forget, :first_lick, :quit, :replay, :octave,
+  ks = [:skip, :redraw, :redraw_mission, :hole_given, :next, :back, :forget, :first_lick, :quit, :replay, :octave,
         :loop,
         :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
         :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :options_info, :shift_inter, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first,
@@ -911,7 +911,8 @@ def read_and_set_musical_config
   $chords_quiz[:hard]['V7'] = [[7,11,14,17]]
 
   # See:  https://en.wikipedia.org/wiki/Interval_recognition
-  $quiz_interval2song = {1 => ['Rule, Britannia', 'As time goes by'],
+  $quiz_interval2song = {0 => ['Jingle Bells'],
+                         1 => ['Rule, Britannia', 'As time goes by'],
                          2 => ['Frere Jaques', 'Rudolph the red-nosed reindeer', 'Silent Night'],
                          3 => ['The Sound of Silence', 'Greensleeves', 'Smoke on the Water'],
                          4 => ['Oh when the Saints go Marching in (on Oh-when)', 'Kumbaya'],
