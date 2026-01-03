@@ -728,15 +728,13 @@ def print_usage_info mode = nil
   if !mode && STDOUT.isatty
     print "\e[?25l"  ## hide cursor      
     animate_splash_line
-    puts "\e[0mOverview:"
-    sleep 0.5
     print "\e[?25h"  ## show cursor
   end
   puts
   lines = IO.read("#{$dirs[:install]}/docs/_txt/usage#{mode  ?  '_' + mode.to_s  :  ''}.txt").gsub(/(^\s*\n)+\Z/,'').lines
   lines.each_with_index do |line, idx|
     print line
-    sleep 0.5 if idx == 0 && mode
+    sleep 0.5 if idx == 0
     sleep 0.02 if STDOUT.isatty && idx < 5
     sleep 0.02 if STDOUT.isatty && idx < 10
   end
