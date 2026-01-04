@@ -66,15 +66,29 @@
 
 * Installation
 
-  The latest version of harpwise is a available as a snap:
+  The latest version of harpwise is a available as a snap. This is the
+  preferred way of installing harpwise under linux.
+
+  Ubuntu and related distributions make this especially simple:
 
   #+begin_src
     sudo snap install harpwise
+    harpwise
+  #+end_src
+
+  this works quite well for WSL2/Windows too.
+  
+  For Fedora and its derivatives, you first need to install the snapstore itself:
+
+  #+begin_src
+    sudo dnf install snapd
+    sudo snap install harpwise
+    /var/lib/snapd/snap/bin/harpwise
   #+end_src
   
-  this is the preferred way of installing harpwise under linux and works
-  quite well for WSL2/Windows too.
-     
+  And you may want to add /var/lib/snapd/snap/bin to your PATH
+  permanently.
+  
 * Invoking harpwise
 
   Harpwise is a commandline-program, so you need to open a termnal. The

@@ -362,7 +362,7 @@ overflow: auto;
 </div>
 </div>
 <p>
-<i>Version  6.31.1</i>
+<i>Version  6.31.2</i>
 </p>
 <div id="outline-container-org0000000" class="outline-2">
 <h2 id="org0000000">Introduction</h2>
@@ -465,17 +465,38 @@ flavours: hear-key, players and keep-tempo.
 <h2 id="org0000003">Installation</h2>
 <div class="outline-text-2" id="text-org0000003">
 <p>
-The latest version of harpwise is a available as a snap:
+The latest version of harpwise is a available as a snap. This is the
+preferred way of installing harpwise under linux.
+</p>
+
+<p>
+Ubuntu and related distributions make this especially simple:
 </p>
 
 <div class="org-src-container">
 <pre class="src src-nil">sudo snap install harpwise
+harpwise
 </pre>
 </div>
 
 <p>
-this is the preferred way of installing harpwise under linux and works
-quite well for WSL2/Windows too.
+this works quite well for WSL2/Windows too.
+</p>
+
+<p>
+For Fedora and its derivatives, you first need to install the snapstore itself:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-nil">sudo dnf install snapd
+sudo snap install harpwise
+/var/lib/snapd/snap/bin/harpwise
+</pre>
+</div>
+
+<p>
+And you may want to add /var/lib/snapd/snap/bin to your PATH
+permanently.
 </p>
 </div>
 </div>
