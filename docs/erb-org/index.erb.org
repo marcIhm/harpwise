@@ -53,9 +53,9 @@
 
 * Screencasts
     
-  The screencast below, shows how harpwise (mode 'listen') reacts on notes
+  The screencast below, shows how harpwise (mode 'listen') reacts on holes
   beeing played and how it can help to write them down. No sound has been
-  recorded however, so some acoustic imagination is required.
+  recorded however, so please imagine some holes beeing played.
   
   [[../images/harpwise-listen.gif]]
   
@@ -72,26 +72,27 @@
     sudo snap install harpwise
   #+end_src
   
-  this also works quite well for WSL2/Windows.
+  this is the preferred way of installing harpwise under linux and works
+  quite well for WSL2/Windows too.
      
 * Invoking harpwise
 
   Harpwise is a commandline-program, so you need to open a termnal. The
-  terminal should have black (dark) background to match the colors used by
-  harpwise. Your terminal should use a fixed-width font.
+  terminal should have black (or dark) background to match the colors used
+  by harpwise. It should use a fixed-width font.
   
-  Please note, that harpwise tries to adapt itself to different screen
-  (terminal) sizes. If change the size of your terminal-window (assuming
-  that you have a grafical desktop), then harpwise will react accordingly
-  and you do not need to restart it.
+  Please note, that harpwise adapts to different screen (terminal)
+  sizes. If you resize the terminal-window (assuming that you have a
+  grafical desktop), then harpwise will react accordingly and you do not
+  need to restart it.
 
-  You probaby get the best experience if you use a larger font and a
-  terminal with a modest size, e.g. 90 cloumns and 30 rows.
+  You will get the best experience with larger font and a terminal of
+  modest size, e.g. 90 cloumns and 30 rows.
 
-  Also note, that harpwise uses figlet to display some information in
-  large letters. The optical result of this may vary, and you may get a
-  smoother appearance by choosing another font; personally I use 'Lucida
-  Console' (at least under WSL2/Windows).
+  Also note, that harpwise uses figlet to display some information
+  (e.g. the note beeing played) in large letters. For this, your
+  terminal-font needs to include the unicode Box-drawing characters (see
+  https://en.wikipedia.org/wiki/Box-drawing_characters#Block_Elements).
 
   With that, and if harpwise is installed correctly, invoking harpwise is simple:
 
@@ -173,7 +174,7 @@
 * A closer look at the Screen (mode listen)
 
   The Screenshot below is from mode listen. This view presents a lot of
-  information about the holes you are playing, including its musical
+  information about the holes you are playing, including their musical
   context. Note the added line-numbers, that will be used in the
   explanations below.
   
@@ -218,6 +219,7 @@ Featuring Sonny Boy Williamson
 ** The header
 
    Two topmost two lines, that show e.g.
+   
    - The current mission, i.e. what you are supposed to do; in the example
      this is simply 'Play from 4 scales'.
    - As a special case, when mode 'listen' takes part in a jam, this line
@@ -243,11 +245,12 @@ Featuring Sonny Boy Williamson
    The three middle lines of the screen show:
 
    - The hole and note, that you are playing and the reference hole, if
-     set
-   - The Frequency (in Herz), that you are playing; featuring a small
-     frequncy gauge
-   - The interval of the current hole to the reference hole or to the last
-     hole played
+     set (see [[*The reference hole][The reference hole]])
+   - Starting with "Frequency:": The Frequency (in Herz), that you are
+     playing; also the deviation in cent and a small frequency gauge; both
+     relative to the exact frequency of the hole played
+   - Starting with "Interval": The interval of the current hole to the
+     reference hole or to the last hole played
         
 ** The 'comment'
 
@@ -255,6 +258,9 @@ Featuring Sonny Boy Williamson
    E.g. when in mode licks, harpwise expects you to play a sequence of
    holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
+
+   In the example-screenshot, the comment shows the note beeing played in
+   large letters: c5
 
    To change the comment type 'c' repeatedly or type 'C' to get a menu
    with one-line descriptions.
@@ -292,13 +298,14 @@ Featuring Sonny Boy Williamson
     ~/harpwise/config.ini
   #+end_src
 
-  There you may override many settings and programs default.  The file is
-  commented extensively, so please read there for details on the various
-  settings. Initially this config-file is a copy of the programs central
-  config-file.
+  There you may override many settings and program defaults or store
+  options, that you use frequently.  The file is commented extensively, so
+  that you read there for details on the various settings. Initially this
+  config-file is a copy of harpwise central config-file.
 
-  See also the usage-information, which lists all of the command line
-  options, which in many cases mirror the settings from your config.ini.
+  See also the usage-information of the various modes, which list all of
+  the command line options, that (in many cases) mirror the settings from
+  your config.ini.
 
 * Some musical concepts
 ** Scales

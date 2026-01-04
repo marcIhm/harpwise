@@ -438,9 +438,9 @@ listen c'.
 <h2 id="org0000002">Screencasts</h2>
 <div class="outline-text-2" id="text-org0000002">
 <p>
-The screencast below, shows how harpwise (mode 'listen') reacts on notes
+The screencast below, shows how harpwise (mode 'listen') reacts on holes
 beeing played and how it can help to write them down. No sound has been
-recorded however, so some acoustic imagination is required.
+recorded however, so please imagine some holes beeing played.
 </p>
 
 
@@ -474,7 +474,8 @@ The latest version of harpwise is a available as a snap:
 </div>
 
 <p>
-this also works quite well for WSL2/Windows.
+this is the preferred way of installing harpwise under linux and works
+quite well for WSL2/Windows too.
 </p>
 </div>
 </div>
@@ -483,27 +484,27 @@ this also works quite well for WSL2/Windows.
 <div class="outline-text-2" id="text-org0000004">
 <p>
 Harpwise is a commandline-program, so you need to open a termnal. The
-terminal should have black (dark) background to match the colors used by
-harpwise. Your terminal should use a fixed-width font.
+terminal should have black (or dark) background to match the colors used
+by harpwise. It should use a fixed-width font.
 </p>
 
 <p>
-Please note, that harpwise tries to adapt itself to different screen
-(terminal) sizes. If change the size of your terminal-window (assuming
-that you have a grafical desktop), then harpwise will react accordingly
-and you do not need to restart it.
+Please note, that harpwise adapts to different screen (terminal)
+sizes. If you resize the terminal-window (assuming that you have a
+grafical desktop), then harpwise will react accordingly and you do not
+need to restart it.
 </p>
 
 <p>
-You probaby get the best experience if you use a larger font and a
-terminal with a modest size, e.g. 90 cloumns and 30 rows.
+You will get the best experience with larger font and a terminal of
+modest size, e.g. 90 cloumns and 30 rows.
 </p>
 
 <p>
-Also note, that harpwise uses figlet to display some information in
-large letters. The optical result of this may vary, and you may get a
-smoother appearance by choosing another font; personally I use 'Lucida
-Console' (at least under WSL2/Windows).
+Also note, that harpwise uses figlet to display some information
+(e.g. the note beeing played) in large letters. For this, your
+terminal-font needs to include the unicode Box-drawing characters (see
+<a href="https://en.wikipedia.org/wiki/Box-drawing_characters#Block_Elements">https://en.wikipedia.org/wiki/Box-drawing_characters#Block_Elements</a>).
 </p>
 
 <p>
@@ -2790,7 +2791,7 @@ If you only want to read the description of a specific option
 <div class="outline-text-2" id="text-org0000038">
 <p>
 The Screenshot below is from mode listen. This view presents a lot of
-information about the holes you are playing, including its musical
+information about the holes you are playing, including their musical
 context. Note the added line-numbers, that will be used in the
 explanations below.
 </p>
@@ -2846,6 +2847,7 @@ Its structure is as follows (top to bottom):
 <p>
 Two topmost two lines, that show e.g.
 </p>
+
 <ul class="org-ul">
 <li>The current mission, i.e. what you are supposed to do; in the example
 this is simply 'Play from 4 scales'.</li>
@@ -2884,11 +2886,12 @@ The three middle lines of the screen show:
 
 <ul class="org-ul">
 <li>The hole and note, that you are playing and the reference hole, if
-set</li>
-<li>The Frequency (in Herz), that you are playing; featuring a small
-frequncy gauge</li>
-<li>The interval of the current hole to the reference hole or to the last
-hole played</li>
+set (see <a href="#org0000050">The reference hole</a>)</li>
+<li>Starting with "Frequency:": The Frequency (in Herz), that you are
+playing; also the deviation in cent and a small frequency gauge; both
+relative to the exact frequency of the hole played</li>
+<li>Starting with "Interval": The interval of the current hole to the
+reference hole or to the last hole played</li>
 </ul>
 </div>
 </div>
@@ -2900,6 +2903,11 @@ This part of the screen (i.e. most of its lower half) shows comments.
 E.g. when in mode licks, harpwise expects you to play a sequence of
 holes, the comment-region shows the sequence of holes that you have
 already played or are expected to play.
+</p>
+
+<p>
+In the example-screenshot, the comment shows the note beeing played in
+large letters: c5
 </p>
 
 <p>
@@ -2965,15 +2973,16 @@ first invocation:
 </div>
 
 <p>
-There you may override many settings and programs default.  The file is
-commented extensively, so please read there for details on the various
-settings. Initially this config-file is a copy of the programs central
-config-file.
+There you may override many settings and program defaults or store
+options, that you use frequently.  The file is commented extensively, so
+that you read there for details on the various settings. Initially this
+config-file is a copy of harpwise central config-file.
 </p>
 
 <p>
-See also the usage-information, which lists all of the command line
-options, which in many cases mirror the settings from your config.ini.
+See also the usage-information of the various modes, which list all of
+the command line options, that (in many cases) mirror the settings from
+your config.ini.
 </p>
 </div>
 </div>

@@ -15,6 +15,6 @@
    
    https://marcihm.github.io/harpwise
 
-** A screenshot
+** A screencast
    
    [[docs/images/harpwise-listen.gif]]
