@@ -2832,7 +2832,7 @@ do_test 'id-86c: print jams' do
   tms :ENTER
   sleep 2
   expect { screen[11]['fancy_jamming'] }
-  expect { screen[11]['c,g  ; box1  ; unknown'] }
+  expect { screen[11]['c,g ; box1 (6) ; unknown'] }
   expect { !screen[11]['.json'] }
   expect { screen[17]['Total count: 2'] }
   kill_session
@@ -3868,7 +3868,7 @@ end
 do_test 'id-133b: correct version is shown in usage' do
   new_session
   version = File.read("resources/version.txt").chomp
-  tms "harpwise"
+  tms 'harpwise'
   tms :ENTER
   sleep 3
   expect(version) { screen[16][version] }
@@ -3877,11 +3877,11 @@ end
 
 do_test 'id-133c: correct erb-processing and no org-tags in usage' do
   new_session
-  tms 'harpwise | head -120'
+  tms 'harpwise | head -140'
   tms :ENTER
   sleep 2
-  expect { screen[9]['The possible scales depend on the chosen type of harmonica']}
-  expect { screen[11]['scales for chromatic: blues, blues-middle']}
+  expect { screen[1]['The possible scales depend on the chosen type of harmonica']}
+  expect { screen[3]['scales for chromatic']}
   tms 'clear'
   tms :ENTER
   tms 'harpwise | grep -c \#+'
@@ -3896,7 +3896,7 @@ do_test 'id-133d: publish to html' do
   tms 'harpwise dev docs-make-html'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[21]['Successfully published to']}
+  expect { screen[20]['Successfully published to']}
   expect { screen[21]['index.html']}
   kill_session
 end
@@ -3919,7 +3919,7 @@ do_test 'id-133f: all again with docs-all' do
   tms 'harpwise dev docs-all'
   tms :ENTER
   wait_for_end_of_harpwise 60
-  expect { screen[21]['Successfully published to']}
+  expect { screen[20]['Successfully published to']}
   kill_session
 end
 
@@ -3952,7 +3952,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms usg_cmd_jam
   tms :ENTER
   sleep 4
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[14].strip == usg_cmd_hw }
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[13].split('#')[0].strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
   kill_session
@@ -3988,7 +3988,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[12]['12bar        #  c,g  ; box1  ; yesterday + 1 more']}  
+  expect { screen[12]['12bar        #  c,g ; box1 (6) ; yesterday + 1 more']}  
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
@@ -3997,7 +3997,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list 12bar"
   tms :ENTER
   expect { screen[10]['Ex. Listen:  harpwise listen --scale-prog 12bar --lick-prog box1 --jamming']}  
-  expect { screen[31]['Notes:   (from']}  
+  expect { screen[32]['Notes:   (from']}  
   kill_session
 end
 
@@ -4022,8 +4022,8 @@ do_test 'id-137a: harpwise jamming note' do
   tms :ENTER
   tms "harpwise jam ls"
   tms :ENTER
-  expect { screen[18]['12bar        #  c,g']}
-  expect { screen[19]['foo bar']}
+  expect { screen[17][' 12bar        #  c,g ; box1 (6) ; unknown']}
+  expect { screen[18]['foo bar']}
   kill_session
 end
 

@@ -795,13 +795,13 @@ end
 def get_types_with_scales_for_usage
   $conf[:all_types].map do |type|
     next if type == 'testing'
-    txt = "scales for #{type}: "
+    txt = "- scales for #{type} :: "
     scales_for_type(type, false, builtin_only: true).each do |scale|
       txt += "\n    " if (txt + scale).lines[-1].length > 78
       txt += scale + ', '
     end
     txt.chomp(', ')
-  end.compact.join("\n  ")
+  end.compact.to_a.join("\n")
 end
 
 

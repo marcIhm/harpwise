@@ -10,21 +10,21 @@ different keys.
 When invoking harpwise, the first argument on the command line
 specifies the mode of operation; it can be one of:
 
-  - listen: The wise listens to your playing (e.g. for scales or
+  - listen :: The wise listens to your playing (e.g. for scales or
     bends) and helps to steer through a chord progression
-  - quiz: Train your ear, memory and knowledge of music theory with
+  - quiz :: Train your ear, memory and knowledge of music theory with
     more than 20 flavours; a fun way to start with harpwise
-  - jamming: Scripted jamming along a backing-track
-  - licks: Learn licks (some included, pointers for more) as a
+  - jamming :: Scripted jamming along a backing-track
+  - licks :: Learn licks (some included, pointers for more) as a
     starting point for improvisations
 
 And, less interactive:
 
-  - play: The wise plays scales, holes, licks, intervals, chords, etc.
-  - print: Print and annotate the holes or scales or licks given; in
+  - play :: The wise plays scales, holes, licks, intervals, chords, etc.
+  - print :: Print and annotate the holes or scales or licks given; in
     general everything, that the wise knows about
-  - tools: More then 20 tools for various harmonica needs
-  - samples: The wise assists in recording your own samples or generates
+  - tools :: More then 20 tools for various harmonica needs
+  - samples :: The wise assists in recording your own samples or generates
     them for you; this is a prerequisite for using some other modes, so
     you will be asked to invoke it, when necessary
 
@@ -39,13 +39,13 @@ modes, invoke them without arguments, e.g.
 After the first argument (which specifies the mode) some additional
 arguments may be given:
 
-  - type: mostly 'richter' or 'chromatic' but other choices might be
+  - type :: mostly 'richter' or 'chromatic' but other choices might be
     defined. If omitted, this defaults to 'richter'.
 
-  - key: key of harp, e.g. 'c' or 'g' or 'af' (a flat) or
+  - key :: key of harp, e.g. 'c' or 'g' or 'af' (a flat) or
     'ds' (d sharp). If omitted, this defaults to 'c'.
 
-  - scale: scale on which you want to concentrate, e.g. 'blues',
+  - scale :: scale on which you want to concentrate, e.g. 'blues',
     'major_pentatonic' or 'full'; defaults to 'blues'.
 
     Note, that most scales are notated in second position (e.g. key of
@@ -104,7 +104,7 @@ blues-scale, which are given as arguments and form an adhoc scale:
 
 The possible scales depend on the chosen type of harmonica:
 
-  <%=types_with_scales%>
+<%= types_with_scales %>
 
 Note that advanced users may try to create their own scales. See
 usage of mode tools for an example.
@@ -130,7 +130,7 @@ style and examples apply:
 - Bends (both draw and blow) with a '/', e.g.:  -2/  -3//  +10/
 - Comments in '()' or '[]' or starting with '.' or '~' or a single '|'
 
-See the initial lickfile (richter) for more details.
+See the initial lickfile (type richter) for more details.
 
 
 The wise offers a broad set of features that can support your practice for

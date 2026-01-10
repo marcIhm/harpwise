@@ -11,6 +11,8 @@ def do_jamming to_handle
     puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   end
 
+  $all_licks, $licks, $all_lick_progs = read_licks    
+  
   if to_handle.length == 0 && !%w(list ls).include?($extra)
     do_jamming_list
     err "'harpwise jamming #{$extra}' needs an argument but none is given; please select a single file from those given above. Do this by giving one or multiple words (sequences of chars), so that only the wanted filename contains them all. Mostly that means, that you only need to type a characteristic word from the filename; e.g. 'baz' to match 'foo-bar-baz' and distinguish it from 'foo-bar-qux'."
@@ -32,10 +34,6 @@ def do_jamming to_handle
     do_the_jamming json_file
     
   when 'list', 'ls'
-
-    if to_handle.length > 0
-      $all_licks, $licks, $all_lick_progs = read_licks    
-    end
     
     if to_handle.length == 0
       do_jamming_list
@@ -90,7 +88,7 @@ def do_the_jamming json_file
   jamming_check_and_prepare_sig_handler  
 
   $jam_pms, actions = parse_and_preprocess_jamming_json(json_file)    
-
+  
   sleep 0.2
   
   #
@@ -134,7 +132,7 @@ def do_the_jamming json_file
        wr.map {|l| '    ' + l}
      end
    end,
-   "\e[0m", ''].flatten.each {|l| puts l; sleep 0.02}
+   "\e[0m"].flatten.each {|l| puts l; sleep 0.02}
 
   if $opts[:paused] && !$opts[:print_only]
     ["\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'.", '', '',
@@ -159,7 +157,8 @@ def do_the_jamming json_file
        "",
        "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
        "\n",
-       "    \e[32m#{$example % $jam_data}\e[0m",
+       "    \e[32m#{$example % $jam_data}\e[0m" +
+       "      \e[2m#  #{$jam_pms['scale_prog_len']} scales, #{$jam_pms['lick_prog_len']} licks\e[0m",
        "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
        "start with the backing track as soon as  'harpwise listen'  is running.",
        "",
@@ -330,7 +329,7 @@ def do_the_jamming json_file
       if action[1] == 'timer'
         if idx > $jam_loop_start_idx
           $jam_data[:num_timer] += 1
-          jamming_do_action ['mission',"Jm: it %{iteration}/%{iteration_max}, tm %{num_timer}/%{num_timer_max}" % $jam_data]
+          jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}" % $jam_data]
         end
           
         if action.length == 2
@@ -599,6 +598,7 @@ def do_jamming_list
   puts
   puts "Available jamming-files:\n\e[34m# with keys harp,song  \e[35m; lick-prog \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 0
+  jam2ago = Hash.new
   
   $jamming_path.each do |jdir|
 
@@ -642,10 +642,10 @@ def do_jamming_list
       pms = parse_jamming_json(jf)
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
-
-      print "\e[0m\e[35m  ; #{pms['lick_prog']}"
+      print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
       ago, more = get_and_age_jamming_last_used_days(jf)
-      print("\e[0m\e[32m  ; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
+      jam2ago[jf] = ago if ago
+      print("\e[0m\e[32m ; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
       print(" + #{more} more") if more
       puts
 
@@ -656,6 +656,7 @@ def do_jamming_list
       if !$opts[:brief]
         print "\e[0m\e[2m"
         if notes && notes.length > 0
+          # first element is timestamp
           notes[1..-1].each {|nl| puts "    #{nl}"}
         end
       end
@@ -669,6 +670,8 @@ def do_jamming_list
   end
   puts
   puts "\e[0m\e[2mTotal count: #{tcount}\e[0m"
+  tmr = jam2ago.keys.sort_by {|jf| jam2ago[jf]}[0 .. 2].map {|jf| File.basename(jf).gsub('.json','')}
+  puts "\e[2mThree most recent:   " + (tmr.length > 0  ?  tmr.join('  ')  :  '---')
   puts
   sleep 0.05
 end
@@ -677,7 +680,7 @@ end
 def do_jamming_list_single file, multi: false
 
   pms, _ = parse_and_preprocess_jamming_json(file, simple: true)
-  
+
   jam_data = jamming_make_jam_data(pms)  
   notes = $pers_data.dig('jamming_notes',File.basename(file))
   puts unless multi
@@ -702,12 +705,13 @@ def do_jamming_list_single file, multi: false
   puts
   puts " Sound File:  " + (pms['sound_file'] % jam_data)
   puts " Ex. Listen:  #{pms['example_harpwise']}"
-  prg = pms['lick_prog']
-  err "Unknown lick progression: '#{prg}'" unless $all_lick_progs[prg]
-  print "  Lick Prog:  "
-  puts prg + "      \e[2m#{$all_lick_progs[prg][:licks].length} licks\e[0m"
-  puts "       desc:  #{$all_lick_progs[prg][:desc]}"
+  print "              \e[2m"
+  print "#{pms['scale_prog_len']} scales,  "
+  print "#{pms['lick_prog_len']} licks\e[0m"
+  puts
+  puts "       desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
   puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mPer loop\e[0m"
+  puts "    changes:  lick #{pms['num_lick_changes']},  scale #{pms['num_scale_changes']}\e[2m   times per loop\e[0m"
   puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
   puts 
   print "\e[0m"
@@ -726,6 +730,8 @@ def do_jamming_list_single file, multi: false
   end
   puts "\e[0m"
   puts unless multi
+
+  ago
 end
 
 
@@ -968,7 +974,7 @@ def parse_and_preprocess_jamming_json json, simple: false
   else
     puts "Already at harp key   #{jam_pms['harp_key']}   as given in json file."
   end
-  
+
   [jam_pms, actions]
 end
 
@@ -1434,7 +1440,7 @@ def match_jamming_file words
   when 1
     return short2full[candidates[0]]
   else
-    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input, which is:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings) to make in uniq."   
+    err "Multiple files:\n\n" + candidates.map {|c| '  ' + c + "\n"}.join + "\nare matched by your input, which is:   #{words.join(' ')}\n\nPlease extend you input (longer or more strings or ending) to make in uniq."   
   end
 end
 
@@ -1489,6 +1495,13 @@ def parse_jamming_json jam_json
 
   jam_pms['lick_prog'] = jam_pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
                          err("Could not find option  --lick-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
+  err "Unknown lick progression: '#{jam_pms['lick_prog']}'" unless $all_lick_progs[jam_pms['lick_prog']]
+  jam_pms['lick_prog_len'] = $all_lick_progs[jam_pms['lick_prog']][:licks].length
+  
+  jam_pms['scale_prog'] = jam_pms['example_harpwise'].match(/--scale-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
+                          err("Could not find option  --scale-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
+  err "Unknown scale progression: '#{jam_pms['scale_prog']}'" unless $all_scale_progs[jam_pms['scale_prog']]
+  jam_pms['scale_prog_len'] = $all_scale_progs[jam_pms['scale_prog']][:scales].length
 
   jam_pms
 end

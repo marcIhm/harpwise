@@ -144,7 +144,8 @@ def do_docs_make_html
     end
   end
 
-  puts "\n\e[32mSuccessfully published to\e[0m #{ddir}/index.html"
+  win_url = %x(wslpath -m #{ddir}/index.html)
+  puts "\n\e[32mSuccessfully published to\e[0m   file:#{win_url}"
   puts
 end
 
