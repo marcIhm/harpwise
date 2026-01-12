@@ -147,6 +147,7 @@ def set_global_vars_early
   # $type will be inserted later
   $scale_prog_file_templates = ["#{$dirs[:install]}/scales/%s/scale_progressions.yaml",
                                 "#{$dirs[:user_scales]}/%s/scale_progressions.yaml"]
+  $scale_prog_count = 0
 
 
   $freqs_queue = Queue.new
@@ -923,7 +924,7 @@ def read_and_set_musical_config
                          9 => ['For He\'s a Jolly Good Fellow', 'My Bonnie Lies over the Ocean'],
                          10 => ['The Winner Takes it all (Abba)', 'Lady Madonna (Beatles)'],
                          11 => ['Take on Me (Aha)'],
-                         12 => ['Heigh-Ho (from Snow White)'] }
+                         12 => ['Heigh-Ho (intro of Snow White)'] }
 
   $quiz_interval2song.values.each do |ts|
     ts.each do |t|

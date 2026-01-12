@@ -587,10 +587,14 @@ def text_for_key
     text += "\e[0m"
     text += " \e[32m#{$scale}"
     text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
+    text += " (#{$scale_prog_count+1}/#{$scale_prog.length})" if $opts[:jamming]
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
-  text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m" if $comment_licks && $comment_licks.length > 0
+  if $comment_licks && $comment_licks.length > 0
+    text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m"
+    text += " \e[0m\e[2m(#{$comment_licks_count+1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
+  end
   text += '; journal-all ' if $journal_all
   truncate_colored_text(text, $term_width - 16 ) + '        '
 end
@@ -756,6 +760,8 @@ def do_rotate_scale_add_scales for_bak
   step = ( for_bak == :forward  ?  1  :  -1 )
   $sc_prog_init ||= $scale_prog.clone
   $scale_prog.rotate!(step)
+  $scale_prog_count += step
+  $scale_prog_count %= $scale_prog.length
   $used_scales.rotate!(step) while $used_scales[0] != $scale_prog[0]
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
@@ -770,6 +776,7 @@ def do_rotate_scale_add_scales_reset
     return
   end
   $scale_prog = $sc_prog_init.clone
+  $scale_prog_count = 0
   $used_scales.rotate! while $used_scales[0] != $scale_prog[0]  
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil

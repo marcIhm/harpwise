@@ -2479,15 +2479,22 @@ class NotInScale < QuizFlavour
     
     @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
     @scale_holes = read_and_parse_scale(@scale_name, $harp)
+    @scale_semis = @scale_holes.map {|h| $harp[h][:semi]}
+
     # choose one harp-hole, which is not in scale but within range or nearby
     holes_notin = $harp_holes - @scale_holes
-    # Remove holes above and below scale neighbours; calculate in
-    # semis to catch equivs
+    
+    # Remove holes above and below scale
     holes_notin.shift while holes_notin.length > 0 &&
                             $harp[holes_notin[0]][:semi] < $harp[@scale_holes[0]][:semi]
     holes_notin.pop while holes_notin.length > 0 &&
                           $harp[holes_notin[-1]][:semi] > $harp[@scale_holes[-1]][:semi]
-    @hole_notin = holes_notin.sample
+    # We might still pick a hole equivalent to a scale hole (e.g. -2 vs +3) so check and
+    # loop
+    begin
+      @hole_notin = holes_notin.sample
+    end while @scale_semis.include?($harp[@hole_notin][:semi])
+    
     @holes = @scale_holes.shuffle
     @scale_holes_shuffled = @holes.clone
     @holes[rand(@holes.length)] = @hole_notin
@@ -2514,7 +2521,7 @@ class NotInScale < QuizFlavour
     play_hons(hons: [@hole_notin])
     puts
     sleep 0.5
-    puts "And these are the holes of the modified scales:"
+    puts "And these are the holes of the modified scale:"
     puts
     lines = ['','']
     @holes.each do |hole|

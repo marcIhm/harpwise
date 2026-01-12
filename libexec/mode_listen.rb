@@ -15,6 +15,7 @@ def do_listen
   jlen_refresh_comment_cache = comment_cache = nil
   $players = FamousPlayers.new
   $comment_licks = []
+  $comment_licks_count = 0
   comment_licks_initial = nil
   comment_lick_lines = []
   mission = if $used_scales.length == 1
@@ -367,6 +368,8 @@ END
       $ctl_mic[:redraw] = Set[:silent]
       if $comment_licks.length > 0
         $comment_licks.rotate!
+        $comment_licks_count += 1
+        $comment_licks_count %= $comment_licks.length
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
         clear_area_comment
       else
@@ -378,6 +381,8 @@ END
       $ctl_mic[:comment_lick_prev] = false
       if $comment_licks.length > 0
         $comment_licks.rotate!(-1)
+        $comment_licks_count -= 1
+        $comment_licks_count %= $comment_licks.length
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
         clear_area_comment
       else
@@ -389,6 +394,7 @@ END
       $ctl_mic[:comment_lick_first] = false
       if $comment_licks.length > 0
         $comment_licks = comment_licks_initial.clone
+        $comment_licks_count = 0
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
         clear_area_comment
       else
