@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.32.0/
+/Version  6.32.1/
 
 * Introduction
 
@@ -469,18 +469,23 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   
 ** Overview of 'harpwise quiz'
 
-  The mode 'quiz' is a quiz on music theory, ear and memory. It is
-  meant as a fun way to increase your musical abilities. Quiz comes in
-  different flavours. It issues questions and asks for an answer. Most
-  flavours involve holes beeing played either as part of the question
-  or the answer.
+  The mode 'quiz' is a quiz on music theory, ear and memory. It is meant
+  as a fun way to increase your musical abilities. Quiz comes in different
+  flavours (see below). It issues questions and asks for answers.
 
-  Every time you invoke harpwise with mode 'quiz', a flavour is
-  chosen; to try another flavour, just restart harpwise, e.g. by
-  pressing ctrl-z.  For a chosen flavour, questions of this flavour
-  are asked in an endless loop.
+  All flavours offer various sorts of help, allowing to view and explore
+  the question at hand from a different angle.
 
-The available 30 flavours are:
+  If you invoke mode 'quiz' with the argument 'random' (or 'ran'), a
+  flavour is chosen at random. To try another flavour, just restart
+  harpwise, e.g. by pressing ctrl-z.  For a chosen flavour, different
+  questions of this flavour are asked in an endless loop.
+  
+  There are 30 flavours of quiz
+  listed below; however, you do not need to memorize them, as they will be
+  explained on the spot when they appear during the quiz.
+
+  For an overview, here are the available flavours:
 
     - all, ran, random:
       any and all flavours, one at random
@@ -618,10 +623,11 @@ The available 30 flavours are:
   To switch to a different, random mode, issue signal ctrl-z.
 
 
-  Some examples that choose a quiz flavour explicitly:
+  Some examples that choose a quiz flavour or a collection of flavours
+  explicitly:
   
 
-  Wise plays 3 notes from the scale major_pentatonic for a
+  Wise plays 5 notes from the scale major_pentatonic for a
   chromatic harmonica of key a and then asks you to play them
   back (then repeat):
 
@@ -639,13 +645,17 @@ The available 30 flavours are:
 
   is valid as well (but would choose a richter harp).
 
-  This example removes drawbends from the scale 'fulll':
+
+  This example chooses the a flavour-collection:
 
     #+begin_src 
-    harpwise quiz full replay 5 --remove-scales drawbends
+    harpwise quiz no-mic
     #+end_src
 
-  this example also relies on the default of 5 holes to be played.
+  the collection 'no-mic' includes a number of different flavours, which
+  have in common, that they do not need your microphone and do not require
+  you to play your harp. This can be helpful e.g. when quizzing in public
+  transport.
 
 
   Wise plays a scale and asks you for its name:
@@ -659,6 +669,9 @@ The available 30 flavours are:
     #+begin_src 
     harpwise quiz ran
     #+end_src
+
+
+  And at any time type 'ctrl-z' to try another flavour.
 
 
 * harpwise jamming

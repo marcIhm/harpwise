@@ -362,7 +362,7 @@ overflow: auto;
 </div>
 </div>
 <p>
-<i>Version  6.32.0</i>
+<i>Version  6.32.1</i>
 </p>
 <div id="outline-container-org0000000" class="outline-2">
 <h2 id="org0000000">Introduction</h2>
@@ -1075,22 +1075,31 @@ experiment with &#x2013;time-slice:
 <h3 id="org0000018">Overview of 'harpwise quiz'</h3>
 <div class="outline-text-3" id="text-org0000018">
 <p>
-The mode 'quiz' is a quiz on music theory, ear and memory. It is
-meant as a fun way to increase your musical abilities. Quiz comes in
-different flavours. It issues questions and asks for an answer. Most
-flavours involve holes beeing played either as part of the question
-or the answer.
+The mode 'quiz' is a quiz on music theory, ear and memory. It is meant
+as a fun way to increase your musical abilities. Quiz comes in different
+flavours (see below). It issues questions and asks for answers.
 </p>
 
 <p>
-Every time you invoke harpwise with mode 'quiz', a flavour is
-chosen; to try another flavour, just restart harpwise, e.g. by
-pressing ctrl-z.  For a chosen flavour, questions of this flavour
-are asked in an endless loop.
+All flavours offer various sorts of help, allowing to view and explore
+the question at hand from a different angle.
 </p>
 
 <p>
-The available 30 flavours are:
+If you invoke mode 'quiz' with the argument 'random' (or 'ran'), a
+flavour is chosen at random. To try another flavour, just restart
+harpwise, e.g. by pressing ctrl-z.  For a chosen flavour, different
+questions of this flavour are asked in an endless loop.
+</p>
+
+<p>
+There are 30 flavours of quiz
+listed below; however, you do not need to memorize them, as they will be
+explained on the spot when they appear during the quiz.
+</p>
+
+<p>
+For an overview, here are the available flavours:
 </p>
 
 <ul class="org-ul">
@@ -1240,12 +1249,13 @@ To switch to a different, random mode, issue signal ctrl-z.
 
 
 <p>
-Some examples that choose a quiz flavour explicitly:
+Some examples that choose a quiz flavour or a collection of flavours
+explicitly:
 </p>
 
 
 <p>
-Wise plays 3 notes from the scale major<sub>pentatonic</sub> for a
+Wise plays 5 notes from the scale major<sub>pentatonic</sub> for a
 chromatic harmonica of key a and then asks you to play them
 back (then repeat):
 </p>
@@ -1270,17 +1280,21 @@ omitted and are then taken from the config or defaults; so
 is valid as well (but would choose a richter harp).
 </p>
 
+
 <p>
-This example removes drawbends from the scale 'fulll':
+This example chooses the a flavour-collection:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise quiz full replay 5 --remove-scales drawbends
+<pre class="src src-nil">harpwise quiz no-mic
 </pre>
 </div>
 
 <p>
-this example also relies on the default of 5 holes to be played.
+the collection 'no-mic' includes a number of different flavours, which
+have in common, that they do not need your microphone and do not require
+you to play your harp. This can be helpful e.g. when quizzing in public
+transport.
 </p>
 
 
@@ -1301,6 +1315,11 @@ Wise plays a scale and asks you for its name:
 <pre class="src src-nil">harpwise quiz ran
 </pre>
 </div>
+
+
+<p>
+And at any time type 'ctrl-z' to try another flavour.
+</p>
 </div>
 </div>
 </div>

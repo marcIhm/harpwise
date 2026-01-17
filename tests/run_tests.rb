@@ -4022,8 +4022,18 @@ do_test 'id-137a: harpwise jamming note' do
   tms :ENTER
   tms "harpwise jam ls"
   tms :ENTER
-  expect { screen[17][' 12bar        #  c,g ; box1 (6) ; unknown']}
-  expect { screen[18]['foo bar']}
+  expect { screen[16][' 12bar        #  c,g ; box1 (6) ; unknown']}
+  expect { screen[17]['foo bar']}
+  kill_session
+end
+
+do_test 'id-137b: harpwise jamming list all' do
+  File.write $persistent_state_file, "{}"
+  new_session
+  tms "harpwise jam ls all"
+  tms :ENTER
+  expect { screen[11]['Summary for all jams']}
+  expect { screen[21]['box1 (2)']}
   kill_session
 end
 
@@ -4289,7 +4299,7 @@ do_test "id-153: print jam '12bar'" do
   tms 'harpwise print 12bar --what j'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3]['A 12-bar backing-track and the 3-lick set'] }
+  expect { screen[4]['A 12-bar backing-track and the 3-lick set'] }
   kill_session
 end
 
@@ -4298,7 +4308,7 @@ do_test 'id-154: resolve ambigous argument to jam without need for option --what
   tms 'harpwise print 12bar'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[3]['A 12-bar backing-track and the 3-lick set'] }
+  expect { screen[4]['A 12-bar backing-track and the 3-lick set'] }
   kill_session
 end
 

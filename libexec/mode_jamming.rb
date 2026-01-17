@@ -38,13 +38,7 @@ def do_jamming to_handle
     if to_handle.length == 0
       do_jamming_list
     elsif to_handle == ['all']
-      files = $jamming_dirs_content.values.flatten
-      puts "\n\nShowing details for all   \e[32m#{files.length}\e[0m   known jamming files:"
-      puts
-      files.each do |file|
-        puts "\e[2m" + ('~' * 60 ) + "\e[0m\n\n"
-        do_jamming_list_single file, multi: true
-      end
+      do_jamming_list_all
     else
       json_file = match_jamming_file(to_handle)
       do_jamming_list_single json_file
@@ -599,6 +593,9 @@ def do_jamming_list
   puts "Available jamming-files:\n\e[34m# with keys harp,song  \e[35m; lick-prog \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 0
   jam2ago = Hash.new
+  used_sound_files = Set.new
+  used_scale_progs = Set.new
+  used_lick_progs = Set.new
   
   $jamming_path.each do |jdir|
 
@@ -640,6 +637,9 @@ def do_jamming_list
       # Append keys and time-information
       #
       pms = parse_jamming_json(jf)
+      used_sound_files << File.basename(pms['sound_file'])
+      used_scale_progs << pms['scale_prog']
+      used_lick_progs << pms['lick_prog']
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
       print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
@@ -670,9 +670,10 @@ def do_jamming_list
   end
   puts
   puts "\e[0m\e[2mTotal count: #{tcount}\e[0m"
-  tmr = jam2ago.keys.sort_by {|jf| jam2ago[jf]}[0 .. 2].map {|jf| File.basename(jf).gsub('.json','')}
-  puts "\e[2mThree most recent:   " + (tmr.length > 0  ?  tmr.join('  ')  :  '---')
-  puts
+  tmr = jam2ago.keys.sort_by {|jf| jam2ago[jf]}[0 .. 4].map {|jf| File.basename(jf).gsub('.json','')}
+  puts "\e[2mFive most recent jams:   " + (tmr.length > 0  ?  tmr.join('  ')  :  '---')
+  puts "#{used_sound_files.length} sound files, #{used_scale_progs.length} scale- and #{used_lick_progs.length} lick-prog    ('all' for details)"
+  puts "\e[0m"
   sleep 0.05
 end
 
@@ -731,7 +732,49 @@ def do_jamming_list_single file, multi: false
   puts "\e[0m"
   puts unless multi
 
-  ago
+  [ago, pms['sound_file'], pms['scale_prog'], pms['lick_prog']]
+end
+
+
+def do_jamming_list_all
+  files = $jamming_dirs_content.values.flatten
+  puts "\n\nShowing details for all   \e[32m#{files.length}\e[0m   known jamming files:"
+  puts
+  file2ago = Hash.new
+  count_sound_files = Hash.new {|h,k| h[k] = 0}
+  count_scale_progs = Hash.new {|h,k| h[k] = 0}
+  count_lick_progs = Hash.new {|h,k| h[k] = 0}
+  hline = "\e[2m" + ('~' * 60 ) + "\e[0m\n\n"
+  files.each do |file|
+    puts hline
+    ago, sound_file, scale_prog, lick_prog = do_jamming_list_single(file, multi: true)
+    file2ago[file] = ago
+    count_sound_files[File.basename(sound_file)] += 1
+    count_scale_progs[scale_prog] += 1
+    count_lick_progs[lick_prog] += 1
+  end
+  puts hline
+  puts "\e[32m  Summary for all jams\e[0m"
+  puts
+  puts "Last usage of jams:"
+  file2ago.keys.each.
+    sort_by {|file| file2ago[file] || 1000}.
+    each do |file|
+    print "   " + File.basename(file).gsub('.json','')
+    ago, more = get_and_age_jamming_last_used_days(file)
+    print("   \t:    " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
+    print(" + #{more} more") if more
+    puts
+  end
+  puts "All sound files all jams:\e[2m (with count)\e[0m"
+  count_sound_files.keys.sort.each {|sf| puts "   #{sf} \e[2m(#{count_sound_files[sf]})\e[0m"}
+  puts "All scale progs:"
+  count_scale_progs.keys.sort.each {|sp| print "   #{sp} \e[2m(#{count_scale_progs[sp]})\e[0m"}
+  puts
+  puts "All lick progs:"
+  count_lick_progs.keys.sort.each {|lp| print "   #{lp} \e[2m(#{count_lick_progs[lp]})\e[0m"}
+  puts
+  puts
 end
 
 

@@ -121,7 +121,7 @@ def parse_arguments_early
         lick_radio: %w(--radio --lick-radio)}],
      [Set[:play, :print], {
         what: %w(-w --what)}],
-     [Set[:print], {
+     [Set[:print, :jamming], {
         verbose: %w(-v --verbose)}],
      [Set[:jamming], {
         paused: %w(--ps --paused),
