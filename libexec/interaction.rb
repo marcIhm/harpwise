@@ -1150,10 +1150,13 @@ def choose_interactive prompt, names, &block
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
       puts "\e[0mBottom line shows descriptions of choices."
-      puts
+      if block_given? && matching[idx_hili]
+        puts "\e[2mFull desc for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
+      end
       puts "\e[0m\e[2m#{$resources[:any_key]}\e[0m"
       $ctl_kb_queue.deq
       clear_area_comment(2)        
+      clear_area_message
 
     elsif key.match?(/^[[:print:]]$/)
       if (prompt + input).length > $term_width - 4

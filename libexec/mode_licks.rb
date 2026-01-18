@@ -1353,7 +1353,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     input = choose_interactive("Please choose lick (current is #{curr_lick[:name]}): ", choices.flatten) do |lname|
       lick = $licks.find {|l| l[:name] == lname}
       if lick
-        "[#{lick[:tags].join(',')}] #{lick[:holes].length} holes, #{lick[:desc]}"
+        "#{lick[:desc]} [#{lick[:tags].join(',')}] #{lick[:holes].length} holes"
       else
         'no description'
       end
