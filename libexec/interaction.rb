@@ -1149,9 +1149,11 @@ def choose_interactive prompt, names, &block
       puts " - Cursor keys move selection, CTRL-L redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
-      puts "\e[0mBottom line shows descriptions of choices."
+      print "\e[0mBottom line shows descriptions of choices"
       if block_given? && matching[idx_hili]
-        puts "\e[2mFull desc for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
+        puts "\e[2m; full desc for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
+      else
+        puts "."
       end
       puts "\e[0m\e[2m#{$resources[:any_key]}\e[0m"
       $ctl_kb_queue.deq
