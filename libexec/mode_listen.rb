@@ -530,6 +530,7 @@ def get_listen_lick_lines lick
   lines
 end
 
+
 def tell_no_comment_licks
   clear_area_comment
   print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified!\n  try option   --licks"

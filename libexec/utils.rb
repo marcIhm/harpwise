@@ -1375,12 +1375,14 @@ class MsgBuf
   @@reset_at = Array.new
   
   def print text, min, max, group = nil, truncate: true, wrap: false
-
     # min: keep message on stack and display it that long at minimum; is used in
     # print_internal only, so this is checked only if a new message is about to be printed
     #
     # max: remove currently shown message, even if no new message is to be printed; is used
     # in update only, which however is called in every loop of handle_holes
+    #
+    # group: arbitrary symbol; keep only one message of each group. Special group :warning
+    # will not be overwritten by other messages
     
     # remove any outdated stuff
     if group
@@ -1419,10 +1421,14 @@ class MsgBuf
   
     
   def print_internal text, min, max, group, later
-
     # use min duration for check
     @@lines_durations.pop if @@lines_durations.length > 0 && @@printed_at && @@printed_at + @@lines_durations[-1][1] < Time.now.to_f
     @@lines_durations << [text, min, max, group] if @@lines_durations.length == 0 || @@lines_durations[-1][0] != text
+    # keep warnings on top of stack
+    if @@lines_durations.length > 1 && @@lines_durations[-1][-1] != :warning && @@lines_durations[-2][-1] == :warning
+      @@lines_durations[-1], @@lines_durations[-2] = @@lines_durations[-2], @@lines_durations[-1]
+      text, min, max, group = @@lines_durations[-1]
+    end
     # 'later' should be used for batches of messages, where print is
     # invoked multiple times in a row; the last one should be called
     # without setting later

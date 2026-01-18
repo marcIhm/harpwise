@@ -456,7 +456,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             elsif quiz_holes_inter
               "Play inter #{quiz_holes_inter[4]}; #{quiz_holes_inter[5]}"
             elsif $ctl_mic[:loop]
-              "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} notes"
+              "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} holes"
             else
               if $num_quiz_replay == 1 
                 "Play the note you have heard!"
@@ -1071,6 +1071,7 @@ def wrapify_for_comment max_lines, holes, idx_first_active
   # use offset instead of shifting from arrays to avoid caching issues
   offset = 0
   if fig_lines_all > fig_lines_max
+    $msgbuf.print('Warning: Wrapped text has been truncated', 1, 2, :warning) if $opts[:jamming]
     if fig_lines_inactive <= 1
     # This happens during begin of replay: need to show first
     # inactive figlet-line, because it also contains active holes;
