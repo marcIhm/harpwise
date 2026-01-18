@@ -642,7 +642,10 @@ def do_jamming_list
       used_lick_progs << pms['lick_prog']
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
-      print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
+      if !$opts[:brief]
+        print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
+        print "\e[0m\e[34m ; #{File.basename(pms['sound_file']).gsub('.mp3','')}"
+      end
       ago, more = get_and_age_jamming_last_used_days(jf)
       jam2ago[jf] = ago if ago
       print("\e[0m\e[32m ; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
