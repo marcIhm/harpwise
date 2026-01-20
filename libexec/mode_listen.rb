@@ -520,7 +520,7 @@ end
 def get_listen_lick_lines lick
   holes_lines = wrap_words('    ', lick[:holes], sep = '  ').split("\n")
   lines = ['']
-  lines << '  lick ' + lick[:name] +':'
+  lines << '  ' + lick[:name]
   if holes_lines.length <= 2
     lines << ''
     lines.append(*(holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact))

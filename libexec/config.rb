@@ -521,6 +521,7 @@ end
 # This may be called repeatedly even after startup, e.g. when changing key in 'harpwise listen'
 # We also do some work here, that relies on options beeing processed already
 #
+$sgvl_at_least_once = false
 def set_global_vars_late
 
   $sample_dir = get_sample_dir($key)
@@ -550,9 +551,12 @@ def set_global_vars_late
   # these need (?) to be global vars, as the should persist over invocations
   $hole_held_inter = $hole_held_inter_was = nil
 
-  if $opts && $opts[:display] && $opts[:comment]
-    $display_choices_desc[$opts[:display]] += ' (initial choice)'
-    $comment_choices_desc[$opts[:comment]] += ' (initial choice)'
+  unless $sgvl_at_least_once
+    ic = ' (initial choice)'
+    if $opts && $opts[:display] && $opts[:comment]
+      $display_choices_desc[$opts[:display]] += ic
+      $comment_choices_desc[$opts[:comment]] += ic 
+    end
   end
   
   # Concepts: 'journaling' is writing holes, that are played by user,
@@ -589,7 +593,8 @@ def set_global_vars_late
                         medium: [4096, 1024],
                         long: [8192, 2048] }
   $time_slice_secs = $aubiopitch_sizes[$opts[:time_slice]][1] / $conf[:sample_rate].to_f
-  
+
+  $sgvl_at_least_once = true
 end
 
 

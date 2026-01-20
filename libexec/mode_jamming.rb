@@ -195,10 +195,10 @@ def do_the_jamming json_file
 
   # switch key of harpwise listen to be in sync with jamming
   jamming_do_action ['key', $key]
-  jamming_do_action ['mission',"Jam: intro" % $jam_data]
+  jamming_do_action ['mission',"jamming: intro" % $jam_data]
 
   jamming_do_action ['message',
-                     "Jam: initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
+                     "Initial sleep for %.1d secs; length of track is #{$jam_pms['sound_file_length']}, switched key to #{$key}" % $jam_pms['sleep_initially'],
                      [0.0, $jam_pms['sleep_initially'] - 0.2].max.round(1)]
                    
   puts "Initial sleep %.2f sec" % $jam_pms['sleep_initially']    
@@ -302,7 +302,7 @@ def do_the_jamming json_file
         puts
         puts_underlined "ITERATION #{iter}"
         this_actions[idx .. -1].each {|a| pp a}
-        jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}" % $jam_data]
+        jamming_do_action ['mission',"iter %{iteration}/%{iteration_max}" % $jam_data]
         puts
         puts sl_a_iter_msg
         puts
@@ -322,8 +322,13 @@ def do_the_jamming json_file
       #
       if action[1] == 'timer'
         if idx > $jam_loop_start_idx
+          # get next keys for mission
+          next_keys = ''
+          if key_action = this_actions[idx .. -1].find {|ac| ac[1] == 'keys'}
+            next_keys = ', next=' + key_action[2 .. -1].join
+          end
           $jam_data[:num_timer] += 1
-          jamming_do_action ['mission',"Jam: iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}" % $jam_data]
+          jamming_do_action ['mission',"iter %{iteration}/%{iteration_max}, timer %{num_timer}/%{num_timer_max}#{next_keys}" % $jam_data]
         end
           
         if action.length == 2

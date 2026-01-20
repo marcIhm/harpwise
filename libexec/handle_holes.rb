@@ -894,7 +894,7 @@ def get_jamming_timer_text
   # write back (e.g. if jts == nil)
   $jamming_timer_state = jts
   
-  ["  \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
+  [" \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
    "\e[0m\e[2m" + jts[:right] +
    "\e[0m\e[32m" + jts[:tail],
    # Total number of coloring chars in string above (e.g. \e[32m = 5)
