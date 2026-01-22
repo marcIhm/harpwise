@@ -124,9 +124,10 @@ def parse_arguments_early
      [Set[:print, :jamming], {
         verbose: %w(-v --verbose)}],
      [Set[:jamming], {
-        paused: %w(--ps --paused),
+        paused: %w(--paused),
         print_only: %w(--print-only),
-        over_again: %w(--oa --over-again)}],
+        over_again: %w(--over-again),
+        variation: %w(--variation)}],
      [Set[:licks], {
         fast_lick_switch: %w(--fast-lick-switch),
         partial: %w(-p --partial)}]]
@@ -349,6 +350,13 @@ def parse_arguments_early
     err "Value '#{opts[:what]}' for option '--what' is none of the allowed values, see above"
   end
   opts[:what] = opts[:what] && $what_abbrevs.keys.find {|k| $what_abbrevs[k].include?(opts[:what])}
+
+  if opts[:variation]
+    err("Option '--variation' must be an integer, not '#{opts[:variation]}'") unless opts[:variation] =~ /^\d+$/
+    opts[:variation] = opts[:variation].to_i
+  else
+    opts[:variation] = 1
+  end
   
   # parse mini-language for keyboard translations; guide with good error messages
   $keyboard_translations = parse_keyboard_translate(opts[:keyboard_translate])

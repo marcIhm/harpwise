@@ -393,6 +393,11 @@ over_again:
     For 'jam along': if the backing
     track has ended, restart and play it over again.
 
+variation:
+  - |
+    Select one (if any) of the variations contained in json-file.
+  - NUMBER
+  
 wave:
   - |
     choose waveform for generated samples,

@@ -151,8 +151,7 @@ def do_the_jamming json_file
        "",
        "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
        "\n",
-       "    \e[32m#{$example % $jam_data}\e[0m" +
-       "      \e[2m#  #{$jam_pms['scale_prog_len']} scales, #{$jam_pms['lick_prog_len']} licks\e[0m",
+       "    \e[32m#{$example % $jam_data}\e[0m",
        "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
        "start with the backing track as soon as  'harpwise listen'  is running.",
        "",
@@ -642,6 +641,7 @@ def do_jamming_list
       # Append keys and time-information
       #
       pms = parse_jamming_json(jf)
+      
       used_sound_files << File.basename(pms['sound_file'])
       used_scale_progs << pms['scale_prog']
       used_lick_progs << pms['lick_prog']
@@ -649,6 +649,9 @@ def do_jamming_list
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
       if !$opts[:brief]
         print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
+        if pms['num_variations'] > 1
+          print "\e[0m\e[36m ; +#{pms['num_variations'] - 1} Var"
+        end
         print "\e[0m\e[34m ; #{File.basename(pms['sound_file']).gsub('.mp3','')}"
       end
       ago, more = get_and_age_jamming_last_used_days(jf)
@@ -693,14 +696,14 @@ def do_jamming_list_single file, multi: false
   jam_data = jamming_make_jam_data(pms)  
   notes = $pers_data.dig('jamming_notes',File.basename(file))
   puts unless multi
-  print(multi  ?  "  "  :  "Details for:  ")
+  print(multi  ?  "  "  :  " Details for:  ")
   puts "\e[32m" + File.basename(file).gsub('.json','')
   puts
 
-  puts "\e[0m       Path:  #{file}"
+  puts "\e[0m        Path:  #{file}"
   
   ago, more = get_and_age_jamming_last_used_days(file)
-  print "  Last used:  "
+  print "   Last used:  "
   if ago
     print(days_ago_in_words(ago))
     print("\e[2m and on \e[0m#{more} more \e[2mdays from last #{$jamming_last_used_days_max}\e[0m") if more
@@ -708,34 +711,38 @@ def do_jamming_list_single file, multi: false
   else
     puts 'unknown'
   end
-  puts "Key of harp:  \e[34m#{pms['harp_key']}\e[0m"
-  puts "    of song:  \e[34m#{pms['sound_file_key']}\e[0m"
+  puts " Key of harp:  \e[34m#{pms['harp_key']}\e[0m"
+  puts "     of song:  \e[34m#{pms['sound_file_key']}\e[0m"
 
   puts
-  puts " Sound File:  " + (pms['sound_file'] % jam_data)
-  puts " Ex. Listen:  #{pms['example_harpwise']}"
-  print "              \e[2m"
+  puts "  Sound File:  " + (pms['sound_file'] % jam_data)
+  puts "  Ex. Listen:  #{pms['example_harpwise']}"
+  print "               \e[2m"
   print "#{pms['scale_prog_len']} scales,  "
   print "#{pms['lick_prog_len']} licks\e[0m"
   puts
-  puts "       desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
-  puts " Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mPer loop\e[0m"
-  puts "    changes:  lick #{pms['num_lick_changes']},  scale #{pms['num_scale_changes']}\e[2m   times per loop\e[0m"
-  puts "   Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
+  puts "        desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
+  puts "  Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper loop\e[0m"
+  puts "     Changes:  lick #{pms['lick_prog_len']},  scale #{pms['scale_prog_len']}\e[2m   times per loop\e[0m"
+  puts "    Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
+  if pms['num_variations'] > 1
+    puts "#{pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
+    pms['variations_descriptions'].each_with_index {|desc, idx| puts "           #{idx + 1}:  #{desc}"}
+  end
   puts 
   print "\e[0m"
-  puts "    Description:\e[2m"
+  puts " Description:\e[2m"
   [pms['description']].flatten.each do |cl|
     puts if cl.strip.length == 0
     wr = wrap_text(cl, term_width: -8, cont: '')
-    wr.each {|l| puts '        ' + l}
+    wr.each {|l| puts '     ' + l}
   end
   puts "\e[0m"
   if notes && notes.length > 0
-    puts "      Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})\e[2m"
+    puts "       Notes:   (from  #{Time.at(notes[0]).to_datetime.strftime('%Y-%m-%d %H:%M')})\e[2m"
     notes[1..-1].each {|nl| puts "        #{nl}"}
   else
-    puts "      Notes:   \e[2mnone"
+    puts "       Notes:   \e[2mnone"
   end
   puts "\e[0m"
   puts unless multi
@@ -940,7 +947,7 @@ def parse_and_preprocess_jamming_json json, simple: false
     err("Value of parameter '#{pm}' which is '#{key} is none of the available keys: #{$conf[:all_keys]} (see #{$jam_json})") unless $conf[:all_keys].include?(key)  
   end
   err("Value of parameter 'sleep_initially' is negative (#{jam_pms['sleep_initially']}) but should be > 0 (see #{$jam_json}); maybe try negative value of 'timestamp_add' for a similar effect.") if jam_pms['sleep_initially'] < 0
-  
+
   # initialize some vars
   $ts_prog_start = Time.now.to_f
   $example = jam_pms['example_harpwise']
@@ -1544,6 +1551,8 @@ def parse_jamming_json jam_json
         ''
       end + "\n") if given != wanted
 
+  jamming_json_handle_variations(jam_pms)
+  
   jam_pms['lick_prog'] = jam_pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
                          err("Could not find option  --lick-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
   err "Unknown lick progression: '#{jam_pms['lick_prog']}'" unless $all_lick_progs[jam_pms['lick_prog']]
@@ -1555,6 +1564,79 @@ def parse_jamming_json jam_json
   jam_pms['scale_prog_len'] = $all_scale_progs[jam_pms['scale_prog']][:scales].length
 
   jam_pms
+end
+
+
+def jamming_json_handle_variations jam_pms
+
+  #
+  # Check for possible inconsistencies
+  #
+  actions = jam_pms['timestamps_to_actions']
+  # number of variations for example is defining
+  jam_pms['num_variations'] = if jam_pms['example_harpwise'].is_a?(Array)
+                             jam_pms['example_harpwise'].length
+                           else
+                             1
+                           end
+  actions.each do |act|
+    if act[1] == 'keys'
+      act[2 .. -1].each do |key|
+        if key.is_a?(Array)
+          jam_pms['num_variations'] = [jam_pms['num_variations'], ].max
+          if jam_pms['num_variations'] != key.length
+            err "Action '#{act}' has #{key.length} variations, but parameter example_harpwise '#{jam_pms['example_harpwise']}' has #{jam_pms['num_variations']} examples; please adjust one or the other"
+          end
+        end
+      end
+    end
+  end
+
+  if jam_pms['num_variations'] > 1
+    num_diff_examples = jam_pms['example_harpwise'].tally.length
+    if num_diff_examples < jam_pms['num_variations']
+      err "Parameter example_harpwise only has #{num_diff_examples} different values, but its length is #{jam_pms['example_harpwise'].length}; please make them all different to allow for different descriptions; maybe just by adding a comment with '#'"
+    end
+  end
+
+  #
+  # Construct descriptions from examples
+  #
+  if jam_pms['num_variations'] > 1
+    exs = jam_pms['example_harpwise']
+    chead_end = 0
+    chead_end += 1 while exs.map {|e| e[chead_end]}.tally.length == 1
+    ctail_start = -1
+    ctail_start -=1 while exs.map {|e| e[ctail_start]}.tally.length == 1
+    descs = exs.map do |e|
+     e[chead_end .. ctail_start].strip.gsub(/^\#/,'').strip
+    end
+    if descs.tally.length < descs.length
+      err "After removing space and '#', descriptions do not come out all different; please add some more text (e.g. comment) to one or more descriptions to make this happen: #{descs}"
+    end
+    jam_pms['variations_descriptions'] = descs
+  end
+
+  #
+  # Make chosen variation manifest so that later processing need not care about (mostly)
+  #
+  if $opts[:variation] < 1 || $opts[:variation] > jam_pms['num_variations']
+    err "Option '--variation' must be in range 1 .. #{jam_pms['num_variations']}; but its value #{$opts[:variation]} is not"
+  end
+  if jam_pms['example_harpwise'].is_a?(Array)
+    jam_pms['example_harpwise'] = jam_pms['example_harpwise'][$opts[:variation] - 1]
+  end
+  actions.each do |act|
+    if act[1] == 'keys'
+      (2 ... act.length).each do |idx|
+        if act[idx].is_a?(Array)
+          act[idx] = act[idx][$opts[:variation] - 1]
+        end
+      end
+      act.reject! {|x| x == ''}
+    end
+  end
+  
 end
 
 
