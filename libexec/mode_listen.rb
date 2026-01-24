@@ -33,7 +33,11 @@ def do_listen
     mission += " or one of #{lnames.uniq.length} licks"
   end
 
-  $msgbuf.print("Expecting a jammer or fifo-writer to join, but will also do without", 2, 5, :jamming) if $opts[:jamming] && !$runningp_jamming
+  if $opts[:jamming]
+    $msgbuf.print("Expecting a jammer or fifo-writer to join, but will also do without", 2, 5, :jamming) && !$runningp_jamming
+    # config has already been read, so this applies only for rereading of config
+    $shortcut_some_config = true
+  end
   
   while !$ctl_mic[:switch_modes] do
     

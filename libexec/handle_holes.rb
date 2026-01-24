@@ -92,7 +92,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         ctl_response('Redraw', hl: :low, redraw: true) unless $ctl_mic[:redraw].include?(:silent)
       end
       print "\e[#{$lines[:key]}H" + text_for_key
-      print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
+      print_chart($hole_was_for_disp) if [:chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         proximity = if $term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]
@@ -291,7 +291,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
                  get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $opts[:display]
-    when :chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis
+    when :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis
       update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
       $hole_was_for_disp = hole if hole
       update_chart(hole, :active, good, was_good, was_good_since)
@@ -414,7 +414,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
       end
       clear_area_display
-      print_chart if [:chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis].include?($opts[:display])
+      print_chart if [:chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis].include?($opts[:display])
+      print "\e[#{$lines[:key]}H" + text_for_key
       $msgbuf.print "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}", 2, 5, :display
       $freqs_queue.clear
       $ctl_mic[:change_display] = false
@@ -538,8 +539,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_rotate_scale_add_scales($ctl_mic[:rotate_scale])
       $ctl_mic[:rotate_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
+      ts_started_rotate_scale = Time.now
       set_global_vars_late
       set_global_musical_vars rotated: true
+      $perfctr[:total_duration_rotate_scale] ||= 0.0
+      $perfctr[:total_duration_rotate_scale] += Time.now - ts_started_rotate_scale
+      $perfctr[:count_rotate_scale] ||= 0
+      $perfctr[:count_rotate_scale] += 1
       $freqs_queue.clear
     end
 
@@ -588,6 +594,9 @@ def text_for_key
     text += " \e[32m#{$scale}"
     text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
     text += " (#{$scale_prog_count+1}/#{$scale_prog.length})" if $opts[:jamming]
+    if $opts[:display] == :chart_scales_simple
+      text += " (@ is " + $scale2short[$conf[:scale] || $scale] + ')'
+    end
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
   end
@@ -596,7 +605,7 @@ def text_for_key
     text += " \e[0m\e[2m(#{$comment_licks_count+1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
   end
   text += '; journal-all ' if $journal_all
-  truncate_colored_text(text, $term_width - 16 ) + '        '
+  truncate_colored_text(text, $term_width - 16 ) + '           '
 end
 
 

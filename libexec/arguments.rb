@@ -140,6 +140,7 @@ def parse_arguments_early
   end
   fail "Internal error: at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
 
+  #
   # Construct hash opts_all with options specific for mode; take
   # descriptions from file opt2desc.yaml with embedded ruby
   #
@@ -198,6 +199,10 @@ def parse_arguments_early
   opts[:viewer] ||= $conf[:viewer]
   opts[:sharps_or_flats] ||= $conf[:sharps_or_flats]
 
+  # remember for later, which options have been given explicitly instead
+  # of just beeing promoted from config
+  opts_explicit = Hash.new
+
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
@@ -239,6 +244,7 @@ def parse_arguments_early
       else
         opts[osym] = true
       end
+      opts_explicit[osym] = opts[osym]
     end
   end  ## loop over argv
   
@@ -259,8 +265,13 @@ def parse_arguments_early
     exit 0
   end
 
+  if opts[:jamming]
+    # take from different config, if not given explicitly
+    opts[:display] = $conf[:display_jamming].to_sym unless opts_explicit[:display]
+  end
+
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
-    err "Option '--display' (or config 'display') needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
+    err "Option '--display' (or config 'display' or 'display_jamming') needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
   end&.o2sym
   
   opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
@@ -463,8 +474,10 @@ def parse_arguments_early
   end
   err("Key can only be one of #{$conf[:all_keys].join(', ')}, not '#{key}'") unless $conf[:all_keys].include?(key)
 
-  
+
+  #
   # Get scale
+  #
   case mode
   when :quiz
     scale = get_scale_from_sws(ARGV[0], true) if ARGV.length > 0
@@ -531,7 +544,7 @@ def parse_arguments_early
   else
     fail "Internal error"
   end
-  
+
   $err_binding = nil
 
   # some of these have already been set as global vars (e.g. for error

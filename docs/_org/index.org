@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.32.4/
+/Version  6.34.0/
 
 * Introduction
 

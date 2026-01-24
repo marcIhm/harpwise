@@ -7,6 +7,8 @@ $lick_file_mod_time = nil
 $lick_file = nil
 
 def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
+  # This is a time-intensive operation
+
   # argument lick_file is used in tests
 
   $lick_file = lfile = ( lick_file || get_lick_file )

@@ -157,7 +157,7 @@ def do_the_jamming json_file
        "",
        "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
        "\n",
-       "    \e[32m#{$example % $jam_data}\e[0m",
+       "    \e[32m#{$jam_pms['example_harpwise'] % $jam_data}\e[0m",
        "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
        "start with the backing track as soon as  'harpwise listen'  is running.",
        "",
@@ -949,7 +949,7 @@ def parse_and_preprocess_jamming_json json, simple: false
   # some checks
   err("Value of parameter 'timestamps_to_actions' which is:\n\n#{actions.pretty_inspect}\nshould be an array but is not (see #{$jam_json})") unless actions.is_a?(Array)
   err("Value of parameter 'description' which is:\n\n#{jam_pms['description']}\n\nshould be a string or an array of strings but is not (see #{$jam_json})") unless jam_pms['description'].is_a?(String) || (jam_pms['description'].is_a?(Array) && jam_pms['description'].all? {|e| e.is_a?(String)})
-  err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if $example == ''
+  err("Value of parameter 'example_harpwise' cannot be empty (see #{$jam_json})") if jam_pms['example_harpwise'] == ''
   %w(sound_file_key harp_key).each do |pm|
     key = jam_pms[pm]
     err("Value of parameter '#{pm}' which is '#{key} is none of the available keys: #{$conf[:all_keys]} (see #{$jam_json})") unless $conf[:all_keys].include?(key)  
@@ -958,7 +958,6 @@ def parse_and_preprocess_jamming_json json, simple: false
 
   # initialize some vars
   $ts_prog_start = Time.now.to_f
-  $example = jam_pms['example_harpwise']
   $jam_loop_starter_template = "Start of iteration %{iteration}/%{iteration_max} (each %{iteration_duration}); elapsed %{elapsed}, remaining %{remaining}"
   $jam_data = jamming_make_jam_data(jam_pms)
   $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
@@ -1656,6 +1655,7 @@ def jamming_json_handle_variations jam_pms
         act.reject! {|x| x == ''}
       end
     end
+    jam_pms['example_harpwise'] = jam_pms['example_harpwise'][num_var]
   else ## just a single example
     num_var = 0
     scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'])
@@ -1663,7 +1663,6 @@ def jamming_json_handle_variations jam_pms
     jam_pms['all_lick_progs'] << lick_prog
   end
 
-  jam_pms['example_harpwise'] = jam_pms['example_harpwise'][num_var]
   jam_pms['scale_prog'] = jam_pms['all_scale_progs'][num_var]
   jam_pms['scale_prog_len'] = $all_scale_progs[jam_pms['scale_prog']][:scales].length
   jam_pms['lick_prog'] = jam_pms['all_lick_progs'][num_var]  

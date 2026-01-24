@@ -1400,6 +1400,15 @@ do_test 'id-33b: display chart where -2 equals +3' do
   kill_session
 end
 
+do_test 'id-33c: display as chart with scales simple' do
+  new_session
+  tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales-simple'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  expect { screen[8]['@    @   <=>   @    @    @   <=>   @    @    @'] }
+  kill_session
+end
+
 do_test 'id-34: comment with scales and octave shift' do
   new_session
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
@@ -4382,8 +4391,8 @@ do_test 'id-160: jam with variations' do
   tms 'harpwise jam ls with_variations'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['2 Variations:'] }
-  expect { screen[14]['1:  box1'] }
+  expect { screen[9]['2 Variations:'] }
+  expect { screen[10]['1:  box1'] }
   dump = read_testing_dump('end')
   expect(dump) { dump[:testing_custom][:timestamps_to_actions][2][2] == 'l' }
   tms 'harpwise jam ls with_variations --variation 2'

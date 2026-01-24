@@ -23,7 +23,9 @@ def set_global_vars_early
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
   $org_theme_file = 'floating_toc.theme'
   $testing_custom = {}
-
+  # only set this to true, if config has been read at least once
+  $shortcut_some_config = false
+  
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
   $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
@@ -38,7 +40,7 @@ def set_global_vars_early
   # more keys, than :any_mode.  Remark: update config.ini if the below
   # is extended
   $conf_meta[:sections_keys] = {
-    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any],
+    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :display_jamming],
     :samples => [:auto_synth_db],
     :quiz => [:difficulty],
     :listen => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
@@ -155,10 +157,12 @@ def set_global_vars_early
 
   $first_round_ever_get_hole = true
 
-  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_intervals, :chart_inter_semis]
+  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis]
   $display_choices_desc = {hole: 'Hole currently played',
                            chart_notes: 'Chart with notes',
                            chart_scales: 'Chart with abbreviated scales',
+                           # these markers are defined further down below and in handle_holes.rb
+                           chart_scales_simple: 'Chart with markers for initial (@) and other (<=>) scales',
                            chart_intervals: 'Chart with intervals to ref as names',
                            chart_inter_semis: 'Chart with intervals to ref as semitones'}
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_inter_semis, :holes_notes])
@@ -560,10 +564,6 @@ def set_global_vars_late
     end
   end
   
-  # Concepts: 'journaling' is writing holes, that are played by user,
-  # 'tracing' (nothing to do with 'debugging') is writing holes, that
-  # are played by program.
-
   $journal = Array.new
   # is journaling of all holes played ongoing ?
   $journal_all = false
@@ -1127,6 +1127,9 @@ def read_chart
     
     chart_with_notes = []
     chart_with_scales = []
+    chart_with_scales_simple = []
+    holes_for_simple = read_and_parse_scale($conf[:scale] || $scale).
+                         map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
     # will be used in get chart with intervals
     $chart_with_holes_raw = chart_with_holes_raw
     $chart_cell_len = len
@@ -1134,6 +1137,7 @@ def read_chart
     (0 ... chart_with_holes_raw.length).each do |row|
       chart_with_notes << []
       chart_with_scales << []
+      chart_with_scales_simple << []
       (0 ... chart_with_holes_raw[row].length - 1).each do |col|
         hole_padded = chart_with_holes_raw[row][col]
         hole = hole_padded.strip
@@ -1156,9 +1160,24 @@ def read_chart
             raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter shortnames for scales on the command line like 'scale:x'") if shorts.length > len
             shorts.center(len)
           end
+        chart_with_scales_simple[row][col] =
+          if comment_in_chart?(hole_padded)
+            hole_padded[0,len]
+          else
+            # these markers are explained further up
+            mark = if holes_for_simple.include?(hole)
+                     '@'
+                   elsif $hole2scale_shorts[hole] == ''
+                     '-'
+                   else
+                     '<=>'
+                   end
+            mark.center(len)
+          end
       end
       chart_with_notes[row] << chart_with_holes_raw[row][-1]
       chart_with_scales[row] << chart_with_holes_raw[row][-1]
+      chart_with_scales_simple[row] << chart_with_holes_raw[row][-1]
     end
 
   rescue ArgumentError => e
@@ -1167,6 +1186,7 @@ def read_chart
 
   [ {chart_notes: chart_with_notes,
      chart_scales: chart_with_scales,
+     chart_scales_simple: chart_with_scales_simple,
      chart_intervals: nil,
      chart_inter_semis: nil},
     hole2chart ]
@@ -1283,7 +1303,9 @@ def set_global_musical_vars rotated: false
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
 
-  if [:play, :print, :licks, :listen].include?($mode)
+  if [:play, :print, :licks, :listen].include?($mode) &&
+     # we do not need to read licks e.g. when rotating scales in jamming
+     !$shortcut_some_config
     # might be reread later. Pass use_opt_lick_prog = false on every
     # first invocation, where $all_licks has not yet been set
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)

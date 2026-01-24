@@ -315,6 +315,10 @@ def print_debug_info
   puts '$debug_info:'
   pp $debug_info
 
+  if $perfctr[:total_duration_rotate_scale] && $perfctr[:count_rotate_scale] && $perfctr[:count_rotate_scale] > 0
+    $perfctr[:averge_duration_rotate_scale] = $perfctr[:total_duration_rotate_scale] / $perfctr[:count_rotate_scale]
+  end
+  
   if $perfctr[:handle_holes_this_first_mic]
     $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
   end

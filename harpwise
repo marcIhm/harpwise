@@ -99,6 +99,7 @@ end
 $opts = {debug: true} if ARGV.include?('--debug')
 
 $mode, $type, $key, $scale, $opts = parse_arguments_early
+$scale_initial = $scale
 
 if $testing_what == :argv
   puts JSON.pretty_generate({mode: $mode, type: $type, key: $key, scale: $scale, argv: ARGV})
