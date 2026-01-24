@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.32.1/
+/Version  6.32.4/
 
 * Introduction
 
@@ -483,7 +483,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   
   There are 30 flavours of quiz
   listed below; however, you do not need to memorize them, as they will be
-  explained on the spot when they appear during the quiz.
+  explained on the spot when they appear.
 
   For an overview, here are the available flavours:
 
@@ -671,7 +671,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     #+end_src
 
 
-  And at any time type 'ctrl-z' to try another flavour.
+  And at any time, type 'ctrl-z' to try another flavour.
 
 
 * harpwise jamming

@@ -22,6 +22,7 @@ def set_global_vars_early
   # for each name collect the types (lick, scale, ...) it appears as
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
   $org_theme_file = 'floating_toc.theme'
+  $testing_custom = {}
 
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
@@ -134,7 +135,7 @@ def set_global_vars_early
 
   # file will be overwritten by run_tests.rb 
   $test_wav = "#{$dirs[:exch_tester_tested]}/testing.wav"
-   # tool diag
+  # tool diag
   $diag_wav = "#{$dirs[:data]}/diag.wav"
 
   # for messages in hande_holes
@@ -1152,7 +1153,7 @@ def read_chart
           else
             shorts = $hole2scale_shorts[hole]
             shorts = '-' if shorts == ''
-            raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter srhornames for scales on the command line like 'scale:x'") if shorts.length > len
+            raise ArgumentError.new("hole '#{hole}' maps to scale shorts '#{shorts}' which are longer than given length '#{len}'; maybe you need to provide some shorter shortnames for scales on the command line like 'scale:x'") if shorts.length > len
             shorts.center(len)
           end
       end

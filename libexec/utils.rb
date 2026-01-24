@@ -252,7 +252,7 @@ def write_dump marker = nil
     dumpfile = "#{$dirs[:exch_tester_tested]}/harpwise_testing_dumped_#{marker}.json"
     File.delete(dumpfile) if File.exist?(dumpfile)
   end
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER']}
+  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER'], testing_custom: $testing_custom}
   if marker
     File.write(dumpfile, JSON.pretty_generate(structure))
   else
@@ -1332,7 +1332,7 @@ def set_testing_vars_mb
   tw_allowed = %w(1 true t yes y)
   if testing && !tw_allowed.include?(ENV['HARPWISE_TESTING'].downcase)
     testing_what = ENV["HARPWISE_TESTING"].downcase
-    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote extra))
+    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote extra jamming_json))
     err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
     testing_what = testing_what.to_sym
   end

@@ -149,8 +149,11 @@
         [42,"keys","l","s"]
     ]
 }
+
+
 // 
 //  How to create your own jam ?
+//  ============================
 //  
 //  After some practice with the backing-track 12bar.mp3 you may want to try one of your own
 //  backing-tracks. A suitable track needs to have a regular chord-structure, probably with
@@ -159,7 +162,8 @@
 //  To make a jam from such a track, you will need to prepare a new json-file using your
 //  favorite text-editor plus a few tools described below. For starters you may choose a
 //  simple 12-bar track with regular chord-changes (I-IV-I-V-IV-I), so that the structure
-//  will be very similar to 12bar.json.
+//  will be very similar to 12bar.json. You may name your new json-file loosely after the
+//  backing track.
 //
 //  First, make a copy of 12bar.json, name it after your backing-track and put in the
 //  filename of your own track, mb adjust parameters 'description' and 'example_harpwise'.
@@ -192,6 +196,25 @@
 //    between, adjust parameter 'sleep_after_iteration', which is described above.
 //
 //  Once you have gone through these steps, everything should be ready for a new jam.
+//
+//
+//  Creating variations of a jam
+//  ----------------------------
+//  
+//  You may notice, that a single backing track can work well with different
+//  lick-progressions.  One would call this a variation of a jam; to choose between them,
+//  use parameter '--variation'.
+//  
+//  Such a case can easily be coded into your existing json-file: Just turn the parameter
+//  "example_harpwise" into an array, where each example-element is a commandline that
+//  specifies a different lick-progression.
+//
+//  And as lick-progressions in general can have different lengths, you may need to adjust
+//  the "keys"-actions to send fewer or more characters "l". For this, turn
+//  e.g. [24,"keys","l","s"] into [24,"keys",["l",""],"s"] (or in detail "l" into ["l",""])
+//  This would send the key "l" in the first variation of the jam, but not in the second.
+//
+
 //
 //    Have fun !
 //

@@ -280,6 +280,7 @@ end
 
 ensure_config_ini_testing
 FileUtils.cp "#{Dir.pwd}/tests/data/fancy_jamming.json", $datadir + '/jamming'
+FileUtils.cp "#{Dir.pwd}/tests/data/with_variations.json", $datadir + '/jamming'
 puts "\n\n\e[32mNow we should have complete data ...\e[0m"
 
 do_test 'id-1a: config.ini, user prevails' do
@@ -450,7 +451,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'print' => [7, 'name collisions are usually detected'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
                     'develop' => [11, 'If lagging has happened'],
-                    'jamming' => [4, 'instead of playing'] }
+                    'jamming' => [2, 'instead of playing'] }
     
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
     tms "harpwise #{usage_types[mode][1]}"
@@ -2546,7 +2547,7 @@ do_test 'id-73: advance in licks by played sound' do
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
-  expect { screen[0]['at 2 of 6 notes'] }
+  expect { screen[0]['at 2 of 6 holes'] }
   kill_session
 end
 
@@ -2832,9 +2833,10 @@ do_test 'id-86c: print jams' do
   tms :ENTER
   sleep 2
   expect { screen[11]['fancy_jamming'] }
-  expect { screen[11]['c,g ; box1 (6) ; unknown'] }
+  expect { screen[11]['c,g ; box1 (6) ; 12bar ; unknown'] }
   expect { !screen[11]['.json'] }
-  expect { screen[17]['Total count: 2'] }
+  expect { screen[12]['with_variations'] }
+  expect { screen[18]['Total count: 3'] }
   kill_session
 end
 
@@ -2872,7 +2874,7 @@ do_test 'id-88a: jamming mission and timer' do
   File.write("#{$datadir}/remote_messages/0001.txt", "{{timer}}#{Time.now.to_f + 10}\n1\n")
   File.write("#{$datadir}/remote_fifo", "ALT-m\n")
   sleep 2
-  expect { screen[0]['testing  [====='] }
+  expect { screen[0]['testing [====='] }
   kill_session
 end
 
@@ -3952,7 +3954,7 @@ do_test 'id-135: use harpwise jamming and listen as advised by its usage' do
   tms usg_cmd_jam
   tms :ENTER
   sleep 4
-  expect(usg_cmd_jam, usg_cmd_hw) { screen[13].split('#')[0].strip == usg_cmd_hw }
+  expect(usg_cmd_jam, usg_cmd_hw) { screen[14].split('#')[0]&.strip == usg_cmd_hw }
 
   # The command for 'harpwise listen' from the usage message should not lead to errors
   kill_session
@@ -3988,7 +3990,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[12]['12bar        #  c,g ; box1 (6) ; yesterday + 1 more']}  
+  expect { screen[13]['12bar        #  c,g ; box1 (6) ; 12bar ; yesterday + 1 more']}  
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
@@ -4022,7 +4024,7 @@ do_test 'id-137a: harpwise jamming note' do
   tms :ENTER
   tms "harpwise jam ls"
   tms :ENTER
-  expect { screen[16][' 12bar        #  c,g ; box1 (6) ; unknown']}
+  expect { screen[16]['12bar        #  c,g ; box1 (6) ; 12bar ; unknown']}
   expect { screen[17]['foo bar']}
   kill_session
 end
@@ -4032,8 +4034,8 @@ do_test 'id-137b: harpwise jamming list all' do
   new_session
   tms "harpwise jam ls all"
   tms :ENTER
-  expect { screen[11]['Summary for all jams']}
-  expect { screen[21]['box1 (2)']}
+  expect { screen[10]['Summary for all jams']}
+  expect { screen[21]['box1 (3)']}
   kill_session
 end
 
@@ -4312,7 +4314,6 @@ do_test 'id-154: resolve ambigous argument to jam without need for option --what
   kill_session
 end
 
-
 do_test 'id-155: show license' do
   new_session
   tms 'harpwise --license'
@@ -4321,7 +4322,6 @@ do_test 'id-155: show license' do
   expect { screen[15]['FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT'] }
   kill_session
 end
-
 
 do_test 'id-156: tool edit-licks with lickname' do
   new_session
@@ -4334,7 +4334,6 @@ do_test 'id-156: tool edit-licks with lickname' do
   kill_session
 end
 
-
 do_test 'id-157: tool search-scale-in-licks' do
   new_session
   tms 'harpwise tools search-scale-in-licks chord-i'
@@ -4343,7 +4342,6 @@ do_test 'id-157: tool search-scale-in-licks' do
   expect { screen[13]['box1-i  box2-i  three'] }
   kill_session
 end
-
 
 do_test 'id-158: automatic tags for mostly-scales' do
   new_session
@@ -4364,6 +4362,43 @@ do_test 'id-158: automatic tags for mostly-scales' do
   expect { screen[21]['Total count of licks printed:  8  (out of 21)'] }
   kill_session
 end
+
+do_test 'id-159: broken jam' do
+  jamfile = "#{$datadir}/jamming/broken_jamming.json"
+  FileUtils.cp "#{Dir.pwd}/tests/data/broken_jamming.json", jamfile
+  new_session
+  tms 'harpwise jam ls broken_jamming'
+  tms :ENTER
+  sleep 2
+  expect { screen[2]['has 3 variations, but'] }
+  FileUtils.rm jamfile if File.exist?(jamfile)
+  kill_session
+end
+
+ENV['HARPWISE_TESTING']='jamming_json'
+
+do_test 'id-160: jam with variations' do
+  new_session
+  tms 'harpwise jam ls with_variations'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[13]['2 Variations:'] }
+  expect { screen[14]['1:  box1'] }
+  dump = read_testing_dump('end')
+  expect(dump) { dump[:testing_custom][:timestamps_to_actions][2][2] == 'l' }
+  tms 'harpwise jam ls with_variations --variation 2'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  dump = read_testing_dump('end')
+  expect(dump) { dump[:testing_custom][:timestamps_to_actions][2][2] == 's' }
+  tms 'harpwise jam ls'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[13]['+1 Var'] }
+  kill_session
+end
+
+ENV['HARPWISE_TESTING'] = '1'
 
 puts
 puts

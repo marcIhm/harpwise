@@ -128,6 +128,12 @@ def do_the_jamming json_file
    end,
    "\e[0m"].flatten.each {|l| puts l; sleep 0.02}
 
+  if $jam_pms['num_variations'] > 1
+    puts "#{$jam_pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
+    $jam_pms['variations_descriptions'].each_with_index {|desc, idx| puts "           #{idx + 1}:  #{desc}"}
+    puts "\e[0m"
+  end
+    
   if $opts[:paused] && !$opts[:print_only]
     ["\e[0mPaused due to option --paused; not yet waiting for 'harpwise listen'.", '', '',
      $to_pause % 'CONTINUE', ''].each {|l| puts l; sleep 0.02}
@@ -721,14 +727,14 @@ def do_jamming_list_single file, multi: false
   print "#{pms['scale_prog_len']} scales,  "
   print "#{pms['lick_prog_len']} licks\e[0m"
   puts
-  puts "        desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
-  puts "  Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper loop\e[0m"
-  puts "     Changes:  lick #{pms['lick_prog_len']},  scale #{pms['scale_prog_len']}\e[2m   times per loop\e[0m"
-  puts "    Duration:  #{$jam_data[:iteration_duration]}     \e[0m"
   if pms['num_variations'] > 1
     puts "#{pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
     pms['variations_descriptions'].each_with_index {|desc, idx| puts "           #{idx + 1}:  #{desc}"}
   end
+  puts "        desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
+  puts "  Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper loop\e[0m"
+  puts "     Changes:  lick #{pms['lick_prog_len']},  scale #{pms['scale_prog_len']}\e[2m   times per loop\e[0m"
+  puts "    Duration:  #{$jam_data[:iteration_duration]}       \e[2mper iteration\e[0m"
   puts 
   print "\e[0m"
   puts " Description:\e[2m"
@@ -747,7 +753,9 @@ def do_jamming_list_single file, multi: false
   puts "\e[0m"
   puts unless multi
 
-  [ago, pms['sound_file'], pms['scale_prog'], pms['lick_prog']]
+  $testing_custom = pms if $testing_what == :jamming_json
+  
+  [ago, pms['sound_file'], pms['all_scale_progs'], pms['all_lick_progs']]
 end
 
 
@@ -762,11 +770,11 @@ def do_jamming_list_all
   hline = "\e[2m" + ('~' * 60 ) + "\e[0m\n\n"
   files.each do |file|
     puts hline
-    ago, sound_file, scale_prog, lick_prog = do_jamming_list_single(file, multi: true)
+    ago, sound_file, all_scale_progs, all_lick_progs = do_jamming_list_single(file, multi: true)
     file2ago[file] = ago
     count_sound_files[File.basename(sound_file)] += 1
-    count_scale_progs[scale_prog] += 1
-    count_lick_progs[lick_prog] += 1
+    all_scale_progs.each {|scale_prog| count_scale_progs[scale_prog] += 1}
+    all_lick_progs.each {|lick_prog| count_lick_progs[lick_prog] += 1}
   end
   puts hline
   puts "\e[32m  Summary for all jams\e[0m"
@@ -781,14 +789,14 @@ def do_jamming_list_all
     print(" + #{more} more") if more
     puts
   end
-  puts "All sound files all jams:\e[2m (with count)\e[0m"
-  count_sound_files.keys.sort.each {|sf| puts "   #{sf} \e[2m(#{count_sound_files[sf]})\e[0m"}
-  puts "All scale progs:"
-  count_scale_progs.keys.sort.each {|sp| print "   #{sp} \e[2m(#{count_scale_progs[sp]})\e[0m"}
-  puts
-  puts "All lick progs:"
-  count_lick_progs.keys.sort.each {|lp| print "   #{lp} \e[2m(#{count_lick_progs[lp]})\e[0m"}
-  puts
+  puts "All sound files all jams:  (with count)"
+  count_sound_files.keys.sort.each {|sf| puts "   #{sf}  (#{count_sound_files[sf]})"}
+  puts "All scale-progs:"
+  print_in_columns count_scale_progs.keys.map.each {|sp| "#{sp} (#{count_scale_progs[sp]})"},
+                   pad: :long_tabs, indent: 3                   
+  puts "All lick-progs:"
+  print_in_columns count_lick_progs.keys.sort.map {|lp| "#{lp} (#{count_lick_progs[lp]})"},
+                   pad: :long_tabs, indent: 3
   puts
 end
 
@@ -1552,18 +1560,19 @@ def parse_jamming_json jam_json
       end + "\n") if given != wanted
 
   jamming_json_handle_variations(jam_pms)
-  
-  jam_pms['lick_prog'] = jam_pms['example_harpwise'].match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
-                         err("Could not find option  --lick-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
-  err "Unknown lick progression: '#{jam_pms['lick_prog']}'" unless $all_lick_progs[jam_pms['lick_prog']]
-  jam_pms['lick_prog_len'] = $all_lick_progs[jam_pms['lick_prog']][:licks].length
-  
-  jam_pms['scale_prog'] = jam_pms['example_harpwise'].match(/--scale-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
-                          err("Could not find option  --scale-prog  in example-command:  '#{jam_pms['example_harpwise']}'")
-  err "Unknown scale progression: '#{jam_pms['scale_prog']}'" unless $all_scale_progs[jam_pms['scale_prog']]
-  jam_pms['scale_prog_len'] = $all_scale_progs[jam_pms['scale_prog']][:scales].length
 
   jam_pms
+end
+
+
+def jamming_extract_lick_and_scale_from_example example
+  scale_prog = example.match(/--scale-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
+               err("Could not find option  --scale-prog  in example-command:  '#{example}'")
+  err "Unknown scale progression: '#{scale_prog}'" unless $all_scale_progs[scale_prog]
+  lick_prog = example.match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
+              err("Could not find option  --lick-prog  in example-command:  '#{example}'")
+  err "Unknown lick progression: '#{lick_prog}'" unless $all_lick_progs[lick_prog]
+  [scale_prog, lick_prog]
 end
 
 
@@ -1575,10 +1584,10 @@ def jamming_json_handle_variations jam_pms
   actions = jam_pms['timestamps_to_actions']
   # number of variations for example is defining
   jam_pms['num_variations'] = if jam_pms['example_harpwise'].is_a?(Array)
-                             jam_pms['example_harpwise'].length
-                           else
-                             1
-                           end
+                                jam_pms['example_harpwise'].length
+                              else
+                                1
+                              end
   actions.each do |act|
     if act[1] == 'keys'
       act[2 .. -1].each do |key|
@@ -1606,8 +1615,10 @@ def jamming_json_handle_variations jam_pms
     exs = jam_pms['example_harpwise']
     chead_end = 0
     chead_end += 1 while exs.map {|e| e[chead_end]}.tally.length == 1
+    chead_end -= 1 while exs.all? {|e| e[chead_end] != ' '}
     ctail_start = -1
     ctail_start -=1 while exs.map {|e| e[ctail_start]}.tally.length == 1
+    ctail_start += 1 while exs.all? {|e| e[ctail_start] != ' '}
     descs = exs.map do |e|
      e[chead_end .. ctail_start].strip.gsub(/^\#/,'').strip
     end
@@ -1623,20 +1634,41 @@ def jamming_json_handle_variations jam_pms
   if $opts[:variation] < 1 || $opts[:variation] > jam_pms['num_variations']
     err "Option '--variation' must be in range 1 .. #{jam_pms['num_variations']}; but its value #{$opts[:variation]} is not"
   end
+  jam_pms['all_scale_progs'] = Array.new
+  jam_pms['all_lick_progs'] = Array.new
+
   if jam_pms['example_harpwise'].is_a?(Array)
-    jam_pms['example_harpwise'] = jam_pms['example_harpwise'][$opts[:variation] - 1]
-  end
-  actions.each do |act|
-    if act[1] == 'keys'
-      (2 ... act.length).each do |idx|
-        if act[idx].is_a?(Array)
-          act[idx] = act[idx][$opts[:variation] - 1]
-        end
-      end
-      act.reject! {|x| x == ''}
+
+    num_var = $opts[:variation] - 1
+    jam_pms['example_harpwise'].each do |exa|
+      scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(exa)
+      jam_pms['all_scale_progs'] << scale_prog
+      jam_pms['all_lick_progs'] << lick_prog
     end
+    
+    actions.each do |act|
+      if act[1] == 'keys'
+        (2 ... act.length).each do |idx|
+          if act[idx].is_a?(Array)
+            act[idx] = act[idx][$opts[:variation] - 1]
+          end
+        end
+        act.reject! {|x| x == ''}
+      end
+    end
+  else ## just a single example
+    num_var = 0
+    scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'])
+    jam_pms['all_scale_progs'] << scale_prog
+    jam_pms['all_lick_progs'] << lick_prog
   end
-  
+
+  jam_pms['example_harpwise'] = jam_pms['example_harpwise'][num_var]
+  jam_pms['scale_prog'] = jam_pms['all_scale_progs'][num_var]
+  jam_pms['scale_prog_len'] = $all_scale_progs[jam_pms['scale_prog']][:scales].length
+  jam_pms['lick_prog'] = jam_pms['all_lick_progs'][num_var]  
+  jam_pms['lick_prog_len'] = $all_lick_progs[jam_pms['lick_prog']][:licks].length
+
 end
 
 

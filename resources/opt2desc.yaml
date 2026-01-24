@@ -395,7 +395,8 @@ over_again:
 
 variation:
   - |
-    Select one (if any) of the variations contained in json-file.
+    Select one (if any) of the variations
+    encoded in json-file.
   - NUMBER
   
 wave:

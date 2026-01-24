@@ -50,11 +50,19 @@ require_relative 'libexec/mode_jamming'
 $program_start = $mode_start = Time.now.to_f
 $initialized = false
 $on_error_raise = false
-# grep .rb-files for 'debug' to see choices, e.g. :check_screen. Still
-# need to give '--debug' to switch it on
+
+#
+# Support for debugging; see further down below for support for testing
+#
+
+# grep .rb-files for 'debug' to see choices, e.g. :check_screen. There is (currently) no way
+# to set debug_what on the commandline or environment; you actually need to change the code
+# below. And you still need to give '--debug' to switch it on
 $debug_what = Set.new([])
 # store (ad-hoc) state for debugging
 $debug_state = {}
+# Also see file-descriptor $debug_log in all the code
+
 $full_command_line = $0 + ' ' + ARGV.join(' ')
 
 $term_height, $term_width = prepare_screen 
