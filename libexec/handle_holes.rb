@@ -541,11 +541,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       $ctl_mic[:redraw] = Set[:silent]
       ts_started_rotate_scale = Time.now
       set_global_vars_late
-      set_global_musical_vars rotated: true
-      $perfctr[:total_duration_rotate_scale] ||= 0.0
-      $perfctr[:total_duration_rotate_scale] += Time.now - ts_started_rotate_scale
-      $perfctr[:count_rotate_scale] ||= 0
-      $perfctr[:count_rotate_scale] += 1
+      set_global_musical_vars rotated: true, shortcut_licks: true
       $freqs_queue.clear
     end
 
@@ -595,7 +591,7 @@ def text_for_key
     text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
     text += " (#{$scale_prog_count+1}/#{$scale_prog.length})" if $opts[:jamming]
     if $opts[:display] == :chart_scales_simple
-      text += " (@ is " + $scale2short[$conf[:scale] || $scale] + ')'
+      text += "; @ is " + $scale2short[$conf[:scale] || $scale]
     end
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"
@@ -767,6 +763,7 @@ end
 $sc_prog_init = nil
 def do_rotate_scale_add_scales for_bak
   step = ( for_bak == :forward  ?  1  :  -1 )
+  scale_was = $scale
   $sc_prog_init ||= $scale_prog.clone
   $scale_prog.rotate!(step)
   $scale_prog_count += step
@@ -775,6 +772,7 @@ def do_rotate_scale_add_scales for_bak
   $scale = $used_scales[0]
   $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
   clause = ( $sc_prog_init == $scale_prog  ?  ', new cycle'  :  '' )
+  clause += ( $scale == scale_was ? ', repeat in prog' : '' )
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 3, :scale
 end
 

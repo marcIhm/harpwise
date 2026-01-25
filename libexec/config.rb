@@ -23,8 +23,6 @@ def set_global_vars_early
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
   $org_theme_file = 'floating_toc.theme'
   $testing_custom = {}
-  # only set this to true, if config has been read at least once
-  $shortcut_some_config = false
   
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
@@ -1266,7 +1264,7 @@ end
 #
 # See remarks before 'set_global_vars_late' which apply here as well
 #
-def set_global_musical_vars rotated: false
+def set_global_musical_vars rotated: false, shortcut_licks: false
 
   $used_scales = get_used_scales($opts[:add_scales])
   $scale_prog ||= $used_scales
@@ -1304,8 +1302,8 @@ def set_global_musical_vars rotated: false
   end
 
   if [:play, :print, :licks, :listen].include?($mode) &&
-     # we do not need to read licks e.g. when rotating scales in jamming
-     !$shortcut_some_config
+     # we do not need to read licks e.g. when rotating scales e.g. in jamming
+     !shortcut_licks
     # might be reread later. Pass use_opt_lick_prog = false on every
     # first invocation, where $all_licks has not yet been set
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
