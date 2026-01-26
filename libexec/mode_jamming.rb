@@ -654,15 +654,17 @@ def do_jamming_list
       print ' ' * (-jfs.length % 4)
       print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
       if !$opts[:brief]
-        print "\e[0m\e[35m ; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
+        print "\e[0m\e[35m; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
         if pms['num_variations'] > 1
-          print "\e[0m\e[36m ; +#{pms['num_variations'] - 1} Var"
+          print "\e[0m\e[36m +#{pms['num_variations'] - 1}\e[35m Var"
         end
-        print "\e[0m\e[34m ; #{File.basename(pms['sound_file']).gsub('.mp3','')}"
+        fname = File.basename(pms['sound_file']).gsub('.mp3','')
+        fname = fname[0..20] + '...' if fname.length > 20 + 5
+        print "\e[0m\e[34m; #{fname}"
       end
       ago, more = get_and_age_jamming_last_used_days(jf)
       jam2ago[jf] = ago if ago
-      print("\e[0m\e[32m ; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
+      print("\e[0m\e[35m; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
       print(" + #{more} more") if more
       puts
 
@@ -688,7 +690,7 @@ def do_jamming_list
   puts
   puts "\e[0m\e[2mTotal count: #{tcount}\e[0m"
   tmr = jam2ago.keys.sort_by {|jf| jam2ago[jf]}[0 .. 4].map {|jf| File.basename(jf).gsub('.json','')}
-  puts "\e[2mFive most recent jams:   " + (tmr.length > 0  ?  tmr.join('  ')  :  '---')
+  puts "\e[2mFive most recent jams:   " + (tmr.length > 0  ?  tmr.join('   ')  :  '---')
   puts "#{used_sound_files.length} sound files, #{used_scale_progs.length} scale- and #{used_lick_progs.length} lick-prog    ('all' for details)"
   puts "\e[0m"
   sleep 0.05
