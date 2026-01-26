@@ -656,7 +656,7 @@ def do_jamming_list
       if !$opts[:brief]
         print "\e[0m\e[35m; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
         if pms['num_variations'] > 1
-          print "\e[0m\e[36m +#{pms['num_variations'] - 1}\e[35m Var"
+          print "\e[0m\e[32m +#{pms['num_variations'] - 1}\e[35m Var"
         end
         fname = File.basename(pms['sound_file']).gsub('.mp3','')
         fname = fname[0..20] + '...' if fname.length > 20 + 5
@@ -690,8 +690,8 @@ def do_jamming_list
   puts
   puts "\e[0m\e[2mTotal count: #{tcount}\e[0m"
   tmr = jam2ago.keys.sort_by {|jf| jam2ago[jf]}[0 .. 4].map {|jf| File.basename(jf).gsub('.json','')}
-  puts "\e[2mFive most recent jams:   " + (tmr.length > 0  ?  tmr.join('   ')  :  '---')
-  puts "#{used_sound_files.length} sound files, #{used_scale_progs.length} scale- and #{used_lick_progs.length} lick-prog    ('all' for details)"
+  puts "\e[2mFive most recent jams:   \e[0m\e[32m" + (tmr.length > 0  ?  tmr.join('   ')  :  '---')
+  puts "\e[0m\e[2m#{used_sound_files.length} sound files, #{used_scale_progs.length} scale- and #{used_lick_progs.length} lick-prog    ('all' for details)"
   puts "\e[0m"
   sleep 0.05
 end
