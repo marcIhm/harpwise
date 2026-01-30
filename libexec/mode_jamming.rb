@@ -635,12 +635,20 @@ def do_jamming_list
         ppfx = pfx = ''
       end
 
+      # In order to devide between color and non-color for alignment of variations we
+      # collect output first; make sure color-elements are on their own
+      txt = []
+
       # Use prefixes for coloring
       if pfx.length == 0 || pfx != ppfx
-        print "\e[0m  " + jfs.gsub('.json','')
+        txt << "\e[0m"
+        txt << "  " + jfs.gsub('.json','')
         ppfx = pfx
       else
-        print "  \e[0m\e[2m" + pfx + "\e[0m" + jfs[pfx.length .. -1]
+        txt << "\e[0m\e[2m"
+        txt << "  " + pfx
+        txt << "\e[0m"
+        txt << jfs[pfx.length .. -1]
       end
 
       #
@@ -651,8 +659,13 @@ def do_jamming_list
       used_sound_files << File.basename(pms['sound_file'])
       used_scale_progs << pms['scale_prog']
       used_lick_progs << pms['lick_prog']
-      print ' ' * (-jfs.length % 4)
-      print "  \e[0m\e[34m    #  #{pms['harp_key']},#{pms['sound_file_key']}"
+      txt << ' ' * (-jfs.length % 4)
+      txt << "\e[0m\e[34m"
+      txt << "      #  #{pms['harp_key']},#{pms['sound_file_key']}"
+      # Now we have reached column for aligning variations, so we do final output and normal
+      # printing from here on
+      print txt.join
+      var_col = txt.reject {|t| t.start_with?("\e")}.join.length
       if !$opts[:brief]
         print "\e[0m\e[35m; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
         if pms['num_variations'] > 1
@@ -667,7 +680,11 @@ def do_jamming_list
       print("\e[0m\e[35m; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
       print(" + #{more} more") if more
       puts
-
+      if pms['num_variations'] > 1
+        pms['variations_descriptions'][1..-1].each do |desc|
+          puts (' ' * (var_col + 2)) + "\e[0m\e[35m#{desc}"
+        end
+      end
       #
       # Add notes (if any)
       #

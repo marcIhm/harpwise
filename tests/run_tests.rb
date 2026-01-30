@@ -1405,7 +1405,7 @@ do_test 'id-33c: display as chart with scales simple' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales-simple'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['@    @   <=>   @    @    @   <=>   @    @    @'] }
+  expect { screen[8]['@    @   <->   @    @    @   <->   @    @    @'] }
   kill_session
 end
 
@@ -2841,10 +2841,10 @@ do_test 'id-86c: print jams' do
   tms 'harpwise print jams'
   tms :ENTER
   sleep 2
-  expect { screen[11]['fancy_jamming'] }
-  expect { screen[11]['c,g ; box1 (6) ; 12bar ; unknown'] }
-  expect { !screen[11]['.json'] }
-  expect { screen[12]['with_variations'] }
+  expect { screen[10]['fancy_jamming'] }
+  expect { screen[10]['c,g; box1 (6); 12bar; unknown'] }
+  expect { !screen[10]['.json'] }
+  expect { screen[11]['with_variations'] }
   expect { screen[18]['Total count: 3'] }
   kill_session
 end
@@ -3999,7 +3999,7 @@ do_test 'id-136: harpwise jamming list' do
   tms "harpwise jamming list"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['12bar        #  c,g ; box1 (6) ; 12bar ; yesterday + 1 more']}  
+  expect { screen[14]['12bar        #  c,g; box1 (6); 12bar; yesterday + 1 more']}  
   state = JSON.parse(File.read($persistent_state_file))
   # day-200 is too far in the past and should be gone then 
   expect(state) { state['jamming_last_used_days']['12bar.json'] == [day - 2, day - 1 ]}
@@ -4033,7 +4033,7 @@ do_test 'id-137a: harpwise jamming note' do
   tms :ENTER
   tms "harpwise jam ls"
   tms :ENTER
-  expect { screen[16]['12bar        #  c,g ; box1 (6) ; 12bar ; unknown']}
+  expect { screen[16]['12bar        #  c,g; box1 (6); 12bar; unknown']}
   expect { screen[17]['foo bar']}
   kill_session
 end
@@ -4403,7 +4403,8 @@ do_test 'id-160: jam with variations' do
   tms 'harpwise jam ls'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['+1 Var'] }
+  expect { screen[12]['box1 (6) +1 Var'] }
+  expect { screen[13]['box2'] }
   kill_session
 end
 
