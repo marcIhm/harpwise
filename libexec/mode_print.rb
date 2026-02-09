@@ -49,7 +49,7 @@ def do_print to_print
         from = ( $scale2file[sname][$dirs[:data]]  ?  'user-defined'  :  'builtin' )          
         puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
-        scale_holes = read_and_parse_scale(sname)
+        scale_holes, _ = read_and_parse_scale(sname)
         print_holes_and_more scale_holes, brief: ( true && !$opts[:verbose] )
         if $scale2desc[sname] || $scale2short[sname]
           puts

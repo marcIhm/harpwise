@@ -778,6 +778,7 @@ def read_and_set_musical_config
   harp = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
   semi2hole_sc = Hash.new {|h,k| h[k] = Array.new}
+  scale2props = Hash.new
   bare_note2holes = Hash.new {|h,k| h[k] = Set.new}
   hole_root = nil
   $hole2note_for_c.each do |hole, note|
@@ -816,25 +817,28 @@ def read_and_set_musical_config
     holes_remove = []
     if $opts[:remove_scales]
       $opts[:remove_scales].split(',').each do |sn|
-        sc_ho = read_and_parse_scale(sn)
+        sc_ho, _ = read_and_parse_scale(sn)
         holes_remove.concat(sc_ho)
       end
     end
 
-    scale = []
+    all_scales_holes = []
     h2s_shorts = Hash.new('')
     $used_scales.each_with_index do |sname, idx|
       # read scale
-      scale_holes = read_and_parse_scale(sname, harp)
+      scale_holes, scale2props[sname] = read_and_parse_scale(sname, harp)
       holes_remove.each {|h| scale_holes.delete(h)}
       # build final scale as sum of multiple single scales
-      scale.concat(scale_holes) unless idx > 0 && $opts[:add_no_holes]
-      # construct remarks to be shown amd flags to be used while
+      all_scales_holes.concat(scale_holes) unless $opts[:add_no_holes]
+      # construct remarks to be shown and flags to be used while
       # handling holes
       scale_holes.each do |h|
         next if holes_remove.include?(h)
         if idx == 0
           hole2flags[h] << :main
+          if scale2props.dig(sname,:roots)&.include?(h)
+            hole2flags[h] << :root
+          end
         else
           next if $opts[:add_no_holes] && !hole2flags[h]
           hole2flags[h] << :added
@@ -843,12 +847,13 @@ def read_and_set_musical_config
         harp[h][:equiv].each {|h| h2s_shorts[h] += $scale2short[sname]}
       end
     end
-    # omit equivalent holes
-    scale_holes = scale.sort_by {|h| harp[h][:semi]}.uniq
 
-    scale_notes = scale_holes.map {|h| $hole2note[h]}
+    # omit equivalent holes
+    all_scales_holes.sort_by! {|h| harp[h][:semi]}.uniq!
+    
+    all_scales_notes = all_scales_holes.map {|h| $hole2note[h]}
   else            
-    scale_holes = scale_notes = nil
+    all_scales_holes = all_scales_notes = nil
   end
 
   # semi2hole is independent of scale
@@ -935,12 +940,12 @@ def read_and_set_musical_config
       fail "Song title '#{t}' is too long #{t.length} >= #{$conf[:term_min_width] - 4}" if t.length >= $conf[:term_min_width] - 4
     end
   end
-  
+
   [ harp,
     harp_holes,
     harp_notes,
-    scale_holes,
-    scale_notes,
+    all_scales_holes,
+    all_scales_notes,
     hole2flags.values.all?(&:nil?)  ?  nil  :  hole2flags,
     h2s_shorts,
     semi2hole,
@@ -949,7 +954,8 @@ def read_and_set_musical_config
     hole_root,
     typical_hole,
     named_hole_sets,
-    bare_note2holes ]
+    bare_note2holes,
+    scale2props ]
 
 end
 
@@ -971,7 +977,9 @@ def read_and_parse_scale sname, harp = nil
     $scale2short[sname] = short
   end
 
-  # write derived scale file
+  #
+  # Write derived scale file
+  #
   dfile = $derived_dir + '/derived_' +
           File.basename(sfile).sub(/holes|notes/, sfile['holes'] ? 'notes' : 'holes')
   dcont = {'short' => $scale2short[sname],
@@ -990,18 +998,24 @@ def read_and_parse_scale sname, harp = nil
               "# and moved to the key of c.\n" +
               "#\n" +
               YAML.dump(dcont) )
-  scale_holes
+
+  [scale_holes, props]
 end
 
+
+$simple_scale_cache = Hash.new
 
 def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_file: nil
 
   # shortcut for scale given on command line
   if sname == 'adhoc-scale'
     $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
-    return [$adhoc_scale_holes, [{'short' => 'h'}], 'command-line']
+    return [$adhoc_scale_holes, {'short' => 'h'}, 'command-line']
   end
 
+  # serve from cache, without reading file
+  return $simple_scale_cache[sname] if $simple_scale_cache[sname]
+  
   err "Scale '#{sname}' should not contain chars '?' or '*'" if sname['?'] || sname['*']
   sfile = if override_file
             override_file
@@ -1018,24 +1032,28 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
   # Actually read the file and check the yaml-keys
   raw_read = yaml_parse(sfile)
   what = ( sfile['holes']  ?  'holes'  :  'notes' )
-  err "Content of scale file #{sfile} is not a hash, but rather: #{raw_read.class}" unless raw_read.class == Hash
-  if sfile['holes']
-    err "Content of scale file #{sfile} does not have required key 'holes', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?('holes')
-  else
-    err "Content of scale file #{sfile} does not have required key 'notes', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?('notes')
-  end
+  err "Content of scale file   #{sfile}   is not a hash, but rather: #{raw_read.class}" unless raw_read.class == Hash
+  err "Content of scale file   #{sfile}   does not have required key '#{what}', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?(what)
   err "Content of scale file   #{sfile}   has both keys 'holes' and 'notes', but judging from the filename, only '#{what}' is allowed." if (%w(holes notes) - raw_read.keys).length == 0
-  unknown = raw_read.keys - %w(desc short holes notes)
-  err "These keys from scale file #{sfile} are unknown: #{unknown.join(', ')}" if unknown.length > 0
+  known_keys = %w(desc short holes notes roots)
+  unknown = raw_read.keys - known_keys
+  err "These keys from scale file   #{sfile}   are unknown: #{unknown.join(', ')}; they are none of: #{known_keys.join(', ')}" if unknown.length > 0
   hons_read = raw_read[what]
-  err "Value of key '#{what}' from scale file #{sfile} is not an Array, but rather this: #{hons_read.class}" unless hons_read.class == Array
-  
+  err "Value of key '#{what}' from scale file   #{sfile}   is not an Array, but rather this: #{hons_read.class}" unless hons_read.class == Array
+
   # get properties of scale
   props = Hash.new
   %w(desc short).each do |key|
     next unless raw_read[key]
     props[key.to_sym] = raw_read[key] 
-    err "Value of key '#{key}' from scale file #{sfile} is not a String, but rather this: #{props[key.to_sym].class}" unless props[key.to_sym].class == String
+    err "Value of key '#{key}' from scale file   #{sfile}   is not a String, but rather this: #{props[key.to_sym].class}" unless props[key.to_sym].class == String
+  end
+  if raw_read['roots']
+    props[:roots] = raw_read['roots']
+    err "Value of key 'roots' from scale file   #{sfile}   is not an Array, but rather this: #{raw_read['roots'].class}" unless raw_read['roots'].class == Array
+    raw_read['roots'].each do |hon|
+      err "#{what} '#{hon}' from scale file   #{sfile}   is none of the known #{what}s of the scale (#{hons_read.join(' ')}'" unless hons_read.include?(hon)
+    end
   end
   $scale2desc[sname] = props[:desc] if props[:desc]
 
@@ -1049,49 +1067,70 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
                     else
                       note2semi(($opts[:transpose_scale] || $key) + '0') - note2semi($key + '0')
                     end
-  scale_holes = Array.new
 
+  scale_holes = nil
+  
   if sfile['holes']
 
     holes_lost = []
-    hons_read.each do |hole|
-      err "Hole   '#{hole}'   as read from   #{sfile}   is none of the available holes:   #{$hole2note_for_c.keys.join(', ')}" unless $hole2note_for_c[hole]
-      semi_for_c = note2semi($hole2note_for_c[hole])
-      semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
-      if semi_moved >= $min_semi && semi_moved <= $max_semi
-        note_moved = semi2note(semi_moved)
-        hole_moved = $note2hole[note_moved]
-        if hole_moved
-          scale_holes << hole_moved
+    hole_groups = [hons_read]
+    hole_groups << props[:roots] if props[:roots]
+    hole_groups.each_with_index do |hole_group, idx|
+      kept_holes = []
+      hole_group.each do |hole|
+        err "Hole   '#{hole}'   as read from   #{sfile}   is none of the available holes:   #{$hole2note_for_c.keys.join(', ')}" unless $hole2note_for_c[hole]
+        semi_for_c = note2semi($hole2note_for_c[hole])
+        semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
+        if semi_moved >= $min_semi && semi_moved <= $max_semi
+          note_moved = semi2note(semi_moved)
+          hole_moved = $note2hole[note_moved]
+          if hole_moved
+            kept_holes << hole_moved
+          else
+            holes_lost << hole
+          end
         else
           holes_lost << hole
         end
+      end
+      if idx == 0
+        scale_holes = kept_holes
       else
-        holes_lost << hole
+        props[:roots] = kept_holes
       end
     end
     if $used_scales.include?(sname) && holes_lost.length > 0
-      $msgbuf.print "These holes from scale #{sname} have been lost during transpose: #{holes_lost.join(' ')}", 5, 5
+      $msgbuf.print "These holes from scale #{sname} have been lost during transpose: #{holes_lost.uniq.join(' ')}", 5, 5
     end
 
   else
 
     notes_lost = []
+    note_groups = [hons_read]
+    note_groups << props[:roots] if props[:roots]
     all_notes_norm = $hole2note_for_c.values.map {|n| sf_norm(n)}
-    hons_read.each do |note_for_c|
-      err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(sf_norm(note_for_c))
-      semi_for_c = note2semi(note_for_c)
-      semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
-      if semi_moved >= $min_semi && semi_moved <= $max_semi
-        note_moved = semi2note(semi_moved)
-        hole_moved = $note2hole[note_moved]
-        if hole_moved
-          scale_holes << hole_moved
+    note_groups.each_with_index do |note_group, idx|
+      kept_holes = []      
+      note_read.each do |note_for_c|
+        err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(sf_norm(note_for_c))
+        semi_for_c = note2semi(note_for_c)
+        semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
+        if semi_moved >= $min_semi && semi_moved <= $max_semi
+          note_moved = semi2note(semi_moved)
+          hole_moved = $note2hole[note_moved]
+          if hole_moved
+            kept_holes << hole_moved
+          else
+            notes_lost << note_for_c
+          end
         else
           notes_lost << note_for_c
         end
+      end
+      if idx == 0
+        scale_holes = kept_holes
       else
-        notes_lost << note_for_c
+        props[:roots] = kept_holes
       end
     end
     if $used_scales.include?(sname) && notes_lost.length > 0
@@ -1099,7 +1138,10 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
     end
 
   end
-  
+
+  # remember result for next time
+  $simple_scale_cache[sname] ||= [scale_holes, props, sfile]
+
   [scale_holes, props, sfile]
 end
 
@@ -1126,7 +1168,7 @@ def read_chart
     chart_with_notes = []
     chart_with_scales = []
     chart_with_scales_simple = []
-    holes_for_simple = read_and_parse_scale($conf[:scale] || $scale).
+    holes_for_simple = read_and_parse_scale($conf[:scale] || $scale)[0].
                          map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
     # will be used in get chart with intervals
     $chart_with_holes_raw = chart_with_holes_raw
@@ -1278,7 +1320,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
 
   $std_semi_shifts = [-12, -10, -7, -5, -4, 4, 5, 7, 10, 12]
 
-  $harp, $harp_holes, $harp_notes, $scale_holes, $scale_notes, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets, $bare_note2holes = read_and_set_musical_config
+  $harp, $harp_holes, $harp_notes, $all_scales_holes, $all_scales_notes, $hole2flags, $hole2scale_shorts, $semi2hole, $intervals, $intervals_inv, $hole_root, $typical_hole, $named_hole_sets, $bare_note2holes, $scale2props = read_and_set_musical_config
 
   $scale_desc_maybe = Hash.new
   $scale2count = Hash.new

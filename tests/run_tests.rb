@@ -687,7 +687,7 @@ do_test 'id-9: listen with removed scale' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:scale_holes]) { dump[:scale_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
+  expect(dump[:all_scales_holes]) { dump[:all_scales_holes] == ['+1','-1','+2','-2','-3','+4','-4','+5','-5','+6','-6','-7','+7','-8','+8/','+8','-9','+9/','+9','-10','+10//','+10/','+10'] }
   kill_session
 end
 
@@ -717,7 +717,7 @@ do_test 'id-10: quiz' do
   sleep 2
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[4]['b4    4   b14  b45   4   b14'] }
+  expect { screen[4]['b4    4   b14  b4    4   b14'] }
   kill_session
 end
 
@@ -747,7 +747,7 @@ do_test 'id-11: transpose scale with zero shift' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-2','-3/','+4','-4/','-4','-5','+6'] }
+  expect(dump[:all_scales_holes]) { dump[:all_scales_holes] == ['-2','-3/','+4','-4/','-4','-5','+6'] }
   kill_session
 end
 
@@ -757,7 +757,7 @@ do_test 'id-12: transpose scale with non-zero shift' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-2//', '-3///', '-3/', '-3', '+4', '-5'] }
+  expect(dump[:all_scales_holes]) { dump[:all_scales_holes] == ['-2//', '-3///', '-3/', '-3', '+4', '-5'] }
   kill_session
 end
 
@@ -767,7 +767,7 @@ do_test 'id-13: transpose scale by 7 semitones' do
   tms :ENTER
   wait_for_start_of_pipeline
   dump = read_testing_dump('start')
-  expect(dump[:scale_holes]) { dump[:scale_holes] == ['-4','-5','+6','-6/','-6','+7','-8'] }
+  expect(dump[:all_scales_holes]) { dump[:all_scales_holes] == ['-4','-5','+6','-6/','-6','+7','-8'] }
   kill_session
 end
 
@@ -2695,10 +2695,10 @@ do_test 'id-78: detect interval' do
   kill_session
 end
 
-# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich hier; deswegen
+# 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich hier (?); deswegen
 # zwei Alternativen prüfen
-[[-5, 4, ["\e[7m\e[94m e4  \e[0m\e[32m g4",
-          "\e[7m\e[94m e4  \e[0m\e[32m\e[49m g4"]],
+[[-5, 4, ["\e[7m\e[94m e4  \e[0m\e[92m g4",
+          "\e[7m\e[94m e4  \e[0m\e[92m\e[49m g4"]],
  [-2, 4, ["\e[34m c4   e4  \e[7m\e[92m g4"]]].each_with_index do |vals, idx|
   semi, line, texts = vals
   do_test "id-79a#{idx}: check against semitone played #{semi}" do
@@ -3265,12 +3265,12 @@ do_test 'id-105: lick in shift circle' do
   tms 'harpwise licks --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b4     +3.b14   -3/.b4'] }
+  expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b      +3.b14   -3/.b'] }
   tms '#'
   sleep 2
   tms '#'
   tms :ENTER  
-  expect { screen[15]['-2.b14  -3//.5      +4.b45   (*)     +4.b45   (*)'] }
+  expect { screen[15]['-2.b14  -3//.5      +4.b4    (*)     +4.b4    (*)'] }
   expect { screen[22]["Shifted holes by 'perf Fourth UP'"] }
   kill_session
 end

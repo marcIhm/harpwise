@@ -1049,9 +1049,9 @@ end
 
 # a hole, that is not played
 def get_hole_color_inactive hole, bright = false
-  if $scale_holes.include?(hole)
+  if $all_scales_holes.include?(hole)
     if $hole2flags[hole].include?(:main)
-      32
+      $hole2flags[hole].include?(:root) ? 92 : 32
     else
       bright ? 94 : 34
     end

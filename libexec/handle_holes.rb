@@ -63,7 +63,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
 
   $msgbuf.update(tntf, refresh: true)
   $ulrec.print_rec_sign_mb if $ulrec.active?
-    
+
   loop do   # over each new frequency from pipeline, until done or skip
 
     $perfctr[:handle_holes_this_loops] += 1

@@ -25,7 +25,7 @@
     // Description should be an orientation for the user; can be either a string or an
     // array of strings; the description below is rather long and gives an overview of
     // the whole process of jamming
-    "description": ["A 12-bar backing-track and the 3-lick set 'box1'.",
+    "description": ["A 12-bar backing-track and the 3-lick set 'box1' (or 'box2').",
 		    "",
 		    "Each of the licks is one bar long, and matches one of chords I,IV,V. Play each lick as long as it is displayed, e.g. play the first lick four times, then the second lick two times, etc.",
 		    "",
@@ -33,9 +33,13 @@
 		    "",
 		    "Play either with a mic or use earphones to help harpwise sense your playing even in the accustic presence of the backing track.",
 		    "",
-		    "This jam can also be used with lick progression box2."],
-    // Hint for user on how to start harpwise:
-    "example_harpwise": "harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
+		    "This jam comes in two variations with box1 and box2."],
+    // Example for user on how to start harpwise:
+    // (this can be a single string or an array of strings,
+    //  which would then be called 'variations'; see further
+    //  down below for details on this)
+    "example_harpwise": ["harpwise listen --scale-prog 12bar --lick-prog box1 --jamming",
+			 "harpwise listen --scale-prog 12bar --lick-prog box2 --jamming"],
     // Global stretch (> 1) or compress (< 1) all timestamps; use this e.g. if you have
     // slowed down the backing track after creating timestamps:
     "timestamps_multiply": 1.0,

@@ -600,7 +600,7 @@ def do_jamming_list
   # Try to make output pretty but also easy for copy and paste
   #
   puts
-  puts "Available jamming-files:\n\e[34m# with keys harp,song  \e[35m; lick-prog \e[32m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
+  puts "Available jamming-files:\n\e[34m# with keys harp,song  \e[35m; shortend example of variation \e[34m; day last used + count of more days from last #{$jamming_last_used_days_max}\e[0m"
   tcount = 0
   jam2ago = Hash.new
   used_sound_files = Set.new
@@ -738,14 +738,14 @@ def do_jamming_list_single file, multi: false
 
   puts
   puts "  Sound File:  " + (pms['sound_file'] % jam_data)
-  puts "  Ex. Listen:  #{pms['example_harpwise']}"
-  print "               \e[2m"
-  print "#{pms['scale_prog_len']} scales,  "
-  print "#{pms['lick_prog_len']} licks\e[0m"
-  puts
+  print "  Ex. Listen:  "
   if pms['num_variations'] > 1
-    puts "#{pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
-    pms['variations_descriptions'].each_with_index {|desc, idx| puts "           #{idx + 1}:  #{desc}"}
+    puts "\e[2m#{pms['num_variations']} Variations:  choose among them e.g. with  --variation 1"
+    pms['all_examples_harpwise'].each_with_index do |desc, idx|
+      puts "           #{idx + 1}:  #{desc}"
+    end
+  else
+    puts pms['example_harpwise']
   end
   puts "        desc:  #{$all_lick_progs[pms['lick_prog']][:desc]}"
   puts "  Num Timers:  #{$jam_data[:num_timer_max].to_s.ljust(2)}        \e[2mper loop\e[0m"
@@ -1624,7 +1624,7 @@ def jamming_json_handle_variations jam_pms
   end
 
   #
-  # Construct descriptions from examples
+  # Construct shortened descriptions from examples
   #
   if jam_pms['num_variations'] > 1
     exs = jam_pms['example_harpwise']
@@ -1662,6 +1662,8 @@ def jamming_json_handle_variations jam_pms
   jam_pms['all_scale_progs'] = Array.new
   jam_pms['all_lick_progs'] = Array.new
 
+  jam_pms['all_examples_harpwise'] = [jam_pms['example_harpwise']].flatten
+  
   if jam_pms['example_harpwise'].is_a?(Array)
 
     num_var = $opts[:variation] - 1

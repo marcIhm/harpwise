@@ -45,7 +45,7 @@ def do_listen
 
 
       # lambda_good_done_was_good
-      -> (played, _) {[$scale_holes.include?(played), false, false]},
+      -> (played, _) {[$all_scales_holes.include?(played), false, false]},
       
 
       # lambda_skip

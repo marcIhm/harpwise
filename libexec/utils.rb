@@ -252,7 +252,7 @@ def write_dump marker = nil
     dumpfile = "#{$dirs[:exch_tester_tested]}/harpwise_testing_dumped_#{marker}.json"
     File.delete(dumpfile) if File.exist?(dumpfile)
   end
-  structure = {scale: $scale, scale_holes: $scale_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER'], testing_custom: $testing_custom}
+  structure = {scale: $scale, all_scales_holes: $all_scales_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER'], testing_custom: $testing_custom}
   if marker
     File.write(dumpfile, JSON.pretty_generate(structure))
   else
@@ -1699,3 +1699,14 @@ def highlight_helper text, highlight
   end
 end
 
+
+def longest_common_substr strings
+  shortest = strings.min_by(&:length)
+  maxlen = shortest.length
+  maxlen.downto(0) do |len|
+    0.upto(maxlen - len) do |start|
+      substr = shortest[start,len]
+      return substr if strings.all?{|str| str.include? substr }
+    end
+  end
+end

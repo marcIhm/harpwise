@@ -681,10 +681,10 @@ def get_quiz_sample num
   rnd = rand
   # favor lower starting notes
   if rnd > 0.7
-    holes[0] = $scale_holes[0 .. $scale_holes.length/2].sample
+    holes[0] = $all_scales_holes[0 .. $all_scales_holes.length/2].sample
     what[0] = :start_sample_from_lower_scale
   elsif rnd > 0.4
-    holes[0] = $scale_holes.sample
+    holes[0] = $all_scales_holes.sample
     what[0] = :start_sample_from_scale
   else
     holes[0] = $hole_root
@@ -733,7 +733,7 @@ def get_quiz_sample num
   for i in (1 .. num - 1)
     # make sure, there is a note in every slot
     unless holes[i]
-      holes[i] = $scale_holes.sample
+      holes[i] = $all_scales_holes.sample
       what[i] = :middle_end_fallback
     end
   end

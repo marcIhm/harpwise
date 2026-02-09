@@ -507,7 +507,10 @@ def process_lick lick, name, vars, default
     lick[:tags] << tag if lick[:holes].length == num_shiftable
   end
 
-  # add tags (e.g. mostly-chord-i), if lick is mostly contained in certain scales
+  #
+  # Add tags (e.g. mostly-chord-i), if lick is mostly contained in certain scales
+  #
+
   $scale_lick_tags.each do |scale|
     sc_holes = read_and_parse_scale_simple(scale, $harp)[0].
                  map {|h| $harp[h][:canonical]}
