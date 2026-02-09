@@ -667,10 +667,7 @@ def do_jamming_list
       print txt.join
       var_col = txt.reject {|t| t.start_with?("\e")}.join.length
       if !$opts[:brief]
-        print "\e[0m\e[35m; #{pms['lick_prog']} (#{pms['lick_prog_len']})"
-        if pms['num_variations'] > 1
-          print "\e[0m\e[32m +#{pms['num_variations'] - 1}\e[35m Var"
-        end
+        print "\e[0m\e[35m; #{pms['variations_descriptions'][0]}"
         fname = File.basename(pms['sound_file']).gsub('.mp3','')
         fname = fname[0..20] + '...' if fname.length > 20 + 5
         print "\e[0m\e[34m; #{fname}"
@@ -1577,6 +1574,7 @@ def parse_jamming_json jam_json
         ''
       end + "\n") if given != wanted
 
+  jam_pms['json_file'] = jam_json  
   jamming_json_handle_variations(jam_pms)
 
   jam_pms
@@ -1606,13 +1604,12 @@ def jamming_json_handle_variations jam_pms
                               else
                                 1
                               end
-  actions.each do |act|
+  actions.each_with_index do |act, idx|
     if act[1] == 'keys'
       act[2 .. -1].each do |key|
         if key.is_a?(Array)
-          jam_pms['num_variations'] = [jam_pms['num_variations'], ].max
           if jam_pms['num_variations'] != key.length
-            err "Action '#{act}' has #{key.length} variations, but parameter example_harpwise '#{jam_pms['example_harpwise']}' has #{jam_pms['num_variations']} examples; please adjust one or the other"
+            err "Action #{idx+1} '#{act}' has #{key.length} variations, but parameter example_harpwise has #{jam_pms['num_variations']} examples; please adjust one or the other\n(file #{jam_pms['json_file']})"
           end
         end
       end
@@ -1622,7 +1619,7 @@ def jamming_json_handle_variations jam_pms
   if jam_pms['num_variations'] > 1
     num_diff_examples = jam_pms['example_harpwise'].tally.length
     if num_diff_examples < jam_pms['num_variations']
-      err "Parameter example_harpwise only has #{num_diff_examples} different values, but its length is #{jam_pms['example_harpwise'].length}; please make them all different to allow for different descriptions; maybe just by adding a comment with '#'"
+      err "Parameter example_harpwise only has #{num_diff_examples} different values, but its length is #{jam_pms['example_harpwise'].length}; please make them all different to allow for different descriptions; maybe just by adding a comment with '#'(file #{jam_pms['json_file']})"
     end
   end
 
@@ -1631,6 +1628,7 @@ def jamming_json_handle_variations jam_pms
   #
   if jam_pms['num_variations'] > 1
     exs = jam_pms['example_harpwise']
+    # find and remove common head and tail
     chead_end = 0
     chead_end += 1 while exs.map {|e| e[chead_end]}.tally.length == 1
     chead_end -= 1 while exs.all? {|e| e[chead_end] != ' '}
@@ -1640,8 +1638,17 @@ def jamming_json_handle_variations jam_pms
     descs = exs.map do |e|
      e[chead_end .. ctail_start].strip.gsub(/^\#/,'').strip
     end
+
+    # remove some more
+    lstring = longest_common_substr(descs)
+    if lstring.length > 7
+      descs.each do |d|
+        d[lstring] = '...'
+        d.gsub!(/\s*\.\.\.\s*/,'...')
+      end
+    end
     if descs.tally.length < descs.length
-      err "After removing space and '#', descriptions do not come out all different; please add some more text (e.g. comment) to one or more descriptions to make this happen: #{descs}"
+      err "After removing space and '#', descriptions do not come out all different; please add some more text (e.g. comment) to one or more descriptions to make this happen: #{descs}\n(file #{jam_pms['json_file']})"
     end
     jam_pms['variations_descriptions'] = descs
   end
@@ -1650,7 +1657,7 @@ def jamming_json_handle_variations jam_pms
   # Make chosen variation manifest so that later processing need not care about (mostly)
   #
   if $opts[:variation] < 1 || $opts[:variation] > jam_pms['num_variations']
-    err "Option '--variation' must be in range 1 .. #{jam_pms['num_variations']}; but its value #{$opts[:variation]} is not"
+    err "Option '--variation' must be in range 1 .. #{jam_pms['num_variations']}; but its value #{$opts[:variation]} is not\n(file #{jam_pms['json_file']})"
   end
   jam_pms['all_scale_progs'] = Array.new
   jam_pms['all_lick_progs'] = Array.new
@@ -1680,6 +1687,7 @@ def jamming_json_handle_variations jam_pms
     scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'])
     jam_pms['all_scale_progs'] << scale_prog
     jam_pms['all_lick_progs'] << lick_prog
+    jam_pms['variations_descriptions'] = [lick_prog]
   end
 
   jam_pms['scale_prog'] = jam_pms['all_scale_progs'][num_var]
