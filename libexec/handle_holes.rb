@@ -591,7 +591,7 @@ def text_for_key
     text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
     text += " (#{$scale_prog_count+1}/#{$scale_prog.length})" if $opts[:jamming]
     if $opts[:display] == :chart_scales_simple
-      text += "; @ is " + $scale2short[$conf[:scale] || $scale]
+      text += "; @ is " + $scale2short[$non_prog_scale]
     end
   else
     text += "\e[32m #{$scale}\e[0m\e[2m"

@@ -1168,7 +1168,7 @@ def read_chart
     chart_with_notes = []
     chart_with_scales = []
     chart_with_scales_simple = []
-    holes_for_simple = read_and_parse_scale($conf[:scale] || $scale)[0].
+    holes_for_simple = read_and_parse_scale($non_prog_scale)[0].
                          map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
     # will be used in get chart with intervals
     $chart_with_holes_raw = chart_with_holes_raw
@@ -1310,6 +1310,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
 
   $used_scales = get_used_scales($opts[:add_scales])
   $scale_prog ||= $used_scales
+  $non_prog_scale = ($used_scales - $scale_prog)[0] || $scale
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
   fail "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == [:easy, :hard]

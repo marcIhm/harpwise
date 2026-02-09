@@ -58,9 +58,7 @@ def do_print to_print
           puts
         end
         puts
-        puts if snames.length > 1
       end
-      puts_user_defined_hint :scales
       puts "#{snames.length} scales printed." unless $opts[:brief]
 
     elsif spnames.length > 0

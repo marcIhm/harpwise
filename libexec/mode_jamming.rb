@@ -34,7 +34,8 @@ def do_jamming to_handle
     do_the_jamming json_file
     
   when 'list', 'ls'
-    
+
+    err "Option --variation not allowed when listing" if $opts[:variation] > 1
     if to_handle.length == 0
       do_jamming_list
     elsif to_handle == ['all']
@@ -130,7 +131,7 @@ def do_the_jamming json_file
 
   if $jam_pms['num_variations'] > 1
     puts "#{$jam_pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
-    $jam_pms['variations_descriptions'].each_with_index {|desc, idx| puts "           #{idx + 1}:  #{desc}"}
+    $jam_pms['all_examples_harpwise'].each_with_index {|exa, idx| puts "           #{idx + 1}:  #{exa}"}
     puts "\e[0m"
   end
     
