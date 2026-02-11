@@ -69,6 +69,8 @@ additional arguments):
   ls", which however has a more relaxed way of specifying the jam.  See
   there for details.
 
+- chart,charts: Print harmonica chart, just like "harpwise tools chart"
+
 
 
 Usage by Examples:

@@ -65,6 +65,8 @@ print:
     List available jamming-files. This is much like "harpwise jam ls",
     which however has a more relaxed way of specifying the jam.
     See there for details.
+  chart,charts: |
+    Print harmonica chart, just like "harpwise tools chart"
 tools:
   transpose: |
     transpose a sequence of holes between keys
@@ -96,7 +98,7 @@ tools:
   make-scale: |
     accepts a list of holes on the commandline, asks some additional
     questions and writes a new user-defined scale.
-  chart: |
+  chart,charts: |
     various harmonica charts for current key; add option --ref for
     more charts. If you supply holes or notes as arguments (optional),
     only these are printed in the chart of holes and the other charts

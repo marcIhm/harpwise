@@ -1,7 +1,9 @@
 ---
-desc: major pentatonic
+desc: major pentatonic in second position
 short: P
 holes:
+- "-1"
+- "+2"
 - "-2"
 - "-3//"
 - "-3"
@@ -15,3 +17,7 @@ holes:
 - "+9"
 - "-10"
 - "+10/"
+roots:
+- "-2"
+- "+6"
+- "+9"

@@ -35,9 +35,9 @@ def do_jamming to_handle
     
   when 'list', 'ls'
 
-    err "Option --variation not allowed when listing" if $opts[:variation] > 1
     if to_handle.length == 0
       do_jamming_list
+      err "Option --variation not allowed when listing without argument" if $opts[:variation] > 1
     elsif to_handle == ['all']
       do_jamming_list_all
     else
@@ -669,6 +669,7 @@ def do_jamming_list
       var_col = txt.reject {|t| t.start_with?("\e")}.join.length
       if !$opts[:brief]
         print "\e[0m\e[35m; #{pms['variations_descriptions'][0]}"
+        print "\e[95m +#{pms['num_variations'] - 1}\e[35m Var" if pms['num_variations'] > 1
         fname = File.basename(pms['sound_file']).gsub('.mp3','')
         fname = fname[0..20] + '...' if fname.length > 20 + 5
         print "\e[0m\e[34m; #{fname}"
@@ -678,7 +679,7 @@ def do_jamming_list
       print("\e[0m\e[35m; " + ( ago  ?  days_ago_in_words(ago)  :  'unknown' ))
       print(" + #{more} more") if more
       puts
-      if pms['num_variations'] > 1
+      if pms['num_variations'] > 1 && !$opts[:brief]
         pms['variations_descriptions'][1..-1].each do |desc|
           puts (' ' * (var_col + 2)) + "\e[0m\e[35m#{desc}"
         end

@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.35.0/
+/Version  6.35.1/
 
 * Introduction
 
@@ -229,8 +229,8 @@ The possible scales depend on the chosen type of harmonica:
     chord-iv7, chord-v, chord-v7, full, mape, one, two
 - scales for richter :: blues, blues-middle, chord-i, chord-i7, chord-iv, 
     chord-iv7, chord-v, chord-v7, drawbends, full, major, major-full, 
-    major-pentatonic, mape, mape4, mape5, middle, minor, minor-pentatonic, 
-    mipe, mixolydian
+    major-pentatonic, mape, mape-middle, mape4, mape5, middle, minor, 
+    minor-pentatonic, mipe, mipe-middle, mixolydian
 
 Note that advanced users may try to create their own scales. See
 usage of mode tools for an example.
@@ -1328,7 +1328,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       accepts a list of holes on the commandline, asks some additional
       questions and writes a new user-defined scale.
 
-    - chart:
+    - chart,charts:
       various harmonica charts for current key; add option --ref for
       more charts. If you supply holes or notes as arguments (optional),
       only these are printed in the chart of holes and the other charts

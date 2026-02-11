@@ -43,7 +43,7 @@
       accepts a list of holes on the commandline, asks some additional
       questions and writes a new user-defined scale.
 
-    - chart:
+    - chart,charts:
       various harmonica charts for current key; add option --ref for
       more charts. If you supply holes or notes as arguments (optional),
       only these are printed in the chart of holes and the other charts

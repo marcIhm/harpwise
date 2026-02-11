@@ -23,7 +23,7 @@ def do_print to_print
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions scale scales).include?($extra) && args_for_extra.length > 0
+  err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions scale scales chart charts).include?($extra) && args_for_extra.length > 0
 
   
   if !$extra
@@ -211,6 +211,10 @@ def do_print to_print
     when 'jams'
       
       do_jamming_list
+
+    when 'chart', 'charts'
+
+      tool_chart args_for_extra
       
     else
 

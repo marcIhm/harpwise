@@ -1009,6 +1009,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
 
   # shortcut for scale given on command line
   if sname == 'adhoc-scale'
+    # map hole->note->hole_again to canonicalize user-input
     $adhoc_scale_holes.map! {|h| $note2hole[harp[h][:note]]}
     return [$adhoc_scale_holes, {'short' => 'h'}, 'command-line']
   end
@@ -1052,7 +1053,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
     props[:roots] = raw_read['roots']
     err "Value of key 'roots' from scale file   #{sfile}   is not an Array, but rather this: #{raw_read['roots'].class}" unless raw_read['roots'].class == Array
     raw_read['roots'].each do |hon|
-      err "#{what} '#{hon}' from scale file   #{sfile}   is none of the known #{what}s of the scale (#{hons_read.join(' ')}'" unless hons_read.include?(hon)
+      err "#{what} '#{hon}' from scale file   #{sfile}   is none of the known #{what} of the scale (#{hons_read.join(' ')})" unless hons_read.include?(hon)
     end
   end
   $scale2desc[sname] = props[:desc] if props[:desc]
@@ -1168,7 +1169,7 @@ def read_chart
     chart_with_notes = []
     chart_with_scales = []
     chart_with_scales_simple = []
-    holes_for_simple = read_and_parse_scale($non_prog_scale)[0].
+    holes_for_simple = read_and_parse_scale($non_prog_scale, $harp)[0].
                          map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
     # will be used in get chart with intervals
     $chart_with_holes_raw = chart_with_holes_raw

@@ -1,0 +1,10 @@
+---
+desc: major pentatonic, middle octave
+short: P
+holes:
+- "-2"
+- "-3//"
+- "-3"
+- "-4"
+- "+5"
+- "+6"

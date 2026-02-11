@@ -30,7 +30,7 @@ def do_tools to_handle
     tool_search_scale_in_licks to_handle
   when 'licks-from-scale'
     tool_licks_from_scale to_handle
-  when 'chart'
+  when 'chart','charts'
     tool_chart to_handle
   when 'edit', 'edit-licks'
     tool_edit_lick to_handle
