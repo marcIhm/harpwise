@@ -1118,7 +1118,7 @@ def choose_interactive prompt, names, &block
   
   $chia_total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[K"
-  help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help and desc)"
+  help_template = "\e[%dH\e[2many char or cursor keys to select, ? for help and full item-desc"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
   $chia_no_matches_text = nil
   print help_template % ( $lines[:comment_tall] + 2 )
@@ -1145,14 +1145,14 @@ def choose_interactive prompt, names, &block
       clear_area_message
       offset = ( $term_height - $lines[:comment_tall] > 8  ?  1  :  0 )
       print "\e[#{$lines[:comment_tall] + offset}H\e[0m"
-      puts "Help on selecting: Just type or use cursor keys.\e[32m"
+      puts "Help on selecting:\e[32m  Just type  -or-  use cursor keys:"
       puts " - Any char adds to search, which narrows choices"
       puts " - Cursor keys move selection, CTRL-L redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
       puts "\e[0mBottom line shows description of choices\e[0m\e[2m ... #{$resources[:any_key]}\e[0m"
       if block_given? && matching[idx_hili]
-        print "\e[0mFull desc\e[2m for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
+        print "\e[0mFull desc\e[2m for '#{matching[idx_hili]}': '#{block.call(matching[idx_hili])}'"
       end
       $ctl_kb_queue.deq
       clear_area_comment
