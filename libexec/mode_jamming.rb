@@ -1583,13 +1583,13 @@ def parse_jamming_json jam_json
 end
 
 
-def jamming_extract_lick_and_scale_from_example example
+def jamming_extract_lick_and_scale_from_example example, pms
   scale_prog = example.match(/--scale-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
-               err("Could not find option  --scale-prog  in example-command:  '#{example}'")
-  err "Unknown scale progression: '#{scale_prog}'" unless $all_scale_progs[scale_prog]
+               err("Could not find option  --scale-prog  in example-command:  '#{example}'\nin #{pms['json_file']}")
+  err "Unknown scale progression: '#{scale_prog}'\nin #{pms['json_file']}" unless $all_scale_progs[scale_prog]
   lick_prog = example.match(/--lick-prog\S*\s+(\S+)/)&.to_a&.at(1) ||
-              err("Could not find option  --lick-prog  in example-command:  '#{example}'")
-  err "Unknown lick progression: '#{lick_prog}'" unless $all_lick_progs[lick_prog]
+              err("Could not find option  --lick-prog  in example-command:  '#{example}'\nin #{pms['json_file']}")
+  err "Unknown lick progression: '#{lick_prog}'\nin #{pms['json_file']}" unless $all_lick_progs[lick_prog]
   [scale_prog, lick_prog]
 end
 
@@ -1670,7 +1670,7 @@ def jamming_json_handle_variations jam_pms
 
     num_var = $opts[:variation] - 1
     jam_pms['example_harpwise'].each do |exa|
-      scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(exa)
+      scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(exa, jam_pms)
       jam_pms['all_scale_progs'] << scale_prog
       jam_pms['all_lick_progs'] << lick_prog
     end
@@ -1688,7 +1688,7 @@ def jamming_json_handle_variations jam_pms
     jam_pms['example_harpwise'] = jam_pms['example_harpwise'][num_var]
   else ## just a single example
     num_var = 0
-    scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'])
+    scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'], jam_pms)
     jam_pms['all_scale_progs'] << scale_prog
     jam_pms['all_lick_progs'] << lick_prog
     jam_pms['variations_descriptions'] = [lick_prog]

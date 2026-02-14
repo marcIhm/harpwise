@@ -977,7 +977,7 @@ def print_chart skip_hole = nil
         if skip_hole && skip_hole == hole
           print "\e[#{cell.length}C"
         else
-          print (comment_in_chart?(cell)  ?  "\e[0m\e[2m"  :  get_hole_color_inactive(hole)) +
+          print (comment_in_chart?(cell)  ?  "\e[0m\e[2m"  :  "\e[0m" + get_hole_color_inactive(hole)) +
                 cell
         end
       end
@@ -1014,9 +1014,9 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
     y = $lines[:display] + $conf[:chart_offset_xyl][1] + xy[1]
     cell = $charts[$opts[:display]][xy[1]][xy[0]]
     hole_color = if state == :inactive
-                   get_hole_color_inactive(hole)
+                   "\e[0m" + get_hole_color_inactive(hole)
                  else
-                   "\e[7m" + get_hole_color_active(hole, good, was_good, was_good_since)
+                   "\e[0m\e[7m" + get_hole_color_active(hole, good, was_good, was_good_since)
                  end
     print "\e[#{y};#{x}H#{hole_color}#{cell}\e[0m"
   end
@@ -1026,23 +1026,23 @@ end
 # a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
   if !hole
-    "\e[0m\e[2m"
+    "\e[2m"
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
     if $hole2flags[hole].include?(:main)
-      "\e[0m\e[92m"
+      "\e[92m"
     else
-      "\e[0m\e[94m"
+      "\e[94m"
     end
   elsif was_good && (Time.now.to_f - was_good_since) < 1
     if $hole2flags[hole].include?(:main)
-      "\e[0m\e[32m"
+      "\e[32m"
     else
-      "\e[0m\e[34m"
+      "\e[34m"
     end
   elsif was_good
-    "\e[0m\e[33m"
+    "\e[33m"
   else
-    "\e[0m\e[31m"
+    "\e[31m"
   end
 end
     
@@ -1051,12 +1051,12 @@ end
 def get_hole_color_inactive hole, bright = false
   if $all_scales_holes.include?(hole)
     if $hole2flags[hole].include?(:main)
-      $hole2flags[hole].include?(:root) ? "\e[0m\e[1m\e[92m" : "\e[0m\e[32m"
+      $hole2flags[hole].include?(:root) ? "\e[1m\e[92m" : "\e[32m"
     else
-      bright ? "\e[0m\e[94m" : "\e[0m\e[34m"
+      bright ? "\e[94m" : "\e[34m"
     end
   else
-    "\e[0m\e[2m"
+    "\e[2m"
   end
 end
 
