@@ -977,8 +977,8 @@ def print_chart skip_hole = nil
         if skip_hole && skip_hole == hole
           print "\e[#{cell.length}C"
         else
-          printf "\e[0m\e[%dm" % (comment_in_chart?(cell)  ?  2  :  get_hole_color_inactive(hole))
-          print cell
+          print (comment_in_chart?(cell)  ?  "\e[0m\e[2m"  :  get_hole_color_inactive(hole)) +
+                cell
         end
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
@@ -1014,11 +1014,11 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
     y = $lines[:display] + $conf[:chart_offset_xyl][1] + xy[1]
     cell = $charts[$opts[:display]][xy[1]][xy[0]]
     hole_color = if state == :inactive
-                   "\e[%dm" % get_hole_color_inactive(hole)
+                   get_hole_color_inactive(hole)
                  else
-                   "\e[%dm\e[7m" % get_hole_color_active(hole, good, was_good, was_good_since)
+                   "\e[7m" + get_hole_color_active(hole, good, was_good, was_good_since)
                  end
-    print "\e[#{y};#{x}H\e[0m#{hole_color}#{cell}\e[0m"
+    print "\e[#{y};#{x}H#{hole_color}#{cell}\e[0m"
   end
 end
 
@@ -1026,23 +1026,23 @@ end
 # a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
   if !hole
-    2
+    "\e[0m\e[2m"
   elsif good || (was_good && (Time.now.to_f - was_good_since) < 0.5)
     if $hole2flags[hole].include?(:main)
-      92
+      "\e[0m\e[92m"
     else
-      94
+      "\e[0m\e[94m"
     end
   elsif was_good && (Time.now.to_f - was_good_since) < 1
     if $hole2flags[hole].include?(:main)
-      32
+      "\e[0m\e[32m"
     else
-      34
+      "\e[0m\e[34m"
     end
   elsif was_good
-    33
+    "\e[0m\e[33m"
   else
-    31
+    "\e[0m\e[31m"
   end
 end
     
@@ -1051,12 +1051,12 @@ end
 def get_hole_color_inactive hole, bright = false
   if $all_scales_holes.include?(hole)
     if $hole2flags[hole].include?(:main)
-      $hole2flags[hole].include?(:root) ? 92 : 32
+      $hole2flags[hole].include?(:root) ? "\e[0m\e[1m\e[92m" : "\e[0m\e[32m"
     else
-      bright ? 94 : 34
+      bright ? "\e[0m\e[94m" : "\e[0m\e[34m"
     end
   else
-    2
+    "\e[0m\e[2m"
   end
 end
 
@@ -1118,7 +1118,7 @@ def choose_interactive prompt, names, &block
   
   $chia_total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[K"
-  help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help)"
+  help_template = "\e[%dH\e[2m(any char or cursor keys to select, ? for short help and desc)"
   print prompt_template % [$lines[:comment_tall] + 1, prompt]
   $chia_no_matches_text = nil
   print help_template % ( $lines[:comment_tall] + 2 )
@@ -1143,21 +1143,19 @@ def choose_interactive prompt, names, &block
     if key == '?'
       clear_area_comment
       clear_area_message
-      print "\e[#{$lines[:comment_tall] + 1}H\e[0m"
+      offset = ( $term_height - $lines[:comment_tall] > 8  ?  1  :  0 )
+      print "\e[#{$lines[:comment_tall] + offset}H\e[0m"
       puts "Help on selecting: Just type or use cursor keys.\e[32m"
       puts " - Any char adds to search, which narrows choices"
       puts " - Cursor keys move selection, CTRL-L redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
-      print "\e[0mBottom line shows descriptions of choices"
+      puts "\e[0mBottom line shows description of choices\e[0m\e[2m ... #{$resources[:any_key]}\e[0m"
       if block_given? && matching[idx_hili]
-        puts "\e[2m; full desc for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
-      else
-        puts "."
+        print "\e[0mFull desc\e[2m for '#{matching[idx_hili]}' is: '#{block.call(matching[idx_hili])}'"
       end
-      puts "\e[0m\e[2m#{$resources[:any_key]}\e[0m"
       $ctl_kb_queue.deq
-      clear_area_comment(2)        
+      clear_area_comment
       clear_area_message
 
     elsif key.match?(/^[[:print:]]$/)

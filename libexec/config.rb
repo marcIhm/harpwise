@@ -160,7 +160,7 @@ def set_global_vars_early
                            chart_notes: 'Chart with notes',
                            chart_scales: 'Chart with abbreviated scales',
                            # these markers are defined further down below and in handle_holes.rb
-                           chart_scales_simple: 'Chart with markers for initial (@) and other (<->) scales',
+                           chart_scales_simple: 'Chart with markers for initial (@) and other (~%~) scales',
                            chart_intervals: 'Chart with intervals to ref as names',
                            chart_inter_semis: 'Chart with intervals to ref as semitones'}
   $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_inter_semis, :holes_notes])
@@ -1211,7 +1211,7 @@ def read_chart
                    elsif $hole2scale_shorts[hole] == ''
                      '-'
                    else
-                     '<->'
+                     '~%~'
                    end
             mark.center(len)
           end

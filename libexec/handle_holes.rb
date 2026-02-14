@@ -287,8 +287,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
-    hole_color = "\e[0m\e[%dm" %
-                 get_hole_color_active(hole, good, was_good, was_good_since)
+    hole_color = get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
     case $opts[:display]
     when :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis
@@ -415,7 +414,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
       clear_area_display
       print_chart if [:chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis].include?($opts[:display])
-      print "\e[#{$lines[:key]}H" + text_for_key
+      print "\e[0m\e[#{$lines[:key]}H" + text_for_key + "\e[0m"
       $msgbuf.print "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}", 2, 5, :display
       $freqs_queue.clear
       $ctl_mic[:change_display] = false

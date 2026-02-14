@@ -1405,7 +1405,7 @@ do_test 'id-33c: display as chart with scales simple' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales-simple'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['@    @   <->   @    @    @   <->   @    @    @'] }
+  expect { screen[8]['@    @   ~%~   @    @    @   ~%~   @    @    @'] }
   kill_session
 end
 

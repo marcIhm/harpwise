@@ -873,9 +873,8 @@ def tabify_colorize max_lines, holes_etc, idx_first_active
                   "\e[0m\e[92m*"
                 else
                   ' '
-                end +
-                sprintf("\e[0m\e[%dm", get_hole_color_inactive(hole_etc[1],true)) +
-                hole_etc[1] + "\e[0m\e[2m" + mb_w_dot
+                end + ( get_hole_color_inactive(hole_etc[1],true) +
+                        hole_etc[1] + "\e[0m\e[2m" + mb_w_dot )
             end
   end
   lines << line
