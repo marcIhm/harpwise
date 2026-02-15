@@ -936,7 +936,7 @@ def show_help mode = $mode, testing_only = false
   frames << [" Help - Overview",
              "",
              "",
-             "  A harmonica tool for the command line, using microphone and speaker.",
+             "  A harmonica tool for the command line, using microphone and speaker",
              "",
              "  Full documentation at   https://marcihm.github.io/harpwise",
              "",
@@ -962,7 +962,7 @@ def show_help mode = $mode, testing_only = false
     frames[-1].append(*["      j:_journal-menu; write holes (mode listen only)",
                         " CTRL-R:_record and play user (mode licks only)"])
   else
-    frames[-1].append(*["      j:_invoke journal-menu to handle your musical ideas;",
+    frames[-1].append(*["      j:_invoke journal-menu to handle your musical ideas",
                         "      w:_switch comment to warble and prepare",
                         "      p:_print details about player currently drifting by",
                         "      .:_play lick from --lick-prog (shown in comment-area)",
@@ -1036,7 +1036,7 @@ def show_help mode = $mode, testing_only = false
                       " Performance info:",
                       "",
                       "     Update loops per second:   " + ('%8.2f' % $perfctr[:handle_holes_this_loops_per_second]),
-                      "        \e[0m\e[2mbased on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m",
+                      "        based on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m",
                       "",
                       "     Time slice (per config):      #{$opts[:time_slice]}",
                       "     Maximum jitter:               " + ($max_jitter > 0  ?  ('%8.2f sec' % $max_jitter)  :  'none'),

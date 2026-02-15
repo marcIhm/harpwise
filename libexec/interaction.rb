@@ -1145,15 +1145,16 @@ def choose_interactive prompt, names, &block
       clear_area_message
       offset = ( $term_height - $lines[:comment_tall] > 8  ?  1  :  0 )
       print "\e[#{$lines[:comment_tall] + offset}H\e[0m"
-      puts "Help on selecting:\e[32m  Just type  -or-  use cursor keys:"
+      puts "Help on selecting:\e[32m   Just type  -or-  use cursor keys:"
       puts " - Any char adds to search, which narrows choices"
       puts " - Cursor keys move selection, CTRL-L redraws"
       puts " - RETURN accepts, ESC aborts"
       puts " - TAB and S-TAB go to next/prev page if '...more'"
-      puts "\e[0mBottom line shows description of choices\e[0m\e[2m ... #{$resources[:any_key]}\e[0m"
+      print "\e[0mBottom line shows description of choices"
       if block_given? && matching[idx_hili]
-        print "\e[0mFull desc\e[2m for '#{matching[idx_hili]}': '#{block.call(matching[idx_hili])}'"
+        print "\e[2m; full desc\e[2m for \e[0m#{matching[idx_hili]}\e[2m is '#{block.call(matching[idx_hili])}'"
       end
+      print "\e[0m\e[32m ... #{$resources[:any_key]}\e[0m"
       $ctl_kb_queue.deq
       clear_area_comment
       clear_area_message
