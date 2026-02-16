@@ -919,12 +919,12 @@ def tool_translate to_handle
                                   "draw is -2, bends are -1/, -2//, +10/.  All other notations",
                                   "will betranslated into this one."],
                            example: "-1  +2  -2  -3/  +3  -3/  -3//  -2"}, 
-                quotes: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\"",
-                                "this notation is e.g. used by harmonica.com"],
-                         example: "-1  +2  -2  -3'  3  -3'  -3\"  -2"},
-                ricci: {desc: ["Draw has 'd' appended, blow nothing, quotes for bends;",
-                               "this notation is used by Jason Ricci"],
-                        example: "2d  3'  3d  2  3'  3d  4d  4  3d  2d"},
+                quotes_pm: {desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\"",
+                                   "this notation is e.g. used by harmonica.com"],
+                            example: "-1  +2  -2  -3'  3  -3'  -3\"  -2"},
+                quotes_bd: {desc: ["Draw has 'd' appended, blow nothing, quotes for bends;",
+                                   "this notation is used e.g. by Jason Ricci or Ronnie Shellist"],
+                            example: "2d  3'  3d  2  3'  3d  4d  4  3d  2d"},
                 notes: {desc: ["Just the notes rather than any harmonica-specific notation;",
                                "you may also try 'harpwise print' for this, as it will give",
                                "much more info."],
@@ -1100,20 +1100,31 @@ def tool_translate_notation_parens hole
 end
 
 
-def tool_translate_notation_ricci hole
-  if md = hole.match(/^(\d+)$/) || hole.match(/^(\d+)b$/)
-    return "+#{md[1]}"
-  elsif md = hole.match(/^(\d+)d$/)
-    return "-#{md[1]}"
-  elsif md = hole.match(/^(\d+)"'$/) || hole.match(/^(-|\+)?(\d+)'"$/)
-    return "-#{md[1]}///"
-  elsif md = hole.match(/^(\d+)"$/) || hole.match(/^(\d+)''$/)
-    return "-#{md[1]}//"
-  elsif md = hole.match(/^(\d+)'$/)
-    return "-#{md[1]}/"
-  else
-    return false
+def tool_translate_notation_quotes_bd hole
+
+  sign = {'b' => '+', 'd' => '-'}
+  
+  # try normal ascii-quotes (single and double) first  
+  if md = hole.match(/^(\d+)(b|d)$/)
+    return sign[md[2]] + md[1]
+  elsif md = hole.match(/^(\d+)(b|d)"'$/) || hole.match(/^(\d+)(b|d)'"$/)
+    return sign[md[2]] + md[1] + '///'
+  elsif md = hole.match(/^(\d+)(b|d)"$/)
+    return sign[md[2]] + md[1] + '//'
+  elsif md = hole.match(/^(\d+)(b|d)'$/)
+    return sign[md[2]] + md[1] + '/'
   end
+
+  # Right quotes as used by harmonica.com or Ronnie Shellist
+  if md = hole.match(/^(\d+)(b|d)\u201D\u2019$/) || hole.match(/^(\d+)(b|d)\u2019\u201D$/)
+    return sign[md[2]] + md[1] + '///'
+  elsif md = hole.match(/^(\d+)(b|d)\u201D$/) || hole.match(/^(\d+)(b|d)\u2019\u2019$/)
+    return sign[md[2]] + md[1] + '//'
+  elsif md = hole.match(/^(\d+)(b|d)\u2019$/)
+    return sign[md[2]] + md[1] + '/'
+  end
+
+  return false
 end
 
 
@@ -1128,7 +1139,7 @@ def tool_translate_notation_harpwise hole
 end
 
 
-def tool_translate_notation_quotes hole
+def tool_translate_notation_quotes_pm hole
 
   # try normal ascii-quotes (single and double) first
   if md = hole.match(/^(-|\+)?(\d+)"'$/) || hole.match(/^(-|\+)?(\d+)'"$/)
@@ -1139,9 +1150,11 @@ def tool_translate_notation_quotes hole
     return (md[1] || '+') + "#{md[2]}/"
   end
 
-  # Right quotes as used by harmonica.com
+  # Right quotes as used by harmonica.com or Ronnie Shellist; find them e.g. with
+  # ruby -e 'puts "x".ord.to_s(16)'
   # \u2019 = Right Single Quotation Mark
   # \u201D = Right Double Quotation Mark
+
   if md = hole.match(/^(-|\+)?(\d+)\u201D\u2019$/) || hole.match(/^(-|\+)?(\d+)\u2019\u201D$/)
     return (md[1] || '+') + "#{md[2]}///"
   elsif md = hole.match(/^(-|\+)?(\d+)\u201D$/) || hole.match(/^(-|\+)?(\d+)\u2019\u2019$/)

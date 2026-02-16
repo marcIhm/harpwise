@@ -2700,7 +2700,8 @@ end
 # 2024-06-20: WSL2 und Ubuntu nativ unterscheiden sich hier (?); deswegen
 # zwei Alternativen prüfen
 [[-5, 4, ["\e[7m\e[94m e4  \e[0m\e[92m g4",
-          "\e[7m\e[94m e4  \e[0m\e[92m\e[49m g4"]],
+          # below for wsl2, 2026-02-16
+          "\e[7m\e[94m e4  \e[0;1m\e[92m g4"]],
  [-2, 4, ["\e[34m c4   e4  \e[7m\e[92m g4"]]].each_with_index do |vals, idx|
   semi, line, texts = vals
   do_test "id-79a#{idx}: check against semitone played #{semi}" do
@@ -2710,7 +2711,7 @@ end
     tms :ENTER
     wait_for_start_of_pipeline
     sleep 1
-    expect(idx,vals) { texts.any? {|text| screen_col[line][text] }}
+    expect(semi,line,texts,idx) { texts.any? {|text| screen_col[line][text] }}
     kill_session
   end
 end
@@ -3794,7 +3795,8 @@ do_test 'id-131b: translate harp notations' do
   new_session
   [[['(1) 2 (2)', '1 2 3'], 19, '-1  +2  -2'],
    # leading space in order not to confuse tmux ("unknown flag -3")
-   [[' -2” -2 -3 -4 4 -3’ -2 -10'], 20, '-2//  -2  -3  -4  +4  -3/  -2']].each do |inputs, oline, output|
+   [[' -2” -2 -3 -4 4 -3’ -2 -10'], 20, '-2//  -2  -3  -4  +4  -3/  -2'],
+   [[' 2d” 2b 3d’ 2d\''], 20, '-2//  +2  -3/  -2/']].each do |inputs, oline, output|
     tms 'harpwise tools translate'
     tms :ENTER
     sleep 0.2
@@ -3805,6 +3807,7 @@ do_test 'id-131b: translate harp notations' do
     tms :ENTER
     tms :ENTER
     wait_for_end_of_harpwise
+    expect() { screen.any? {|l| l['fully covered'] }}
     expect(oline, output) { screen[oline][output] }
   end
   kill_session
@@ -4160,20 +4163,24 @@ do_test 'id-144: check consistent usage of short and long description' do
 
   sd_readme = nil
   ld_readme = []
+  paras = []
+  para = ''
   in_summary = false
   File.read("README.org").lines.map(&:strip).each do |line|
     if in_summary
-      break if line['[[']
-      if line != ''
-        ld_readme << line if sd_readme
-        sd_readme ||= line 
-      end
       break if line[0] == '*'
+      if line.strip == ''
+        paras << para
+        para = ''
+      else
+        para += ' ' + line
+      end
     end
     in_summary ||= ( line == '* Harpwise' )
   end
-  sd_readme = sd_readme.desc2canon
-  ld_readme = ld_readme[0 .. -1].join.desc2canon
+  paras.select! {|p| p.strip != ''}
+  sd_readme = paras[0].desc2canon
+  ld_readme = paras[2].desc2canon
   expect(short_desc, sd_readme) { short_desc == sd_readme }
   expect(long_desc, ld_readme) { long_desc == ld_readme }
 
