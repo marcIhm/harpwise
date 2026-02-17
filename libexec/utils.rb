@@ -442,7 +442,7 @@ def animate_splash_line single_line = false, as_string: false
     print "|\e[0m\e[92m~\e[0m\e[2m|\e[2D"
     sleep 0.04
     '~HARPWISE~'.each_char.each_cons(2) do |c1, c2|
-      print "\e[0m\e[32m#{c1}\e[0m\e[2m|\e[0m\e[92m#{c2}\e[0m\e[2m|\e[0m\e[2D"
+      print "\e[0m\e[32m#{c1}\e[0m\e[2m|\e[0m\e[1m\e[92m#{c2}\e[0m\e[2m|\e[0m\e[2D"
       sleep 0.04
     end
     print "\e[32m~\e[0m\e[2m|\e[0m"
