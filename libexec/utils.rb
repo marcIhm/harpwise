@@ -1698,15 +1698,3 @@ def highlight_helper text, highlight
     text
   end
 end
-
-
-def longest_common_substr strings
-  shortest = strings.min_by(&:length)
-  maxlen = shortest.length
-  maxlen.downto(0) do |len|
-    0.upto(maxlen - len) do |start|
-      substr = shortest[start,len]
-      return substr if strings.all?{|str| str.include? substr }
-    end
-  end
-end

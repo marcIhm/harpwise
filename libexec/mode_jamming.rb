@@ -130,7 +130,7 @@ def do_the_jamming json_file
    "\e[0m"].flatten.each {|l| puts l; sleep 0.02}
 
   if $jam_pms['num_variations'] > 1
-    puts "#{$jam_pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --variation 1"
+    puts "#{$jam_pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --var 1"
     $jam_pms['all_examples_harpwise'].each_with_index {|exa, idx| puts "           #{idx + 1}:  #{exa}"}
     puts "\e[0m"
   end
@@ -742,7 +742,7 @@ def do_jamming_list_single file, multi: false
   puts "  Sound File:  " + (pms['sound_file'] % jam_data)
   print "  Ex. Listen:  "
   if pms['num_variations'] > 1
-    puts "\e[2m#{pms['num_variations']} Variations:  choose among them e.g. with  --variation 1"
+    puts "\e[2m#{pms['num_variations']} Variations:  choose among them e.g. with  --var 1"
     pms['all_examples_harpwise'].each_with_index do |desc, idx|
       puts "           #{idx + 1}:  #{desc}"
     end
@@ -1626,36 +1626,6 @@ def jamming_json_handle_variations jam_pms
   end
 
   #
-  # Construct shortened descriptions from examples
-  #
-  if jam_pms['num_variations'] > 1
-    exs = jam_pms['example_harpwise']
-    # find and remove common head and tail
-    chead_end = 0
-    chead_end += 1 while exs.map {|e| e[chead_end]}.tally.length == 1
-    chead_end -= 1 while exs.all? {|e| e[chead_end] != ' '}
-    ctail_start = -1
-    ctail_start -=1 while exs.map {|e| e[ctail_start]}.tally.length == 1
-    ctail_start += 1 while exs.all? {|e| e[ctail_start] != ' '}
-    descs = exs.map do |e|
-     e[chead_end .. ctail_start].strip.gsub(/^\#/,'').strip
-    end
-
-    # remove some more
-    lstring = longest_common_substr(descs)
-    if lstring.length > 7
-      descs.each do |d|
-        d[lstring] = '...'
-        d.gsub!(/\s*\.\.\.\s*/,'...')
-      end
-    end
-    if descs.tally.length < descs.length
-      err "After removing space and '#', descriptions do not come out all different; please add some more text (e.g. comment) to one or more descriptions to make this happen: #{descs}\n(file #{jam_pms['json_file']})"
-    end
-    jam_pms['variations_descriptions'] = descs
-  end
-
-  #
   # Make chosen variation manifest so that later processing need not care about (mostly)
   #
   if $opts[:variation] < 1 || $opts[:variation] > jam_pms['num_variations']
@@ -1674,7 +1644,44 @@ def jamming_json_handle_variations jam_pms
       jam_pms['all_scale_progs'] << scale_prog
       jam_pms['all_lick_progs'] << lick_prog
     end
+
+    #
+    # Construct shortened descriptions from examples
+    #
+    exs_words = jam_pms['example_harpwise'].map {|ex| ex.split}
     
+    # Find and remove all words, that appear in ALL examples; therefore it is enough to
+    # check the words from the first example as candidates. Clone, because we modify
+    # exs_words[0] too
+    cands = exs_words[0].clone
+    cands.each do |cand|
+      next unless exs_words.all? {|ws| ws.include?(cand)}
+      exs_words.each do |ex_words|
+          while ex_words.delete(cand)
+          end
+      end
+    end
+    descs = exs_words.map do |ex_words|
+      ex_words.join(' ').strip.gsub(/^\#/,'').strip
+    end
+
+    # make sure, that lick-prog is in description
+    idx = -1
+    descs.map!.with_index do |desc,idx|
+      prog = jam_pms['all_lick_progs'][idx]
+      if desc[prog]
+        desc
+      else
+          prog + ' ' + desc
+      end
+    end
+    
+    if descs.tally.length < descs.length
+      err "After removing space and '#', descriptions do not come out all different; please add some more text (e.g. comment) to one or more descriptions to make this happen: #{descs}\n(file #{jam_pms['json_file']})"
+    end
+
+    jam_pms['variations_descriptions'] = descs
+
     actions.each do |act|
       if act[1] == 'keys'
         (2 ... act.length).each do |idx|
@@ -1685,8 +1692,12 @@ def jamming_json_handle_variations jam_pms
         act.reject! {|x| x == ''}
       end
     end
+
+    # Select one example and turn 'example_harpwise' into a string
     jam_pms['example_harpwise'] = jam_pms['example_harpwise'][num_var]
+
   else ## just a single example
+    
     num_var = 0
     scale_prog, lick_prog = jamming_extract_lick_and_scale_from_example(jam_pms['example_harpwise'], jam_pms)
     jam_pms['all_scale_progs'] << scale_prog
