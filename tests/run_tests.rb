@@ -1372,7 +1372,7 @@ do_test 'id-33: display as chart with scales' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['b   b1    1   b1    b    b    1   b1    b    b'] }
+  expect { screen[8]['b   b1    1   b1    b    -    1   b1    b    -'] }
   kill_session
 end
 
@@ -1405,7 +1405,7 @@ do_test 'id-33c: display as chart with scales simple' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales-simple'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['@    @   ~%~   @    @    @   ~%~   @    @    @'] }
+  expect { screen[8]['@    @.  ~%~   @    @    -   ~%~   @    @    -'] }
   kill_session
 end
 
@@ -1420,7 +1420,7 @@ do_test 'id-34: comment with scales and octave shift' do
   tms 'octave up'
   tms :ENTER
   sleep 2
-  expect { screen[15]['-4.b1   +5    +6.b1  (*)    +6.b1  (*)    -6.b    +6.b1'] }
+  expect { screen[15]['-4.b1   +5    +6.b1  (*)    +6.b1  (*)    -6    +6.b1'] }
   tms '#'
   sleep 1
   tms 'no shift'
@@ -2051,7 +2051,7 @@ do_test 'id-54e: print list of all scales' do
   file_lines = File.read($testing_output_file).lines
 
   [" blues              \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles(18):  +1  -1/  -1  -2//  -2  -3/  +4  -4/  -4  -5  +6  -6/  -6  +7  -8  -9  +9  -10\n",
+   "   [2mHoles(17):  +1  -1/  -1  -2//  -2  -3/  +4  -4/  -4  -5  +6  +7  -8  -9  +9  +10//  +10\n",
    "   \e[2mShort: b\e[0m\n",
    "   \e[2mDesc: the full blues scales over all octaves; second position\e[0m\n",
    " blues-middle       \e[2m(builtin)\e[0m:\n",

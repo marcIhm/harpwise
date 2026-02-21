@@ -1051,7 +1051,7 @@ end
 def get_hole_color_inactive hole, bright = false
   if $all_scales_holes.include?(hole)
     if $hole2flags[hole].include?(:main)
-      $hole2flags[hole].include?(:root) ? "\e[1m\e[92m" : "\e[32m"
+      $hole2flags[hole].include?(:root)  ?  "\e[1m\e[92m"  :  "\e[32m"
     else
       bright ? "\e[94m" : "\e[34m"
     end
