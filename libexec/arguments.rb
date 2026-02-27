@@ -768,7 +768,7 @@ def print_usage_info mode = nil
     puts
     # Mimic format produced by org-export
     puts ",----"
-    puts "| harpwise listen -o"
+    puts "| harpwise #{$mode} -o"
     puts "`----"
     puts
     puts "\e[2m#{full}\e[0m"

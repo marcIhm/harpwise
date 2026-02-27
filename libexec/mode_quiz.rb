@@ -983,14 +983,45 @@ class HearInter < QuizFlavour
   end
 
   def help5
+    print_intervals_etc
+  end
+
+  def help5_desc
+    ['.help-all-inter-songs', 'Show list of all intervals, semitones and mnemonic songs']
+  end
+
+  def help6
     puts "One of the mnemonic songs (upward) for this interval is:"
     puts
     puts "  \e[94m" + $quiz_interval2song[@dsemi.abs].sample + "\e[0m"
     puts
   end
 
-  def help5_desc
-    ['.help-inter-song', 'Name the mnemonic song associated with this interval']
+  def help6_desc
+    ['.help-inter-song', 'Name the specific mnemonic song associated with this interval']
+  end
+
+  def help7
+    choose_prepare_for
+    ud = choose_interactive("About to play the interval shifted by one octave; please choose ", ["Up", "Down"]) do |ud|
+      {'Up' => 'Shift one Octave UP',
+       'Down' => 'Shift one Octave DOWN'}[ud]
+    end
+    choose_clean_up
+    if ud
+      puts "\nPlaying shifted by one Octave #{ud}:\n"
+      hshifted = @holes.map do |h|
+        semi2note(note2semi($hole2note[h]) +
+                  ( ud == 'Up'  ?  +8  :  -8 ))
+      end
+      play_hons hons: hshifted, hide: :all
+    else
+      puts "\nNo selection.\n\n"
+    end
+  end
+
+  def help7_desc
+    ['.help-play-shifted', 'Play the interval shifted by one octave up or down']
   end
 
 end
@@ -1270,17 +1301,11 @@ class AddInter < QuizFlavour
   end
 
   def help3
-    puts "Printing intervals semitones and names as well as a mnemonic song:"
-    puts "\e[2m"
-    $intervals_quiz[$opts[:difficulty]].each do |st|
-      puts "  %3dst: #{$intervals[st][0]}" % st
-      puts "         " + $quiz_interval2song[st].sample
-    end
-    puts "\e[0m"
+    print_intervals_etc
   end
 
   def help3_desc
-    ['.help-show-intervals', 'Show intervals and semitones']
+    ['.help-show-all-intervals', 'Show list of all intervals, semitones and mnemonic songs']
   end
 
   def help4
@@ -3060,4 +3085,15 @@ def describe_flavour flavour, has_issue_question
          map {|l| '  ' + l + "\n"}.
          join.chomp +
        ".\n"
+end
+
+
+def print_intervals_etc
+  puts "Printing intervals semitones and names as well as a mnemonic song:"
+  puts "\e[2m"
+  $intervals_quiz[$opts[:difficulty]].each do |st|
+    puts "  \e[0m\e[32m%3dst\e[0m\e[2m: #{$intervals[st][0]}" % st
+    puts "         " + $quiz_interval2song[st].sample
+  end
+  puts "\e[0m"
 end

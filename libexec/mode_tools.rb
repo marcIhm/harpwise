@@ -44,6 +44,8 @@ def do_tools to_handle
     tool_translate to_handle
   when 'notes-major', 'notes'
     tool_notes to_handle
+  when 'all-intervals', 'all-inters'
+    tool_all_intervals to_handle
   when 'interval', 'inter'
     puts
     s1, s2 = normalize_interval(to_handle)
@@ -1647,4 +1649,21 @@ def tool_edit_jam to_handle
     err("Given jam name '#{to_handle[0]}' is unknown, see above for choices.")
   end
   tool_edit_file($jamming_rel2abs[to_handle[0]])
+end
+
+
+def tool_all_intervals hons
+  err "Need one hole or note as an argument" if hons.length != 1
+  _, st = hole_or_note_or_semi(hons[0], false)
+  other = $hole2note[hons[0]] || $note2hole[hons[0]] || 'not a hole of harp'
+  puts
+  puts "Adding and subtracting all known intervals from argument #{hons[0]} (#{other}):"
+  puts
+  ml_i = $intervals.values.map {|v| v[0].length}.max
+  ml_h = $harp_holes.map {|h| h.length}.max
+  puts "\e[2m   "+ "Inter".rjust(ml_i) + "   hole".ljust(ml_h) + "   note\e[0m"
+  $intervals.keys.each do |dsemi|
+    puts "  #{$intervals[dsemi][0].rjust(ml_i)}:   #{($semi2hole[st + dsemi] || ' - ').ljust(ml_h)}   #{semi2note(st + dsemi)}"
+  end
+  puts
 end

@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.35.4/
+/Version  6.36.1/
 
 * Introduction
 
@@ -1340,8 +1340,11 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     - progression, prog:
       take a base and some semitone diffs, then spell them out
 
+    - all-intervals, all-inters:
+      print all known intervals against the given note or hole
+
     - interval, inter:
-      calculate and print interval between two notes
+      calculate and print interval between two notes or holes
 
     - chords:
       print chords i, iv and v for current key

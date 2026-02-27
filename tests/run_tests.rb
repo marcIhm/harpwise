@@ -1405,7 +1405,7 @@ do_test 'id-33c: display as chart with scales simple' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales-simple'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['@    @.  ~%~   @    @    -   ~%~   @    @    -'] }
+  expect { screen[8]['@    @   ~%~   @    @    -   ~%~   @    @    -'] }
   kill_session
 end
 
@@ -2352,6 +2352,15 @@ do_test 'id-63: calculate interval' do
   tms :ENTER
   sleep 2
   expect { screen[2]['Interval 14st:'] }
+  kill_session
+end
+
+do_test 'id-63a: print and calculate all intervals' do
+  new_session
+  tms 'harpwise tools all-inters e5'
+  tms :ENTER
+  sleep 2
+  expect { screen[12]['flat Seventh:   -8      d6'] }
   kill_session
 end
 
