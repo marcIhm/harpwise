@@ -902,8 +902,8 @@ class HearInter < QuizFlavour
   
   def initialize first_round
     super
-    
-    @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]}
+
+    @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]} 
     @choices_orig = @choices.clone
     @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
 
@@ -1002,17 +1002,27 @@ class HearInter < QuizFlavour
   end
 
   def help7
+    choices = {'Up' => 'one Octave UP',
+               'UpUp' => 'two Octaves UP',
+               'Down' => 'one Octave DOWN',
+               'DownDown' => 'two Octaves DOWN'}
     choose_prepare_for
-    ud = choose_interactive("About to play the interval shifted by one octave; please choose ", ["Up", "Down"]) do |ud|
-      {'Up' => 'Shift one Octave UP',
-       'Down' => 'Shift one Octave DOWN'}[ud]
+    ud = choose_interactive("About to play the interval shifted by one or two octaves; please choose ", choices.keys) do |ud|
+      'Shift ' + choices[ud]
     end
     choose_clean_up
     if ud
-      puts "\nPlaying shifted by one Octave #{ud}:\n"
+      num_oct = ( choices[ud].split[0] == 'one'  ?  1  :  2 )
+      direction = ( choices[ud].split[-1] == 'UP'  ?  +1  :  -1 )
+      puts "\nPlaying shifted by #{choices[ud]}:\n"
       hshifted = @holes.map do |h|
-        semi2note(note2semi($hole2note[h]) +
-                  ( ud == 'Up'  ?  +8  :  -8 ))
+        semi = note2semi($hole2note[h]) + direction * num_oct * 8
+        if semi > 26 || semi < -28
+          puts "\nShifting hole #{h} results in unplayable semitone #{semi}:  TOO " +
+               (semi > 0 ? 'HIGH' : 'LOW') + "\n\n"
+          return
+        end
+        semi2note(semi)
       end
       play_hons hons: hshifted, hide: :all
     else
@@ -1021,7 +1031,7 @@ class HearInter < QuizFlavour
   end
 
   def help7_desc
-    ['.help-play-shifted', 'Play the interval shifted by one octave up or down']
+    ['.help-play-shifted', 'Play the interval shifted by one or two octaves up or down']
   end
 
 end
