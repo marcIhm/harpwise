@@ -893,6 +893,21 @@ class MatchScale < QuizFlavour
     ['.help-print-scales', 'print all the hole-content of all possible scales']
   end
 
+  def help6
+    puts "Printing other scales (if any):\n\e[2m(ie. scales that contain the holes, but are not the shortest)\e[0m"
+    puts
+    if @others
+      puts "\e[32m  " + @others.join('   ') + "\e[0m"
+    else
+      puts "No other scales!   \e[2mThe scale in question is the only one,\nthat contains all the holes.\e[0m"
+    end
+    puts
+  end
+
+  def help6_desc
+    ['.help-other', 'print other scales (if any)']
+  end
+
 end
 
 
