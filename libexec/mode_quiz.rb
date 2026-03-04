@@ -1002,7 +1002,7 @@ class HearInter < QuizFlavour
   end
 
   def help5_desc
-    ['.help-all-inter-songs', 'Show list of all intervals, semitones and mnemonic songs']
+    ['.help-all-inter-songs', 'Solve: Show list of all intervals, semitones and mnemonic songs']
   end
 
   def help6
@@ -1410,7 +1410,7 @@ class InterSong < QuizFlavour
     if @qdesc == 'interval'
       puts "\e[34mGiven the interval of \e[94m#{describe_inter_semis(@qitem)}\e[34m, name the song, that starts with this interval\e[0m"
     else
-      puts "\e[34mGiven the song '\e[94m#{@qitem}\e[34m', name the the interval, that this song starts with\e[0m"
+      puts "\e[34mGiven the song '\e[94m#{@qitem}\e[34m', name the the interval,\nthat this song starts with\e[0m"
     end
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1725,9 +1725,9 @@ class HoleNote < QuizFlavour
   end
 
   def issue_question
-    puts "\e[34mGiven the \e[94m#{@qdesc.upcase}\e[34m '\e[94m#{@qitem}\e[34m'" +
+    puts "\e[34mGiven the    \e[94m#{@qdesc.upcase}\e[34m   \e[94m#{@qitem}\e[34m   " +
          ( @hole_set  ?  " (taken from set '#{@hole_set}', with #{$named_hole_sets[@hole_set].length} holes)"  :  '(taken from all holes of harp)' ) +
-         "\nname the matching \e[94m#{@adesc}\e[34m #{@any_clause}; \e[94mKEY of #{$key}\e[34m\e[0m"
+         "\nname the matching \e[94m#{@adesc}\e[34m #{@any_clause};    \e[94mKEY of #{$key}\e[34m\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
 

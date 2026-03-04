@@ -928,7 +928,7 @@ def read_and_set_musical_config
                          4 => ['Oh*when the Saints go Marching in', 'Kum*baya'],
                          5 => ['Should*auld (Auld Lang Syne)', 'Oh*Tannenbaum'],
                          6 => ['Ma*ria (from West Side Story)'],
-                         7 => ['Wise*Man (Can\'t Help Falling in Love)', 'Are you go*ing (Scarborough Fair)'],
+                         7 => ['Wise*Man (Can\'t Help Falling in Love)', 'Are you*going (Scarborough Fair)'],
                          8 => ['The Entertainer (big interval after pick-up)'],
                          9 => ['For*He\'s a Jolly Good Fellow', 'My*Bonnie Lies over the Ocean'],
                          10 => ['The Win*ner Takes it all (Abba)'],
