@@ -14,7 +14,7 @@ Overview of 'harpwise quiz'
   harpwise, e.g. by pressing ctrl-z.  For a chosen flavour, different
   questions of this flavour are asked in an endless loop.
 
-  There are 30 flavours of quiz listed below; however, you do not need
+  There are 31 flavours of quiz listed below; however, you do not need
   to memorize them, as they will be explained on the spot when they
   appear.
 
@@ -117,6 +117,8 @@ Overview of 'harpwise quiz'
 
   - choose: choose flavour interactively (only as extra-argument on
     commandline)
+
+  - last: last flavour (from previous quiz sessions)
 
 
 Usage by Examples

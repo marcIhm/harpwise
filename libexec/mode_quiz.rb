@@ -61,10 +61,11 @@ def do_quiz to_handle
 
 
   #
-  # Get Flavour
+  # Get Flavour, inherited comes from previous invocation before ctrl-z (if any)
   #
   $quiz_flavour = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
-  
+  $pers_data['quiz_flavour_last'] = $quiz_flavour
+
   # for listen-perspective, dont show solution immediately
   $opts[:comment] = :holes_some
   $opts[:immediate] = false
@@ -2945,21 +2946,25 @@ def get_accepted_flavour_from_extra inherited
 
   flavour,
   collection = if inherited
-                 # we only ever inherit a collection; never a
+                 # we only ever inherit (from previous invocations) a collection; never a
                  # specific flavour
                  [get_random_flavour(inherited), inherited]
                elsif $extra == 'choose'
                  choose_flavour_or_collection('all')
+               elsif $extra == 'last'
+                 [$pers_data['quiz_flavour_last'], 'all']
+               elsif %w(ran random).include?($extra)
+                 # this handles 'ran' and 'random' as synonyms for
+                 # 'all' (which itself is handled above)
+                 [nil, 'all']
                elsif $quiz_coll2flavs[$extra]
                  # a flavour collection
                  [nil, $extra]
                elsif $quiz_coll2flavs['all'].include?($extra)
-                 # a specific flafour
+                 # a specific flavour
                  [$extra, 'all']
                else
-                 # this handles 'ran' and 'random' as synonyms for
-                 # 'all' (which itself is handled above)
-                 [nil, 'all']
+                 fail "Internal error: #{$extra}"
                end
   
   first_iteration = true
@@ -3060,16 +3065,16 @@ def get_random_flavour collection
   choices = $quiz_coll2flavs[collection]
   puts "\e[2mChoosing a random flavour, 1 out of #{choices.length} (#{collection}).\e[0m"
   sleep 0.1
-  flavours_last = $pers_data['quiz_flavours_last'] || []
+  rand_flavours_last = $pers_data['quiz_rand_flavours_last'] || []
   try_flavour = nil
   choices = choices.shuffle
   loop do
     try_flavour = choices.shift
-    break if !flavours_last.include?(try_flavour) || choices.length == 0
+    break if !rand_flavours_last.include?(try_flavour) || choices.length == 0
   end
-  flavours_last << try_flavour
-  flavours_last.shift if flavours_last.length > 4
-  $pers_data['quiz_flavours_last'] = flavours_last
+  rand_flavours_last << try_flavour
+  rand_flavours_last.shift if rand_flavours_last.length > 4
+  $pers_data['quiz_rand_flavours_last'] = rand_flavours_last
   try_flavour
 end
 

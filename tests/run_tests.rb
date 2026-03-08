@@ -2533,7 +2533,7 @@ do_test 'id-72: record user in licks' do
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 4
-  tms :C_R
+  tms :C_R  ## CTRL-R
   expect { screen[1]['-rec-'] }
   tms '1'
   sleep 2
@@ -2902,11 +2902,15 @@ end
 
 do_test 'id-89: quiz-flavour random' do
   new_session
-  tms 'harpwise quiz random'
+  tms 'harpwise quiz players'
   tms :ENTER
   sleep 2
   expect { screen.any? {|l| l['Quiz Flavour is:'] }}
   expect { screen.any? {|l| l['Press any key to start'] }}
+  tms :C_z  ## CTRL-Z
+  sleep 2
+  expect { screen[3]['quiz...quiz'] }
+  expect { screen[11]['Starting over with a different flavour due to signal ctrl-z'] }
   kill_session
 end
 
@@ -3245,7 +3249,7 @@ do_test 'id-102: help on flavours via TAB' do
   sleep 1
   tms 'describe-all'
   tms :ENTER
-  expect { screen[10]['harpwise plays a sequence'] }
+  expect { screen[7]['harpwise plays a sequence'] }
   kill_session
 end
 
@@ -3336,6 +3340,22 @@ do_test 'id-107b: quiz-flavour hole-hide-note' do
   tms 'help-semis'
   tms :ENTER
   expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  kill_session
+end
+
+do_test 'id-107c: quiz-flavour last' do
+  new_session
+  tms 'harpwise quiz hole-hide-note'
+  tms :ENTER
+  sleep 2
+  tms :ENTER
+  sleep 2
+  tms :C_c  ## CTRL-C
+  expect { screen[21]['exit on ctrl-c'] }
+  tms 'harpwise quiz last'
+  tms :ENTER
+  sleep 2
+  expect { screen[15]['Quiz Flavour is:   hole-hide-note'] }
   kill_session
 end
 

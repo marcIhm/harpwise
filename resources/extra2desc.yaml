@@ -258,6 +258,8 @@ quiz:
   choose: |
     choose flavour interactively
     (only as extra-argument on commandline)
+  last: |
+    last flavour (from previous quiz sessions)
 samples:
   record: |
     harpwise assists while you play the holes for the given type and
