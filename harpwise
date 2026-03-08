@@ -99,6 +99,7 @@ end
 $opts = {debug: true} if ARGV.include?('--debug')
 
 $mode, $type, $key, $scale, $opts = parse_arguments_early
+$key_initial = $key
 $scale_initial = $scale
 
 if $testing_what == :argv

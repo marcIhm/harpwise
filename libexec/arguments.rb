@@ -94,7 +94,8 @@ def parse_arguments_early
         :loop => %w(--loop),
         no_loop: %w(--no-loop)}],
      [Set[:quiz], {
-        difficulty: %w(--difficulty)}],
+        difficulty: %w(--difficulty),
+        keep_key: %w(--keep-key)}],
      [Set[:listen, :quiz, :play, :print], {
         transpose_scale: %w(--transpose-scale)}],
      [Set[:samples], {

@@ -2775,7 +2775,7 @@ do_test "id-82: screen too small" do
   tms 'harpwise listen c'
   tms :ENTER
   sleep 1
-  expect { screen[5]['ERROR: Terminal is too small'] }
+  expect { screen[5]['ERROR: Screen is too small'] }
   kill_session
 end
 
@@ -3011,10 +3011,6 @@ do_test 'id-94: quiz-flavour add-inter and change key' do
   tms 'chart-semis'
   tms :enter
   expect { screen[7]['--1----2----3--'] }
-  tms 'skip'
-  tms :ENTER
-  tms :TAB
-  expect { screen[8]['New question and new key of'] }  
   kill_session
 end
 
@@ -3307,7 +3303,7 @@ do_test 'id-107: quiz-flavour hole-note' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[10]['Given the HOLE'] || screen[10]['Given the NOTE'] }
+  expect { screen[10]['Given the    HOLE'] || screen[10]['Given the    NOTE'] }
   sleep 1
   tms 'help-chart'
   tms :ENTER
@@ -3476,7 +3472,7 @@ do_test 'id-112b: quiz-flavour inter-song' do
   kill_session
 end
 
-do_test 'id-113: quiz-flavour choose' do
+do_test 'id-113a: quiz-flavour choose' do
   new_session
   tms 'harpwise quiz choose'
   tms :ENTER
@@ -3488,6 +3484,23 @@ do_test 'id-113: quiz-flavour choose' do
   sleep 1
   tms :TAB
   expect { screen[16]['Please choose among 8 (silent) flavours and 7 collections'] }
+  kill_session
+end
+
+do_test 'id-113b: change key by menu' do
+  new_session
+  tms 'harpwise quiz hole-hide-note --keep-key'
+  tms :ENTER
+  sleep 1
+  tms :ENTER
+  sleep 1
+  expect { screen[4]['See the mapping of holes to notes below, pick the hidden note'] }
+  tms 'solve'
+  tms :ENTER
+  expect { screen[21]['with the same key of c  (TAB for menu)'] }
+  sleep 1
+  tms :TAB
+  expect { screen[21]["to toggle option '--keep-key'"] }
   kill_session
 end
 

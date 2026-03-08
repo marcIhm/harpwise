@@ -230,6 +230,13 @@ difficulty:
     'easy'.
   - EASY_OR_HARD_OR_PERCENT
 
+keep_key:
+  - |
+    Keep initial key;
+    even if the flavour would normally change the key on every
+    question. But key can still be changed after question on
+    request
+
 sharps:
   - |
     When printing notes, prefer sharps (e.g. as)
