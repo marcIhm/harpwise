@@ -360,6 +360,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
       print_mission("Listen ... and!") unless oride_l_message2
       sleep 0.3
+      $ctl_mic[:redraw_mission] = true
 
       if first_round
         $max_jitter = -1.0
