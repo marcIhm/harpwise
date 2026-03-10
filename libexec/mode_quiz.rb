@@ -64,7 +64,6 @@ def do_quiz to_handle
   # Get Flavour, inherited comes from previous invocation before ctrl-z (if any)
   #
   $quiz_flavour = get_accepted_flavour_from_extra(inherited) unless $other_mode_saved[:conf]
-  $pers_data['quiz_flavour_last'] = $quiz_flavour
 
   # for listen-perspective, dont show solution immediately
   $opts[:comment] = :holes_some
@@ -393,10 +392,15 @@ class QuizFlavour
 
   def after_solve_interval
     puts
-    print "\e[2mHoles as notes:   "
+    print "\e[0mHoles as notes:   \e[2m"
     print @holes.map {|h| "#{h} = #{$hole2note[h]}"}.join(',   ')
     puts "\e[0m"
     puts
+    puts "Mnemonic songs are:  \e[2m"
+    $quiz_interval2song[@dsemi].each do |song|
+      puts "   " + song
+    end
+    puts "\e[0m"
     printf "Playing interval of %+dst:\n", @dsemi
     play_hons
   end
@@ -429,35 +433,41 @@ class QuizFlavour
     re_calculate_quiz_difficulty
 
     if ( char == 'TAB' )
+      done = false
       begin
         ["",
          "How to handle key?\n\e[2mpress:\e[0m",
-         "\e[92m      any key\e[32m   to continue with key unchanged",
+         "\e[92m        SPACE\e[32m   to continue with key unchanged",
          "\e[92m          TAB\e[32m   for a new random key",
          "\e[92m    BACKSPACE\e[32m   for initial key of #{$key_initial}",
-         "\e[92m            t\e[32m   to toggle option '--keep-key' (now \e[92m#{$opts[:keep_key] ? 'ON' : 'OFF'}\e[32m) and ask again"].each do |line|
+         "\e[92m            k\e[32m   to toggle option '--keep-key' (now \e[92m#{$opts[:keep_key] ? 'ON' : 'OFF'}\e[32m) and ask again"].each do |line|
           puts line
           sleep 0.02
         end
         puts "\e[0m"
         char2 = one_char
         case char2
-        when 't'
-          $opts[:keep_key] = !$opts[:keep_key]
-          puts "Toggled option \e[92m" + ( $opts[:keep_key]  ?  'ON'  :  'OFF' ) + "\e[0m."
+        when ' '
+          if @key_contributes_to_solution == :part_of_solution
+            puts "Keeping current key"
+          else
+            puts "Keeping current key of \e[32m#{$key}\e[0m"
+          end
+          done = true
         when 'TAB'
           change_key
+          done = true
         when 'BACKSPACE'
           change_key(key: $key_initial, silent: true)
           puts "Changed key to initial value \e[32m#{$key_initial}\e[0m."
+          done = true
+        when 'k'
+          $opts[:keep_key] = !$opts[:keep_key]
+          puts "Toggled option \e[92m" + ( $opts[:keep_key]  ?  'ON'  :  'OFF' ) + "\e[0m."
         else
-          if @key_contributes_to_solution == :part_of_solution
-            puts "Keeping current key."
-          else
-            puts "Keeping current key of \e[32m#{$key}\e[0m."
-          end
+          puts "Invalid key: #{char2}"
         end
-      end while char2 == 't'
+      end while !done
     end
     if char != 'TAB'
       if @key_contributes_to_solution == :part_of_solution
@@ -1253,6 +1263,7 @@ class HearChord < QuizFlavour
   def help5
     puts "Playing all chords%s, 3 times each:" %
          ($opts[:difficulty] == :hard  ?  ' (one variation only)'  :  '')
+    puts
     @choices_orig.each do |chord|
       play_base_note
       puts
@@ -1299,7 +1310,8 @@ class HearChord < QuizFlavour
     print "                as notes:  "
     puts @semis.map {|s| semi2note(s)}.join('  ')
     print "  diff semitones to base:  "
-    puts $chords_quiz[:hard][@solution].join('  ')
+    semi_base = note2semi($key + '4')
+    puts @semis.map {|s| (s - semi_base).to_s}.join('  ')
   end
 
   def help7_desc
@@ -1452,10 +1464,12 @@ class InterSong < QuizFlavour
   end
 
   def help2
+    puts "Playing interval:"
+    puts
     if @qdesc == 'interval'
-      print "Playing interval \e[32m#{describe_inter_semis(@inter_semi)}\e[0m:  "
+      print "   \e[32m#{describe_inter_semis(@inter_semi)}\e[0m:  "
     else
-      print "Playing interval from song \e[32m'#{@qitem}'\e[0m:  "
+      print "   \e[32m#{@qitem}\e[0m:  "
     end
     play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)], newline: false
   end
@@ -1465,11 +1479,13 @@ class InterSong < QuizFlavour
   end
 
   def help3
+    puts "Playing all intervals:"
+    puts
     @interval2song.each do |inter, song|
       if @qdesc == 'interval'
-        print "Playing interval \e[32m#{describe_inter_semis(inter)}\e[0m:  "
+        print "   \e[32m#{describe_inter_semis(inter)}\e[0m:  "
       else
-        print "Playing interval from song \e[32m'#{song}'\e[0m:  "
+        print "   \e[32m#{song}\e[0m:  "
       end
       play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + inter)], newline: false
     end
@@ -1480,9 +1496,11 @@ class InterSong < QuizFlavour
   end
 
   def help4
+    puts "All pairs of intervals and songs:"
+    puts
     @interval2song.each do |inter, song|
-      puts "Interval: \e[32m#{describe_inter_semis(inter)}\e[0m"
-      puts "    Song: \e[32m'#{song}'\e[0m"
+      puts "   \e[2mInterval: \e[0m#{describe_inter_semis(inter)}"
+      puts "       \e[2mSong: \e[0m\e[32m#{song}\e[0m"
       puts
     end
   end
@@ -2983,6 +3001,7 @@ def get_accepted_flavour_from_extra inherited
     ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION'] = collection
 
     flavour ||= get_random_flavour(collection)
+    $pers_data['quiz_flavour_last'] = flavour
     
     # now we have a valid flavour, so inform user and get confirmation
     puts
@@ -3133,7 +3152,13 @@ end
 
 
 def describe_flavour flavour, has_issue_question
-  puts "Quiz Flavour is:   \e[34m#{flavour}\e[0m"
+  print "Quiz Flavour is:   \e[34m#{flavour}\e[0m       "
+  if @key_contributes_to_solution != :part_of_solution
+    puts "\e[2m(key of #{$key})"
+  else
+    puts
+  end
+  print "\e[0m"
   puts "switches \e[2m>>>> to full listen-perspective\e[0m" unless has_issue_question
   sleep 0.05
   puts
@@ -3149,8 +3174,8 @@ def print_intervals_etc
   puts "Printing intervals semitones and names as well as a mnemonic song:"
   puts "\e[2m"
   $intervals_quiz[$opts[:difficulty]].each do |st|
-    puts "  \e[0m\e[32m%3dst\e[0m\e[2m: #{$intervals[st][0]}" % st
-    puts "         " + $quiz_interval2song[st].sample
+    puts "  \e[0m\e[32m%3dst\e[0m: #{$intervals[st][0]}" % st
+    puts "\e[2m         " + $quiz_interval2song[st].sample
   end
   puts "\e[0m"
 end
