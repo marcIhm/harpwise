@@ -1944,7 +1944,6 @@ class HoleHideNote < QuizFlavour
 end
 
 
-
 class HearHoleSet < QuizFlavour
 
   $q_class2colls[self] = %w(no-mic)
@@ -2011,6 +2010,26 @@ class HearHoleSet < QuizFlavour
     ['.help-key', "Reveal the key"]
   end
 
+  def help5
+    puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence."
+    make_term_immediate
+    $ctl_kb_queue.clear
+    play_interactive_pitch explain: false, start_key: $key, return_accepts: true
+    make_term_cooked
+  end
+
+  def help5_desc
+    ['.help-pitch', "Play an adjustable pitch to compare"]    
+  end
+
+  def after_solve
+    puts
+    puts "Playing key-hole-set #{@solution}:"
+    puts
+    play_hons
+    play_hons hons: @holes.map {|h| $hole2note[h]}
+  end
+  
 end
 
 
