@@ -148,10 +148,11 @@ def do_quiz to_handle
     
   elsif $quiz_flavour == 'keep-tempo'
 
+    first = true
     loop do
-      catch :NEW_PARAMS do
+      catch :AGAIN do
         keep = KeepTempo.new
-        keep.set_params
+        keep.set_params if first
         loop do
           handle_win_change if $ctl_sig_winch
           keep.issue_question
@@ -159,20 +160,23 @@ def do_quiz to_handle
             puts
             puts get_dim_hline
             puts "\nChoosing new parameters."
-            throw :NEW_PARAMS
+            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard )
+            keep.set_params
+            keep.clear_history
+            throw :AGAIN
           end
           keep.extract_beats
-          keep.judge_result
+          keep.show_history
           puts
           puts get_dim_hline
           puts
           puts "\e[0mWhat's next?"
           puts 
-          puts "\e[0m\e[32mPress any key for a new set of parameters or\n      BACKSPACE to redo with the current set ... \e[0m"
+          puts "\e[0m\e[32mPress    any key   to redo with the current set of parameters or\n       BACKSPACE   for a new set ... \e[0m"
           drain_chars
           char = one_char
           puts
-          if char == 'BACKSPACE'
+          if char != 'BACKSPACE'
             puts "Same parameters \e[2magain.\e[0m"
           else
             puts "New parameters."
@@ -440,7 +444,9 @@ class QuizFlavour
          "\e[92m        SPACE\e[32m   to continue with key unchanged",
          "\e[92m          TAB\e[32m   for a new random key",
          "\e[92m    BACKSPACE\e[32m   for initial key of #{$key_initial}",
-         "\e[92m            k\e[32m   to toggle option '--keep-key' (now \e[92m#{$opts[:keep_key] ? 'ON' : 'OFF'}\e[32m) and ask again"].each do |line|
+         "\e[92m            k\e[32m   to toggle option '--keep-key' (now \e[92m#{$opts[:keep_key] ? 'ON' : 'OFF'}\e[32m) and ask again",
+         "\e[92m       RETURN\e[32m   to change key by menu"
+        ].each do |line|
           puts line
           sleep 0.02
         end
@@ -464,6 +470,14 @@ class QuizFlavour
         when 'k'
           $opts[:keep_key] = !$opts[:keep_key]
           puts "Toggled option \e[92m" + ( $opts[:keep_key]  ?  'ON'  :  'OFF' ) + "\e[0m."
+        when 'RETURN'
+          choose_prepare_for
+          do_change_key
+          choose_clean_up
+          set_global_vars_late          
+          set_global_musical_vars shortcut_licks: true
+          puts "Changed key to   \e[92m#{$key}\e[0m"
+          done = true
         else
           puts "Invalid key: #{char2}"
         end
@@ -2243,29 +2257,28 @@ class KeepTempo < QuizFlavour
   end
   
   def set_params
-    # dont go faster, because precision of record and play does not allow
-    @tempo = if $opts[:difficulty] == :easy
-               60 + 5 * rand(3)
+    @bpm = if $opts[:difficulty] == :easy
+               60 + 5 * rand(6)
              else
-               50 + 5 * rand(5)
+               50 + 5 * rand(10)
              end
-    @beats_intro = 6
     @beats_keep = if $opts[:difficulty] == :easy
-                    4 + 2 * rand(4)
+                    6 + 2 * rand(4)
                   else
-                    8 + 2 * rand(6)
+                    10 + 2 * rand(6)
                   end
+    @beats_intro = 8
     @beats_outro = 4
 
     if $testing
-      @beats_intro = @beats_keep = @beats_outro = 2
+      @beats_intro = @beats_keep = @beats_outro = 4
     end
     
-    @slice = 60.0 / @tempo
-    @template = @markers = nil
+    @secs_per_beat = 60.0 / @bpm
+    @markers = nil
 
     @recording = "#{$dirs[:tmp]}/tempo_recording.wav"
-    @trimmed = "#{$dirs[:tmp]}/tempo_recording_trimmed.wav"
+    @recording2 = "#{$dirs[:tmp]}/tempo_recording2.wav"
   end
 
   
@@ -2273,245 +2286,264 @@ class KeepTempo < QuizFlavour
 
     if @@explained
       puts "\e[0mParameters (#{$opts[:difficulty]}):"
-      puts "  Tempo:           #{@tempo} bpm"
+      puts "  BPM:             #{@bpm} bpm"
       puts "  PICK-UP-TEMPO:   %2s beats" % @beats_intro.to_s
       puts "  KEEP-TEMPO:      %2s" % @beats_keep.to_s
       puts "  TOGETHER-AGAIN:  %2s" % @beats_outro.to_s
       puts "\n\n"
     else
-      puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@tempo}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
-      puts " \e[0mPICK-UP-TEMPO:  %2s\e[2m ; Harpwise plays a stretch of #{@beats_intro} beats and you are\n    invited to join with the same tempo and hole '#{$typical_hole}'" % @beats_intro.to_s
-      puts " \e[0mKEEP-TEMPO:     %2s\e[2m ; Playing pauses for #{@beats_keep} beats, but you should\n   continue on your own; this will be recorded for later analysis" % @beats_keep
-      puts " \e[0mTOGETHER-AGAIN: %2s\e[2m ; The wise plays again for #{@beats_outro} beats and in time with the\n    initial stretch, so that you can hear, if you are still on the beat" % @beats_outro
-      puts " \e[0mANALYSIS:\e[2m The recording will be analysed and the result displayed"
+      puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@bpm}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
+      puts " \e[0mPICK-UP-TEMPO:  %2s\e[2m ; Harpwise plays and blinks a stretch of #{@beats_intro} beats\n  and you are invited to join with the same tempo and hole '#{$typical_hole}'" % @beats_intro.to_s
+      puts " \e[0mKEEP-TEMPO:     %2s\e[2m ; Playing pauses for #{@beats_keep} beats, but you should\n  continue on your own; this will be recorded for later analysis" % @beats_keep
+      puts " \e[0mTOGETHER-AGAIN: %2s\e[2m ; The wise blinks again (but does not play) for\n  #{@beats_outro} beats and in time with the initial stretch, so that you can hear,\n  if you are still on the beat; recording goes on" % @beats_outro
+      puts " \e[0mANALYSIS\e[2m + HISTORY:\e[2m The recording will be analysed and the result\n  displayed. If you repeat the same set of params multiple times,\n  their historical course is shown"
       puts "\n(and then repeat with same or with changed params)\n\n"
       @@explained = true
     end
     
-    # These descriptive markers will be used (and consumed) in
-    # play_and_record; the labels should be the same as above
-    @markers = [[0, "\e[32mPICK-UP-TEMPO    \e[0m\e[2m" + ('%2d' % @beats_intro) + " beats\e[0m"],
-                [@beats_intro, "\e[34mKEEP-TEMPO       \e[0m\e[2m" + ('%2d' % @beats_keep) + " beats\e[0m"],
-                [@beats_intro + @beats_keep, "\e[32mTOGETHER-AGAIN   \e[0m\e[2m" + ('%2d' % @beats_outro) + " beats\e[0m"],
-                [@beats_intro + @beats_keep + @beats_outro, "\e[0mANALYSIS\e[0m"]]
   end
 
   
   def play_and_record
 
     # generate needed sounds
-    silence = quiz_generate_tempo('s', 120, 0, 1, 0)
-    @template = quiz_generate_tempo('t', @tempo, @beats_intro, @beats_keep, @beats_outro)
+    frac_sound = 0.3
+    intro, len_intro = quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
+    FileUtils.cp($test_wav, @recording2) if $testing
 
-    puts "\e[2K\r\e[0mReady to play?\n\nThen press any key, wait for count-down and start playing in sync ..."
+    puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
     puts "\e[2mOr press BACKSPACE to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
     return false if one_char == 'BACKSPACE'
     puts
     print "\e[?25l"
     puts
-    puts "\e[2m#{@tempo} bpm; no help or pause, while playing this.\e[0m\n\n"
+    puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro+@beats_keep+@beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
 
-    12.times do
-      puts
-      sleep 0.02
+    20.times do
+      puts "\e[0m\e[2m\e[34m ..."
+      sleep 0.025
     end
-    print "\e[12A"
-    print "\e[0m\e[2mPreparing ... "
-    # wake up (?) and drain sound system to ensure prompt reaction
-    if $testing
-      sleep 3
-      rec_pid = Process.spawn "sleep 1000"
-    else
-      # trigger sox error up front instead of after recording
-      sys "play --norm=#{$vol.to_i} -q #{silence}", $sox_fail_however
-      # record and throw away all stuff that might be in the recording pipeline
-      rec_pid = Process.spawn "sox -d -q -r #{$conf[:sample_rate]} #{@recording}"
+    20.times do
+      print "\e[A\r\e[K"
+      sleep 0.025
     end
-    [3,2,1].each do |x|
-      print "#{x} ... "
-      sleep 1
-    end
-    Process.kill('HUP', rec_pid)
-    Process.wait(rec_pid)
-    puts "\e[0mGO!\n\n"
 
-    # play and record
+    puts "\r\e[0m\e[2mPlay and record:"
+    puts "\e[2m----------------"
+    
+    # Play sound and show markers
     wait_thr = Thread.new do
       cmd_play = if $testing
                    "sleep 5"
                  else
-                   "play --norm=#{$vol.to_i} -q #{@template}"
+                   "play --norm=#{$vol.to_i} -q #{intro}"
                  end  
+      play_pid = Process.spawn cmd_play
+      Process.wait(play_pid)
+      err("sound process had problems: #{$?}") if $?.exitstatus != 0      
+    end
+    ts_play_start = Time.now.to_f
+
+    # General rules: wait for intro and show beat-markers; make timing decisions based on
+    # current time and appropriate start-time to compensate for variations in timing of
+    # code-execution
+
+    puts
+    puts "\e[2m   REC not yet started, but please pick up tempo."
+    puts
+    
+    blink_beats ts_play_start, wait_thr
+    
+    # sound of last beat does not include silence after pluck; so when we start recording
+    # now, we are safe ahead of next expected play by user
+
+    len_rec = @secs_per_beat * ( 1.0 - frac_sound + @beats_keep + @beats_outro )
+    wait_thr = Thread.new do
       cmd_rec = if $testing
-                  FileUtils.cp $test_wav, @recording
                   "sleep 1000"
                 else
-                  "sox -d -q -r #{$conf[:sample_rate]} #{@recording}"
-                end  
-      # start play and record as close together as possible
+                  "sox -d -q -r #{$conf[:sample_rate]} #{@recording2}"
+                end
       rec_pid = Process.spawn cmd_rec
-      # play intro, silence and outro synchronously
-      sys cmd_play, $sox_fail_however
-      # stop recording
+
+      # wsl2: we assume, that sox captures some old sound from the pipeline very fast and
+      # only then starts to record current input; therefore we do the timing externally
+      # (SIGHUB) and take the last secs as appropriate (see also below)
+
+      # extra secs to allow for startup of sox
+      sleep len_rec + 0.5
+     
       Process.kill('HUP', rec_pid)
       Process.wait(rec_pid)
+      err("sound process had problems: #{$?}") if $?.exitstatus != 0 && $?.termsig != Signal.list['HUP']
     end
 
-    # issue (and consume) markers in parallel to play and record
-    loops_per_slice = 40
-    started = Time.now.to_f
-    begin
-      beatno = ((Time.now.to_f - started) / @slice).to_i
-      if beatno >= @markers[0][0] && @markers.length > 1 && beatno < @markers[1][0]
-        print @markers[0][1]
-        @markers.shift
-        if @markers.length == 1
-          sleep 1
-          print "  \e[0m\e[2m   ... Still in time ?\e[0m"
-        end
-        puts
-      end
-      sleep(@slice / loops_per_slice) if @markers.length == 1
-    end while wait_thr.alive?
-    # wait for end of thread
-    wait_thr.join
-
-    sleep 0.5
+    puts "\r\e[2m   Beat  ?"
     puts
+    puts "\e[0;101m - REC ON - \e[0m\e[K"
+    puts
+
+    ts_start_outro = if $testing
+                       # not sure why this is necessary; but anyway ...
+                       Time.now.to_f + 2
+                     else
+                       ts_play_start + @secs_per_beat * ( @beats_intro + @beats_keep )
+                     end
+
+    # now wait for ts_start_outro to show marker again
+    sleep ts_start_outro - Time.now.to_f
+
+    blink_beats ts_play_start, wait_thr, ' ... still in time?',
+                max_beat = @beats_intro + @beats_keep + @beats_outro
+
+    # see remark about wsl2 above, for reasoning
+    total = sox_query(@recording2, 'Length').to_f.round(2)
+    err("Internal error: total recorded #{total} is less than needed #{len_rec}") if !$testing && len_rec > total
+    sys "sox #{@recording2} #{@recording} trim #{total - len_rec}"
+    
+    print "\e[2A\r\e[K\e[0m\e[92m"
+    txt = "   REC done."
+    txt.each_char {|c| print c; sleep 0.02}
+    sleep 0.5
+    puts "\e[0m"
+    puts
+    
     return true
   end
 
   
   def extract_beats
 
-    puts
-    puts @markers[0][1]
-
-    # check lengths
-    len_tempo = sox_query(@template, 'Length')
-    len_rec = ( @warned  ?  len_tempo  :  sox_query(@recording, 'Length') )
-    puts "\e[2m  Length of played template = %.2f sec, length of untrimmed recording = %.2f\e[0m" % [len_tempo, len_rec]
-
-    @warned = if (len_tempo - len_rec).abs > @slice / 4
-                puts "\n\n\e[0;101mWARNING:\e[0m Length of generated wav (intro + silence + outro) = #{len_tempo}\n  is much different from length of parallel recording = #{len_rec}!\n  So your solo playing cannot be extracted with good precision,\n  and results of analysis below may therefore be dubious.\n\n      \e[32mBut you can still judge by ear!\n\n      Have you still been   \e[34mIN TIME\e[32m   at the end?\n\n\e[0m  Remark: Often a second try is fine; if not however,\n          restarting your computer may help ...\n\n"                
-                true
-              else
-                false
-              end
-
-    # Extract solo-part of user audio
-
-    # Each beat is less than half silent (see its generation), so the
-    # stretch where sound is expected is @beats_keep - 0.5. We also
-    # have ensured, that overall jitter is not more than 0.25 beats
-    # (see above); so we should be safe, if we extend start by 0.25
-    # beats to the left and extend end by 0.25 beats to the right
-    # (hence duration by 0.5 beats)
-
-    # Example for steady playing throught intro, keep and outro
-    # beats_intro == beats_outro == 1
-    # beats_keep == 3
-    # 
-    #         ####    ####    ####    ####    ####            sound
-    #             ....    ....    ....    ....    ....        silence
-    #               rrrrrrrrrrrrrrrrrrrrrrrr                  record
-    #
-
-    # for calculation below we assume, that recording starts after
-    # playing and that both end at the same time, but this is only a
-    # guess. Later we will assume, that the first beat is on time
-    
-    total_len = 60.0 * (@beats_intro + @beats_keep + @beats_outro) / @tempo
-    start = [0.0,
-             (total_len - len_rec) + 60.0 * (@beats_intro - 0.25) / @tempo].max
-    duration = 60.0 * @beats_keep / @tempo
-    puts "\e[2m  Analysis start = %.2f sec, duration = %.2f\e[0m" % [start, duration]
-    
-    sys "sox #{@recording} #{@trimmed} trim #{start} #{duration}"
-
     # get frequency content
-    times_freqs = sys("aubiopitch --bufsize %s --hopsize %s --pitch %s -i #{@trimmed}" % [$aubiopitch_sizes[$opts[:time_slice]], $conf[:pitch_detection]].flatten, $sox_fail_however).lines.map {|l| l.split.map {|x| Float(x)}}
+    times_freqs = sys("aubiopitch --bufsize %s --hopsize %s --pitch %s -i #{@recording}" % [$aubiopitch_sizes[$opts[:time_slice]], $conf[:pitch_detection]].flatten, $sox_fail_however).lines.map {|l| l.split.map {|x| Float(x)}}
 
     # compute timestamps of desired hole
     hole_was = hole = nil
     hole_started_at = nil
-    first_beat_at = nil
     holes_in_a_row = 0
-    @beats_found = Array.new
+    beats_found = Array.new
     times_freqs.each do |t, f|
       hole_was = hole
       hole, _, _, _ = describe_freq(f)
       if hole == $typical_hole
         hole_started_at = t if hole != hole_was
         holes_in_a_row += 1
-        if holes_in_a_row == 4
-          @beats_found << hole_started_at
-          # let beats start at 0.0
-          first_beat_at ||= @beats_found[0]
-          @beats_found[-1] -= first_beat_at
-        end
+        beats_found << hole_started_at if holes_in_a_row == 4
       else
         holes_in_a_row = 0
       end
     end
 
+    # discard first sample, because it might have been cut off
+    beats_found.shift
+    first = beats_found[0]
+    beats_found.map! {|x| x - first}
+    diffs = beats_found.each_cons(2).map {|xs| xs[1] - xs[0]}
+
+    3.times {puts; sleep 0.02}
+    puts "\e[2mAnalysis:\n---------\n\n"
+    
     # plot results
-    @beats_expected = (0 ... @beats_keep).to_a.map {|x| x*@slice}
-    maxchars = ($term_width - 30) * 0.8
-    scale = maxchars / @beats_expected[-1]
-    puts
-    puts "\e[2mTimestamps:\n\n"
-    [['E', "\e[0m\e[34m  Expected:", @beats_expected],
-     ['Y', "\e[0m\e[32mYou played:", @beats_found]].each do |char, label, beats|
-      print "  #{label}  "
-      nchars = 0
-      # this could be done simpler, but then rounding-errors may add up
-      beats.each do |beat|
-        while nchars < ((beat - beats[0]) * scale).round do
-          print '.'
+    if beats_found.length >= 3
+      beats_expected = (0 ... beats_found.length).to_a.map {|x| x * @secs_per_beat}
+      maxchars = ($term_width - 40) * 0.8
+      scale = maxchars / beats_expected[-1]
+      [['E', "\e[0m\e[34m  Expected:", beats_expected],
+       ['Y', "\e[0m\e[32mYou played:", beats_found]].each do |char, label, beats|
+        print "  #{label}  "
+        nchars = 0
+        # this could be done simpler, but then rounding-errors may add up
+        beats.each do |beat|
+          while nchars < ((beat - beats[0]) * scale).round do
+            print '.'
+            nchars += 1
+          end
+          print char
           nchars += 1
         end
-        print char
-        nchars += 1
+        print "    \e[0m\e[2m(%.2f s)" % beats[-1]
+        puts "\e[0m\n"
+        sleep 0.2
       end
-      print "    \e[0m\e[2m(%.2f s)" % beats[-1] if beats.length > 1
-      print "... no beats found ..." if beats.length == 0
-      puts "\e[0m\n"
+      bpms = diffs.map {|d| 60.0 / d}
+      @bpm_avg = ( bpms.sum / bpms.length ).round(1)
+      @bpm_std_dev = (Math.sqrt(bpms.map {|b| (b - @bpm_avg ) ** 2}.sum / bpms.length)).round(1)
+      missed_pct = 100 * (@bpm_avg - @bpm).abs / @bpm
+      comment = if missed_pct < 1
+                  'perfect!'
+                elsif missed_pct < 2
+                  'very good'
+                elsif missed_pct < 5
+                  'good'
+                elsif missed_pct < 10
+                  'fair'
+                elsif missed_pct < 20
+                  'so-so'
+                else
+                  'poor'
+                end
+      puts
+      puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM      \e[2mcomment is:  #{comment}"
+      puts "\e[2m    Expected:  #{@bpm}"
+      puts
+      puts "   Num beats:  #{beats_found.length}\e[0m"
+    else
+      puts "  Too few beats recorded."
+      @bpm_avg = @bpm_std_dev = nil
     end
   end
 
   
-  def judge_result
-    puts
-    if @@history.length > 0
-      puts "History of results with the current set of parameters so far:\e[2m"
-      @@history.each {|h| puts "  #{h}"}
-      puts "(and see the new result below)"
-    else
-      puts "\e[2mNo history of results with the current set of parameters so far."
+  def show_history
+    @@history << "#{@bpm_avg} ± #{@bpm_std_dev}  BPM" if @bpm_avg
+    if @@history.length > 1
+      puts "\n\e[2mHistory:\n--------\n\n"
+      puts "  History of results (including most recent) with the current set of parameters so far:\e[2m"
+      @@history.each {|h| puts "    #{h}"}
+      puts "\e[0m"
     end
-    puts "\e[0m"
-    
-    if @warned
-      stand_out "Unfortunately, further analysis is NOT POSSIBLE\ndue to the warning above.\n\nPlease try again.", turn_red: 'NOT POSSIBLE'
-      @@history << 'analysis-not-possible'
-    elsif @beats_found.length != @beats_keep
-      lom = ( @beats_found.length < @beats_keep ? 'LESS' : 'MORE' )
-      what = lom + '  than expected'
-      stand_out "You played #{(@beats_keep - @beats_found.length).abs} beats  #{what}\n(#{@beats_found.length} instead of #{@beats_keep})!\nYou need to get this right, before further\nanalysis is possible.   Please try again.", turn_red: what
-      @@history << 'you-played-' + lom.downcase + '-than-expected'
+  end
 
-    else
-      avg_diff = @beats_found.zip(@beats_expected).
-                   map {|x, y| (x - y).abs}.sum / @beats_keep
-      deviation = '%.1f' % ( 100.0 * avg_diff / @slice )
-      stand_out "Number of beats matches.\n\n#{deviation} percent average deviation", all_green: true
-      puts "\n\e[2mAverage deviation for #{@beats_keep} beats is %.3f sec, time-slice %3.1f sec.\e[0m" % [avg_diff, @slice]
 
-      @@history << "#{deviation}-percent-deviation"
-    end
-    puts
+  def blink_beats ts_start, wait_thr, add_text = nil, max_beat = 1000
+    ts_beat_start = ts_tick_start = Time.now.to_f
+    ticks_per_beat = 10
+    this_beats = 0
+    beat_prev = -1
+    colors = [92,0,0,92,32,2,2,2,2,32]
+    cols = colors.clone
+    templ = "   \e[0m\e[%dm%4s %2s\e[K"
+    begin
+      tntf = Time.now.to_f
+      beat = ((tntf - ts_start) / @secs_per_beat).to_i
+      if beat != beat_prev
+        cols = colors.clone
+        tick = 0
+        ts_beat_start = Time.now.to_f
+        beat_prev = beat
+        this_beats += 1
+      end
+      tick += 1
+      print "\r"
+      alive = wait_thr.alive?
+      # end dim in any case
+      cols = [2] if !alive
+      if beat + 1 > max_beat
+        cols = [2]
+      end
+      if cols.length > 0
+        print "\e[0m" + templ % [cols.shift, 'Beat', [beat + 1, max_beat].min.to_s]
+      else
+        print templ % [0, '    ', '']
+      end
+      print "\e[0m\e[2m" + add_text if add_text && this_beats > 2
+        
+      tntf = Time.now.to_f
+      ts_tick_end = ts_beat_start + (tick + 1) * @secs_per_beat / ticks_per_beat
+      err "Internal error: worked too long" if ts_tick_end < tntf
+      sleep ts_tick_end - tntf
+    end while alive
   end
   
 end
@@ -2539,7 +2571,7 @@ class HearTempo < QuizFlavour
 
     @prompt = 'Choose the Tempo you have heard:'
     @help_head = 'Tempo'
-    @sample = quiz_generate_tempo('s', Integer(@solution), @num_beats, 0, 0)
+    @sample = quiz_generate_tempo('s', Integer(@solution), @num_beats, 0.5)
   end
 
   def self.describe_difficulty
@@ -2566,7 +2598,7 @@ class HearTempo < QuizFlavour
     end
     choose_clean_up
     if answer
-      help = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0, 0)
+      help = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0.5)
       puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
       make_term_immediate
       $ctl_kb_queue.clear    
@@ -2908,27 +2940,21 @@ def prepare_listen_perspective_for_quiz
 end
 
 
-def quiz_generate_tempo prefix, bpm, num_intro, num_silence, num_outro
-  # we always use to files to generate a whole period, so use 30
-  # instead of 60 below
-  half_slice = 30.0 / bpm
-  # make sure that sound is always slightly less than half a period
-  less_half_slice = '%.2f' % ( half_slice * 0.7 )
-  more_half_slice = '%.2f' % ( half_slice * 1.3 )
+def quiz_generate_tempo prefix, bpm, num, frac_sound
+  secs_per_beat = 60.0 / bpm
+  len_sound = secs_per_beat * frac_sound
+  len_silence = secs_per_beat * ( 1.0 - frac_sound )
   pluck = "#{$dirs[:tmp]}/pluck.wav"
-  less_silence = "#{$dirs[:tmp]}/less_silence.wav"
-  more_silence = "#{$dirs[:tmp]}/more_silence.wav"
+  silence = "#{$dirs[:tmp]}/silence.wav"
   result = "#{$dirs[:tmp]}/#{prefix}.wav"
   
-  sys "sox -q -n #{pluck} synth #{less_half_slice} pluck %#{$harp[$typical_hole][:semi]}", $sox_fail_however
-  sys "sox -q -n #{less_silence} trim 0.0 #{less_half_slice}", $sox_fail_however
-  sys "sox -q -n #{more_silence} trim 0.0 #{more_half_slice}", $sox_fail_however
-  files = [Array.new(num_intro, [pluck, more_silence]),
-           Array.new(num_silence, [less_silence, more_silence]),
-           Array.new(num_outro, [pluck, more_silence])].flatten
-  sys "sox #{files.join(' ')} #{result}", $sox_fail_however
-
-  result
+  sys "sox -q -n #{pluck} synth %.2f pluck %%#{$harp[$typical_hole][:semi]}" % len_sound, $sox_fail_however
+  sys "sox -q -n #{silence} trim 0.0 %2f" % len_silence, $sox_fail_however
+  pieces = Array.new(num - 1, [pluck, silence]).flatten
+  pieces << pluck
+  len_total = ( num -1 ) * ( len_sound + len_silence ) + len_sound
+  sys "sox #{pieces.join(' ')} #{result}", $sox_fail_however
+  [result, len_total]
 end
 
 

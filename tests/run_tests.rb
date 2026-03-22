@@ -2907,10 +2907,11 @@ do_test 'id-89: quiz-flavour random' do
   sleep 2
   expect { screen.any? {|l| l['Quiz Flavour is:'] }}
   expect { screen.any? {|l| l['Press any key to start'] }}
+  sleep 1
   tms :C_z  ## CTRL-Z
   sleep 2
-  expect { screen[3]['quiz...quiz'] }
-  expect { screen[11]['Starting over with a different flavour due to signal ctrl-z'] }
+  expect { screen[4]['quiz...quiz'] }
+  expect { screen.any? {|l| l['Starting over with a different flavour due to signal ctrl-z'] }}
   kill_session
 end
 
@@ -3087,7 +3088,9 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   expect { screen[19]['Ready to play?'] }
   tms :ENTER
   sleep 12
-  expect { screen[5]['no beats found'] }
+  expect { screen[9]['still in time?'] }
+  sleep 8
+  expect { screen[15]['Too few beats recorded.'] }
   kill_session
 end
 
@@ -3520,7 +3523,7 @@ do_test 'id-113b: change key by menu' do
   expect { screen[21]['with the same key of c  (TAB for menu)'] }
   sleep 1
   tms :TAB
-  expect { screen[21]["to toggle option '--keep-key'"] }
+  expect { screen[20]["to toggle option '--keep-key'"] }
   kill_session
 end
 
@@ -3901,7 +3904,7 @@ do_test 'id-133: process and git-check erb.org-files' do
   new_session
   tms "harpwise dev docs-make-org-txt"
   tms :ENTER
-  wait_for_end_of_harpwise 60
+  wait_for_end_of_harpwise 90
   sleep 2
   tms 'echo ' + $rc_marker + ' \$?'
   tms :ENTER

@@ -59,7 +59,7 @@ Overview of 'harpwise quiz'
   - hear-inter: plays an interval and asks for its name
 
   - inter-song: names an interval and ask for the mnemonic-song that
-    starts with this interval. Or the other way around from song to
+    starts with this interval; or the other way around from song to
     interval
 
   - add-inter: gives a hole and an interval and asks for the resulting

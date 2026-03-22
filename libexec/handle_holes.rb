@@ -632,7 +632,7 @@ def fit_into_comment lines
 end
 
 
-def do_change_key
+def do_change_key in_quiz: false
   key_was = $key
   keys = if $key[-1] == 's'
            $notes_with_sharps
@@ -659,10 +659,12 @@ def do_change_key
   elsif $key == 'random-all'
     $key = ( $all_harp_keys - [$key] ).sample
   end
-  if $key == key_was
-    $msgbuf.print "Key of harp unchanged \e[0m#{$key}", 2, 5, :key
-  else
-    $msgbuf.print "Changed key of harp to \e[0m#{$key}", 2, 5, :key
+  unless in_quiz
+    if $key == key_was
+      $msgbuf.print "Key of harp unchanged \e[0m#{$key}", 2, 5, :key
+    else
+      $msgbuf.print "Changed key of harp to \e[0m#{$key}", 2, 5, :key
+    end
   end
 end
 

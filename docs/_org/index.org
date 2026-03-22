@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.37.1/
+/Version  6.38.0/
 
 * Introduction
 
@@ -538,7 +538,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 
     - inter-song:
       names an interval and ask for the mnemonic-song that starts with
-      this interval. Or the other way around from song to interval
+      this interval; or the other way around from song to interval
 
     - add-inter:
       gives a hole and an interval and asks for the resulting hole,
