@@ -172,11 +172,11 @@ def do_quiz to_handle
           puts
           puts "\e[0mWhat's next?"
           puts 
-          puts "\e[0m\e[32mPress    any key   to redo with the current set of parameters or\n       BACKSPACE   for a new set ... \e[0m"
+          puts "\e[0m\e[32mPress    any key   to redo with the current set of parameters or\n             TAB   for a new set ... \e[0m"
           drain_chars
           char = one_char
           puts
-          if char != 'BACKSPACE'
+          if char != 'TAB'
             puts "Same parameters \e[2magain.\e[0m"
           else
             puts "New parameters."
@@ -2312,23 +2312,23 @@ class KeepTempo < QuizFlavour
     FileUtils.cp($test_wav, @recording2) if $testing
 
     puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
-    puts "\e[2mOr press BACKSPACE to get another set of parameters\e[0m"
+    puts "\e[2mOr press TAB to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
-    return false if one_char == 'BACKSPACE'
+    return false if one_char == 'TAB'
     puts
     print "\e[?25l"
     puts
     puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro+@beats_keep+@beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
 
-    20.times do
-      puts "\e[0m\e[2m\e[34m ..."
+    (1 .. 20).each do |n|
+      puts "\e[0m\e[34m ....."
       sleep 0.025
     end
     20.times do
       print "\e[A\r\e[K"
       sleep 0.025
     end
-
+    
     puts "\r\e[0m\e[2mPlay and record:"
     puts "\e[2m----------------"
     
@@ -2372,7 +2372,7 @@ class KeepTempo < QuizFlavour
       # (SIGHUB) and take the last secs as appropriate (see also below)
 
       # extra secs to allow for startup of sox
-      sleep len_rec + 0.5
+      sleep len_rec + 1
      
       Process.kill('HUP', rec_pid)
       Process.wait(rec_pid)
@@ -2470,24 +2470,26 @@ class KeepTempo < QuizFlavour
       @bpm_avg = ( bpms.sum / bpms.length ).round(1)
       @bpm_std_dev = (Math.sqrt(bpms.map {|b| (b - @bpm_avg ) ** 2}.sum / bpms.length)).round(1)
       missed_pct = 100 * (@bpm_avg - @bpm).abs / @bpm
-      comment = if missed_pct < 1
+      dev_pct = 100 * @bpm_std_dev / @bpm_avg
+      comment = if missed_pct < 1 && dev_pct < 2
                   'perfect!'
-                elsif missed_pct < 2
+                elsif missed_pct < 2 && dev_pct < 3
                   'very good'
-                elsif missed_pct < 5
+                elsif missed_pct < 5 && dev_pct < 5
                   'good'
-                elsif missed_pct < 10
+                elsif missed_pct < 10 && dev_pct < 8
                   'fair'
-                elsif missed_pct < 20
+                elsif missed_pct < 20 && dev_pct < 12
                   'so-so'
                 else
                   'poor'
                 end
       puts
-      puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM      \e[2mcomment is:  #{comment}"
+      puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM      \e[2mcomment is:    \e[0m#{comment}\e[2m    (based on avg and var)"
       puts "\e[2m    Expected:  #{@bpm}"
       puts
       puts "   Num beats:  #{beats_found.length}\e[0m"
+      puts "\e[2m    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep+@beats_outro}\e[0m"
     else
       puts "  Too few beats recorded."
       @bpm_avg = @bpm_std_dev = nil
@@ -2978,7 +2980,7 @@ def choose_prepare_for skip_term: false
 end
 
 
-def do_animation info, nlines
+def do_animation info, nlines, sleep1 = 0.04, sleep2 = 0.03
   puts "\e[?25l"  ## hide cursor
   $splashed = true
   dots = '...'
@@ -2995,11 +2997,11 @@ def do_animation info, nlines
     txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
     print "\e[0m\e[34m#{txt}\e[0m\e[K"
     prev = txt
-    sleep 0.04
+    sleep sleep1
   end
   puts "\e[G\e[2m\e[34m#{txt}\e[0m"
   puts "\e[K"
-  sleep 0.03
+  sleep sleep2
 end
 
 
