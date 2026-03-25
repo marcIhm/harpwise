@@ -172,11 +172,11 @@ def do_quiz to_handle
           puts
           puts "\e[0mWhat's next?"
           puts 
-          puts "\e[0m\e[32mPress    any key   to redo with the current set of parameters or\n             TAB   for a new set ... \e[0m"
+          puts "\e[0m\e[32mPress         any key    to redo with the current set of parameters or\n     TAB or BACKSPACE    for a new set ...\e[0m"
           drain_chars
           char = one_char
           puts
-          if char != 'TAB'
+          if char != 'TAB' && char != 'BACKSPACE'
             puts "Same parameters \e[2magain.\e[0m"
           else
             puts "New parameters."
@@ -2244,6 +2244,12 @@ class KeepTempo < QuizFlavour
   
   @@explained = false
   @@history = Array.new
+  @@grades_names = { 1 => 'excellent!',
+                     2 => 'good',
+                     3 => 'fair',
+                     4 => 'so-so',
+                     5 => 'poor' }
+
 
   def self.describe_difficulty
     # implement this for unit-test only
@@ -2267,7 +2273,7 @@ class KeepTempo < QuizFlavour
                   else
                     10 + 2 * rand(6)
                   end
-    @beats_intro = 8
+    @beats_intro = @bpm >= 70 ? 8 : 6
     @beats_outro = 4
 
     if $testing
@@ -2284,6 +2290,7 @@ class KeepTempo < QuizFlavour
   
   def issue_question
 
+    puts
     if @@explained
       puts "\e[0mParameters (#{$opts[:difficulty]}):"
       puts "  BPM:             #{@bpm} bpm"
@@ -2292,7 +2299,7 @@ class KeepTempo < QuizFlavour
       puts "  TOGETHER-AGAIN:  %2s" % @beats_outro.to_s
       puts "\n\n"
     else
-      puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@bpm}\e[34m bpm\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2mThese are the steps:\n\n"
+      puts "\e[34mAbout to play and record the keep-tempo challenge with tempo \e[0m#{@bpm} bpm\e[34m\nand #{@beats_keep} beats to keep (hole '#{$typical_hole}'); #{QuizFlavour.difficulty_head}.\n\e[0m\e[2m\nThese are the steps:\n\n"
       puts " \e[0mPICK-UP-TEMPO:  %2s\e[2m ; Harpwise plays and blinks a stretch of #{@beats_intro} beats\n  and you are invited to join with the same tempo and hole '#{$typical_hole}'" % @beats_intro.to_s
       puts " \e[0mKEEP-TEMPO:     %2s\e[2m ; Playing pauses for #{@beats_keep} beats, but you should\n  continue on your own; this will be recorded for later analysis" % @beats_keep
       puts " \e[0mTOGETHER-AGAIN: %2s\e[2m ; The wise blinks again (but does not play) for\n  #{@beats_outro} beats and in time with the initial stretch, so that you can hear,\n  if you are still on the beat; recording goes on" % @beats_outro
@@ -2310,16 +2317,18 @@ class KeepTempo < QuizFlavour
     frac_sound = 0.3
     intro, len_intro = quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
     FileUtils.cp($test_wav, @recording2) if $testing
-
+    
     puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
-    puts "\e[2mOr press TAB to get another set of parameters\e[0m"
+    puts "\e[2mOr press TAB or BACKSPACE to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
-    return false if one_char == 'TAB'
+    char = one_char
+    return false if char == 'TAB' || char == 'BACKSPACE'
     puts
     print "\e[?25l"
     puts
     puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro+@beats_keep+@beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
 
+    # do some animation
     (1 .. 20).each do |n|
       puts "\e[0m\e[34m ....."
       sleep 0.025
@@ -2394,7 +2403,7 @@ class KeepTempo < QuizFlavour
     # now wait for ts_start_outro to show marker again
     sleep ts_start_outro - Time.now.to_f
 
-    blink_beats ts_play_start, wait_thr, ' ... still in time?',
+    blink_beats ts_play_start, wait_thr, ' ... keep on playing ... still in time?',
                 max_beat = @beats_intro + @beats_keep + @beats_outro
 
     # see remark about wsl2 above, for reasoning
@@ -2470,26 +2479,70 @@ class KeepTempo < QuizFlavour
       @bpm_avg = ( bpms.sum / bpms.length ).round(1)
       @bpm_std_dev = (Math.sqrt(bpms.map {|b| (b - @bpm_avg ) ** 2}.sum / bpms.length)).round(1)
       missed_pct = 100 * (@bpm_avg - @bpm).abs / @bpm
+      beats_lost = [@beats_keep + @beats_outro - beats_found.length, 0].max
       dev_pct = 100 * @bpm_std_dev / @bpm_avg
-      comment = if missed_pct < 1 && dev_pct < 2
-                  'perfect!'
-                elsif missed_pct < 2 && dev_pct < 3
-                  'very good'
-                elsif missed_pct < 5 && dev_pct < 5
-                  'good'
-                elsif missed_pct < 10 && dev_pct < 8
-                  'fair'
-                elsif missed_pct < 20 && dev_pct < 12
-                  'so-so'
-                else
-                  'poor'
-                end
+      @grades = Hash.new
+      @grades[:bpm_average] = if missed_pct < 2
+                                1
+                              elsif missed_pct < 3
+                                2
+                              elsif missed_pct < 4
+                                3
+                              elsif missed_pct < 8
+                                4
+                              else
+                                5
+                              end
+      @grades[:bpm_variation] = if dev_pct < 2
+                                  1
+                                elsif dev_pct < 4
+                                  2
+                                elsif dev_pct < 6
+                                  3
+                                elsif dev_pct < 8
+                                  4
+                                else
+                                  5
+                                end
+      @grades[:beats_lost] = if beats_lost < 2
+                               1
+                             elsif beats_lost < 3
+                               2
+                             elsif beats_lost < 5
+                               3
+                             elsif beats_lost < 5
+                               4
+                             else
+                               5
+                             end
+      @grade = @grades.values.max
+      @grade_reasons = @grades.keys.select do |k|
+        @grades[k] == @grade
+      end.map do |r|
+        {bpm_average: "average BPM",
+         bpm_variation: "variation in BPM",
+         beats_lost: "lost beats"}[r] || fail("Internal error")
+      end
+      cols = { 1 => [30,102],
+               2 => [30,102],
+               3 => [30,103],
+               4 => [30,103],
+               5 => [0,101] }[@grade]
+      @grade_reasons[0].prepend( @grade == 1 ? 'all perfect: ' : 'because of: ') 
       puts
-      puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM      \e[2mcomment is:    \e[0m#{comment}\e[2m    (based on avg and var)"
-      puts "\e[2m    Expected:  #{@bpm}"
+      puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM\e[2m"
+      puts "    Expected:  #{@bpm}"
+      sleep 0.1
       puts
-      puts "   Num beats:  #{beats_found.length}\e[0m"
-      puts "\e[2m    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep+@beats_outro}\e[0m"
+      puts "   Num beats:  #{beats_found.length}\e[2m"
+      puts "    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep+@beats_outro}\e[0m"
+      sleep 0.1
+      puts
+      print "  Overall grade (1-5) is:  "
+      print (' ' * [$term_width / 2 - 40, 0].max) 
+      puts "\e[1m\e[#{cols[0]}m\e[#{cols[1]}m #{@@grades_names[@grade].upcase} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
+      puts
+      puts '  ' + @grade_reasons.join(', ')
     else
       puts "  Too few beats recorded."
       @bpm_avg = @bpm_std_dev = nil
@@ -2498,8 +2551,11 @@ class KeepTempo < QuizFlavour
 
   
   def show_history
-    @@history << "#{@bpm_avg} ± #{@bpm_std_dev}  BPM" if @bpm_avg
+    if @bpm_avg
+      @@history << "%5.1f ± %3.1f  BPM ,   #{@@grades_names[@grade]} (#{@grade})" % [@bpm_avg, @bpm_std_dev]
+    end
     if @@history.length > 1
+      sleep 0.5
       puts "\n\e[2mHistory:\n--------\n\n"
       puts "  History of results (including most recent) with the current set of parameters so far:\e[2m"
       @@history.each {|h| puts "    #{h}"}
@@ -2515,7 +2571,7 @@ class KeepTempo < QuizFlavour
     beat_prev = -1
     colors = [92,0,0,92,32,2,2,2,2,32]
     cols = colors.clone
-    templ = "   \e[0m\e[%dm%4s %2s\e[K"
+    templ = "   \e[0m\e[%dm%4s %2s"
     begin
       tntf = Time.now.to_f
       beat = ((tntf - ts_start) / @secs_per_beat).to_i
@@ -2540,7 +2596,8 @@ class KeepTempo < QuizFlavour
         print templ % [0, '    ', '']
       end
       print "\e[0m\e[2m" + add_text if add_text && this_beats > 2
-        
+      print "\e[K"
+      
       tntf = Time.now.to_f
       ts_tick_end = ts_beat_start + (tick + 1) * @secs_per_beat / ticks_per_beat
       err "Internal error: worked too long" if ts_tick_end < tntf
