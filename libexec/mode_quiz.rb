@@ -2244,12 +2244,16 @@ class KeepTempo < QuizFlavour
   
   @@explained = false
   @@history = Array.new
-  @@grades_names = { 1 => 'excellent!',
-                     2 => 'good',
-                     3 => 'fair',
-                     4 => 'so-so',
-                     5 => 'poor' }
-
+  @@grade_names = { 1 => 'excellent!',
+                    2 => 'good',
+                    3 => 'fair',
+                    4 => 'so-so',
+                    5 => 'poor' }
+  @@grade_colors = { 1 => 92,
+                     2 => 92,
+                     3 => 93,
+                     4 => 93,
+                     5 => 91 }
 
   def self.describe_difficulty
     # implement this for unit-test only
@@ -2416,7 +2420,6 @@ class KeepTempo < QuizFlavour
     txt.each_char {|c| print c; sleep 0.02}
     sleep 0.5
     puts "\e[0m"
-    puts
     
     return true
   end
@@ -2523,11 +2526,6 @@ class KeepTempo < QuizFlavour
          bpm_variation: "variation in BPM",
          beats_lost: "lost beats"}[r] || fail("Internal error")
       end
-      cols = { 1 => [30,102],
-               2 => [30,102],
-               3 => [30,103],
-               4 => [30,103],
-               5 => [0,101] }[@grade]
       @grade_reasons[0].prepend( @grade == 1 ? 'all perfect: ' : 'because of: ') 
       puts
       puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM\e[2m"
@@ -2539,8 +2537,8 @@ class KeepTempo < QuizFlavour
       sleep 0.1
       puts
       print "  Overall grade (1-5) is:  "
-      print (' ' * [$term_width / 2 - 40, 0].max) 
-      puts "\e[1m\e[#{cols[0]}m\e[#{cols[1]}m #{@@grades_names[@grade].upcase} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
+      print (' ' * [$term_width / 2 - 42, 0].max) 
+      puts "\e[0m\e[#{@@grade_colors[@grade]}m #{@@grade_names[@grade]} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
       puts
       puts '  ' + @grade_reasons.join(', ')
     else
@@ -2552,14 +2550,29 @@ class KeepTempo < QuizFlavour
   
   def show_history
     if @bpm_avg
-      @@history << "%5.1f ± %3.1f  BPM ,   #{@@grades_names[@grade]} (#{@grade})" % [@bpm_avg, @bpm_std_dev]
+      @@history << "\e[0m\e[2m%5.1f ± %3.1f  BPM ,   \e[1m\e[#{@@grade_colors[@grade]}m#{@@grade_names[@grade]}\e[0m\e[2m (#{@grade})" % [@bpm_avg, @bpm_std_dev]
     end
     if @@history.length > 1
-      sleep 0.5
-      puts "\n\e[2mHistory:\n--------\n\n"
-      puts "  History of results (including most recent) with the current set of parameters so far:\e[2m"
-      @@history.each {|h| puts "    #{h}"}
-      puts "\e[0m"
+      puts
+      text = 'Press any key for history of grades ...'
+      print "\e[0m\e[32m#{text}\e[0m" 
+      one_char
+      text.length.times do
+        print "\b \b"
+        sleep 0.01
+      end
+      print "\e[2m"
+      'History:'.each_char do |c|
+        print c
+        sleep 0.02
+      end
+      print "\e[K\n--------\n\n"
+      sleep 0.05
+      puts "  History of results (including most recent) with the current set of parameters so far:"
+      @@history.each do |h|
+        puts "    #{h}\e[0m"
+        sleep 0.02
+      end
     end
   end
 
