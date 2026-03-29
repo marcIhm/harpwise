@@ -434,6 +434,8 @@ def handle_kb_play_pitch
     $ctl_pitch[:quit] = true
   elsif char == 'RETURN'
     $ctl_pitch[:accept_or_repeat] = true
+  elsif char == '.'
+    $ctl_pitch[:repeat] = true
   else
     $ctl_pitch[:invalid] = get_text_invalid(char)
     $ctl_pitch[:any] = false

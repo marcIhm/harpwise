@@ -144,6 +144,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
   begin
 
     (imm_ctrls_again + [:skip]).each {|k| $ctl_rec[k] = false}
+
     if recording.is_a?(Array)
       cmd = "play --norm=#{$vol.to_i} -q -V1 --combine mix #{recording.join(' ')}".strip
     else
@@ -331,19 +332,25 @@ def play_interactive_pitch embedded: false, explain: true,
       elsif $ctl_pitch[:show_help]
         pplayer.pause
         display_kb_help 'a pitch',true,
-                        "  SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
-                        "      w: change waveform       W: change waveform back\n" + 
-                        " s,+,up: one semi up    S,-,down: one semitone down\n" +
-                        "      o: one octave up         O: one octave down\n" +
-                        "      f: one fifth up          F: one fifth down\n" +
-                        "      v: decrease volume       V: increase volume by 3dB\n" +
-                        ( embedded  ?  ' RETURN: accept'  :  ' RETURN: play again'),
+                        "    SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
+                        "        w: change waveform       W: change waveform back\n" + 
+                        "   s,+,up: one semi up    S,-,down: one semitone down\n" +
+                        "        o: one octave up         O: one octave down\n" +
+                        "        f: one fifth up          F: one fifth down\n" +
+                        "        v: decrease volume       V: increase volume by 3dB\n" +
+                        ( return_accepts  ?  ' RETURN: accept                  .: play again'  :  ' .,RETURN: play again'),
                         wait_for_key: !paused
         pplayer.continue
         print_pitch_information(semi)
       elsif $ctl_pitch[:invalid]
         puts "\e[0m\e[2m(#{$ctl_pitch[:invalid]})\e[0m"
         $ctl_pitch[:invalid] = false
+      elsif $ctl_pitch[:repeat]
+        puts "\e[0m\e[2mplay again\e[0m"        
+        if pplayer&.alive?
+          pplayer.kill
+          pplayer.check
+        end
       elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
         new_key =  if $ctl_pitch[:accept_or_repeat] || return_accepts
                      semi2note(semi)[0..-2]
@@ -358,6 +365,7 @@ def play_interactive_pitch embedded: false, explain: true,
           $ctl_pitch[:quit] = $ctl_pitch[:accept_or_repeat] = false
           return new_key
         end
+        puts "\e[0m\e[2mplay again\e[0m"        
       end
 
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
@@ -1094,5 +1102,3 @@ def get_sound_and_desc semis, args_orig, wave, gap, len, single
    "Wave: #{wave}, Gap: #{gap}, Len: #{len}",
    cdesc]
 end
-
-

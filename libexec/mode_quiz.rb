@@ -1659,7 +1659,7 @@ class Players < QuizFlavour
     puts "\e[32m#{@hitems[0].capitalize}:\e[0m"
     @structured[@hitems[0]].each {|l| puts '  ' + l}
     puts
-    puts "\e[2m(invoke again for more information)\e[0m"
+    puts "\e[2m(invoke again for even more information)\e[0m"
   end
 
   def help2_desc
@@ -2010,6 +2010,7 @@ class HearHoleSet < QuizFlavour
 
   def help3
     puts "The hole set is   '#{@hole_set}':   #{@holes.join('  ')}"
+    @choices.select! {|c| c[@hole_set.to_s]}
   end
 
   def help3_desc
@@ -2018,6 +2019,7 @@ class HearHoleSet < QuizFlavour
 
   def help4
     puts "The key is   '#{$key}'."
+    @choices.select! {|c| c.start_with?($key+'-')}
   end
 
   def help4_desc
@@ -2332,9 +2334,9 @@ class KeepTempo < QuizFlavour
     puts
     puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro+@beats_keep+@beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
 
-    # do some animation
+    # Do some animation for making room
     (1 .. 20).each do |n|
-      puts "\e[0m\e[34m ....."
+      puts "\e[0m\e[34m " + (n == 1 ? "....and...." : "...........")
       sleep 0.025
     end
     20.times do
@@ -2526,7 +2528,7 @@ class KeepTempo < QuizFlavour
          bpm_variation: "variation in BPM",
          beats_lost: "lost beats"}[r] || fail("Internal error")
       end
-      @grade_reasons[0].prepend( @grade == 1 ? 'all perfect: ' : 'because of: ') 
+      @grade_reasons[0].prepend( @grade == 1 ? '            All Perfect: ' : '  These could be better:  ') 
       puts
       puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM\e[2m"
       puts "    Expected:  #{@bpm}"
@@ -2536,7 +2538,7 @@ class KeepTempo < QuizFlavour
       puts "    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep+@beats_outro}\e[0m"
       sleep 0.1
       puts
-      print "  Overall grade (1-5) is:  "
+      print "   Overall grade (1-5) is:  "
       print (' ' * [$term_width / 2 - 42, 0].max) 
       puts "\e[0m\e[#{@@grade_colors[@grade]}m #{@@grade_names[@grade]} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
       puts
@@ -2608,7 +2610,7 @@ class KeepTempo < QuizFlavour
       else
         print templ % [0, '    ', '']
       end
-      print "\e[0m\e[2m" + add_text if add_text && this_beats > 2
+      print "\e[0m\e[2m" + add_text if add_text && this_beats > 1
       print "\e[K"
       
       tntf = Time.now.to_f
@@ -2643,7 +2645,7 @@ class HearTempo < QuizFlavour
 
     @prompt = 'Choose the Tempo you have heard:'
     @help_head = 'Tempo'
-    @sample = quiz_generate_tempo('s', Integer(@solution), @num_beats, 0.5)
+    @sample, _ = quiz_generate_tempo('s', Integer(@solution), @num_beats, 0.5)
   end
 
   def self.describe_difficulty
@@ -2656,7 +2658,7 @@ class HearTempo < QuizFlavour
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     make_term_immediate
-    $ctl_kb_queue.clear    
+    $ctl_kb_queue.clear
     play_recording_and_handle_kb @sample
     make_term_cooked
   end
@@ -2670,7 +2672,7 @@ class HearTempo < QuizFlavour
     end
     choose_clean_up
     if answer
-      help = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0.5)
+      help, _ = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0.5)
       puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
       make_term_immediate
       $ctl_kb_queue.clear    
