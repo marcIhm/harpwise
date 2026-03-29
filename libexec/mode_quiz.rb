@@ -2378,7 +2378,7 @@ class KeepTempo < QuizFlavour
       cmd_rec = if $testing
                   "sleep 1000"
                 else
-                  "stdbuf -o0 sox -d -q -r #{$conf[:sample_rate]} -t wav - >#{@recording2}"
+                  "sox -d -q -r #{$conf[:sample_rate]} #{@recording2}"
                 end
       rec_pid = Process.spawn cmd_rec
 
@@ -2414,7 +2414,7 @@ class KeepTempo < QuizFlavour
 
     # see remark about wsl2 above, for reasoning
     total = sox_query(@recording2, 'Length').to_f.round(2)
-    err("Internal error: total recorded #{total} is less than needed #{len_rec}") if !$testing && total < len_rec
+    err("Internal error: total recorded #{total} is less than needed #{len_rec}; maybe try 'harpwise tools diag' for some insight and hints") if !$testing && total < len_rec
     sys "sox #{@recording2} #{@recording} trim #{total - len_rec}"
     
     print "\e[2A\r\e[K\e[0m\e[92m"
@@ -2454,6 +2454,8 @@ class KeepTempo < QuizFlavour
     first = beats_found[0]
     beats_found.map! {|x| x - first}
     diffs = beats_found.each_cons(2).map {|xs| xs[1] - xs[0]}
+    # sanity check
+    diffs.select! {|d| ( 60 / d > @bpm / 2 ) && ( 60 / d < @bpm * 2 )}
 
     3.times {puts; sleep 0.02}
     puts "\e[2mAnalysis:\n---------\n\n"
