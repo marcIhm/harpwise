@@ -23,6 +23,7 @@ def set_global_vars_early
   $name_collisions_mb = Hash.new {|h,k| h[k] = Set.new}
   $org_theme_file = 'floating_toc.theme'
   $testing_custom = {}
+  $warned_for_short_rec = false
   
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new

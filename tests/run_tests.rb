@@ -3087,8 +3087,8 @@ do_test 'id-96c: quiz-flavour keep-tempo' do
   tms :ENTER
   expect { screen[19]['Ready to play?'] }
   tms :ENTER
-  sleep 12
-  expect { screen[9]['still in time?'] }
+  sleep 14
+  expect { screen[10]['still in time?'] }
   sleep 8
   expect { screen[15]['Too few beats recorded.'] }
   kill_session
@@ -3387,7 +3387,7 @@ do_test 'id-109: quiz-flavour players' do
   sleep 1
   tms 'help-more-info'
   tms :ENTER
-  expect { screen[7..14].any? {|l| l['invoke again for more information']} }  
+  expect { screen[7..14].any? {|l| l['invoke again for even more information']} }  
   kill_session
 end
 
@@ -4295,7 +4295,7 @@ do_test 'id-147: tool diag' do
   tms :ENTER
   sleep 3
   expect { screen.any? {|l| l['Sample Rate    : 48000']} }  
-  sleep 3
+  sleep 4
   expect { screen[7]['Replay'] }
   tms :ENTER
   sleep 3

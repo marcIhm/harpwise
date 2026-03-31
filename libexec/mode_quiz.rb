@@ -2382,9 +2382,10 @@ class KeepTempo < QuizFlavour
                 end
       rec_pid = Process.spawn cmd_rec
 
-      # wsl2: we assume, that sox captures some old sound from the pipeline very fast and
-      # only then starts to record current input; therefore we do the timing externally
-      # (SIGHUB) and take the last secs as appropriate (see also below)
+      # wsl2: the starting point of recorded sound seems unsure or volatile (probably not
+      # sox fault); it might even be before the actual sox-command is started. Therefore we
+      # do the timing externally (SIGHUB) and take the last secs as appropriate (see also
+      # below)
 
       # extra secs to allow for startup of sox
       sleep len_rec + 1
@@ -2412,16 +2413,21 @@ class KeepTempo < QuizFlavour
     blink_beats ts_play_start, wait_thr, ' ... keep on playing ... still in time?',
                 max_beat = @beats_intro + @beats_keep + @beats_outro
 
-    # see remark about wsl2 above, for reasoning
-    total = sox_query(@recording2, 'Length').to_f.round(2)
-    err("Internal error: total recorded #{total} is less than needed #{len_rec}; maybe try 'harpwise tools diag' for some insight and hints") if !$testing && total < len_rec
-    sys "sox #{@recording2} #{@recording} trim #{total - len_rec}"
-    
     print "\e[2A\r\e[K\e[0m\e[92m"
     txt = "   REC done."
     txt.each_char {|c| print c; sleep 0.015}
     sleep 0.3
     puts "\e[0m"
+    
+    # see remark about wsl2 above, for reasoning
+    total = sox_query(@recording2, 'Length').to_f.round(2)
+    if !$testing && total < len_rec
+      puts "\n\n\n\n  \e[0mWarning: total recorded #{total} is less than needed #{len_rec.round(2)}; maybe try 'harpwise tools diag' for some insight and hints\n\n" unless $warned_for_short_rec
+      $warned_for_short_rec = true
+      sys "sox #{@recording2} #{@recording}"
+    else
+      sys "sox #{@recording2} #{@recording} trim #{total - len_rec}"
+    end
     
     return true
   end

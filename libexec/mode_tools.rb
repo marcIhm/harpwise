@@ -1292,15 +1292,15 @@ def tool_diag1
   puts see_sox % ['END', 'rec']
   puts "\e[0m\e[K\nDone."
 
+  recorded = sox_query($diag_wav, 'Length').to_f
   puts
-  puts "Timestamps:                     \e[2melapsed and recorded may differ by up to one\e[0m"
-  puts(("       secs elapsed: %.1f" % elapsed) + "       \e[2msecond due to startup-times of sox-process\e[0m")
-  recorded = sox_query($diag_wav, 'Length').to_f.round(2)
-  puts "           recorded: #{recorded}"
-  pct_diff = ( 100 * ( elapsed - recorded ) / elapsed ).round(1)
-  puts "  deviation between: #{pct_diff} %      \e[2mshould not be negative\e[0m"
+  puts "Timestamps:"
+  puts "       Secs elapsed: %6.2f       \e[2mElapsed and recorded may differ by up to one sec\e[0m" % elapsed
+  puts "           recorded: %6.2f       \e[2m  due to startup-time of sox-process\e[0m" % recorded
+  puts "       diff between: %6.2f       \e[2mShould be less than one and not negative\e[0m" % (elapsed - recorded )
   puts
   puts
+  sleep 1
   puts_underlined 'Replay'
   cmd_play = if $testing
                "play -v 0 #{$diag_wav}"
