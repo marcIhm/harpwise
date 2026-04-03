@@ -1009,6 +1009,10 @@ class HearInter < QuizFlavour
     play_hons hide: [:help, :all]
   end
 
+  def tag_desc tag
+    "#{tag} (#{@inter2semi[tag]} st)"
+  end
+  
   def help2
     puts "Playing interval reversed:"
     play_hons reverse: true, hide: :all
@@ -2365,7 +2369,7 @@ class KeepTempo < QuizFlavour
     # code-execution
 
     puts
-    puts "\e[2m   REC not yet started, but please pick up tempo."
+    puts "\e[2m  REC not yet started, but please pick up tempo."
     puts
     
     blink_beats ts_play_start, wait_thr
@@ -2395,7 +2399,7 @@ class KeepTempo < QuizFlavour
       err("sound process had problems: #{$?}") if $?.exitstatus != 0 && $?.termsig != Signal.list['HUP']
     end
 
-    puts "\r\e[2m   Beat  ?"
+    puts "\r\e[2m  Beat  ?"
     puts
     puts "\e[0;101m - REC ON - \e[0m\e[K"
     puts
@@ -2414,7 +2418,7 @@ class KeepTempo < QuizFlavour
                 max_beat = @beats_intro + @beats_keep + @beats_outro
 
     print "\e[2A\r\e[K\e[0m\e[92m"
-    txt = "   REC done."
+    txt = "  REC done."
     txt.each_char {|c| print c; sleep 0.015}
     sleep 0.3
     puts "\e[0m"
@@ -2422,7 +2426,7 @@ class KeepTempo < QuizFlavour
     # see remark about wsl2 above, for reasoning
     total = sox_query(@recording2, 'Length').to_f.round(2)
     if !$testing && total < len_rec
-      puts "\n\n\n\n  \e[0mWarning: total recorded #{total} is less than needed #{len_rec.round(2)}; maybe try 'harpwise tools diag' for some insight and hints\n\n" unless $warned_for_short_rec
+      puts "\n\n\n\n  \e[0mWARNING: total recorded #{total} is less than needed #{len_rec.round(2)}; maybe try 'harpwise tools diag' for some insight and hints\n\n" unless $warned_for_short_rec
       $warned_for_short_rec = true
       sys "sox #{@recording2} #{@recording}"
     else
@@ -2594,7 +2598,7 @@ class KeepTempo < QuizFlavour
     beat_prev = -1
     colors = [92,0,0,92,32,2,2,2,2,32]
     cols = colors.clone
-    templ = "   \e[0m\e[%dm%4s %2s"
+    templ = "  \e[0m\e[%dm%4s %2s"
     begin
       tntf = Time.now.to_f
       beat = ((tntf - ts_start) / @secs_per_beat).to_i
@@ -2662,7 +2666,7 @@ class HearTempo < QuizFlavour
   end
 
   def issue_question
-    puts "\e[34mPlaying #{@num_beats} beats of Tempo to find\e[0m"
+    puts "\e[34mPlaying #{@num_beats} beats of tempo to find\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
     sleep 0.1
     make_term_immediate
