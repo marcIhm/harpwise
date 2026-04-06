@@ -452,7 +452,7 @@ def parse_arguments_early
   #
   # The mode (tools) has already been removed from ARGV
   if mode == :tools && $conf[:all_keys].include?(ARGV[1]) &&
-     ( ARGV.length >= 3 && 'transpose'.start_with?(ARGV[0]) && $conf[:all_keys].include?(ARGV[2]) ||
+     ( ARGV.length >= 3 && 'change-harp'.start_with?(ARGV[0]) && $conf[:all_keys].include?(ARGV[2]) ||
        ARGV.length >= 2 && 'chart'.start_with?(ARGV[0]) && !$conf[:all_keys].include?(ARGV[0]))
     ARGV[0], ARGV[1] = [ARGV[1], ARGV[0]]
   end

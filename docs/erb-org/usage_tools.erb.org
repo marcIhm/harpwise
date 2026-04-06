@@ -16,7 +16,7 @@
   the key of c to g (keeping the notes/pitches constant):
 
     #+begin_src 
-    harpwise tools transpose c g -1 +2 -3
+    harpwise tools change-harp c g -1 +2 -3
     #+end_src
 
   when playing the result on the g-harp you will have the exact same

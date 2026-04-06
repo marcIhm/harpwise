@@ -362,7 +362,7 @@ overflow: auto;
 </div>
 </div>
 <p>
-<i>Version  6.38.5</i>
+<i>Version  6.38.7</i>
 </p>
 <div id="outline-container-org0000000" class="outline-2">
 <h2 id="org0000000">Introduction</h2>
@@ -2222,8 +2222,12 @@ it can be one of:
 </p>
 
 <ul class="org-ul">
-<li>transpose:
-transpose a sequence of holes between keys</li>
+<li>change-harp:
+Accept a sequence of holes, convert them into
+notes and move these to another harp with a different
+key, keeping the notes in the process, but (of course)
+changing the holes. This answer the question: Can the
+exact same notes be played on another harp?</li>
 
 <li>shift:
 shift a sequence of holes or notes or a single lick by the given
@@ -2360,7 +2364,7 @@ the key of c to g (keeping the notes/pitches constant):
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise tools transpose c g -1 +2 -3
+<pre class="src src-nil">harpwise tools change-harp c g -1 +2 -3
 </pre>
 </div>
 

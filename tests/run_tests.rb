@@ -1828,11 +1828,11 @@ do_test 'id-50c: tools make-scale' do
   kill_session
 end
 
-do_test 'id-51: tools transpose' do
+do_test 'id-51: tools change-harp' do
   new_session
-  tms 'harpwise tools transpose c g -1'
+  tms 'harpwise tools change-harp c g -1'
   tms :ENTER
-  expect { screen[11]['Holes transposed:   -2'] }
+  expect { screen[11]['Holes changed:   -2'] }
   kill_session
 end
 
@@ -3100,7 +3100,7 @@ do_test 'id-96d: quiz-flavour hear-tempo' do
   tms :ENTER
   sleep 2
   tms :ENTER
-  expect { screen[11]['Playing 8 beats of Tempo to find'] }
+  expect { screen[11]['Playing 8 beats of tempo to find'] }
   tms 'compare'
   tms :ENTER
   sleep 1

@@ -10,8 +10,8 @@ def do_tools to_handle
   err_args_not_allowed(to_handle) if %w(edit-config chords).include?($extra) && to_handle.length > 0
 
   case $extra
-  when 'transpose'
-    tool_transpose to_handle
+  when 'change-harp'
+    tool_change_harp to_handle
   when 'shift'
     tool_shift to_handle
   when 'shift-to-groups'
@@ -250,9 +250,9 @@ def colorize_word_cell plain, word, color_word, color_normal
 end
 
 
-def tool_transpose to_handle
+def tool_change_harp to_handle
 
-  err "Need at least two additional arguments: a second key and at least one hole (e.g. 'g -1'); '#{to_handle.join(' ')}' is not enough" unless to_handle.length > 1
+  err "Need at least two additional arguments: a second key and at least one hole (e.g. 'g -1'); '#{to_handle.join(' ')}' is not enough\nA complete invocation, e.g. could read:    harpwise tools transpose d f +4 -3/ -3/ -3/" unless to_handle.length > 1
 
   key_other = to_handle.shift
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
@@ -262,13 +262,13 @@ def tool_transpose to_handle
   end
 
   puts
-  puts "Transposing holes and notes from key #{$key} to #{key_other};"
+  puts "Moving holes and notes from key \e[32m#{$key}\e[0m to \e[32m#{key_other}\e[0m"
   puts "difference between harps is #{describe_inter_semis(dsemi)};"
   puts "holes change but notes stay the same:"
   puts
   puts
   cols = Array.new
-  cols << ['Holes given', 'Notes', 'Holes transposed', 'Oct up', 'Oct down']
+  cols << ['Holes given', 'Notes', 'Holes changed', 'Oct up', 'Oct down']
   to_handle.each do |hole|
     cols << [hole,
              $harp[hole][:note],
