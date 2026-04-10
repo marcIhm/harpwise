@@ -113,7 +113,6 @@ def do_quiz to_handle
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes_std(solve_text, 'scale', holes, :all)
                      end)
-
     
   elsif $quiz_flavour == 'play-inter'
 
@@ -134,15 +133,15 @@ def do_quiz to_handle
   elsif $quiz_flavour == 'play-shifted'
 
     back_to_comment_after_mode_switch
-    holes_shifts = get_holes_shifts
+    holes_shift_info = get_holes_shift_info
     puts
-    puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{holes_shifts[2]}\e[0m"
+    puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{holes_shift_info[:shift_by_text]}\e[0m"
     puts
     puts
     prepare_listen_perspective_for_quiz
-    do_licks_or_quiz(quiz_holes_shifts: holes_shifts,
-                     lambda_quiz_hint: -> (holes, holes_inter, _, holes_shifts) do
-                       quiz_hint_in_handle_holes_shifts holes_shifts
+    do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
+                     lambda_quiz_hint: -> (holes, _, _, holes_shift_info) do
+                       quiz_hint_in_handle_holes_shifted holes_shift_info
                      end)
 
     
@@ -2856,7 +2855,7 @@ def prompt_for_quiz_interval holes_inter
   puts
 end
 
-def get_holes_shifts
+def get_holes_shift_info
 
   # favour lower holes and allow a hole to appear multiple times
   all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).then {|x| [x,x,x,x]}.flatten
@@ -2879,12 +2878,16 @@ def get_holes_shifts
             $intervals[-shift][0] + ' DOWN'
           end
 
-  return [unshifted,
-          shift,
-          "%+dst, #{idesc}" % shift,
-          unshifted + shifted,
-          shifted[0],
-          shifted]
+  # be more typesafe
+  info = Struct.new(:holes_unshifted, :shift_by_semi, :shift_by_text, :holes_shifted, :holes_all).new
+  
+  info[:holes_unshifted] = unshifted
+  info[:shift_by_semi] = shift
+  info[:shift_by_text] = "%+dst, #{idesc}" % shift
+  info[:holes_shifted] = shifted
+  info[:holes_all] = unshifted + shifted
+
+  info
 end
 
 
@@ -2964,7 +2967,7 @@ def quiz_hint_in_handle_holes_std solve_text, item, holes, hide, offer_disp = fa
 end
 
 
-def quiz_hint_in_handle_holes_shifts holes_shifts
+def quiz_hint_in_handle_holes_shifted holes_shift_info
   choices2desc = {'.help-print-unshifted' => "Solve: Print unshifted sequence, but keep current question",
                   ',solve-print-shifted' => "Solve: Print shifted sequence, but keep current question",
                   '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
@@ -2978,37 +2981,37 @@ def quiz_hint_in_handle_holes_shifts holes_shifts
   when '.help-print-unshifted'
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0mHelp: unshifted sequence is:\n\n\n"
-    puts "\e[32m  #{holes_shifts[0].join('  ')}"
+    puts "\e[32m  #{holes_shift_info[:holes_unshifted].join('  ')}"
     puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
-    $msgbuf.print 'Help, unshifted:   ' + holes_shifts[0].join('  '), 6, 8, :quiz_solution
+    $msgbuf.print 'Help, unshifted:   ' + holes_shift_info[:holes_unshifted].join('  '), 6, 8, :quiz_solution
   when ',solve-print-shifted'
     puts "\e[#{$lines[:comment_tall]}H"
     puts "\e[0m\e[2mUnshifted is:"
-    puts "  #{holes_shifts[0].join('  ')}"
+    puts "  #{holes_shift_info[:holes_unshifted].join('  ')}"
     puts "\n\e[0mSolution: shifted sequence is:"
-    puts "\e[32m  #{holes_shifts[5].join('  ')}"
-    puts "\n\e[0m\e[2mShifted by: #{holes_shifts[2]}"
+    puts "\e[32m  #{holes_shift_info[:holes_shifted].join('  ')}"
+    puts "\n\e[0m\e[2mShifted by: #{holes_shift_info[:shift_by_text]}"
     puts "\e[0m\e[2m#{$resources[:any_key]}"
     $ctl_kb_queue.deq
-    $msgbuf.print 'Solution, shifted:   ' + holes_shifts[5].join('  '), 6, 8, :quiz_solution
+    $msgbuf.print 'Solution, shifted:   ' + holes_shift_info[:holes_shifted].join('  '), 6, 8, :quiz_solution
   when '.help-play-unshifted'
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "      \e[32mUnshifted:   "
-    play_holes_or_notes_and_handle_kb(holes_shifts[0], hide: :help)
+    play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_unshifted], hide: :help)
     sleep 2
     print "  \e[32mFirst shifted:   "
-    play_holes_or_notes_and_handle_kb([holes_shifts[4]], hide: :help)
+    play_holes_or_notes_and_handle_kb([holes_shift_info[:holes_shifted][0]], hide: :help)
     sleep 1
   when '.help-play-both'
     puts "\e[#{$lines[:comment] + 1}H"
     puts
     print "  \e[32mUnshifted:   "
-    play_holes_or_notes_and_handle_kb(holes_shifts[0], hide: :help)
+    play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_unshifted], hide: :help)
     sleep 2
     print "    \e[32mShifted:   "
-    play_holes_or_notes_and_handle_kb(holes_shifts[5], hide: [:all, :help])
+    play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_shifted], hide: [:all, :help])
     sleep 1
   else
     fail "Internal error: #{answer}" if answer
