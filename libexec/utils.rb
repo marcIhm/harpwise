@@ -1375,14 +1375,18 @@ class MsgBuf
   @@reset_at = Array.new
   
   def print text, min, max, group = nil, truncate: true, wrap: false
+    #
+    # text: text to print; can be an array too
+    #
     # min: keep message on stack and display it that long at minimum; is used in
-    # print_internal only, so this is checked only if a new message is about to be printed
+    # print_internal only, where this is checked only if a new message is about to be printed
     #
     # max: remove currently shown message, even if no new message is to be printed; is used
     # in update only, which however is called in every loop of handle_holes
     #
     # group: arbitrary symbol; keep only one message of each group. Special group :warning
     # will not be overwritten by other messages
+    #
     
     # remove any outdated stuff
     if group

@@ -279,7 +279,8 @@ def do_listen
       if char == 'c'
         journal_write("Automatic save before clearing journal") if journal_length > 0
         $journal = Array.new
-        $msgbuf.print "Saved and cleared journal", 2, 5, :journal
+        $msgbuf.print ["Saved and cleared journal",
+                       "appended to #{$journal_file}"], 2, 5, :journal
       elsif char == 'C'
         $journal = Array.new
         $msgbuf.print "Cleared journal without save", 2, 5, :journal
