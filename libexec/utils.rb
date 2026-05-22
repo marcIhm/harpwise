@@ -1192,12 +1192,14 @@ class FamousPlayers
         prepare_term
         reply = ''
         begin
-          Timeout.timeout(1) do          
+          Timeout.timeout(0.5) do          
             print "\e[16t"
             reply += STDIN.gets(1) while reply[-1] != 't'
           end
         rescue Timeout::Error
-          err 'Could not get pixel width of terminal'
+          puts "\nCannot get pixel-dimension of character cell; displaying pixel images\ninline might not work.\n\nPlease try another value for option '--viewer';\nuse '--viewer x' to see choices."
+          puts
+          return
         end
         sane_term
         Kernel::print "\e[?25h"  ## show cursor
