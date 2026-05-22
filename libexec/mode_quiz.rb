@@ -400,7 +400,7 @@ class QuizFlavour
     puts "\e[0m"
     puts
     puts "Mnemonic songs are:  \e[2m"
-    $quiz_interval2song[@dsemi].each do |song|
+    $quiz_interval2song[@dsemi.abs].each do |song|
       puts "   " + song
     end
     puts "\e[0m"
