@@ -1197,7 +1197,7 @@ class FamousPlayers
             reply += STDIN.gets(1) while reply[-1] != 't'
           end
         rescue Timeout::Error
-          puts "\nCannot get pixel-dimension of character cell; displaying pixel images\ninline might not work.\n\nPlease try another value for option '--viewer';\nuse '--viewer x' to see choices."
+          puts "\nCannot get pixel-dimension of character cell; displaying pixel images inline might not work.\nPlease try a terminal with sixel-support or a different value for option '--viewer'; use '--viewer x' to see choices."
           puts
           return
         end

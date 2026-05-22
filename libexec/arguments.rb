@@ -237,7 +237,7 @@ def parse_arguments_early
           err("Option #{odet[0][-1]} accepts an optional argument describing an option, but not many: #{ARGV[i .. -1].join(' ')}") if ARGV.length - 1 > i
           opts[osym] = ARGV[i] || 'all'
         else
-          opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}")
+          opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}  Also: in many cases using '#{odet[0][-1]} x' will give an error message that shows the possible choices.")
         end
         # convert options as described for configs
         opts[osym] = opts[osym].send($conf_meta[:conversions][osym]) unless [:ref, :hole, :partial].include?(osym)
