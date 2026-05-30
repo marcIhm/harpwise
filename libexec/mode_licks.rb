@@ -2,7 +2,7 @@
 # Handle mode licks or mode quiz, flavour recall
 #
 
-def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, lambda_quiz_hint: nil, to_handle: []
+def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, quiz_hole_to_hit: nil, lambda_quiz_hint: nil, to_handle: []
 
   if to_handle && to_handle.length > 0
 
@@ -43,6 +43,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
   
   to_play = PlayController.new
   to_play[:show_in_play] = quiz_holes_shift_info[:holes_unshifted] if quiz_holes_shift_info
+  to_play[:show_in_play] = [quiz_hole_to_hit] if quiz_hole_to_hit
   
   # below stands for override for line_message2 and is set during
   # initial play, i.e. before builtup of listen-perspective; when set,
@@ -224,8 +225,24 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           $ctl_mic[:redraw_mission] = true          
           $msgbuf.print AddInter.describe_difficulty, 2, 5, :dicu
 
+        when 'hit-from-off'
+          unless first_round
+            holes = $named_hole_sets[[:blow, :draw].sample]
+            holes = holes[0 .. holes.length/2] if $opts[:difficulty] == :easy
+            quiz_prevs << quiz_hole_to_hit
+            begin 
+              quiz_hole_to_hit = holes.sample
+            end while quiz_prevs.include?(quiz_hole_to_hit)
+            quiz_prevs.shift if quiz_prevs.length > 2
+          end
+          to_play.set_all_wanted [quiz_hole_to_hit]
+          to_play[:show_in_play] = [quiz_hole_to_hit]
+          $ctl_mic[:redraw] = Set[:silent]
+          $ctl_mic[:redraw_mission] = true       
+          $msgbuf.print HitFromOff.describe_difficulty, 2, 5, :dicu
+
         else
-          err "Internal error: #{$quiz_flavour}"
+          fail "Internal error: unknown quiz flavour #{$quiz_flavour}"
         end
         
       else  ## $mode == :licks
@@ -262,7 +279,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
       end   ## figure out holes to play
 
-      $ctl_mic[:loop] = $opts[:loop]
+      $ctl_mic[:loop] = $opts[:loop] unless $mode == :quiz && $quiz_flavour == 'hit-from-off'
 
     end # handling $ctl-commands and calculating the next holes
 
@@ -310,6 +327,8 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       write_history('replay', 'random', to_play[:all_wanted])
     when 'play-shifted'
       write_history('play-shifted', 'random-shifted', to_play[:all_wanted])
+    when 'hit-from-off'
+      write_history('hit-from-off', 'random-hole', to_play[:all_wanted])
     when 'play-scale'
       write_history('play-scale', quiz_scale_name, to_play[:all_wanted])
     when 'play-inter'
@@ -318,7 +337,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
     end
       
-    if ( !quiz_scale_name && !quiz_holes_inter && !zero_partial?) ||
+    if ( !quiz_scale_name && !quiz_holes_inter && !quiz_hole_to_hit && !zero_partial?) ||
        $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]
       
       print_mission('Listen ...') unless oride_l_message2
@@ -439,19 +458,22 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find
             # related pieces of code in other files
             if $quiz_flavour == 'play-scale'
-              err "Internal error" unless quiz_scale_name
+              fail("Internal error") unless quiz_scale_name
               "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
             elsif $quiz_flavour == 'play-inter'
-              err "Internal error" unless quiz_holes_inter
+              fail("Internal error") unless quiz_holes_inter
               "Play inter #{quiz_holes_inter[4]}; #{quiz_holes_inter[5]}"
             elsif $quiz_flavour == 'play-shifted'
-              err "Internal error" unless quiz_holes_shift_info
+              fail("Internal error") unless quiz_holes_shift_info
               "Play #{quiz_holes_shift_info[:holes_unshifted].join(' ')}, " +
                 "shift by #{quiz_holes_shift_info[:shift_by_semi]}st to #{quiz_holes_shift_info[:holes_shifted][0]}... ; " +
                 "\e[32m#{idx+1}\e[0m of #{to_play[:all_wanted].length}"
+            elsif $quiz_flavour == 'hit-from-off'
+              fail("Internal error") unless quiz_hole_to_hit
+              "Put off harp and play #{quiz_hole_to_hit}"
             elsif $quiz_flavour && $quiz_flavour != 'replay'
               # replay uses just the normal below
-              err "Internal error: unknown quiz-flavour: #{$quiz_flavour}"
+              fail "Internal error: unknown quiz-flavour: #{$quiz_flavour}"
             elsif $ctl_mic[:loop]
               "\e[32mLoop\e[0m at #{idx+1} of #{to_play[:all_wanted].length} holes"
             else
@@ -629,7 +651,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right!  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
             color, text, line, font, width_template =
-            print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true)
+            print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true) unless $mode == :quiz && $quiz_flavour == 'hit-from-off'
             sleep 0.5
           else
             print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'}!\e[0m\e[K"

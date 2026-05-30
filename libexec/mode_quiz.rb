@@ -145,6 +145,26 @@ def do_quiz to_handle
                      end)
 
     
+  elsif $quiz_flavour == 'hit-from-off'
+
+    back_to_comment_after_mode_switch
+    holes = $named_hole_sets[[:blow, :draw].sample]
+    holes = holes[0 .. holes.length/2] if $opts[:difficulty] == :easy
+    hole_to_hit = holes.sample
+    $opts[:comment] = :holes_all
+    puts
+    puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{hole_to_hit}\e[0m"
+    puts
+    puts
+    do_figlet_unwrapped hole_to_hit, 'smblock'
+    sleep 0.5
+    prepare_listen_perspective_for_quiz
+    do_licks_or_quiz(quiz_hole_to_hit: hole_to_hit,
+                     lambda_quiz_hint: -> (holes) do
+                       quiz_hint_in_handle_holes_hit_from_off holes[0]
+                     end)
+
+    
   elsif $quiz_flavour == 'keep-tempo'
 
     first = true
@@ -219,7 +239,7 @@ def do_quiz to_handle
 
   else
 
-    err "Internal error: #{$quiz_flavour}, #{$quiz_flavour2class}"
+    fail "Internal error: #{$quiz_flavour}, #{$quiz_flavour2class}"
 
   end
 end
@@ -543,7 +563,7 @@ class QuizFlavour
                  map {|h| $harp[h][:semi]}.min
     (sets || @hole_sets_names).each_with_index do |desc, idx|
       nmd_holes = $named_hole_sets[desc]
-      err "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
+      fail "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
       holes = nmd_holes.map {|h| "#{h}  "}
       notes = nmd_holes.map do |h|
         n = $harp[h][:note].gsub(/\d+$/,'')
@@ -688,6 +708,19 @@ class PlayShifted < QuizFlavour
     $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
     QuizFlavour.difficulty_head +
       ", #{$num_quiz_replay} holes to be shifted by one of #{$std_semi_shifts.length} intervals"
+  end
+end
+
+
+class HitFromOff < QuizFlavour
+
+  $q_class2colls[self] = %w(mic)
+
+  def self.describe_difficulty
+    QuizFlavour.difficulty_head +
+      ", hit one hole from " +
+      ( $opts[:difficulty] == :easy  ?  'lower half of'  :  'full' ) +
+      " hole sets blow and draw"
   end
 end
 
@@ -2113,7 +2146,7 @@ class HearKey < QuizFlavour
       puts
       play_holes_or_notes_and_handle_kb notes, hide: [semi2note(isemi), :help]
     else
-      err "Internal error: #{seq}"
+      fail "Internal error: #{seq}"
     end
     make_term_cooked
   end
@@ -2626,7 +2659,7 @@ class KeepTempo < QuizFlavour
       
       tntf = Time.now.to_f
       ts_tick_end = ts_beat_start + (tick + 1) * @secs_per_beat / ticks_per_beat
-      err "Internal error: worked too long" if ts_tick_end < tntf
+      fail "Internal error: worked too long" if ts_tick_end < tntf
       sleep ts_tick_end - tntf
     end while alive
   end
@@ -2815,7 +2848,7 @@ def get_random_interval_as_holes sorted: false
   # favour lower holes
   all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
   loop do
-    err "Internal error: no more holes to try" if all_holes.length == 0
+    fail "Internal error: no more holes to try" if all_holes.length == 0
     holes_inter = [all_holes.shift, nil]
     $intervals_quiz[$opts[:difficulty]].clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
@@ -2871,7 +2904,7 @@ def get_holes_shift_info
     shift = all_shifts.sample
     shifted = unshifted.map{|h| $harp[h][:shifted_by][shift]}
     break(:found) if shifted.all?
-  end == :found or err "Internal error: too many tries"
+  end == :found or fail("Internal error: too many tries")
   idesc = if shift > 0
             $intervals[shift][0] + ' UP'
           else
@@ -3020,6 +3053,20 @@ def quiz_hint_in_handle_holes_shifted holes_shift_info
   clear_area_comment
   clear_area_message
   $ctl_kb_queue.clear
+end
+
+
+def quiz_hint_in_handle_holes_hit_from_off hole
+  clear_area_comment
+  clear_area_message
+  puts "\e[#{$lines[:comment] + 1}H"
+  puts "Help: Put down your harp and play hole\n\n\e[32m   #{hole}\e[0m\n\non the spot and as clean as possible"
+  $ctl_kb_queue.clear
+  puts "\n\e[0m\e[2m#{$resources[:any_key]}"
+  $ctl_kb_queue.clear
+  $ctl_kb_queue.deq
+  clear_area_comment
+  clear_area_message
 end
 
 

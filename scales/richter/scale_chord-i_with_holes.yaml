@@ -2,6 +2,7 @@
 desc: major chord I without flat seventh
 short: "1"
 holes:
+- "-1"
 - "-2"
 - "-3"
 - "-4"

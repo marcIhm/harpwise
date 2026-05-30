@@ -31,7 +31,7 @@ Overview
         Print and annotate the holes or scales or licks given; in
         general everything, that the wise knows about
   tools
-        More then 20 tools for various harmonica needs
+        More than 20 tools for various harmonica needs
   samples
         The wise assists in recording your own samples or generates them
         for you; this is a prerequisite for using some other modes, so

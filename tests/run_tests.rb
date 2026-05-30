@@ -810,8 +810,8 @@ do_test 'id-14b: check lick processing on tags.add, desc.add and rec.length' do
   licks = %w(one one two three).map do |lname| 
     dump[:licks].find {|l| l[:name] == lname} 
   end
-  expect(licks[1]) { licks[1][:tags] == %w(testing x no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-iv mostly-chord-v mostly-blues mostly-mape) }
-  expect(licks[2]) { licks[2][:tags] == %w(y no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-iv mostly-chord-v mostly-blues mostly-mape) }
+  expect(licks[1]) { licks[1][:tags] == %w(testing x no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-i mostly-chord-iv mostly-chord-v mostly-blues mostly-mape) }
+  expect(licks[2]) { licks[2][:tags] == %w(y no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-i mostly-chord-iv mostly-chord-v mostly-blues mostly-mape) }
   expect(licks[3]) { licks[3][:tags] == %w(fav favorites testing z no-rec shifts-four shifts-five shifts-flat-seventh shifts-eight mostly-chord-i mostly-chord-iv mostly-blues mostly-mape) }
   expect(licks[1]) { licks[1][:desc] == 'a b' }
   expect(licks[2]) { licks[2][:desc] == 'c b' }
@@ -1181,10 +1181,10 @@ do_test 'id-23: print list of licks with tags' do
    "  boogie-i ..... boogie,i-chord,no-rec,shifts-flat-seventh,shifts-eight,mostly-mape\n",
    "  boogie-iv ..... boogie,v-chord,no-rec,shifts-five,shifts-flat-seventh\n",
    "  boogie-v ..... boogie,v-chord,no-rec,shifts-four\n",
-   "  simple-turn ..... turn,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-iv,mostly-blues,mostly-mape\n",
-   "  special ..... advanced,samples,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-iv,mostly-blues,mostly-mape\n",
-   "  one ..... testing,x,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-iv,mostly-chord-v,mostly-blues,mostly-mape\n",
-   "  two ..... y,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-iv,mostly-chord-v,mostly-blues,mostly-mape\n",
+   "  simple-turn ..... turn,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-i,mostly-chord-iv,mostly-blues,mostly-mape\n",
+   "  special ..... advanced,samples,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-i,mostly-chord-iv,mostly-blues,mostly-mape\n",
+   "  one ..... testing,x,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-i,mostly-chord-iv,mostly-chord-v,mostly-blues,mostly-mape\n",
+   "  two ..... y,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-i,mostly-chord-iv,mostly-chord-v,mostly-blues,mostly-mape\n",
    "  three ..... fav,favorites,testing,z,no-rec,shifts-four,shifts-five,shifts-flat-seventh,shifts-eight,mostly-chord-i,mostly-chord-iv,mostly-blues,mostly-mape\n",
    "  long ..... testing,x,has-rec\n"].each_with_index do |exp,idx|
     expect(lines.each_with_index.map {|l,i| [i,l]},exp,12+idx) { lines[12+idx] == exp }
@@ -1211,7 +1211,7 @@ do_test 'id-23a: overview for all licks' do
    "  i-chord                              3\n",
    "  iv-chord                             2\n",
    "  mostly-blues                        14\n",
-   "  mostly-chord-i                       3\n",
+   "  mostly-chord-i                       7\n",
    "  mostly-chord-iv                      8\n",
    "  mostly-chord-v                       4\n",
    "  mostly-mape                         13\n",
@@ -1230,7 +1230,7 @@ do_test 'id-23a: overview for all licks' do
    "  y                                    1\n",
    "  z                                    1\n",
    " -----------------------------------------\n",
-   "  Total number of tags:              161\n",
+   "  Total number of tags:              165\n",
    "  Total number of different tags:     29\n",
    " -----------------------------------------\n",
    "  Total number of licks:              21\n"].each_with_index do |exp,idx|
@@ -1372,7 +1372,7 @@ do_test 'id-33: display as chart with scales' do
   tms 'harpwise listen blues:b --add-scales chord-i:1 --display chart-scales'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[8]['b   b1    1   b1    b    -    1   b1    b    -'] }
+  expect { screen[8]['b1   b1    1   b1    b    -    1   b1    b    -'] }
   kill_session
 end
 
@@ -1396,7 +1396,7 @@ do_test 'id-33b: display chart where -2 equals +3' do
   # ends on +3 ; change 8 into correct line
   expect { screen[4]['b4    4   b14']}
   # ends on -2 ; change 12 into correct line
-  expect { screen[8]['b5   b14']}
+  expect { screen[8]['b15  b14']}
   kill_session
 end
 
@@ -1414,7 +1414,7 @@ do_test 'id-34: comment with scales and octave shift' do
   tms 'harpwise licks blues:b --add-scales chord-i:1 --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b     +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
+  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   tms '#'
   sleep 1
   tms 'octave up'
@@ -1426,7 +1426,7 @@ do_test 'id-34: comment with scales and octave shift' do
   tms 'no shift'
   tms :ENTER
   sleep 2
-  expect { screen[15]['-1.b     +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
+  expect { screen[15]['-1.b1    +2     -2.b1   -3/.b     +3.b1   -3/.b   -3//'] }
   kill_session
 end
 
@@ -1956,7 +1956,7 @@ do_test 'id-53d: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis -v --add-scales chord-iv,chord-v | head -20'
   tms :ENTER
-  expect { screen[13]['-1.5     +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[13]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -2059,11 +2059,11 @@ do_test 'id-54e: print list of all scales' do
    "   \e[2mShort: b\e[0m\n",
    "   \e[2mDesc: middle octave of the blues scale\e[0m\n",
    " chord-i            \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles(8):  -2  -3  -4  +6  -7  -8  +9  +10/\n",
+   "   \e[2mHoles(9):  -1  -2  -3  -4  +6  -7  -8  +9  +10/\n",
    "   \e[2mShort: 1\e[0m\n",
    "   \e[2mDesc: major chord I without flat seventh\e[0m\n",
    " chord-i7           \e[2m(builtin)\e[0m:\n",
-   "   \e[2mHoles(10):  -2  -3  -4  -5  +6  -7  -8  -9  +9  +10/\n",
+   "   \e[2mHoles(11):  -1  -2  -3  -4  -5  +6  -7  -8  -9  +9  +10/\n",
    "   \e[2mShort: 1\e[0m\n",
    "   \e[2mDesc: major chord I with added flat seventh\e[0m\n",
    " chord-iv           \e[2m(builtin)\e[0m:\n",
@@ -3281,7 +3281,7 @@ do_test 'id-105: lick in shift circle' do
   tms 'harpwise licks --comment holes-scales --start-with st-louis'
   tms :ENTER
   wait_for_start_of_pipeline
-  expect { screen[15]['-1.b5     +2.4      -2.b14   -3/.b      +3.b14   -3/.b'] }
+  expect { screen[15]['-1.b15    +2.4      -2.b14   -3/.b      +3.b14   -3/.b'] }
   tms '#'
   sleep 2
   tms '#'
@@ -3495,12 +3495,26 @@ do_test 'id-112b: quiz-flavour inter-song' do
   kill_session
 end
 
+do_test 'id-112c: quiz-flavour hit-from-off' do
+  new_session
+  tms 'harpwise quiz hit-from-off --difficulty easy'
+  tms :ENTER
+  sleep 3
+  expect { screen[13]['Practice to hit a hole accurately'] }
+  tms :ENTER
+  sleep 4
+  tms 'q'
+  wait_for_end_of_harpwise
+  expect { screen[21]['Terminating on user request'] }
+  kill_session
+end
+
 do_test 'id-113a: quiz-flavour choose' do
   new_session
   tms 'harpwise quiz choose'
   tms :ENTER
   sleep 1
-  expect { screen[16]['Please choose among 22 (all) flavours and 7 collections'] }
+  expect { screen[16]['Please choose among 23 (all) flavours and 7 collections'] }
   tms 'silent'
   tms :ENTER
   expect { screen[18..22].any? {|l| l['another random flavour (silent)'] }}
@@ -4401,10 +4415,10 @@ end
 
 do_test 'id-157: tool search-scale-in-licks' do
   new_session
-  tms 'harpwise tools search-scale-in-licks chord-i'
+  tms 'harpwise tools search-scale-in-licks drawbends'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['box1-i  box2-i  three'] }
+  expect { screen[14]['all but 2 holes:    (1 licks)'] }
   kill_session
 end
 
