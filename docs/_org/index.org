@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.38.9/
+/Version  6.39.0/
 
 * Introduction
 
@@ -144,7 +144,7 @@ And, less interactive:
   - play :: The wise plays scales, holes, licks, intervals, chords, etc.
   - print :: Print and annotate the holes or scales or licks given; in
     general everything, that the wise knows about
-  - tools :: More then 20 tools for various harmonica needs
+  - tools :: More than 20 tools for various harmonica needs
   - samples :: The wise assists in recording your own samples or generates
     them for you; this is a prerequisite for using some other modes, so
     you will be asked to invoke it, when necessary
@@ -481,7 +481,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   harpwise, e.g. by pressing ctrl-z.  For a chosen flavour, different
   questions of this flavour are asked in an endless loop.
   
-  There are 31 flavours of quiz
+  There are 32 flavours of quiz
   listed below; however, you do not need to memorize them, as they will be
   explained on the spot when they appear.
 
@@ -565,6 +565,11 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       interval; it plays the original unshifted sequence and names and
       plays the first hole of the shifted sequence; then you should play
       BOTH the unshifted and shifted sequence together
+
+    - hit-from-off:
+      practice to hit a hole accurately: put down the harmonica and try
+      to play the given hole on the spot, clean and correct. The hole is
+      taken from hole sets blow and draw
 
     - key-harp-song:
       gives a key of harmonica and asks for the matching

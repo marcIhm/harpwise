@@ -313,7 +313,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       $perfctr[:lambda_comment_call] += 1
       case $opts[:comment]
       when :holes_scales, :holes_intervals, :holes_inter_semis, :holes_all, :holes_notes
-        fit_into_comment lambda_comment.call
+        fit_into_comment lambda_comment.call, center: ($mode == :quiz && $quiz_flavour == 'hit-from-off')
       when :journal, :warbles
         fit_into_comment lambda_comment.call('', nil, nil, nil, nil, nil)
       when :lick_holes, :lick_holes_large
@@ -618,16 +618,21 @@ def get_dots dots, delta_ok, freq, low, middle, high
 end
 
 
-def fit_into_comment lines
+def fit_into_comment lines, center: false
   start = if lines.length >= $lines[:hint_or_message] - $lines[:comment_tall]
             $lines[:comment_tall]
           else
             print "\e[#{$lines[:comment_tall]}H\e[K" if $lines[:comment_tall] != $lines[:comment]
             $lines[:comment]
           end
+  prefix = if center
+             ' ' * ( ( $term_width - lines.map {|l| l.length}.max ) / 2 )
+           else
+             ''
+           end
   print "\e[#{start}H\e[0m"
   (start .. $lines[:hint_or_message] - 1).to_a.each do |n|
-    puts ( lines[n - start] || "\e[K" )
+    puts prefix + ( lines[n - start] || "\e[K" )
   end 
 end
 

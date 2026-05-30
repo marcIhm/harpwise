@@ -229,6 +229,10 @@ quiz:
     interval; it plays the original unshifted sequence and names and
     plays the first hole of the shifted sequence; then you should play
     BOTH the unshifted and shifted sequence together
+  hit-from-off: |
+    practice to hit a hole accurately: put down the harmonica and try
+    to play the given hole on the spot, clean and correct. The hole is
+    taken from hole sets blow and draw
   key-harp-song: |
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa

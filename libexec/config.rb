@@ -303,6 +303,7 @@ def set_global_vars_early
     end
   end
   $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
+
   $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
 
   # Among processing e.g. for modes 'play' or 'prin'
