@@ -97,7 +97,7 @@ def tool_key_positions to_handle
   err "Can handle only one or two (optional) argument, not these: #{to_handle}" if to_handle.length > 2
 
   if to_handle.length >= 1 && to_handle[0] != '.'
-    harp_key = to_handle[0].downcase
+    circle_key = harp_key = to_handle[0].downcase
     err "Key   #{to_handle[1]}   is neither '.' not any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
     harp_color = "\e[0m\e[32m\e[7m"
   end
@@ -117,7 +117,7 @@ def tool_key_positions to_handle
   end
 
   circle = []
-  circle_key = song_key || harp_key
+  circle_key ||= song_key
   if circle_key
     # construct numbers for circle of fifth
     extract = lines.
