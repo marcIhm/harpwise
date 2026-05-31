@@ -227,11 +227,14 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
 
         when 'hit-from-off'
           unless first_round
-            holes = $named_hole_sets[[:blow, :draw].sample]
-            holes = holes[0 .. holes.length/2] if $opts[:difficulty] == :easy
+            hole_set = if $opts[:difficulty] == :easy
+                         [:blow, :draw].sample
+                       else
+                         [:blow_full, :draw_full].sample
+                       end
             quiz_prevs << quiz_hole_to_hit
             begin 
-              quiz_hole_to_hit = holes.sample
+              quiz_hole_to_hit = $named_hole_sets[hole_set].sample
             end while quiz_prevs.include?(quiz_hole_to_hit)
             quiz_prevs.shift if quiz_prevs.length > 2
           end

@@ -867,12 +867,12 @@ def read_and_set_musical_config
   hole_sets = yaml_parse(sets_file).transform_keys!(&:to_sym)
   required = Set[:typical_hole, :named_sets]
   found = Set.new(hole_sets.keys)
-  err "Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}" unless required == found
+  fail("Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}") unless required == found
   typical_hole = hole_sets[:typical_hole]
   named_hole_sets = hole_sets[:named_sets].transform_keys!(&:to_sym)
-  required = Set[:draw, :blow]
+  required = Set[:draw, :blow, :draw_full, :blow_full]
   found = Set.new(named_hole_sets.keys)
-  err "Internal error: Characteristic sets #{found} from #{sets_file} is different from required set #{required}" unless required == found
+  fail("Internal error: Hole sets #{found} from #{sets_file} is different from required set #{required}") unless required == found
 
   # read from first available intervals file
   ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}

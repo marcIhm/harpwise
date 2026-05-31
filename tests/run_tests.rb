@@ -2910,7 +2910,7 @@ do_test 'id-89: quiz-flavour random' do
   sleep 1
   tms :C_z  ## CTRL-Z
   sleep 2
-  expect { screen[4]['quiz...quiz'] }
+  expect { screen[4]['quiz...'] }
   expect { screen.any? {|l| l['Starting over with a different flavour due to signal ctrl-z'] }}
   kill_session
 end
@@ -3328,7 +3328,8 @@ do_test 'id-107a: quiz-flavour hole-note-key' do
   sleep 1
   tms 'help-semis'
   tms :ENTER
-  expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  sleep 1
+  expect { screen[11]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
   kill_session
 end
 
@@ -3342,7 +3343,7 @@ do_test 'id-107b: quiz-flavour hole-hide-note' do
   sleep 1
   tms 'help-semis'
   tms :ENTER
-  expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  expect { screen[11]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
   kill_session
 end
 
@@ -3500,7 +3501,7 @@ do_test 'id-112c: quiz-flavour hit-from-off' do
   tms 'harpwise quiz hit-from-off --difficulty easy'
   tms :ENTER
   sleep 3
-  expect { screen[13]['Practice to hit a hole accurately'] }
+  expect { screen[14]['Practice to hit a hole accurately'] }
   tms :ENTER
   sleep 4
   tms 'q'

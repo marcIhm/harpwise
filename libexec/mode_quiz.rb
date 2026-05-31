@@ -148,9 +148,12 @@ def do_quiz to_handle
   elsif $quiz_flavour == 'hit-from-off'
 
     back_to_comment_after_mode_switch
-    holes = $named_hole_sets[[:blow, :draw].sample]
-    holes = holes[0 .. holes.length/2] if $opts[:difficulty] == :easy
-    hole_to_hit = holes.sample
+    hole_set = if $opts[:difficulty] == :easy
+                 [:blow, :draw].sample
+               else
+                 [:blow_full, :draw_full].sample
+               end
+    hole_to_hit = $named_hole_sets[hole_set].sample
     $opts[:comment] = :holes_all
     puts
     puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{hole_to_hit}\e[0m"
@@ -718,9 +721,8 @@ class HitFromOff < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", hit one hole from " +
-      ( $opts[:difficulty] == :easy  ?  'lower half of'  :  'full' ) +
-      " hole sets blow and draw"
+      ", hit one hole from hole sets " +
+      ( $opts[:difficulty] == :easy  ?  'blow and draw'  :  'blow_full and draw_full' )
   end
 end
 
