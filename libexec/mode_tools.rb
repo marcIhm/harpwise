@@ -97,18 +97,18 @@ def tool_key_positions to_handle
   err "Can handle only one or two (optional) argument, not these: #{to_handle}" if to_handle.length > 2
 
   if to_handle.length >= 1 && to_handle[0] != '.'
-    song_key = to_handle[0].downcase
-    err "Key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
-    song_color = "\e[0m\e[34m\e[7m"
-  end
-
-  if to_handle.length >= 2 && to_handle[1] != '.'
-    harp_key = to_handle[1].downcase
+    harp_key = to_handle[0].downcase
     err "Key   #{to_handle[1]}   is neither '.' not any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
     harp_color = "\e[0m\e[32m\e[7m"
   end
 
-  lines = File.read("#{$dirs[:install]}/resources/keys-positions.org").lines
+  if to_handle.length >= 2 && to_handle[1] != '.'
+    song_key = to_handle[1].downcase
+    err "Key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
+    song_color = "\e[0m\e[34m\e[7m"
+  end
+
+  lines = File.read("#{$dirs[:install]}/resources/keys_positions.txt").lines
   harp_idx = 0
   lines.each do |line|
     next unless line['%s']
@@ -116,18 +116,49 @@ def tool_key_positions to_handle
     harp_idx += 1
   end
 
+  circle = []
+  circle_key = song_key || harp_key
+  if circle_key
+    # construct numbers for circle of fifth
+    extract = lines.
+                select {|l| l['%s']}.
+                map {|l| l.
+                       split('|')[1 .. -3].
+                       map {|f| f.tr(' ','').upcase}}
+    wanted = circle_key.upcase
+    4.times do
+      extract.each_with_index do |line, idx|
+        if line[0] == wanted ||
+           wanted.length > 1 && line[0][wanted]
+          circle << idx
+          wanted = line[-1]
+          break
+        end
+      end
+    end
+  end
+
+  puts
+  puts "\e[0m\e[2mThe key of the harp equals the key of the song in first position\nThe song key in 4th position also gives the rel. minor"
+  puts "Circle of fifth starting from #{circle_key} can be followed with the numbers\nat line start" if circle_key
+  print "\e[0m"
   idx = 0
   puts
   lines.each do |line|
-    print '  '
     if line['%s']
+      if cidx = circle.index(idx)
+        print "\e[2m#{cidx + 1}\e[0m"
+      else
+        print ' '
+      end
       line = colorize_word_cell(line, song_key, song_color,
                                 idx == harp_idx  ?  harp_color  :  "\e[0m")
-      print line % (idx - harp_idx).to_s.rjust(3)
+      print ' ' + line.chomp % (idx - harp_idx).to_s.rjust(3)
       print "\e[0m"
+      puts
       idx += 1
     else
-      print "\e[0m\e[2m" + line + "\e[0m"
+      print "  \e[0m\e[2m" + line + "\e[0m"
     end
   end
   puts
@@ -239,7 +270,7 @@ end
 def colorize_word_cell plain, word, color_word, color_normal
   colored = "\e[0m\e[2m"
   plain.strip.split('|').each_with_index do |field, idx|
-    colored += if word && idx >= 2 && field.downcase.match?(/\b#{word}\b/)
+    colored += if word && idx >= 1 && field.downcase.match?(/\b#{word}\b/)
                  color_word
                else
                  color_normal

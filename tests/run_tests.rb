@@ -4481,6 +4481,16 @@ end
 
 ENV['HARPWISE_TESTING'] = '1'
 
+do_test 'id-161: tool keys' do
+  new_session
+  tms 'harpwise tools keys c d'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[13]['1 | D       | A       | E       | B       |     2 |'] }
+  expect { screen[19]['4 | F       | C       | G       | D       |     5 |'] }
+  kill_session
+end
+
 puts
 puts
 
