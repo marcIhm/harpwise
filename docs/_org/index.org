@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.39.1/
+/Version  6.39.5/
 
 * Introduction
 
@@ -142,8 +142,8 @@ specifies the mode of operation; it can be one of:
 And, less interactive:
 
   - play :: The wise plays scales, holes, licks, intervals, chords, etc.
-  - print :: Print and annotate the holes or scales or licks given; in
-    general everything, that the wise knows about
+  - print :: Print and annotate the holes or scales or licks given. In
+    general this can print anything, that the wise knows about
   - tools :: More than 20 tools for various harmonica needs
   - samples :: The wise assists in recording your own samples or generates
     them for you; this is a prerequisite for using some other modes, so
@@ -1322,11 +1322,14 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       For a diatonic harmonica: print a chart with keys and positions
       centered around current key; this tool accepts two optional extra
       arguments, which control coloured emphasis in the otherwise fixed
-      chart.  The first argument is the key of the song, the second the
-      key of the harp; use '.' to skip emphasising the song.
+      chart.  The first argument is the key of the harp, the second the
+      key of the song; use '.' to skip emphasising the harp.
+      
+      As the song positions are a fifth apart from each other, you
+      may also read this chart as a circle of fifths.
       
       Use option --brief to print a version shortend to the most common
-      keys and position.
+      keys and scond position only.
 
     - spread-notes:
       take a list of notes (e.g. a, a4, b, cs) as arguments and turn

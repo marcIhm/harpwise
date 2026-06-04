@@ -351,7 +351,7 @@ def parse_arguments_early
 
   opts[:no_player_info] = true if opts[:scale_prog]
 
-  err "Option '--brief' and '--verbose' are both set" if opts[:brief] && opts[:verbose]
+  err "Option '--brief' and '--verbose' are both given" if opts[:brief] && opts[:verbose]
   
   if opts[:what] && !$what_abbrevs.values.flatten.include?(opts[:what])
     puts "\nThese are the known values for option '--what' along with their description:\n\n"

@@ -1116,11 +1116,11 @@ do_test 'id-22a: print finds a lick ignoring tag-selection' do
   tms 'harpwise print --tags-all favorites one'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[14]['Tags:'] }
+  expect { screen[15]['Tags:'] }
   # tags do not contain 'favorites'
   expect { !screen[1 .. -1].any? {|l| l['favorites']} }
   # but the lick is still found
-  expect { screen[20]['1 licks printed'] }
+  expect { screen[21]['1 licks printed'] }
   kill_session
 end
 
@@ -1788,7 +1788,7 @@ do_test 'id-50a: tools keys' do
   new_session
   tms 'harpwise tools b keys'
   tms :ENTER
-  expect { screen[7]['B       | B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0'] }
+  expect { screen[7]['| B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0 |'] }
   kill_session
 end
 
@@ -1917,14 +1917,14 @@ end
 
 do_test 'id-53a: print holes' do
   new_session
-  tms "harpwise print +2  +1  +3  -4  -4/ --flats>#{$testing_output_file}"
+  tms "harpwise print +2  +1  +3  -4  -4/ --flats --verbose>#{$testing_output_file}"
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  {11 => 'Notes:',
-   12 => 'e4  c4  g4  d5  df5',
-   35 => 'With intervals to first as positive semitones (maybe minus octaves)',
-   36 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
+  {5 => 'As notes:',
+   6 => 'e4  c4  g4  d5  df5',
+   29 => 'With intervals to first as positive semitones (maybe minus octaves)',
+   30 => '+2.0st        +1.8st-1oct   +3.3st        -4.10st'}.each do |lno, exp|
     expect(lines.each_with_index.map {|l,i| [i,l]}, lno, exp) {lines[lno][exp]}
   end
   kill_session
@@ -1932,12 +1932,13 @@ end
 
 do_test 'id-53b: print with sharps' do
   new_session
-  tms "harpwise print st-louis -v  --sharps >#{$testing_output_file}"
+  tms "harpwise print st-louis -v --sharps >#{$testing_output_file}"
   tms :ENTER
   sleep 1
   wait_for_end_of_harpwise  
   lines = File.read($testing_output_file).lines
-  expect(16, lines.each_with_index.map {|l,i| [i,l]}) {lines[16]['d4  e4  g4  as4  g4  as4  a4  g4']}
+  expected = [11, 'd4  e4  g4  as4  g4  as4  a4  g4']
+  expect(expected, lines.each_with_index.map {|l,i| [i,l]}) {lines[expected[0]][expected[1]]}
   kill_session
 end
 
@@ -1947,7 +1948,7 @@ do_test 'id-53c: print' do
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[9]['a4.5   b4.1   c4.b4']}
+  expect(lines.each_with_index.map {|l,i| [i,l]}) {lines[12]['a4.5   b4.1   c4.b4']}
   kill_session
 end
 
@@ -1956,7 +1957,7 @@ do_test 'id-53d: print with scale' do
   new_session 120, 40
   tms 'harpwise print chord-i st-louis -v --add-scales chord-iv,chord-v | head -20'
   tms :ENTER
-  expect { screen[13]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
+  expect { screen[18]['-1.15    +2.4     -2.14   -3/      +3.14   -3/    -3//.5     -2.14'] }
   kill_session
 end
 
@@ -2037,7 +2038,7 @@ do_test 'id-54d: print selected licks' do
   tms "harpwise print -v licks-details --tags-any favorites"
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[0]['In chart with notes'] }
+  expect { screen[9]['As absolute semitones'] }
   expect { screen[12]['Other properties'] }
   kill_session
 end
@@ -2086,7 +2087,7 @@ do_test 'id-54f: print scale with sharps' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(18, lines.each_with_index.map {|l,i| [i,l]}) {lines[18]['g4  as4  c5  cs5  d5  f5  g5']}
+  expect(18, lines.each_with_index.map {|l,i| [i,l]}) {lines[12]['g4  as4  c5  cs5  d5  f5  g5']}
   kill_session
 end
 
@@ -2097,7 +2098,7 @@ do_test 'id-54g: print scale with flats' do
   tms :ENTER
   wait_for_end_of_harpwise
   lines = File.read($testing_output_file).lines
-  expect(18, lines.each_with_index.map {|l,i| [i,l]}) {lines[18]['g4  bf4  c5  df5  d5  f5  g5']}
+  expect(12, lines.each_with_index.map {|l,i| [i,l]}) {lines[12]['g4  bf4  c5  df5  d5  f5  g5']}
   kill_session
 end
 
@@ -2377,7 +2378,7 @@ end
 do_test 'id-64a: print some holes and notes' do
   new_session
   # a5 and d2 do not correspond to any hole
-  tms 'harpwise print a -1 a5 +4 d2'
+  tms 'harpwise print a -1 a5 +4 d2 -v'
   tms :ENTER
   sleep 2
   expect { screen[3]['-1.0st       a5.22st      +4.10st      d2.3st-2oct'] }
@@ -2678,7 +2679,7 @@ end
 
 do_test 'id-77: print for chromatic' do
   new_session
-  tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales -"
+  tms "harpwise print chromatic c4 e4 g4 c5 e5 g5 c6 --add-scales - -v"
   tms :ENTER
   sleep 1
   expect { screen[1]['c4.0st   e4.4st   g4.7st   c5.12st  e5.16st  g5.19st  c6.24st'] }
@@ -3526,7 +3527,7 @@ do_test 'id-113a: quiz-flavour choose' do
 end
 
 do_test 'id-113b: change key by menu' do
-  new_session
+  new_session 90, 24
   tms 'harpwise quiz hole-hide-note --keep-key'
   tms :ENTER
   sleep 1
@@ -4486,8 +4487,8 @@ do_test 'id-161: tool keys' do
   tms 'harpwise tools keys c d'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[13]['1 | D       | A       | E       | B       |     2 |'] }
-  expect { screen[19]['4 | F       | C       | G       | D       |     5 |'] }
+  expect { screen[9]['1 | C       | G       | D       | A       |     0 |'] }
+  expect { screen[3]['2 | A       | E       | B       | Fs, Gf  |    -3 |'] }
   kill_session
 end
 

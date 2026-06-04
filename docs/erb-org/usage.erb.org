@@ -21,8 +21,8 @@ specifies the mode of operation; it can be one of:
 And, less interactive:
 
   - play :: The wise plays scales, holes, licks, intervals, chords, etc.
-  - print :: Print and annotate the holes or scales or licks given; in
-    general everything, that the wise knows about
+  - print :: Print and annotate the holes or scales or licks given. In
+    general this can print anything, that the wise knows about
   - tools :: More than 20 tools for various harmonica needs
   - samples :: The wise assists in recording your own samples or generates
     them for you; this is a prerequisite for using some other modes, so

@@ -139,7 +139,8 @@ def tool_key_positions to_handle
   end
 
   puts
-  puts "\e[0m\e[2mThe key of the harp equals the key of the song in first position\nThe song key in 4th position also gives the rel. minor"
+  puts "\e[0m\e[2mThe key of the harp equals the key of the song in first position\nThe song key in 4th position also gives the relative minor"
+  puts "For richter harps positions 1 and 2 are blow and draw chords respectively"
   puts "Circle of fifth starting from #{circle_key} can be followed with the numbers\nat line start" if circle_key
   print "\e[0m"
   idx = 0

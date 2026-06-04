@@ -24,12 +24,15 @@ Overview of 'harpwise tools'
   - keys: For a diatonic harmonica: print a chart with keys and
     positions centered around current key; this tool accepts two
     optional extra arguments, which control coloured emphasis in the
-    otherwise fixed chart.  The first argument is the key of the song,
-    the second the key of the harp; use '.' to skip emphasising the
-    song.
+    otherwise fixed chart.  The first argument is the key of the harp,
+    the second the key of the song; use '.' to skip emphasising the
+    harp.
+
+    As the song positions are a fifth apart from each other, you may
+    also read this chart as a circle of fifths.
 
     Use option --brief to print a version shortend to the most common
-    keys and position.
+    keys and scond position only.
 
   - spread-notes: take a list of notes (e.g. a, a4, b, cs) as arguments
     and turn them into a list of holes that produce them. As the octave

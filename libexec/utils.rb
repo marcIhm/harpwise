@@ -266,9 +266,15 @@ def print_mission text, ncol = 0
 end
 
 
-def print_in_columns names, indent: 2, pad: :space, highlight: nil
+def print_in_columns names, indent: 2, pad: :space, highlight: nil, lowlights: nil
+  fail 'Internal error: highlight and lowlights are both given' if highlight and lowlights
   head = ' ' * indent
   line = ''
+  lowl_at = if lowlights
+              (0 ... names.length).to_a.select {|idx| lowlights.include?(names[idx])}
+            else
+              []
+            end
   padded_names = case pad
                  when :tabs
                    names.map {|nm| ' ' + nm + ' '}.
@@ -282,15 +288,20 @@ def print_in_columns names, indent: 2, pad: :space, highlight: nil
                    names_maxlen = names.max_by(&:length).length
                    names.map {|nm| '  ' + ' ' * (names_maxlen - nm.length) + nm}
                  else
-                   err "Internal error, unknown padding type: #{pad}"
+                   fail "Internal error, unknown padding type: #{pad}"
                  end
-  padded_names.each do |nm|
+  padded_names.each_with_index do |nm,idx|
     if (head + line + nm).length > $term_width - 4
       line = highlight_helper(line, highlight)
       puts head + line.strip
       line = ''
     end
-    line += nm
+    line += if lowl_at.include?(idx)
+              "\e[0m\e[31m#{nm}\e[0m"
+            else
+              nm
+            end
+            
   end
   line = highlight_helper(line, highlight)
   puts head + line.strip unless line.strip.empty?
@@ -496,7 +507,7 @@ end
 def get_prior_history_records *for_modes
 
   for_modes.each do |m|
-    err "Internal error: unknown mode: #{m}" unless $early_conf[:modes].include?(m.to_s)
+    fail "Internal error: unknown mode: #{m}" unless $early_conf[:modes].include?(m.to_s)
   end
   num_entries_wanted = 16
   num_entries = 0
@@ -677,7 +688,7 @@ def switch_modes
       $opts[:iterate] = :random
       $opts[:tags_any] = 'journal' if $journal.select {|h| !musical_event?(h)}.length > 0
     else
-      err "Internal error: invalid mode switch #{mode_prev} to #{$mode}"
+      fail "Internal error: invalid mode switch #{mode_prev} to #{$mode}"
     end
   end
 
@@ -742,7 +753,7 @@ end
 def recognize_among val, choices, licks: $licks
   return nil unless val
   choices = [choices].flatten
-  err("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
+  fail("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
   choices.each do |choice|
     next if $opts[:what] && $opts[:what] != choice    
     # keys must be the same as in $amongs

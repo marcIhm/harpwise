@@ -25,7 +25,6 @@ def do_print to_print
   # common error checking
   err_args_not_allowed(args_for_extra) if $extra && !%w(player players lick-progs lick-progressions scale scales chart charts).include?($extra) && args_for_extra.length > 0
 
-  
   if !$extra
 
     if holes_or_notes.length > 0
@@ -50,7 +49,7 @@ def do_print to_print
         puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
         scale_holes, _ = read_and_parse_scale(sname)
-        print_holes_and_more scale_holes, brief: ( true && !$opts[:verbose] )
+        print_holes_and_more scale_holes, embedded: true
         if $scale2desc[sname] || $scale2short[sname]
           puts
           puts "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
@@ -118,7 +117,7 @@ def do_print to_print
           puts
           puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         end
-        print_holes_and_more lick[:holes_wo_events], brief: ( true && !$opts[:verbose] )
+        print_holes_and_more lick[:holes_wo_events], embedded: true
         print_lick_meta lick unless $opts[:brief]                
       end
       puts
@@ -228,25 +227,42 @@ def do_print to_print
 end
 
 
-def print_holes_and_more holes_or_notes, brief: false
+def print_holes_and_more holes_or_notes, embedded: false
 
   holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
   notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
 
-  print "\e[2mHoles or notes given:"
-  if holes_or_notes.length == 0
-    puts "  none\e[0m"
-    return
-  end
-  puts "\e[0m"
+  brief, verbose = if embedded
+                     if $opts[:verbose]
+                       [false, false]
+                     else
+                       [true, false]
+                     end
+                   else
+                     [$opts[:brief], $opts[:verbose]]
+                   end
+                     
 
-  if brief || $opts[:brief] 
-    puts holes_or_notes.join('  ')
-    return 
+  if embedded
+    print "\e[2mHoles or notes:"
+    if holes_or_notes.length == 0
+      puts "  none\e[0m"
+    else
+      puts "\e[0m"
+      print_in_columns holes_or_notes
+    end
+    return if brief
   end
-  print_in_columns holes_or_notes, pad: :tabs
-  
+    
+  puts "\e[2mAs notes:\e[0m"
+  print_in_columns(notes)
   puts
+  puts "\e[2mAs holes:\e[0m"
+  print_in_columns(holes, lowlights: notes)
+  puts
+
+  return if brief
+  
   if $used_scales[0] == 'all'
     puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
     puts
@@ -256,41 +272,36 @@ def print_holes_and_more holes_or_notes, brief: false
     print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
   end
-  puts "\e[2mNotes:\e[0m"
-  print_in_columns(notes)
-  puts
-  puts "\e[2mWith holes:\e[0m"
-  print_in_columns(holeify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mHoles only:\e[0m"
-  print_in_columns(holes)
-  puts
-  puts "\e[2mWith intervals between:\e[0m"
-  print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mWith intervals between as semitones:\e[0m"
-  print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mWith intervals to first:\e[0m"
-  print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
-  print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mWith intervals to first as semitones:\e[0m"
-  print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
-  puts
-  puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
-  print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
-  puts
+  if verbose
+    puts "\e[2mWith intervals between:\e[0m"
+    print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+    puts
+    puts "\e[2mWith intervals between as semitones:\e[0m"
+    print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+    puts
+    puts "\e[2mWith intervals to first:\e[0m"
+    print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+    puts
+    puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
+    print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+    puts
+    puts "\e[2mWith intervals to first as semitones:\e[0m"
+    print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+    puts
+    puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
+    print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+    puts
+  end
   puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
   print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
-  puts 
-  puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
-  puts
-  puts "\e[2mIn chart with notes:\e[0m"
-  print_chart_with_notes notes
+  puts unless embedded
+  if verbose
+    puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
+    print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+    puts
+    puts "\e[2mIn chart with notes:\e[0m"
+    print_chart_with_notes notes
+  end
 end
 
 
@@ -846,6 +857,6 @@ def print_single_lick lname
   puts_underlined "#{lname}:", '-', dim: false
   puts unless $opts[:brief]
   lick = $licks.find {|l| l[:name] == lname}
-  print_holes_and_more lick[:holes_wo_events], brief: ( true && !$opts[:verbose] )
+  print_holes_and_more lick[:holes_wo_events], embedded: true
   print_lick_meta lick unless $opts[:brief]
 end
