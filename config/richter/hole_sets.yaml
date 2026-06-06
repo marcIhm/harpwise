@@ -1,21 +1,21 @@
 ---
 typical_hole: "-2"
 named_sets:
-    blow:
+    blow-low:
     - "+1"
     - "+2"
     - "+3"
     - "+4"
     - "+5"
     - "+6"
-    draw:
+    draw-low:
     - "-1"
     - "-2"
     - "-3"
     - "-4"
     - "-5"
     - "-6"
-    blow_full:
+    blow-full:
     - "+1"
     - "+2"
     - "+3"
@@ -26,7 +26,7 @@ named_sets:
     - "+8"
     - "+9"
     - "+10"
-    draw_full:
+    draw-full:
     - "-1"
     - "-2"
     - "-3"

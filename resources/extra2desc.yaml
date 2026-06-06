@@ -72,8 +72,14 @@ tools:
     Accept a sequence of holes, convert them into
     notes and move these to another harp with a different
     key, keeping the notes in the process, but (of course)
-    changing the holes. This answer the question: Can the
+    changing the holes. This answers the question: Can the
     exact same notes be played on another harp?
+  match-harps: |
+    Accept a sequence of notes or holes and take those through harps
+    of all known keys, checking if the holes can be played; this tool
+    regards either all holes or the hole sets draw_full and blow_full.
+    It answers the question (e.g.): Can a series of notes be played
+    on any harmonica? Can it be played without bends?
   shift: |
     shift a sequence of holes or notes or a single lick by the given
     number of semitones (first argument)
@@ -235,7 +241,7 @@ quiz:
   hit-from-off: |
     practice to hit a hole accurately: put down the harmonica and try
     to play the given hole on the spot, clean and correct. The hole is
-    taken from the (full) hole sets blow and draw
+    taken from the (full or low) hole sets blow and draw
   key-harp-song: |
     gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa

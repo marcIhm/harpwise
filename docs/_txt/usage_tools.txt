@@ -10,8 +10,15 @@ Overview of 'harpwise tools'
 
   - change-harp: Accept a sequence of holes, convert them into notes and
     move these to another harp with a different key, keeping the notes
-    in the process, but (of course) changing the holes. This answer the
+    in the process, but (of course) changing the holes. This answers the
     question: Can the exact same notes be played on another harp?
+
+  - match-harps: Accept a sequence of notes or holes and take those
+    through harps of all known keys, checking if the holes can be
+    played; this tool regards either all holes or the hole sets
+    draw_full and blow_full.  It answers the question (e.g.): Can a
+    series of notes be played on any harmonica? Can it be played without
+    bends?
 
   - shift: shift a sequence of holes or notes or a single lick by the
     given number of semitones (first argument)

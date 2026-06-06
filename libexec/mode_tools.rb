@@ -12,6 +12,8 @@ def do_tools to_handle
   case $extra
   when 'change-harp'
     tool_change_harp to_handle
+  when 'match-harps'
+    tool_match_harps to_handle
   when 'shift'
     tool_shift to_handle
   when 'shift-to-groups'
@@ -309,6 +311,105 @@ def tool_change_harp to_handle
              end].flatten
   end
   print_transposed(cols, [2])
+  puts
+end
+
+
+def tool_match_harps to_handle
+
+  err "Need at least one hole or note as an argument" if to_handle.length == 0
+
+  semis_wanted_unshifted_all = to_handle.map do |hon|
+    semi = note2semi(hon, (2..8), true) || ($hole2note[hon] && note2semi($hole2note[hon], (2..8), true))
+    err "Argument '#{hon}' is neither a note (e.g. a4 or ds6) nor a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless semi
+    semi
+  end
+  to_handle_as_notes = semis_wanted_unshifted_all.map {|semi| semi2note(semi)}
+  semis_wanted_unshifted = semis_wanted_unshifted_all.sort.uniq
+  ranked = []
+
+  hole_set_sets = {'all holes' => ['all'],
+                   'plain draw and blow' => %w(draw-full blow-full)}
+
+  puts "\e[2m"
+  puts "Trying to fit the #{to_handle.length} holes given (#{semis_wanted_unshifted.length} uniq) onto harmonicas of all keys"
+  puts 'using hole sets ' + hole_set_sets.keys.map {|n| "'#{n}'"}.join(' and ')
+  puts 'maybe by shifting up or down one octave'
+  puts 'Reporting best matches only, ranked by size of hole-set used'
+  puts
+  puts 'To get the actual holes to play, use (replace KEY):'
+  puts
+  puts "  harpwise print  KEY  #{to_handle_as_notes.join(' ')}" 
+  puts "\e[0m"
+  
+  # also try one octave up and down
+  [0, 1, -1].each do |octave_shift|
+
+    puts
+    case octave_shift
+    when 0
+      puts "Trying   UNSHIFTED   notes given"
+    when 1
+      puts "Shifting notes given   UP   one octave"
+    when -1
+      puts "Shifting notes given   DOWN   one octave"
+    end
+    puts
+    
+    semis_wanted = semis_wanted_unshifted.map {|semi| semi + octave_shift * 12}
+    $all_harp_keys.each do |key|
+
+      # change key
+      $key = key
+      set_global_vars_late          
+      set_global_musical_vars shortcut_licks: true
+      
+      hole_set_sets_holes = hole_set_sets.map do |name, hole_sets|
+        semis_avail = hole_sets.map do |hole_set|
+          $named_hole_sets[hole_set].map do |hole|
+            note2semi($hole2note[hole], (2..8), true)
+          end
+        end.flatten.sort.uniq
+        [name, semis_avail]
+      end.to_h
+      
+      hole_set_sets_holes.each do |name_avail, semis_avail|
+        semis_missing = semis_wanted - semis_avail
+        ranked << [semis_missing.length, semis_avail.length, $key, name_avail]
+      end
+    end
+    
+    ranked.sort! do |a, b|
+      2 * ( a[0] <=> b[0] ) + ( a[1] <=> b[1] )
+    end
+
+    total = 0
+    has_num_missing_zero = false
+    ranked.group_by {|x| x[0]}.to_a.each do |num_missing, details_per_rank|
+
+      if num_missing == 0
+        puts "\e[32m  Keys having   ALL   of the notes given"
+        has_num_missing_zero = true
+      elsif num_missing == semis_wanted.length
+        puts "\e[33m  No Keys having any of these holes\e[0m" unless has_num_missing_zero
+        break
+      else
+        puts "\e[34m  Keys having   ALL BUT #{num_missing}   of the notes given"
+      end
+
+      details_per_rank.group_by {|d| d[3]}.each do |name_avail, details_per_avail|
+        
+        puts "    for hole set   '#{name_avail}'"
+        puts
+        puts "      " +  details_per_avail.map {|d| d[2]}.sort_by {|k| note2semi(k + '4')}.uniq.join('  ')
+        puts
+        total += details_per_avail.length
+        
+      end
+      print "\e[0m"
+      break if total > 4
+    end
+  end  ## each octave_shift
   puts
 end
 

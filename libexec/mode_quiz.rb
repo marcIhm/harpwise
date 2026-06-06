@@ -149,9 +149,9 @@ def do_quiz to_handle
 
     back_to_comment_after_mode_switch
     hole_set = if $opts[:difficulty] == :easy
-                 [:blow, :draw].sample
+                 %w(blow-low draw-low).sample
                else
-                 [:blow_full, :draw_full].sample
+                 %w(blow-full draw-full).sample
                end
     hole_to_hit = $named_hole_sets[hole_set].sample
     $opts[:comment] = :holes_all
@@ -258,7 +258,7 @@ class QuizFlavour
   def initialize first_round
     @state = Hash.new
     @state_orig = @state.clone
-    @hole_sets_names = $named_hole_sets.keys
+    @@hole_sets_names = %w(blow-low draw-low)
     # default: dont try uncommon keys, may be overriden per flavour
     @difficulty_to_key_set = {easy: $common_harp_keys, hard: $common_harp_keys}
     # see selfcheck for allowed values
@@ -562,9 +562,9 @@ class QuizFlavour
                     else
                       ["\e[2m", "\e[0m"]
                     end
-    semi_min = @hole_sets_names.map {|d| $named_hole_sets[d]}.flatten.
+    semi_min = @@hole_sets_names.map {|d| $named_hole_sets[d]}.flatten.
                  map {|h| $harp[h][:semi]}.min
-    (sets || @hole_sets_names).each_with_index do |desc, idx|
+    (sets || @@hole_sets_names).each_with_index do |desc, idx|
       nmd_holes = $named_hole_sets[desc]
       fail "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
       holes = nmd_holes.map {|h| "#{h}  "}
@@ -722,7 +722,7 @@ class HitFromOff < QuizFlavour
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
       ", hit one hole from hole sets " +
-      ( $opts[:difficulty] == :easy  ?  'blow and draw'  :  'blow_full and draw_full' )
+      ( $opts[:difficulty] == :easy  ?  'blow-low and draw-low'  :  'blow-full and draw-full' )
   end
 end
 
@@ -1950,7 +1950,7 @@ class HoleHideNote < QuizFlavour
     @key_contributes_to_solution = :part_of_solution
     change_key if first_round && !$opts[:keep_key]
     @samples_needed = false
-    @hs_name = @hole_sets_names.sample
+    @hs_name = @@hole_sets_names.sample
     @choices = ($named_hole_sets[@hs_name].map {|h| $harp[h][:note].gsub(/\d+$/,'')} - [$key]).uniq
     @choices_orig = @choices.clone
     begin
@@ -2007,10 +2007,10 @@ class HearHoleSet < QuizFlavour
     @key_contributes_to_solution = :part_of_solution
     @harp_keys = @difficulty_to_key_set[$opts[:difficulty]]
     change_key if first_round && !$opts[:keep_key]
-    @choices = @harp_keys.map {|chk| $named_hole_sets.keys.map {|hs| "#{chk}-#{hs}"}}.flatten
+    @choices = @harp_keys.map {|chk| @@hole_sets_names.map {|hs| "#{chk}-#{hs}"}}.flatten
     @choices_orig = @choices.clone
 
-    @hole_set = $named_hole_sets.keys.sample
+    @hole_set = @@hole_sets_names.sample
     @solution = "#{$key}-" + @hole_set.to_s
     @holes = $named_hole_sets[@hole_set]
       
@@ -2025,7 +2025,7 @@ class HearHoleSet < QuizFlavour
         'common harp keys only'
       else
         'all harp keys'
-      end + " and all (#{$named_hole_sets.length}) hole sets"
+      end + " and hole sets #{@@hole_sets_names.join(', ')}"
   end
 
   def issue_question

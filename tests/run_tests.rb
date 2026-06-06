@@ -1116,14 +1116,15 @@ do_test 'id-22a: print finds a lick ignoring tag-selection' do
   tms 'harpwise print --tags-all favorites one'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[15]['Tags:'] }
+  expect { screen[14]['Tags:'] }
   # tags do not contain 'favorites'
   expect { !screen[1 .. -1].any? {|l| l['favorites']} }
   # but the lick is still found
-  expect { screen[21]['1 licks printed'] }
+  expect { screen[20]['1 licks printed'] }
   kill_session
 end
 
+# restart does not work (why?)
 do_test 'id-22b: print a lick without holes' do
   FileUtils.cp $lickfile_testing, $lickfile_testing_saved
   File.write($lickfile_testing,
@@ -1133,9 +1134,9 @@ do_test 'id-22b: print a lick without holes' do
   new_session
   tms 'harpwise print solo'
   tms :ENTER
-  FileUtils.mv $lickfile_testing_saved, $lickfile_testing
   wait_for_end_of_harpwise
-  expect { screen[9]['Holes or notes given:  none'] }
+  FileUtils.mv $lickfile_testing_saved, $lickfile_testing
+  expect { screen[9]['Holes or notes:  none'] }
   kill_session
 end
 
@@ -2672,7 +2673,7 @@ do_test 'id-76b: helpful error message on unknown tool' do
   tms 'harpwise tools x'
   tms :ENTER
   sleep 5
-  expect { screen[13]['First argument for mode tools should be one of these'] }
+  expect { screen[12]['First argument for mode tools should be one of these'] }
   expect { screen[21]['You may supply a longer string to see it highlighted'] }
   kill_session
 end
@@ -3152,7 +3153,7 @@ do_test 'id-96g: quiz-flavour hear-hole-set' do
   sleep 2
   tms :ENTER
   sleep 2
-  expect { screen[0]['then asks for the key and the hole set'] }
+  expect { screen[16]['Pick the key and hole-set, that has been played'] }
   tms 'solve'
   tms :ENTER
   sleep 2
@@ -3330,7 +3331,7 @@ do_test 'id-107a: quiz-flavour hole-note-key' do
   tms 'help-semis'
   tms :ENTER
   sleep 1
-  expect { screen[11]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
   kill_session
 end
 
@@ -3344,7 +3345,7 @@ do_test 'id-107b: quiz-flavour hole-hide-note' do
   sleep 1
   tms 'help-semis'
   tms :ENTER
-  expect { screen[11]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
+  expect { screen[12]['+2st   +7st  +11st  +14st  +17st  +21st'] }  
   kill_session
 end
 
@@ -3502,7 +3503,7 @@ do_test 'id-112c: quiz-flavour hit-from-off' do
   tms 'harpwise quiz hit-from-off --difficulty easy'
   tms :ENTER
   sleep 3
-  expect { screen[14]['Practice to hit a hole accurately'] }
+  expect { screen[13]['Practice to hit a hole accurately'] }
   tms :ENTER
   sleep 4
   tms 'q'
@@ -4489,6 +4490,16 @@ do_test 'id-161: tool keys' do
   wait_for_end_of_harpwise
   expect { screen[9]['1 | C       | G       | D       | A       |     0 |'] }
   expect { screen[3]['2 | A       | E       | B       | Fs, Gf  |    -3 |'] }
+  kill_session
+end
+
+do_test 'id-162: tool match-harps' do
+  new_session
+  tms 'harpwise tools match-harps +3  +4  -2  -2//  +4  -2 -2//  +2  +4  +2  -1 +4 -3  -2  -2//  +2  +4 +5'
+  tms :ENTER
+  wait_for_end_of_harpwise
+  expect { screen[9]["for hole set   'all holes'"] }
+  expect { screen[11] == '      c  g' }
   kill_session
 end
 

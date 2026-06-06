@@ -228,9 +228,9 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         when 'hit-from-off'
           unless first_round
             hole_set = if $opts[:difficulty] == :easy
-                         [:blow, :draw].sample
+                         %w(blow-low draw-low).sample
                        else
-                         [:blow_full, :draw_full].sample
+                         %w(blow-full draw-full).sample
                        end
             quiz_prevs << quiz_hole_to_hit
             begin 

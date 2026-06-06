@@ -84,7 +84,8 @@ Overview of 'harpwise quiz'
 
   - hit-from-off: practice to hit a hole accurately: put down the
     harmonica and try to play the given hole on the spot, clean and
-    correct. The hole is taken from the (full) hole sets blow and draw
+    correct. The hole is taken from the (full or low) hole sets blow and
+    draw
 
   - key-harp-song: gives a key of harmonica and asks for the matching
     key of song (2nd position) or vice versa
