@@ -326,7 +326,7 @@ def tool_match_harps to_handle
   end
   to_handle_as_notes = semis_wanted_unshifted_all.map {|semi| semi2note(semi)}
   semis_wanted_unshifted = semis_wanted_unshifted_all.sort.uniq
-  ranked = []
+  missing = nil
 
   hole_set_sets = {'all holes' => ['all'],
                    'plain draw and blow' => %w(draw-full blow-full)}
@@ -357,14 +357,19 @@ def tool_match_harps to_handle
     puts
     
     semis_wanted = semis_wanted_unshifted.map {|semi| semi + octave_shift * 12}
+    missing = []
+
+    # try all known harp keys
     $all_harp_keys.each do |key|
 
       # change key
       $key = key
       set_global_vars_late          
       set_global_musical_vars shortcut_licks: true
-      
-      hole_set_sets_holes = hole_set_sets.map do |name, hole_sets|
+
+      # try plain, then all holes
+      hole_set_sets_semis = hole_set_sets.map do |name, hole_sets|
+
         semis_avail = hole_sets.map do |hole_set|
           $named_hole_sets[hole_set].map do |hole|
             note2semi($hole2note[hole], (2..8), true)
@@ -373,29 +378,34 @@ def tool_match_harps to_handle
         [name, semis_avail]
       end.to_h
       
-      hole_set_sets_holes.each do |name_avail, semis_avail|
+      hole_set_sets_semis.each do |name_avail, semis_avail|
         semis_missing = semis_wanted - semis_avail
-        ranked << [semis_missing.length, semis_avail.length, $key, name_avail]
+        missing << [semis_missing.length, semis_avail.length, $key, name_avail]
       end
-    end
+    end  ## $all_harp_keys.each
     
-    ranked.sort! do |a, b|
+    ranked = missing.sort do |a, b|
+      # sort by semis_missing.length ascending and semis_avail.length descending
       2 * ( a[0] <=> b[0] ) + ( a[1] <=> b[1] )
     end
 
-    total = 0
+    num_num_missing = 0
     has_num_missing_zero = false
     ranked.group_by {|x| x[0]}.to_a.each do |num_missing, details_per_rank|
 
       if num_missing == 0
         puts "\e[32m  Keys having   ALL   of the notes given"
         has_num_missing_zero = true
+
       elsif num_missing == semis_wanted.length
         puts "\e[33m  No Keys having any of these holes\e[0m" unless has_num_missing_zero
         break
+
       else
         puts "\e[34m  Keys having   ALL BUT #{num_missing}   of the notes given"
+
       end
+      num_num_missing += 1
 
       details_per_rank.group_by {|d| d[3]}.each do |name_avail, details_per_avail|
         
@@ -403,12 +413,14 @@ def tool_match_harps to_handle
         puts
         puts "      " +  details_per_avail.map {|d| d[2]}.sort_by {|k| note2semi(k + '4')}.uniq.join('  ')
         puts
-        total += details_per_avail.length
         
       end
+      
       print "\e[0m"
-      break if total > 4
-    end
+      break if num_num_missing > 1
+
+    end  ## loop over ranked and grouped
+
   end  ## each octave_shift
   puts
 end
