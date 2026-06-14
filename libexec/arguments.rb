@@ -66,6 +66,8 @@ def parse_arguments_early
         options: %w(--show-options -o)}],
      [Set[:samples, :listen, :quiz, :licks, :play, :print], {
         screenshot: %w(--screenshot)}],
+     [Set[:listen, :quiz, :licks, :play, :tools, :print], {
+        octave_shift: %w(--octave-shift)}],
      [Set[:listen, :quiz, :licks, :tools, :print], {
         add_scales: %w(-a --add-scales ),
         ref: %w(-r --reference ),
@@ -322,6 +324,12 @@ def parse_arguments_early
     err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
   end.to_sym
 
+  if opts[:octave_shift]
+    opts[:octave_shift] = match_or(opts[:octave_shift], %w(up down)) do |none, choices|
+      err "Value #{none} of option '--octave-shift' is none of #{choices}"
+    end.to_sym
+  end
+    
   if opts[:difficulty] =~ /^\d+$/
     dicu = opts[:difficulty_numeric] = opts[:difficulty].to_i
     err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)

@@ -4498,10 +4498,40 @@ do_test 'id-162: tool match-harps' do
   tms 'harpwise tools match-harps +3  +4  -2  -2//  +4  -2 -2//  +2  +4  +2  -1 +4 -3  -2  -2//  +2  +4 +5'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[9]["for hole set   'all holes'"] }
-  expect { screen[11] == '      c  g' }
+  expect { screen[9]['Shifting notes given   DOWN   one octave'] }
+  expect { screen[16]['Keys having   ALL BUT 4   of the notes given'] }
+  expect { screen[19] == '      bf  b' }
   kill_session
 end
+
+do_test 'id-163: listen to low harp' do
+  # See id-59, where we get the same results with "sound 40, 2", i.e. one octave higher
+  sound 40, -10
+  new_session
+  # dont know why we need to set it here too (at least ubuntu)
+  tms 'harpwise listen a full --comment journal --octave-shift down'
+  tms :ENTER
+  wait_for_start_of_pipeline
+  sleep 1
+  tms :ENTER
+  tms :ENTER
+  sleep 1
+  expect { screen[-8] == '     -4     -4' }
+  kill_session
+  ENV.delete('EDITOR')
+end
+
+do_test 'id-164: play lick one octave higher' do
+  new_session
+  tms 'harpwise play wade --octave-shift up'
+  tms :ENTER
+  sleep 2
+  expect { screen[9]['Lick   wade'] }
+  sleep 4
+  expect { screen[15]['Done with playing 1 licks.'] }
+  kill_session
+end
+
 
 puts
 puts

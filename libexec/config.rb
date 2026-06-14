@@ -776,6 +776,13 @@ end
 
 def read_and_set_musical_config
   $hole2note_for_c = yaml_parse($holes_file)
+  if $opts[:octave_shift]
+    dsemi = $opts[:octave_shift] == :up  ?  12  :  -12
+    $hole2note_for_c.transform_values! do |note|
+      semi2note(note2semi(note) + dsemi)
+    end
+  end
+
   $dsemi_key_minus_c = diff_semitones($key, 'c', strategy: :minimum_distance)
   harp = Hash.new
   hole2flags = Hash.new {|h,k| h[k] = Set.new}
@@ -1273,31 +1280,44 @@ end
 def read_samples
   err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first!\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
   hole2freq = yaml_parse($freq_file)
+  if $opts[:octave_shift]
+    fmult = $opts[:octave_shift] == :up  ?  2.0  :  0.5
+    hole2freq.transform_values! do |freq|
+      freq * fmult
+    end
+  end
   unless Set.new($harp_holes) == Set.new(hole2freq.keys)
     err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples!\n\n#{for_sample_generation}"
   end
   hole2freq.each do |hole, freq|
     err "The frequency for hole   #{hole}   in #{$freq_file} is zero. Probably you need to re-record this sample or delete it!" if freq == 0
   end
-  $harp_holes.each_cons(2).all? do |ha, hb|
-    fa = hole2freq[ha]
-    fa_plus = semi2freq_et($harp[ha][:semi] + 0.5)
-    fa_minus = semi2freq_et($harp[ha][:semi] - 0.5)
-    fb_plus = semi2freq_et($harp[hb][:semi] + 0.5)
-    maybe = "Maybe re-record hole #{ha} or simply generate all holes for this key."
-    if fa >= fb_plus
-      err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}"
-    end
-    if fa <= fa_minus || fa >= fa_plus
-      err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}"
+
+  # Skip checking on shift; it has probably passed before unshifted
+  unless $opts[:octave_shift]
+    $harp_holes.each_cons(2).all? do |ha, hb|
+      fa = hole2freq[ha]
+      fa_plus = semi2freq_et($harp[ha][:semi] + 0.5)
+      fa_minus = semi2freq_et($harp[ha][:semi] - 0.5)
+      fb_plus = semi2freq_et($harp[hb][:semi] + 0.5)
+      maybe = "Maybe re-record hole #{ha} or simply generate all holes for this key."
+      if fa >= fb_plus
+        err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}"
+      end
+      if fa <= fa_minus || fa >= fa_plus
+        err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}"
+      end
     end
   end
 
   hole2freq.map {|k,v| $harp[k][:freq] = v}
 
-  $harp_holes.each do |hole|
-    file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3))
-    err "Sample file #{file} does not exist; you need to create samples" unless File.exist?(file)
+  unless $opts[:octave_shift]
+    $harp_holes.each do |hole|
+      file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3))
+      err "Sample for hole #{hole} does not exist; you need to create samples" unless file
+      err "Sample file #{file} does not exist; you need to create samples" unless File.exist?(file)
+    end
   end
 
   # 'reverse', because we want to get the first of two holes having the same freq

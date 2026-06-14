@@ -325,6 +325,8 @@ def tool_match_harps to_handle
     semi
   end
   to_handle_as_notes = semis_wanted_unshifted_all.map {|semi| semi2note(semi)}
+  to_handle_as_notes_up = semis_wanted_unshifted_all.map {|semi| semi2note(semi + 12)}
+  to_handle_as_notes_down = semis_wanted_unshifted_all.map {|semi| semi2note(semi - 12)}
   semis_wanted_unshifted = semis_wanted_unshifted_all.sort.uniq
   missing = nil
 
@@ -339,7 +341,9 @@ def tool_match_harps to_handle
   puts
   puts 'To get the actual holes to play, use (replace KEY):'
   puts
-  puts "  harpwise print  KEY  #{to_handle_as_notes.join(' ')}" 
+  puts "  harpwise print  KEY  #{to_handle_as_notes.join(' ')}    #  unshifted" 
+  puts "  harpwise print  KEY  #{to_handle_as_notes_up.join(' ')}    #  octave up" 
+  puts "  harpwise print  KEY  #{to_handle_as_notes_down.join(' ')}    #  octave down" 
   puts "\e[0m"
   
   # also try one octave up and down
@@ -422,6 +426,7 @@ def tool_match_harps to_handle
     end  ## loop over ranked and grouped
 
   end  ## each octave_shift
+  puts "\e[2mSee also explanations at the top.\e[0m"
   puts
 end
 

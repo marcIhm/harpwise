@@ -199,6 +199,20 @@ time_slice:
     termination, that will allow to judge the situation.
   - SHORT_MEDIUM_LONG
 
+octave_shift:
+  - |
+    Shift notes of the harp
+    
+    up or down one octave. This can be used as a quick way to handle
+    harmonicas, which are one octace lower or higher than normal.
+    This option accepts the keywords 'up' and 'down'; it is supported
+    for most, but not all modes of harpwise.
+
+    It works by shifting the note values, that define your harmonica
+    (file holes.yaml) accordingly; Recorded samples for licks are
+    shifted too, which may or may not sound odd.
+  - UP_OR_DOWN
+    
 viewer:
   - |
     Method to view images (e.g. of players);

@@ -18,6 +18,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
                 end
 
   dsemi = diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
+  dsemi += {nil => 0, up: 12, down: -12}[$opts[:octave_shift]]
   pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
   tempo = 1.0
   imm_ctrls_again = [:replay, :slower, :faster, :vol_up, :vol_down]
