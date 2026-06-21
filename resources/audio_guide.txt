@@ -69,3 +69,4 @@ fine; in my case (2025-01-26) however it was necessary to do:
   
 to prevent audio from stuttering or even stopping.
 
+You may have a look at logfiles in /mnt/wslg
