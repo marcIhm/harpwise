@@ -8,7 +8,12 @@ screenshot:
   -
 
 help:
-  -
+  - |
+    show help
+
+version:
+  - |
+    show version, copyright and pointer to source-code
 
 license:
   - |

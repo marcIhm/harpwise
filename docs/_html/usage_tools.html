@@ -195,14 +195,19 @@
 </head>
 <body>
 <div id="content" class="content">
-<div id="outline-container-org1529734" class="outline-2">
-<h2 id="org1529734">Overview of 'harpwise tools'</h2>
-<div class="outline-text-2" id="text-org1529734">
+<div id="outline-container-org3d65284" class="outline-2">
+<h2 id="org3d65284">Overview of 'harpwise tools'</h2>
+<div class="outline-text-2" id="text-org3d65284">
 <p>
-The mode 'tools' offers some non-interactive but useful utilities,
-which are mostly related to basic harmonica theory; they do not use
-microphone or speaker.
+The mode 'tools' offers 27 utilities, which can be broadly
+categorized into two groups:
 </p>
+
+<ul class="org-ul">
+<li>Transform the given hole or note-material in various ways</li>
+<li>Support the operation and configuration of harpwise</li>
+</ul>
+
 
 <p>
 The required additional argument specifies the tool to run;
@@ -355,9 +360,9 @@ might have come up with the other diag-tools.</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org89d4b1e" class="outline-2">
-<h2 id="org89d4b1e">Usage by Examples</h2>
-<div class="outline-text-2" id="text-org89d4b1e">
+<div id="outline-container-org6bbaf54" class="outline-2">
+<h2 id="org6bbaf54">Usage by Examples</h2>
+<div class="outline-text-2" id="text-org6bbaf54">
 <p>
 Transpose a sequence of notes (some specified as holes) from
 the key of c to g (keeping the notes/pitches constant):
@@ -569,6 +574,40 @@ Transcribe and audio-file given on the commandline approximately:
 <p>
 for simple harmonica content this will give you sequence of holes
 played in lick wade.mp3 (from current working dir)
+</p>
+
+
+<p>
+Help diagnose sound-problems in your setup:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools diag
+</pre>
+</div>
+
+<p>
+will invoke an interactive assistant to check, if your soundsystem
+(e.g. alsa, pulseaudi) is working as expected.
+</p>
+
+
+<p>
+Check, which harmonica keys can play a given sequence of holes or
+notes. E.g. if you have some holes involving bends, you may want to
+know, if a harp in another key could play them without:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-nil">harpwise tools match-harps -1 -2/ -3// -3
+</pre>
+</div>
+
+<p>
+this will take the holes given (key of c), converts them to notes
+and tries to find them on harmonicas of all keys, giving the results
+as an overview list. For the example you may then deduce, that a
+g-harmonica would play this as: -2 -3 -4 +5
 </p>
 </div>
 </div>

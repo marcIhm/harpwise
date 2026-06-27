@@ -1,14 +1,17 @@
+# -*- fill-column: 94 -*-
 
 * Ideas for the future
 
   - A new harmonica-type 'low-richter'
-    - Would require the user to create a new lickfile (maybe thats what we want); mp3s could be
-      shared with a new config
+    - Would require the user to create a new lickfile (maybe thats what he wants); mp3s could
+      be shared with a new config
     - Goes further than --octave-shift
 
   - Accepting a scale argument like 'scale1,scale2,scale3' instead of
     'scale1 --add-scales scale2,scale3'
-  
+
+  - AUDIODRIVER in config
+    
 * Conventions
   
   Some coding or spelling conventions for harpwise

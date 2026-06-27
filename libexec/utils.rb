@@ -450,13 +450,13 @@ def animate_splash_line single_line = false, as_string: false
     version_clause = "\e[2m#{$version}\e[0m"
     print "\e[0m\e[2m" + ('| ' * 10) + "|\e[1G"
     sleep 0.08
-    print "|\e[0m\e[92m~\e[0m\e[2m|\e[2D"
+    print "\e[0m|\e[92m~\e[0m|\e[3D"
     sleep 0.04
     '~HARPWISE~'.each_char.each_cons(2) do |c1, c2|
-      print "\e[0m\e[32m#{c1}\e[0m\e[2m|\e[0m\e[1m\e[92m#{c2}\e[0m\e[2m|\e[0m\e[2D"
+      print "\e[0m\e[2m|\e[0m\e[32m#{c1}\e[0m|\e[0m\e[1m\e[92m#{c2}\e[0m|\e[3D"
       sleep 0.04
     end
-    print "\e[32m~\e[0m\e[2m|\e[0m"
+    print "\e[0m\e[2m|\e[0m\e[32m~\e[0m\e[2m|\e[0m"
     puts unless single_line
     sleep 0.04
     if single_line
@@ -876,7 +876,7 @@ def print_amongs *choices, **kws
                                       summary[:highlight][:color] = "\e[0m\e[7m\e[92m"
                                       "\nBut it still appears and has been   \e[1mhighlighted   \e[0m#{summary[:highlight][:count]} times as part of valid choices."
                                     else
-                                      "\nIt is   \e[1mnot even a substring   \e[0mof any valid choice.\nMaybe try a shorter argument to see get highlights."
+                                      "\nIt is   \e[1mnot even a substring   \e[0mof any valid choice.\nMaybe try a shorter argument to get highlights."
                                     end
   elsif hl_text
     summary[:highlight] = 

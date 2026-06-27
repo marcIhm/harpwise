@@ -234,22 +234,22 @@ Featuring Sonny Boy Williamson
 
    Two topmost two lines, that show e.g.
    
-   - The current mission, i.e. what you are supposed to do; in the example
+   - The current mission, i.e. what you are supposed to do. In the example
      this is simply 'Play from 4 scales'.
    - As a special case, when mode 'listen' takes part in a jam, this line
      shows your exact position within the scale progression (iteration,
      chord and second)
    - In the top-right corner you get immediate feedback on keys beeing
      pressed or a hint on how to get help
-   - A summary of the current settings: mode, harmonica-type, key and
-     scales
+   - Line 2: A summary of the current settings: mode, harmonica-type, key
+     and scales
 
 ** The 'display'
 
    This part of the screen (i.e. most of its upper half) shows different
    versions of a harmonica chart as known from textbooks. In addition, the
    holes, that you are playing are highlighted in colours according
-   to the scale.
+   to the active scale.
 
    To change the display type 'd' repeatedly or type 'D' to get a menu
    with descriptions.
@@ -269,8 +269,8 @@ Featuring Sonny Boy Williamson
 ** The 'comment'
 
    This part of the screen (i.e. most of its lower half) shows comments.
-   E.g. when in mode licks, harpwise expects you to play a sequence of
-   holes, the comment-region shows the sequence of holes that you have
+   E.g. when in mode 'licks' and harpwise expects you to play a sequence
+   of holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
 
    In the example-screenshot, the comment shows the note beeing played in

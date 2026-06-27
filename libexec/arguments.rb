@@ -21,6 +21,21 @@ def parse_arguments_early
     exit 0
   end
   
+  # version information
+  if ARGV.length == 0 || %w(--version).any? {|w| w.start_with?(ARGV[0])}
+    puts
+    puts "harpwise version   #{$version}"
+    puts
+    puts "    Copyright (c) 2021-2026 by Marc Ihm (marc@ihm.name)"
+    puts
+    puts "Subject to the MIT License, type 'harpwise --license' for details"
+    puts
+    puts "Source code at          https://github.com/marcIhm/harpwise"
+    puts "Full documentation at   https://marcihm.github.io/harpwise"
+    puts
+    exit 0
+  end
+  
   # produce license
   if ARGV.include?('--license')
     puts
@@ -60,6 +75,7 @@ def parse_arguments_early
     [[full_set, {
         debug: %w(--debug),
         help: %w(-h --help -? --usage),
+        version: %w(--version --ver),
         sharps: %w(--sharps),
         flats: %w(--flats),
         license: %w(--license),
@@ -784,11 +800,7 @@ def print_usage_info mode = nil
   else
     puts <<EOFOOTER
 
-\e[2mVersion #{$version}
-Copyright (c) 2021-2026 by Marc Ihm (marc@ihm.name) 
-Harpwise is subject to the MIT License, type 'harpwise --license' for details.
-Source code at   https://github.com/marcIhm/harpwise
-#{full}\e[0m
+\e[2m#{full}\e[0m
 EOFOOTER
   end
   puts

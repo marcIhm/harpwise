@@ -125,7 +125,7 @@ usage_types.values.map {|p| p[0]}.each do |fname|
   end
 end
 # check count, so that we may not break our detection of usage examples unknowingly
-num_exp = 119
+num_exp = 121
 fail "Unexpected number of examples #{usage_examples.length} instead of #{num_exp}\n" unless usage_examples.length == num_exp
 puts "\nPreparing data"
 # need a sound file
@@ -422,7 +422,7 @@ usage_types.keys.each_with_index do |mode, idx|
                      'licks' => [5, "The mode 'licks' helps to learn and memorize licks."],
                      'play' => [5, "The mode 'play' takes its arguments"],
                      'print' => [5, 'and prints them with additional'],
-                     'tools' => [5, "The mode 'tools' offers some non-interactive"],
+                     'tools' => [5, "The mode 'tools' offers 27 utilities"],
                      'develop' => [5, "This mode is useful only for the maintainer or developer"],
                      'jamming' => [5, "Scripted jamming along a backing track"] }
     
@@ -1610,7 +1610,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms :ENTER
   sleep 2
   expect { screen[16]['First argument for mode print should belong to one of the 11 types'] }
-  expect { screen[20]['But it still appears and has been  highlighted  2 times as part of valid'] }
+  expect { screen[20]['But it still appears and has been   highlighted   2 times as part of valid'] }
   kill_session
 end
 
@@ -2519,7 +2519,7 @@ end
     wait_for_start_of_pipeline
     sleep 6
     tms 'q'
-    expect(vals) { ( md = screen[19].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
+    expect(vals) { ( md = screen[19].match(/handle_holes_this_loops_per_second: (\d+\.\d+)/) ) &&
                    lpsrange.include?(md[1].to_f) }
     kill_session
   end
@@ -2693,7 +2693,7 @@ do_test 'id-77a: error on abbreviated type' do
   tms "harpwise print chrom c4 e4 g4 c5 e5 g5 c6 --add-scales -"
   tms :ENTER
   sleep 1
-  expect { screen[20]["not among  these choices (for any type):  chrom"] }
+  expect { screen[19]["not among  these choices (for any type):  chrom"] }
   kill_session
 end
 
@@ -3944,13 +3944,13 @@ do_test 'id-133a: check content of man-page' do
   kill_session  
 end
 
-do_test 'id-133b: correct version is shown in usage' do
+do_test 'id-133b: correct version shown' do
   new_session
   version = File.read("resources/version.txt").chomp
-  tms 'harpwise'
+  tms 'harpwise --version'
   tms :ENTER
   sleep 3
-  expect(version) { screen[16][version] }
+  expect(version) { screen[2][version] }
   kill_session
 end
 
@@ -4336,15 +4336,15 @@ do_test 'id-148: tool diag2' do
 end
 
 do_test 'id-149: tool diag3' do
-  new_session
+  new_session 80,40
   tms 'harpwise tool diag3'
   tms :ENTER
   sleep 1
   tms :ENTER
   sleep 3
   wait_for_end_of_harpwise
-  expect { screen[1]['AUBIO ERROR: source_avcodec: Failed opening - (No such file or directory)'] }
-  expect { screen[17]['Diagnosis done'] }
+  expect { screen[15]['sox WARN wav: Length in output .wav header will be wrong'] }
+  expect { screen[33]['Diagnosis done'] }
   kill_session
 end
 

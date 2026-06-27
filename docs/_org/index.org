@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.41.0/
+/Version  6.41.1/
 
 * Introduction
 
@@ -340,16 +340,19 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   The mode 'listen' shows information on the notes you play; depending
   on settings for display and comment this can be:
 
-    - Hole
-    - Note
-    - Membership of played note in various scales
-    - Interval to previous note
-    - Difference to a reference note, e.g. to practice bends
-    - Speed of warbles
+  - Hole
+  - Note
+  - Membership of played note in various scales
+  - Interval to previous note
+  - Difference to a reference note, e.g. to practice bends
+  - Speed of warbles
 
-  When playing, you may switch on journal to get a simple
-  transcription of the holes played.
 
+  Switch the comment, to try these extended functions:
+  
+  - journal :: for a quick transcription of the holes played; use this
+    to note down musical ideas
+  - warbles :: work on your warbles; speed and accuracy
 
 ** Usage by Examples:
 
@@ -1294,9 +1297,12 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 
 ** Overview of 'harpwise tools'
 
-  The mode 'tools' offers some non-interactive but useful utilities,
-  which are mostly related to basic harmonica theory; they do not use
-  microphone or speaker.
+  The mode 'tools' offers 27 utilities, which can be broadly
+  categorized into two groups:
+
+  - Transform the given hole or note-material in various ways
+  - Support the operation and configuration of harpwise
+  
 
   The required additional argument specifies the tool to run;
   it can be one of:
@@ -1588,6 +1594,30 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
   played in lick wade.mp3 (from current working dir)
 
 
+  Help diagnose sound-problems in your setup:
+  
+    #+begin_src 
+    harpwise tools diag
+    #+end_src
+
+  will invoke an interactive assistant to check, if your soundsystem
+  (e.g. alsa, pulseaudi) is working as expected.
+
+
+  Check, which harmonica keys can play a given sequence of holes or
+  notes. E.g. if you have some holes involving bends, you may want to
+  know, if a harp in another key could play them without:
+
+    #+begin_src 
+    harpwise tools match-harps -1 -2/ -3// -3
+    #+end_src
+
+  this will take the holes given (key of c), converts them to notes
+  and tries to find them on harmonicas of all keys, giving the results
+  as an overview list. For the example you may then deduce, that a
+  g-harmonica would play this as: -2 -3 -4 +5
+
+
 * harpwise samples
 
 ** Overview of 'harpwise samples'
@@ -1821,22 +1851,22 @@ Featuring Sonny Boy Williamson
 
    Two topmost two lines, that show e.g.
    
-   - The current mission, i.e. what you are supposed to do; in the example
+   - The current mission, i.e. what you are supposed to do. In the example
      this is simply 'Play from 4 scales'.
    - As a special case, when mode 'listen' takes part in a jam, this line
      shows your exact position within the scale progression (iteration,
      chord and second)
    - In the top-right corner you get immediate feedback on keys beeing
      pressed or a hint on how to get help
-   - A summary of the current settings: mode, harmonica-type, key and
-     scales
+   - Line 2: A summary of the current settings: mode, harmonica-type, key
+     and scales
 
 ** The 'display'
 
    This part of the screen (i.e. most of its upper half) shows different
    versions of a harmonica chart as known from textbooks. In addition, the
    holes, that you are playing are highlighted in colours according
-   to the scale.
+   to the active scale.
 
    To change the display type 'd' repeatedly or type 'D' to get a menu
    with descriptions.
@@ -1856,8 +1886,8 @@ Featuring Sonny Boy Williamson
 ** The 'comment'
 
    This part of the screen (i.e. most of its lower half) shows comments.
-   E.g. when in mode licks, harpwise expects you to play a sequence of
-   holes, the comment-region shows the sequence of holes that you have
+   E.g. when in mode 'licks' and harpwise expects you to play a sequence
+   of holes, the comment-region shows the sequence of holes that you have
    already played or are expected to play.
 
    In the example-screenshot, the comment shows the note beeing played in

@@ -11,8 +11,14 @@ Overview of 'harpwise listen'
   - Difference to a reference note, e.g. to practice bends
   - Speed of warbles
 
-  When playing, you may switch on journal to get a simple transcription
-  of the holes played.
+
+  Switch the comment, to try these extended functions:
+
+  journal
+        for a quick transcription of the holes played; use this to note
+        down musical ideas
+  warbles
+        work on your warbles; speed and accuracy
 
 
 Usage by Examples:

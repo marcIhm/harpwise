@@ -1,9 +1,12 @@
 Overview of 'harpwise tools'
 ============================
 
-  The mode 'tools' offers some non-interactive but useful utilities,
-  which are mostly related to basic harmonica theory; they do not use
-  microphone or speaker.
+  The mode 'tools' offers 27 utilities, which can be broadly categorized
+  into two groups:
+
+  - Transform the given hole or note-material in various ways
+  - Support the operation and configuration of harpwise
+
 
   The required additional argument specifies the tool to run; it can be
   one of:
@@ -271,3 +274,27 @@ Usage by Examples
 
   for simple harmonica content this will give you sequence of holes
   played in lick wade.mp3 (from current working dir)
+
+
+  Help diagnose sound-problems in your setup:
+
+  ,----
+  | harpwise tools diag
+  `----
+
+  will invoke an interactive assistant to check, if your soundsystem
+  (e.g. alsa, pulseaudi) is working as expected.
+
+
+  Check, which harmonica keys can play a given sequence of holes or
+  notes. E.g. if you have some holes involving bends, you may want to
+  know, if a harp in another key could play them without:
+
+  ,----
+  | harpwise tools match-harps -1 -2/ -3// -3
+  `----
+
+  this will take the holes given (key of c), converts them to notes and
+  tries to find them on harmonicas of all keys, giving the results as an
+  overview list. For the example you may then deduce, that a g-harmonica
+  would play this as: -2 -3 -4 +5
