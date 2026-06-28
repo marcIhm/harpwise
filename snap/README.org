@@ -7,14 +7,15 @@
 
   On the other hand, we want snapcraft.yaml to be part of repo
   harpwise. Therefore we use build.sh, which updates things within
-  ~/hw-snap. build.sh is a softlink, which needs to be created by
-  hand.
+  ~/hw-snap. build.sh there is a softlink, which needs to be created
+  by hand.
 
   As ~/hw-snap is not part of the git repo, make sure not to edit there !
     
 * Development cycle (in ~/hw-snap)
 
-  ./harpwise/snap/build.sh
+  cd ~/hw-build
+  ./build.sh
   
   - snap warnings
   - sudo snap okay
