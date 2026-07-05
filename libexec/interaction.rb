@@ -1594,8 +1594,8 @@ end
 
 def get_complex_key
   #
-  # Hint: use "showkey -a" to find out the exact character-sequence, that
-  # are beeing sent by special keys
+  # Hint: Also use "showkey -a" to find out the exact
+  # character-sequence, that are beeing sent by special keys
   #
   key = STDIN.getc
   complete = true
@@ -1663,7 +1663,8 @@ def get_complex_key
 
   #
   # Translate selected control-characters and escape-sequences into
-  # descriptive and printable text
+  # descriptive and printable text. Tested under Windows Terminal and
+  # KDE Konsole.
   #
   if key.length == 1
 
