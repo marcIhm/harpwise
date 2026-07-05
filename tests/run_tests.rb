@@ -2209,8 +2209,8 @@ do_test 'id-58: listen with journal on request, recall later' do
   wait_for_start_of_pipeline
   sleep 1
   tms 'j'
+  tms 'a'
   sleep 2
-  tms 'q'
   tms :ENTER
   tms :ENTER
   tms :ENTER
@@ -2225,8 +2225,7 @@ do_test 'id-58: listen with journal on request, recall later' do
   expect { File.exist?(journal_file) }
   tms 'j'
   sleep 2
-  tms 'c'
-  tms 'c'
+  tms :C_H # CTRL-H or CTRL-BACKSPACE
   sleep 1
   expect { screen[-7]['No journal yet to show'] }
   tms 'j'
@@ -2246,6 +2245,9 @@ do_test 'id-59: listen and edit journal' do
   tms :ENTER
   wait_for_start_of_pipeline
   sleep 1
+  tms 'j'
+  tms 'a'
+  tms :C_H
   tms :ENTER
   tms :ENTER
   sleep 1
@@ -4511,6 +4513,9 @@ do_test 'id-163: listen to low harp' do
   # dont know why we need to set it here too (at least ubuntu)
   tms 'harpwise listen a full --comment journal --octave-shift down'
   tms :ENTER
+  tms 'j'
+  tms 'a'
+  tms :C_H
   wait_for_start_of_pipeline
   sleep 1
   tms :ENTER

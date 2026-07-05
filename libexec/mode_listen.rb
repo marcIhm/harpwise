@@ -128,7 +128,7 @@ def do_listen
                when :journal
                  return ["\e[K",
                          "\e[K",
-                         "   No journal yet to show ...\e[2m journal all is #{$journal_all  ?  ' ON'  :  'OFF'}\e[0m\e[K",
+                         "   No journal yet to show ...\e[2m journal all is \e[0m#{$journal_all  ?  ' ON'  :  'OFF'}\e[2m\e[0m\e[K",
                          "\e[K",
                          "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
                          "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all  ?  'ON'  :  'OFF'})\e[0m"] if journal_length == 0
@@ -269,24 +269,10 @@ def do_listen
     end
 
     if $ctl_mic[:journal_clear]
-      clear_area_comment
-      print "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[0;101mSure to clear journal?\e[0m\n\n"
-      print "\e[0m  'c' to save and clear, 'C' (upcase) to clear without save,\n\n   \e[2many other key to cancel ...\e[0m"
-      $ctl_kb_queue.clear
-      char = $ctl_kb_queue.deq
-      clear_area_comment
-      $freqs_queue.clear
-      if char == 'c'
-        journal_write("Automatic save before clearing journal") if journal_length > 0
-        $journal = Array.new
-        $msgbuf.print ["Saved and cleared journal",
-                       "appended to #{$journal_file}"], 2, 5, :journal
-      elsif char == 'C'
-        $journal = Array.new
-        $msgbuf.print "Cleared journal without save", 2, 5, :journal
-      else
-        $msgbuf.print "Journal NOT cleared", 2, 5, :journal
-      end
+      journal_write("Automatic save before clearing journal") if journal_length > 0
+      $journal = Array.new
+      $msgbuf.print ["Saved and cleared journal",
+                     "appended to #{$journal_file}"], 2, 5, :journal
       $ctl_mic[:journal_clear] = false
     end
 

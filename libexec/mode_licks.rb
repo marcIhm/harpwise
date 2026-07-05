@@ -1573,7 +1573,7 @@ def puts_names_of_licks maxnum
     names = names.sample(maxnum)
     names = ["e.g.: #{names[0]}"] + names[1..-1]
   end
-  puts wrap_words('   All licks,  ', ["#{$licks.length} in total:  "] + names, ',')
+  puts wrap_words('   All licks,  ', ["#{$licks.length} in total:  " + names[0]] + names[1..-1], ',')
 end
 
 

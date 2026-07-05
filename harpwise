@@ -51,6 +51,7 @@ $program_start = $mode_start = Time.now.to_f
 $initialized = false
 $on_error_raise = false
 
+
 #
 # Support for debugging; see further down below for support for testing
 #

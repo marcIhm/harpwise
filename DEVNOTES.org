@@ -11,6 +11,10 @@
     'scale1 --add-scales scale2,scale3'
 
   - AUDIODRIVER in config
+
+* Fixes pending
+
+  - RETURN should only be remapped in mode licks?
     
 * Conventions
   
@@ -20,4 +24,4 @@
     - 'command line' if used as a noun (in code: command_line)
     - 'command-line' if used as an adjective
     - never: 'comandline'
-    
+

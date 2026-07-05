@@ -1570,7 +1570,7 @@ end
 
 def check_needed_viewer_progs needed
   not_found = needed.reject {|x| system("which #{x} >/dev/null 2>&1")}
-  err "These programs are needed to view player images with method '$opts[:viewer]', but they cannot be found: #{not_found}" if not_found.length > 0
+  err "These programs are needed to view player images with method '#{$opts[:viewer]}', but they cannot be found: #{not_found}" if not_found.length > 0
 end
 
 

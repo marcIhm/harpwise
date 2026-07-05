@@ -205,7 +205,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # long enough; see mode_listen.rb for handling the explicit
     # request of a journal-entry by pressing RETURN.
     #
-    if $journal_all && hole_held_was != hole_held
+    if $opts[:comment] == :journal && $journal_all && hole_held_was != hole_held
       # we get here, if: hole has just startet or hole has just
       # stopped or hole has just changed
       if hole_journal &&
@@ -599,7 +599,7 @@ def text_for_key
     text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m"
     text += " \e[0m\e[2m(#{$comment_licks_count+1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
   end
-  text += '; journal-all ' if $journal_all
+  text += '; journal-all ' if $opts[:comment] == :journal && $journal_all
   truncate_colored_text(text, $term_width - 16 ) + '           '
 end
 
@@ -969,7 +969,7 @@ def show_help mode = $mode, testing_only = false
     frames[-1].append(*["      j:_journal-menu; write holes (mode listen only)",
                         " CTRL-R:_record and play user (mode licks only)"])
   else
-    frames[-1].append(*["      j:_invoke journal-menu to handle your musical ideas",
+    frames[-1].append(*["      j:_invoke journal-menu and switch to comment 'journal'",
                         "      w:_switch comment to warble and prepare",
                         "      p:_print details about player currently drifting by",
                         "      .:_play lick from --lick-prog (shown in comment-area)",
@@ -1110,7 +1110,7 @@ def show_help mode = $mode, testing_only = false
                end
              end
         ks.each do |k|
-          fail "Key '#{k}' already has this [frame, line]: '#{all_fkgs_k2flidx[k]}'; cannot assign it new '#{[fidx, lidx]}'; line is '#{line}'" if all_fkgs_k2flidx[k]
+          fail "Key '#{k}' already has this [frame, line]: '#{all_fkgs_k2flidx[k]}'; cannot assign it new '#{[fidx, lidx]}'; line is '#{line}'" if all_fkgs_k2flidx[k] && k != 'c'
           all_fkgs_k2flidx[k] ||= [fidx, lidx]
         end
       end
