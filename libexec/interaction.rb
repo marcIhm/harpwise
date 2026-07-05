@@ -670,6 +670,14 @@ def handle_kb_mic
   elsif char == 'r' || char == 'R'
     $ctl_mic[:set_ref] = ( char == 'r'  ?  :played  :  :choose )
     text = 'Set reference'
+  elsif char == 'CTRL-BACKSPACE'
+    if $opts[:comment] == :journal
+      $ctl_mic[:journal_clear] = true
+      text = 'Clear journal'
+    else
+      text = get_text_invalid(char, true)
+      $msgbuf.print "CTRL-BACKSPACE only works for comment journal", 0, 2
+    end
   elsif char == 'c'
     $ctl_mic[:change_comment] = true
     text = 'Change comment'
@@ -1072,7 +1080,7 @@ def handle_win_change
     puts "\n\n\e[0mScreensize is not acceptable, see above!"
     puts "\nYou may enlarge screen right now to continue,"
     puts
-    puts "or press ctrl-c to break."
+    puts "or press CTRL-C to break."
     $ctl_sig_winch = false
     while !$ctl_sig_winch
       sleep 0.2
@@ -1439,35 +1447,26 @@ end
 
 
 def journal_menu
+  $opts[:comment] = :journal
   clear_area_comment
-  if $opts[:comment] != :journal
-    print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mjournal\e[2m ...\e[0m"
-    tag = 'switch to comment journal'
-    stime = $messages_seen[tag]  ?  0.1  :  0.2
-    $messages_seen[tag] = true
-    5.times do
-      break if $ctl_kb_queue.length > 0
-      sleep stime
-    end
-    $opts[:comment] = :journal
-    clear_area_comment
-  end
+  clear_area_message
   print "\e[#{$lines[:comment_tall]}H\e[J"
   print "\e[2m"
-  puts " There are two ways to add holes to the journal:"
+  puts " \e[0m\e[34mJournal-menu             \e[0m\e[32ma\e[0m\e[2m: toggle journal of all notes (now #{$journal_all  ?  ' ON'  :  'OFF'})"
   print "\e[0m\e[32m"
-  puts "   j,a\e[0m\e[2m: toggle journal for all notes played longer than #{$journal_minimum_duration}s (is \e[0m\e[32m#{$journal_all  ?  ' ON'  :  'OFF'}\e[0m)"
-  puts "    \e[0m\e[32mOr\e[0m\e[2m, after leaving this menu:"
-  puts "        \e[0m\e[32mRETURN\e[0m\e[2m to add the current hole or \e[0m\e[32mBACKSPACE\e[0m\e[2m to delete it."
-  puts " Within this menu again, operate on the current journal:"
-  print "\e[0m\e[32m"
-  puts "     \e[0m\e[32mp\e[0m\e[2m: play it, using durations (e.g. '(0.3s)') if any"
-  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32mc\e[0m\e[2m: save and clear     \e[0m\e[32ms\e[0m\e[2m: show short for copy"
+  puts "     \e[0m\e[32mp\e[0m\e[2m: play journal, using durations (e.g. '(0.3s)')"
+  puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32ms\e[0m\e[2m: show short for copy"
   puts "     \e[0m\e[32mw\e[0m\e[2m: write to file     \e[0m\e[32mr\e[0m\e[2m: recall 100 old lines from file into edit"
-  print "\e[0m\e[2m Type one of j,a,p,e,c,s,w,r ... or any other key to continue ... \e[K"
+  puts " \e[0m\e[34mOutside\e[0m\e[2m this menu, when comment is 'journal'"
+  puts "     \e[0m\e[32mRETURN\e[0m\e[2m: add the current hole   \e[0m\e[32mBACKSPACE\e[0m\e[2m: delete most recent"
+  puts "     \e[0m\e[32mCTRL-H, CTRL-BACKSPACE\e[0m\e[2m: save, then delete whole journal; use here too"
+  puts " \e[0m\e[34mAnywhere, anytime\e[0m\e[2m        \e[0m\e[32mj\e[0m\e[2m: invoke journal-menu and switch comment"
+
+  print "\e[0m\e[2m Type one of the keys above for action, any other to leave; \e[0m\e[32mthen play\e[0m\e[2m ...\e[K"
   char = $ctl_kb_queue.deq
   case char
-  when 'a', 'j'
+  when 'j'
+  when 'a'
     $ctl_mic[:journal_all_toggle] = true
   when 'w'
     $ctl_mic[:journal_write] = true
@@ -1475,7 +1474,7 @@ def journal_menu
     $ctl_mic[:journal_write] = true
   when 'p'
     $ctl_mic[:journal_play] = true
-  when 'c'
+  when 'CTRL-BACKSPACE'
     $ctl_mic[:journal_clear] = true
   when 's'
     $ctl_mic[:journal_short] = true
@@ -1594,15 +1593,26 @@ end
 
 
 def get_complex_key
+  #
+  # Hint: use "showkey -a" to find out the exact character-sequence, that
+  # are beeing sent by special keys
+  #
   key = STDIN.getc
-  # handle key sequences starting with escape
+  complete = true
+  # chars after initial escape
+  chs = Array.new
+  #
+  # Handle key sequences starting with escape
+  #
   if key == "\e"
-    # try to read cursor keys and some others
+    #
+    # Try to recognize cursor keys and some others
+    #
     begin
-      ch = Timeout::timeout(0.05) { STDIN.getc }
-      if ch == '['
-        ch1 = Timeout::timeout(0.05) { STDIN.getc }
-        key = case ch1                      
+      chs << Timeout::timeout(0.05) { STDIN.getc }
+      if chs[0] == '['
+        chs << Timeout::timeout(0.05) { STDIN.getc }
+        key = case chs[1]
               when 'A'
                 'UP'
               when 'B'
@@ -1614,47 +1624,175 @@ def get_complex_key
               when 'Z'
                 'SHIFT-TAB'
               when '5', '6'
-                ch2 = Timeout::timeout(0.05) { STDIN.getc }
-                if ch2 == '~'
-                  if ch1 == '5'
+                chs << Timeout::timeout(0.05) { STDIN.getc }
+                if chs[2] == '~'
+                  if chs[1] == '5'
                     'PAGE-UP'
                   else
                     'PAGE-DOWN'
                   end
                 else
-                  'ESC-' + ch1 + ch2
+                  complete = false
                 end
               else
-                'ESC-' + ch1
+                complete = false
               end
-      elsif ch == "\t"
+      elsif chs[1] == "\t"
         key = 'SHIFT-TAB'
-      elsif ('a' .. 'z').include?(ch)
-        key = 'ALT-' + ch
-      elsif ch
-        key = 'ESC-?'
+      elsif ('a' .. 'z').include?(chs[1])
+        key = 'ALT-' + chs[1]
+      elsif chs[1]
+        complete = false
+      else
+        complete = false
+      end
+      if !complete
+        # Got no complete escape sequence; probably some special key,
+        # we dont recognize yet. So read until timeout to report it
+        # properly as one single key and to not leave chars unconsumed
+        while true
+          chs << Timeout::timeout(0.05) { STDIN.getc }
+        end
       end
     rescue Timeout::Error => e
+      if !complete
+        key = 'ESC-' + escape_chars(chs)
+      end            
     end
   end
 
-  # translate some chars into text and return
-  if key == "\n"
-    'RETURN'
-  elsif key == "\t"
-    'TAB'
-  elsif key == "\e"
-    'ESC'
-  elsif key.ord == 18
-    'CTRL-R'
-  elsif key.ord == 12
-    'CTRL-L'
-  elsif key.ord == 127
-    'BACKSPACE'
-  elsif key.ord == 8
-    'CTRL-BACKSPACE'
-  else
-    # cannot be condensed to key&.gsub!
-    key && key.gsub(/[^[:print:]]/,'?')
+  #
+  # Translate selected control-characters and escape-sequences into
+  # descriptive and printable text
+  #
+  if key.length == 1
+
+    # Simple chars
+    case key
+    when "\n"
+      'RETURN'
+    when "\t"
+      'TAB'
+    when "\e"
+      'ESC'
+    else
+
+      case key.ord
+      when 18
+        'CTRL-R'
+      when 12
+        'CTRL-L'
+      when 127
+        'BACKSPACE'
+      when 8
+        'CTRL-BACKSPACE'
+      else
+        key
+      end
+    end
+
+  else  ##  for key.length != 1
+
+    # Escape-sequences
+    case key
+    when 'ESC-[1;5D'
+      'CTRL-LEFT'
+    when 'ESC-[1;5C'
+      'CTRL-RIGHT'
+    when 'ESC-[1;5A'
+      'CTRL-UP'
+    when 'ESC-[1;5B'
+      'CTRL-DOWN'
+    when 'ESC-[1;3D'
+      'ALT-LEFT'
+    when 'ESC-[1;3C'
+      'ALT-RIGHT'
+    when 'ESC-[1;3A'
+      'ALT-UP'
+    when 'ESC-[1;3B'
+      'ALT-DOWN'
+    when 'ESC-\x0a'
+      'ALT-RETURN'
+    when 'ESC-\x7f'
+      'ALT-BACKSPACE'
+    when 'ESC-[5;3~'
+      'ALT-PAGE-UP'
+    when 'ESC-[5;5~'
+      'CTRL-PAGE-UP'
+    when 'ESC-[6;3~'
+      'ALT-PAGE-DOWN'
+    when 'ESC-[6;5~'
+      'CTRL-PAGE-DOWN'
+    when 'ESC-[3~'
+      'DEL'
+    when 'ESC-[3;3~'
+      'ALT-DEL'
+    when 'ESC-[3;5~'
+      'CTRL-DEL'
+    when 'ESC-[H'
+      'POS1'
+    when 'ESC-[1;3H'
+      'ALT-POS1'
+    when 'ESC-[1;5H'
+      'CTRL-POS1'
+    when 'ESC-[F'
+      'END'
+    when 'ESC-[1;3F'
+      'ALT-END'
+    when 'ESC-[1;5F'
+      'CTRL-END'
+    when 'ESC-[2~'
+      'INSERT'
+    when 'ESC-[2;3~'
+      'ALT-INSERT'
+    when 'ESC-[2;5~'
+      'CTRL-INSERT'
+    when 'ESC-OP'
+      'F1'
+    when 'ESC-OP'
+      'F1'
+    when 'ESC-OQ'
+      'F2'
+    when 'ESC-OR'
+      'F3'
+    when 'ESC-OS'
+      'F4'
+    when 'ESC-[15~'
+      'F5'
+    when 'ESC-[17~'
+      'F6'
+    when 'ESC-[18~'
+      'F7'
+    when 'ESC-[19~'
+      'F8'
+    when 'ESC-[20~'
+      'F9'
+    when 'ESC-[21~'
+      'F10'
+    when 'ESC-[23~'
+      'F11'
+    when 'ESC-[24~'
+      'F12'
+    else
+      if key !~ /^[[:print:]]$/
+        key = escape_chars(key.split(//))
+      end
+      key
+    end
   end
+end
+
+
+def escape_chars chs
+  chs.map do |ch|
+    if ch =~ /[[:graph:]]/
+      ch
+    else
+      if ch.ord <= 255
+        '\\x%02x' % ch.ord
+      else
+        '\\u%04x' % ch.ord
+      end
+    end
+  end.join
 end
