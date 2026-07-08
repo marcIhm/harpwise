@@ -820,7 +820,7 @@ def print_amongs *choices, **kws
     summary[:types][:count] += 1
     adc = $amongs_desc[choice]
     case choice
-        # keys must be the same set of values as $amongs
+    # keys must be the same set of values as $amongs
     when :event
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"

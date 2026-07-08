@@ -66,8 +66,8 @@ def do_docs_make_org_txt
       Dir.chdir(src_erb_dir) do
         if suff == '.org'
           File.write(dst_file,
-                    ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
-                      result(binding).gsub(/(^\s*\n)+\Z/,''))
+                     ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org")).
+                       result(binding).gsub(/(^\s*\n)+\Z/,''))
         else
           next if file_short == 'index'          
           cmd = "/usr/bin/emacs -Q --batch " +

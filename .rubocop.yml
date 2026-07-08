@@ -1,0 +1,30 @@
+AllCops:
+    NewCops: enable
+Style/GlobalVars:
+  Enabled: false
+Layout/EmptyLines:
+  Enabled: false
+Style/MethodDefParentheses:
+  Enabled: false
+Layout/SpaceInsideParens:
+  Enabled: false
+Style/StringConcatenation:
+  Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
+Layout/SpaceInsideBlockBraces:
+  Enabled: false
+Layout/ExtraSpacing:  
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Style/FileEmpty:
+  Enabled: false
+Style/EmptyLiteral:
+  Enabled: false
+Layout/EmptyLinesAroundBeginBody:
+  Enabled: false
+Lint/Loop:
+  Enabled: false
+Layout/LineLength:
+  Enabled: false

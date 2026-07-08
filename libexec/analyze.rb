@@ -21,15 +21,15 @@ def describe_freq freq
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
-    return nil, nil, nil, nil if (freq < lb)
-    if (freq >= lb) and (freq < ub)
+    return [nil, nil, nil, nil] if freq < lb
+    if freq >= lb && freq < ub
       $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
       $desc_freq_cache_lb = lb
       $desc_freq_cache_ub = ub
       return $desc_freq_cache
     end
   end
-  return nil, nil, nil, nil
+  return [nil, nil, nil, nil]
 end
 
 
