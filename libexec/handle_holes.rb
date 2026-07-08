@@ -6,7 +6,6 @@
 
 def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
                  lambda_comment, lambda_hint, lambda_star_lick
-
   #
   # Please bear in mind, that we may enter this function multiple times during one run of
   # harpwise. E.g. for mode listen we leave this function on certain keys pressed
@@ -19,7 +18,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   # - first_round as a local variable was replaced for the better fit
   #   $first_round_ever_get_hole
 
-  
+
   # One-time initialize
   if $first_round_ever_get_hole
     $move_down_on_exit = true
@@ -28,7 +27,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
       $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
     end
-    $ctl_mic[:redraw] = Set[:silent]    
+    $ctl_mic[:redraw] = Set[:silent]
   end
 
   longest_hole_name = $harp_holes.max_by(&:length)
@@ -65,14 +64,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   $ulrec.print_rec_sign_mb if $ulrec.active?
 
   loop do   # over each new frequency from pipeline, until done or skip
-
     $perfctr[:handle_holes_this_loops] += 1
     tntf = Time.now.to_f
 
     if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
       system('clear')
     end
-    
+
     if $ctl_mic[:redraw] || $ctl_mic[:redraw_mission] ||
        # next update of jamming timer due ?
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
@@ -123,7 +121,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     #
     # Here we get our most important input; which is acoustic
     #
-    freq = $opts[:screenshot]  ?  697  :  $freqs_queue.deq
+    freq = $opts[:screenshot] ? 697 : $freqs_queue.deq
     if $testing && !for_testing_touched
       FileUtils.touch("#{$dirs[:exch_tester_tested]}/harpwise_pipeline_started")
       for_testing_touched = true
@@ -138,14 +136,14 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # Here we get our keyboard input
     #
     pipeline_catch_up if handle_kb_mic
-    
+
     behind = $freqs_queue.length * $time_slice_secs
     if behind > 0.5
       now = tntf
       if now - $mode_start > 4
-        $lagging_freqs_lost += $freqs_queue.length 
+        $lagging_freqs_lost += $freqs_queue.length
         $freqs_queue.clear
-        if now - $lagging_freqs_message_ts > 120 
+        if now - $lagging_freqs_message_ts > 120
           $msgbuf.print "Lagging #{'%.1f' % behind}s; more info on termination (e.g. ctrl-c).", 5, 5
           $lagging_freqs_message_ts = now
         end
@@ -158,7 +156,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     ctl_response tntf: tntf
 
     handle_win_change if $ctl_sig_winch
-    
+
     # transform freq into hole
     hole_was = hole
     hole, lbor, cntr, ubor = describe_freq(freq)
@@ -196,7 +194,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     held_min_ticks = ( hole ? hole_held_min_ticks : hole_held_min_ticks_nil )
     hole_held_was = hole_held
     if $total_freq_ticks - hole_since_ticks >= held_min_ticks
-      hole_held = hole 
+      hole_held = hole
       $first_hole_held ||= tntf if hole_held
     end
 
@@ -286,9 +284,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       # let old interval be visible
     end
 
-    hole_disp = ({ low: '-', high: '-'}[hole] || hole || '-')
+    hole_disp = ({ low: '-', high: '-' }[hole] || hole || '-')
     hole_color = get_hole_color_active(hole, good, was_good, was_good_since)
-    hole_ref_color = "\e[#{hole == $hole_ref ?  92  :  91}m"
+    hole_ref_color = "\e[#{hole == $hole_ref ? 92 : 91}m"
     case $opts[:display]
     when :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis
       update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
@@ -303,12 +301,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     text = "Hole: %#{longest_hole_name.length}s, Note: %4s" %
-           (hole  ?  [hole, $harp[hole][:note]]  :  ['-- ', '-- '])
+           (hole ? [hole, $harp[hole][:note]] : ['-- ', '-- '])
     text += ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
     print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text) + "\e[K"
 
-    
+
     if lambda_comment
       $perfctr[:lambda_comment_call] += 1
       case $opts[:comment]
@@ -324,12 +322,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         line,
         font,
         width_template =
-        lambda_comment.call($hole_ref  ?  hole_ref_color  :  hole_color,
-                            inter_semi,
-                            inter_text,
-                            hole && $harp[hole] && $harp[hole][:note],
-                            hole_disp,
-                            freq)
+          lambda_comment.call($hole_ref ? hole_ref_color : hole_color,
+                              inter_semi,
+                              inter_text,
+                              hole && $harp[hole] && $harp[hole][:note],
+                              hole_disp,
+                              freq)
         print "\e[#{line}H#{color}"
         do_figlet_unwrapped text, font, width_template
       end
@@ -373,7 +371,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
       hints_old = hints
     end
-                                                                                                   
+
     if $ctl_mic[:set_ref]
       if $ctl_mic[:set_ref] == :played
         $hole_ref = hole_held
@@ -381,15 +379,15 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         choices = $harp_holes
         $hole_ref = choose_interactive("Choose the new reference hole: ", choices) do |choice|
           "Hole #{choice}"
-        end 
-        $freqs_queue.clear        
+        end
+        $freqs_queue.clear
       end
       $msgbuf.print "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole", 2, 5, :ref
-      if $hole_ref 
+      if $hole_ref
         $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
         $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
       end
-      if $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis 
+      if $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis
         clear_area_display
         print_chart
       end
@@ -403,7 +401,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         choices = $display_choices.map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:display]
         $opts[:display] = (choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
-                             $display_choices_desc[choice.to_sym]
+          $display_choices_desc[choice.to_sym]
         end || $opts[:display]).to_sym
       else
         $opts[:display] = rotate_among($opts[:display], :up, $display_choices)
@@ -442,7 +440,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       show_remote_message
       $ctl_mic[:remote_message] = false
     end
-    
+
     if $ctl_mic[:jamming_ps_rs]
       if $opts[:jamming]
         # mabye user has restarted 'harpwise jamming'; so check state again
@@ -459,7 +457,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
       $ctl_mic[:jamming_ps_rs] = false
     end
-        
+
     if $ctl_mic[:show_help]
       if $perfctr[:handle_holes_this_first_mic]
         $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
@@ -504,7 +502,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       lambda_star_lick.call($ctl_mic[:star_lick])
       $ctl_mic[:star_lick] = false
     end
-    
+
     if $ctl_mic[:change_key]
       do_change_key
       $ctl_mic[:change_key] = false
@@ -563,7 +561,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if [:change_lick, :edit_lick_file, :change_tags, :reverse_holes, :replay_menu, :shuffle_holes, :lick_info, :switch_modes, :switch_modes, :journal_current, :journal_delete, :journal_menu, :journal_write, :journal_play, :journal_clear, :journal_edit, :journal_all_toggle, :jamming_ps_rs, :warbles_prepare, :warbles_clear, :toggle_record_user, :change_num_quiz_replay, :quiz_hint, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first].any? {|k| $ctl_mic[k]}
       # we need to return, regardless of lambda_good_done_was_good;
       # special case for mode listen, which handles the returned value
-      return {hole_disp: hole_disp}
+      return { hole_disp: hole_disp }
     end
 
     if $ctl_mic[:quit]
@@ -576,7 +574,6 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
   end  # loop until var done or skip
 end
 
-
 def text_for_key
   text = "\e[0m#{$mode}\e[2m"
   if $mode == :licks
@@ -588,7 +585,7 @@ def text_for_key
     text += "\e[0m"
     text += " \e[32m#{$scale}"
     text += "\e[0m\e[2m," + $used_scales[1..-1].map {|s| "\e[0m\e[34m#{$scale2short[s] || s}\e[0m\e[2m"}.join(',')
-    text += " (#{$scale_prog_count+1}/#{$scale_prog.length})" if $opts[:jamming]
+    text += " (#{$scale_prog_count + 1}/#{$scale_prog.length})" if $opts[:jamming]
     if $opts[:display] == :chart_scales_simple
       text += "; @ is " + $scale2short[$non_prog_scale]
     end
@@ -597,26 +594,24 @@ def text_for_key
   end
   if $comment_licks && $comment_licks.length > 0
     text += "; \e[0m\e[32m#{$comment_licks[0][:name]}\e[0m\e[32m"
-    text += " \e[0m\e[2m(#{$comment_licks_count+1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
+    text += " \e[0m\e[2m(#{$comment_licks_count + 1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
   end
   text += '; journal-all ' if $opts[:comment] == :journal && $journal_all
   truncate_colored_text(text, $term_width - 16 ) + '           '
 end
 
-
 def get_dots dots, delta_ok, freq, low, middle, high
-  hdots = (dots.length - 1)/2
+  hdots = (dots.length - 1) / 2
   if freq > middle
     pos = hdots + ( hdots + 1 ) * (freq - middle) / (high - middle)
   else
     pos = hdots - ( hdots + 1 ) * (middle - freq) / (middle - low)
   end
 
-  in_range = ((hdots - delta_ok  .. hdots + delta_ok) === pos )
+  in_range = ((hdots - delta_ok..hdots + delta_ok) === pos )
   dots[pos] = yield( in_range, 'I') if pos > 0 && pos < dots.length
   return dots, in_range
 end
-
 
 def fit_into_comment lines, center: false
   start = if lines.length >= $lines[:hint_or_message] - $lines[:comment_tall]
@@ -631,11 +626,10 @@ def fit_into_comment lines, center: false
              ''
            end
   print "\e[#{start}H\e[0m"
-  (start .. $lines[:hint_or_message] - 1).to_a.each do |n|
+  (start..$lines[:hint_or_message] - 1).to_a.each do |n|
     puts prefix + ( lines[n - start] || "\e[K" )
-  end 
+  end
 end
-
 
 def do_change_key in_quiz: false
   key_was = $key
@@ -673,24 +667,23 @@ def do_change_key in_quiz: false
   end
 end
 
-
 def do_change_key_to_pitch
   clear_area_comment
   clear_area_message
   key_was = $key
-  print "\e[#{$lines[:comment]+1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
+  print "\e[#{$lines[:comment] + 1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
   puts "\e[0m\e[2mPress any key to start (and RETURN when done), or 'q' to cancel ...\e[K\e[0m\n\n"
   $ctl_kb_queue.clear
   char = $ctl_kb_queue.deq
   return if char == 'q' || char == 'x'
+
   $key = play_interactive_pitch(embedded: true) || $key
   $msgbuf.print(if key_was == $key
-                "Key of harp is still at"
-               else
-                 "Changed key of harp to"
+                  "Key of harp is still at"
+                else
+                  "Changed key of harp to"
                 end + " \e[0m#{$key}", 2, 5, :key)
 end
-
 
 def do_change_scale_add_scales
   input = choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort) do |scale|
@@ -701,7 +694,7 @@ def do_change_scale_add_scales
     $msgbuf.print "Did not change scale of harp.", 0, 5, :key
     return
   end
-  
+
   # Change --add-scales
   add_scales = []
   loop do
@@ -714,6 +707,7 @@ def do_change_scale_add_scales
       end
     end
     break if !input || input == 'DONE'
+
     add_scales << input
   end
   if add_scales.length == 0
@@ -724,20 +718,19 @@ def do_change_scale_add_scales
 
   # will otherwise collide with chosen scales
   if Set[*$scale_prog] != Set[*(add_scales + [$scale])]
-    $opts[:scale_prog] = nil 
+    $opts[:scale_prog] = nil
     $scale_prog = $used_scales
   end
 
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}", 2, 3, :scale
 end
 
-
 def do_show_options_info
   clear_area_comment
   clear_area_message
   puts "\e[#{$lines[:comment] + 1}H\e[0m Command line for this instance of harpwise:"
   puts "\e[32m"
-  short_command_line = 'harpwise' + $full_command_line[$0.length .. -1]
+  short_command_line = 'harpwise' + $full_command_line[$0.length..-1]
   puts wrap_words('   ', short_command_line.split(/(?= --)/).map(&:strip), ' ')
   puts
   print "\e[0m\e[2m Any key for details ...\e[0m"
@@ -759,7 +752,7 @@ def do_show_options_info
     puts "\e[2m     Comment licks:  none"
   end
   puts
-  
+
   print "\e[0m\e[2m #{$resources[:any_key]}\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
@@ -768,7 +761,7 @@ end
 
 $sc_prog_init = nil
 def do_rotate_scale_add_scales for_bak
-  step = ( for_bak == :forward  ?  1  :  -1 )
+  step = ( for_bak == :forward ? 1 : -1 )
   scale_was = $scale
   $sc_prog_init ||= $scale_prog.clone
   $scale_prog.rotate!(step)
@@ -776,12 +769,11 @@ def do_rotate_scale_add_scales for_bak
   $scale_prog_count %= $scale_prog.length
   $used_scales.rotate!(step) while $used_scales[0] != $scale_prog[0]
   $scale = $used_scales[0]
-  $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
-  clause = ( $sc_prog_init == $scale_prog  ?  ', new cycle'  :  '' )
+  $opts[:add_scales] = $used_scales.length > 1 ? $used_scales[1..-1].join(',') : nil
+  clause = ( $sc_prog_init == $scale_prog ? ', new cycle' : '' )
   clause += ( $scale == scale_was ? ', repeat in prog' : '' )
   $msgbuf.print "Changed scale of harp to \e[0m\e[32m#{$scale}\e[0m\e[2m#{clause}", 0, 3, :scale
 end
-
 
 def do_rotate_scale_add_scales_reset
   unless $sc_prog_init
@@ -790,12 +782,11 @@ def do_rotate_scale_add_scales_reset
   end
   $scale_prog = $sc_prog_init.clone
   $scale_prog_count = 0
-  $used_scales.rotate! while $used_scales[0] != $scale_prog[0]  
+  $used_scales.rotate! while $used_scales[0] != $scale_prog[0]
   $scale = $used_scales[0]
-  $opts[:add_scales] = $used_scales.length > 1  ?  $used_scales[1..-1].join(',')  :  nil
+  $opts[:add_scales] = $used_scales.length > 1 ? $used_scales[1..-1].join(',') : nil
   $msgbuf.print "Reset scale of harp to initial \e[0m\e[32m#{$scale}\e[0m\e[2m", 0, 5, :scale
 end
-
 
 def get_mission_override
   if $jamming_mission_override
@@ -807,14 +798,12 @@ def get_mission_override
     end
   else
     nil
-  end 
+  end
 end
 
-
 def get_jamming_timer_text
-
   # This gets called when next timer update is due, but also on redraw-events
-  
+
   tntf = Time.now.to_f
   $debug_log&.puts("\nJM: tntf now #{tntf} = #{Time.at(tntf).strftime('%H:%M:%S')}")
   $perfctr[:get_jamming_timer_text] += 1
@@ -825,7 +814,7 @@ def get_jamming_timer_text
 
   # reduce typing
   jts = $jamming_timer_state
-  
+
   if !jts
     # Prepare state of timer
 
@@ -838,7 +827,7 @@ def get_jamming_timer_text
     # Depending on total duration we have one update every eight, quarter, half, full, two,
     # four, ... seconds
     jts[:eights_per_tick] = 2
-    
+
     tick_syms = ['#', '#', '=', '='] + Array.new(20, '-')
     tick_cols = [94, 92, 94, 92] + Array.new(20, 32)
     # See print_mission on how to calculate the number below
@@ -851,6 +840,7 @@ def get_jamming_timer_text
       jts[:tick_col] = tick_cols.shift
 
       break if jts[:total_ticks] <= max_ticks
+
       jts[:eights_per_tick] *= 2
     end
 
@@ -868,7 +858,7 @@ def get_jamming_timer_text
     # schedule final update slightly early to avoid overlap with next timer, that may follow
     # without a gap
     jts[:update_next][-1] -= 0.1
-    
+
     jts[:head] = '['
     jts[:left] = ''
     jts[:right] = ('%.1fs' % jts[:total_secs]).rjust(jts[:total_ticks], '.')
@@ -883,10 +873,10 @@ def get_jamming_timer_text
       jts[:left] += jts[:tick_sym]
       jts[:right][0] = ''
     end
-    
+
   end  ## if !jts
 
-  
+
   if tntf > $jamming_timer_update_next
 
     if jts[:update_next].length == 0
@@ -899,22 +889,20 @@ def get_jamming_timer_text
 
     $debug_log&.puts("Update timer\n  [:left] : #{jts[:left]}\n  [:right] : #{jts[:right]}")
     $debug_log&.puts("Scheduling next timer update for #{$jamming_timer_update_next}")
-    
+
   else
     # Probably a redraw-event
   end
 
   # write back (e.g. if jts == nil)
   $jamming_timer_state = jts
-  
+
   [" \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
-   "\e[0m\e[2m" + jts[:right] +
-   "\e[0m\e[32m" + jts[:tail],
+    "\e[0m\e[2m" + jts[:right] +
+    "\e[0m\e[32m" + jts[:tail],
    # Total number of coloring chars in string above (e.g. \e[32m = 5)
    27]
-
 end
-
 
 def show_help mode = $mode, testing_only = false
   #
@@ -932,6 +920,7 @@ def show_help mode = $mode, testing_only = false
   #
   max_lines_per_frame = 20
   fail "Internal error: max_lines_per_frame chosen too large" if max_lines_per_frame + 2 > $conf[:term_min_height]
+
   lines_offset = (( $term_height - max_lines_per_frame ) * 0.5).to_i
 
   j_spc = if $opts[:jamming]
@@ -977,7 +966,7 @@ def show_help mode = $mode, testing_only = false
                         "      L:_to first lick"])
   end
   frames[-1] << "  ALT-m:_show remote message; used with --jamming"
-  
+
   frames[-1].append(*["    r,R:_set reference to hole played or chosen",
                       "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
                       "      o:_print command line with options and details",
@@ -1005,10 +994,10 @@ def show_help mode = $mode, testing_only = false
     if mode == :quiz
       frames[-1].append(*["     4,H:_hints for quiz-flavour #{$quiz_flavour}",
                           "  CTRL-Z:_restart with another flavour (signals quit, tstp)"])
-          if $quiz_flavour == 'replay'
-            frames[-1].append(*["       n:_change number of holes to be replayed",
-                                ""])
-          end
+      if $quiz_flavour == 'replay'
+        frames[-1].append(*["       n:_change number of holes to be replayed",
+                            ""])
+      end
     else
       frames << [" More help on keys; special for mode licks:",
                  "",
@@ -1032,7 +1021,7 @@ def show_help mode = $mode, testing_only = false
     maxlen = $keyboard_translations.keys.map(&:length).max
     $keyboard_translations.each_slice(2) do |slice|
       frames[-1] << '      '
-      slice.each do |from,to|
+      slice.each do |from, to|
         frames[-1][-1] += ( "    %#{maxlen}s=_%s" % [from, [to].flatten.join('+')] ).ljust(24)
       end
     end
@@ -1046,10 +1035,10 @@ def show_help mode = $mode, testing_only = false
                       "        based on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m",
                       "",
                       "     Time slice (per config):      #{$opts[:time_slice]}",
-                      "     Maximum jitter:               " + ($max_jitter > 0  ?  ('%8.2f sec' % $max_jitter)  :  'none'),
+                      "     Maximum jitter:               " + ($max_jitter > 0 ? ('%8.2f sec' % $max_jitter) : 'none'),
 
                       "     Samples lost due to lagging:  #{$lagging_freqs_lost}"])
-  
+
   frames << ["",
              " Further reading:",
              "",
@@ -1077,14 +1066,14 @@ def show_help mode = $mode, testing_only = false
              else
                'Help done; SPACE or ESC to leave'
              end +
-             if fidx > 0 
+             if fidx > 0
                ', BACKSPACE for prev,'
              else
                ','
              end
     frame << "   any other key to highlight its specific line of help ..."
   end
-  
+
   # get some structured information out of frames
   all_fkgs_k2flidx = Hash.new
   frames.each_with_index do |frame, fidx|
@@ -1098,6 +1087,7 @@ def show_help mode = $mode, testing_only = false
                [kg]
              else
                fail "Internal error: cannot handle #{special} with other keys in same keygroup yet; in line '#{line}'" if special.any? {|sp| kg[sp]} && !special.any {|sp| kg == sp}
+
                # handle comma as first or last in key group special
                if kg[0] == ',' || kg[-1] == ',' || kg.length == 1
                  kg.chars
@@ -1111,6 +1101,7 @@ def show_help mode = $mode, testing_only = false
              end
         ks.each do |k|
           fail "Key '#{k}' already has this [frame, line]: '#{all_fkgs_k2flidx[k]}'; cannot assign it new '#{[fidx, lidx]}'; line is '#{line}'" if all_fkgs_k2flidx[k] && k != 'c'
+
           all_fkgs_k2flidx[k] ||= [fidx, lidx]
         end
       end
@@ -1122,13 +1113,11 @@ def show_help mode = $mode, testing_only = false
     # fkgs = frame_keys_groups
     all_fkgs_kg2line = Hash.new
     frames.each do |frame|
-
       err "Internal error: frame #{frame.pretty_inspect} with #{frame.length} lines is longer than maximum of #{max_lines_per_frame}" if frame.length > max_lines_per_frame
 
       this_fkgs_pos2group_last = Hash.new
       frame.each do |line|
-
-        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 2}" if line.gsub(/\e\[\d+m/,'').length > $term_width - 2
+        err "Internal error: line '#{line}' with #{line.length} chars is longer than maximum of #{$term_width - 2}" if line.gsub(/\e\[\d+m/, '').length > $term_width - 2
 
         scanner = StringScanner.new(line)
         # one keys-group after the other
@@ -1157,7 +1146,6 @@ def show_help mode = $mode, testing_only = false
 
   # loop over user-input
   loop do
-
     if curr_frame != curr_frame_was || lidx_high
       # actually print frame
       system('clear') if curr_frame != curr_frame_was
@@ -1166,7 +1154,7 @@ def show_help mode = $mode, testing_only = false
       print "\e[0m\e[32m" if curr_frame == frames.length - 1
       print frames[curr_frame][0].rstrip
       print "\e[0m\e[32m\n"
-      frames[curr_frame][1 .. -3].each_with_index do |line, lidx|
+      frames[curr_frame][1..-3].each_with_index do |line, lidx|
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
@@ -1193,8 +1181,8 @@ def show_help mode = $mode, testing_only = false
     lidx_high = nil
     key = $ctl_kb_queue.deq
     key = $opts[:tab_is] if key == 'TAB' && $opts[:tab_is]
-    
-    if key == 'BACKSPACE' 
+
+    if key == 'BACKSPACE'
       curr_frame -= 1 if curr_frame > 0
     elsif key == 'ESC'
       return
@@ -1228,38 +1216,34 @@ def show_help mode = $mode, testing_only = false
   end  ## loop over user input
 end
 
-
 def clear_warbles silent = false
-  $warbles = {short: {times: Array.new,
-                      val: 0.0,
-                      max: 0.0,
-                      window: 2},
-              long: {times: Array.new,
-                     val: 0.0,
-                     max: 0.0,
-                     window: 4},
-              scale: 10}
+  $warbles = { short: { times: Array.new,
+                        val: 0.0,
+                        max: 0.0,
+                        window: 2 },
+               long: { times: Array.new,
+                       val: 0.0,
+                       max: 0.0,
+                       window: 4 },
+               scale: 10 }
   $warbles_holes = Array.new(2)
   $msgbuf.print("Reset holes for warbling", 5, 5, :warble) unless silent
 end
 
-
 def warbles_add_del tntf, add_warble
-
   # See clear_warbles for structure of $warbles
-  
+
   # add_warble becomes true every time we reach hole two after having reached hole one
   # before
-  
-  [:short, :long].each do |type|
 
+  [:short, :long].each do |type|
     $warbles[type][:times] << tntf if add_warble
 
     # remove warbles, that are older than window
     del_warble = ( $warbles[type][:times].length > 0 &&
                    tntf - $warbles[type][:times][0] > $warbles[type][:window] )
     $warbles[type][:times].shift if del_warble
-    
+
     if add_warble || del_warble
       $warbles[type][:val] = if $warbles[type][:times].length > 1
                                # enough values to compute warbling
@@ -1280,8 +1264,8 @@ def warbles_add_del tntf, add_warble
                                0.0
                              end
       if add_warble
-        $warbles[type][:max] = [ $warbles[type][:val],
-                                 $warbles[type][:max] ].max
+        $warbles[type][:max] = [$warbles[type][:val],
+                                $warbles[type][:max]].max
       end
       # maybe adjust scale
       rescaled = false
@@ -1289,11 +1273,10 @@ def warbles_add_del tntf, add_warble
         $warbles[:scale] += 5
         rescaled = true
       end
-      $msgbuf.print("Adjusted scale of warble-meter to #{$warbles[:scale]}",5,5) if rescaled
+      $msgbuf.print("Adjusted scale of warble-meter to #{$warbles[:scale]}", 5, 5) if rescaled
     end
   end
 end
-
 
 def show_remote_message
   specials = %w({{mission}} {{key}} {{timer}})
@@ -1311,35 +1294,35 @@ def show_remote_message
         err "Internal error: remote message from #{messages[0]} needs exactly two lines but its content has not: #{lines.pretty_inspect}"
       end
       duration = begin
-                   Float(lines[1].chomp)
-                 rescue ArgumentError
-                   err "Second line of remote message from #{messages[0]} is not a number: '#{lines[1].chomp}'"
-                 end
+        Float(lines[1].chomp)
+      rescue ArgumentError
+        err "Second line of remote message from #{messages[0]} is not a number: '#{lines[1].chomp}'"
+      end
 
       if text.start_with?('{{mission}}')
-        $jamming_mission_override = text[text.index('}}') + 2 .. -1]
+        $jamming_mission_override = text[text.index('}}') + 2..-1]
         err("Internal error: no text after {{mission}}") if !$jamming_mission_override || $jamming_mission_override == ''
         print_mission(*get_mission_override)
       elsif text.start_with?('{{key}}')
         key_was = $key
-        key = text[text.index('}}') + 2 .. -1]
+        key = text[text.index('}}') + 2..-1]
         err("Internal error: key '#{key} received from jamming is none of the available keys: #{$conf[:all_keys]}") unless $conf[:all_keys].include?(key)
         $key = key
         set_global_vars_late
         set_global_musical_vars
-        print "\e[#{$lines[:key]}H" + text_for_key        
+        print "\e[#{$lines[:key]}H" + text_for_key
         if $key == key_was
           $msgbuf.print "Key of harp unchanged:   #{$key}", duration, duration, :key
         else
           $msgbuf.print "Changed key of harp to   #{$key}", duration, duration, :key
         end
       elsif text.start_with?('{{timer}}')
-        dtext = text[text.index('}}') + 2 .. -1]
+        dtext = text[text.index('}}') + 2..-1]
         ts_end = begin
-                   Float(dtext)
-                 rescue ArgumentError
-                   err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
-                 end
+          Float(dtext)
+        rescue ArgumentError
+          err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
+        end
         $jamming_timer_start = Time.now.to_f
         $jamming_timer_end = ts_end
         $jamming_timer_update_next = $jamming_timer_start - 1

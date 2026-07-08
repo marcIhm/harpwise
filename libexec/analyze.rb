@@ -8,20 +8,20 @@ $desc_freq_cache_ub = -1
 $desc_freq_cache = nil
 
 def describe_freq freq
-
   # Be able to return the same result as before rather quick
   return $desc_freq_cache if freq >= $desc_freq_cache_lb && freq < $desc_freq_cache_ub
 
   minfr = $harp[$harp_holes[0]][:freq]
   maxfr = $harp[$harp_holes[-1]][:freq]
   # pseudo frequencies to aid analysis
-  freqs = ([minfr * 3 / 4 ,
+  freqs = ([minfr * 3 / 4,
             maxfr * 4 / 3] + $freq2hole.keys).sort
-  
+
   freqs.each_cons(3) do |pfr, fr, nfr|
     lb = (pfr + fr) / 2
     ub = (fr + nfr) / 2
     return [nil, nil, nil, nil] if freq < lb
+
     if freq >= lb && freq < ub
       $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
       $desc_freq_cache_lb = lb
@@ -32,21 +32,21 @@ def describe_freq freq
   return [nil, nil, nil, nil]
 end
 
-
 def note2semi note, range = (0..9), graceful = false
   note = note.downcase
   begin
     raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
-    idx = $notes_with_sharps.index(note[0 .. -2]) ||
-          $notes_with_flats.index(note[0 .. -2]) or
+
+    idx = $notes_with_sharps.index(note[0..-2]) ||
+          $notes_with_flats.index(note[0..-2]) or
       raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
     return 12 * note[-1].to_i + idx - 57
   rescue ArgumentError
     return nil if graceful
+
     raise
   end
 end
-
 
 def semi2note semi, sharps_or_flats = $opts[:sharps_or_flats]
   semi += 57  # value for a4
@@ -60,23 +60,19 @@ def semi2note semi, sharps_or_flats = $opts[:sharps_or_flats]
   end
 end
 
-
 # normalize to sharp or flat depending on $opts[:sharps_or_flats]
 def sf_norm note
   return semi2note(note2semi(note))
 end
 
-
 def semi2freq_et semi
   440 * 2**( semi / 12.0 )
 end
 
-
 def cents_diff f1, f2
   # see https://ohw.se/hca/tuning-theory/#3.2
-  1200 * Math.log(f1.to_f/f2)/Math.log(2)
+  1200 * Math.log(f1.to_f / f2) / Math.log(2)
 end
-
 
 def notes_equiv note
   no_digit = !note[-1].match?(/[0-9]/)
@@ -85,8 +81,8 @@ def notes_equiv note
   ns = semi2note(semi, :sharps)
   nf = semi2note(semi, :flats)
   if no_digit
-    ns = ns[0 .. -2]
-    nf = nf[0 .. -2]
+    ns = ns[0..-2]
+    nf = nf[0..-2]
   end
   notes = [note]
   notes << ns if ns != note
@@ -94,12 +90,11 @@ def notes_equiv note
   notes
 end
 
-
 def describe_inter hon1, hon2, prefer_plus: false, sane: false
   if sane
     return [nil, nil, nil, nil] if !hon1 || !hon2
   else
-    return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2) 
+    return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2)
   end
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
@@ -126,12 +121,10 @@ def describe_inter hon1, hon2, prefer_plus: false, sane: false
   end
 end
 
-
 def describe_inter_keys key1, key2
   dsemi = note2semi(key1 + '0') - note2semi(key2 + '0')
   return describe_inter_semis(dsemi)
 end
-
 
 def describe_inter_semis dsemi
   inter = $intervals[dsemi] || [nil, nil]
@@ -145,7 +138,6 @@ def describe_inter_semis dsemi
          end
 end
 
-
 def print_semis_as_abs h1, s1, h2, s2
   hmax = $harp_holes.max_by(&:length).length
   p1, p2 = [s1, s2].map {|s| ["#{s}st", $semi2hole[s], semi2note(s)]}
@@ -156,15 +148,14 @@ def print_semis_as_abs h1, s1, h2, s2
   end
 end
 
-
 def analyze_with_aubio file
-  freqs = run_aubiopitch(file).lines.
-            map {|line| line.split[1].to_i}.
-            select {|freq| freq > 50 && freq < 8000}
+  freqs = run_aubiopitch(file).lines
+                              .map {|line| line.split[1].to_i}
+                              .select {|freq|                                         freq > 50 && freq < 8000}
   # take only second half to avoid transients
-  freqs = freqs[freqs.length/2 .. -1]
+  freqs = freqs[freqs.length / 2..-1]
   minf, maxf = freqs.minmax
-  aver = freqs.length > 0  ?  freqs.sum / freqs.length  :  0
+  aver = freqs.length > 0 ? freqs.sum / freqs.length : 0
   if minf && maxf
     if ( maxf - minf ) > 0.1 * aver
       puts "(using 2nd half of #{freqs.length * 2} freqs: %5.2f .. %5.2f Hz, average %5.2f)" % [minf, maxf, aver]
@@ -176,7 +167,6 @@ def analyze_with_aubio file
   end
   aver
 end
-
 
 def inspect_recorded hole, file
   note = $harp[hole][:note]
@@ -203,7 +193,6 @@ def inspect_recorded hole, file
   end
   return freq
 end
-
 
 def diff_semitones key1, key2, strategy: nil
   # map keys to notes in octave 0

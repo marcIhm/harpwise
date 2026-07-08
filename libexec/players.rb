@@ -3,7 +3,6 @@
 #
 
 def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_allowed
-
   recording, key = lick[:rec], lick[:rec_key]
 
   trim_clause = if start && length
@@ -18,8 +17,8 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
                 end
 
   dsemi = diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
-  dsemi += {nil => 0, up: 12, down: -12}[$opts[:octave_shift]]
-  pitch_clause = ( dsemi == 0  ?  ''  :  "pitch #{dsemi * 100}" )
+  dsemi += { nil => 0, up: 12, down: -12 }[$opts[:octave_shift]]
+  pitch_clause = ( dsemi == 0 ? '' : "pitch #{dsemi * 100}" )
   tempo = 1.0
   imm_ctrls_again = [:replay, :slower, :faster, :vol_up, :vol_down]
 
@@ -36,7 +35,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_lk_hl[:num_loops]}) "
     end
 
-    tempo_clause = ( tempo == 1.0  ?  ''  :  ('tempo -m %.1f' % tempo) )
+    tempo_clause = ( tempo == 1.0 ? '' : ('tempo -m %.1f' % tempo) )
     cmd = "play -q --norm=#{$vol.to_i} -V1 #{$lick_dir}/recordings/#{recording} #{trim_clause} #{pitch_clause} #{tempo_clause}".strip
     IO.write($testing_log, cmd + "\n", mode: 'a') if $testing
     if $testing_what == :player
@@ -47,13 +46,13 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
     end
     pplayer = PausablePlayer.new(cmd)
     (imm_ctrls_again + [:skip, :pause_continue, :show_help]).each {|k| $ctl_rec[k] = false}
-    
+
     # loop to check repeatedly while the recording is beeing played
     begin
 
       sleep 0.1
       handle_kb_play_lick_recording
-      
+
       if $ctl_rec[:pause_continue]
         $ctl_rec[:pause_continue] = false
         pplayer.pause
@@ -76,7 +75,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'the recording of a lick', scroll_allowed,
-                        "       SPACE: pause/continue            " + 
+                        "       SPACE: pause/continue            " +
                         if $ctl_lk_hl[:can_star_unstar]
                           "  *,/: star,unstar lick\n"
                         else
@@ -85,7 +84,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
                         "TAB,+,RETURN: skip to end                  -.: back to start\n" +
                         "         v,V: decrease,increase volume    <,>: decrease,increase speed\n" +
                         "           l: toggle loop over rec " +
-                        ( loop_rec  ?  "(now ON)\n"  :  "(now OFF)\n" )
+                        ( loop_rec ? "(now ON)\n" : "(now OFF)\n" )
         print "\e[#{$lines[:hint_or_message]}H" unless scroll_allowed
         pplayer.continue
         $ctl_rec[:show_help] = false
@@ -103,7 +102,7 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
         $ctl_lk_hl[:star_lick] = false
       elsif $ctl_lk_hl[:toggle_loop]
         loop_rec = !loop_rec
-        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec  ?  "ON\n"  :  "OFF\n" )
+        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec ? "ON\n" : "OFF\n" )
         $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_rec[:invalid]
         print "\e[0m\e[2m(#{$ctl_rec[:invalid]}) \e[0m"
@@ -116,29 +115,27 @@ def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_a
         print "\e[0m\e[2mloop (TAB,+,RETURN to skip, l to end loop) with #{$ctl_lk_hl[:num_loops]} reps \e[0m"
         loop_message_printed = true
       end
-      
+
       # need to go leave this loop and play again if any immediate
       # controls have been triggered
     end while pplayer.alive? && !(imm_ctrls_again + [:skip]).any? {|k| $ctl_rec[k]}
-    
+
     loop_rec = false if $ctl_rec[:skip]
     pplayer.kill
     pplayer.check
 
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} ||
-            ( loop_rec && cnt_loops < $ctl_lk_hl[:num_loops] )
+    ( loop_rec && cnt_loops < $ctl_lk_hl[:num_loops] )
 
   puts if scroll_allowed
   $ctl_rec[:skip]
 end
 
-
 def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed = true
-
   imm_ctrls_again = [:replay, :vol_up, :vol_down]
 
   loop_message_printed = false
-  loop_rec = $ctl_lk_hl[:loop_loop]  
+  loop_rec = $ctl_lk_hl[:loop_loop]
 
   # loop as long as the recording needs to be played again due to
   # immediate controls triggered while it is playing
@@ -159,7 +156,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
       return false
     end
     pplayer = PausablePlayer.new(cmd)
-    
+
     # loop to check repeatedly while the recording is beeing played
     begin
       sleep 0.1
@@ -179,7 +176,7 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
       elsif $ctl_rec[:show_help]
         pplayer.pause
         display_kb_help 'a recording', scroll_allowed,
-                        "         SPACE: pause/continue\n" + 
+                        "         SPACE: pause/continue\n" +
                         "  TAB,+,RETURN: skip to end           -: back to start\n" +
                         "             v: decrease volume       V: increase volume by 3dB\n" +
                         "             l: loop over recording"
@@ -192,11 +189,11 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
         print "\e[0m\e[32m skip to end \e[0m"
       elsif $ctl_lk_hl[:toggle_loop]
         loop_rec = !loop_rec
-        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec  ?  "ON\n"  :  "OFF\n" )
+        print "\e[0m\e[32mLoop over recording is: " + ( loop_rec ? "ON\n" : "OFF\n" )
         $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_rec[:invalid]
         print "\e[0m\e[2m(#{$ctl_rec[:invalid]}) \e[0m"
-        $ctl_rec[:invalid] = false        
+        $ctl_rec[:invalid] = false
       end
 
       if timed_comments && timed_comments.length > 0
@@ -221,11 +218,9 @@ def play_recording_and_handle_kb recording, timed_comments = nil, scroll_allowed
   end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || loop_rec
 end
 
-
 def play_interactive_pitch embedded: false, explain: true,
                            start_key: nil, return_accepts: false
-
-  semi = note2semi((start_key || $key).then {|k| ('1' .. '9').include?(k[-1])  ?  k  :  k + '4'})
+  semi = note2semi((start_key || $key).then {|k| ('1'..'9').include?(k[-1]) ? k : k + '4'})
   wave = wave_was = 'pluck'
   min_semi = -24
   max_semi = 24
@@ -263,10 +258,10 @@ def play_interactive_pitch embedded: false, explain: true,
       sleep 0.1
     else
       # semi+7 because key of song, rather than key of harp is wanted
-      cmd = if $testing then 
+      cmd = if $testing then
               "sleep 1"
             else
-              "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} %#{semi+7}"
+              "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} %#{semi + 7}"
             end
       if cmd_was != cmd || !pplayer&.alive?
         pplayer.kill if pplayer&.alive?
@@ -283,12 +278,13 @@ def play_interactive_pitch embedded: false, explain: true,
     # wait until sound has stopped or key pressed
     begin
       break if $ctl_pitch[:any] || $ctl_pitch[:invalid]
+
       handle_kb_play_pitch
       sleep 0.1
     end while pplayer.alive?
 
     if $ctl_pitch[:any] || $ctl_pitch[:invalid]
-      knm = $conf_meta[:ctrls_play_pitch].select {|k| $ctl_pitch[k] && k != :any}[0].to_s.gsub('_',' ')
+      knm = $conf_meta[:ctrls_play_pitch].select {|k| $ctl_pitch[k] && k != :any}[0].to_s.gsub('_', ' ')
       if $ctl_pitch[:pause_continue]
         if paused
           paused = false
@@ -297,7 +293,7 @@ def play_interactive_pitch embedded: false, explain: true,
           paused = true
           print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
         end
-        $ctl_rec[:pause_continue] = false        
+        $ctl_rec[:pause_continue] = false
       elsif $ctl_pitch[:vol_up]
         $vol.inc
         puts "\e[0m\e[2m#{$vol}\e[0m"
@@ -332,14 +328,14 @@ def play_interactive_pitch embedded: false, explain: true,
         puts "\e[0m\e[2m#{wave}\e[0m"
       elsif $ctl_pitch[:show_help]
         pplayer.pause
-        display_kb_help 'a pitch',true,
+        display_kb_help 'a pitch', true,
                         "    SPACE: pause/continue  ESC,x,q: " + ( embedded ? "discard\n" : "quit\n" ) +
-                        "        w: change waveform       W: change waveform back\n" + 
+                        "        w: change waveform       W: change waveform back\n" +
                         "   s,+,up: one semi up    S,-,down: one semitone down\n" +
                         "        o: one octave up         O: one octave down\n" +
                         "        f: one fifth up          F: one fifth down\n" +
                         "        v: decrease volume       V: increase volume by 3dB\n" +
-                        ( return_accepts  ?  ' RETURN: accept                  .: play again'  :  ' .,RETURN: play again'),
+                        ( return_accepts ? ' RETURN: accept                  .: play again' : ' .,RETURN: play again'),
                         wait_for_key: !paused
         pplayer.continue
         print_pitch_information(semi)
@@ -347,17 +343,17 @@ def play_interactive_pitch embedded: false, explain: true,
         puts "\e[0m\e[2m(#{$ctl_pitch[:invalid]})\e[0m"
         $ctl_pitch[:invalid] = false
       elsif $ctl_pitch[:repeat]
-        puts "\e[0m\e[2mplay again\e[0m"        
+        puts "\e[0m\e[2mplay again\e[0m"
         if pplayer&.alive?
           pplayer.kill
           pplayer.check
         end
       elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
-        new_key =  if $ctl_pitch[:accept_or_repeat] || return_accepts
-                     semi2note(semi)[0..-2]
-                   else
-                     nil
-                   end
+        new_key = if $ctl_pitch[:accept_or_repeat] || return_accepts
+                    semi2note(semi)[0..-2]
+                  else
+                    nil
+                  end
         if pplayer&.alive?
           pplayer.kill
           pplayer.check
@@ -366,7 +362,7 @@ def play_interactive_pitch embedded: false, explain: true,
           $ctl_pitch[:quit] = $ctl_pitch[:accept_or_repeat] = false
           return new_key
         end
-        puts "\e[0m\e[2mplay again\e[0m"        
+        puts "\e[0m\e[2mplay again\e[0m"
       end
 
       $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
@@ -376,6 +372,7 @@ def play_interactive_pitch embedded: false, explain: true,
       wave_was = wave
       5.times do
         break if $ctl_pitch[:any]
+
         handle_kb_play_pitch
         sleep 0.1
       end
@@ -383,9 +380,7 @@ def play_interactive_pitch embedded: false, explain: true,
   end
 end
 
-
 def play_interactive_interval semi1, semi2
-
   puts "\e[0m\e[2mPlaying in loop.\n"
   puts "(type 'h' for help)\e[0m\n\n"
 
@@ -437,12 +432,13 @@ def play_interactive_interval semi1, semi2
     # wait until sound has stopped or key pressed
     begin
       break if $ctl_inter[:any] || $ctl_inter[:invalid]
+
       handle_kb_play_inter
       sleep 0.1
     end while pplayer.alive?
 
     # handle kb
-    if $ctl_inter[:any] || $ctl_inter[:invalid] 
+    if $ctl_inter[:any] || $ctl_inter[:invalid]
       new_sound = false
       if $ctl_inter[:pause_continue]
         if paused
@@ -450,17 +446,17 @@ def play_interactive_interval semi1, semi2
           puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
         else
           paused = true
-          print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"          
+          print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
         end
-        $ctl_rec[:pause_continue] = false        
+        $ctl_rec[:pause_continue] = false
       elsif $ctl_inter[:up] || $ctl_inter[:down]
-        step =  $ctl_inter[:up]  ?  +1  :  -1
+        step = $ctl_inter[:up] ? +1 : -1
         semi1 += step
         semi2 += step
         print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:narrow] || $ctl_inter[:widen]
-        delta_semi +=  $ctl_inter[:narrow]  ?  -1  :  +1
+        delta_semi += $ctl_inter[:narrow] ? -1 : +1
         semi2 = semi1 + delta_semi
         print_interval(semi1, semi2) if paused
         new_sound = true
@@ -484,21 +480,21 @@ def play_interactive_interval semi1, semi2
         semi1, semi2 = semi2, semi1
         delta_semi = -delta_semi
         print_interval(semi1, semi2) if paused
-        new_sound = true        
+        new_sound = true
       elsif $ctl_inter[:replay]
         puts "\e[0m\e[2mReplay\e[0m\n\n"
-        new_sound = true        
+        new_sound = true
       elsif $ctl_inter[:vol_up]
         $vol.inc
         puts "\e[0m\e[2m#{$vol}\e[0m"
-        new_sound = true        
+        new_sound = true
       elsif $ctl_inter[:vol_down]
         $vol.dec
         puts "\e[0m\e[2m#{$vol}\e[0m"
-        new_sound = true        
+        new_sound = true
       elsif $ctl_inter[:show_help]
         pplayer.pause unless paused
-        display_kb_help 'an interval',true,
+        display_kb_help 'an interval', true,
                         "   SPACE: pause/continue          ESC,x,q: quit\n" +
                         "       +: widen interval by one semi    -: narrow by one semi\n" +
                         "       >: move interval up one semi     <: move down\n" +
@@ -525,9 +521,7 @@ def play_interactive_interval semi1, semi2
   end
 end
 
-
 def play_interactive_chord semis, args_orig
-
   puts "\e[0m\e[2mPlaying in loop.\n"
   puts "(type 'h' for help)\e[0m\n\n"
 
@@ -545,7 +539,7 @@ def play_interactive_chord semis, args_orig
 
   # loop forever until ctrl-c; loop on every key
   loop do
-    # we also loop when paused, so that user can change other settings during pause    
+    # we also loop when paused, so that user can change other settings during pause
     if paused
       if pplayer&.alive?
         pplayer.kill
@@ -573,6 +567,7 @@ def play_interactive_chord semis, args_orig
     # wait until sound has stopped or key pressed
     begin
       break if $ctl_chord[:any]
+
       handle_kb_play_chord
       sleep 0.1
     end while pplayer.alive?
@@ -635,10 +630,10 @@ def play_interactive_chord semis, args_orig
         new_sound = true
       elsif $ctl_chord[:replay]
         puts "\e[0m\e[2mReplay\e[0m"
-        new_sound = true        
+        new_sound = true
       elsif $ctl_chord[:show_help]
         pplayer.pause
-        display_kb_help 'a chord',true,
+        display_kb_help 'a chord', true,
                         "  SPACE: pause/continue  ESC,x,q: quit\n" +
                         "      w: change waveform       W: change waveform back\n" +
                         "      g: decrease time gap     G: increase\n" +
@@ -665,14 +660,12 @@ def play_interactive_chord semis, args_orig
   end
 end
 
-
 def play_interactive_progression progs, progs_disp
-
   fmt = ' ' + '|%8s ' * 4 + '|'
   puts "\nProgressions are: "
-  progs_disp.each_with_index {|pr, ix| puts "   (#{ix+1})  #{pr}"}
+  progs_disp.each_with_index {|pr, ix| puts "   (#{ix + 1})  #{pr}"}
   print "\n\n"
-  
+
   puts "\e[0m\e[2mWhile a progression play, you may shift its next iteration\nby pressing appropriate keys"
   if progs.length == 1
     puts "You specified one progression only, but multiple are accepted too, separated by ' . '"
@@ -701,7 +694,7 @@ def play_interactive_progression progs, progs_disp
       print "\e[2mProgression is (#{progs_idx + 1}): #{progs_disp[progs_idx]}\e[0m\n\n"
       progs_idx_was = progs_idx
     end
-    
+
     if total_semis != total_semis_was
       print "\e[2mTotal shift is #{total_semis} semitones"
       print ", #{$intervals[total_semis][0]}" if $intervals[total_semis]
@@ -709,23 +702,22 @@ def play_interactive_progression progs, progs_disp
       total_semis_was = total_semis
     end
 
-    
+
     puts fmt % ['Holes', 'Notes', 'abs st', 'rel st']
     sleep 0.05
     puts ' ' + '|---------' * 4 + '|'
     sleep 0.05
-    $ctl_prog[:prefix] = nil    
+    $ctl_prog[:prefix] = nil
 
     # loop over holes of progression
     [holes, :delay].flatten.zip(notes, abs_semis, rel_semis).each do |ho, no, as, rs|
-
       if ho != :delay
         line = fmt % [ho, no, as, rs]
-        3.times { puts ; sleep 0.05 }
+        3.times { puts; sleep 0.05 }
         print "\e[3A\e[G"
         print "\e[G\e[0m#{line}\e[0m\n"
       end
-      
+
       if pplayer
         pplayer.kill
         pplayer.check
@@ -739,7 +731,7 @@ def play_interactive_progression progs, progs_disp
             end
       pplayer = PausablePlayer.new(cmd)
       paused = false
-      
+
       # we also loop when paused, so that user can change other settings during pause
       # loop while playing or paused
       begin
@@ -756,7 +748,7 @@ def play_interactive_progression progs, progs_disp
             pplayer.pause
             print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
           end
-          $ctl_prog[:pause_continue] = false        
+          $ctl_prog[:pause_continue] = false
         elsif $ctl_prog[:show_help]
           display_kb_help 'a semitone progression', true,
                           "    SPACE: pause/continue\n" +
@@ -772,9 +764,9 @@ def play_interactive_progression progs, progs_disp
         elsif $ctl_prog[:semi_up] || $ctl_prog[:semi_down]
           # things happen at start if outside loop
           change_semis_was = change_semis
-          change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up]  ?  +1  :  -1 )
-          ctxt = ( change_semis == change_semis_was  ?  '; unchanged; does not add up, rather use prefix'  :  '' )
-          itxt = ( $intervals[change_semis.abs]  ?  " (#{$intervals[change_semis.abs][0]})"  :  '' )
+          change_semis = ( $ctl_prog[:prefix] || '1').to_i * ( $ctl_prog[:semi_up] ? +1 : -1 )
+          ctxt = ( change_semis == change_semis_was ? '; unchanged; does not add up, rather use prefix' : '' )
+          itxt = ( $intervals[change_semis.abs] ? " (#{$intervals[change_semis.abs][0]})" : '' )
           puts "\e[0m\e[2mnext iteration: #{change_semis.abs} semitones#{itxt} #{$ctl_prog[:semi_up] ? 'UP' : 'DOWN'}#{ctxt}\e[0m"
           $ctl_prog[:semi_up] = $ctl_prog[:semi_down] = false
           $ctl_prog[:prefix] = nil
@@ -814,7 +806,7 @@ def play_interactive_progression progs, progs_disp
           puts "\e[0m\e[2m#{$ctl_prog[:invalid]}\e[0m"
           $ctl_prog[:invalid] = false
         end
-      end while paused  || pplayer&.alive?  ## loop while playing or paused
+      end while paused || pplayer&.alive?  ## loop while playing or paused
     end  ## loop over holes of progression
 
     print "\n\n" if loop || change_semis
@@ -823,9 +815,7 @@ def play_interactive_progression progs, progs_disp
   puts
 end
 
-
 def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
-
   # allow hide to be a single value, a hash or an array (maybe with hashes)
   hide = [hide].flatten
   hide.compact!
@@ -833,7 +823,7 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
   hide = Hash.new
   hides.each {hide.merge!(_1)}
   simples.each {hide[_1] = '?'}
-  
+
   unless hide[:help]
     puts "\e[2m(SPACE to pause, 'h' for help)\e[0m"
     puts
@@ -842,7 +832,7 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
   holes_or_notes.each do |hon|
     print((hide[hon] || hide[:all] || hon) + ' ')
     if musical_event?(hon)
-      sleep $opts[:fast]  ?  0.125  :  0.25
+      sleep $opts[:fast] ? 0.125 : 0.25
     else
       duration = ( $opts[:fast] ? 0.5 : 1 )
       non = $harp.dig(hon, :note) || hon
@@ -875,17 +865,15 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
   puts
 end
 
-
 def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false, lick: nil, with_head: false, hide_holes: false
-
   if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
     holes, _, _ = select_and_calc_partial(all_holes, nil, nil)
   else
     holes = all_holes
   end
-  
+
   IO.write($testing_log, holes.inspect + "\n", mode: 'a') if $testing
-  
+
   $ctl_hole[:skip] = false
 
   if !scroll_allowed
@@ -897,8 +885,8 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
       print "\e[#{$lines[:hint_or_message]}H\e[K"
     end
   end
-  
-  print( lick  ?  "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... "  :  "\e[2mHoles (h for help) ... ") if with_head
+
+  print( lick ? "\e[2mLick \e[0m#{lick[:name]}\e[2m (h for help) ... " : "\e[2mHoles (h for help) ... ") if with_head
 
   cnt_loops = 0
   loop_message_printed = false
@@ -913,12 +901,11 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
     end
 
     [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+      hole_disp = ( hide_holes ? '?' : hole )
+      print( musical_event?(hole) ? "\e[2m#{hole_disp}\e[2m " : "\e[0m#{hole_disp}\e[2m " )
 
-      hole_disp = ( hide_holes  ?  '?'  :  hole )
-      print( musical_event?(hole)  ?  "\e[2m#{hole_disp}\e[2m "  :  "\e[0m#{hole_disp}\e[2m " )
-      
       if musical_event?(hole)
-        sleep $opts[:fast]  ?  0.125  :  0.25
+        sleep $opts[:fast] ? 0.125 : 0.25
       else
         # this also handles kb input and sets $ctl_hole
         play_hole_or_note_and_collect_kb hole, get_musical_duration(hole_next)
@@ -927,16 +914,16 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
       # react on keyboard input
       if $ctl_hole[:show_help]
         display_kb_help 'the holes of a lick', scroll_allowed,
-        "       SPACE: pause/continue" +
-        if $ctl_lk_hl[:can_star_unstar]
-          "          *,/: star,unstar lick\n"
-        else
-          "\n"
-        end +
-        "TAB,+,RETURN: skip to end\n" +
-        "         v,V: decrease,increase volume\n" +
-        "           l: toggle loop over holes " +
-        ( loop_holes  ?  "(now ON)\n"  :  "(now OFF)\n" )
+                        "       SPACE: pause/continue" +
+                        if $ctl_lk_hl[:can_star_unstar]
+                          "          *,/: star,unstar lick\n"
+                        else
+                          "\n"
+                        end +
+                        "TAB,+,RETURN: skip to end\n" +
+                        "         v,V: decrease,increase volume\n" +
+                        "           l: toggle loop over holes " +
+                        ( loop_holes ? "(now ON)\n" : "(now OFF)\n" )
         # continue below help (first round only)
         print "\n"
         at_line = [at_line + 10, $term_height].min if at_line
@@ -963,7 +950,7 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
         $ctl_lk_hl[:star_lick] = false
       elsif $ctl_lk_hl[:toggle_loop]
         loop_holes = !loop_holes
-        print "\e[0m\e[32mLoop over holes is: " + ( loop_holes  ?  "ON\n"  :  "OFF\n" )
+        print "\e[0m\e[32mLoop over holes is: " + ( loop_holes ? "ON\n" : "OFF\n" )
         $ctl_lk_hl[:toggle_loop] = false
       elsif $ctl_hole[:invalid]
         print "\e[0m(#{$ctl_hole[:invalid]}\e[0m) "
@@ -979,23 +966,21 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
     end
 
   end while !$ctl_hole[:skip] && loop_holes && cnt_loops < $ctl_lk_hl[:num_loops]
-  
+
   puts if scroll_allowed
 end
 
-
 class PausablePlayer
-
   attr_reader :sum_pauses
-  
+
   def initialize cmd
     @cmd = cmd
-    _, @stdout_err, @wait_thr  = Open3.popen2e(cmd)
+    _, @stdout_err, @wait_thr = Open3.popen2e(cmd)
     @started_at = Time.now.to_f
     @sum_pauses = 0.0
     @paused_at = nil
   end
-  
+
   def pause
     Process.kill('TSTP', @wait_thr.pid) if @wait_thr.alive?
     @paused_at ||= Time.now.to_f
@@ -1003,9 +988,9 @@ class PausablePlayer
   end
 
   def wait
-    Process.wait(@wait_thr.pid) if @wait_thr.alive?  
+    Process.wait(@wait_thr.pid) if @wait_thr.alive?
   end
-  
+
   def continue
     Process.kill('CONT', @wait_thr.pid) if @wait_thr.alive?
     if @paused_at
@@ -1018,16 +1003,16 @@ class PausablePlayer
   def time_played
     Time.now.to_f - @started_at - @sum_pauses
   end
-  
+
   def kill
-    Process.kill('KILL',@wait_thr.pid) if alive?
+    Process.kill('KILL', @wait_thr.pid) if alive?
     @wait_thr.join
   end
 
   def paused?
     !!@paused_at
   end
-  
+
   def alive?
     @wait_thr.alive?
   end
@@ -1038,17 +1023,14 @@ class PausablePlayer
       @wait_thr.join
       puts "\nCommand:\n  #{@cmd}\nfailed with rc #{exst} and output:\n"
       out = @stdout_err.read.lines.map {|l| '   >>  ' + l}.join
-      puts ( out.length > 0  ?  out  :  '<no output>' )
+      puts ( out.length > 0 ? out : '<no output>' )
       puts $sox_fail_however
       err 'See above'
     end
   end
-  
 end
 
-
 class ConfinedValue
-
   def initialize value, step, lowest, highest
     @value = value
     @step = step
@@ -1077,7 +1059,6 @@ class ConfinedValue
     confine
   end
 end
-
 
 def get_sound_and_desc semis, args_orig, wave, gap, len, single
   arg2semi = args_orig.zip(semis).to_h

@@ -66,7 +66,7 @@ $debug_state = {}
 
 $full_command_line = $0 + ' ' + ARGV.join(' ')
 
-$term_height, $term_width = prepare_screen 
+$term_height, $term_width = prepare_screen
 
 # set these early, because they are used during initialization
 $testing, $testing_what = set_testing_vars_mb
@@ -91,20 +91,20 @@ end
 initialize_extra_vars
 
 if $testing_what == :extra
-  puts JSON.pretty_generate({extra_kws_wwos2canon: $extra_kws_wwos2canon})
+  puts JSON.pretty_generate({ extra_kws_wwos2canon: $extra_kws_wwos2canon })
   exit
 end
 
 # Find out very early, if debugging is requested; so we may already adhere while parsing
 # arguments
-$opts = {debug: true} if ARGV.include?('--debug')
+$opts = { debug: true } if ARGV.include?('--debug')
 
 $mode, $type, $key, $scale, $opts = parse_arguments_early
 $key_initial = $key
 $scale_initial = $scale
 
 if $testing_what == :argv
-  puts JSON.pretty_generate({mode: $mode, type: $type, key: $key, scale: $scale, argv: ARGV})
+  puts JSON.pretty_generate({ mode: $mode, type: $type, key: $key, scale: $scale, argv: ARGV })
   exit
 end
 
@@ -115,8 +115,8 @@ mostly_avoid_double_invocations
 # we need to have mode for this, so calculate it late
 $lines = calculate_screen_layout
 # Count things and print them on --debug; supplements info from ruby -rprofile
-$perfctr = Hash.new {|h,k| h[k] = 0}
-  
+$perfctr = Hash.new {|h, k| h[k] = 0}
+
 set_global_vars_late
 
 set_global_musical_vars
@@ -184,11 +184,11 @@ at_exit do
 
   # a user recording could still be going on
   $ulrec&.stop_rec
-  
+
   # notice for lagging or jitter if appropriate
   print_afterthought if $initialized
 
-  if $opts && $opts[:debug] 
+  if $opts && $opts[:debug]
     print_debug_info
     $debug_log.close if $debug_log
     if File.exist?($debug_log_file)
@@ -232,4 +232,3 @@ begin
     do_develop to_handle
   end
 end while $ctl_mic[:switch_modes]
-

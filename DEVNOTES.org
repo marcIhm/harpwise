@@ -29,10 +29,13 @@
 
 * Rubocop
 
+  
   rubocop >rubocop.out
   
   ruby -ne 'BEGIN {cps={}}; cps[$1]=1 if $_=~/\[Correctable\]\s+(\S+):/; END {scps=cps.keys.sort; puts scps; puts scps.length}' <rubocop.out
 
+  rubocop -A
+   
   Vorgehen: Für jeden Cop mindetens ein Beispiel aus rubocop.out betrachten und entscheiden,
   ob das für mich Okay ist, oder ob ich das per .rubocop.yml ausschließen will.
 

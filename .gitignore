@@ -4,4 +4,4 @@
 man/man1
 snap/harpwise*
 profile
-rubocop.out
+rubocop*.out

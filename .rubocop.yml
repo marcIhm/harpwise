@@ -1,5 +1,10 @@
 AllCops:
-    NewCops: enable
+  DisabledByDefault: true
+Layout:
+  Enabled: true
+  
+#AllCops:
+#   NewCops: enable
 Style/GlobalVars:
   Enabled: false
 Layout/EmptyLines:

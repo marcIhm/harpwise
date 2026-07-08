@@ -5,10 +5,10 @@
 
 def prepare_screen
   return [24, 80] unless STDOUT.isatty
+
   STDOUT.sync = true
   %x(stty size).split.map(&:to_i)
 end
-
 
 def check_screen graceful: false, hint_on_large_term: false
   begin
@@ -20,18 +20,18 @@ def check_screen graceful: false, hint_on_large_term: false
     # check if enough room between lines for various fonts
     [[:display, :hole,
       figlet_char_height('mono12')],
-     [:comment, :hint_or_message, 
-      figlet_char_height($mode == :listen  ?  'mono9'  : 'smblock')]
-    ].each do |l1, l2, height|
+     [:comment, :hint_or_message,
+      figlet_char_height($mode == :listen ? 'mono9' : 'smblock')]].each do |l1, l2, height|
       space = $lines[l2] - $lines[l1]
       if height > space
         raise ArgumentError.new("Space of #{space} lines between $lines[#{l1}] and $lines[#{l2}] is less than needed #{height}")
       end
     end
-    
+
     # check for size of chart
     xroom = $term_width - $charts[:chart_notes].map {|r| r.join.length}.max
     raise ArgumentError.new("Terminal has not enough columns for chart from #{$chart_file} (by #{-xroom} columns)") if xroom < 0
+
     yroom = $lines[:hole] - $lines[:display] - $charts[:chart_notes].length
     raise ArgumentError.new("Terminal has not enough lines for chart from #{$chart_file} (by #{-yroom} lines)") if yroom < 0
 
@@ -39,7 +39,7 @@ def check_screen graceful: false, hint_on_large_term: false
     yoff = ( yroom - 1 ) / 2
     yoff = 0 if yoff < 0
     yoff += 1 if yroom > 1
-    $conf[:chart_offset_xyl][0..1] = [ (xroom * 0.5).to_i, yoff ]
+    $conf[:chart_offset_xyl][0..1] = [(xroom * 0.5).to_i, yoff]
 
     # check for clashes
     clashes_ok = (2..4).map do |n|
@@ -48,22 +48,21 @@ def check_screen graceful: false, hint_on_large_term: false
         set.combination(n).map {|tuple| Set.new(tuple)}
       end
     end.flatten
-    
-    lines_inv = $lines.inject(Hash.new([])) {|m,(k,v)| m[v] += [k]; m}
-    clashes = lines_inv.select {|l,ks| ks.length > 1 && !clashes_ok.include?(Set.new(ks))}
+
+    lines_inv = $lines.inject(Hash.new([])) {|m, (k, v)| m[v] += [k]; m}
+    clashes = lines_inv.select {|l, ks| ks.length > 1 && !clashes_ok.include?(Set.new(ks))}
     if clashes.length > 0
       puts "Collisions:"
-      clashes.each {|l,ks| puts "Keys #{ks} all map to line #{l}"}
+      clashes.each {|l, ks| puts "Keys #{ks} all map to line #{l}"}
       raise ArgumentError.new('See above')
     end
 
-    # check bottom line 
-    bt_key, bt_line, = $lines.max_by {|k,l| l}
+    # check bottom line
+    bt_key, bt_line, = $lines.max_by {|k, l| l}
     # lines for ansi term start at 1
     if bt_line > $term_height
       raise ArgumentError.new("Line #{bt_key} = #{bt_line} is larger than terminal height = #{$term_height}")
     end
-    
   rescue ArgumentError => e
     puts "\n[width, height] = [#{$term_width}, #{$term_height}]"
     puts
@@ -85,16 +84,15 @@ def check_screen graceful: false, hint_on_large_term: false
     $msgbuf.print ["This terminal [#{$term_width}, #{$term_height}] is much larger than needed [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] ...",
                    "... consider adjusting it for better readability"], 5, 5
   end
-  
+
   return true
 end
-
 
 def sys cmd, failinfo = nil
   out, stat = Open3.capture2e(cmd)
   if !stat.success?
     cited = out.lines.map {|l| " >> #{l}"}.join
-    err("Command '#{cmd}' failed with:\n#{cited}" + ( failinfo  ?  "\n#{failinfo}"  :  '' ))
+    err("Command '#{cmd}' failed with:\n#{cited}" + ( failinfo ? "\n#{failinfo}" : '' ))
   end
   out
 end
@@ -104,6 +102,7 @@ $figlet_cache = Hash.new
 
 def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
+
   cmd = "figlet -w 400 -f #{font} -d #{$font2dir[font]} -l  -- \"#{text}\""
   cmdt = cmd + truncate.to_s
   unless $figlet_cache[cmdt]
@@ -112,9 +111,9 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
     lines = out.lines.map {|l| l.rstrip}
 
     # strip common spaces at front
-    common = lines.select {|l| l.lstrip.length > 0}.
-               map {|l| l.length - l.lstrip.length}.min
-    lines.map! {|l| l[common .. -1] || ''}
+    common = lines.select {|l| l.lstrip.length > 0}
+                  .map {|l| l.length - l.lstrip.length}.min
+    lines.map! {|l| l[common..-1] || ''}
 
     # overall length from figlet
     maxlen = lines.map {|l| l.length}.max
@@ -123,10 +122,10 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
     offset_specific = 0.4 * ( $term_width - maxlen )
     if width_template
       if width_template.start_with?('fixed:')
-        offset = ( $term_width - figlet_text_width(width_template[6 .. -1], font) ) * 0.5
+        offset = ( $term_width - figlet_text_width(width_template[6..-1], font) ) * 0.5
       else
         twidth = figlet_text_width(width_template, font)
-        offset = ( twidth.to_f / $term_width < 0.6  ?  0.4  :  0.8 ) * ( $term_width - twidth )
+        offset = ( twidth.to_f / $term_width < 0.6 ? 0.4 : 0.8 ) * ( $term_width - twidth )
       end
     else
       offset = offset_specific
@@ -140,14 +139,14 @@ def do_figlet_unwrapped text, font, width_template = nil, truncate = :left
     if offset < 0 || offset + maxlen > 0.9 * $term_width
       offset = 0
     end
-    $figlet_cache[cmdt] = lines.each_with_index.map do |l,i|
-      if maxlen + 2 < $term_width 
+    $figlet_cache[cmdt] = lines.each_with_index.map do |l, i|
+      if maxlen + 2 < $term_width
         ' ' * offset + l.chomp
       else
         if truncate == :left
-          '/\\'[i%2] + '   ' +  sprintf("%-#{maxlen}s", l.chomp)[-$term_width + 6 .. -1]
+          '/\\'[i % 2] + '   ' + sprintf("%-#{maxlen}s", l.chomp)[-$term_width + 6..-1]
         else
-          (l.chomp + ' ' * maxlen)[0 .. $term_width - 6] + '   ' + '/\\'[i%2]
+          (l.chomp + ' ' * maxlen)[0..$term_width - 6] + '   ' + '/\\'[i % 2]
         end
       end
     end
@@ -165,6 +164,7 @@ $figlet_wrap_cache = Hash.new
 
 def get_figlet_wrapped text, font
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
+
   cmd = "figlet -w #{$term_width - 4} -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\""
   unless $figlet_wrap_cache[cmd]
     out = sys(cmd).force_encoding('UTF-8')
@@ -173,9 +173,9 @@ def get_figlet_wrapped text, font
 
     # strip common spaces at front in groups of four, known to be figlet line height
     lines = lines.each_slice(4).map do |lpl| # lines (terminal) per line (figlet)
-      common = lpl.select {|l| l.lstrip.length > 0}.
-                 map {|l| l.length - l.lstrip.length}.min || 0
-      lpl.map {|l| l[common .. -1] || ''}
+      common = lpl.select {|l| l.lstrip.length > 0}
+                  .map {|l| l.length - l.lstrip.length}.min || 0
+      lpl.map {|l| l[common..-1] || ''}
     end.flatten
 
     $figlet_wrap_cache[cmd] = lines.map {|l| '  ' + l}
@@ -183,9 +183,9 @@ def get_figlet_wrapped text, font
   $figlet_wrap_cache[cmd]
 end
 
-
 def figlet_char_height font
   fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
+
   # high and low chars
   out = sys("figlet -f #{font} -d #{$font2dir[font]} -l Igq")
   $perfctr[:figlet_3] += 1
@@ -197,6 +197,7 @@ $figlet_text_width_cache = Hash.new
 def figlet_text_width text, font
   unless $figlet_text_width_cache[text + font]
     fail "Unknown font: #{font}" unless $conf[:figlet_fonts].include?(font)
+
     out = sys("figlet -f #{font} -d #{$font2dir[font]} -l -- \"#{text}\"").force_encoding('UTF-8')
     $perfctr[:figlet_4] += 1
     $figlet_text_width_cache[text + font] = out.lines.map {|l| l.strip.length}.max
@@ -204,13 +205,11 @@ def figlet_text_width text, font
   $figlet_text_width_cache[text + font]
 end
 
-
 def prepare_term
   # no timeout on read, one char is enough
   system("stty -echo -icanon min 1 time 0")
-  Kernel::print "\e[?25l"  ## hide cursor  
+  Kernel::print "\e[?25l"  ## hide cursor
 end
-
 
 def sane_term
   system("stty sane") if STDOUT.isatty
@@ -218,14 +217,12 @@ def sane_term
   # only place where this is needed (at_exit) does this explicitly
 end
 
-
 def clear_screen_and_scrollback
   # clear screen
-  print "\e[2J" 
+  print "\e[2J"
   # clear scrollback and screen and switch to different buffer for some terms at least
   print "\e[3J"
 end
-
 
 def start_kb_handler
   $term_kb_handler = Thread.new do
@@ -236,11 +233,9 @@ def start_kb_handler
   $debug_state[:kb_handler_started] = true
 end
 
-
 def stop_kb_handler
   $term_kb_handler.kill if $term_kb_handler
 end
-
 
 def start_fifo_handler
   File.mkfifo($remote_fifo) unless File.exist?($remote_fifo)
@@ -256,12 +251,10 @@ def start_fifo_handler
   end
 end
 
-
 def stop_fifo_handler
   $remote_fifo_handler.kill if $remote_fifo_handler
   $remote_fifo_handler = nil
 end
-
 
 def make_term_immediate
   prepare_term
@@ -269,16 +262,15 @@ def make_term_immediate
   start_fifo_handler if $opts[:jamming]
 end
 
-
 def make_term_cooked
   sane_term
   stop_kb_handler
   stop_fifo_handler if $opts[:jamming]
 end
 
-
 def handle_kb_play_holes_or_notes
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
 
   if char == ' '
@@ -304,9 +296,9 @@ def handle_kb_play_holes_or_notes
   end
 end
 
-
 def handle_kb_play_lick_recording
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
 
   if char == '.' || char == '-'
@@ -336,9 +328,9 @@ def handle_kb_play_lick_recording
   end
 end
 
-
 def handle_kb_play_recording
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
 
   if char == ' '
@@ -363,9 +355,9 @@ def handle_kb_play_recording
   end
 end
 
-
 def handle_kb_play_semis
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
 
   if char == ' '
@@ -400,9 +392,9 @@ def handle_kb_play_semis
   end
 end
 
-
 def handle_kb_play_pitch
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
   $ctl_pitch[:any] = true
 
@@ -442,9 +434,9 @@ def handle_kb_play_pitch
   end
 end
 
-
 def handle_kb_play_inter
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
   $ctl_inter[:any] = true
 
@@ -484,9 +476,9 @@ def handle_kb_play_inter
   end
 end
 
-
 def handle_kb_play_chord
   return if $ctl_kb_queue.length == 0
+
   char = $ctl_kb_queue.deq
   $ctl_chord[:any] = true
 
@@ -519,7 +511,7 @@ def handle_kb_play_chord
   elsif char == 'q' || char == 'x' || char == 'ESC'
     $ctl_chord[:quit] = char
   else
-    $ctl_chord[:invalid] = get_text_invalid(char) 
+    $ctl_chord[:invalid] = get_text_invalid(char)
   end
 end
 
@@ -529,6 +521,7 @@ end
 #
 def handle_kb_mic
   return unless $ctl_kb_queue.length > 0 || $ctl_fifo_queue.length > 0
+
   char = if $ctl_kb_queue.length > 0
            $ctl_kb_queue.deq
          else
@@ -595,13 +588,13 @@ def handle_kb_mic
     text = 'Reverse'
   elsif char == '&' && $mode == :licks
     $ctl_mic[:shuffle_holes] = true
-    text = 'Shuffle'    
+    text = 'Shuffle'
   elsif char == 'i' && $mode == :licks
     $ctl_mic[:lick_info] = true
-    text = 'Lick info'    
+    text = 'Lick info'
   elsif char == 'o' && [:listen, :licks].include?($mode)
     $ctl_mic[:options_info] = true
-    text = 'Option info'    
+    text = 'Option info'
   elsif char == 'CTRL-R' && $mode == :licks
     $ctl_mic[:toggle_record_user] = true
     text = 'Toggle record'
@@ -668,7 +661,7 @@ def handle_kb_mic
   elsif char == 'ALT-m'
     $ctl_mic[:remote_message] = true
   elsif char == 'r' || char == 'R'
-    $ctl_mic[:set_ref] = ( char == 'r'  ?  :played  :  :choose )
+    $ctl_mic[:set_ref] = ( char == 'r' ? :played : :choose )
     text = 'Set reference'
   elsif char == 'CTRL-BACKSPACE'
     if $opts[:comment] == :journal
@@ -687,25 +680,25 @@ def handle_kb_mic
   elsif %w(. p).include?(char) && [:quiz, :licks].include?($mode)
     $ctl_mic[:replay] = true
     $ctl_mic[:replay_flags] = Set.new
-    text ='Replay'
+    text = 'Replay'
   elsif char == ',' && $mode == :licks
     $ctl_mic[:replay_menu] = true
     text = 'Replay menu'
   elsif char == '.' && $mode == :listen
     $ctl_mic[:comment_lick_play] = true
-    text ='Play lick'
+    text = 'Play lick'
   elsif char == 'l' && $mode == :listen
     $ctl_mic[:comment_lick_next] = true
-    text ='Next lick'
+    text = 'Next lick'
   elsif char == 'ALT-l' && $mode == :listen
     $ctl_mic[:comment_lick_prev] = true
-    text ='Prev lick'
+    text = 'Prev lick'
   elsif char == 'L' && $mode == :listen
     $ctl_mic[:comment_lick_first] = true
-    text ='First lick'
+    text = 'First lick'
   elsif char == 'P' && [:quiz, :licks].include?($mode)
     $ctl_mic[:auto_replay] = true
-    text = $opts[:auto_replay]  ?  'auto replay OFF'  :  'auto replay ON'
+    text = $opts[:auto_replay] ? 'auto replay OFF' : 'auto replay ON'
   elsif char == 'p'
     $ctl_mic[:player_details] = true
   elsif (char == '0' || char == '-') && [:quiz, :licks].include?($mode)
@@ -744,7 +737,6 @@ def handle_kb_mic
   waited
 end
 
-
 def ctl_response text = nil, hl: false, tntf: Time.now.to_f, redraw: false
   # Immediate acknowledge to user input. Also, after a while, display default text if no
   # input has been given
@@ -757,12 +749,13 @@ def ctl_response text = nil, hl: false, tntf: Time.now.to_f, redraw: false
     else
       # let any non-default text stand for 3 secs
       return if $ctl_response_non_def_ts && tntf < $ctl_response_non_def_ts + 3
+
       text = $ctl_response_default
     end
     return if $ctl_response_last_text == text
   end
   $ctl_response_last_text = text
-  text = text[0 .. $ctl_response_width - 1] if text.length > $ctl_response_width
+  text = text[0..$ctl_response_width - 1] if text.length > $ctl_response_width
   print "\e[#{$lines[:mission]};#{$term_width - $ctl_response_width}H\e[0m"
   if hl.is_a?(Numeric)
     wheel = $resources[:hl_wheel]
@@ -776,7 +769,6 @@ def ctl_response text = nil, hl: false, tntf: Time.now.to_f, redraw: false
   end
   print "#{text.rjust($ctl_response_width)}\e[0m"
 end
-  
 
 def read_answer ans2chs_dscs
   ans2klist = ans2chs_dscs.map {|ans, chs_dscs| [ans, chs_dscs[0].join(',')]}.to_h
@@ -814,8 +806,8 @@ def read_answer ans2chs_dscs
     if answer == :help
       puts "Full Help:\n\n"
       ans2chs_dscs.each do |ans, chs_dsc|
-        desc_lines = chs_dsc[2 .. -1]
-        desc = ([desc_lines[0]] + desc_lines[1 .. -1].map {|l| ' ' * (maxlenl + 5) + l}).join("\n")
+        desc_lines = chs_dsc[2..-1]
+        desc = ([desc_lines[0]] + desc_lines[1..-1].map {|l| ' ' * (maxlenl + 5) + l}).join("\n")
         puts "  %#{maxlenl}s:  %s" % [ans2klist[ans], desc]
       end
       puts
@@ -824,9 +816,7 @@ def read_answer ans2chs_dscs
   answer
 end
 
-
 def draw_data marker1, marker2
-
   # area accessible for plot. right and left border might be plotted
   # over, but top and bottom line not
   plot_width = ( $term_width * 0.9 ).to_i
@@ -852,7 +842,7 @@ def draw_data marker1, marker2
   txt = '%.1f' % minx
   buf << txt + ' ' * ( plot_width - txt.length )
   txt = '%.1f' % maxx
-  buf[-1][-txt.length .. -1] = txt
+  buf[-1][-txt.length..-1] = txt
 
   # middle ticks
   parts = [-0.1, 0.2, -0.3, 0.4, -0.5, 0.6, -0.7, 0.8, -0.9]
@@ -863,35 +853,35 @@ def draw_data marker1, marker2
     txt = '%.1f' % ( minx + prt * ( maxx - minx ))
     mid = (plot_width * prt).to_i
     buf[-2][mid] = '+'
-    buf[-1][mid - txt.length / 2 .. mid + txt.length / 2] = txt unless tick_only
+    buf[-1][mid - txt.length / 2..mid + txt.length / 2] = txt unless tick_only
   end
 
   # data
   px = 0
   # we do not plat all data
-  rec_proc[:vals_norm][1 .. -2].each do |x, y|
+  rec_proc[:vals_norm][1..-2].each do |x, y|
     py = plot_height * y
-    ((-2 - py).to_i .. -3).each {|y| buf[y][px + 1] = '*'}
+    ((-2 - py).to_i..-3).each {|y| buf[y][px + 1] = '*'}
     px += 1
   end
 
   # markers
   unless marker1 == 0 && marker2 == 0
     # marker2 is guaranteed to be higher than marker1
-    [[marker2, "\e[34m", 'to:'], [marker1,"\e[32m", 'from:']].each do |x, col, desc|
+    [[marker2, "\e[34m", 'to:'], [marker1, "\e[32m", 'from:']].each do |x, col, desc|
       px = plot_width * (x - minx) / ( maxx - minx)
       if px <= plot_width
-        (1 .. 1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"} 
-        txt = desc + '%.1f' % x 
+        (1..1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"}
+        txt = desc + '%.1f' % x
         txt_col = col + txt + "\e[0m"
         # put exact position in first line
         if px < 3
-          buf[0][0 ... txt.length] = txt_col
+          buf[0][0...txt.length] = txt_col
         elsif px > plot_width - 2
-          buf[0][-txt.length .. -1] = txt_col
+          buf[0][-txt.length..-1] = txt_col
         else
           xs = ( px - txt.length / 2 ).to_i
-          buf[0][xs ... xs + txt.length] = txt_col
+          buf[0][xs...xs + txt.length] = txt_col
         end
       end
     end
@@ -899,14 +889,13 @@ def draw_data marker1, marker2
 
   # output
   print "\e[0m"
-  buf[0 .. -1].each {|line| puts '  ' + line}
+  buf[0..-1].each {|line| puts '  ' + line}
 end
 
-
 def process_recorded_data plot_width
-  rec_proc = {term_width: $term_width,
-              term_height: $term_height,
-              vals_norm: Array.new}
+  rec_proc = { term_width: $term_width,
+               term_height: $term_height,
+               vals_norm: Array.new }
   # first two lines are comments
   num_lines = sys("wc -l #{$recorded_data}").to_i - 2
   lines_per_bin = num_lines / plot_width
@@ -923,41 +912,40 @@ def process_recorded_data plot_width
     while line = data.gets
       fields = line.chomp.split.map {|x| Float(x)}
       fail "Internal error: #{line.chomp.split}" unless fields.length == 2
+
       sum_secs_this_bin += fields[0]
       sum_vals_this_bin += fields[1].abs
       lines_this_bin += 1
       if lines_this_bin == lines_per_bin
-        binned << [ sum_secs_this_bin / lines_per_bin,
-                    sum_vals_this_bin / lines_per_bin ]
+        binned << [sum_secs_this_bin / lines_per_bin,
+                   sum_vals_this_bin / lines_per_bin]
         lines_this_bin = 0
         sum_secs_this_bin = 0
         sum_vals_this_bin = 0
       end
     end
   end
-  
+
   # get max
   max = binned.map {|b| b[1]}.max
   rec_proc[:vals_norm] = if max == 0
                            binned.map {|b| [b[0], 0]}
                          else
-                           binned.map {|b| [b[0], b[1]/max]}
+                           binned.map {|b| [b[0], b[1] / max]}
                          end
-  [ rec_proc, File.mtime($recorded_data) ]
+  [rec_proc, File.mtime($recorded_data)]
 end
-
 
 def drain_chars
   prepare_term
   # drain any already pending chars
   system("stty -echo -icanon min 0 time 0")
-  Kernel::print "\e[?25l"  ## hide cursor  
+  Kernel::print "\e[?25l"  ## hide cursor
   begin
   end while STDIN.getc
   system("stty min 1")
-  sane_term  
+  sane_term
 end
-
 
 def one_char
   prepare_term
@@ -965,29 +953,28 @@ def one_char
   key = get_complex_key
   # drain any remaining chars (e.g. after pressing function-keys)
   system("stty -echo -icanon min 0 time 0")
-  Kernel::print "\e[?25l"  ## hide cursor  
+  Kernel::print "\e[?25l"  ## hide cursor
   begin
   end while STDIN.getc
   system("stty min 1")
   sane_term
   return key
-end  
-
+end
 
 def print_chart skip_hole = nil
   xoff, yoff, len = $conf[:chart_offset_xyl]
   if ( $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis ) && !$hole_ref
     print "\e[0m\e[#{$lines[:display] + yoff + 4}H  You need to set a reference hole, before this chart can be displayed."
-  else    
+  else
     print "\e[#{$lines[:display] + yoff}H"
     $charts[$opts[:display]].each_with_index do |row, ridx|
       print ' ' * ( xoff - 1)
-      row[0 .. -2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, cidx|
         hole = $note2hole[$charts[:chart_notes][ridx][cidx].strip]
         if skip_hole && skip_hole == hole
           print "\e[#{cell.length}C"
         else
-          print (comment_in_chart?(cell)  ?  "\e[0m\e[2m"  :  "\e[0m" + get_hole_color_inactive(hole)) +
+          print (comment_in_chart?(cell) ? "\e[0m\e[2m" : "\e[0m" + get_hole_color_inactive(hole)) +
                 cell
         end
       end
@@ -996,28 +983,25 @@ def print_chart skip_hole = nil
   end
 end
 
-
 def clear_area_display
-  ($lines[:display] .. $lines[:hole] - 1).each {|l| print "\e[#{l}H\e[K"}
+  ($lines[:display]..$lines[:hole] - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$lines[:display]}H"
 end
 
-
 def clear_area_comment offset = 0
-  ($lines[:comment_tall] + offset .. $lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
+  ($lines[:comment_tall] + offset..$lines[:hint_or_message] - 1).each {|l| print "\e[#{l}H\e[K"}
   print "\e[#{$lines[:comment_tall]}H"
 end
 
-
 def clear_area_message
-  ($lines[:hint_or_message] .. $term_height).each do |lnum|
+  ($lines[:hint_or_message]..$term_height).each do |lnum|
     print "\e[#{lnum}H\e[K"
   end
 end
 
-
 def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
   return if ( $opts[:display] == :chart_intervals || $opts[:display] == :chart_inter_semis ) && !$hole_ref
+
   # a hole can appear at multiple positions in the chart
   $hole2chart[hole].each do |xy|
     x = $conf[:chart_offset_xyl][0] + xy[0] * $conf[:chart_offset_xyl][2]
@@ -1031,7 +1015,6 @@ def update_chart hole, state, good = nil, was_good = nil, was_good_since = nil
     print "\e[#{y};#{x}H#{hole_color}#{cell}\e[0m"
   end
 end
-
 
 # a hole, that is beeing currently played
 def get_hole_color_active hole, good, was_good, was_good_since
@@ -1055,13 +1038,12 @@ def get_hole_color_active hole, good, was_good, was_good_since
     "\e[31m"
   end
 end
-    
 
 # a hole, that is not played
 def get_hole_color_inactive hole, bright = false
   if $all_scales_holes.include?(hole)
     if $hole2flags[hole].include?(:main)
-      $hole2flags[hole].include?(:root)  ?  "\e[1m\e[92m"  :  "\e[32m"
+      $hole2flags[hole].include?(:root) ? "\e[1m\e[92m" : "\e[32m"
     else
       bright ? "\e[94m" : "\e[34m"
     end
@@ -1069,7 +1051,6 @@ def get_hole_color_inactive hole, bright = false
     "\e[2m"
   end
 end
-
 
 def handle_win_change
   $term_height, $term_width = %x(stty size).split.map(&:to_i)
@@ -1117,6 +1098,7 @@ def choose_interactive prompt, names, &block
   clear_area_message
   $chia_more_text = '...more'
   fail "Internal error: one of the passed names contains reserved string '#{$chia_more_text}: #{names}" if names.include?($chia_more_text)
+
   handle_win_change if $ctl_sig_winch
 
   $chia_padding = if names.map(&:length).sum / names.length > 10 ||
@@ -1125,7 +1107,7 @@ def choose_interactive prompt, names, &block
                   else
                     ' '
                   end
-  
+
   $chia_total_chars = chia_padded(names).join.length
   prompt_template = "\e[%dH\e[0m%s \e[K"
   help_template = "\e[%dH\e[2many char or cursor keys to select, ? for help and full item-desc"
@@ -1136,7 +1118,7 @@ def choose_interactive prompt, names, &block
   frame_start = 0
   frame_start_was = Array.new
   idx_hili_min = idx_hili = chia_idx_helper(names, frame_start)
-  
+
   input = ''
   matching = names
   idx_last_shown = chia_print_in_columns(matching, frame_start, idx_hili, input)
@@ -1153,7 +1135,7 @@ def choose_interactive prompt, names, &block
     if key == '?'
       clear_area_comment
       clear_area_message
-      offset = ( $term_height - $lines[:comment_tall] > 8  ?  1  :  0 )
+      offset = ( $term_height - $lines[:comment_tall] > 8 ? 1 : 0 )
       print "\e[#{$lines[:comment_tall] + offset}H\e[0m"
       puts "Help on selecting:\e[32m   Just type  -or-  use cursor keys:"
       puts " - Any char adds to search, which narrows choices"
@@ -1183,13 +1165,13 @@ def choose_interactive prompt, names, &block
 
     elsif key == 'BACKSPACE'
       input[-1] = '' if input.length > 0
-      matching = names.select {|n| n[input]} 
+      matching = names.select {|n| n[input]}
       idx_hili = idx_hili_min
       prompt = prompt_orig if (prompt_orig + input).length <= $term_width - 4
       $chia_no_matches_text = nil
 
     elsif key == 'CTRL-BACKSPACE'
-      input= '' if input.length
+      input = '' if input.length
       matching = names
       idx_hili = idx_hili_min
       prompt = prompt_orig
@@ -1204,7 +1186,7 @@ def choose_interactive prompt, names, &block
     elsif key == 'RETURN'
 
       if matching.length == 0
-        $chia_no_matches_text ="\e[0;101m NO MATCHES! \e[0m Please shorten input '#{input}' above or type ESC to abort!"
+        $chia_no_matches_text = "\e[0;101m NO MATCHES! \e[0m Please shorten input '#{input}' above or type ESC to abort!"
 
       elsif matching[idx_hili][0] == ';'
         clear_area_comment(2)
@@ -1244,7 +1226,7 @@ def choose_interactive prompt, names, &block
         frame_start = frame_start_was.pop || 0
         idx_hili_min = idx_hili = chia_idx_helper(matching, frame_start)
       end
-    end    
+    end
 
     print prompt_template % [$lines[:comment_tall] + 1, prompt]
     print "\e[0m\e[92m#{input}\e[0m\e[K"
@@ -1256,18 +1238,16 @@ def choose_interactive prompt, names, &block
   end
 end
 
-
 def chia_idx_helper names, frame_start
   # leave out initial '...more' if present (although it will only be
   # added later in chia_print_in_columns)
-  idx_hili = ( frame_start > 0  ?  frame_start  :  0 )
+  idx_hili = ( frame_start > 0 ? frame_start : 0 )
   idx_hili += 1 while names[idx_hili][0] == ';'
   return idx_hili
 end
 
-
 def chia_print_in_columns names, frame_start, idx_hili, input
-  lines_offset = ( $chia_total_chars > $term_width * 3  ?  3  :  4)
+  lines_offset = ( $chia_total_chars > $term_width * 3 ? 3 : 4)
   print "\e[#{$lines[:comment_tall] + lines_offset}H\e[0m\e[2m"
   # x,y-pairs of elements shown in most recent call of
   # chia_print_in_columns; never contains '...more'
@@ -1275,7 +1255,7 @@ def chia_print_in_columns names, frame_start, idx_hili, input
   max_lines = $lines[:hint_or_message] - $lines[:comment_tall] - 4
   # idx2cidx: index to caller index (this functions semantics of)
   idx2cidx = if frame_start > 0
-               names = [$chia_more_text + ' '] + names[frame_start .. -1] 
+               names = [$chia_more_text + ' '] + names[frame_start..-1]
                frame_start - 1
              else
                0
@@ -1286,7 +1266,7 @@ def chia_print_in_columns names, frame_start, idx_hili, input
 
   # General processing: prepare array and print it over existing lines
   # to avoid flicker
-  lines = (0 .. max_lines).map {|x| ''}
+  lines = (0..max_lines).map {|x| ''}
   if names.length == 0
     clear_area_comment(2)
     lines[0] = "  " + ( $chia_no_matches_text || "\e[0mNO MATCHES for input '#{input}' above, please shorten ..." )
@@ -1297,6 +1277,7 @@ def chia_print_in_columns names, frame_start, idx_hili, input
     line = '  '
     chia_padded(names).each_with_index do |name, idx|
       break if lines_count > max_lines
+
       has_more = ( name == $chia_more_text )
       if (line + name).length > $term_width - 4
         if lines_count == max_lines && idx < names.length - 1
@@ -1316,27 +1297,25 @@ def chia_print_in_columns names, frame_start, idx_hili, input
       end
       $chia_loc_cache << [line.length, lines_count] unless has_more
       # insert markers {[]} for later highlighting
-      line[-1] = ( name[0] == ';'  ?  '{'  :  '[' ) if idx == idx_hili
+      line[-1] = ( name[0] == ';' ? '{' : '[' ) if idx == idx_hili
       line_was = line
       line += name
-      line[line.rstrip.length] = ( name[0] == ';'  ?  '}'  :  ']' )  if idx == idx_hili
+      line[line.rstrip.length] = ( name[0] == ';' ? '}' : ']' )  if idx == idx_hili
     end
     # output any line, that has not yet been finished
     lines[lines_count] = chia_line_helper(line) unless has_more_above || line.strip.empty?
   end
-  
+
   lines.each_with_index do |line, idx|
     print "\e[#{$lines[:comment_tall] + lines_offset + idx}H#{line}\e[K"
   end
   return idx_last_shown + idx2cidx
 end
 
-
 def chia_line_helper line
-  line.gsub('['," \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ").
-    gsub('{'," \e[0m\e[2m\e[7m").gsub('}',"\e[0m\e[2m ")
+  line.gsub('[', " \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ")
+      .gsub('{', " \e[0m\e[2m\e[7m").gsub('}', "\e[0m\e[2m ")
 end
-
 
 def chia_desc_helper text, block
   "\e[#{$lines[:message_bottom]}H\e[0m" +
@@ -1344,18 +1323,16 @@ def chia_desc_helper text, block
       "\e[2m" + 'This is a comment and cannot be chosen ...'
     else
       "\e[32m" +
-        truncate_text( block  ?  block.call(text)  :  text )
+      truncate_text( block ? block.call(text) : text )
     end +
     + "\e[0m\e[K"
 end
 
-
 def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
-
   return idx_hili_old if $chia_loc_cache.length == 0
 
   # idx2cidx: index to caller index (this functions semantics of)
-  idx2cidx = ( frame_start > 0  ?  frame_start  :  0 )
+  idx2cidx = ( frame_start > 0 ? frame_start : 0 )
   cidx2idx = -idx2cidx
   idx_hili_old += cidx2idx
   idx_hili_min += cidx2idx
@@ -1372,9 +1349,9 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
 
   elsif dir == 'UP'
     idx_hili_new = idx_hili_old
-    if line_old > 0 
+    if line_old > 0
       line_new = line_old - 1
-      $chia_loc_cache[0 .. idx_hili_old].each_with_index do |pos, idx_of_this|
+      $chia_loc_cache[0..idx_hili_old].each_with_index do |pos, idx_of_this|
         column_of_this, line_of_this = pos
         if line_of_this == line_new
           column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
@@ -1394,7 +1371,7 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
       # there is one line below, so try it
       line_new = line_old + 1
       # idx in loop below starts at 0
-      $chia_loc_cache[idx_hili_old .. idx_last_shown ].each_with_index do |pos, idx|
+      $chia_loc_cache[idx_hili_old..idx_last_shown].each_with_index do |pos, idx|
         column_of_this, line_of_this = pos
         idx_of_this = idx_hili_old + idx
         if line_of_this == line_new
@@ -1402,6 +1379,7 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
           idx_hili_new = idx_of_this
           # no further entries
           break if idx_of_this == idx_last_shown
+
           column_of_next, line_of_next = $chia_loc_cache[idx_of_this + 1]
           # next item is already on different line
           break if line_of_next != line_of_this
@@ -1419,13 +1397,11 @@ def chia_move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start
   return idx_hili_new + idx2cidx
 end
 
-
 def chia_padded names
-  names.
-    map {|name| name + $chia_padding}.
-    map {|name| name + ' ' * (-name.length % 8)}
+  names
+    .map {|name| name + $chia_padding}
+    .map {|name| name + ' ' * (-name.length % 8)}
 end
-
 
 def report_condition_wait_key text, condition = :error
   clear_area_comment
@@ -1445,14 +1421,13 @@ def report_condition_wait_key text, condition = :error
   $ctl_kb_queue.deq
 end
 
-
 def journal_menu
   $opts[:comment] = :journal
   clear_area_comment
   clear_area_message
   print "\e[#{$lines[:comment_tall]}H\e[J"
   print "\e[2m"
-  puts " \e[0m\e[34mJournal-menu             \e[0m\e[32ma\e[0m\e[2m: toggle journal of all notes (now #{$journal_all  ?  ' ON'  :  'OFF'})"
+  puts " \e[0m\e[34mJournal-menu             \e[0m\e[32ma\e[0m\e[2m: toggle journal of all notes (now #{$journal_all ? ' ON' : 'OFF'})"
   print "\e[0m\e[32m"
   puts "     \e[0m\e[32mp\e[0m\e[2m: play journal, using durations (e.g. '(0.3s)')"
   puts "     \e[0m\e[32me\e[0m\e[2m: invoke editor     \e[0m\e[32ms\e[0m\e[2m: show short for copy"
@@ -1481,8 +1456,8 @@ def journal_menu
   when 'e'
     $ctl_mic[:journal_edit] = true
   when 'r'
-    $ctl_mic[:journal_recall] = true    
-  when 'q','x'
+    $ctl_mic[:journal_recall] = true
+  when 'q', 'x'
     $msgbuf.print "Quit journal menu", 0, 5
   else
     cdesc = if char.match?(/^[[:print:]]+$/)
@@ -1495,18 +1470,18 @@ def journal_menu
   clear_area_comment
 end
 
-
 def prepare_warbles
   clear_area_comment
   if $opts[:comment] != :warbles
     print "\e[#{$lines[:comment_tall] + 3}H\e[0m\e[2m    Switching to comment \e[0mwarble\e[2m ...\e[0m"
     tag = 'switch to comment warble'
-    stime = $messages_seen[tag]  ?  0.1  :  0.2
+    stime = $messages_seen[tag] ? 0.1 : 0.2
     $messages_seen[tag] = true
     5.times do
       break if $ctl_kb_queue.length > 0
+
       sleep stime
-    end    
+    end
     $opts[:comment] = :warbles
   else
     $warbles_holes = Array.new(2)
@@ -1545,7 +1520,6 @@ def prepare_warbles
   end
 end
 
-
 def get_text_invalid char, simple = false
   cdesc = if char.match?(/^[[:print:]]+$/)
             char
@@ -1558,7 +1532,6 @@ def get_text_invalid char, simple = false
     return "invalid key '#{cdesc}', h for help"
   end
 end
-
 
 def space_to_cont
   wheel = $resources[:hl_wheel]
@@ -1583,14 +1556,12 @@ def space_to_cont
   print "\e[0m\e[2m#{$resources[:space_to_cont]}"
 end
 
-
 def gets_with_cursor
   Kernel::print "\e[?25h"  ## show cursor
   input = STDIN.gets.chomp.strip
   Kernel::print "\e[?25l"  ## hide cursor
   input
 end
-
 
 def get_complex_key
   #
@@ -1639,7 +1610,7 @@ def get_complex_key
               end
       elsif chs[1] == "\t"
         key = 'SHIFT-TAB'
-      elsif ('a' .. 'z').include?(chs[1])
+      elsif ('a'..'z').include?(chs[1])
         key = 'ALT-' + chs[1]
       elsif chs[1]
         complete = false
@@ -1657,7 +1628,7 @@ def get_complex_key
     rescue Timeout::Error => e
       if !complete
         key = 'ESC-' + escape_chars(chs)
-      end            
+      end
     end
   end
 
@@ -1782,7 +1753,6 @@ def get_complex_key
     end
   end
 end
-
 
 def escape_chars chs
   chs.map do |ch|

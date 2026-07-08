@@ -14,7 +14,6 @@ def record_sound secs, file, **opts
   end
 end
 
-
 def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   cmd = if $testing
           "sleep #{secs}"
@@ -24,11 +23,9 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   sys(cmd, $sox_fail_however)
 end
 
-
 def run_aubiopitch file, extra = nil
   sys "aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1"
 end
-
 
 def trim_recorded hole, recorded
   wave2data(recorded)
@@ -52,7 +49,7 @@ def trim_recorded hole, recorded
     print "Your choice (h for help): "
     choice = one_char
 
-    if ('0' .. '9').to_a.include?(choice) || choice == '.'
+    if ('0'..'9').to_a.include?(choice) || choice == '.'
       choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
       choice += gets_with_cursor.downcase
@@ -62,22 +59,22 @@ def trim_recorded hole, recorded
       is_number = false
     end
     if choice == '?' || choice == 'h'
-      puts <<EOHELP
+      puts <<~EOHELP
 
-Full Help:
+        Full Help:
 
-        0-9: set position to start from (marked by vertical bar
-             line in plot); just start to type, e.g.:  0.4
-          d: draw current recording
-    p,SPACE: play from current start position
-   y,RETURN: accept current start position, trim file
-             and skip to next hole
-          f: play a sample frequency for comparison 
-        q,c: cancel and go to main menu, where you may
-             generate a sample instead
-          r: record and trim again for this hole
-EOHELP
-      
+                0-9: set position to start from (marked by vertical bar
+                     line in plot); just start to type, e.g.:  0.4
+                  d: draw current recording
+            p,SPACE: play from current start position
+           y,RETURN: accept current start position, trim file
+                     and skip to next hole
+                  f: play a sample frequency for comparison#{' '}
+                q,c: cancel and go to main menu, where you may
+                     generate a sample instead
+                  r: record and trim again for this hole
+      EOHELP
+
     elsif ['', ' ', 'p'].include?(choice)
       puts "\e[34mPlay\e[0m from %.2f ..." % play_from
       play_wave trimmed_wave, 5
@@ -104,6 +101,7 @@ EOHELP
         val = choice.to_f
         raise ArgumentError.new('must be > 0') if val < 0
         raise ArgumentError.new("must be < duration #{duration}") if val >= duration
+
         play_from = val
         trim_wave recorded, play_from, duration_trimmed, trimmed_wave
         do_draw = true
@@ -113,9 +111,8 @@ EOHELP
     else
       puts "Invalid Input '#{choice}'"
     end
-  end 
+  end
 end
-
 
 def trim_wave file, play_from, duration, trimmed
   fade_out = 0.2
@@ -124,11 +121,9 @@ def trim_wave file, play_from, duration, trimmed
   sys cmd
 end
 
-
 def sox_query file, property
   sys("sox -q #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
 end
-
 
 def synth_sound hole, file, extra = '', silent: false
   puts "Hole  \e[32m%-8s\e[0m#{extra},   note  \e[32m%-6s\e[0m,   semi \e[32m%4d\e[0m" % [hole, $harp[hole][:note], $harp[hole][:semi]] unless silent
@@ -141,24 +136,24 @@ def synth_sound hole, file, extra = '', silent: false
   sys cmd
 end
 
-
 def wave2data file
   sys "sox -q #{file} #{$recorded_data}"
 end
-
 
 def find_onset
   max = 0
   File.foreach($recorded_data) do |line|
     next if line[0] == ';'
+
     max = [max, line.split[1].to_f].max
   end
-  
-  max13 = max * 1.0/3
+
+  max13 = max * 1.0 / 3
   max23 = max13 * 2
   t13 = t23 = nil
   File.foreach($recorded_data) do |line|
     next if line[0] == ';'
+
     t, v = line.split.map(&:to_f)
     t13 = t if !t13 && v >= max13
     t23 = t if !t23 && v >= max23
@@ -167,7 +162,6 @@ def find_onset
   ts = 0 if ts < 0
   ts
 end
-
 
 def this_or_equiv template, note, endings = ['']
   endings.each do |ending|
@@ -179,20 +173,17 @@ def this_or_equiv template, note, endings = ['']
   return nil
 end
 
-
 def start_collect_freqs
   Thread.new {sox_to_aubiopitch_to_queue}
 end
 
-
 def sox_to_aubiopitch_to_queue
-
   cmd = if $testing
           get_pipeline_cmd(:pv, $test_wav)
         else
           get_pipeline_cmd(:sox, '-d')
         end
-  
+
   _, ppl_out, ppl_err, wait_thr = Open3.popen3(cmd)
 
   # cmd may need some time to terminate in the case of startup problems
@@ -206,7 +197,7 @@ def sox_to_aubiopitch_to_queue
       else
         "Command produced no output and no error message: #{cmd}"
       end
-    ) 
+    )
   end
   line = nil
   no_gets = 0
@@ -221,7 +212,7 @@ def sox_to_aubiopitch_to_queue
   # aubiopitch (which seems to happen under wsl2 now and then).
   #
   pipeline_started = Time.now.to_f
-  $freqs_queue.clear  
+  $freqs_queue.clear
   # loop forever one batch of frequencies after the other
   loop do
     # gets (below) might block, so guard it by timeout
@@ -249,7 +240,7 @@ def sox_to_aubiopitch_to_queue
           line.chomp!
 
           # queue is read by handle_holes
-          $freqs_queue.enq Float(line.split(' ',2)[1])
+          $freqs_queue.enq Float(line.split(' ', 2)[1])
 
           # Check for jitter now and then. This will not find every case
           # of jitter, but if jitter repeats, it will be found
@@ -263,7 +254,7 @@ def sox_to_aubiopitch_to_queue
               iters = 0
               # get the timestamp, that is generated by aubiopitch; it is relative to the
               # start of the sound
-              queue_time = Float(line.split(' ',2)[0])
+              queue_time = Float(line.split(' ', 2)[0])
               now = Time.now.to_f
               if last_queue_time
                 # diff in timestamps transmitted over pipeline vs. diff in timestamps of
@@ -295,14 +286,11 @@ def sox_to_aubiopitch_to_queue
       end
     rescue Timeout::Error
       err "No output from: #{cmd}"
-    end  # check for timeout in gets    
-    
+    end  # check for timeout in gets
   end  # one batch of frequencies after the other
 end
 
-
 def get_pipeline_cmd(what, wav_from)
-
   err "Internal error: #{what}" unless [:pv, :sox].include?(what)
   #
   # Regarding 'pv' below: 192000 = 48000 * 4 (sample rate, 32 Bit, 1
@@ -313,8 +301,8 @@ def get_pipeline_cmd(what, wav_from)
   #
   # Regarding 'stdbuf': sox and aubiopitch communicate unbuffered, because they exchange
   # binary data; whereas aubiopitch to ruby can be line-buffered
-  templates = [{pv: "pv -qL 192000 %s",
-                sox: "stdbuf -o0 sox -q %s -r #{$conf[:sample_rate]} -t wav -"},
+  templates = [{ pv: "pv -qL 192000 %s",
+                 sox: "stdbuf -o0 sox -q %s -r #{$conf[:sample_rate]} -t wav -" },
                "stdbuf -i0 -oL aubiopitch --bufsize %s --hopsize %s --pitch %s -i -"]
 
   args = [wav_from]
@@ -324,15 +312,12 @@ def get_pipeline_cmd(what, wav_from)
   template = templates[0][what] + ' | ' + templates[1]
   $freq_pipeline_cmd = template % args
 end
-  
 
 def pipeline_catch_up
   $freqs_queue.clear
 end
 
-
 def play_hole_or_note_and_collect_kb hon, duration
-
   note = $harp[hon]&.dig(:note) || hon
   wfile = this_or_equiv("#{$sample_dir}/%s", note, %w(.wav .mp3))
   wait_thr = Thread.new do
@@ -345,7 +330,7 @@ def play_hole_or_note_and_collect_kb hon, duration
         sys "play -q -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
       end
     end
-  end  
+  end
   begin
     sleep 0.1
     # this sets $ctl_hole, which will be used by caller one level up
@@ -354,36 +339,32 @@ def play_hole_or_note_and_collect_kb hon, duration
   wait_thr.join   # raises any errors from thread
 end
 
-
 def synth_for_inter_or_chord semis, gap, len, wave = 'pluck'
-  files = (1 .. semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
+  files = (1..semis.length).map {|i| "#{$dirs[:tmp]}/semi#{i}.wav"}
   im_files = [1, 2].map {|i| "#{$dirs[:tmp]}/intermediate_#{i}.wav"}
-  times = (0 ... semis.length).map {|i| 0.3 + i*gap}
+  times = (0...semis.length).map {|i| 0.3 + i * gap}
   files.zip(semis, times).each do |f, s, t|
     # create file with silence of given length
     sys("sox -q -n #{im_files[0]} trim 0.0 #{t}")
     # create actual file with requested frequency
     sys("sox -q -n #{im_files[1]} synth #{len} #{wave} %#{s}")
     # append those two
-    sys("sox -q #{im_files[0]} #{im_files[1]} #{f}") 
+    sys("sox -q #{im_files[0]} #{im_files[1]} #{f}")
   end
   return files
 end
 
-
 def print_pitch_information semi, name = nil
   puts "\e[0m\e[2m#{name}\e[0m" if name
-  puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi+7)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
-  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi+7)[0..-2]
+  puts "\e[0m\e[2mSemi = #{semi}, Note = #{semi2note(semi + 7)}, Freq = #{'%.2f' % semi2freq_et(semi)}\e[0m"
+  print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % semi2note(semi + 7)[0..-2]
   print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % semi2note(semi)[0..-2]
   puts
 end
 
-
 class UserLickRecording
-
   attr_accessor :first_hole_good_at, :duration
-  
+
   def initialize
     @active = false
     @file_raw1 = "#{$dirs[:tmp]}/usr_lick_rec_raw1.wav"
@@ -413,15 +394,15 @@ class UserLickRecording
             ' ' * @sign_text.length
           end
   end
-  
+
   def active?
     @active
   end
-  
+
   def has_rec?
     @has_rec
   end
-  
+
   def toggle_active
     @active = !@active
     reset_rec
@@ -433,12 +414,12 @@ class UserLickRecording
       process_rec if @first_hole_good_at
     end
   end
-  
+
   def start_rec
     stop_rec if @rec_pid
     FileUtils.cp($test_wav, @file_raw1) if $testing
     @rec_pid = Process.spawn("rec -q -r #{$conf[:sample_rate]} %s" %
-                             ($testing  ?  '/dev/null'  :  @file_raw1 ))
+                             ($testing ? '/dev/null' : @file_raw1 ))
     @first_hole_good_at = nil
     @rec_started_at = Time.now.to_f
     @has_rec = false
@@ -447,6 +428,7 @@ class UserLickRecording
 
   def stop_rec
     return unless @rec_pid
+
     Process.kill('HUP', @rec_pid)
     Process.wait(@rec_pid)
     @rec_pid = nil
@@ -456,7 +438,7 @@ class UserLickRecording
   def recording?
     @rec_pid
   end
-  
+
   def process_rec
     trim_secs = @first_hole_good_at - @rec_started_at - 2
     if trim_secs > 0
@@ -478,14 +460,14 @@ class UserLickRecording
     @has_rec = false
     @rec_pid = nil
   end
-  
+
   def play_rec
     fail 'Internal error: no rec' unless @has_rec
+
     play_recording_and_handle_kb @file_trimmed
   end
 
   def rec_file
     @file_trimmed
   end
-  
 end

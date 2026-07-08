@@ -3,14 +3,13 @@
 #
 
 def do_quiz to_handle
-
   unless $other_mode_saved[:conf]
     print "\n\e[2mType is #{$type}, key of #{$key}.\e[0m"
     puts "\e[?25l"  ## hide cursor
   end
-  
+
   flavour = nil
-  
+
   #
   # Handle Signals
   #
@@ -30,7 +29,7 @@ def do_quiz to_handle
   end
 
   inherited = ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION']
-  
+
   if ENV['HARPWISE_RESTARTED']
     do_animation 'quiz', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over with a different flavour due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
@@ -57,7 +56,7 @@ def do_quiz to_handle
   else
     err_args_not_allowed(to_handle) if to_handle.length > 0
   end
-  $num_quiz_replay ||= {easy: 4, hard: 8}[$opts[:difficulty]]
+  $num_quiz_replay ||= { easy: 4, hard: 8 }[$opts[:difficulty]]
 
 
   #
@@ -68,7 +67,7 @@ def do_quiz to_handle
   # for listen-perspective, dont show solution immediately
   $opts[:comment] = :holes_some
   $opts[:immediate] = false
-  
+
 
   # Actually start different quiz cases; all contain their own
   # infinite loop; First some special flavours (e.g. tempo or replay),
@@ -77,10 +76,10 @@ def do_quiz to_handle
 
   # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find related pieces
   # of code in other files
-  
+
   # Describing the question is done here for the first question, but from the second
   # question on it is done in mode_licks.rb
-  
+
   if $quiz_flavour == 'replay'
 
     back_to_comment_after_mode_switch
@@ -88,13 +87,13 @@ def do_quiz to_handle
     puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
     puts "\n\n\n"
     prepare_listen_perspective_for_quiz
-    do_licks_or_quiz(lambda_quiz_hint: -> (holes, _, _, _) do
-                       solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
-                                    "\e[32m       #{holes.join('  ')}"
-                       quiz_hint_in_handle_holes_std(solve_text, 'sequence', holes, :all)
-                     end)
+    do_licks_or_quiz(lambda_quiz_hint: ->(holes, _, _, _) do
+      solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
+                   "\e[32m       #{holes.join('  ')}"
+      quiz_hint_in_handle_holes_std(solve_text, 'sequence', holes, :all)
+    end)
 
-    
+
   elsif $quiz_flavour == 'play-scale'
 
     scale_name = $all_quiz_scales[$opts[:difficulty]].sample
@@ -108,12 +107,12 @@ def do_quiz to_handle
     sleep 2
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_scale_name: scale_name,
-                     lambda_quiz_hint: -> (holes, _, scale_name, _) do
+                     lambda_quiz_hint: ->(holes, _, scale_name, _) do
                        solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                     "\e[32m       #{holes.join('  ')}"
                        quiz_hint_in_handle_holes_std(solve_text, 'scale', holes, :all)
                      end)
-    
+
   elsif $quiz_flavour == 'play-inter'
 
     holes_inter = get_random_interval_as_holes
@@ -123,13 +122,13 @@ def do_quiz to_handle
     prepare_listen_perspective_for_quiz
     $hole_ref = holes_inter[0]
     do_licks_or_quiz(quiz_holes_inter: holes_inter,
-                     lambda_quiz_hint: -> (holes, holes_inter, _, _) do
+                     lambda_quiz_hint: ->(holes, holes_inter, _, _) do
                        solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                     "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
                        quiz_hint_in_handle_holes_std(solve_text, 'interval', holes, holes[-1], true)
                      end)
 
-    
+
   elsif $quiz_flavour == 'play-shifted'
 
     back_to_comment_after_mode_switch
@@ -140,11 +139,11 @@ def do_quiz to_handle
     puts
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
-                     lambda_quiz_hint: -> (holes, _, _, holes_shift_info) do
+                     lambda_quiz_hint: ->(holes, _, _, holes_shift_info) do
                        quiz_hint_in_handle_holes_shifted holes_shift_info
                      end)
 
-    
+
   elsif $quiz_flavour == 'hit-from-off'
 
     back_to_comment_after_mode_switch
@@ -163,11 +162,11 @@ def do_quiz to_handle
     sleep 0.5
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_hole_to_hit: hole_to_hit,
-                     lambda_quiz_hint: -> (holes) do
+                     lambda_quiz_hint: ->(holes) do
                        quiz_hint_in_handle_holes_hit_from_off holes[0]
                      end)
 
-    
+
   elsif $quiz_flavour == 'keep-tempo'
 
     first = true
@@ -182,7 +181,7 @@ def do_quiz to_handle
             puts
             puts get_dim_hline
             puts "\nChoosing new parameters."
-            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard )
+            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric] ? :easy : :hard )
             keep.set_params
             keep.clear_history
             throw :AGAIN
@@ -193,7 +192,7 @@ def do_quiz to_handle
           puts get_dim_hline
           puts
           puts "\e[0mWhat's next?"
-          puts 
+          puts
           puts "\e[0m\e[32mPress         any key    to redo with the current set of parameters or\n     TAB or BACKSPACE    for a new set ...\e[0m"
           drain_chars
           char = one_char
@@ -202,7 +201,7 @@ def do_quiz to_handle
             puts "Same parameters \e[2magain.\e[0m"
           else
             puts "New parameters."
-            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard )
+            $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric] ? :easy : :hard )
             keep.set_params
             keep.clear_history
           end
@@ -212,13 +211,12 @@ def do_quiz to_handle
       end
     end
 
-    
+
   elsif $quiz_flavour2class[$quiz_flavour]
     # Generic flavour
 
     first_round = true
     loop do  ## every new question
-
       catch :next do
         sleep 0.1
         puts
@@ -252,7 +250,6 @@ end
 $q_class2colls = Hash.new
 
 class QuizFlavour
-
   @@prevs = Array.new
 
   def initialize first_round
@@ -260,7 +257,7 @@ class QuizFlavour
     @state_orig = @state.clone
     @@hole_sets_names = %w(blow-low draw-low)
     # default: dont try uncommon keys, may be overriden per flavour
-    @difficulty_to_key_set = {easy: $common_harp_keys, hard: $common_harp_keys}
+    @difficulty_to_key_set = { easy: $common_harp_keys, hard: $common_harp_keys }
     # see selfcheck for allowed values
     @key_contributes_to_solution = :not_relevant
     @samples_needed = true
@@ -271,19 +268,20 @@ class QuizFlavour
       fail "Internal error: #{@key_contributes_to_solution}"
     end
   end
-  
+
   def get_and_check_answer
     choose_prepare_for
     all_helps = ['.help-narrow', 'not_defined', 'not_defined']
     all_choices = [',again', @choices, ';controls-and-help->', ',solve', ',skip', ',describe', all_helps[0]].flatten
-    choices_desc = {',again' => 'Repeat question',
-                    ',solve' => 'Give solution and go to next question',
-                    ',skip' => 'Give solution and Skip to next question without extra info',
-                    ',describe' => 'Repeat initial description of flavour',
-                    all_helps[0] => 'Remove some solutions, leaving less choices'}
-    
+    choices_desc = { ',again' => 'Repeat question',
+                     ',solve' => 'Give solution and go to next question',
+                     ',skip' => 'Give solution and Skip to next question without extra info',
+                     ',describe' => 'Repeat initial description of flavour',
+                     all_helps[0] => 'Remove some solutions, leaving less choices' }
+
     [help2_desc, help3_desc, help4_desc, help5_desc, help6_desc, help7_desc].each_with_index do |desc, idx|
       next unless desc
+
       all_choices << desc[0]
       choices_desc[desc[0]] = desc[1]
       all_helps[idx + 1] = desc[0]
@@ -334,10 +332,11 @@ class QuizFlavour
     when all_helps[0]
       if @choices.length > 1
         stand_out 'Removing some choices.'
-        orig_len = @choices.length 
+        orig_len = @choices.length
         while @choices.length > orig_len / 2
           idx = rand(@choices.length)
           next if @choices[idx] == @solution
+
           @choices.delete_at(idx)
         end
       else
@@ -378,7 +377,7 @@ class QuizFlavour
     make_term_immediate
     $ctl_kb_queue.clear
     puts if newline
-    play_holes_or_notes_and_handle_kb( reverse  ?  hons.reverse  :  hons,
+    play_holes_or_notes_and_handle_kb( reverse ? hons.reverse : hons,
                                        hide: [hide, :help] )
     make_term_cooked
   end
@@ -387,7 +386,7 @@ class QuizFlavour
     @choices = @choices_orig.clone
     @state = @state_orig.clone
   end
-  
+
   def help2_desc
     nil
   end
@@ -440,7 +439,7 @@ class QuizFlavour
     puts
     print "\e[32m\e[92mAny key\e[32m for next   \e[34m#{$quiz_flavour}\e[32m   "
     if @key_contributes_to_solution == :part_of_solution
-      print ( $opts[:keep_key]  ?  "with the same key of #{$key}"  :  "with a new random key" )
+      print ( $opts[:keep_key] ? "with the same key of #{$key}" : "with a new random key" )
       puts "  (\e[92mTAB\e[32m for menu)"
     else  ## :broader_coverage or :not_relevant
       puts "   \e[92mTAB\e[32m for key-menu"
@@ -455,7 +454,7 @@ class QuizFlavour
       recharge
       return :reissue
     end
-    
+
     re_calculate_quiz_difficulty
 
     if ( char == 'TAB' )
@@ -467,8 +466,7 @@ class QuizFlavour
          "\e[92m          TAB\e[32m   for a new random key",
          "\e[92m    BACKSPACE\e[32m   for initial key of #{$key_initial}",
          "\e[92m            k\e[32m   to toggle option '--keep-key' (now \e[92m#{$opts[:keep_key] ? 'ON' : 'OFF'}\e[32m) and ask again",
-         "\e[92m       RETURN\e[32m   to change key by menu"
-        ].each do |line|
+         "\e[92m       RETURN\e[32m   to change key by menu"].each do |line|
           puts line
           sleep 0.02
         end
@@ -491,12 +489,12 @@ class QuizFlavour
           done = true
         when 'k'
           $opts[:keep_key] = !$opts[:keep_key]
-          puts "Toggled option \e[92m" + ( $opts[:keep_key]  ?  'ON'  :  'OFF' ) + "\e[0m."
+          puts "Toggled option \e[92m" + ( $opts[:keep_key] ? 'ON' : 'OFF' ) + "\e[0m."
         when 'RETURN'
           choose_prepare_for
           do_change_key
           choose_clean_up
-          set_global_vars_late          
+          set_global_vars_late
           set_global_musical_vars shortcut_licks: true
           puts "Changed key to   \e[92m#{$key}\e[0m"
           done = true
@@ -518,19 +516,19 @@ class QuizFlavour
     end
     puts
     sleep 0.2
-    return :next  
+    return :next
   end
 
   # only used in some flavours
   def print_chart_with_notes spread: nil, hide: nil, mark: nil
     chart = $charts[:chart_notes]
     chart.each_with_index do |row, ridx|
-      spread_in_row = row[0 .. -2].any? {|c| spread && spread == c.strip.gsub(/\d+/,'')}
+      spread_in_row = row[0..-2].any? {|c| spread && spread == c.strip.gsub(/\d+/, '')}
       print '  '
-      row[0 .. -2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, cidx|
         hcell = ' ' * cell.length
-        hcell[hcell.length / 2] = ( spread_in_row  ?  '-'  :  '?' )
-        cell_sg = cell.strip.gsub(/\d+/,'')
+        hcell[hcell.length / 2] = ( spread_in_row ? '-' : '?' )
+        cell_sg = cell.strip.gsub(/\d+/, '')
         print(
           if spread_in_row
             if rand > 0.7 || cell_sg == spread
@@ -562,14 +560,15 @@ class QuizFlavour
                     else
                       ["\e[2m", "\e[0m"]
                     end
-    semi_min = @@hole_sets_names.map {|d| $named_hole_sets[d]}.flatten.
-                 map {|h| $harp[h][:semi]}.min
+    semi_min = @@hole_sets_names.map {|d| $named_hole_sets[d]}.flatten
+                                .map {|h| $harp[h][:semi]}.min
     (sets || @@hole_sets_names).each_with_index do |desc, idx|
       nmd_holes = $named_hole_sets[desc]
       fail "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
+
       holes = nmd_holes.map {|h| "#{h}  "}
       notes = nmd_holes.map do |h|
-        n = $harp[h][:note].gsub(/\d+$/,'')
+        n = $harp[h][:note].gsub(/\d+$/, '')
         n = '?' if hide_note && n == hide_note
         "#{n.rjust(3)}  "
       end
@@ -600,7 +599,7 @@ class QuizFlavour
     column = head.length
     cells.each do |cell|
       if column + cell.length > $term_width - 2
-        puts 
+        puts
         print head
         column = head.length
       end
@@ -612,7 +611,7 @@ class QuizFlavour
   #
   # Some methods, that are only used in some flavours
   #
-  
+
   def change_key silent: false, key: nil
     if key
       $key = key
@@ -638,20 +637,19 @@ class QuizFlavour
     chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
     chart.each_with_index do |row, ridx|
       print '  '
-      row[0 .. -2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, cidx|
         print cell
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
-    end  
+    end
   end
-
 
   def print_chart_holes_as_notes
     notes = @holes.map {|h| $hole2note[h]}
     chart = $charts[:chart_notes]
     chart.each_with_index do |row, ridx|
       print '  '
-      row[0 .. -2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, cidx|
         if notes.include?(cell.strip)
           print "\e[34m#{cell}\e[0m"
         else
@@ -659,9 +657,8 @@ class QuizFlavour
         end
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
-    end  
+    end
   end
-  
 end
 
 
@@ -670,7 +667,6 @@ end
 # classes here are not complete
 
 class Replay < QuizFlavour
-
   $q_class2colls[self] = %w(mic)
 
   def self.describe_difficulty
@@ -682,9 +678,7 @@ class Replay < QuizFlavour
   end
 end
 
-
 class PlayScale < QuizFlavour
-
   $q_class2colls[self] = %w(mic scales)
 
   def self.describe_difficulty
@@ -692,9 +686,7 @@ class PlayScale < QuizFlavour
   end
 end
 
-
 class PlayInter < QuizFlavour
-
   $q_class2colls[self] = %w(mic inters)
 
   def self.describe_difficulty
@@ -702,38 +694,32 @@ class PlayInter < QuizFlavour
   end
 end
 
-
 class PlayShifted < QuizFlavour
-
   $q_class2colls[self] = %w(mic)
 
   def self.describe_difficulty
-    $num_quiz_replay = {easy: 3, hard: 6}[$opts[:difficulty]]
+    $num_quiz_replay = { easy: 3, hard: 6 }[$opts[:difficulty]]
     QuizFlavour.difficulty_head +
       ", #{$num_quiz_replay} holes to be shifted by one of #{$std_semi_shifts.length} intervals"
   end
 end
 
-
 class HitFromOff < QuizFlavour
-
   $q_class2colls[self] = %w(mic)
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
       ", hit one hole from hole sets " +
-      ( $opts[:difficulty] == :easy  ?  'blow-low and draw-low'  :  'blow-full and draw-full' )
+      ( $opts[:difficulty] == :easy ? 'blow-low and draw-low' : 'blow-full and draw-full' )
   end
 end
 
-
 class HearScale < QuizFlavour
-
   $q_class2colls[self] = %w(scales no-mic)
-  
+
   def initialize first_round
     super
-    
+
     @choices = $all_quiz_scales[$opts[:difficulty]].clone
     @choices_orig = @choices.clone
 
@@ -742,7 +728,7 @@ class HearScale < QuizFlavour
     end while @@prevs.include?(@solution)
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
-    
+
     @sorted, _ = read_and_parse_scale(@solution, $harp)
     @holes = @sorted.clone.shuffle
     @holes_orig = @holes.clone
@@ -753,14 +739,13 @@ class HearScale < QuizFlavour
       holes, _ = read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
-
   end
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
       ", taking one scale out of #{$all_quiz_scales[$opts[:difficulty]].length}"
   end
-  
+
   def after_solve
     puts
     puts "Playing original scale #{@solution}:"
@@ -773,7 +758,7 @@ class HearScale < QuizFlavour
     sleep 0.5
     play_hons
   end
-  
+
   def issue_question
     puts "\e[34mPlaying a scale\e[0m\e[2m with \e[0m\e[34m#{@holes.length}\e[0m\e[2m holes\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
@@ -786,10 +771,10 @@ class HearScale < QuizFlavour
 
   def recharge
     super
-    
+
     @holes = @holes_orig.clone
   end
-  
+
   def help2
     puts "Playing sorted holes for scale:"
     play_hons(hons: @sorted, hide: :all)
@@ -806,19 +791,16 @@ class HearScale < QuizFlavour
   def help3_desc
     ['.help-play-compare', 'Select a scale and play it for comparison']
   end
-
 end
 
-
 class MatchScale < QuizFlavour
-
   $q_class2colls[self] = %w(scales no-mic)
 
   def initialize first_round
     super
-    
+
     scales = $all_quiz_scales[$opts[:difficulty]]
-    @choices = scales.clone 
+    @choices = scales.clone
     @choices_orig = @choices.clone
     @state = Hash.new
     @state[:hide_holes] = :all
@@ -848,32 +830,32 @@ class MatchScale < QuizFlavour
       # random length of sequence
       holes = all_holes.sample(6 + rand(5).to_i)
       superset_scales = scales.
-                          # must be superset, i.e. contain all holes;
-                          # subtracting arrays does work, even if
-                          # holes has duplicates (which it has)
-                          select {|sc| (holes - @scale2holes[sc]).length == 0}.
-                          # group by length, so that we know, if two
-                          # or more scales with the same length are
-                          # superset; we do not want this, because it
-                          # would be ambigous. The result of group_by.to_a
-                          # has this form (e.g.):
-                          # [[len1,[sc1,sc2]],[len2,[sc3]]]
-                          group_by {|sc| @scale2holes[sc].length}.to_a.
-                          # sort by length, so that the shortest scale
-                          # comes first
-                          sort {|g1, g2| g1[0] <=> g2[0]}
+                        # must be superset, i.e. contain all holes;
+                        # subtracting arrays does work, even if
+                        # holes has duplicates (which it has)
+                        select {|sc| (holes - @scale2holes[sc]).length == 0}.
+                        # group by length, so that we know, if two
+                        # or more scales with the same length are
+                        # superset; we do not want this, because it
+                        # would be ambigous. The result of group_by.to_a
+                        # has this form (e.g.):
+                        # [[len1,[sc1,sc2]],[len2,[sc3]]]
+                        group_by {|sc| @scale2holes[sc].length}.to_a.
+                        # sort by length, so that the shortest scale
+                        # comes first
+                        sort {|g1, g2| g1[0] <=> g2[0]}
       # if there are any matching scales, take shortest but only if it
       # is not ambigous
       if superset_scales.length > 0 && superset_scales[0][1].length == 1
         scale = superset_scales[0][1][0]
         # do not overwrite a single match
-        if !pool[scale] || others[scale] 
+        if !pool[scale] || others[scale]
           pool[scale] = holes
           os = superset_scales.map {|ssc| ssc[1]}.flatten.uniq - [scale]
-          others[scale] = ( os.length > 0  ?  os  :  nil )
+          others[scale] = ( os.length > 0 ? os : nil )
           unique[scale] = holes -
-                          @scale2holes.keys.select {|s| s != scale}.
-                            map {|s| @scale2holes[s]}.flatten
+                          @scale2holes.keys.select {|s| s != scale}
+                                           .map {|s| @scale2holes[s]}.flatten
           unique[scale] = nil if unique[scale].length == 0
           ( ierr = if unique[scale] && (unique[scale] - @scale2holes[scale]).length > 0
                      "unique holes #{unique[scale]} not all in chosen scale"
@@ -881,7 +863,7 @@ class MatchScale < QuizFlavour
                      "other scales and unique holes at once"
                    else
                      nil
-                   end ) && 
+                   end ) &&
             err("Internal error:\n  scale = #{scale}\n  holes = #{holes}\n  scale2holes = #{@scale2holes}\n\n#{ierr}")
         end
       end
@@ -903,7 +885,7 @@ class MatchScale < QuizFlavour
     QuizFlavour.difficulty_head +
       ", taking #{$all_quiz_scales[$opts[:difficulty]].length} scales out of #{$all_scales.length}"
   end
-  
+
   def after_solve
     puts
     puts "Playing #{@others ? 'shortest' : 'single'} solution scale #{@solution}:"
@@ -930,7 +912,7 @@ class MatchScale < QuizFlavour
     puts "\e[0m"
     sleep 0.2
   end
-  
+
   def issue_question
     puts "\e[34mPlaying #{@holes.length} holes\e[0m\e[2m, which are a subset of #{@others ? 'MULTIPLE scales at once' : 'a SINGLE scale'}\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
@@ -940,6 +922,7 @@ class MatchScale < QuizFlavour
   def tag_desc tag
     holes = @scale2holes[tag]
     return nil unless holes
+
     "#{$scale2desc[tag] || tag} (#{holes.length} holes)"
   end
 
@@ -954,7 +937,7 @@ class MatchScale < QuizFlavour
   def help3
     puts "Playing unique holes of sequence sorted by pitch:"
     play_hons hide: @state[:hide_holes],
-              hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
+              hons: @holes.sort {|a, b| $harp[a][:semi] <=> $harp[b][:semi]}.uniq
   end
 
   def help3_desc
@@ -973,7 +956,7 @@ class MatchScale < QuizFlavour
 
   def help5
     puts "Printing all scales with their holes:"
-    puts 
+    puts
     maxl = @scale2holes.keys.max_by(&:length).length
     @scale2holes.each do |k, v|
       puts "   \e[2m#{k.rjust(maxl)}:\e[0m\e[32m   #{v.join('  ')}\e[0m"
@@ -1000,18 +983,15 @@ class MatchScale < QuizFlavour
   def help6_desc
     ['.help-other', 'print other scales (if any)']
   end
-
 end
 
-
 class HearInter < QuizFlavour
-
   $q_class2colls[self] = %w(inters no-mic)
-  
+
   def initialize first_round
     super
 
-    @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]} 
+    @choices = $intervals_quiz[$opts[:difficulty]].map {|i| $intervals[i][0]}
     @choices_orig = @choices.clone
     @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
 
@@ -1035,7 +1015,7 @@ class HearInter < QuizFlavour
   def after_solve
     after_solve_interval
   end
-  
+
   def issue_question
     puts "\e[34mPlaying an interval\e[0m\e[2m to ask for its name\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
@@ -1046,7 +1026,7 @@ class HearInter < QuizFlavour
   def tag_desc tag
     "#{tag} (#{@inter2semi[tag]} st)"
   end
-  
+
   def help2
     puts "Playing interval reversed:"
     play_hons reverse: true, hide: :all
@@ -1083,7 +1063,7 @@ class HearInter < QuizFlavour
       semis.map! {|s| s + 12 }
       desc = 'higher'
     end
-    
+
     puts "Playing interval one octave #{desc}:"
     puts "\e[2mPlease note, that some notes may not be available as holes.\e[0m"
     puts
@@ -1114,18 +1094,18 @@ class HearInter < QuizFlavour
   end
 
   def help7
-    choices = {'Up' => 'one Octave UP',
-               'UpUp' => 'two Octaves UP',
-               'Down' => 'one Octave DOWN',
-               'DownDown' => 'two Octaves DOWN'}
+    choices = { 'Up' => 'one Octave UP',
+                'UpUp' => 'two Octaves UP',
+                'Down' => 'one Octave DOWN',
+                'DownDown' => 'two Octaves DOWN' }
     choose_prepare_for
     ud = choose_interactive("About to play the interval shifted by one or two octaves; please choose ", choices.keys) do |ud|
       'Shift ' + choices[ud]
     end
     choose_clean_up
     if ud
-      num_oct = ( choices[ud].split[0] == 'one'  ?  1  :  2 )
-      direction = ( choices[ud].split[-1] == 'UP'  ?  +1  :  -1 )
+      num_oct = ( choices[ud].split[0] == 'one' ? 1 : 2 )
+      direction = ( choices[ud].split[-1] == 'UP' ? +1 : -1 )
       puts "\nPlaying shifted by #{choices[ud]}:\n"
       hshifted = @holes.map do |h|
         semi = note2semi($hole2note[h]) + direction * num_oct * 8
@@ -1145,12 +1125,9 @@ class HearInter < QuizFlavour
   def help7_desc
     ['.help-play-shifted', 'Play the interval shifted by one or two octaves up or down']
   end
-
 end
 
-
 class HearChord < QuizFlavour
-
   $q_class2colls[self] = %w(no-mic)
 
   def get_variations chord
@@ -1158,12 +1135,12 @@ class HearChord < QuizFlavour
       var.map do |sm|
         sm - note2semi('a4') + note2semi(@base)
       end
-    end    
+    end
   end
-  
+
   def initialize first_round
     super
-    
+
     @choices = $chords_quiz[$opts[:difficulty]].keys
     @choices_orig = @choices.clone
     @base = $key + '4'
@@ -1179,7 +1156,7 @@ class HearChord < QuizFlavour
                end
     end while @@prevs.include?(@semis)
     @@prevs << @semis
-    
+
     @@prevs.shift if @@prevs.length > 2
 
     @prompt = 'Choose the Chord you have heard:'
@@ -1189,7 +1166,7 @@ class HearChord < QuizFlavour
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
       ", taking #{$chords_quiz[$opts[:difficulty]].length} " +
-      ($opts[:difficulty] == :hard  ?  "chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations"  :  'simple chords')
+      ($opts[:difficulty] == :hard ? "chords with a total of #{$chords_quiz[$opts[:difficulty]].values.flatten(1).length} variations" : 'simple chords')
   end
 
   def play_base_note
@@ -1212,20 +1189,20 @@ class HearChord < QuizFlavour
           end
     sys cmd, $sox_fail_however
   end
-  
+
   def after_solve
     puts
     play_base_note
     puts "\nChord as single notes:"
     tfiles = synth_for_inter_or_chord(@semis, 0, 0.7, 'pluck')
-    @semis.zip(tfiles).each do |s,w|
+    @semis.zip(tfiles).each do |s, w|
       print '  ' + semi2note(s)
       cmd = if $testing
               "sleep 1"
             else
               "play -q --norm=#{$vol.to_i} " + w
             end
-      sys cmd, $sox_fail_however    
+      sys cmd, $sox_fail_however
     end
     puts
     puts "\nChord as a whole:\n  " + @semis.map {|s| semi2note(s)}.join('  ')
@@ -1275,7 +1252,7 @@ class HearChord < QuizFlavour
       print '  '
       play_base_note
       puts
-      print "Variation #{idx+1}:"
+      print "Variation #{idx + 1}:"
       if show
         print "  \e[32m"
         print var.map {|s| semi2note(s)}.join('  ')
@@ -1314,7 +1291,7 @@ class HearChord < QuizFlavour
 
   def help5
     puts "Playing all chords%s, 3 times each:" %
-         ($opts[:difficulty] == :hard  ?  ' (one variation only)'  :  '')
+         ($opts[:difficulty] == :hard ? ' (one variation only)' : '')
     puts
     @choices_orig.each do |chord|
       play_base_note
@@ -1329,7 +1306,7 @@ class HearChord < QuizFlavour
         print '.'
         play_chord semis: semis
       end
-    puts
+      puts
     end
   end
 
@@ -1369,17 +1346,14 @@ class HearChord < QuizFlavour
   def help7_desc
     ['.help-print', 'Print notes and semitones of chord']
   end
-
 end
 
-
 class AddInter < QuizFlavour
-
   $q_class2colls[self] = %w(silent inters no-mic)
 
   def initialize first_round
     super
-    
+
     begin
       inter = get_random_interval_as_holes
       @holes = inter[0..1]
@@ -1398,7 +1372,7 @@ class AddInter < QuizFlavour
     end
     @choices.compact!
     @choices_orig = @choices.clone
-    
+
     @prompt = "Enter the result of #{@verb}ing hole #{@holes[0]} and interval #{$intervals[@dsemi.abs][0]}:"
   end
 
@@ -1410,7 +1384,7 @@ class AddInter < QuizFlavour
   def after_solve
     after_solve_interval
   end
-  
+
   def issue_question
     puts "\e[34mTake hole \e[94m#{@holes[0]}\e[34m and #{@verb} interval '\e[94m#{$intervals[@dsemi.abs][0]}\e[34m'\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
@@ -1450,29 +1424,26 @@ class AddInter < QuizFlavour
   def help5_desc
     ['.help-chart-semis', 'Show solution in chart with holes as semitones']
   end
-
 end
 
-
 class InterSong < QuizFlavour
-
   $q_class2colls[self] = %w(silent inters no-mic)
 
   def initialize first_round
     super
 
-    @interval2song = $intervals_quiz[$opts[:difficulty]].
-                       select {|i| i > 0}.
-                       map {|inter| [inter, $quiz_interval2song[inter].sample]}.to_h
-    
+    @interval2song = $intervals_quiz[$opts[:difficulty]]
+                     .select {|i| i > 0}
+                     .map {|inter| [inter, $quiz_interval2song[inter].sample]}.to_h
+
     @qdesc, @adesc, qi2ai = if rand > 0.5
                               ['interval', 'song', @interval2song]
-                            else 
+                            else
                               ['song', 'interval', @interval2song.invert]
                             end
-    
+
     @choices = qi2ai.values
-        
+
     begin
       @qitem = qi2ai.keys.sample
     end while @@prevs.include?(@qitem)
@@ -1505,7 +1476,7 @@ class InterSong < QuizFlavour
     puts "Playing interval \e[32m#{describe_inter_semis(@inter_semi)}\e[0m starting at #{semi2note(@base_semi)};\nthis is the same interval as in song '#{@song}':"
     play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)]
   end
-  
+
   def issue_question
     if @qdesc == 'interval'
       puts "\e[34mGiven the interval of \e[94m#{describe_inter_semis(@qitem)}\e[34m, name the song, that starts with this interval\e[0m"
@@ -1560,17 +1531,14 @@ class InterSong < QuizFlavour
   def help4_desc
     ['.help-print-all-inters', 'Print all intervals along with their mnemonic song']
   end
-
 end
 
-
 class TellInter < QuizFlavour
-
   $q_class2colls[self] = %w(silent inters no-mic)
 
   def initialize first_round
     super
-    
+
     begin
       inter = get_random_interval_as_holes sorted: true
       @holes = inter[0..1]
@@ -1594,7 +1562,7 @@ class TellInter < QuizFlavour
   def after_solve
     after_solve_interval
   end
-  
+
   def issue_question
     puts
     puts "\e[34mAsking for the interval between holes \e[94m#{@holes[0]}\e[34m and \e[94m#{@holes[1]}\e[0m\e[2m\e[0m"
@@ -1604,7 +1572,7 @@ class TellInter < QuizFlavour
   def help2
     puts "Playing interval:"
     play_hons
-    [['lower', -12],['higher', +12]].each do |text, dsemi|
+    [['lower', -12], ['higher', +12]].each do |text, dsemi|
       sleep 0.5
       puts "\nOne octave #{text}:"
       play_hons hons: @holes.map {|h| semi2note($harp[h][:semi] + dsemi)}, hide: :all
@@ -1632,23 +1600,20 @@ class TellInter < QuizFlavour
   def help4_desc
     ['.help-chart-semis', 'Show chart with holes as semitones']
   end
-  
+
   def help5
     puts "One of the mnemonic songs (upward) for this interval is:"
     puts
     puts "  \e[94m" + $quiz_interval2song[@dsemi.abs].sample + "\e[0m"
     puts
   end
-  
+
   def help5_desc
     ['.help-inter-song', 'Name the mnemonic song associated with this interval']
   end
-  
 end
 
-
 class Players < QuizFlavour
-
   $q_class2colls[self] = %w(silent no-mic)
 
   def initialize first_round
@@ -1682,7 +1647,7 @@ class Players < QuizFlavour
     puts
     print_player $players.structured[@solution]
   end
-  
+
   def issue_question
     puts
     puts "\e[34mAsking for the name of the player with  \e[94m#{@qitem.upcase}\e[34m  given below\e[0m"
@@ -1703,12 +1668,9 @@ class Players < QuizFlavour
   def help2_desc
     ['.help-more-info', 'Show additional information about player']
   end
-
 end
 
-
 class KeyHarpSong < QuizFlavour
-
   $q_class2colls[self] = %w(silent no-mic layout)
 
   def initialize first_round
@@ -1721,7 +1683,7 @@ class KeyHarpSong < QuizFlavour
                             else
                               ['song', 'harp', harp2song.invert]
                             end
-    @choices = qi2ai.values    
+    @choices = qi2ai.values
     @choices_orig = @choices.clone
 
     begin
@@ -1731,7 +1693,7 @@ class KeyHarpSong < QuizFlavour
     @@prevs.shift if @@prevs.length > 2
 
     @solution = qi2ai[@qitem]
-    
+
     @prompt = "Key of #{@adesc}:"
     @help_head = "#{@adesc} with key of".capitalize
   end
@@ -1759,25 +1721,22 @@ class KeyHarpSong < QuizFlavour
   def help2_desc
     ['.help-play-answer', "Play note for answer-key of #{@adesc}"]
   end
-
 end
 
-
 class HoleNote < QuizFlavour
-
   $q_class2colls[self] = %w(silent no-mic layout)
 
   def initialize first_round
     super
 
     @samples_needed = false
-    @key_contributes_to_solution = :broader_coverage    
+    @key_contributes_to_solution = :broader_coverage
 
-    @hole_set  = if $opts[:difficulty] == :hard
-                   nil
-                 else
-                   $named_hole_sets.keys.sample
-                 end
+    @hole_set = if $opts[:difficulty] == :hard
+                  nil
+                else
+                  $named_hole_sets.keys.sample
+                end
 
     @holes = if @hole_set
                $named_hole_sets[@hole_set]
@@ -1785,8 +1744,8 @@ class HoleNote < QuizFlavour
                $harp_holes
              end
 
-    hole2note = @holes.map {|h| [h,$harp[h][:note].gsub(/\d+/,'')]}.to_h
-    note2hole = hole2note.inject(Hash.new {|h,k| h[k] = Array.new}) do |memo, hn|
+    hole2note = @holes.map {|h| [h, $harp[h][:note].gsub(/\d+/, '')]}.to_h
+    note2hole = hole2note.inject(Hash.new {|h, k| h[k] = Array.new}) do |memo, hn|
       memo[hn[1]] << hn[0]
       memo
     end
@@ -1796,8 +1755,8 @@ class HoleNote < QuizFlavour
                               ['note', 'hole', note2hole]
                             else
                               ['hole', 'note', hole2note]
-                            end    
-    
+                            end
+
     @choices = qi2ai.values
     @choices_orig = @choices.clone
 
@@ -1814,7 +1773,7 @@ class HoleNote < QuizFlavour
               hole2note[@qitem]
             end
 
-    @any_clause = ( @solution.is_a?(Array)  ?  "(any of #{@solution.length})"  :  '(single choice)' )
+    @any_clause = ( @solution.is_a?(Array) ? "(any of #{@solution.length})" : '(single choice)' )
     @prompt = "#{@adesc.capitalize} #{@any_clause} for #{@qdesc} #{@qitem}:"
     @help_head = "#{@adesc} with key of".capitalize
   end
@@ -1830,7 +1789,7 @@ class HoleNote < QuizFlavour
 
   def issue_question
     puts "\e[34mGiven the    \e[94m#{@qdesc.upcase}\e[34m   \e[94m#{@qitem}\e[34m   " +
-         ( @hole_set  ?  " (taken from set '#{@hole_set}', with #{$named_hole_sets[@hole_set].length} holes)"  :  '(taken from all holes of harp)' ) +
+         ( @hole_set ? " (taken from set '#{@hole_set}', with #{$named_hole_sets[@hole_set].length} holes)" : '(taken from all holes of harp)' ) +
          "\nname the matching \e[94m#{@adesc}\e[34m #{@any_clause};    \e[94mKEY of #{$key}\e[34m\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
   end
@@ -1857,7 +1816,7 @@ class HoleNote < QuizFlavour
       print 'all holes of harp'
     end
     print "; therefore the answer\nis among "
-    
+
     if @adesc == 'note'
       puts "the notes from these holes:"
     else
@@ -1878,16 +1837,14 @@ class HoleNote < QuizFlavour
   end
 end
 
-
 class HoleNoteKey < QuizFlavour
-
   $q_class2colls[self] = %w(silent no-mic layout)
-  
+
   def initialize first_round
     super
-    
+
     @samples_needed = false
-    @difficulty_to_key_set = {easy: $common_harp_keys, hard: $all_harp_keys}
+    @difficulty_to_key_set = { easy: $common_harp_keys, hard: $all_harp_keys }
     @key_contributes_to_solution = :part_of_solution
 
     @choices = @difficulty_to_key_set[$opts[:difficulty]].clone
@@ -1895,7 +1852,7 @@ class HoleNoteKey < QuizFlavour
 
     change_key if first_round && !$opts[:keep_key]
     @solution = $key
-            
+
     @prompt = "What is the key of harp for the hole-note relations given above:"
     @help_head = "#{@adesc} with key of".capitalize
   end
@@ -1918,13 +1875,13 @@ class HoleNoteKey < QuizFlavour
 
   def help2
     puts 'Chart with notes:'
-    print_chart_with_notes    
+    print_chart_with_notes
   end
 
   def help2_desc
     ['.help-chart-notes', "Print harmonica chart with notes"]
   end
-  
+
   def help3
     print_mapping color: false
   end
@@ -1939,11 +1896,9 @@ class HoleNoteKey < QuizFlavour
   end
 end
 
-
 class HoleHideNote < QuizFlavour
-
   $q_class2colls[self] = %w(silent no-mic layout)
-  
+
   def initialize first_round
     super
 
@@ -1951,7 +1906,7 @@ class HoleHideNote < QuizFlavour
     change_key if first_round && !$opts[:keep_key]
     @samples_needed = false
     @hs_name = @@hole_sets_names.sample
-    @choices = ($named_hole_sets[@hs_name].map {|h| $harp[h][:note].gsub(/\d+$/,'')} - [$key]).uniq
+    @choices = ($named_hole_sets[@hs_name].map {|h| $harp[h][:note].gsub(/\d+$/, '')} - [$key]).uniq
     @choices_orig = @choices.clone
     begin
       @solution = @choices.sample
@@ -1995,15 +1950,13 @@ class HoleHideNote < QuizFlavour
   end
 end
 
-
 class HearHoleSet < QuizFlavour
-
   $q_class2colls[self] = %w(no-mic)
-  
+
   def initialize first_round
     super
 
-    @difficulty_to_key_set = {easy: $common_harp_keys, hard: $all_harp_keys}
+    @difficulty_to_key_set = { easy: $common_harp_keys, hard: $all_harp_keys }
     @key_contributes_to_solution = :part_of_solution
     @harp_keys = @difficulty_to_key_set[$opts[:difficulty]]
     change_key if first_round && !$opts[:keep_key]
@@ -2013,10 +1966,9 @@ class HearHoleSet < QuizFlavour
     @hole_set = @@hole_sets_names.sample
     @solution = "#{$key}-" + @hole_set.to_s
     @holes = $named_hole_sets[@hole_set]
-      
+
     @prompt = "Pick the key and hole-set, that has been played:"
     @help_head = 'key and hole-set'
-
   end
 
   def self.describe_difficulty
@@ -2057,7 +2009,7 @@ class HearHoleSet < QuizFlavour
 
   def help4
     puts "The key is   '#{$key}'."
-    @choices.select! {|c| c.start_with?($key+'-')}
+    @choices.select! {|c| c.start_with?($key + '-')}
   end
 
   def help4_desc
@@ -2073,7 +2025,7 @@ class HearHoleSet < QuizFlavour
   end
 
   def help5_desc
-    ['.help-pitch', "Play an adjustable pitch to compare"]    
+    ['.help-pitch', "Play an adjustable pitch to compare"]
   end
 
   def after_solve
@@ -2083,14 +2035,11 @@ class HearHoleSet < QuizFlavour
     play_hons
     play_hons hons: @holes.map {|h| $hole2note[h]}
   end
-  
 end
 
-
 class HearKey < QuizFlavour
-
   $q_class2colls[self] = %w(no-mic)
-  
+
   @@seqs = [[[0, 3, 0, 3, 2, 0, 0], 'st louis'],
             [[0, 3, 0, 3, 0, 0, 0, -1, -5, -1, 0], 'wade in the water'],
             [[0, 4, 0, 7, 10, 12, 0], 'intervals'],
@@ -2098,11 +2047,11 @@ class HearKey < QuizFlavour
             [[0, 0, 0], 'repeated'],
             [[0, 4, 7, -3, 0, 4, 2, 5, 9, -5, -1, 2, 0, 0], 'chord progression'],
             [:chord, 'chord']]
-  
+
   def initialize first_round
     super
 
-    @difficulty_to_key_set = {easy: $common_harp_keys, hard: $all_harp_keys}    
+    @difficulty_to_key_set = { easy: $common_harp_keys, hard: $all_harp_keys }
     @key_contributes_to_solution = :part_of_solution
 
     @@seqs.rotate!(rand(@@seqs.length).to_i)
@@ -2120,7 +2069,7 @@ class HearKey < QuizFlavour
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
     change_key(key: @solution) unless $opts[:keep_key]
-    
+
     @prompt = "Key of sequence that has been played:"
     @help_head = "Key"
     @wavs_created = nil
@@ -2128,7 +2077,7 @@ class HearKey < QuizFlavour
 
   def self.describe_difficulty
     QuizFlavour.difficulty_head +
-      ", taking #{$opts[:difficulty] == :easy  ?  4  :  12} keys out of 12"
+      ", taking #{$opts[:difficulty] == :easy ? 4 : 12} keys out of 12"
   end
 
   def issue_question silent: false
@@ -2205,14 +2154,11 @@ class HearKey < QuizFlavour
     play_holes_or_notes_and_handle_kb [semi2note(key2semi(@solution))], hide: :help
     make_term_cooked
   end
-
 end
 
-
 class HearHole < QuizFlavour
-
   $q_class2colls[self] = %w(no-mic)
-  
+
   def initialize first_round
     super
 
@@ -2274,14 +2220,11 @@ class HearHole < QuizFlavour
     play_hons hons: [@solution]
     puts
   end
-
 end
 
-
 class KeepTempo < QuizFlavour
-
   $q_class2colls[self] = %w(mic)
-  
+
   @@explained = false
   @@history = Array.new
   @@grade_names = { 1 => 'excellent!',
@@ -2298,20 +2241,20 @@ class KeepTempo < QuizFlavour
   def self.describe_difficulty
     # implement this for unit-test only
   end
-  
+
   def initialize
   end
-    
+
   def clear_history
     @@history = Array.new
   end
-  
+
   def set_params
     @bpm = if $opts[:difficulty] == :easy
-               60 + 5 * rand(6)
-             else
-               50 + 5 * rand(10)
-             end
+             60 + 5 * rand(6)
+           else
+             50 + 5 * rand(10)
+           end
     @beats_keep = if $opts[:difficulty] == :easy
                     6 + 2 * rand(4)
                   else
@@ -2323,7 +2266,7 @@ class KeepTempo < QuizFlavour
     if $testing
       @beats_intro = @beats_keep = @beats_outro = 4
     end
-    
+
     @secs_per_beat = 60.0 / @bpm
     @markers = nil
 
@@ -2331,9 +2274,7 @@ class KeepTempo < QuizFlavour
     @recording2 = "#{$dirs[:tmp]}/tempo_recording2.wav"
   end
 
-  
   def issue_question
-
     puts
     if @@explained
       puts "\e[0mParameters (#{$opts[:difficulty]}):"
@@ -2351,29 +2292,27 @@ class KeepTempo < QuizFlavour
       puts "\n(and then repeat with same or with changed params)\n\n"
       @@explained = true
     end
-    
   end
 
-  
   def play_and_record
-
     # generate needed sounds
     frac_sound = 0.3
     intro, len_intro = quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
     FileUtils.cp($test_wav, @recording2) if $testing
-    
+
     puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
     puts "\e[2mOr press TAB or BACKSPACE to get another set of parameters\e[0m"
     print "\e[?25l"  ## hide cursor
     char = one_char
     return false if char == 'TAB' || char == 'BACKSPACE'
+
     puts
     print "\e[?25l"
     puts
-    puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro+@beats_keep+@beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
+    puts "\e[0m#{@bpm} BPM,  #{@beats_intro} + #{@beats_keep} + #{@beats_outro} = #{@beats_intro + @beats_keep + @beats_outro} beats\e[2m;  no help or pause, while playing this.\e[0m\n\n"
 
     # Do some animation for making room
-    (1 .. 20).each do |n|
+    (1..20).each do |n|
       puts "\e[0m\e[34m " + (n == 1 ? "....and...." : "...........")
       sleep 0.025
     end
@@ -2381,20 +2320,20 @@ class KeepTempo < QuizFlavour
       print "\e[A\r\e[K"
       sleep 0.025
     end
-    
+
     puts "\r\e[0m\e[2mPlay and record:"
     puts "\e[2m----------------"
-    
+
     # Play sound and show markers
     wait_thr = Thread.new do
       cmd_play = if $testing
                    "sleep 5"
                  else
                    "play --norm=#{$vol.to_i} -q #{intro}"
-                 end  
+                 end
       play_pid = Process.spawn cmd_play
       Process.wait(play_pid)
-      err("sound process had problems: #{$?}") if $?.exitstatus != 0      
+      err("sound process had problems: #{$?}") if $?.exitstatus != 0
     end
     ts_play_start = Time.now.to_f
 
@@ -2405,9 +2344,9 @@ class KeepTempo < QuizFlavour
     puts
     puts "\e[2m  REC not yet started, but please pick up tempo."
     puts
-    
+
     blink_beats ts_play_start, wait_thr
-    
+
     # sound of last beat does not include silence after pluck; so when we start recording
     # now, we are safe ahead of next expected play by user
 
@@ -2427,7 +2366,7 @@ class KeepTempo < QuizFlavour
 
       # extra secs to allow for startup of sox
       sleep len_rec + 1
-     
+
       Process.kill('HUP', rec_pid)
       Process.wait(rec_pid)
       err("sound process had problems: #{$?}") if $?.exitstatus != 0 && $?.termsig != Signal.list['HUP']
@@ -2456,7 +2395,7 @@ class KeepTempo < QuizFlavour
     txt.each_char {|c| print c; sleep 0.015}
     sleep 0.3
     puts "\e[0m"
-    
+
     # see remark about wsl2 above, for reasoning
     total = sox_query(@recording2, 'Length').to_f.round(2)
     if !$testing && total < len_rec
@@ -2466,13 +2405,11 @@ class KeepTempo < QuizFlavour
     else
       sys "sox #{@recording2} #{@recording} trim #{total - len_rec}"
     end
-    
+
     return true
   end
 
-  
   def extract_beats
-
     # get frequency content
     times_freqs = sys("aubiopitch --bufsize %s --hopsize %s --pitch %s -i #{@recording}" % [$aubiopitch_sizes[$opts[:time_slice]], $conf[:pitch_detection]].flatten, $sox_fail_however).lines.map {|l| l.split.map {|x| Float(x)}}
 
@@ -2503,10 +2440,10 @@ class KeepTempo < QuizFlavour
 
     3.times {puts; sleep 0.02}
     puts "\e[2mAnalysis:\n---------\n\n"
-    
+
     # plot results
     if beats_found.length >= 3
-      beats_expected = (0 ... beats_found.length).to_a.map {|x| x * @secs_per_beat}
+      beats_expected = (0...beats_found.length).to_a.map {|x| x * @secs_per_beat}
       maxchars = ($term_width - 40) * 0.8
       scale = maxchars / beats_expected[-1]
       [['E', "\e[0m\e[34m  Expected:", beats_expected],
@@ -2528,7 +2465,7 @@ class KeepTempo < QuizFlavour
       end
       bpms = diffs.map {|d| 60.0 / d}
       @bpm_avg = ( bpms.sum / bpms.length ).round(1)
-      @bpm_std_dev = (Math.sqrt(bpms.map {|b| (b - @bpm_avg ) ** 2}.sum / bpms.length)).round(1)
+      @bpm_std_dev = (Math.sqrt(bpms.map {|b| (b - @bpm_avg )**2}.sum / bpms.length)).round(1)
       missed_pct = 100 * (@bpm_avg - @bpm).abs / @bpm
       beats_lost = [@beats_keep + @beats_outro - beats_found.length, 0].max
       dev_pct = 100 * @bpm_std_dev / @bpm_avg
@@ -2570,22 +2507,22 @@ class KeepTempo < QuizFlavour
       @grade_reasons = @grades.keys.select do |k|
         @grades[k] == @grade
       end.map do |r|
-        {bpm_average: "average BPM",
-         bpm_variation: "variation in BPM",
-         beats_lost: "lost beats"}[r] || fail("Internal error")
+        { bpm_average: "average BPM",
+          bpm_variation: "variation in BPM",
+          beats_lost: "lost beats" }[r] || fail("Internal error")
       end
-      @grade_reasons[0].prepend( @grade == 1 ? '            All Perfect: ' : '  These could be better:  ') 
+      @grade_reasons[0].prepend( @grade == 1 ? '            All Perfect: ' : '  These could be better:  ')
       puts
       puts "  On average:  #{@bpm_avg} ± #{@bpm_std_dev}  BPM\e[2m"
       puts "    Expected:  #{@bpm}"
       sleep 0.1
       puts
       puts "   Num beats:  #{beats_found.length}\e[2m"
-      puts "    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep+@beats_outro}\e[0m"
+      puts "    Expected:  #{@beats_keep} + #{@beats_outro} = #{@beats_keep + @beats_outro}\e[0m"
       sleep 0.1
       puts
       print "   Overall grade (1-5) is:  "
-      print (' ' * [$term_width / 2 - 42, 0].max) 
+      print (' ' * [$term_width / 2 - 42, 0].max)
       puts "\e[0m\e[#{@@grade_colors[@grade]}m #{@@grade_names[@grade]} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
       puts
       puts '  ' + @grade_reasons.join(', ')
@@ -2595,7 +2532,6 @@ class KeepTempo < QuizFlavour
     end
   end
 
-  
   def show_history
     if @bpm_avg
       @@history << "\e[0m\e[2m%5.1f ± %3.1f  BPM ,   \e[1m\e[#{@@grade_colors[@grade]}m#{@@grade_names[@grade]}\e[0m\e[2m (#{@grade})" % [@bpm_avg, @bpm_std_dev]
@@ -2603,7 +2539,7 @@ class KeepTempo < QuizFlavour
     if @@history.length > 1
       puts
       text = 'Press any key for history of grades ...'
-      print "\e[0m\e[32m#{text}\e[0m" 
+      print "\e[0m\e[32m#{text}\e[0m"
       one_char
       text.length.times do
         print "\b \b"
@@ -2624,13 +2560,12 @@ class KeepTempo < QuizFlavour
     end
   end
 
-
   def blink_beats ts_start, wait_thr, add_text = nil, max_beat = 1000
     ts_beat_start = ts_tick_start = Time.now.to_f
     ticks_per_beat = 10
     this_beats = 0
     beat_prev = -1
-    colors = [92,0,0,92,32,2,2,2,2,32]
+    colors = [92, 0, 0, 92, 32, 2, 2, 2, 2, 32]
     cols = colors.clone
     templ = "  \e[0m\e[%dm%4s %2s"
     begin
@@ -2658,24 +2593,22 @@ class KeepTempo < QuizFlavour
       end
       print "\e[0m\e[2m" + add_text if add_text && this_beats > 1
       print "\e[K"
-      
+
       tntf = Time.now.to_f
       ts_tick_end = ts_beat_start + (tick + 1) * @secs_per_beat / ticks_per_beat
       fail "Internal error: worked too long" if ts_tick_end < tntf
+
       sleep ts_tick_end - tntf
     end while alive
   end
-  
 end
 
-
 class HearTempo < QuizFlavour
-
   $q_class2colls[self] = %w(no-mic)
-  
-  @@choices = {:easy => %w(70 90 110 130 150),
-               :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160 170 180)}
-  
+
+  @@choices = { :easy => %w(70 90 110 130 150),
+                :hard => %w(50 60 70 80 90 100 110 120 130 140 150 160 170 180) }
+
   def initialize first_round
     super
 
@@ -2714,14 +2647,14 @@ class HearTempo < QuizFlavour
     choose_prepare_for
     answer = choose_interactive('Tempo to compare:',
                                 @choices.map {|x| "compare-#{x}"}) do |tag|
-      "compare with #{@help_head} #{tag_desc(tag)}" 
+      "compare with #{@help_head} #{tag_desc(tag)}"
     end
     choose_clean_up
     if answer
-      help, _ = quiz_generate_tempo('h', Integer(answer.gsub('compare-','')), @num_beats, 0.5)
+      help, _ = quiz_generate_tempo('h', Integer(answer.gsub('compare-', '')), @num_beats, 0.5)
       puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
       make_term_immediate
-      $ctl_kb_queue.clear    
+      $ctl_kb_queue.clear
       play_recording_and_handle_kb help
       make_term_cooked
     else
@@ -2733,24 +2666,21 @@ class HearTempo < QuizFlavour
   def help2_desc
     ['.help-compare', 'Play one of the choices']
   end
-
 end
 
-
 class NotInScale < QuizFlavour
-
   $q_class2colls[self] = %w(scales no-mic)
 
   def initialize first_round
     super
-    
+
     @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
     @scale_holes, _ = read_and_parse_scale(@scale_name, $harp)
     @scale_semis = @scale_holes.map {|h| $harp[h][:semi]}
 
     # choose one harp-hole, which is not in scale but within range or nearby
     holes_notin = $harp_holes - @scale_holes
-    
+
     # Remove holes above and below scale
     holes_notin.shift while holes_notin.length > 0 &&
                             $harp[holes_notin[0]][:semi] < $harp[@scale_holes[0]][:semi]
@@ -2761,13 +2691,13 @@ class NotInScale < QuizFlavour
     begin
       @hole_notin = holes_notin.sample
     end while @scale_semis.include?($harp[@hole_notin][:semi])
-    
+
     @holes = @scale_holes.shuffle
     @scale_holes_shuffled = @holes.clone
     @holes[rand(@holes.length)] = @hole_notin
 
     # hide holes as h1, h2, ...
-    @hide = @holes.each_with_index.map {|h,i| [h, "h#{i+1}"]}.to_h
+    @hide = @holes.each_with_index.map {|h, i| [h, "h#{i + 1}"]}.to_h
     @hide[(@scale_holes - @holes)[0]] = 'h0'
     @choices = @holes.map {|h| @hide[h]}
     @choices_orig = @choices.clone
@@ -2780,7 +2710,7 @@ class NotInScale < QuizFlavour
     QuizFlavour.difficulty_head +
       ", choosing one of #{$all_quiz_scales[$opts[:difficulty]].length} scales"
   end
-  
+
   def after_solve
     puts
     puts "Playing note #{@solution}, hole #{@hole_notin}, that was foreign in scale #{@scale_name}:"
@@ -2790,7 +2720,7 @@ class NotInScale < QuizFlavour
     sleep 0.5
     puts "And these are the holes of the modified scale:"
     puts
-    lines = ['','']
+    lines = ['', '']
     @holes.each do |hole|
       lines[0] += hole + '  '
       lines[1] += @hide[hole].ljust(hole.length) + '  '
@@ -2798,7 +2728,7 @@ class NotInScale < QuizFlavour
     puts lines[0]
     puts "\e[2m" + lines[1] + "\e[0m"
   end
-  
+
   def issue_question
     puts "\e[34mPlaying scale \e[94m#{@scale_name}\e[34m modified: shuffled and one note replaced by a foreign one\e[0m"
     puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
@@ -2807,15 +2737,15 @@ class NotInScale < QuizFlavour
 
   def help2
     puts "Play notes of modified scale in ascending order:"
-    @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]}
-    play_hons(hons: @holes.sort {|a,b| $harp[a][:semi] <=> $harp[b][:semi]},
+    @holes.sort {|a, b| $harp[a][:semi] <=> $harp[b][:semi]}
+    play_hons(hons: @holes.sort {|a, b| $harp[a][:semi] <=> $harp[b][:semi]},
               hide: @hide)
   end
 
   def help2_desc
     ['.help-play-mod-asc', 'Play holes of modified scale in ascending order']
   end
-  
+
   def help3
     puts "Playing original scale in ascending order:"
     play_hons(hons: @scale_holes, hide: :all)
@@ -2842,15 +2772,14 @@ class NotInScale < QuizFlavour
   def help5_desc
     ['.help-show-orig-shuf', 'Kind of solve: Play and show original scale shuffled']
   end
-
 end
-
 
 def get_random_interval_as_holes sorted: false
   # favour lower holes
-  all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).flatten.shuffle
+  all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).flatten.shuffle
   loop do
     fail "Internal error: no more holes to try" if all_holes.length == 0
+
     holes_inter = [all_holes.shift, nil]
     $intervals_quiz[$opts[:difficulty]].clone.shuffle.each do |inter|
       holes_inter[1] = $semi2hole[$harp[holes_inter[0]][:semi] + inter]
@@ -2891,11 +2820,10 @@ def prompt_for_quiz_interval holes_inter
 end
 
 def get_holes_shift_info
-
   # favour lower holes and allow a hole to appear multiple times
-  all_holes = ($harp_holes + Array.new(6, $harp_holes[0 .. $harp_holes.length/2])).then {|x| [x,x,x,x]}.flatten
+  all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).then {|x| [x, x, x, x]}.flatten
   # favour intervals up to perfect fifth
-  all_shifts = ($std_semi_shifts + $std_semi_shifts.select {|s| s.abs <= 7}.then {|x| [x,x,x,x]}).flatten
+  all_shifts = ($std_semi_shifts + $std_semi_shifts.select {|s| s.abs <= 7}.then {|x| [x, x, x, x]}).flatten
 
   unshifted = shift = shifted = nil
   400.times do
@@ -2904,7 +2832,7 @@ def get_holes_shift_info
     # mostly avoid holes, that span more than one octave
     redo if semi_span[1] - semi_span[0] > 12 && rand > 0.1
     shift = all_shifts.sample
-    shifted = unshifted.map{|h| $harp[h][:shifted_by][shift]}
+    shifted = unshifted.map {|h| $harp[h][:shifted_by][shift]}
     break(:found) if shifted.all?
   end == :found or fail("Internal error: too many tries")
   idesc = if shift > 0
@@ -2915,7 +2843,7 @@ def get_holes_shift_info
 
   # be more typesafe
   info = Struct.new(:holes_unshifted, :shift_by_semi, :shift_by_text, :holes_shifted, :holes_all).new
-  
+
   info[:holes_unshifted] = unshifted
   info[:shift_by_semi] = shift
   info[:shift_by_text] = "%+dst, #{idesc}" % shift
@@ -2924,7 +2852,6 @@ def get_holes_shift_info
 
   info
 end
-
 
 def stand_out text, all_green: false, turn_red: nil
   print "\e[32m" if all_green
@@ -2945,7 +2872,6 @@ def stand_out text, all_green: false, turn_red: nil
   print "\e[0m"
 end
 
-
 # map key of harp to key of song (2nd position, 7 semitones)
 def get_harp2song basic_set: false
   harps = if basic_set
@@ -2962,17 +2888,15 @@ def get_harp2song basic_set: false
   harp2song
 end
 
-
 def key2semi key
   semi = note2semi(key.downcase + '4')
   semi += 12 if semi < note2semi('gf4')
   semi
 end
 
-
 def quiz_hint_in_handle_holes_std solve_text, item, holes, hide, offer_disp = false
-  choices2desc = {',solve-print' => "Solve: Print #{item}, but keep current question",
-                  '.help-play' => "Play #{item}, so that you may replay it"}
+  choices2desc = { ',solve-print' => "Solve: Print #{item}, but keep current question",
+                   '.help-play' => "Play #{item}, so that you may replay it" }
   choices2desc['.help-display'] = "Switch display to show intervals" if offer_disp
   answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
                               choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
@@ -3001,12 +2925,11 @@ def quiz_hint_in_handle_holes_std solve_text, item, holes, hide, offer_disp = fa
   clear_area_message
 end
 
-
 def quiz_hint_in_handle_holes_shifted holes_shift_info
-  choices2desc = {'.help-print-unshifted' => "Solve: Print unshifted sequence, but keep current question",
-                  ',solve-print-shifted' => "Solve: Print shifted sequence, but keep current question",
-                  '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
-                  '.help-play-both' => "Play unshifted sequence first and then shifted, so that you may replay it"}
+  choices2desc = { '.help-print-unshifted' => "Solve: Print unshifted sequence, but keep current question",
+                   ',solve-print-shifted' => "Solve: Print shifted sequence, but keep current question",
+                   '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
+                   '.help-play-both' => "Play unshifted sequence first and then shifted, so that you may replay it" }
   answer = choose_interactive($resources[:quiz_hints] % $quiz_flavour,
                               choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
   clear_area_comment
@@ -3057,7 +2980,6 @@ def quiz_hint_in_handle_holes_shifted holes_shift_info
   $ctl_kb_queue.clear
 end
 
-
 def quiz_hint_in_handle_holes_hit_from_off hole
   clear_area_comment
   clear_area_message
@@ -3071,12 +2993,10 @@ def quiz_hint_in_handle_holes_hit_from_off hole
   clear_area_message
 end
 
-
 def prepare_listen_perspective_for_quiz
   $msgbuf.print ["Type 'H' or '4' for quiz-hints, RETURN for next question,",
                  "or issue signal ctrl-z (quit, tstp) for another flavour"], 3, 5
 end
-
 
 def quiz_generate_tempo prefix, bpm, num, frac_sound
   secs_per_beat = 60.0 / bpm
@@ -3085,16 +3005,15 @@ def quiz_generate_tempo prefix, bpm, num, frac_sound
   pluck = "#{$dirs[:tmp]}/pluck.wav"
   silence = "#{$dirs[:tmp]}/silence.wav"
   result = "#{$dirs[:tmp]}/#{prefix}.wav"
-  
+
   sys "sox -q -n #{pluck} synth %.2f pluck %%#{$harp[$typical_hole][:semi]}" % len_sound, $sox_fail_however
   sys "sox -q -n #{silence} trim 0.0 %2f" % len_silence, $sox_fail_however
   pieces = Array.new(num - 1, [pluck, silence]).flatten
   pieces << pluck
-  len_total = ( num -1 ) * ( len_sound + len_silence ) + len_sound
+  len_total = ( num - 1 ) * ( len_sound + len_silence ) + len_sound
   sys "sox #{pieces.join(' ')} #{result}", $sox_fail_however
   [result, len_total]
 end
-
 
 def choose_clean_up skip_term: false
   clear_area_comment
@@ -3102,7 +3021,6 @@ def choose_clean_up skip_term: false
   make_term_cooked unless skip_term
   print "\e[#{$lines[:comment_tall] - 1}H\e[K"
 end
-
 
 def choose_prepare_for skip_term: false
   prepare_term
@@ -3115,7 +3033,6 @@ def choose_prepare_for skip_term: false
   print "\e[#{$lines[:comment_tall] - 1}H" + get_dim_hline + "\e[0m"
 end
 
-
 def do_animation info, nlines, sleep1 = 0.04, sleep2 = 0.03
   puts "\e[?25l"  ## hide cursor
   $splashed = true
@@ -3127,10 +3044,10 @@ def do_animation info, nlines, sleep1 = 0.04, sleep2 = 0.03
   prev = nil
   nlines.times do
     len = push_front.length
-    txt[0 .. len - 1] = push_front if txt[0 .. len - 1] == ' ' * len
+    txt[0..len - 1] = push_front if txt[0..len - 1] == ' ' * len
     puts "\e[G\e[2m\e[34m#{prev}\e[0m" if prev
     txt.prepend(' ')
-    txt.chomp!(shift_back) if txt.length > ilen  + shift_back.length - 3
+    txt.chomp!(shift_back) if txt.length > ilen + shift_back.length - 3
     print "\e[0m\e[34m#{txt}\e[0m\e[K"
     prev = txt
     sleep sleep1
@@ -3140,11 +3057,9 @@ def do_animation info, nlines, sleep1 = 0.04, sleep2 = 0.03
   sleep sleep2
 end
 
-
 # $extra may contain meta-keywords like 'choose'; flavour only real
 # flavours like 'hear-scale'
 def get_accepted_flavour_from_extra inherited
-
   flavour,
   collection = if inherited
                  # we only ever inherit (from previous invocations) a collection; never a
@@ -3167,13 +3082,12 @@ def get_accepted_flavour_from_extra inherited
                else
                  fail "Internal error: #{$extra}"
                end
-  
+
   first_iteration = true
 
   # loop until chosen flavour is accepted; endless loop, left via
   # return
-  loop do 
-
+  loop do
     # maybe user has chosen a collection (above or in previous iteration)
     if $quiz_coll2flavs[flavour]
       collection = flavour
@@ -3185,7 +3099,7 @@ def get_accepted_flavour_from_extra inherited
 
     flavour ||= get_random_flavour(collection)
     $pers_data['quiz_flavour_last'] = flavour
-    
+
     # now we have a valid flavour, so inform user and get confirmation
     puts
     unless first_iteration
@@ -3225,7 +3139,6 @@ def get_accepted_flavour_from_extra inherited
   end
 end
 
-
 def choose_flavour_or_collection collection
   choices = $quiz_coll2flavs[collection]
   answer = nil
@@ -3262,7 +3175,6 @@ def choose_flavour_or_collection collection
   end
 end
 
-
 def get_random_flavour collection
   choices = $quiz_coll2flavs[collection]
   puts "\e[2mChoosing a random flavour, 1 out of #{choices.length} (#{collection}).\e[0m"
@@ -3280,11 +3192,9 @@ def get_random_flavour collection
   try_flavour
 end
 
-
 def get_dim_hline
   "\e[2m" + ( '-' * ( $term_width * 0.5 )) + "\e[0m"
 end
-
 
 def back_to_comment_after_mode_switch
   if $other_mode_saved[:conf]
@@ -3293,16 +3203,15 @@ def back_to_comment_after_mode_switch
   end
 end
 
-
 def choose_and_play_answer_scale
   puts "For help, choose one of the answer-scales to be played:"
   choose_prepare_for
   answer = choose_interactive("Scale to compare:", @choices.map {|s| "compare-#{s}"}) do |tag|
-    "#{@help_head} #{tag_desc(tag)}" 
+    "#{@help_head} #{tag_desc(tag)}"
   end
   choose_clean_up
   if answer
-    scale = answer.gsub('compare-','')
+    scale = answer.gsub('compare-', '')
     puts "\e[2mPlaying scale \e[0m\e[34m#{scale}\e[0m\e[2m with \e[0m\e[34m#{@scale2holes[scale].length}\e[0m\e[2m holes."
     play_hons(hons: @scale2holes[scale], hide: @state[:hide_holes])
   else
@@ -3311,9 +3220,8 @@ def choose_and_play_answer_scale
   puts "\n\e[2mDone with compare, BACK to original question.\e[0m"
 end
 
-
 def re_calculate_quiz_difficulty
-  $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric]  ?  :easy  :  :hard)
+  $opts[:difficulty] = ( rand(100) > $opts[:difficulty_numeric] ? :easy : :hard)
   unless $num_quiz_replay_explicit
     nqr = case $quiz_flavour
           when 'play-shifted'
@@ -3325,14 +3233,12 @@ def re_calculate_quiz_difficulty
   end
 end
 
-
 def make_extra_desc_short extra, head
   desc_lines = get_extra_desc_single(extra)
-  head += " (#{desc_lines[0].gsub(' ','')})" if desc_lines[0] != extra
+  head += " (#{desc_lines[0].gsub(' ', '')})" if desc_lines[0] != extra
   head += ': '
   head + desc_lines[1..-1].join(' ')
 end
-
 
 def describe_flavour flavour, has_issue_question
   print "Quiz Flavour is:   \e[34m#{flavour}\e[0m       "
@@ -3346,12 +3252,11 @@ def describe_flavour flavour, has_issue_question
   sleep 0.05
   puts
   sleep 0.05
-  puts get_extra_desc_single(flavour)[1..-1].
-         map {|l| '  ' + l + "\n"}.
-         join.chomp +
+  puts get_extra_desc_single(flavour)[1..-1]
+    .map {|l| '  ' + l + "\n"}
+    .join.chomp +
        ".\n"
 end
-
 
 def print_intervals_etc
   puts "Printing intervals semitones and names as well as a mnemonic song:"

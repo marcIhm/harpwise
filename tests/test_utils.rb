@@ -2,8 +2,8 @@
 # Utilities for testing with run.rb
 #
 
-def new_session x = $term_min_width, y = $term_min_height  
-  kill_session 
+def new_session x = $term_min_width, y = $term_min_height
+  kill_session
   #
   # The simple command below does not work because of a bug in tmux 3.2a:
   # (use 'tmux -V' to get version)
@@ -28,12 +28,10 @@ def new_session x = $term_min_width, y = $term_min_height
   tms :ENTER
 end
 
-
 def kill_session
   system "tmux kill-session -t harpwise >/dev/null 2>&1"
   system("killall aubiopitch >/dev/null 2>&1")
 end
-
 
 def sys cmd
   out, stat = Open3.capture2e(cmd)
@@ -41,28 +39,24 @@ def sys cmd
   out
 end
 
-
 def tms cmd
   # let typed command appear on screen
   sleep 0.5
   if cmd.is_a?(Symbol)
-    sys "tmux send -t harpwise #{cmd.to_s.tr('_','-')}"
+    sys "tmux send -t harpwise #{cmd.to_s.tr('_', '-')}"
   else
     sys "tmux send -l -t harpwise \"#{cmd}\""
   end
   sleep 0.5
 end
 
-
 def screen
   %x(tmux capture-pane -t harpwise -p).lines.map!(&:chomp)
 end
 
-
 def screen_col
   %x(tmux capture-pane -e -t harpwise -p).lines.map!(&:chomp)
 end
-
 
 def wait_for_start_of_pipeline
   20.times do
@@ -76,18 +70,18 @@ def wait_for_start_of_pipeline
   fail "Pipeline did not start OR harpwise has not been started wih '--testing' OR harpwise did not even initialize completely"
 end
 
-
 def wait_for_end_of_harpwise numrep = 20
-  hw_full_name =  if $use_snap
-                    '/snap/harpwise'
-                  else
-                    %x(which harpwise).chomp
-                  end
+  hw_full_name = if $use_snap
+                   '/snap/harpwise'
+                 else
+                   %x(which harpwise).chomp
+                 end
   fail 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
+
   numrep.times do
     still_running = false
     IO.popen('ps -ef').each_line do |line|
-      fields = line.chomp.split(' ',8)
+      fields = line.chomp.split(' ', 8)
       still_running = true if fields[-1][hw_full_name]
     end
     if !still_running
@@ -97,20 +91,20 @@ def wait_for_end_of_harpwise numrep = 20
     sleep 1
   end
   return false if numrep < 20
+
   pp screen
   fail 'harpwise did not come to an end'
 end
 
-
 def expect *failinfo, &block
-  5.times do 
+  5.times do
     if yield
       print "\e[32mOkay \e[0m"
       return
     end
     sleep 1
   end
-  
+
   puts
   source = block.source
   if source['screen_col']
@@ -144,21 +138,22 @@ def two_sounds secs1, semi1, secs2, semi2
   sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav #{$testing_wav}"
 end
 
-
 def do_test text
   $memo_count += 1
   if md = text.match(/#{$fromon_id_regex}/)
     id = md[1]
     fail "Test-id #{id} has already appeared" if $fromon_id_uniq.include?(id)
+
     $fromon_id_uniq << id
   else
     fail "Test '#{text}' should start with an id"
   end
-  File.write $last_test, JSON.pretty_generate({time: Time.now, id: id}) + "\n"
+  File.write $last_test, JSON.pretty_generate({ time: Time.now, id: id }) + "\n"
   $within = true if ( $fromon_cnt && $memo_count == $fromon_cnt ) ||
                     ( $fromon_id && text.start_with?($fromon_id + ':'))
   ( $fromon && text[$fromon] )
   return unless $within
+
   puts
   [$testing_dump_template % 'start', $testing_dump_template % 'end', $testing_log_file].each do |file|
     File.delete(file) if File.exist?(file)
@@ -178,7 +173,6 @@ def do_test text
   $memo[:durations][text] = Time.now.to_f - start
 end
 
-
 def read_testing_dump marker
   file = $testing_dump_template % marker
   unless File.exist?(file)
@@ -190,16 +184,13 @@ def read_testing_dump marker
   dump
 end
 
-
 def read_testing_log
   File.readlines($testing_log_file)
 end
 
-
 def clear_testing_log
   FileUtils.rm($testing_log_file) if File.exist?($testing_log_file)
 end
-
 
 def ensure_config_ini_testing
   FileUtils.rm $config_ini_testing if File.exist?($config_ini_testing)
@@ -220,6 +211,6 @@ at_exit {
 
 class String
   def desc2canon
-    self.gsub(/[[:punct:]]/,'').gsub(/\n/,' ').gsub(/\s+/,'').gsub(/\./,'').strip.downcase
+    self.gsub(/[[:punct:]]/, '').gsub(/\n/, ' ').gsub(/\s+/, '').gsub(/\./, '').strip.downcase
   end
 end

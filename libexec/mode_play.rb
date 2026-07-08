@@ -3,17 +3,16 @@
 #
 
 def do_play to_play
-
   $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
 
   if !$extra
     # We expect lick-names on command line, so dont narrow to tag-selection
-    $licks = $all_licks 
+    $licks = $all_licks
   elsif $opts[:lick_prog]
     err "Options --lick-prog only useful for extra argument licks, not #{$extra}" if $extra != 'licks'
-    $licks = $all_licks 
+    $licks = $all_licks
     _ = process_opt_lick_prog
-    $all_licks, $licks, $all_lick_progs = read_licks    
+    $all_licks, $licks, $all_lick_progs = read_licks
   end
 
   make_term_immediate
@@ -32,8 +31,8 @@ def do_play to_play
   err_args_not_allowed(args_for_extra) if $extra == 'licks' && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
-  
-  if !$extra 
+
+  if !$extra
 
     if holes_or_notes.length > 0
 
@@ -42,9 +41,9 @@ def do_play to_play
       play_holes_or_notes_and_handle_kb holes_or_notes
       puts
       write_history('holes or notes', 'adhoc-holes', holes_or_notes)
-      
+
     elsif snames.length > 0
-      
+
       puts "Playing scales given as arguments."
       puts
       snames.each do |sname|
@@ -54,7 +53,7 @@ def do_play to_play
         puts
         write_history('scale', sname, scale_holes)
       end
-      
+
     elsif lnames.length > 0
 
       puts "Playing licks given as arguments."
@@ -70,26 +69,26 @@ def do_play to_play
       play_holes_or_notes_and_handle_kb notes
       puts
       write_history('semitones converted to notes', 'adhoc-semitones', notes)
-      
+
     elsif lpnames.length > 0
 
       err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
 
       puts "Playing lick progression given as argument."
       puts
-      print_single_lick_prog($all_lick_progs[lpnames[0]])      
+      print_single_lick_prog($all_lick_progs[lpnames[0]])
       lnames = $all_lick_progs[lpnames[0]][:licks]
       $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: true)
 
     elsif jmnames.length > 0
-      
+
       err "Can only play only one jam, not: #{lpnames.join(',')}" if jmnames.length > 1
 
       puts "Playing jam given as argument."
       puts
       do_the_jam_playing($jamming_rel2abs[jmnames[0]])
-      
+
     else
 
       fail 'Internal error'
@@ -102,7 +101,7 @@ def do_play to_play
     when 'pitch'
 
       key = if args_for_extra.length == 1
-              key_wo_digit = args_for_extra[0].gsub(/\d$/,'')
+              key_wo_digit = args_for_extra[0].gsub(/\d$/, '')
               err "Unknown key '#{key_wo_digit}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(key_wo_digit)
               args_for_extra[0]
             elsif args_for_extra.length > 1
@@ -117,31 +116,32 @@ def do_play to_play
       s1, s2 = normalize_interval(args_for_extra)
 
       play_interactive_interval s1, s2
-        
+
     when 'licks'
 
       do_play_licks args_for_extra
-      
+
     when 'progression', 'prog'
-      
+
       err "Need a base hole or note and some semitone diffs or intervals to play a progression, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
       progs = args_for_extra.
-                # replace dot by something unlikely, because some day
-                # it might also be part of a hole-notation
-                map {|a| a == '.'  ?  '###'  :  a}.  
-                join(' ').
-                split('###').
-                map {|p| p.split.map {|hns| hns.strip}}
+              # replace dot by something unlikely, because some day
+              # it might also be part of a hole-notation
+              map {|a| a == '.' ? '###' : a}
+                            .join(' ')
+                            .split('###')
+                            .map {|p| p.split.map {|hns| hns.strip}}
       play_interactive_progression(
         progs.map {|p| base_and_delta_to_semis(p)},
-        progs.map {|p| p.join(' ')} )
+        progs.map {|p| p.join(' ')}
+      )
 
     when 'chord'
 
       puts "A chord"
       err "Need at least two holes or notes or semitone-diffs or intervals, e.g. 'c3 7st'" unless args_for_extra.length >= 1
       _, first = hole_or_note_or_semi(args_for_extra[0], false)
-      semis = args_for_extra[1 .. -1].map do |arg|
+      semis = args_for_extra[1..-1].map do |arg|
         tp, sem = hole_or_note_or_semi(arg)
         if tp == :diff
           first + sem
@@ -174,12 +174,9 @@ def do_play to_play
 
   end
   puts
-  
 end
 
-
 def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
-
   holes_or_notes = []
   semis = []
   lnames = []
@@ -194,9 +191,8 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
-
     what = recognize_among(th, amongs)
-    
+
     if what == :note
       holes_or_notes << sf_norm(th)
     elsif what == :hole
@@ -226,11 +222,11 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   #
   # Check results for consistency
-  # 
+  #
 
   types_count = [holes_or_notes, semis, lnames, snames, jmnames].select {|x| x.length > 0}.length
 
-  if other.length > 0 
+  if other.length > 0
     puts
     puts "Cannot understand these arguments: #{other.join('  ')}#{not_any_source_of};"
     puts 'they are none of (exact match required):'
@@ -242,14 +238,14 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     end
     err "Cannot understand these arguments: #{other.join('  ')}\nSee above for full list of choices."
   end
-  
+
   if extra_allowed && $extra == '' && types_count == 0
     puts
     puts "Nothing to handle for #{$mode}; please specify any of:"
     print_amongs([amongs, :extra])
     err 'See above'
   end
-  
+
   if types_count > 1
     puts "The following #{types_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at the same time:"
     puts
@@ -265,12 +261,9 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   end
 
   return [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
-
 end
 
-
 def hole_or_note_or_semi hns, diff_allowed = true
-
   # check if argument is interval or absolute note or hole or event or
   # many of them
 
@@ -297,19 +290,17 @@ def hole_or_note_or_semi hns, diff_allowed = true
     print_amongs(*amongs)
     err "Given argument #{hns} is none of those given above"
   end
-  
+
   return type, value
 end
 
-
 def normalize_interval args
-
   err "Need two arguments, to #{$mode} an interval (not #{args}):\n" +
       "  - a base-note or base-hole, e.g. 'c4' or '+2'\n" +
       "  - a difference in semitones, either as a number or as a name, e.g. '12st' or 'oct'\n" unless args.length == 2
 
   args.map!(&:downcase)
-      
+
   tt = Array.new
   vv = Array.new
   args.each do |arg|
@@ -337,20 +328,18 @@ def normalize_interval args
   return s1, s2
 end
 
-
 def base_and_delta_to_semis base_and_delta
   prog = Array.new
   bt, bv = hole_or_note_or_semi(base_and_delta[0], false)
   err "Progression should start with an absolute value (hole or note), but not with a semitone difference like #{base_and_delta[0]}" if bt == :diff
   prog << bv
-  base_and_delta[1 .. -1].each do |diff|
+  base_and_delta[1..-1].each do |diff|
     dt, dv = hole_or_note_or_semi(diff)
     err "Up from the second word of progression there are only semitone differences to initial note allowed (e.g. 9st or octave) but not an absolute note or hole like #{diff}; remark: in case of ambiguities between holes and semitones add 'st' to semitones, like in '3st'" if dt == :abs
     prog << prog[0] + dv
   end
   prog
 end
-
 
 def play_and_print_lick lick, extra = ''
   sleep 1 if $ctl_lk_hl[:loop_loop]
@@ -361,7 +350,7 @@ def play_and_print_lick lick, extra = ''
   print "\e[0m\e[2m#{extra}, "
   if lick[:rec] && !$opts[:holes] && !$opts[:reverse]
     puts "rec in #{lick[:rec_key]}" +
-         ( $key == lick[:rec_key]  ?  ''  :  ", shifted to #{$key}" ) +
+         ( $key == lick[:rec_key] ? '' : ", shifted to #{$key}" ) +
          "    (h for help)\e[0m\e[2m"
     sleep 0.02
     puts "Tags:  #{lick[:tags].join(', ')}" if lick[:tags]
@@ -371,14 +360,14 @@ def play_and_print_lick lick, extra = ''
     puts lick[:holes].join(' ')
     play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], 0, true
   else
-    puts ( $opts[:reverse]  ?  ' in reverse'  :  '' ) +
+    puts ( $opts[:reverse] ? ' in reverse' : '' ) +
          "    (h for help)\e[0m\e[2m"
     sleep 0.02
     puts "Tags:  #{lick[:tags].join(', ')}" if lick[:tags]
     sleep 0.02
     puts "Desc:  #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
-    play_lick_holes_and_handle_kb ( $opts[:reverse]  ?  lick[:holes].reverse  :  lick[:holes] ),
+    play_lick_holes_and_handle_kb ( $opts[:reverse] ? lick[:holes].reverse : lick[:holes] ),
                                   lick: lick,
                                   scroll_allowed: true,
                                   with_head: false
@@ -386,7 +375,6 @@ def play_and_print_lick lick, extra = ''
   sleep 0.02
   puts
 end
-
 
 def play_licks_controller licks, refill, sleep_between: false
   stock = licks.clone
@@ -396,7 +384,7 @@ def play_licks_controller licks, refill, sleep_between: false
   print "\e[2m"
   if refill
     print "Set of licks will be played without end, "
-  else 
+  else
     print "Set of licks will be played once, "
   end
   if $opts[:iterate] == :random
@@ -406,20 +394,19 @@ def play_licks_controller licks, refill, sleep_between: false
   end
   puts "Please note, that different help and commands apply in play and in pauses."
   puts "\e[0m"
-  
-  
-  loop do  ## one lick after the other
 
+
+  loop do  ## one lick after the other
     write_history('lick', lick[:name], lick[:holes])
-    
+
     loop do  ## repeats of the same lick
       play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}"
-      
+
       if sleep_between && $ctl_lk_hl[:lick_lick]
         $ctl_kb_queue.clear
-        plen = 5 
+        plen = 5
         print "\e[0m\e[2m#{plen} secs pause (TAB,+ to go on, h for help, RETURN for permanent pause) "
-        (0..10*plen).each do |i|
+        (0..10 * plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
           break if !$ctl_kb_queue.empty?
@@ -499,11 +486,10 @@ def play_licks_controller licks, refill, sleep_between: false
         puts "\e[0m"
         return
       end
-      print "\e[2m"      
+      print "\e[2m"
     end
   end  ## one lick after the other
 end
-
 
 def maybe_wait_for_key_and_decide_replay puts_pending
   show_help = false
@@ -539,7 +525,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
                     ["      \e[92mL\e[32m: toggle loop for all licks (now ",
                      ( $ctl_lk_hl[:loop_loop]  ?  " ON"  :  "OFF" ), ")"],
                     ["  \e[92m2-9,0\e[32m: set num loops fo all-licks looping (L) (now ",
-                     "#{$ctl_lk_hl[:num_loops]}",")"],
+                     "#{$ctl_lk_hl[:num_loops]}", ")"],
                     ["\e[92mSPACE or RETURN\e[32m for next lick ..."]]
       lines = if show_help
                 lines_long
@@ -564,7 +550,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         line.zip(oldline).each do |seg, oldseg|
           if seg != oldseg
             print "\e[0m\e[34m"
-            print seg.gsub(/\e.*?m/,'')
+            print seg.gsub(/\e.*?m/, '')
             # modify, so that highlight persists
             oldseg[0] = '#'
           else
@@ -587,7 +573,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         puts " \e[32mnamed lick\e[0m"
         puts
         return :named
-      when 'r','.'
+      when 'r', '.'
         puts " \e[32mredo\e[0m"
         puts
         return :redo
@@ -605,13 +591,13 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         puts
         $ctl_lk_hl[:lick_lick] = !$ctl_lk_hl[:lick_lick]
         show_help = true
-        oldlines = oldlines_long        
+        oldlines = oldlines_long
         redo
       when 'L'
         puts
         $ctl_lk_hl[:loop_loop] = !$ctl_lk_hl[:loop_loop]
         show_help = true
-        oldlines = oldlines_long        
+        oldlines = oldlines_long
         redo
       when '0'
         puts
@@ -624,14 +610,14 @@ def maybe_wait_for_key_and_decide_replay puts_pending
         puts "\e[0m#{$resources[:nloops_not_one]}"
         puts
         redo
-      when '2','3','4','5','6','7','8','9'
+      when '2', '3', '4', '5', '6', '7', '8', '9'
         puts
         $ctl_lk_hl[:num_loops] = char.to_i
         show_help = true
         oldlines = oldlines_long
         redo
       when ' ', 'RETURN'
-        puts " \e[32mnext\e[0m"        
+        puts " \e[32mnext\e[0m"
         puts
         return :next
       when '*'
@@ -641,7 +627,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
       when '/'
         puts " \e[32munstar\e[0m"
         puts
-        return :star_down        
+        return :star_down
       else
         puts "\n\n\e[0mUnknown key: '#{char}' \e[2m(but more keys in play)"
         puts
@@ -653,9 +639,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
   end
 end
 
-
 def do_play_licks args
-
   if $opts[:lick_radio]
     $ctl_lk_hl[:lick_lick] = $ctl_lk_hl[:loop_loop] = true
     $ctl_lk_hl[:num_loops] = 4
@@ -667,13 +651,13 @@ def do_play_licks args
             licks = $licks.shuffle
           else
             licks = $licks.clone
-          end  
-  idx = if sw 
+          end
+  idx = if sw
           if record = shortcut2history_record(sw)
             # we canno use record[:lick_idx], because that is against unshuffled licks
-            licks.each_with_index.find {|l,i| l[:name] == record[:name]}&.at(1) || 0
+            licks.each_with_index.find {|l, i| l[:name] == record[:name]}&.at(1) || 0
           else
-            (0 ... licks.length).find {|i| licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'" 
+            (0...licks.length).find {|i| licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'"
           end
         else
           0
@@ -683,16 +667,15 @@ def do_play_licks args
     puts "\e[2mA random walk through licks.\e[0m"
   else
     puts "\e[2mOne lick after the other.\e[0m"
-  end  
+  end
   puts
   play_licks_controller licks, licks, sleep_between: true
 end
-
 
 def play_named_licks lnames, refill: true
   $ctl_lk_hl[:lick_lick] = false
   $ctl_lk_hl[:loop_loop] = false
   $ctl_lk_hl[:can_star_unstar] = true
   licks = lnames.map {|lnm| $licks.find {|l| l[:name] == lnm}}
-  play_licks_controller licks, ( refill  ?  licks  :  nil )
+  play_licks_controller licks, ( refill ? licks : nil )
 end
