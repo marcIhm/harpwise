@@ -647,10 +647,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
         unless %i[replay replay_menu shift_inter change_partial forget next change_lick edit_lick_file change_tags reverse_holes shuffle_holes lick_info toggle_record_user change_num_quiz_replay quiz_hint].any? {|k| $ctl_mic[k]}
           if $mode == :quiz
             print(' ' * (($term_width - 36) / 2) + "\e[0m\e[32m\e[7mYes\e[0m\e[32m, thats right!  ... and #{$ctl_mic[:loop] ? 'again' : 'next'}\e[0m\e[K")
-            unless $mode == :quiz && $quiz_flavour == 'hit-from-off'
-              color, text, line, font, width_template =
-                print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true)
-            end
+            print_comment_adhoc(to_play[:all_wanted], quiz_and_after: true) unless $mode == :quiz && $quiz_flavour == 'hit-from-off'
             sleep 0.5
           else
             print "\e[0m\e[32mAnd #{$ctl_mic[:loop] ? 'again' : 'next'}!\e[0m\e[K"
@@ -667,7 +664,6 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       if $ctl_mic[:toggle_record_user]
         $ulrec.toggle_active
         $ctl_mic[:redraw] = Set[:silent]
-        seq_just_played_initially = true
         $ctl_mic[:toggle_record_user] = false
       end
 
@@ -966,8 +962,8 @@ def intervalify_to_first holes, prefer_names: true, prefer_plus: false
   return [] if !holes || holes.length == 0
 
   inters = []
-  holes.each_with_index do |hole, idx|
-    isemi, _, itext, semi = describe_inter(hole, holes[0], prefer_plus: prefer_plus)
+  holes.each_with_index do |hole, _idx|
+    isemi, _, itext, = describe_inter(hole, holes[0], prefer_plus: prefer_plus)
     idesc = if prefer_names
               itext || isemi || ''
             else
@@ -1326,7 +1322,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
   end
 
   def read_name_change_lick curr_lick
-    input = matching = nil
+    nil
     $ctl_mic[:change_lick] = false
     lnames = $licks.map {|l| l[:name]}
 
@@ -1350,7 +1346,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     end
     return unless input
 
-    new_idx = $licks.map.with_index.find {|lick, idx| lick[:name] == input}[1]
+    new_idx = $licks.map.with_index.find {|lick, _idx| lick[:name] == input}[1]
     return unless self[:lick_idx] != new_idx
 
     self[:lick_idx_befores] << self[:lick_idx] if self[:lick_idx] != self[:lick_idx_befores][-1]

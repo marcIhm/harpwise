@@ -417,7 +417,7 @@ def play_licks_controller licks, refill, sleep_between: false
         end
         print "\e[0m"
       else
-        sleep ( $opts[:fast] ? 0.25 : 0.5 )
+        sleep( $opts[:fast] ? 0.25 : 0.5 )
       end
       if stock.length == 0 && !refill
         # last lick has been played, no need to ask
@@ -643,7 +643,7 @@ def maybe_wait_for_key_and_decide_replay puts_pending
   end
 end
 
-def do_play_licks args
+def do_play_licks _args
   if $opts[:lick_radio]
     $ctl_lk_hl[:lick_lick] = $ctl_lk_hl[:loop_loop] = true
     $ctl_lk_hl[:num_loops] = 4
@@ -651,15 +651,15 @@ def do_play_licks args
 
   $ctl_lk_hl[:can_star_unstar] = true
   sw = $opts[:start_with]
-  licks = licks = if $opts[:iterate] == :random
-                    $licks.shuffle
-                  else
-                    $licks.clone
-                  end
+  licks = if $opts[:iterate] == :random
+            $licks.shuffle
+          else
+            $licks.clone
+          end
   idx = if sw
           if record = shortcut2history_record(sw)
             # we canno use record[:lick_idx], because that is against unshuffled licks
-            licks.each_with_index.find {|l, i| l[:name] == record[:name]}&.at(1) || 0
+            licks.each_with_index.find {|l, _i| l[:name] == record[:name]}&.at(1) || 0
           else
             (0...licks.length).find {|i| licks[i][:name] == sw} or raise "Unknown lick #{sw} given for option '--start-with'"
           end

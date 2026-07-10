@@ -23,7 +23,7 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
   sys(cmd, $sox_fail_however)
 end
 
-def run_aubiopitch file, extra = nil
+def run_aubiopitch file, _extra = nil
   sys "aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1"
 end
 

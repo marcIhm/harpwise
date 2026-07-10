@@ -344,7 +344,7 @@ def do_the_jamming json_file
 
         if action.length == 2
           # No duration given, so search for next timer and calculate duration
-          next_timer_idx = nil
+          nil
           secs_to_next_timer = -action[0]
           # Search from first action; if nothing found search again from loop start.  We can
           # mostly be sure to find at least the current timer.
@@ -448,7 +448,7 @@ def do_the_jamming json_file
     puts
     fname = "#{$jamming_timestamps_dir}/along.txt"
     file = File.open(fname, 'w')
-    file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
+    file.write "#\n# #{$jam_pretended_actions_ts.length.to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          according to:   #{$jam_json}   (#{$jam_pms['sound_file_length']})\n#\n#          collected at:   #{Time.now}\n#\n"
     $jam_pretended_actions_ts.each do |ts, desc, act|
       text = "  %6.2f  (#{jam_ta(ts)}):  #{desc}" % ts
       text += ",  #{act}" unless $opts[:brief]
@@ -834,7 +834,6 @@ def my_sleep secs, fast_w_animation: false, &blk
   anm_cnt_prev = 0
   # make sure that first loop will already print animation
   anm_cnt = anm_cnt_prev + anm_mod
-  anm_txt = 'Playing ... '
   anm_pending = nil
 
   begin  ## loop untils secs elapsed
@@ -1105,7 +1104,7 @@ def do_the_jam_playing json_or_mp3
         cleanup_done = true
       end
       file = File.open(fname, 'w')
-      file.write "#\n# #{($jam_ts_collected.length - 1).to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          collected at:   #{Time.now.to_s}\n#\n"
+      file.write "#\n# #{($jam_ts_collected.length - 1).to_s.rjust(6)} timestamps for:   #{$jam_pms['sound_file']}\n#\n#          collected at:   #{Time.now}\n#\n"
       # handle collection of timestamps
       puts "\n\n\e[0mNew timestamp recorded, #{$jam_ts_collected.length - 1} in total:"
       puts
@@ -1396,14 +1395,12 @@ end
 
 def jamming_sleep_wait_for_go
   print "\e[32mPaused ."
-  space_seen = false
   FileUtils.rm($remote_jamming_ps_rs) if File.exist?($remote_jamming_ps_rs)
 
   space_seen = false
   count = 0
   loop do
     sleep 0.1
-    paused = true
     print "\e[0m\e[32m." if count % 10 == 0
     count += 1
     if File.exist?($remote_jamming_ps_rs)
@@ -1617,7 +1614,6 @@ def jamming_json_handle_variations jam_pms
     end
 
     # make sure, that lick-prog is in description
-    idx = -1
     descs.map!.with_index do |desc, idx|
       prog = jam_pms['all_lick_progs'][idx]
       if desc[prog]

@@ -108,7 +108,7 @@ def samples_generate to_handle
     FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
 
     hole2freq = Hash.new
-    num_wavs_uniq = $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
+    $harp_holes.map {|h| $harp[h][:semi]}.uniq.length
     terse = do_all_keys || $opts[:brief]
     $harp_holes.each_with_index do |hole, idx|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.mp3"
@@ -304,9 +304,6 @@ def record_and_review_hole hole
     answer = read_answer(choices)
 
     # operations will be in this sequence if set below according to user input
-    do_record = false
-    do_draw = false
-    do_trim = false
     case answer
     when :play
       if File.exist?(sample_file)
@@ -343,7 +340,7 @@ def record_and_review_hole hole
   [:next, freq]
 end
 
-def write_freq_file hole2freq, file = $freq_file
+def write_freq_file hole2freq, _file = $freq_file
   # Recreate the hash in order of $harp_holes
   hole2freq_sorted = Hash.new
   [$harp_holes + hole2freq.keys].flatten.each do |hole|
@@ -374,7 +371,7 @@ def print_summary hole2freq, rec_or_gen
             elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
               'too high'
             else
-              get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}[0]
+              get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}[0]
             end
     puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
     sleep 0.005
@@ -453,7 +450,7 @@ def samples_check to_handle
                 else
                   raise "Internal error: #{endings}"
                 end
-        puts ( found == found_prev ? "\e[2m#{found}\e[0m" : found )
+        puts( found == found_prev ? "\e[2m#{found}\e[0m" : found )
         counts[found] += 1
         found_prev = found
       end
@@ -508,7 +505,7 @@ def samples_delete to_handle
       end
       puts "these recorded sound samples for key of   \e[91m#{key}\e[0m   in\n#{sample_dir}:"
       puts
-      puts wrap_words('    ', to_delete, sep = '  ')
+      puts wrap_words('    ', to_delete, '  ')
       puts
       if do_all_keys
         char = 'Y'

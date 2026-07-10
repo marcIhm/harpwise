@@ -1,8 +1,10 @@
-#AllCops:
-#  DisabledByDefault: true
+AllCops:
+  DisabledByDefault: true
 Layout:
   Enabled: true
 Style:
+  Enabled: true
+Lint:
   Enabled: true
 
 # This breaks: "foo %s %s %s" % %w(bar baz qux)

@@ -388,7 +388,7 @@ def print_lick_and_tag_stats licks
   puts
 end
 
-def print_last_licks_from_history licks
+def print_last_licks_from_history _licks
   puts "\e[2mList of most recent licks played, modes licks and play:"
   puts "  - abbrev (e.g. '2l') for '--start-with'"
   puts "  - name of lick\e[0m"
@@ -426,12 +426,11 @@ def print_last_licks_from_history licks
   puts
 end
 
-def print_last_holes_from_history licks
+def print_last_holes_from_history _licks
   puts "\e[2mList of most recent holes played, no matter which mode:"
   puts
   puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
   puts
-  cnt = 1
   records = get_prior_history_records(:licks, :play, :quiz)
   if records.length == 0
     puts "No history found for any mode.\n\n"
@@ -472,7 +471,7 @@ def print_scales scales
     scales.each do |sname|
       # need this to fill scale2short
       read_and_parse_scale(sname)
-      scale_holes, props, sfile = read_and_parse_scale_simple(sname, $harp)
+      scale_holes, _, sfile = read_and_parse_scale_simple(sname, $harp)
       from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
       puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
       puts "   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"
@@ -729,7 +728,7 @@ def print_lick_progs pnames
 
     unless $opts[:brief]
       # licks in multiple lick progression
-      ls_mul = lick2prog.select {|l, lps| lps.length > 1}
+      ls_mul = lick2prog.select {|_l, lps| lps.length > 1}
       if ls_mul.length == 0
         puts "\e[2mNo licks are part of mutliple lick progressions."
       else

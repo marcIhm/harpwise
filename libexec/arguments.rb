@@ -217,7 +217,7 @@ def parse_arguments_early
         opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
       end
     else
-      opts.each do |osym, oabbrevs|
+      opts.each do |_osym, oabbrevs|
         oabbrevs.each do |oabbr|
           oabbr2other_modes[oabbr].append(*modes)
         end
@@ -614,7 +614,7 @@ def initialize_extra_vars
       $extras_joined_to_desc[mode][extras_joined] = ERB.new(desc).result(binding)
       desc.lines.each do |l|
         err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
-        extras_joined.split(',').map(&:strip).each_with_index do |extra|
+        extras_joined.split(',').map(&:strip).each do |extra|
           primary_extra ||= extra
           $extra_kws[mode] << extra
           $extra_aliases[mode][extra] = primary_extra
@@ -674,8 +674,6 @@ end
 
 def parse_arguments_for_mode
   $extra = nil
-  okay = true
-  amongs_clause = ''
 
   # Only some modes accept an extra argument, listen or licks e.g. do not
   if $extras_joined_to_desc[$mode]
@@ -781,7 +779,7 @@ end
 
 def print_usage_info mode = nil
   # get content of all harmonica-types to be inserted
-  types_with_scales = get_types_with_scales_for_usage
+  get_types_with_scales_for_usage
 
   if !mode && STDOUT.isatty
     print "\e[?25l"  ## hide cursor
@@ -858,7 +856,7 @@ def get_types_with_scales_for_usage
 end
 
 def not_any_source_of
-  not_any = $source_of.to_a.select {|x, y| y}.map {|x, y| x}.map(&:to_s)
+  not_any = $source_of.to_a.select {|_x, y| y}.map {|x, _y| x}.map(&:to_s)
   if not_any.length > 0
     " (and could not process it as #{not_any.join(', ')} either)"
   else

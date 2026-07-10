@@ -137,7 +137,7 @@ def do_quiz to_handle
     puts
     prepare_listen_perspective_for_quiz
     do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
-                     lambda_quiz_hint: lambda do |holes, _, _, holes_shift_info|
+                     lambda_quiz_hint: lambda do |_holes, _, _, holes_shift_info|
                        quiz_hint_in_handle_holes_shifted holes_shift_info
                      end)
 
@@ -250,7 +250,7 @@ $q_class2colls = Hash.new
 class QuizFlavour
   @@prevs = Array.new
 
-  def initialize first_round
+  def initialize _first_round
     @state = Hash.new
     @state_orig = @state.clone
     @@hole_sets_names = %w[blow-low draw-low]
@@ -409,7 +409,7 @@ class QuizFlavour
     nil
   end
 
-  def tag_desc tag
+  def tag_desc _tag
     nil
   end
 
@@ -437,7 +437,7 @@ class QuizFlavour
     puts
     print "\e[32m\e[92mAny key\e[32m for next   \e[34m#{$quiz_flavour}\e[32m   "
     if @key_contributes_to_solution == :part_of_solution
-      print ( $opts[:keep_key] ? "with the same key of #{$key}" : 'with a new random key' )
+      print( $opts[:keep_key] ? "with the same key of #{$key}" : 'with a new random key' )
       puts "  (\e[92mTAB\e[32m for menu)"
     else  ## :broader_coverage or :not_relevant
       puts "   \e[92mTAB\e[32m for key-menu"
@@ -520,10 +520,10 @@ class QuizFlavour
   # only used in some flavours
   def print_chart_with_notes spread: nil, hide: nil, mark: nil
     chart = $charts[:chart_notes]
-    chart.each_with_index do |row, ridx|
+    chart.each_with_index do |row, _ridx|
       spread_in_row = row[0..-2].any? {|c| spread && spread == c.strip.gsub(/\d+/, '')}
       print '  '
-      row[0..-2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, _cidx|
         hcell = ' ' * cell.length
         hcell[hcell.length / 2] = ( spread_in_row ? '-' : '?' )
         cell_sg = cell.strip.gsub(/\d+/, '')
@@ -570,16 +570,16 @@ class QuizFlavour
       maxlen = (holes + notes + semis).map(&:length).max
 
       puts "#{cdim}  holes '#{desc}':#{cbright}"
-      pr_in_cols holes.map {|x| x.rjust(maxlen)}
+      pr_in_cols(holes.map {|x| x.rjust(maxlen)})
 
       unless no_notes
         puts "#{cdim}  notes:#{cbright}"
-        pr_in_cols notes.map {|x| x.rjust(maxlen)}
+        pr_in_cols(notes.map {|x| x.rjust(maxlen)})
       end
 
       unless no_semis
         puts "#{cdim}  semis to first:#{cbright}"
-        pr_in_cols semis.map {|x| x.rjust(maxlen)}
+        pr_in_cols(semis.map {|x| x.rjust(maxlen)})
       end
 
       puts if idx == 0
@@ -625,9 +625,9 @@ class QuizFlavour
 
   def print_chart_holes_as_semitones
     chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
-    chart.each_with_index do |row, ridx|
+    chart.each_with_index do |row, _ridx|
       print '  '
-      row[0..-2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, _cidx|
         print cell
       end
       puts "\e[0m\e[2m#{row[-1]}\e[0m"
@@ -637,9 +637,9 @@ class QuizFlavour
   def print_chart_holes_as_notes
     notes = @holes.map {|h| $hole2note[h]}
     chart = $charts[:chart_notes]
-    chart.each_with_index do |row, ridx|
+    chart.each_with_index do |row, _ridx|
       print '  '
-      row[0..-2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, _cidx|
         if notes.include?(cell.strip)
           print "\e[34m#{cell}\e[0m"
         else
@@ -2181,7 +2181,7 @@ class HearHole < QuizFlavour
   end
 
   def help3
-    other = ($named_hole_sets[@hole_set] - [@solution]).sample
+    ($named_hole_sets[@hole_set] - [@solution]).sample
     puts "Playing hole set   #{$named_hole_sets[@hole_set].join('  ')}   but shuffled:"
     @shuffled = $named_hole_sets[@hole_set].shuffle if !@shuffled || @shuffled.length != @choices.length
     play_hons hide: :all, hons: @shuffled
@@ -2275,7 +2275,7 @@ class KeepTempo < QuizFlavour
   def play_and_record
     # generate needed sounds
     frac_sound = 0.3
-    intro, len_intro = quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
+    intro, = quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
     FileUtils.cp($test_wav, @recording2) if $testing
 
     puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
@@ -2366,7 +2366,7 @@ class KeepTempo < QuizFlavour
     sleep ts_start_outro - Time.now.to_f
 
     blink_beats ts_play_start, wait_thr, ' ... keep on playing ... still in time?',
-                max_beat = @beats_intro + @beats_keep + @beats_outro
+                @beats_intro + @beats_keep + @beats_outro
 
     print "\e[2A\r\e[K\e[0m\e[92m"
     txt = '  REC done.'
@@ -2506,7 +2506,7 @@ class KeepTempo < QuizFlavour
       sleep 0.1
       puts
       print '   Overall grade (1-5) is:  '
-      print (' ' * [$term_width / 2 - 42, 0].max)
+      print(' ' * [$term_width / 2 - 42, 0].max)
       puts "\e[0m\e[#{@@grade_colors[@grade]}m #{@@grade_names[@grade]} \e[0m     (#{@grade})\e[2m" % [@bpm_avg, @bpm_std_dev]
       puts
       puts '  ' + @grade_reasons.join(', ')
@@ -2543,7 +2543,7 @@ class KeepTempo < QuizFlavour
   end
 
   def blink_beats ts_start, wait_thr, add_text = nil, max_beat = 1000
-    ts_beat_start = ts_tick_start = Time.now.to_f
+    ts_beat_start = Time.now.to_f
     ticks_per_beat = 10
     this_beats = 0
     beat_prev = -1

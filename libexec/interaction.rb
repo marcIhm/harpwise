@@ -48,7 +48,7 @@ def check_screen graceful: false, hint_on_large_term: false
     lines_inv = $lines.each_with_object(Hash.new([])) do |(k, v), m|
       m[v] += [k]
     end
-    clashes = lines_inv.select {|l, ks| ks.length > 1 && !clashes_ok.include?(Set.new(ks))}
+    clashes = lines_inv.select {|_l, ks| ks.length > 1 && !clashes_ok.include?(Set.new(ks))}
     if clashes.length > 0
       puts 'Collisions:'
       clashes.each {|l, ks| puts "Keys #{ks} all map to line #{l}"}
@@ -56,7 +56,7 @@ def check_screen graceful: false, hint_on_large_term: false
     end
 
     # check bottom line
-    bt_key, bt_line, = $lines.max_by {|k, l| l}
+    bt_key, bt_line, = $lines.max_by {|_k, l| l}
     # lines for ansi term start at 1
     raise ArgumentError.new("Line #{bt_key} = #{bt_line} is larger than terminal height = #{$term_height}") if bt_line > $term_height
   rescue ArgumentError => e
@@ -847,7 +847,7 @@ def draw_data marker1, marker2
   # data
   px = 0
   # we do not plat all data
-  rec_proc[:vals_norm][1..-2].each do |x, y|
+  rec_proc[:vals_norm][1..-2].each do |_x, y|
     py = plot_height * y
     ((-2 - py).to_i..-3).each {|y| buf[y][px + 1] = '*'}
     px += 1
@@ -893,7 +893,6 @@ def process_recorded_data plot_width
   lines_this_bin = 0
   sum_secs_this_bin = 0
   sum_vals_this_bin = 0
-  line_count = 0
   binned = Array.new
   File.open($recorded_data) do |data|
     2.times { data.gets }
@@ -950,7 +949,7 @@ def one_char
 end
 
 def print_chart skip_hole = nil
-  xoff, yoff, len = $conf[:chart_offset_xyl]
+  xoff, yoff, = $conf[:chart_offset_xyl]
   if %i[chart_intervals chart_inter_semis].include?($opts[:display]) && !$hole_ref
     print "\e[0m\e[#{$lines[:display] + yoff + 4}H  You need to set a reference hole, before this chart can be displayed."
   else
@@ -1250,7 +1249,7 @@ def chia_print_in_columns names, frame_start, idx_hili, input
 
   # General processing: prepare array and print it over existing lines
   # to avoid flicker
-  lines = (0..max_lines).map {|x| ''}
+  lines = (0..max_lines).map {|_x| ''}
   if names.length == 0
     clear_area_comment(2)
     lines[0] = '  ' + ( $chia_no_matches_text || "\e[0mNO MATCHES for input '#{input}' above, please shorten ..." )
@@ -1606,7 +1605,7 @@ def get_complex_key
         # properly as one single key and to not leave chars unconsumed
         chs << Timeout.timeout(0.05) { STDIN.getc } while true
       end
-    rescue Timeout::Error => e
+    rescue Timeout::Error
       key = 'ESC-' + escape_chars(chs) unless complete
     end
   end

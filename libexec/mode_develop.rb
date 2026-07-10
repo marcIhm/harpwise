@@ -289,9 +289,9 @@ def do_unittest
   puts "HINT: set HARPWISE_TESTING to 'msgbuf' to use a minimum terminal width" if ENV['HARPWISE_TESTING'] != 'msgbuf'
 
   found = $msgbuf.get_lines_durations
-  expected = [['c' * len, 1, 1, nil],
-              ['b' * len, 1, 1, nil],
-              ['a' * len, 1, 1, nil]]
+  [['c' * len, 1, 1, nil],
+   ['b' * len, 1, 1, nil],
+   ['a' * len, 1, 1, nil]]
   expected = [['cccccccccccccccccccccccccccccccccccccccccc', 1, 1, nil],
               ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...', 1, 1, nil],
               ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil]]

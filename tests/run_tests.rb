@@ -1156,7 +1156,7 @@ do_test 'id-22c: print tries its first argument against various areas' do
    "- scales:\n",
    "- scale-progressions:\n",
    "- A symbolic name for one of the last licks\n",
-   "- extra arguments (specific for this mode):\n"].each_with_index do |exp, idx|
+   "- extra arguments (specific for this mode):\n"].each_with_index do |exp, _idx|
     expect(exp, $testing_output_file) { lines.include?(exp) }
   end
   kill_session
@@ -4232,8 +4232,7 @@ do_test 'id-144: check consistent usage of short and long description' do
   short_desc = File.read('resources/short_description').desc2canon
   long_desc = File.read('resources/long_description').lines.join.desc2canon
 
-  sd_readme = nil
-  ld_readme = []
+  nil
   paras = []
   para = ''
   in_summary = false

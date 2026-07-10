@@ -55,7 +55,7 @@ def do_listen
       # lambda_comment
       lambda do |hole_color, isemi, itext, note, hole_disp, freq|
         color = "\e[0m" + hole_color
-        witdh_template = nil
+        nil
         line = $lines[:comment]
         font = 'mono9'
         text = case $opts[:comment]
@@ -85,14 +85,13 @@ def do_listen
                when :gauge_to_ref
                  font = 'smblock'
                  just_dots_long = '......:......:......:......'
-                 template_text = 'fixed:' + just_dots_long
                  line += 2
                  if $hole_ref
                    semi_ref = $harp[$hole_ref][:semi]
                    dots, in_range = get_dots(just_dots_long.dup, 4, freq,
                                              semi2freq_et(semi_ref - 2),
                                              semi2freq_et(semi_ref),
-                                             semi2freq_et(semi_ref + 2)) {|ok, marker| marker}
+                                             semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
                    color = in_range ? "\e[0m\e[32m" : "\e[2m"
                    dots
                  else
@@ -163,7 +162,7 @@ def do_listen
 
 
       # lambda_hint
-      lambda do |hole|
+      lambda do |_hole|
         if Time.now.to_f - $program_start < 6
           []
         elsif !$first_hole_held && Time.now.to_f - $program_start < 10
@@ -499,7 +498,7 @@ def get_journal_comment
 end
 
 def get_listen_lick_lines lick
-  holes_lines = wrap_words('    ', lick[:holes], sep = '  ').split("\n")
+  holes_lines = wrap_words('    ', lick[:holes], '  ').split("\n")
   lines = ['']
   lines << '  ' + lick[:name]
   if holes_lines.length <= 2

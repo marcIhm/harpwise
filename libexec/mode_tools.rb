@@ -416,7 +416,7 @@ def tool_match_harps to_handle
 end
 
 def tool_shift to_handle
-  to_handle, inter, dsemi = tools_shift_helper(to_handle)
+  to_handle, _, dsemi = tools_shift_helper(to_handle)
 
   puts
   puts "Shifting holes by #{describe_inter_semis(dsemi)}:"
@@ -441,7 +441,7 @@ def tool_shift to_handle
 end
 
 def tool_shift_to_groups to_handle
-  to_handle, inter, dsemi = tools_shift_helper(to_handle)
+  to_handle, _, dsemi = tools_shift_helper(to_handle)
 
   puts
   puts "Shifting holes or notes by #{describe_inter_semis(dsemi)} and showing"
@@ -532,7 +532,7 @@ def print_transposed cols, emphasis = nil, heads: nil
     end
     if heads && heads[idx]
       puts heads[idx].rjust(max_in_col[0] + 2)
-      head = nil
+      nil
     end
     puts line
     print "\e[0m\n"
@@ -755,7 +755,7 @@ def tool_licks_from_scale to_handle
     err "First argument #{scale} is not the name of a scale (any of: #{$all_scales.join(', ')})" unless $all_scales.include?(scale)
 
     licks_empty_cnt = 0
-    licks_w_counts = Array.new
+    Array.new
 
     licks_ranked = $licks.map do |lick|
       # _c stands for canonical
@@ -880,9 +880,9 @@ def tool_chart to_handle
            end.join(',') +
            "\e[0m")
     end
-    $charts[tp].each_with_index do |row, ridx|
+    $charts[tp].each_with_index do |row, _ridx|
       print '  '
-      row[0..-2].each_with_index do |cell, cidx|
+      row[0..-2].each_with_index do |cell, _cidx|
         if notes.length == 0
           print cell
         elsif notes.include?(cell.strip)
@@ -901,7 +901,7 @@ def tool_chart to_handle
   end
 end
 
-def tool_edit_file file, to_handle = [], lno: nil
+def tool_edit_file file, _to_handle = [], lno: nil
   puts "\nInvoking #{$editor} on \e[0m\e[32m#{file}" +
        (lno ? ", line number #{lno}" : '') +
        "\e[0m\n\n"
@@ -990,7 +990,7 @@ def tool_transcribe to_handle
   ts_with_holes_durations = Array.new
   line = '  '
   line_len = 2
-  lasting.each_with_index do |thl, idx| # thl = timestamp, hole, length
+  lasting.each_with_index do |thl, _idx| # thl = timestamp, hole, length
     sketch_du = " %s#{thl[1]} %s(#{'%.1f' % thl[2]})  %s"
     field_du = sketch_du % ["\e[0m\e[32m", "\e[0m\e[2m", "\e[0m"]
     ts_with_holes_durations << [thl[0], field_du]
@@ -1163,7 +1163,6 @@ def tool_translate to_handle
 
 
   # Actually output results
-  idx = 0
   nl_after_holes.pop
   best_trs.each do |trs, hls|
     print "  \e[32m#{trs.join(',')}:\e[0m"

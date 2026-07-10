@@ -675,7 +675,7 @@ def play_interactive_progression progs, progs_disp
   begin
     prog = progs[progs_idx]
     if change_semis
-      prog.map! {|s| s += change_semis}
+      prog.map! {|s| s + change_semis}
       total_semis += change_semis
       change_semis = false
     end
@@ -829,7 +829,7 @@ def play_holes_or_notes_and_handle_kb holes_or_notes, hide: nil
       sleep $opts[:fast] ? 0.125 : 0.25
     else
       duration = ( $opts[:fast] ? 0.5 : 1 )
-      non = $harp.dig(hon, :note) || hon
+      $harp.dig(hon, :note) || hon
       play_hole_or_note_and_collect_kb hon, duration
     end
     if $ctl_hole[:show_help]
@@ -894,7 +894,7 @@ def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false
       print "\e[0m\e[2m(rep #{cnt_loops} of #{$ctl_lk_hl[:num_loops]}) "
     end
 
-    [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+    [holes, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), _idx|
       hole_disp = ( hide_holes ? '?' : hole )
       print( musical_event?(hole) ? "\e[2m#{hole_disp}\e[2m " : "\e[0m#{hole_disp}\e[2m " )
 
@@ -1018,7 +1018,7 @@ class PausablePlayer
     @wait_thr.join
     puts "\nCommand:\n  #{@cmd}\nfailed with rc #{exst} and output:\n"
     out = @stdout_err.read.lines.map {|l| '   >>  ' + l}.join
-    puts ( out.length > 0 ? out : '<no output>' )
+    puts( out.length > 0 ? out : '<no output>' )
     puts $sox_fail_however
     err 'See above'
   end

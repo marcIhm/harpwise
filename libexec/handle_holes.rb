@@ -110,7 +110,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
-        animate_splash_line(single_line = true)
+        animate_splash_line(true)
         # does not print anythin, but lets splash be seen
         $msgbuf.print nil, 0, 4
       end
@@ -262,7 +262,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     just_dots_short = '.........:.........'
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
     if hole
-      dots, in_range = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|in_range, marker| in_range ? "\e[0m#{marker}\e[2m" : marker}
+      dots, = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|in_range, marker| in_range ? "\e[0m#{marker}\e[2m" : marker}
       cents = cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
     else
@@ -530,7 +530,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_rotate_scale_add_scales($ctl_mic[:rotate_scale])
       $ctl_mic[:rotate_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
-      ts_started_rotate_scale = Time.now
+      Time.now
       set_global_vars_late
       set_global_musical_vars rotated: true, shortcut_licks: true
       $freqs_queue.clear
@@ -798,7 +798,6 @@ def get_jamming_timer_text
   $jamming_timer_debug_info ||= Array.new
 
   first_delta = nil
-  epsilon = 1.0 / 16.0
 
   # reduce typing
   jts = $jamming_timer_state
@@ -943,23 +942,13 @@ def show_help mode = $mode, testing_only = false
              '',
              '']
   if %i[quiz licks].include?(mode)
-    frames[-1].append(*['      j:_journal-menu; write holes (mode listen only)',
-                        ' CTRL-R:_record and play user (mode licks only)'])
+    frames[-1].append('      j:_journal-menu; write holes (mode listen only)', ' CTRL-R:_record and play user (mode licks only)')
   else
-    frames[-1].append(*["      j:_invoke journal-menu and switch to comment 'journal'",
-                        '      w:_switch comment to warble and prepare',
-                        '      p:_print details about player currently drifting by',
-                        '      .:_play lick from --lick-prog (shown in comment-area)',
-                        '      l:_rotate among those licks     ALT-l:_backward',
-                        '      L:_to first lick'])
+    frames[-1].append("      j:_invoke journal-menu and switch to comment 'journal'", '      w:_switch comment to warble and prepare', '      p:_print details about player currently drifting by', '      .:_play lick from --lick-prog (shown in comment-area)', '      l:_rotate among those licks     ALT-l:_backward', '      L:_to first lick')
   end
   frames[-1] << '  ALT-m:_show remote message; used with --jamming'
 
-  frames[-1].append(*['    r,R:_set reference to hole played or chosen',
-                      "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}",
-                      '      o:_print command line with options and details',
-                      '      q:_quit harpwise                    h:_this help',
-                      ''])
+  frames[-1].append('    r,R:_set reference to hole played or chosen', "      m:_switch between modes: #{$modes_for_switch.map(&:to_s).join(',')}", '      o:_print command line with options and details', '      q:_quit harpwise                    h:_this help', '')
 
   if %i[quiz licks].include?(mode)
     frames << [' More help on keys; special for modes licks and quiz:',
@@ -970,22 +959,15 @@ def show_help mode = $mode, testing_only = false
                '',
                '  RETURN:_next sequence or lick     BACKSPACE:_previous']
     if mode == :quiz
-      frames[-1].append(*['      .p:_replay sequence'])
+      frames[-1].append('      .p:_replay sequence')
     else
-      frames[-1].append(*['      .p:_replay recording',
-                          '       ,:_replay menu to choose flags for next replay'])
+      frames[-1].append('      .p:_replay recording', '       ,:_replay menu to choose flags for next replay')
     end
 
-    frames[-1].append(*['       P:_toggle auto replay for repeats of the same seq',
-                        '       I:_toggle immediate reveal of sequence',
-                        '     0,-:_forget holes played; start over   +:_skip rest of sequence'])
+    frames[-1].append('       P:_toggle auto replay for repeats of the same seq', '       I:_toggle immediate reveal of sequence', '     0,-:_forget holes played; start over   +:_skip rest of sequence')
     if mode == :quiz
-      frames[-1].append(*["     4,H:_hints for quiz-flavour #{$quiz_flavour}",
-                          '  CTRL-Z:_restart with another flavour (signals quit, tstp)'])
-      if $quiz_flavour == 'replay'
-        frames[-1].append(*['       n:_change number of holes to be replayed',
-                            ''])
-      end
+      frames[-1].append("     4,H:_hints for quiz-flavour #{$quiz_flavour}", '  CTRL-Z:_restart with another flavour (signals quit, tstp)')
+      frames[-1].append('       n:_change number of holes to be replayed', '') if $quiz_flavour == 'replay'
     else
       frames << [' More help on keys; special for mode licks:',
                  '',
@@ -1016,16 +998,7 @@ def show_help mode = $mode, testing_only = false
   else
     frames[-1] << '     none'
   end
-  frames[-1].append(*['',
-                      ' Performance info:',
-                      '',
-                      '     Update loops per second:   ' + ('%8.2f' % $perfctr[:handle_holes_this_loops_per_second]),
-                      "        based on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m",
-                      '',
-                      "     Time slice (per config):      #{$opts[:time_slice]}",
-                      '     Maximum jitter:               ' + ($max_jitter > 0 ? ('%8.2f sec' % $max_jitter) : 'none'),
-
-                      "     Samples lost due to lagging:  #{$lagging_freqs_lost}"])
+  frames[-1].append('', ' Performance info:', '', '     Update loops per second:   ' + ('%8.2f' % $perfctr[:handle_holes_this_loops_per_second]), "        based on #{$perfctr[:handle_holes_this_loops]} loops, reset after this help\e[0m\e[32m", '', "     Time slice (per config):      #{$opts[:time_slice]}", '     Maximum jitter:               ' + ($max_jitter > 0 ? ('%8.2f sec' % $max_jitter) : 'none'), "     Samples lost due to lagging:  #{$lagging_freqs_lost}")
 
   frames << ['',
              ' Further reading:',
@@ -1068,7 +1041,7 @@ def show_help mode = $mode, testing_only = false
     frame.each_with_index do |line, lidx|
       scanner = StringScanner.new(line)
       while scanner.scan_until(/\S+(:|=)_/)
-        full_kg = scanner.matched
+        scanner.matched
         kg = scanner.matched[0..-3].strip
         special = %w[SPACE CTRL-L CTRL-R CTRL-Z RETURN BACKSPACE LEFT RIGHT UP DOWN SPACE TAB ALT-s ALT-l ALT-m]
         ks = if special.include?(kg)
@@ -1140,7 +1113,7 @@ def show_help mode = $mode, testing_only = false
       print "\e[0m\e[32m" if curr_frame == frames.length - 1
       print frames[curr_frame][0].rstrip
       print "\e[0m\e[32m\n"
-      frames[curr_frame][1..-3].each_with_index do |line, lidx|
+      frames[curr_frame][1..-3].each_with_index do |line, _lidx|
         # frames are checked for correct usage of keys-groups during
         # testing (see above), so that any errors are found and we can
         # use our simple approach, which has the advantage of beeing
@@ -1158,7 +1131,6 @@ def show_help mode = $mode, testing_only = false
           print "\r\e[#{col}m" + line
           sleep 0.15
         end
-        blinked = true
         puts "\e[32m"
       end
     end

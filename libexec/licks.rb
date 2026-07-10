@@ -560,7 +560,7 @@ def check_section_key type, key, section, type2keys, where
 end
 
 def find_lick_by_name name
-  nm_idx = $licks.each_with_index.find {|l, idx| l[:name] == name}
+  nm_idx = $licks.each_with_index.find {|l, _idx| l[:name] == name}
   return nm_idx[1] if nm_idx
 
 

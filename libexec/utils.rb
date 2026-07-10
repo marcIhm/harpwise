@@ -59,7 +59,7 @@ def yaml_parse file
   YAML.load_file(file)
 rescue Psych::SyntaxError => e
   err "Cannot parse #{file}: #{e.message}"
-rescue Errno::ENOENT => e
+rescue Errno::ENOENT
   err "File #{file} does not exist!"
 end
 
@@ -143,7 +143,7 @@ def scales_for_type type, check, builtin_only: false
   [scale2file.keys.sort, scale2file]
 end
 
-def describe_scales_maybe scales, type
+def describe_scales_maybe scales, _type
   desc = Hash.new
   count = Hash.new
   scales.each do |scale|
@@ -194,7 +194,6 @@ def truncate_colored_text text, len = nil
   text = text.dup
   ttext = ''
   tlen = 0
-  trunced = ''
   begin
     if md = text.match(/^(\e\[[\d;,]+m)(.*)$/)
       # escape-sequence: just copy into ttext but do not count in tlen
@@ -552,7 +551,7 @@ def get_prior_history_records *for_modes
 end
 
 def shortcut2history_record short
-  md = nil
+  nil
   return false unless ( md = short.match(/^(\dlast|\dl)$/) ) || short == 'last' || short == 'l'
 
   idx = if md
@@ -881,7 +880,6 @@ end
 
 # this can handle keys like 'ran, random'
 def get_extra_desc_single key
-  lines = []
   $extras_joined_to_desc[$mode].each do |k, v|
     ks = k.split(',').map(&:strip)
     next unless ks.include?(key)
@@ -1091,8 +1089,6 @@ class FamousPlayers
     # three more lines (adding to those, that have already been printed) will
     # be printed below
     txt_lines += 2
-
-    needed = []
     puts "\e[0m\e[2mImage:\e[0m"
 
     unless file
@@ -1242,7 +1238,7 @@ def wrap_text text, term_width: nil, cont: ' ...'
   term_width = $term_width + term_width if term_width < 0
   cont_len = cont&.length || 0
   # keeps the spaces in tokens
-  text.split(/( +)/).each_with_index do |token, idx|
+  text.split(/( +)/).each_with_index do |token, _idx|
     if line.length + token.length > term_width - 2 - cont_len
       lines << line.strip
       line = token.strip
@@ -1339,10 +1335,10 @@ class MsgBuf
 
   # for debugging
   def dump
-    pp ({ lines_durations: @@lines_durations,
-          printed: @@printed,
-          printed_at: @@printed_at,
-          reset_at: @@reset_at })
+    pp({ lines_durations: @@lines_durations,
+         printed: @@printed,
+         printed_at: @@printed_at,
+         reset_at: @@reset_at })
   end
 
   reset
@@ -1490,7 +1486,7 @@ class MsgBuf
     @@lines_durations
   end
 
-  def borrowed secs
+  def borrowed _secs
     # correct for secs where lines have been borrowed something else
     # (e.g. playing the licka)
     @@printed_at += @@printed_at if @@printed_at
@@ -1509,9 +1505,9 @@ end
 
 def print_chart_with_notes notes, strip_octave: false
   chart = $charts[:chart_notes]
-  chart.each_with_index do |row, ridx|
+  chart.each_with_index do |row, _ridx|
     print '  '
-    row[0..-2].each_with_index do |cell, cidx|
+    row[0..-2].each_with_index do |cell, _cidx|
       if comment_in_chart?(cell)
         print cell
       elsif strip_octave && notes.include?(cell.strip[0..-2])

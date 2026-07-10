@@ -47,7 +47,7 @@ def set_global_vars_early
   }
   $conf_meta[:deprecated_keys] = %i[alsa_aplay_extra alsa_arecord_extra sox_rec_extra sox_play_extra pref_sig_def]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
-  $conf_meta[:conversions] = Hash.new {|h, k| :to_str}
+  $conf_meta[:conversions] = Hash.new {|_h, _k| :to_str}
   $conf_meta[:conversions].merge!({ display: :o2sym, comment: :o2sym,
                                     sharps_or_flats: :to_sym,
                                     immediate: :to_b, loop: :to_b, fast: :to_b,
@@ -144,7 +144,8 @@ def set_global_vars_early
   $notes_with_sharps = %w[c cs d ds e f fs g gs a as b]
   $notes_with_flats = %w[c df d ef e f gf g af a bf b]
   $sharps_flats_shadowed = %w[bs cs d ds ff es fs g gs a as cf]
-  fail "Internal error: length of note sets flat/sharp/shadow differs" if [$notes_with_sharps, $notes_with_flats, $sharps_flats_shadowed].map(&:length).uniq.length != 1
+  raise 'Internal error: length of note sets flat/sharp/shadow differs' if [$notes_with_sharps, $notes_with_flats, $sharps_flats_shadowed].map(&:length).uniq.length != 1
+
   $scale_files_templates = ["#{$dirs[:install]}/scales/%s/scale_%s_with_%s.yaml",
                             "#{$dirs[:user_scales]}/%s/scale_%s_with_%s.yaml"]
   # $type will be inserted later
@@ -320,7 +321,7 @@ def set_global_vars_early
                    note: ['notes',
                           'all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'],
                    sharps_flats_shadowed: ['shadowed sharps or flats',
-                                           'e.g. ff (f-flat) which is converted to e; similar for es (e-sharp), bs and cf'], 
+                                           'e.g. ff (f-flat) which is converted to e; similar for es (e-sharp), bs and cf'],
                    semi_note: ['Semitones (as note values)',
                                'e.g. 12st, -2st, +3st'],
                    semi_inter: ['Semitones (as intervals)',
@@ -350,7 +351,7 @@ def set_global_vars_early
                     last: %w[last],
                     jam: %w[j jam] }
 
-  ambig = $what_abbrevs.values.flatten.tally.select {|k, v| v > 1}
+  ambig = $what_abbrevs.values.flatten.tally.select {|_k, v| v > 1}
   err("Internal error: ambigous abbreviations: #{ambig}") if ambig.length > 0
   err('Internal error with $what_abbrevs') if Set.new($what_abbrevs.keys) != Set.new($amongs_desc.keys)
 end
@@ -486,7 +487,7 @@ def calculate_screen_layout
   squeeze = 1 if $term_height < 27
   lines_extra = $term_height - $conf[:term_min_height]
   need_message2 = $mode == :quiz || $mode == :licks
-  lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
+  Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
   lines = Hash.new
 
   lines[:mission] = 1
@@ -794,7 +795,7 @@ def read_and_set_musical_config
     equiv = harp[harp[hole][:equiv][0]]
     harp[hole][:canonical] = ( equiv && equiv[:canonical] ? equiv[:canonical] : hole)
   end
-  semis = harp.map {|hole, hash| hash[:semi]}
+  semis = harp.map {|_hole, hash| hash[:semi]}
   $min_semi = semis.min
   $max_semi = semis.max
   harp_holes = harp.keys
@@ -1108,7 +1109,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
     note_groups = [hons_read]
     note_groups << props[:roots] if props[:roots]
     all_notes_norm = $hole2note_for_c.values.map {|n| sf_norm(n)}
-    note_groups.each_with_index do |note_group, idx|
+    note_groups.each_with_index do |_note_group, idx|
       kept_holes = []
       note_read.each do |note_for_c|
         err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(sf_norm(note_for_c))
@@ -1326,7 +1327,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
   $scale_desc_maybe = Hash.new
   $scale2count = Hash.new
   $all_scales.each do |scale|
-    scale_holes, props, sfile = read_and_parse_scale_simple(scale)
+    scale_holes, = read_and_parse_scale_simple(scale)
     $scale2count[scale] = scale_holes.length
     $scale_desc_maybe = $scale2desc[scale] || "holes #{scale_holes.join(',')}"
   end
