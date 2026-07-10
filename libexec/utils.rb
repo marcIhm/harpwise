@@ -733,6 +733,8 @@ def recognize_among val, choices, licks: $licks
       return choice if $harp_holes.include?(val)
     elsif choice == :note
       return choice if note2semi(val, 2..8, true)
+    elsif choice == :sharps_flats_shadowed
+      return choice if note2semi(val, 2..8, true, shadowed: true)
     elsif %i[semi_note semi_inter].include?(choice)
       return choice if val.match(/^[+-]?\d+st$/)
     elsif choice == :event
@@ -798,10 +800,13 @@ def print_amongs *choices, **kws
     when :note
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
+    when :sharps_flats_shadowed
+      puts "\n- #{adc[0]}"
+      puts "    #{adc[1]}:"
     when :semi_note
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
-    when :semi_OBinter
+    when :semi_inter
       puts "\n- #{adc[0]}"
       puts "    #{adc[1]}:"
     when :scale

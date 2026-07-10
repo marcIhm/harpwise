@@ -1,5 +1,5 @@
-AllCops:
-  DisabledByDefault: true
+#AllCops:
+#  DisabledByDefault: true
 Layout:
   Enabled: true
 Style:

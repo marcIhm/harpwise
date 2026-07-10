@@ -32,14 +32,15 @@ def describe_freq freq
   [nil, nil, nil, nil]
 end
 
-def note2semi note, range = (0..9), graceful = false
+def note2semi note, range = (0..9), graceful = false, shadowed: false
   note = note.downcase
   begin
     raise ArgumentError.new("note '#{note}' should end with a single digit in range #{range}") unless range.include?(note[-1].to_i)
 
     idx = $notes_with_sharps.index(note[0..-2]) ||
-          $notes_with_flats.index(note[0..-2]) or
-      raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
+          $notes_with_flats.index(note[0..-2]) ||
+          (shadowed && $sharps_flats_shadowed.index(note[0..-2])) or
+      raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps} or #{$notes_with_flats}")
     12 * note[-1].to_i + idx - 57
   rescue ArgumentError
     return nil if graceful
@@ -61,8 +62,8 @@ def semi2note semi, sharps_or_flats = $opts[:sharps_or_flats]
 end
 
 # normalize to sharp or flat depending on $opts[:sharps_or_flats]
-def sf_norm note
-  semi2note(note2semi(note))
+def sf_norm note, shadowed: false
+  semi2note(note2semi(note, shadowed: shadowed))
 end
 
 def semi2freq_et semi

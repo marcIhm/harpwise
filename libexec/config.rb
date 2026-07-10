@@ -143,6 +143,8 @@ def set_global_vars_early
 
   $notes_with_sharps = %w[c cs d ds e f fs g gs a as b]
   $notes_with_flats = %w[c df d ef e f gf g af a bf b]
+  $sharps_flats_shadowed = %w[bs cs d ds ff es fs g gs a as cf]
+  fail "Internal error: length of note sets flat/sharp/shadow differs" if [$notes_with_sharps, $notes_with_flats, $sharps_flats_shadowed].map(&:length).uniq.length != 1
   $scale_files_templates = ["#{$dirs[:install]}/scales/%s/scale_%s_with_%s.yaml",
                             "#{$dirs[:user_scales]}/%s/scale_%s_with_%s.yaml"]
   # $type will be inserted later
@@ -305,11 +307,11 @@ def set_global_vars_early
 
   $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
 
-  # Among processing e.g. for modes 'play' or 'prin'
+  # Among processing e.g. for modes 'play' or 'print'
   $amongs = Hash.new
-  $amongs[:play] = %i[hole note event scale lick last lick_prog semi_note jam]
+  $amongs[:play] = %i[hole note sharps_flats_shadowed event scale lick last lick_prog semi_note jam]
   $amongs[:print] = [$amongs[:play], :scale_prog].flatten
-  $amongs[:licks] = %i[hole note lick]
+  $amongs[:licks] = %i[hole note sharps_flats_shadowed lick]
 
   # need to be the same set of keys as all the amongs above
   $amongs_desc = { event: ['musical events in () or [] or starting with . ~ , or ;',
@@ -317,6 +319,8 @@ def set_global_vars_early
                    hole: ['holes of the harmonica'],
                    note: ['notes',
                           'all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'],
+                   sharps_flats_shadowed: ['shadowed sharps or flats',
+                                           'e.g. ff (f-flat) which is converted to e; similar for es (e-sharp), bs and cf'], 
                    semi_note: ['Semitones (as note values)',
                                'e.g. 12st, -2st, +3st'],
                    semi_inter: ['Semitones (as intervals)',
@@ -334,6 +338,7 @@ def set_global_vars_early
   $what_abbrevs = { event: %w[event],
                     hole: %w[h holes],
                     note: %w[n notes],
+                    sharps_flats_shadowed: %w[shadowed],
                     semi_note: %w[sn semi-notes],
                     semi_inter: %w[si semi-inter],
                     scale: %w[s scales],

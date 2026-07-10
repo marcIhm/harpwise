@@ -1610,7 +1610,7 @@ do_test 'id-39: error on unknown extra argument' do
   tms 'harpwise print hi'
   tms :ENTER
   sleep 2
-  expect { screen[16]['First argument for mode print should belong to one of the 11 types'] }
+  expect { screen[16]['First argument for mode print should belong to one of the 12 types'] }
   expect { screen[20]['But it still appears and has been   highlighted   2 times as part of valid'] }
   kill_session
 end
@@ -1946,11 +1946,11 @@ end
 
 do_test 'id-53c: print' do
   new_session
-  tms "harpwise print -v a4 b4 c4 >#{$testing_output_file}"
+  tms "harpwise print -v a4 b4 c4 bs4 ff4>#{$testing_output_file}"
   tms :ENTER
   sleep 1
   lines = File.read($testing_output_file).lines
-  expect(lines.each_with_index.map {|l, i| [i, l]}) {lines[12]['a4.5   b4.1   c4.b4']}
+  expect(lines.each_with_index.map {|l, i| [i, l]}) {lines[12]['a4.5   b4.1   c4.b4  c4.b4  e4.4']}
   kill_session
 end
 

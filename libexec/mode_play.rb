@@ -186,13 +186,17 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
   err("Internal error: #{amongs} includes :extra_wwos") if amongs.include?(:extra_wwos)
-
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
     what = recognize_among(th, amongs)
 
     if what == :note
       holes_or_notes << sf_norm(th)
+    elsif what == :sharps_flats_shadowed
+      # We treat :sharps_flats_shadowed as holes_or_notes, but we do
+      # this at the latest possible point in time which still
+      # preserves the order of arguments
+      holes_or_notes << sf_norm(th, shadowed: true)
     elsif what == :hole
       holes_or_notes << th
     elsif what == :event
