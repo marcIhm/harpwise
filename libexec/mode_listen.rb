@@ -7,7 +7,7 @@ def do_listen
     make_term_immediate
     start_collect_freqs
   end
-  $modes_for_switch ||= [:listen, :licks]
+  $modes_for_switch ||= %i[listen licks]
 
   system('clear')
   pipeline_catch_up
@@ -34,14 +34,14 @@ def do_listen
   end
 
 
-  $msgbuf.print("Expecting a jammer or fifo-writer to join, but will also do without", 2, 5, :jamming) && !$runningp_jamming if $opts[:jamming]
+  $msgbuf.print('Expecting a jammer or fifo-writer to join, but will also do without', 2, 5, :jamming) && !$runningp_jamming if $opts[:jamming]
 
-  while !$ctl_mic[:switch_modes] do
+  until $ctl_mic[:switch_modes]
 
     result = handle_holes(
 
       # lambda_mission
-      -> () {mission},
+      -> {mission},
 
 
       # lambda_good_done_was_good
@@ -53,7 +53,7 @@ def do_listen
 
 
       # lambda_comment
-      ->(hole_color, isemi, itext, note, hole_disp, freq) do
+      lambda do |hole_color, isemi, itext, note, hole_disp, freq|
         color = "\e[0m" + hole_color
         witdh_template = nil
         line = $lines[:comment]
@@ -80,7 +80,7 @@ def do_listen
                    end
                  else
                    color = "\e[2m"
-                   "set ref"
+                   'set ref'
                  end
                when :gauge_to_ref
                  font = 'smblock'
@@ -97,7 +97,7 @@ def do_listen
                    dots
                  else
                    color = "\e[2m"
-                   "set ref"
+                   'set ref'
                  end
                when :warbles
                  if !$warbles_holes[0] || !$warbles_holes[1]
@@ -126,12 +126,14 @@ def do_listen
                            "   \e[2m" + "#{$warbles_holes[0]} <-> #{$warbles_holes[1]}".rjust($term_width - 5) + "\e[K\e[0m"].flatten
                  end
                when :journal
-                 return ["\e[K",
-                         "\e[K",
-                         "   No journal yet to show ...\e[2m journal all is \e[0m#{$journal_all ? ' ON' : 'OFF'}\e[2m\e[0m\e[K",
-                         "\e[K",
-                         "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
-                         "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all ? 'ON' : 'OFF'})\e[0m"] if journal_length == 0
+                 if journal_length == 0
+                   return ["\e[K",
+                           "\e[K",
+                           "   No journal yet to show ...\e[2m journal all is \e[0m#{$journal_all ? ' ON' : 'OFF'}\e[2m\e[0m\e[K",
+                           "\e[K",
+                           "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
+                           "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all ? 'ON' : 'OFF'})\e[0m"]
+                 end
                  if jlen_refresh_comment_cache != journal_length || $ctl_mic[:update_comment]
                    jlen_refresh_comment_cache = journal_length
                    comment_cache, to_del = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
@@ -154,24 +156,22 @@ def do_listen
                     '  Need to specify one or more lick to be displayed here', '', '  e.g. via     --licks wade']
                  end
                else
-                 fail "Internal error: unknown comment: #{$opts[:comment]}"
+                 raise "Internal error: unknown comment: #{$opts[:comment]}"
                end || '...'
         [color, text, line, font, width_template]
       end,
 
 
       # lambda_hint
-      ->(hole) do
+      lambda do |hole|
         if Time.now.to_f - $program_start < 6
           []
+        elsif !$first_hole_held && Time.now.to_f - $program_start < 10
+          ["You may blow your harp now ....      (key of #{$key})"]
+        elsif $opts[:no_player_info] || $opts[:comment] == :journal
+          []
         else
-          if !$first_hole_held && Time.now.to_f - $program_start < 10
-            ["You may blow your harp now ....      (key of #{$key})"]
-          elsif $opts[:no_player_info] || $opts[:comment] == :journal
-            []
-          else
-            [$players.line_stream_current]
-          end
+          [$players.line_stream_current]
         end
       end,
 
@@ -196,11 +196,11 @@ def do_listen
         when '(+)'
           # hit three times, so we assume he wants to enter a comment
           comment = get_journal_comment
-          if comment.length > 0
-            $journal[-1] = '(' + comment[0..19] + ')'
-          else
-            $journal[-1] = '(-)'
-          end
+          $journal[-1] = if comment.length > 0
+                           '(' + comment[0..19] + ')'
+                         else
+                           '(-)'
+                         end
         else
           $journal << '(-)'
         end
@@ -237,7 +237,7 @@ def do_listen
         journal_write(comment)
         $msgbuf.print "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}", 2, 5, :journal
       else
-        $msgbuf.print "No holes in journal, that could be written to file", 2, 5, :journal
+        $msgbuf.print 'No holes in journal, that could be written to file', 2, 5, :journal
       end
       $freqs_queue.clear
     end
@@ -248,14 +248,14 @@ def do_listen
         # this will show up right after playing
         $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
         [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
-          lines, _ = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
+          lines, = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
           fit_into_comment lines
           unless musical_event?(hole)
-            play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3)),
+            play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3]),
                       get_musical_duration(hole_next))
           end
           if $ctl_kb_queue.length > 0
-            $msgbuf.print "Skipped to end of journal", 2, 5, :journal
+            $msgbuf.print 'Skipped to end of journal', 2, 5, :journal
             break
           end
         end
@@ -264,14 +264,14 @@ def do_listen
         $ctl_kb_queue.clear
         $freqs_queue.clear
       else
-        $msgbuf.print "No holes in journal, that could be played", 2, 5, :journal
+        $msgbuf.print 'No holes in journal, that could be played', 2, 5, :journal
       end
     end
 
     if $ctl_mic[:journal_clear]
-      journal_write("Automatic save before clearing journal") if journal_length > 0
+      journal_write('Automatic save before clearing journal') if journal_length > 0
       $journal = Array.new
-      $msgbuf.print ["Saved and cleared journal",
+      $msgbuf.print ['Saved and cleared journal',
                      "appended to #{$journal_file}"], 2, 5, :journal
       $ctl_mic[:journal_clear] = false
     end
@@ -315,8 +315,6 @@ def do_listen
 
                   END
                   head + File.readlines($journal_file).last(100).map {|l| '# ' + l}.join + "\n"
-                else
-                  nil
                 end
       edit_journal content
       $freqs_queue.clear
@@ -326,7 +324,7 @@ def do_listen
     if $ctl_mic[:journal_all_toggle]
       $ctl_mic[:journal_all_toggle] = false
       $journal_all = !$journal_all
-      $msgbuf.print "journal-all is " +
+      $msgbuf.print 'journal-all is ' +
                     ( $journal_all ? "ON, minimum duration is #{$journal_minimum_duration}s" : 'OFF' ), 2, 5, :journal
       ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
@@ -398,14 +396,14 @@ def do_listen
       prepare_warbles
     end
 
-    if $ctl_mic[:warbles_clear]
-      $ctl_mic[:warbles_clear] = false
-      $warbles[:short][:val] = $warbles[:short][:max] = 0.0
-      $warbles[:long][:val] = $warbles[:long][:max] = 0.0
-      $warbles[:short][:times] = Array.new
-      $warbles[:long][:times] = Array.new
-      $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
-    end
+    next unless $ctl_mic[:warbles_clear]
+
+    $ctl_mic[:warbles_clear] = false
+    $warbles[:short][:val] = $warbles[:short][:max] = 0.0
+    $warbles[:long][:val] = $warbles[:long][:max] = 0.0
+    $warbles[:short][:times] = Array.new
+    $warbles[:long][:times] = Array.new
+    $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
   end
 end
 
@@ -483,7 +481,7 @@ def warble_comment type
     $warble_cache[[type, active, allmax]] = ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
                                              "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]
   end
-  return $warble_cache[[type, active, allmax]] || ['', ''] ## default may save us after resize
+  $warble_cache[[type, active, allmax]] || ['', ''] ## default may save us after resize
 end
 
 def get_journal_comment
@@ -497,7 +495,7 @@ def get_journal_comment
   make_term_immediate
   clear_area_comment
 
-  return comment
+  comment
 end
 
 def get_listen_lick_lines lick
@@ -506,7 +504,7 @@ def get_listen_lick_lines lick
   lines << '  ' + lick[:name]
   if holes_lines.length <= 2
     lines << ''
-    lines.append(*(holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact))
+    lines.append(*holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact)
   else
     lines.append(*holes_lines)
   end

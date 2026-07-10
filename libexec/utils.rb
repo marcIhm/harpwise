@@ -4,17 +4,17 @@
 
 class Symbol
   def o2str
-    self.to_s.gsub('_', '-') if self
+    to_s.gsub('_', '-') if self
   end
 end
 
 class String
   def o2sym
-    self.gsub('-', '_').to_sym if self
+    gsub('-', '_').to_sym if self
   end
 
   def o2sym2
-    self.gsub('.', '_').to_sym if self
+    gsub('.', '_').to_sym if self
   end
 
   def to_b
@@ -23,21 +23,19 @@ class String
       true
     when 'false'
       false
-    else
-      nil
     end
   end
 
   def empty2nil
-    self.empty? ? nil : self
+    empty? ? nil : self
   end
 
   def underscore
-    self.gsub(/::/, '/')
-        .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-        .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-        .tr("-", "_")
-        .downcase
+    gsub(/::/, '/')
+      .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+      .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+      .tr('-', '_')
+      .downcase
   end
 end
 
@@ -49,27 +47,27 @@ def match_or cand, choices
   return exact_matches[0] if exact_matches.length == 1
 
   head_matches = choices.select {|c| c.start_with?(cand)}
-  yield("'#{cand}'",
-        choices.join(', ') + ' (or abbreviated uniquely)',
-        head_matches) if head_matches.length != 1
+  if head_matches.length != 1
+    yield("'#{cand}'",
+          choices.join(', ') + ' (or abbreviated uniquely)',
+          head_matches)
+  end
   head_matches[0]
 end
 
 def yaml_parse file
-  begin
-    YAML.load_file(file)
-  rescue Psych::SyntaxError => e
-    err "Cannot parse #{file}: #{e.message}"
-  rescue Errno::ENOENT => e
-    err "File #{file} does not exist!"
-  end
+  YAML.load_file(file)
+rescue Psych::SyntaxError => e
+  err "Cannot parse #{file}: #{e.message}"
+rescue Errno::ENOENT => e
+  err "File #{file} does not exist!"
 end
 
 def comment_in_chart? cell
   return true if cell.count('-') > 1 || cell.count('=') > 1
   return true if cell.match?(/^[- ]*$/)
 
-  return false
+  false
 end
 
 def err text
@@ -86,13 +84,11 @@ def err text
 end
 
 def puts_context_sources
-  clauses = [:mode, :type, :key, :scale, :extra].map do |var|
-    val = if $err_binding && eval("defined?(#{var})", $err_binding)
-            eval("#{var}", $err_binding)
+  clauses = %i[mode type key scale extra].map do |var|
+    val = if $err_binding && eval("defined?(#{var})", $err_binding, __FILE__, __LINE__)
+            eval("#{var}", $err_binding, __FILE__, __LINE__)
           elsif eval("defined?($#{var})")
             eval("$#{var}")
-          else
-            nil
           end
     if val
       "%-5s = #{val} (#{$source_of[var] || 'command-line'})" % var
@@ -113,14 +109,14 @@ def puts_context_sources
   if $early_conf
     puts " config from #{$early_conf[:config_file]}\n         and #{$early_conf[:config_file_user]})"
   else
-    puts " early config has not yet been initialized)"
+    puts ' early config has not yet been initialized)'
   end
   print "\e[0m"
 end
 
 def file2scale file, type = $type
   $scale_files_templates.each do |template|
-    %w(holes notes).each do |what|
+    %w[holes notes].each do |what|
       parts = (template % [type, '|', what]).split('|')
       return file[parts[0].length..- parts[1].length - 1] if file[parts[0]]
     end
@@ -136,30 +132,26 @@ def scales_for_type type, check, builtin_only: false
   files = templates.map do |template|
     Dir[template % [type, '*', '{holes,notes}']]
   end.flatten
-  if check
-    scale2file = Hash.new
-    files.each do |file|
-      scale = file2scale(file, type)
-      err "Duplicate scale   #{scale}   has already been defined in:\n#{scale2file[scale]}\ncannot redefine it in:\n#{file}"  if scale2file[scale]
-      scale2file[scale] = file
-    end
-    return scale2file.keys.sort, scale2file
-  else
-    return files.map {|file| file2scale(file, type)}.sort
+  return files.map {|file| file2scale(file, type)}.sort unless check
+
+  scale2file = Hash.new
+  files.each do |file|
+    scale = file2scale(file, type)
+    err "Duplicate scale   #{scale}   has already been defined in:\n#{scale2file[scale]}\ncannot redefine it in:\n#{file}"  if scale2file[scale]
+    scale2file[scale] = file
   end
+  [scale2file.keys.sort, scale2file]
 end
 
 def describe_scales_maybe scales, type
   desc = Hash.new
   count = Hash.new
   scales.each do |scale|
-    begin
-      _, holes_rem = YAML.load_file($scale2file[scale]).partition {|x| x.is_a?(Hash)}
-      holes = holes_rem.map {|hr| hr.split[0]}
-      desc[scale] = "holes #{holes.join(',')}"
-      count[scale] = holes.length
-    rescue Errno::ENOENT, Psych::SyntaxError
-    end
+    _, holes_rem = YAML.load_file($scale2file[scale]).partition {|x| x.is_a?(Hash)}
+    holes = holes_rem.map {|hr| hr.split[0]}
+    desc[scale] = "holes #{holes.join(',')}"
+    count[scale] = holes.length
+  rescue Errno::ENOENT, Psych::SyntaxError
   end
   [desc, count]
 end
@@ -188,7 +180,7 @@ def display_kb_help what, scroll_allowed, body, wait_for_key: true
       puts
     end
   end
-  if !scroll_allowed
+  unless scroll_allowed
     clear_area_comment
     ctl_response 'continue'
   end
@@ -209,7 +201,7 @@ def truncate_colored_text text, len = nil
       ttext += md[1]
       text = md[2]
     elsif md = text.match(/^\e/)
-      fail "Internal error: Unknown escape"
+      raise 'Internal error: Unknown escape'
     else
       # no escape a start, copy upto next escape to ttext and count
       md = text.match(/^([^\e]*)/)
@@ -219,7 +211,7 @@ def truncate_colored_text text, len = nil
     end
   end while text.length > 0 && tlen < len
   ttext += ' ...' if tlen >= len
-  return ttext
+  ttext
 end
 
 def truncate_text text, len = $term_width - 5
@@ -233,7 +225,7 @@ end
 # prepare byebug
 def dbg
   make_term_cooked if $opts
-  Kernel::print "\e[0m"
+  Kernel.print "\e[0m"
   require 'byebug'
   byebug
 end
@@ -256,7 +248,7 @@ def print_mission text, ncol = 0
 end
 
 def print_in_columns names, indent: 2, pad: :space, highlight: nil, lowlights: nil
-  fail 'Internal error: highlight and lowlights are both given' if highlight and lowlights
+  raise 'Internal error: highlight and lowlights are both given' if highlight and lowlights
 
   head = ' ' * indent
   line = ''
@@ -278,7 +270,7 @@ def print_in_columns names, indent: 2, pad: :space, highlight: nil, lowlights: n
                    names_maxlen = names.max_by(&:length).length
                    names.map {|nm| '  ' + ' ' * (names_maxlen - nm.length) + nm}
                  else
-                   fail "Internal error, unknown padding type: #{pad}"
+                   raise "Internal error, unknown padding type: #{pad}"
                  end
   padded_names.each_with_index do |nm, idx|
     if (head + line + nm).length > $term_width - 4
@@ -313,9 +305,7 @@ def print_debug_info
   puts '$debug_info:'
   pp $debug_info
 
-  if $perfctr[:handle_holes_this_first_mic]
-    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] )
-  end
+  $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] ) if $perfctr[:handle_holes_this_first_mic]
   puts
   puts '$perfctr:'
   pp $perfctr
@@ -324,11 +314,11 @@ def print_debug_info
   puts '$freqs_queue.length:'
   puts $freqs_queue.length
 
-  if $opts[:comment] == :warbles
-    puts
-    puts '$warbles:'
-    pp $warbles
-  end
+  return unless $opts[:comment] == :warbles
+
+  puts
+  puts '$warbles:'
+  pp $warbles
 end
 
 def print_afterthought
@@ -343,7 +333,7 @@ def print_afterthought
 
   if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
     lagging_file = "#{$dirs[:data]}/lagging_info"
-    pct_lost = "%.1f%%" % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))
+    pct_lost = '%.1f%%' % (100 * $lagging_freqs_lost / ($lagging_freqs_lost + $total_freq_ticks))
     thought << "Lagging detected (#{pct_lost} loss), see #{lagging_file} for details."
     content = <<~end_of_content
 
@@ -372,7 +362,7 @@ def print_afterthought
   # $max_jitter is only set, if it exceeds $jitter_threshold
   if $max_jitter > 0
     jitter_file = "#{$dirs[:data]}/jitter_info"
-    jitter_secs = "%.2f secs" % $max_jitter
+    jitter_secs = '%.2f secs' % $max_jitter
     thought << "Jitter detected (#{jitter_secs}), see #{jitter_file} for details."
     content = <<~end_of_content
 
@@ -489,12 +479,12 @@ end
 
 def get_prior_history_records *for_modes
   for_modes.each do |m|
-    fail "Internal error: unknown mode: #{m}" unless $early_conf[:modes].include?(m.to_s)
+    raise "Internal error: unknown mode: #{m}" unless $early_conf[:modes].include?(m.to_s)
   end
   num_entries_wanted = 16
   num_entries = 0
   records = []
-  return [] if !File.exist?($history_file)
+  return [] unless File.exist?($history_file)
 
   File.foreach($history_file).each_with_index do |line, lno|
     line.strip!
@@ -518,20 +508,20 @@ def get_prior_history_records *for_modes
                        timestamps: [_, _] } )
       err "Cannot parse line #{lno} from history-file #{$history_file}: '#{line}'"
     end
-    [:mode, :rec_type].each do |key|
+    %i[mode rec_type].each do |key|
       data[key] = data[key].to_sym if data[key]
     end
 
-    if for_modes.include?(data[:mode])
-      if records.length == 0 && data[:rec_type] == :entry
-        # we did not find start-record; maybe due to prior truncation
-        records << { rec_type: :start,
-                     mode: data[:mode],
-                     timestamps: ['unknown', -1] }
-      end
-      records << data
-      num_entries += 1 if data[:rec_type] == :entry
+    next unless for_modes.include?(data[:mode])
+
+    if records.length == 0 && data[:rec_type] == :entry
+      # we did not find start-record; maybe due to prior truncation
+      records << { rec_type: :start,
+                   mode: data[:mode],
+                   timestamps: ['unknown', -1] }
     end
+    records << data
+    num_entries += 1 if data[:rec_type] == :entry
   end
 
   # return if no records, so that further down below we can be sure to have at
@@ -595,7 +585,7 @@ class Volume
   # we keep this class var to make this a singleton
   @@vol = nil
   def initialize(vol)
-    fail 'Internal error: Volume object has already been initialized' if @@vol
+    raise 'Internal error: Volume object has already been initialized' if @@vol
 
     @@vol = $pers_data['volume']
     # help for nil or for older formats (Hash)
@@ -622,11 +612,11 @@ class Volume
   end
 
   def to_s
-    return "%+ddB" % @@vol
+    '%+ddB' % @@vol
   end
 
   def to_i
-    return @@vol
+    @@vol
   end
 end
 
@@ -638,7 +628,7 @@ def puts_underlined text, char = '=', dim: :auto, vspace: :auto
          '2'
        else
          '0'
-       end + "m" + text
+       end + 'm' + text
   puts char * text.length
   print "\e[0m"
   puts if ( vspace == :auto && char == '=' ) || vspace == true
@@ -664,14 +654,14 @@ def switch_modes
   if $mode_switches == 1
     # switching the first time to a new mode; make some guesses on its
     # arguments, that could have never been given on the command line
-    if $mode == :listen && [:quiz, :licks].include?(mode_prev)
+    if $mode == :listen && %i[quiz licks].include?(mode_prev)
       $opts[:comment] = :note
     elsif $mode == :licks && [:listen].include?(mode_prev)
       $opts[:comment] = :holes_notes
       $opts[:iterate] = :random
       $opts[:tags_any] = 'journal' if $journal.select {|h| !musical_event?(h)}.length > 0
     else
-      fail "Internal error: invalid mode switch #{mode_prev} to #{$mode}"
+      raise "Internal error: invalid mode switch #{mode_prev} to #{$mode}"
     end
   end
 
@@ -708,24 +698,24 @@ def edit_file file, lno = nil
     make_term_immediate
     print "\e[#{$lines[:hint_or_message]}H\e[0m\e[32mEditing done.\e[K\e[0m"
     sleep stime
-    return true
+    true
   else
     make_term_immediate
     puts "\e[0;101mEDITING FAILED!\e[0m\e[k"
     puts "#{$resources[:any_key]}\e[K"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
-    return false
+    false
   end
 end
 
 def rotate_among value, direction, all_values
-  if direction == :up || direction == :next
+  if %i[up next].include?(direction)
     all_values[(all_values.index(value) + 1) % all_values.length]
-  elsif direction == :down || direction == :prev
+  elsif %i[down prev].include?(direction)
     all_values[(all_values.index(value) - 1) % all_values.length]
   else
-    fail "Internal error: unknown direction '#{direction}'"
+    raise "Internal error: unknown direction '#{direction}'"
   end
 end
 
@@ -733,7 +723,7 @@ def recognize_among val, choices, licks: $licks
   return nil unless val
 
   choices = [choices].flatten
-  fail("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
+  raise("Internal error: :extra_wwos should always be last, if it appears at all: #{choices}") if choices.index(:extra_wwos)&.!=(choices.length - 1)
 
   choices.each do |choice|
     next if $opts[:what] && $opts[:what] != choice
@@ -743,7 +733,7 @@ def recognize_among val, choices, licks: $licks
       return choice if $harp_holes.include?(val)
     elsif choice == :note
       return choice if note2semi(val, 2..8, true)
-    elsif [:semi_note, :semi_inter].include?(choice)
+    elsif %i[semi_note semi_inter].include?(choice)
       return choice if val.match(/^[+-]?\d+st$/)
     elsif choice == :event
       return choice if musical_event?(val)
@@ -780,20 +770,16 @@ def recognize_among val, choices, licks: $licks
         err "Extra argument might have been spelled wrong (with or without letter 's'; see above)"
       end
     else
-      fail "Internal error: Unknown among-choice '#{choice}'"
+      raise "Internal error: Unknown among-choice '#{choice}'"
     end
   end
-  return false
+  false
 end
 
 def print_amongs *choices, **kws
   hl_text = kws[:highlight]
   summary = { highlight:
-               if hl_text && hl_text.length > 1
-                 { what: hl_text, count: 0, color: "\e[1m" }
-               else
-                 nil
-               end,
+               ({ what: hl_text, count: 0, color: "\e[1m" } if hl_text && hl_text.length > 1),
               types: { count: 0 } }
 
   choices.flatten.each do |choice|
@@ -835,7 +821,7 @@ def print_amongs *choices, **kws
       puts "\n- #{adc[0]}:"
       print_in_columns all_lnames.sort, indent: 4, pad: :tabs, highlight: summary[:highlight]
       if $licks == $all_licks
-        puts "  , where set of licks has not been restricted by tags"
+        puts '  , where set of licks has not been restricted by tags'
       else
         puts "  , where lick selection is done with these options: #{desc_lick_select_opts(indent: '  ')}"
       end
@@ -849,7 +835,7 @@ def print_amongs *choices, **kws
       puts "\n- #{adc[0]}:"
       print_in_columns $jamming_rel2abs.keys.sort, indent: 4, pad: :long_tabs, highlight: summary[:highlight]
     else
-      fail "Internal error: Unknown choice: '#{choice}'"
+      raise "Internal error: Unknown choice: '#{choice}'"
     end
   end
 
@@ -898,7 +884,7 @@ def get_extra_desc_single key
     lns = v.lines.map(&:strip)
     return [k] + [lns[0].sub(/\S/, &:upcase)] + lns[1..-1]
   end
-  fail "Internal error: key #{key} not found"
+  raise "Internal error: key #{key} not found"
 end
 
 class FamousPlayers
@@ -916,7 +902,7 @@ class FamousPlayers
     @names = Array.new
     @has_details = Hash.new
     @with_details = Array.new
-    @all_groups = %w(name bio notes songs sources)
+    @all_groups = %w[name bio notes songs sources]
     @all_text_width = 0
 
     pfile = "#{$dirs[:install]}/resources/players.org"
@@ -946,19 +932,17 @@ class FamousPlayers
       next if lno == 0
 
       line.chomp!
-      if line.start_with?('*')
-        if inner.length > 0
-          fail "Internal error: no prior group (#{group}), #{pfile}, line #{lno}" unless group
+      if line.start_with?('*') && (inner.length > 0)
+        raise "Internal error: no prior group (#{group}), #{pfile}, line #{lno}" unless group
 
-          inner.each do |ils|  # item-lines, for items that have multiple line
-            next if ils.length == 1
-            next if %w(. ? ! ; ,).include?(ils[-1][-1])
+        inner.each do |ils|  # item-lines, for items that have multiple line
+          next if ils.length == 1
+          next if %w[. ? ! ; ,].include?(ils[-1][-1])
 
-            ils[-1] += '.'
-          end
-          semiraw[-1][group] = inner.flatten
-          inner = []
+          ils[-1] += '.'
         end
+        semiraw[-1][group] = inner.flatten
+        inner = []
       end
 
       if line.strip == ''
@@ -969,14 +953,14 @@ class FamousPlayers
 
         semiraw << { 'name' => name }
       elsif md = line.match(/^\*\* (.*)$/)
-        fail "Internal error: no name yet, #{pfile}, line #{lno}" unless semiraw[-1]
+        raise "Internal error: no name yet, #{pfile}, line #{lno}" unless semiraw[-1]
 
         group = md[1].strip
-        fail "Internal error: Unknown group #{group}, #{pfile}, line #{lno}" unless @all_groups.include?(group)
+        raise "Internal error: Unknown group #{group}, #{pfile}, line #{lno}" unless @all_groups.include?(group)
       elsif md = line.match(/^ +-(.*)$/)
         inner << [md[1].strip]
       else
-        fail "Internal error: not in list, #{pfile}, line #{lno}" if inner.length == 0
+        raise "Internal error: not in list, #{pfile}, line #{lno}" if inner.length == 0
 
         inner[-1] << line.strip
       end
@@ -985,8 +969,8 @@ class FamousPlayers
     semiraw.each do |info|
       sorted_info = Hash.new
       name = sorted_info['name'] = info['name']
-      fail "Internal error: No 'name' given for #{info}" unless name
-      fail "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
+      raise "Internal error: No 'name' given for #{info}" unless name
+      raise "Internal error: Name '#{name}' given for\n#{info}\nhas already appeared for \n#{structured[name]}" if @structured[name]
 
       pplayer = [name]
       @has_details[name] = true
@@ -1019,7 +1003,7 @@ class FamousPlayers
       end
       pplayer.each do |line|
         min = $conf[:term_min_width] - 10
-        fail "Internal error: This line from #{pfile} has #{line.length} chars, which is more than maximum of #{min}: '#{line}'" if line.length > min
+        raise "Internal error: This line from #{pfile} has #{line.length} chars, which is more than maximum of #{min}: '#{line}'" if line.length > min
       end
 
       # handle pictures
@@ -1072,9 +1056,7 @@ class FamousPlayers
         # We add those players, which have info multiple times to give them
         # more weight; if all players have info, this does no harm either
         names = @names.clone
-        while names.length < 4 * @names.length
-          names.append(*@with_details)
-        end
+        names.append(*@with_details) while names.length < 4 * @names.length
         names.shuffle.each do |name|
           @lines_pool << nil
           @lines_pool << name
@@ -1084,7 +1066,7 @@ class FamousPlayers
         @lines_pool.flatten!
       end
       @lines_pool_last = @lines_pool.shift
-      if !@lines_pool_last
+      unless @lines_pool_last
         # remember last player
         @stream_current = name = @lines_pool.shift
         $pers_data['players_last'] = name if @has_details[name]
@@ -1108,7 +1090,7 @@ class FamousPlayers
     needed = []
     puts "\e[0m\e[2mImage:\e[0m"
 
-    if !file
+    unless file
       puts "\e[2m  You may store player images to be shown in:\n    #{@picture_dirs[name]}\e[0m"
       return
     end
@@ -1118,11 +1100,11 @@ class FamousPlayers
     when 'none'
 
       puts "\e[2m  (to view the image, set option or config '--viewer')\e[0m"
-      return
+      nil
 
     when 'window'
 
-      check_needed_viewer_progs %w(xwininfo feh)
+      check_needed_viewer_progs %w[xwininfo feh]
 
       puts "\e[2m  #{file}\e[0m"
       if in_loop
@@ -1130,8 +1112,8 @@ class FamousPlayers
       else
         puts "\e[2m  Viewing image with feh, type 'q' to quit\e[0m"
       end
-      sys("xwininfo -root")
-      sw = sys("xwininfo -root").lines.find {|l| l["Width"]}.scan(/\d+/)[0].to_i
+      sys('xwininfo -root')
+      sw = sys('xwininfo -root').lines.find {|l| l['Width']}.scan(/\d+/)[0].to_i
       pw, ph = sys("feh -l #{file}").lines[1].split.slice(2, 2).map(&:to_i)
       scale = $conf[:viewer_scale_to].to_f / ( pw > ph ? ph : pw )
       command = "feh -Z --borderless --geometry #{(pw * scale).to_i}x#{(ph * scale).to_i}+#{(sw - pw * scale - 100).to_i}+100 #{file}"
@@ -1140,7 +1122,7 @@ class FamousPlayers
 
     when 'char'
 
-      check_needed_viewer_progs %w(chafa)
+      check_needed_viewer_progs %w[chafa]
 
       puts "\e[2m  #{file}\e[0m"
       puts sys("chafa -f symbols #{file}")
@@ -1148,14 +1130,14 @@ class FamousPlayers
     when 'pixel'
 
       # get term size in characters
-      cheight_term, cwidth_term = %x(stty size).split.map(&:to_i)
+      cheight_term, cwidth_term = `stty size`.split.map(&:to_i)
       # avoid picture beeing too large by limiting its available space
       txt_width = [txt_width, cwidth_term * 2.0 / 3].max.to_i
       puts "\e[2m  #{file}\e[0m"
 
       if ENV['TERM']['kitty']
 
-        check_needed_viewer_progs %w(kitty)
+        check_needed_viewer_progs %w[kitty]
         if cwidth_term > txt_width * 1.25
           # enough room to show image right beside text
           print "\e[s"
@@ -1173,7 +1155,7 @@ class FamousPlayers
       else
         # we hope for sixel support
 
-        check_needed_viewer_progs %w(img2sixel)
+        check_needed_viewer_progs %w[img2sixel]
 
         # get pixel width of one character cell.
 
@@ -1199,7 +1181,7 @@ class FamousPlayers
           return
         end
         sane_term
-        Kernel::print "\e[?25h"  ## show cursor
+        Kernel.print "\e[?25h"  ## show cursor
         mdata = reply.match(/^.*?([0-9]+);([0-9]+);([0-9]+)/)
         pwidth_cell = mdata[3]
         pheight_cell = mdata[2]
@@ -1245,7 +1227,7 @@ def wrap_words head, words, sep = ',', width: $term_width
     end
   end
   lines << line.rstrip unless line.rstrip == ''
-  return lines.join("\n")
+  lines.join("\n")
 end
 
 def wrap_text text, term_width: nil, cont: ' ...'
@@ -1253,7 +1235,7 @@ def wrap_text text, term_width: nil, cont: ' ...'
   lines = Array.new
   term_width ||= $term_width
   term_width = $term_width + term_width if term_width < 0
-  cont_len = ( cont&.length || 0 )
+  cont_len = cont&.length || 0
   # keeps the spaces in tokens
   text.split(/( +)/).each_with_index do |token, idx|
     if line.length + token.length > term_width - 2 - cont_len
@@ -1264,10 +1246,8 @@ def wrap_text text, term_width: nil, cont: ' ...'
     end
   end
   lines << line.strip unless line.strip == ''
-  if cont_len > 0
-    lines[0..-2].each {|l| l << cont }
-  end
-  return lines
+  lines[0..-2].each {|l| l << cont } if cont_len > 0
+  lines
 end
 
 def report_name_collisions_mb
@@ -1292,7 +1272,7 @@ def write_invocation
   #
   # for an application of the files written here.
   #
-  ts_clause = "   #  " + Time.now.to_s.split[0..1].join('  ')
+  ts_clause = '   #  ' + Time.now.to_s.split[0..1].join('  ')
 
   # Take ENV into account, just like the script above does
   command_line = if ENV['HARPWISE_COMMAND']
@@ -1320,13 +1300,13 @@ def write_invocation
 end
 
 def set_testing_vars_mb
-  testing = !!ENV["HARPWISE_TESTING"]
+  testing = !!ENV['HARPWISE_TESTING']
   testing_what = nil
-  tw_allowed = %w(1 true t yes y)
+  tw_allowed = %w[1 true t yes y]
   if testing && !tw_allowed.include?(ENV['HARPWISE_TESTING'].downcase)
-    testing_what = ENV["HARPWISE_TESTING"].downcase
-    tw_allowed.append(*%w(lag jitter player argv opts msgbuf none remote extra jamming_json))
-    err "Environment variable HARPWISE_TESTING is '#{ENV["HARPWISE_TESTING"]}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
+    testing_what = ENV['HARPWISE_TESTING'].downcase
+    tw_allowed.append(*%w[lag jitter player argv opts msgbuf none remote extra jamming_json])
+    err "Environment variable HARPWISE_TESTING is '#{ENV['HARPWISE_TESTING']}', none of the allowed values #{tw_allowed.join(',')} (case insensitive)" unless tw_allowed.include?(testing_what)
     testing_what = testing_what.to_sym
   end
   if testing_what == :none
@@ -1334,7 +1314,7 @@ def set_testing_vars_mb
     testing_what = nil
   end
 
-  return [testing, testing_what]
+  [testing, testing_what]
 end
 
 # Hint or message buffer for main loop in variou places. Makes sure, that all
@@ -1360,7 +1340,7 @@ class MsgBuf
           reset_at: @@reset_at })
   end
 
-  self.reset
+  reset
   @@ready = false
   @@printed_at = nil
   @@reset_at = Array.new
@@ -1389,7 +1369,7 @@ class MsgBuf
 
     if text
       if truncate && wrap
-        fail "Internal error: both :truncate and :wrap are set"
+        raise 'Internal error: both :truncate and :wrap are set'
       elsif wrap || text.is_a?(Array)
         lines = if text.is_a?(Array)
                   text
@@ -1397,7 +1377,7 @@ class MsgBuf
                   wrap_text(text,
                             term_width:  $testing_what == :msgbuf ? $conf[:term_min_width] : nil )
                 end
-        lines.each {|l| fail "Internal error: text to wrap contains escape: '#{l}'" if l["\e"]}
+        lines.each {|l| raise "Internal error: text to wrap contains escape: '#{l}'" if l["\e"]}
         lines[1..-1].reverse.each do |l|
           print_internal l, min, max, group, true
         end
@@ -1407,7 +1387,7 @@ class MsgBuf
                                              $testing_what == :msgbuf ? $conf[:term_min_width] : nil),
                        min, max, group, false
       else
-        fail "Internal error: neither :truncate nor :wrap are set"
+        raise 'Internal error: neither :truncate nor :wrap are set'
       end
     else
       print_internal text, min, max, group, false
@@ -1427,7 +1407,7 @@ class MsgBuf
     # invoked multiple times in a row; the last one should be called
     # without setting later
     if @@ready && text && !later
-      Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K" unless $testing_what == :msgbuf
+      Kernel.print "\e[#{$lines[:hint_or_message]}H\e[2m#{text}\e[0m\e[K" unless $testing_what == :msgbuf
       @@printed.push([text, min, max, group]) if $testing
     end
     @@printed_at = Time.now.to_f
@@ -1449,25 +1429,25 @@ class MsgBuf
         # display new topmost message; special case of text = nil
         # preserves already visible content (e.g. splash)
         if @@ready && @@lines_durations[-1][0]
-          Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
+          Kernel.print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
           @@printed.push(@@lines_durations[-1]) if $testing
         end
         @@printed_at = Time.now.to_f
-        return true
+        true
       else
         # no messages
         @@printed_at = nil
         # just became empty, return true one more time
-        return true
+        true
       end
     else
       # current message is still valid
       if @@ready && @@lines_durations[-1][0] && refresh
-        Kernel::print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
+        Kernel.print "\e[#{$lines[:hint_or_message]}H\e[2m#{@@lines_durations[-1][0]}\e[0m\e[K" unless $testing_what == :msgbuf
         @@printed.push(@@lines_durations[-1]) if $testing
         @@printed_at = Time.now.to_f
       end
-      return true
+      true
     end
   end
 
@@ -1478,7 +1458,7 @@ class MsgBuf
   def clear
     @@lines_durations = Array.new
     @@printed_at = nil
-    Kernel::print "\e[#{$lines[:hint_or_message]}H\e[K" if @@ready && $testing_what != :msgbuf
+    Kernel.print "\e[#{$lines[:hint_or_message]}H\e[K" if @@ready && $testing_what != :msgbuf
   end
 
   def printed
@@ -1490,15 +1470,15 @@ class MsgBuf
 
     puts "\n\e[0m\e[2mFlushing pending messages for completeness:"
     @@lines_durations.each do |l, _|
-      next if !l
+      next unless l
 
       puts '  ' + l
     end
-    Kernel::print "\e[0m" unless $testing_what == :msgbuf
+    Kernel.print "\e[0m" unless $testing_what == :msgbuf
   end
 
   def empty?
-    return @@lines_durations.length > 0
+    @@lines_durations.length > 0
   end
 
   def get_lines_durations
@@ -1514,12 +1494,12 @@ end
 
 def create_dir dir
   if File.exist?(dir)
-    err "Directory #{dir} does not exist, but there is a file with the same name:\n\n  " + %x(ls -l #{dir} 2>/dev/null) + "\nplease check, correct and retry" unless File.directory?(dir)
+    err "Directory #{dir} does not exist, but there is a file with the same name:\n\n  " + `ls -l #{dir} 2>/dev/null` + "\nplease check, correct and retry" unless File.directory?(dir)
   else
     FileUtils.mkdir_p(dir)
     return true
   end
-  return false
+  false
 end
 
 def print_chart_with_notes notes, strip_octave: false
@@ -1570,11 +1550,11 @@ def mostly_avoid_double_invocations
   # below and maybe set these vars to true then. 'p' stands for 'predicate',
   # 'we_listen_fifo' for 'we would like to listen for fifo'
   #
-  $runningp_listen_fifo = we_listen_fifo = ($mode == :listen && $opts[:jamming])
+  $runningp_listen_fifo = we_listen_fifo = $mode == :listen && $opts[:jamming]
   $runningp_jamming = we_jamming = ($mode == :jamming)
 
   # Some modes never use microphone or speaker or fifo
-  return if [:develop, :print].include?($mode)
+  return if %i[develop print].include?($mode)
 
   #
   # Go through process-list and bail out via 'next' if we find, that visited process does
@@ -1613,15 +1593,15 @@ def mostly_avoid_double_invocations
     #
 
     # Here we have the two acceptable cases
-    if $mode == :jamming
-      # If we are jamming, we tolerate anything; the case of another instance of harpwise,
-      # that wants to read the fifo too, has already been handled above
-      next
-    else
-      # If we are not jamming, we tolerate a jammer; e.g. user might want to play the
-      # lick-progression while jam along is already running
-      next if it_pid == pid_jamming_mb
-    end
+    next if $mode == :jamming
+    # If we are jamming, we tolerate anything; the case of another instance of harpwise,
+    # that wants to read the fifo too, has already been handled above
+
+
+    # If we are not jamming, we tolerate a jammer; e.g. user might want to play the
+    # lick-progression while jam along is already running
+    next if it_pid == pid_jamming_mb
+
 
     # None of the resolving conditions above applies, so we probably would collide with the
     # other process
@@ -1643,18 +1623,16 @@ def initialize_debugging_mb
   # most of the time there is no code to use this debug-log; but we keep it nevertheless for
   # debugging hard problems in the future
   $debug_log_file = "#{$dirs[:data]}/debug.log"
-  if $opts && $opts[:debug]
-    $debug_log = File.open($debug_log_file, 'w')
-  end
+  $debug_log = File.open($debug_log_file, 'w') if $opts && $opts[:debug]
   $debug_info = Hash.new
 end
 
 def maybe_write_pers_data
-  if $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
-    FileUtils.cp($pers_file, $pers_file_old) if File.exist?($pers_file)
-    File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
-    $pers_fingerprint = $pers_data.hash
-  end
+  return unless $pers_file && $pers_data.keys.length > 0 && $pers_fingerprint != $pers_data.hash
+
+  FileUtils.cp($pers_file, $pers_file_old) if File.exist?($pers_file)
+  File.write($pers_file, JSON.pretty_generate($pers_data) + "\n")
+  $pers_fingerprint = $pers_data.hash
 end
 
 def days_ago_in_words ago

@@ -36,7 +36,7 @@ def do_play to_play
 
     if holes_or_notes.length > 0
 
-      puts "Playing holes or notes given as arguments."
+      puts 'Playing holes or notes given as arguments.'
       puts
       play_holes_or_notes_and_handle_kb holes_or_notes
       puts
@@ -44,10 +44,10 @@ def do_play to_play
 
     elsif snames.length > 0
 
-      puts "Playing scales given as arguments."
+      puts 'Playing scales given as arguments.'
       puts
       snames.each do |sname|
-        scale_holes, _, _ = read_and_parse_scale_simple(sname)
+        scale_holes, = read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
         play_holes_or_notes_and_handle_kb scale_holes
         puts
@@ -56,14 +56,14 @@ def do_play to_play
 
     elsif lnames.length > 0
 
-      puts "Playing licks given as arguments."
+      puts 'Playing licks given as arguments.'
       puts
       $opts[:iterate] = :cycle
       play_named_licks(lnames, refill: false)
 
     elsif semis.length > 0
 
-      puts "Playing semitones given as arguments and converted to notes (a4 = 0st)."
+      puts 'Playing semitones given as arguments and converted to notes (a4 = 0st).'
       puts
       notes = semis.map {|s| semi2note(s.to_i)}
       play_holes_or_notes_and_handle_kb notes
@@ -74,7 +74,7 @@ def do_play to_play
 
       err "Can only play only one lick progression, not: #{lpnames.join(',')}" if lpnames.length > 1
 
-      puts "Playing lick progression given as argument."
+      puts 'Playing lick progression given as argument.'
       puts
       print_single_lick_prog($all_lick_progs[lpnames[0]])
       lnames = $all_lick_progs[lpnames[0]][:licks]
@@ -85,13 +85,13 @@ def do_play to_play
 
       err "Can only play only one jam, not: #{lpnames.join(',')}" if jmnames.length > 1
 
-      puts "Playing jam given as argument."
+      puts 'Playing jam given as argument.'
       puts
       do_the_jam_playing($jamming_rel2abs[jmnames[0]])
 
     else
 
-      fail 'Internal error'
+      raise 'Internal error'
 
     end
 
@@ -106,8 +106,6 @@ def do_play to_play
               args_for_extra[0]
             elsif args_for_extra.length > 1
               err "harpwise play pitch only accepts zero or one argument, not #{args_for_extra}"
-            else
-              nil
             end
       play_interactive_pitch(start_key: key)
 
@@ -138,7 +136,7 @@ def do_play to_play
 
     when 'chord'
 
-      puts "A chord"
+      puts 'A chord'
       err "Need at least two holes or notes or semitone-diffs or intervals, e.g. 'c3 7st'" unless args_for_extra.length >= 1
       _, first = hole_or_note_or_semi(args_for_extra[0], false)
       semis = args_for_extra[1..-1].map do |arg|
@@ -168,7 +166,7 @@ def do_play to_play
 
     else
 
-      fail "Internal error: unknown extra '#{extra}'"
+      raise "Internal error: unknown extra '#{extra}'"
 
     end
 
@@ -260,7 +258,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     err 'See above'
   end
 
-  return [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
+  [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
 end
 
 def hole_or_note_or_semi hns, diff_allowed = true
@@ -268,9 +266,9 @@ def hole_or_note_or_semi hns, diff_allowed = true
   # many of them
 
   amongs = if diff_allowed
-             [:hole, :note, :inter, :semi_note]
+             %i[hole note inter semi_note]
            else
-             [:hole, :note]
+             %i[hole note]
            end
   what = recognize_among(hns, amongs)
   type, value = case what
@@ -286,18 +284,20 @@ def hole_or_note_or_semi hns, diff_allowed = true
                   [nil, nil]
                 end
 
-  if !type
+  unless type
     print_amongs(*amongs)
     err "Given argument #{hns} is none of those given above"
   end
 
-  return type, value
+  [type, value]
 end
 
 def normalize_interval args
-  err "Need two arguments, to #{$mode} an interval (not #{args}):\n" +
-      "  - a base-note or base-hole, e.g. 'c4' or '+2'\n" +
-      "  - a difference in semitones, either as a number or as a name, e.g. '12st' or 'oct'\n" unless args.length == 2
+  unless args.length == 2
+    err "Need two arguments, to #{$mode} an interval (not #{args}):\n" +
+        "  - a base-note or base-hole, e.g. 'c4' or '+2'\n" +
+        "  - a difference in semitones, either as a number or as a name, e.g. '12st' or 'oct'\n"
+  end
 
   args.map!(&:downcase)
 
@@ -310,22 +310,22 @@ def normalize_interval args
   end
   s1 = s2 = 0
   case tt
-  when [:abs, :abs]
+  when %i[abs abs]
     s1 = vv[0]
     s2 = vv[1]
-  when [:diff, :diff]
+  when %i[diff diff]
     err "You specified two semitone-differences but no base note: #{args}"
-  when [:abs, :diff]
+  when %i[abs diff]
     s1 = vv[0]
     s2 = s1 + vv[1]
-  when [:diff, :abs]
+  when %i[diff abs]
     s1 = vv[1]
     s2 = s1 + vv[0]
   else
-    fail "Internal error: unmatched: #{tt}"
+    raise "Internal error: unmatched: #{tt}"
   end
 
-  return s1, s2
+  [s1, s2]
 end
 
 def base_and_delta_to_semis base_and_delta
@@ -383,16 +383,16 @@ def play_licks_controller licks, refill, sleep_between: false
 
   print "\e[2m"
   if refill
-    print "Set of licks will be played without end, "
+    print 'Set of licks will be played without end, '
   else
-    print "Set of licks will be played once, "
+    print 'Set of licks will be played once, '
   end
   if $opts[:iterate] == :random
-    puts "shuffled and in random order."
+    puts 'shuffled and in random order.'
   else
-    puts "in given order."
+    puts 'in given order.'
   end
-  puts "Please note, that different help and commands apply in play and in pauses."
+  puts 'Please note, that different help and commands apply in play and in pauses.'
   puts "\e[0m"
 
 
@@ -409,7 +409,7 @@ def play_licks_controller licks, refill, sleep_between: false
         (0..10 * plen).each do |i|
           sleep 0.1
           print '.' if i % 10 == 5
-          break if !$ctl_kb_queue.empty?
+          break unless $ctl_kb_queue.empty?
         end
         print "\e[0m"
       else
@@ -444,23 +444,23 @@ def play_licks_controller licks, refill, sleep_between: false
         choose_clean_up skip_term: true
         if input
           lick = $all_licks.find {|l| l[:name] == input}
-          puts "New lick."
+          puts 'New lick.'
         else
-          puts "Canceled."
+          puts 'Canceled.'
         end
       when :star_up
         star_unstar_lick(:up, lick)
-        puts "Starred most recent lick"
+        puts 'Starred most recent lick'
         puts
       when :star_down
         star_unstar_lick(:down, lick)
-        puts "Unstarred most recent lick"
+        puts 'Unstarred most recent lick'
         puts
       when :prev
         if prev_licks.length > 0
           lick = prev_licks.pop
         else
-          puts "No previous lick available."
+          puts 'No previous lick available.'
           puts
           redo
         end
@@ -468,26 +468,26 @@ def play_licks_controller licks, refill, sleep_between: false
       end
     end  ## repeats of the same lick
 
-    if !lick && stock.length == 0
-      if refill
-        print "\n\e[0mEvery lick played once, "
-        if $opts[:iterate] == :random
-          stock = refill.shuffle
-          print "shuffled in random sequence."
-        else
-          stock = refill.clone
-          print "in order of lickfile."
-        end
-        puts "   Starting over ..."
-        puts
-        lick = stock.shift
+    next unless !lick && stock.length == 0
+
+    if refill
+      print "\n\e[0mEvery lick played once, "
+      if $opts[:iterate] == :random
+        stock = refill.shuffle
+        print 'shuffled in random sequence.'
       else
-        puts "Done with playing #{licks.length} licks."
-        puts "\e[0m"
-        return
+        stock = refill.clone
+        print 'in order of lickfile.'
       end
-      print "\e[2m"
+      puts '   Starting over ...'
+      puts
+      lick = stock.shift
+    else
+      puts "Done with playing #{licks.length} licks."
+      puts "\e[0m"
+      return
     end
+    print "\e[2m"
   end  ## one lick after the other
 end
 
@@ -496,13 +496,13 @@ def maybe_wait_for_key_and_decide_replay puts_pending
   if $ctl_lk_hl[:lick_lick] && $ctl_kb_queue.empty?
     $ctl_kb_queue.clear
     puts " \e[2mnext\e[0m" if puts_pending
-    return :next
+    :next
   else
     if $ctl_kb_queue.length > 0
       # different shortcuts apply before we even ask; these are similar to shortcuts during
       # previous play
       char = $ctl_kb_queue.deq
-      if char == '+' || char == 'TAB'
+      if ['+', 'TAB'].include?(char)
         puts " \e[32mnext\e[0m" if puts_pending
         return :next
       end
@@ -519,13 +519,13 @@ def maybe_wait_for_key_and_decide_replay puts_pending
       lines_long = [["\e[0mPress:      \e[92mh\e[32m: this help        \e[92m.r\e[32m: replay this lick    \e[92me\e[32m: edit lickfile"],
                     ["    \e[92mBACKSPACE\e[32m: previous lick    \e[92m*/\e[32m: star,unstar most recent lick"],
                     ["            \e[92mn\e[32m: choose lick by name"],
-                    ["More keys (also while playing recordings but not holes):"],
+                    ['More keys (also while playing recordings but not holes):'],
                     ["      \e[92mc\e[32m: toggle continuous play, i.e. without a menu (now ",
-                     ( $ctl_lk_hl[:lick_lick]  ?  " ON"  :  "OFF" ), ")"],
+                     ( $ctl_lk_hl[:lick_lick]  ?  ' ON'  :  'OFF' ), ')'],
                     ["      \e[92mL\e[32m: toggle loop for all licks (now ",
-                     ( $ctl_lk_hl[:loop_loop]  ?  " ON"  :  "OFF" ), ")"],
+                     ( $ctl_lk_hl[:loop_loop]  ?  ' ON'  :  'OFF' ), ')'],
                     ["  \e[92m2-9,0\e[32m: set num loops fo all-licks looping (L) (now ",
-                     "#{$ctl_lk_hl[:num_loops]}", ")"],
+                     "#{$ctl_lk_hl[:num_loops]}", ')'],
                     ["\e[92mSPACE or RETURN\e[32m for next lick ..."]]
       lines = if show_help
                 lines_long
@@ -647,17 +647,17 @@ def do_play_licks args
 
   $ctl_lk_hl[:can_star_unstar] = true
   sw = $opts[:start_with]
-  licks = if $opts[:iterate] == :random
-            licks = $licks.shuffle
-          else
-            licks = $licks.clone
-          end
+  licks = licks = if $opts[:iterate] == :random
+                    $licks.shuffle
+                  else
+                    $licks.clone
+                  end
   idx = if sw
           if record = shortcut2history_record(sw)
             # we canno use record[:lick_idx], because that is against unshuffled licks
             licks.each_with_index.find {|l, i| l[:name] == record[:name]}&.at(1) || 0
           else
-            (0...licks.length).find {|i| licks[i][:name] == sw} or fail "Unknown lick #{sw} given for option '--start-with'"
+            (0...licks.length).find {|i| licks[i][:name] == sw} or raise "Unknown lick #{sw} given for option '--start-with'"
           end
         else
           0

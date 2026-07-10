@@ -17,7 +17,7 @@ def do_samples to_handle
   when 'delete'
     samples_delete to_handle
   else
-    fail "Internal error: unknown extra '#{$extra}'"
+    raise "Internal error: unknown extra '#{$extra}'"
   end
 end
 
@@ -153,11 +153,11 @@ def samples_record to_handle
   puts
   char = one_char
 
-  if File.exist?($freq_file)
-    hole2freq = yaml_parse($freq_file)
-  else
-    hole2freq = Hash.new
-  end
+  hole2freq = if File.exist?($freq_file)
+                yaml_parse($freq_file)
+              else
+                Hash.new
+              end
 
   unless char == 's'
     do_animation 'first hole', 5
@@ -210,7 +210,9 @@ def record_and_review_hole hole
   # This loop contains all the operations record, trim and draw as well as some checks and user input
   # the sequence of these actions is fixed; if they are executed at all is determined by do_xxx
   # For the first loop iteration this is set below, for later iterations according to user input
-  do_record, do_draw, do_trim = [false, true, false]
+  do_record = false
+  do_draw = true
+  do_trim = false
   freq = nil
 
   begin  ## while answer != :okay
@@ -250,9 +252,11 @@ def record_and_review_hole hole
         issue_before_trim = false
         result = trim_recorded(hole, sample_file)
         if result == :redo
-          do_record, do_draw, do_trim = [true, false, true]
+          do_record = true
+          do_draw = false
+          do_trim = true
           redo
-        elsif result == :next || result == :cancel
+        elsif %i[next cancel].include?(result)
           FileUtils.mv(backup, sample_file) if result == :cancel && File.exist?(backup)
           FileUtils.rm(backup) if File.exist?(backup)
           return result, analyze_with_aubio(sample_file)
@@ -269,46 +273,40 @@ def record_and_review_hole hole
     puts "\e[34mReview and/or Record\e[0m hole  \e[32m-->   \e[92m#{hole}\e[32m   <--  \e[0m(key of #{$key})"
 
     sleep 0.1
-    choices = { :record =>
-               [['r', 'TAB'],
-                'record and trim',
-                'record RIGHT AWAY (after countdown); then trim recording',
-                'and remove initial silence and surplus length'],
-                :play =>
-               [['p', 'SPACE'],
-                'play current recording',
-                'play current recording'],
-                :draw =>
-               [['d'],
-                'draw sound',
-                'draw sound data (again)'],
-                :frequency =>
-               [['f'],
-                'play frequency sample',
-                'show and play the ET frequency of the hole by generating and',
-                'analysing a sample sound; does not overwrite current recording'],
-                :generate =>
-               [['g'],
-                'generate sound',
-                'generate a sound (instead of recording it) for the',
-                'ET frequency of the hole'],
-                :back =>
-               [['b', 'BACKSPACE'],
-                'back to prev hole',
-                'jump back to previous hole and discard work on current'],
-                :okay =>
-               [['y', 'RETURN'],
-                'accept and continue', 'continue to next hole'],
-                :quit =>
-               [['q'],
-                'quit recording',
-                'exit from recording of samples, but keep all samples,',
-                'that have been recorded up to this point'] }
+    choices = { record: [%w[r TAB],
+                         'record and trim',
+                         'record RIGHT AWAY (after countdown); then trim recording',
+                         'and remove initial silence and surplus length'],
+                play: [%w[p SPACE],
+                       'play current recording',
+                       'play current recording'],
+                draw: [['d'],
+                       'draw sound',
+                       'draw sound data (again)'],
+                frequency: [['f'],
+                            'play frequency sample',
+                            'show and play the ET frequency of the hole by generating and',
+                            'analysing a sample sound; does not overwrite current recording'],
+                generate: [['g'],
+                           'generate sound',
+                           'generate a sound (instead of recording it) for the',
+                           'ET frequency of the hole'],
+                back: [%w[b BACKSPACE],
+                       'back to prev hole',
+                       'jump back to previous hole and discard work on current'],
+                okay: [%w[y RETURN],
+                       'accept and continue', 'continue to next hole'],
+                quit: [['q'],
+                       'quit recording',
+                       'exit from recording of samples, but keep all samples,',
+                       'that have been recorded up to this point'] }
 
     answer = read_answer(choices)
 
     # operations will be in this sequence if set below according to user input
-    do_record, do_draw, do_trim = [false, false, false]
+    do_record = false
+    do_draw = false
+    do_trim = false
     case answer
     when :play
       if File.exist?(sample_file)
@@ -334,13 +332,15 @@ def record_and_review_hole hole
       wave2data(sample_file)
       do_draw = true
     when :record
-      do_record, do_draw, do_trim = [true, false, true]
+      do_record = true
+      do_draw = false
+      do_trim = true
       issue_before_trim = "\e[0m\e[34mTrimming\e[0m recorded sound right away ...\n"
     end
 
   end while answer != :okay
 
-  return :next, freq
+  [:next, freq]
 end
 
 def write_freq_file hole2freq, file = $freq_file
@@ -356,7 +356,7 @@ def print_summary hole2freq, rec_or_gen
   template = '    %8s | %8s | %8s | %6s | %6s | %s '
   puts "Recordings in #{$sample_dir}"
   puts "\nSummary of #{rec_or_gen} frequencies:\n\n"
-  puts template % %w(Hole Freq ET Diff Cents Gauge)
+  puts template % %w[Hole Freq ET Diff Cents Gauge]
   puts '  ------------' + '-' * (template % ['', '', '', '', '', '']).length
   maxhl = $harp_holes.map(&:length).max
   $harp_holes.each do |hole|
@@ -380,9 +380,9 @@ def print_summary hole2freq, rec_or_gen
     sleep 0.005
   end
   puts "\nYou may compare #{rec_or_gen} frequencies with those calculated from equal"
-  puts "temperament tuning. The gauge shows the difference in frequency between"
+  puts 'temperament tuning. The gauge shows the difference in frequency between'
   puts "#{rec_or_gen} and target frequency (:); left and right border are the"
-  puts "neighbouring semitones."
+  puts 'neighbouring semitones.'
 end
 
 def samples_check to_handle
@@ -403,7 +403,7 @@ def samples_check to_handle
     prev_remark = nil
     these_keys.each do |key|
       sample_dir = get_sample_dir(key)
-      counts = ['wav', 'mp3'].map do |suff|
+      counts = %w[wav mp3].map do |suff|
         [suff,
          File.directory?(sample_dir) ? Dir["#{sample_dir}/*.#{suff}"].length : 0]
       end.to_h
@@ -431,14 +431,14 @@ def samples_check to_handle
     # check single key only
     puts
     if File.directory?($sample_dir)
-      puts "Checking for recorded and/or generated samples for each hole"
+      puts 'Checking for recorded and/or generated samples for each hole'
       puts "in  #{$sample_dir}:"
       puts
       maxlen = $harp_holes.map(&:length).max
       found_prev = nil
       counts = Hash.new {|h, k| h[k] = 0}
       $harp_holes.each do |hole|
-        endings = %w(wav mp3).map do |ending|
+        endings = %w[wav mp3].map do |ending|
           this_or_equiv("#{$sample_dir}/%s.#{ending}", $harp[hole][:note]) && ending
         end.compact
 
@@ -451,7 +451,7 @@ def samples_check to_handle
                 when 2
                   'recorded + generated sample'
                 else
-                  fail "Internal error: #{endings}"
+                  raise "Internal error: #{endings}"
                 end
         puts ( found == found_prev ? "\e[2m#{found}\e[0m" : found )
         counts[found] += 1
@@ -556,7 +556,7 @@ def sample_args_helper to_handle
                             else
                               [false, [$key]]
                             end
-  return [do_all_keys, these_keys]
+  [do_all_keys, these_keys]
 end
 
 def create_frequency_file_from_mp3s sample_dir

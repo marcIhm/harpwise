@@ -14,6 +14,9 @@
 
 * Fixes pending
 
+  - Recognize shadowed notes (e.g. ff which is shadowed by e) to be used or at least
+    recognized and reported as a shadowed
+    
 ** Done
 
    - RETURN should only be remapped in mode licks?
@@ -27,181 +30,17 @@
     - 'command-line' if used as an adjective
     - never: 'comandline'
 
-* Rubocop
-
+* STARTED Rubocop
   
   rubocop >rubocop.out
   
   ruby -ne 'BEGIN {cps={}}; cps[$1]=1 if $_=~/\[Correctable\]\s+(\S+):/; END {scps=cps.keys.sort; puts scps; puts scps.length}' <rubocop.out
 
-  rubocop -A
+  rubocop -a
    
-  Vorgehen: Für jeden Cop mindetens ein Beispiel aus rubocop.out betrachten und entscheiden,
-  ob das für mich Okay ist, oder ob ich das per .rubocop.yml ausschließen will.
+  Fixed already:
 
-  Am Ende sieht man nur anhand von rubocop.yml, ob ich für oder gegen diesen Test war.
+  - Layout
+  - Style
 
-  Zu Layout: Hier besteht natürlich die Gefahr für Konflikte mit der Emacs-Einrückung; aber
-  auch die ist nicht immer perfekt.
-  
-  - [X] Layout/ArgumentAlignment
-  - [X] Layout/ArrayAlignment
-  - [X] Layout/AssignmentIndentation
-  - [X] Layout/BeginEndAlignment
-  - [X] Layout/BlockAlignment
-  - [X] Layout/BlockEndNewline
-  - [X] Layout/ClosingHeredocIndentation
-  - [X] Layout/CommentIndentation
-  - [X] Layout/DotPosition
-  - [X] Layout/ElseAlignment
-  - [X] Layout/EmptyLineAfterGuardClause
-  - [X] Layout/EmptyLineBetweenDefs
-  - [X] Layout/EmptyLinesAroundBlockBody
-  - [X] Layout/EmptyLinesAroundClassBody
-  - [X] Layout/EmptyLinesAroundExceptionHandlingKeywords
-  - [X] Layout/EmptyLinesAroundMethodBody
-  - [X] Layout/EndAlignment
-  - [X] Layout/FirstHashElementIndentation
-  - [X] Layout/HashAlignment
-  - [X] Layout/HeredocIndentation
-  - [X] Layout/IndentationConsistency
-  - [X] Layout/IndentationWidth
-  - [X] Layout/LineLength
-  - [X] Layout/MultilineArrayBraceLayout
-  - [X] Layout/MultilineBlockLayout
-  - [X] Layout/MultilineHashBraceLayout
-  - [X] Layout/MultilineMethodCallBraceLayout
-  - [X] Layout/MultilineMethodCallIndentation
-  - [X] Layout/MultilineOperationIndentation
-  - [X] Layout/RescueEnsureAlignment
-  - [X] Layout/SpaceAfterComma
-  - [X] Layout/SpaceAfterNot
-  - [X] Layout/SpaceAroundKeyword
-  - [X] Layout/SpaceAroundOperators
-  - [X] Layout/SpaceBeforeBlockBraces
-  - [X] Layout/SpaceBeforeComma
-  - [X] Layout/SpaceBeforeFirstArg
-  - [X] Layout/SpaceBeforeSemicolon
-  - [X] Layout/SpaceInLambdaLiteral
-  - [X] Layout/SpaceInsideArrayLiteralBrackets
-  - [X] Layout/SpaceInsidePercentLiteralDelimiters
-  - [X] Layout/SpaceInsideRangeLiteral
-  - [X] Layout/SpaceInsideReferenceBrackets
-  - [X] Layout/TrailingEmptyLines
-  - [X] Layout/TrailingWhitespace
-    
-  - [ ] Lint/AmbiguousBlockAssociation
-  - [ ] Lint/AmbiguousOperatorPrecedence
-  - [ ] Lint/AmbiguousRange
-  - [ ] Lint/AssignmentInCondition
-  - [ ] Lint/IncompatibleIoSelectWithFiberScheduler
-  - [ ] Lint/InterpolationCheck
-  - [ ] Lint/NonAtomicFileOperation
-  - [ ] Lint/ParenthesesAsGroupedExpression
-  - [ ] Lint/RedundantSplatExpansion
-  - [ ] Lint/RedundantStringCoercion
-  - [ ] Lint/RedundantTypeConversion
-  - [ ] Lint/RedundantWithIndex
-  - [ ] Lint/SymbolConversion
-  - [ ] Lint/UnusedBlockArgument
-  - [ ] Lint/UnusedMethodArgument
-  - [ ] Lint/UselessAssignment
-  - [ ] Naming/HeredocDelimiterCase
-  - [ ] Security/IoMethods
-  - [ ] Style/AndOr
-  - [ ] Style/BlockDelimiters
-  - [ ] Style/CaseEquality
-  - [ ] Style/CaseLikeIf
-  - [ ] Style/ClassEqualityComparison
-  - [ ] Style/ColonMethodCall
-  - [ ] Style/CommandLiteral
-  - [ ] Style/CommentedKeyword
-  - [ ] Style/ComparableBetween
-  - [ ] Style/ConditionalAssignment
-  - [ ] Style/DoubleNegation
-  - [ ] Style/EachWithObject
-  - [ ] Style/EmptyElse
-  - [ ] Style/EmptyLambdaParameter
-  - [ ] Style/EmptyMethod
-  - [ ] Style/EmptyStringInsideInterpolation
-  - [ ] Style/Encoding
-  - [ ] Style/EvalWithLocation
-  - [ ] Style/EvenOdd
-  - [ ] Style/FetchEnvVar
-  - [ ] Style/FileNull
-  - [ ] Style/For
-  - [ ] Style/FormatString
-  - [ ] Style/FormatStringToken
-  - [ ] Style/FrozenStringLiteralComment
-  - [ ] Style/GlobalStdStream
-  - [ ] Style/GuardClause
-  - [ ] Style/HashEachMethods
-  - [ ] Style/HashSyntax
-  - [ ] Style/IdenticalConditionalBranches
-  - [ ] Style/IfInsideElse
-  - [ ] Style/IfUnlessModifier
-  - [ ] Style/InfiniteLoop
-  - [ ] Style/InverseMethods
-  - [ ] Style/Lambda
-  - [ ] Style/LambdaCall
-  - [ ] Style/LineEndConcatenation
-  - [ ] Style/MapJoin
-  - [ ] Style/MapToHash
-  - [ ] Style/MethodCallWithoutArgsParentheses
-  - [ ] Style/MinMaxComparison
-  - [ ] Style/MultilineIfModifier
-  - [ ] Style/MultilineIfThen
-  - [ ] Style/MultilineTernaryOperator
-  - [ ] Style/MultipleComparison
-  - [ ] Style/NegatedIf
-  - [ ] Style/NegatedIfElseCondition
-  - [ ] Style/NegatedWhile
-  - [ ] Style/NestedTernaryOperator
-  - [ ] Style/Next
-  - [ ] Style/NilComparison
-  - [ ] Style/NumericLiterals
-  - [ ] Style/ParallelAssignment
-  - [ ] Style/ParenthesesAroundCondition
-  - [ ] Style/PercentLiteralDelimiters
-  - [ ] Style/PredicateWithKind
-  - [ ] Style/RaiseArgs
-  - [ ] Style/RedundantArrayFlatten
-  - [ ] Style/RedundantAssignment
-  - [ ] Style/RedundantBegin
-  - [ ] Style/RedundantCapitalW
-  - [ ] Style/RedundantCondition
-  - [ ] Style/RedundantEach
-  - [ ] Style/RedundantFileExtensionInRequire
-  - [ ] Style/RedundantInitialize
-  - [ ] Style/RedundantInterpolation
-  - [ ] Style/RedundantParentheses
-  - [ ] Style/RedundantRegexpArgument
-  - [ ] Style/RedundantRegexpEscape
-  - [ ] Style/RedundantReturn
-  - [ ] Style/RedundantSelf
-  - [ ] Style/RedundantStringEscape
-  - [ ] Style/RegexpLiteral
-  - [ ] Style/RescueModifier
-  - [ ] Style/RescueStandardError
-  - [ ] Style/SafeNavigation
-  - [ ] Style/SelectByRegexp
-  - [ ] Style/Semicolon
-  - [ ] Style/SignalException
-  - [ ] Style/SlicingWithRange
-  - [ ] Style/SoleNestedConditional
-  - [ ] Style/SpecialGlobalVars
-  - [ ] Style/StringChars
-  - [ ] Style/StringLiterals
-  - [ ] Style/StringLiteralsInInterpolation
-  - [ ] Style/StructInheritance
-  - [ ] Style/SymbolArray
-  - [ ] Style/SymbolProc
-  - [ ] Style/TernaryParentheses
-  - [ ] Style/TrailingCommaInArguments
-  - [ ] Style/TrailingCommaInHashLiteral
-  - [ ] Style/TrailingUnderscoreVariable
-  - [ ] Style/WhileUntilDo
-  - [ ] Style/WhileUntilModifier
-  - [ ] Style/WordArray
-  - [ ] Style/ZeroLengthPredicate
-  
+* TODO Minitest

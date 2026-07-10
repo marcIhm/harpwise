@@ -22,14 +22,14 @@ def describe_freq freq
     ub = (fr + nfr) / 2
     return [nil, nil, nil, nil] if freq < lb
 
-    if freq >= lb && freq < ub
-      $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
-      $desc_freq_cache_lb = lb
-      $desc_freq_cache_ub = ub
-      return $desc_freq_cache
-    end
+    next unless freq >= lb && freq < ub
+
+    $desc_freq_cache = [$freq2hole[fr], lb, fr, ub]
+    $desc_freq_cache_lb = lb
+    $desc_freq_cache_ub = ub
+    return $desc_freq_cache
   end
-  return [nil, nil, nil, nil]
+  [nil, nil, nil, nil]
 end
 
 def note2semi note, range = (0..9), graceful = false
@@ -40,7 +40,7 @@ def note2semi note, range = (0..9), graceful = false
     idx = $notes_with_sharps.index(note[0..-2]) ||
           $notes_with_flats.index(note[0..-2]) or
       raise ArgumentError.new("non-digit part of note '#{note}' is none of #{$notes_with_sharps.inspect} or #{$notes_with_flats.inspect}")
-    return 12 * note[-1].to_i + idx - 57
+    12 * note[-1].to_i + idx - 57
   rescue ArgumentError
     return nil if graceful
 
@@ -56,13 +56,13 @@ def semi2note semi, sharps_or_flats = $opts[:sharps_or_flats]
   when :sharps
     $notes_with_sharps[semi % 12] + (semi / 12).to_s
   else
-    fail "Internal error: #{sharps_or_flats}"
+    raise "Internal error: #{sharps_or_flats}"
   end
 end
 
 # normalize to sharp or flat depending on $opts[:sharps_or_flats]
 def sf_norm note
-  return semi2note(note2semi(note))
+  semi2note(note2semi(note))
 end
 
 def semi2freq_et semi
@@ -93,8 +93,8 @@ end
 def describe_inter hon1, hon2, prefer_plus: false, sane: false
   if sane
     return [nil, nil, nil, nil] if !hon1 || !hon2
-  else
-    return [nil, nil, nil, nil] if !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2)
+  elsif !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2)
+    return [nil, nil, nil, nil]
   end
   semi1, semi2 = [hon1, hon2].map do |hon|
     if $harp_holes.include?(hon)
@@ -108,34 +108,34 @@ def describe_inter hon1, hon2, prefer_plus: false, sane: false
     dsemi_shifted = (dsemi % 12)
     oct_shift_clause = " - #{( dsemi_shifted - dsemi ) / 12} oct"
     inter = $intervals[dsemi_shifted] || [nil, nil]
-    return ["#{dsemi_shifted} st" + oct_shift_clause,
-            inter[0] && ( inter[0] + oct_shift_clause ),
-            inter[1] && ( inter[1] + oct_shift_clause ),
-            dsemi]
+    ["#{dsemi_shifted} st" + oct_shift_clause,
+     inter[0] && ( inter[0] + oct_shift_clause ),
+     inter[1] && ( inter[1] + oct_shift_clause ),
+     dsemi]
   else
     inter = $intervals[dsemi] || [nil, nil]
-    return ["#{dsemi} st",
-            inter[0],
-            inter[1],
-            dsemi]
+    ["#{dsemi} st",
+     inter[0],
+     inter[1],
+     dsemi]
   end
 end
 
 def describe_inter_keys key1, key2
   dsemi = note2semi(key1 + '0') - note2semi(key2 + '0')
-  return describe_inter_semis(dsemi)
+  describe_inter_semis(dsemi)
 end
 
 def describe_inter_semis dsemi
   inter = $intervals[dsemi] || [nil, nil]
-  return "#{dsemi} semitones" +
-         if inter[0]
-           " (#{inter[0]})"
-         elsif inter[1]
-           " (#{inter[1]})"
-         else
-           ''
-         end
+  "#{dsemi} semitones" +
+    if inter[0]
+      " (#{inter[0]})"
+    elsif inter[1]
+      " (#{inter[1]})"
+    else
+      ''
+    end
 end
 
 def print_semis_as_abs h1, s1, h2, s2
@@ -177,7 +177,7 @@ def inspect_recorded hole, file
   puts "\e[0m\e[34mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
   freq = analyze_with_aubio(file)
   note2semi($harp[hole][:note])
-  dots, _ = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}
+  dots, = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|hit, idx| idx}
   puts "Frequency: #{freq}, ET: #{freq_et.round(0)}, diff: #{(freq - freq_et).round(0)}   -1st:#{freq_et_m1.round(0)} [#{dots}] +1st:#{freq_et_p1.round(0)}"
   too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
   too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs
@@ -191,7 +191,7 @@ def inspect_recorded hole, file
     puts "You played much   #{too_low ? 'LOWER' : 'HIGHER'}   than expected for hole #{hole}."
     puts "\nMaybe repeat recording with the right hole and pitch?\e[0m\n\n"
   end
-  return freq
+  freq
 end
 
 def diff_semitones key1, key2, strategy: nil
@@ -211,7 +211,7 @@ def diff_semitones key1, key2, strategy: nil
     semis.map! {|s| s < @semi_for_g ? s + 12 : s}
     dsemi = semis[0] - semis[1]
   else
-    fail "Internal error: unknown strategy #{strategy}"
+    raise "Internal error: unknown strategy #{strategy}"
   end
   dsemi
 end

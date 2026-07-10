@@ -11,7 +11,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
 
   # argument lick_file is used in tests
 
-  $lick_file = lfile = ( lick_file || get_lick_file )
+  $lick_file = lfile = lick_file || get_lick_file
   $lick_file_mod_time = File.mtime($lick_file)
 
   # directory may just have been created when getting lick_file
@@ -27,10 +27,10 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
   sec_title = sec_type = nil
   section = nil
 
-  type2keys = { lick: %w(holes notes tags tags.add desc desc.add rec rec.key rec.start rec.length),
-                default: %w(tags tags.add desc desc.add rec.key),
+  type2keys = { lick: %w[holes notes tags tags.add desc desc.add rec rec.key rec.start rec.length],
+                default: %w[tags tags.add desc desc.add rec.key],
                 vars: [],
-                prog: %w(desc licks tags) }
+                prog: %w[desc licks tags] }
 
   #
   # Proces file line by line
@@ -45,8 +45,8 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     derived << line
     where = "file #{lfile}, line #{lno}"
 
-    if md = ( line.match(/^\[(#{$word_re})\]$/) ||
-              line.match(/^\[(prog #{$word_re})\]$/) )
+    if md = line.match(/^\[(#{$word_re})\]$/) ||
+            line.match(/^\[(prog #{$word_re})\]$/)
       derived.insert(-2, '')
 
       # starting new section, process old section first
@@ -130,7 +130,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       end
       err "Lick #{sec_title} key 'holes' is empty (#{where})" unless section[:holes].length > 0
       section[:holes_wo_events] = section[:holes].reject {|h| musical_event?(h)}
-      derived[-1] = "  notes = " + holes.split.map do |hoe|
+      derived[-1] = '  notes = ' + holes.split.map do |hoe|
         musical_event?(hoe) ? hoe : $harp[hoe][:note]
       end.join(' ')
 
@@ -144,7 +144,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
         $note2hole[note]
       end
       err "Lick '#{sec_title}', key 'notes' is empty (#{where})" unless section[:holes].length > 0
-      derived[-1] = "  holes = " + lick['holes'].join(' ')
+      derived[-1] = '  holes = ' + lick['holes'].join(' ')
 
     # desc.add = multi word description
     # desc = multi word description
@@ -169,7 +169,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
       section[:rec_key] = mkey
 
     # rec.start = secs or rec.length = secs
-    elsif md = (line.match(/^ *(rec.start) *= *(.*?)$ *$/) || line.match(/^ *(rec.length) *= *(.*?)$ *$/))
+    elsif md = line.match(/^ *(rec.start) *= *(.*?)$ *$/) || line.match(/^ *(rec.length) *= *(.*?)$ *$/)
       check_section_key(sec_type, 'rec.key', section, type2keys, where)
       key, val = md[1..2]
       begin
@@ -190,7 +190,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     elsif md = line.match(/^ *(#{$word_re}) *= *(#{$word_re}) *$/)
       key = md[1]
       check_section_key(sec_type, key, section, type2keys, where)
-      err "Internal error: not expected to come here"
+      err 'Internal error: not expected to come here'
 
     else
       err "Cannot parse this line:\n\n#{line}\n\na line should be one of:\n  - a comment starting with '#'\n  - a section like '[name]'\n  - an assignment like 'key = something'\n(#{where})"
@@ -234,7 +234,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
 
   if $adhoc_lick_prog
     name2prog['adhoc'] = { lno: 1,
-                           desc: "Adhoc lick progression given on the command line",
+                           desc: 'Adhoc lick progression given on the command line',
                            licks: $adhoc_lick_prog }
     $adhoc_lick_prog.each {|lname| name2lick[lname][:progs] << 'adhoc'}
   end
@@ -253,12 +253,12 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     drop_all = Set.new($opts[:drop_tags_all]&.split(','))
     drop_any = Set.new($opts[:drop_tags_any]&.split(','))
 
-    if (keep_all).intersection(drop_any).any?
-      if graceful
-        return [[], []]
-      else
-        err "No licks can be found, because options '--tags-all' and '--drop-tags-any' have this intersection: #{(keep_all).intersection(drop_any).to_a}"
-      end
+    if keep_all.intersection(drop_any).any?
+      return [[], []] if graceful
+
+
+      err "No licks can be found, because options '--tags-all' and '--drop-tags-any' have this intersection: #{keep_all.intersection(drop_any).to_a}"
+
     end
 
     tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
@@ -270,22 +270,20 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
      ['--tags-any', keep_any],
      ['--dtop-tags-all', drop_all],
      ['--drop-tags-any', drop_any]].each do |opt, tags|
-      if !tags.subset?(tags_licks)
-        if graceful
-          return [[], []]
-        else
-          print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
-          print_in_columns tags_licks.to_a.sort, pad: :tabs
-          err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected (see above for a list of all tags)."
-        end
-      end
+      next if tags.subset?(tags_licks)
+      return [[], []] if graceful
+
+
+      print "\nTags known either from lick-file\n#{lfile}\nor added by harpwise:\n\n"
+      print_in_columns tags_licks.to_a.sort, pad: :tabs
+      err "Among tags from option #{opt} (#{tags.to_a.join(', ')}), these are unknown: #{(tags - tags_licks).to_a.join(', ')}; therefore no licks are selected (see above for a list of all tags)."
     end
 
     # apply all filtering options in order
     licks = all_licks
-            .select {|lick| keep_all.empty? || (keep_all.subset?(Set.new(lick[:tags])))}
+            .select {|lick| keep_all.empty? || keep_all.subset?(Set.new(lick[:tags]))}
             .select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}
-            .reject {|lick| drop_all.any? && (drop_all.subset?(Set.new(lick[:tags])))}
+            .reject {|lick| drop_all.any? && drop_all.subset?(Set.new(lick[:tags]))}
             .reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}
             .select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}
             .select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
@@ -296,7 +294,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
                lno: 1,
                desc: "The current journal as a lick; see also #{$journal_file}",
                holes: $journal.clone,
-               tags: %w(journal) }
+               tags: %w[journal] }
       lk = process_lick(lick, 'journal', vars, default)
       all_licks << lk
       licks << lk
@@ -312,7 +310,7 @@ def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
                    $note2hole[hon] ||
                    err("Given note #{hon} cannot be played on this harmonica")
                end,
-               tags: %w(adhoc) }
+               tags: %w[adhoc] }
       lk = process_lick(lick, 'adhoc', vars, default)
       all_licks << lk
       licks << lk
@@ -334,17 +332,17 @@ def create_initial_lick_library lfile
   if $type == 'richter'
     puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist!"
     puts "\nCreating it with five sample licks and loads of comments,"
-    puts "explaining the format."
+    puts 'explaining the format.'
     puts
-    puts "However, you need to add more licks yourself, to make"
-    puts "this mode (licks) really useful."
+    puts 'However, you need to add more licks yourself, to make'
+    puts 'this mode (licks) really useful.'
     puts
     puts "\n\e[32mON GETTING MORE LICKS\e[0m\n\n"
     lick_sources = ERB.new(IO.read("#{$dirs[:install]}/resources/lick_sources.txt")).result(binding).lines
     lick_sources.pop while lick_sources[-1].strip.empty?
     File.write(lfile, ERB.new(IO.read("#{$dirs[:install]}/resources/sample_licks_with_holes_richter.txt")).result(binding))
     lick_sources.each {|l| print l}
-    %w(wade.mp3 st-louis.mp3 feeling-bad.mp3).each do |file|
+    %w[wade.mp3 st-louis.mp3 feeling-bad.mp3].each do |file|
       FileUtils.cp("#{$dirs[:install]}/recordings/#{file}", $lick_dir + '/recordings')
     end
     puts
@@ -355,11 +353,11 @@ def create_initial_lick_library lfile
     puts ' - St. Louis Blues'
     puts ' - Going down that road feeling bad'
     puts
-    puts "(all in my own, rather imperfect recording...)"
-    puts "If you like this mode and want to make it more useful,"
-    puts "then consider adding more licks to:"
+    puts '(all in my own, rather imperfect recording...)'
+    puts 'If you like this mode and want to make it more useful,'
+    puts 'then consider adding more licks to:'
     puts "#{lfile}"
-    puts "(where you may also reread these and more suggestions)"
+    puts '(where you may also reread these and more suggestions)'
     puts
   else
     puts "\n\n\e[32mLICK FILE\e[0m\n\n  #{lfile}\n\ndoes not exist!\n\n"
@@ -402,16 +400,20 @@ end
 def musical_event? hole_or_note, type = :general
   has_paren = hole_or_note[0] == '(' && hole_or_note[-1] == ')'
   has_brack = hole_or_note[0] == '[' && hole_or_note[-1] == ']'
-  has_head = hole_or_note[0] == '.' || hole_or_note[0] == '~'
-  is_comma = hole_or_note == ',' || hole_or_note == ';'
+  has_head = ['.', '~'].include?(hole_or_note[0])
+  is_comma = [',', ';'].include?(hole_or_note)
   case type
   when :general
-    return has_paren || has_brack || has_head || is_comma
+    has_paren || has_brack || has_head || is_comma
   when :secs
     return false unless has_paren
     return false unless hole_or_note[-2] == 's'
 
-    return ( !!Float(hole_or_note[1..-3]) rescue false )
+    begin
+      !!Float(hole_or_note[1..-3])
+    rescue StandardError
+      false
+    end
   else
     err "Internal error: #{type}"
   end
@@ -423,9 +425,9 @@ def get_musical_duration hole_or_note
   return duration unless hole_or_note[-2..-1] == 's)'
 
   begin
-    return Float(hole_or_note[1..-3])
-  rescue
-    return duration
+    Float(hole_or_note[1..-3])
+  rescue StandardError
+    duration
   end
 end
 
@@ -447,7 +449,7 @@ end
 def desc_lick_select_opts indent: ''
   effective = []
   relax = []
-  [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :max_holes, :min_holes].each do |opt|
+  %i[tags_all tags_any drop_tags_all drop_tags_any max_holes min_holes].each do |opt|
     if $opts[opt] && $opts[opt].to_s.length > 0
       effective << "\n#{indent}  --" + opt.o2str + ' ' + $opts[opt].to_s
       relax << "--#{opt.o2str} -"
@@ -487,15 +489,18 @@ def process_lick lick, name, vars, default
     lick[:desc] += ' ' + default[:desc_add]
   end
   lick[:desc] = replace_vars(vars, [lick[:desc].strip], name)[0]
-  lick[:rec_key] ||= ( default[:rec_key] || 'c' )
+  lick[:rec_key] ||= default[:rec_key] || 'c'
   lick[:rec_key] = replace_vars(vars, [lick[:rec_key]], name)[0]
 
   # add tags (e.g. shifts-four), if lick shifts by certain number of semitones
   $licks_semi_shifts.keys.select {_1 > 0}.each do |st|
     tag = $licks_semi_shifts[st]
     num_shiftable = lick[:holes].inject(0) do |sum, hole|
-      sum + ( musical_event?(hole) ? 1 :
-                ( $harp[hole][:shifted_by][st] ? 1 : 0 ) )
+      sum + ( if musical_event?(hole)
+                1
+              else
+                ( $harp[hole][:shifted_by][st] ? 1 : 0 )
+              end )
     end
     lick[:tags] << tag if lick[:holes].length == num_shiftable
   end
@@ -539,9 +544,9 @@ def check_section_key type, key, section, type2keys, where
          when :prog
            "prog '#{section[:name]}'"
          when :default
-           "default-section"
+           'default-section'
          when :vars
-           "vars-section"
+           'vars-section'
          else
            err "Internal error: unkown type: #{type}"
          end
@@ -556,19 +561,18 @@ end
 
 def find_lick_by_name name
   nm_idx = $licks.each_with_index.find {|l, idx| l[:name] == name}
-  if nm_idx
-    return nm_idx[1]
+  return nm_idx[1] if nm_idx
+
+
+  puts "Unknown lick #{name}, none of:"
+  print_in_columns($licks.map {|l| l[:name]}.sort, indent: 4, pad: :tabs)
+  puts
+  if $licks == $all_licks
+    puts 'where set of licks has not been restricted by tags'
   else
-    puts "Unknown lick #{name}, none of:"
-    print_in_columns($licks.map {|l| l[:name]}.sort, indent: 4, pad: :tabs)
-    puts
-    if $licks == $all_licks
-      puts "where set of licks has not been restricted by tags"
-    else
-      puts "after applying these tag-options: #{desc_lick_select_opts}"
-    end
-    err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
+    puts "after applying these tag-options: #{desc_lick_select_opts}"
   end
+  err "Unknown lick: '#{name}' (among #{$licks.length} licks), see above for details"
 end
 
 def process_opt_lick_prog
@@ -580,16 +584,16 @@ def process_opt_lick_prog
   $all_licks || err('Internal error: licks not read before')
 
   # this already errs out for lnames.length > 0 && lpnames.length > 0
-  _, _, lnames, lpnames, _, _, _ = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
-                                                                amongs: [:lick, :lick_prog],
-                                                                extra_allowed: false)
+  _, _, lnames, lpnames, = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
+                                                        amongs: %i[lick lick_prog],
+                                                        extra_allowed: false)
   if ( lnames.length == 0 && lpnames.length == 0 ) ||
      ( lnames.length > 0  && lpnames.length > 0 )
     err "Internal error, should have had error already in partition: #{lpnames}, #{lnames}"
   elsif lnames.length > 0
     $opts[:lick_prog] = 'adhoc'
     $adhoc_lick_prog = lnames
-    $msgbuf.print "Adhoc lick progression", 5, 5, :lick_prog
+    $msgbuf.print 'Adhoc lick progression', 5, 5, :lick_prog
   else  ## lpnames.length > 0
     err("Can handle only one lick-progression at a time, not: #{lpnames.join(',')}") if lpnames.length > 1
     lnames = $all_lick_progs[lpnames[0]][:licks]

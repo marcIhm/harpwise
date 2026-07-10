@@ -2,6 +2,12 @@ AllCops:
   DisabledByDefault: true
 Layout:
   Enabled: true
+Style:
+  Enabled: true
+
+# This breaks: "foo %s %s %s" % %w(bar baz qux)
+Style/FormatString:
+  Enabled: false
   
 #AllCops:
 #   NewCops: enable

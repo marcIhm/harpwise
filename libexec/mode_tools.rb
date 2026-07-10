@@ -6,7 +6,7 @@ def do_tools to_handle
   $lick_file ||= get_lick_file
 
   # common error checking
-  err_args_not_allowed(to_handle) if %w(edit-config chords).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if %w[edit-config chords].include?($extra) && to_handle.length > 0
 
   case $extra
   when 'change-harp'
@@ -67,13 +67,13 @@ def do_tools to_handle
   when 'utils', 'utilities'
     tool_utils
   else
-    fail "Internal error: unknown extra '#{$extra}'"
+    raise "Internal error: unknown extra '#{$extra}'"
   end
 end
 
 def tool_key_positions to_handle
   if $opts[:brief]
-    err "This tool does not accept arguments, if option --terse is present" if to_handle.length > 0
+    err 'This tool does not accept arguments, if option --terse is present' if to_handle.length > 0
     puts
     puts "\e[2mMatching keys of most common richter harmonicas,\nplayed in second position, with keys of songs:"
     puts
@@ -122,27 +122,27 @@ def tool_key_positions to_handle
     # construct numbers for circle of fifth
     extract = lines
               .select {|l| l['%s']}
-              .map {|l|
+              .map do |l|
       l
         .split('|')[1..-3]
         .map {|f| f.tr(' ', '').upcase}
-    }
+    end
     wanted = circle_key.upcase
     4.times do
       extract.each_with_index do |line, idx|
-        if line[0] == wanted ||
-           wanted.length > 1 && line[0][wanted]
-          circle << idx
-          wanted = line[-1]
-          break
-        end
+        next unless line[0] == wanted ||
+                    wanted.length > 1 && line[0][wanted]
+
+        circle << idx
+        wanted = line[-1]
+        break
       end
     end
   end
 
   puts
   puts "\e[0m\e[2mThe key of the harp equals the key of the song in first position\nThe song key in 4th position also gives the relative minor"
-  puts "For richter harps positions 1 and 2 are blow and draw chords respectively"
+  puts 'For richter harps positions 1 and 2 are blow and draw chords respectively'
   puts "Circle of fifth starting from #{circle_key} can be followed with the numbers\nat line start" if circle_key
   print "\e[0m"
   idx = 0
@@ -168,7 +168,7 @@ def tool_key_positions to_handle
 end
 
 def tool_spread_notes notes
-  if !$opts[:brief]
+  unless $opts[:brief]
     puts
     puts "\e[2mAll holes, that produce the given notes in any octave:"
     puts "As a chart:\e[0m"
@@ -199,7 +199,7 @@ def tool_spread_notes notes
 end
 
 def tool_make_scale holes
-  err "Need at least one hole as an argument" if holes.length == 0
+  err 'Need at least one hole as an argument' if holes.length == 0
   holes.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
@@ -208,11 +208,11 @@ def tool_make_scale holes
   line = "\n" + ' ' * ( $term_width / 8 ) + "\e[2m" + '-' * ( $term_width / 2 ) + "\e[0m\n\n"
   cont = { 'holes' => holes }
   puts
-  puts "Creating new user-defined scale from given holes and from answers to a few questions ..."
+  puts 'Creating new user-defined scale from given holes and from answers to a few questions ...'
 
   print line
   print room
-  print "Please enter name of the new scale (required): "
+  print 'Please enter name of the new scale (required): '
   sname = gets.chomp.strip.gsub(/[^[:print:]]/, '').downcase
   err "Given new name   '#{sname}'   contains spaces" if sname[' ']
   err "Given new name   '#{sname}'   is too short (must be three chars or more)" if sname.length < 3
@@ -222,13 +222,13 @@ def tool_make_scale holes
     puts
     puts "Look, the new user-defined scale   '#{sname}'   already exists as a file:\n\n  \e[2m#{sfile}\e[0m"
     puts
-    puts "Do you want to overwrite it?"
+    puts 'Do you want to overwrite it?'
     print room
     print "Enter 'y' to overwrite, anything else to cancel: "
     answer = gets.chomp.strip
     if answer != 'y'
       puts
-      puts "Creation of new scale has been canceled."
+      puts 'Creation of new scale has been canceled.'
       puts
       puts
       exit
@@ -237,7 +237,7 @@ def tool_make_scale holes
 
   print line
   print room
-  print "Please enter 1-2 char short name for the new scale (empty to omit): "
+  print 'Please enter 1-2 char short name for the new scale (empty to omit): '
   short = gets.chomp.strip.gsub(/[^[:print:]]/, '')
   err "Given short name   '#{short}'   contains spaces" if short[' ']
   err "Given short name   '#{short}'   is too long (must be 1-2 chars)" if short.length > 2
@@ -254,7 +254,7 @@ def tool_make_scale holes
   print room
   ycont = YAML.dump(cont)
   File.write(sfile, "#\n# User-defined scale\n#\n" + ycont )
-  puts "This content:"
+  puts 'This content:'
   puts
   puts "\e[2m#{ycont}\e[0m"
   puts
@@ -277,7 +277,7 @@ def colorize_word_cell plain, word, color_word, color_normal
                end
     colored += field + "\e[0m\e[2m|\e[0m"
   end
-  return colored + "\n"
+  colored + "\n"
 end
 
 def tool_change_harp to_handle
@@ -293,7 +293,7 @@ def tool_change_harp to_handle
   puts
   puts "Moving holes and notes from key \e[32m#{$key}\e[0m to \e[32m#{key_other}\e[0m"
   puts "difference between harps is #{describe_inter_semis(dsemi)};"
-  puts "holes change but notes stay the same:"
+  puts 'holes change but notes stay the same:'
   puts
   puts
   cols = Array.new
@@ -310,10 +310,10 @@ def tool_change_harp to_handle
 end
 
 def tool_match_harps to_handle
-  err "Need at least one hole or note as an argument" if to_handle.length == 0
+  err 'Need at least one hole or note as an argument' if to_handle.length == 0
 
   semis_wanted_unshifted_all = to_handle.map do |hon|
-    semi = note2semi(hon, (2..8), true) || ($hole2note[hon] && note2semi($hole2note[hon], (2..8), true))
+    semi = note2semi(hon, 2..8, true) || ($hole2note[hon] && note2semi($hole2note[hon], 2..8, true))
     err "Argument '#{hon}' is neither a note (e.g. a4 or ds6) nor a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless semi
     semi
   end
@@ -324,7 +324,7 @@ def tool_match_harps to_handle
   missing = nil
 
   hole_set_sets = { 'all holes' => ['all'],
-                    'plain draw and blow' => %w(draw-full blow-full) }
+                    'plain draw and blow' => %w[draw-full blow-full] }
 
   puts "\e[2m"
   puts "Trying to fit the #{to_handle.length} holes given (#{semis_wanted_unshifted.length} uniq) onto harmonicas of all keys"
@@ -344,11 +344,11 @@ def tool_match_harps to_handle
     puts
     case octave_shift
     when 0
-      puts "Trying   UNSHIFTED   notes given"
+      puts 'Trying   UNSHIFTED   notes given'
     when 1
-      puts "Shifting notes given   UP   one octave"
+      puts 'Shifting notes given   UP   one octave'
     when -1
-      puts "Shifting notes given   DOWN   one octave"
+      puts 'Shifting notes given   DOWN   one octave'
     end
     puts
 
@@ -366,7 +366,7 @@ def tool_match_harps to_handle
       hole_set_sets_semis = hole_set_sets.map do |name, hole_sets|
         semis_avail = hole_sets.map do |hole_set|
           $named_hole_sets[hole_set].map do |hole|
-            note2semi($hole2note[hole], (2..8), true)
+            note2semi($hole2note[hole], 2..8, true)
           end
         end.flatten.sort.uniq
         [name, semis_avail]
@@ -403,7 +403,7 @@ def tool_match_harps to_handle
       details_per_rank.group_by {|d| d[3]}.each do |name_avail, details_per_avail|
         puts "    for hole set   '#{name_avail}'"
         puts
-        puts "      " + details_per_avail.map {|d| d[2]}.sort_by {|k| note2semi(k + '4')}.uniq.join('  ')
+        puts '      ' + details_per_avail.map {|d| d[2]}.sort_by {|k| note2semi(k + '4')}.uniq.join('  ')
         puts
       end
 
@@ -445,7 +445,7 @@ def tool_shift_to_groups to_handle
 
   puts
   puts "Shifting holes or notes by #{describe_inter_semis(dsemi)} and showing"
-  puts "all holes, that map to the same bare note (i.e. ignoring octaves)"
+  puts 'all holes, that map to the same bare note (i.e. ignoring octaves)'
   puts
   puts
   cols = Array.new
@@ -488,19 +488,17 @@ def tools_shift_helper to_handle
     else
       err("Argument '#{hon}' is neither   a note   nor   " +
           "a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" +
-          ( to_handle.length == 1 ? "   and not a lick either" : '' ))
+          ( to_handle.length == 1 ? '   and not a lick either' : '' ))
     end
   end
-  return [hons, inter, dsemi]
+  [hons, inter, dsemi]
 end
 
 def print_transposed cols, emphasis = nil, heads: nil
   # make sure, that all columns have the same number of elements
   maxlen = cols.map(&:length).max
   cols.each do |col|
-    while col.length < maxlen
-      col << ''
-    end
+    col << '' while col.length < maxlen
   end
 
   max_in_col = Array.new
@@ -556,27 +554,27 @@ def tool_search_holes_in_licks to_handle
   maxlen = 0
   $all_licks, $licks, $all_lick_progs = read_licks
 
-  [:max, :print].each do |what|
+  %i[max print].each do |what|
     $licks.each do |lick|
       lick_holes = lick[:holes].reject {|nh| musical_event?(nh)}
       lick_canon = lick_holes.map {|h| $harp[h][:canonical]}
       # check if our search appears within lick
       idx = (0..lick_canon.length - search_canon.length)
             .find {|ix| lick_canon[ix, search_canon.length] == search_canon}
-      if idx
-        case what
-        when :max
-          maxlen = [maxlen, lick[:name].length].max
-        when :print
-          puts '  ' + lick[:name].rjust(maxlen) + ":\e[2m" +
-               # extra padding for non-edge-case
-               (idx == 0 ? '' : '  ') +
-               [lick_holes[0...idx], ["\e[0m\e[32m "],
-                lick_holes[idx, search_canon.length], [" \e[0m\e[2m"],
-                lick_holes[idx + search_canon.length..]]
-               .flatten.join(' ').strip + "\e[0m"
-          count += 1
-        end
+      next unless idx
+
+      case what
+      when :max
+        maxlen = [maxlen, lick[:name].length].max
+      when :print
+        puts '  ' + lick[:name].rjust(maxlen) + ":\e[2m" +
+             # extra padding for non-edge-case
+             (idx == 0 ? '' : '  ') +
+             [lick_holes[0...idx], ["\e[0m\e[32m "],
+              lick_holes[idx, search_canon.length], [" \e[0m\e[2m"],
+              lick_holes[idx + search_canon.length..]]
+             .flatten.join(' ').strip + "\e[0m"
+        count += 1
       end
     end
   end
@@ -633,7 +631,7 @@ def tool_search_lick_in_scales to_handle
     puts
     cnt += 1
   end
-  puts "Nothing found." if cnt == 0
+  puts 'Nothing found.' if cnt == 0
   puts
 end
 
@@ -656,20 +654,20 @@ def tool_search_scale_in_licks to_handle
     # take larger and larger subsets of lick holes
     (1..lk_holes.length).each do |len|
       # go through each subset of size n until we find one that is fully contained in scale
-      if lk_holes.combination(len).any? do |sbst_holes|
-           (sbst_holes - sc_holes).length == 0
-         end
-        matches_but[lk_holes.length - len] << lick[:name]
+      next unless lk_holes.combination(len).any? do |sbst_holes|
+        (sbst_holes - sc_holes).length == 0
       end
+
+      matches_but[lk_holes.length - len] << lick[:name]
     end
   end
 
   puts
   puts "Given scale  \e[32m#{to_handle[0]}\e[0m , this tool checks for each lick, if all"
-  puts "lick-holes are from the scale."
+  puts 'lick-holes are from the scale.'
   puts
-  puts "However, sometimes 0,1,2, ... (different) holes of the lick are not"
-  puts "from the scale; these cases are listed too."
+  puts 'However, sometimes 0,1,2, ... (different) holes of the lick are not'
+  puts 'from the scale; these cases are listed too.'
   puts
   puts
 
@@ -711,7 +709,7 @@ end
 def tool_licks_from_scale to_handle
   $all_licks, $licks, $all_lick_progs = read_licks
 
-  th_grouped = to_handle.group_by {|th| recognize_among(th, [:scale, :lick])}
+  th_grouped = to_handle.group_by {|th| recognize_among(th, %i[scale lick])}
   needed = 'Required arguments are a single scale and optionally the name of a single lick'
   err "#{needed}, but no argument at all has been given" if to_handle.length == 0
   err "#{needed}. Cannot handle these: #{th_grouped[false].join(' ')}" if th_grouped[false]
@@ -786,7 +784,7 @@ def tool_licks_from_scale to_handle
     puts
     puts "#{$licks.length} licks have been checked against scale   #{scale}."
     puts "Below you find the licks, that have   #{min_group * 20}%  or more   of their holes from scale."
-    puts "Licks are grouped and sorted by this percentage, also by their length."
+    puts 'Licks are grouped and sorted by this percentage, also by their length.'
     puts
 
     max_group.downto(min_group).each do |group|
@@ -803,7 +801,7 @@ def tool_licks_from_scale to_handle
       puts
     end
     puts
-    puts "For more details about a single lick, invoke again with its name as an additional argument."
+    puts 'For more details about a single lick, invoke again with its name as an additional argument.'
     puts
   end
 end
@@ -836,7 +834,7 @@ def tool_chords
   st_abs << $maj_sc_st_abs[-1] + $maj_sc_st_diff[0]
   # offset for playing in second position i.e. for staring with the fifth note
   offset = st_abs[5 - 1]
-  names = %w(i iv v)
+  names = %w[i iv v]
   [[1, 3, 5], [4, 6, 8], [5, 7, 9]].each do |chord|
     chord_st = chord.map do |i|
       semi = offset + st_abs[i - 1]
@@ -844,7 +842,7 @@ def tool_chords
       semi
     end.sort
     puts "chord-#{names[0]}:"
-    print_in_columns chord_st.map {|st| ( $semi2hole[$min_semi + st] || '--')}, pad: :fill
+    print_in_columns chord_st.map {|st| $semi2hole[$min_semi + st] || '--'}, pad: :fill
     print_in_columns chord_st.map {|st| semi2note($min_semi + st)}, pad: :fill
     puts
     names.shift
@@ -854,9 +852,9 @@ end
 def tool_chart to_handle
   puts
   puts
-  holes_or_notes, _, _, _, _, _, _ = partition_for_mode_or_amongs(to_handle,
-                                                                  amongs: [:hole, :note],
-                                                                  extra_allowed: false)
+  holes_or_notes, = partition_for_mode_or_amongs(to_handle,
+                                                 amongs: %i[hole note],
+                                                 extra_allowed: false)
 
   to_print = [:chart_notes]
   notes = []
@@ -914,7 +912,7 @@ def tool_edit_file file, to_handle = [], lno: nil
 end
 
 def tool_transcribe to_handle
-  err "need a single argument" if to_handle.length == 0
+  err 'need a single argument' if to_handle.length == 0
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 1
 
   $all_licks, $licks, $all_lick_progs = read_licks
@@ -983,9 +981,7 @@ def tool_transcribe to_handle
   # keep only these batches, that are notes and played long enough
   lasting = Array.new
   batched.each do |batch|
-    if batch[0][1] && batch.length > mincons
-      lasting << [batch[0], batch[-1][0] - batch[0][0]].flatten
-    end
+    lasting << [batch[0], batch[-1][0] - batch[0][0]].flatten if batch[0][1] && batch.length > mincons
   end
 
   puts "\n\nHoles found at secs:"
@@ -1022,22 +1018,22 @@ end
 def tool_translate to_handle
   err "Tool 'translate' does not accept arguments (because of expected problems with shell-quoting); rather enter some holes when prompted" if to_handle.length > 0
 
-  notations = { parens: { desc: ["Blow is 1, draw is (2), bends are not known (yet)"],
-                          example: "(1)  2  (2)  ?  3  ?  ?  (2)" },
-                harpwise: { desc: ["The standard notation of harpwise (richter); blow is +1,",
-                                   "draw is -2, bends are -1/, -2//, +10/.  All other notations",
-                                   "will betranslated into this one."],
-                            example: "-1  +2  -2  -3/  +3  -3/  -3//  -2" },
+  notations = { parens: { desc: ['Blow is 1, draw is (2), bends are not known (yet)'],
+                          example: '(1)  2  (2)  ?  3  ?  ?  (2)' },
+                harpwise: { desc: ['The standard notation of harpwise (richter); blow is +1,',
+                                   'draw is -2, bends are -1/, -2//, +10/.  All other notations',
+                                   'will betranslated into this one.'],
+                            example: '-1  +2  -2  -3/  +3  -3/  -3//  -2' },
                 quotes_pm: { desc: ["Blow is 1 or +1, draw is -2, bends are -1', -2\", -3\"', -3'\"",
-                                    "this notation is e.g. used by harmonica.com"],
+                                    'this notation is e.g. used by harmonica.com'],
                              example: "-1  +2  -2  -3'  3  -3'  -3\"  -2" },
                 quotes_bd: { desc: ["Draw has 'd' appended, blow nothing, quotes for bends;",
-                                    "this notation is used e.g. by Jason Ricci or Ronnie Shellist"],
+                                    'this notation is used e.g. by Jason Ricci or Ronnie Shellist'],
                              example: "2d  3'  3d  2  3'  3d  4d  4  3d  2d" },
-                notes: { desc: ["Just the notes rather than any harmonica-specific notation;",
+                notes: { desc: ['Just the notes rather than any harmonica-specific notation;',
                                 "you may also try 'harpwise print' for this, as it will give",
-                                "much more info."],
-                         example: "d4  e4  g4  as4  g4  as4  a4  g4" } }
+                                'much more info.'],
+                         example: 'd4  e4  g4  as4  g4  as4  a4  g4' } }
 
   puts
   puts "These harmonica notations are known \e[2m(example is from the 'St-Luis Blues'):\e[0m"
@@ -1048,12 +1044,12 @@ def tool_translate to_handle
     puts "    \e[2mExample:  \e[2m#{nota[:example]}\e[0m"
   end
   puts
-  puts "Please enter one or many lines of harmonica notation; harpwise will pick"
-  puts "the notation, that matches best and will translate the given holes"
-  puts "into its own standard notation (richter)."
+  puts 'Please enter one or many lines of harmonica notation; harpwise will pick'
+  puts 'the notation, that matches best and will translate the given holes'
+  puts 'into its own standard notation (richter).'
   puts
-  puts "Please note: To allow multi-line input, this will keep reading until"
-  puts "you finish your input with two empty lines, i.e. hit RETURN twice."
+  puts 'Please note: To allow multi-line input, this will keep reading until'
+  puts 'you finish your input with two empty lines, i.e. hit RETURN twice.'
   puts
 
   eiar = 0  ## empties in a row
@@ -1075,12 +1071,12 @@ def tool_translate to_handle
 
     sleep 0.1 unless IO.select([STDIN], nil, nil, 0)
 
-    if !IO.select([STDIN], nil, nil, 0)
+    unless IO.select([STDIN], nil, nil, 0)
       # We seem to have no input; but on pasting we might have an incomplete line without
       # newline. So we need to check more thoroughly.
 
       # return input on every char, no wait
-      system("stty -echo -icanon min 1 time 0")
+      system('stty -echo -icanon min 1 time 0')
       # change in terminal processing affects not only gets, but select too; so the line
       # below will also sense, if there is any input at all, even input not ending with
       # newline
@@ -1095,7 +1091,7 @@ def tool_translate to_handle
         print "\e[2mYour input (empty to finish):  \e[0m"
       end
       # back to normal line-discipline
-      system("stty sane")
+      system('stty sane')
     end
 
     fgn = gets.chomp.strip
@@ -1117,7 +1113,7 @@ def tool_translate to_handle
   puts
 
   if foreigns.length == 0
-    puts "No input provided."
+    puts 'No input provided.'
     puts
     exit
   end
@@ -1153,16 +1149,14 @@ def tool_translate to_handle
   print 'You input '
   if best.length == 1
     if mx == foreigns.length
-      print "is fully covered by one notation"
+      print 'is fully covered by one notation'
     else
       print "is covered best (#{mx} of #{foreigns.length} holes) by one notation"
     end
+  elsif mx == foreigns.length
+    print "is fully covered by #{best.length} notations"
   else
-    if mx == foreigns.length
-      print "is fully covered by #{best.length} notations"
-    else
-      print "is covered best (#{mx} of #{foreigns.length} holes) by #{best.length} notations"
-    end
+    print "is covered best (#{mx} of #{foreigns.length} holes) by #{best.length} notations"
   end
   puts " (see below)\nand translates into harpwise-richter as:"
   puts
@@ -1187,23 +1181,21 @@ def tool_translate to_handle
     puts "\e[0m"
   end
   puts
-  if mx != foreigns.length
-    puts ", where holes that could not be translated are \e[2mdim.\e[0m"
-  end
+  puts ", where holes that could not be translated are \e[2mdim.\e[0m" if mx != foreigns.length
   puts
 end
 
 def tool_translate_notation_parens hole
   if md = hole.match(/^(\d+)$/)
-    return "+#{md[1]}"
+    "+#{md[1]}"
   elsif md = hole.match(/^\((\d+)\)$/)
-    return "-#{md[1]}"
+    "-#{md[1]}"
   elsif hole == '123'
-    return '+123'
+    '+123'
   elsif hole == '(123)'
-    return '[-123]'
+    '[-123]'
   else
-    return false
+    false
   end
 end
 
@@ -1230,16 +1222,16 @@ def tool_translate_notation_quotes_bd hole
     return sign[md[2]] + md[1] + '/'
   end
 
-  return false
+  false
 end
 
 def tool_translate_notation_harpwise hole
   if $harp_holes.include?(hole)
-    return hole
+    hole
   elsif hole.match(/^\(.*\)$/) || hole.match(/^\[.*\]$/)
-    return hole
+    hole
   else
-    return false
+    false
   end
 end
 
@@ -1273,16 +1265,16 @@ def tool_translate_notation_quotes_pm hole
 
   # chords
   if hole == '-123'
-    return '[-123]'
+    '[-123]'
   elsif hole == '123'
-    return '[+123]'
+    '[+123]'
   else
-    return false
+    false
   end
 end
 
 def tool_translate_notation_notes hole
-  return $note2hole[hole] || false
+  $note2hole[hole] || false
 end
 
 def tool_notes to_handle
@@ -1299,7 +1291,7 @@ def tool_notes to_handle
     print '  '
     notes = $maj_sc_st_abs.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0...-1]}
     notes.each_with_index do |n, idx|
-      print "\e[32m" if idx == 0 || idx == 4
+      print "\e[32m" if [0, 4].include?(idx)
       print n + "\e[0m   "
     end
     puts
@@ -1338,7 +1330,10 @@ def tool_diag1
 
   end_of_intro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   FileUtils.rm $diag_wav if File.exist?($diag_wav)
   print "\e[?25l"  ## hide cursor
@@ -1370,13 +1365,16 @@ def tool_diag1
 
   end_of_intro_rec
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   puts "Start making sound and press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   puts "\n\e[32mRecording started for #{rec_time} secs.\e[0m\n\n"
-  puts see_sox % ['START', 'rec']
+  puts see_sox % %w[START rec]
   rec_pid = Process.spawn cmd_rec
   ts_start = Time.now.to_f
   sleep rec_time
@@ -1385,12 +1383,12 @@ def tool_diag1
   Process.kill('HUP', rec_pid)
   Process.wait(rec_pid)
   elapsed = (Time.now.to_f - ts_start).round(2)
-  puts see_sox % ['END', 'rec']
+  puts see_sox % %w[END rec]
   puts "\e[0m\e[K\nDone."
 
   recorded = sox_query($diag_wav, 'Length').to_f
   puts
-  puts "Timestamps:"
+  puts 'Timestamps:'
   puts "       Secs elapsed: %6.2f       \e[2mElapsed and recorded may differ by up to one sec\e[0m" % elapsed
   puts "           recorded: %6.2f       \e[2m  due to startup-time of sox-process\e[0m" % recorded
   puts "       diff between: %6.2f       \e[2mShould be less than one and not negative\e[0m" % (elapsed - recorded )
@@ -1419,17 +1417,20 @@ def tool_diag1
 
   end_of_intro_play
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   puts "Press \e[32many key\e[0m to start: "
   drain_chars
   one_char
   print "\n\e[32mReplay started, #{rec_time} secs expected.\e[0m\n\n"
-  puts see_sox % ['START', 'play']
+  puts see_sox % %w[START play]
   rec_pid = Process.spawn cmd_play
   Process.wait(rec_pid)
   puts
-  puts see_sox % ['END', 'play']
+  puts see_sox % %w[END play]
   puts "\e[0m\e[K\nDone.\n\n"
 
   txt = <<~end_of_outro
@@ -1447,7 +1448,10 @@ def tool_diag1
 
   end_of_outro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 end
 
 def tool_diag2
@@ -1474,7 +1478,10 @@ def tool_diag2
 
   end_of_intro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   print "\e[?25l"  ## hide cursor
 
@@ -1483,9 +1490,9 @@ def tool_diag2
   one_char
   puts "\n\e[32mPlay started.\e[0m\n\n"
   see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
-  puts see_sox % ['START', 'play']
+  puts see_sox % %w[START play]
   system(cmd_play)
-  puts see_sox % ['END', 'play']
+  puts see_sox % %w[END play]
 
   puts <<~end_of_outro
 
@@ -1537,7 +1544,10 @@ def tool_diag3
 
   end_of_intro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
   print "\e[?25l"  ## hide cursor
 
   puts
@@ -1558,9 +1568,7 @@ def tool_diag3
   _, ppl_out_err, wait_thr = Open3.popen2e(cmd_aub)
   # cmd may need some time to terminate in the case of startup problems
   sleep 0.2
-  if !wait_thr.alive? && !IO.select([ppl_out_err], nil, nil, 2)
-    err "Command terminated unexpectedly, please see errors above"
-  end
+  err 'Command terminated unexpectedly, please see errors above' if !wait_thr.alive? && !IO.select([ppl_out_err], nil, nil, 2)
   line = nil
   lines = []
   no_gets = 0
@@ -1570,16 +1578,16 @@ def tool_diag3
     begin
       Timeout.timeout(10) do
         # gets might return nil for unknown reasons (e.g. in an unpatched homebrew-setup)
-        while !(line = ppl_out_err.gets)
+        until (line = ppl_out_err.gets)
           sleep 0.5
           no_gets += 1
-          err "10 times no output from command" if no_gets > 10
+          err '10 times no output from command' if no_gets > 10
         end
         line.chomp!
         puts line
       end
     rescue Timeout::Error
-      err "No output from comand"
+      err 'No output from comand'
     end  # check for timeout in gets
 
     sleep 0.02 if $testing
@@ -1603,7 +1611,10 @@ def tool_diag3
 
   end_of_outro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   lines.each {|l| puts l}
   puts
@@ -1646,15 +1657,18 @@ def tool_diag_hints
 
   end_of_intro
 
-  txt.lines.each {|l| print l; sleep 0.01}
+  txt.lines.each do |l|
+    print l
+    sleep 0.01
+  end
 
   puts "Press \e[32many key\e[0m to read them (\e[32ml\e[0m or \e[32mm\e[0m for less or more): "
   drain_chars
   char = one_char
 
   gfile = "#{$dirs[:install]}/resources/audio_guide.txt"
-  if char == 'l' || char == 'm'
-    pgr = Hash[*%w(l less m more)].to_h[char]
+  if %w[l m].include?(char)
+    pgr = Hash[*%w[l less m more]].to_h[char]
     puts "\npaging  #{gfile}  with #{pgr} ... "
     sleep 0.5
     system("#{pgr} #{gfile}")
@@ -1664,7 +1678,10 @@ def tool_diag_hints
     puts "\n\e[32mSome hints\n----------\e[0m\n"
     audio_guide = ERB.new(IO.read(gfile)).result(binding).lines
     audio_guide.pop while audio_guide[-1].strip.empty?
-    audio_guide.each {|l| print l; sleep 0.01}
+    audio_guide.each do |l|
+      print l
+      sleep 0.01
+    end
     puts "\n\e[2mEnd of hints.\e[0m\n\n"
   end
 end
@@ -1716,10 +1733,10 @@ def tool_edit_lick to_handle
   when 0
   # do nothing
   when 1
-    amongs = [:lick, :lick_prog]
+    amongs = %i[lick lick_prog]
     $all_licks, $licks, $all_lick_progs = read_licks
     what = recognize_among(to_handle[0], amongs)
-    if !what
+    unless what
       summary = print_amongs(amongs, highlight: to_handle[0])
       err(($resources[:err_among] % ['harpwise tools edit-licks',
                                      summary[:types][:count],
@@ -1739,9 +1756,9 @@ end
 
 def tool_edit_jam to_handle
   err("'harpwise tools edit-jam' only requires a single (but not #{to_handle.length}) arguments : #{to_handle}") unless to_handle.length == 1
-  if !$jamming_rel2abs[to_handle[0]]
+  unless $jamming_rel2abs[to_handle[0]]
     puts
-    puts "Known jams:"
+    puts 'Known jams:'
     print_in_columns($jamming_rel2abs.keys, pad: :tabs)
     err("Given jam name '#{to_handle[0]}' is unknown, see above for choices.")
   end
@@ -1749,7 +1766,7 @@ def tool_edit_jam to_handle
 end
 
 def tool_all_intervals hons
-  err "Need one hole or note as an argument" if hons.length != 1
+  err 'Need one hole or note as an argument' if hons.length != 1
   _, st = hole_or_note_or_semi(hons[0], false)
   other = $hole2note[hons[0]] || $note2hole[hons[0]] || 'not a hole of harp'
   puts
@@ -1757,7 +1774,7 @@ def tool_all_intervals hons
   puts
   ml_i = $intervals.values.map {|v| v[0].length}.max
   ml_h = $harp_holes.map {|h| h.length}.max
-  puts "\e[2m   " + "Inter".rjust(ml_i) + "   hole".ljust(ml_h) + "   note\e[0m"
+  puts "\e[2m   " + 'Inter'.rjust(ml_i) + '   hole'.ljust(ml_h) + "   note\e[0m"
   $intervals.keys.each do |dsemi|
     puts "  #{$intervals[dsemi][0].rjust(ml_i)}:   #{($semi2hole[st + dsemi] || ' - ').ljust(ml_h)}   #{semi2note(st + dsemi)}"
   end

@@ -83,9 +83,7 @@ $conf = read_technical_config
 
 # We set PULSE_SERVER in snapcraft.yaml already; however, for WSL2 we need a different
 # value; so we check and set here (maybe override)
-if ENV['SNAP'] && File.read("/proc/version")["WSL2"]
-  ENV['PULSE_SERVER'] = 'unix:/mnt/wslg/PulseServer'
-end
+ENV['PULSE_SERVER'] = 'unix:/mnt/wslg/PulseServer' if ENV['SNAP'] && File.read('/proc/version')['WSL2']
 
 # needed for usage
 initialize_extra_vars
@@ -128,7 +126,7 @@ report_name_collisions_mb
 
 $extra, to_handle = parse_arguments_for_mode
 
-check_screen(hint_on_large_term: true) if [:listen, :quiz, :licks].include?($mode)
+check_screen(hint_on_large_term: true) if %i[listen quiz licks].include?($mode)
 
 write_dump 'start' if $testing
 
@@ -145,7 +143,7 @@ Signal.trap('SIGINT') do
   exit 1
 end
 
-%W(TSTP QUIT).each do |sig|
+%w[TSTP QUIT].each do |sig|
   Signal.trap(sig) do
     print "\e[#{$lines[:message2]}H" if $move_down_on_exit
     puts "\n\n\e[K\n\e[0mThis signal (#{sig}) is handled in modes quiz and jamming only; exiting ..."
@@ -155,7 +153,7 @@ end
   end
 end
 
-if [:listen, :quiz, :licks].include?($mode)
+if %i[listen quiz licks].include?($mode)
   Signal.trap('WINCH') do
     $ctl_sig_winch = true
   end
@@ -194,8 +192,8 @@ at_exit do
     if File.exist?($debug_log_file)
       if File.size($debug_log_file) == 0
         File.delete($debug_log_file)
-      else
-        puts "Note: A debug log has been written to:   #{$debug_log_file}" if File.exist?($debug_log_file)
+      elsif File.exist?($debug_log_file)
+        puts "Note: A debug log has been written to:   #{$debug_log_file}"
       end
     end
   end

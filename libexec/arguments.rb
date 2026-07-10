@@ -14,23 +14,23 @@ def parse_arguments_early
   # the position, but by their content too.
 
   # produce general usage, if appropriate
-  if ARGV.length == 0 || %w(-h --help -? ? help usage --usage).any? {|w| w.start_with?(ARGV[0])}
+  if ARGV.length == 0 || %w[-h --help -? ? help usage --usage].any? {|w| w.start_with?(ARGV[0])}
     initialize_extra_vars
     print_usage_info
     exit 0
   end
 
   # version information
-  if ARGV.length == 0 || %w(--version).any? {|w| w.start_with?(ARGV[0])}
+  if ARGV.length == 0 || %w[--version].any? {|w| w.start_with?(ARGV[0])}
     puts
     puts "harpwise version   #{$version}"
     puts
-    puts "    Copyright (c) 2021-2026 by Marc Ihm (marc@ihm.name)"
+    puts '    Copyright (c) 2021-2026 by Marc Ihm (marc@ihm.name)'
     puts
     puts "Subject to the MIT License, type 'harpwise --license' for details"
     puts
-    puts "Source code at          https://github.com/marcIhm/harpwise"
-    puts "Full documentation at   https://marcihm.github.io/harpwise"
+    puts 'Source code at          https://github.com/marcIhm/harpwise'
+    puts 'Full documentation at   https://marcihm.github.io/harpwise'
     puts
     exit 0
   end
@@ -72,115 +72,115 @@ def parse_arguments_early
   # will be enriched with descriptions and arguments below
   modes2opts =
     [[full_set, {
-      debug: %w(--debug),
-      help: %w(-h --help -? --usage),
-      version: %w(--version --ver),
-      sharps: %w(--sharps),
-      flats: %w(--flats),
-      license: %w(--license),
-      options: %w(--show-options -o)
+      debug: %w[--debug],
+      help: %w[-h --help -? --usage],
+      version: %w[--version --ver],
+      sharps: %w[--sharps],
+      flats: %w[--flats],
+      license: %w[--license],
+      options: %w[--show-options -o]
     }],
      [Set[:samples, :listen, :quiz, :licks, :play, :print], {
-       screenshot: %w(--screenshot)
+       screenshot: %w[--screenshot]
      }],
      [Set[:listen, :quiz, :licks, :play, :tools, :print], {
-       octave_shift: %w(--octave-shift)
+       octave_shift: %w[--octave-shift]
      }],
      [Set[:listen, :quiz, :licks, :tools, :print], {
-       add_scales: %w(-a --add-scales),
-       ref: %w(-r --reference),
-       remove_scales: %w(--remove-scales),
-       no_add_holes: %w(--no-add-holes),
-       shuffle_licks: %w(--shuffle-licks)
+       add_scales: %w[-a --add-scales],
+       ref: %w[-r --reference],
+       remove_scales: %w[--remove-scales],
+       no_add_holes: %w[--no-add-holes],
+       shuffle_licks: %w[--shuffle-licks]
      }],
      [Set[:listen, :quiz, :licks], {
-       display: %w(-d --display),
-       comment: %w(-c --comment)
+       display: %w[-d --display],
+       comment: %w[-c --comment]
      }],
      [Set[:listen, :licks], {
-       scale_prog: %w(--scale-prog --scale-progression),
-       keyboard_translate: %w(--kb-tr --keyboard-translate),
-       jamming: %w(--jamming)
+       scale_prog: %w[--scale-prog --scale-progression],
+       keyboard_translate: %w[--kb-tr --keyboard-translate],
+       jamming: %w[--jamming]
      }],
      [Set[:listen, :licks, :play, :print], {
        # any mode that handles this option needs to make sure to reread licks
-       lick_prog: %w(--lick-prog --lick-progression)
+       lick_prog: %w[--lick-prog --lick-progression]
      }],
      [Set[:listen], {
-       no_player_info: %w(--no-player-info)
+       no_player_info: %w[--no-player-info]
      }],
      [Set[:listen, :quiz, :licks, :develop], {
-       time_slice: %w(--time-slice)
+       time_slice: %w[--time-slice]
      }],
      [Set[:quiz, :play, :licks], {
-       fast: %w(--fast),
-       no_fast: %w(--no-fast)
+       fast: %w[--fast],
+       no_fast: %w[--no-fast]
      }],
      [Set[:quiz, :licks], {
-       immediate: %w(--immediate),
-       :loop => %w(--loop),
-       no_loop: %w(--no-loop)
+       immediate: %w[--immediate],
+       loop: %w[--loop],
+       no_loop: %w[--no-loop]
      }],
      [Set[:quiz], {
-       difficulty: %w(--difficulty),
-       keep_key: %w(--keep-key)
+       difficulty: %w[--difficulty],
+       keep_key: %w[--keep-key]
      }],
      [Set[:listen, :quiz, :play, :print], {
-       transpose_scale: %w(--transpose-scale)
+       transpose_scale: %w[--transpose-scale]
      }],
      [Set[:samples], {
-       wave: %w(--wave)
+       wave: %w[--wave]
      }],
      [Set[:print, :samples, :tools, :jamming], {
-       brief: %w(--brief -b)
+       brief: %w[--brief -b]
      }],
      [Set[:listen, :print, :quiz], {
-       viewer: %w(--viewer)
+       viewer: %w[--viewer]
      }],
      [Set[:licks, :play], {
-       holes: %w(--holes),
-       iterate: %w(-i --iterate),
-       reverse: %w(--reverse),
-       start_with: %w(-s --start-with)
+       holes: %w[--holes],
+       iterate: %w[-i --iterate],
+       reverse: %w[--reverse],
+       start_with: %w[-s --start-with]
      }],
      [Set[:licks, :play, :print, :tools], {
-       tags_all: %w(-t --tags-all),
-       tags_any: %w(--tags-any),
-       drop_tags_all: %w(--drop-tags-all),
+       tags_all: %w[-t --tags-all],
+       tags_any: %w[--tags-any],
+       drop_tags_all: %w[--drop-tags-all],
        # '-dt' mirrors '-t' and so is allowed to have only one '-' but
        # two letters 'dt'
-       drop_tags_any: %w(-dt --dt --drop-tags-any),
-       max_holes: %w(--max-holes),
-       min_holes: %w(--min-holes)
+       drop_tags_any: %w[-dt --dt --drop-tags-any],
+       max_holes: %w[--max-holes],
+       min_holes: %w[--min-holes]
      }],
      [Set[:play], {
-       lick_radio: %w(--radio --lick-radio)
+       lick_radio: %w[--radio --lick-radio]
      }],
      [Set[:play, :print], {
-       what: %w(-w --what)
+       what: %w[-w --what]
      }],
      [Set[:print, :jamming], {
-       verbose: %w(-v --verbose)
+       verbose: %w[-v --verbose]
      }],
      [Set[:jamming], {
-       paused: %w(--paused),
-       print_only: %w(--print-only),
-       over_again: %w(--over-again),
-       variation: %w(--variation)
+       paused: %w[--paused],
+       print_only: %w[--print-only],
+       over_again: %w[--over-again],
+       variation: %w[--variation]
      }],
      [Set[:licks], {
-       fast_lick_switch: %w(--fast-lick-switch),
-       partial: %w(-p --partial)
+       fast_lick_switch: %w[--fast-lick-switch],
+       partial: %w[-p --partial]
      }]]
 
   found_set = modes2opts.map {|m2o| m2o[0]}.inject {|un, st| un.union(st)}
-  fail "Internal error: full set of options #{full_set} differs from union of all sets found #{found_set}" unless full_set == found_set
+  raise "Internal error: full set of options #{full_set} differs from union of all sets found #{found_set}" unless full_set == found_set
 
   double_sets = modes2opts.map {|m2o| m2o[0]}
   double_sets.uniq.each do |del|
     double_sets.delete_at(double_sets.index(del))
   end
-  fail "Internal error: at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
+  raise "Internal error: at least one set of modes appears twice: #{double_sets}" unless double_sets.length == 0
 
   #
   # Construct hash opts_all with options specific for mode; take
@@ -206,12 +206,12 @@ def parse_arguments_early
       opts.each do |osym, oabbrevs|
         oabbrevs.each do |oabbr|
           oabbr2osym[oabbr] << osym
-          fail "Internal error: option '#{oabbr}' belongs to multiple options: #{oabbr2osym[oabbr]}" if oabbr2osym[oabbr].length > 1
+          raise "Internal error: option '#{oabbr}' belongs to multiple options: #{oabbr2osym[oabbr]}" if oabbr2osym[oabbr].length > 1
         end
-        fail "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
+        raise "Internal error #{osym} cannot be added twice to options" if opts_all[osym]
 
         opts_all[osym] = [oabbrevs]
-        fail "Internal error, not defined: opt2desc[#{osym}]" unless opt2desc[osym]
+        raise "Internal error, not defined: opt2desc[#{osym}]" unless opt2desc[osym]
 
         opts_all[osym] << opt2desc[osym][1]
         opts_all[osym] << ( opt2desc[osym][0] && ERB.new(opt2desc[osym][0]).result(binding) )
@@ -228,15 +228,11 @@ def parse_arguments_early
   # now, that we have the mode, we can finish $conf by promoting values
   # from the active mode-section to toplevel
   $conf[:any_mode].each {|k, v| $conf[k] = v}
-  if $conf_meta[:sections].include?(mode)
-    $conf[mode].each {|k, v| $conf[k] = v}
-  end
+  $conf[mode].each {|k, v| $conf[k] = v} if $conf_meta[:sections].include?(mode)
 
   # preset options from config (maybe overriden later)
   $conf_meta[:keys_for_modes].each do |k|
-    if opts_all[k]
-      opts[k] ||= $conf[k]
-    end
+    opts[k] ||= $conf[k] if opts_all[k]
   end
   opts[:time_slice] ||= $conf[:time_slice]
   opts[:difficulty] ||= $conf[:difficulty]
@@ -250,7 +246,7 @@ def parse_arguments_early
   # match command-line arguments one after the other against available
   # options; use loop index (i) but also remove elements from ARGV
   i = 0
-  while i < ARGV.length do
+  while i < ARGV.length
     unless ARGV[i].start_with?('-')
       i += 1
       next
@@ -283,7 +279,7 @@ def parse_arguments_early
           opts[osym] = ARGV[i] || err("Option #{odet[0][-1]} requires an argument, but none is given; #{$for_usage}  Also: in many cases using '#{odet[0][-1]} x' will give an error message that shows the possible choices.")
         end
         # convert options as described for configs
-        opts[osym] = opts[osym].send($conf_meta[:conversions][osym]) unless [:ref, :hole, :partial].include?(osym)
+        opts[osym] = opts[osym].send($conf_meta[:conversions][osym]) unless %i[ref hole partial].include?(osym)
         ARGV.delete_at(i)
       else
         opts[osym] = true
@@ -309,9 +305,9 @@ def parse_arguments_early
     exit 0
   end
 
-  if opts[:jamming]
+  if opts[:jamming] && !opts_explicit[:display]
     # take from different config, if not given explicitly
-    opts[:display] = $conf[:display_jamming].to_sym unless opts_explicit[:display]
+    opts[:display] = $conf[:display_jamming].to_sym
   end
 
   opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
@@ -361,12 +357,12 @@ def parse_arguments_early
     opts[:add_scales] = nil
   end
 
-  opts[:time_slice] = match_or(opts[:time_slice], %w(short medium long)) do |none, choices|
+  opts[:time_slice] = match_or(opts[:time_slice], %w[short medium long]) do |none, choices|
     err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
   end.to_sym
 
   if opts[:octave_shift]
-    opts[:octave_shift] = match_or(opts[:octave_shift], %w(up down)) do |none, choices|
+    opts[:octave_shift] = match_or(opts[:octave_shift], %w[up down]) do |none, choices|
       err "Value #{none} of option '--octave-shift' is none of #{choices}"
     end.to_sym
   end
@@ -376,7 +372,7 @@ def parse_arguments_early
     err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)
     opts[:difficulty] = ( rand(100) > dicu ? 'easy' : 'hard' )
   end
-  opts[:difficulty] = match_or(opts[:difficulty], %w(easy hard)) do |none, choices|
+  opts[:difficulty] = match_or(opts[:difficulty], %w[easy hard]) do |none, choices|
     err "Value #{none} of option '--difficulty' or config 'difficulty' is none of #{choices} or a number between 0 and 100"
   end&.to_sym
   opts[:difficulty_numeric] ||= ( opts[:difficulty] == :easy ? 0 : 100 )
@@ -384,7 +380,7 @@ def parse_arguments_early
   opts[:partial] = '0@b' if opts[:partial] == '0'
 
   if opts_all[:iterate]
-    %w(random cycle).each do |choice|
+    %w[random cycle].each do |choice|
       opts[:iterate] = choice.to_sym if opts[:iterate] && choice.start_with?(opts[:iterate].to_s)
     end
     opts[:iterate] ||= :random
@@ -405,7 +401,7 @@ def parse_arguments_early
   if opts[:what] && !$what_abbrevs.values.flatten.include?(opts[:what])
     puts "\nThese are the known values for option '--what' along with their description:\n\n"
     $amongs_desc.each do |am, dsc|
-      puts '  ' + $what_abbrevs[am].join(', ') + ":"
+      puts '  ' + $what_abbrevs[am].join(', ') + ':'
       dsc.each {|l| puts "    \e[2m" + l + "\e[0m"}
     end
     err "Value '#{opts[:what]}' for option '--what' is none of the allowed values, see above"
@@ -426,7 +422,7 @@ def parse_arguments_early
 
   # save them away, so we may later restore them
   $initial_tag_options = Hash.new
-  [:tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :iterate].each do |opt|
+  %i[tags_all tags_any drop_tags_all drop_tags_any iterate].each do |opt|
     $initial_tag_options[opt] = opts[opt]
   end
 
@@ -452,7 +448,7 @@ def parse_arguments_early
   # config
 
   type = ARGV.shift if $conf[:all_types].include?(ARGV[0])
-  if !type
+  unless type
     type = $conf[:type]
     $source_of[:type] = 'config'
   end
@@ -548,7 +544,7 @@ def parse_arguments_early
       ind = '      '
       err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{wrap_words(ind, $all_scales, '  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind, $harp_holes, '  ')}\nand can therefore not be part of an adhoc-scale"
     end
-    if !scale
+    unless scale
       if holes.length == 0
         scale = get_scale_from_sws($conf[:scale])
         $source_of[:scale] = 'config'
@@ -593,14 +589,14 @@ def parse_arguments_early
     scale = get_scale_from_sws($conf[:scale] || 'all:a')
     $source_of[:scale] = 'implicit'
   else
-    fail "Internal error"
+    raise 'Internal error'
   end
 
   $err_binding = nil
 
   # some of these have already been set as global vars (e.g. for error
   # messages), but return them anyway to make their origin transparent
-  return [mode, type, key, scale, opts]
+  [mode, type, key, scale, opts]
 end
 
 def initialize_extra_vars
@@ -667,9 +663,7 @@ def initialize_extra_vars
         # 'foos-bar-baz', which would collide in 'foos-bars-baz'. However
         # do not complain, if there are two equivialent extras (e.g. 'foo'
         # and 'foos')
-        if $extra_kws_wwos2canon[mode][variant]
-          fail "Internal error: variant '#{variant}' of '#{extra}' is also a variant of '#{$extra_kws_wwos2canon[mode][variant]}'"
-        end
+        raise "Internal error: variant '#{variant}' of '#{extra}' is also a variant of '#{$extra_kws_wwos2canon[mode][variant]}'" if $extra_kws_wwos2canon[mode][variant]
 
         # remember first of multiple equivalent extras
         $extra_kws_wwos2canon[mode][variant] ||= extra
@@ -685,7 +679,7 @@ def parse_arguments_for_mode
 
   # Only some modes accept an extra argument, listen or licks e.g. do not
   if $extras_joined_to_desc[$mode]
-    if [:play, :print].include?($mode)
+    if %i[play print].include?($mode)
       # These mode (play, print) are the only two modes, that allow
       # arguments on the command line as well as an extra argument, which
       # however is optional (quiz, as a counterexample requires its extra
@@ -701,7 +695,7 @@ def parse_arguments_for_mode
                              [$amongs[$mode], :extra, :extra_wwos],
                              licks: $all_licks)
       $extra = ARGV.shift if what == :extra
-      if !what
+      unless what
         # this will make print_amongs aware, that we did recognize_among
         # against $all_licks above
         $licks = $all_licks
@@ -719,8 +713,8 @@ def parse_arguments_for_mode
     else
       # These modes (e.g. quiz, samples or jamming) strictly require their
       # extra argument
-      $extra = ARGV.shift if recognize_among(ARGV[0], [:extra, :extra_wwos]) == :extra
-      if !$extra
+      $extra = ARGV.shift if recognize_among(ARGV[0], %i[extra extra_wwos]) == :extra
+      unless $extra
         summary = print_amongs(:extra, highlight: ARGV[0])
         extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
         wrapped = wrap_words('  ', extra_words, '  ')
@@ -738,9 +732,9 @@ def parse_arguments_for_mode
   ARGV.clear
 
   # do this check late, because we have more specific error messages before
-  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && ![:play, :print, :quiz, :licks, :tools, :develop, :samples, :jamming].include?($mode)
+  err "Cannot handle these arguments: #{to_handle}#{not_any_source_of}; #{$for_usage}" if to_handle.length > 0 && !%i[play print quiz licks tools develop samples jamming].include?($mode)
 
-  return $extra, to_handle
+  [$extra, to_handle]
 end
 
 # get_scale_from_scale_with_short
@@ -760,19 +754,17 @@ def get_scale_from_sws scale_w_short, graceful = false, added = false
 
   if $all_scales.include?(scale)
     scale
+  elsif graceful
+    nil
   else
-    if graceful
-      nil
-    else
-      scale_globs = $scale_files_templates.map {|t| t % [$type, '*', '*']}
-      err "Scale (%s) must be one of #{$all_scales.join(',')}, i.e. scales matching:\n#{scale_globs.join('\n')}\nnot '#{scale}'%s" %
-          if added
-            ["given in option --add-scales or in configuration files",
-             ", Hint: use '--add-scales -' to override the value from config"]
-          else
-            ['main scale', '']
-          end
-    end
+    scale_globs = $scale_files_templates.map {|t| t % [$type, '*', '*']}
+    err "Scale (%s) must be one of #{$all_scales.join(',')}, i.e. scales matching:\n#{scale_globs.join('\n')}\nnot '#{scale}'%s" %
+        if added
+          ['given in option --add-scales or in configuration files',
+           ", Hint: use '--add-scales -' to override the value from config"]
+        else
+          ['main scale', '']
+        end
   end
 end
 
@@ -805,16 +797,16 @@ def print_usage_info mode = nil
     sleep 0.02 if STDOUT.isatty && idx < 10
   end
 
-  full = "Full documentation at   https://marcihm.github.io/harpwise"
+  full = 'Full documentation at   https://marcihm.github.io/harpwise'
   if $mode
     puts "\n\nCommand-line Options"
     puts "====================\n\n"
-    puts "  For an extensive, mode-specific list type:"
+    puts '  For an extensive, mode-specific list type:'
     puts
     # Mimic format produced by org-export
-    puts ",----"
+    puts ',----'
     puts "| harpwise #{$mode} -o"
-    puts "`----"
+    puts '`----'
     puts
     puts "\e[2m#{full}\e[0m"
   else
@@ -890,14 +882,14 @@ def opt_desc_text what, opts, with_color = true
     lines[1..-1].each {|l| pieces << '    ' + l}
     pieces << "\n"
   end
-  return pieces
+  pieces
 end
 
 def override_scales_mb scale, opts
   return scale, opts[:add_scales], nil unless opts[:scale_prog]
 
   if !opts[:scale_prog][',']
-    if !$all_scale_progs.include?(opts[:scale_prog])
+    unless $all_scale_progs.include?(opts[:scale_prog])
       max_nm_len = $all_scale_progs.keys.map(&:length).max
       err "Scale progression given via '--scale-progression #{opts[:scale_prog]}' is none of these:\n\n" +
           $all_scale_progs.map {|nm, sp| "  %#{max_nm_len}s : %s\n  %#{max_nm_len}s   %s\n" % [nm, sp[:desc], '', sp[:scales].join(',')]}.join
@@ -916,8 +908,8 @@ def override_scales_mb scale, opts
 
   scl = sc_prog[0]
   add_scs = (sc_prog + [scale]).uniq[1..-1].join(',')
-  $msgbuf.print("Adjusted option --add-scales to match option --scale-progression", 5, 5) if add_scs != opts[:add_scales]
-  return scl, add_scs, sc_prog
+  $msgbuf.print('Adjusted option --add-scales to match option --scale-progression', 5, 5) if add_scs != opts[:add_scales]
+  [scl, add_scs, sc_prog]
 end
 
 def parse_keyboard_translate opt_kb_tr
@@ -926,7 +918,7 @@ def parse_keyboard_translate opt_kb_tr
 
   from_slot = ''
   # check for shorthands using slots
-  if %w(slot1 slot2 slot3 s1 s2 s3).include?(opt_kb_tr)
+  if %w[slot1 slot2 slot3 s1 s2 s3].include?(opt_kb_tr)
     num = opt_kb_tr[-1].to_i
     from_slot = ", shorthand from slot #{num}"
     opt_kb_tr = $conf["keyboard_translate_slot#{num}".to_sym] ||
@@ -952,8 +944,6 @@ def parse_keyboard_translate opt_kb_tr
             "translate-to chars '#{from_to[1]}' ends with a '+'"
           elsif from_to[1]['++']
             "translate-to chars '#{from_to[1]}' contains a double '++' with no char in between"
-          else
-            nil
           end
     why = ". Reason: #{why}" if why
     err "Cannot parse this keyboard translation: '#{tr}'#{why} (from #{cite}).\n#{should_form}.\nEach of the keys given must be one of: #{$keyboard_translateable.join(',')}   ; note that especially '=','+' and ',' are not available for translation" if why
@@ -977,7 +967,7 @@ def parse_keyboard_translate opt_kb_tr
   in_both = kb_trs.keys & kb_trs.values
   err "Invalid keyboard translation: these keys appear both as from- and to-keys (i.e. on both sides of the '='-sign) (in #{cite}): #{in_both.join(',')}. #{should_form}" if in_both.length > 0
 
-  return kb_trs
+  kb_trs
 end
 
 def get_viewers_desc

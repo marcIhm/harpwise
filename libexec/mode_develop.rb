@@ -4,7 +4,7 @@
 
 def do_develop to_handle
   # common error checking
-  err_args_not_allowed(to_handle) if $extra && !%w(lickfile lf read-scale-with-notes rswn).include?($extra) && to_handle.length > 0
+  err_args_not_allowed(to_handle) if $extra && !%w[lickfile lf read-scale-with-notes rswn].include?($extra) && to_handle.length > 0
 
   case $extra
   when 'docs-make-org-txt'
@@ -12,7 +12,7 @@ def do_develop to_handle
   when 'docs-make-html'
     do_docs_make_html
   when 'docs-all'
-    %w(do_docs_make_org_txt do_docs_make_html).each do |met|
+    %w[do_docs_make_org_txt do_docs_make_html].each do |met|
       puts "\e[34m"
       do_figlet_unwrapped met, 'smblock'
       puts "\e[0m"
@@ -35,7 +35,7 @@ def do_develop to_handle
   when 'dump'
     write_dump
   else
-    fail "Internal error: unknown extra '#{$extra}'"
+    raise "Internal error: unknown extra '#{$extra}'"
   end
 end
 
@@ -43,12 +43,12 @@ def do_docs_make_org_txt
   src_erb_dir = "#{$dirs[:install]}/docs/erb-org"
   dst_txt_dir = "#{$dirs[:install]}/docs/_txt"
   dst_org_dir = "#{$dirs[:install]}/docs/_org"
-  src_files_short = Dir["#{src_erb_dir}/*"].map {|f| File.basename(f).chomp(".erb.org")}
+  src_files_short = Dir["#{src_erb_dir}/*"].map {|f| File.basename(f).chomp('.erb.org')}
   found = src_files_short.map {|f| "#{f}.erb.org"}
   expected = $early_conf[:modes].map {|m| "usage_#{m}.erb.org"}
   expected.append('index.erb.org', 'usage.erb.org')
   expected.sort!
-  fail "Inernal error for dir #{src_erb_dir}: List of files found\n  " + found.sort.join("\n  ") + "\ndiffers from expected\n  " + expected.sort.join("\n  ") + "\n" unless found == expected
+  raise "Inernal error for dir #{src_erb_dir}: List of files found\n  " + found.sort.join("\n  ") + "\ndiffers from expected\n  " + expected.sort.join("\n  ") + "\n" unless found == expected
 
   dir_suff = [[dst_org_dir, '.org'],
               [dst_txt_dir, '.txt']]
@@ -69,16 +69,16 @@ def do_docs_make_org_txt
         else
           next if file_short == 'index'
 
-          cmd = "/usr/bin/emacs -Q --batch " +
+          cmd = '/usr/bin/emacs -Q --batch ' +
                 "-eval \"(require 'org)\" " +
                 "--insert #{dst_org_dir}/#{file_short}.org " +
-                "--eval \"(setq org-export-with-toc nil)\" " +
-                "--eval \"(setq org-export-with-author nil)\" " +
-                "--eval \"(setq org-export-with-section-numbers nil)\" " +
+                '--eval "(setq org-export-with-toc nil)" ' +
+                '--eval "(setq org-export-with-author nil)" ' +
+                '--eval "(setq org-export-with-section-numbers nil)" ' +
                 "--eval \"(org-ascii-export-as-ascii nil nil nil nil '(:ascii-charset ascii))\" " +
                 "--eval \"(write-file \\\"#{dst_file}\\\")\" " +
-                "--kill"
-          system(cmd) or fail("Command failed; see above for output: #{cmd}")
+                '--kill'
+          system(cmd) or raise("Command failed; see above for output: #{cmd}")
         end
       end
       puts dst_file
@@ -95,21 +95,21 @@ def do_docs_make_html
   puts "\e[32mCopy theme from #{ddir} to #{odir} and checking index.org\e[0m"
   puts $org_theme_file
   FileUtils.cp "#{ddir}/#{$org_theme_file}", odir
-  fail("#{$org_theme_file} not used in #{odir}/index.org") unless File.read("#{odir}/index.org").lines.select {|l| l["#+SETUPFILE: #{$org_theme_file}"]}.length > 0
+  raise("#{$org_theme_file} not used in #{odir}/index.org") unless File.read("#{odir}/index.org").lines.select {|l| l["#+SETUPFILE: #{$org_theme_file}"]}.length > 0
 
   puts
   puts "\e[32mPublish html\e[0m"
   Dir.chdir(ddir) do
-    cmd = "/usr/bin/emacs -Q --batch -l publish.el"
+    cmd = '/usr/bin/emacs -Q --batch -l publish.el'
     puts cmd
-    system(cmd) or fail("\nError, see above")
+    system(cmd) or raise("\nError, see above")
   end
 
   puts
   puts "\e[32mRemove timestamp-comments\e[0m"
   Dir["#{hdir}/*.html"].each do |html|
     puts html
-    File.write(html, IO.read(html).lines.reject {|l| l.start_with?("<!-- ")}.join)
+    File.write(html, IO.read(html).lines.reject {|l| l.start_with?('<!-- ')}.join)
   end
 
   puts "\n\e[32mMove index.html, replace random IDs, correct links\e[0m"
@@ -120,9 +120,9 @@ def do_docs_make_html
   File.open("#{ddir}/index.html", 'w') do |html|
     lines.each do |line|
       # collect and replace random ids with predictable ones
-      if md = ( line.match(/^<li><a href=\"#(org[0-9a-z]+)\"/) ||
-                line.match(/^<div id=\"(org[0-9a-z]+)\"/))
-        href_ids[md[1]] = "org%07d" % id_cnt
+      if md = line.match(/^<li><a href="#(org[0-9a-z]+)"/) ||
+              line.match(/^<div id="(org[0-9a-z]+)"/)
+        href_ids[md[1]] = 'org%07d' % id_cnt
         id_cnt += 1
         puts line
       end
@@ -135,26 +135,26 @@ def do_docs_make_html
       line.gsub!(/href="(usage[_a-z]*.html")/, 'href="_html/\1')
 
       # correct directory of image files
-      line.gsub!(/src="\.\.\/images\//, 'src="images/')
+      line.gsub!(%r{src="\.\./images/}, 'src="images/')
 
       html.write line
     end
   end
 
-  win_url = %x(wslpath -m #{ddir}/index.html)
+  win_url = `wslpath -m #{ddir}/index.html`
   puts "\n\e[32mSuccessfully published to\e[0m   file:#{win_url}"
   puts
 end
 
 def do_selftest
   puts
-  puts_underlined "Performing selftest"
+  puts_underlined 'Performing selftest'
 
-  puts_underlined "Check installation", '-', dim: false
+  puts_underlined 'Check installation', '-', dim: false
   check_installation verbose: true
 
   puts
-  puts_underlined "Invoking figlet for fontname on all fonts", '-', dim: false
+  puts_underlined 'Invoking figlet for fontname on all fonts', '-', dim: false
   # Remark: output of figlet is suppressed to allow selftest to pass
   # even in non-utf8 environments. See test for encoding above
   expected = { 'smblock' => [2, '▝▀▖▌▐ ▌▌ ▌▐ ▌ ▌▌ ▖▛▚'],
@@ -171,12 +171,12 @@ def do_selftest
 
   test_hole = '+1'
   puts
-  puts_underlined "Generating sound with sox", '-', dim: false
+  puts_underlined 'Generating sound with sox', '-', dim: false
   synth_sound test_hole, $helper_wave
   system("ls -l #{$helper_wave}")
 
   puts
-  puts_underlined "Frequency pipeline from previously generated sound", '-', dim: false
+  puts_underlined 'Frequency pipeline from previously generated sound', '-', dim: false
   cmd = get_pipeline_cmd(:sox, $helper_wave)
   puts "Command is: #{cmd}"
   puts
@@ -211,7 +211,7 @@ def do_selftest
   to_test.each_cons(2) do |a, b|
     tss = b[0] - a[0]
     pct = ( 100 * ( tss - $time_slice_secs ) / $time_slice_secs ).abs.round(2)
-    fail "Actual time slice #{b[0]} - #{a[0]} = #{tss} is too different from expected value #{$time_slice_secs}: #{pct}% percent > #{max_pct}%" if pct > max_pct
+    raise "Actual time slice #{b[0]} - #{a[0]} = #{tss} is too different from expected value #{$time_slice_secs}: #{pct}% percent > #{max_pct}%" if pct > max_pct
   end
   puts "Test Okay: time differences are near expected time-slice #{'%.6f' % $time_slice_secs} secs"
   freq = semi2freq_et($harp[test_hole][:semi])
@@ -231,16 +231,16 @@ def do_selftest
 
   puts
   puts
-  puts "Selftest okay."
+  puts 'Selftest okay.'
   puts
 end
 
 def do_unittest
   puts
   puts_underlined 'show_help'
-  [:quiz, :listen, :licks].each do |mode|
+  %i[quiz listen licks].each do |mode|
     # needed in help
-    $modes_for_switch = [:quiz, :listen]
+    $modes_for_switch = %i[quiz listen]
     # will throw error on problems
     show_help mode, true
     puts mode.to_s.ljust(6) + "\e[32m ... okay\e[0m"
@@ -285,21 +285,21 @@ def do_unittest
   len = 42
   $msgbuf.ready
   # print long string, that wil be wrapped to three lines
-  $msgbuf.print %w(a b c).map {|ch| ch * len}.join(' '), 1, 1, wrap: true, truncate: false
+  $msgbuf.print %w[a b c].map {|ch| ch * len}.join(' '), 1, 1, wrap: true, truncate: false
   puts "HINT: set HARPWISE_TESTING to 'msgbuf' to use a minimum terminal width" if ENV['HARPWISE_TESTING'] != 'msgbuf'
 
   found = $msgbuf.get_lines_durations
   expected = [['c' * len, 1, 1, nil],
               ['b' * len, 1, 1, nil],
               ['a' * len, 1, 1, nil]]
-  expected = [["cccccccccccccccccccccccccccccccccccccccccc", 1, 1, nil],
-              ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...", 1, 1, nil],
-              ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil]]
+  expected = [['cccccccccccccccccccccccccccccccccccccccccc', 1, 1, nil],
+              ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...', 1, 1, nil],
+              ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil]]
   utreport('Wrap long text', found, expected)
 
   # from the three lines only one has already been printed; the others wait in backlog
   found = $msgbuf.printed
-  expected = [["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil]]
+  expected = [['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil]]
   utreport('Sequence of lines, part 1', found, expected)
 
   # let messages age away
@@ -309,21 +309,21 @@ def do_unittest
   $msgbuf.update
   sleep 2
   found = $msgbuf.printed
-  expected = [["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...", 1, 1, nil],
-              ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...", 1, 1, nil],
-              ["cccccccccccccccccccccccccccccccccccccccccc", 1, 1, nil]]
+  expected = [['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil],
+              ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...', 1, 1, nil],
+              ['cccccccccccccccccccccccccccccccccccccccccc', 1, 1, nil]]
   utreport('Sequence of lines, part 2', found, expected)
   $msgbuf.ready(false)
 
   $msgbuf.clear
   $msgbuf.print 'abc' * len, 1, 1
   found = $msgbuf.get_lines_durations
-  expected = [["abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ...", 1, 1, nil]]
+  expected = [['abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ...', 1, 1, nil]]
   utreport('Truncate text', found, expected)
 
 
   $msgbuf.clear
-  $msgbuf.print ['foo', 'bar'], 1, 3
+  $msgbuf.print %w[foo bar], 1, 3
   found = $msgbuf.get_lines_durations
   expected = [['bar', 1, 3, nil],
               ['foo', 1, 3, nil]]
@@ -337,9 +337,9 @@ def do_unittest
   $msgbuf.print 'c', 1, 3, :foo
   $msgbuf.print 'd', 1, 3, :foo
   found = $msgbuf.get_lines_durations
-  expected = [["a", 1, 3, nil],
-              ["b", 1, 3, nil],
-              ["d", 1, 3, :foo]]
+  expected = [['a', 1, 3, nil],
+              ['b', 1, 3, nil],
+              ['d', 1, 3, :foo]]
   utreport('Symbols override', found, expected)
 
 
@@ -350,9 +350,9 @@ def do_unittest
   # one :foo should overwrite the other
   $msgbuf.print 'd', 1, 3, :foo
   found = $msgbuf.get_lines_durations
-  expected = [["a", 1, 3, nil],
-              ["b", 1, 3, nil],
-              ["d", 1, 3, :foo]]
+  expected = [['a', 1, 3, nil],
+              ['b', 1, 3, nil],
+              ['d', 1, 3, :foo]]
   utreport('Symbols deep override', found, expected)
 
 
@@ -365,13 +365,13 @@ def do_unittest
 
 
   found = $msgbuf.get_lines_durations
-  expected = [["d", 1, 3, nil]]
+  expected = [['d', 1, 3, nil]]
   utreport('Not age away for hint', found, expected)
 
 
   $msgbuf.print 'e', 1, 3
   found = $msgbuf.get_lines_durations
-  expected = [["e", 1, 3, nil]]
+  expected = [['e', 1, 3, nil]]
   utreport('Age away for message', found, expected)
 
 
@@ -383,13 +383,13 @@ def do_unittest
 
 
   puts
-  puts "All unittests okay."
+  puts 'All unittests okay.'
   puts
 end
 
 def do_widgets
-  puts_underlined "Excercising widgets"
-  puts_underlined "one_char", '-', dim: false
+  puts_underlined 'Excercising widgets'
+  puts_underlined 'one_char', '-', dim: false
   puts "Echoing input, type 'q' to quit"
   cnt = 0
   begin
@@ -399,7 +399,7 @@ def do_widgets
   end while char != 'q'
   puts "#{cnt} chars read."
 
-  %w(one two).each do |count|
+  %w[one two].each do |count|
     puts_underlined "choose_interactive #{count}", '-', dim: false
     make_term_immediate
     ($term_height - $lines[:comment_tall] + 1).times { puts }
@@ -445,9 +445,7 @@ def do_check_frequencies
     freq_calculated = semi2freq_et($harp[hole][:semi])
     puts "  #{hole.ljust(8)}, #{$harp[hole][:note].ljust(4)}   measured = %8.2f\n                 calculated = %8.2f\n                  from file = %8.2f" % [freq_measured.round(2), freq_calculated, hole2freq_read[hole]]
 
-    if hole_was && semi != semi_was
-      err "Frequencies measured for holes   #{hole_was} = #{freq_was} Hz   and   #{hole} = #{freq_measured} Hz   are not ascending" unless freq_was < freq_measured
-    end
+    err "Frequencies measured for holes   #{hole_was} = #{freq_was} Hz   and   #{hole} = #{freq_measured} Hz   are not ascending" if hole_was && semi != semi_was && !(freq_was < freq_measured)
 
     [['measured', freq_measured],
      ['calculated', freq_calculated]].each do |what, freq_other|

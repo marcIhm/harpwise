@@ -12,8 +12,8 @@ def new_session x = $term_min_width, y = $term_min_height
   #
   # So we use a workaround according to https://unix.stackexchange.com/questions/359088/how-do-i-force-a-tmux-window-to-be-a-given-size
   #
-  system "rm -rf /tmp/harpwise*-* >/dev/null 2>&1"
-  %w(start end).each do |marker|
+  system 'rm -rf /tmp/harpwise*-* >/dev/null 2>&1'
+  %w[start end].each do |marker|
     File.delete($testing_dump_template % marker) if File.exist?($testing_dump_template % marker)
   end
   FileUtils.rm($pipeline_started) if File.exist?($pipeline_started)
@@ -29,13 +29,13 @@ def new_session x = $term_min_width, y = $term_min_height
 end
 
 def kill_session
-  system "tmux kill-session -t harpwise >/dev/null 2>&1"
-  system("killall aubiopitch >/dev/null 2>&1")
+  system 'tmux kill-session -t harpwise >/dev/null 2>&1'
+  system('killall aubiopitch >/dev/null 2>&1')
 end
 
 def sys cmd
   out, stat = Open3.capture2e(cmd)
-  stat.success? || fail("Command '#{cmd}' failed with:\n#{out}")
+  stat.success? || raise("Command '#{cmd}' failed with:\n#{out}")
   out
 end
 
@@ -51,11 +51,11 @@ def tms cmd
 end
 
 def screen
-  %x(tmux capture-pane -t harpwise -p).lines.map!(&:chomp)
+  `tmux capture-pane -t harpwise -p`.lines.map!(&:chomp)
 end
 
 def screen_col
-  %x(tmux capture-pane -e -t harpwise -p).lines.map!(&:chomp)
+  `tmux capture-pane -e -t harpwise -p`.lines.map!(&:chomp)
 end
 
 def wait_for_start_of_pipeline
@@ -67,16 +67,16 @@ def wait_for_start_of_pipeline
     sleep 1
   end
   pp screen
-  fail "Pipeline did not start OR harpwise has not been started wih '--testing' OR harpwise did not even initialize completely"
+  raise "Pipeline did not start OR harpwise has not been started wih '--testing' OR harpwise did not even initialize completely"
 end
 
 def wait_for_end_of_harpwise numrep = 20
   hw_full_name = if $use_snap
                    '/snap/harpwise'
                  else
-                   %x(which harpwise).chomp
+                   `which harpwise`.chomp
                  end
-  fail 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
+  raise 'Internal error, could not get path of harpwise' unless hw_full_name['harpwise']
 
   numrep.times do
     still_running = false
@@ -84,7 +84,7 @@ def wait_for_end_of_harpwise numrep = 20
       fields = line.chomp.split(' ', 8)
       still_running = true if fields[-1][hw_full_name]
     end
-    if !still_running
+    unless still_running
       sleep 1
       return true
     end
@@ -93,7 +93,7 @@ def wait_for_end_of_harpwise numrep = 20
   return false if numrep < 20
 
   pp screen
-  fail 'harpwise did not come to an end'
+  raise 'harpwise did not come to an end'
 end
 
 def expect *failinfo, &block
@@ -133,25 +133,26 @@ end
 
 def two_sounds secs1, semi1, secs2, semi2
   sys "sox -n /tmp/harpwise_testing1.wav synth #{secs1} sawtooth %#{semi1} gain -n -3"
-  sys "sox -n /tmp/harpwise_testing2.wav trim 0.0 0.5"
+  sys 'sox -n /tmp/harpwise_testing2.wav trim 0.0 0.5'
   sys "sox -n /tmp/harpwise_testing3.wav synth #{secs2} sawtooth %#{semi2} gain -n -3"
   sys "sox /tmp/harpwise_testing1.wav /tmp/harpwise_testing2.wav /tmp/harpwise_testing3.wav #{$testing_wav}"
 end
 
 def do_test text
   $memo_count += 1
-  if md = text.match(/#{$fromon_id_regex}/)
-    id = md[1]
-    fail "Test-id #{id} has already appeared" if $fromon_id_uniq.include?(id)
+  raise "Test '#{text}' should start with an id" unless md = text.match(/#{$fromon_id_regex}/)
 
-    $fromon_id_uniq << id
-  else
-    fail "Test '#{text}' should start with an id"
-  end
+  id = md[1]
+  raise "Test-id #{id} has already appeared" if $fromon_id_uniq.include?(id)
+
+  $fromon_id_uniq << id
+
+
+
   File.write $last_test, JSON.pretty_generate({ time: Time.now, id: id }) + "\n"
   $within = true if ( $fromon_cnt && $memo_count == $fromon_cnt ) ||
                     ( $fromon_id && text.start_with?($fromon_id + ':'))
-  ( $fromon && text[$fromon] )
+  $fromon && text[$fromon]
   return unless $within
 
   puts
@@ -177,7 +178,7 @@ def read_testing_dump marker
   file = $testing_dump_template % marker
   unless File.exist?(file)
     pp screen
-    fail "Testing dump #{file} does not exist"
+    raise "Testing dump #{file} does not exist"
   end
   dump = JSON.parse(File.read(file), symbolize_names: true)
   dump[:file_from] = file
@@ -198,19 +199,19 @@ def ensure_config_ini_testing
 end
 
 
-at_exit {
+at_exit do
   $memo[:count] = [$memo_count, $memo[:count].to_i].max
   if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
     $memo[:count] = $memo_count
     $memo[:durations].each_key {|k| $memo[:durations].delete(k) unless $memo_seen === k}
   end
   File.write($memo_file, JSON.pretty_generate($memo))
-  system("killall aubiopitch >/dev/null 2>&1")
-}
+  system('killall aubiopitch >/dev/null 2>&1')
+end
 
 
 class String
   def desc2canon
-    self.gsub(/[[:punct:]]/, '').gsub(/\n/, ' ').gsub(/\s+/, '').gsub(/\./, '').strip.downcase
+    gsub(/[[:punct:]]/, '').gsub(/\n/, ' ').gsub(/\s+/, '').gsub(/\./, '').strip.downcase
   end
 end

@@ -26,36 +26,36 @@ def set_global_vars_early
 
   # two more entries will be set in find_and_check_dirs_early
   $early_conf = Hash.new
-  $early_conf[:figlet_fonts] = %w(smblock mono12 mono9)
-  $early_conf[:modes] = %w(listen quiz licks jamming play print tools samples develop)
+  $early_conf[:figlet_fonts] = %w[smblock mono12 mono9]
+  $early_conf[:modes] = %w[listen quiz licks jamming play print tools samples develop]
 
   # expectations for config-file
   $conf_meta = Hash.new
   # Read config.ini for the background  semantics of :any_mode and its relations
   # to others; basically the first defines defaults for the rest
-  $conf_meta[:sections] = [:any_mode, :listen, :quiz, :licks, :play, :print, :samples, :general]
+  $conf_meta[:sections] = %i[any_mode listen quiz licks play print samples general]
   # Below we only need to list those modes (e.g. :quiz) which allow
   # more keys, than :any_mode.  Remark: update config.ini if the below
   # is extended
   $conf_meta[:sections_keys] = {
-    :any_mode => [:add_scales, :comment, :display, :immediate, :loop, :type, :key, :scale, :fast, :viewer, :tags_all, :tags_any, :drop_tags_all, :drop_tags_any, :display_jamming],
-    :samples => [:auto_synth_db],
-    :quiz => [:difficulty],
-    :listen => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
-    :licks => [:keyboard_translate, :keyboard_translate_slot1,  :keyboard_translate_slot2,  :keyboard_translate_slot3],
-    :general => [:time_slice, :sharps_or_flats, :pitch_detection, :sample_rate]
+    any_mode: %i[add_scales comment display immediate loop type key scale fast viewer tags_all tags_any drop_tags_all drop_tags_any display_jamming],
+    samples: [:auto_synth_db],
+    quiz: [:difficulty],
+    listen: %i[keyboard_translate keyboard_translate_slot1 keyboard_translate_slot2 keyboard_translate_slot3],
+    licks: %i[keyboard_translate keyboard_translate_slot1 keyboard_translate_slot2 keyboard_translate_slot3],
+    general: %i[time_slice sharps_or_flats pitch_detection sample_rate]
   }
-  $conf_meta[:deprecated_keys] = [:alsa_aplay_extra, :alsa_arecord_extra, :sox_rec_extra, :sox_play_extra, :pref_sig_def]
+  $conf_meta[:deprecated_keys] = %i[alsa_aplay_extra alsa_arecord_extra sox_rec_extra sox_play_extra pref_sig_def]
   $conf_meta[:keys_for_modes] = Set.new($conf_meta[:sections_keys].values.flatten - $conf_meta[:sections_keys][:general])
   $conf_meta[:conversions] = Hash.new {|h, k| :to_str}
-  $conf_meta[:conversions].merge!({ :display => :o2sym, :comment => :o2sym,
-                                    :sharps_or_flats => :to_sym,
-                                    :immediate => :to_b, :loop => :to_b, :fast => :to_b,
-                                    :add_scales => :empty2nil })
-  $conf_meta[:ctrls_play_pitch] = [:semi_up, :semi_down, :octave_up, :octave_down, :fifth_up, :fifth_down, :wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :quit, :accept_or_repeat, :repeat, :any, :invalid]
-  $conf_meta[:ctrls_play_chord] = [:wave_up, :wave_down, :vol_up, :vol_down, :show_help, :pause_continue, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :quit, :any, :invalid, :single, :unsingle]
-  $conf_meta[:ctrls_play_inter] = [:widen, :narrow, :up, :down, :show_help, :pause_continue, :quit, :any, :gap_inc, :gap_dec, :len_inc, :len_dec, :replay, :swap, :vol_up, :vol_down, :invalid]
-  $conf_meta[:ctrls_play_prog] = [:toggle_loop, :show_help, :pause_continue, :prefix, :semi_up, :semi_down, :vol_up, :vol_down, :prev_prog, :next_prog, :quit, :invalid]
+  $conf_meta[:conversions].merge!({ display: :o2sym, comment: :o2sym,
+                                    sharps_or_flats: :to_sym,
+                                    immediate: :to_b, loop: :to_b, fast: :to_b,
+                                    add_scales: :empty2nil })
+  $conf_meta[:ctrls_play_pitch] = %i[semi_up semi_down octave_up octave_down fifth_up fifth_down wave_up wave_down vol_up vol_down show_help pause_continue quit accept_or_repeat repeat any invalid]
+  $conf_meta[:ctrls_play_chord] = %i[wave_up wave_down vol_up vol_down show_help pause_continue gap_inc gap_dec len_inc len_dec replay quit any invalid single unsingle]
+  $conf_meta[:ctrls_play_inter] = %i[widen narrow up down show_help pause_continue quit any gap_inc gap_dec len_inc len_dec replay swap vol_up vol_down invalid]
+  $conf_meta[:ctrls_play_prog] = %i[toggle_loop show_help pause_continue prefix semi_up semi_down vol_up vol_down prev_prog next_prog quit invalid]
 
   #
   # These $ctl-Vars transport requests and events initiated by the
@@ -71,26 +71,26 @@ def set_global_vars_early
   $ctl_sig_winch = false
 
   # Variables that may be set by pressing keys when listening to microphone
-  ks = [:skip, :redraw, :redraw_mission, :hole_given, :next, :back, :forget, :first_lick, :quit, :replay, :octave,
-        :loop,
-        :change_lick, :change_key, :pitch, :debug, :change_scale, :rotate_scale, :rotate_scale_reset, :change_tags, :show_help, :change_partial, :change_num_quiz_replay, :quiz_hint,
-        :replay_menu, :replay_flags, :star_lick, :edit_lick_file, :reverse_holes, :shuffle_holes, :lick_info, :options_info, :shift_inter, :comment_lick_play, :comment_lick_next, :comment_lick_prev, :comment_lick_first,
-        :switch_modes, :toggle_record_user, :remote_message,
-        :journal_menu, :journal_current, :journal_play, :journal_delete, :journal_clear, :journal_write, :journal_edit, :journal_recall, :journal_short, :journal_all_toggle, :journal_with_timing, :jamming_ps_rs, :change_display, :change_comment, :update_comment, :warbles_prepare, :warbles_clear,
-        :set_ref, :auto_replay, :player_details]
+  ks = %i[skip redraw redraw_mission hole_given next back forget first_lick quit replay octave
+          loop
+          change_lick change_key pitch debug change_scale rotate_scale rotate_scale_reset change_tags show_help change_partial change_num_quiz_replay quiz_hint
+          replay_menu replay_flags star_lick edit_lick_file reverse_holes shuffle_holes lick_info options_info shift_inter comment_lick_play comment_lick_next comment_lick_prev comment_lick_first
+          switch_modes toggle_record_user remote_message
+          journal_menu journal_current journal_play journal_delete journal_clear journal_write journal_edit journal_recall journal_short journal_all_toggle journal_with_timing jamming_ps_rs change_display change_comment update_comment warbles_prepare warbles_clear
+          set_ref auto_replay player_details]
   $ctl_mic = Struct.new(*ks).new
   ks.each {|k| $ctl_mic[k] = false}
   $ctl_mic[:replay_flags] = Set.new
 
   # result of processing keys, while a recording is played
   # this is partially mirrored in sound_driver.rb
-  ks = [:skip, :replay, :slower, :faster, :vol_up, :vol_down,
-        :show_help, :pause_continue, :invalid]
+  ks = %i[skip replay slower faster vol_up vol_down
+          show_help pause_continue invalid]
   $ctl_rec = Struct.new(*ks).new
   ks.each {|k| $ctl_rec[k] = false}
 
   # used both for holes and recordings
-  ks = [:toggle_loop, :loop_loop, :lick_lick, :num_loops, :star_lick, :can_star_unstar]
+  ks = %i[toggle_loop loop_loop lick_lick num_loops star_lick can_star_unstar]
   $ctl_lk_hl = Struct.new(*ks).new
   ks.each {|k| $ctl_lk_hl[k] = false}
   $ctl_lk_hl[:num_loops] = 100
@@ -112,7 +112,7 @@ def set_global_vars_early
   $conf_meta[:ctrls_play_prog].each {|k| $ctl_prog[k] = false}
 
   # result of processing keys, while a series of holes is played
-  ks = [:skip, :show_help, :vol_up, :vol_down, :invalid]
+  ks = %i[skip show_help vol_up vol_down invalid]
   $ctl_hole = Struct.new(*ks).new
   ks.each {|k| $ctl_hole[k] = false}
 
@@ -131,7 +131,7 @@ def set_global_vars_early
   $ulrec = UserLickRecording.new
 
   $version = File.read("#{$dirs[:install]}/resources/version.txt").lines[0].chomp
-  fail "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
+  raise "Version read from #{$dirs[:install]}/resources/version.txt does not start with a number" unless $version.to_i > 0
 
   # file will be overwritten by run_tests.rb
   $test_wav = "#{$dirs[:exch_tester_tested]}/testing.wav"
@@ -141,8 +141,8 @@ def set_global_vars_early
   # for messages in hande_holes
   $msgbuf = MsgBuf.new
 
-  $notes_with_sharps = %w(c cs d ds e f fs g gs a as b)
-  $notes_with_flats = %w(c df d ef e f gf g af a bf b)
+  $notes_with_sharps = %w[c cs d ds e f fs g gs a as b]
+  $notes_with_flats = %w[c df d ef e f gf g af a bf b]
   $scale_files_templates = ["#{$dirs[:install]}/scales/%s/scale_%s_with_%s.yaml",
                             "#{$dirs[:user_scales]}/%s/scale_%s_with_%s.yaml"]
   # $type will be inserted later
@@ -155,7 +155,7 @@ def set_global_vars_early
 
   $first_round_ever_get_hole = true
 
-  $display_choices = [:hole, :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis]
+  $display_choices = %i[hole chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis]
   $display_choices_desc = { hole: 'Hole currently played',
                             chart_notes: 'Chart with notes',
                             chart_scales: 'Chart with abbreviated scales',
@@ -163,8 +163,8 @@ def set_global_vars_early
                             chart_scales_simple: 'Chart with markers for initial (@) and other (~%~) scales; bright for root-notes',
                             chart_intervals: 'Chart with intervals to ref as names',
                             chart_inter_semis: 'Chart with intervals to ref as semitones' }
-  $comment_choices = Hash.new([:holes_some, :holes_all, :holes_scales, :holes_intervals, :holes_inter_semis, :holes_notes])
-  $comment_choices[:listen] = [:hole, :note, :interval, :cents_to_ref, :gauge_to_ref, :warbles, :journal, :lick_holes, :lick_holes_large]
+  $comment_choices = Hash.new(%i[holes_some holes_all holes_scales holes_intervals holes_inter_semis holes_notes])
+  $comment_choices[:listen] = %i[hole note interval cents_to_ref gauge_to_ref warbles journal lick_holes lick_holes_large]
   $comment_choices_desc = { holes_some: 'Some of the holes to play; largest letters',
                             holes_all: 'All holes to play; large letters',
                             holes_scales: 'Holes to play with abbreviated scales',
@@ -179,12 +179,12 @@ def set_global_vars_early
                             warbles: 'Measure and show your speed in warbling',
                             journal: 'Journal of selected notes you played',
                             lick_holes: "Show holes of a lick given via '--lick-prog'",
-                            lick_holes_large: "The same as lick_holes but with large letters" }
+                            lick_holes_large: 'The same as lick_holes but with large letters' }
 
-  $image_viewers = [{ syn: %w(none), desc: 'Do not view images at all.' },
-                    { syn: %w(pixel-in-terminal pixel), desc: 'View images as pixel-grafic inside your terminal, scrolling along with the text; this requires kitty or img2sixel to be installed.', choose_desc: 'With this option kitty will be tried, if TERM is some form of kitty. In any other case will img2sixel will betrd, which however requires your terminal to support sixel (your mileage may vary).' },
-                    { syn: %w(new-window window), desc: 'Open a new grafical window to show the image; this requires feh to be installed.' },
-                    { syn: %w(char-in-terminal char), desc: 'Render the image with unicode characters; ths requires chafa to be installed.' }]
+  $image_viewers = [{ syn: %w[none], desc: 'Do not view images at all.' },
+                    { syn: %w[pixel-in-terminal pixel], desc: 'View images as pixel-grafic inside your terminal, scrolling along with the text; this requires kitty or img2sixel to be installed.', choose_desc: 'With this option kitty will be tried, if TERM is some form of kitty. In any other case will img2sixel will betrd, which however requires your terminal to support sixel (your mileage may vary).' },
+                    { syn: %w[new-window window], desc: 'Open a new grafical window to show the image; this requires feh to be installed.' },
+                    { syn: %w[char-in-terminal char], desc: 'Render the image with unicode characters; ths requires chafa to be installed.' }]
   # need to define this here, so we may mention it in usage info
   $star_file_template = "#{$dirs[:data]}/licks/%s/starred.yaml"
 
@@ -200,11 +200,11 @@ def set_global_vars_early
 
   $pers_file = "#{$dirs[:data]}/persistent_state.json"
   $pers_file_old = "#{$dirs[:data]}/persistent_state_old.json"
-  if File.exist?($pers_file)
-    $pers_data = JSON.parse(File.read($pers_file))
-  else
-    $pers_data = Hash.new
-  end
+  $pers_data = if File.exist?($pers_file)
+                 JSON.parse(File.read($pers_file))
+               else
+                 Hash.new
+               end
   # Migrate; e.g. delete keys no longer needed
   $pers_data.delete('jamming_last_used_day')
 
@@ -235,15 +235,15 @@ def set_global_vars_early
     hl_long_wheel: [32, 92, 0, 92, 32, 92, 0, 92, 32, 92, 0],
     hl_wheel2: ["\e[2m\e[34m", "\e[34m", "\e[94m"],
     playing_is_paused: "Playing paused, but keys are still available;\npress h to see their list or SPACE to resume playing ...\n",
-    playing_on: "playing on",
-    term_on_quit: "Terminating on user request (quit) ...",
-    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is  \e[1mnot among  \e[0mthese choices (for any type):  \e[1m%s%s\e[0m",
+    playing_on: 'playing on',
+    term_on_quit: 'Terminating on user request (quit) ...',
+    err_among: "First argument for %s should belong to one of the %d types above.\nEach of these types brings various choices, from which you may choose;\nhowever your argument is  \e[1mnot among  \e[0mthese choices (for any type):  \e[1m%s%s\e[0m"
   }
 
-  $keyboard_translateable = %w(SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l) + ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + %w(! " § $ % & ? - * # . / : ; _) + ['(', ')']
+  $keyboard_translateable = %w[SPACE TAB RETURN BACKSPACE LEFT RIGHT UP DOWN ALT-s ALT-l] + ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + %w[! " § $ % & ? - * # . / : ; _] + ['(', ')']
 
   # default is (sometimes) $all_waves[0]
-  $all_waves = %w(pluck sawtooth square sine)
+  $all_waves = %w[pluck sawtooth square sine]
 
   # for remote communication between jamming and listen
   $jamming_path = ["#{$dirs[:data]}/jamming", "#{$dirs[:install]}/jamming"]
@@ -270,7 +270,7 @@ def set_global_vars_early
 
 
   $invocations_dir = "#{$dirs[:data]}/invocations"
-  if !File.directory?($invocations_dir)
+  unless File.directory?($invocations_dir)
     FileUtils.mkdir_p($invocations_dir)
     File.write "#{$invocations_dir}/README.org", <<~EOREADME
 
@@ -307,47 +307,47 @@ def set_global_vars_early
 
   # Among processing e.g. for modes 'play' or 'prin'
   $amongs = Hash.new
-  $amongs[:play] = [:hole, :note, :event, :scale, :lick, :last, :lick_prog, :semi_note, :jam]
+  $amongs[:play] = %i[hole note event scale lick last lick_prog semi_note jam]
   $amongs[:print] = [$amongs[:play], :scale_prog].flatten
-  $amongs[:licks] = [:hole, :note, :lick]
+  $amongs[:licks] = %i[hole note lick]
 
   # need to be the same set of keys as all the amongs above
-  $amongs_desc = { event: ["musical events in () or [] or starting with . ~ , or ;",
+  $amongs_desc = { event: ['musical events in () or [] or starting with . ~ , or ;',
                            "e.g. comments like '(warble)' or '[+123]' or '~' or '.pause.for.2beats'"],
-                   hole: ["holes of the harmonica"],
-                   note: ["notes",
-                          "all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7"],
-                   semi_note: ["Semitones (as note values)",
-                               "e.g. 12st, -2st, +3st"],
-                   semi_inter: ["Semitones (as intervals)",
-                                "e.g. 12st, -2st, +3st"],
-                   scale: ["scales"],
-                   scale_prog: ["scale-progressions"],
-                   extra: ["extra arguments (specific for this mode)"],
-                   inter: ["named intervals"],
-                   lick: ["licks selected by tags"],
-                   lick_prog: ["lick-progressions"],
-                   last: ["A symbolic name for one of the last licks",
-                          "e.g. l, 2l, last"],
+                   hole: ['holes of the harmonica'],
+                   note: ['notes',
+                          'all notes from octaves 2 to 8, e.g. e2, fs3, g5, cf7'],
+                   semi_note: ['Semitones (as note values)',
+                               'e.g. 12st, -2st, +3st'],
+                   semi_inter: ['Semitones (as intervals)',
+                                'e.g. 12st, -2st, +3st'],
+                   scale: ['scales'],
+                   scale_prog: ['scale-progressions'],
+                   extra: ['extra arguments (specific for this mode)'],
+                   inter: ['named intervals'],
+                   lick: ['licks selected by tags'],
+                   lick_prog: ['lick-progressions'],
+                   last: ['A symbolic name for one of the last licks',
+                          'e.g. l, 2l, last'],
                    jam: ["The relative file-name of a jamming-file, without the final '.json'"] }
 
-  $what_abbrevs = { event: %w(event),
-                    hole: %w(h holes),
-                    note: %w(n notes),
-                    semi_note: %w(sn semi-notes),
-                    semi_inter: %w(si semi-inter),
-                    scale: %w(s scales),
-                    scale_prog: %w(sp scale-progs scale-progressions),
-                    extra: %w(e extra extras),
-                    inter: %w(ni named-intervals),
-                    lick: %w(l licks),
-                    lick_prog: %w(lp lick-progs lick-progressions),
-                    last: %w(last),
-                    jam: %w(j jam) }
+  $what_abbrevs = { event: %w[event],
+                    hole: %w[h holes],
+                    note: %w[n notes],
+                    semi_note: %w[sn semi-notes],
+                    semi_inter: %w[si semi-inter],
+                    scale: %w[s scales],
+                    scale_prog: %w[sp scale-progs scale-progressions],
+                    extra: %w[e extra extras],
+                    inter: %w[ni named-intervals],
+                    lick: %w[l licks],
+                    lick_prog: %w[lp lick-progs lick-progressions],
+                    last: %w[last],
+                    jam: %w[j jam] }
 
   ambig = $what_abbrevs.values.flatten.tally.select {|k, v| v > 1}
   err("Internal error: ambigous abbreviations: #{ambig}") if ambig.length > 0
-  err("Internal error with $what_abbrevs") if Set.new($what_abbrevs.keys) != Set.new($amongs_desc.keys)
+  err('Internal error with $what_abbrevs') if Set.new($what_abbrevs.keys) != Set.new($amongs_desc.keys)
 end
 
 def find_and_check_dirs_early
@@ -395,14 +395,12 @@ def find_and_check_dirs_early
     # no ~/.harpwise, wo we will simply create ~/harpwise further down below
   end
 
-  if $dirs[:install] == $dirs[:data]
-    err err_dirs_equal
-  end
+  err err_dirs_equal if $dirs[:install] == $dirs[:data]
 
   $dirs[:players_pictures] = "#{$dirs[:data]}/players_pictures"
   $dirs[:user_scales] = "#{$dirs[:data]}/scales"
 
-  [:data, :players_pictures, :user_scales].each do |dirsym|
+  %i[data players_pictures user_scales].each do |dirsym|
     created = create_dir($dirs[dirsym])
     $dirs_data_created = true if created && dirsym == :data
   end
@@ -470,7 +468,7 @@ def find_and_check_dirs_early
   end
 
   $dirs.each do |k, v|
-    next if [:install_devel, :exch_tester_tested, :data_old].include?(k)
+    next if %i[install_devel exch_tester_tested data_old].include?(k)
 
     err "Directory #{v} for key :#{k} does not exist; installation looks damaged" unless File.directory?(v)
   end
@@ -482,7 +480,7 @@ def calculate_screen_layout
   stretch += 1 if $term_height > 36
   squeeze = 1 if $term_height < 27
   lines_extra = $term_height - $conf[:term_min_height]
-  need_message2 = ( $mode == :quiz || $mode == :licks )
+  need_message2 = $mode == :quiz || $mode == :licks
   lines = Struct.new(:mission, :key, :display, :hole, :frequency, :interval, :comment, :hint_or_message, :help, :message2, :message_bottom, :comment_tall).new
   lines = Hash.new
 
@@ -505,13 +503,13 @@ def calculate_screen_layout
     lines[:comment_flat] += 1
     lines[:comment] += 1
   end
-  if need_message2
-    # only needed for quiz and licks
-    lines[:message2] = lines[:hint_or_message] + 1
-  else
-    # we do not need a second line for mode :listen
-    lines[:message2] = -1
-  end
+  lines[:message2] = if need_message2
+                       # only needed for quiz and licks
+                       lines[:hint_or_message] + 1
+                     else
+                       # we do not need a second line for mode :listen
+                       -1
+                     end
   lines[:message_bottom] = [lines[:hint_or_message], lines[:message2]].max
   lines[:help] = lines[:comment_tall]
 
@@ -596,31 +594,29 @@ end
 
 def check_installation verbose: false
   # check for some required programs
-  needed_progs = %w(figlet toilet aubiopitch sox stdbuf)
+  needed_progs = %w[figlet toilet aubiopitch sox stdbuf]
   not_found = needed_progs.reject {|x| system("which #{x} >/dev/null 2>&1")}
   err "These programs are needed but cannot be found: \n  #{not_found.join("\n  ")}\nyou may need to install them" if not_found.length > 0
   puts "Found needed programs: #{needed_progs}" if verbose
 
   # check, that sox understands mp3
-  %x(sox -h).match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
+  `sox -h`.match(/AUDIO FILE FORMATS: (.*)/)[1]['mp3'] ||
     err("Your installation of sox does not support mp3 (check with: 'sox -h' and look for line 'AUDIO FILE FORMATS'); please install the appropriate package (e.g. libsox-fmt-all)")
-  puts "Sox is able to handle mp3." if verbose
+  puts 'Sox is able to handle mp3.' if verbose
 
   # Check some sample dirs and files
-  some_needed_files = %w(docs/erb-org/usage.erb.org config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3)
+  some_needed_files = %w[docs/erb-org/usage.erb.org config/intervals.yaml recordings/wade.mp3 recordings/st-louis.mp3]
   some_needed_files.each do |file|
-    if !File.exist?($dirs[:install] + '/' + file)
-      err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}"
-    end
+    err "Installation is incomplete: The file #{file} does not exist in #{$dirs[:install]}" unless File.exist?($dirs[:install] + '/' + file)
   end
   puts "Some needed files are verified to exist:\n#{some_needed_files}" if verbose
 
   # check fonts and map fonts to figlet/toilet directory
   $font2dir = Hash.new
-  font_dirs = %w(figlet toilet).map {|prog| %x(#{prog} -I2).chomp}.uniq
+  font_dirs = %w[figlet toilet].map {|prog| `#{prog} -I2`.chomp}.uniq
   $early_conf[:figlet_fonts].each do |font|
     font_dirs.each do |fdir|
-      %w(flf tlf).each do |ending|
+      %w[flf tlf].each do |ending|
         if File.exist?("#{fdir}/#{font}.#{ending}")
           $font2dir[font] = fdir
           break 2
@@ -671,7 +667,7 @@ def read_technical_config
   # gracefully handle common plural/singular-mingling
   conf[:sharps_or_flats] = :sharps if conf[:sharps_or_flats] == :sharp
   conf[:sharps_or_flats] = :flats if conf[:sharps_or_flats] == :flat
-  err err_head + "Config 'sharps_or_flats' can only be 'flats' or 'sharps' not '#{conf[:sharps_or_flats]}'" unless [:sharps, :flats].include?(conf[:sharps_or_flats])
+  err err_head + "Config 'sharps_or_flats' can only be 'flats' or 'sharps' not '#{conf[:sharps_or_flats]}'" unless %i[sharps flats].include?(conf[:sharps_or_flats])
 
   conf
 end
@@ -700,7 +696,7 @@ def read_config_ini file, strict: true
       err err_head + "Key '#{key.to_sym}' is deprecated; please edit the file and remove or rename it" if $conf_meta[:deprecated_keys].include?(key)
       if section
         allowed = Set.new($conf_meta[:sections_keys][section])
-        allowed += Set.new($conf_meta[:sections_keys][:any_mode]) if ![:any_mode, :general].include?(section)
+        allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless %i[any_mode general].include?(section)
         err err_head + "Key '#{key.to_sym}' is not among allowed keys in section '#{section}'; none of '#{allowed}'. If not a typo, it might be allowed in one of the other sections however #{$conf_meta[:sections].map(&:o2str)}" unless allowed.include?(key)
         conf[section][key] = value
       elsif section.nil?
@@ -717,16 +713,14 @@ def read_config_ini file, strict: true
     found = Set.new(conf[section].keys.sort)
     required = Set.new($conf_meta[:sections_keys][section])
     allowed = required.clone
-    allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless [:any_mode, :general].include?(section)
+    allowed += Set.new($conf_meta[:sections_keys][:any_mode]) unless %i[any_mode general].include?(section)
 
     err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is not a subset of all keys allowed:\n\n#{allowed}" unless found.subset?(allowed)
 
     # For the two sections below, we require all keys to be present,
     # but only for installation-config, not for user-config. This
     # requirement is relaxed for other sections, e.g. :licks
-    if strict && [:any_mode, :general].include?(section)
-      err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is different from all keys required:\n\n#{required}" unless required == found
-    end
+    err err_head + "Section #{section.o2str} has these keys:\n\n#{found}\n\nwhich is different from all keys required:\n\n#{required}" if strict && %i[any_mode general].include?(section) && !(required == found)
   end
 
   # transfer keys from general
@@ -736,7 +730,7 @@ def read_config_ini file, strict: true
 end
 
 def read_and_set_musical_bootstrap_config
-  $samples_needed = ![:samples, :print, :tools, :develop].include?($mode)
+  $samples_needed = !%i[samples print tools develop].include?($mode)
   all_scales, scale2file = scales_for_type($type, true)
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   all_sc_progs = Hash.new
@@ -752,7 +746,7 @@ def read_and_set_musical_bootstrap_config
       sc_prog2file[name] = sc_pr_fl
       prog.is_a?(Hash) || err("Not a hash #{prog}   (in #{sc_pr_fl})")
       prog.transform_keys!(&:to_sym)
-      sc_pr_ks = [:desc, :scales]
+      sc_pr_ks = %i[desc scales]
       prog.keys == sc_pr_ks || err("Wrong keys #{prog.keys}, not #{sc_pr_ks}   (in #{sc_pr_fl})")
       prog[:scales].each do |sc|
         err("Unknown scale #{sc} specified in scale progression #{name}, none of #{all_scales}   (in #{sc_pr_fl})") unless all_scales.include?(sc)
@@ -762,7 +756,7 @@ def read_and_set_musical_bootstrap_config
   end
   all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
   holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
-  return [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
+  [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
 end
 
 def read_and_set_musical_config
@@ -817,7 +811,7 @@ def read_and_set_musical_config
     holes_remove = []
     if $opts[:remove_scales]
       $opts[:remove_scales].split(',').each do |sn|
-        sc_ho, _ = read_and_parse_scale(sn)
+        sc_ho, = read_and_parse_scale(sn)
         holes_remove.concat(sc_ho)
       end
     end
@@ -837,9 +831,7 @@ def read_and_set_musical_config
 
         if idx == 0
           hole2flags[h] << :main
-          if scale2props.dig(sname, :roots)&.include?(h)
-            hole2flags[h] << :root
-          end
+          hole2flags[h] << :root if scale2props.dig(sname, :roots)&.include?(h)
         else
           next if $opts[:add_no_holes] && !hole2flags[h]
 
@@ -867,13 +859,13 @@ def read_and_set_musical_config
   hole_sets = yaml_parse(sets_file).transform_keys!(&:to_sym)
   required = Set[:typical_hole, :named_sets]
   found = Set.new(hole_sets.keys)
-  fail("Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}") unless required == found
+  raise("Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}") unless required == found
 
   typical_hole = hole_sets[:typical_hole]
   named_hole_sets = hole_sets[:named_sets]
-  required = Set.new(%w(draw-low blow-low draw-full blow-full))
+  required = Set.new(%w[draw-low blow-low draw-full blow-full])
   found = Set.new(named_hole_sets.keys)
-  fail("Internal error: Hole sets #{found} from #{sets_file} is different from required set #{required}") unless required == found
+  raise("Internal error: Hole sets #{found} from #{sets_file} is different from required set #{required}") unless required == found
 
   named_hole_sets['all'] = $harp_holes
 
@@ -943,7 +935,7 @@ def read_and_set_musical_config
 
   $quiz_interval2song.values.each do |ts|
     ts.each do |t|
-      fail "Song title '#{t}' is too long #{t.length} >= #{$conf[:term_min_width] - 4}" if t.length >= $conf[:term_min_width] - 4
+      raise "Song title '#{t}' is too long #{t.length} >= #{$conf[:term_min_width] - 4}" if t.length >= $conf[:term_min_width] - 4
     end
   end
 
@@ -1037,8 +1029,8 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
   what = ( sfile['holes'] ? 'holes' : 'notes' )
   err "Content of scale file   #{sfile}   is not a hash, but rather: #{raw_read.class}" unless raw_read.class == Hash
   err "Content of scale file   #{sfile}   does not have required key '#{what}', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?(what)
-  err "Content of scale file   #{sfile}   has both keys 'holes' and 'notes', but judging from the filename, only '#{what}' is allowed." if (%w(holes notes) - raw_read.keys).length == 0
-  known_keys = %w(desc short holes notes roots)
+  err "Content of scale file   #{sfile}   has both keys 'holes' and 'notes', but judging from the filename, only '#{what}' is allowed." if (%w[holes notes] - raw_read.keys).length == 0
+  known_keys = %w[desc short holes notes roots]
   unknown = raw_read.keys - known_keys
   err "These keys from scale file   #{sfile}   are unknown: #{unknown.join(', ')}; they are none of: #{known_keys.join(', ')}" if unknown.length > 0
   hons_read = raw_read[what]
@@ -1046,7 +1038,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
 
   # get properties of scale
   props = Hash.new
-  %w(desc short).each do |key|
+  %w[desc short].each do |key|
     next unless raw_read[key]
 
     props[key.to_sym] = raw_read[key]
@@ -1103,9 +1095,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
         props[:roots] = kept_holes
       end
     end
-    if $used_scales.include?(sname) && holes_lost.length > 0
-      $msgbuf.print "These holes from scale #{sname} have been lost during transpose: #{holes_lost.uniq.join(' ')}", 5, 5
-    end
+    $msgbuf.print "These holes from scale #{sname} have been lost during transpose: #{holes_lost.uniq.join(' ')}", 5, 5 if $used_scales.include?(sname) && holes_lost.length > 0
 
   else
 
@@ -1137,9 +1127,7 @@ def read_and_parse_scale_simple sname, harp = nil, desc_only: false, override_fi
         props[:roots] = kept_holes
       end
     end
-    if $used_scales.include?(sname) && notes_lost.length > 0
-      $msgbuf.print "These notes from scale #{sname} have been lost during transpose: #{notes_lost.join(' ')}", 5, 5
-    end
+    $msgbuf.print "These notes from scale #{sname} have been lost during transpose: #{notes_lost.join(' ')}", 5, 5 if $used_scales.include?(sname) && notes_lost.length > 0
 
   end
 
@@ -1226,7 +1214,7 @@ def read_chart
       chart_with_scales_simple[row] << chart_with_holes_raw[row][-1]
     end
   rescue ArgumentError => e
-    fail "Internal error with #{$chart_file}: #{e}"
+    raise "Internal error with #{$chart_file}: #{e}"
   end
 
   [{ chart_notes: chart_with_notes,
@@ -1278,9 +1266,7 @@ def read_samples
       freq * fmult
     end
   end
-  unless Set.new($harp_holes) == Set.new(hole2freq.keys)
-    err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples!\n\n#{for_sample_generation}"
-  end
+  err "The sets of holes from #{$holes_file}\n#{$harp_holes.join(' ')}\nand #{$freq_file}\n#{hole2freq.keys.join(' ')}\ndiffer. The symmetrical difference is\n#{(Set.new($harp_holes) ^ Set.new(hole2freq.keys)).to_a.join(' ')}\nProbably you should redo the whole recording or generation of samples!\n\n#{for_sample_generation}" unless Set.new($harp_holes) == Set.new(hole2freq.keys)
   hole2freq.each do |hole, freq|
     err "The frequency for hole   #{hole}   in #{$freq_file} is zero. Probably you need to re-record this sample or delete it!" if freq == 0
   end
@@ -1293,12 +1279,8 @@ def read_samples
       fa_minus = semi2freq_et($harp[ha][:semi] - 0.5)
       fb_plus = semi2freq_et($harp[hb][:semi] + 0.5)
       maybe = "Maybe re-record hole #{ha} or simply generate all holes for this key."
-      if fa >= fb_plus
-        err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}"
-      end
-      if fa <= fa_minus || fa >= fa_plus
-        err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}"
-      end
+      err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}" if fa >= fb_plus
+      err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}" if fa <= fa_minus || fa >= fa_plus
     end
   end
 
@@ -1306,16 +1288,14 @@ def read_samples
 
   unless $opts[:octave_shift]
     $harp_holes.each do |hole|
-      file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w(.wav .mp3))
+      file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3])
       err "Sample for hole #{hole} does not exist; you need to create samples" unless file
       err "Sample file #{file} does not exist; you need to create samples" unless File.exist?(file)
     end
   end
 
   # 'reverse', because we want to get the first of two holes having the same freq
-  freq2hole = $harp_holes.map {|h| [$harp[h][:freq], h]}.reverse.to_h
-
-  freq2hole
+  $harp_holes.map {|h| [$harp[h][:freq], h]}.reverse.to_h
 end
 
 #
@@ -1327,10 +1307,10 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
   $non_prog_scale = ($used_scales - $scale_prog)[0] || $scale
   $opts[:add_scales] = nil if $used_scales.length == 1
   $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
-  fail "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == [:easy, :hard]
+  raise "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == %i[easy hard]
 
-  [:easy, :hard].each do |dicu|
-    fail "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
+  %i[easy hard].each do |dicu|
+    raise "Internal error: #{$all_scales}, #{$all_quiz_scales[dicu]}" unless $all_quiz_scales[dicu] - $all_scales == []
   end
   $all_quiz_scales[:hard].append(*$all_quiz_scales[:easy]).uniq!
 
@@ -1351,7 +1331,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
                          10 => 'shifts-flat-seventh', 12 => 'shifts-eight' }
 
   # chords to be checked and tagged for licks contained
-  $scale_lick_tags = %w(chord-i chord-iv chord-v blues mape)
+  $scale_lick_tags = %w[chord-i chord-iv chord-v blues mape]
 
   $charts, $hole2chart = read_chart
   if $hole_ref
@@ -1359,7 +1339,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
     $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
   end
 
-  if [:play, :print, :licks, :listen].include?($mode) &&
+  if %i[play print licks listen].include?($mode) &&
      # we do not need to read licks e.g. when rotating scales e.g. in jamming
      !shortcut_licks
     # might be reread later. Pass use_opt_lick_prog = false on every
@@ -1367,9 +1347,7 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
     $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
   end
 
-  if [:play, :print, :jamming, :tools].include?($mode)
-    $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content
-  end
+  $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content if %i[play print jamming tools].include?($mode)
 
   $freq2hole = read_samples if $samples_needed
   if $opts[:ref]
@@ -1377,11 +1355,11 @@ def set_global_musical_vars rotated: false, shortcut_licks: false
     $hole_ref = $opts[:ref]
   end
 
-  $common_harp_keys = %w(g a c d)
+  $common_harp_keys = %w[g a c d]
   $all_harp_keys = if $opts[:sharps_or_flats] == :flats
-                     %w(g af a bf b c df d ef e f gf)
+                     %w[g af a bf b c df d ef e f gf]
                    else
-                     %w(g gs a as b c cs d ds e f fs)
+                     %w[g gs a as b c cs d ds e f fs]
                    end
 
   # check, that the names of those extra args do not collide with scales
@@ -1398,10 +1376,10 @@ end
 
 $warned_for_double_short = Hash.new
 def warn_if_double_short short, long
-  if $short2scale[short] && long != $short2scale[short] && !$warned_for_double_short[short]
-    $warned_for_double_short[short] = true
-    $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, :double_short, wrap: true, truncate: false) if [:listen, :quiz, :licks].include?($mode)
-  end
+  return unless $short2scale[short] && long != $short2scale[short] && !$warned_for_double_short[short]
+
+  $warned_for_double_short[short] = true
+  $msgbuf.print("Shortname '#{short}' is used for two scales '#{$short2scale[short]}' and '#{long}' consider explicit shortname with ':' (see usage)", 5, 5, :double_short, wrap: true, truncate: false) if %i[listen quiz licks].include?($mode)
 end
 
 def get_sample_dir key
