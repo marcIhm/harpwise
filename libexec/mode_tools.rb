@@ -1661,19 +1661,18 @@ def tool_diag_hints
     sleep 0.01
   end
 
-  puts "Press \e[32many key\e[0m to read them (\e[32ml\e[0m or \e[32mm\e[0m for less or more): "
+  puts "Press \e[32many key\e[0m to read them with less; \e[32mm\e[0m to use more; \e[32mc\e[0m for simple cat:"
   drain_chars
   char = one_char
 
-  gfile = "#{$dirs[:install]}/resources/audio_guide.txt"
-  if %w[l m].include?(char)
-    pgr = Hash[*%w[l less m more]].to_h[char]
-    puts "\npaging  #{gfile}  with #{pgr} ... "
+  gfile = "#{$dirs[:install]}/resources/diag_hints.txt"
+  if char == 'm'
+    puts "\npaging  #{gfile}  with more ... "
     sleep 0.5
-    system("#{pgr} #{gfile}")
+    system("more #{gfile}")
     puts 'Done.'
     puts
-  else
+  elsif char == 'c'
     puts "\n\e[32mSome hints\n----------\e[0m\n"
     audio_guide = ERB.new(IO.read(gfile)).result(binding).lines
     audio_guide.pop while audio_guide[-1].strip.empty?
@@ -1682,6 +1681,12 @@ def tool_diag_hints
       sleep 0.01
     end
     puts "\n\e[2mEnd of hints.\e[0m\n\n"
+  else
+    puts "\npaging  #{gfile}  with less ... "
+    sleep 0.5
+    system("less #{gfile}")
+    puts 'Done.'
+    puts
   end
 end
 

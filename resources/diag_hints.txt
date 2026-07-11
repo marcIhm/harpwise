@@ -2,15 +2,26 @@
 Problems with volume
 --------------------
 
-During the record and play, that has just taken place, you might
-have noticed any of these:
+If your input-level during recording was constantly at max
+i.e. [!=====|======] insteadof , at least sometimes, at a medium
+level [ -=|==- ]. It may then simply be enough to reduce the input
+volume, e.g. within gnome audio-settings or whatever your desktop-
+environment might be.
 
-- Sound recording was distorted (i.e. sounds bad)
-- Input-level during recording was constantly at max [!=====|======]
-  instead, at least sometimes, at a medium level [ -=|==- ]
 
-It may then simply be enough to reduce the input volume, e.g. within
-gnome audio-settings.
+Problems with distortion
+------------------------
+
+Under linux (or WSL), if recorded sound was played back only
+distorted (i.e. sounds very bad), it might help to change the
+environment variable AUDIDRIVER:
+
+  AUDIODRIVER=alsa harpwise tools diag
+
+which enforces alsa as the soundsystem to be used. Alsa has fewer
+features than pulseaudio but might be more robust on your system.
+If this variable proofs useful, you may want to persist it in
+your .bashrc or equiv.
 
 
 Problems with audio driver
