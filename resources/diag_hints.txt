@@ -3,8 +3,8 @@ Problems with volume
 --------------------
 
 If your input-level during recording was constantly at max
-i.e. [!=====|======] insteadof , at least sometimes, at a medium
-level [ -=|==- ]. It may then simply be enough to reduce the input
+i.e. [!=====|======] instead of (at least sometimes) at a medium
+level [ -=|==- ], it may then simply be enough to reduce the input
 volume, e.g. within gnome audio-settings or whatever your desktop-
 environment might be.
 

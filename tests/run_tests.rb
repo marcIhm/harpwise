@@ -173,7 +173,7 @@ end
 
 do_test 'id-0b: selftest with restricted locale' do
   new_session
-  tms 'LANG=C.ASCII harpwise develop selftest'
+  tms 'LANG=C harpwise develop selftest'
   tms :ENTER
   sleep 2
   expect { screen[21]['Selftest okay.'] }
@@ -2545,7 +2545,7 @@ end
     sleep 6
     tms 'q'
     expect(vals) do
-      ( md = screen[19].match(/handle_holes_this_loops_per_second: (\d+\.\d+)/) ) &&
+      ( md = screen[19].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
         lpsrange.include?(md[1].to_f)
     end
     kill_session
@@ -4345,7 +4345,7 @@ do_test 'id-147: tool diag' do
   expect { screen[7]['Replay'] }
   tms :ENTER
   sleep 3
-  expect { screen[1]['[      |      ]'] }
+  expect { screen[4]['[      |      ]'] }
   wait_for_end_of_harpwise
   expect { screen[12]['Diagnosis done'] }
   kill_session
@@ -4372,7 +4372,7 @@ do_test 'id-149: tool diag3' do
   tms :ENTER
   sleep 3
   wait_for_end_of_harpwise
-  expect { screen[15]['sox WARN wav: Length in output .wav header will be wrong'] }
+  expect { screen[17]['sox WARN wav: length in output header will be wrong'] }
   expect { screen[33]['Diagnosis done'] }
   kill_session
 end
@@ -4382,7 +4382,7 @@ do_test 'id-150: tool diag-hints' do
   tms 'harpwise tool diag-hints'
   tms :ENTER
   sleep 1
-  tms :ENTER
+  tms 'c'
   wait_for_end_of_harpwise
   expect { screen[21]['End of hints.'] }
   kill_session
