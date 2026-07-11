@@ -136,6 +136,26 @@ system('killall aubiopitch >/dev/null 2>&1')
 puts 'Testing'
 puts "\n\e[32mTo restart a failed test use: '#{File.basename($0)} .'\e[0m\n"
 puts "\e[2mTesting the installed snap.\e[0m\n" if $use_snap
+
+do_test 'id-0: run minitest' do
+  puts "\e[33mPENDING \e[0m"
+  puts
+  _, ppl_out_err, wait_thr = Open3.popen2e('./tests/minitest/all.rb')
+  while wait_thr.alive?
+    line = ppl_out_err.gets
+    next unless line
+    puts "    >> #{line}"
+  end
+  exst = wait_thr.value.exitstatus
+  puts
+  if exst && exst != 0
+    puts "  \e[31mNOT Okay\e[0m"
+    exit 1
+  else
+    puts "  \e[32mOkay \e[0m"
+  end
+end
+
 do_test 'id-0a: selftest without user dir' do
   FileUtils.rm_r($datadir) if File.exist?($datadir)
   new_session
