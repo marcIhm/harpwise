@@ -103,8 +103,8 @@ def samples_generate to_handle
       end
     end
 
-    set_global_vars_late
-    set_global_musical_vars
+    Cfg::set_global_vars_late
+    Cfg::set_global_musical_vars
     FileUtils.mkdir_p($sample_dir) unless File.directory?($sample_dir)
 
     hole2freq = Hash.new
@@ -399,7 +399,7 @@ def samples_check to_handle
 
     prev_remark = nil
     these_keys.each do |key|
-      sample_dir = get_sample_dir(key)
+      sample_dir = Cfg::get_sample_dir(key)
       counts = %w[wav mp3].map do |suff|
         [suff,
          File.directory?(sample_dir) ? Dir["#{sample_dir}/*.#{suff}"].length : 0]
@@ -460,7 +460,7 @@ def samples_check to_handle
       counts.keys.sort.each {|w| puts "#{head}  #{w.rjust(maxlen)}:  #{counts[w]}"}
       puts
     else
-      puts "No samples for key #{$key} yet; maybe record or create some?\n\e[2m#{for_sample_generation}\e[0m"
+      puts "No samples for key #{$key} yet; maybe record or create some?\n\e[2m#{Cfg::for_sample_generation}\e[0m"
     end
     puts
   end
@@ -488,7 +488,7 @@ def samples_delete to_handle
   end
 
   these_keys.each do |key|
-    sample_dir = get_sample_dir(key)
+    sample_dir = Cfg::get_sample_dir(key)
     to_delete = []
     $harp_holes.each do |hole|
       file = this_or_equiv("#{sample_dir}/%s.wav", $harp[hole][:note])

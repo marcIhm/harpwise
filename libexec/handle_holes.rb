@@ -24,8 +24,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     $move_down_on_exit = true
     $msgbuf.ready
     if $hole_ref
-      $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-      $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+      $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
+      $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
     end
     $ctl_mic[:redraw] = Set[:silent]
   end
@@ -380,8 +380,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       end
       $msgbuf.print "#{$hole_ref ? 'Stored' : 'Cleared'} reference hole", 2, 5, :ref
       if $hole_ref
-        $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-        $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+        $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
+        $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
       end
       if %i[chart_intervals chart_inter_semis].include?($opts[:display])
         clear_area_display
@@ -403,8 +403,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $opts[:display] = rotate_among($opts[:display], :up, $display_choices)
       end
       if $hole_ref
-        $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-        $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+        $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
+        $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
       end
       clear_area_display
       print_chart if %i[chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis].include?($opts[:display])
@@ -501,8 +501,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_change_key
       $ctl_mic[:change_key] = false
       $ctl_mic[:redraw] = Set[:silent]
-      set_global_vars_late
-      set_global_musical_vars
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars
       $freqs_queue.clear
       # need a new question
       $ctl_mic[:next] = true if $mode == :quiz
@@ -512,8 +512,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_change_key_to_pitch
       $ctl_mic[:pitch] = false
       $ctl_mic[:redraw] = Set[:clear, :silent]
-      set_global_vars_late
-      set_global_musical_vars
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars
       $freqs_queue.clear
     end
 
@@ -521,8 +521,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_change_scale_add_scales
       $ctl_mic[:change_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
-      set_global_vars_late
-      set_global_musical_vars
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars
       $freqs_queue.clear
     end
 
@@ -531,8 +531,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       $ctl_mic[:rotate_scale] = false
       $ctl_mic[:redraw] = Set[:silent]
       Time.now
-      set_global_vars_late
-      set_global_musical_vars rotated: true, shortcut_licks: true
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars rotated: true, shortcut_licks: true
       $freqs_queue.clear
     end
 
@@ -540,8 +540,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       do_rotate_scale_add_scales_reset
       $ctl_mic[:rotate_scale_reset] = false
       $ctl_mic[:redraw] = Set[:silent]
-      set_global_vars_late
-      set_global_musical_vars rotated: true
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars rotated: true
       $freqs_queue.clear
     end
 
@@ -1261,8 +1261,8 @@ def show_remote_message
         key = text[text.index('}}') + 2..-1]
         err("Internal error: key '#{key} received from jamming is none of the available keys: #{$conf[:all_keys]}") unless $conf[:all_keys].include?(key)
         $key = key
-        set_global_vars_late
-        set_global_musical_vars
+        Cfg::set_global_vars_late
+        Cfg::set_global_musical_vars
         print "\e[#{$lines[:key]}H" + text_for_key
         if $key == key_was
           $msgbuf.print "Key of harp unchanged:   #{$key}", duration, duration, :key

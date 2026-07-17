@@ -510,7 +510,7 @@ def process_lick lick, name, vars, default
   #
 
   $scale_lick_tags.each do |scale|
-    sc_holes = read_and_parse_scale_simple(scale, $harp)[0]
+    sc_holes = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
                .map {|h| $harp[h][:canonical]}
     lk_holes = lick[:holes]
                .reject {|h| musical_event?(h)}

@@ -54,7 +54,7 @@ def do_docs_make_org_txt
               [dst_txt_dir, '.txt']]
 
   # needed for erb
-  types_with_scales = get_types_with_scales_for_usage
+  types_with_scales = Args::get_types_with_scales_for_usage
 
   puts "\nWriting files ...\n\n"
   src_files_short.each do |file_short|
@@ -151,7 +151,7 @@ def do_selftest
   puts_underlined 'Performing selftest'
 
   puts_underlined 'Check installation', '-', dim: false
-  check_installation verbose: true
+  Cfg::check_installation verbose: true
 
   puts
   puts_underlined 'Invoking figlet for fontname on all fonts', '-', dim: false
@@ -463,5 +463,5 @@ def do_read_scale_with_notes to_handle
   err 'Need two args: name of scale and filename to read it from' unless to_handle.length == 2
   sname, file = to_handle
   puts "Trying to read scale #{sname} from file #{file}"
-  pp read_and_parse_scale_simple(sname, override_file: file)
+  pp Cfg::read_and_parse_scale_simple(sname, override_file: file)
 end

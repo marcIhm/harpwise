@@ -75,18 +75,18 @@ $testing, $testing_what = set_testing_vars_mb
 # paths; do this early, before we even have parsed options
 Dir.chdir(Dir.home) if $testing
 
-set_global_vars_early
+Cfg::set_global_vars_early
 
-check_installation
+Cfg::check_installation
 
-$conf = read_technical_config
+$conf = Cfg::read_technical_config
 
 # We set PULSE_SERVER in snapcraft.yaml already; however, for WSL2 we need a different
 # value; so we check and set here (maybe override)
 ENV['PULSE_SERVER'] = 'unix:/mnt/wslg/PulseServer' if ENV['SNAP'] && File.read('/proc/version')['WSL2']
 
 # needed for usage
-initialize_extra_vars
+Args::initialize_vars_for_extra_arg
 
 if $testing_what == :extra
   puts JSON.pretty_generate({ extra_kws_wwos2canon: $extra_kws_wwos2canon })
@@ -97,7 +97,7 @@ end
 # arguments
 $opts = { debug: true } if ARGV.include?('--debug')
 
-$mode, $type, $key, $scale, $opts = parse_arguments_early
+$mode, $type, $key, $scale, $opts = Args::parse_early
 $key_initial = $key
 $scale_initial = $scale
 
@@ -111,20 +111,20 @@ initialize_debugging_mb
 mostly_avoid_double_invocations
 
 # we need to have mode for this, so calculate it late
-$lines = calculate_screen_layout
+$lines = Cfg::calculate_screen_layout
 # Count things and print them on --debug; supplements info from ruby -rprofile
 $perfctr = Hash.new {|h, k| h[k] = 0}
 
-set_global_vars_late
+Cfg::set_global_vars_late
 
-set_global_musical_vars
+Cfg::set_global_musical_vars
 
 $initialized = true
 
 $extra_kws[$mode].each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
 report_name_collisions_mb
 
-$extra, to_handle = parse_arguments_for_mode
+$extra, to_handle = Args::parse_for_mode
 
 check_screen(hint_on_large_term: true) if %i[listen quiz licks].include?($mode)
 

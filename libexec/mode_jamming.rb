@@ -1024,12 +1024,12 @@ def parse_and_preprocess_jamming_json json, simple: false
   puts
 
   if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
-    if $source_of[:key] == 'command-line'
+    if $args_source_of[:key] == 'command-line'
       puts "Got harp key   \e[32m#{$key}\e[0m   from command line;  \e[32mchanging pitch of track accordingly!\e[0m\n\n\e[2mIf you want to play the track unchanged, just omit the key (here: #{$key}) from the\ncommandline.  But for this you will need to have a harmonica in the key of #{jam_pms['harp_key']}.\n"
     else
       $key = jam_pms['harp_key']
-      set_global_vars_late
-      set_global_musical_vars
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars
       puts "Switching to harp key   \e[32m#{jam_pms['harp_key']}\e[0m   as given in json file."
     end
   else

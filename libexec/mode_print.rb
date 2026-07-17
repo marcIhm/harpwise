@@ -43,11 +43,11 @@ def do_print to_print
       puts 'Printing scales given as arguments.'
       puts
       snames.each do |sn|
-        sname = get_scale_from_sws(sn)
+        sname = Args::get_scale_from_sws(sn)
         from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
         puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
-        scale_holes, = read_and_parse_scale(sname)
+        scale_holes, = Cfg::read_and_parse_scale(sname)
         print_holes_and_more scale_holes, embedded: true
         if $scale2desc[sname] || $scale2short[sname]
           puts
@@ -470,8 +470,8 @@ def print_scales scales
     maxs = scales.map {|s| s.length}.max
     scales.each do |sname|
       # need this to fill scale2short
-      read_and_parse_scale(sname)
-      scale_holes, _, sfile = read_and_parse_scale_simple(sname, $harp)
+      Cfg::read_and_parse_scale(sname)
+      scale_holes, _, sfile = Cfg::read_and_parse_scale_simple(sname, $harp)
       from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
       puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
       puts "   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"

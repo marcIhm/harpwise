@@ -85,7 +85,7 @@ def tool_key_positions to_handle
   end
 
   harp_key = $key
-  harp_color = if $source_of[:key] == 'command-line'
+  harp_color = if $args_source_of[:key] == 'command-line'
                  "\e[0m\e[32m"
                else
                  "\e[0m"
@@ -359,8 +359,8 @@ def tool_match_harps to_handle
     $all_harp_keys.each do |key|
       # change key
       $key = key
-      set_global_vars_late
-      set_global_musical_vars shortcut_licks: true
+      Cfg::set_global_vars_late
+      Cfg::set_global_musical_vars shortcut_licks: true
 
       # try plain, then all holes
       hole_set_sets_semis = hole_set_sets.map do |name, hole_sets|
@@ -606,10 +606,10 @@ def tool_search_lick_in_scales to_handle
   mt_scales_all = Array.new
   sc2hole = Hash.new
   $all_scales.each do |scale|
-    sc2hole[scale] = read_and_parse_scale_simple(scale, $harp)[0]
-                     .map {|h| $harp[h][:canonical]}
-                     .uniq
-                     .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+    sc2hole[scale] = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
+                       .map {|h| $harp[h][:canonical]}
+                       .uniq
+                       .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
     mt_scales_all << scale if (lk_holes - sc2hole[scale]).empty?
   end
 
@@ -639,8 +639,8 @@ def tool_search_scale_in_licks to_handle
   err "Need exactly one scale-name as an argument; #{to_handle.inspect} is not enough" unless to_handle.length == 1
 
   $all_licks, $licks, $all_lick_progs = read_licks
-  sc_holes = read_and_parse_scale_simple(to_handle[0], $harp)[0]
-             .map {|h| $harp[h][:canonical]}
+  sc_holes = Cfg::read_and_parse_scale_simple(to_handle[0], $harp)[0]
+               .map {|h| $harp[h][:canonical]}
 
   matches_but = Hash.new {|h, k| h[k] = Array.new}
 
@@ -719,7 +719,7 @@ def tool_licks_from_scale to_handle
 
   lick_name = th_grouped[:lick]&.at(0)
   scale = th_grouped[:scale][0]
-  scale_holes = read_and_parse_scale_simple(scale, $harp)[0]
+  scale_holes = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
   # _cus stands for canonical, uniq, sorted
   scale_holes_cus = scale_holes.map {|h| $harp[h][:canonical]}.uniq
                                .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
@@ -863,8 +863,8 @@ def tool_chart to_handle
     if $opts[:ref]
       to_print << :chart_intervals
       to_print << :chart_inter_semis
-      $charts[:chart_intervals] = get_chart_with_intervals(prefer_names: true)
-      $charts[:chart_inter_semis] = get_chart_with_intervals(prefer_names: false)
+      $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
+      $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
     end
   else
     notes = holes_or_notes.map {|hon| $harp[hon]&.dig(:note) || hon}
@@ -927,8 +927,8 @@ def tool_transcribe to_handle
               if lick[:rec_key] != $key
                 $key = lick[:rec_key]
                 # change $key, etc
-                set_global_vars_late
-                set_global_musical_vars
+                Cfg::set_global_vars_late
+                Cfg::set_global_musical_vars
               end
               "#{$lick_dir}/recordings/#{lick[:rec]}"
             else
@@ -962,7 +962,7 @@ def tool_transcribe to_handle
   puts "\e[2mdone.\e[0m"
 
   # for mode tools, we do not require samples generally; so do it late here
-  $freq2hole = read_samples
+  $freq2hole = Cfg::read_samples
 
   # form batches with he same note
   batched = [[[0, nil]]]

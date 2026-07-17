@@ -188,7 +188,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             sleep 2
             $ctl_mic[:redraw_mission] = true
           end
-          to_play.set_all_wanted read_and_parse_scale_simple(quiz_scale_name, $harp)[0]
+          to_play.set_all_wanted Cfg::read_and_parse_scale_simple(quiz_scale_name, $harp)[0]
           $msgbuf.print HearScale.describe_difficulty, 2, 5, :dicu
 
         when 'play-inter'

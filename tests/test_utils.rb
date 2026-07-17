@@ -97,7 +97,11 @@ def wait_for_end_of_harpwise numrep = 20
 end
 
 def expect *failinfo, &block
-  5.times do
+  expect_num 5, failinfo, &block
+end
+
+def expect_num tries, failinfo, &block
+  tries.times do
     if yield
       print "\e[32mOkay \e[0m"
       return

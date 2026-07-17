@@ -47,7 +47,7 @@ def do_play to_play
       puts 'Playing scales given as arguments.'
       puts
       snames.each do |sname|
-        scale_holes, = read_and_parse_scale_simple(sname)
+        scale_holes, = Cfg::read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
         play_holes_or_notes_and_handle_kb scale_holes
         puts
@@ -230,7 +230,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
 
   if other.length > 0
     puts
-    puts "Cannot understand these arguments: #{other.join('  ')}#{not_any_source_of};"
+    puts "Cannot understand these arguments: #{other.join('  ')}#{Args::not_any_source_of_clause};"
     puts 'they are none of (exact match required):'
     print_amongs(amongs)
     if extra_allowed && $extra == ''

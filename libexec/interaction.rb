@@ -1041,7 +1041,7 @@ end
 
 def handle_win_change
   $term_height, $term_width = `stty size`.split.map(&:to_i)
-  $lines = calculate_screen_layout
+  $lines = Cfg::calculate_screen_layout
   print "\e[s\e[2J\e[u"
   until check_screen(graceful: true)
     puts "\e[2m"
@@ -1052,7 +1052,7 @@ def handle_win_change
     $ctl_sig_winch = false
     sleep 0.2 until $ctl_sig_winch
     $term_height, $term_width = `stty size`.split.map(&:to_i)
-    $lines = calculate_screen_layout
+    $lines = Cfg::calculate_screen_layout
     system('clear')
     puts
   end

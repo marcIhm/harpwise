@@ -91,7 +91,7 @@ def puts_context_sources
             eval("$#{var}")
           end
     if val
-      "%-5s = #{val} (#{$source_of[var] || 'command-line'})" % var
+      "%-5s = #{val} (#{Args::source_of[var] || 'command-line'})" % var
     else
       "#{var} is not set"
     end
@@ -667,7 +667,7 @@ def switch_modes
   # Prepare conditions similar to program start; reset some flags and
   # recalculate things, that are mode-dependant
 
-  $lines = calculate_screen_layout
+  $lines = Cfg::calculate_screen_layout
   $first_round_ever_get_hole = true
 
   $journal_all = false
@@ -739,7 +739,7 @@ def recognize_among val, choices, licks: $licks
     elsif choice == :event
       return choice if musical_event?(val)
     elsif choice == :scale
-      sc = get_scale_from_sws(val, true)
+      sc = Args::get_scale_from_sws(val, true)
       return choice if $all_scales.include?(sc)
     elsif choice == :scale_prog
       return choice if $all_scale_progs[val]

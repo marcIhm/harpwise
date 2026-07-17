@@ -156,7 +156,17 @@ do_test 'id-0: run minitest' do
   end
 end
 
-do_test 'id-0a: selftest without user dir' do
+do_test 'id-0a: check modules/functions' do
+  new_session
+  tms 'cd git/harpwise'
+  tms :ENTER
+  tms './tests/check_functions_modules.rb'
+  tms :ENTER
+  expect_num(60,[]) { screen[21]['exit value 0'] }
+  kill_session
+end
+
+do_test 'id-0b: selftest without user dir' do
   FileUtils.rm_r($datadir) if File.exist?($datadir)
   new_session
   tms 'harpwise develop selftest'
@@ -171,7 +181,7 @@ do_test 'id-0a: selftest without user dir' do
   kill_session
 end
 
-do_test 'id-0b: selftest with restricted locale' do
+do_test 'id-0c: selftest with restricted locale' do
   new_session
   tms 'LANG=C harpwise develop selftest'
   tms :ENTER
@@ -4227,7 +4237,7 @@ ENV['HARPWISE_TESTING'] = 'remote'
 do_test 'id-142: jamming with explicit key' do
   Dir[$datadir + '/remote_messages/0*.txt'].each {|f| FileUtils.rm(f)}
   new_session
-  tms "harpwise jamm d along 12bar >#{$testing_output_file}"
+  tms "harpwise jamm d along 12bar >#{$testing_output_file} 2>&1"
   tms :ENTER
   sleep 6
   lines = File.read($testing_output_file).lines

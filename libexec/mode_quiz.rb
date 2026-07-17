@@ -492,8 +492,8 @@ class QuizFlavour
           choose_prepare_for
           do_change_key
           choose_clean_up
-          set_global_vars_late
-          set_global_musical_vars shortcut_licks: true
+          Cfg::set_global_vars_late
+          Cfg::set_global_musical_vars shortcut_licks: true
           puts "Changed key to   \e[92m#{$key}\e[0m"
           done = true
         else
@@ -609,8 +609,8 @@ class QuizFlavour
   def change_key silent: false, key: nil
     $key = key || ( @difficulty_to_key_set[$opts[:difficulty]] - [$key] ).sample
     $samples_needed = @samples_needed
-    set_global_vars_late
-    set_global_musical_vars
+    Cfg::set_global_vars_late
+    Cfg::set_global_musical_vars
     return if silent
 
     if @key_contributes_to_solution == :part_of_solution
@@ -624,7 +624,7 @@ class QuizFlavour
   end
 
   def print_chart_holes_as_semitones
-    chart = get_chart_with_intervals(prefer_names: false, ref: @holes[0])
+    chart = Cfg::get_chart_with_intervals(prefer_names: false, ref: @holes[0])
     chart.each_with_index do |row, _ridx|
       print '  '
       row[0..-2].each_with_index do |cell, _cidx|
@@ -719,14 +719,14 @@ class HearScale < QuizFlavour
     @@prevs << @solution
     @@prevs.shift if @@prevs.length > 2
 
-    @sorted, = read_and_parse_scale(@solution, $harp)
+    @sorted, = Cfg::read_and_parse_scale(@solution, $harp)
     @holes = @sorted.clone.shuffle
     @holes_orig = @holes.clone
 
     @prompt = 'Choose the scale you have heard:'
     @help_head = 'Scale'
     @scale2holes = @choices.map do |scale|
-      holes, = read_and_parse_scale(scale, $harp)
+      holes, = Cfg::read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
   end
@@ -796,7 +796,7 @@ class MatchScale < QuizFlavour
     @state[:hide_holes] = :all
     @state_orig = @state.clone
     @scale2holes = scales.map do |scale|
-      holes, = read_and_parse_scale(scale, $harp)
+      holes, = Cfg::read_and_parse_scale(scale, $harp)
       [scale, holes]
     end.to_h
     # General goal: for every scale try to find a sequence of holes,
@@ -2655,7 +2655,7 @@ class NotInScale < QuizFlavour
     super
 
     @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-    @scale_holes, = read_and_parse_scale(@scale_name, $harp)
+    @scale_holes, = Cfg::read_and_parse_scale(@scale_name, $harp)
     @scale_semis = @scale_holes.map {|h| $harp[h][:semi]}
 
     # choose one harp-hole, which is not in scale but within range or nearby
