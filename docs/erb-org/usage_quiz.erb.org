@@ -18,7 +18,7 @@
 
   For an overview, here are the available flavours:
 
-<%= get_extra_desc_all(mode: :quiz, for_usage: true).join("\n") %>
+<%= Util::get_extra_desc_all(mode: :quiz, for_usage: true).join("\n") %>
   
 ** Usage by Examples
 

@@ -3,10 +3,10 @@
 #
 
 def do_tools to_handle
-  $lick_file ||= get_lick_file
+  $lick_file ||= Licks::get_lick_file
 
   # common error checking
-  err_args_not_allowed(to_handle) if %w[edit-config chords].include?($extra) && to_handle.length > 0
+  Util::err_args_not_allowed(to_handle) if %w[edit-config chords].include?($extra) && to_handle.length > 0
 
   case $extra
   when 'change-harp'
@@ -327,9 +327,10 @@ def tool_match_harps to_handle
                     'plain draw and blow' => %w[draw-full blow-full] }
 
   puts "\e[2m"
-  puts "Trying to fit the #{to_handle.length} holes given (#{semis_wanted_unshifted.length} uniq) onto harmonicas of all keys"
-  puts 'using hole sets ' + hole_set_sets.keys.map {|n| "'#{n}'"}.join(' and ')
-  puts 'maybe by shifting up or down one octave'
+  puts "Trying to fit the #{to_handle.length} holes given (#{semis_wanted_unshifted.length} uniq) from key of  #{$key}"
+  puts 'onto harmonicas of all keys using hole sets '
+  puts '   ' + hole_set_sets.keys.map {|s| "'#{s}'"}.join('  and  ')
+  puts 'Maybe by shifting up or down one octave'
   puts 'Reporting best matches only, ranked by size of hole-set used'
   puts
   puts 'To get the actual holes to play, use (replace KEY):'
@@ -474,13 +475,13 @@ def tools_shift_helper to_handle
           err("Given argument #{inter} is neither a named interval (one of: #{$intervals_inv.keys.reject {_1[' ']}.join(',')}) nor a number of semitones (e.g. 12st)")
 
   if to_handle.length == 1
-    $all_licks, $licks, $all_lick_progs = read_licks
+    $all_licks, $licks, $all_lick_progs = Licks::read_licks
     if lick = $all_licks.find {|l| l[:name] == to_handle[0]}
       to_handle = lick[:holes]
     end
   end
 
-  to_handle.reject! {|h| musical_event?(h)}
+  to_handle.reject! {|h| Theory::musical_event?(h)}
   hons = []
   to_handle.each do |hon|
     if note2semi(hon, 2..8, true) || $harp_holes.include?(hon)
@@ -542,7 +543,7 @@ end
 def tool_search_holes_in_licks to_handle
   err "Need at least one hole to search (e.g. '-1')" unless to_handle.length > 0
 
-  to_handle.reject! {|h| musical_event?(h)}
+  to_handle.reject! {|h| Theory::musical_event?(h)}
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
@@ -552,11 +553,11 @@ def tool_search_holes_in_licks to_handle
   puts "\nList of licks containing   \e[0m\e[32m#{to_handle.join(' ')}\e[0m   or equivalent:\n\n"
   count = 0
   maxlen = 0
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks
 
   %i[max print].each do |what|
     $licks.each do |lick|
-      lick_holes = lick[:holes].reject {|nh| musical_event?(nh)}
+      lick_holes = lick[:holes].reject {|nh| Theory::musical_event?(nh)}
       lick_canon = lick_holes.map {|h| $harp[h][:canonical]}
       # check if our search appears within lick
       idx = (0..lick_canon.length - search_canon.length)
@@ -585,7 +586,7 @@ def tool_search_lick_in_scales to_handle
   err "Need at least one lick-name or hole to search (e.g. '-1'); #{to_handle.inspect} is not enough" unless to_handle.length >= 1
 
   lk_holes = if to_handle.length == 1
-               $all_licks, $licks, $all_lick_progs = read_licks
+               $all_licks, $licks, $all_lick_progs = Licks::read_licks
                lick = $all_licks.find {|l| l[:name] == to_handle[0]}
                err "Given single argument '#{to_handle[0]}' is not the name of a lick" unless lick
                lick[:holes_wo_events]
@@ -617,7 +618,7 @@ def tool_search_lick_in_scales to_handle
   puts "     unique: #{lk_holes.join(' ')}"
   puts
   puts "Scales containing  \e[32mall\e[0m  given holes:"
-  print_in_columns(mt_scales_all, pad: :tabs)
+  Text::print_in_columns(mt_scales_all, pad: :tabs)
   puts
   puts "\e[32mNow removing\e[0m  each of the given holes to get matches with more scales:"
   puts
@@ -627,7 +628,7 @@ def tool_search_lick_in_scales to_handle
     next if mt_scales == mt_scales_all
 
     puts "Scales containing all given holes but  \e[32m#{hole}\e[0m:"
-    print_in_columns(mt_scales, pad: :tabs)
+    Text::print_in_columns(mt_scales, pad: :tabs)
     puts
     cnt += 1
   end
@@ -638,7 +639,7 @@ end
 def tool_search_scale_in_licks to_handle
   err "Need exactly one scale-name as an argument; #{to_handle.inspect} is not enough" unless to_handle.length == 1
 
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks
   sc_holes = Cfg::read_and_parse_scale_simple(to_handle[0], $harp)[0]
                .map {|h| $harp[h][:canonical]}
 
@@ -646,7 +647,7 @@ def tool_search_scale_in_licks to_handle
 
   $licks.each do |lick|
     lk_holes = lick[:holes]
-               .reject {|h| musical_event?(h)}
+               .reject {|h| Theory::musical_event?(h)}
                .map {|h| $harp[h][:canonical]}
                .uniq
                .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
@@ -693,7 +694,7 @@ def tool_search_scale_in_licks to_handle
     if matches_but[nrm].length == 0
       puts '    none'
     else
-      print_in_columns matches_but[nrm], indent: 4
+      Text::print_in_columns matches_but[nrm], indent: 4
     end
     puts
   end
@@ -707,9 +708,9 @@ def tool_search_scale_in_licks to_handle
 end
 
 def tool_licks_from_scale to_handle
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks
 
-  th_grouped = to_handle.group_by {|th| recognize_among(th, %i[scale lick])}
+  th_grouped = to_handle.group_by {|th| Util::recognize_among(th, %i[scale lick])}
   needed = 'Required arguments are a single scale and optionally the name of a single lick'
   err "#{needed}, but no argument at all has been given" if to_handle.length == 0
   err "#{needed}. Cannot handle these: #{th_grouped[false].join(' ')}" if th_grouped[false]
@@ -736,7 +737,7 @@ def tool_licks_from_scale to_handle
     print heads[0].rjust(max_len) + ':   '
     cnt = 0
     lick[:holes].each do |h|
-      if musical_event?(h) || scale_holes_cus.include?($harp[h][:canonical])
+      if Theory::musical_event?(h) || scale_holes_cus.include?($harp[h][:canonical])
         print "\e[0m\e[32m#{h}\e[0m  "
         cnt += 1
       else
@@ -789,12 +790,12 @@ def tool_licks_from_scale to_handle
 
     max_group.downto(min_group).each do |group|
       puts
-      puts_underlined "#{group * 20}%" + ( group == max_group ? '' : ' or more' ) + ':'
+      Text::puts_underlined "#{group * 20}%" + ( group == max_group ? '' : ' or more' ) + ':'
       if !licks_grouped[group] || licks_grouped[group].length == 0
         puts '  none'
       else
         print "\e[32m"
-        print_in_columns licks_grouped[group].map {|l| l[:name]}, pad: :tabs
+        Text::print_in_columns licks_grouped[group].map {|l| l[:name]}, pad: :tabs
         puts
         puts "\e[0m\e[2mcount: #{licks_grouped[group].length}\e[0m"
       end
@@ -810,20 +811,20 @@ def tool_progression to_handle
   err "Need a base note and some distances to construct a progression, e.g. 'a4 4st 10st'" unless to_handle.length >= 1
 
   puts
-  puts_underlined 'Progression:'
+  Text::puts_underlined 'Progression:'
   prog = base_and_delta_to_semis(to_handle)
   holes, notes, abs_semis, rel_semis = get_progression_views(prog)
 
-  puts_underlined 'Holes:', '-'
+  Text::puts_underlined 'Holes:', '-'
   print_progression_view holes
 
-  puts_underlined 'Notes:', '-'
+  Text::puts_underlined 'Notes:', '-'
   print_progression_view notes
 
-  puts_underlined 'Absolute Semitones (a4 = 0):', '-'
+  Text::puts_underlined 'Absolute Semitones (a4 = 0):', '-'
   print_progression_view abs_semis
 
-  puts_underlined 'Relative Semitones to first:', '-'
+  Text::puts_underlined 'Relative Semitones to first:', '-'
   print_progression_view rel_semis
 end
 
@@ -842,8 +843,8 @@ def tool_chords
       semi
     end.sort
     puts "chord-#{names[0]}:"
-    print_in_columns chord_st.map {|st| $semi2hole[$min_semi + st] || '--'}, pad: :fill
-    print_in_columns chord_st.map {|st| semi2note($min_semi + st)}, pad: :fill
+    Text::print_in_columns chord_st.map {|st| $semi2hole[$min_semi + st] || '--'}, pad: :fill
+    Text::print_in_columns chord_st.map {|st| semi2note($min_semi + st)}, pad: :fill
     puts
     names.shift
   end
@@ -887,7 +888,7 @@ def tool_chart to_handle
           print cell
         elsif notes.include?(cell.strip)
           print cell
-        elsif comment_in_chart?(cell)
+        elsif Util::comment_in_chart?(cell)
           print cell
         else
           hcell = ' ' * cell.length
@@ -915,7 +916,7 @@ def tool_transcribe to_handle
   err 'need a single argument' if to_handle.length == 0
   err "cannot handle these extra arguments: #{to_handle}" if to_handle.length > 1
 
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks
 
   puts
   to_play = if File.exist?(to_handle[0])
@@ -1011,7 +1012,7 @@ def tool_transcribe to_handle
 
   # if necessary we have changed our key to match the lick
   print "\nPlaying \e[2m(as recorded, for a #{$key}-harp)\e[0m:"
-  play_recording_and_handle_kb to_play, ts_with_holes_durations
+  Players::play_recording_and_handle_kb to_play, ts_with_holes_durations
   puts "\n\n\n"
 end
 
@@ -1311,7 +1312,7 @@ end
 
 def tool_diag1
   puts "\n\n"
-  puts_underlined 'Record and replay sound'
+  Text::puts_underlined 'Record and replay sound'
 
   txt = <<~end_of_intro
     Harpwise uses the excellent program sox (aka rec, aka play) for
@@ -1338,7 +1339,7 @@ def tool_diag1
   print "\e[?25l"  ## hide cursor
 
   puts
-  puts_underlined 'Record'
+  Text::puts_underlined 'Record'
   see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
   rec_time = 10
   cmd_rec = "sox -d -r #{$conf[:sample_rate]} #{$diag_wav}"
@@ -1370,8 +1371,8 @@ def tool_diag1
   end
 
   puts "Start making sound and press \e[32many key\e[0m to start: "
-  drain_chars
-  one_char
+  Interact::drain_chars
+  Interact::one_char
   puts "\n\e[32mRecording started for #{rec_time} secs.\e[0m\n\n"
   puts see_sox % %w[START rec]
   rec_pid = Process.spawn cmd_rec
@@ -1394,7 +1395,7 @@ def tool_diag1
   puts
   puts
   sleep 1
-  puts_underlined 'Replay'
+  Text::puts_underlined 'Replay'
   cmd_play = if $testing
                "play -v 0 #{$diag_wav}"
              else
@@ -1422,8 +1423,8 @@ def tool_diag1
   end
 
   puts "Press \e[32many key\e[0m to start: "
-  drain_chars
-  one_char
+  Interact::drain_chars
+  Interact::one_char
   print "\n\e[32mReplay started, #{rec_time} secs expected.\e[0m\n\n"
   puts see_sox % %w[START play]
   rec_pid = Process.spawn cmd_play
@@ -1461,7 +1462,7 @@ def tool_diag2
              end
 
   puts "\n\n"
-  puts_underlined 'Playing an mp3'
+  Text::puts_underlined 'Playing an mp3'
 
   txt = <<~end_of_intro
     Hapwise uses sox to play mp3-files, e.g. the licks that come with harpwise
@@ -1485,8 +1486,8 @@ def tool_diag2
   print "\e[?25l"  ## hide cursor
 
   puts "Press \e[32many key\e[0m to start: "
-  drain_chars
-  one_char
+  Interact::drain_chars
+  Interact::one_char
   puts "\n\e[32mPlay started.\e[0m\n\n"
   see_sox = "\e[34m===== %s of output of sox/%s =====\e[0m"
   puts see_sox % %w[START play]
@@ -1508,7 +1509,7 @@ def tool_diag3
   cmd_aub = get_pipeline_cmd(:sox, '-d')
 
   puts "\n\n"
-  puts_underlined 'Testing the frequency recognition'
+  Text::puts_underlined 'Testing the frequency recognition'
 
   txt = <<~end_of_intro
     Please note: This tests requires sound recording to work properly;
@@ -1550,12 +1551,12 @@ def tool_diag3
   print "\e[?25l"  ## hide cursor
 
   puts
-  puts_underlined 'Converting sound to frequencies'
+  Text::puts_underlined 'Converting sound to frequencies'
   aub_time = 10
 
   puts "Start making sound and press \e[32many key\e[0m to start: "
-  drain_chars
-  one_char
+  Interact::drain_chars
+  Interact::one_char
   puts "\n\e[32mFrequency pipeline started for #{aub_time} secs.\e[0m\n\n"
   puts "\e[34m===== START of output of sox + aubiopitch =====\e[0m"
   puts
@@ -1636,7 +1637,7 @@ end
 
 def tool_diag_hints
   puts "\n\n"
-  puts_underlined 'Some hints on troubleshooting '
+  Text::puts_underlined 'Some hints on troubleshooting '
 
   txt = <<~end_of_intro
 
@@ -1662,8 +1663,8 @@ def tool_diag_hints
   end
 
   puts "Press \e[32many key\e[0m to read them with less; \e[32mm\e[0m to use more; \e[32mc\e[0m for simple cat:"
-  drain_chars
-  char = one_char
+  Interact::drain_chars
+  char = Interact::one_char
 
   gfile = "#{$dirs[:install]}/resources/diag_hints.txt"
   if char == 'm'
@@ -1738,10 +1739,10 @@ def tool_edit_lick to_handle
   # do nothing
   when 1
     amongs = %i[lick lick_prog]
-    $all_licks, $licks, $all_lick_progs = read_licks
-    what = recognize_among(to_handle[0], amongs)
+    $all_licks, $licks, $all_lick_progs = Licks::read_licks
+    what = Util::recognize_among(to_handle[0], amongs)
     unless what
-      summary = print_amongs(amongs, highlight: to_handle[0])
+      summary = Util::print_amongs(amongs, highlight: to_handle[0])
       err(($resources[:err_among] % ['harpwise tools edit-licks',
                                      summary[:types][:count],
                                      summary[:highlight][:color],
@@ -1763,7 +1764,7 @@ def tool_edit_jam to_handle
   unless $jamming_rel2abs[to_handle[0]]
     puts
     puts 'Known jams:'
-    print_in_columns($jamming_rel2abs.keys, pad: :tabs)
+    Text::print_in_columns($jamming_rel2abs.keys, pad: :tabs)
     err("Given jam name '#{to_handle[0]}' is unknown, see above for choices.")
   end
   tool_edit_file($jamming_rel2abs[to_handle[0]])

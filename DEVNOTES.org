@@ -40,10 +40,29 @@
    - Style
    - Lint
 
-** DONE Introduce Minitest
-
-   Will add more test, when grouping functions into modules
-  
 ** STARTED Group functions into modules   
 
-   - Args
+   - [X] args
+   - [X] cfg
+   - [X] licks
+   - [X] theory
+   - [X] util
+   - [X] choose
+   - [X] interact
+   - [X] licks
+   - [X] mode_quiz
+   - [X] players
+   - [X] text
+   - [X] theory
+   - [ ] analyze
+   - [ ] handle_holes
+   - [ ] mode_develop
+   - [ ] mode_jamming
+   - [ ] mode_licks
+   - [ ] mode_listen
+   - [ ] mode_play
+   - [ ] mode_print
+   - [ ] mode_samples
+   - [ ] mode_tools
+   - [ ] monkey
+   - [ ] sound_driver.rb  

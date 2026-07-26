@@ -55,7 +55,7 @@ def samples_generate to_handle
     EOINTRO
 
     puts "\nNow, type   'y'   to let harpwise generate all samples for all keys."
-    char = one_char
+    char = Interact::one_char
     puts
 
     if char != 'y'
@@ -93,7 +93,7 @@ def samples_generate to_handle
         puts
         puts "\e[2mThese samples will also be played in the process.\e[0m"
       end
-      char = one_char
+      char = Interact::one_char
       puts
 
       if char != 'y'
@@ -151,16 +151,16 @@ def samples_record to_handle
   puts "Press:   \e[32many key\e[0m   to start with the first hole (#{holes[0]}), key of #{$key}"
   puts "or       \e[32ms\e[0m         skip to summary for existing samples."
   puts
-  char = one_char
+  char = Interact::one_char
 
   hole2freq = if File.exist?($freq_file)
-                yaml_parse($freq_file)
+                Util::yaml_parse($freq_file)
               else
                 Hash.new
               end
 
   unless char == 's'
-    do_animation 'first hole', 5
+    Text::do_animation 'first hole', 5
     i = 0
     # loop over all holes
     begin
@@ -175,17 +175,17 @@ def samples_record to_handle
         if i == 0
           puts "\nCannot go back, already at first hole."
           sleep 0.5
-          do_animation 'first hole', 5
+          Text::do_animation 'first hole', 5
         else
           i -= 1
-          do_animation 'previous hole', 5
+          Text::do_animation 'previous hole', 5
         end
       elsif what == :cancel
-        do_animation 'again', 5
+        Text::do_animation 'again', 5
         # keep current value of i
       else
         i += 1
-        do_animation 'next hole', 5
+        Text::do_animation 'next hole', 5
       end
       break if what == :quit
     end while what != :quit && i < holes.length
@@ -301,7 +301,7 @@ def record_and_review_hole hole
                        'exit from recording of samples, but keep all samples,',
                        'that have been recorded up to this point'] }
 
-    answer = read_answer(choices)
+    answer = Interact::read_answer(choices)
 
     # operations will be in this sequence if set below according to user input
     case answer
@@ -478,7 +478,7 @@ def samples_delete to_handle
     puts mindful
     puts
     puts "Press   'Y'   (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel."
-    char = one_char
+    char = Interact::one_char
     puts
     if char != 'Y'
       puts 'Operation canceled; no files deleted'
@@ -505,7 +505,7 @@ def samples_delete to_handle
       end
       puts "these recorded sound samples for key of   \e[91m#{key}\e[0m   in\n#{sample_dir}:"
       puts
-      puts wrap_words('    ', to_delete, '  ')
+      puts Text::wrap_words('    ', to_delete, '  ')
       puts
       if do_all_keys
         char = 'Y'
@@ -516,7 +516,7 @@ def samples_delete to_handle
         puts
         print "\e[A"
         puts "Press   'Y'   (uppercase) to \e[0;101m DELETE \e[0m them; anything else to cancel."
-        char = one_char
+        char = Interact::one_char
       end
       if char == 'Y'
         puts
@@ -575,3 +575,123 @@ def create_frequency_file_from_mp3s sample_dir
     puts "Wrote   #{freq_file}"
   end
 end
+
+def draw_data marker1, marker2
+  # area accessible for plot. right and left border might be plotted
+  # over, but top and bottom line not
+  plot_width = ( $term_width * 0.9 ).to_i
+  plot_height = ( $term_height * 0.4 ).to_i
+  if !$recorded_data_ts ||
+     $recorded_data_ts < File.mtime($recorded_data) ||
+     $term_width != $recorded_processed[:term_width] ||
+     $term_height != $recorded_processed[:term_height]
+    $recorded_processed, $recorded_data_ts = process_recorded_data(plot_width)
+  end
+  rec_proc = $recorded_processed
+
+  # frame
+  buf = Array.new
+  buf << '+' + '-' * ( plot_width - 2 ) + '+'
+  plot_height.times { buf << '|' + ' ' * ( plot_width - 2 ) + '|' }
+
+  # x-axis
+  buf << '+' + '-' * ( plot_width - 2 ) + '+'
+  minx = rec_proc[:vals_norm][0][0]
+  maxx = rec_proc[:vals_norm][-1][0]
+  # leftmost and rightmost tick
+  txt = '%.1f' % minx
+  buf << txt + ' ' * ( plot_width - txt.length )
+  txt = '%.1f' % maxx
+  buf[-1][-txt.length..-1] = txt
+
+  # middle ticks
+  parts = [-0.1, 0.2, -0.3, 0.4, -0.5, 0.6, -0.7, 0.8, -0.9]
+  parts = parts.map {|p| p.abs} if $term_width > 90
+  parts.each do |prt|
+    tick_only = ( prt < 0)
+    prt = prt.abs
+    txt = '%.1f' % ( minx + prt * ( maxx - minx ))
+    mid = (plot_width * prt).to_i
+    buf[-2][mid] = '+'
+    buf[-1][mid - txt.length / 2..mid + txt.length / 2] = txt unless tick_only
+  end
+
+  # data
+  px = 0
+  # we do not plat all data
+  rec_proc[:vals_norm][1..-2].each do |_x, y|
+    py = plot_height * y
+    ((-2 - py).to_i..-3).each {|y| buf[y][px + 1] = '*'}
+    px += 1
+  end
+
+  # markers
+  unless marker1 == 0 && marker2 == 0
+    # marker2 is guaranteed to be higher than marker1
+    [[marker2, "\e[34m", 'to:'], [marker1, "\e[32m", 'from:']].each do |x, col, desc|
+      px = plot_width * (x - minx) / ( maxx - minx)
+      next unless px <= plot_width
+
+      (1..1 + plot_height).each {|y| buf[y][px] = col + ':' + "\e[0m"}
+      txt = desc + '%.1f' % x
+      txt_col = col + txt + "\e[0m"
+      # put exact position in first line
+      if px < 3
+        buf[0][0...txt.length] = txt_col
+      elsif px > plot_width - 2
+        buf[0][-txt.length..-1] = txt_col
+      else
+        xs = ( px - txt.length / 2 ).to_i
+        buf[0][xs...xs + txt.length] = txt_col
+      end
+    end
+  end
+
+  # output
+  print "\e[0m"
+  buf[0..-1].each {|line| puts '  ' + line}
+end
+
+def process_recorded_data plot_width
+  rec_proc = { term_width: $term_width,
+               term_height: $term_height,
+               vals_norm: Array.new }
+  # first two lines are comments
+  num_lines = Util::sys("wc -l #{$recorded_data}").to_i - 2
+  lines_per_bin = num_lines / plot_width
+  raise 'Internal error: no lines per bin' if lines_per_bin < 1
+
+  # read file and put data into bins
+  lines_this_bin = 0
+  sum_secs_this_bin = 0
+  sum_vals_this_bin = 0
+  binned = Array.new
+  File.open($recorded_data) do |data|
+    2.times { data.gets }
+    while line = data.gets
+      fields = line.chomp.split.map {|x| Float(x)}
+      raise "Internal error: #{line.chomp.split}" unless fields.length == 2
+
+      sum_secs_this_bin += fields[0]
+      sum_vals_this_bin += fields[1].abs
+      lines_this_bin += 1
+      next unless lines_this_bin == lines_per_bin
+
+      binned << [sum_secs_this_bin / lines_per_bin,
+                 sum_vals_this_bin / lines_per_bin]
+      lines_this_bin = 0
+      sum_secs_this_bin = 0
+      sum_vals_this_bin = 0
+    end
+  end
+
+  # get max
+  max = binned.map {|b| b[1]}.max
+  rec_proc[:vals_norm] = if max == 0
+                           binned.map {|b| [b[0], 0]}
+                         else
+                           binned.map {|b| [b[0], b[1] / max]}
+                         end
+  [rec_proc, File.mtime($recorded_data)]
+end
+

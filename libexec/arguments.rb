@@ -50,7 +50,7 @@ module Args
     $args_source_of = { mode: nil, type: nil, key: nil, scale: nil, extra: nil }
 
     # get mode
-    $mode = mode = match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
+    $mode = mode = Util::match_or(ARGV[0], $early_conf[:modes]) do |none, choices|
       err "First argument can be one of\n\n   #{choices}\n\nbut not:  #{none}.\n\nPlease invoke without argument for general usage information.\n\n" +
           if $conf[:all_keys].include?(ARGV[0])
             "However your first argument '#{ARGV[0]}' is a key, which should be placed as a second argument on the command line."
@@ -162,7 +162,7 @@ module Args
        [Set[:play, :print], {
           what: %w[-w --what]
         }],
-       [Set[:print, :jamming], {
+       [Set[:print, :jamming, :develop], {
           verbose: %w[-v --verbose]
         }],
        [Set[:jamming], {
@@ -200,7 +200,7 @@ module Args
     #    nil,
     #    "Produce shorter and more dense output than usual.\n" + "Mostly used for modes print and tools.\n"]}
     #
-    opt2desc = yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
+    opt2desc = Util::yaml_parse("#{$dirs[:install]}/resources/opt2desc.yaml").transform_keys!(&:to_sym)
     opts_all = Hash.new
     oabbr2osym = Hash.new {|h, k| h[k] = Array.new}
     oabbr2other_modes = Hash.new {|h, k| h[k] = Array.new}
@@ -313,11 +313,11 @@ module Args
       opts[:display] = $conf[:display_jamming].to_sym
     end
 
-    opts[:display] = match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
+    opts[:display] = Util::match_or(opts[:display]&.o2str, $display_choices.map {|c| c.o2str}) do |none, choices|
       err "Option '--display' (or config 'display' or 'display_jamming') needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
     end&.o2sym
 
-    opts[:comment] = match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
+    opts[:comment] = Util::match_or(opts[:comment]&.o2str, $comment_choices[mode].map {|c| c.o2str}) do |none, choices|
       err "Option '--comment' needs one of #{choices} as an argument, not #{none}; #{$for_usage}"
     end&.o2sym
 
@@ -360,12 +360,12 @@ module Args
       opts[:add_scales] = nil
     end
 
-    opts[:time_slice] = match_or(opts[:time_slice], %w[short medium long]) do |none, choices|
+    opts[:time_slice] = Util::match_or(opts[:time_slice], %w[short medium long]) do |none, choices|
       err "Value #{none} of option '--time-slice' or config 'time_slice' is none of #{choices}"
     end.to_sym
 
     if opts[:octave_shift]
-      opts[:octave_shift] = match_or(opts[:octave_shift], %w[up down]) do |none, choices|
+      opts[:octave_shift] = Util::match_or(opts[:octave_shift], %w[up down]) do |none, choices|
         err "Value #{none} of option '--octave-shift' is none of #{choices}"
       end.to_sym
     end
@@ -375,7 +375,7 @@ module Args
       err "Percentage given for difficulty must be between 0 and 100, not #{dicu}" unless (0..100).include?(dicu)
       opts[:difficulty] = ( rand(100) > dicu ? 'easy' : 'hard' )
     end
-    opts[:difficulty] = match_or(opts[:difficulty], %w[easy hard]) do |none, choices|
+    opts[:difficulty] = Util::match_or(opts[:difficulty], %w[easy hard]) do |none, choices|
       err "Value #{none} of option '--difficulty' or config 'difficulty' is none of #{choices} or a number between 0 and 100"
     end&.to_sym
     opts[:difficulty_numeric] ||= ( opts[:difficulty] == :easy ? 0 : 100 )
@@ -391,7 +391,7 @@ module Args
     end
 
     if opts[:wave]
-      opts[:wave] = match_or(opts[:wave], $all_waves) do |none, choices|
+      opts[:wave] = Util::match_or(opts[:wave], $all_waves) do |none, choices|
         err "Value #{none} of option '--wave' is none of #{choices}"
       end
     end
@@ -545,7 +545,7 @@ module Args
         next if $harp_holes.include?(h)
 
         ind = '      '
-        err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{wrap_words(ind, $all_scales, '  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{wrap_words(ind, $harp_holes, '  ')}\nand can therefore not be part of an adhoc-scale"
+        err "Argument '#{h}' from the command line is:\n  - neither a scale, any of:\n#{Text::wrap_words(ind, $all_scales, '  ')}\n  - nor a hole of a #{$type}-harp, any of\n#{Text::wrap_words(ind, $harp_holes, '  ')}\nand can therefore not be part of an adhoc-scale"
       end
       unless scale
         if holes.length == 0
@@ -604,7 +604,7 @@ module Args
 
   def initialize_vars_for_extra_arg
     exfile = "#{$dirs[:install]}/resources/extra2desc.yaml"
-    extra2desc = yaml_parse(exfile).transform_keys!(&:to_sym)
+    extra2desc = Util::yaml_parse(exfile).transform_keys!(&:to_sym)
     $extra_kws = Hash.new {|h, k| h[k] = Set.new}
     $extra_aliases = Hash.new
     # Map strings of extra-keywords (joined with comma) to description
@@ -692,15 +692,15 @@ module Args
         # as well as $extra. All arguments (with a possible $extra already
         # removed) will later be checked again, but only against
         # $amongs[$mode]
-        what = recognize_among(ARGV[0],
+        what = Util::recognize_among(ARGV[0],
                                [$amongs[$mode], :extra, :extra_wwos],
                                licks: $all_licks)
         $extra = ARGV.shift if what == :extra
         unless what
-          # this will make print_amongs aware, that we did recognize_among
+          # this will make Util::print_amongs aware, that we did Util::recognize_among
           # against $all_licks above
           $licks = $all_licks
-          summary = print_amongs($amongs[$mode], :extra, highlight: ARGV[0])
+          summary = Util::print_amongs($amongs[$mode], :extra, highlight: ARGV[0])
           if $opts[:what]
             err "First argument for mode #{$mode} can be of type   \e[1m#{$opts[:what].to_s.gsub('_', '-')}\e[0m   only (see above), but  '#{ARGV[0]}'  is not.\nHowever you may omit option --what to try within a broader range of types." + summary[:highlight][:explain]
           else
@@ -714,11 +714,11 @@ module Args
       else
         # These modes (e.g. quiz, samples or jamming) strictly require their
         # extra argument
-        $extra = ARGV.shift if recognize_among(ARGV[0], %i[extra extra_wwos]) == :extra
+        $extra = ARGV.shift if Util::recognize_among(ARGV[0], %i[extra extra_wwos]) == :extra
         unless $extra
-          summary = print_amongs(:extra, highlight: ARGV[0])
+          summary = Util::print_amongs(:extra, highlight: ARGV[0])
           extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
-          wrapped = wrap_words('  ', extra_words, '  ')
+          wrapped = Text::wrap_words('  ', extra_words, '  ')
           if ARGV[0]
             colored = wrapped.gsub(ARGV[0], "\e[0m\e[7m\e[32m" + ARGV[0] + "\e[0m\e[2m")
             err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
@@ -786,7 +786,7 @@ module Args
 
     if !mode && STDOUT.isatty
       print "\e[?25l"  ## hide cursor
-      animate_splash_line
+      Text::animate_splash_line
       print "\e[?25h"  ## show cursor
     end
     puts
@@ -830,8 +830,8 @@ module Args
     pieces = opt_desc_text(what, opts)
     if pieces.length == 0
       puts "\nThese are the known options for mode #{$mode}:\n\n"
-      print_in_columns opts.values.select {|o| o[1]}.map {|o| o[0]}.flatten,
-                       indent: 4, pad: :space
+      Text::print_in_columns opts.values.select {|o| o[1]}.map {|o| o[0]}.flatten,
+                             indent: 4, pad: :space
       err("Unknown option '#{what}', none of those given above")
     end
     if what == 'all'
@@ -850,7 +850,7 @@ module Args
       next if type == 'testing'
 
       txt = "- scales for #{type} :: "
-      scales_for_type(type, false, builtin_only: true).each do |scale|
+      Theory::scales_for_type(type, false, builtin_only: true).each do |scale|
         txt += "\n    " if (txt + scale).lines[-1].length > 78
         txt += scale + ', '
       end
@@ -978,9 +978,9 @@ module Args
           vwrs[:syn][0] + ':'
         else
           "#{vwrs[:syn][0]}  or  #{vwrs[:syn][1]}:"
-        end + "\n" + wrap_words('      ', vwrs[:desc].split, ' ', width: 70) +
+        end + "\n" + Text::wrap_words('      ', vwrs[:desc].split, ' ', width: 70) +
         if vwrs[:choose_desc]
-          "\n" + wrap_words('      ', vwrs[:choose_desc].split, ' ', width: 70)
+          "\n" + Text::wrap_words('      ', vwrs[:choose_desc].split, ' ', width: 70)
         else
           ''
         end

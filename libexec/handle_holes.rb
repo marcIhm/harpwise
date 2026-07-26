@@ -73,9 +73,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
        # next update of jamming timer due ?
        ( $jamming_timer_update_next && tntf > $jamming_timer_update_next )
       if movr = get_mission_override
-        print_mission(*movr)
+        Util::print_mission(*movr)
       else
-        print_mission(lambda_mission.call)
+        Util::print_mission(lambda_mission.call)
       end
       $ctl_mic[:redraw_mission] = false
     end
@@ -83,12 +83,12 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $ctl_mic[:redraw]
       $perfctr[:handle_holes_redraw] += 1
       if $first_round_ever_get_hole
-        ctl_response(redraw: true)
+        Interact::ctl_response(redraw: true)
       else
-        ctl_response('Redraw', hl: :low, redraw: true) unless $ctl_mic[:redraw].include?(:silent)
+        Interact::ctl_response('Redraw', hl: :low, redraw: true) unless $ctl_mic[:redraw].include?(:silent)
       end
       print "\e[#{$lines[:key]}H" + text_for_key
-      print_chart($hole_was_for_disp) if %i[chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis].include?($opts[:display])
+      Text::print_chart($hole_was_for_disp) if %i[chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis].include?($opts[:display])
       print "\e[#{$lines[:interval]}H\e[2mInterval:   --  to   --  is   --  \e[K"
       if $ctl_mic[:redraw] && !$ctl_mic[:redraw].include?(:silent)
         proximity = if $term_width == $conf[:term_min_width] || $term_height == $conf[:term_min_height]
@@ -110,7 +110,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $first_round_ever_get_hole
       print "\e[#{$lines[:hint_or_message]}H"
       if $mode == :listen
-        animate_splash_line(true)
+        Text::animate_splash_line(true)
         # does not print anythin, but lets splash be seen
         $msgbuf.print nil, 0, 4
       end
@@ -133,7 +133,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     #
     # Here we get our keyboard input
     #
-    pipeline_catch_up if handle_kb_mic
+    pipeline_catch_up if Interact::handle_kb_mic
 
     behind = $freqs_queue.length * $time_slice_secs
     if behind > 0.5
@@ -151,9 +151,9 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     # also restores default text after a while
-    ctl_response tntf: tntf
+    Interact::ctl_response tntf: tntf
 
-    handle_win_change if $ctl_sig_winch
+    Interact::handle_win_change if $ctl_sig_winch
 
     # transform freq into hole
     hole_was = hole
@@ -212,11 +212,11 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         # the next hole is added
         if tntf - hole_journal_since > $journal_minimum_duration
           # put in duration for last note, if held long enough
-          unless musical_event?($journal[-1])
+          unless Theory::musical_event?($journal[-1])
             $journal << ('(%.1fs)' % (tntf - hole_journal_since))
             $msgbuf.print("#{journal_length} holes", 2, 5, :journal) if $opts[:comment] == :journal
           end
-        elsif $journal[-1] && !musical_event?($journal[-1])
+        elsif $journal[-1] && !Theory::musical_event?($journal[-1])
           # too short, so do not add duration and rather remove hole
           $journal.pop
         end
@@ -281,17 +281,17 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     end
 
     hole_disp = { low: '-', high: '-' }[hole] || hole || '-'
-    hole_color = get_hole_color_active(hole, good, was_good, was_good_since)
+    hole_color = Text::get_hole_color_active(hole, good, was_good, was_good_since)
     hole_ref_color = "\e[#{hole == $hole_ref ? 92 : 91}m"
     case $opts[:display]
     when :chart_notes, :chart_scales, :chart_scales_simple, :chart_intervals, :chart_inter_semis
-      update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
+      Text::update_chart($hole_was_for_disp, :inactive) if $hole_was_for_disp && $hole_was_for_disp != hole
       $hole_was_for_disp = hole if hole
-      update_chart(hole, :active, good, was_good, was_good_since)
+      Text::update_chart(hole, :active, good, was_good, was_good_since)
     when :hole
       print "\e[#{$lines[:display]}H\e[0m"
       print hole_color
-      do_figlet_unwrapped hole_disp, 'mono12', longest_hole_name
+      Text::do_figlet_unwrapped hole_disp, 'mono12', longest_hole_name
     else
       raise "Internal error: #{$opts[:display]}"
     end
@@ -300,7 +300,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
            (hole ? [hole, $harp[hole][:note]] : ['-- ', '-- '])
     text += ", Ref: %#{longest_hole_name.length}s" % [$hole_ref || '-- ']
     text += ",  Rem: #{$hole2rem[hole] || '--'}" if $hole2rem
-    print "\e[#{$lines[:hole]}H\e[2m" + truncate_text(text) + "\e[K"
+    print "\e[#{$lines[:hole]}H\e[2m" + Text::truncate_text(text) + "\e[K"
 
 
     if lambda_comment
@@ -325,7 +325,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
                               hole_disp,
                               freq)
         print "\e[#{line}H#{color}"
-        do_figlet_unwrapped text, font, width_template
+        Text::do_figlet_unwrapped text, font, width_template
       end
     end
 
@@ -348,18 +348,18 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $perfctr[:lambda_hint_reprint] += 1
         print "\e[#{$lines[:message2]}H\e[K" if $lines[:message2] > 0
         print "\e[#{$lines[:hint_or_message]}H\e[0m\e[2m"
-        # Using truncate_colored_text might be too slow here
+        # Using Text::truncate_colored_text might be too slow here
         if hints.length == 1
           # for mode quiz and listen
-          print truncate_text(hints[0]) + "\e[K"
+          print Text::truncate_text(hints[0]) + "\e[K"
         elsif hints.length == 2 && $lines[:message2] > 0
           # for mode licks
           # hints:
           #  0 = hole_hint
           #  1 = lick_hint (rotates through name, tags and desc)
-          print truncate_text(hints[0]) + "\e[K"
+          print Text::truncate_text(hints[0]) + "\e[K"
           print "\e[#{$lines[:message2]}H\e[0m\e[2m"
-          print truncate_text(hints[1]) + "\e[K"
+          print Text::truncate_text(hints[1]) + "\e[K"
         else
           raise 'Internal error'
         end
@@ -373,7 +373,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $hole_ref = hole_held
       else
         choices = $harp_holes
-        $hole_ref = choose_interactive('Choose the new reference hole: ', choices) do |choice|
+        $hole_ref = Choose::choose_interactive('Choose the new reference hole: ', choices) do |choice|
           "Hole #{choice}"
         end
         $freqs_queue.clear
@@ -384,8 +384,8 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
         $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
       end
       if %i[chart_intervals chart_inter_semis].include?($opts[:display])
-        clear_area_display
-        print_chart
+        Interact::clear_area_display
+        Text::print_chart
       end
       clear_warbles(true)
       $ctl_mic[:set_ref] = false
@@ -396,18 +396,18 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       if $ctl_mic[:change_display] == :choose
         choices = $display_choices.map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:display]
-        $opts[:display] = (choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
+        $opts[:display] = (Choose::choose_interactive("Available display choices (current is #{$opts[:display].upcase}): ", choices) do |choice|
           $display_choices_desc[choice.to_sym]
         end || $opts[:display]).to_sym
       else
-        $opts[:display] = rotate_among($opts[:display], :up, $display_choices)
+        $opts[:display] = Util::rotate_among($opts[:display], :up, $display_choices)
       end
       if $hole_ref
         $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
         $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
       end
-      clear_area_display
-      print_chart if %i[chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis].include?($opts[:display])
+      Interact::clear_area_display
+      Text::print_chart if %i[chart_notes chart_scales chart_scales_simple chart_intervals chart_inter_semis].include?($opts[:display])
       print "\e[0m\e[#{$lines[:key]}H" + text_for_key + "\e[0m"
       $msgbuf.print "Display is #{$opts[:display].upcase}: #{$display_choices_desc[$opts[:display]]}", 2, 5, :display
       $freqs_queue.clear
@@ -419,13 +419,13 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       if $ctl_mic[:change_comment] == :choose
         choices = $comment_choices[$mode].map(&:to_s)
         choices.rotate! while choices[0].to_sym != $opts[:comment]
-        $opts[:comment] = (choose_interactive("Available comment choices (current is #{$opts[:comment].upcase}): ", choices) do |choice|
+        $opts[:comment] = (Choose::choose_interactive("Available comment choices (current is #{$opts[:comment].upcase}): ", choices) do |choice|
                              $comment_choices_desc[choice.to_sym]
                            end || $opts[:comment]).to_sym
       else
-        $opts[:comment] = rotate_among($opts[:comment], :up, $comment_choices[$mode])
+        $opts[:comment] = Util::rotate_among($opts[:comment], :up, $comment_choices[$mode])
       end
-      clear_area_comment
+      Interact::clear_area_comment
       $msgbuf.print "Comment is #{$opts[:comment].upcase}: #{$comment_choices_desc[$opts[:comment]]}", 2, 5, :comment
       $freqs_queue.clear
       $ctl_mic[:change_comment] = false
@@ -440,7 +440,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     if $ctl_mic[:jamming_ps_rs]
       if $opts[:jamming]
         # mabye user has restarted 'harpwise jamming'; so check state again
-        mostly_avoid_double_invocations
+        Util::mostly_avoid_double_invocations
         if $runningp_jamming
           File.write($remote_jamming_ps_rs, Time.now)
           $remote_jamming_ps_rs_cnt += 1
@@ -459,7 +459,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       show_help
       $perfctr[:handle_holes_this_first_mic] = nil
       $perfctr[:handle_holes_this_loops] = 0
-      ctl_response 'continue', hl: true
+      Interact::ctl_response 'continue', hl: true
       $ctl_mic[:show_help] = false
       $ctl_mic[:redraw] = Set[:clear, :silent]
       $freqs_queue.clear
@@ -476,10 +476,10 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
       if $players.stream_current
         system('clear')
         puts
-        stop_kb_handler
+        Interact::stop_kb_handler
         print_player($players.structured[$players.stream_current])
-        start_kb_handler
-        prepare_term
+        Interact::start_kb_handler
+        Interact::prepare_term
         if $opts[:viewer] != 'window' || !$players.structured[$players.stream_current]['image'][0]
           puts "\n\e[0m\e[2m  Press any key to go back to mode '#{$mode}' ...\e[0m"
           $ctl_kb_queue.clear
@@ -587,7 +587,7 @@ def text_for_key
     text += " \e[0m\e[2m(#{$comment_licks_count + 1}/#{$comment_licks.length})\e[0m\e[32m" if $opts[:jamming]
   end
   text += '; journal-all ' if $opts[:comment] == :journal && $journal_all
-  truncate_colored_text(text, $term_width - 16 ) + '           '
+  Text::truncate_colored_text(text, $term_width - 16 ) + '           '
 end
 
 def get_dots dots, delta_ok, freq, low, middle, high
@@ -632,7 +632,7 @@ def do_change_key in_quiz: false
          else
            $notes_with_sharps
          end
-  $key = choose_interactive("Available keys (current is #{$key}): ", keys + %w[random-common random-all]) do |key|
+  $key = Choose::choose_interactive("Available keys (current is #{$key}): ", keys + %w[random-common random-all]) do |key|
     if key == $key
       'The current key'
     elsif key == 'random-common'
@@ -658,8 +658,8 @@ def do_change_key in_quiz: false
 end
 
 def do_change_key_to_pitch
-  clear_area_comment
-  clear_area_message
+  Interact::clear_area_comment
+  Interact::clear_area_message
   key_was = $key
   print "\e[#{$lines[:comment] + 1}H\e[0mUse the adjustable pitch to change the key of harp.\e[K\n"
   puts "\e[0m\e[2mPress any key to start (and RETURN when done), or 'q' to cancel ...\e[K\e[0m\n\n"
@@ -667,7 +667,7 @@ def do_change_key_to_pitch
   char = $ctl_kb_queue.deq
   return if %w[q x].include?(char)
 
-  $key = play_interactive_pitch(embedded: true) || $key
+  $key = Players::play_interactive_pitch(embedded: true) || $key
   $msgbuf.print(if key_was == $key
                   'Key of harp is still at'
                 else
@@ -676,7 +676,7 @@ def do_change_key_to_pitch
 end
 
 def do_change_scale_add_scales
-  input = choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort) do |scale|
+  input = Choose::choose_interactive("Choose main scale (current is #{$scale}): ", $all_scales.sort) do |scale|
     $scale_desc_maybe[scale] || '?'
   end
   $scale = input if input
@@ -688,7 +688,7 @@ def do_change_scale_add_scales
   # Change --add-scales
   add_scales = []
   loop do
-    input = choose_interactive("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
+    input = Choose::choose_interactive("Choose additional scale #{add_scales.length + 1} (current is '#{$opts[:add_scales]}'): ",
                                ['DONE', $all_scales.sort].flatten) do |scale|
       if scale == 'DONE'
         'Choose this, when done with adding scales'
@@ -716,19 +716,19 @@ def do_change_scale_add_scales
 end
 
 def do_show_options_info
-  clear_area_comment
-  clear_area_message
+  Interact::clear_area_comment
+  Interact::clear_area_message
   puts "\e[#{$lines[:comment] + 1}H\e[0m Command line for this instance of harpwise:"
   puts "\e[32m"
   short_command_line = 'harpwise' + $full_command_line[$0.length..-1]
-  puts wrap_words('   ', short_command_line.split(/(?= --)/).map(&:strip), ' ')
+  puts Text::wrap_words('   ', short_command_line.split(/(?= --)/).map(&:strip), ' ')
   puts
   print "\e[0m\e[2m Any key for details ...\e[0m"
   $ctl_kb_queue.clear
   $ctl_kb_queue.deq
 
-  clear_area_comment
-  clear_area_message
+  Interact::clear_area_comment
+  Interact::clear_area_message
   puts "\e[#{$lines[:comment] + 1}H\e[0m       Used scales:  \e[32m#{$used_scales.join(', ')}\e[0m"
   if $opts[:scale_prog]
     puts "\e[0m Scale progression:  \e[32m#{$opts[:scale_prog]}\e[0m"
@@ -817,7 +817,7 @@ def get_jamming_timer_text
 
     tick_syms = ['#', '#', '=', '='] + Array.new(20, '-')
     tick_cols = [94, 92, 94, 92] + Array.new(20, 32)
-    # See print_mission on how to calculate the number below
+    # See Util::print_mission on how to calculate the number below
     # $conf[:term_min_width] - $ctl_response_width - "Jm: ti 10/12, tm 10/15".length - "  []".length =
     # 75 - 32 - 22 - 4 = 17 = 16 (with margin)
     max_ticks = [16, $term_width - 75 + 16, 24].sort[1]
@@ -1255,7 +1255,7 @@ def show_remote_message
       if text.start_with?('{{mission}}')
         $jamming_mission_override = text[text.index('}}') + 2..-1]
         err('Internal error: no text after {{mission}}') if !$jamming_mission_override || $jamming_mission_override == ''
-        print_mission(*get_mission_override)
+        Util::print_mission(*get_mission_override)
       elsif text.start_with?('{{key}}')
         key_was = $key
         key = text[text.index('}}') + 2..-1]
@@ -1280,7 +1280,7 @@ def show_remote_message
         $jamming_timer_end = ts_end
         $jamming_timer_update_next = $jamming_timer_start - 1
         $jamming_timer_state = nil
-        print_mission(*get_mission_override)
+        Util::print_mission(*get_mission_override)
       elsif text[0] == '*'
         $msgbuf.print "\e[2m>> \e[0m\e[34m#{text[1..]}", duration, duration, :remote
       else

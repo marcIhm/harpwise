@@ -137,26 +137,7 @@ puts 'Testing'
 puts "\n\e[32mTo restart a failed test use: '#{File.basename($0)} .'\e[0m\n"
 puts "\e[2mTesting the installed snap.\e[0m\n" if $use_snap
 
-do_test 'id-0: run minitest' do
-  puts "\e[33mPENDING \e[0m"
-  puts
-  _, ppl_out_err, wait_thr = Open3.popen2e('./tests/minitest/all.rb')
-  while wait_thr.alive?
-    line = ppl_out_err.gets
-    next unless line
-    puts "    >> #{line}"
-  end
-  exst = wait_thr.value.exitstatus
-  puts
-  if exst && exst != 0
-    puts "  \e[31mNOT Okay\e[0m"
-    exit 1
-  else
-    puts "  \e[32mOkay \e[0m"
-  end
-end
-
-do_test 'id-0a: check modules/functions' do
+do_test 'id-0: check modules/functions' do
   new_session
   tms 'cd git/harpwise'
   tms :ENTER
@@ -166,7 +147,7 @@ do_test 'id-0a: check modules/functions' do
   kill_session
 end
 
-do_test 'id-0b: selftest without user dir' do
+do_test 'id-0a: selftest without user dir' do
   FileUtils.rm_r($datadir) if File.exist?($datadir)
   new_session
   tms 'harpwise develop selftest'
@@ -181,7 +162,7 @@ do_test 'id-0b: selftest without user dir' do
   kill_session
 end
 
-do_test 'id-0c: selftest with restricted locale' do
+do_test 'id-0b: selftest with restricted locale' do
   new_session
   tms 'LANG=C harpwise develop selftest'
   tms :ENTER
@@ -479,7 +460,7 @@ usage_types.keys.reject {|k| k == 'none'}.each_with_index do |mode, idx|
                     'play' => [2, 'disamiguate given arguments'],
                     'print' => [7, 'name collisions are usually detected'],
                     'tools' => [6, 'same effect as --drop-tags-any'],
-                    'develop' => [11, 'If lagging has happened'],
+                    'develop' => [8, 'If lagging has happened'],
                     'jamming' => [2, 'instead of playing'] }
 
     expect(mode, expect_opts[mode]) { screen[expect_opts[mode][0]][expect_opts[mode][1]] }
@@ -2820,13 +2801,13 @@ end
 
 ENV['HARPWISE_TESTING'] = 'msgbuf'
 
-do_test 'id-83: unittest' do
+do_test 'id-83: unittests' do
   new_session
-  tms 'harpwise develop unittest'
+  tms 'harpwise develop unittests'
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
-  expect { screen[21]['All unittests okay.'] }
+  expect { screen[21]['Unittests okay'] }
   kill_session
 end
 
@@ -3653,7 +3634,7 @@ do_test 'id-116: show help for specific key' do
   kill_session
 end
 
-do_test 'id-117: check errors for bogous lickfiles' do
+do_test 'id-117: check errors for bogus lickfiles' do
   file2err = {
     'b1.txt' => "Section 'prog foo' needs to contain key 'licks'",
     'b2.txt' => "Lick 'foo' appeares at least twice",
@@ -4382,7 +4363,7 @@ do_test 'id-149: tool diag3' do
   tms :ENTER
   sleep 3
   wait_for_end_of_harpwise
-  expect { screen[17]['sox WARN wav: length in output header will be wrong'] }
+  expect { (screen[16] + screen[17])['sox WARN wav: length in output header will be wrong'] }
   expect { screen[33]['Diagnosis done'] }
   kill_session
 end

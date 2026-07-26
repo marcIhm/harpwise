@@ -4,7 +4,7 @@
 
 def do_listen
   unless $other_mode_saved[:conf]
-    make_term_immediate
+    Interact::make_term_immediate
     start_collect_freqs
   end
   $modes_for_switch ||= %i[listen licks]
@@ -24,9 +24,9 @@ def do_listen
               "\e[0m\e[2mPlay from #{$used_scales.length} scales"
             end
   if $opts[:lick_prog]
-    lnames = process_opt_lick_prog
-    $all_licks, $licks, $all_lick_progs = read_licks
-    $comment_licks = lnames.map {|ln| $licks[find_lick_by_name(ln)]}
+    lnames = Licks::process_opt_lick_prog
+    $all_licks, $licks, $all_lick_progs = Licks::read_licks
+    $comment_licks = lnames.map {|ln| $licks[Licks::find_lick_by_name(ln)]}
     comment_licks_initial = $comment_licks.clone
     comment_lick_lines = get_listen_lick_lines($comment_licks[0])
     $opts[:comment] = :lick_holes_large unless $opts[:comment] == :lick_holes
@@ -211,12 +211,12 @@ def do_listen
 
     if $ctl_mic[:journal_delete]
       $ctl_mic[:journal_delete] = false
-      $journal.pop if $journal[-1] && musical_event?($journal[-1], :secs)
+      $journal.pop if $journal[-1] && Theory::musical_event?($journal[-1], :secs)
       $journal.pop
     end
 
     if $ctl_mic[:journal_menu]
-      journal_menu
+      Interact::journal_menu
       $ctl_mic[:redraw] = Set[:silent]
       $freqs_queue.clear
       $ctl_mic[:journal_menu] = false
@@ -225,14 +225,14 @@ def do_listen
     if $ctl_mic[:journal_write]
       $ctl_mic[:journal_write] = false
       if journal_length > 0
-        make_term_cooked
-        clear_area_comment
+        Interact::make_term_cooked
+        Interact::clear_area_comment
         puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
         puts
         print "\e[0mYour comment for these #{journal_length} holes: "
-        comment = gets_with_cursor
-        make_term_immediate
-        clear_area_comment
+        comment = Interact::gets_with_cursor
+        Interact::make_term_immediate
+        Interact::clear_area_comment
         journal_write(comment)
         $msgbuf.print "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}", 2, 5, :journal
       else
@@ -249,9 +249,9 @@ def do_listen
         [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
           lines, = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
           fit_into_comment lines
-          unless musical_event?(hole)
+          unless Theory::musical_event?(hole)
             play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3]),
-                      get_musical_duration(hole_next))
+                      Theory::get_musical_duration(hole_next))
           end
           if $ctl_kb_queue.length > 0
             $msgbuf.print 'Skipped to end of journal', 2, 5, :journal
@@ -283,15 +283,15 @@ def do_listen
     end
 
     if $ctl_mic[:journal_short]
-      clear_area_comment
+      Interact::clear_area_comment
       puts "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[2mJournal without durations, e.g for cut and paste:\e[0m\n\n"
-      puts $journal.reject {|x| musical_event?(x, :secs)}.join('  ')
+      puts $journal.reject {|x| Theory::musical_event?(x, :secs)}.join('  ')
       puts "\n\e[2m  any key to continue ...\e[2m"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
       $freqs_queue.clear
       $ctl_mic[:journal_short] = false
-      clear_area_comment
+      Interact::clear_area_comment
     end
 
     if $ctl_mic[:journal_recall]
@@ -325,7 +325,7 @@ def do_listen
       $journal_all = !$journal_all
       $msgbuf.print 'journal-all is ' +
                     ( $journal_all ? "ON, minimum duration is #{$journal_minimum_duration}s" : 'OFF' ), 2, 5, :journal
-      ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
+      Interact::ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
     end
 
     #
@@ -334,14 +334,14 @@ def do_listen
     if $ctl_mic[:comment_lick_play]
       $ctl_mic[:comment_lick_play] = false
       if $comment_licks.length > 0
-        clear_area_comment
-        clear_area_message
+        Interact::clear_area_comment
+        Interact::clear_area_message
         puts "\e[#{$lines[:comment_tall]}H"
         play_and_print_lick $comment_licks[0]
         sleep 0.5
         $freqs_queue.clear
-        clear_area_comment
-        clear_area_message
+        Interact::clear_area_comment
+        Interact::clear_area_message
         $ctl_mic[:redraw] = Set[:silent]
       else
         tell_no_comment_licks
@@ -356,7 +356,7 @@ def do_listen
         $comment_licks_count += 1
         $comment_licks_count %= $comment_licks.length
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        clear_area_comment
+        Interact::clear_area_comment
       else
         tell_no_comment_licks
       end
@@ -369,7 +369,7 @@ def do_listen
         $comment_licks_count -= 1
         $comment_licks_count %= $comment_licks.length
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        clear_area_comment
+        Interact::clear_area_comment
       else
         tell_no_comment_licks
       end
@@ -381,7 +381,7 @@ def do_listen
         $comment_licks = comment_licks_initial.clone
         $comment_licks_count = 0
         comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        clear_area_comment
+        Interact::clear_area_comment
       else
         tell_no_comment_licks
       end
@@ -392,7 +392,7 @@ def do_listen
     #
     if $ctl_mic[:warbles_prepare]
       $ctl_mic[:warbles_prepare] = false
-      prepare_warbles
+      Interact::prepare_warbles
     end
 
     next unless $ctl_mic[:warbles_clear]
@@ -412,7 +412,7 @@ def edit_journal initial_content = nil
   tfile.write("\n###\n### The current journal:\n###\n\n")
   tfile.write(tabify_plain($journal, true))
   tfile.close
-  if edit_file(tfile.path)
+  if Util::edit_file(tfile.path)
     catch :invalid_hole do
       holes = Array.new
       File.readlines(tfile.path).each do |line|
@@ -421,10 +421,10 @@ def edit_journal initial_content = nil
         next if line.empty?
 
         line.split.each do |hole|
-          if musical_event?(hole) || $harp_holes.include?(hole)
+          if Theory::musical_event?(hole) || $harp_holes.include?(hole)
             holes << hole
           else
-            report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
+            Interact::report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
             throw :invalid_hole
           end
         end
@@ -453,12 +453,12 @@ def journal_write(comment)
                           + ( comment.empty? ? '' : "Comment: #{comment}\n" ) + "\n" +
                           + tabify_plain($journal) + "\n" +
                           "The same but more compact: \n\n   " +
-                          $journal.reject {|h| musical_event?(h)}.join(' ') +
+                          $journal.reject {|h| Theory::musical_event?(h)}.join(' ') +
                           "\n\n", mode: 'a')
 end
 
 def journal_length
-  $journal.select {|h| !musical_event?(h)}.length
+  $journal.select {|h| !Theory::musical_event?(h)}.length
 end
 
 
@@ -484,21 +484,21 @@ def warble_comment type
 end
 
 def get_journal_comment
-  make_term_cooked
-  clear_area_comment
+  Interact::make_term_cooked
+  Interact::clear_area_comment
   puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
   puts
   print "\e[0mYour comment (20 chars cutoff): "
-  comment = gets_with_cursor
+  comment = Interact::gets_with_cursor
   comment.tr!('()[]{}', '')
-  make_term_immediate
-  clear_area_comment
+  Interact::make_term_immediate
+  Interact::clear_area_comment
 
   comment
 end
 
 def get_listen_lick_lines lick
-  holes_lines = wrap_words('    ', lick[:holes], '  ').split("\n")
+  holes_lines = Text::wrap_words('    ', lick[:holes], '  ').split("\n")
   lines = ['']
   lines << '  ' + lick[:name]
   if holes_lines.length <= 2
@@ -511,7 +511,7 @@ def get_listen_lick_lines lick
 end
 
 def tell_no_comment_licks
-  clear_area_comment
+  Interact::clear_area_comment
   print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified!\n  try option   --licks"
   puts "\n\n\e[2m  #{$resources[:any_key]}\e[2m"
   $ctl_kb_queue.clear

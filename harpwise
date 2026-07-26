@@ -28,15 +28,19 @@ require 'strscan'
 require 'pp'  ## for pretty_inspect
 require 'csv'
 require 'date'
-require_relative 'libexec/utils'
+require_relative 'libexec/util'
 require_relative 'libexec/arguments'
 require_relative 'libexec/config'
-require_relative 'libexec/interaction'
+require_relative 'libexec/theory'
+require_relative 'libexec/interact'
+require_relative 'libexec/choose'
+require_relative 'libexec/text'
 require_relative 'libexec/players'
 require_relative 'libexec/sound_driver'
 require_relative 'libexec/analyze'
 require_relative 'libexec/licks'
 require_relative 'libexec/handle_holes'
+require_relative 'libexec/monkey'
 require_relative 'libexec/mode_listen'
 require_relative 'libexec/mode_licks'
 require_relative 'libexec/mode_play'
@@ -66,10 +70,10 @@ $debug_state = {}
 
 $full_command_line = $0 + ' ' + ARGV.join(' ')
 
-$term_height, $term_width = prepare_screen
+$term_height, $term_width = Interact::prepare_screen
 
 # set these early, because they are used during initialization
-$testing, $testing_what = set_testing_vars_mb
+$testing, $testing_what = Util::set_testing_vars_mb
 
 # while testing, additionally make sure, that we do not use relative
 # paths; do this early, before we even have parsed options
@@ -106,9 +110,9 @@ if $testing_what == :argv
   exit
 end
 
-initialize_debugging_mb
+Util::initialize_debugging_mb
 
-mostly_avoid_double_invocations
+Util::mostly_avoid_double_invocations
 
 # we need to have mode for this, so calculate it late
 $lines = Cfg::calculate_screen_layout
@@ -122,13 +126,13 @@ Cfg::set_global_musical_vars
 $initialized = true
 
 $extra_kws[$mode].each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
-report_name_collisions_mb
+Util::report_name_collisions_mb
 
 $extra, to_handle = Args::parse_for_mode
 
-check_screen(hint_on_large_term: true) if %i[listen quiz licks].include?($mode)
+Interact::check_screen(hint_on_large_term: true) if %i[listen quiz licks].include?($mode)
 
-write_dump 'start' if $testing
+Util::write_dump 'start' if $testing
 
 # We need this to be true, because otherwise exceptions in threads go unnoticed and may
 # stall the hole program
@@ -159,7 +163,7 @@ if %i[listen quiz licks].include?($mode)
   end
   Signal.trap('CONT') do
     system('clear')
-    prepare_term
+    Interact::prepare_term
     $ctl_redraw = true
   end
 end
@@ -169,7 +173,7 @@ at_exit do
   sleep 0.1
   # does not apply to 'tools spread-keys' which can be used in a subshell
   if STDIN.isatty && STDOUT.isatty
-    sane_term
+    Interact::sane_term
     print "\e[?25h"  ## show cursor
     print "\e[0m"
   end
@@ -178,16 +182,16 @@ at_exit do
   # would not be initialized completetly
   FileUtils.remove_dir($dirs[:tmp]) if $dirs && $dirs[:tmp] && File.directory?($dirs[:tmp])
 
-  write_dump 'end' if $testing
+  Util::write_dump 'end' if $testing
 
   # a user recording could still be going on
   $ulrec&.stop_rec
 
   # notice for lagging or jitter if appropriate
-  print_afterthought if $initialized
+  Util::print_afterthought if $initialized
 
   if $opts && $opts[:debug]
-    print_debug_info
+    Util::print_debug_info
     $debug_log.close if $debug_log
     if File.exist?($debug_log_file)
       if File.size($debug_log_file) == 0
@@ -198,20 +202,20 @@ at_exit do
     end
   end
 
-  maybe_write_pers_data
+  Util::maybe_write_pers_data
 end
 
-write_invocation
+Util::write_invocation
 
 $other_mode_saved = Hash.new
 begin
 
   $ulrec&.stop_rec
-  switch_modes if $ctl_mic[:switch_modes]
+  Util::switch_modes if $ctl_mic[:switch_modes]
 
   case $mode
   when :quiz
-    do_quiz to_handle
+    Quiz::do_quiz to_handle
   when :licks
     do_licks_or_quiz to_handle: to_handle
   when :listen

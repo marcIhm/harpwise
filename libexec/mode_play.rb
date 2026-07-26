@@ -3,7 +3,7 @@
 #
 
 def do_play to_play
-  $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: false)
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks(use_opt_lick_prog: false)
 
   if !$extra
     # We expect lick-names on command line, so dont narrow to tag-selection
@@ -11,11 +11,11 @@ def do_play to_play
   elsif $opts[:lick_prog]
     err "Options --lick-prog only useful for extra argument licks, not #{$extra}" if $extra != 'licks'
     $licks = $all_licks
-    _ = process_opt_lick_prog
-    $all_licks, $licks, $all_lick_progs = read_licks
+    _ = Licks::process_opt_lick_prog
+    $all_licks, $licks, $all_lick_progs = Licks::read_licks
   end
 
-  make_term_immediate
+  Interact::make_term_immediate
 
   puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
   puts
@@ -27,8 +27,8 @@ def do_play to_play
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if $extra == 'user' && args_for_extra.length > 0
-  err_args_not_allowed(args_for_extra) if $extra == 'licks' && args_for_extra.length > 0
+  Util::err_args_not_allowed(args_for_extra) if $extra == 'user' && args_for_extra.length > 0
+  Util::err_args_not_allowed(args_for_extra) if $extra == 'licks' && args_for_extra.length > 0
   err "Option '--start-with' only useful when playing 'licks'" if $opts[:start_with] && !$extra == 'licks'
 
 
@@ -38,9 +38,9 @@ def do_play to_play
 
       puts 'Playing holes or notes given as arguments.'
       puts
-      play_holes_or_notes_and_handle_kb holes_or_notes
+      Players::play_holes_or_notes_and_handle_kb holes_or_notes
       puts
-      write_history('holes or notes', 'adhoc-holes', holes_or_notes)
+      Util::write_history('holes or notes', 'adhoc-holes', holes_or_notes)
 
     elsif snames.length > 0
 
@@ -49,9 +49,9 @@ def do_play to_play
       snames.each do |sname|
         scale_holes, = Cfg::read_and_parse_scale_simple(sname)
         puts "Scale #{sname}"
-        play_holes_or_notes_and_handle_kb scale_holes
+        Players::play_holes_or_notes_and_handle_kb scale_holes
         puts
-        write_history('scale', sname, scale_holes)
+        Util::write_history('scale', sname, scale_holes)
       end
 
     elsif lnames.length > 0
@@ -66,9 +66,9 @@ def do_play to_play
       puts 'Playing semitones given as arguments and converted to notes (a4 = 0st).'
       puts
       notes = semis.map {|s| semi2note(s.to_i)}
-      play_holes_or_notes_and_handle_kb notes
+      Players::play_holes_or_notes_and_handle_kb notes
       puts
-      write_history('semitones converted to notes', 'adhoc-semitones', notes)
+      Util::write_history('semitones converted to notes', 'adhoc-semitones', notes)
 
     elsif lpnames.length > 0
 
@@ -107,13 +107,13 @@ def do_play to_play
             elsif args_for_extra.length > 1
               err "harpwise play pitch only accepts zero or one argument, not #{args_for_extra}"
             end
-      play_interactive_pitch(start_key: key)
+      Players::play_interactive_pitch(start_key: key)
 
     when 'interval', 'inter'
 
       s1, s2 = normalize_interval(args_for_extra)
 
-      play_interactive_interval s1, s2
+      Players::play_interactive_interval s1, s2
 
     when 'licks'
 
@@ -129,7 +129,7 @@ def do_play to_play
                             .join(' ')
                             .split('###')
                             .map {|p| p.split.map {|hns| hns.strip}}
-      play_interactive_progression(
+      Players::play_interactive_progression(
         progs.map {|p| base_and_delta_to_semis(p)},
         progs.map {|p| p.join(' ')}
       )
@@ -148,7 +148,7 @@ def do_play to_play
         end
       end
       semis.unshift(first)
-      play_interactive_chord semis, args_for_extra
+      Players::play_interactive_chord semis, args_for_extra
 
     when 'user'
 
@@ -157,7 +157,7 @@ def do_play to_play
         duration = '%.1fs' % sox_query(rfile, 'Length')
         puts "Playing \e[32m#{rfile}\e[0m, #{duration} ..."
         puts "\e[2m(h for help)"
-        play_recording_and_handle_kb rfile
+        Players::play_recording_and_handle_kb rfile
         puts
       else
         puts "User lick recording #{rfile} not present;\nrecord yourself in mode lick to create it."
@@ -188,7 +188,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   err("Internal error: #{amongs} includes :extra_wwos") if amongs.include?(:extra_wwos)
   # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
   to_handle.join(' ').split.each do |th|
-    what = recognize_among(th, amongs)
+    what = Util::recognize_among(th, amongs)
 
     if what == :note
       holes_or_notes << sf_norm(th)
@@ -212,8 +212,8 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     elsif what == :lick_prog
       lpnames << th
     elsif what == :last
-      $all_licks, $licks, $all_lick_progs = read_licks
-      record = shortcut2history_record(th)
+      $all_licks, $licks, $all_lick_progs = Licks::read_licks
+      record = Util::shortcut2history_record(th)
       lnames << record[:name]
     elsif what == :jam
       jmnames << th
@@ -232,11 +232,11 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     puts
     puts "Cannot understand these arguments: #{other.join('  ')}#{Args::not_any_source_of_clause};"
     puts 'they are none of (exact match required):'
-    print_amongs(amongs)
+    Util::print_amongs(amongs)
     if extra_allowed && $extra == ''
       puts
       puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
-      print_amongs(:extra)
+      Util::print_amongs(:extra)
     end
     err "Cannot understand these arguments: #{other.join('  ')}\nSee above for full list of choices."
   end
@@ -244,7 +244,7 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
   if extra_allowed && $extra == '' && types_count == 0
     puts
     puts "Nothing to handle for #{$mode}; please specify any of:"
-    print_amongs([amongs, :extra])
+    Util::print_amongs([amongs, :extra])
     err 'See above'
   end
 
@@ -274,7 +274,7 @@ def hole_or_note_or_semi hns, diff_allowed = true
            else
              %i[hole note]
            end
-  what = recognize_among(hns, amongs)
+  what = Util::recognize_among(hns, amongs)
   type, value = case what
                 when :hole
                   [:abs, note2semi($hole2note[hns])]
@@ -289,7 +289,7 @@ def hole_or_note_or_semi hns, diff_allowed = true
                 end
 
   unless type
-    print_amongs(*amongs)
+    Util::print_amongs(*amongs)
     err "Given argument #{hns} is none of those given above"
   end
 
@@ -362,7 +362,7 @@ def play_and_print_lick lick, extra = ''
     puts "Desc:  #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
     puts lick[:holes].join(' ')
-    play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], 0, true
+    Players::play_lick_recording_and_handle_kb lick, lick[:rec_start], lick[:rec_length], 0, true
   else
     puts ( $opts[:reverse] ? ' in reverse' : '' ) +
          "    (h for help)\e[0m\e[2m"
@@ -371,10 +371,10 @@ def play_and_print_lick lick, extra = ''
     sleep 0.02
     puts "Desc:  #{lick[:desc]}" unless lick[:desc].to_s.empty?
     print "\e[0m"
-    play_lick_holes_and_handle_kb ( $opts[:reverse] ? lick[:holes].reverse : lick[:holes] ),
-                                  lick: lick,
-                                  scroll_allowed: true,
-                                  with_head: false
+    Players::play_lick_holes_and_handle_kb ( $opts[:reverse] ? lick[:holes].reverse : lick[:holes] ),
+                                           lick: lick,
+                                           scroll_allowed: true,
+                                           with_head: false
   end
   sleep 0.02
   puts
@@ -401,7 +401,7 @@ def play_licks_controller licks, refill, sleep_between: false
 
 
   loop do  ## one lick after the other
-    write_history('lick', lick[:name], lick[:holes])
+    Util::write_history('lick', lick[:name], lick[:holes])
 
     loop do  ## repeats of the same lick
       play_and_print_lick lick, "    #{licks.length - stock.length}/#{licks.length}"
@@ -433,19 +433,19 @@ def play_licks_controller licks, refill, sleep_between: false
         redo
       when :edit
         puts
-        edit_file($lick_file, lick[:lno])
+        Util::edit_file($lick_file, lick[:lno])
         puts
-        $all_licks, $licks, $all_lick_progs = read_licks
+        $all_licks, $licks, $all_lick_progs = Licks::read_licks
         redo
       when :named
-        choose_prepare_for skip_term: true
+        Choose::prepare_for skip_term: true
         puts
         lnames = $all_licks.map {|l| l[:name]}
-        input = choose_interactive("Please choose lick (current is #{lick[:name]}): ", lnames) do |lname|
+        input = Choose::choose_interactive("Please choose lick (current is #{lick[:name]}): ", lnames) do |lname|
           lk = $all_licks.find {|l| l[:name] == lname}
           "[#{lk[:tags].join(',')}] #{lk[:holes].length} holes, #{lk[:desc]}"
         end
-        choose_clean_up skip_term: true
+        Choose::clean_up skip_term: true
         if input
           lick = $all_licks.find {|l| l[:name] == input}
           puts 'New lick.'
@@ -657,7 +657,7 @@ def do_play_licks _args
             $licks.clone
           end
   idx = if sw
-          if record = shortcut2history_record(sw)
+          if record = Util::shortcut2history_record(sw)
             # we canno use record[:lick_idx], because that is against unshuffled licks
             licks.each_with_index.find {|l, _i| l[:name] == record[:name]}&.at(1) || 0
           else

@@ -7,5 +7,5 @@
   The required additional argument specifies a task to perform; it can be
   one of:
 
-<%= get_extra_desc_all(mode: :develop, for_usage: true).join("\n") %>
+<%= Util::get_extra_desc_all(mode: :develop, for_usage: true).join("\n") %>
   

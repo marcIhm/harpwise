@@ -4,7 +4,7 @@
 
 def do_develop to_handle
   # common error checking
-  err_args_not_allowed(to_handle) if $extra && !%w[lickfile lf read-scale-with-notes rswn].include?($extra) && to_handle.length > 0
+  Util::err_args_not_allowed(to_handle) if $extra && !%w[lickfile lf read-scale-with-notes rswn].include?($extra) && to_handle.length > 0
 
   case $extra
   when 'docs-make-org-txt'
@@ -14,7 +14,7 @@ def do_develop to_handle
   when 'docs-all'
     %w[do_docs_make_org_txt do_docs_make_html].each do |met|
       puts "\e[34m"
-      do_figlet_unwrapped met, 'smblock'
+      Text::do_figlet_unwrapped met, 'smblock'
       puts "\e[0m"
       sleep 0.5
       eval(met)
@@ -22,8 +22,8 @@ def do_develop to_handle
     end
   when 'selftest'
     do_selftest
-  when 'unittest'
-    do_unittest
+  when 'unittests'
+    do_unittests
   when 'widgets'
     do_widgets
   when 'lickfile'
@@ -33,7 +33,7 @@ def do_develop to_handle
   when 'read-scale-with-notes'
     do_read_scale_with_notes to_handle
   when 'dump'
-    write_dump
+    Util::write_dump
   else
     raise "Internal error: unknown extra '#{$extra}'"
   end
@@ -148,13 +148,13 @@ end
 
 def do_selftest
   puts
-  puts_underlined 'Performing selftest'
+  Text::puts_underlined 'Performing selftest'
 
-  puts_underlined 'Check installation', '-', dim: false
+  Text::puts_underlined 'Check installation', '-', dim: false
   Cfg::check_installation verbose: true
 
   puts
-  puts_underlined 'Invoking figlet for fontname on all fonts', '-', dim: false
+  Text::puts_underlined 'Invoking figlet for fontname on all fonts', '-', dim: false
   # Remark: output of figlet is suppressed to allow selftest to pass
   # even in non-utf8 environments. See test for encoding above
   expected = { 'smblock' => [2, '▝▀▖▌▐ ▌▌ ▌▐ ▌ ▌▌ ▖▛▚'],
@@ -162,7 +162,7 @@ def do_selftest
                'mono9' => [4, '█ █ █  █   █  █   █  █   █   ▀▀▀ █'] }
 
   $early_conf[:figlet_fonts].each do |font|
-    output = get_figlet_wrapped(font, font)
+    output = Text::get_figlet_wrapped(font, font)
     puts output
     line = expected[font][0]
     text = expected[font][1]
@@ -171,12 +171,12 @@ def do_selftest
 
   test_hole = '+1'
   puts
-  puts_underlined 'Generating sound with sox', '-', dim: false
+  Text::puts_underlined 'Generating sound with sox', '-', dim: false
   synth_sound test_hole, $helper_wave
   system("ls -l #{$helper_wave}")
 
   puts
-  puts_underlined 'Frequency pipeline from previously generated sound', '-', dim: false
+  Text::puts_underlined 'Frequency pipeline from previously generated sound', '-', dim: false
   cmd = get_pipeline_cmd(:sox, $helper_wave)
   puts "Command is: #{cmd}"
   puts
@@ -235,9 +235,9 @@ def do_selftest
   puts
 end
 
-def do_unittest
+def do_unittests
   puts
-  puts_underlined 'show_help'
+  Text::puts_underlined 'show help'
   %i[quiz listen licks].each do |mode|
     # needed in help
     $modes_for_switch = %i[quiz listen]
@@ -247,14 +247,34 @@ def do_unittest
   end
 
   puts
-  puts_underlined 'Semitone calculations'
+  Text::puts_underlined 'init all quiz classes'
+  maxname = $quiz_flavour2class.keys.map(&:length).max
+  $opts[:difficulty] = :easy
+  bad = 0
+  what = ''
+  $quiz_flavour2class.each do |name, qclass|
+    begin
+      what = 'init'
+      flavour = $quiz_flavour2class[name].new(false)
+      what = 'selfcheck'
+      flavour.selfcheck
+    rescue => e
+      bad += 1
+      puts e if $opts[:verbose]
+      puts "   \e[31m#{what} #{name}\e[0m"
+    end
+  end
+  utreport(bad, 0, 'no bad?')
+
+  puts
+  Text::puts_underlined 'Semitone calculations'
   found = note2semi('a4')
   expected = 0
-  utreport('note2semi', found, expected)
+  utreport(found, expected, 'note2semi')
 
   found = semi2note(0)
   expected = 'a4'
-  utreport('semi2note', found, expected)
+  utreport(found, expected, 'semi2note')
 
   [[['c', 'g', :g_is_lowest], 5],
    [['c', 'g', :minimum_distance], 5],
@@ -275,18 +295,29 @@ def do_unittest
    [['g', 'd', :g_is_lowest], -7],
    [['g', 'd', :minimum_distance], 5]].each do |params, expected|
     found = diff_semitones(params[0], params[1], strategy: params[2])
-    utreport("diff_semitones,#{params[0]},#{params[1]},#{params[2]}", found, expected)
+    utreport(found, expected, "diff_semitones,#{params[0]},#{params[1]},#{params[2]}")
   end
 
   puts
-  puts_underlined '$msgbuf'
+  Text::puts_underlined 'note2semi'
+  utreport(%w[bs4 cs4 d4 ds4 ff4 es4 fs4 g4 gs4 a4 as4 cf4].map {|n| note2semi(n, shadowed: true)},
+           (-9 .. 2).to_a)
+
+  puts
+  Text::puts_underlined 'days_ago_in_words'
+  [[1, 'yesterday'], [73, '10 weeks ago']].each do |num, words|
+    utreport(Util::days_ago_in_words(num), words)
+  end
+  
+  puts
+  Text::puts_underlined '$msgbuf'
 
   $msgbuf.clear
   len = 42
   $msgbuf.ready
   # print long string, that wil be wrapped to three lines
   $msgbuf.print %w[a b c].map {|ch| ch * len}.join(' '), 1, 1, wrap: true, truncate: false
-  puts "HINT: set HARPWISE_TESTING to 'msgbuf' to use a minimum terminal width" if ENV['HARPWISE_TESTING'] != 'msgbuf'
+  puts "\n\nHINT: if appropriate, set HARPWISE_TESTING to 'msgbuf' to use a minimum terminal width\n" if ENV['HARPWISE_TESTING'] != 'msgbuf'
 
   found = $msgbuf.get_lines_durations
   [['c' * len, 1, 1, nil],
@@ -295,12 +326,12 @@ def do_unittest
   expected = [['cccccccccccccccccccccccccccccccccccccccccc', 1, 1, nil],
               ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...', 1, 1, nil],
               ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil]]
-  utreport('Wrap long text', found, expected)
+  utreport(found, expected, 'Wrap long text')
 
   # from the three lines only one has already been printed; the others wait in backlog
   found = $msgbuf.printed
   expected = [['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil]]
-  utreport('Sequence of lines, part 1', found, expected)
+  utreport(found, expected, 'Sequence of lines, part 1')
 
   # let messages age away
   sleep 2
@@ -312,23 +343,21 @@ def do_unittest
   expected = [['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...', 1, 1, nil],
               ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ...', 1, 1, nil],
               ['cccccccccccccccccccccccccccccccccccccccccc', 1, 1, nil]]
-  utreport('Sequence of lines, part 2', found, expected)
+  utreport(found, expected, 'Sequence of lines, part 2')
   $msgbuf.ready(false)
 
   $msgbuf.clear
   $msgbuf.print 'abc' * len, 1, 1
   found = $msgbuf.get_lines_durations
   expected = [['abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc ...', 1, 1, nil]]
-  utreport('Truncate text', found, expected)
-
+  utreport(found, expected, 'Truncate text')
 
   $msgbuf.clear
   $msgbuf.print %w[foo bar], 1, 3
   found = $msgbuf.get_lines_durations
   expected = [['bar', 1, 3, nil],
               ['foo', 1, 3, nil]]
-  utreport('Print array', found, expected)
-
+  utreport(found, expected, 'Print array')
 
   $msgbuf.clear
   $msgbuf.print 'a', 1, 3
@@ -340,8 +369,7 @@ def do_unittest
   expected = [['a', 1, 3, nil],
               ['b', 1, 3, nil],
               ['d', 1, 3, :foo]]
-  utreport('Symbols override', found, expected)
-
+  utreport(found, expected, 'Symbols override')
 
   $msgbuf.clear
   $msgbuf.print 'c', 1, 3, :foo
@@ -353,66 +381,61 @@ def do_unittest
   expected = [['a', 1, 3, nil],
               ['b', 1, 3, nil],
               ['d', 1, 3, :foo]]
-  utreport('Symbols deep override', found, expected)
-
+  utreport(found, expected, 'Symbols deep override')
 
   $msgbuf.clear
   $msgbuf.print 'd', 1, 3
   sleep 2
   found = $msgbuf.update
   expected = true
-  utreport('Update', found, expected)
-
+  utreport(found, expected, 'Update')
 
   found = $msgbuf.get_lines_durations
   expected = [['d', 1, 3, nil]]
-  utreport('Not age away for hint', found, expected)
-
+  utreport(found, expected, 'Not age away for hint')
 
   $msgbuf.print 'e', 1, 3
   found = $msgbuf.get_lines_durations
   expected = [['e', 1, 3, nil]]
-  utreport('Age away for message', found, expected)
-
+  utreport(found, expected, 'Age away for message')
 
   sleep 4
   $msgbuf.update
   found = $msgbuf.get_lines_durations
   expected = []
-  utreport('Age away for hint', found, expected)
-
+  utreport(found, expected, 'Age away for hint')
 
   puts
-  puts 'All unittests okay.'
+  puts 'Unittests okay'
   puts
 end
 
 def do_widgets
-  puts_underlined 'Excercising widgets'
-  puts_underlined 'one_char', '-', dim: false
+  Text::puts_underlined 'Widgets to be driven in tmux'
+  Text::puts_underlined 'one_char', '-', dim: false
   puts "Echoing input, type 'q' to quit"
   cnt = 0
   begin
-    char = one_char
+    char = Interact::one_char
     cnt += 1
     puts "Input ##{cnt}: -#{char}-"
   end while char != 'q'
   puts "#{cnt} chars read."
 
   %w[one two].each do |count|
-    puts_underlined "choose_interactive #{count}", '-', dim: false
-    make_term_immediate
+    Text::puts_underlined "choose_interactive #{count}", '-', dim: false
+    Interact::make_term_immediate
     ($term_height - $lines[:comment_tall] + 1).times { puts }
-    answer = choose_interactive('testprompt', ['1', ';comment'] + (2..100).to_a.map(&:to_s)) {|name| 'Selected: ' + name}
-    clear_area_comment
-    clear_area_message
-    make_term_cooked
+    answer = Choose::choose_interactive('testprompt', ['1', ';comment'] + (2..100).to_a.map(&:to_s)) {|name| 'Selected: ' + name}
+    Interact::clear_area_comment
+    Interact::clear_area_message
+    Interact::make_term_cooked
     print "\e[#{$lines[:comment_tall]}H"
     puts "Answer #{count}: #{answer}"
   end
 end
 
-def utreport desc, found, expected
+def utreport found, expected, desc = ''
   print desc.ljust(38) + ' ... '
   if found == expected
     puts "\e[32mOkay\e[0m"
@@ -424,15 +447,15 @@ end
 
 def do_lickfile to_handle
   err "Need exactly one argument, not #{to_handle}" if to_handle.length != 1
-  $all_licks, $licks, $all_lick_progs = read_licks(lick_file: to_handle[0])
-  report_name_collisions_mb
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks(lick_file: to_handle[0])
+  Util::report_name_collisions_mb
   pp({ all_licks: $all_licks.length,
        licks: $licks.length })
 end
 
 def do_check_frequencies
   puts
-  hole2freq_read = yaml_parse($freq_file)
+  hole2freq_read = Util::yaml_parse($freq_file)
   hole_was = nil
   freq_was = 0
   semi_was = 0

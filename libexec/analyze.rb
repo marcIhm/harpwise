@@ -94,7 +94,7 @@ end
 def describe_inter hon1, hon2, prefer_plus: false, sane: false
   if sane
     return [nil, nil, nil, nil] if !hon1 || !hon2
-  elsif !hon1 || !hon2 || musical_event?(hon1) || musical_event?(hon2)
+  elsif !hon1 || !hon2 || Theory::musical_event?(hon1) || Theory::musical_event?(hon2)
     return [nil, nil, nil, nil]
   end
   semi1, semi2 = [hon1, hon2].map do |hon|

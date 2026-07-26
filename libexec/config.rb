@@ -297,20 +297,19 @@ module Cfg
     #
     # Prepare meta information about quiz flavours and their tags
     #
-    $quiz_flavour2class = QuizFlavour.subclasses.map do |subclass|
-      [subclass.to_s.underscore.tr('_', '-'), subclass]
+    $quiz_flavour2class = Quiz::Flavour.subclasses.map do |subclass|
+      [subclass.to_s.underscore.tr('_', '-').gsub(/^quiz\//,''), subclass]
     end.to_h
     $quiz_coll2flavs = Hash.new
-    # $q_cl2ts comes from the individual flavour classes
+    # $q_class2colls comes from the individual flavour classes
     $q_class2colls.each do |clasz, colls|
-      flav = clasz.to_s.underscore.tr('_', '-')
+      flav = clasz.to_s.underscore.tr('_', '-').split('/')[1]
       colls.each do |co|
         $quiz_coll2flavs[co] ||= Array.new
         $quiz_coll2flavs[co] << flav
       end
     end
     $quiz_coll2flavs['all'] = $quiz_flavour2class.keys
-
     $testing_log = "#{$dirs[:exch_tester_tested]}/harpwise_testing.log"
 
     # Among processing e.g. for modes 'play' or 'print'
@@ -412,7 +411,7 @@ module Cfg
     $dirs[:user_scales] = "#{$dirs[:data]}/scales"
 
     %i[data players_pictures user_scales].each do |dirsym|
-      created = create_dir($dirs[dirsym])
+      created = Util::create_dir($dirs[dirsym])
       $dirs_data_created = true if created && dirsym == :data
     end
 
@@ -541,7 +540,7 @@ module Cfg
 
     # check and do this before read_samples is called in set_global_musical_vars
     if $type == 'richter' and $key == 'c'
-      created = create_dir($sample_dir)
+      created = Util::create_dir($sample_dir)
       if created
         from_dir = "#{$dirs[:install]}/resources/starter_samples_richter_c"
         Dir["#{from_dir}/*.mp3"].each do |mp3|
@@ -581,7 +580,7 @@ module Cfg
     # Does not fit into find_and_check_dirs_early, because we need
     # all_types
     $conf[:all_types].each do |type|
-      create_dir "#{$dirs[:user_scales]}/#{type}"
+      Util::create_dir "#{$dirs[:user_scales]}/#{type}"
     end
 
     # Remark: The bufsizes below are powers of 2; if not (e.g. bufsize = 5120),
@@ -742,7 +741,7 @@ module Cfg
 
   def read_and_set_musical_bootstrap_config
     $samples_needed = !%i[samples print tools develop].include?($mode)
-    all_scales, scale2file = scales_for_type($type, true)
+    all_scales, scale2file = Theory::scales_for_type($type, true)
     all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
     all_sc_progs = Hash.new
     sc_prog2file = Hash.new
@@ -750,7 +749,7 @@ module Cfg
       sc_pr_fl = sc_pr_fl_tpl % $type
       next unless File.exist?(sc_pr_fl)
 
-      sc_progs = yaml_parse(sc_pr_fl)
+      sc_progs = Util::yaml_parse(sc_pr_fl)
       sc_progs.is_a?(Hash) || err("Not an array but a #{sc_progs.class}   (in #{sc_pr_fl})")
       sc_progs.each do |name, prog|
         err "Scale progression #{name} has already been defined in #{sc_prog2file[name]} cannot redefine it in #{sc_pr_file}" if sc_prog2file[name]
@@ -767,11 +766,11 @@ module Cfg
     end
     all_scales.each {|sc| $name_collisions_mb[sc] << 'scale'}
     holes_file = "#{$dirs[:install]}/config/#{$type}/holes.yaml"
-    [all_scales, scale2file, yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
+    [all_scales, scale2file, Util::yaml_parse(holes_file).keys, all_sc_progs, sc_prog2file, holes_file]
   end
 
   def read_and_set_musical_config
-    $hole2note_for_c = yaml_parse($holes_file)
+    $hole2note_for_c = Util::yaml_parse($holes_file)
     if $opts[:octave_shift]
       dsemi = $opts[:octave_shift] == :up ? 12 : -12
       $hole2note_for_c.transform_values! do |note|
@@ -867,7 +866,7 @@ module Cfg
 
     # read e.g. typical and named holes
     sets_file = "#{$dirs[:install]}/config/#{$type}/hole_sets.yaml"
-    hole_sets = yaml_parse(sets_file).transform_keys!(&:to_sym)
+    hole_sets = Util::yaml_parse(sets_file).transform_keys!(&:to_sym)
     required = Set[:typical_hole, :named_sets]
     found = Set.new(hole_sets.keys)
     raise("Internal error: Set of keys #{found} from #{sets_file} is different from required set #{required}") unless required == found
@@ -883,7 +882,7 @@ module Cfg
     # read from first available intervals file
     ifile = ["#{$dirs[:install]}/config/#{$type}/intervals.yaml", "#{$dirs[:install]}/config/intervals.yaml"].find {|f| File.exist?(f)}
     $intervals_quiz = { easy: [], hard: [] }
-    intervals = yaml_parse(ifile).transform_keys!(&:to_i)
+    intervals = Util::yaml_parse(ifile).transform_keys!(&:to_i)
     intervals.keys.each do |st|
       $intervals_quiz[:easy] << st if intervals[st].include?('quiz_easy')
       $intervals_quiz[:hard] << st
@@ -1036,7 +1035,7 @@ module Cfg
             end
 
     # Actually read the file and check the yaml-keys
-    raw_read = yaml_parse(sfile)
+    raw_read = Util::yaml_parse(sfile)
     what = ( sfile['holes'] ? 'holes' : 'notes' )
     err "Content of scale file   #{sfile}   is not a hash, but rather: #{raw_read.class}" unless raw_read.class == Hash
     err "Content of scale file   #{sfile}   does not have required key '#{what}', but rather these: #{raw_read.keys.join(', ')}" unless raw_read.keys.include?(what)
@@ -1154,7 +1153,7 @@ module Cfg
 
   def read_chart
     $chart_file = "#{$dirs[:install]}/config/#{$type}/chart.yaml"
-    chart_with_holes_raw = yaml_parse($chart_file)
+    chart_with_holes_raw = Util::yaml_parse($chart_file)
     len = chart_with_holes_raw.shift
     chart_with_holes_raw.map! {|r| r.split('|')}
     hole2chart = Hash.new {|h, k| h[k] = Array.new}
@@ -1162,7 +1161,7 @@ module Cfg
     $conf[:chart_offset_xyl] = [0, 0, len] unless $conf[:chart_offset_xyl]
     begin
       # check for completeness
-      chart_holes = Set.new(chart_with_holes_raw.map {|r| r[0..-2]}.flatten.map(&:strip).reject {|x| comment_in_chart?(x)})
+      chart_holes = Set.new(chart_with_holes_raw.map {|r| r[0..-2]}.flatten.map(&:strip).reject {|x| Util::comment_in_chart?(x)})
       # Beware of false friends: $harp.keys has nothing to do with the
       # musical key of the harp
       harp_holes = Set.new($harp.keys)
@@ -1185,7 +1184,7 @@ module Cfg
           hole_padded = chart_with_holes_raw[row][col]
           hole = hole_padded.strip
           chart_with_notes[row][col] =
-            if comment_in_chart?(hole_padded)
+            if Util::comment_in_chart?(hole_padded)
               hole_padded[0, len]
             else
               note = $harp[hole][:note]
@@ -1196,7 +1195,7 @@ module Cfg
               note.center(len)
             end
           chart_with_scales[row][col] =
-            if comment_in_chart?(hole_padded)
+            if Util::comment_in_chart?(hole_padded)
               hole_padded[0, len]
             else
               shorts = $hole2scale_shorts[hole]
@@ -1206,7 +1205,7 @@ module Cfg
               shorts.center(len)
             end
           chart_with_scales_simple[row][col] =
-            if comment_in_chart?(hole_padded)
+            if Util::comment_in_chart?(hole_padded)
               hole_padded[0, len]
             else
               # these markers are explained further up
@@ -1247,7 +1246,7 @@ module Cfg
         hole_padded = chart_with_holes_raw[row][col]
         hole = hole_padded.strip
         chart_with_intervals[row][col] =
-          if comment_in_chart?(hole_padded)
+          if Util::comment_in_chart?(hole_padded)
             hole_padded[0, len]
           else
             isemi, _, itext, dsemi = describe_inter(hole, ref)
@@ -1270,7 +1269,7 @@ module Cfg
 
   def read_samples
     err "Frequency file #{$freq_file}\ndoes not exist; you need to create, samples for the key of   #{$key}   first!\n\nYou may either record samples or let harpwise generate them.\n#{for_sample_generation}this needs to be done only once.\n\n" unless File.exist?($freq_file)
-    hole2freq = yaml_parse($freq_file)
+    hole2freq = Util::yaml_parse($freq_file)
     if $opts[:octave_shift]
       fmult = $opts[:octave_shift] == :up ? 2.0 : 0.5
       hole2freq.transform_values! do |freq|
@@ -1317,7 +1316,7 @@ module Cfg
     $scale_prog ||= $used_scales
     $non_prog_scale = ($used_scales - $scale_prog)[0] || $scale
     $opts[:add_scales] = nil if $used_scales.length == 1
-    $all_quiz_scales = yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
+    $all_quiz_scales = Util::yaml_parse("#{$dirs[:install]}/config/#{$type}/quiz_scales.yaml").transform_keys!(&:to_sym)
     raise "Internal error: #{$all_quiz_scales}" unless $all_quiz_scales.is_a?(Hash) && $all_quiz_scales.keys == %i[easy hard]
 
     %i[easy hard].each do |dicu|
@@ -1355,7 +1354,7 @@ module Cfg
        !shortcut_licks
       # might be reread later. Pass use_opt_lick_prog = false on every
       # first invocation, where $all_licks has not yet been set
-      $all_licks, $licks, $all_lick_progs = read_licks(use_opt_lick_prog: !!$all_licks)
+      $all_licks, $licks, $all_lick_progs = Licks::read_licks(use_opt_lick_prog: !!$all_licks)
     end
 
     $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content if %i[play print jamming tools].include?($mode)

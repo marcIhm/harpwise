@@ -214,8 +214,9 @@ octave_shift:
     for most, but not all modes of harpwise.
 
     It works by shifting the note values, that define your harmonica
-    (file holes.yaml) accordingly; Recorded samples for licks are
-    shifted too, which may or may not sound odd.
+    (file holes.yaml) accordingly; displayed note-values are therefore
+    correct. Recorded samples for licks are shifted too, which may
+    or may not sound odd.
   - UP_OR_DOWN
     
 viewer:
@@ -450,9 +451,9 @@ what:
 
 verbose:
   - |
-    for mode 'print': be more verbose;
+    be more verbose;
     make some selected cases of printing (e.g. lick-progs)
-    more verbose, i.e. add more details to the output.
+    or develop more verbose, i.e. add more details to the output.
 
 shuffle_licks:
   - |

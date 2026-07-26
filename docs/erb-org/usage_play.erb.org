@@ -17,7 +17,7 @@
   or one of the known extra arguments (that themselves might require
   additional arguments):
 
-<%= get_extra_desc_all(mode: :play, for_usage: true).join("\n") %>
+<%= Util::get_extra_desc_all(mode: :play, for_usage: true).join("\n") %>
 
 
 ** Usage by Examples

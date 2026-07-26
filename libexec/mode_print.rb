@@ -14,15 +14,15 @@ def do_print to_print
     if $opts[:lick_prog]
       allowed = %w[licks-details licks-list licks-list-all]
       err "Options --lick-prog only useful for these extra arguments: #{allowed.join(',')}, not #{$extra}" unless allowed.include?($extra)
-      _ = process_opt_lick_prog
-      $all_licks, $licks, $all_lick_progs = read_licks
+      _ = Licks::process_opt_lick_prog
+      $all_licks, $licks, $all_lick_progs = Licks::read_licks
     end
   else
     holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
   end
 
   # common error checking
-  err_args_not_allowed(args_for_extra) if $extra && !%w[player players lick-progs lick-progressions scale scales chart charts].include?($extra) && args_for_extra.length > 0
+  Util::err_args_not_allowed(args_for_extra) if $extra && !%w[player players lick-progs lick-progressions scale scales chart charts].include?($extra) && args_for_extra.length > 0
 
   if !$extra
 
@@ -45,7 +45,7 @@ def do_print to_print
       snames.each do |sn|
         sname = Args::get_scale_from_sws(sn)
         from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
-        puts_underlined "#{sname}   (#{from}):", '-', dim: false
+        Text::puts_underlined "#{sname}   (#{from}):", '-', dim: false
         puts
         scale_holes, = Cfg::read_and_parse_scale(sname)
         print_holes_and_more scale_holes, embedded: true
@@ -108,13 +108,13 @@ def do_print to_print
 
     when 'licks-details'
 
-      puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:brief]
+      Text::puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:brief]
       $licks.each do |lick|
         if $opts[:brief]
           puts "#{lick[:name]}:"
         else
           puts
-          puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
+          Text::puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
         end
         print_holes_and_more lick[:holes_wo_events], embedded: true
         print_lick_meta lick unless $opts[:brief]
@@ -125,15 +125,15 @@ def do_print to_print
     when 'licks-list', 'licks-list-all'
 
       if $extra['all']
-        puts_underlined 'All licks as a list:'
+        Text::puts_underlined 'All licks as a list:'
         licks = $all_licks
       else
-        puts_underlined 'Selected licks as a list:'
+        Text::puts_underlined 'Selected licks as a list:'
         print "\e[2m"
         if $licks == $all_licks
           puts 'where set of licks has not been restricted by tags'
         else
-          puts "after applying these tag-options: #{desc_lick_select_opts}"
+          puts "after applying these tag-options: #{Licks::desc_lick_select_opts}"
         end
         puts "\e[0m"
         licks = $licks
@@ -184,7 +184,7 @@ def do_print to_print
 
     when 'scale-progs', 'scale-progressions'
 
-      puts_underlined 'All scale-progressions:'
+      Text::puts_underlined 'All scale-progressions:'
       $all_scale_progs.map do |spnm, _|
         print_single_scale_prog spnm
       end
@@ -245,16 +245,16 @@ def print_holes_and_more holes_or_notes, embedded: false
       puts "  none\e[0m"
     else
       puts "\e[0m"
-      print_in_columns holes_or_notes
+      Text::print_in_columns holes_or_notes
     end
     return if brief
   end
 
   puts "\e[2mAs notes:\e[0m"
-  print_in_columns(notes)
+  Text::print_in_columns(notes)
   puts
   puts "\e[2mAs holes:\e[0m"
-  print_in_columns(holes, lowlights: notes)
+  Text::print_in_columns(holes, lowlights: notes)
   puts
 
   return if brief
@@ -265,36 +265,36 @@ def print_holes_and_more holes_or_notes, embedded: false
   else
     scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
     puts "\e[2mHoles or notes with scales (#{scales_text}):\e[0m"
-    print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
   end
   if verbose
     puts "\e[2mWith intervals between:\e[0m"
-    print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
     puts "\e[2mWith intervals between as semitones:\e[0m"
-    print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
     puts
     puts "\e[2mWith intervals to first:\e[0m"
-    print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
     puts
     puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
-    print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
     puts
     puts "\e[2mWith intervals to first as semitones:\e[0m"
-    print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
     puts
     puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
-    print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
     puts
   end
   puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
-  print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
+  Text::print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
   puts unless embedded
   return unless verbose
 
   puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+  Text::print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
   puts
   puts "\e[2mIn chart with notes:\e[0m"
   print_chart_with_notes notes
@@ -343,7 +343,7 @@ end
 def print_lick_and_tag_stats licks
   puts "\n(read from #{$lick_file})\n\n"
 
-  puts_underlined "\nStatistics for all licks and tags"
+  Text::puts_underlined "\nStatistics for all licks and tags"
 
   # stats for tags
   puts "All tags and the count of licks they appear in:\n\n"
@@ -397,7 +397,7 @@ def print_last_licks_from_history _licks
   puts
   cnt = 1
   # must be consistent with selection in shortcut2history_record
-  records = get_prior_history_records(:licks, :play)
+  records = Util::get_prior_history_records(:licks, :play)
             .select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
   if records.length == 0
     puts "No lick-history found for modes 'lick' or 'play' in file\n  #{$history_file}.\n\n"
@@ -431,7 +431,7 @@ def print_last_holes_from_history _licks
   puts
   puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
   puts
-  records = get_prior_history_records(:licks, :play, :quiz)
+  records = Util::get_prior_history_records(:licks, :play, :quiz)
   if records.length == 0
     puts "No history found for any mode.\n\n"
     exit 0
@@ -461,10 +461,10 @@ def print_scales scales
     scales_given = true
   end
   if $opts[:brief]
-    print_in_columns(scales, pad: :tabs)
+    Text::print_in_columns(scales, pad: :tabs)
   else
     unless scales_given
-      puts_underlined 'All scales:'
+      Text::puts_underlined 'All scales:'
       puts
     end
     maxs = scales.map {|s| s.length}.max
@@ -490,7 +490,7 @@ end
 def print_licks_by_tags licks
   puts "\n(read from #{$lick_file})\n\n"
 
-  puts_underlined "\nReporting for licks selected by tags and hole-count only"
+  Text::puts_underlined "\nReporting for licks selected by tags and hole-count only"
 
   ltags = tags = nil
   puts 'Licks with their tags:'
@@ -539,7 +539,7 @@ def print_players args
   Thread.report_on_exception = false
 
   if args.length == 0
-    puts_underlined 'Players known to harpwise'
+    Text::puts_underlined 'Players known to harpwise'
     $players.all.each {|p| puts '  ' + p + "\e[0m"}
     puts
     puts "\e[2m  r,random: pick one of these at random"
@@ -577,12 +577,12 @@ def print_players args
       next unless idx + 1 < all_players.length &&
                   ( $opts[:viewer] != 'window' || !$players.structured[name]['image'] )
 
-      make_term_immediate
+      Interact::make_term_immediate
       puts
       puts "\e[2m#{idx + 1} of #{all_players.length}; press any key for next Player ...\e[0m"
       $ctl_kb_queue.clear
       $ctl_kb_queue.deq
-      make_term_cooked
+      Interact::make_term_cooked
     end
     puts
     puts "#{$players.all_with_details.length} players with their details."
@@ -627,7 +627,7 @@ def print_players args
             puts(('  %2d: ' % (i + 1)) + pcol + "\e[0m")
           end
         end
-        make_term_immediate
+        Interact::make_term_immediate
         $ctl_kb_queue.clear
         4.times do
           puts
@@ -636,7 +636,7 @@ def print_players args
         print "\e[3A"
         print "Please type one of (1..#{[total, 9].min}) to read details: "
         char = $ctl_kb_queue.deq
-        make_term_cooked
+        Interact::make_term_cooked
         if (1..total).map(&:to_s).include?(char)
           puts char
           puts "\n----------------------\n\n"
@@ -658,8 +658,8 @@ def print_players args
 end
 
 def print_player player, highlight: nil, in_loop: false
-  puts_underlined player['name']
-  # from puts_underlined
+  Text::puts_underlined player['name']
+  # from Text::puts_underlined
   lines = 3
   twidth = 0
   if $players.has_details?[player['name']]
@@ -800,16 +800,16 @@ end
 def print_semis semis
   semi_nums = semis.map(&:to_i)
   puts "\e[2mSemitones given (a4 = 0):\e[0m"
-  print_in_columns semis, pad: :tabs
+  Text::print_in_columns semis, pad: :tabs
   puts
   puts "\e[2mAs notes:\e[0m"
-  print_in_columns(semi_nums.map {|s| semi2note(s)}, pad: :tabs)
+  Text::print_in_columns(semi_nums.map {|s| semi2note(s)}, pad: :tabs)
   puts
   puts "\e[2mAs holes:\e[0m"
-  print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
+  Text::print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
   puts
   puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  print_in_columns(semi_nums.map {|s| '%.2f' % semi2freq_et(s)}, pad: :tabs)
+  Text::print_in_columns(semi_nums.map {|s| '%.2f' % semi2freq_et(s)}, pad: :tabs)
 end
 
 def puts_user_defined_hint what
@@ -827,9 +827,30 @@ def puts_user_defined_hint what
 end
 
 def print_single_lick lname
-  puts_underlined "#{lname}:", '-', dim: false
+  Text::puts_underlined "#{lname}:", '-', dim: false
   puts unless $opts[:brief]
   lick = $licks.find {|l| l[:name] == lname}
   print_holes_and_more lick[:holes_wo_events], embedded: true
   print_lick_meta lick unless $opts[:brief]
+end
+
+def print_chart_with_notes notes, strip_octave: false
+  chart = $charts[:chart_notes]
+  chart.each_with_index do |row, _ridx|
+    print '  '
+    row[0..-2].each_with_index do |cell, _cidx|
+      if Util::comment_in_chart?(cell)
+        print cell
+      elsif strip_octave && notes.include?(cell.strip[0..-2])
+        print cell
+      elsif !strip_octave && notes.include?(cell.strip)
+        print cell
+      else
+        hcell = ' ' * cell.length
+        hcell[hcell.length / 2] = '-'
+        print hcell
+      end
+    end
+    puts "\e[0m\e[2m#{row[-1]}\e[0m"
+  end
 end

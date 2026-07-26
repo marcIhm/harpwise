@@ -10,7 +10,7 @@ def record_sound secs, file, **opts
   else
     pp "rec -q -c 1 -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
     cmd = "rec -q -c 1 -r #{$conf[:sample_rate]} #{file} trim 0 #{secs}"
-    sys "#{cmd} #{output_clause}", $sox_fail_however
+    Util::sys "#{cmd} #{output_clause}", $sox_fail_however
   end
 end
 
@@ -20,11 +20,11 @@ def play_wave file, secs = ( $opts[:fast] ? 0.5 : 1 )
         else
           "play -q --norm=#{$vol.to_i} #{file} trim 0 #{secs}"
         end
-  sys(cmd, $sox_fail_however)
+  Util::sys(cmd, $sox_fail_however)
 end
 
 def run_aubiopitch file, _extra = nil
-  sys "aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1"
+  Util::sys "aubiopitch --pitch #{$conf[:pitch_detection]} #{file} 2>&1"
 end
 
 def trim_recorded hole, recorded
@@ -47,12 +47,12 @@ def trim_recorded hole, recorded
     puts "       \e[0m0-9: \e[2menter start at   \e[0md: \e[2mdraw      \e[0mp,SPACE: \e[2mplay      \e[0mf: \e[2mplay freq"
     puts "  \e[0my,RETURN: \e[2maccept           \e[0mr: \e[2mre-record     \e[0mq,c: \e[2mcancel this hole\e[0m"
     print 'Your choice (h for help): '
-    choice = one_char
+    choice = Interact::one_char
 
     if ('0'..'9').to_a.include?(choice) || choice == '.'
       choice = '0.' if choice == '.'
       print "Finish with RETURN: #{choice}"
-      choice += gets_with_cursor.downcase
+      choice += Interact::gets_with_cursor.downcase
       is_number = true
     else
       puts choice
@@ -118,11 +118,11 @@ def trim_wave file, play_from, duration, trimmed
   fade_out = 0.2
   puts "Taking \e[32m%.2f\e[0m .. %.2f \e[2m(= \e[0m\e[34m#{duration}\e[0m\e[2m + #{fade_out} fade-out)\e[0m" % [play_from, play_from + duration + fade_out]
   cmd = "sox -q #{file} #{trimmed} trim #{play_from.round(2)} #{play_from.round(2) + duration + fade_out} gain -n -3 fade 0 -0 #{fade_out}"
-  sys cmd
+  Util::sys cmd
 end
 
 def sox_query file, property
-  sys("sox -q #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
+  Util::sys("sox -q #{file} -n stat 2>&1").lines.select {|line| line[property]}[0].split.last.to_f
 end
 
 def synth_sound hole, file, extra = '', silent: false
@@ -133,11 +133,11 @@ def synth_sound hole, file, extra = '', silent: false
                $opts[:fast] ? 2 : 4
              end
   cmd = "sox -q -n #{file} synth #{duration} #{$opts[:wave]} %#{$harp[hole][:semi]} vol #{$conf[:auto_synth_db] || 0}db"
-  sys cmd
+  Util::sys cmd
 end
 
 def wave2data file
-  sys "sox -q #{file} #{$recorded_data}"
+  Util::sys "sox -q #{file} #{$recorded_data}"
 end
 
 def find_onset
@@ -323,17 +323,17 @@ def play_hole_or_note_and_collect_kb hon, duration
   wfile = this_or_equiv("#{$sample_dir}/%s", note, %w[.wav .mp3])
   wait_thr = Thread.new do
     if $testing
-      sys "sleep #{duration}"
+      Util::sys "sleep #{duration}"
     elsif wfile
-      sys "play -q --norm=#{$vol.to_i} #{wfile} trim 0 #{duration}", $sox_fail_however
+      Util::sys "play -q --norm=#{$vol.to_i} #{wfile} trim 0 #{duration}", $sox_fail_however
     else
-      sys "play -q -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
+      Util::sys "play -q -n --norm=#{$vol.to_i} synth #{duration} sawtooth %#{note2semi(note)}", $sox_fail_however
     end
   end
   begin
     sleep 0.1
     # this sets $ctl_hole, which will be used by caller one level up
-    handle_kb_play_holes_or_notes
+    Interact::handle_kb_play_holes_or_notes
   end while wait_thr.alive?
   wait_thr.join   # raises any errors from thread
 end
@@ -344,11 +344,11 @@ def synth_for_inter_or_chord semis, gap, len, wave = 'pluck'
   times = (0...semis.length).map {|i| 0.3 + i * gap}
   files.zip(semis, times).each do |f, s, t|
     # create file with silence of given length
-    sys("sox -q -n #{im_files[0]} trim 0.0 #{t}")
+    Util::sys("sox -q -n #{im_files[0]} trim 0.0 #{t}")
     # create actual file with requested frequency
-    sys("sox -q -n #{im_files[1]} synth #{len} #{wave} %#{s}")
+    Util::sys("sox -q -n #{im_files[1]} synth #{len} #{wave} %#{s}")
     # append those two
-    sys("sox -q #{im_files[0]} #{im_files[1]} #{f}")
+    Util::sys("sox -q #{im_files[0]} #{im_files[1]} #{f}")
   end
   files
 end
@@ -441,12 +441,12 @@ class UserLickRecording
   def process_rec
     trim_secs = @first_hole_good_at - @rec_started_at - 2
     if trim_secs > 0
-      sys "sox -q #{@file_raw1} #{@file_raw2} trim #{'%.1f' % trim_secs}"
+      Util::sys "sox -q #{@file_raw1} #{@file_raw2} trim #{'%.1f' % trim_secs}"
     else
       FileUtils.mv @file_raw1, @file_raw2
     end
     FileUtils.mv @file_trimmed, @file_prev if File.exist?(@file_trimmed)
-    sys "sox -q #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
+    Util::sys "sox -q #{@file_raw2} #{@file_trimmed} silence 1 0.1 2%"
     @first_hole_good_at = nil
     @has_rec = true
     @duration = sox_query(@file_trimmed, 'Length')
@@ -463,7 +463,7 @@ class UserLickRecording
   def play_rec
     raise 'Internal error: no rec' unless @has_rec
 
-    play_recording_and_handle_kb @file_trimmed
+    Players::play_recording_and_handle_kb @file_trimmed
   end
 
   def rec_file

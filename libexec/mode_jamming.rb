@@ -6,11 +6,11 @@ def do_jamming to_handle
   $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m    \e[2mhere or in 'harpwise listen'\e[0m   to %s,\npress   \e[92mctrl-z\e[0m   \e[2mhere\e[0m   to start over.\e[0m"
 
   if ENV['HARPWISE_RESTARTED']
-    do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
+    Text::do_animation 'jamming', $term_height - $lines[:comment_tall] - 1
     puts "\e[0m\e[2mStarting over due to signal \e[0m\e[32mctrl-z\e[0m\e[2m (quit, tstp).\e[0m"
   end
 
-  $all_licks, $licks, $all_lick_progs = read_licks
+  $all_licks, $licks, $all_lick_progs = Licks::read_licks
 
   if to_handle.length == 0 && !%w[list ls].include?($extra)
     do_jamming_list
@@ -72,7 +72,7 @@ def do_jamming to_handle
 end
 
 def do_the_jamming json_file
-  make_term_immediate if STDOUT.isatty
+  Interact::make_term_immediate if STDOUT.isatty
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler
 
@@ -114,7 +114,7 @@ def do_the_jamming json_file
 
   ['', "\e[0mDescription:\e[32m", '',
    [$jam_pms['description']].flatten.map do |cl|
-     wr = wrap_text(cl, term_width: -4, cont: '')
+     wr = Text::wrap_text(cl, term_width: -4, cont: '')
      if wr.length == 0
        ['    ']
      else
@@ -142,7 +142,7 @@ def do_the_jamming json_file
     puts
     puts
     # mabye user has stopped 'harpwise listen' while we were paused; so check state again
-    mostly_avoid_double_invocations
+    Util::mostly_avoid_double_invocations
   end
 
   #
@@ -300,7 +300,7 @@ def do_the_jamming json_file
       #
       if idx == 0 && iter == 1
         puts
-        puts_underlined 'BEFORE FIRST ITERATION'
+        Text::puts_underlined 'BEFORE FIRST ITERATION'
         this_actions[0..$jam_loop_start_idx - 1].each {|a| pp a}
         puts
       end
@@ -311,7 +311,7 @@ def do_the_jamming json_file
         $jam_data[:iteration] = iter
         $jam_data[:loop_starter] = $jam_loop_starter_template % $jam_data
         puts
-        puts_underlined "ITERATION #{iter}"
+        Text::puts_underlined "ITERATION #{iter}"
         this_actions[idx..-1].each {|a| pp a}
         jamming_do_action ['mission', 'iter %<iteration>s/%<iteration_max>s' % $jam_data]
         puts
@@ -664,7 +664,7 @@ def do_jamming_list
       end
       ago, more = get_and_age_jamming_last_used_days(jf)
       jam2ago[jf] = ago if ago
-      print("\e[0m\e[35m; " + ( ago ? days_ago_in_words(ago) : 'unknown' ))
+      print("\e[0m\e[35m; " + ( ago ? Util::days_ago_in_words(ago) : 'unknown' ))
       print(" + #{more} more") if more
       puts
       if pms['num_variations'] > 1 && !$opts[:brief]
@@ -714,7 +714,7 @@ def do_jamming_list_single file, multi: false
   ago, more = get_and_age_jamming_last_used_days(file)
   print '   Last used:  '
   if ago
-    print(days_ago_in_words(ago))
+    print(Util::days_ago_in_words(ago))
     print("\e[2m and on \e[0m#{more} more \e[2mdays from last #{$jamming_last_used_days_max}\e[0m") if more
     puts
   else
@@ -743,7 +743,7 @@ def do_jamming_list_single file, multi: false
   puts " Description:\e[2m"
   [pms['description']].flatten.each do |cl|
     puts if cl.strip.length == 0
-    wr = wrap_text(cl, term_width: -8, cont: '')
+    wr = Text::wrap_text(cl, term_width: -8, cont: '')
     wr.each {|l| puts '     ' + l}
   end
   puts "\e[0m"
@@ -787,18 +787,18 @@ def do_jamming_list_all
           .each do |file|
     print '   ' + File.basename(file).gsub('.json', '')
     ago, more = get_and_age_jamming_last_used_days(file)
-    print("   \t:    " + ( ago ? days_ago_in_words(ago) : 'unknown' ))
+    print("   \t:    " + ( ago ? Util::days_ago_in_words(ago) : 'unknown' ))
     print(" + #{more} more") if more
     puts
   end
   puts 'All sound files all jams:  (with count)'
   count_sound_files.keys.sort.each {|sf| puts "   #{sf}  (#{count_sound_files[sf]})"}
   puts 'All scale-progs:'
-  print_in_columns count_scale_progs.keys.map.each {|sp| "#{sp} (#{count_scale_progs[sp]})"},
-                   pad: :long_tabs, indent: 3
+  Text::print_in_columns count_scale_progs.keys.map.each {|sp| "#{sp} (#{count_scale_progs[sp]})"},
+                         pad: :long_tabs, indent: 3
   puts 'All lick-progs:'
-  print_in_columns count_lick_progs.keys.sort.map {|lp| "#{lp} (#{count_lick_progs[lp]})"},
-                   pad: :long_tabs, indent: 3
+  Text::print_in_columns count_lick_progs.keys.sort.map {|lp| "#{lp} (#{count_lick_progs[lp]})"},
+                         pad: :long_tabs, indent: 3
   puts
 end
 
@@ -1044,7 +1044,7 @@ $jam_warned_ts_add = false
 $jam_warned_keys_quick = false
 
 def do_the_jam_playing json_or_mp3
-  make_term_immediate
+  Interact::make_term_immediate
   $ctl_kb_queue.clear
   jamming_check_and_prepare_sig_handler
 
@@ -1156,9 +1156,9 @@ def do_the_jam_playing json_or_mp3
       puts "\e[0m\nPlease enter an absolute timestamp to jump to; '-' to count from end;\neither a number of   seconds   or   mm:ss\n\nCurrent location is:    %.2f  (#{jam_ta(curr)})" % curr
       puts
       print 'Timestamp: '
-      make_term_cooked
-      inp = gets_with_cursor
-      make_term_immediate
+      Interact::make_term_cooked
+      inp = Interact::gets_with_cursor
+      Interact::make_term_immediate
       puts
       neg = ( inp[0] == '-' )
       inp[0] = '' if neg
@@ -1336,7 +1336,7 @@ def do_the_jam_edit_notes file
     $pers_data['jamming_notes']&.delete(short)
     puts "Removed notes for   #{short}"
   end
-  maybe_write_pers_data
+  Util::maybe_write_pers_data
   puts
 end
 
@@ -1490,7 +1490,7 @@ def match_jamming_file words
 end
 
 def jamming_prepare_for_restart
-  sane_term
+  Interact::sane_term
   $pplayer&.kill
   puts
   puts
@@ -1693,11 +1693,11 @@ def jam_process_sl_a_iter sl_a_iter, ts_mult
 end
 
 def jam_play_show_kb_help
-  display_kb_help 'a jam track', true,
-                  "           SPACE: pause / continue    RETURN,t: mark timestamp\n" +
-                  "  BACKSPACE,LEFT: skip back 4 secs       RIGHT: skip forward 4\n" +
-                  "             TAB: go to a timestamp          e: show secs elapsed\n" +
-                  "             l/L: jump to start of next/prev loop-iteration\n" +
-                  "               a: dump list of actions       q: quit\n",
-                  wait_for_key: false
+  Util::display_kb_help 'a jam track', true,
+                        "           SPACE: pause / continue    RETURN,t: mark timestamp\n" +
+                        "  BACKSPACE,LEFT: skip back 4 secs       RIGHT: skip forward 4\n" +
+                        "             TAB: go to a timestamp          e: show secs elapsed\n" +
+                        "             l/L: jump to start of next/prev loop-iteration\n" +
+                        "               a: dump list of actions       q: quit\n",
+                        wait_for_key: false
 end
