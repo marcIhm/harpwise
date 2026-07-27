@@ -2,125 +2,102 @@
 # -*- fill-column: 94 -*-
 
 require 'byebug'
+require 'prism'
 
 # Simple helper script to assist while converting harpwise' codebase to modules.
 
-Dir.chdir(`git rev-parse --show-toplevel`.chomp)
-counts = Hash.new {|h,k| h[k] = 0}
-puts
+# For every function (not methods!) defined in ourcode, it checks that calls for this name
+# resolves correctly (e.g. beeing prefixed with the right module).  This gives no false
+# positive as long we dont define functions with known names (e.g. "select")
 
-scanfiles = Dir['libexec/*.rb']
-counts[:files_to_scan] = scanfiles.length
-checkfiles = ['harpwise', scanfiles].flatten
-counts[:files_to_check] = checkfiles.length
-
-fn2mod = Hash.new {|h,k| h[k] = []}
-scanfiles.each do |sfile|
-  puts "Scanning #{sfile}"
-  mod_here = 'main'
-  class_here = ''
-  class_indent = ''
-  File.readlines(sfile, chomp: true).each_with_index do |line, idx|
-
-    # track module and class
-    if line =~ /^(\s*)class\s+(\S+)(\s*|\s*<\s*\S+\s*)$/
-      fail "Missed end of class #{class_here} while new class starts: ##{idx}: #{line}" if class_here != ''
-      class_indent, class_here = $1, $2
-      counts[:new_class] += 1
-      pp line
-    end
-    if line =~ /^module\s+(\S+)\s*$/
-      mod_here = $1
-      counts[:new_module] += 1
-      pp line
-    end
-    mod_here = 'main' if line =~ /^end/
-    class_indent, class_here = '','' if line =~ /^#{class_indent}end\b/ || line =~ /^end\b/
-    if class_here == '' && line =~ /^\s*def\s+(\w+)/
-      fn = $1
-      fail "Internal error with functions #{fn} not consisting of word chars entirely" unless fn =~ /^\w+$/
-      fn2mod[fn] << mod_here
-    end
+class DefVisitor < Prism::Visitor
+  def visit_def_node(node)
+    $defs[node.name] << [$mod_here, $class_here, node.name]
+    super
+  end
+  def visit_module_node(node)
+    $mod_here = node.name
+    super
+    $mod_here = ''
+  end
+  def visit_class_node(node)
+    $class_here = node.name
+    super
+    $class_here = ''
   end
 end
 
-counts[:warning_self_no_class_found] += 1 if counts[:new_class] == 0
-counts[:warning_self_no_module_found] += 1 if counts[:new_module] == 0
-puts
-mods = fn2mod.values.flatten.uniq
-
-false_pos = ['space_to_cont: \'SPACE to continue ... \',',
-             'journal_menu journal_current journal_play journal_delete',
-             'journal_delete journal_menu journal_write',
-             'puts_underlined "choose_interactive',
-             'puts_underlined \'one_char',
-             'end while $ctl_mic[:switch_modes]',
-             'switch_modes toggle_record_user remote_message',
-             '$ctl_mic[:switch_modes]',
-             '$ctl_mic[:journal_menu]',
-             'puts_underlined \'days_ago_in_words']
-
-warned_functions = Set.new
-checkfiles.each do |cfile|
-  puts "Checking #{cfile}"
-  mod_here = 'main'
-  class_here = ''
-  class_indent = ''
-  lno = 0
-  File.readlines(cfile, chomp: true).each_with_index do |line, idx|
-
-    next if line =~ /^\s*#/
-    next if line['require_relative']
-    next if false_pos.any? {|fp| line[fp]}
-
-    # track module and class
-    if line =~ /^(\s*)class\s+(\S+)(\s*|\s*<\s*\S+\s*)$/
-      fail "Missed end of class #{class_here} while new class starts: ##{idx}: #{line}" if class_here != ''
-      class_indent, class_here = $1, $2
-    end
-    mod_here = $1 if line =~ /^module\s+(\S+)\s*$/
-    mod_here = 'main' if line =~ /^end/
-    class_indent, class_here = '','' if line =~ /^#{class_indent}end\b/ || line =~ /^end\b/    
-
-    fn2mod.each do |fn, mods|
-      
-      if line =~ /\b#{fn}\b/ &&      # does function appear at all?
-         !line["def #{fn}"]          # skip the def itself
-        
-        counts[:a_function_used] += 1
-        
-        if !(mods.include?('main') || # no qualification (never!) needed for functions from main
-             (mods.include?(mod_here) && # qualified name mostly required outside of defining module
-              (mod_here != 'Quiz' || # ... sure, when not quiz
-               (mod_here == 'Quiz' && class_here == '')))) # special case for mod Quiz, which contains classes
-          counts[:a_function_used_outside_its_module] += 1
-          
-          if !mods.any? {|mod| line["#{mod}::#{fn}"]}     # is it prefixed correctly?
-            puts "\nWarning in file #{cfile}, line #{idx+1}: Invalid usage of function #{fn}\nfrom module #{mods} in this line:\n\n#{line}\n\n"
-            counts[:warning_a_function_used_outside_but_not_prefixed_correctly] += 1
-            warned_functions << [cfile, fn, fn2mod[fn]]
+class CallVisitor < Prism::Visitor
+  def visit_call_node(node)
+    if $defs[node.name] && node.call_operator_loc && node.call_operator_loc.slice != '.'
+      $numchecked += 1
+      wrongs = $defs[node.name].map do |df|
+        catch :wrong do
+          if node.receiver.class == Prism::ConstantReadNode
+            # call prefixed with constant
+            throw :wrong, "case 1, defined was #{df} but call is #{[node.receiver.name, nil, node.name]}\n" + node.inspect if df[0] != node.receiver.name
+          elsif node.receiver.class == Prism::ConstantPathNode
+            # special case e.g. ::Players::play_holes_or_notes_and_handle_kb
+            throw :wrong, "case 2, defined was #{df} but call is #{[node.receiver.child.name, nil, node.name]}\n" + node.inspect if df[0] != node.receiver.child.name
+          else
+            # call without prefix
+            throw :wrong, "case 3, defined was #{df} but call is #{[nil, nil, node.name]}\n" + node.inspect if df[0] != '' && df[0] != $mod_here
           end
+          nil
         end
+      end.compact
+      if wrongs.length > 0 && wrongs.length == $defs[node.name].length
+        puts "\n\nWrong call at '#{node.location.slice}' in #{$file_here}, line #{node.location.start_line}\nmatches none of #{$defs[node.name].length} defines:"
+        wrongs.each {|w| puts w}
+        $wrongs += 1
       end
     end
-  end  
+    super
+  end
+  def visit_module_node(node)
+    $mod_here = node.name
+    super
+    $mod_here = ''
+  end
+  def visit_class_node(node)
+    $class_here = node.name
+    super
+    $class_here = ''
+  end
 end
 
-puts
-puts "Modules:"
-pp mods
-counts[:num_of_functions] = fn2mod.keys.length
-counts[:num_of_modules] = mods.length
-puts "Counters:"
-pp counts
-puts "Warned functions:"
-pp warned_functions.to_a.sort
-puts "Warnings:"
-pp counts.keys.map(&:to_s).select {|k| k['warning']}
-puts
+Dir.chdir(`git rev-parse --show-toplevel`.chomp)
+checkfiles = ['harpwise', Dir['libexec/*.rb']].flatten
 
-exval = counts.keys.map(&:to_s).any? {|k| k['warning']} ? 1 : 0
-puts "exit value #{exval}"
+puts
+puts "Collecting defs:"
+$defs = Hash.new {|h,k| h[k] = Array.new}
+$mod_here = ''
+$class_here = ''
+checkfiles.each do |cfile|
+  puts '  ' + cfile
+  $file_here = cfile
+  tree = Prism.parse_file(cfile)
+  tree.value.accept(DefVisitor.new)
+end
+puts "#{$defs.keys.length} defs"
+
+puts
+puts "Checking calls:"
+$mod_here = ''
+$class_here = ''
+$wrongs = 0
+$numchecked = 0
+checkfiles.each do |cfile|
+  puts '  ' + cfile
+  $file_here = cfile
+  tree = Prism.parse_file(cfile)
+  tree.value.accept(CallVisitor.new)
+end
+puts "#{$numchecked} calls"
+
+exval = $wrongs > 0 ? 1 : 0
+puts
+puts "Number of wrong calls is #{$wrongs}, exit value #{exval}"
 puts
 exit exval
-
