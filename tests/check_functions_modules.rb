@@ -12,6 +12,7 @@ require 'prism'
 
 class DefVisitor < Prism::Visitor
   def visit_def_node(node)
+    # Especially methods may be defined multiple times
     $defs[node.name] << [$mod_here, $class_here, node.name]
     super
   end
@@ -29,7 +30,9 @@ end
 
 class CallVisitor < Prism::Visitor
   def visit_call_node(node)
-    if $defs[node.name] && node.call_operator_loc && node.call_operator_loc.slice != '.'
+    # read: we have seen this define and it is not a method call
+    if $defs[node.name] && (!node.call_operator_loc ||
+                            (node.call_operator_loc && !%w(. &.).include?(node.call_operator_loc.slice)))
       $numchecked += 1
       wrongs = $defs[node.name].map do |df|
         catch :wrong do
@@ -50,6 +53,8 @@ class CallVisitor < Prism::Visitor
         puts "\n\nWrong call at '#{node.location.slice}' in #{$file_here}, line #{node.location.start_line}\nmatches none of #{$defs[node.name].length} defines:"
         wrongs.each {|w| puts w}
         $wrongs += 1
+        $summary[$file_here] << node.name
+        $maxlen = [$maxlen, node.name.length].max
       end
     end
     super
@@ -87,6 +92,8 @@ puts "Checking calls:"
 $mod_here = ''
 $class_here = ''
 $wrongs = 0
+$summary = Hash.new {|h,k| h[k] = Set.new}
+$maxlen = 0
 $numchecked = 0
 checkfiles.each do |cfile|
   puts '  ' + cfile
@@ -99,5 +106,14 @@ puts "#{$numchecked} calls"
 exval = $wrongs > 0 ? 1 : 0
 puts
 puts "Number of wrong calls is #{$wrongs}, exit value #{exval}"
+if $summary.length > 0
+  puts "Summary is:"
+  $summary.each do |fl,fns|
+    puts "#{fl}:"
+    fns.each do |fn|
+      puts "  #{fn.to_s.ljust($maxlen)}   #{$defs[fn]}"
+    end
+  end
+end
 puts
 exit exval
