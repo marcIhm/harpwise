@@ -65,7 +65,7 @@ def do_play to_play
 
       puts 'Playing semitones given as arguments and converted to notes (a4 = 0st).'
       puts
-      notes = semis.map {|s| semi2note(s.to_i)}
+      notes = semis.map {|s| Theory::semi2note(s.to_i)}
       Players::play_holes_or_notes_and_handle_kb notes
       puts
       Util::write_history('semitones converted to notes', 'adhoc-semitones', notes)
@@ -154,7 +154,7 @@ def do_play to_play
 
       rfile = $ulrec.rec_file
       if File.exist?(rfile)
-        duration = '%.1fs' % sox_query(rfile, 'Length')
+        duration = '%.1fs' % Sound::sox_query(rfile, 'Length')
         puts "Playing \e[32m#{rfile}\e[0m, #{duration} ..."
         puts "\e[2m(h for help)"
         Players::play_recording_and_handle_kb rfile
@@ -191,12 +191,12 @@ def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
     what = Util::recognize_among(th, amongs)
 
     if what == :note
-      holes_or_notes << sf_norm(th)
+      holes_or_notes << Theory::sf_norm(th)
     elsif what == :sharps_flats_shadowed
       # We treat :sharps_flats_shadowed as holes_or_notes, but we do
       # this at the latest possible point in time which still
       # preserves the order of arguments
-      holes_or_notes << sf_norm(th, shadowed: true)
+      holes_or_notes << Theory::sf_norm(th, shadowed: true)
     elsif what == :hole
       holes_or_notes << th
     elsif what == :event
@@ -277,9 +277,9 @@ def hole_or_note_or_semi hns, diff_allowed = true
   what = Util::recognize_among(hns, amongs)
   type, value = case what
                 when :hole
-                  [:abs, note2semi($hole2note[hns])]
+                  [:abs, Theory::note2semi($hole2note[hns])]
                 when :note
-                  [:abs, note2semi(hns)]
+                  [:abs, Theory::note2semi(hns)]
                 when :inter
                   [:diff, $intervals_inv[hns].to_i]
                 when :semi_note

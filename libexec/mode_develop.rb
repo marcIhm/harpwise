@@ -172,12 +172,12 @@ def do_selftest
   test_hole = '+1'
   puts
   Text::puts_underlined 'Generating sound with sox', '-', dim: false
-  synth_sound test_hole, $helper_wave
+  Sound::synth_sound test_hole, $helper_wave
   system("ls -l #{$helper_wave}")
 
   puts
   Text::puts_underlined 'Frequency pipeline from previously generated sound', '-', dim: false
-  cmd = get_pipeline_cmd(:sox, $helper_wave)
+  cmd = Sound::get_pipeline_cmd(:sox, $helper_wave)
   puts "Command is: #{cmd}"
   puts
   puts "Note: Some errors in first lines are expected, because\n      multiple codecs are tried and some of them give up."
@@ -214,7 +214,7 @@ def do_selftest
     raise "Actual time slice #{b[0]} - #{a[0]} = #{tss} is too different from expected value #{$time_slice_secs}: #{pct}% percent > #{max_pct}%" if pct > max_pct
   end
   puts "Test Okay: time differences are near expected time-slice #{'%.6f' % $time_slice_secs} secs"
-  freq = semi2freq_et($harp[test_hole][:semi])
+  freq = Theory::semi2freq_et($harp[test_hole][:semi])
   to_test.each do |tf|
     pct = ( 100 * ( tf[1] - freq ) / freq ).abs.round(2)
     err "Actual frequency #{tf[1]} is too different from expected value #{freq}: #{pct}% percent > #{max_pct}%" if pct > max_pct
@@ -268,11 +268,11 @@ def do_unittests
 
   puts
   Text::puts_underlined 'Semitone calculations'
-  found = note2semi('a4')
+  found = Theory::note2semi('a4')
   expected = 0
   utreport(found, expected, 'note2semi')
 
-  found = semi2note(0)
+  found = Theory::semi2note(0)
   expected = 'a4'
   utreport(found, expected, 'semi2note')
 
@@ -294,13 +294,13 @@ def do_unittests
    [['g', 'a', :minimum_distance], -2],
    [['g', 'd', :g_is_lowest], -7],
    [['g', 'd', :minimum_distance], 5]].each do |params, expected|
-    found = diff_semitones(params[0], params[1], strategy: params[2])
+    found = Theory::diff_semitones(params[0], params[1], strategy: params[2])
     utreport(found, expected, "diff_semitones,#{params[0]},#{params[1]},#{params[2]}")
   end
 
   puts
   Text::puts_underlined 'note2semi'
-  utreport(%w[bs4 cs4 d4 ds4 ff4 es4 fs4 g4 gs4 a4 as4 cf4].map {|n| note2semi(n, shadowed: true)},
+  utreport(%w[bs4 cs4 d4 ds4 ff4 es4 fs4 g4 gs4 a4 as4 cf4].map {|n| Theory::note2semi(n, shadowed: true)},
            (-9 .. 2).to_a)
 
   puts
@@ -464,8 +464,8 @@ def do_check_frequencies
   $harp_holes.each do |hole|
     semi = $harp[hole][:semi]
 
-    freq_measured = analyze_with_aubio("#{$sample_dir}/#{$harp[hole][:note]}.mp3")
-    freq_calculated = semi2freq_et($harp[hole][:semi])
+    freq_measured = Sound::analyze_with_aubio("#{$sample_dir}/#{$harp[hole][:note]}.mp3")
+    freq_calculated = Theory::semi2freq_et($harp[hole][:semi])
     puts "  #{hole.ljust(8)}, #{$harp[hole][:note].ljust(4)}   measured = %8.2f\n                 calculated = %8.2f\n                  from file = %8.2f" % [freq_measured.round(2), freq_calculated, hole2freq_read[hole]]
 
     err "Frequencies measured for holes   #{hole_was} = #{freq_was} Hz   and   #{hole} = #{freq_measured} Hz   are not ascending" if hole_was && semi != semi_was && !(freq_was < freq_measured)

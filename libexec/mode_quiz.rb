@@ -356,14 +356,14 @@ module Quiz
     harps.each do |harp|
       # add octave number 4, map to second position by adding 7
       # semitones, and remove octave number again
-      harp2song[harp] = semi2note(note2semi(harp + '4') + 7)[0..-2].downcase
+      harp2song[harp] = Theory::semi2note(Theory::note2semi(harp + '4') + 7)[0..-2].downcase
     end
     harp2song
   end
 
   def key2semi key
-    semi = note2semi(key.downcase + '4')
-    semi += 12 if semi < note2semi('gf4')
+    semi = Theory::note2semi(key.downcase + '4')
+    semi += 12 if semi < Theory::note2semi('gf4')
     semi
   end
 
@@ -1481,7 +1481,7 @@ module Quiz
       maxlen = @inter2semi.keys.map(&:length).max
       @choices_orig.each do |inter|
         sleep 0.5
-        note_inter = semi2note($harp[@holes[0]][:semi] + @inter2semi[inter] * (@dsemi <=> 0))
+        note_inter = Theory::semi2note($harp[@holes[0]][:semi] + @inter2semi[inter] * (@dsemi <=> 0))
         print "  \e[32m%-#{maxlen}s\e[0m\e[2m   \e[0m" % inter
         play_hons hons: [@holes[0], note_inter], hide: :all, newline: false
       end
@@ -1505,7 +1505,7 @@ module Quiz
       puts "Playing interval one octave #{desc}:"
       puts "\e[2mPlease note, that some notes may not be available as holes.\e[0m"
       puts
-      play_hons hons: semis.map {|s| semi2note(s)}, hide: :all
+      play_hons hons: semis.map {|s| Theory::semi2note(s)}, hide: :all
     end
 
     def help4_desc
@@ -1546,13 +1546,13 @@ module Quiz
         direction = ( choices[ud].split[-1] == 'UP' ? +1 : -1 )
         puts "\nPlaying shifted by #{choices[ud]}:\n"
         hshifted = @holes.map do |h|
-          semi = note2semi($hole2note[h]) + direction * num_oct * 8
+          semi = Theory::note2semi($hole2note[h]) + direction * num_oct * 8
           if semi > 26 || semi < -28
             puts "\nShifting hole #{h} results in unplayable semitone #{semi}:  TOO " +
                  (semi > 0 ? 'HIGH' : 'LOW') + "\n\n"
             return
           end
-          semi2note(semi)
+          Theory::semi2note(semi)
         end
         play_hons hons: hshifted, hide: :all
       else
@@ -1571,7 +1571,7 @@ module Quiz
     def get_variations chord
       $chords_quiz[:hard][chord].map do |var|
         var.map do |sm|
-          sm - note2semi('a4') + note2semi(@base)
+          sm - Theory::note2semi('a4') + Theory::note2semi(@base)
         end
       end
     end
@@ -1609,7 +1609,7 @@ module Quiz
 
     def play_base_note
       print "Base note:  #{@base}"
-      wfile = this_or_equiv("#{$sample_dir}/%s", @base, %w[.wav .mp3])
+      wfile = Sound::this_or_equiv("#{$sample_dir}/%s", @base, %w[.wav .mp3])
       cmd = if $testing
               'sleep 1'
             else
@@ -1619,7 +1619,7 @@ module Quiz
     end
 
     def play_chord gap: 0, dura: 1, semis: @semis
-      tfiles = synth_for_inter_or_chord(semis, gap, dura, 'pluck')
+      tfiles = Sound::synth_for_inter_or_chord(semis, gap, dura, 'pluck')
       cmd = if $testing
               'sleep 1'
             else
@@ -1632,9 +1632,9 @@ module Quiz
       puts
       play_base_note
       puts "\nChord as single notes:"
-      tfiles = synth_for_inter_or_chord(@semis, 0, 0.7, 'pluck')
+      tfiles = Sound::synth_for_inter_or_chord(@semis, 0, 0.7, 'pluck')
       @semis.zip(tfiles).each do |s, w|
-        print '  ' + semi2note(s)
+        print '  ' + Theory::semi2note(s)
         cmd = if $testing
                 'sleep 1'
               else
@@ -1643,7 +1643,7 @@ module Quiz
         Util::sys cmd, $sox_fail_however
       end
       puts
-      puts "\nChord as a whole:\n  " + @semis.map {|s| semi2note(s)}.join('  ')
+      puts "\nChord as a whole:\n  " + @semis.map {|s| Theory::semi2note(s)}.join('  ')
       play_chord
     end
 
@@ -1693,7 +1693,7 @@ module Quiz
         print "Variation #{idx + 1}:"
         if show
           print "  \e[32m"
-          print var.map {|s| semi2note(s)}.join('  ')
+          print var.map {|s| Theory::semi2note(s)}.join('  ')
           print "\e[0m  "
         else
           print '  ?'
@@ -1769,9 +1769,9 @@ module Quiz
     def help7
       puts "Printing chord (base #{$key}4),"
       print '                as notes:  '
-      puts @semis.map {|s| semi2note(s)}.join('  ')
+      puts @semis.map {|s| Theory::semi2note(s)}.join('  ')
       print '  diff semitones to base:  '
-      semi_base = note2semi($key + '4')
+      semi_base = Theory::note2semi($key + '4')
       puts @semis.map {|s| (s - semi_base).to_s}.join('  ')
     end
 
@@ -1883,14 +1883,14 @@ module Quiz
       @@prevs.shift if @@prevs.length > 2
 
       @solution = qi2ai[@qitem]
-      @base_semi = note2semi($key + '4')
+      @base_semi = Theory::note2semi($key + '4')
       if @qdesc == 'interval'
         @inter_semi = @qitem
         @song = @solution
       else
         @inter_semi = qi2ai[@qitem]
-        @choices.map! {|c| describe_inter_semis(c)}
-        @solution = describe_inter_semis(@solution)
+        @choices.map! {|c| Theory::describe_inter_semis(c)}
+        @solution = Theory::describe_inter_semis(@solution)
         @song = @qitem
       end
       @choices_orig = @choices.clone
@@ -1905,13 +1905,13 @@ module Quiz
 
     def after_solve
       puts
-      puts "Playing interval \e[32m#{describe_inter_semis(@inter_semi)}\e[0m starting at #{semi2note(@base_semi)};\nthis is the same interval as in song '#{@song}':"
-      play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)]
+      puts "Playing interval \e[32m#{Theory::describe_inter_semis(@inter_semi)}\e[0m starting at #{Theory::semi2note(@base_semi)};\nthis is the same interval as in song '#{@song}':"
+      play_hons hons: [Theory::semi2note(@base_semi), Theory::semi2note(@base_semi + @inter_semi)]
     end
 
     def issue_question
       if @qdesc == 'interval'
-        puts "\e[34mGiven the interval of \e[94m#{describe_inter_semis(@qitem)}\e[34m, name the song, that starts with this interval\e[0m"
+        puts "\e[34mGiven the interval of \e[94m#{Theory::describe_inter_semis(@qitem)}\e[34m, name the song, that starts with this interval\e[0m"
       else
         puts "\e[34mGiven the song '\e[94m#{@qitem}\e[34m', name the the interval,\nthat this song starts with\e[0m"
       end
@@ -1922,11 +1922,11 @@ module Quiz
       puts 'Playing interval:'
       puts
       if @qdesc == 'interval'
-        print "   \e[32m#{describe_inter_semis(@inter_semi)}\e[0m:  "
+        print "   \e[32m#{Theory::describe_inter_semis(@inter_semi)}\e[0m:  "
       else
         print "   \e[32m#{@qitem}\e[0m:  "
       end
-      play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + @inter_semi)], newline: false
+      play_hons hons: [Theory::semi2note(@base_semi), Theory::semi2note(@base_semi + @inter_semi)], newline: false
     end
 
     def help2_desc
@@ -1938,11 +1938,11 @@ module Quiz
       puts
       @interval2song.each do |inter, song|
         if @qdesc == 'interval'
-          print "   \e[32m#{describe_inter_semis(inter)}\e[0m:  "
+          print "   \e[32m#{Theory::describe_inter_semis(inter)}\e[0m:  "
         else
           print "   \e[32m#{song}\e[0m:  "
         end
-        play_hons hons: [semi2note(@base_semi), semi2note(@base_semi + inter)], newline: false
+        play_hons hons: [Theory::semi2note(@base_semi), Theory::semi2note(@base_semi + inter)], newline: false
       end
     end
 
@@ -1954,7 +1954,7 @@ module Quiz
       puts 'All pairs of intervals and songs:'
       puts
       @interval2song.each do |inter, song|
-        puts "   \e[2mInterval: \e[0m#{describe_inter_semis(inter)}"
+        puts "   \e[2mInterval: \e[0m#{Theory::describe_inter_semis(inter)}"
         puts "       \e[2mSong: \e[0m\e[32m#{song}\e[0m"
         puts
       end
@@ -2007,7 +2007,7 @@ module Quiz
       [['lower', -12], ['higher', +12]].each do |text, dsemi|
         sleep 0.5
         puts "\nOne octave #{text}:"
-        play_hons hons: @holes.map {|h| semi2note($harp[h][:semi] + dsemi)}, hide: :all
+        play_hons hons: @holes.map {|h| Theory::semi2note($harp[h][:semi] + dsemi)}, hide: :all
       end
     end
 
@@ -2141,7 +2141,7 @@ module Quiz
     end
 
     def help2
-      note = semi2note(Quiz::key2semi(@solution.downcase))
+      note = Theory::semi2note(Quiz::key2semi(@solution.downcase))
       puts "Playing note (octave #{note[-1]}) for answer-key of #{@adesc}:"
       Interact::make_term_immediate
       $ctl_kb_queue.clear
@@ -2521,12 +2521,12 @@ module Quiz
       $ctl_kb_queue.clear
       if @seq == :chord
         semis = [0, 4, 7].map {|s| isemi + s}
-        @wavs_created ||= synth_for_inter_or_chord(semis, 0.2, 2, :sawtooth)
+        @wavs_created ||= Sound::synth_for_inter_or_chord(semis, 0.2, 2, :sawtooth)
         ::Players::play_recording_and_handle_kb @wavs_created
       elsif @seq.is_a?(Array)
-        notes = @seq.map {|s| semi2note(isemi + s)}
+        notes = @seq.map {|s| Theory::semi2note(isemi + s)}
         puts
-        ::Players::play_holes_or_notes_and_handle_kb notes, hide: [semi2note(isemi), :help]
+        ::Players::play_holes_or_notes_and_handle_kb notes, hide: [Theory::semi2note(isemi), :help]
       else
         raise "Internal error: #{seq}"
       end
@@ -2566,7 +2566,7 @@ module Quiz
 
     def help4
       puts 'Playing all possible solutions.'
-      notes = @choices.map {|k| semi2note(Quiz::key2semi(k))}
+      notes = @choices.map {|k| Theory::semi2note(Quiz::key2semi(k))}
       play_hons hons: notes
     end
 
@@ -2582,7 +2582,7 @@ module Quiz
       Interact::make_term_immediate
       $ctl_kb_queue.clear
       puts
-      ::Players::play_holes_or_notes_and_handle_kb [semi2note(Quiz::key2semi(@solution))], hide: :help
+      ::Players::play_holes_or_notes_and_handle_kb [Theory::semi2note(Quiz::key2semi(@solution))], hide: :help
       Interact::make_term_cooked
     end
   end
@@ -2830,7 +2830,7 @@ module Quiz
       puts "\e[0m"
 
       # see remark about wsl2 above, for reasoning
-      total = sox_query(@recording2, 'Length').to_f.round(2)
+      total = Sound::sox_query(@recording2, 'Length').to_f.round(2)
       if !$testing && total < len_rec
         puts "\n\n\n\n  \e[0mWARNING: total recorded #{total} is less than needed #{len_rec.round(2)}; maybe try 'harpwise tools diag' for some insight and hints\n\n" unless $warned_for_short_rec
         $warned_for_short_rec = true
@@ -2853,7 +2853,7 @@ module Quiz
       beats_found = Array.new
       times_freqs.each do |t, f|
         hole_was = hole
-        hole, = describe_freq(f)
+        hole, = Theory::describe_freq(f)
         if hole == $typical_hole
           hole_started_at = t if hole != hole_was
           holes_in_a_row += 1

@@ -178,7 +178,7 @@ def tool_spread_notes notes
   notes.each do |note|
     err "Note   #{note}   is unknown among   #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(note)
   end
-  notes.map! {|n| sf_norm(n + '4')[0..-2]}
+  notes.map! {|n| Theory::sf_norm(n + '4')[0..-2]}
   holes = Array.new
   notes.each do |note|
     holes.append(*$bare_note2holes[note])
@@ -285,14 +285,14 @@ def tool_change_harp to_handle
 
   key_other = to_handle.shift
   err "Second key given '#{key_other}' is invalid" unless $conf[:all_keys].include?(key_other)
-  dsemi = diff_semitones($key, key_other, strategy: :g_is_lowest)
+  dsemi = Theory::diff_semitones($key, key_other, strategy: :g_is_lowest)
   to_handle.each do |hole|
     err "Argument '#{hole}' is not a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless $harp_holes.include?(hole)
   end
 
   puts
   puts "Moving holes and notes from key \e[32m#{$key}\e[0m to \e[32m#{key_other}\e[0m"
-  puts "difference between harps is #{describe_inter_semis(dsemi)};"
+  puts "difference between harps is #{Theory::describe_inter_semis(dsemi)};"
   puts 'holes change but notes stay the same:'
   puts
   puts
@@ -313,13 +313,13 @@ def tool_match_harps to_handle
   err 'Need at least one hole or note as an argument' if to_handle.length == 0
 
   semis_wanted_unshifted_all = to_handle.map do |hon|
-    semi = note2semi(hon, 2..8, true) || ($hole2note[hon] && note2semi($hole2note[hon], 2..8, true))
+    semi = Theory::note2semi(hon, 2..8, true) || ($hole2note[hon] && Theory::note2semi($hole2note[hon], 2..8, true))
     err "Argument '#{hon}' is neither a note (e.g. a4 or ds6) nor a hole of a #{$type}-harp:   #{$harp_holes.join('  ')}" unless semi
     semi
   end
-  to_handle_as_notes = semis_wanted_unshifted_all.map {|semi| semi2note(semi)}
-  to_handle_as_notes_up = semis_wanted_unshifted_all.map {|semi| semi2note(semi + 12)}
-  to_handle_as_notes_down = semis_wanted_unshifted_all.map {|semi| semi2note(semi - 12)}
+  to_handle_as_notes = semis_wanted_unshifted_all.map {|semi| Theory::semi2note(semi)}
+  to_handle_as_notes_up = semis_wanted_unshifted_all.map {|semi| Theory::semi2note(semi + 12)}
+  to_handle_as_notes_down = semis_wanted_unshifted_all.map {|semi| Theory::semi2note(semi - 12)}
   semis_wanted_unshifted = semis_wanted_unshifted_all.sort.uniq
   missing = nil
 
@@ -367,7 +367,7 @@ def tool_match_harps to_handle
       hole_set_sets_semis = hole_set_sets.map do |name, hole_sets|
         semis_avail = hole_sets.map do |hole_set|
           $named_hole_sets[hole_set].map do |hole|
-            note2semi($hole2note[hole], 2..8, true)
+            Theory::note2semi($hole2note[hole], 2..8, true)
           end
         end.flatten.sort.uniq
         [name, semis_avail]
@@ -404,7 +404,7 @@ def tool_match_harps to_handle
       details_per_rank.group_by {|d| d[3]}.each do |name_avail, details_per_avail|
         puts "    for hole set   '#{name_avail}'"
         puts
-        puts '      ' + details_per_avail.map {|d| d[2]}.sort_by {|k| note2semi(k + '4')}.uniq.join('  ')
+        puts '      ' + details_per_avail.map {|d| d[2]}.sort_by {|k| Theory::note2semi(k + '4')}.uniq.join('  ')
         puts
       end
 
@@ -420,7 +420,7 @@ def tool_shift to_handle
   to_handle, _, dsemi = tools_shift_helper(to_handle)
 
   puts
-  puts "Shifting holes by #{describe_inter_semis(dsemi)}:"
+  puts "Shifting holes by #{Theory::describe_inter_semis(dsemi)}:"
   puts
   puts
   cols = Array.new
@@ -431,9 +431,9 @@ def tool_shift to_handle
     note = $harp.dig(hon, :note) || hon
     cols << [hon,
              note,
-             semi2note(note2semi(note) + dsemi),
+             Theory::semi2note(Theory::note2semi(note) + dsemi),
              [0, +12, -12].map do |shift|
-               $semi2hole[note2semi(note) + dsemi + shift] || '*'
+               $semi2hole[Theory::note2semi(note) + dsemi + shift] || '*'
              end].flatten
     cols[-1][2], cols[-1][3] = cols[-1][3], cols[-1][2]
   end
@@ -445,7 +445,7 @@ def tool_shift_to_groups to_handle
   to_handle, _, dsemi = tools_shift_helper(to_handle)
 
   puts
-  puts "Shifting holes or notes by #{describe_inter_semis(dsemi)} and showing"
+  puts "Shifting holes or notes by #{Theory::describe_inter_semis(dsemi)} and showing"
   puts 'all holes, that map to the same bare note (i.e. ignoring octaves)'
   puts
   puts
@@ -454,7 +454,7 @@ def tool_shift_to_groups to_handle
   cols << ['Notes given', 'as notes', 'shifted', 'same bare']
   to_handle.each do |hon|
     note = $harp.dig(hon, :note) || hon
-    bare_note_shifted = semi2note(note2semi(note) + dsemi)[0..-2]
+    bare_note_shifted = Theory::semi2note(Theory::note2semi(note) + dsemi)[0..-2]
     cols << [hon,
              note,
              bare_note_shifted]
@@ -484,7 +484,7 @@ def tools_shift_helper to_handle
   to_handle.reject! {|h| Theory::musical_event?(h)}
   hons = []
   to_handle.each do |hon|
-    if note2semi(hon, 2..8, true) || $harp_holes.include?(hon)
+    if Theory::note2semi(hon, 2..8, true) || $harp_holes.include?(hon)
       hons << hon
     else
       err("Argument '#{hon}' is neither   a note   nor   " +
@@ -844,7 +844,7 @@ def tool_chords
     end.sort
     puts "chord-#{names[0]}:"
     Text::print_in_columns chord_st.map {|st| $semi2hole[$min_semi + st] || '--'}, pad: :fill
-    Text::print_in_columns chord_st.map {|st| semi2note($min_semi + st)}, pad: :fill
+    Text::print_in_columns chord_st.map {|st| Theory::semi2note($min_semi + st)}, pad: :fill
     puts
     names.shift
   end
@@ -937,7 +937,7 @@ def tool_transcribe to_handle
             end
 
   puts "\n\e[2mScanning #{to_play} with aubiopitch ...\e[0m"
-  cmd = get_pipeline_cmd(:sox, to_play)
+  cmd = Sound::get_pipeline_cmd(:sox, to_play)
   _, ppl_out_err, wait_thr = Open3.popen2e(cmd)
   good_lines = Array.new
   bad_lines = Array.new
@@ -968,7 +968,7 @@ def tool_transcribe to_handle
   # form batches with he same note
   batched = [[[0, nil]]]
   good_lines.each do |time, freq|
-    hole = describe_freq(freq)[0]
+    hole = Theory::describe_freq(freq)[0]
     if hole == batched[-1][-1][1]
       batched[-1] << [time, hole]
     else
@@ -1285,11 +1285,11 @@ def tool_notes to_handle
   puts
   puts "Notes of major scale \e[2m(with semi diffs and \e[0m\e[32mf\e[0m\e[2mifth)\e[0m"
   [-7, 0].each do |offset|
-    ssemi = note2semi(harp_key + '4') + offset
-    puts "Starting at \e[32m#{semi2note(ssemi)[0...-1]}\e[0m:"
+    ssemi = Theory::note2semi(harp_key + '4') + offset
+    puts "Starting at \e[32m#{Theory::semi2note(ssemi)[0...-1]}\e[0m:"
     puts
     print '  '
-    notes = $maj_sc_st_abs.map {|dsemi| semi2note(ssemi + dsemi)}.map {|n| n[0...-1]}
+    notes = $maj_sc_st_abs.map {|dsemi| Theory::semi2note(ssemi + dsemi)}.map {|n| n[0...-1]}
     notes.each_with_index do |n, idx|
       print "\e[32m" if [0, 4].include?(idx)
       print n + "\e[0m   "
@@ -1386,7 +1386,7 @@ def tool_diag1
   puts see_sox % %w[END rec]
   puts "\e[0m\e[K\nDone."
 
-  recorded = sox_query($diag_wav, 'Length').to_f
+  recorded = Sound::sox_query($diag_wav, 'Length').to_f
   puts
   puts 'Timestamps:'
   puts "       Secs elapsed: %6.2f       \e[2mElapsed and recorded may differ by up to one sec\e[0m" % elapsed
@@ -1506,7 +1506,7 @@ def tool_diag2
 end
 
 def tool_diag3
-  cmd_aub = get_pipeline_cmd(:sox, '-d')
+  cmd_aub = Sound::get_pipeline_cmd(:sox, '-d')
 
   puts "\n\n"
   Text::puts_underlined 'Testing the frequency recognition'
@@ -1781,7 +1781,7 @@ def tool_all_intervals hons
   ml_h = $harp_holes.map {|h| h.length}.max
   puts "\e[2m   " + 'Inter'.rjust(ml_i) + '   hole'.ljust(ml_h) + "   note\e[0m"
   $intervals.keys.each do |dsemi|
-    puts "  #{$intervals[dsemi][0].rjust(ml_i)}:   #{($semi2hole[st + dsemi] || ' - ').ljust(ml_h)}   #{semi2note(st + dsemi)}"
+    puts "  #{$intervals[dsemi][0].rjust(ml_i)}:   #{($semi2hole[st + dsemi] || ' - ').ljust(ml_h)}   #{Theory::semi2note(st + dsemi)}"
   end
   puts
 end

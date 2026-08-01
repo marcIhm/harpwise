@@ -294,14 +294,14 @@ def print_holes_and_more holes_or_notes, embedded: false
   return unless verbose
 
   puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  Text::print_in_columns(holes_or_notes.map {|x| '%.2f' % semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+  Text::print_in_columns(holes_or_notes.map {|x| '%.2f' % Theory::semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
   puts
   puts "\e[2mIn chart with notes:\e[0m"
   print_chart_with_notes notes
 end
 
 def hon2semi hon
-  note2semi(
+  Theory::note2semi(
     if $harp_holes.include?(hon)
       $hole2note[hon]
     else
@@ -324,7 +324,7 @@ def print_interval s1, s2
          "#{s2 - s1}st"
        end + ':'
   puts
-  print_semis_as_abs('    from: ', s1, '      to: ', s2)
+  Theory::print_semis_as_abs('    from: ', s1, '      to: ', s2)
 end
 
 def print_progression_view prog
@@ -335,7 +335,7 @@ end
 
 def get_progression_views prog
   [prog.map {|s| $semi2hole[s] || '--'},
-   prog.map {|s| semi2note(s) || '--'},
+   prog.map {|s| Theory::semi2note(s) || '--'},
    prog,
    prog.map.with_index {|s, idx| idx == 0 ? 0 : (s - prog[0])}]
 end
@@ -803,13 +803,13 @@ def print_semis semis
   Text::print_in_columns semis, pad: :tabs
   puts
   puts "\e[2mAs notes:\e[0m"
-  Text::print_in_columns(semi_nums.map {|s| semi2note(s)}, pad: :tabs)
+  Text::print_in_columns(semi_nums.map {|s| Theory::semi2note(s)}, pad: :tabs)
   puts
   puts "\e[2mAs holes:\e[0m"
   Text::print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
   puts
   puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  Text::print_in_columns(semi_nums.map {|s| '%.2f' % semi2freq_et(s)}, pad: :tabs)
+  Text::print_in_columns(semi_nums.map {|s| '%.2f' % Theory::semi2freq_et(s)}, pad: :tabs)
 end
 
 def puts_user_defined_hint what

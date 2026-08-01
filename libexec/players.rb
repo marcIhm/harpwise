@@ -20,7 +20,7 @@ module Players
                     ''
                   end
 
-    dsemi = diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
+    dsemi = Theory::diff_semitones($key, key, strategy: :minimum_distance) + shift_inter
     dsemi += { nil => 0, up: 12, down: -12 }[$opts[:octave_shift]]
     pitch_clause = ( dsemi == 0 ? '' : "pitch #{dsemi * 100}" )
     tempo = 1.0
@@ -222,7 +222,7 @@ module Players
 
   def play_interactive_pitch embedded: false, explain: true,
                              start_key: nil, return_accepts: false
-    semi = note2semi((start_key || $key).then {|k| ('1'..'9').include?(k[-1]) ? k : k + '4'})
+    semi = Theory::note2semi((start_key || $key).then {|k| ('1'..'9').include?(k[-1]) ? k : k + '4'})
     wave = wave_was = 'pluck'
     min_semi = -24
     max_semi = 24
@@ -247,7 +247,7 @@ module Players
     puts
     puts "\e[0m\e[2m(type 'h' for help)\e[0m"
     puts
-    print_pitch_information(semi)
+    Sound::print_pitch_information(semi)
 
     # loop forever until ctrl-c
     loop do
@@ -304,22 +304,22 @@ module Players
           puts "\e[0m\e[2m#{$vol}\e[0m"
         elsif $ctl_pitch[:semi_up]
           semi += 1 if semi < max_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:semi_down]
           semi -= 1 if semi > min_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:octave_up]
           semi += 12 if semi < max_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:octave_down]
           semi -= 12 if semi > min_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:fifth_up]
           semi += 7 if semi < max_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:fifth_down]
           semi -= 7 if semi > min_semi
-          print_pitch_information(semi, knm)
+          Sound::print_pitch_information(semi, knm)
         elsif $ctl_pitch[:wave_up]
           wave_was = wave
           wave = Util::rotate_among(wave, :up, $all_waves)
@@ -340,7 +340,7 @@ module Players
                                 ( return_accepts ? ' RETURN: accept                  .: play again' : ' .,RETURN: play again'),
                                 wait_for_key: !paused
           pplayer.continue
-          print_pitch_information(semi)
+          Sound::print_pitch_information(semi)
         elsif $ctl_pitch[:invalid]
           puts "\e[0m\e[2m(#{$ctl_pitch[:invalid]})\e[0m"
           $ctl_pitch[:invalid] = false
@@ -351,7 +351,7 @@ module Players
             pplayer.check
           end
         elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
-          new_key = (semi2note(semi)[0..-2] if $ctl_pitch[:accept_or_repeat] || return_accepts)
+          new_key = (Theory::semi2note(semi)[0..-2] if $ctl_pitch[:accept_or_repeat] || return_accepts)
           if pplayer&.alive?
             pplayer.kill
             pplayer.check
@@ -385,7 +385,7 @@ module Players
     delta_semi = semi2 - semi1
     gap = ConfinedValue.new(0.2, 0.2, 0, 2)
     len = ConfinedValue.new(3, 1, 1, 8)
-    tfiles = synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
+    tfiles = Sound::synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
     cmd_template = if $testing
                      'sleep 1'
                    else
@@ -412,7 +412,7 @@ module Players
         end
         if new_sound
           cmd = cmd_template % $vol.to_i
-          tfiles = synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
+          tfiles = Sound::synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
           puts
           print_interval semi1, semi2
           puts "\e[0m\e[2m\n  Gap: #{gap.val}, length: #{len.val}\e[0m\n\n"
@@ -833,7 +833,7 @@ module Players
       else
         duration = ( $opts[:fast] ? 0.5 : 1 )
         $harp.dig(hon, :note) || hon
-        play_hole_or_note_and_collect_kb hon, duration
+        Sound::play_hole_or_note_and_collect_kb hon, duration
       end
       if $ctl_hole[:show_help]
         Util::display_kb_help 'a series of holes or notes', true,  <<~end_of_content
@@ -905,7 +905,7 @@ module Players
           sleep $opts[:fast] ? 0.125 : 0.25
         else
           # this also handles kb input and sets $ctl_hole
-          play_hole_or_note_and_collect_kb hole, Theory::get_musical_duration(hole_next)
+          Sound::play_hole_or_note_and_collect_kb hole, Theory::get_musical_duration(hole_next)
         end
 
         # react on keyboard input
@@ -995,7 +995,7 @@ module Players
             Util::sys("sox -q -n #{tfile} synth #{len} #{wave} %#{arg2semi[single]}")
             "play --norm=#{$vol.to_i} -q #{tfile}"
           else
-            tfiles = synth_for_inter_or_chord(semis, gap, len, wave)
+            tfiles = Sound::synth_for_inter_or_chord(semis, gap, len, wave)
             "play --norm=#{$vol.to_i} -q --combine mix #{tfiles.join(' ')}"
           end
     cdesc = if single

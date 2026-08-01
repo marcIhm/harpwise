@@ -1010,7 +1010,7 @@ def parse_and_preprocess_jamming_json json, simple: false
     sleep 0.05
     puts
   end
-  jam_pms['sound_file_length_secs'] = sox_query(file, 'Length').to_i
+  jam_pms['sound_file_length_secs'] = Sound::sox_query(file, 'Length').to_i
   jam_pms['sound_file_length'] = jam_ta(jam_pms['sound_file_length_secs'])
   $jam_data[:iteration_max] = 1 + (jam_pms['sound_file_length_secs'] / $jam_data[:iteration_duration_secs]).to_i
   print "\e[3A"
@@ -1023,7 +1023,7 @@ def parse_and_preprocess_jamming_json json, simple: false
   sleep 0.02
   puts
 
-  if note2semi(jam_pms['harp_key'] + '4') != note2semi($key + '4')
+  if Theory::note2semi(jam_pms['harp_key'] + '4') != Theory::note2semi($key + '4')
     if $args_source_of[:key] == 'command-line'
       puts "Got harp key   \e[32m#{$key}\e[0m   from command line;  \e[32mchanging pitch of track accordingly!\e[0m\n\n\e[2mIf you want to play the track unchanged, just omit the key (here: #{$key}) from the\ncommandline.  But for this you will need to have a harmonica in the key of #{jam_pms['harp_key']}.\n"
     else
@@ -1051,7 +1051,7 @@ def do_the_jam_playing json_or_mp3
   if json_or_mp3.end_with?('.mp3')
     err "Named mp3-file does not exist:   #{json_or_mp3}" unless File.exist?(json_or_mp3)
     $jam_pms = Hash.new
-    $jam_pms['sound_file_length_secs'] = sox_query(json_or_mp3, 'Length').to_i
+    $jam_pms['sound_file_length_secs'] = Sound::sox_query(json_or_mp3, 'Length').to_i
     $jam_pms['sound_file_length'] = jam_ta($jam_pms['sound_file_length_secs'])
     $jam_pms['sound_file'] = json_or_mp3
     # just assume something for
@@ -1418,9 +1418,9 @@ end
 def jam_get_play_command trim: 0, init_silence: 0
   err 'Internal error: both parameters trim and init_silence are given' if trim > 0 && init_silence > 0
 
-  dsemi = diff_semitones($key, $jam_pms['harp_key'], strategy: :minimum_distance)
+  dsemi = Theory::diff_semitones($key, $jam_pms['harp_key'], strategy: :minimum_distance)
   sf_key = $jam_pms['sound_file_key']
-  sf_key_new = semi2note(note2semi( sf_key + '4') + dsemi)[0..-2]
+  sf_key_new = Theory::semi2note(Theory::note2semi( sf_key + '4') + dsemi)[0..-2]
   pitch_clause, text = if dsemi == 0
                          ['', nil]
                        else

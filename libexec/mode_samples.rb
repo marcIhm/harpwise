@@ -112,10 +112,10 @@ def samples_generate to_handle
     terse = do_all_keys || $opts[:brief]
     $harp_holes.each_with_index do |hole, idx|
       file = "#{$sample_dir}/#{$harp[hole][:note]}.mp3"
-      synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: terse
+      Sound::synth_sound hole, file, " (%2d of #{$harp_holes.length})" % (idx + 1), silent: terse
       print "\e[2m#{hole}\e[0m  " if terse
-      play_wave file, 0.5 unless terse
-      hole2freq[hole] = analyze_with_aubio(file)
+      Sound::play_wave file, 0.5 unless terse
+      hole2freq[hole] = Sound::analyze_with_aubio(file)
     end
     write_freq_file hole2freq
     puts unless do_all_keys
@@ -200,7 +200,7 @@ def record_and_review_hole hole
   if File.exist?(sample_file)
     puts "There is already a generated or recorded sound present for hole  \e[32m#{hole}\e[0m"
     puts "\e[2m#{sample_file}\e[0m"
-    wave2data(sample_file)
+    Sound::wave2data(sample_file)
     FileUtils.cp(sample_file, backup)
   else
     puts "\nFile  #{sample_file}  for hole  \e[32m#{hole}\e[0m\nis not present so it needs to be recorded or generated."
@@ -229,12 +229,12 @@ def record_and_review_hole hole
       # Discard stale samples (which we recognize, because they are delivered too fast)
       begin
         tstart_record = Time.now.to_f
-        record_sound 0.2, $helper_wave, silent: true
+        Sound::record_sound 0.2, $helper_wave, silent: true
       end while Time.now.to_f - tstart_record < 0.1
 
       puts "\e[0;101mRECORDING\e[0m to #{sample_file} ..."
-      record_sound rec_dura, sample_file
-      wave2data(sample_file)
+      Sound::record_sound rec_dura, sample_file
+      Sound::wave2data(sample_file)
 
       puts "\e[32mdone\e[0m"
     end
@@ -243,14 +243,14 @@ def record_and_review_hole hole
     if File.exist?(sample_file)
 
       # true on first iteration
-      wave2data(sample_file)
+      Sound::wave2data(sample_file)
       draw_data(0, 0) if do_draw && !do_trim
 
       # false on first iteration
       if do_trim
         puts issue_before_trim if issue_before_trim
         issue_before_trim = false
-        result = trim_recorded(hole, sample_file)
+        result = Sound::trim_recorded(hole, sample_file)
         if result == :redo
           do_record = true
           do_draw = false
@@ -259,11 +259,11 @@ def record_and_review_hole hole
         elsif %i[next cancel].include?(result)
           FileUtils.mv(backup, sample_file) if result == :cancel && File.exist?(backup)
           FileUtils.rm(backup) if File.exist?(backup)
-          return result, analyze_with_aubio(sample_file)
+          return result, Sound::analyze_with_aubio(sample_file)
         end
       end
 
-      freq = inspect_recorded(hole, sample_file)
+      freq = Sound::inspect_recorded(hole, sample_file)
 
     end
 
@@ -308,7 +308,7 @@ def record_and_review_hole hole
     when :play
       if File.exist?(sample_file)
         print "\e[34mPlay\e[0m ... "
-        play_wave sample_file, 5
+        Sound::play_wave sample_file, 5
         puts 'done'
       else
         print "\e[91mFile #{sample_file} does not exist!\e[0m\n"
@@ -321,12 +321,12 @@ def record_and_review_hole hole
       return :quit, freq
     when :frequency
       print "\e[0m\e[34mGenerate\e[0m and analyse a sample sound:"
-      synth_sound hole, $helper_wave
-      play_wave $helper_wave, 0.25
-      puts "Frequency: #{analyze_with_aubio($helper_wave)}"
+      Sound::synth_sound hole, $helper_wave
+      Sound::play_wave $helper_wave, 0.25
+      puts "Frequency: #{Sound::analyze_with_aubio($helper_wave)}"
     when :generate
-      synth_sound hole, sample_file
-      wave2data(sample_file)
+      Sound::synth_sound hole, sample_file
+      Sound::wave2data(sample_file)
       do_draw = true
     when :record
       do_record = true
@@ -357,15 +357,15 @@ def print_summary hole2freq, rec_or_gen
   puts '  ------------' + '-' * (template % ['', '', '', '', '', '']).length
   maxhl = $harp_holes.map(&:length).max
   $harp_holes.each do |hole|
-    semi = note2semi($harp[hole][:note])
+    semi = Theory::note2semi($harp[hole][:note])
     freq = hole2freq[hole]
     unless freq
       puts template % [hole.ljust(maxhl), '', '', '', 'not yet #{rec_or_gen}']
       next
     end
-    freq_et = semi2freq_et(semi)
-    freq_et_p1 = semi2freq_et(semi + 1)
-    freq_et_m1 = semi2freq_et(semi - 1)
+    freq_et = Theory::semi2freq_et(semi)
+    freq_et_p1 = Theory::semi2freq_et(semi + 1)
+    freq_et_m1 = Theory::semi2freq_et(semi - 1)
     gauge = if (freq_et_m1 - freq).abs < (freq_et - freq).abs
               ' too low'
             elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
@@ -373,7 +373,7 @@ def print_summary hole2freq, rec_or_gen
             else
               get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}[0]
             end
-    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), cents_diff(freq, freq_et).round(0), gauge]
+    puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), Theory::cents_diff(freq, freq_et).round(0), gauge]
     sleep 0.005
   end
   puts "\nYou may compare #{rec_or_gen} frequencies with those calculated from equal"
@@ -436,7 +436,7 @@ def samples_check to_handle
       counts = Hash.new {|h, k| h[k] = 0}
       $harp_holes.each do |hole|
         endings = %w[wav mp3].map do |ending|
-          this_or_equiv("#{$sample_dir}/%s.#{ending}", $harp[hole][:note]) && ending
+          Sound::this_or_equiv("#{$sample_dir}/%s.#{ending}", $harp[hole][:note]) && ending
         end.compact
 
         print "  #{hole.ljust(maxlen)} : "
@@ -491,7 +491,7 @@ def samples_delete to_handle
     sample_dir = Cfg::get_sample_dir(key)
     to_delete = []
     $harp_holes.each do |hole|
-      file = this_or_equiv("#{sample_dir}/%s.wav", $harp[hole][:note])
+      file = Sound::this_or_equiv("#{sample_dir}/%s.wav", $harp[hole][:note])
       to_delete << File.basename(file) if file && File.exist?(file)
     end
 
@@ -560,9 +560,9 @@ def create_frequency_file_from_mp3s sample_dir
   hole2freq = Hash.new
   missing = []
   $harp_holes.each do |hole|
-    file = this_or_equiv("#{sample_dir}/%s.mp3", $harp[hole][:note])
+    file = Sound::this_or_equiv("#{sample_dir}/%s.mp3", $harp[hole][:note])
     if file
-      hole2freq[hole] = analyze_with_aubio(file)
+      hole2freq[hole] = Sound::analyze_with_aubio(file)
     else
       missing << hole
     end

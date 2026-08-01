@@ -34,7 +34,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
     # do not start kb thread yet as we need to read current cursor
     # line from terminal below
     Interact::prepare_term
-    start_collect_freqs
+    Sound::start_collect_freqs
   end
   $modes_for_switch = [:listen, $mode.to_sym]
   $ctl_mic[:replay] = $ctl_mic[:replay_menu] = false
@@ -448,7 +448,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
       # looping over the same sequence again and again
       to_play[:all_wanted].each_with_index do |wanted, idx|
         hole_start = Time.now.to_f
-        pipeline_catch_up
+        Sound::pipeline_catch_up
         $ulrec.first_hole_good_at = Time.now.to_f if idx == 1 && $ulrec.active?
 
         handle_holes(
@@ -545,7 +545,7 @@ def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shi
             hole_hint = if hole_passed > 6
                           "\e[0mHint:\e[2m Play \e[0m\e[32m#{wanted}\e[0m\e[2m ; type '.' for replay"
                         elsif idx > 0
-                          isemi, itext, = describe_inter(wanted, to_play[:all_wanted][idx - 1])
+                          isemi, itext, = Theory::describe_inter(wanted, to_play[:all_wanted][idx - 1])
                           "\e[0mHint:\e[2m Move " + ( itext ? "a \e[0m\e[32m#{itext}" : "\e[0m\e[32m#{isemi}" )
                         else
                           ''
@@ -775,7 +775,7 @@ end
 
 def play_lick_recording_and_handle_kb_plus lick, at_line:, shift_inter:, holes:
   if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
-    lick[:rec_length] ||= sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
+    lick[:rec_length] ||= Sound::sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
     _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
   else
     start = lick[:rec_start]
@@ -942,7 +942,7 @@ def intervalify holes_or_notes, prefer_names: true
     j = idx - 1
     j = 0 if j < 0
     j -= 1 while j > 0 && Theory::musical_event?(holes_or_notes[j])
-    isemi, _, itext, = describe_inter(hon, holes_or_notes[j])
+    isemi, _, itext, = Theory::describe_inter(hon, holes_or_notes[j])
     idesc = if prefer_names
               itext || isemi || ''
             else
@@ -963,7 +963,7 @@ def intervalify_to_first holes, prefer_names: true, prefer_plus: false
 
   inters = []
   holes.each_with_index do |hole, _idx|
-    isemi, _, itext, = describe_inter(hole, holes[0], prefer_plus: prefer_plus)
+    isemi, _, itext, = Theory::describe_inter(hole, holes[0], prefer_plus: prefer_plus)
     idesc = if prefer_names
               itext || isemi || ''
             else
@@ -1289,7 +1289,7 @@ def peek_into_quiz_shifted shift_info, oride_l_message2
   puts
   Text::do_figlet_unwrapped(shift_info[:holes_shifted][0], 'smblock')
   sleep 0.25
-  play_wave(this_or_equiv("#{$sample_dir}/%s", $harp[shift_info[:holes_shifted][0]][:note], %w[.wav .mp3]))
+  Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[shift_info[:holes_shifted][0]][:note], %w[.wav .mp3]))
   sleep 1
   $ctl_kb_queue.clear
   $msgbuf.print "Shift interval is #{shift_info[:shift_by_text]}", 2, 4, :quiz_play_shifted

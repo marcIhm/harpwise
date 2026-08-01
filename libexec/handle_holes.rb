@@ -133,7 +133,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     #
     # Here we get our keyboard input
     #
-    pipeline_catch_up if Interact::handle_kb_mic
+    Sound::pipeline_catch_up if Interact::handle_kb_mic
 
     behind = $freqs_queue.length * $time_slice_secs
     if behind > 0.5
@@ -157,7 +157,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
 
     # transform freq into hole
     hole_was = hole
-    hole, lbor, cntr, ubor = describe_freq(freq)
+    hole, lbor, cntr, ubor = Theory::describe_freq(freq)
     if hole_was != hole
       hole_since = tntf
       hole_since_ticks = $total_freq_ticks
@@ -263,7 +263,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     format = "%6s Hz, %4s Cnt  [%s]\e[2m\e[K"
     if hole
       dots, = get_dots(just_dots_short.dup, 2, freq, lbor, cntr, ubor) {|in_range, marker| in_range ? "\e[0m#{marker}\e[2m" : marker}
-      cents = cents_diff(freq, cntr).to_i
+      cents = Theory::cents_diff(freq, cntr).to_i
       print format % [freq.round(1), cents, dots]
     else
       print format % ['--', '--', just_dots_short]
@@ -273,7 +273,7 @@ def handle_holes lambda_mission, lambda_good_done_was_good, lambda_skip,
     # Handle intervals
     #
     hole_for_inter = $hole_ref || $hole_held_inter_was
-    inter_semi, inter_text, = describe_inter($hole_held_inter, hole_for_inter, sane: true)
+    inter_semi, inter_text, = Theory::describe_inter($hole_held_inter, hole_for_inter, sane: true)
     if inter_semi
       print "\e[#{$lines[:interval]}HInterval: #{$hole_held_inter.rjust(4)}  to #{hole_for_inter.rjust(4)}  is #{inter_semi.rjust(5)}  " + ( inter_text ? ", #{inter_text}" : '' ) + "\e[K"
     else
@@ -640,7 +640,7 @@ def do_change_key in_quiz: false
     elsif key == 'random-all'
       "At random: One of all #{$all_harp_keys.length} harp keys"
     else
-      "#{describe_inter_keys(key, $key)} to the current key #{$key}"
+      "#{Theory::describe_inter_keys(key, $key)} to the current key #{$key}"
     end
   end || $key
   if $key == 'random-common'

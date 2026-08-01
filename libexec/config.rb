@@ -774,11 +774,11 @@ module Cfg
     if $opts[:octave_shift]
       dsemi = $opts[:octave_shift] == :up ? 12 : -12
       $hole2note_for_c.transform_values! do |note|
-        semi2note(note2semi(note) + dsemi)
+        Theory::semi2note(Theory::note2semi(note) + dsemi)
       end
     end
 
-    $dsemi_key_minus_c = diff_semitones($key, 'c', strategy: :minimum_distance)
+    $dsemi_key_minus_c = Theory::diff_semitones($key, 'c', strategy: :minimum_distance)
     harp = Hash.new
     hole2flags = Hash.new {|h, k| h[k] = Set.new}
     semi2hole_sc = Hash.new {|h, k| h[k] = Array.new}
@@ -786,8 +786,8 @@ module Cfg
     bare_note2holes = Hash.new {|h, k| h[k] = Set.new}
     hole_root = nil
     $hole2note_for_c.each do |hole, note|
-      semi = note2semi(note) + $dsemi_key_minus_c
-      harp[hole] = [[:note, semi2note(semi)],
+      semi = Theory::note2semi(note) + $dsemi_key_minus_c
+      harp[hole] = [[:note, Theory::semi2note(semi)],
                     [:semi, semi]].to_h
       semi2hole_sc[semi] << hole
       hole_root ||= hole if semi % 12 == 0
@@ -1071,7 +1071,7 @@ module Cfg
                       elsif $opts[:transpose_scale].is_a?(Integer)
                         $opts[:transpose_scale]
                       else
-                        note2semi(($opts[:transpose_scale] || $key) + '0') - note2semi($key + '0')
+                        Theory::note2semi(($opts[:transpose_scale] || $key) + '0') - Theory::note2semi($key + '0')
                       end
 
     scale_holes = nil
@@ -1085,10 +1085,10 @@ module Cfg
         kept_holes = []
         hole_group.each do |hole|
           err "Hole   '#{hole}'   as read from   #{sfile}   is none of the available holes:   #{$hole2note_for_c.keys.join(', ')}" unless $hole2note_for_c[hole]
-          semi_for_c = note2semi($hole2note_for_c[hole])
+          semi_for_c = Theory::note2semi($hole2note_for_c[hole])
           semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
           if semi_moved >= $min_semi && semi_moved <= $max_semi
-            note_moved = semi2note(semi_moved)
+            note_moved = Theory::semi2note(semi_moved)
             hole_moved = $note2hole[note_moved]
             if hole_moved
               kept_holes << hole_moved
@@ -1112,15 +1112,15 @@ module Cfg
       notes_lost = []
       note_groups = [hons_read]
       note_groups << props[:roots] if props[:roots]
-      all_notes_norm = $hole2note_for_c.values.map {|n| sf_norm(n)}
+      all_notes_norm = $hole2note_for_c.values.map {|n| Theory::sf_norm(n)}
       note_groups.each_with_index do |_note_group, idx|
         kept_holes = []
         note_read.each do |note_for_c|
-          err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(sf_norm(note_for_c))
-          semi_for_c = note2semi(note_for_c)
+          err "Note   '#{note_for_c}'   as read from   #{sfile}   is none of the available notes:   #{$hole2note_for_c.values.join(', ')}" unless all_notes_norm.include?(Theory::sf_norm(note_for_c))
+          semi_for_c = Theory::note2semi(note_for_c)
           semi_moved = semi_for_c + $dsemi_key_minus_c + dsemi_transpose
           if semi_moved >= $min_semi && semi_moved <= $max_semi
-            note_moved = semi2note(semi_moved)
+            note_moved = Theory::semi2note(semi_moved)
             hole_moved = $note2hole[note_moved]
             if hole_moved
               kept_holes << hole_moved
@@ -1249,7 +1249,7 @@ module Cfg
           if Util::comment_in_chart?(hole_padded)
             hole_padded[0, len]
           else
-            isemi, _, itext, dsemi = describe_inter(hole, ref)
+            isemi, _, itext, dsemi = Theory::describe_inter(hole, ref)
             idesc = if prefer_names
                       itext || isemi
                     else
@@ -1285,9 +1285,9 @@ module Cfg
     unless $opts[:octave_shift]
       $harp_holes.each_cons(2).all? do |ha, hb|
         fa = hole2freq[ha]
-        fa_plus = semi2freq_et($harp[ha][:semi] + 0.5)
-        fa_minus = semi2freq_et($harp[ha][:semi] - 0.5)
-        fb_plus = semi2freq_et($harp[hb][:semi] + 0.5)
+        fa_plus = Theory::semi2freq_et($harp[ha][:semi] + 0.5)
+        fa_minus = Theory::semi2freq_et($harp[ha][:semi] - 0.5)
+        fb_plus = Theory::semi2freq_et($harp[hb][:semi] + 0.5)
         maybe = "Maybe re-record hole #{ha} or simply generate all holes for this key."
         err "Frequencies are not in ascending order, rather #{ha} has higher frequency than #{hb}:\n  #{fa} (for #{ha}, measured)  >=  #{fb_plus.round(2)} (for #{hb}, calculated + 0.5 st)\n#{maybe}" if fa >= fb_plus
         err "Frequency    #{fa}   for hole   #{ha}   is not in expected range   #{fa_minus.round(2)} ... #{fa_plus.round(2)}\n#{maybe}" if fa <= fa_minus || fa >= fa_plus
@@ -1298,7 +1298,7 @@ module Cfg
 
     unless $opts[:octave_shift]
       $harp_holes.each do |hole|
-        file = this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3])
+        file = Sound::this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3])
         err "Sample for hole #{hole} does not exist; you need to create samples" unless file
         err "Sample file #{file} does not exist; you need to create samples" unless File.exist?(file)
       end
@@ -1393,7 +1393,7 @@ module Cfg
   end
 
   def get_sample_dir key
-    this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", key.to_s) ||
+    Sound::this_or_equiv("#{$dirs[:data]}/samples/#{$type}/key_of_%s", key.to_s) ||
       "#{$dirs[:data]}/samples/#{$type}/key_of_#{key}"
   end
 end
