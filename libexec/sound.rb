@@ -40,7 +40,7 @@ module Sound
     trim_wave recorded, play_from, duration_trimmed, trimmed_wave
     loop do
       if do_draw
-        draw_data(play_from, play_from + duration_trimmed)
+        ModeSamples::draw_data(play_from, play_from + duration_trimmed)
         inspect_recorded(hole, recorded)
         do_draw = false
       else
@@ -242,7 +242,7 @@ module Sound
           end
           line.chomp!
 
-          # queue is read by handle_holes
+          # queue is read by show_mic loop
           $freqs_queue.enq Float(line.split(' ', 2)[1])
 
           # Check for jitter now and then. This will not find every case
@@ -393,7 +393,7 @@ module Sound
     puts "\e[0m\e[34mAnalysis\e[0m of current recorded/generated sound (hole: #{hole}, note: #{note}):"
     freq = analyze_with_aubio(file)
     Theory::note2semi($harp[hole][:note])
-    dots, = get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}
+    dots, = ShowMic::get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}
     puts "Frequency: #{freq}, ET: #{freq_et.round(0)}, diff: #{(freq - freq_et).round(0)}   -1st:#{freq_et_m1.round(0)} [#{dots}] +1st:#{freq_et_p1.round(0)}"
     too_low = (freq - freq_et_m1).abs < (freq - freq_et).abs
     too_high = (freq - freq_et_p1).abs < (freq - freq_et).abs

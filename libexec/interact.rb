@@ -13,7 +13,7 @@ module Interact
     `stty size`.split.map(&:to_i)
   end
 
-  def check_screen graceful: false, hint_on_large_term: false
+  def check_screen graceful: false
     begin
       # check screen-size
       raise ArgumentError.new("Screen is too small:\n[#{$term_width},#{$term_height}] (actual)  <  [#{$conf[:term_min_width]},#{$conf[:term_min_height]}] (needed)") if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
@@ -77,11 +77,6 @@ module Interact
       puts $resources[:any_key]
       $ctl_kb_queue.deq
       $ctl_kb_queue.clear
-    end
-
-    if hint_on_large_term && ( $term_width > 1.5 * $conf[:term_min_width] || $term_height > 1.5 * $conf[:term_min_height] )
-      $msgbuf.print ["This terminal [#{$term_width}, #{$term_height}] is much larger than needed [#{$conf[:term_min_width]}, #{$conf[:term_min_height]}] ...",
-                     '... consider adjusting it for better readability'], 5, 5
     end
 
     true
@@ -399,7 +394,7 @@ module Interact
 
   #
   # Handle keyboard when listening to microphone, i.e. during main interactive loop in
-  # handle_holes
+  # show_mic.rb
   #
   def handle_kb_mic
     return unless $ctl_kb_queue.length > 0 || $ctl_fifo_queue.length > 0
@@ -854,7 +849,7 @@ module Interact
         else
           $msgbuf.print 'Warbling holes have not been set', 2, 4
         end
-        clear_warbles
+        ShowMic::clear_warbles
       else
         $msgbuf.print 'Warbling holes set', 2, 4
       end

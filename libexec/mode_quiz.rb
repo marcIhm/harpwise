@@ -2,7 +2,7 @@
 # Mode quiz with its different flavours
 #
 
-module Quiz
+module ModeQuiz
   extend self
 
   def do_quiz to_handle
@@ -88,11 +88,11 @@ module Quiz
       puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
       puts "\n\n\n"
       prepare_listen_perspective_for_quiz
-      do_licks_or_quiz(lambda_quiz_hint: lambda do |holes, _, _, _|
-                         solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
-                                      "\e[32m       #{holes.join('  ')}"
-                         quiz_hint_in_handle_holes_std(solve_text, 'sequence', holes, :all)
-                       end)
+      ModeLicks::do_licks_or_quiz(lambda_quiz_hint: lambda do |holes, _, _, _|
+                                    solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
+                                                 "\e[32m       #{holes.join('  ')}"
+                                    quiz_hint_in_show_mic_loop_std(solve_text, 'sequence', holes, :all)
+                                  end)
 
 
     elsif $quiz_flavour == 'play-scale'
@@ -107,13 +107,13 @@ module Quiz
       puts
       sleep 2
       prepare_listen_perspective_for_quiz
-      do_licks_or_quiz(quiz_scale_name: scale_name,
-                       lambda_quiz_hint: lambda do |holes, _, scale_name, _|
-                         solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
-                                      "\e[32m       #{holes.join('  ')}"
-                         quiz_hint_in_handle_holes_std(solve_text, 'scale', holes, :all)
-                       end)
-
+      ModeLicks::do_licks_or_quiz(quiz_scale_name: scale_name,
+                                  lambda_quiz_hint: lambda do |holes, _, scale_name, _|
+                                    solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
+                                                 "\e[32m       #{holes.join('  ')}"
+                                    quiz_hint_in_show_mic_loop_std(solve_text, 'scale', holes, :all)
+                                  end)
+      
     elsif $quiz_flavour == 'play-inter'
 
       holes_inter = get_random_interval_as_holes
@@ -122,11 +122,11 @@ module Quiz
       sleep 2
       prepare_listen_perspective_for_quiz
       $hole_ref = holes_inter[0]
-      do_licks_or_quiz(quiz_holes_inter: holes_inter,
-                       lambda_quiz_hint: lambda do |holes, holes_inter, _, _|
-                         solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
-                                      "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                         quiz_hint_in_handle_holes_std(solve_text, 'interval', holes, holes[-1], true)
+      ModeLicks::do_licks_or_quiz(quiz_holes_inter: holes_inter,
+                                  lambda_quiz_hint: lambda do |holes, holes_inter, _, _|
+                                    solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
+                                                 "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
+                                    quiz_hint_in_show_mic_loop_std(solve_text, 'interval', holes, holes[-1], true)
                        end)
 
 
@@ -139,11 +139,11 @@ module Quiz
       puts
       puts
       prepare_listen_perspective_for_quiz
-      do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
-                       lambda_quiz_hint: lambda do |_holes, _, _, holes_shift_info|
-                         quiz_hint_in_handle_holes_shifted holes_shift_info
-                       end)
-
+      ModeLicks::do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
+                                  lambda_quiz_hint: lambda do |_holes, _, _, holes_shift_info|
+                                    quiz_hint_in_show_mic_loop_shifted holes_shift_info
+                                  end)
+      
 
     elsif $quiz_flavour == 'hit-from-off'
 
@@ -162,11 +162,11 @@ module Quiz
       Text::do_figlet_unwrapped hole_to_hit, 'smblock'
       sleep 0.5
       prepare_listen_perspective_for_quiz
-      do_licks_or_quiz(quiz_hole_to_hit: hole_to_hit,
-                       lambda_quiz_hint: lambda do |holes|
-                         quiz_hint_in_handle_holes_hit_from_off holes[0]
-                       end)
-
+      ModeLicks::do_licks_or_quiz(quiz_hole_to_hit: hole_to_hit,
+                                  lambda_quiz_hint: lambda do |holes|
+                                    quiz_hint_in_show_mic_loop_hit_from_off holes[0]
+                                  end)
+      
 
     elsif $quiz_flavour == 'keep-tempo'
 
@@ -367,7 +367,7 @@ module Quiz
     semi
   end
 
-  def quiz_hint_in_handle_holes_std solve_text, item, holes, hide, offer_disp = false
+  def quiz_hint_in_show_mic_loop_std solve_text, item, holes, hide, offer_disp = false
     choices2desc = { ',solve-print' => "Solve: Print #{item}, but keep current question",
                      '.help-play' => "Play #{item}, so that you may replay it" }
     choices2desc['.help-display'] = 'Switch display to show intervals' if offer_disp
@@ -398,7 +398,7 @@ module Quiz
     Interact::clear_area_message
   end
 
-  def quiz_hint_in_handle_holes_shifted holes_shift_info
+  def quiz_hint_in_show_mic_loop_shifted holes_shift_info
     choices2desc = { '.help-print-unshifted' => 'Solve: Print unshifted sequence, but keep current question',
                      ',solve-print-shifted' => 'Solve: Print shifted sequence, but keep current question',
                      '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
@@ -453,7 +453,7 @@ module Quiz
     $ctl_kb_queue.clear
   end
 
-  def quiz_hint_in_handle_holes_hit_from_off hole
+  def quiz_hint_in_show_mic_loop_hit_from_off hole
     Interact::clear_area_comment
     Interact::clear_area_message
     puts "\e[#{$lines[:comment] + 1}H"
@@ -496,7 +496,7 @@ module Quiz
     collection = if inherited
                    # we only ever inherit (from previous invocations) a collection; never a
                    # specific flavour
-                   [Quiz::get_random_flavour(inherited), inherited]
+                   [ModeQuiz::get_random_flavour(inherited), inherited]
                  elsif $extra == 'choose'
                    choose_flavour_or_collection('all')
                  elsif $extra == 'last'
@@ -529,7 +529,7 @@ module Quiz
       # remember collection for maybe restart
       ENV['HARPWISE_INHERITED_FLAVOUR_COLLECTION'] = collection
 
-      flavour ||= Quiz::get_random_flavour(collection)
+      flavour ||= ModeQuiz::get_random_flavour(collection)
       $pers_data['quiz_flavour_last'] = flavour
 
       # now we have a valid flavour, so inform user and get confirmation
@@ -744,20 +744,20 @@ module Quiz
       # @solution might be string or array
       if [@solution].flatten.include?(answer)
         if respond_to?(:after_solve)
-          Quiz::stand_out "Yes, '#{answer}' is RIGHT!\n\nSome extra info below.", all_green: true
+          ModeQuiz::stand_out "Yes, '#{answer}' is RIGHT!\n\nSome extra info below.", all_green: true
           after_solve
         else
-          Quiz::stand_out "Yes, '#{answer}' is RIGHT!", all_green: true
+          ModeQuiz::stand_out "Yes, '#{answer}' is RIGHT!", all_green: true
         end
         puts
         return next_or_reissue_and_set_key_plus_difficulty
       end
       case answer
       when nil
-        Quiz::stand_out "No input or invalid key?\nPlease try again or\nterminate with ctrl-c ..."
+        ModeQuiz::stand_out "No input or invalid key?\nPlease try again or\nterminate with ctrl-c ..."
         :reask
       when ',again'
-        Quiz::stand_out 'Asking question again.'
+        ModeQuiz::stand_out 'Asking question again.'
         puts
         :reissue
       when ',solve', ',skip'
@@ -767,20 +767,20 @@ module Quiz
                      "        #{[@solution].flatten[0]}"
                    end
         if answer != ',skip' && respond_to?(:after_solve)
-          Quiz::stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
+          ModeQuiz::stand_out "The correct answer is:\n\n#{sol_text}\n\nSome extra info below."
           after_solve
         else
-          Quiz::stand_out "The correct answer is:\n\n#{sol_text}\n"
+          ModeQuiz::stand_out "The correct answer is:\n\n#{sol_text}\n"
         end
         puts
         next_or_reissue_and_set_key_plus_difficulty
       when ',describe'
         has_issue_question = $quiz_flavour2class[$quiz_flavour].method_defined?(:issue_question)
-        Quiz::describe_flavour $quiz_flavour, has_issue_question
+        ModeQuiz::describe_flavour $quiz_flavour, has_issue_question
         :reask
       when all_helps[0]
         if @choices.length > 1
-          Quiz::stand_out 'Removing some choices.'
+          ModeQuiz::stand_out 'Removing some choices.'
           orig_len = @choices.length
           while @choices.length > orig_len / 2
             idx = rand(@choices.length)
@@ -789,7 +789,7 @@ module Quiz
             @choices.delete_at(idx)
           end
         else
-          Quiz::stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
+          ModeQuiz::stand_out "There is only one choice left;\nit should be pretty easy by now.\nYou may also choose 'SOLVE' ..."
         end
         :reask
       when all_helps[1]
@@ -811,7 +811,7 @@ module Quiz
         help7
         :reask
       else
-        Quiz::stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
+        ModeQuiz::stand_out "Sorry, your answer '#{answer}' is wrong\nplease try again ...", turn_red: 'wrong'
         @choices.delete(answer)
         :reask
       end
@@ -903,7 +903,7 @@ module Quiz
         return :reissue
       end
 
-      Quiz::re_calculate_quiz_difficulty
+      ModeQuiz::re_calculate_quiz_difficulty
 
       if char == 'TAB'
         done = false
@@ -940,7 +940,7 @@ module Quiz
             puts "Toggled option \e[92m" + ( $opts[:keep_key] ? 'ON' : 'OFF' ) + "\e[0m."
           when 'RETURN'
             Choose::prepare_for
-            do_change_key
+            ShowMic::do_change_key
             Choose::clean_up
             Cfg::set_global_vars_late
             Cfg::set_global_musical_vars shortcut_licks: true
@@ -1225,7 +1225,7 @@ module Quiz
     end
 
     def help3
-      Quiz::choose_and_play_answer_scale
+      ModeQuiz::choose_and_play_answer_scale
     end
 
     def help3_desc
@@ -1365,7 +1365,7 @@ module Quiz
     end
 
     def help2
-      Quiz::choose_and_play_answer_scale
+      ModeQuiz::choose_and_play_answer_scale
     end
 
     def help2_desc
@@ -1434,7 +1434,7 @@ module Quiz
       @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
 
       begin
-        inter = Quiz::get_random_interval_as_holes
+        inter = ModeQuiz::get_random_interval_as_holes
         @holes = inter[0..1]
         @dsemi = inter[2]
         @solution = inter[3]
@@ -1513,7 +1513,7 @@ module Quiz
     end
 
     def help5
-      Quiz::print_intervals_etc
+      ModeQuiz::print_intervals_etc
     end
 
     def help5_desc
@@ -1787,7 +1787,7 @@ module Quiz
       super
 
       begin
-        inter = Quiz::get_random_interval_as_holes
+        inter = ModeQuiz::get_random_interval_as_holes
         @holes = inter[0..1]
         @dsemi = inter[2]
         @verb = inter[2] > 0 ? 'add' : 'subtract'
@@ -1832,7 +1832,7 @@ module Quiz
     end
 
     def help3
-      Quiz::print_intervals_etc
+      ModeQuiz::print_intervals_etc
     end
 
     def help3_desc
@@ -1972,7 +1972,7 @@ module Quiz
       super
 
       begin
-        inter = Quiz::get_random_interval_as_holes sorted: true
+        inter = ModeQuiz::get_random_interval_as_holes sorted: true
         @holes = inter[0..1]
         @dsemi = inter[2]
         @solution = inter[3]
@@ -2077,7 +2077,7 @@ module Quiz
 
     def after_solve
       puts
-      print_player $players.structured[@solution]
+      ModePrint::print_player $players.structured[@solution]
     end
 
     def issue_question
@@ -2108,7 +2108,7 @@ module Quiz
     def initialize first_round
       super
 
-      harp2song = Quiz::get_harp2song(basic_set: $opts[:difficulty] == :easy)
+      harp2song = ModeQuiz::get_harp2song(basic_set: $opts[:difficulty] == :easy)
 
       @qdesc, @adesc, qi2ai = if rand > 0.5
                                 ['harp', 'song', harp2song]
@@ -2141,7 +2141,7 @@ module Quiz
     end
 
     def help2
-      note = Theory::semi2note(Quiz::key2semi(@solution.downcase))
+      note = Theory::semi2note(ModeQuiz::key2semi(@solution.downcase))
       puts "Playing note (octave #{note[-1]}) for answer-key of #{@adesc}:"
       Interact::make_term_immediate
       $ctl_kb_queue.clear
@@ -2490,7 +2490,7 @@ module Quiz
       @nick = @@seqs[0][1]
       @compare_key = nil
 
-      harp2song = Quiz::get_harp2song(basic_set: $opts[:difficulty] == :easy)
+      harp2song = ModeQuiz::get_harp2song(basic_set: $opts[:difficulty] == :easy)
       @choices = harp2song.keys
       @choices_orig = @choices.clone
 
@@ -2516,7 +2516,7 @@ module Quiz
         puts "\e[34mHear the sequence of notes '#{@nick}' and name its key\e[0m"
         puts "\e[2m" + self.class.describe_difficulty + "\e[0m"
       end
-      isemi = Quiz::key2semi(@solution.downcase)
+      isemi = ModeQuiz::key2semi(@solution.downcase)
       Interact::make_term_immediate
       $ctl_kb_queue.clear
       if @seq == :chord
@@ -2549,7 +2549,7 @@ module Quiz
       puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence."
       Interact::make_term_immediate
       $ctl_kb_queue.clear
-      harp2song = Quiz::get_harp2song(basic_set: false)
+      harp2song = ModeQuiz::get_harp2song(basic_set: false)
       song2harp = harp2song.invert
       compare_key_harp = @compare_key && song2harp[@compare_key]
       compare_key_harp = ::Players::play_interactive_pitch explain: false, start_key: compare_key_harp, return_accepts: true
@@ -2566,7 +2566,7 @@ module Quiz
 
     def help4
       puts 'Playing all possible solutions.'
-      notes = @choices.map {|k| Theory::semi2note(Quiz::key2semi(k))}
+      notes = @choices.map {|k| Theory::semi2note(ModeQuiz::key2semi(k))}
       play_hons hons: notes
     end
 
@@ -2582,7 +2582,7 @@ module Quiz
       Interact::make_term_immediate
       $ctl_kb_queue.clear
       puts
-      ::Players::play_holes_or_notes_and_handle_kb [Theory::semi2note(Quiz::key2semi(@solution))], hide: :help
+      ::Players::play_holes_or_notes_and_handle_kb [Theory::semi2note(ModeQuiz::key2semi(@solution))], hide: :help
       Interact::make_term_cooked
     end
   end
@@ -2727,7 +2727,7 @@ module Quiz
     def play_and_record
       # generate needed sounds
       frac_sound = 0.3
-      intro, = Quiz::quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
+      intro, = ModeQuiz::quiz_generate_tempo('t', @bpm, @beats_intro, frac_sound)
       FileUtils.cp($test_wav, @recording2) if $testing
 
       puts "\e[2K\r\e[0mReady to play?\n\nThen press any key and start to play in sync ..."
@@ -3056,7 +3056,7 @@ module Quiz
 
       @prompt = 'Choose the Tempo you have heard:'
       @help_head = 'Tempo'
-      @sample, = Quiz::quiz_generate_tempo('s', Integer(@solution), @num_beats, 0.5)
+      @sample, = ModeQuiz::quiz_generate_tempo('s', Integer(@solution), @num_beats, 0.5)
     end
 
     def self.describe_difficulty
@@ -3083,7 +3083,7 @@ module Quiz
       end
       Choose::clean_up
       if answer
-        help, = Quiz::quiz_generate_tempo('h', Integer(answer.gsub('compare-', '')), @num_beats, 0.5)
+        help, = ModeQuiz::quiz_generate_tempo('h', Integer(answer.gsub('compare-', '')), @num_beats, 0.5)
         puts "\nPlaying #{@num_beats} beats in tempo #{answer} bpm"
         Interact::make_term_immediate
         $ctl_kb_queue.clear

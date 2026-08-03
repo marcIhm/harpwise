@@ -266,7 +266,7 @@ module Licks
 
       tags_licks = Set.new(all_licks.map {|l| l[:tags]}.flatten)
       # add special tags right now, the licks only below
-      tags_licks << 'journal' if journal_length > 0
+      tags_licks << 'journal' if ModeListen::journal_length > 0
       tags_licks << 'adhoc' if $adhoc_lick_holes
 
       [['--tags-all', keep_all],
@@ -292,7 +292,7 @@ module Licks
                 .select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
       # insert journal as lick
-      if journal_length > 0
+      if ModeListen::journal_length > 0
         lick = { name: 'journal',
                  lno: 1,
                  desc: "The current journal as a lick; see also #{$journal_file}",
@@ -553,9 +553,9 @@ module Licks
     $all_licks || err('Internal error: licks not read before')
 
     # this already errs out for lnames.length > 0 && lpnames.length > 0
-    _, _, lnames, lpnames, = partition_for_mode_or_amongs($opts[:lick_prog].split(','),
-                                                          amongs: %i[lick lick_prog],
-                                                          extra_allowed: false)
+    _, _, lnames, lpnames, = Util::partition_for_mode_or_amongs($opts[:lick_prog].split(','),
+                                                                    amongs: %i[lick lick_prog],
+                                                                    extra_allowed: false)
     if ( lnames.length == 0 && lpnames.length == 0 ) ||
        ( lnames.length > 0  && lpnames.length > 0 )
       err "Internal error, should have had error already in partition: #{lpnames}, #{lnames}"

@@ -167,7 +167,7 @@ module Cfg
     $display_choices_desc = { hole: 'Hole currently played',
                               chart_notes: 'Chart with notes',
                               chart_scales: 'Chart with abbreviated scales',
-                              # these markers are defined further down below and in handle_holes.rb
+                              # these markers are defined further down below and in show_mic.rb
                               chart_scales_simple: 'Chart with markers for initial (@) and other (~%~) scales; bright for root-notes',
                               chart_intervals: 'Chart with intervals to ref as names',
                               chart_inter_semis: 'Chart with intervals to ref as semitones' }
@@ -222,7 +222,7 @@ module Cfg
     $mode_switches = 0
     $ctl_response_default = 'SPACE to pause; h for help'
     # also sets $warbles and clears $warbles_other_hole
-    clear_warbles(true)
+    ShowMic::clear_warbles(true)
 
     # The same volume for recordings and pitch
     $vol = Volume.new(-6)
@@ -297,8 +297,8 @@ module Cfg
     #
     # Prepare meta information about quiz flavours and their tags
     #
-    $quiz_flavour2class = Quiz::Flavour.subclasses.map do |subclass|
-      [subclass.to_s.underscore.tr('_', '-').gsub(/^quiz\//,''), subclass]
+    $quiz_flavour2class = ModeQuiz::Flavour.subclasses.map do |subclass|
+      [subclass.to_s.underscore.tr('_', '-').gsub(/^mode-quiz\//,''), subclass]
     end.to_h
     $quiz_coll2flavs = Hash.new
     # $q_class2colls comes from the individual flavour classes
@@ -1357,7 +1357,7 @@ module Cfg
       $all_licks, $licks, $all_lick_progs = Licks::read_licks(use_opt_lick_prog: !!$all_licks)
     end
 
-    $jamming_dirs_content, $jamming_rel2abs = get_jamming_dirs_content if %i[play print jamming tools].include?($mode)
+    $jamming_dirs_content, $jamming_rel2abs = ModeJamming::get_jamming_dirs_content if %i[play print jamming tools].include?($mode)
 
     $freq2hole = read_samples if $samples_needed
     if $opts[:ref]

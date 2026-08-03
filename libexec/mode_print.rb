@@ -2,855 +2,859 @@
 # Print from the command line
 #
 
-def do_print to_print
-  # We expect lick-names on command line, so dont narrow to tag-selection
-  $licks = $all_licks unless $extra
+module ModePrint
+  extend self
+  
+  def do_print to_print
+    # We expect lick-names on command line, so dont narrow to tag-selection
+    $licks = $all_licks unless $extra
 
-  puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
-  puts
+    puts "\n\e[2mType is #{$type}, key of #{$key}, scale #{$scale}, #{$licks.length} of #{$all_licks.length} licks.\e[0m"
+    puts
 
-  if $extra
-    args_for_extra = to_print
-    if $opts[:lick_prog]
-      allowed = %w[licks-details licks-list licks-list-all]
-      err "Options --lick-prog only useful for these extra arguments: #{allowed.join(',')}, not #{$extra}" unless allowed.include?($extra)
-      _ = Licks::process_opt_lick_prog
-      $all_licks, $licks, $all_lick_progs = Licks::read_licks
-    end
-  else
-    holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames = partition_for_mode_or_amongs(to_print, extra_allowed: true)
-  end
-
-  # common error checking
-  Util::err_args_not_allowed(args_for_extra) if $extra && !%w[player players lick-progs lick-progressions scale scales chart charts].include?($extra) && args_for_extra.length > 0
-
-  if !$extra
-
-    if holes_or_notes.length > 0
-
-      puts 'Printing holes or notes given as arguments.'
-      puts
-      print_holes_and_more holes_or_notes
-
-    elsif semis.length > 0
-
-      puts 'Printing semitones given as arguments.'
-      puts
-      print_semis semis
-
-    elsif snames.length > 0
-
-      puts 'Printing scales given as arguments.'
-      puts
-      snames.each do |sn|
-        sname = Args::get_scale_from_sws(sn)
-        from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
-        Text::puts_underlined "#{sname}   (#{from}):", '-', dim: false
-        puts
-        scale_holes, = Cfg::read_and_parse_scale(sname)
-        print_holes_and_more scale_holes, embedded: true
-        if $scale2desc[sname] || $scale2short[sname]
-          puts
-          puts "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
-          puts "\e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
-          puts
-        end
-        puts
+    if $extra
+      args_for_extra = to_print
+      if $opts[:lick_prog]
+        allowed = %w[licks-details licks-list licks-list-all]
+        err "Options --lick-prog only useful for these extra arguments: #{allowed.join(',')}, not #{$extra}" unless allowed.include?($extra)
+        _ = Licks::process_opt_lick_prog
+        $all_licks, $licks, $all_lick_progs = Licks::read_licks
       end
-      puts "#{snames.length} scales printed." unless $opts[:brief]
-
-    elsif spnames.length > 0
-
-      puts 'Printing scale progressions given as arguments.'
-      puts
-      spnames.each do |spnm|
-        print_single_scale_prog(spnm)
-      end
-      puts
-      puts_user_defined_hint :scale_progs
-
-    elsif lnames.length > 0
-
-      puts 'Printing licks given as arguments.'
-      puts
-      lnames.each do |lname|
-        print_single_lick lname
-        puts if lnames.length > 1
-      end
-      puts "#{lnames.length} licks printed." unless $opts[:brief]
-
-    elsif lpnames.length > 0
-
-      puts 'Printing lick progressions given as arguments.'
-      puts
-      lpnames.each do |lpnm|
-        lp = $all_lick_progs.values.find {|lp| lp[:name] == lpnm}
-        print_single_lick_prog(lp)
-      end
-
-    elsif jmnames.length > 0
-
-      puts 'Printing jams given as arguments.'
-      puts
-      jmnames.each do |jmnm|
-        do_jamming_list_single $jamming_rel2abs[jmnm]
-      end
-
     else
-
-      raise 'Internal error'
-
+      holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames = Util::partition_for_mode_or_amongs(to_print, extra_allowed: true)
     end
 
-  else
+    # common error checking
+    Util::err_args_not_allowed(args_for_extra) if $extra && !%w[player players lick-progs lick-progressions scale scales chart charts].include?($extra) && args_for_extra.length > 0
 
-    case $extra
+    if !$extra
 
-    when 'licks-details'
+      if holes_or_notes.length > 0
 
-      Text::puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:brief]
-      $licks.each do |lick|
-        if $opts[:brief]
-          puts "#{lick[:name]}:"
-        else
+        puts 'Printing holes or notes given as arguments.'
+        puts
+        print_holes_and_more holes_or_notes
+
+      elsif semis.length > 0
+
+        puts 'Printing semitones given as arguments.'
+        puts
+        print_semis semis
+
+      elsif snames.length > 0
+
+        puts 'Printing scales given as arguments.'
+        puts
+        snames.each do |sn|
+          sname = Args::get_scale_from_sws(sn)
+          from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
+          Text::puts_underlined "#{sname}   (#{from}):", '-', dim: false
           puts
-          Text::puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
+          scale_holes, = Cfg::read_and_parse_scale(sname)
+          print_holes_and_more scale_holes, embedded: true
+          if $scale2desc[sname] || $scale2short[sname]
+            puts
+            puts "\e[2mShort: #{$scale2short[sname]}\e[0m   " if $scale2short[sname]
+            puts "\e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
+            puts
+          end
+          puts
         end
-        print_holes_and_more lick[:holes_wo_events], embedded: true
-        print_lick_meta lick unless $opts[:brief]
-      end
-      puts
-      puts "\e[2mTotal count of licks printed:  \e[0m#{$licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
+        puts "#{snames.length} scales printed." unless $opts[:brief]
 
-    when 'licks-list', 'licks-list-all'
+      elsif spnames.length > 0
 
-      if $extra['all']
-        Text::puts_underlined 'All licks as a list:'
-        licks = $all_licks
+        puts 'Printing scale progressions given as arguments.'
+        puts
+        spnames.each do |spnm|
+          print_single_scale_prog(spnm)
+        end
+        puts
+        puts_user_defined_hint :scale_progs
+
+      elsif lnames.length > 0
+
+        puts 'Printing licks given as arguments.'
+        puts
+        lnames.each do |lname|
+          print_single_lick lname
+          puts if lnames.length > 1
+        end
+        puts "#{lnames.length} licks printed." unless $opts[:brief]
+
+      elsif lpnames.length > 0
+
+        puts 'Printing lick progressions given as arguments.'
+        puts
+        lpnames.each do |lpnm|
+          lp = $all_lick_progs.values.find {|lp| lp[:name] == lpnm}
+          print_single_lick_prog(lp)
+        end
+
+      elsif jmnames.length > 0
+
+        puts 'Printing jams given as arguments.'
+        puts
+        jmnames.each do |jmnm|
+          ModeJamming::do_jamming_list_single $jamming_rel2abs[jmnm]
+        end
+
       else
-        Text::puts_underlined 'Selected licks as a list:'
-        print "\e[2m"
-        if $licks == $all_licks
-          puts 'where set of licks has not been restricted by tags'
-        else
-          puts "after applying these tag-options: #{Licks::desc_lick_select_opts}"
+
+        raise 'Internal error'
+
+      end
+
+    else
+
+      case $extra
+
+      when 'licks-details'
+
+        Text::puts_underlined 'Licks selected by e.g. tags and hole-count, progression:', vspace: !$opts[:brief]
+        $licks.each do |lick|
+          if $opts[:brief]
+            puts "#{lick[:name]}:"
+          else
+            puts
+            Text::puts_underlined "#{lick[:name]}:", '-', dim: false, vspace: false
+          end
+          print_holes_and_more lick[:holes_wo_events], embedded: true
+          print_lick_meta lick unless $opts[:brief]
         end
-        puts "\e[0m"
-        licks = $licks
+        puts
+        puts "\e[2mTotal count of licks printed:  \e[0m#{$licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
+
+      when 'licks-list', 'licks-list-all'
+
+        if $extra['all']
+          Text::puts_underlined 'All licks as a list:'
+          licks = $all_licks
+        else
+          Text::puts_underlined 'Selected licks as a list:'
+          print "\e[2m"
+          if $licks == $all_licks
+            puts 'where set of licks has not been restricted by tags'
+          else
+            puts "after applying these tag-options: #{Licks::desc_lick_select_opts}"
+          end
+          puts "\e[0m"
+          licks = $licks
+        end
+        puts "  \e[2m(name : holes : description)\e[0m"
+        puts
+        maxl = licks.map {|l| l[:name].length}.max
+        licks.each do |lick|
+          puts "  #{lick[:name].ljust(maxl)} \e[2m: #{lick[:holes].length.to_s.rjust(3)}  :  #{lick[:desc]}\e[0m"
+        end
+        puts
+        puts "\e[2mThe lick-names for cut-and-paste:"
+        puts licks.map {|l| l[:name]}.join(' ')
+        puts
+        puts "\e[2mTotal count of licks printed:  \e[0m#{licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
+
+      when 'licks-with-tags'
+
+        print_licks_by_tags $licks
+
+      when 'licks-tags-stats'
+
+        print_lick_and_tag_stats $all_licks
+
+      when 'licks-history'
+
+        print_last_licks_from_history $all_licks
+
+      when 'licks-starred'
+
+        print_starred_licks
+
+      when 'lick-progs', 'lick-progressions'
+
+        print_lick_progs args_for_extra
+
+      when 'licks-dump'
+
+        print JSON.pretty_generate($licks)
+
+      when 'holes-history'
+
+        print_last_holes_from_history $all_licks
+
+      when 'scales'
+
+        print_scales args_for_extra
+
+      when 'scale-progs', 'scale-progressions'
+
+        Text::puts_underlined 'All scale-progressions:'
+        $all_scale_progs.map do |spnm, _|
+          print_single_scale_prog spnm
+        end
+        puts
+        puts_user_defined_hint :scale_progs
+
+      when 'intervals'
+
+        puts
+        puts 'Known intervals: semitones and various names'
+        puts
+        $intervals.each do |st, names|
+          puts " %3dst: #{names.join(', ')}" % st
+        end
+        puts
+
+      when 'player', 'players'
+
+        $players = FamousPlayers.new
+        print_players args_for_extra
+
+      when 'jams'
+
+        ModeJamming::do_jamming_list
+
+      when 'chart', 'charts'
+
+        ModeTools::tool_chart args_for_extra
+
+      else
+
+        raise "Internal error: unknown extra '#{$extra}'"
+
       end
-      puts "  \e[2m(name : holes : description)\e[0m"
-      puts
-      maxl = licks.map {|l| l[:name].length}.max
-      licks.each do |lick|
-        puts "  #{lick[:name].ljust(maxl)} \e[2m: #{lick[:holes].length.to_s.rjust(3)}  :  #{lick[:desc]}\e[0m"
-      end
-      puts
-      puts "\e[2mThe lick-names for cut-and-paste:"
-      puts licks.map {|l| l[:name]}.join(' ')
-      puts
-      puts "\e[2mTotal count of licks printed:  \e[0m#{licks.length}  \e[2m(out of #{$all_licks.length})\e[0m"
-
-    when 'licks-with-tags'
-
-      print_licks_by_tags $licks
-
-    when 'licks-tags-stats'
-
-      print_lick_and_tag_stats $all_licks
-
-    when 'licks-history'
-
-      print_last_licks_from_history $all_licks
-
-    when 'licks-starred'
-
-      print_starred_licks
-
-    when 'lick-progs', 'lick-progressions'
-
-      print_lick_progs args_for_extra
-
-    when 'licks-dump'
-
-      print JSON.pretty_generate($licks)
-
-    when 'holes-history'
-
-      print_last_holes_from_history $all_licks
-
-    when 'scales'
-
-      print_scales args_for_extra
-
-    when 'scale-progs', 'scale-progressions'
-
-      Text::puts_underlined 'All scale-progressions:'
-      $all_scale_progs.map do |spnm, _|
-        print_single_scale_prog spnm
-      end
-      puts
-      puts_user_defined_hint :scale_progs
-
-    when 'intervals'
-
-      puts
-      puts 'Known intervals: semitones and various names'
-      puts
-      $intervals.each do |st, names|
-        puts " %3dst: #{names.join(', ')}" % st
-      end
-      puts
-
-    when 'player', 'players'
-
-      $players = FamousPlayers.new
-      print_players args_for_extra
-
-    when 'jams'
-
-      do_jamming_list
-
-    when 'chart', 'charts'
-
-      tool_chart args_for_extra
-
-    else
-
-      raise "Internal error: unknown extra '#{$extra}'"
 
     end
-
+    puts
   end
-  puts
-end
 
-def print_holes_and_more holes_or_notes, embedded: false
-  holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
-  notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
+  def print_holes_and_more holes_or_notes, embedded: false
+    holes = holes_or_notes.map {|hon| $note2hole[hon] || hon}
+    notes = holes_or_notes.map {|hon| $harp.dig(hon, :note) || hon}
 
-  brief, verbose = if embedded
-                     if $opts[:verbose]
-                       [false, false]
+    brief, verbose = if embedded
+                       if $opts[:verbose]
+                         [false, false]
+                       else
+                         [true, false]
+                       end
                      else
-                       [true, false]
+                       [$opts[:brief], $opts[:verbose]]
                      end
-                   else
-                     [$opts[:brief], $opts[:verbose]]
-                   end
 
 
-  if embedded
-    print "\e[2mHoles or notes:"
-    if holes_or_notes.length == 0
-      puts "  none\e[0m"
-    else
-      puts "\e[0m"
-      Text::print_in_columns holes_or_notes
+    if embedded
+      print "\e[2mHoles or notes:"
+      if holes_or_notes.length == 0
+        puts "  none\e[0m"
+      else
+        puts "\e[0m"
+        Text::print_in_columns holes_or_notes
+      end
+      return if brief
     end
+
+    puts "\e[2mAs notes:\e[0m"
+    Text::print_in_columns(notes)
+    puts
+    puts "\e[2mAs holes:\e[0m"
+    Text::print_in_columns(holes, lowlights: notes)
+    puts
+
     return if brief
-  end
 
-  puts "\e[2mAs notes:\e[0m"
-  Text::print_in_columns(notes)
-  puts
-  puts "\e[2mAs holes:\e[0m"
-  Text::print_in_columns(holes, lowlights: notes)
-  puts
-
-  return if brief
-
-  if $used_scales[0] == 'all'
-    puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
-    puts
-  else
-    scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
-    puts "\e[2mHoles or notes with scales (#{scales_text}):\e[0m"
-    Text::print_in_columns(scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-    puts
-  end
-  if verbose
-    puts "\e[2mWith intervals between:\e[0m"
-    Text::print_in_columns(intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-    puts
-    puts "\e[2mWith intervals between as semitones:\e[0m"
-    Text::print_in_columns(intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
-    puts
-    puts "\e[2mWith intervals to first:\e[0m"
-    Text::print_in_columns(intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
-    puts
-    puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
-    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
-    puts
-    puts "\e[2mWith intervals to first as semitones:\e[0m"
-    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
-    puts
-    puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
-    Text::print_in_columns(intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
-    puts
-  end
-  puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
-  Text::print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
-  puts unless embedded
-  return unless verbose
-
-  puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  Text::print_in_columns(holes_or_notes.map {|x| '%.2f' % Theory::semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
-  puts
-  puts "\e[2mIn chart with notes:\e[0m"
-  print_chart_with_notes notes
-end
-
-def hon2semi hon
-  Theory::note2semi(
-    if $harp_holes.include?(hon)
-      $hole2note[hon]
+    if $used_scales[0] == 'all'
+      puts "\e[2mHoles or notes with scales omitted, because no scale specified.\e[0m"
+      puts
     else
-      hon
+      scales_text = $used_scales.map {|s| s + ':' + $scale2short[s]}.join(',')
+      puts "\e[2mHoles or notes with scales (#{scales_text}):\e[0m"
+      Text::print_in_columns(ModeLicks::scaleify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+      puts
     end
-  ).to_s
-end
+    if verbose
+      puts "\e[2mWith intervals between:\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+      puts
+      puts "\e[2mWith intervals between as semitones:\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+      puts
+      puts "\e[2mWith intervals to first:\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify_to_first(holes_or_notes).map {|ps| ins_dot_mb(ps)})
+      puts
+      puts "\e[2mWith intervals to first, positive, maybe minus octaves:\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify_to_first(holes_or_notes, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+      puts
+      puts "\e[2mWith intervals to first as semitones:\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify_to_first(holes_or_notes, prefer_names: false).map {|ps| ins_dot_mb(ps)})
+      puts
+      puts "\e[2mWith intervals to first as positive semitones (maybe minus octaves):\e[0m"
+      Text::print_in_columns(ModeLicks::intervalify_to_first(holes_or_notes, prefer_names: false, prefer_plus: true).map {|ps| ins_dot_mb(ps)})
+      puts
+    end
+    puts "\e[2mAs absolute semitones (a4 = 0):\e[0m"
+    Text::print_in_columns(holes_or_notes.map {|x| hon2semi(x)}, pad: :tabs)
+    puts unless embedded
+    return unless verbose
 
-def ins_dot_mb parts
-  parts[0] + parts[1] +
-    ( parts[2].strip.length > 0 ? '.' + parts[2] : parts[2] )
-end
-
-def print_interval s1, s2
-  iname = $intervals[s2 - s1]
-  puts '  Interval ' +
-       if iname
-         iname[0] + " (#{s2 - s1}st)"
-       else
-         "#{s2 - s1}st"
-       end + ':'
-  puts
-  Theory::print_semis_as_abs('    from: ', s1, '      to: ', s2)
-end
-
-def print_progression_view prog
-  print '  '
-  prog.each {|p| print p.to_s.rjust(8)}
-  puts "\n\n"
-end
-
-def get_progression_views prog
-  [prog.map {|s| $semi2hole[s] || '--'},
-   prog.map {|s| Theory::semi2note(s) || '--'},
-   prog,
-   prog.map.with_index {|s, idx| idx == 0 ? 0 : (s - prog[0])}]
-end
-
-def print_lick_and_tag_stats licks
-  puts "\n(read from #{$lick_file})\n\n"
-
-  Text::puts_underlined "\nStatistics for all licks and tags"
-
-  # stats for tags
-  puts "All tags and the count of licks they appear in:\n\n"
-  counts = Hash.new {|h, k| h[k] = 0}
-  licks.each do |lick|
-    lick[:tags].each {|tag| counts[tag] += 1}
+    puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
+    Text::print_in_columns(holes_or_notes.map {|x| '%.2f' % Theory::semi2freq_et(hon2semi(x).to_i)}, pad: :tabs)
+    puts
+    puts "\e[2mIn chart with notes:\e[0m"
+    print_chart_with_notes notes
   end
-  long_text = 'Total number of different tags:'
-  maxlen = [long_text.length, counts.keys.max_by(&:length).length].max
-  format = "  %-#{maxlen}s %6s\n"
-  line = ' ' + '-' * (maxlen + 10)
-  printf format, 'Tag', 'Count'
-  puts line
-  counts.keys.sort.each {|k| printf format, k, counts[k]}
-  puts line
-  printf format, 'Total number of tags:', counts.values.sum
-  printf format, long_text, counts.keys.length
-  puts line
-  printf format, 'Total number of licks: ', licks.length
 
-  # stats for lick lengths
-  puts "\nCounting licks by number of holes:\n"
-  format = "  %2d ... %2d     %3d\n"
-  line = '  ----------    ---------------'
-  puts "\n  Hole Range    Number of Licks"
-  puts line
-  by_len = licks.group_by {|l| l[:holes].length}
-  cnt = 0
-  lens = []
-  by_len.keys.sort.each_with_index do |len, idx|
-    cnt += by_len[len].length
-    lens << len
-    next unless cnt > licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
+  def hon2semi hon
+    Theory::note2semi(
+      if $harp_holes.include?(hon)
+        $hole2note[hon]
+      else
+        hon
+      end
+    ).to_s
+  end
 
-    printf format % [lens[0], lens[-1], cnt]
+  def ins_dot_mb parts
+    parts[0] + parts[1] +
+      ( parts[2].strip.length > 0 ? '.' + parts[2] : parts[2] )
+  end
+
+  def print_interval s1, s2
+    iname = $intervals[s2 - s1]
+    puts '  Interval ' +
+         if iname
+           iname[0] + " (#{s2 - s1}st)"
+         else
+           "#{s2 - s1}st"
+         end + ':'
+    puts
+    Theory::print_semis_as_abs('    from: ', s1, '      to: ', s2)
+  end
+
+  def print_progression_view prog
+    print '  '
+    prog.each {|p| print p.to_s.rjust(8)}
+    puts "\n\n"
+  end
+
+  def get_progression_views prog
+    [prog.map {|s| $semi2hole[s] || '--'},
+     prog.map {|s| Theory::semi2note(s) || '--'},
+     prog,
+     prog.map.with_index {|s, idx| idx == 0 ? 0 : (s - prog[0])}]
+  end
+
+  def print_lick_and_tag_stats licks
+    puts "\n(read from #{$lick_file})\n\n"
+
+    Text::puts_underlined "\nStatistics for all licks and tags"
+
+    # stats for tags
+    puts "All tags and the count of licks they appear in:\n\n"
+    counts = Hash.new {|h, k| h[k] = 0}
+    licks.each do |lick|
+      lick[:tags].each {|tag| counts[tag] += 1}
+    end
+    long_text = 'Total number of different tags:'
+    maxlen = [long_text.length, counts.keys.max_by(&:length).length].max
+    format = "  %-#{maxlen}s %6s\n"
+    line = ' ' + '-' * (maxlen + 10)
+    printf format, 'Tag', 'Count'
+    puts line
+    counts.keys.sort.each {|k| printf format, k, counts[k]}
+    puts line
+    printf format, 'Total number of tags:', counts.values.sum
+    printf format, long_text, counts.keys.length
+    puts line
+    printf format, 'Total number of licks: ', licks.length
+
+    # stats for lick lengths
+    puts "\nCounting licks by number of holes:\n"
+    format = "  %2d ... %2d     %3d\n"
+    line = '  ----------    ---------------'
+    puts "\n  Hole Range    Number of Licks"
+    puts line
+    by_len = licks.group_by {|l| l[:holes].length}
     cnt = 0
     lens = []
-  end
-  printf format % [lens[0], lens[-1], cnt] if lens.length > 0
-  puts line
-  puts format % [by_len.keys.minmax, licks.length].flatten
-  puts
-end
+    by_len.keys.sort.each_with_index do |len, idx|
+      cnt += by_len[len].length
+      lens << len
+      next unless cnt > licks.length / 10 || ( idx == by_len.keys.length && cnt > 0)
 
-def print_last_licks_from_history _licks
-  puts "\e[2mList of most recent licks played, modes licks and play:"
-  puts "  - abbrev (e.g. '2l') for '--start-with'"
-  puts "  - name of lick\e[0m"
-  puts
-  puts "\e[2mHistory-records in reverse order: Last lick comes first,\n timestamp of start last:\e[0m"
-  puts
-  cnt = 1
-  # must be consistent with selection in shortcut2history_record
-  records = Util::get_prior_history_records(:licks, :play)
-            .select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
-  if records.length == 0
-    puts "No lick-history found for modes 'lick' or 'play' in file\n  #{$history_file}.\n\n"
-    exit 0
+      printf format % [lens[0], lens[-1], cnt]
+      cnt = 0
+      lens = []
+    end
+    printf format % [lens[0], lens[-1], cnt] if lens.length > 0
+    puts line
+    puts format % [by_len.keys.minmax, licks.length].flatten
+    puts
   end
-  records.each do |rec|
-    if rec[:rec_type] == :start
-      puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
-    elsif rec[:rec_type] == :skipping
-      puts "\e[2m  ...\e[0m"
-    else
-      print '     '
-      if cnt == 1
-        print ' l: '
-      elsif cnt <= 9
-        print cnt.to_s + 'l: '
+
+  def print_last_licks_from_history _licks
+    puts "\e[2mList of most recent licks played, modes licks and play:"
+    puts "  - abbrev (e.g. '2l') for '--start-with'"
+    puts "  - name of lick\e[0m"
+    puts
+    puts "\e[2mHistory-records in reverse order: Last lick comes first,\n timestamp of start last:\e[0m"
+    puts
+    cnt = 1
+    # must be consistent with selection in shortcut2history_record
+    records = Util::get_prior_history_records(:licks, :play)
+                .select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
+    if records.length == 0
+      puts "No lick-history found for modes 'lick' or 'play' in file\n  #{$history_file}.\n\n"
+      exit 0
+    end
+    records.each do |rec|
+      if rec[:rec_type] == :start
+        puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
+      elsif rec[:rec_type] == :skipping
+        puts "\e[2m  ...\e[0m"
       else
-        print '    '
-      end
-      cnt += 1
-      puts rec[:name]
-    end
-  end
-  puts
-  puts "\e[2m(from #{$history_file})\e[0m"
-  puts
-end
-
-def print_last_holes_from_history _licks
-  puts "\e[2mList of most recent holes played, no matter which mode:"
-  puts
-  puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
-  puts
-  records = Util::get_prior_history_records(:licks, :play, :quiz)
-  if records.length == 0
-    puts "No history found for any mode.\n\n"
-    exit 0
-  end
-  records.each do |rec|
-    if rec[:rec_type] == :start
-      puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
-    elsif rec[:rec_type] == :skipping
-      puts "\e[2m  ...\e[0m"
-    else
-      puts "  mode #{rec[:mode]}, #{rec[:play_type]} '#{rec[:name]}':   #{rec[:holes].join('  ')}"
-    end
-  end
-  puts
-  puts "\e[2m(from #{$history_file})\e[0m"
-  puts
-end
-
-def print_scales scales
-  if scales.length == 0
-    scales = $all_scales
-    scales_given = false
-  else
-    scales.each do |s|
-      err "Scale '#{s}' given as argument is unknown among all scales:  #{$all_scales.join(' ')}" unless $all_scales.include?(s)
-    end
-    scales_given = true
-  end
-  if $opts[:brief]
-    Text::print_in_columns(scales, pad: :tabs)
-  else
-    unless scales_given
-      Text::puts_underlined 'All scales:'
-      puts
-    end
-    maxs = scales.map {|s| s.length}.max
-    scales.each do |sname|
-      # need this to fill scale2short
-      Cfg::read_and_parse_scale(sname)
-      scale_holes, _, sfile = Cfg::read_and_parse_scale_simple(sname, $harp)
-      from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
-      puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
-      puts "   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"
-      puts "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
-      puts "   \e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
-      puts "   \e[2mFile: #{sfile}\e[0m" if scales.length == 1
-    end
-  end
-  puts
-  return if scales_given
-
-  puts_user_defined_hint(:scales)
-  puts "\e[2mTotal count of scales printed:  \e[0m#{scales.length}"
-end
-
-def print_licks_by_tags licks
-  puts "\n(read from #{$lick_file})\n\n"
-
-  Text::puts_underlined "\nReporting for licks selected by tags and hole-count only"
-
-  ltags = tags = nil
-  puts 'Licks with their tags:'
-  puts
-  print '  '
-  licks.each do |lick|
-    tags = lick[:tags].join(',')
-    if ltags && ltags != tags
-      print " ..... #{ltags}\n  "
-    elsif ltags
-      print ','
-    end
-    print lick[:name]
-    ltags = tags
-  end
-  puts " ..... #{ltags}"
-  puts "\n  Total number of licks:   #{licks.length}"
-  puts
-end
-
-def print_starred_licks
-  print "Licks with (un)stars:\n\n"
-  maxlen = $starred.keys.map(&:length).max
-  if $starred.keys.length > 0
-    $starred.keys.sort {|x, y| $starred[x] <=> $starred[y]}.each do |lname|
-      puts "  %-#{maxlen}s: %4d" % [lname, $starred[lname]]
-    end
-  else
-    puts '   -- none --'
-  end
-  puts "\e[2m"
-  puts 'Total number of   starred licks..' + ('%6d' % $starred.values.select {|x| x > 0}.length).gsub(' ', '.')
-  puts '             of unstarred licks..' + ('%6d' % $starred.values.select {|x| x < 0}.length).gsub(' ', '.')
-  puts '                    Sum of both..' + ('%6d' % $starred.values.select {|x| x != 0}.length).gsub(' ', '.')
-  puts 'Total number of selected licks...' + ('%6d' % $licks.length).gsub(' ', '.')
-  puts '             of      all licks...' + ('%6d' % $all_licks.length).gsub(' ', '.')
-  puts
-  puts "Stars from: #{$star_file}\e[0m\n"
-end
-
-def print_players args
-  puts
-
-  # If we have an external viewer (like feh), we get an exception on
-  # ctrl-c otherwise
-  Thread.report_on_exception = false
-
-  if args.length == 0
-    Text::puts_underlined 'Players known to harpwise'
-    $players.all.each {|p| puts '  ' + p + "\e[0m"}
-    puts
-    puts "\e[2m  r,random: pick one of these at random"
-    puts '  l,last: last player (if any) featured in listen'
-    puts "  a,all: all players shuffled in a loop\n\n"
-    puts 'Remarks:'
-    puts '- Most information is taken from Wikipedia; sources are provided.'
-    puts "- You may add your own pictures to already created subdirs of\n    #{$dirs[:players_pictures]}"
-    puts "- Players, which do not have all details yet, are dimmed\e[0m"
-    puts
-    puts "#{$players.all_with_details.length} players with details; specify a single name (or part of) to read details."
-
-  elsif args.length == 1 && 'random'.start_with?(args[0])
-    print_player $players.structured[$players.all_with_details.sample]
-
-  elsif args.length == 1 && 'last'.start_with?(args[0])
-    if $pers_data['players_last']
-      player = $players.structured[$pers_data['players_last']]
-      if player
-        print_player player
-      else
-        puts "Name '#{name}' from '#{$pers_file}' is unknown (?)"
-      end
-    else
-      puts "No player recorded in '#{$pers_file}'\ninvoke mode listen first"
-    end
-
-  elsif args.length == 1 && 'all'.start_with?(args[0])
-
-    all_players = $players.all_with_details.shuffle
-    all_players.each_with_index do |name, idx|
-      puts
-      puts
-      print_player $players.structured[name], in_loop: true
-      next unless idx + 1 < all_players.length &&
-                  ( $opts[:viewer] != 'window' || !$players.structured[name]['image'] )
-
-      Interact::make_term_immediate
-      puts
-      puts "\e[2m#{idx + 1} of #{all_players.length}; press any key for next Player ...\e[0m"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      Interact::make_term_cooked
-    end
-    puts
-    puts "#{$players.all_with_details.length} players with their details."
-
-  else
-
-    selected_by_name, selected_by_content = $players.select(args)
-    selected = (selected_by_name + selected_by_content).uniq
-    total = selected.length
-    if total == 0
-      puts 'No player matches your input; invoke without arguments to see a complete list of players'
-    elsif selected_by_name.length == 1
-      print_player $players.structured[selected_by_name[0]]
-    elsif selected_by_name.length == 0 && selected_by_content.length == 1
-      puts "\e[2mPlease note, that your input matches the \e[0mcontent only\e[2m for this player, but not its name.\e[0m"
-      puts
-      print_player $players.structured[selected_by_content[0]], highlight: args
-    else
-      puts "Multiple players match your input:\n"
-      puts
-      if selected_by_name.length <= 9
-        if selected_by_content.length > 0
-          puts "\e[2mMatches in content:\e[0m"
-          puts
-          selected_by_content.each_with_index do |p, i|
-            j = i + 1 + selected_by_name.length
-            if j > 9
-              puts "\e[2m  ... more matches omitted\e[0m"
-              break
-            end
-            puts(('  %2d: ' % (i + 1 + selected_by_name.length)) + p + "\e[0m")
-          end
-        end
-        if selected_by_name.length > 0
-          puts "\n\e[2mMatches in name:\e[0m"
-          puts
-          selected_by_name.each_with_index do |p, i|
-            pcol = p.clone
-            args.each do |ar|
-              pcol.gsub!(/(#{Regexp.escape(ar)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
-            end
-            puts(('  %2d: ' % (i + 1)) + pcol + "\e[0m")
-          end
-        end
-        Interact::make_term_immediate
-        $ctl_kb_queue.clear
-        4.times do
-          puts
-          sleep 0.04
-        end
-        print "\e[3A"
-        print "Please type one of (1..#{[total, 9].min}) to read details: "
-        char = $ctl_kb_queue.deq
-        Interact::make_term_cooked
-        if (1..total).map(&:to_s).include?(char)
-          puts char
-          puts "\n----------------------\n\n"
-          print_player $players.structured[selected[char.to_i - 1]], highlight: args
+        print '     '
+        if cnt == 1
+          print ' l: '
+        elsif cnt <= 9
+          print cnt.to_s + 'l: '
         else
-          puts "Invalid input: #{char}"
+          print '    '
         end
-      else
-        puts "\e[2mMatches in content:\e[0m"
-        selected_by_content.each {|p| puts '  ' + p}
-        puts "\e[2mMatches in name:\e[0m"
-        selected_by_name.each {|p| puts '  ' + p}
-        puts
-        puts "Too many matches (#{selected.length}); please be more specific"
+        cnt += 1
+        puts rec[:name]
       end
     end
     puts
+    puts "\e[2m(from #{$history_file})\e[0m"
+    puts
   end
-end
 
-def print_player player, highlight: nil, in_loop: false
-  Text::puts_underlined player['name']
-  # from Text::puts_underlined
-  lines = 3
-  twidth = 0
-  if $players.has_details?[player['name']]
-    unless player['image']
-      puts "\e[4A"
-      ['no image yet', 'see below on how', 'to add one'].each do |line|
-        puts "\e[#{$term_width - 6 - line.length}C\e[0m\e[2m#{line}\e[0m"
+  def print_last_holes_from_history _licks
+    puts "\e[2mList of most recent holes played, no matter which mode:"
+    puts
+    puts "\e[2mHistory-records in reverse order: Last played holes come first,\n timestamp of start last:\e[0m"
+    puts
+    records = Util::get_prior_history_records(:licks, :play, :quiz)
+    if records.length == 0
+      puts "No history found for any mode.\n\n"
+      exit 0
+    end
+    records.each do |rec|
+      if rec[:rec_type] == :start
+        puts "\e[2m Start with mode #{rec[:mode]} at #{rec[:timestamps][0]}\e[0m"
+      elsif rec[:rec_type] == :skipping
+        puts "\e[2m  ...\e[0m"
+      else
+        puts "  mode #{rec[:mode]}, #{rec[:play_type]} '#{rec[:name]}':   #{rec[:holes].join('  ')}"
       end
     end
-    $players.all_groups.each do |group|
-      next if group == 'name' || player[group].length == 0
-      next if group == 'sources'
+    puts
+    puts "\e[2m(from #{$history_file})\e[0m"
+    puts
+  end
 
-      puts "\e[32m#{group.capitalize}:\e[0m"
-      lines += 1
-      player[group].each do |line|
-        txt = "  #{line}"
-        if highlight
-          highlight.each do |hl|
-            txt.gsub!(/(#{Regexp.escape(hl)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
+  def print_scales scales
+    if scales.length == 0
+      scales = $all_scales
+      scales_given = false
+    else
+      scales.each do |s|
+        err "Scale '#{s}' given as argument is unknown among all scales:  #{$all_scales.join(' ')}" unless $all_scales.include?(s)
+      end
+      scales_given = true
+    end
+    if $opts[:brief]
+      Text::print_in_columns(scales, pad: :tabs)
+    else
+      unless scales_given
+        Text::puts_underlined 'All scales:'
+        puts
+      end
+      maxs = scales.map {|s| s.length}.max
+      scales.each do |sname|
+        # need this to fill scale2short
+        Cfg::read_and_parse_scale(sname)
+        scale_holes, _, sfile = Cfg::read_and_parse_scale_simple(sname, $harp)
+        from = ( $scale2file[sname][$dirs[:data]] ? 'user-defined' : 'builtin' )
+        puts " #{sname.ljust(maxs)}   \e[2m(#{from})\e[0m:"
+        puts "   \e[2mHoles(#{scale_holes.length}):  #{scale_holes.join('  ')}\n"
+        puts "   \e[2mShort: #{$scale2short[sname]}\e[0m" if $scale2short[sname]
+        puts "   \e[2mDesc: #{$scale2desc[sname] || 'none'}\e[0m" if $scale2desc[sname]
+        puts "   \e[2mFile: #{sfile}\e[0m" if scales.length == 1
+      end
+    end
+    puts
+    return if scales_given
+
+    puts_user_defined_hint(:scales)
+    puts "\e[2mTotal count of scales printed:  \e[0m#{scales.length}"
+  end
+
+  def print_licks_by_tags licks
+    puts "\n(read from #{$lick_file})\n\n"
+
+    Text::puts_underlined "\nReporting for licks selected by tags and hole-count only"
+
+    ltags = tags = nil
+    puts 'Licks with their tags:'
+    puts
+    print '  '
+    licks.each do |lick|
+      tags = lick[:tags].join(',')
+      if ltags && ltags != tags
+        print " ..... #{ltags}\n  "
+      elsif ltags
+        print ','
+      end
+      print lick[:name]
+      ltags = tags
+    end
+    puts " ..... #{ltags}"
+    puts "\n  Total number of licks:   #{licks.length}"
+    puts
+  end
+
+  def print_starred_licks
+    print "Licks with (un)stars:\n\n"
+    maxlen = $starred.keys.map(&:length).max
+    if $starred.keys.length > 0
+      $starred.keys.sort {|x, y| $starred[x] <=> $starred[y]}.each do |lname|
+        puts "  %-#{maxlen}s: %4d" % [lname, $starred[lname]]
+      end
+    else
+      puts '   -- none --'
+    end
+    puts "\e[2m"
+    puts 'Total number of   starred licks..' + ('%6d' % $starred.values.select {|x| x > 0}.length).gsub(' ', '.')
+    puts '             of unstarred licks..' + ('%6d' % $starred.values.select {|x| x < 0}.length).gsub(' ', '.')
+    puts '                    Sum of both..' + ('%6d' % $starred.values.select {|x| x != 0}.length).gsub(' ', '.')
+    puts 'Total number of selected licks...' + ('%6d' % $licks.length).gsub(' ', '.')
+    puts '             of      all licks...' + ('%6d' % $all_licks.length).gsub(' ', '.')
+    puts
+    puts "Stars from: #{$star_file}\e[0m\n"
+  end
+
+  def print_players args
+    puts
+
+    # If we have an external viewer (like feh), we get an exception on
+    # ctrl-c otherwise
+    Thread.report_on_exception = false
+
+    if args.length == 0
+      Text::puts_underlined 'Players known to harpwise'
+      $players.all.each {|p| puts '  ' + p + "\e[0m"}
+      puts
+      puts "\e[2m  r,random: pick one of these at random"
+      puts '  l,last: last player (if any) featured in listen'
+      puts "  a,all: all players shuffled in a loop\n\n"
+      puts 'Remarks:'
+      puts '- Most information is taken from Wikipedia; sources are provided.'
+      puts "- You may add your own pictures to already created subdirs of\n    #{$dirs[:players_pictures]}"
+      puts "- Players, which do not have all details yet, are dimmed\e[0m"
+      puts
+      puts "#{$players.all_with_details.length} players with details; specify a single name (or part of) to read details."
+
+    elsif args.length == 1 && 'random'.start_with?(args[0])
+      print_player $players.structured[$players.all_with_details.sample]
+
+    elsif args.length == 1 && 'last'.start_with?(args[0])
+      if $pers_data['players_last']
+        player = $players.structured[$pers_data['players_last']]
+        if player
+          print_player player
+        else
+          puts "Name '#{name}' from '#{$pers_file}' is unknown (?)"
+        end
+      else
+        puts "No player recorded in '#{$pers_file}'\ninvoke mode listen first"
+      end
+
+    elsif args.length == 1 && 'all'.start_with?(args[0])
+
+      all_players = $players.all_with_details.shuffle
+      all_players.each_with_index do |name, idx|
+        puts
+        puts
+        print_player $players.structured[name], in_loop: true
+        next unless idx + 1 < all_players.length &&
+                    ( $opts[:viewer] != 'window' || !$players.structured[name]['image'] )
+
+        Interact::make_term_immediate
+        puts
+        puts "\e[2m#{idx + 1} of #{all_players.length}; press any key for next Player ...\e[0m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        Interact::make_term_cooked
+      end
+      puts
+      puts "#{$players.all_with_details.length} players with their details."
+
+    else
+
+      selected_by_name, selected_by_content = $players.select(args)
+      selected = (selected_by_name + selected_by_content).uniq
+      total = selected.length
+      if total == 0
+        puts 'No player matches your input; invoke without arguments to see a complete list of players'
+      elsif selected_by_name.length == 1
+        print_player $players.structured[selected_by_name[0]]
+      elsif selected_by_name.length == 0 && selected_by_content.length == 1
+        puts "\e[2mPlease note, that your input matches the \e[0mcontent only\e[2m for this player, but not its name.\e[0m"
+        puts
+        print_player $players.structured[selected_by_content[0]], highlight: args
+      else
+        puts "Multiple players match your input:\n"
+        puts
+        if selected_by_name.length <= 9
+          if selected_by_content.length > 0
+            puts "\e[2mMatches in content:\e[0m"
+            puts
+            selected_by_content.each_with_index do |p, i|
+              j = i + 1 + selected_by_name.length
+              if j > 9
+                puts "\e[2m  ... more matches omitted\e[0m"
+                break
+              end
+              puts(('  %2d: ' % (i + 1 + selected_by_name.length)) + p + "\e[0m")
+            end
+          end
+          if selected_by_name.length > 0
+            puts "\n\e[2mMatches in name:\e[0m"
+            puts
+            selected_by_name.each_with_index do |p, i|
+              pcol = p.clone
+              args.each do |ar|
+                pcol.gsub!(/(#{Regexp.escape(ar)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
+              end
+              puts(('  %2d: ' % (i + 1)) + pcol + "\e[0m")
+            end
+          end
+          Interact::make_term_immediate
+          $ctl_kb_queue.clear
+          4.times do
+            puts
+            sleep 0.04
+          end
+          print "\e[3A"
+          print "Please type one of (1..#{[total, 9].min}) to read details: "
+          char = $ctl_kb_queue.deq
+          Interact::make_term_cooked
+          if (1..total).map(&:to_s).include?(char)
+            puts char
+            puts "\n----------------------\n\n"
+            print_player $players.structured[selected[char.to_i - 1]], highlight: args
+          else
+            puts "Invalid input: #{char}"
+          end
+        else
+          puts "\e[2mMatches in content:\e[0m"
+          selected_by_content.each {|p| puts '  ' + p}
+          puts "\e[2mMatches in name:\e[0m"
+          selected_by_name.each {|p| puts '  ' + p}
+          puts
+          puts "Too many matches (#{selected.length}); please be more specific"
+        end
+      end
+      puts
+    end
+  end
+
+  def print_player player, highlight: nil, in_loop: false
+    Text::puts_underlined player['name']
+    # from Text::puts_underlined
+    lines = 3
+    twidth = 0
+    if $players.has_details?[player['name']]
+      unless player['image']
+        puts "\e[4A"
+        ['no image yet', 'see below on how', 'to add one'].each do |line|
+          puts "\e[#{$term_width - 6 - line.length}C\e[0m\e[2m#{line}\e[0m"
+        end
+      end
+      $players.all_groups.each do |group|
+        next if group == 'name' || player[group].length == 0
+        next if group == 'sources'
+
+        puts "\e[32m#{group.capitalize}:\e[0m"
+        lines += 1
+        player[group].each do |line|
+          txt = "  #{line}"
+          if highlight
+            highlight.each do |hl|
+              txt.gsub!(/(#{Regexp.escape(hl)})/i) {|match| "\e[0m\e[7m\e[92m" + match + "\e[0m"}
+            end
+          end
+          puts txt
+          lines += 1
+          twidth = [twidth, txt.length].max
+        end
+      end
+      puts "\e[2mSources and Search (mb download images):"
+      player['sources'].each do |line|
+        puts "  #{line}"
+        lines += 1
+      end
+      puts "  \e[2mhttps://www.google.com/search?q=" + player['name'].downcase.tr('"', '').split.join('+') + "\e[0m"
+
+      $players.show_picture(player['image'], player['name'], in_loop, lines, twidth)
+    else
+      puts "\n\e[2mNot enough details known yet.\e[0m"
+    end
+  end
+
+  def print_lick_progs pnames
+    if $all_lick_progs.length == 0
+      puts "\nNo lick progressions defined."
+      puts
+    else
+      keep_all = Set.new($opts[:tags_all]&.split(','))
+      printed = 0
+      if pnames.length == 0
+        pnames = $all_lick_progs.keys
+      else
+        unknown = pnames - $all_lick_progs.keys
+        err "These lick progressions from command line are unknown:  #{unknown.join(', ')}" if unknown.length > 0
+      end
+      lick2prog = Hash.new
+      nlicks2progs = Hash.new
+      pnames.map {|pn| $all_lick_progs[pn]}
+        .select {|lp| keep_all.empty? || keep_all.subset?(Set.new(lp[:tags]))}
+        .each do |lp|
+        print_single_lick_prog(lp)
+        (nlicks2progs[lp[:licks].length] ||= Array.new) << lp[:name]
+        lp[:licks].uniq.each do |l|
+          (lick2prog[l] ||= Array.new) << lp[:name]
+        end
+        printed += 1
+      end
+
+      unless $opts[:brief]
+        # licks in multiple lick progression
+        ls_mul = lick2prog.select {|_l, lps| lps.length > 1}
+        if ls_mul.length == 0
+          puts "\e[2mNo licks are part of mutliple lick progressions."
+        else
+          puts "\e[2mThese licks are part of multiple lick progressions:"
+          lm_g = ls_mul.keys.group_by {|l| ls_mul[l]}.invert
+          lm_g.each do |ls, lps|
+            puts '  ' + ls.join(', ') + ' :  ' + lps.join(', ')
           end
         end
-        puts txt
-        lines += 1
-        twidth = [twidth, txt.length].max
+        puts "\e[0m"
+
+        # count
+        puts "\e[2mNumber of licks per progression:"
+        nlicks2progs.keys.sort.each do |nl|
+          puts "  #{nl.to_s.rjust(3)}:  #{nlicks2progs[nl].join(', ')}"
+        end
+        puts "\e[0m"
       end
-    end
-    puts "\e[2mSources and Search (mb download images):"
-    player['sources'].each do |line|
-      puts "  #{line}"
-      lines += 1
-    end
-    puts "  \e[2mhttps://www.google.com/search?q=" + player['name'].downcase.tr('"', '').split.join('+') + "\e[0m"
 
-    $players.show_picture(player['image'], player['name'], in_loop, lines, twidth)
-  else
-    puts "\n\e[2mNot enough details known yet.\e[0m"
-  end
-end
-
-def print_lick_progs pnames
-  if $all_lick_progs.length == 0
-    puts "\nNo lick progressions defined."
-    puts
-  else
-    keep_all = Set.new($opts[:tags_all]&.split(','))
-    printed = 0
-    if pnames.length == 0
-      pnames = $all_lick_progs.keys
-    else
-      unknown = pnames - $all_lick_progs.keys
-      err "These lick progressions from command line are unknown:  #{unknown.join(', ')}" if unknown.length > 0
-    end
-    lick2prog = Hash.new
-    nlicks2progs = Hash.new
-    pnames.map {|pn| $all_lick_progs[pn]}
-          .select {|lp| keep_all.empty? || keep_all.subset?(Set.new(lp[:tags]))}
-          .each do |lp|
-      print_single_lick_prog(lp)
-      (nlicks2progs[lp[:licks].length] ||= Array.new) << lp[:name]
-      lp[:licks].uniq.each do |l|
-        (lick2prog[l] ||= Array.new) << lp[:name]
-      end
-      printed += 1
-    end
-
-    unless $opts[:brief]
-      # licks in multiple lick progression
-      ls_mul = lick2prog.select {|_l, lps| lps.length > 1}
-      if ls_mul.length == 0
-        puts "\e[2mNo licks are part of mutliple lick progressions."
+      if $opts[:tags_all] != ''
+        puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}'\nfrom file #{$lick_file}"
       else
-        puts "\e[2mThese licks are part of multiple lick progressions:"
-        lm_g = ls_mul.keys.group_by {|l| ls_mul[l]}.invert
-        lm_g.each do |ls, lps|
-          puts '  ' + ls.join(', ') + ' :  ' + lps.join(', ')
+        puts "#{$all_lick_progs.length} lick progressions from file #{$lick_file}"
+      end
+    end
+  end
+
+  def print_single_lick_prog lp
+    puts "#{lp[:name]}:"
+    if $opts[:brief]
+      puts('     Desc:  ' + lp[:desc]) if lp[:desc]
+    else
+      puts '     Desc:  ' + ( lp[:desc] || 'none' )
+    end
+    puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
+    unless $opts[:brief]
+      puts "     Line:  #{lp[:lno]}"
+      puts "     Tags:  #{lp[:tags].join(', ')}" if lp[:tags].length > 0
+      puts "\e[2mLicks contained:"
+      lnames = lp[:licks].uniq
+      lnames.each do |lname|
+        lick = $all_licks.find {|l| l[:name] == lname}
+        puts "   #{lname}:    " + lick[:holes].join('  ')
+        puts(' ' * (lname.length + 8) + (lick[:rec] || 'no recording')) if $opts[:verbose]
+      end
+    end
+    puts "\e[0m"
+  end
+
+  def print_single_scale_prog spname
+    sp = $all_scale_progs[spname]
+    from = ( $sc_prog2file[spname][$dirs[:data]] ? 'user-defined' : 'builtin' )
+    puts "#{spname}   \e[2m(#{from})\e[0m:"
+    puts "        Desc:  #{sp[:desc] || 'none'}"
+    puts "   %2d Scales:  #{sp[:scales].join(' ')}" % sp[:scales].length
+    puts
+  end
+
+  def print_lick_meta lick
+    puts
+    puts "\e[2mOther properties:\e[0m"
+    puts "\e[2m       Desc:\e[0m  #{lick[:desc] || 'none'}"
+    puts "\e[2m       Tags:\e[0m  #{lick[:tags].join(', ')}"
+    puts "\e[2m  recording:\e[0m  #{lick[:rec] || 'none'}"
+    puts "\e[2m    rec-Key:\e[0m  #{lick[:rec_key]}"
+    puts
+  end
+
+  def print_semis semis
+    semi_nums = semis.map(&:to_i)
+    puts "\e[2mSemitones given (a4 = 0):\e[0m"
+    Text::print_in_columns semis, pad: :tabs
+    puts
+    puts "\e[2mAs notes:\e[0m"
+    Text::print_in_columns(semi_nums.map {|s| Theory::semi2note(s)}, pad: :tabs)
+    puts
+    puts "\e[2mAs holes:\e[0m"
+    Text::print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
+    puts
+    puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
+    Text::print_in_columns(semi_nums.map {|s| '%.2f' % Theory::semi2freq_et(s)}, pad: :tabs)
+  end
+
+  def puts_user_defined_hint what
+    nscales = Dir[$scale_files_templates[1] % [$type, '*', '*']].length
+    case what
+    when :scales
+      puts "\e[2mThe #{nscales} user-defined scales above are defined by files in\n  " + File.dirname($scale_files_templates[1] % [$type, '-', '-'])
+      puts
+    when :scale_progs
+      puts "\e[2mUser-defined scale-progression (if any) in: #{$scale_prog_file_templates[1] % $type}"
+      puts
+    else
+      err "Internal error: #{what}"
+    end
+  end
+
+  def print_single_lick lname
+    Text::puts_underlined "#{lname}:", '-', dim: false
+    puts unless $opts[:brief]
+    lick = $licks.find {|l| l[:name] == lname}
+    print_holes_and_more lick[:holes_wo_events], embedded: true
+    print_lick_meta lick unless $opts[:brief]
+  end
+
+  def print_chart_with_notes notes, strip_octave: false
+    chart = $charts[:chart_notes]
+    chart.each_with_index do |row, _ridx|
+      print '  '
+      row[0..-2].each_with_index do |cell, _cidx|
+        if Util::comment_in_chart?(cell)
+          print cell
+        elsif strip_octave && notes.include?(cell.strip[0..-2])
+          print cell
+        elsif !strip_octave && notes.include?(cell.strip)
+          print cell
+        else
+          hcell = ' ' * cell.length
+          hcell[hcell.length / 2] = '-'
+          print hcell
         end
       end
-      puts "\e[0m"
-
-      # count
-      puts "\e[2mNumber of licks per progression:"
-      nlicks2progs.keys.sort.each do |nl|
-        puts "  #{nl.to_s.rjust(3)}:  #{nlicks2progs[nl].join(', ')}"
-      end
-      puts "\e[0m"
+      puts "\e[0m\e[2m#{row[-1]}\e[0m"
     end
-
-    if $opts[:tags_all] != ''
-      puts "#{printed} of #{$all_lick_progs.length} lick progressions, selected by '-t #{$opts[:tags_all]}'\nfrom file #{$lick_file}"
-    else
-      puts "#{$all_lick_progs.length} lick progressions from file #{$lick_file}"
-    end
-  end
-end
-
-def print_single_lick_prog lp
-  puts "#{lp[:name]}:"
-  if $opts[:brief]
-    puts('     Desc:  ' + lp[:desc]) if lp[:desc]
-  else
-    puts '     Desc:  ' + ( lp[:desc] || 'none' )
-  end
-  puts " %2d Licks:  #{lp[:licks].join('  ')}" % lp[:licks].length
-  unless $opts[:brief]
-    puts "     Line:  #{lp[:lno]}"
-    puts "     Tags:  #{lp[:tags].join(', ')}" if lp[:tags].length > 0
-    puts "\e[2mLicks contained:"
-    lnames = lp[:licks].uniq
-    lnames.each do |lname|
-      lick = $all_licks.find {|l| l[:name] == lname}
-      puts "   #{lname}:    " + lick[:holes].join('  ')
-      puts(' ' * (lname.length + 8) + (lick[:rec] || 'no recording')) if $opts[:verbose]
-    end
-  end
-  puts "\e[0m"
-end
-
-def print_single_scale_prog spname
-  sp = $all_scale_progs[spname]
-  from = ( $sc_prog2file[spname][$dirs[:data]] ? 'user-defined' : 'builtin' )
-  puts "#{spname}   \e[2m(#{from})\e[0m:"
-  puts "        Desc:  #{sp[:desc] || 'none'}"
-  puts "   %2d Scales:  #{sp[:scales].join(' ')}" % sp[:scales].length
-  puts
-end
-
-def print_lick_meta lick
-  puts
-  puts "\e[2mOther properties:\e[0m"
-  puts "\e[2m       Desc:\e[0m  #{lick[:desc] || 'none'}"
-  puts "\e[2m       Tags:\e[0m  #{lick[:tags].join(', ')}"
-  puts "\e[2m  recording:\e[0m  #{lick[:rec] || 'none'}"
-  puts "\e[2m    rec-Key:\e[0m  #{lick[:rec_key]}"
-  puts
-end
-
-def print_semis semis
-  semi_nums = semis.map(&:to_i)
-  puts "\e[2mSemitones given (a4 = 0):\e[0m"
-  Text::print_in_columns semis, pad: :tabs
-  puts
-  puts "\e[2mAs notes:\e[0m"
-  Text::print_in_columns(semi_nums.map {|s| Theory::semi2note(s)}, pad: :tabs)
-  puts
-  puts "\e[2mAs holes:\e[0m"
-  Text::print_in_columns(semi_nums.map {|s| $semi2hole[s] || '*'}, pad: :tabs)
-  puts
-  puts "\e[2mAs absolute frequencies in Hz (equal temperament):\e[0m"
-  Text::print_in_columns(semi_nums.map {|s| '%.2f' % Theory::semi2freq_et(s)}, pad: :tabs)
-end
-
-def puts_user_defined_hint what
-  nscales = Dir[$scale_files_templates[1] % [$type, '*', '*']].length
-  case what
-  when :scales
-    puts "\e[2mThe #{nscales} user-defined scales above are defined by files in\n  " + File.dirname($scale_files_templates[1] % [$type, '-', '-'])
-    puts
-  when :scale_progs
-    puts "\e[2mUser-defined scale-progression (if any) in: #{$scale_prog_file_templates[1] % $type}"
-    puts
-  else
-    err "Internal error: #{what}"
-  end
-end
-
-def print_single_lick lname
-  Text::puts_underlined "#{lname}:", '-', dim: false
-  puts unless $opts[:brief]
-  lick = $licks.find {|l| l[:name] == lname}
-  print_holes_and_more lick[:holes_wo_events], embedded: true
-  print_lick_meta lick unless $opts[:brief]
-end
-
-def print_chart_with_notes notes, strip_octave: false
-  chart = $charts[:chart_notes]
-  chart.each_with_index do |row, _ridx|
-    print '  '
-    row[0..-2].each_with_index do |cell, _cidx|
-      if Util::comment_in_chart?(cell)
-        print cell
-      elsif strip_octave && notes.include?(cell.strip[0..-2])
-        print cell
-      elsif !strip_octave && notes.include?(cell.strip)
-        print cell
-      else
-        hcell = ' ' * cell.length
-        hcell[hcell.length / 2] = '-'
-        print hcell
-      end
-    end
-    puts "\e[0m\e[2m#{row[-1]}\e[0m"
   end
 end

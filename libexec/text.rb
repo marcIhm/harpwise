@@ -120,6 +120,90 @@ module Text
     end
     $figlet_text_width_cache[text + font]
   end
+
+  def largify holes, idx
+    line = $lines[:comment_flat]
+    if $num_quiz_replay == 1
+      ["\e[2m", '...', line, 'smblock', nil]
+    elsif $opts[:immediate] # show all unplayed
+      hidden_holes = if idx > 6
+                       '.. # ..'
+                     else
+                       '.' * idx
+                     end
+      ["\e[2m",
+       'Play  ' + hidden_holes + holes[idx..-1].join('  '),
+       line,
+       'smblock',
+       'play  ' + '--' * holes.length,  # width_template
+       :right]  # truncate at
+    else # show all played
+      hidden_holes = if holes.length - idx > 8
+                       ' _ _ # _ _' # abbreviation for long sequence of ' _'
+                     else
+                       ' _' * (holes.length - idx)
+                     end
+      ["\e[2m",
+       'Yes  ' + holes.slice(0, idx).join('  ') + hidden_holes,
+       line,
+       'smblock',
+       'yes  ' + '--' * [6, holes.length].min,  # width_template
+       :left]  # truncate at
+    end
+  end
+
+  # idx_first_active is a special case used for comment :lick_holes_large
+  def wrapify_for_comment max_lines, holes, idx_first_active
+    # get output from figlet
+    lines_all = Text::get_figlet_wrapped(holes.join('  '), 'smblock')
+    lines_inactive = if idx_first_active == -1
+                       lines_all
+                     else
+                       Text::get_figlet_wrapped(holes[0...idx_first_active].join('  '), 'smblock')
+                     end
+    # we know that each figlet-line has 4 screen lines; integer arithmetic on purpose
+    fig_lines_max = max_lines / 4
+    fig_lines_all = lines_all.length / 4
+    fig_lines_inactive = lines_inactive.length / 4
+
+    # truncate if necessary
+    # use offset instead of shifting from arrays to avoid caching issues
+    offset = 0
+    if fig_lines_all > fig_lines_max
+      $msgbuf.print('Warning: Wrapped text has been truncated', 1, 2, :warning) if $opts[:jamming]
+      if fig_lines_inactive <= 1
+      # This happens during begin of replay: need to show first
+      # inactive figlet-line, because it also contains active holes;
+      # screen lines at bottom will be truncated below
+      elsif fig_lines_all - fig_lines_inactive <= 1
+        # This happens during end of replay: show the last two lines
+        offset = (fig_lines_all - 2) * 4
+      else
+        # In between begin and end of replay (if at all)
+        offset = (fig_lines_inactive - 1) * 4
+      end
+    end
+    offset = 0 if offset < 0
+
+    # construct final set of lines
+    lines = []
+    lines_all[offset..-1].each_with_index do |line, idx|
+      break if idx >= max_lines
+
+      lines << "\e[0m#{line.chomp}\e[K"
+      next unless idx + offset < lines_inactive.length
+
+      lines[-1] += if idx_first_active == -1
+                     # two types of grey, but not the usual one \e[2m
+                     "\e[G\e[0m\e[38;5;244m"
+                   else
+                     "\e[G\e[0m\e[38;5;236m"
+                   end
+      lines[-1] += lines_inactive[idx + offset]
+    end
+    lines[-1] += "\e[0m"
+    lines
+  end
   
   def print_chart skip_hole = nil
     xoff, yoff, = $conf[:chart_offset_xyl]
@@ -312,9 +396,10 @@ module Text
   end
 
   def animate_splash_line single_line = false, as_string: false
-    return if $splashed
-
+    return nil if $splashed
+    
     print "\e[J"
+    printed = ''
     unless single_line
       3.times do
         puts
@@ -324,10 +409,12 @@ module Text
     end
     if $testing
       testing_clause = "\e[0;101mWARNING: env HARPWISE_TESTING is set!\e[0m"
+      printed = testing_clause
       if single_line
         print testing_clause
       else
         puts testing_clause
+        printed += "\n"
       end
       sleep 0.3
     else
@@ -336,23 +423,31 @@ module Text
       sleep 0.08
       print "\e[0m|\e[92m~\e[0m|\e[3D"
       sleep 0.04
-      '~HARPWISE~'.each_char.each_cons(2) do |c1, c2|
+      printed += "\e[0m\e[2m|"
+      text = '~HARPWISE~'
+      text.each_char.each_cons(2) do |c1, c2|
         print "\e[0m\e[2m|\e[0m\e[32m#{c1}\e[0m|\e[0m\e[1m\e[92m#{c2}\e[0m|\e[3D"
+        printed += "\e[0m\e[32m#{c1}\e[0m\e[2m|"
         sleep 0.04
       end
+      printed += "\e[0m\e[32m#{text[-1]}\e[0m\e[2m|\e[0m"
       print "\e[0m\e[2m|\e[0m\e[32m~\e[0m\e[2m|\e[0m"
       puts unless single_line
       sleep 0.04
       if single_line
         print '  ' + version_clause + '  '
+        printed += '  '
       else
         puts version_clause
+        printed += "\n"
       end
       sleep 0.2
+      printed += version_clause
     end
     puts unless single_line
     sleep 0.04
     $splashed = true
+    return printed
   end  
 
   def puts_underlined text, char = '=', dim: :auto, vspace: :auto
@@ -380,4 +475,85 @@ module Text
       text
     end
   end
+
+  def tabify_plain holes, dense = false
+    text = ''
+    cell_len = $harp_holes.map {|h| h.length}.max + 2
+    holes.each_slice(10) do |slice|
+      text += slice.map do |hole|
+        hole.rjust(cell_len)
+      end.join + (dense ? "\n" : "\n\n")
+    end
+    text
+  end
+  
+  def tabify_colorize max_lines, holes_etc, idx_first_active
+    lines = Array.new
+    max_cell_len = holes_etc.map {|he| he.map(&:length).sum + 2}.max
+    per_line = (($term_width * 0.8 - 4) / max_cell_len).truncate
+    line = '   '
+    holes_etc.each_with_index do |hole_etc, idx|
+      if idx > 0 && idx % per_line == 0
+        lines << line
+        lines << ''
+        line = '   '
+      end
+      mb_w_dot = if hole_etc[2].strip.length > 0
+                   '.' + hole_etc[2]
+                 else
+                   ' '
+                 end
+      line += " \e[0m" +
+              if idx < idx_first_active
+                ' ' + "\e[0m\e[2m" + hole_etc[0] + hole_etc[1] + mb_w_dot
+              else
+                hole_etc[0] +
+                  if idx == idx_first_active
+                    "\e[0m\e[92m*"
+                  else
+                    ' '
+                  end + ( "\e[0m" + Text::get_hole_color_inactive(hole_etc[1], true) +
+                          hole_etc[1] + "\e[0m\e[2m" + mb_w_dot )
+              end
+    end
+    lines << line
+    lines << ''
+    lines = lines.select {|l| l.length > 0} if lines.length > max_lines
+    if lines.length > max_lines
+      lines = lines[0..max_lines - 1]
+      lines[-1] = lines[-1].ljust(per_line)
+      lines[-1][-6..-1] = "\e[0m  ... "
+    end
+    lines[-1] += "\e[0m"
+    lines
+  end
+
+  def tabify_hl max_lines, holes, idx_hl = nil
+    lines = Array.new
+    lines << "\e[K"
+    cell_len = $harp_holes.map {|h| h.length}.max + 2
+    per_line = (($term_width * 0.9 - 4) / cell_len).truncate
+    per_line -= 1 if per_line.odd?
+    to_del = 0
+    line = ''
+    holes.each_with_index do |hole, idx|
+      if idx > 0 && idx % per_line == 0
+        lines << line + "\e[K"
+        lines << "\e[K"
+        line = ''
+      end
+      line += (  hole['('] || idx_hl ? "\e[2m" : "\e[0m" ) +
+              ( idx == idx_hl ? "\e[0m\e[32m" : '') +
+              hole.rjust(cell_len) +
+              "\e[0m"
+    end
+    lines << line + "\e[K"
+    lines << "\e[K"
+    lines = lines.select {|l| l != "\e[K"} if lines.length > max_lines
+    if lines.length > max_lines
+      lines.shift
+      to_del = per_line
+    end
+    [lines, to_del]
+  end  
 end

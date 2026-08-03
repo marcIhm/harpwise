@@ -124,7 +124,7 @@ module Util
     puts '$debug_info:'
     pp $debug_info
 
-    $perfctr[:handle_holes_this_loops_per_second] = $perfctr[:handle_holes_this_loops] / ( Time.now.to_f - $perfctr[:handle_holes_this_first_mic] ) if $perfctr[:handle_holes_this_first_mic]
+    $perfctr[:show_mic_this_loops_per_second] = $perfctr[:show_mic_this_loops] / ( Time.now.to_f - $perfctr[:show_mic_this_first_mic] ) if $perfctr[:show_mic_this_first_mic]
     puts
     puts '$perfctr:'
     pp $perfctr
@@ -495,6 +495,97 @@ module Util
     false
   end
 
+  def partition_for_mode_or_amongs to_handle, amongs: nil, extra_allowed: false
+    holes_or_notes = []
+    semis = []
+    lnames = []
+    lpnames = []
+    snames = []
+    spnames = []
+    jmnames = []
+    other = []
+
+    amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
+    err("Internal error: #{amongs} includes :extra_wwos") if amongs.include?(:extra_wwos)
+    # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
+    to_handle.join(' ').split.each do |th|
+      what = Util::recognize_among(th, amongs)
+
+      if what == :note
+        holes_or_notes << Theory::sf_norm(th)
+      elsif what == :sharps_flats_shadowed
+        # We treat :sharps_flats_shadowed as holes_or_notes, but we do
+        # this at the latest possible point in time which still
+        # preserves the order of arguments
+        holes_or_notes << Theory::sf_norm(th, shadowed: true)
+      elsif what == :hole
+        holes_or_notes << th
+      elsif what == :event
+        holes_or_notes << th
+      elsif what == :semi_note
+        semis << th
+      elsif what == :scale
+        snames << th
+      elsif what == :scale_prog
+        spnames << th
+      elsif what == :lick
+        lnames << th
+      elsif what == :lick_prog
+        lpnames << th
+      elsif what == :last
+        $all_licks, $licks, $all_lick_progs = Licks::read_licks
+        record = Util::shortcut2history_record(th)
+        lnames << record[:name]
+      elsif what == :jam
+        jmnames << th
+      else
+        other << th
+      end
+    end
+
+    #
+    # Check results for consistency
+    #
+
+    types_count = [holes_or_notes, semis, lnames, snames, jmnames].select {|x| x.length > 0}.length
+
+    if other.length > 0
+      puts
+      puts "Cannot understand these arguments: #{other.join('  ')}#{Args::not_any_source_of_clause};"
+      puts 'they are none of (exact match required):'
+      Util::print_amongs(amongs)
+      if extra_allowed && $extra == ''
+        puts
+        puts "Alternatively you may give one of these extra keywords to #{$mode},\nwhich might be able to handle additional arguments:"
+        Util::print_amongs(:extra)
+      end
+      err "Cannot understand these arguments: #{other.join('  ')}\nSee above for full list of choices."
+    end
+
+    if extra_allowed && $extra == '' && types_count == 0
+      puts
+      puts "Nothing to handle for #{$mode}; please specify any of:"
+      Util::print_amongs([amongs, :extra])
+      err 'See above'
+    end
+
+    if types_count > 1
+      puts "The following #{types_count} types of arguments are present,\nbut ONLY ONE OF THEM can be handled at the same time:"
+      puts
+      puts "     Holes or Notes: #{holes_or_notes.join(' ')}" if holes_or_notes.length > 0
+      puts "          semitones: #{semis.join(' ')}" if semis.length > 0
+      puts "              Licks: #{lnames.join(' ')}" if lnames.length > 0
+      puts "  Lick progressions: #{lpnames.join(' ')}" if lpnames.length > 0
+      puts "             Scales: #{snames.join(' ')}" if snames.length > 0
+      puts " Scale progressions: #{spnames.join(' ')}" if spnames.length > 0
+      puts "               Jams: #{jmnames.join(' ')}" if jmnames.length > 0
+      puts
+      err 'See above'
+    end
+
+    [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
+  end
+  
   def print_amongs *choices, **kws
     hl_text = kws[:highlight]
     summary = { highlight:
@@ -868,13 +959,13 @@ class MsgBuf
 
   def print text, min, max, group = nil, truncate: true, wrap: false
     #
-    # text: text to print; can be an array too
+    # text: text to print; can be an array too; and/or colored
     #
     # min: keep message on stack and display it that long at minimum; is used in
     # print_internal only, where this is checked only if a new message is about to be printed
     #
     # max: remove currently shown message, even if no new message is to be printed; is used
-    # in update only, which however is called in every loop of handle_holes
+    # in update only, which however is called in every show-mic loop
     #
     # group: arbitrary symbol; keep only one message of each group. Special group :warning
     # will not be overwritten by other messages
@@ -898,7 +989,7 @@ class MsgBuf
                   Text::wrap_text(text,
                                   term_width:  $testing_what == :msgbuf ? $conf[:term_min_width] : nil )
                 end
-        lines.each {|l| raise "Internal error: text to wrap contains escape: '#{l}'" if l["\e"]}
+        lines.each {|l| raise "Internal error: text to wrap contains escape: '#{l}'" if wrap && l["\e"]}
         lines[1..-1].reverse.each do |l|
           print_internal l, min, max, group, true
         end

@@ -97,7 +97,7 @@ module Players
         elsif $ctl_rec[:skip]
           print "\e[0m\e[32mskip to end \e[0m"
         elsif $ctl_lk_hl[:star_lick]
-          star_unstar_lick($ctl_lk_hl[:star_lick], lick)
+          ModeLicks::star_unstar_lick($ctl_lk_hl[:star_lick], lick)
           if $ctl_lk_hl[:star_lick] == :up
             print "\e[0m\e[32mStarred lick \e[0m"
           else
@@ -414,7 +414,7 @@ module Players
           cmd = cmd_template % $vol.to_i
           tfiles = Sound::synth_for_inter_or_chord([semi1, semi2], gap.val, len.val)
           puts
-          print_interval semi1, semi2
+          ModePrint::print_interval semi1, semi2
           puts "\e[0m\e[2m\n  Gap: #{gap.val}, length: #{len.val}\e[0m\n\n"
           new_sound = false
         end
@@ -450,12 +450,12 @@ module Players
         step = $ctl_inter[:up] ? +1 : -1
         semi1 += step
         semi2 += step
-        print_interval(semi1, semi2) if paused
+        ModePrint::print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:narrow] || $ctl_inter[:widen]
         delta_semi += $ctl_inter[:narrow] ? -1 : +1
         semi2 = semi1 + delta_semi
-        print_interval(semi1, semi2) if paused
+        ModePrint::print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:gap_inc]
         gap.inc
@@ -476,7 +476,7 @@ module Players
       elsif $ctl_inter[:swap]
         semi1, semi2 = semi2, semi1
         delta_semi = -delta_semi
-        print_interval(semi1, semi2) if paused
+        ModePrint::print_interval(semi1, semi2) if paused
         new_sound = true
       elsif $ctl_inter[:replay]
         puts "\e[0m\e[2mReplay\e[0m\n\n"
@@ -682,7 +682,7 @@ module Players
         total_semis += change_semis
         change_semis = false
       end
-      holes, notes, abs_semis, rel_semis = get_progression_views(prog)
+      holes, notes, abs_semis, rel_semis = ModePrint::get_progression_views(prog)
 
       if progs_idx != progs_idx_was
         print "\e[2mProgression is (#{progs_idx + 1}): #{progs_disp[progs_idx]}\e[0m\n\n"
@@ -864,7 +864,7 @@ module Players
 
   def play_lick_holes_and_handle_kb all_holes, at_line: nil, scroll_allowed: false, lick: nil, with_head: false, hide_holes: false
     if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
-      holes, = select_and_calc_partial(all_holes, nil, nil)
+      holes, = ModeLicks::select_and_calc_partial(all_holes, nil, nil)
     else
       holes = all_holes
     end
@@ -938,7 +938,7 @@ module Players
           sleep 0.3
           break
         elsif $ctl_lk_hl[:star_lick]
-          star_unstar_lick($ctl_lk_hl[:star_lick], lick)
+          ModeLicks::star_unstar_lick($ctl_lk_hl[:star_lick], lick)
           if $ctl_lk_hl[:star_lick] == :up
             print "\e[0m\e[32mStarred lick \e[0m"
           else
@@ -978,10 +978,10 @@ module Players
                                      hide_holes: $mode == :quiz &&
                                      %w[replay play-scale play-inter].include?($quiz_flavour)
     else
-      play_lick_recording_and_handle_kb_plus(to_play[:lick],
-                                             at_line: oride_l_message2,
-                                             shift_inter: to_play[:shift_inter],
-                                             holes: to_play[:all_wanted])
+      ModeLicks::play_lick_recording_and_handle_kb_plus(to_play[:lick],
+                                                        at_line: oride_l_message2,
+                                                        shift_inter: to_play[:shift_inter],
+                                                        holes: to_play[:all_wanted])
     end
   end
   

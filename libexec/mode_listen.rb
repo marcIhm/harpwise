@@ -2,302 +2,305 @@
 # Do the listening
 #
 
-def do_listen
-  unless $other_mode_saved[:conf]
-    Interact::make_term_immediate
-    Sound::start_collect_freqs
-  end
-  $modes_for_switch ||= %i[listen licks]
+module ModeListen
+  extend self
+  
+  def do_listen
+    unless $other_mode_saved[:conf]
+      Interact::make_term_immediate
+      Sound::start_collect_freqs
+    end
+    $modes_for_switch ||= %i[listen licks]
 
-  system('clear')
-  Sound::pipeline_catch_up
-  $hole_was_for_disp = nil
-  jlen_refresh_comment_cache = comment_cache = nil
-  $players = FamousPlayers.new
-  $comment_licks = []
-  $comment_licks_count = 0
-  comment_licks_initial = nil
-  comment_lick_lines = []
-  mission = if $used_scales.length == 1
-              "\e[0m\e[2mPlay from the scale"
-            else
-              "\e[0m\e[2mPlay from #{$used_scales.length} scales"
-            end
-  if $opts[:lick_prog]
-    lnames = Licks::process_opt_lick_prog
-    $all_licks, $licks, $all_lick_progs = Licks::read_licks
-    $comment_licks = lnames.map {|ln| $licks[Licks::find_lick_by_name(ln)]}
-    comment_licks_initial = $comment_licks.clone
-    comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-    $opts[:comment] = :lick_holes_large unless $opts[:comment] == :lick_holes
-    mission += " or one of #{lnames.uniq.length} licks"
-  end
+    system('clear')
+    sleep 0.1
+    Sound::pipeline_catch_up
+    $hole_was_for_disp = nil
+    jlen_refresh_comment_cache = comment_cache = nil
+    $players = FamousPlayers.new
+    $comment_licks = []
+    $comment_licks_count = 0
+    comment_licks_initial = nil
+    comment_lick_lines = []
+    mission = if $used_scales.length == 1
+                "\e[0m\e[2mPlay from the scale"
+              else
+                "\e[0m\e[2mPlay from #{$used_scales.length} scales"
+              end
+    if $opts[:lick_prog]
+      lnames = Licks::process_opt_lick_prog
+      $all_licks, $licks, $all_lick_progs = Licks::read_licks
+      $comment_licks = lnames.map {|ln| $licks[Licks::find_lick_by_name(ln)]}
+      comment_licks_initial = $comment_licks.clone
+      comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+      $opts[:comment] = :lick_holes_large unless $opts[:comment] == :lick_holes
+      mission += " or one of #{lnames.uniq.length} licks"
+    end
 
+    $msgbuf.print('Expecting a jammer or fifo-writer to join, but will also do without', 2, 5, :jamming) && !$runningp_jamming if $opts[:jamming]
 
-  $msgbuf.print('Expecting a jammer or fifo-writer to join, but will also do without', 2, 5, :jamming) && !$runningp_jamming if $opts[:jamming]
+    until $ctl_mic[:switch_modes]
 
-  until $ctl_mic[:switch_modes]
+      result = ShowMic::enter_loop(
 
-    result = handle_holes(
-
-      # lambda_mission
-      -> {mission},
-
-
-      # lambda_good_done_was_good
-      ->(played, _) {[$all_scales_holes.include?(played), false, false]},
-
-
-      # lambda_skip
-      nil,
+        # lambda_mission
+        -> {mission},
 
 
-      # lambda_comment
-      lambda do |hole_color, isemi, itext, note, hole_disp, freq|
-        color = "\e[0m" + hole_color
-        nil
-        line = $lines[:comment]
-        font = 'mono9'
-        text = case $opts[:comment]
-               when :note
-                 note
-               when :interval
-                 width_template = '------'
-                 itext || isemi
-               when :hole
-                 hole_disp
-               when :cents_to_ref
-                 if $hole_ref
-                   freq_ref = Theory::semi2freq_et($harp[$hole_ref][:semi])
-                   if freq > 0 && freq_ref > 0 && (cnts = Theory::cents_diff(freq, freq_ref).to_i).abs <= 999
-                     color = "\e[0m\e[#{cnts.abs <= 25 ? 32 : 31}m"
-                     width_template = 'c +100'
-                     'c %+d' % ((cnts / 5.0).round(0) * 5)
+        # lambda_good_done_was_good
+        ->(played, _) {[$all_scales_holes.include?(played), false, false]},
+
+
+        # lambda_skip
+        nil,
+
+
+        # lambda_comment
+        lambda do |hole_color, isemi, itext, note, hole_disp, freq|
+          color = "\e[0m" + hole_color
+          nil
+          line = $lines[:comment]
+          font = 'mono9'
+          text = case $opts[:comment]
+                 when :note
+                   note
+                 when :interval
+                   width_template = '------'
+                   itext || isemi
+                 when :hole
+                   hole_disp
+                 when :cents_to_ref
+                   if $hole_ref
+                     freq_ref = Theory::semi2freq_et($harp[$hole_ref][:semi])
+                     if freq > 0 && freq_ref > 0 && (cnts = Theory::cents_diff(freq, freq_ref).to_i).abs <= 999
+                       color = "\e[0m\e[#{cnts.abs <= 25 ? 32 : 31}m"
+                       width_template = 'c +100'
+                       'c %+d' % ((cnts / 5.0).round(0) * 5)
+                     else
+                       color = "\e[0m\e[31m"
+                       width_template = 'c +100'
+                       'c  ...'
+                     end
                    else
-                     color = "\e[0m\e[31m"
-                     width_template = 'c +100'
-                     'c  ...'
+                     color = "\e[2m"
+                     'set ref'
+                   end
+                 when :gauge_to_ref
+                   font = 'smblock'
+                   just_dots_long = '......:......:......:......'
+                   line += 2
+                   if $hole_ref
+                     semi_ref = $harp[$hole_ref][:semi]
+                     dots, in_range = ShowMic::get_dots(just_dots_long.dup, 4, freq,
+                                                            Theory::semi2freq_et(semi_ref - 2),
+                                                            Theory::semi2freq_et(semi_ref),
+                                                            Theory::semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
+                     color = in_range ? "\e[0m\e[32m" : "\e[2m"
+                     dots
+                   else
+                     color = "\e[2m"
+                     'set ref'
+                   end
+                 when :warbles
+                   if !$warbles_holes[0] || !$warbles_holes[1]
+                     return ["\e[K",
+                             "   Warbling between two holes; start slow to set them \e[32mby playing\e[0m\e[K",
+                             "   or type \e[32mw\e[0m then \e[32mm\e[0m to set by menu. Clear max with \e[0m\e[32mBACKSPACE\e[0m\e[K",
+                             "\e[K",
+                             case $opts[:time_slice]
+                             when :short
+                               ["   \e[2mMax possible warble speed is above 10; this is already the\e[K",
+                                "   highest value, that can be realized with option: --time-slice\e[K"]
+                             when :medium
+                               # The stated limit 10 is what we get from test id-68
+                               ["   \e[2mMax possible warble speed is around 10, but you may\e[K",
+                                "   try to raise this by giving option: --time-slice short\e[K"]
+                             when :long
+                               ["   \e[2mMax possible warble speed is below 10, but you may\e[K",
+                                "   try to raise this by giving option: --time-slice medium\e[K"]
+                             end].flatten
+                   else
+                     return ["\e[K",
+                             warble_comment(:short),
+                             "\e[K",
+                             warble_comment(:long),
+                             "\e[K",
+                             "   \e[2m" + "#{$warbles_holes[0]} <-> #{$warbles_holes[1]}".rjust($term_width - 5) + "\e[K\e[0m"].flatten
+                   end
+                 when :journal
+                   if journal_length == 0
+                     return ["\e[K",
+                             "\e[K",
+                             "   No journal yet to show ...\e[2m journal all is \e[0m#{$journal_all ? ' ON' : 'OFF'}\e[2m\e[0m\e[K",
+                             "\e[K",
+                             "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
+                             "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all ? 'ON' : 'OFF'})\e[0m"]
+                   end
+                   if jlen_refresh_comment_cache != journal_length || $ctl_mic[:update_comment]
+                     jlen_refresh_comment_cache = journal_length
+                     comment_cache, to_del = Text::tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
+                     $journal.shift(to_del)
+                   end
+                   # different convention on return value than other comments
+                   return comment_cache
+                 when :lick_holes
+                   if comment_lick_lines.length > 0
+                     comment_lick_lines
+                   else
+                     ['',
+                      '  Need to specify one or more lick to be displayed here', '', '  e.g. via     --licks wade']
+                   end
+                 when :lick_holes_large
+                   if $comment_licks.length > 0
+                     Text::wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], $comment_licks[0][:holes], -1)
+                   else
+                     ['',
+                      '  Need to specify one or more lick to be displayed here', '', '  e.g. via     --licks wade']
                    end
                  else
-                   color = "\e[2m"
-                   'set ref'
-                 end
-               when :gauge_to_ref
-                 font = 'smblock'
-                 just_dots_long = '......:......:......:......'
-                 line += 2
-                 if $hole_ref
-                   semi_ref = $harp[$hole_ref][:semi]
-                   dots, in_range = get_dots(just_dots_long.dup, 4, freq,
-                                             Theory::semi2freq_et(semi_ref - 2),
-                                             Theory::semi2freq_et(semi_ref),
-                                             Theory::semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
-                   color = in_range ? "\e[0m\e[32m" : "\e[2m"
-                   dots
-                 else
-                   color = "\e[2m"
-                   'set ref'
-                 end
-               when :warbles
-                 if !$warbles_holes[0] || !$warbles_holes[1]
-                   return ["\e[K",
-                           "   Warbling between two holes; start slow to set them \e[32mby playing\e[0m\e[K",
-                           "   or type \e[32mw\e[0m then \e[32mm\e[0m to set by menu. Clear max with \e[0m\e[32mBACKSPACE\e[0m\e[K",
-                           "\e[K",
-                           case $opts[:time_slice]
-                           when :short
-                             ["   \e[2mMax possible warble speed is above 10; this is already the\e[K",
-                              "   highest value, that can be realized with option: --time-slice\e[K"]
-                           when :medium
-                             # The stated limit 10 is what we get from test id-68
-                             ["   \e[2mMax possible warble speed is around 10, but you may\e[K",
-                              "   try to raise this by giving option: --time-slice short\e[K"]
-                           when :long
-                             ["   \e[2mMax possible warble speed is below 10, but you may\e[K",
-                              "   try to raise this by giving option: --time-slice medium\e[K"]
-                           end].flatten
-                 else
-                   return ["\e[K",
-                           warble_comment(:short),
-                           "\e[K",
-                           warble_comment(:long),
-                           "\e[K",
-                           "   \e[2m" + "#{$warbles_holes[0]} <-> #{$warbles_holes[1]}".rjust($term_width - 5) + "\e[K\e[0m"].flatten
-                 end
-               when :journal
-                 if journal_length == 0
-                   return ["\e[K",
-                           "\e[K",
-                           "   No journal yet to show ...\e[2m journal all is \e[0m#{$journal_all ? ' ON' : 'OFF'}\e[2m\e[0m\e[K",
-                           "\e[K",
-                           "   \e[2mPlay and use RETURN to add hole beeing played, BACKSPACE to remove",
-                           "   \e[2mType 'j' for menu e.g. to journal all notes beeing played (is #{$journal_all ? 'ON' : 'OFF'})\e[0m"]
-                 end
-                 if jlen_refresh_comment_cache != journal_length || $ctl_mic[:update_comment]
-                   jlen_refresh_comment_cache = journal_length
-                   comment_cache, to_del = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal)
-                   $journal.shift(to_del)
-                 end
-                 # different convention on return value than other comments
-                 return comment_cache
-               when :lick_holes
-                 if comment_lick_lines.length > 0
-                   comment_lick_lines
-                 else
-                   ['',
-                    '  Need to specify one or more lick to be displayed here', '', '  e.g. via     --licks wade']
-                 end
-               when :lick_holes_large
-                 if $comment_licks.length > 0
-                   wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall], $comment_licks[0][:holes], -1)
-                 else
-                   ['',
-                    '  Need to specify one or more lick to be displayed here', '', '  e.g. via     --licks wade']
-                 end
-               else
-                 raise "Internal error: unknown comment: #{$opts[:comment]}"
-               end || '...'
-        [color, text, line, font, width_template]
-      end,
+                   raise "Internal error: unknown comment: #{$opts[:comment]}"
+                 end || '...'
+          [color, text, line, font, width_template]
+        end,
 
 
-      # lambda_hint
-      lambda do |_hole|
-        if Time.now.to_f - $program_start < 6
-          []
-        elsif !$first_hole_held && Time.now.to_f - $program_start < 10
-          ["You may blow your harp now ....      (key of #{$key})"]
-        elsif $opts[:no_player_info] || $opts[:comment] == :journal
-          []
-        else
-          [$players.line_stream_current]
-        end
-      end,
-
-
-      # lambda_star_lick
-      nil
-    )  ## end of handle_holes
-
-    #
-    # Create journal entries, that have been explicitly requested by
-    # pressing RETURN see handle_holes.rb for those holes that get
-    # journaled, just because they have been held long enough
-    #
-    if $ctl_mic[:journal_current]
-      $ctl_mic[:journal_current] = false
-      hole_disp = result&.dig(:hole_disp)
-      if hole_disp == '-'
-        case $journal[-1]
-        when '(-)'
-          # user has played nothing but has hit return
-          $journal[-1] = '(+)'
-        when '(+)'
-          # hit three times, so we assume he wants to enter a comment
-          comment = get_journal_comment
-          $journal[-1] = if comment.length > 0
-                           '(' + comment[0..19] + ')'
-                         else
-                           '(-)'
-                         end
-        else
-          $journal << '(-)'
-        end
-      else
-        $journal << hole_disp
-      end
-      $msgbuf.print "#{journal_length} holes", 0, 5
-    end
-
-    if $ctl_mic[:journal_delete]
-      $ctl_mic[:journal_delete] = false
-      $journal.pop if $journal[-1] && Theory::musical_event?($journal[-1], :secs)
-      $journal.pop
-    end
-
-    if $ctl_mic[:journal_menu]
-      Interact::journal_menu
-      $ctl_mic[:redraw] = Set[:silent]
-      $freqs_queue.clear
-      $ctl_mic[:journal_menu] = false
-    end
-
-    if $ctl_mic[:journal_write]
-      $ctl_mic[:journal_write] = false
-      if journal_length > 0
-        Interact::make_term_cooked
-        Interact::clear_area_comment
-        puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
-        puts
-        print "\e[0mYour comment for these #{journal_length} holes: "
-        comment = Interact::gets_with_cursor
-        Interact::make_term_immediate
-        Interact::clear_area_comment
-        journal_write(comment)
-        $msgbuf.print "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}", 2, 5, :journal
-      else
-        $msgbuf.print 'No holes in journal, that could be written to file', 2, 5, :journal
-      end
-      $freqs_queue.clear
-    end
-
-    if $ctl_mic[:journal_play]
-      $ctl_mic[:journal_play] = false
-      if journal_length > 0
-        # this will show up right after playing
-        $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
-        [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
-          lines, = tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
-          fit_into_comment lines
-          unless Theory::musical_event?(hole)
-            Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3]),
-                      Theory::get_musical_duration(hole_next))
+        # lambda_hint
+        lambda do |_hole|
+          if Time.now.to_f - $program_start < 6
+            []
+          elsif !$first_hole_held && Time.now.to_f - $program_start < 10
+            ["You may blow your harp now ....      (key of #{$key})"]
+          elsif $opts[:no_player_info] || $opts[:comment] == :journal
+            []
+          else
+            [$players.line_stream_current]
           end
-          if $ctl_kb_queue.length > 0
-            $msgbuf.print 'Skipped to end of journal', 2, 5, :journal
-            break
+        end,
+
+
+        # lambda_star_lick
+        nil
+      )  ## end of show_mic loop
+
+      #
+      # Create journal entries, that have been explicitly requested by
+      # pressing RETURN see show_mic.rb for those holes that get
+      # journaled, just because they have been held long enough
+      #
+      if $ctl_mic[:journal_current]
+        $ctl_mic[:journal_current] = false
+        hole_disp = result&.dig(:hole_disp)
+        if hole_disp == '-'
+          case $journal[-1]
+          when '(-)'
+            # user has played nothing but has hit return
+            $journal[-1] = '(+)'
+          when '(+)'
+            # hit three times, so we assume he wants to enter a comment
+            comment = get_journal_comment
+            $journal[-1] = if comment.length > 0
+                             '(' + comment[0..19] + ')'
+                           else
+                             '(-)'
+                           end
+          else
+            $journal << '(-)'
           end
+        else
+          $journal << hole_disp
         end
-        $msgbuf.print 'Journal played', 0, 3
-        sleep 0.5
-        $ctl_kb_queue.clear
+        $msgbuf.print "#{journal_length} holes", 0, 5
+      end
+
+      if $ctl_mic[:journal_delete]
+        $ctl_mic[:journal_delete] = false
+        $journal.pop if $journal[-1] && Theory::musical_event?($journal[-1], :secs)
+        $journal.pop
+      end
+
+      if $ctl_mic[:journal_menu]
+        Interact::journal_menu
+        $ctl_mic[:redraw] = Set[:silent]
         $freqs_queue.clear
-      else
-        $msgbuf.print 'No holes in journal, that could be played', 2, 5, :journal
+        $ctl_mic[:journal_menu] = false
       end
-    end
 
-    if $ctl_mic[:journal_clear]
-      journal_write('Automatic save before clearing journal') if journal_length > 0
-      $journal = Array.new
-      $msgbuf.print ['Saved and cleared journal',
-                     "appended to #{$journal_file}"], 2, 5, :journal
-      $ctl_mic[:journal_clear] = false
-    end
+      if $ctl_mic[:journal_write]
+        $ctl_mic[:journal_write] = false
+        if journal_length > 0
+          Interact::make_term_cooked
+          Interact::clear_area_comment
+          puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter a comment to be saved along with the holes; empty fo none."
+          puts
+          print "\e[0mYour comment for these #{journal_length} holes: "
+          comment = Interact::gets_with_cursor
+          Interact::make_term_immediate
+          Interact::clear_area_comment
+          journal_write(comment)
+          $msgbuf.print "Wrote \e[0m#{journal_length} holes\e[2m to #{$journal_file}", 2, 5, :journal
+        else
+          $msgbuf.print 'No holes in journal, that could be written to file', 2, 5, :journal
+        end
+        $freqs_queue.clear
+      end
 
-    if $ctl_mic[:journal_edit]
-      $ctl_mic[:journal_edit] = false
-      edit_journal
-      $freqs_queue.clear
-      $ctl_mic[:redraw] = Set[:silent]
-    end
+      if $ctl_mic[:journal_play]
+        $ctl_mic[:journal_play] = false
+        if journal_length > 0
+          # this will show up right after playing
+          $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
+          [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
+            lines, = Text::tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
+            ShowMic::fit_into_comment lines
+            unless Theory::musical_event?(hole)
+              Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3]),
+                               Theory::get_musical_duration(hole_next))
+            end
+            if $ctl_kb_queue.length > 0
+              $msgbuf.print 'Skipped to end of journal', 2, 5, :journal
+              break
+            end
+          end
+          $msgbuf.print 'Journal played', 0, 3
+          sleep 0.5
+          $ctl_kb_queue.clear
+          $freqs_queue.clear
+        else
+          $msgbuf.print 'No holes in journal, that could be played', 2, 5, :journal
+        end
+      end
 
-    if $ctl_mic[:journal_short]
-      Interact::clear_area_comment
-      puts "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[2mJournal without durations, e.g for cut and paste:\e[0m\n\n"
-      puts $journal.reject {|x| Theory::musical_event?(x, :secs)}.join('  ')
-      puts "\n\e[2m  any key to continue ...\e[2m"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-      $freqs_queue.clear
-      $ctl_mic[:journal_short] = false
-      Interact::clear_area_comment
-    end
+      if $ctl_mic[:journal_clear]
+        journal_write('Automatic save before clearing journal') if journal_length > 0
+        $journal = Array.new
+        $msgbuf.print ['Saved and cleared journal',
+                       "appended to #{$journal_file}"], 2, 5, :journal
+        $ctl_mic[:journal_clear] = false
+      end
 
-    if $ctl_mic[:journal_recall]
-      $ctl_mic[:journal_recall] = false
-      content = if File.exist?($journal_file) && File.size($journal_file) > 0
-                  head = <<~END
+      if $ctl_mic[:journal_edit]
+        $ctl_mic[:journal_edit] = false
+        edit_journal
+        $freqs_queue.clear
+        $ctl_mic[:redraw] = Set[:silent]
+      end
+
+      if $ctl_mic[:journal_short]
+        Interact::clear_area_comment
+        puts "\e[#{$lines[:comment_tall] + 1}H\e[J\n  \e[2mJournal without durations, e.g for cut and paste:\e[0m\n\n"
+        puts $journal.reject {|x| Theory::musical_event?(x, :secs)}.join('  ')
+        puts "\n\e[2m  any key to continue ...\e[2m"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+        $freqs_queue.clear
+        $ctl_mic[:journal_short] = false
+        Interact::clear_area_comment
+      end
+
+      if $ctl_mic[:journal_recall]
+        $ctl_mic[:journal_recall] = false
+        content = if File.exist?($journal_file) && File.size($journal_file) > 0
+                    head = <<~END
                     ####{' '}
                     ###   Up to 100 lines from journal file
                     ###
@@ -313,208 +316,198 @@ def do_listen
                     ###
 
                   END
-                  head + File.readlines($journal_file).last(100).map {|l| '# ' + l}.join + "\n"
-                end
-      edit_journal content
-      $freqs_queue.clear
-      $ctl_mic[:redraw] = Set[:silent]
-    end
-
-    if $ctl_mic[:journal_all_toggle]
-      $ctl_mic[:journal_all_toggle] = false
-      $journal_all = !$journal_all
-      $msgbuf.print 'journal-all is ' +
-                    ( $journal_all ? "ON, minimum duration is #{$journal_minimum_duration}s" : 'OFF' ), 2, 5, :journal
-      Interact::ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
-    end
-
-    #
-    # Handling controls for comment lick
-    #
-    if $ctl_mic[:comment_lick_play]
-      $ctl_mic[:comment_lick_play] = false
-      if $comment_licks.length > 0
-        Interact::clear_area_comment
-        Interact::clear_area_message
-        puts "\e[#{$lines[:comment_tall]}H"
-        play_and_print_lick $comment_licks[0]
-        sleep 0.5
+                    head + File.readlines($journal_file).last(100).map {|l| '# ' + l}.join + "\n"
+                  end
+        edit_journal content
         $freqs_queue.clear
-        Interact::clear_area_comment
-        Interact::clear_area_message
         $ctl_mic[:redraw] = Set[:silent]
-      else
-        tell_no_comment_licks
       end
-    end
 
-    if $ctl_mic[:comment_lick_next]
-      $ctl_mic[:comment_lick_next] = false
-      $ctl_mic[:redraw] = Set[:silent]
-      if $comment_licks.length > 0
-        $comment_licks.rotate!
-        $comment_licks_count += 1
-        $comment_licks_count %= $comment_licks.length
-        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        Interact::clear_area_comment
-      else
-        tell_no_comment_licks
+      if $ctl_mic[:journal_all_toggle]
+        $ctl_mic[:journal_all_toggle] = false
+        $journal_all = !$journal_all
+        $msgbuf.print 'journal-all is ' +
+                      ( $journal_all ? "ON, minimum duration is #{$journal_minimum_duration}s" : 'OFF' ), 2, 5, :journal
+        Interact::ctl_response "journal-all #{$journal_all ? ' ON' : 'OFF'}"
       end
-    end
 
-    if $ctl_mic[:comment_lick_prev]
-      $ctl_mic[:comment_lick_prev] = false
-      if $comment_licks.length > 0
-        $comment_licks.rotate!(-1)
-        $comment_licks_count -= 1
-        $comment_licks_count %= $comment_licks.length
-        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        Interact::clear_area_comment
-      else
-        tell_no_comment_licks
-      end
-    end
-
-    if $ctl_mic[:comment_lick_first]
-      $ctl_mic[:comment_lick_first] = false
-      if $comment_licks.length > 0
-        $comment_licks = comment_licks_initial.clone
-        $comment_licks_count = 0
-        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
-        Interact::clear_area_comment
-      else
-        tell_no_comment_licks
-      end
-    end
-
-    #
-    # Handling controls for warbling
-    #
-    if $ctl_mic[:warbles_prepare]
-      $ctl_mic[:warbles_prepare] = false
-      Interact::prepare_warbles
-    end
-
-    next unless $ctl_mic[:warbles_clear]
-
-    $ctl_mic[:warbles_clear] = false
-    $warbles[:short][:val] = $warbles[:short][:max] = 0.0
-    $warbles[:long][:val] = $warbles[:long][:max] = 0.0
-    $warbles[:short][:times] = Array.new
-    $warbles[:long][:times] = Array.new
-    $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
-  end
-end
-
-def edit_journal initial_content = nil
-  tfile = Tempfile.new('harpwise')
-  tfile.write(initial_content) if initial_content
-  tfile.write("\n###\n### The current journal:\n###\n\n")
-  tfile.write(tabify_plain($journal, true))
-  tfile.close
-  if Util::edit_file(tfile.path)
-    catch :invalid_hole do
-      holes = Array.new
-      File.readlines(tfile.path).each do |line|
-        line.gsub!(/#.*/, "\n")
-        line.strip!
-        next if line.empty?
-
-        line.split.each do |hole|
-          if Theory::musical_event?(hole) || $harp_holes.include?(hole)
-            holes << hole
-          else
-            Interact::report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
-            throw :invalid_hole
-          end
+      #
+      # Handling controls for comment lick
+      #
+      if $ctl_mic[:comment_lick_play]
+        $ctl_mic[:comment_lick_play] = false
+        if $comment_licks.length > 0
+          Interact::clear_area_comment
+          Interact::clear_area_message
+          puts "\e[#{$lines[:comment_tall]}H"
+          ModePlay::play_and_print_lick $comment_licks[0]
+          sleep 0.5
+          $freqs_queue.clear
+          Interact::clear_area_comment
+          Interact::clear_area_message
+          $ctl_mic[:redraw] = Set[:silent]
+        else
+          tell_no_comment_licks
         end
       end
-      $journal = holes
-      $msgbuf.print 'Updated journal', 2, 5, :journal
-      return
+
+      if $ctl_mic[:comment_lick_next]
+        $ctl_mic[:comment_lick_next] = false
+        $ctl_mic[:redraw] = Set[:silent]
+        if $comment_licks.length > 0
+          $comment_licks.rotate!
+          $comment_licks_count += 1
+          $comment_licks_count %= $comment_licks.length
+        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+          Interact::clear_area_comment
+        else
+          tell_no_comment_licks
+        end
+      end
+
+      if $ctl_mic[:comment_lick_prev]
+        $ctl_mic[:comment_lick_prev] = false
+        if $comment_licks.length > 0
+          $comment_licks.rotate!(-1)
+          $comment_licks_count -= 1
+          $comment_licks_count %= $comment_licks.length
+        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+          Interact::clear_area_comment
+        else
+          tell_no_comment_licks
+        end
+      end
+
+      if $ctl_mic[:comment_lick_first]
+        $ctl_mic[:comment_lick_first] = false
+        if $comment_licks.length > 0
+          $comment_licks = comment_licks_initial.clone
+          $comment_licks_count = 0
+          comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+          Interact::clear_area_comment
+        else
+          tell_no_comment_licks
+        end
+      end
+
+      #
+      # Handling controls for warbling
+      #
+      if $ctl_mic[:warbles_prepare]
+        $ctl_mic[:warbles_prepare] = false
+        Interact::prepare_warbles
+      end
+
+      next unless $ctl_mic[:warbles_clear]
+
+      $ctl_mic[:warbles_clear] = false
+      $warbles[:short][:val] = $warbles[:short][:max] = 0.0
+      $warbles[:long][:val] = $warbles[:long][:max] = 0.0
+      $warbles[:short][:times] = Array.new
+      $warbles[:long][:times] = Array.new
+      $msgbuf.print 'Cleared warbles maxima', 2, 5, :warble
     end
   end
-  $msgbuf.print 'journal remains unchanged', 2, 5, :journal
-end
 
-def tabify_plain holes, dense = false
-  text = ''
-  cell_len = $harp_holes.map {|h| h.length}.max + 2
-  holes.each_slice(10) do |slice|
-    text += slice.map do |hole|
-      hole.rjust(cell_len)
-    end.join + (dense ? "\n" : "\n\n")
+  def edit_journal initial_content = nil
+    tfile = Tempfile.new('harpwise')
+    tfile.write(initial_content) if initial_content
+    tfile.write("\n###\n### The current journal:\n###\n\n")
+    tfile.write(Text::tabify_plain($journal, true))
+    tfile.close
+    if Util::edit_file(tfile.path)
+      catch :invalid_hole do
+        holes = Array.new
+        File.readlines(tfile.path).each do |line|
+          line.gsub!(/#.*/, "\n")
+          line.strip!
+          next if line.empty?
+
+          line.split.each do |hole|
+            if Theory::musical_event?(hole) || $harp_holes.include?(hole)
+              holes << hole
+            else
+              Interact::report_condition_wait_key "Editing failed, this is not a hole nor a musical event: '#{hole}'"
+              throw :invalid_hole
+            end
+          end
+        end
+        $journal = holes
+        $msgbuf.print 'Updated journal', 2, 5, :journal
+        return
+      end
+    end
+    $msgbuf.print 'journal remains unchanged', 2, 5, :journal
   end
-  text
-end
 
-def journal_write(comment)
-  IO.write($journal_file, "\n\n-----------------------------------\n\n#{Time.now} -- #{journal_length} holes in key of #{$key}:\n\n" +
-                          + ( comment.empty? ? '' : "Comment: #{comment}\n" ) + "\n" +
-                          + tabify_plain($journal) + "\n" +
-                          "The same but more compact: \n\n   " +
-                          $journal.reject {|h| Theory::musical_event?(h)}.join(' ') +
-                          "\n\n", mode: 'a')
-end
+  def journal_write(comment)
+    IO.write($journal_file, "\n\n-----------------------------------\n\n#{Time.now} -- #{journal_length} holes in key of #{$key}:\n\n" +
+                            + ( comment.empty? ? '' : "Comment: #{comment}\n" ) + "\n" +
+                            + Text::tabify_plain($journal) + "\n" +
+                            "The same but more compact: \n\n   " +
+                            $journal.reject {|h| Theory::musical_event?(h)}.join(' ') +
+                            "\n\n", mode: 'a')
+  end
 
-def journal_length
-  $journal.select {|h| !Theory::musical_event?(h)}.length
-end
+  def journal_length
+    $journal.select {|h| !Theory::musical_event?(h)}.length
+  end
 
 
-$warble_cache = Hash.new
+  $warble_cache = Hash.new
 
-def warble_comment type
-  room = $term_width - 14
-  active = ( room * $warbles[type][:val] / $warbles[:scale].to_f ).to_i
-  allmax = ( room * $warbles[type][:max] / $warbles[:scale].to_f ).to_i
-  unless $warble_cache[[type, active, allmax]]
-    head1 = "   #{$warbles[type][:window]}s avg"
-    head2 = 'max'.rjust(head1.length)
-    if active == 0 && allmax > 0
-      meter1 = "\e[2m  " + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
-      meter2 = "\e[2m ." + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
+  def warble_comment type
+    room = $term_width - 14
+    active = ( room * $warbles[type][:val] / $warbles[:scale].to_f ).to_i
+    allmax = ( room * $warbles[type][:max] / $warbles[:scale].to_f ).to_i
+    unless $warble_cache[[type, active, allmax]]
+      head1 = "   #{$warbles[type][:window]}s avg"
+      head2 = 'max'.rjust(head1.length)
+      if active == 0 && allmax > 0
+        meter1 = "\e[2m  " + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
+        meter2 = "\e[2m ." + ( ' ' * (allmax - 1) ) + "\e[0m\e[92m|\e[0m\e[K"
+      else
+        meter1 = meter2 = " \e[2m" + ( '|' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[92m|\e[0m\e[K"
+      end
+      $warble_cache[[type, active, allmax]] = ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
+                                               "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]
+    end
+    $warble_cache[[type, active, allmax]] || ['', ''] ## default may save us after resize
+  end
+
+  def get_journal_comment
+    Interact::make_term_cooked
+    Interact::clear_area_comment
+    puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
+    puts
+    print "\e[0mYour comment (20 chars cutoff): "
+    comment = Interact::gets_with_cursor
+    comment.tr!('()[]{}', '')
+    Interact::make_term_immediate
+    Interact::clear_area_comment
+
+    comment
+  end
+
+  def get_listen_lick_lines lick
+    holes_lines = Text::wrap_words('    ', lick[:holes], '  ').split("\n")
+    lines = ['']
+    lines << '  ' + lick[:name]
+    if holes_lines.length <= 2
+      lines << ''
+      lines.append(*holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact)
     else
-      meter1 = meter2 = " \e[2m" + ( '|' * active ) + ( ' ' * (allmax - active) ) + "\e[0m\e[92m|\e[0m\e[K"
+      lines.append(*holes_lines)
     end
-    $warble_cache[[type, active, allmax]] = ["\e[2m" + head1 + "\e[0m" + (' %4.1f' % $warbles[type][:val]) + meter1,
-                                             "\e[2m" + head2 + "\e[0m" + (' %4.1f' % $warbles[type][:max]) + meter2]
+    lines
   end
-  $warble_cache[[type, active, allmax]] || ['', ''] ## default may save us after resize
-end
 
-def get_journal_comment
-  Interact::make_term_cooked
-  Interact::clear_area_comment
-  puts "\e[#{$lines[:comment_tall] + 2}H\e[0m\e[32mYou may enter an inline comment at the current position."
-  puts
-  print "\e[0mYour comment (20 chars cutoff): "
-  comment = Interact::gets_with_cursor
-  comment.tr!('()[]{}', '')
-  Interact::make_term_immediate
-  Interact::clear_area_comment
-
-  comment
-end
-
-def get_listen_lick_lines lick
-  holes_lines = Text::wrap_words('    ', lick[:holes], '  ').split("\n")
-  lines = ['']
-  lines << '  ' + lick[:name]
-  if holes_lines.length <= 2
-    lines << ''
-    lines.append(*holes_lines.zip(Array.new(holes_lines.length - 1) {''}).flatten.compact)
-  else
-    lines.append(*holes_lines)
+  def tell_no_comment_licks
+    Interact::clear_area_comment
+    print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified!\n  try option   --licks"
+    puts "\n\n\e[2m  #{$resources[:any_key]}\e[2m"
+    $ctl_kb_queue.clear
+    $ctl_kb_queue.deq
+    $freqs_queue.clear
   end
-  lines
-end
-
-def tell_no_comment_licks
-  Interact::clear_area_comment
-  print "\e[#{$lines[:comment_tall] + 1}H  \e[0mNo comment lick specified!\n  try option   --licks"
-  puts "\n\n\e[2m  #{$resources[:any_key]}\e[2m"
-  $ctl_kb_queue.clear
-  $ctl_kb_queue.deq
-  $freqs_queue.clear
 end
