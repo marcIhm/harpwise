@@ -38,7 +38,7 @@ require_relative 'libexec/text'
 require_relative 'libexec/players'
 require_relative 'libexec/sound'
 require_relative 'libexec/licks'
-require_relative 'libexec/handle_holes'
+require_relative 'libexec/show_mic'
 require_relative 'libexec/monkey'
 require_relative 'libexec/mode_listen'
 require_relative 'libexec/mode_licks'
@@ -129,7 +129,7 @@ Util::report_name_collisions_mb
 
 $extra, to_handle = Args::parse_for_mode
 
-Interact::check_screen(hint_on_large_term: true) if %i[listen quiz licks].include?($mode)
+Interact::check_screen if %i[listen quiz licks].include?($mode)
 
 Util::write_dump 'start' if $testing
 
@@ -214,22 +214,22 @@ begin
 
   case $mode
   when :quiz
-    Quiz::do_quiz to_handle
+    ModeQuiz::do_quiz to_handle
   when :licks
-    do_licks_or_quiz to_handle: to_handle
+    ModeLicks::do_licks_or_quiz to_handle: to_handle
   when :listen
-    do_listen
+    ModeListen::do_listen
   when :play
-    do_play to_handle
+    ModePlay::do_play to_handle
   when :print
-    do_print to_handle
+    ModePrint::do_print to_handle
   when :samples
-    do_samples to_handle
+    ModeSamples::do_samples to_handle
   when :tools
-    do_tools to_handle
+    ModeTools::do_tools to_handle
   when :jamming
-    do_jamming to_handle
+    ModeJamming::do_jamming to_handle
   when :develop
-    do_develop to_handle
+    ModeDevelop::do_develop to_handle
   end
 end while $ctl_mic[:switch_modes]
