@@ -4,7 +4,7 @@
 
 module ModeLicks
   extend self
-  
+
   def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, quiz_hole_to_hit: nil, lambda_quiz_hint: nil, to_handle: []
     if to_handle && to_handle.length > 0
 
@@ -490,8 +490,6 @@ module ModeLicks
                   " #{to_play[:all_wanted].length} you have heard!"
               end
             end,
-
-
             # lambda_good_done_was_good
             lambda do |played, since|
               good = Theory::holes_equiv?(played, wanted) || Theory::musical_event?(wanted)
@@ -504,11 +502,8 @@ module ModeLicks
                Theory::holes_equiv?(played, to_play[:all_wanted][idx - 1]) &&
                !Theory::holes_equiv?(played, wanted)]
             end,
-
             # lambda_skip
             -> {$ctl_mic[:next] || $ctl_mic[:back] || $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial] || $ctl_mic[:first_lick]},
-
-
             # lambda_comment; this one needs no arguments at all
             lambda do |*_|
               if idx != idx_refresh_comment_cache || $ctl_mic[:update_comment]
@@ -539,8 +534,6 @@ module ModeLicks
               end
               comment_cache
             end,
-
-
             # lambda_hint
             lambda do |_|
               tntf = Time.now.to_f
@@ -566,8 +559,6 @@ module ModeLicks
                 [hole_hint]
               end
             end,
-
-
             # lambda_star_lick
             if $mode == :licks
               lambda do |up_down|
@@ -777,13 +768,13 @@ module ModeLicks
   end
 
   def play_lick_recording_and_handle_kb_plus lick, at_line:, shift_inter:, holes:
-                                                                             if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
-                                                                               lick[:rec_length] ||= Sound::sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
-                                                                               _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
-                                                                             else
-                                                                               start = lick[:rec_start]
-                                                                               length = lick[:rec_length]
-                                                                             end
+    if $opts[:partial] && !$ctl_mic[:replay_flags].include?(:ignore_partial)
+      lick[:rec_length] ||= Sound::sox_query("#{$lick_dir}/recordings/#{lick[:rec]}", 'Length')
+      _, start, length = select_and_calc_partial([], lick[:rec_start], lick[:rec_length])
+    else
+      start = lick[:rec_start]
+      length = lick[:rec_length]
+    end
 
     text = "Lick \e[0m\e[32m" + lick[:name] + "\e[0m (h for help) ... "
     (holes || lick[:holes]).each do |hole|
@@ -1108,7 +1099,7 @@ module ModeLicks
                                     holes_with_notes, idx)
             elsif $opts[:comment] == :holes_all
               Text::wrapify_for_comment($lines[:hint_or_message] - $lines[:comment_tall],
-                                  holes, idx)
+                                        holes, idx)
             elsif $opts[:comment] == :holes_some && ( quiz_and_after || $opts[:immediate] )
               color, text, line, font, width_template = Text::largify(holes, idx)
               color = "\e[32m" if quiz_and_after
@@ -1200,8 +1191,8 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     lnames = $licks.map {|l| l[:name]}
 
     old_licks = Util::get_prior_history_records(:licks)
-                  .map {|r| r[:name]}
-                  .select {|n| lnames.include?(n)}
+                    .map {|r| r[:name]}
+                    .select {|n| lnames.include?(n)}
 
     choices = if old_licks.length > 0
                 [';RECENT->', old_licks[0..3], ';ALL-OTHER->']
@@ -1294,9 +1285,9 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
       [shift,
        self[:lick][:holes].inject(0) do |sum, hole|
          sum + ( if Theory::musical_event?(hole)
-                 0
-               else
-                 ( $harp[hole][:shifted_by][shift] ? 1 : 0 )
+                   0
+                 else
+                   ( $harp[hole][:shifted_by][shift] ? 1 : 0 )
                  end )
        end]
     end.to_h
@@ -1304,11 +1295,11 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
     choices_desc['NO SHIFT'] = 'use original, unshifted lick'
     $std_semi_shifts.sort_by {|sh| sh < 0 ? 1000 - sh : sh}.each do |shift|
       choices_desc[$intervals[shift.abs][0] + ' ' +
-                   ( shift > 0 ? 'UP' : 'DOWN' ) +
-                   # these are biased shortcuts for often used
-                   # intervals, assuming that this menu is braught up
-                   # by typing '#'
-                   ({ 5 => '.#', 7 => '.##' }[shift] || '')] =
+        ( shift > 0 ? 'UP' : 'DOWN' ) +
+        # these are biased shortcuts for often used
+        # intervals, assuming that this menu is braught up
+        # by typing '#'
+        ({ 5 => '.#', 7 => '.##' }[shift] || '')] =
         "#{num_holes_playable[shift]} of #{num_holes_playable[0]} holes playable"
     end
 

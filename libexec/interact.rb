@@ -5,7 +5,7 @@
 
 module Interact
   extend self
-  
+
   def prepare_screen
     return [24, 80] unless STDOUT.isatty
 
@@ -1112,5 +1112,5 @@ module Interact
     print "\n\n\e[2m#{$resources[:any_key]}\e[K"
     $ctl_kb_queue.clear
     $ctl_kb_queue.deq
-  end  
+  end
 end

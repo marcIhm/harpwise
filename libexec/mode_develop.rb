@@ -303,14 +303,14 @@ module ModeDevelop
     puts
     Text::puts_underlined 'note2semi'
     utreport(%w[bs4 cs4 d4 ds4 ff4 es4 fs4 g4 gs4 a4 as4 cf4].map {|n| Theory::note2semi(n, shadowed: true)},
-             (-9 .. 2).to_a)
+             (-9..2).to_a)
 
     puts
     Text::puts_underlined 'days_ago_in_words'
     [[1, 'yesterday'], [73, '10 weeks ago']].each do |num, words|
       utreport(Util::days_ago_in_words(num), words)
     end
-    
+
     puts
     Text::puts_underlined '$msgbuf'
 

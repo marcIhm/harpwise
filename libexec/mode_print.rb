@@ -4,7 +4,7 @@
 
 module ModePrint
   extend self
-  
+
   def do_print to_print
     # We expect lick-names on command line, so dont narrow to tag-selection
     $licks = $all_licks unless $extra
@@ -401,7 +401,7 @@ module ModePrint
     cnt = 1
     # must be consistent with selection in shortcut2history_record
     records = Util::get_prior_history_records(:licks, :play)
-                .select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
+                  .select {|r| r[:rec_type] != :entry || r[:play_type] == 'lick'}
     if records.length == 0
       puts "No lick-history found for modes 'lick' or 'play' in file\n  #{$history_file}.\n\n"
       exit 0
@@ -719,8 +719,8 @@ module ModePrint
       lick2prog = Hash.new
       nlicks2progs = Hash.new
       pnames.map {|pn| $all_lick_progs[pn]}
-        .select {|lp| keep_all.empty? || keep_all.subset?(Set.new(lp[:tags]))}
-        .each do |lp|
+            .select {|lp| keep_all.empty? || keep_all.subset?(Set.new(lp[:tags]))}
+            .each do |lp|
         print_single_lick_prog(lp)
         (nlicks2progs[lp[:licks].length] ||= Array.new) << lp[:name]
         lp[:licks].uniq.each do |l|

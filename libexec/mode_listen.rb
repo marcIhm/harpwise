@@ -4,7 +4,7 @@
 
 module ModeListen
   extend self
-  
+
   def do_listen
     unless $other_mode_saved[:conf]
       Interact::make_term_immediate
@@ -45,16 +45,10 @@ module ModeListen
 
         # lambda_mission
         -> {mission},
-
-
         # lambda_good_done_was_good
         ->(played, _) {[$all_scales_holes.include?(played), false, false]},
-
-
         # lambda_skip
         nil,
-
-
         # lambda_comment
         lambda do |hole_color, isemi, itext, note, hole_disp, freq|
           color = "\e[0m" + hole_color
@@ -92,9 +86,9 @@ module ModeListen
                    if $hole_ref
                      semi_ref = $harp[$hole_ref][:semi]
                      dots, in_range = ShowMic::get_dots(just_dots_long.dup, 4, freq,
-                                                            Theory::semi2freq_et(semi_ref - 2),
-                                                            Theory::semi2freq_et(semi_ref),
-                                                            Theory::semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
+                                                        Theory::semi2freq_et(semi_ref - 2),
+                                                        Theory::semi2freq_et(semi_ref),
+                                                        Theory::semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
                      color = in_range ? "\e[0m\e[32m" : "\e[2m"
                      dots
                    else
@@ -162,8 +156,6 @@ module ModeListen
                  end || '...'
           [color, text, line, font, width_template]
         end,
-
-
         # lambda_hint
         lambda do |_hole|
           if Time.now.to_f - $program_start < 6
@@ -176,8 +168,6 @@ module ModeListen
             [$players.line_stream_current]
           end
         end,
-
-
         # lambda_star_lick
         nil
       )  ## end of show_mic loop
@@ -301,21 +291,21 @@ module ModeListen
         $ctl_mic[:journal_recall] = false
         content = if File.exist?($journal_file) && File.size($journal_file) > 0
                     head = <<~END
-                    ####{' '}
-                    ###   Up to 100 lines from journal file
-                    ###
-                    ###      #{$journal_file}
-                    ###
-                    ###   all lines commented out.
-                    ###   Uncomment  (remove '#') any lines with holes,
-                    ###   that you want to add to the current journal.
-                    ###
-                    ###   The current journal (#{journal_length} holes, uncommented)
-                    ###   follows at the end of the file; so that just#{' '}
-                    ###   closing this editor does not change it.
-                    ###
+                      ####{' '}
+                      ###   Up to 100 lines from journal file
+                      ###
+                      ###      #{$journal_file}
+                      ###
+                      ###   all lines commented out.
+                      ###   Uncomment  (remove '#') any lines with holes,
+                      ###   that you want to add to the current journal.
+                      ###
+                      ###   The current journal (#{journal_length} holes, uncommented)
+                      ###   follows at the end of the file; so that just#{' '}
+                      ###   closing this editor does not change it.
+                      ###
 
-                  END
+                    END
                     head + File.readlines($journal_file).last(100).map {|l| '# ' + l}.join + "\n"
                   end
         edit_journal content
@@ -358,7 +348,7 @@ module ModeListen
           $comment_licks.rotate!
           $comment_licks_count += 1
           $comment_licks_count %= $comment_licks.length
-        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+          comment_lick_lines = get_listen_lick_lines($comment_licks[0])
           Interact::clear_area_comment
         else
           tell_no_comment_licks
@@ -371,7 +361,7 @@ module ModeListen
           $comment_licks.rotate!(-1)
           $comment_licks_count -= 1
           $comment_licks_count %= $comment_licks.length
-        comment_lick_lines = get_listen_lick_lines($comment_licks[0])
+          comment_lick_lines = get_listen_lick_lines($comment_licks[0])
           Interact::clear_area_comment
         else
           tell_no_comment_licks

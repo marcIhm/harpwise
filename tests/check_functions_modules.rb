@@ -16,11 +16,13 @@ class DefVisitor < Prism::Visitor
     $defs[node.name] << [$mod_here, $class_here, node.name]
     super
   end
+
   def visit_module_node(node)
     $mod_here = node.name
     super
     $mod_here = ''
   end
+
   def visit_class_node(node)
     $class_here = node.name
     super
@@ -59,11 +61,13 @@ class CallVisitor < Prism::Visitor
     end
     super
   end
+
   def visit_module_node(node)
     $mod_here = node.name
     super
     $mod_here = ''
   end
+
   def visit_class_node(node)
     $class_here = node.name
     super
@@ -76,7 +80,7 @@ checkfiles = ['harpwise', Dir['libexec/*.rb']].flatten
 
 puts
 puts "Collecting defs:"
-$defs = Hash.new {|h,k| h[k] = Array.new}
+$defs = Hash.new {|h, k| h[k] = Array.new}
 $mod_here = ''
 $class_here = ''
 checkfiles.each do |cfile|
@@ -92,7 +96,7 @@ puts "Checking calls:"
 $mod_here = ''
 $class_here = ''
 $wrongs = 0
-$summary = Hash.new {|h,k| h[k] = Set.new}
+$summary = Hash.new {|h, k| h[k] = Set.new}
 $maxlen = 0
 $numchecked = 0
 checkfiles.each do |cfile|
@@ -108,7 +112,7 @@ puts
 puts "Number of wrong calls is #{$wrongs}, exit value #{exval}"
 if $summary.length > 0
   puts "Summary is:"
-  $summary.each do |fl,fns|
+  $summary.each do |fl, fns|
     puts "#{fl}:"
     fns.each do |fn|
       puts "  #{fn.to_s.ljust($maxlen)}   #{$defs[fn]}"

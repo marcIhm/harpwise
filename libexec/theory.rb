@@ -1,4 +1,3 @@
-
 module Theory
   extend self
 
@@ -35,7 +34,7 @@ module Theory
       duration
     end
   end
-  
+
   def file2scale file, type = $type
     $scale_files_templates.each do |template|
       %w[holes notes].each do |what|
@@ -76,7 +75,7 @@ module Theory
     rescue Errno::ENOENT, Psych::SyntaxError
     end
     [desc, count]
-  end  
+  end
 
   def holes_equiv? h1, h2
     if h1.is_a?(String) && h2.is_a?(String)
@@ -248,5 +247,5 @@ module Theory
       raise "Internal error: unknown strategy #{strategy}"
     end
     dsemi
-  end  
+  end
 end

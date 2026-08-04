@@ -4,7 +4,7 @@
 
 module ModePlay
   extend self
-  
+
   def do_play to_play
     $all_licks, $licks, $all_lick_progs = Licks::read_licks(use_opt_lick_prog: false)
 
@@ -126,12 +126,12 @@ module ModePlay
 
         err "Need a base hole or note and some semitone diffs or intervals to play a progression, e.g. 'a4 4st 10st'" unless args_for_extra.length >= 1
         progs = args_for_extra.
-                  # replace dot by something unlikely, because some day
-                  # it might also be part of a hole-notation
-                  map {|a| a == '.' ? '###' : a}
-                  .join(' ')
-                  .split('###')
-                  .map {|p| p.split.map {|hns| hns.strip}}
+                # replace dot by something unlikely, because some day
+                # it might also be part of a hole-notation
+                map {|a| a == '.' ? '###' : a}
+                              .join(' ')
+                              .split('###')
+                              .map {|p| p.split.map {|hns| hns.strip}}
         Players::play_interactive_progression(
           progs.map {|p| base_and_delta_to_semis(p)},
           progs.map {|p| p.join(' ')}

@@ -6,7 +6,7 @@
 
 module Args
   extend self
-  
+
   def parse_early
     # General idea of processing command line:
     #
@@ -75,106 +75,106 @@ module Args
     # will be enriched with descriptions and arguments below
     modes2opts =
       [[full_set, {
-          debug: %w[--debug],
-          help: %w[-h --help -? --usage],
-          version: %w[--version --ver],
-          sharps: %w[--sharps],
-          flats: %w[--flats],
-          license: %w[--license],
-          options: %w[--show-options -o]
-        }],
+        debug: %w[--debug],
+        help: %w[-h --help -? --usage],
+        version: %w[--version --ver],
+        sharps: %w[--sharps],
+        flats: %w[--flats],
+        license: %w[--license],
+        options: %w[--show-options -o]
+      }],
        [Set[:samples, :listen, :quiz, :licks, :play, :print], {
-          screenshot: %w[--screenshot]
-        }],
+         screenshot: %w[--screenshot]
+       }],
        [Set[:listen, :quiz, :licks, :play, :tools, :print], {
-          octave_shift: %w[--octave-shift]
-        }],
+         octave_shift: %w[--octave-shift]
+       }],
        [Set[:listen, :quiz, :licks, :tools, :print], {
-          add_scales: %w[-a --add-scales],
-          ref: %w[-r --reference],
-          remove_scales: %w[--remove-scales],
-          no_add_holes: %w[--no-add-holes],
-          shuffle_licks: %w[--shuffle-licks]
-        }],
+         add_scales: %w[-a --add-scales],
+         ref: %w[-r --reference],
+         remove_scales: %w[--remove-scales],
+         no_add_holes: %w[--no-add-holes],
+         shuffle_licks: %w[--shuffle-licks]
+       }],
        [Set[:listen, :quiz, :licks], {
-          display: %w[-d --display],
-          comment: %w[-c --comment]
-        }],
+         display: %w[-d --display],
+         comment: %w[-c --comment]
+       }],
        [Set[:listen, :licks], {
-          scale_prog: %w[--scale-prog --scale-progression],
-          keyboard_translate: %w[--kb-tr --keyboard-translate],
-          jamming: %w[--jamming]
-        }],
+         scale_prog: %w[--scale-prog --scale-progression],
+         keyboard_translate: %w[--kb-tr --keyboard-translate],
+         jamming: %w[--jamming]
+       }],
        [Set[:listen, :licks, :play, :print], {
-          # any mode that handles this option needs to make sure to reread licks
-          lick_prog: %w[--lick-prog --lick-progression]
-        }],
+         # any mode that handles this option needs to make sure to reread licks
+         lick_prog: %w[--lick-prog --lick-progression]
+       }],
        [Set[:listen], {
-          no_player_info: %w[--no-player-info]
-        }],
+         no_player_info: %w[--no-player-info]
+       }],
        [Set[:listen, :quiz, :licks, :develop], {
-          time_slice: %w[--time-slice]
-        }],
+         time_slice: %w[--time-slice]
+       }],
        [Set[:quiz, :play, :licks], {
-          fast: %w[--fast],
-          no_fast: %w[--no-fast]
-        }],
+         fast: %w[--fast],
+         no_fast: %w[--no-fast]
+       }],
        [Set[:quiz, :licks], {
-          immediate: %w[--immediate],
-          loop: %w[--loop],
-          no_loop: %w[--no-loop]
-        }],
+         immediate: %w[--immediate],
+         loop: %w[--loop],
+         no_loop: %w[--no-loop]
+       }],
        [Set[:quiz], {
-          difficulty: %w[--difficulty],
-          keep_key: %w[--keep-key]
-        }],
+         difficulty: %w[--difficulty],
+         keep_key: %w[--keep-key]
+       }],
        [Set[:listen, :quiz, :play, :print], {
-          transpose_scale: %w[--transpose-scale]
-        }],
+         transpose_scale: %w[--transpose-scale]
+       }],
        [Set[:samples], {
-          wave: %w[--wave]
-        }],
+         wave: %w[--wave]
+       }],
        [Set[:print, :samples, :tools, :jamming], {
-          brief: %w[--brief -b]
-        }],
+         brief: %w[--brief -b]
+       }],
        [Set[:listen, :print, :quiz], {
-          viewer: %w[--viewer]
-        }],
+         viewer: %w[--viewer]
+       }],
        [Set[:licks, :play], {
-          holes: %w[--holes],
-          iterate: %w[-i --iterate],
-          reverse: %w[--reverse],
-          start_with: %w[-s --start-with]
-        }],
+         holes: %w[--holes],
+         iterate: %w[-i --iterate],
+         reverse: %w[--reverse],
+         start_with: %w[-s --start-with]
+       }],
        [Set[:licks, :play, :print, :tools], {
-          tags_all: %w[-t --tags-all],
-          tags_any: %w[--tags-any],
-          drop_tags_all: %w[--drop-tags-all],
-          # '-dt' mirrors '-t' and so is allowed to have only one '-' but
-          # two letters 'dt'
-          drop_tags_any: %w[-dt --dt --drop-tags-any],
-          max_holes: %w[--max-holes],
-          min_holes: %w[--min-holes]
-        }],
+         tags_all: %w[-t --tags-all],
+         tags_any: %w[--tags-any],
+         drop_tags_all: %w[--drop-tags-all],
+         # '-dt' mirrors '-t' and so is allowed to have only one '-' but
+         # two letters 'dt'
+         drop_tags_any: %w[-dt --dt --drop-tags-any],
+         max_holes: %w[--max-holes],
+         min_holes: %w[--min-holes]
+       }],
        [Set[:play], {
-          lick_radio: %w[--radio --lick-radio]
-        }],
+         lick_radio: %w[--radio --lick-radio]
+       }],
        [Set[:play, :print], {
-          what: %w[-w --what]
-        }],
+         what: %w[-w --what]
+       }],
        [Set[:print, :jamming, :develop], {
-          verbose: %w[-v --verbose]
-        }],
+         verbose: %w[-v --verbose]
+       }],
        [Set[:jamming], {
-          paused: %w[--paused],
-          print_only: %w[--print-only],
-          over_again: %w[--over-again],
-          variation: %w[--variation]
-        }],
+         paused: %w[--paused],
+         print_only: %w[--print-only],
+         over_again: %w[--over-again],
+         variation: %w[--variation]
+       }],
        [Set[:licks], {
-          fast_lick_switch: %w[--fast-lick-switch],
-          partial: %w[-p --partial]
-        }]]
+         fast_lick_switch: %w[--fast-lick-switch],
+         partial: %w[-p --partial]
+       }]]
 
     found_set = modes2opts.map {|m2o| m2o[0]}.inject {|un, st| un.union(st)}
     raise "Internal error: full set of options #{full_set} differs from union of all sets found #{found_set}" unless full_set == found_set
@@ -460,7 +460,7 @@ module Args
     # prefetch a very small subset of musical config; this is needed to
     # judge command-line arguments, e.g. scales
     $all_scales, $scale2file, $harp_holes, $all_scale_progs, $sc_prog2file, $holes_file =
-    Cfg::read_and_set_musical_bootstrap_config
+      Cfg::read_and_set_musical_bootstrap_config
 
     # check for unprocessed args, that look like options and are neither holes not semitones
     looks_like_opts = ARGV.select do |arg|
@@ -693,8 +693,8 @@ module Args
         # removed) will later be checked again, but only against
         # $amongs[$mode]
         what = Util::recognize_among(ARGV[0],
-                               [$amongs[$mode], :extra, :extra_wwos],
-                               licks: $all_licks)
+                                     [$amongs[$mode], :extra, :extra_wwos],
+                                     licks: $all_licks)
         $extra = ARGV.shift if what == :extra
         unless what
           # this will make Util::print_amongs aware, that we did Util::recognize_among
@@ -813,8 +813,8 @@ module Args
     else
       puts <<~EOFOOTER
 
-      \e[2m#{full}\e[0m
-    EOFOOTER
+        \e[2m#{full}\e[0m
+      EOFOOTER
     end
     puts
   end

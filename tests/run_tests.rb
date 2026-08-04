@@ -2536,7 +2536,7 @@ end
     sleep 6
     tms 'q'
     expect(vals) do
-      ( md = screen[19].match(/handle_holes_this_loops_per_second=>(\d+\.\d+)/) ) &&
+      ( md = screen[19].match(/show_mic_this_loops_per_second=>(\d+\.\d+)/) ) &&
         lpsrange.include?(md[1].to_f)
     end
     kill_session

@@ -4,7 +4,7 @@
 
 module Sound
   extend self
-  
+
   def record_sound secs, file, **opts
     output_clause = ( opts[:silent] ? '>/dev/null 2>&1' : '' )
     if $testing
@@ -64,19 +64,19 @@ module Sound
       if ['?', 'h'].include?(choice)
         puts <<~EOHELP
 
-        Full Help:
+          Full Help:
 
-                0-9: set position to start from (marked by vertical bar
-                     line in plot); just start to type, e.g.:  0.4
-                  d: draw current recording
-            p,SPACE: play from current start position
-           y,RETURN: accept current start position, trim file
-                     and skip to next hole
-                  f: play a sample frequency for comparison#{' '}
-                q,c: cancel and go to main menu, where you may
-                     generate a sample instead
-                  r: record and trim again for this hole
-      EOHELP
+                  0-9: set position to start from (marked by vertical bar
+                       line in plot); just start to type, e.g.:  0.4
+                    d: draw current recording
+              p,SPACE: play from current start position
+             y,RETURN: accept current start position, trim file
+                       and skip to next hole
+                    f: play a sample frequency for comparison#{' '}
+                  q,c: cancel and go to main menu, where you may
+                       generate a sample instead
+                    r: record and trim again for this hole
+        EOHELP
 
       elsif ['', ' ', 'p'].include?(choice)
         puts "\e[34mPlay\e[0m from %.2f ..." % play_from
@@ -366,8 +366,8 @@ module Sound
 
   def analyze_with_aubio file
     freqs = run_aubiopitch(file).lines
-              .map {|line| line.split[1].to_i}
-              .select {|freq|                                         freq > 50 && freq < 8000}
+                                .map {|line| line.split[1].to_i}
+                                .select {|freq|                                         freq > 50 && freq < 8000}
     # take only second half to avoid transients
     freqs = freqs[freqs.length / 2..-1]
     minf, maxf = freqs.minmax
@@ -434,11 +434,11 @@ class UserLickRecording
     print "\e[#{$lines[:key]};#{sign_column}H" +
           if active?
             "\e[0;101m" +
-              if first_hole_good_at && @rec_pid
-                @sign_text
-              else
-                @sign_text.downcase
-              end + "\e[0m"
+            if first_hole_good_at && @rec_pid
+              @sign_text
+            else
+              @sign_text.downcase
+            end + "\e[0m"
           else
             ' ' * @sign_text.length
           end

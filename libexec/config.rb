@@ -6,7 +6,7 @@
 
 module Cfg
   extend self
-  
+
   def set_global_vars_early
     $move_down_on_exit = false
     $err_binding = nil
@@ -77,12 +77,12 @@ module Cfg
 
     # Variables that may be set by pressing keys when listening to microphone
     ks = %i[skip redraw redraw_mission hole_given next back forget first_lick quit replay octave
-          loop
-          change_lick change_key pitch debug change_scale rotate_scale rotate_scale_reset change_tags show_help change_partial change_num_quiz_replay quiz_hint
-          replay_menu replay_flags star_lick edit_lick_file reverse_holes shuffle_holes lick_info options_info shift_inter comment_lick_play comment_lick_next comment_lick_prev comment_lick_first
-          switch_modes toggle_record_user remote_message
-          journal_menu journal_current journal_play journal_delete journal_clear journal_write journal_edit journal_recall journal_short journal_all_toggle journal_with_timing jamming_ps_rs change_display change_comment update_comment warbles_prepare warbles_clear
-          set_ref auto_replay player_details]
+            loop
+            change_lick change_key pitch debug change_scale rotate_scale rotate_scale_reset change_tags show_help change_partial change_num_quiz_replay quiz_hint
+            replay_menu replay_flags star_lick edit_lick_file reverse_holes shuffle_holes lick_info options_info shift_inter comment_lick_play comment_lick_next comment_lick_prev comment_lick_first
+            switch_modes toggle_record_user remote_message
+            journal_menu journal_current journal_play journal_delete journal_clear journal_write journal_edit journal_recall journal_short journal_all_toggle journal_with_timing jamming_ps_rs change_display change_comment update_comment warbles_prepare warbles_clear
+            set_ref auto_replay player_details]
     $ctl_mic = Struct.new(*ks).new
     ks.each {|k| $ctl_mic[k] = false}
     $ctl_mic[:replay_flags] = Set.new
@@ -90,7 +90,7 @@ module Cfg
     # result of processing keys, while a recording is played
     # this is partially mirrored in sound_driver.rb
     ks = %i[skip replay slower faster vol_up vol_down
-          show_help pause_continue invalid]
+            show_help pause_continue invalid]
     $ctl_rec = Struct.new(*ks).new
     ks.each {|k| $ctl_rec[k] = false}
 
@@ -282,23 +282,23 @@ module Cfg
       FileUtils.mkdir_p($invocations_dir)
       File.write "#{$invocations_dir}/README.org", <<~EOREADME
 
-      The files in this directory contain the most recent
-      command lines, that have been used to invoke harpwise. These are
-      grouped by mode and extra keyword, so each type may have its own
-      history.
+        The files in this directory contain the most recent
+        command lines, that have been used to invoke harpwise. These are
+        grouped by mode and extra keyword, so each type may have its own
+        history.
 
-      The files can be used as a basis for an easy lookup of harpwise
-      commands; a sample script using fzf can be found in the
-      install-dir of harpwise, subdirectory util.
+        The files can be used as a basis for an easy lookup of harpwise
+        commands; a sample script using fzf can be found in the
+        install-dir of harpwise, subdirectory util.
 
-    EOREADME
+      EOREADME
     end
 
     #
     # Prepare meta information about quiz flavours and their tags
     #
     $quiz_flavour2class = ModeQuiz::Flavour.subclasses.map do |subclass|
-      [subclass.to_s.underscore.tr('_', '-').gsub(/^mode-quiz\//,''), subclass]
+      [subclass.to_s.underscore.tr('_', '-').gsub(/^mode-quiz\//, ''), subclass]
     end.to_h
     $quiz_coll2flavs = Hash.new
     # $q_class2colls comes from the individual flavour classes
@@ -419,48 +419,48 @@ module Cfg
     unless File.exist?(readme)
       File.write readme, <<~EOREADME
 
-      The directory contains your personal data for harpwise,
-      e.g. your configuration file config.ini or your licks.
+        The directory contains your personal data for harpwise,
+        e.g. your configuration file config.ini or your licks.
 
-      Many of these files contain comments, others are explained in
-      the documentation of harpwise.
+        Many of these files contain comments, others are explained in
+        the documentation of harpwise.
 
-      Consider backing up this directory now and then.
+        Consider backing up this directory now and then.
 
-    EOREADME
+      EOREADME
     end
 
     $early_conf[:config_file] = "#{$dirs[:install]}/config/config.ini"
     $early_conf[:config_file_user] = "#{$dirs[:data]}/config.ini"
     $sox_fail_however = <<~end_of_however
 
-    sox (or play or rec) did not start correctly; see error-message above.
-    ----------------------------------------------------------------------
+      sox (or play or rec) did not start correctly; see error-message above.
+      ----------------------------------------------------------------------
 
-    Please try:
+      Please try:
 
-      harpwise tools diag
+        harpwise tools diag
 
-    which will execute a simple test, that can be diagnosed more easily.
+      which will execute a simple test, that can be diagnosed more easily.
 
-  end_of_however
+    end_of_however
 
     unless File.exist?($early_conf[:config_file_user])
       File.open($early_conf[:config_file_user], 'w') do |cfu|
         cfu.write(<<~end_of_content)
-        #
-        # Custom configuration
-        #
-        # This is a verbatim copy of the global config file
-        #
-        #   #{$early_conf[:config_file]}
-        #
-        # with every entry commented out (at least initially).
-        #
-        # The global config defines the defaults, which you may#{' '}
-        # override here.
-        #
-      end_of_content
+          #
+          # Custom configuration
+          #
+          # This is a verbatim copy of the global config file
+          #
+          #   #{$early_conf[:config_file]}
+          #
+          # with every entry commented out (at least initially).
+          #
+          # The global config defines the defaults, which you may#{' '}
+          # override here.
+          #
+        end_of_content
         past_head = false
         File.readlines($early_conf[:config_file]).each do |line|
           past_head = true if line[0] != '#'
@@ -667,9 +667,9 @@ module Cfg
     # Set some things we do not take from file
     conf[:all_keys] = Set.new($notes_with_sharps + $notes_with_flats).to_a
     conf[:all_types] = Dir["#{$dirs[:install]}/config/*"]
-                         .select {|f| File.directory?(f)}
-                         .map {|f| File.basename(f)}
-                         .reject {|f| f.start_with?('.')}
+                       .select {|f| File.directory?(f)}
+                       .map {|f| File.basename(f)}
+                       .reject {|f| f.start_with?('.')}
     conf[:term_min_width] = 75
     conf[:term_min_height] = 24
 
@@ -1171,7 +1171,7 @@ module Cfg
       chart_with_scales = []
       chart_with_scales_simple = []
       holes_for_simple = read_and_parse_scale($non_prog_scale, $harp)[0]
-                           .map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
+                         .map {|h| [h, $harp[h][:equiv]]}.flatten.uniq
       # will be used in get chart with intervals
       $chart_with_holes_raw = chart_with_holes_raw
       $chart_cell_len = len

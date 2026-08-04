@@ -6,7 +6,7 @@
 
 module ShowMic
   extend self
-  
+
   def enter_loop lambda_mission, lambda_good_done_was_good, lambda_skip,
                  lambda_comment, lambda_hint, lambda_star_lick
     #
@@ -25,7 +25,7 @@ module ShowMic
     # One-time initialize
     if $first_round_ever_get_hole
       $move_down_on_exit = true
-      $msgbuf.ready          
+      $msgbuf.ready
       if $hole_ref
         $charts[:chart_intervals] = Cfg::get_chart_with_intervals(prefer_names: true)
         $charts[:chart_inter_semis] = Cfg::get_chart_with_intervals(prefer_names: false)
@@ -326,12 +326,12 @@ module ShowMic
           line,
           font,
           width_template =
-          lambda_comment.call($hole_ref ? hole_ref_color : hole_color,
-                              inter_semi,
-                              inter_text,
-                              hole && $harp[hole] && $harp[hole][:note],
-                              hole_disp,
-                              freq)
+            lambda_comment.call($hole_ref ? hole_ref_color : hole_color,
+                                inter_semi,
+                                inter_text,
+                                hole && $harp[hole] && $harp[hole][:note],
+                                hole_disp,
+                                freq)
           print "\e[#{line}H#{color}"
           Text::do_figlet_unwrapped text, font, width_template
         end
@@ -677,9 +677,9 @@ module ShowMic
 
     $key = Players::play_interactive_pitch(embedded: true) || $key
     $msgbuf.print(if key_was == $key
-                  'Key of harp is still at'
-                 else
-                   'Changed key of harp to'
+                    'Key of harp is still at'
+                  else
+                    'Changed key of harp to'
                   end + " \e[0m#{$key}", 2, 5, :key)
   end
 
@@ -765,7 +765,7 @@ module ShowMic
     $scale_prog.rotate!(step)
     $scale_prog_count += step
     $scale_prog_count %= $scale_prog.length
-  $used_scales.rotate!(step) while $used_scales[0] != $scale_prog[0]
+    $used_scales.rotate!(step) while $used_scales[0] != $scale_prog[0]
     $scale = $used_scales[0]
     $opts[:add_scales] = $used_scales.length > 1 ? $used_scales[1..-1].join(',') : nil
     clause = ( $sc_prog_init == $scale_prog ? ', new cycle' : '' )
@@ -893,8 +893,8 @@ module ShowMic
     $jamming_timer_state = jts
 
     [" \e[32m" + jts[:head] + "\e[#{jts[:tick_col]}m" + jts[:left] +
-     "\e[0m\e[2m" + jts[:right] +
-     "\e[0m\e[32m" + jts[:tail],
+      "\e[0m\e[2m" + jts[:right] +
+      "\e[0m\e[32m" + jts[:tail],
      # Total number of coloring chars in string above (e.g. \e[32m = 5)
      27]
   end
@@ -1255,10 +1255,10 @@ module ShowMic
         err "Internal error: remote message from #{messages[0]}: if its first line contains special sequence '{{' anywhere, it must actually start with any of '#{specials.join(', ')}' plus additional text, but not: #{lines.pretty_inspect}" if text.index('{{') && specials.none? {|s| text.start_with?(s)}
         err "Internal error: remote message from #{messages[0]} needs exactly two lines but its content has not: #{lines.pretty_inspect}" if lines.length != 2
         duration = begin
-                     Float(lines[1].chomp)
-                   rescue ArgumentError
-                     err "Second line of remote message from #{messages[0]} is not a number: '#{lines[1].chomp}'"
-                   end
+          Float(lines[1].chomp)
+        rescue ArgumentError
+          err "Second line of remote message from #{messages[0]} is not a number: '#{lines[1].chomp}'"
+        end
 
         if text.start_with?('{{mission}}')
           $jamming_mission_override = text[text.index('}}') + 2..-1]
@@ -1280,10 +1280,10 @@ module ShowMic
         elsif text.start_with?('{{timer}}')
           dtext = text[text.index('}}') + 2..-1]
           ts_end = begin
-                     Float(dtext)
-                   rescue ArgumentError
-                     err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
-                   end
+            Float(dtext)
+          rescue ArgumentError
+            err "Internal error: after {{timer}} there needs to be a number, not: '#{dtext}'"
+          end
           $jamming_timer_start = Time.now.to_f
           $jamming_timer_end = ts_end
           $jamming_timer_update_next = $jamming_timer_start - 1

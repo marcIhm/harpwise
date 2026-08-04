@@ -1,4 +1,3 @@
-
 module Choose
   extend self
 
@@ -26,11 +25,11 @@ module Choose
     Interact::handle_win_change if $ctl_sig_winch
 
     $choose_padding = if names.map(&:length).sum / names.length > 10 ||
-                       names.any? {|name| name[' ']}
-                      '  '
-                    else
-                      ' '
-                    end
+                         names.any? {|name| name[' ']}
+                        '  '
+                      else
+                        ' '
+                      end
 
     $choose_total_chars = padded(names).join.length
     prompt_template = "\e[%dH\e[0m%s \e[K"
@@ -159,7 +158,7 @@ module Choose
       print desc_helper(matching[idx_hili], block) if block_given? && matching[idx_hili]
     end
   end
-  
+
   def idx_helper names, frame_start
     # leave out initial '...more' if present (although it will only be
     # added later in print_in_columns)
@@ -236,7 +235,7 @@ module Choose
 
   def line_helper line
     line.gsub('[', " \e[0m\e[32m\e[7m").gsub(']', "\e[0m\e[2m ")
-      .gsub('{', " \e[0m\e[2m\e[7m").gsub('}', "\e[0m\e[2m ")
+        .gsub('{', " \e[0m\e[2m\e[7m").gsub('}', "\e[0m\e[2m ")
   end
 
   def desc_helper text, block
@@ -245,9 +244,9 @@ module Choose
         "\e[2m" + 'This is a comment and cannot be chosen ...'
       else
         "\e[32m" +
-          Text::truncate_text( block ? block.call(text) : text )
+        Text::truncate_text( block ? block.call(text) : text )
       end +
-    + "\e[0m\e[K"
+      + "\e[0m\e[K"
   end
 
   def move_loc idx_hili_old, dir, idx_hili_min, idx_last_shown, frame_start

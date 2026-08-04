@@ -8,7 +8,7 @@ $lick_file = nil
 
 module Licks
   extend self
-  
+
   def read_licks graceful: false, lick_file: nil, use_opt_lick_prog: true
     # This is a time-intensive operation
 
@@ -226,12 +226,12 @@ module Licks
     File.open(dfile, 'w') do |df|
       df.write <<~end_of_content
 
-      #
-      # derived lick file with #{dfile['holes'] ? 'holes' : 'notes'}
-      # created from #{lfile}
-      #
-      #{'  '}
-    end_of_content
+        #
+        # derived lick file with #{dfile['holes'] ? 'holes' : 'notes'}
+        # created from #{lfile}
+        #
+        #{'  '}
+      end_of_content
       df.puts derived.join("\n") + "\n"
     end
 
@@ -284,12 +284,12 @@ module Licks
 
       # apply all filtering options in order
       licks = all_licks
-                .select {|lick| keep_all.empty? || keep_all.subset?(Set.new(lick[:tags]))}
-                .select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}
-                .reject {|lick| drop_all.any? && drop_all.subset?(Set.new(lick[:tags]))}
-                .reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}
-                .select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}
-                .select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
+              .select {|lick| keep_all.empty? || keep_all.subset?(Set.new(lick[:tags]))}
+              .select {|lick| keep_any.empty? || (keep_any.to_a & lick[:tags]).any?}
+              .reject {|lick| drop_all.any? && drop_all.subset?(Set.new(lick[:tags]))}
+              .reject {|lick| drop_any.any? && (drop_any.to_a & lick[:tags]).any?}
+              .select {|lick| lick[:holes].length <= ( $opts[:max_holes] || 1000 )}
+              .select {|lick| lick[:holes].length >= ( $opts[:min_holes] || 0 )}
 
       # insert journal as lick
       if ModeListen::journal_length > 0
@@ -466,9 +466,9 @@ module Licks
       tag = $licks_semi_shifts[st]
       num_shiftable = lick[:holes].inject(0) do |sum, hole|
         sum + ( if Theory::musical_event?(hole)
-                1
-              else
-                ( $harp[hole][:shifted_by][st] ? 1 : 0 )
+                  1
+                else
+                  ( $harp[hole][:shifted_by][st] ? 1 : 0 )
                 end )
       end
       lick[:tags] << tag if lick[:holes].length == num_shiftable
@@ -480,11 +480,11 @@ module Licks
 
     $scale_lick_tags.each do |scale|
       sc_holes = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
-                   .map {|h| $harp[h][:canonical]}
+                    .map {|h| $harp[h][:canonical]}
       lk_holes = lick[:holes]
-                   .reject {|h| Theory::musical_event?(h)}
-                   .uniq
-                   .map {|h| $harp[h][:canonical]}
+                 .reject {|h| Theory::musical_event?(h)}
+                 .uniq
+                 .map {|h| $harp[h][:canonical]}
       [lk_holes, *lk_holes.combination(lk_holes.length - 1)].each do |subset|
         if subset - sc_holes == []
           lick[:tags] << "mostly-#{scale}"
@@ -554,8 +554,8 @@ module Licks
 
     # this already errs out for lnames.length > 0 && lpnames.length > 0
     _, _, lnames, lpnames, = Util::partition_for_mode_or_amongs($opts[:lick_prog].split(','),
-                                                                    amongs: %i[lick lick_prog],
-                                                                    extra_allowed: false)
+                                                                amongs: %i[lick lick_prog],
+                                                                extra_allowed: false)
     if ( lnames.length == 0 && lpnames.length == 0 ) ||
        ( lnames.length > 0  && lpnames.length > 0 )
       err "Internal error, should have had error already in partition: #{lpnames}, #{lnames}"

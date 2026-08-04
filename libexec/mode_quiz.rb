@@ -89,10 +89,10 @@ module ModeQuiz
       puts "\n\n\n"
       prepare_listen_perspective_for_quiz
       ModeLicks::do_licks_or_quiz(lambda_quiz_hint: lambda do |holes, _, _, _|
-                                    solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
-                                                 "\e[32m       #{holes.join('  ')}"
-                                    quiz_hint_in_show_mic_loop_std(solve_text, 'sequence', holes, :all)
-                                  end)
+                                                      solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
+                                                                   "\e[32m       #{holes.join('  ')}"
+                                                      quiz_hint_in_show_mic_loop_std(solve_text, 'sequence', holes, :all)
+                                                    end)
 
 
     elsif $quiz_flavour == 'play-scale'
@@ -113,7 +113,7 @@ module ModeQuiz
                                                  "\e[32m       #{holes.join('  ')}"
                                     quiz_hint_in_show_mic_loop_std(solve_text, 'scale', holes, :all)
                                   end)
-      
+
     elsif $quiz_flavour == 'play-inter'
 
       holes_inter = get_random_interval_as_holes
@@ -124,10 +124,10 @@ module ModeQuiz
       $hole_ref = holes_inter[0]
       ModeLicks::do_licks_or_quiz(quiz_holes_inter: holes_inter,
                                   lambda_quiz_hint: lambda do |holes, holes_inter, _, _|
-                                    solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
-                                                 "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                                    quiz_hint_in_show_mic_loop_std(solve_text, 'interval', holes, holes[-1], true)
-                       end)
+                                                      solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
+                                                                   "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
+                                                      quiz_hint_in_show_mic_loop_std(solve_text, 'interval', holes, holes[-1], true)
+                                                    end)
 
 
     elsif $quiz_flavour == 'play-shifted'
@@ -143,7 +143,7 @@ module ModeQuiz
                                   lambda_quiz_hint: lambda do |_holes, _, _, holes_shift_info|
                                     quiz_hint_in_show_mic_loop_shifted holes_shift_info
                                   end)
-      
+
 
     elsif $quiz_flavour == 'hit-from-off'
 
@@ -166,7 +166,7 @@ module ModeQuiz
                                   lambda_quiz_hint: lambda do |holes|
                                     quiz_hint_in_show_mic_loop_hit_from_off holes[0]
                                   end)
-      
+
 
     elsif $quiz_flavour == 'keep-tempo'
 
@@ -246,7 +246,6 @@ module ModeQuiz
     end
   end
 
-  
   def get_random_interval_as_holes sorted: false
     # favour lower holes
     all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).flatten.shuffle
@@ -491,7 +490,6 @@ module ModeQuiz
   # $extra may contain meta-keywords like 'choose'; flavour only real
   # flavours like 'hear-scale'
   def get_accepted_flavour_from_extra inherited
-
     flavour,
     collection = if inherited
                    # we only ever inherit (from previous invocations) a collection; never a
@@ -680,8 +678,8 @@ module ModeQuiz
     puts
     sleep 0.05
     puts Util::get_extra_desc_single(flavour)[1..-1]
-           .map {|l| '  ' + l + "\n"}
-           .join.chomp +
+             .map {|l| '  ' + l + "\n"}
+             .join.chomp +
          ".\n"
   end
 
@@ -715,6 +713,7 @@ module ModeQuiz
 
     def selfcheck
       return if %i[not_relevant broader_coverage part_of_solution].include?(@key_contributes_to_solution)
+
       raise "Internal error: #{@key_contributes_to_solution}"
     end
 
@@ -1005,7 +1004,7 @@ module ModeQuiz
                         ["\e[2m", "\e[0m"]
                       end
       semi_min = @@hole_sets_names.map {|d| $named_hole_sets[d]}.flatten
-                   .map {|h| $harp[h][:semi]}.min
+                                  .map {|h| $harp[h][:semi]}.min
       (sets || @@hole_sets_names).each_with_index do |desc, idx|
         nmd_holes = $named_hole_sets[desc]
         raise "Internal error: no named holes for '#{desc}'" unless nmd_holes && nmd_holes.length > 0
@@ -1270,20 +1269,20 @@ module ModeQuiz
         # random length of sequence
         holes = all_holes.sample(6 + rand(5).to_i)
         superset_scales = scales.
-                            # must be superset, i.e. contain all holes;
-                            # subtracting arrays does work, even if
-                            # holes has duplicates (which it has)
-                            select {|sc| (holes - @scale2holes[sc]).length == 0}.
-                            # group by length, so that we know, if two
-                            # or more scales with the same length are
-                            # superset; we do not want this, because it
-                            # would be ambigous. The result of group_by.to_a
-                            # has this form (e.g.):
-                            # [[len1,[sc1,sc2]],[len2,[sc3]]]
-                            group_by {|sc| @scale2holes[sc].length}.to_a.
-                            # sort by length, so that the shortest scale
-                            # comes first
-                            sort {|g1, g2| g1[0] <=> g2[0]}
+                          # must be superset, i.e. contain all holes;
+                          # subtracting arrays does work, even if
+                          # holes has duplicates (which it has)
+                          select {|sc| (holes - @scale2holes[sc]).length == 0}.
+                          # group by length, so that we know, if two
+                          # or more scales with the same length are
+                          # superset; we do not want this, because it
+                          # would be ambigous. The result of group_by.to_a
+                          # has this form (e.g.):
+                          # [[len1,[sc1,sc2]],[len2,[sc3]]]
+                          group_by {|sc| @scale2holes[sc].length}.to_a.
+                          # sort by length, so that the shortest scale
+                          # comes first
+                          sort {|g1, g2| g1[0] <=> g2[0]}
         # if there are any matching scales, take shortest but only if it
         # is not ambigous
         next unless superset_scales.length > 0 && superset_scales[0][1].length == 1
@@ -1297,7 +1296,7 @@ module ModeQuiz
         others[scale] = ( os.length > 0 ? os : nil )
         unique[scale] = holes -
                         @scale2holes.keys.select {|s| s != scale}
-                          .map {|s| @scale2holes[s]}.flatten
+                                    .map {|s| @scale2holes[s]}.flatten
         unique[scale] = nil if unique[scale].length == 0
         ( ierr = if unique[scale] && (unique[scale] - @scale2holes[scale]).length > 0
                    "unique holes #{unique[scale]} not all in chosen scale"
@@ -1865,8 +1864,8 @@ module ModeQuiz
       super
 
       @interval2song = $intervals_quiz[$opts[:difficulty]]
-                         .select {|i| i > 0}
-                         .map {|inter| [inter, $quiz_interval2song[inter].sample]}.to_h
+                       .select {|i| i > 0}
+                       .map {|inter| [inter, $quiz_interval2song[inter].sample]}.to_h
 
       @qdesc, @adesc, qi2ai = if rand > 0.5
                                 ['interval', 'song', @interval2song]

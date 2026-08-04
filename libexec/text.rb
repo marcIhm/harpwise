@@ -1,7 +1,6 @@
-
 module Text
   extend self
-  
+
   def do_animation info, nlines, sleep1 = 0.04, sleep2 = 0.03
     puts "\e[?25l"  ## hide cursor
     $splashed = true
@@ -39,7 +38,7 @@ module Text
 
       # strip common spaces at front
       common = lines.select {|l| l.lstrip.length > 0}
-                 .map {|l| l.length - l.lstrip.length}.min
+                    .map {|l| l.length - l.lstrip.length}.min
       lines.map! {|l| l[common..-1] || ''}
 
       # overall length from figlet
@@ -91,7 +90,7 @@ module Text
       # strip common spaces at front in groups of four, known to be figlet line height
       lines = lines.each_slice(4).map do |lpl| # lines (terminal) per line (figlet)
         common = lpl.select {|l| l.lstrip.length > 0}
-                   .map {|l| l.length - l.lstrip.length}.min || 0
+                    .map {|l| l.length - l.lstrip.length}.min || 0
         lpl.map {|l| l[common..-1] || ''}
       end.flatten
 
@@ -204,7 +203,7 @@ module Text
     lines[-1] += "\e[0m"
     lines
   end
-  
+
   def print_chart skip_hole = nil
     xoff, yoff, = $conf[:chart_offset_xyl]
     if %i[chart_intervals chart_inter_semis].include?($opts[:display]) && !$hole_ref
@@ -279,7 +278,7 @@ module Text
       "\e[2m"
     end
   end
-  
+
   def get_dim_hline
     "\e[2m" + ( '-' * ( $term_width * 0.5 )) + "\e[0m"
   end
@@ -297,10 +296,10 @@ module Text
     padded_names = case pad
                    when :tabs
                      names.map {|nm| ' ' + nm + ' '}
-                       .map {|nm| nm + ' ' * (-nm.length % 4)}
+                          .map {|nm| nm + ' ' * (-nm.length % 4)}
                    when :long_tabs
                      names.map {|nm| ' ' + nm + ' '}
-                       .map {|nm| nm + ' ' * (-nm.length % 8)}
+                          .map {|nm| nm + ' ' * (-nm.length % 8)}
                    when :space
                      names.map {|nm| '  ' + nm}
                    when :fill
@@ -324,7 +323,7 @@ module Text
     line = highlight_helper(line, highlight)
     puts head + line.strip unless line.strip.empty?
   end
-  
+
   def wrap_words head, words, sep = ',', width: $term_width
     line = head
     lines = Array.new
@@ -397,7 +396,7 @@ module Text
 
   def animate_splash_line single_line = false, as_string: false
     return nil if $splashed
-    
+
     print "\e[J"
     printed = ''
     unless single_line
@@ -448,7 +447,7 @@ module Text
     sleep 0.04
     $splashed = true
     return printed
-  end  
+  end
 
   def puts_underlined text, char = '=', dim: :auto, vspace: :auto
     puts "\e[" +
@@ -462,7 +461,7 @@ module Text
     puts char * text.length
     print "\e[0m"
     puts if ( vspace == :auto && char == '=' ) || vspace == true
-  end  
+  end
 
   def highlight_helper text, highlight
     # do highlight and count their number
@@ -486,7 +485,7 @@ module Text
     end
     text
   end
-  
+
   def tabify_colorize max_lines, holes_etc, idx_first_active
     lines = Array.new
     max_cell_len = holes_etc.map {|he| he.map(&:length).sum + 2}.max
@@ -508,11 +507,11 @@ module Text
                 ' ' + "\e[0m\e[2m" + hole_etc[0] + hole_etc[1] + mb_w_dot
               else
                 hole_etc[0] +
-                  if idx == idx_first_active
-                    "\e[0m\e[92m*"
-                  else
-                    ' '
-                  end + ( "\e[0m" + Text::get_hole_color_inactive(hole_etc[1], true) +
+                if idx == idx_first_active
+                  "\e[0m\e[92m*"
+                else
+                  ' '
+                end + ( "\e[0m" + Text::get_hole_color_inactive(hole_etc[1], true) +
                           hole_etc[1] + "\e[0m\e[2m" + mb_w_dot )
               end
     end
@@ -555,5 +554,5 @@ module Text
       to_del = per_line
     end
     [lines, to_del]
-  end  
+  end
 end

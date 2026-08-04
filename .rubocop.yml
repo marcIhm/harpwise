@@ -31,8 +31,6 @@ Layout/ExtraSpacing:
   Enabled: false
 Style/NumericPredicate:
   Enabled: false
-Style/FileEmpty:
-  Enabled: false
 Style/EmptyLiteral:
   Enabled: false
 Layout/EmptyLinesAroundBeginBody:

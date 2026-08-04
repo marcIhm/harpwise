@@ -4,7 +4,7 @@
 
 module Players
   extend self
-  
+
   def play_lick_recording_and_handle_kb lick, start, length, shift_inter, scroll_allowed
     recording = lick[:rec]
     key = lick[:rec_key]
@@ -129,7 +129,7 @@ module Players
       pplayer.check
 
     end while imm_ctrls_again.any? {|k| $ctl_rec[k]} ||
-              ( loop_rec && cnt_loops < $ctl_lk_hl[:num_loops] )
+      ( loop_rec && cnt_loops < $ctl_lk_hl[:num_loops] )
 
     puts if scroll_allowed
     $ctl_rec[:skip]
@@ -837,10 +837,10 @@ module Players
       end
       if $ctl_hole[:show_help]
         Util::display_kb_help 'a series of holes or notes', true,  <<~end_of_content
-               SPACE: pause/continue
-        TAB,+,RETURN: skip to end
-                   v: decrease volume     V: increase volume by 3dB
-      end_of_content
+                 SPACE: pause/continue
+          TAB,+,RETURN: skip to end
+                     v: decrease volume     V: increase volume by 3dB
+        end_of_content
         # continue below help
         print "\n"
         $ctl_hole[:show_help] = false
@@ -976,7 +976,7 @@ module Players
                                      lick: to_play[:lick],
                                      with_head: true,
                                      hide_holes: $mode == :quiz &&
-                                     %w[replay play-scale play-inter].include?($quiz_flavour)
+                                                 %w[replay play-scale play-inter].include?($quiz_flavour)
     else
       ModeLicks::play_lick_recording_and_handle_kb_plus(to_play[:lick],
                                                         at_line: oride_l_message2,
@@ -984,7 +984,7 @@ module Players
                                                         holes: to_play[:all_wanted])
     end
   end
-  
+
   def get_sound_and_desc semis, args_orig, wave, gap, len, single
     arg2semi = args_orig.zip(semis).to_h
     semi2arg = arg2semi.invert

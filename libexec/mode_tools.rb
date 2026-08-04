@@ -4,7 +4,7 @@
 
 module ModeTools
   extend self
-  
+
   def do_tools to_handle
     $lick_file ||= Licks::get_lick_file
 
@@ -124,8 +124,8 @@ module ModeTools
     if circle_key
       # construct numbers for circle of fifth
       extract = lines
-                  .select {|l| l['%s']}
-                  .map do |l|
+                .select {|l| l['%s']}
+                .map do |l|
         l
           .split('|')[1..-3]
           .map {|f| f.tr(' ', '').upcase}
@@ -564,7 +564,7 @@ module ModeTools
         lick_canon = lick_holes.map {|h| $harp[h][:canonical]}
         # check if our search appears within lick
         idx = (0..lick_canon.length - search_canon.length)
-                .find {|ix| lick_canon[ix, search_canon.length] == search_canon}
+              .find {|ix| lick_canon[ix, search_canon.length] == search_canon}
         next unless idx
 
         case what
@@ -577,7 +577,7 @@ module ModeTools
                [lick_holes[0...idx], ["\e[0m\e[32m "],
                 lick_holes[idx, search_canon.length], [" \e[0m\e[2m"],
                 lick_holes[idx + search_canon.length..]]
-                 .flatten.join(' ').strip + "\e[0m"
+               .flatten.join(' ').strip + "\e[0m"
           count += 1
         end
       end
@@ -603,17 +603,17 @@ module ModeTools
     puts "\e[32mGiven\e[0m holes: #{lk_holes.join(' ')}"
 
     lk_holes = lk_holes.map {|h| $harp[h][:canonical]}
-                 .uniq
-                 .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+                       .uniq
+                       .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
 
     # match lick against scales
     mt_scales_all = Array.new
     sc2hole = Hash.new
     $all_scales.each do |scale|
       sc2hole[scale] = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
-                         .map {|h| $harp[h][:canonical]}
-                         .uniq
-                         .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+                          .map {|h| $harp[h][:canonical]}
+                          .uniq
+                          .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
       mt_scales_all << scale if (lk_holes - sc2hole[scale]).empty?
     end
 
@@ -644,16 +644,16 @@ module ModeTools
 
     $all_licks, $licks, $all_lick_progs = Licks::read_licks
     sc_holes = Cfg::read_and_parse_scale_simple(to_handle[0], $harp)[0]
-                 .map {|h| $harp[h][:canonical]}
+                  .map {|h| $harp[h][:canonical]}
 
     matches_but = Hash.new {|h, k| h[k] = Array.new}
 
     $licks.each do |lick|
       lk_holes = lick[:holes]
-                   .reject {|h| Theory::musical_event?(h)}
-                   .map {|h| $harp[h][:canonical]}
-                   .uniq
-                   .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+                 .reject {|h| Theory::musical_event?(h)}
+                 .map {|h| $harp[h][:canonical]}
+                 .uniq
+                 .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
 
       # take larger and larger subsets of lick holes
       (1..lk_holes.length).each do |len|
@@ -726,7 +726,7 @@ module ModeTools
     scale_holes = Cfg::read_and_parse_scale_simple(scale, $harp)[0]
     # _cus stands for canonical, uniq, sorted
     scale_holes_cus = scale_holes.map {|h| $harp[h][:canonical]}.uniq
-                        .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
+                                 .sort {|h1, h2| $harp[h1][:semi] <=> $harp[h2][:semi]}
 
 
     if lick_name
@@ -1318,20 +1318,20 @@ module ModeTools
     Text::puts_underlined 'Record and replay sound'
 
     txt = <<~end_of_intro
-    Harpwise uses the excellent program sox (aka rec, aka play) for
-    audio recording and replay.
-    Normally sox works just great but it relies on correct configuration
-    of your sound system and on correct settings and operation of your
-    sound hardware.
+      Harpwise uses the excellent program sox (aka rec, aka play) for
+      audio recording and replay.
+      Normally sox works just great but it relies on correct configuration
+      of your sound system and on correct settings and operation of your
+      sound hardware.
 
-    Therefore, this assistant will invoke sox (or rec or play, both are
-    links to sox) in a typical way, giving you a chance to:
+      Therefore, this assistant will invoke sox (or rec or play, both are
+      links to sox) in a typical way, giving you a chance to:
 
-      - Verify that sox (and therefore harpwise) can record and play
-        sounds in good quality
-      - Easily spot any warnings or errors, that might appear
+        - Verify that sox (and therefore harpwise) can record and play
+          sounds in good quality
+        - Easily spot any warnings or errors, that might appear
 
-  end_of_intro
+    end_of_intro
 
     txt.lines.each do |l|
       print l
@@ -1349,24 +1349,24 @@ module ModeTools
     cmd_rec += ' trim 0 2' if $testing
 
     txt = <<~end_of_intro_rec
-    This will invoke:
+      This will invoke:
 
-      #{cmd_rec}
+        #{cmd_rec}
 
-    to record any sound from your microphone.
-    The recording will be stopped after #{rec_time} seconds.
+      to record any sound from your microphone.
+      The recording will be stopped after #{rec_time} seconds.
 
-    Your part is:
+      Your part is:
 
-      - Make some sound, that can be recorded, e.g. count up:
-          one -- two -- three -- four -- five ...
+        - Make some sound, that can be recorded, e.g. count up:
+            one -- two -- three -- four -- five ...
 
-      - Watch the dynamic level display of sox/rec and check, that it moves in
-        sync  (i.e. without delay) with your counting
+        - Watch the dynamic level display of sox/rec and check, that it moves in
+          sync  (i.e. without delay) with your counting
 
-      - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
+        - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
-  end_of_intro_rec
+    end_of_intro_rec
 
     txt.lines.each do |l|
       print l
@@ -1406,19 +1406,19 @@ module ModeTools
                end
 
     txt = <<~end_of_intro_play
-    This will invoke:
+      This will invoke:
 
-      #{cmd_play}
+        #{cmd_play}
 
-    to replay the sound, that has just been recorded.
+      to replay the sound, that has just been recorded.
 
-    You part is:
+      You part is:
 
-      - Listen and check that you hear, what has been recorded
-      - Listen for initial cracks, distortion or overall poor audio quality
-      - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
+        - Listen and check that you hear, what has been recorded
+        - Listen for initial cracks, distortion or overall poor audio quality
+        - Look out for any extra output e.g. WARNINGS or ERRORS that may appear
 
-  end_of_intro_play
+    end_of_intro_play
 
     txt.lines.each do |l|
       print l
@@ -1438,18 +1438,18 @@ module ModeTools
 
     txt = <<~end_of_outro
 
-    Diagnosis done.
+      Diagnosis done.
 
-    You may also want to try the other diag-tools:
+      You may also want to try the other diag-tools:
 
-      diag2: test mp3-playback
-      diag3: check frequency recognition
+        diag2: test mp3-playback
+        diag3: check frequency recognition
 
-    and, if there have been problems:
+      and, if there have been problems:
 
-      \e[32mdiag-hints\e[0m: some proven suggestion on how to fix common problems
+        \e[32mdiag-hints\e[0m: some proven suggestion on how to fix common problems
 
-  end_of_outro
+    end_of_outro
 
     txt.lines.each do |l|
       print l
@@ -1468,18 +1468,18 @@ module ModeTools
     Text::puts_underlined 'Playing an mp3'
 
     txt = <<~end_of_intro
-    Hapwise uses sox to play mp3-files, e.g. the licks that come with harpwise
-    or that you have collected.
+      Hapwise uses sox to play mp3-files, e.g. the licks that come with harpwise
+      or that you have collected.
 
-    Therefore this test will try to play an mp3 like this:
+      Therefore this test will try to play an mp3 like this:
 
-      #{cmd_play}
+        #{cmd_play}
 
-    Your part is:
+      Your part is:
 
-      - Listen if the mp3 is played at all and in good quality.
+        - Listen if the mp3 is played at all and in good quality.
 
-  end_of_intro
+    end_of_intro
 
     txt.lines.each do |l|
       print l
@@ -1499,13 +1499,13 @@ module ModeTools
 
     puts <<~end_of_outro
 
-    Diagnosis done.
+      Diagnosis done.
 
-    If there have been any problems, try:
+      If there have been any problems, try:
 
-      \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
+        \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
 
-  end_of_outro
+    end_of_outro
   end
 
   def tool_diag3
@@ -1515,37 +1515,37 @@ module ModeTools
     Text::puts_underlined 'Testing the frequency recognition'
 
     txt = <<~end_of_intro
-    Please note: This tests requires sound recording to work properly;
-    you may want to test this first with:    harpwise tools diag1
-    and then come back here.
+      Please note: This tests requires sound recording to work properly;
+      you may want to test this first with:    harpwise tools diag1
+      and then come back here.
 
 
-    Harpwise uses the program aubiopitch to convert the audio (which is
-    recorded by sox) into a series of frequency-values; all in real time.
+      Harpwise uses the program aubiopitch to convert the audio (which is
+      recorded by sox) into a series of frequency-values; all in real time.
 
-    Both programs are connected in a pipeline like this:
+      Both programs are connected in a pipeline like this:
 
-      #{cmd_aub}
+        #{cmd_aub}
 
-    this pipeline emits a stream of timestamps + frequencies, which in
-    turn will be read and displayed by harpwise.
+      this pipeline emits a stream of timestamps + frequencies, which in
+      turn will be read and displayed by harpwise.
 
-    The test will start the pipeline above and print its results for
-    10 seconds; the first 10 lines will also be captured and printed again
-    after termination so that you may inspect them for errors.
+      The test will start the pipeline above and print its results for
+      10 seconds; the first 10 lines will also be captured and printed again
+      after termination so that you may inspect them for errors.
 
-    Please note, that a few error-messages are okay, as long as after
-    that the stream of timestamps + frequencies sets in.
+      Please note, that a few error-messages are okay, as long as after
+      that the stream of timestamps + frequencies sets in.
 
-    Your part is:
+      Your part is:
 
-      - Make some sound, e.g. play your harmonica; also play lower and
-        higher to see if the printed frequencies change accordingly
+        - Make some sound, e.g. play your harmonica; also play lower and
+          higher to see if the printed frequencies change accordingly
 
-      - After the pipeline has been terminated, scan the re-printed output
-        for unexpected errors
+        - After the pipeline has been terminated, scan the re-printed output
+          for unexpected errors
 
-  end_of_intro
+    end_of_intro
 
     txt.lines.each do |l|
       print l
@@ -1601,18 +1601,18 @@ module ModeTools
 
     txt = <<~end_of_outro
 
-    \e[0mPipeline done.
+      \e[0mPipeline done.
 
-    Have timestamps + frequencies been printed above ?
-    Did they vary according to the pitch of your sounds ?
+      Have timestamps + frequencies been printed above ?
+      Did they vary according to the pitch of your sounds ?
 
-    When when there was no sound, did the frequency actually read  0.000  ?
-    Otherwise you microphone's amplification might be set too high
-    or your environment might be too noisy.
+      When when there was no sound, did the frequency actually read  0.000  ?
+      Otherwise you microphone's amplification might be set too high
+      or your environment might be too noisy.
 
-    Here are the first 10 lines repeated for inspection:\e[2m
+      Here are the first 10 lines repeated for inspection:\e[2m
 
-  end_of_outro
+    end_of_outro
 
     txt.lines.each do |l|
       print l
@@ -1627,13 +1627,13 @@ module ModeTools
 
     puts <<~end_of_outro
 
-    Diagnosis done.
+      Diagnosis done.
 
-    If there have been any problems, try:
+      If there have been any problems, try:
 
-      \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
+        \e[32mdiag-hints\e[0m for some proven suggestion on how to fix common problems.
 
-  end_of_outro
+    end_of_outro
 
     Process.kill('KILL', wait_thr.pid) if wait_thr.alive?
   end
@@ -1644,21 +1644,21 @@ module ModeTools
 
     txt = <<~end_of_intro
 
-    These hints can help to solve problems, that have come up during
-    the use of any of the diagnosis-tools (e.g. harpwise tools diag).
+      These hints can help to solve problems, that have come up during
+      the use of any of the diagnosis-tools (e.g. harpwise tools diag).
 
-    In some cases such problems can be solved easily by adjusting the
-    settings of your sound system. E.g. the recording level might be
-    set too low or the wrong audio-device might be selected.
+      In some cases such problems can be solved easily by adjusting the
+      settings of your sound system. E.g. the recording level might be
+      set too low or the wrong audio-device might be selected.
 
-    However, if you saw error messages in the output of sox, or heard
-    distortions or a noticable delay in recording, the problem might
-    rather be with the configuration of your audio system and/or sox.
+      However, if you saw error messages in the output of sox, or heard
+      distortions or a noticable delay in recording, the problem might
+      rather be with the configuration of your audio system and/or sox.
 
-    For these cases, there is a collection of technical hints, that have
-    been proven useful.
+      For these cases, there is a collection of technical hints, that have
+      been proven useful.
 
-  end_of_intro
+    end_of_intro
 
     txt.lines.each do |l|
       print l

@@ -6,7 +6,7 @@
 
 module ModeSamples
   extend self
-  
+
   def do_samples to_handle
     print "\e[?25l"  ## hide cursor
 
@@ -28,34 +28,34 @@ module ModeSamples
     do_all_keys, these_keys = sample_args_helper(to_handle)
 
     your_own = <<~EOYOUROWN
-    Letting harpwise generate your samples is the preferred way to get
-    started.  The frequencies will be in "equal temperament" tuning.
+      Letting harpwise generate your samples is the preferred way to get
+      started.  The frequencies will be in "equal temperament" tuning.
 
-    But please note, that the generated samples and their frequencies
-    cannot match those of your own harp or style very well. So, later,
-    you may want to redo the samples by playing yourself
-  EOYOUROWN
+      But please note, that the generated samples and their frequencies
+      cannot match those of your own harp or style very well. So, later,
+      you may want to redo the samples by playing yourself
+    EOYOUROWN
 
     if do_all_keys
       puts <<~EOINTRO
 
-      \e[2m(type #{$type})\e[0m
+        \e[2m(type #{$type})\e[0m
 
 
-      This will \e[32mautomatically\e[0m generate all needed samples
-      for \e[32mall holes\e[0m of \e[32mall keys\e[0m:
+        This will \e[32mautomatically\e[0m generate all needed samples
+        for \e[32mall holes\e[0m of \e[32mall keys\e[0m:
 
-        \e[32m#{these_keys.each_slice(12).to_a.map {|s| s.join('  ')}.join("\n  ")}\e[0m
+          \e[32m#{these_keys.each_slice(12).to_a.map {|s| s.join('  ')}.join("\n  ")}\e[0m
 
-      harmonica type is #{$type}. Other types still require their
-      own samples beeing created.
+        harmonica type is #{$type}. Other types still require their
+        own samples beeing created.
 
-      Any samples that you have recorded before will be kept; use extra-command
-      'delete' to delete them.
+        Any samples that you have recorded before will be kept; use extra-command
+        'delete' to delete them.
 
-      #{your_own.chomp}
-      e.g. for a specific key via 'harpwise record c'
-    EOINTRO
+        #{your_own.chomp}
+        e.g. for a specific key via 'harpwise record c'
+      EOINTRO
 
       puts "\nNow, type   'y'   to let harpwise generate all samples for all keys."
       char = Interact::one_char
@@ -77,19 +77,19 @@ module ModeSamples
       else
         puts <<~EOINTRO
 
-        \e[2m(type #{$type}, key of #{$key})\e[0m
+          \e[2m(type #{$type}, key of #{$key})\e[0m
 
 
-        This will generate all needed samples for holes:
+          This will generate all needed samples for holes:
 
-          \e[32m#{$harp_holes.each_slice(12).to_a.map {|s| s.join('  ')}.join("\n  ")}\e[0m
+            \e[32m#{$harp_holes.each_slice(12).to_a.map {|s| s.join('  ')}.join("\n  ")}\e[0m
 
-        Harmonica type   #{$type},   key of   #{$key};   other keys or types will require
-        their own samples beeing created, but only once.
+          Harmonica type   #{$type},   key of   #{$key};   other keys or types will require
+          their own samples beeing created, but only once.
 
-        #{your_own.chomp}
-        e.g. 'harpwise record #{$key}'
-      EOINTRO
+          #{your_own.chomp}
+          e.g. 'harpwise record #{$key}'
+        EOINTRO
 
         puts "\nNow, type   'y'   to let harpwise generate all samples for the \e[32mkey of #{$key}\e[0m."
         unless $opts[:brief]
@@ -698,4 +698,3 @@ module ModeSamples
     [rec_proc, File.mtime($recorded_data)]
   end
 end
-
