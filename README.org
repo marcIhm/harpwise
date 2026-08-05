@@ -19,4 +19,7 @@
    
    https://marcihm.github.io/harpwise
 
-   
+** Install as a Snap
+
+   [[Get it from the Snap Store][https://snapcraft.io/en/dark/install.svg]]
+

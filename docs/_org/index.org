@@ -4,6 +4,7 @@
 #+TITLE: Harpwise
 
 /Version  6.42.4/
+[[Get it from the Snap Store][https://snapcraft.io/en/dark/install.svg]]
 
 * Introduction
 
