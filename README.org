@@ -21,5 +21,5 @@
 
 ** Install as a Snap
 
-   [[Get it from the Snap Store][https://snapcraft.io/en/dark/install.svg]]
-
+   From https://snapcraft.io/harpwise
+   
