@@ -127,7 +127,7 @@ $initialized = true
 $extra_kws[$mode].each {|kw| $name_collisions_mb[kw] << 'extra-keyword'}
 Util::report_name_collisions_mb
 
-$extra, to_handle = Args::parse_for_mode
+$extra, $extra_desc, to_handle = Args::parse_for_mode
 
 Interact::check_screen if %i[listen quiz licks].include?($mode)
 

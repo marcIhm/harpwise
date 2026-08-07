@@ -607,21 +607,25 @@ module Args
     extra2desc = Util::yaml_parse(exfile).transform_keys!(&:to_sym)
     $extra_kws = Hash.new {|h, k| h[k] = Set.new}
     $extra_aliases = Hash.new
-    # Map strings of extra-keywords (joined with comma) to description
+    # Map strings of extra-keywords (joined with comma) to description; just as they come from
+    # the file
     $extras_joined_to_desc = Hash.new
+    $extra_to_extras_joined = Hash.new {|k,v| k[v] = Hash.new}
 
     extra2desc.each do |mode, _|
       $extras_joined_to_desc[mode] = Hash.new
       $extra_aliases[mode] = Hash.new
       extra2desc[mode].each do |extras_joined, desc|
+        extras_joined.split(',').map(&:strip).each do |extra|
+          primary_extra ||= extra
+          $extra_kws[mode] << extra
+          $extra_aliases[mode][extra] = primary_extra
+          $extra_to_extras_joined[mode][extra] = extras_joined
+        end
         $extras_joined_to_desc[mode][extras_joined] = ERB.new(desc).result(binding)
+          
         desc.lines.each do |l|
           err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
-          extras_joined.split(',').map(&:strip).each do |extra|
-            primary_extra ||= extra
-            $extra_kws[mode] << extra
-            $extra_aliases[mode][extra] = primary_extra
-          end
         end
       end
     end
@@ -735,7 +739,9 @@ module Args
     # do this check late, because we have more specific error messages before
     err "Cannot handle these arguments: #{to_handle}#{not_any_source_of_clause}; #{$for_usage}" if to_handle.length > 0 && !%i[play print quiz licks tools develop samples jamming].include?($mode)
 
-    [$extra, to_handle]
+    extra_desc = $extra && $extras_joined_to_desc[$mode][$extra_to_extras_joined[$mode][$extra]]
+
+    [$extra, extra_desc, to_handle]
   end
 
   # get_scale_from_scale_with_short

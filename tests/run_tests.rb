@@ -1798,10 +1798,11 @@ do_test 'id-49: edit lickfile' do
 end
 
 do_test 'id-50a: tools keys' do
-  new_session
+  new_session 80, 40
   tms 'harpwise tools b keys'
   tms :ENTER
-  expect { screen[7]['| B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0 |'] }
+  expect { screen[10] == 'Colors: row for harp-key  B' }
+  expect { screen[23]['| B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0 |'] }
   kill_session
 end
 
@@ -4504,12 +4505,13 @@ end
 ENV['HARPWISE_TESTING'] = '1'
 
 do_test 'id-161: tool keys' do
-  new_session
+  new_session 80, 40
   tms 'harpwise tools keys c d'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[9]['1 | C       | G       | D       | A       |     0 |'] }
-  expect { screen[3]['2 | A       | E       | B       | Fs, Gf  |    -3 |'] }
+  expect { screen[10]['Colors: row for harp-key  C , cells for song-key  D'] }
+  expect { screen[25]['1| C       | G       | D       | A       |     0 |'] }
+  expect { screen[19]['4| A       | E       | B       | Fs, Gf  |    -3 |'] }
   kill_session
 end
 

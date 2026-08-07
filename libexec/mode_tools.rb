@@ -76,7 +76,7 @@ module ModeTools
 
   def tool_key_positions to_handle
     if $opts[:brief]
-      err 'This tool does not accept arguments, if option --terse is present' if to_handle.length > 0
+      err 'This tool does not accept arguments, if option --brief is present' if to_handle.length > 0
       puts
       puts "\e[2mMatching keys of most common richter harmonicas,\nplayed in second position, with keys of songs:"
       puts
@@ -87,26 +87,29 @@ module ModeTools
       return
     end
 
+    err "Can handle only one or two (optional) arguments, not these: #{to_handle}" if to_handle.length > 2
+    err "Key (#{$key}) already given earlier on commandline, so only one additional argument ist allowed to specify the song. However, commandline has these #{to_handle.length} arguments: #{to_handle}" if $args_source_of[:key] == 'command-line' && to_handle.length > 1
+
+    # reshuffle to allow unified handling
+    to_handle.unshift($key) if $args_source_of[:key] == 'command-line'
+    
     harp_key = $key
-    harp_color = if $args_source_of[:key] == 'command-line'
-                   "\e[0m\e[32m"
-                 else
-                   "\e[0m"
-                 end
+    harp_color = "\e[0m"
+    harp_color_distinct = false
+
     song_key = nil
     song_color = ''
 
-    err "Can handle only one or two (optional) argument, not these: #{to_handle}" if to_handle.length > 2
-
     if to_handle.length >= 1 && to_handle[0] != '.'
       circle_key = harp_key = to_handle[0].downcase
-      err "Key   #{to_handle[1]}   is neither '.' not any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
+      err "Harp-key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
       harp_color = "\e[0m\e[32m\e[7m"
+      harp_color_distinct = true      
     end
 
     if to_handle.length >= 2 && to_handle[1] != '.'
       song_key = to_handle[1].downcase
-      err "Key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
+      err "Song-key   #{to_handle[1]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
       song_color = "\e[0m\e[34m\e[7m"
     end
 
@@ -124,42 +127,66 @@ module ModeTools
     if circle_key
       # construct numbers for circle of fifth
       extract = lines
+                 # omit headings and hlines
                 .select {|l| l['%s']}
                 .map do |l|
         l
           .split('|')[1..-3]
           .map {|f| f.tr(' ', '').upcase}
       end
-      wanted = circle_key.upcase
-      4.times do
-        extract.each_with_index do |line, idx|
-          next unless line[0] == wanted ||
-                      wanted.length > 1 && line[0][wanted]
+      # As a reference: extract looks like this:
+      # [["G", "D", "A", "E"],
+      #  ["GS,AF", "DS,EF", "AS,BF", "F"],
+      #  ...
+      #  ["FS,GF", "CS,DF", "GS,AF", "DS,EF"]]
 
+      # Start with initial key
+      wanted = circle_key.upcase
+      12.times do
+        extract.each_with_index do |line, idx|
+          next unless line[0].split(',').include?(wanted)
           circle << idx
-          wanted = line[-1]
+          # When goal found in the first cell of a row, then set the second cell of this row
+          # as the new goal
+          wanted = line[1].split(',')[0]
           break
         end
       end
     end
 
     puts
-    puts "\e[0m\e[2mThe key of the harp equals the key of the song in first position\nThe song key in 4th position also gives the relative minor"
-    puts 'For richter harps positions 1 and 2 are blow and draw chords respectively'
-    puts "Circle of fifth starting from #{circle_key} can be followed with the numbers\nat line start" if circle_key
+    puts "\e[0m\e[2mAbout the tool '#{$extra}':"
+    puts
+    puts $extra_desc.lines.map {|l| '  ' + l}
+    puts
+    puts "About the table below:"
+    puts
+    puts "  The key of the harp equals the key of the song in first position of course,\n  so the first column serves double duty\n  The song key in 4th position (4th column) also gives the relative minor\n  for the first column"
+    puts '  For richter harps positions 1 and 2 are blow and draw chords respectively'
+    puts "  Circle of fifth (i.e. positions) starting from key  #{circle_key.capitalize}  can be followed\n  either in its respective row or with the numbers at line start" if circle_key
+    puts
+    puts "Layout: each row one harp-key, each column one position, song-key in cells"
+    clauses = []
+    clauses << "row for harp-key #{harp_color} #{harp_key.capitalize} \e[0m\e[2m" if harp_color_distinct
+    clauses << "cells for song-key #{song_color} #{song_key.capitalize} \e[0m\e[2m" if song_key
+    if clauses.length > 0
+      print "Colors: "
+      puts clauses.join(', ')
+    end
+
     print "\e[0m"
     idx = 0
     puts
     lines.each do |line|
       if line['%s']
         if cidx = circle.index(idx)
-          print "\e[2m#{cidx + 1}\e[0m"
+          print "\e[2m%2d\e[0m" % (cidx + 1)
         else
-          print ' '
+          print '  '
         end
         line = colorize_word_cell(line, song_key, song_color,
                                   idx == harp_idx ? harp_color : "\e[0m")
-        print ' ' + line.chomp % (idx - harp_idx).to_s.rjust(3)
+        print line.chomp % (idx - harp_idx).to_s.rjust(3)
         print "\e[0m"
         puts
         idx += 1
