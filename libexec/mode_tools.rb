@@ -100,16 +100,16 @@ module ModeTools
     song_key = nil
     song_color = ''
 
-    if to_handle.length >= 1 && to_handle[0] != '.'
+    if to_handle.length >= 1 && !%w(. -).include?(to_handle[0])
       circle_key = harp_key = to_handle[0].downcase
-      err "Harp-key   #{to_handle[0]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
+      err "Harp-key   #{to_handle[0]}   is neither '.' nor '-' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
       harp_color = "\e[0m\e[32m\e[7m"
       harp_color_distinct = true      
     end
 
-    if to_handle.length >= 2 && to_handle[1] != '.'
+    if to_handle.length >= 2 && !%w(. -).include?(to_handle[1])
       song_key = to_handle[1].downcase
-      err "Song-key   #{to_handle[1]}   is neither '.' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
+      err "Song-key   #{to_handle[1]}   is neither '.' nor '-' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(song_key)
       song_color = "\e[0m\e[34m\e[7m"
     end
 
@@ -142,6 +142,7 @@ module ModeTools
 
       # Start with initial key
       wanted = circle_key.upcase
+      # untile have numbered eachkey
       12.times do
         extract.each_with_index do |line, idx|
           next unless line[0].split(',').include?(wanted)
@@ -167,11 +168,13 @@ module ModeTools
     puts
     puts "Layout: each row one harp-key, each column one position, song-key in cells"
     clauses = []
-    clauses << "row for harp-key #{harp_color} #{harp_key.capitalize} \e[0m\e[2m" if harp_color_distinct
-    clauses << "cells for song-key #{song_color} #{song_key.capitalize} \e[0m\e[2m" if song_key
+    clauses << "row for (and starting with) harp-key #{harp_color}#{harp_key.capitalize}\e[0m\e[2m in #{harp_color}green\e[0m\e[2m" if harp_color_distinct
+    clauses << "cells for song-key #{song_color}#{song_key.capitalize}\e[0m\e[2m in #{song_color}blue\e[0m\e[2m" if song_key
     if clauses.length > 0
       print "Colors: "
-      puts clauses.join(', ')
+      puts clauses.join("\n        ")
+    else
+      puts 'No coloring of cells, because no argument has been given'
     end
 
     print "\e[0m"

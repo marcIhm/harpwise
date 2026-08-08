@@ -248,9 +248,14 @@ module Args
 
     # match command-line arguments one after the other against available
     # options; use loop index (i) but also remove elements from ARGV
+    #
+    # Note, that e.g. '-1' goes past option-processing and is acceptedas an argument, because
+    # there is no option starting with it; '-' is handled specifically
+    
     i = 0
     while i < ARGV.length
-      unless ARGV[i].start_with?('-')
+      # Special case for a single '-'
+      unless ARGV[i].start_with?('-') && ARGV[i] != '-'
         i += 1
         next
       end
@@ -462,9 +467,13 @@ module Args
     $all_scales, $scale2file, $harp_holes, $all_scale_progs, $sc_prog2file, $holes_file =
       Cfg::read_and_set_musical_bootstrap_config
 
-    # check for unprocessed args, that look like options and are neither holes not semitones
+    # check for unprocessed args, that look like options; handle some special cases too
     looks_like_opts = ARGV.select do |arg|
-      arg.start_with?('-') && !$harp_holes.include?(arg) && !arg.match?(/(\+|-)?\d+st/)
+      arg.start_with?('-') &&
+        arg != '-' &&
+        !$harp_holes.include?(arg) &&
+        # semitones
+        !arg.match?(/(\+|-)?\d+st/)
     end
 
     if looks_like_opts.length > 0
@@ -720,12 +729,13 @@ module Args
         # extra argument
         $extra = ARGV.shift if Util::recognize_among(ARGV[0], %i[extra extra_wwos]) == :extra
         unless $extra
-          summary = Util::print_amongs(:extra, highlight: ARGV[0])
+          # Handle '-' special
+          summary = Util::print_amongs(:extra, highlight: ARGV[0] == '-' ? '' : ARGV[0])
           extra_words = $extras_joined_to_desc[$mode].keys.map {|x| x.split(',').map(&:strip)}.flatten.sort
           wrapped = Text::wrap_words('  ', extra_words, '  ')
           if ARGV[0]
             colored = wrapped.gsub(ARGV[0], "\e[0m\e[7m\e[32m" + ARGV[0] + "\e[0m\e[2m")
-            err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{colored} \n\e[0mas described above, but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain]
+            err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{ARGV[0] == '-' ? wrapped : colored} \n\e[0mas described above" + (ARGV[0] == '-' ? '' : ", but not:  \e[1m#{summary[:highlight][:color]}#{ARGV[0]}\e[0m" + summary[:highlight][:explain])
           else
             err "First argument for mode #{$mode} should be one of these #{extra_words.length}:\n\e[2m#{wrapped} \n\e[0mas described above. However, no argument at all has been given."
           end
