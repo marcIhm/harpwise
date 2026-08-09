@@ -92,7 +92,7 @@ module ModeTools
 
     # reshuffle to allow unified handling
     to_handle.unshift($key) if $args_source_of[:key] == 'command-line'
-    
+
     harp_key = $key
     harp_color = "\e[0m"
     harp_color_distinct = false
@@ -104,7 +104,7 @@ module ModeTools
       circle_key = harp_key = to_handle[0].downcase
       err "Harp-key   #{to_handle[0]}   is neither '.' nor '-' nor any known key  #{$conf[:all_keys].join('  ')}" unless $conf[:all_keys].include?(harp_key)
       harp_color = "\e[0m\e[32m\e[7m"
-      harp_color_distinct = true      
+      harp_color_distinct = true
     end
 
     if to_handle.length >= 2 && !%w(. -).include?(to_handle[1])
@@ -127,7 +127,7 @@ module ModeTools
     if circle_key
       # construct numbers for circle of fifth
       extract = lines
-                 # omit headings and hlines
+                # omit headings and hlines
                 .select {|l| l['%s']}
                 .map do |l|
         l
@@ -146,6 +146,7 @@ module ModeTools
       12.times do
         extract.each_with_index do |line, idx|
           next unless line[0].split(',').include?(wanted)
+
           circle << idx
           # When goal found in the first cell of a row, then set the second cell of this row
           # as the new goal

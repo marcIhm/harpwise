@@ -52,7 +52,6 @@ module ModeListen
         # lambda_comment
         lambda do |hole_color, isemi, itext, note, hole_disp, freq|
           color = "\e[0m" + hole_color
-          nil
           line = $lines[:comment]
           font = 'mono9'
           text = case $opts[:comment]

@@ -1,5 +1,8 @@
 AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
   DisabledByDefault: true
+
 Layout:
   Enabled: true
 Style:
@@ -11,8 +14,6 @@ Lint:
 Style/FormatString:
   Enabled: false
   
-#AllCops:
-#   NewCops: enable
 Style/GlobalVars:
   Enabled: false
 Layout/EmptyLines:
@@ -38,4 +39,6 @@ Layout/EmptyLinesAroundBeginBody:
 Lint/Loop:
   Enabled: false
 Layout/LineLength:
+  Enabled: false
+Lint/AmbiguousOperatorPrecedence:
   Enabled: false

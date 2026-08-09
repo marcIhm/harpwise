@@ -4,7 +4,7 @@
 
 module Util
   extend self
-  
+
   def match_or cand, choices
     return unless cand
 
@@ -145,10 +145,10 @@ module Util
     thought = []
 
     this_happened = <<~end_of_content
-    This happened for the instance of harpwise beeing started at:
-       #{Time.at($program_start)}
-    Note, that this might not have been the most recent invocation.
-  end_of_content
+      This happened for the instance of harpwise beeing started at:
+         #{Time.at($program_start)}
+      Note, that this might not have been the most recent invocation.
+    end_of_content
 
     if $lagging_freqs_lost > 0 && $total_freq_ticks > 0
       lagging_file = "#{$dirs[:data]}/lagging_info"
@@ -156,25 +156,25 @@ module Util
       thought << "Lagging detected (#{pct_lost} loss), see #{lagging_file} for details."
       content = <<~end_of_content
 
-      Lagging detected
-      ----------------
+        Lagging detected
+        ----------------
 
-      #{this_happened}
-      Harpwise has been lagging behind at least once; i.e. harpwise
-      sensed the hole you were playing only with a (small) delay; and to
-      catch up, it discarded some of your playing.
-      Therefore #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
+        #{this_happened}
+        Harpwise has been lagging behind at least once; i.e. harpwise
+        sensed the hole you were playing only with a (small) delay; and to
+        catch up, it discarded some of your playing.
+        Therefore #{$lagging_freqs_lost} of #{$lagging_freqs_lost + $total_freq_ticks} samples (= #{pct_lost}) have been lost.
 
-      If you notice such a lag frequently and and want to reduce it,
-      you may try to set option   --time-slice   or config   time_slice
-      (currently: '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
+        If you notice such a lag frequently and and want to reduce it,
+        you may try to set option   --time-slice   or config   time_slice
+        (currently: '#{$opts[:time_slice]}') to 'medium' or 'long'. See config file
 
-        #{$conf[:config_file_user]}
+          #{$conf[:config_file_user]}
 
-      Note however, that setting this to 'long' without need could make
-      harpwise sluggish in sensing holes.
+        Note however, that setting this to 'long' without need could make
+        harpwise sluggish in sensing holes.
 
-    end_of_content
+      end_of_content
       IO.write lagging_file, content
     end
 
@@ -185,28 +185,28 @@ module Util
       thought << "Jitter detected (#{jitter_secs}), see #{jitter_file} for details."
       content = <<~end_of_content
 
-      Jitter detected
-      ---------------
+        Jitter detected
+        ---------------
 
-      #{this_happened}
-      The frequency pipeline had a maximum jitter of #{jitter_secs}, which
-      happened #{($max_jitter_at - $program_start).to_i} secs after program start, #{(Time.now.to_f - $max_jitter_at).to_i} secs before its end.
+        #{this_happened}
+        The frequency pipeline had a maximum jitter of #{jitter_secs}, which
+        happened #{($max_jitter_at - $program_start).to_i} secs after program start, #{(Time.now.to_f - $max_jitter_at).to_i} secs before its end.
 
-      A total of #{$jitter_checks_total} jitter-checks have been performed, one every #{$jitter_check_after_iters} iterations;
-      #{$jitter_checks_bad} of them were above the threshold of #{$jitter_threshold} secs.
+        A total of #{$jitter_checks_total} jitter-checks have been performed, one every #{$jitter_check_after_iters} iterations;
+        #{$jitter_checks_bad} of them were above the threshold of #{$jitter_threshold} secs.
 
-      [ts_harpwise, [ts_aubio, freq]] maximum jitter:
-        #{$max_jitter_info[0]}
-        #{$max_jitter_info[1]}
+        [ts_harpwise, [ts_aubio, freq]] maximum jitter:
+          #{$max_jitter_info[0]}
+          #{$max_jitter_info[1]}
 
-      As a result your playing and its display by harpwise were out of sync
-      at least once.
+        As a result your playing and its display by harpwise were out of sync
+        at least once.
 
-      This is probably out of control of harpwise and might be caused by
-      external factors, like system-load or simply by hibernation of your
-      computer.
+        This is probably out of control of harpwise and might be caused by
+        external factors, like system-load or simply by hibernation of your
+        computer.
 
-    end_of_content
+      end_of_content
       IO.write jitter_file, content
     end
 
@@ -326,7 +326,6 @@ module Util
   end
 
   def shortcut2history_record short
-    nil
     return false unless ( md = short.match(/^(\dlast|\dl)$/) ) || short == 'last' || short == 'l'
 
     idx = if md
@@ -337,7 +336,7 @@ module Util
 
     # must be consistent with selection in print_last_licks_from_history
     records = get_prior_history_records(:licks, :play)
-                .select {|r| r[:play_type] == 'lick'}
+              .select {|r| r[:play_type] == 'lick'}
 
     err "Shortcut '#{short}' is beyound end of #{records.length} available history records" if idx >= records.length
 
@@ -483,8 +482,8 @@ module Util
           puts
           puts "Its description is:   #{should}:"
           puts get_extra_desc_single(should)[1..-1]
-                 .map {|l| '  ' + l + "\n"}
-                 .join.chomp +
+            .map {|l| '  ' + l + "\n"}
+            .join.chomp +
                ".\n"
           err "Extra argument might have been spelled wrong (with or without letter 's'; see above)"
         end
@@ -585,7 +584,7 @@ module Util
 
     [holes_or_notes, semis, lnames, lpnames, snames, spnames, jmnames]
   end
-  
+
   def print_amongs *choices, **kws
     hl_text = kws[:highlight]
     summary = { highlight:
@@ -918,7 +917,7 @@ end
 # deliberately outside of module
 def err text
   raise ArgumentError.new(text) if $on_error_raise
-  
+
   Interact::sane_term
   puts
   puts "\e[0mERROR: #{text}"
@@ -996,7 +995,7 @@ class MsgBuf
         print_internal lines[0], min, max, group, false
       elsif truncate
         print_internal Text::truncate_colored_text(text,
-                                             $testing_what == :msgbuf ? $conf[:term_min_width] : nil),
+                                                   $testing_what == :msgbuf ? $conf[:term_min_width] : nil),
                        min, max, group, false
       else
         raise 'Internal error: neither :truncate nor :wrap are set'
@@ -1027,8 +1026,7 @@ class MsgBuf
 
   # return true, if there is message content left, i.e. if
   # message-line should not be used e.g. for hints
-  def update tntf = nil, refresh: false
-    tntf ||= Time.now.to_f
+  def update refresh: false
 
     # we keep elements in @@lines_durations until they are expired
     return false if @@lines_durations.length == 0
@@ -1268,12 +1266,12 @@ class FamousPlayers
 
       # handle pictures
       picture_dir = $dirs[:players_pictures] + '/' +
-                    name.gsub(/[^\w\s_-]+/, '').gsub(/\s+/, '_')
+                    name.gsub(/[^\w\s-]+/, '').gsub(/\s+/, '_')
       FileUtils.mkdir(picture_dir) unless File.directory?(picture_dir)
       sorted_info['image'] = Dir[picture_dir + '/*'].
-                               # convenient for wsl2
-                               reject {_1.end_with?('Zone.Identifier')}
-                               .sample
+                             # convenient for wsl2
+                             reject {_1.end_with?('Zone.Identifier')}
+                                                    .sample
       @picture_dirs ||= Hash.new
       @picture_dirs[name] = picture_dir
 
@@ -1506,4 +1504,3 @@ class ConfinedValue
     confine
   end
 end
-

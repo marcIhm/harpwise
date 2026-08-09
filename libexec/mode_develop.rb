@@ -55,8 +55,7 @@ module ModeDevelop
     dir_suff = [[dst_org_dir, '.org'],
                 [dst_txt_dir, '.txt']]
 
-    # needed for erb
-    types_with_scales = Args::get_types_with_scales_for_usage
+    Args::get_types_with_scales_for_usage
 
     puts "\nWriting files ...\n\n"
     src_files_short.each do |file_short|
@@ -250,7 +249,6 @@ module ModeDevelop
 
     puts
     Text::puts_underlined 'init all quiz classes'
-    maxname = $quiz_flavour2class.keys.map(&:length).max
     $opts[:difficulty] = :easy
     bad = 0
     what = ''

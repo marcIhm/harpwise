@@ -1186,7 +1186,6 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
   end
 
   def read_name_change_lick curr_lick
-    nil
     $ctl_mic[:change_lick] = false
     lnames = $licks.map {|l| l[:name]}
 

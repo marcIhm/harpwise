@@ -4,7 +4,7 @@
 
 module ModeJamming
   extend self
-  
+
   def do_jamming to_handle
     $to_pause = "\e[0mPress   \e[92mSPACE\e\[0m    \e[2mhere or in 'harpwise listen'\e[0m   to %s,\npress   \e[92mctrl-z\e[0m   \e[2mhere\e[0m   to start over.\e[0m"
 
@@ -347,14 +347,13 @@ module ModeJamming
 
           if action.length == 2
             # No duration given, so search for next timer and calculate duration
-            nil
             secs_to_next_timer = -action[0]
             # Search from first action; if nothing found search again from loop start.  We can
             # mostly be sure to find at least the current timer.
             next_timer_idx = nil
             [idx + 1, $jam_loop_start_idx].each do |start_search|
               next_timer_idx = (start_search...this_actions.length)
-                                 .find {|ix| this_actions[ix][1] == 'timer'}
+                               .find {|ix| this_actions[ix][1] == 'timer'}
               if next_timer_idx
                 # Found next timer
                 secs_to_next_timer += this_actions[next_timer_idx][0]
@@ -786,8 +785,8 @@ module ModeJamming
     puts
     puts 'Last usage of jams:'
     file2ago.keys.each
-      .sort_by {|file| file2ago[file] || 1000}
-      .each do |file|
+            .sort_by {|file| file2ago[file] || 1000}
+            .each do |file|
       print '   ' + File.basename(file).gsub('.json', '')
       ago, more = get_and_age_jamming_last_used_days(file)
       print("   \t:    " + ( ago ? Util::days_ago_in_words(ago) : 'unknown' ))
@@ -1429,7 +1428,7 @@ module ModeJamming
                          else
                            [" pitch #{dsemi * 100}",
                             "shifted from #{sf_key} to #{sf_key_new} by   #{dsemi}   semitones" +
-                            (dsemi.abs >= 3 ? ",   \e[32mwhich is a lot!\e[0m" : '')]
+                              (dsemi.abs >= 3 ? ",   \e[32mwhich is a lot!\e[0m" : '')]
                          end
 
     cmd = if ENV['HARPWISE_TESTING'] || $opts[:print_only]

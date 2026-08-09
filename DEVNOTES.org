@@ -27,18 +27,22 @@
     - 'command-line' if used as an adjective
     - never: 'comandline'
 
-* STARTED Refactoring      
-** DONE Rubocop
+* DONE Refactoring      
+* DONE Rubocop
   
-   rubocop >rubocop.out
-  
-   rubocop -a
-   
-   Fixed already:
+  rubocop >rubocop.out
 
-   - Layout
-   - Style
-   - Lint
+  # layout (i.e. whitespace); useful and harmless
+  rubocop -x
+
+  # want to change a log; need to work on my .rubocop.yaml first
+  rubocop -a
+   
+  Fixed already:
+
+  - Layout
+  - Style
+  - Lint
 
 ** DONE Group functions into modules   
 

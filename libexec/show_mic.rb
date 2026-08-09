@@ -63,7 +63,7 @@ module ShowMic
     $perfctr[:show_mic_this_loops] = 0
     $perfctr[:show_mic_this_first_mic] = nil
 
-    $msgbuf.update(tntf, refresh: true)
+    $msgbuf.update(refresh: true)
     $ulrec.print_rec_sign_mb if $ulrec.active?
 
     loop do   # over each new frequency from pipeline, until done or skip
@@ -104,7 +104,7 @@ module ShowMic
           $msgbuf.print "Terminal [width,height] = [#{$term_width},#{$term_height}] is #{proximity} minimum [#{$conf[:term_min_width]},#{$conf[:term_min_height]}]", 2, 5, :term
         end
         # updates messages and returns true, if hint is allowed
-        hints_old = nil if $msgbuf.update(tntf, refresh: true)
+        hints_old = nil if $msgbuf.update(refresh: true)
         $freqs_queue.clear
         $ctl_mic[:redraw] = false
         $ctl_mic[:update_comment] = true
@@ -343,7 +343,7 @@ module ShowMic
       end
 
       # updates and returns true, if hint is allowed
-      if $msgbuf.update(tntf)
+      if $msgbuf.update
         # A specific message has been shown, that overrides usual hint,
         # so trigger redisplay of hint when message is expired
         hints_old = nil

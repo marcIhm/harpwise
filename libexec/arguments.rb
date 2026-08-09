@@ -797,9 +797,6 @@ module Args
   end
 
   def print_usage_info mode = nil
-    # get content of all harmonica-types to be inserted
-    get_types_with_scales_for_usage
-
     if !mode && STDOUT.isatty
       print "\e[?25l"  ## hide cursor
       Text::animate_splash_line

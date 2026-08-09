@@ -104,7 +104,7 @@ blues-scale, which are given as arguments and form an adhoc scale:
 
 The possible scales depend on the chosen type of harmonica:
 
-<%= types_with_scales %>
+<%= Args::get_types_with_scales_for_usage %>
 
 Note that advanced users may try to create their own scales. See
 usage of mode tools for an example.

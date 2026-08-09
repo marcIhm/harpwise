@@ -782,8 +782,6 @@ module Interact
       $ctl_mic[:journal_all_toggle] = true
     when 'w'
       $ctl_mic[:journal_write] = true
-    when 'w'
-      $ctl_mic[:journal_write] = true
     when 'p'
       $ctl_mic[:journal_play] = true
     when 'CTRL-BACKSPACE'
@@ -1059,8 +1057,6 @@ module Interact
         'ALT-INSERT'
       when 'ESC-[2;5~'
         'CTRL-INSERT'
-      when 'ESC-OP'
-        'F1'
       when 'ESC-OP'
         'F1'
       when 'ESC-OQ'
