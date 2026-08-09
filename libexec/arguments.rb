@@ -251,7 +251,7 @@ module Args
     #
     # Note, that e.g. '-1' goes past option-processing and is acceptedas an argument, because
     # there is no option starting with it; '-' is handled specifically
-    
+
     i = 0
     while i < ARGV.length
       # Special case for a single '-'
@@ -619,7 +619,7 @@ module Args
     # Map strings of extra-keywords (joined with comma) to description; just as they come from
     # the file
     $extras_joined_to_desc = Hash.new
-    $extra_to_extras_joined = Hash.new {|k,v| k[v] = Hash.new}
+    $extra_to_extras_joined = Hash.new {|k, v| k[v] = Hash.new}
 
     extra2desc.each do |mode, _|
       $extras_joined_to_desc[mode] = Hash.new
@@ -632,7 +632,7 @@ module Args
           $extra_to_extras_joined[mode][extra] = extras_joined
         end
         $extras_joined_to_desc[mode][extras_joined] = ERB.new(desc).result(binding)
-          
+
         desc.lines.each do |l|
           err "Internal error: line from #{exfile} too long: #{l.length} >= #{$conf[:term_min_width] - 2}: '#{l}'" if l.length >= $conf[:term_min_width] - 2
         end

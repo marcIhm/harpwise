@@ -433,10 +433,10 @@ module Text
       puts unless single_line
       sleep 0.04
       if single_line
-        print '  ' 
+        print '  '
         ($version + ' ').each_char.each_cons(2) do |c1, c2|
           print "\e[0m\e[2m#{c1}\e[0m\e[1m#{c2}\e[0m\e[D"
-          sleep 0.02
+          sleep 0.01
         end
         print '  '
         printed += '  '
