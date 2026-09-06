@@ -897,7 +897,7 @@ do_test 'id-16b: cycle in play' do
   kill_session
 end
 
-do_test 'id-16c: play pitch' do
+do_test 'id-16c: play pitch semis' do
   new_session
   tms 'harpwise play pitch'
   tms :ENTER
@@ -933,6 +933,18 @@ do_test 'id-16d: play some semitones' do
   wait_for_end_of_harpwise
   sleep 1
   expect { screen[8]['a4 df5'] }
+  kill_session
+end
+
+do_test 'id-16e: play pitch freq' do
+  new_session
+  tms 'harpwise play pitch 440hz'
+  tms :ENTER
+  sleep 2
+  expect { screen[7]['Freq = 440 Hz, Semi = +0.00, Note = a4'] }
+  tms '+'
+  sleep 2
+  expect { screen[9]['Freq = 450 Hz, Semi = +0.39, Note = a4'] }
   kill_session
 end
 

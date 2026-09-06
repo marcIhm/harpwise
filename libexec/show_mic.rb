@@ -676,7 +676,7 @@ module ShowMic
     char = $ctl_kb_queue.deq
     return if %w[q x].include?(char)
 
-    $key = Players::play_interactive_pitch(embedded: true) || $key
+    $key = Players::play_interactive_pitch_semi(embedded: true) || $key
     $msgbuf.print(if key_was == $key
                     'Key of harp is still at'
                   else

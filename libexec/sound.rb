@@ -356,12 +356,18 @@ module Sound
     files
   end
 
-  def print_pitch_information semi, name = nil
+  def print_pitch_information_semi semi, name = nil
     puts "\e[0m\e[2m#{name}\e[0m" if name
     puts "\e[0m\e[2mSemi = #{semi}, Note = #{Theory::semi2note(semi + 7)}, Freq = #{'%.2f' % Theory::semi2freq_et(semi)}\e[0m"
     print "\e[0mkey of song: \e[0m\e[32m%-3s,  " % Theory::semi2note(semi + 7)[0..-2]
     print "\e[0m\e[2mmatches \e[0mkey of harp: \e[0m\e[32m%-3s\e[0m" % Theory::semi2note(semi)[0..-2]
     puts
+  end
+
+  def print_pitch_information_freq freq, name = nil
+    semi = Theory::freq2semi(freq)
+    puts "\e[0m\e[2m#{name}\e[0m" if name
+    puts "\e[0m\e[2mFreq = #{freq} Hz, Semi = #{sprintf('%+.2f', semi)}, Note = #{Theory::semi2note(semi.to_i)}\e[0m"
   end
 
   def analyze_with_aubio file

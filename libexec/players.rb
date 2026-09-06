@@ -220,8 +220,8 @@ module Players
     end while imm_ctrls_again.any? {|k| $ctl_rec[k]} || loop_rec
   end
 
-  def play_interactive_pitch embedded: false, explain: true,
-                             start_key: nil, return_accepts: false
+  def play_interactive_pitch_semi embedded: false, explain: true,
+                                  start_key: nil, return_accepts: false
     semi = Theory::note2semi((start_key || $key).then {|k| ('1'..'9').include?(k[-1]) ? k : k + '4'})
     wave = wave_was = 'pluck'
     min_semi = -24
@@ -247,7 +247,7 @@ module Players
     puts
     puts "\e[0m\e[2m(type 'h' for help)\e[0m"
     puts
-    Sound::print_pitch_information(semi)
+    Sound::print_pitch_information_semi(semi)
 
     # loop forever until ctrl-c
     loop do
@@ -279,15 +279,15 @@ module Players
 
       # wait until sound has stopped or key pressed
       begin
-        break if $ctl_pitch[:any] || $ctl_pitch[:invalid]
+        break if $ctl_pitch_semi[:any] || $ctl_pitch_semi[:invalid]
 
-        Interact::handle_kb_play_pitch
+        Interact::handle_kb_play_pitch_semi
         sleep 0.1
       end while pplayer.alive?
 
-      if $ctl_pitch[:any] || $ctl_pitch[:invalid]
-        knm = $conf_meta[:ctrls_play_pitch].select {|k| $ctl_pitch[k] && k != :any}[0].to_s.gsub('_', ' ')
-        if $ctl_pitch[:pause_continue]
+      if $ctl_pitch_semi[:any] || $ctl_pitch_semi[:invalid]
+        knm = $conf_meta[:ctrls_play_pitch_semi].select {|k| $ctl_pitch_semi[k] && k != :any}[0].to_s.gsub('_', ' ')
+        if $ctl_pitch_semi[:pause_continue]
           if paused
             paused = false
             puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
@@ -296,39 +296,39 @@ module Players
             print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
           end
           $ctl_rec[:pause_continue] = false
-        elsif $ctl_pitch[:vol_up]
+        elsif $ctl_pitch_semi[:vol_up]
           $vol.inc
           puts "\e[0m\e[2m#{$vol}\e[0m"
-        elsif $ctl_pitch[:vol_down]
+        elsif $ctl_pitch_semi[:vol_down]
           $vol.dec
           puts "\e[0m\e[2m#{$vol}\e[0m"
-        elsif $ctl_pitch[:semi_up]
+        elsif $ctl_pitch_semi[:semi_up]
           semi += 1 if semi < max_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:semi_down]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:semi_down]
           semi -= 1 if semi > min_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:octave_up]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:octave_up]
           semi += 12 if semi < max_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:octave_down]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:octave_down]
           semi -= 12 if semi > min_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:fifth_up]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:fifth_up]
           semi += 7 if semi < max_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:fifth_down]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:fifth_down]
           semi -= 7 if semi > min_semi
-          Sound::print_pitch_information(semi, knm)
-        elsif $ctl_pitch[:wave_up]
+          Sound::print_pitch_information_semi(semi, knm)
+        elsif $ctl_pitch_semi[:wave_up]
           wave_was = wave
           wave = Util::rotate_among(wave, :up, $all_waves)
           puts "\e[0m\e[2m#{wave}\e[0m"
-        elsif $ctl_pitch[:wave_down]
+        elsif $ctl_pitch_semi[:wave_down]
           wave_was = wave
           wave = Util::rotate_among(wave, :down, $all_waves)
           puts "\e[0m\e[2m#{wave}\e[0m"
-        elsif $ctl_pitch[:show_help]
+        elsif $ctl_pitch_semi[:show_help]
           pplayer.pause
           Util::display_kb_help 'a pitch', true,
                                 '    SPACE: pause/continue  ESC,x,q: ' + ( embedded ? "discard\n" : "quit\n" ) +
@@ -340,42 +340,178 @@ module Players
                                 ( return_accepts ? ' RETURN: accept                  .: play again' : ' .,RETURN: play again'),
                                 wait_for_key: !paused
           pplayer.continue
-          Sound::print_pitch_information(semi)
-        elsif $ctl_pitch[:invalid]
-          puts "\e[0m\e[2m(#{$ctl_pitch[:invalid]})\e[0m"
-          $ctl_pitch[:invalid] = false
-        elsif $ctl_pitch[:repeat]
+          Sound::print_pitch_information_semi(semi)
+        elsif $ctl_pitch_semi[:invalid]
+          puts "\e[0m\e[2m(#{$ctl_pitch_semi[:invalid]})\e[0m"
+          $ctl_pitch_semi[:invalid] = false
+        elsif $ctl_pitch_semi[:repeat]
           puts "\e[0m\e[2mplay again\e[0m"
           if pplayer&.alive?
             pplayer.kill
             pplayer.check
           end
-        elsif $ctl_pitch[:quit] || $ctl_pitch[:accept_or_repeat]
-          new_key = (Theory::semi2note(semi)[0..-2] if $ctl_pitch[:accept_or_repeat] || return_accepts)
+        elsif $ctl_pitch_semi[:quit] || $ctl_pitch_semi[:accept_or_repeat]
+          new_key = (Theory::semi2note(semi)[0..-2] if $ctl_pitch_semi[:accept_or_repeat] || return_accepts)
           if pplayer&.alive?
             pplayer.kill
             pplayer.check
           end
-          if $ctl_pitch[:quit] || ($ctl_pitch[:accept_or_repeat] && return_accepts) || embedded
-            $ctl_pitch[:quit] = $ctl_pitch[:accept_or_repeat] = false
+          if $ctl_pitch_semi[:quit] || ($ctl_pitch_semi[:accept_or_repeat] && return_accepts) || embedded
+            $ctl_pitch_semi[:quit] = $ctl_pitch_semi[:accept_or_repeat] = false
             return new_key
           end
           puts "\e[0m\e[2mplay again\e[0m"
         end
 
-        $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
+        $conf_meta[:ctrls_play_pitch_semi].each {|k| $ctl_pitch_semi[k] = false}
       end
 
-      next unless wave == 'pluck' && wave_was != 'pluck'
+    end # loop forever until ctrl-c
+  end
 
-      wave_was = wave
-      5.times do
-        break if $ctl_pitch[:any]
+  def play_interactive_pitch_freq freq
+    wave = wave_was = 'pluck'
+    paused = false
+    max_freq = 20000
+    min_freq = 10
+    freq_inc = if freq > 1000
+                 100
+               elsif freq > 500
+                 50
+               else
+                 10
+               end
 
-        Interact::handle_kb_play_pitch
+    pplayer = nil
+    cmd = cmd_was = nil
+    puts
+    puts "\e[0m\e[2m(type 'h' for help)\e[0m"
+    puts
+    Sound::print_pitch_information_freq(freq)
+
+    # loop forever until ctrl-c
+    loop do
+      # we also loop when paused, so that user can change other settings during pause
+      if paused
+        if pplayer&.alive?
+          pplayer.kill
+          pplayer.check
+        end
         sleep 0.1
+      else
+        cmd = if $testing
+                'sleep 1'
+              else
+                "play --norm=#{$vol.to_i} -q -n synth 3 #{wave} #{freq}"
+              end
+        if cmd_was != cmd || !pplayer&.alive?
+          pplayer.kill if pplayer&.alive?
+          pplayer&.check
+          if $testing
+            IO.write($testing_log, cmd + "\n", mode: 'a')
+            cmd = 'sleep 600 ### ' + cmd
+          end
+          cmd_was = cmd
+          pplayer = PausablePlayer.new(cmd)
+        end
       end
-    end
+
+      # wait until sound has stopped or key pressed
+      begin
+        break if $ctl_pitch_freq[:any] || $ctl_pitch_freq[:invalid]
+
+        Interact::handle_kb_play_pitch_freq
+        sleep 0.1
+      end while pplayer.alive?
+
+      if $ctl_pitch_freq[:any] || $ctl_pitch_freq[:invalid]
+        knm = $conf_meta[:ctrls_play_pitch_freq].select {|k| $ctl_pitch_freq[k] && k != :any}[0].to_s.gsub('_', ' ')
+        if $ctl_pitch_freq[:pause_continue]
+          if paused
+            paused = false
+            puts "\e[0m\e[32m#{$resources[:playing_on]}\e[0m"
+          else
+            paused = true
+            print "\e[0m\e[32m#{$resources[:playing_is_paused]}\e[0m"
+          end
+          $ctl_rec[:pause_continue] = false
+        elsif $ctl_pitch_freq[:vol_up]
+          $vol.inc
+          puts "\e[0m\e[2m#{$vol}\e[0m"
+        elsif $ctl_pitch_freq[:vol_down]
+          $vol.dec
+          puts "\e[0m\e[2m#{$vol}\e[0m"
+        elsif $ctl_pitch_freq[:freq_up]
+          freq += freq_inc if freq + freq_inc < max_freq
+          Sound::print_pitch_information_freq(freq, knm + " by #{freq_inc}")
+        elsif $ctl_pitch_freq[:freq_down]
+          freq -= freq_inc if freq - freq_inc > min_freq
+          Sound::print_pitch_information_freq(freq, knm + " by #{freq_inc}")
+        elsif $ctl_pitch_freq[:set_freq]
+          new = Interact::read_bounded_num(min_freq, max_freq, 'frequency to play (in Hertz)')
+          if new
+            freq = new
+            puts "\e[0m\e[2mNew frequency:   #{freq}"
+          else
+            puts "\e[0m\e[2mKeeping current frequency #{freq}"
+          end
+          Sound::print_pitch_information_freq(freq)
+        elsif $ctl_pitch_freq[:set_inc]
+          new = Interact::read_bounded_num(1, 1000, 'frequency increment (in Hertz)')
+          if new
+            freq_inc = new
+            puts "\e[0m\e[2mNew frequency increment:   #{freq_inc}"
+          else
+            puts "\e[0m\e[2mKeeping current frequency increment #{freq_inc}"
+          end
+        elsif $ctl_pitch_freq[:octave_up]
+          freq *= 2 if 2 * freq < max_freq
+          Sound::print_pitch_information_freq(freq, knm)
+        elsif $ctl_pitch_freq[:octave_down]
+          freq = (freq * 0.5).to_i if freq * 0.5 > min_freq
+          Sound::print_pitch_information_freq(freq, knm)
+        elsif $ctl_pitch_freq[:wave_up]
+          wave_was = wave
+          wave = Util::rotate_among(wave, :up, $all_waves)
+          puts "\e[0m\e[2m#{wave}\e[0m"
+        elsif $ctl_pitch_freq[:wave_down]
+          wave_was = wave
+          wave = Util::rotate_among(wave, :down, $all_waves)
+          puts "\e[0m\e[2m#{wave}\e[0m"
+        elsif $ctl_pitch_freq[:show_help]
+          pplayer.pause
+          Util::display_kb_help 'a pitch', true,
+                                "    SPACE: pause/continue  ESC,x,q: quit\n" +
+                                "        +: freq one increment up   -: one increment down\n" +
+                                "        w: change waveform         W: change waveform back\n" +
+                                "        o: one octave up           O: one octave down\n" +
+                                "        i: set increment           f: set frequency\n" +
+                                "        v: decrease volume         V: increase volume by 3dB\n" +
+                                ' .,RETURN: play again',
+                                wait_for_key: !paused
+          pplayer.continue
+          Sound::print_pitch_information_freq(freq)
+        elsif $ctl_pitch_freq[:invalid]
+          puts "\e[0m\e[2m(#{$ctl_pitch_freq[:invalid]})\e[0m"
+          $ctl_pitch_freq[:invalid] = false
+        elsif $ctl_pitch_freq[:repeat]
+          puts "\e[0m\e[2mplay again\e[0m"
+          if pplayer&.alive?
+            pplayer.kill
+            pplayer.check
+          end
+          puts "\e[0m\e[2mplay again\e[0m"
+        elsif $ctl_pitch_freq[:quit] 
+          if pplayer&.alive?
+            pplayer.kill
+            pplayer.check
+          end
+          return
+        end
+
+        $conf_meta[:ctrls_play_pitch_freq].each {|k| $ctl_pitch_freq[k] = false}
+      end
+    end # loop forever until ctrl-c
   end
 
   def play_interactive_interval semi1, semi2

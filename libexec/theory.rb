@@ -148,9 +148,13 @@ module Theory
     440 * 2**( semi / 12.0 )
   end
 
+  def freq2semi freq
+    12 * Math.log2(freq/440.0)
+  end
+
   def cents_diff f1, f2
     # see https://ohw.se/hca/tuning-theory/#3.2
-    1200 * Math.log(f1.to_f / f2) / Math.log(2)
+    1200 * Math.log2(f1.to_f / f2)
   end
 
   def notes_equiv note

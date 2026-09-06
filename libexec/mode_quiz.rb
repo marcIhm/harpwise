@@ -2450,7 +2450,7 @@ module ModeQuiz
       puts "Change (via +-RET) the adjustable pitch played until\nit matches the key of the sequence."
       Interact::make_term_immediate
       $ctl_kb_queue.clear
-      ::Players::play_interactive_pitch explain: false, start_key: $key, return_accepts: true
+      ::Players::play_interactive_pitch_semi explain: false, start_key: $key, return_accepts: true
       Interact::make_term_cooked
     end
 
@@ -2551,7 +2551,7 @@ module ModeQuiz
       harp2song = ModeQuiz::get_harp2song(basic_set: false)
       song2harp = harp2song.invert
       compare_key_harp = @compare_key && song2harp[@compare_key]
-      compare_key_harp = ::Players::play_interactive_pitch explain: false, start_key: compare_key_harp, return_accepts: true
+      compare_key_harp = ::Players::play_interactive_pitch_semi explain: false, start_key: compare_key_harp, return_accepts: true
       Interact::make_term_cooked
       @compare_key = harp2song[compare_key_harp]
       puts "\nPlease note, that this key '#{@compare_key}' is not among possible solutions!\n" unless @choices.map(&:downcase).include?(@compare_key)

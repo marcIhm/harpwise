@@ -57,7 +57,8 @@ module Cfg
                                       sharps_or_flats: :to_sym,
                                       immediate: :to_b, loop: :to_b, fast: :to_b,
                                       add_scales: :empty2nil })
-    $conf_meta[:ctrls_play_pitch] = %i[semi_up semi_down octave_up octave_down fifth_up fifth_down wave_up wave_down vol_up vol_down show_help pause_continue quit accept_or_repeat repeat any invalid]
+    $conf_meta[:ctrls_play_pitch_semi] = %i[semi_up semi_down octave_up octave_down fifth_up fifth_down wave_up wave_down vol_up vol_down show_help pause_continue quit accept_or_repeat repeat any invalid]
+    $conf_meta[:ctrls_play_pitch_freq] = %i[freq_up freq_down set_inc set_freq octave_up octave_down wave_up wave_down vol_up vol_down show_help pause_continue quit repeat any invalid]
     $conf_meta[:ctrls_play_chord] = %i[wave_up wave_down vol_up vol_down show_help pause_continue gap_inc gap_dec len_inc len_dec replay quit any invalid single unsingle]
     $conf_meta[:ctrls_play_inter] = %i[widen narrow up down show_help pause_continue quit any gap_inc gap_dec len_inc len_dec replay swap vol_up vol_down invalid]
     $conf_meta[:ctrls_play_prog] = %i[toggle_loop show_help pause_continue prefix semi_up semi_down vol_up vol_down prev_prog next_prog quit invalid]
@@ -100,9 +101,13 @@ module Cfg
     ks.each {|k| $ctl_lk_hl[k] = false}
     $ctl_lk_hl[:num_loops] = 100
 
-    # result of processing keys, while playing a pitch
-    $ctl_pitch = Struct.new(*$conf_meta[:ctrls_play_pitch]).new
-    $conf_meta[:ctrls_play_pitch].each {|k| $ctl_pitch[k] = false}
+    # result of processing keys, while playing a pitch based on semitones
+    $ctl_pitch_semi = Struct.new(*$conf_meta[:ctrls_play_pitch_semi]).new
+    $conf_meta[:ctrls_play_pitch_semi].each {|k| $ctl_pitch_semi[k] = false}
+
+    # result of processing keys, while playing a pitch based on frequency
+    $ctl_pitch_freq = Struct.new(*$conf_meta[:ctrls_play_pitch_freq]).new
+    $conf_meta[:ctrls_play_pitch_freq].each {|k| $ctl_pitch_freq[k] = false}
 
     # result of processing keys, while playing an interval
     $ctl_inter = Struct.new(*$conf_meta[:ctrls_play_inter]).new

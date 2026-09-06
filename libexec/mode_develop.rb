@@ -299,6 +299,13 @@ module ModeDevelop
     end
 
     puts
+    Text::puts_underlined 'freq2semi and back'
+    [200, 700].each do |freq|
+      found = Theory::semi2freq_et(Theory::freq2semi(freq)).round
+      utreport(found, freq, "semi2freq(freq2semi(#{freq}))")
+    end
+
+    puts
     Text::puts_underlined 'note2semi'
     utreport(%w[bs4 cs4 d4 ds4 ff4 es4 fs4 g4 gs4 a4 as4 cf4].map {|n| Theory::note2semi(n, shadowed: true)},
              (-9..2).to_a)

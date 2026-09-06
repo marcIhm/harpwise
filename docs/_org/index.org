@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.42.8/
+/Version  6.43.0/
 
 * Introduction
 
@@ -1065,6 +1065,10 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       play an interactive, adjustable pitch; this may help to find the
       key of a song by ear-comparison; the initial key, e.g. 'a4' can be
       supplied as an optional argument
+      
+      You may also give a frequency as argument, with or without appended
+      unit 'Hz' (e.g. 440 or 880Hz), the pitch starts with the given
+      frequency and changes in constant increments.
 
     - interval, inter:
       interactive, adjustable interval given as arguments

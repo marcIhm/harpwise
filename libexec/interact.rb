@@ -269,45 +269,85 @@ module Interact
     end
   end
 
-  def handle_kb_play_pitch
+  def handle_kb_play_pitch_semi
     return if $ctl_kb_queue.length == 0
 
     char = $ctl_kb_queue.deq
-    $ctl_pitch[:any] = true
+    $ctl_pitch_semi[:any] = true
 
     if char == ' '
-      $ctl_pitch[:pause_continue] = true
+      $ctl_pitch_semi[:pause_continue] = true
     elsif char == 'v'
-      $ctl_pitch[:vol_down] = true
+      $ctl_pitch_semi[:vol_down] = true
     elsif char == 'V'
-      $ctl_pitch[:vol_up] = true
+      $ctl_pitch_semi[:vol_up] = true
     elsif char == 'h'
-      $ctl_pitch[:show_help] = true
+      $ctl_pitch_semi[:show_help] = true
     elsif ['s', '+', 'UP'].include?(char)
-      $ctl_pitch[:semi_up] = true
+      $ctl_pitch_semi[:semi_up] = true
     elsif ['S', '-', 'DOWN'].include?(char)
-      $ctl_pitch[:semi_down] = true
+      $ctl_pitch_semi[:semi_down] = true
     elsif char == 'o'
-      $ctl_pitch[:octave_up] = true
+      $ctl_pitch_semi[:octave_up] = true
     elsif char == 'O'
-      $ctl_pitch[:octave_down] = true
+      $ctl_pitch_semi[:octave_down] = true
     elsif char == 'f'
-      $ctl_pitch[:fifth_up] = true
+      $ctl_pitch_semi[:fifth_up] = true
     elsif char == 'F'
-      $ctl_pitch[:fifth_down] = true
+      $ctl_pitch_semi[:fifth_down] = true
     elsif char == 'W'
-      $ctl_pitch[:wave_up] = true
+      $ctl_pitch_semi[:wave_up] = true
     elsif char == 'w'
-      $ctl_pitch[:wave_down] = true
+      $ctl_pitch_semi[:wave_down] = true
     elsif %w[q x ESC].include?(char)
-      $ctl_pitch[:quit] = true
+      $ctl_pitch_semi[:quit] = true
     elsif char == 'RETURN'
-      $ctl_pitch[:accept_or_repeat] = true
+      $ctl_pitch_semi[:accept_or_repeat] = true
     elsif char == '.'
-      $ctl_pitch[:repeat] = true
+      $ctl_pitch_semi[:repeat] = true
     else
-      $ctl_pitch[:invalid] = get_text_invalid(char)
-      $ctl_pitch[:any] = false
+      $ctl_pitch_semi[:invalid] = get_text_invalid(char)
+      $ctl_pitch_semi[:any] = false
+    end
+  end
+
+  def handle_kb_play_pitch_freq
+    return if $ctl_kb_queue.length == 0
+
+    char = $ctl_kb_queue.deq
+    $ctl_pitch_freq[:any] = true
+
+    if char == ' '
+      $ctl_pitch_freq[:pause_continue] = true
+    elsif char == 'i'
+      $ctl_pitch_freq[:set_inc] = true
+    elsif char == 'f'
+      $ctl_pitch_freq[:set_freq] = true
+    elsif char == 'v'
+      $ctl_pitch_freq[:vol_down] = true
+    elsif char == 'V'
+      $ctl_pitch_freq[:vol_up] = true
+    elsif char == 'h'
+      $ctl_pitch_freq[:show_help] = true
+    elsif ['+', 'UP'].include?(char)
+      $ctl_pitch_freq[:freq_up] = true
+    elsif ['-', 'DOWN'].include?(char)
+      $ctl_pitch_freq[:freq_down] = true
+    elsif char == 'o'
+      $ctl_pitch_freq[:octave_up] = true
+    elsif char == 'O'
+      $ctl_pitch_freq[:octave_down] = true
+    elsif char == 'W'
+      $ctl_pitch_freq[:wave_up] = true
+    elsif char == 'w'
+      $ctl_pitch_freq[:wave_down] = true
+    elsif %w[q x ESC RETURN].include?(char)
+      $ctl_pitch_freq[:quit] = true
+    elsif char == '.'
+      $ctl_pitch_freq[:repeat] = true
+    else
+      $ctl_pitch_freq[:invalid] = get_text_invalid(char)
+      $ctl_pitch_freq[:any] = false
     end
   end
 
@@ -897,6 +937,28 @@ module Interact
     input
   end
 
+  def read_bounded_num min, max, what
+    make_term_cooked
+    print "\e[0m\e[32mPlease enter new #{what}; a number between #{min} and #{max}\nYour input: \e[0m"
+    input = gets_with_cursor.chomp
+    make_term_immediate
+    if input =~ /^\d+$/
+      num = input.to_i
+    else
+      puts "\e[0mInvalid input, please enter digits only, not:   \e[1m#{input}\e[0m"
+      return nil
+    end
+    if num < min
+      puts "\e[0mYour number   \e[1m#{num}\e[0m   is less than #{min}"
+      return nil
+    elsif num > max
+      puts "\e[0mYour number   \e[1m#{num}\e[0m   is larger than #{max}"
+      return nil
+    else
+      return num
+    end
+  end
+
   def get_complex_key
     #
     # Hint: Also use "showkey -a" to find out the exact
@@ -1120,3 +1182,4 @@ module Interact
     $ctl_kb_queue.deq
   end
 end
+

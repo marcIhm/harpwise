@@ -103,14 +103,19 @@ module ModePlay
       case $extra
       when 'pitch'
 
-        key = if args_for_extra.length == 1
-                key_wo_digit = args_for_extra[0].gsub(/\d$/, '')
-                err "Unknown key '#{key_wo_digit}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(key_wo_digit)
-                args_for_extra[0]
-              elsif args_for_extra.length > 1
-                err "harpwise play pitch only accepts zero or one argument, not #{args_for_extra}"
-              end
-        Players::play_interactive_pitch(start_key: key)
+        if args_for_extra.length == 1
+          if args_for_extra[0] =~ /^\d+(hz)?$/i
+            Players::play_interactive_pitch_freq(args_for_extra[0].to_i)
+          else
+            key_wo_digit = args_for_extra[0].gsub(/\d$/, '')
+            err "Unknown key '#{key_wo_digit}'; none of #{$conf[:all_keys]}" unless $conf[:all_keys].include?(key_wo_digit)
+            Players::play_interactive_pitch_semi(start_key: args_for_extra[0])
+          end
+        elsif args_for_extra.length == 0
+          Players::play_interactive_pitch_semi(start_key: $key)
+        elsif args_for_extra.length > 1
+          err "harpwise play pitch only accepts zero or one argument, not #{args_for_extra}"
+        end
 
       when 'interval', 'inter'
 
