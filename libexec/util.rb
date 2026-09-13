@@ -44,7 +44,7 @@ module Util
               eval("$#{var}")
             end
       if val
-        "%-5s = #{val} (#{Args::source_of[var] || 'command-line'})" % var
+        "%-5s = #{val} (#{$args_source_of[var] || 'command-line'})" % var
       else
         "#{var} is not set"
       end
@@ -103,7 +103,7 @@ module Util
       dumpfile = "#{$dirs[:exch_tester_tested]}/harpwise_testing_dumped_#{marker}.json"
       File.delete(dumpfile) if File.exist?(dumpfile)
     end
-    structure = { scale: $scale, all_scales_holes: $all_scales_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER'], testing_custom: $testing_custom }
+    structure = { scale: $scale, all_scales_holes: $all_scales_holes, licks: $licks, lick_progs: $all_lick_progs, opts: $opts, conf: $conf, conf_system: $conf_system, conf_user: $conf_user, key: $key, messages_printed: $msgbuf.printed, dirs: $dirs, pulse_server: ENV['PULSE_SERVER'], testing_custom_hash: $testing_custom_hash, testing_custom_array: $testing_custom_array }
     if marker
       File.write(dumpfile, JSON.pretty_generate(structure))
     else
@@ -504,7 +504,7 @@ module Util
     jmnames = []
     other = []
 
-    amongs ||= $amongs[$mode] || err("Internal error: not for mode #{$mode}")
+    amongs ||= $amongs[$mode] || err("Internal error: amongs not defined for mode #{$mode}")
     err("Internal error: #{amongs} includes :extra_wwos") if amongs.include?(:extra_wwos)
     # allow -1 (oct) +2 to be passed as '-1 (oct) +2'
     to_handle.join(' ').split.each do |th|

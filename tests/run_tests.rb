@@ -3550,7 +3550,22 @@ do_test 'id-112c: quiz-flavour hit-from-off' do
   tms 'q'
   wait_for_end_of_harpwise
   expect { screen[21]['Terminating on user request'] }
+end
+
+do_test 'id-112d: quiz-flavour hit-from-off with explicit holes' do
+  new_session
+  tms 'harpwise quiz hit-from-off -1 +2 +3'
+  10.times do
+    tms :ENTER
+    sleep 2
+  end
+  tms 'q'
+  wait_for_end_of_harpwise
+  expect { screen[21]['Terminating on user request'] }
   kill_session
+  holes = read_testing_dump('end')[:testing_custom_array]
+  expect(holes) { holes.length == 9 }
+  expect(holes) { (holes - %w(-1 +2 +3)).empty? }
 end
 
 do_test 'id-113a: quiz-flavour choose' do
@@ -4510,12 +4525,12 @@ do_test 'id-160: jam with variations' do
   expect { screen[7]['2 Variations:'] }
   expect { screen[8]['1:  harpwise listen c --scale-prog 12bar --lick-prog box1'] }
   dump = read_testing_dump('end')
-  expect(dump[:testing_custom][:timestamps_to_actions]) { dump[:testing_custom][:timestamps_to_actions][2][2] == 'l' }
+  expect(dump[:testing_custom_hash][:timestamps_to_actions]) { dump[:testing_custom_hash][:timestamps_to_actions][2][2] == 'l' }
   tms 'harpwise jam ls with_variations --variation 2'
   tms :ENTER
   wait_for_end_of_harpwise
   dump = read_testing_dump('end')
-  expect(dump[:testing_custom][:timestamps_to_actions]) { dump[:testing_custom][:timestamps_to_actions][2][2] == 's' }
+  expect(dump[:testing_custom_hash][:timestamps_to_actions]) { dump[:testing_custom_hash][:timestamps_to_actions][2][2] == 's' }
   tms 'harpwise jam ls'
   tms :ENTER
   wait_for_end_of_harpwise

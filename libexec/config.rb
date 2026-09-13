@@ -26,7 +26,9 @@ module Cfg
     # for each name collect the types (lick, scale, ...) it appears as
     $name_collisions_mb = Hash.new {|h, k| h[k] = Set.new}
     $org_theme_file = 'floating_toc.theme'
-    $testing_custom = {}
+    # what is stored here (or not) is highly dependant on the specific test
+    $testing_custom_hash = {}
+    $testing_custom_array = []
     $warned_for_short_rec = false
 
     # two more entries will be set in find_and_check_dirs_early

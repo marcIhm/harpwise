@@ -937,7 +937,7 @@ module Interact
     input
   end
 
-  def read_bounded_num min, max, what
+  def read_bounded_num what, min, max
     make_term_cooked
     print "\e[0m\e[32mPlease enter new #{what}; a number between #{min} and #{max}\nYour input: \e[0m"
     input = gets_with_cursor.chomp

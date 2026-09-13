@@ -758,7 +758,7 @@ module ModeJamming
     puts "\e[0m"
     puts unless multi
 
-    $testing_custom = pms if $testing_what == :jamming_json
+    $testing_custom_hash = pms if $testing_what == :jamming_json
 
     [ago, pms['sound_file'], pms['all_scale_progs'], pms['all_lick_progs']]
   end

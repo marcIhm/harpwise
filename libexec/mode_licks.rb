@@ -5,7 +5,7 @@
 module ModeLicks
   extend self
 
-  def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, quiz_hole_to_hit: nil, lambda_quiz_hint: nil, to_handle: []
+  def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, lambda_quiz_hint: nil, to_handle: [], quiz_instance: nil
     if to_handle && to_handle.length > 0
 
       err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the command line #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
@@ -45,7 +45,7 @@ module ModeLicks
 
     to_play = PlayController.new
     to_play[:show_in_play] = quiz_holes_shift_info[:holes_unshifted] if quiz_holes_shift_info
-    to_play[:show_in_play] = [quiz_hole_to_hit] if quiz_hole_to_hit
+    to_play[:show_in_play] = [quiz_instance.hole_to_hit] if $quiz_flavour == 'hit-from-off'
 
     # below stands for override for line_message2 and is set during
     # initial play, i.e. before builtup of listen-perspective; when set,
@@ -227,20 +227,9 @@ module ModeLicks
             $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
 
           when 'hit-from-off'
-            unless first_round
-              hole_set = if $opts[:difficulty] == :easy
-                           %w[blow-low draw-low].sample
-                         else
-                           %w[blow-full draw-full].sample
-                         end
-              quiz_prevs << quiz_hole_to_hit
-              begin
-                quiz_hole_to_hit = $named_hole_sets[hole_set].sample
-              end while quiz_prevs.include?(quiz_hole_to_hit)
-              quiz_prevs.shift if quiz_prevs.length > 2
-            end
-            to_play.set_all_wanted [quiz_hole_to_hit]
-            to_play[:show_in_play] = [quiz_hole_to_hit]
+            quiz_instance.choose_hole unless first_round
+            to_play.set_all_wanted [quiz_instance.hole_to_hit]
+            to_play[:show_in_play] = [quiz_instance.hole_to_hit]
             $ctl_mic[:redraw] = Set[:silent]
             $ctl_mic[:redraw_mission] = true
             $msgbuf.print ModeQuiz::HitFromOff.describe_difficulty, 2, 5, :dicu
@@ -341,7 +330,7 @@ module ModeLicks
         Util::write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
       end
 
-      if ( !quiz_scale_name && !quiz_holes_inter && !quiz_hole_to_hit && !zero_partial?) ||
+      if ( !quiz_scale_name && !quiz_holes_inter && $quiz_flavour != 'hit-from-off' && !zero_partial?) ||
          $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]
 
         Util::print_mission('Listen ...') unless oride_l_message2
@@ -475,9 +464,7 @@ module ModeLicks
                   "shift by #{quiz_holes_shift_info[:shift_by_semi]}st to #{quiz_holes_shift_info[:holes_shifted][0]}... ; " +
                   "\e[32m#{idx + 1}\e[0m of #{to_play[:all_wanted].length}"
               elsif $quiz_flavour == 'hit-from-off'
-                raise('Internal error') unless quiz_hole_to_hit
-
-                "Put off harp and play #{quiz_hole_to_hit}"
+                "Put off harp and play #{quiz_instance.hole_to_hit}"
               elsif $quiz_flavour && $quiz_flavour != 'replay'
                 # replay uses just the normal below
                 raise "Internal error: unknown quiz-flavour: #{$quiz_flavour}"
@@ -662,7 +649,13 @@ module ModeLicks
         end
 
         if $ctl_mic[:quiz_hint]
-          lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name, quiz_holes_shift_info)
+          if quiz_instance
+            quiz_instance.hint_in_view(to_play[:all_wanted])
+          else
+            # remove this, as soon as all quiz-flavours, that use show_mic, are converted to
+            # the new interface
+            lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name, quiz_holes_shift_info)
+          end
           $ctl_mic[:quiz_hint] = false
         end
 

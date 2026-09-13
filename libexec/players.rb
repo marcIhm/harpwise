@@ -372,8 +372,8 @@ module Players
   def play_interactive_pitch_freq freq
     wave = wave_was = 'pluck'
     paused = false
-    max_freq = 20000
-    min_freq = 10
+    max_freq = 10000
+    min_freq = 30
     freq_inc = if freq > 1000
                  100
                elsif freq > 500
@@ -384,6 +384,12 @@ module Players
 
     pplayer = nil
     cmd = cmd_was = nil
+
+    if freq < min_freq
+      err "\e[0mInitial frequency   \e[1m#{freq}\e[0m   is less than #{min_freq}"
+    elsif freq > max_freq
+      err "\e[0mInitial frequency   \e[1m#{freq}\e[0m   is larger than #{max_freq}"
+    end
     puts
     puts "\e[0m\e[2m(type 'h' for help)\e[0m"
     puts
@@ -448,7 +454,7 @@ module Players
           freq -= freq_inc if freq - freq_inc > min_freq
           Sound::print_pitch_information_freq(freq, knm + " by #{freq_inc}")
         elsif $ctl_pitch_freq[:set_freq]
-          new = Interact::read_bounded_num(min_freq, max_freq, 'frequency to play (in Hertz)')
+          new = Interact::read_bounded_num('frequency to play (in Hertz)', min_freq, max_freq)
           if new
             freq = new
             puts "\e[0m\e[2mNew frequency:   #{freq}"
@@ -457,7 +463,7 @@ module Players
           end
           Sound::print_pitch_information_freq(freq)
         elsif $ctl_pitch_freq[:set_inc]
-          new = Interact::read_bounded_num(1, 1000, 'frequency increment (in Hertz)')
+          new = Interact::read_bounded_num('frequency increment (in Hertz)', 1, 1000)
           if new
             freq_inc = new
             puts "\e[0m\e[2mNew frequency increment:   #{freq_inc}"

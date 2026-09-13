@@ -54,6 +54,11 @@ module ModeQuiz
       elsif to_handle.length > 1
         err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
       end
+    elsif $extra == 'hit-from-off'
+      to_handle.each do |hole|
+        err "Argument '#{hole}' is none of  #{$harp_holes.join(' ')}" unless $harp_holes.include?(hole)
+      end
+      HitFromOff.class_variable_set(:@@explicit_choices, to_handle)
     elsif to_handle.length > 0
       Util::err_args_not_allowed(to_handle)
     end
@@ -148,24 +153,16 @@ module ModeQuiz
     elsif $quiz_flavour == 'hit-from-off'
 
       back_to_comment_after_mode_switch
-      hole_set = if $opts[:difficulty] == :easy
-                   %w[blow-low draw-low].sample
-                 else
-                   %w[blow-full draw-full].sample
-                 end
-      hole_to_hit = $named_hole_sets[hole_set].sample
+      instance = HitFromOff.new(true)
       $opts[:comment] = :holes_all
       puts
-      puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{hole_to_hit}\e[0m"
+      puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{instance.hole_to_hit}\e[0m"
       puts
       puts
-      Text::do_figlet_unwrapped hole_to_hit, 'smblock'
+      Text::do_figlet_unwrapped instance.hole_to_hit, 'smblock'
       sleep 0.5
       prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(quiz_hole_to_hit: hole_to_hit,
-                                  lambda_quiz_hint: lambda do |holes|
-                                    quiz_hint_in_show_mic_loop_hit_from_off holes[0]
-                                  end)
+      ModeLicks::do_licks_or_quiz(quiz_instance: instance)
 
 
     elsif $quiz_flavour == 'keep-tempo'
@@ -450,19 +447,6 @@ module ModeQuiz
     Interact::clear_area_comment
     Interact::clear_area_message
     $ctl_kb_queue.clear
-  end
-
-  def quiz_hint_in_show_mic_loop_hit_from_off hole
-    Interact::clear_area_comment
-    Interact::clear_area_message
-    puts "\e[#{$lines[:comment] + 1}H"
-    puts "Help: Put down your harp and play hole\n\n\e[32m   #{hole}\e[0m\n\non the spot and as clean as possible"
-    $ctl_kb_queue.clear
-    puts "\n\e[0m\e[2m#{$resources[:any_key]}"
-    $ctl_kb_queue.clear
-    $ctl_kb_queue.deq
-    Interact::clear_area_comment
-    Interact::clear_area_message
   end
 
   def prepare_listen_perspective_for_quiz
@@ -1146,10 +1130,54 @@ module ModeQuiz
   class HitFromOff < Flavour
     $q_class2colls[self] = %w[mic]
 
+    attr_accessor :explicit_choices, :hole_to_hit
+    
+    def initialize _first_round
+      super _first_round
+      @@explicit_choices ||= []
+      choose_hole
+    end
+
+    def hint_in_view holes
+      Interact::clear_area_comment
+      Interact::clear_area_message
+      puts "\e[#{$lines[:comment] + 1}H"
+      puts "Help: Put down your harp and play hole\n\n\e[32m   #{holes[0]}\e[0m\n\non the spot and as clean as possible"
+      $ctl_kb_queue.clear
+      puts "\n\e[0m\e[2m#{$resources[:any_key]}"
+      $ctl_kb_queue.clear
+      $ctl_kb_queue.deq
+      Interact::clear_area_comment
+      Interact::clear_area_message
+    end
+    
+    def choose_hole
+      begin
+        choices = if @@explicit_choices.length > 0
+                    @@explicit_choices
+                  else
+                    hole_set = if $opts[:difficulty] == :easy
+                                 %w[blow-low draw-low].sample
+                               else
+                                 %w[blow-full draw-full].sample
+                               end
+                    $named_hole_sets[hole_set]
+                  end
+        @hole_to_hit = choices.sample
+        # make sure that @@prevs.length <= num_choices - 1
+        @@prevs.shift if @@prevs.length > [2, choices.length - 1].min
+      end while @@prevs.include?(@hole_to_hit)
+      $testing_custom_array << @hole_to_hit if $testing
+    end
+    
     def self.describe_difficulty
-      Flavour.difficulty_head +
-        ', hit one hole from hole sets ' +
-        ( $opts[:difficulty] == :easy ? 'blow-low and draw-low' : 'blow-full and draw-full' )
+      if @@explicit_choices.length > 0
+        "\e[0m\e[2mdifficulty is: hit one hole from #{@@explicit_choices.length} given as arguments" 
+      else
+        Flavour.difficulty_head +
+          ', hit one hole from hole sets ' +
+          ( $opts[:difficulty] == :easy ? 'blow-low and draw-low' : 'blow-full and draw-full' )
+      end
     end
   end
 

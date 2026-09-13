@@ -1,9 +1,10 @@
 #
-# Sense holes played
+# Main view used when user is playing
 #
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
+# rename into user_playing_view
 module ShowMic
   extend self
 
