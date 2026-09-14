@@ -41,7 +41,7 @@ module ModeListen
 
     until $ctl_mic[:switch_modes]
 
-      result = ShowMic::enter_loop(
+      result = UserPlaying::enter_loop(
 
         # lambda_mission
         -> {mission},
@@ -84,7 +84,7 @@ module ModeListen
                    line += 2
                    if $hole_ref
                      semi_ref = $harp[$hole_ref][:semi]
-                     dots, in_range = ShowMic::get_dots(just_dots_long.dup, 4, freq,
+                     dots, in_range = UserPlaying::get_dots(just_dots_long.dup, 4, freq,
                                                         Theory::semi2freq_et(semi_ref - 2),
                                                         Theory::semi2freq_et(semi_ref),
                                                         Theory::semi2freq_et(semi_ref + 2)) {|_ok, marker| marker}
@@ -173,11 +173,11 @@ module ModeListen
         end,
         # lambda_star_lick
         nil
-      )  ## end of show_mic loop
+      )  ## end of user_playing loop
 
       #
       # Create journal entries, that have been explicitly requested by
-      # pressing RETURN see show_mic.rb for those holes that get
+      # pressing RETURN see user_playing.rb for those holes that get
       # journaled, just because they have been held long enough
       #
       if $ctl_mic[:journal_current]
@@ -244,7 +244,7 @@ module ModeListen
           $msgbuf.print 'Playing journal, press any key to skip ...', 0, 0
           [$journal, '(0.5)'].flatten.each_cons(2).each_with_index do |(hole, hole_next), idx|
             lines, = Text::tabify_hl($lines[:hint_or_message] - $lines[:comment_tall], $journal, idx)
-            ShowMic::fit_into_comment lines
+            UserPlaying::fit_into_comment lines
             unless Theory::musical_event?(hole)
               Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[hole][:note], %w[.wav .mp3]),
                                Theory::get_musical_duration(hole_next))

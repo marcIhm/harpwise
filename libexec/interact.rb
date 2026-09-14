@@ -434,7 +434,7 @@ module Interact
 
   #
   # Handle keyboard when listening to microphone, i.e. during main interactive loop in
-  # show_mic.rb
+  # user_playing.rb
   #
   def handle_kb_mic
     return unless $ctl_kb_queue.length > 0 || $ctl_fifo_queue.length > 0
@@ -887,7 +887,7 @@ module Interact
         else
           $msgbuf.print 'Warbling holes have not been set', 2, 4
         end
-        ShowMic::clear_warbles
+        UserPlaying::clear_warbles
       else
         $msgbuf.print 'Warbling holes set', 2, 4
       end

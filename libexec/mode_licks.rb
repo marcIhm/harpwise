@@ -212,17 +212,9 @@ module ModeLicks
             $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
 
           when 'play-shifted'
-            unless first_round
-              quiz_prevs << [quiz_holes_shift_info[:holes_unshifted],
-                             quiz_holes_shift_info[:shift_by_semi]]
-              begin
-                quiz_holes_shift_info = ModeQuiz::get_holes_shift_info
-              end while quiz_prevs.include?([quiz_holes_shift_info[:holes_unshifted],
-                                             quiz_holes_shift_info[:shift_by_semi]])
-              quiz_prevs.shift if quiz_prevs.length > 2
-            end
-            to_play.set_all_wanted quiz_holes_shift_info[:holes_all]
-            to_play[:show_in_play] = quiz_holes_shift_info[:holes_unshifted]
+            quiz_instance.choose_shift unless first_round
+            to_play.set_all_wanted quiz_instance.holes_all
+            to_play[:show_in_play] = quiz_instance.holes_unshifted
             $ctl_mic[:redraw_mission] = true
             $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
 
@@ -443,7 +435,7 @@ module ModeLicks
           Sound::pipeline_catch_up
           $ulrec.first_hole_good_at = Time.now.to_f if idx == 1 && $ulrec.active?
 
-          ShowMic::enter_loop(
+          UserPlaying::enter_loop(
 
             # lambda_mission
             lambda do
@@ -458,10 +450,8 @@ module ModeLicks
 
                 "Play inter #{quiz_holes_inter[4]}; #{quiz_holes_inter[5]}"
               elsif $quiz_flavour == 'play-shifted'
-                raise('Internal error') unless quiz_holes_shift_info
-
-                "Play #{quiz_holes_shift_info[:holes_unshifted].join(' ')}, " +
-                  "shift by #{quiz_holes_shift_info[:shift_by_semi]}st to #{quiz_holes_shift_info[:holes_shifted][0]}... ; " +
+                "Play #{quiz_instance.holes_unshifted.join(' ')}, " +
+                  "shift by #{quiz_instance.shift_by_semi}st to #{quiz_instance.holes_shifted[0]}... ; " +
                   "\e[32m#{idx + 1}\e[0m of #{to_play[:all_wanted].length}"
               elsif $quiz_flavour == 'hit-from-off'
                 "Put off harp and play #{quiz_instance.hole_to_hit}"
@@ -553,7 +543,7 @@ module ModeLicks
                 $msgbuf.print "Wrote #{$star_file}", 2, 5, :star
               end
             end
-          )  ## end of show_mic loop
+          )  ## end of user_playing loop
 
 
           if $ctl_mic[:switch_modes]
@@ -652,7 +642,7 @@ module ModeLicks
           if quiz_instance
             quiz_instance.hint_in_view(to_play[:all_wanted])
           else
-            # remove this, as soon as all quiz-flavours, that use show_mic, are converted to
+            # remove this, as soon as all quiz-flavours, that use user_playing, are converted to
             # the new interface
             lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name, quiz_holes_shift_info)
           end
@@ -1100,7 +1090,7 @@ module ModeLicks
               Text::do_figlet_unwrapped text, font, width_template
               nil
             end
-    ShowMic::fit_into_comment(lines) if lines
+    UserPlaying::fit_into_comment(lines) if lines
   end
 
   def peek_into_quiz_shifted shift_info, oride_l_message2
@@ -1269,7 +1259,7 @@ class PlayController < Struct.new(:all_wanted, :all_wanted_befores, :lick, :lick
       set_lick_and_others_from_idx
     end
     $ctl_mic[:change_tags] = false
-    print "\e[#{$lines[:key]}H\e[k" + ShowMic::text_for_key
+    print "\e[#{$lines[:key]}H\e[k" + UserPlaying::text_for_key
   end
 
   def read_and_shift_inter

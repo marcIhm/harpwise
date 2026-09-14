@@ -174,7 +174,7 @@ module Cfg
     $display_choices_desc = { hole: 'Hole currently played',
                               chart_notes: 'Chart with notes',
                               chart_scales: 'Chart with abbreviated scales',
-                              # these markers are defined further down below and in show_mic.rb
+                              # these markers are defined further down below and in user_playing.rb
                               chart_scales_simple: 'Chart with markers for initial (@) and other (~%~) scales; bright for root-notes',
                               chart_intervals: 'Chart with intervals to ref as names',
                               chart_inter_semis: 'Chart with intervals to ref as semitones' }
@@ -229,7 +229,7 @@ module Cfg
     $mode_switches = 0
     $ctl_response_default = 'SPACE to pause; h for help'
     # also sets $warbles and clears $warbles_other_hole
-    ShowMic::clear_warbles(true)
+    UserPlaying::clear_warbles(true)
 
     # The same volume for recordings and pitch
     $vol = Volume.new(-6)

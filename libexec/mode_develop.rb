@@ -243,7 +243,7 @@ module ModeDevelop
       # needed in help
       $modes_for_switch = %i[quiz listen]
       # will throw error on problems
-      ShowMic::show_help mode, true
+      UserPlaying::show_help mode, true
       puts mode.to_s.ljust(6) + "\e[32m ... okay\e[0m"
     end
 

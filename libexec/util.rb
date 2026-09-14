@@ -124,7 +124,7 @@ module Util
     puts '$debug_info:'
     pp $debug_info
 
-    $perfctr[:show_mic_this_loops_per_second] = $perfctr[:show_mic_this_loops] / ( Time.now.to_f - $perfctr[:show_mic_this_first_mic] ) if $perfctr[:show_mic_this_first_mic]
+    $perfctr[:user_playing_this_loops_per_second] = $perfctr[:user_playing_this_loops] / ( Time.now.to_f - $perfctr[:user_playing_this_first_mic] ) if $perfctr[:user_playing_this_first_mic]
     puts
     puts '$perfctr:'
     pp $perfctr

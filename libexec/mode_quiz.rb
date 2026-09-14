@@ -96,7 +96,7 @@ module ModeQuiz
       ModeLicks::do_licks_or_quiz(lambda_quiz_hint: lambda do |holes, _, _, _|
                                                       solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
                                                                    "\e[32m       #{holes.join('  ')}"
-                                                      quiz_hint_in_show_mic_loop_std(solve_text, 'sequence', holes, :all)
+                                                      quiz_hint_in_user_playing_loop_std(solve_text, 'sequence', holes, :all)
                                                     end)
 
 
@@ -116,7 +116,7 @@ module ModeQuiz
                                   lambda_quiz_hint: lambda do |holes, _, scale_name, _|
                                     solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
                                                  "\e[32m       #{holes.join('  ')}"
-                                    quiz_hint_in_show_mic_loop_std(solve_text, 'scale', holes, :all)
+                                    quiz_hint_in_user_playing_loop_std(solve_text, 'scale', holes, :all)
                                   end)
 
     elsif $quiz_flavour == 'play-inter'
@@ -131,23 +131,19 @@ module ModeQuiz
                                   lambda_quiz_hint: lambda do |holes, holes_inter, _, _|
                                                       solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
                                                                    "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                                                      quiz_hint_in_show_mic_loop_std(solve_text, 'interval', holes, holes[-1], true)
+                                                      quiz_hint_in_user_playing_loop_std(solve_text, 'interval', holes, holes[-1], true)
                                                     end)
-
 
     elsif $quiz_flavour == 'play-shifted'
 
       back_to_comment_after_mode_switch
-      holes_shift_info = get_holes_shift_info
+      instance = PlayShifted.new(true)
       puts
-      puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{holes_shift_info[:shift_by_text]}\e[0m"
+      puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{instance.shift_by_text}\e[0m"
       puts
       puts
       prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(quiz_holes_shift_info: holes_shift_info,
-                                  lambda_quiz_hint: lambda do |_holes, _, _, holes_shift_info|
-                                    quiz_hint_in_show_mic_loop_shifted holes_shift_info
-                                  end)
+      ModeLicks::do_licks_or_quiz(quiz_instance: instance)
 
 
     elsif $quiz_flavour == 'hit-from-off'
@@ -288,40 +284,6 @@ module ModeQuiz
     puts
   end
 
-  def get_holes_shift_info
-    # favour lower holes and allow a hole to appear multiple times
-    all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).then {|x| [x, x, x, x]}.flatten
-    # favour intervals up to perfect fifth
-    all_shifts = ($std_semi_shifts + $std_semi_shifts.select {|s| s.abs <= 7}.then {|x| [x, x, x, x]}).flatten
-
-    unshifted = shift = shifted = nil
-    400.times do
-      unshifted = all_holes.sample($num_quiz_replay)
-      semi_span = all_holes.map {|h| $harp[h][:semi]}.minmax
-      # mostly avoid holes, that span more than one octave
-      redo if semi_span[1] - semi_span[0] > 12 && rand > 0.1
-      shift = all_shifts.sample
-      shifted = unshifted.map {|h| $harp[h][:shifted_by][shift]}
-      break(:found) if shifted.all?
-    end == :found or raise('Internal error: too many tries')
-    idesc = if shift > 0
-              $intervals[shift][0] + ' UP'
-            else
-              $intervals[-shift][0] + ' DOWN'
-            end
-
-    # be more typesafe
-    info = Struct.new(:holes_unshifted, :shift_by_semi, :shift_by_text, :holes_shifted, :holes_all).new
-
-    info[:holes_unshifted] = unshifted
-    info[:shift_by_semi] = shift
-    info[:shift_by_text] = "%+dst, #{idesc}" % shift
-    info[:holes_shifted] = shifted
-    info[:holes_all] = unshifted + shifted
-
-    info
-  end
-
   def stand_out text, all_green: false, turn_red: nil
     print "\e[32m" if all_green
     lines = text.lines.map(&:chomp)
@@ -363,7 +325,7 @@ module ModeQuiz
     semi
   end
 
-  def quiz_hint_in_show_mic_loop_std solve_text, item, holes, hide, offer_disp = false
+  def quiz_hint_in_user_playing_loop_std solve_text, item, holes, hide, offer_disp = false
     choices2desc = { ',solve-print' => "Solve: Print #{item}, but keep current question",
                      '.help-play' => "Play #{item}, so that you may replay it" }
     choices2desc['.help-display'] = 'Switch display to show intervals' if offer_disp
@@ -392,61 +354,6 @@ module ModeQuiz
     end
     Interact::clear_area_comment
     Interact::clear_area_message
-  end
-
-  def quiz_hint_in_show_mic_loop_shifted holes_shift_info
-    choices2desc = { '.help-print-unshifted' => 'Solve: Print unshifted sequence, but keep current question',
-                     ',solve-print-shifted' => 'Solve: Print shifted sequence, but keep current question',
-                     '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
-                     '.help-play-both' => 'Play unshifted sequence first and then shifted, so that you may replay it' }
-    answer = Choose::choose_interactive($resources[:quiz_hints] % $quiz_flavour,
-                                        choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
-    Interact::clear_area_comment
-    Interact::clear_area_message
-    $ctl_kb_queue.clear
-    case answer
-    when '.help-print-unshifted'
-      puts "\e[#{$lines[:comment_tall]}H"
-      puts "\e[0mHelp: unshifted sequence is:\n\n\n"
-      puts "\e[32m  #{holes_shift_info[:holes_unshifted].join('  ')}"
-      puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
-      $ctl_kb_queue.deq
-      $msgbuf.print 'Help, unshifted:   ' + holes_shift_info[:holes_unshifted].join('  '), 6, 8, :quiz_solution
-    when ',solve-print-shifted'
-      puts "\e[#{$lines[:comment_tall]}H"
-      puts "\e[0m\e[2mUnshifted is:"
-      puts "  #{holes_shift_info[:holes_unshifted].join('  ')}"
-      puts "\n\e[0mSolution: shifted sequence is:"
-      puts "\e[32m  #{holes_shift_info[:holes_shifted].join('  ')}"
-      puts "\n\e[0m\e[2mShifted by: #{holes_shift_info[:shift_by_text]}"
-      puts "\e[0m\e[2m#{$resources[:any_key]}"
-      $ctl_kb_queue.deq
-      $msgbuf.print 'Solution, shifted:   ' + holes_shift_info[:holes_shifted].join('  '), 6, 8, :quiz_solution
-    when '.help-play-unshifted'
-      puts "\e[#{$lines[:comment] + 1}H"
-      puts
-      print "      \e[32mUnshifted:   "
-      ::Players::play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_unshifted], hide: :help)
-      sleep 2
-      print "  \e[32mFirst shifted:   "
-      ::Players::play_holes_or_notes_and_handle_kb([holes_shift_info[:holes_shifted][0]], hide: :help)
-      sleep 1
-    when '.help-play-both'
-      puts "\e[#{$lines[:comment] + 1}H"
-      puts
-      print "  \e[32mUnshifted:   "
-      ::Players::play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_unshifted], hide: :help)
-      sleep 2
-      print "    \e[32mShifted:   "
-      ::Players::play_holes_or_notes_and_handle_kb(holes_shift_info[:holes_shifted], hide: %i[all help])
-      sleep 1
-    else
-      raise "Internal error: #{answer}" if answer
-    end
-    print "\e[0m"
-    Interact::clear_area_comment
-    Interact::clear_area_message
-    $ctl_kb_queue.clear
   end
 
   def prepare_listen_perspective_for_quiz
@@ -682,6 +589,8 @@ module ModeQuiz
   $q_class2colls = Hash.new
 
   class Flavour
+    # Not an instance variable, because we want to be free to create a new instance on every
+    # round
     @@prevs = Array.new
 
     def initialize _first_round
@@ -923,7 +832,7 @@ module ModeQuiz
             puts "Toggled option \e[92m" + ( $opts[:keep_key] ? 'ON' : 'OFF' ) + "\e[0m."
           when 'RETURN'
             Choose::prepare_for
-            ShowMic::do_change_key
+            UserPlaying::do_change_key
             Choose::clean_up
             Cfg::set_global_vars_late
             Cfg::set_global_musical_vars shortcut_licks: true
@@ -1084,11 +993,6 @@ module ModeQuiz
     end
   end
 
-
-
-  # The three classes below are mostly done within do_licks, so the
-  # classes here are not complete
-
   class Replay < Flavour
     $q_class2colls[self] = %w[mic]
 
@@ -1112,6 +1016,8 @@ module ModeQuiz
   class PlayInter < Flavour
     $q_class2colls[self] = %w[mic inters]
 
+    attr_accessor :holes_shift_info
+    
     def self.describe_difficulty
       AddInter.describe_difficulty
     end
@@ -1119,6 +1025,102 @@ module ModeQuiz
 
   class PlayShifted < Flavour
     $q_class2colls[self] = %w[mic]
+
+    attr_accessor :holes_all, :holes_shifted, :holes_unshifted, :shift_by_text, :shift_by_semi
+    
+    def initialize _first_round
+      super _first_round
+      choose_shift
+    end
+
+    def hint_in_view _holes
+      choices2desc = { '.help-print-unshifted' => 'Solve: Print unshifted sequence, but keep current question',
+                       ',solve-print-shifted' => 'Solve: Print shifted sequence, but keep current question',
+                       '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
+                       '.help-play-both' => 'Play unshifted sequence first and then shifted, so that you may replay it' }
+      answer = Choose::choose_interactive($resources[:quiz_hints] % $quiz_flavour,
+                                          choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
+      Interact::clear_area_comment
+      Interact::clear_area_message
+      $ctl_kb_queue.clear
+      case answer
+      when '.help-print-unshifted'
+        puts "\e[#{$lines[:comment_tall]}H"
+        puts "\e[0mHelp: unshifted sequence is:\n\n\n"
+        puts "\e[32m  #{@holes_unshifted.join('  ')}"
+        puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
+        $ctl_kb_queue.deq
+        $msgbuf.print 'Help, unshifted:   ' + @holes_unshifted.join('  '), 6, 8, :quiz_solution
+      when ',solve-print-shifted'
+        puts "\e[#{$lines[:comment_tall]}H"
+        puts "\e[0m\e[2mUnshifted is:"
+        puts "  #{@holes_unshifted.join('  ')}"
+        puts "\n\e[0mSolution: shifted sequence is:"
+        puts "\e[32m  #{@holes_shifted.join('  ')}"
+        puts "\n\e[0m\e[2mShifted by: #{@shift_by_text}"
+        puts "\e[0m\e[2m#{$resources[:any_key]}"
+        $ctl_kb_queue.deq
+        $msgbuf.print 'Solution, shifted:   ' + @holes_shifted.join('  '), 6, 8, :quiz_solution
+      when '.help-play-unshifted'
+        puts "\e[#{$lines[:comment] + 1}H"
+        puts
+        print "      \e[32mUnshifted:   "
+        ::Players::play_holes_or_notes_and_handle_kb(@holes_unshifted, hide: :help)
+        sleep 2
+        print "  \e[32mFirst shifted:   "
+        ::Players::play_holes_or_notes_and_handle_kb([@holes_shifted[0]], hide: :help)
+        sleep 1
+      when '.help-play-both'
+        puts "\e[#{$lines[:comment] + 1}H"
+        puts
+        print "  \e[32mUnshifted:   "
+        ::Players::play_holes_or_notes_and_handle_kb(@holes_unshifted, hide: :help)
+        sleep 2
+        print "    \e[32mShifted:   "
+        ::Players::play_holes_or_notes_and_handle_kb(@holes_shifted, hide: %i[all help])
+        sleep 1
+      else
+        raise "Internal error: #{answer}" if answer
+      end
+      print "\e[0m"
+      Interact::clear_area_comment
+      Interact::clear_area_message
+      $ctl_kb_queue.clear
+      
+      hint_in_view
+    end
+    
+    def choose_shift
+      begin
+        # favour lower holes and allow a hole to appear multiple times
+        all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).then {|x| [x, x, x, x]}.flatten
+        # favour intervals up to perfect fifth
+        all_shifts = ($std_semi_shifts + $std_semi_shifts.select {|s| s.abs <= 7}.then {|x| [x, x, x, x]}).flatten
+        
+        unshifted = shift = shifted = nil
+        400.times do
+          unshifted = all_holes.sample($num_quiz_replay)
+          semi_span = all_holes.map {|h| $harp[h][:semi]}.minmax
+          # mostly avoid holes, that span more than one octave
+          redo if semi_span[1] - semi_span[0] > 12 && rand > 0.1
+          shift = all_shifts.sample
+          shifted = unshifted.map {|h| $harp[h][:shifted_by][shift]}
+          break(:found) if shifted.all?
+        end == :found or raise('Internal error: too many tries')
+        idesc = if shift > 0
+                  $intervals[shift][0] + ' UP'
+                else
+                  $intervals[-shift][0] + ' DOWN'
+                end
+        
+        @holes_unshifted = unshifted
+        @shift_by_semi = shift
+        @shift_by_text = "%+dst, #{idesc}" % shift
+        @holes_shifted = shifted
+        @holes_all = unshifted + shifted
+      end while @@prevs.include?([@holes_unshifted, @shift_by_semi])
+      @@prevs.shift if @@prevs.length > 2
+    end
 
     def self.describe_difficulty
       $num_quiz_replay = { easy: 3, hard: 6 }[$opts[:difficulty]]

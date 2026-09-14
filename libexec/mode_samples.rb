@@ -374,7 +374,7 @@ module ModeSamples
               elsif (freq_et_p1 - freq).abs < (freq_et - freq).abs
                 'too high'
               else
-                ShowMic::get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}[0]
+                UserPlaying::get_dots('........:........', 2, freq, freq_et_m1, freq_et, freq_et_p1) {|_hit, idx| idx}[0]
               end
       puts template % [hole.ljust(maxhl), freq.round(0), freq_et.round(0), (freq - freq_et).round(0), Theory::cents_diff(freq, freq_et).round(0), gauge]
       sleep 0.005

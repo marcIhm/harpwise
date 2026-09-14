@@ -4,8 +4,7 @@
 
 # See  https://en.wikipedia.org/wiki/ANSI_escape_code  for formatting options
 
-# rename into user_playing_view
-module ShowMic
+module UserPlaying
   extend self
 
   def enter_loop lambda_mission, lambda_good_done_was_good, lambda_skip,
@@ -45,7 +44,7 @@ module ShowMic
     warbles_announced = false
 
     #
-    # Use ticks (e.g. cycles in show_mic), because this is
+    # Use ticks (e.g. cycles in user_playing), because this is
     # potentially more precise than time-spans.  If this is set shorter,
     # the journal will pick up spurious notes
     #
@@ -60,15 +59,15 @@ module ShowMic
     # remember for each cycle of warbling, if we have seen first fole
     last_warbles_hole = nil
 
-    $perfctr[:show_mic_calls] += 1
-    $perfctr[:show_mic_this_loops] = 0
-    $perfctr[:show_mic_this_first_mic] = nil
+    $perfctr[:user_playing_calls] += 1
+    $perfctr[:user_playing_this_loops] = 0
+    $perfctr[:user_playing_this_first_mic] = nil
 
     $msgbuf.update(refresh: true)
     $ulrec.print_rec_sign_mb if $ulrec.active?
 
     loop do   # over each new frequency from pipeline, until done or skip
-      $perfctr[:show_mic_this_loops] += 1
+      $perfctr[:user_playing_this_loops] += 1
       tntf = Time.now.to_f
 
       system('clear') if $ctl_mic[:redraw] && $ctl_mic[:redraw].include?(:clear)
@@ -85,7 +84,7 @@ module ShowMic
       end
 
       if $ctl_mic[:redraw]
-        $perfctr[:show_mic_redraw] += 1
+        $perfctr[:user_playing_redraw] += 1
         if $first_round_ever_get_hole
           Interact::ctl_response(redraw: true)
         else
@@ -135,7 +134,7 @@ module ShowMic
       end
 
       $total_freq_ticks += 1
-      $perfctr[:show_mic_this_first_mic] ||= Time.now.to_f
+      $perfctr[:user_playing_this_first_mic] ||= Time.now.to_f
 
       return if lambda_skip && lambda_skip.call
 
@@ -465,10 +464,10 @@ module ShowMic
       end
 
       if $ctl_mic[:show_help]
-        $perfctr[:show_mic_this_loops_per_second] = $perfctr[:show_mic_this_loops] / ( Time.now.to_f - $perfctr[:show_mic_this_first_mic] ) if $perfctr[:show_mic_this_first_mic]
+        $perfctr[:user_playing_this_loops_per_second] = $perfctr[:user_playing_this_loops] / ( Time.now.to_f - $perfctr[:user_playing_this_first_mic] ) if $perfctr[:user_playing_this_first_mic]
         show_help
-        $perfctr[:show_mic_this_first_mic] = nil
-        $perfctr[:show_mic_this_loops] = 0
+        $perfctr[:user_playing_this_first_mic] = nil
+        $perfctr[:user_playing_this_loops] = 0
         Interact::ctl_response 'continue', hl: true
         $ctl_mic[:show_help] = false
         $ctl_mic[:redraw] = Set[:clear, :silent]
@@ -1008,7 +1007,7 @@ module ShowMic
     else
       frames[-1] << '     none'
     end
-    frames[-1].append('', ' Performance info:', '', '     Update loops per second:   ' + ('%8.2f' % $perfctr[:show_mic_this_loops_per_second]), "        based on #{$perfctr[:show_mic_this_loops]} loops, reset after this help\e[0m\e[32m", '', "     Time slice (per config):      #{$opts[:time_slice]}", '     Maximum jitter:               ' + ($max_jitter > 0 ? ('%8.2f sec' % $max_jitter) : 'none'), "     Samples lost due to lagging:  #{$lagging_freqs_lost}")
+    frames[-1].append('', ' Performance info:', '', '     Update loops per second:   ' + ('%8.2f' % $perfctr[:user_playing_this_loops_per_second]), "        based on #{$perfctr[:user_playing_this_loops]} loops, reset after this help\e[0m\e[32m", '', "     Time slice (per config):      #{$opts[:time_slice]}", '     Maximum jitter:               ' + ($max_jitter > 0 ? ('%8.2f sec' % $max_jitter) : 'none'), "     Samples lost due to lagging:  #{$lagging_freqs_lost}")
 
     frames << ['',
                ' Further reading:',
