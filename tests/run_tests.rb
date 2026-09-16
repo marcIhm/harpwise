@@ -3505,8 +3505,10 @@ do_test 'id-112: quiz-flavour play-shifted' do
   tms :ENTER
   sleep 3
   expect { screen[13]['Wise computes a sequence'] }
-  tms :ENTER
-  sleep 4
+  4.times do 
+    tms :ENTER
+    sleep 4
+  end
   tms 'q'
   wait_for_end_of_harpwise
   expect { screen[21]['Terminating on user request'] }

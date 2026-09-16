@@ -5,7 +5,7 @@
 module ModeLicks
   extend self
 
-  def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, lambda_quiz_hint: nil, to_handle: [], quiz_instance: nil
+  def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, to_handle: [], quiz_instance: nil
     if to_handle && to_handle.length > 0
 
       err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the command line #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
@@ -195,20 +195,14 @@ module ModeLicks
             $msgbuf.print ModeQuiz::HearScale.describe_difficulty, 2, 5, :dicu
 
           when 'play-inter'
-            unless first_round
-              quiz_prevs << quiz_holes_inter
-              begin
-                quiz_holes_inter = ModeQuiz::get_random_interval_as_holes
-              end while quiz_prevs.include?(quiz_holes_inter)
-              quiz_prevs.shift if quiz_prevs.length > 2
-              Interact::clear_area_comment
-              $hole_ref = quiz_holes_inter[0]
-              print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-              ModeQuiz::prompt_for_quiz_interval quiz_holes_inter
-              sleep 2
-              $ctl_mic[:redraw_mission] = true
-            end
-            to_play.set_all_wanted quiz_holes_inter[0..1]
+            quiz_instance.choose_inter unless first_round
+            Interact::clear_area_comment
+            $hole_ref = quiz_instance.inter[0]
+            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+            quiz_instance.puts_quiz_interval
+            sleep 2
+            $ctl_mic[:redraw_mission] = true
+            to_play.set_all_wanted quiz_instance.inter[0..1]
             $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
 
           when 'play-shifted'
@@ -317,7 +311,7 @@ module ModeLicks
       when 'play-scale'
         Util::write_history('play-scale', quiz_scale_name, to_play[:all_wanted])
       when 'play-inter'
-        Util::write_history('play-inter', quiz_holes_inter[3], to_play[:all_wanted])
+        Util::write_history('play-inter', quiz_instance.inter[3], to_play[:all_wanted])
       else
         Util::write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
       end
@@ -446,9 +440,7 @@ module ModeLicks
 
                 "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
               elsif $quiz_flavour == 'play-inter'
-                raise('Internal error') unless quiz_holes_inter
-
-                "Play inter #{quiz_holes_inter[4]}; #{quiz_holes_inter[5]}"
+                "Play inter #{quiz_instance.inter[4]}; #{quiz_instance.inter[5]}"
               elsif $quiz_flavour == 'play-shifted'
                 "Play #{quiz_instance.holes_unshifted.join(' ')}, " +
                   "shift by #{quiz_instance.shift_by_semi}st to #{quiz_instance.holes_shifted[0]}... ; " +
@@ -639,13 +631,7 @@ module ModeLicks
         end
 
         if $ctl_mic[:quiz_hint]
-          if quiz_instance
-            quiz_instance.hint_in_view(to_play[:all_wanted])
-          else
-            # remove this, as soon as all quiz-flavours, that use user_playing, are converted to
-            # the new interface
-            lambda_quiz_hint.call(to_play[:all_wanted], quiz_holes_inter, quiz_scale_name, quiz_holes_shift_info)
-          end
+          quiz_instance.hint_in_view(to_play[:all_wanted])
           $ctl_mic[:quiz_hint] = false
         end
 

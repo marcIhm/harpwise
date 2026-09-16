@@ -126,7 +126,7 @@ module Args
          no_loop: %w[--no-loop]
        }],
        [Set[:quiz], {
-         difficulty: %w[--difficulty],
+         difficulty: %w[--difficulty --dicu],
          keep_key: %w[--keep-key]
        }],
        [Set[:listen, :quiz, :play, :print], {

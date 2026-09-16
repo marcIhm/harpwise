@@ -121,18 +121,13 @@ module ModeQuiz
 
     elsif $quiz_flavour == 'play-inter'
 
-      holes_inter = get_random_interval_as_holes
+      instance = PlayInter.new(true)
       back_to_comment_after_mode_switch
-      prompt_for_quiz_interval holes_inter
+      instance.puts_quiz_interval
       sleep 2
       prepare_listen_perspective_for_quiz
-      $hole_ref = holes_inter[0]
-      ModeLicks::do_licks_or_quiz(quiz_holes_inter: holes_inter,
-                                  lambda_quiz_hint: lambda do |holes, holes_inter, _, _|
-                                                      solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
-                                                                   "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-                                                      quiz_hint_in_user_playing_loop_std(solve_text, 'interval', holes, holes[-1], true)
-                                                    end)
+      $hole_ref = instance.inter[0]
+      ModeLicks::do_licks_or_quiz(quiz_instance: instance)
 
     elsif $quiz_flavour == 'play-shifted'
 
@@ -206,8 +201,8 @@ module ModeQuiz
       end
 
 
+    # Generic flavour, handled by the standard interface
     elsif $quiz_flavour2class[$quiz_flavour]
-      # Generic flavour
 
       first_round = true
       loop do  ## every new question
@@ -239,7 +234,7 @@ module ModeQuiz
     end
   end
 
-  def get_random_interval_as_holes sorted: false
+  def get_random_interval_as_holes_etc sorted: false
     # favour lower holes
     all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).flatten.shuffle
     loop do
@@ -270,18 +265,6 @@ module ModeQuiz
         return holes_inter
       end
     end
-  end
-
-  def prompt_for_quiz_interval holes_inter
-    puts
-    puts "\e[34mInterval to play is:\e[0m"
-    puts
-    puts
-    puts "\e[94m   #{holes_inter[4]}\e[34m"
-    puts
-    puts
-    puts "The same as (upward) in song:  \e[94m" + holes_inter[5] + "\e[0m"
-    puts
   end
 
   def stand_out text, all_green: false, turn_red: nil
@@ -1007,7 +990,7 @@ module ModeQuiz
 
   class PlayScale < Flavour
     $q_class2colls[self] = %w[mic scales]
-
+    
     def self.describe_difficulty
       HearScale.describe_difficulty
     end
@@ -1016,8 +999,35 @@ module ModeQuiz
   class PlayInter < Flavour
     $q_class2colls[self] = %w[mic inters]
 
-    attr_accessor :holes_shift_info
+    attr_accessor :inter
+
+    def initialize _first_round
+      super _first_round
+      choose_inter
+    end
+
+    def hint_in_view holes, holes_inter
+      solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
+                   "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
+      quiz_hint_in_user_playing_loop_std(solve_text, 'interval', holes, holes[-1], true)
+    end
+
+    def choose_inter
+      @inter = ModeQuiz::get_random_interval_as_holes_etc
+    end
     
+    def puts_quiz_interval
+      puts
+      puts "\e[34mInterval to play is:\e[0m"
+      puts
+      puts
+      puts "\e[94m   #{@inter[4]}\e[34m"
+      puts
+      puts
+      puts "The same as (upward) in song:  \e[94m" + @inter[5] + "\e[0m"
+      puts
+    end
+
     def self.describe_difficulty
       AddInter.describe_difficulty
     end
@@ -1463,7 +1473,7 @@ module ModeQuiz
       @inter2semi = $intervals.to_a.map {[_2[0], _1]}.to_h
 
       begin
-        inter = ModeQuiz::get_random_interval_as_holes
+        inter = ModeQuiz::get_random_interval_as_holes_etc
         @holes = inter[0..1]
         @dsemi = inter[2]
         @solution = inter[3]
@@ -1816,7 +1826,7 @@ module ModeQuiz
       super
 
       begin
-        inter = ModeQuiz::get_random_interval_as_holes
+        inter = ModeQuiz::get_random_interval_as_holes_etc
         @holes = inter[0..1]
         @dsemi = inter[2]
         @verb = inter[2] > 0 ? 'add' : 'subtract'
@@ -2001,7 +2011,7 @@ module ModeQuiz
       super
 
       begin
-        inter = ModeQuiz::get_random_interval_as_holes sorted: true
+        inter = ModeQuiz::get_random_interval_as_holes_etc sorted: true
         @holes = inter[0..1]
         @dsemi = inter[2]
         @solution = inter[3]
