@@ -27,7 +27,21 @@
     - 'command-line' if used as an adjective
     - never: 'comandline'
 
-* DONE Refactoring      
+* STARTED Refactoring
+
+** STARTED Simplify coupling of some quiz-flavours to mode_licks
+
+   - [X] replay
+     - Difficulty
+     - Start (announce)
+     - Mission
+     - Next
+     - Hint
+   - [X] play-scale
+   - [X] play-inter
+   - [X] play-shifted
+   - [X] hit-from-off
+
 * DONE Rubocop
   
   rubocop >rubocop.out

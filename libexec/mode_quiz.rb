@@ -52,7 +52,7 @@ module ModeQuiz
         $num_quiz_replay = to_handle[0].to_i
         $num_quiz_replay_explicit = true
       elsif to_handle.length > 1
-        err "'harpwise quiz replay' allows only one argument, not: #{to_handle}"
+        err "'harpwise quiz replay' allows only one argument, but not: #{to_handle}"
       end
     elsif $extra == 'hit-from-off'
       to_handle.each do |hole|
@@ -75,87 +75,35 @@ module ModeQuiz
     $opts[:immediate] = false
 
 
-    # Actually start different quiz cases; all contain their own
-    # infinite loop; First some special flavours (e.g. tempo or replay),
-    # which have their own methods of checking the answer; then the
-    # generic case, which presents a list of choices.
+    # Actually start different quiz cases; First some special flavours (e.g. replay), that
+    # work with the view user-playing and have their own methods of checking the
+    # answer. Then keep-tempo, which is special altogether and finally the generic
+    # case, which presents a list of choices.
 
-    # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find related pieces
-    # of code in other files
+    # Describing the question is done here for the first question, i.e. before the actual
+    # view starts. But from the second question on it is done in mode_licks.rb
 
-    # Describing the question is done here for the first question, but from the second
-    # question on it is done in mode_licks.rb
+    # these flavours hand over to mode_licks
+    if %w(replay play-scale play-inter play-shifted hit-from-off).include?($quiz_flavour)
 
-    if $quiz_flavour == 'replay'
-
+      $msgbuf.print ["Type 'H' or '4' for quiz-hints, RETURN for next question,",
+                     'or issue signal ctrl-z (quit, tstp) for another flavour'], 3, 5
       back_to_comment_after_mode_switch
-      puts
-      puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
-      puts "\n\n\n"
-      prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(lambda_quiz_hint: lambda do |holes, _, _, _|
-                                                      solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
-                                                                   "\e[32m       #{holes.join('  ')}"
-                                                      quiz_hint_in_user_playing_loop_std(solve_text, 'sequence', holes, :all)
-                                                    end)
+      instance = $quiz_flavour2class[$quiz_flavour].new(true)
+      instance.announce_before
 
+      # specifics for some of the flavours
+      case $quiz_flavour
+      when 'play-inter'
+        $hole_ref = instance.inter[0]
+      when 'hit-from-off'
+        $opts[:comment] = :holes_all
+      end
 
-    elsif $quiz_flavour == 'play-scale'
-
-      scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-      back_to_comment_after_mode_switch
-      puts
-      puts "\e[34mScale to play is:\n-----------------"
-      puts
-      Text::do_figlet_unwrapped scale_name, 'smblock'
-      puts "\e[0m"
-      puts
-      sleep 2
-      prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(quiz_scale_name: scale_name,
-                                  lambda_quiz_hint: lambda do |holes, _, scale_name, _|
-                                    solve_text = "\e[0mScale  \e[34m#{scale_name}\e[0m  is:\n\n\n" +
-                                                 "\e[32m       #{holes.join('  ')}"
-                                    quiz_hint_in_user_playing_loop_std(solve_text, 'scale', holes, :all)
-                                  end)
-
-    elsif $quiz_flavour == 'play-inter'
-
-      instance = PlayInter.new(true)
-      back_to_comment_after_mode_switch
-      instance.puts_quiz_interval
-      sleep 2
-      prepare_listen_perspective_for_quiz
-      $hole_ref = instance.inter[0]
+      # never come back
       ModeLicks::do_licks_or_quiz(quiz_instance: instance)
-
-    elsif $quiz_flavour == 'play-shifted'
-
-      back_to_comment_after_mode_switch
-      instance = PlayShifted.new(true)
-      puts
-      puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{instance.shift_by_text}\e[0m"
-      puts
-      puts
-      prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(quiz_instance: instance)
-
-
-    elsif $quiz_flavour == 'hit-from-off'
-
-      back_to_comment_after_mode_switch
-      instance = HitFromOff.new(true)
-      $opts[:comment] = :holes_all
-      puts
-      puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{instance.hole_to_hit}\e[0m"
-      puts
-      puts
-      Text::do_figlet_unwrapped instance.hole_to_hit, 'smblock'
-      sleep 0.5
-      prepare_listen_perspective_for_quiz
-      ModeLicks::do_licks_or_quiz(quiz_instance: instance)
-
-
+      
+    # keep-tempo implements its own, infinite loop
     elsif $quiz_flavour == 'keep-tempo'
 
       first = true
@@ -200,7 +148,6 @@ module ModeQuiz
         end
       end
 
-
     # Generic flavour, handled by the standard interface
     elsif $quiz_flavour2class[$quiz_flavour]
 
@@ -235,6 +182,8 @@ module ModeQuiz
   end
 
   def get_random_interval_as_holes_etc sorted: false
+    # Find description of returned structure at end
+    
     # favour lower holes
     all_holes = ($harp_holes + Array.new(6, $harp_holes[0..$harp_holes.length / 2])).flatten.shuffle
     loop do
@@ -260,7 +209,7 @@ module ModeQuiz
         # 0,1: holes,
         #   2: numerical semitone-interval with sign
         #   3: interval long name
-        #   4: description, e.g. '+1 ... up ... maj Third'
+        #   4: text-description, e.g. '+1 ... up ... maj Third'
         #   5: mnemonic song
         return holes_inter
       end
@@ -306,42 +255,6 @@ module ModeQuiz
     semi = Theory::note2semi(key.downcase + '4')
     semi += 12 if semi < Theory::note2semi('gf4')
     semi
-  end
-
-  def quiz_hint_in_user_playing_loop_std solve_text, item, holes, hide, offer_disp = false
-    choices2desc = { ',solve-print' => "Solve: Print #{item}, but keep current question",
-                     '.help-play' => "Play #{item}, so that you may replay it" }
-    choices2desc['.help-display'] = 'Switch display to show intervals' if offer_disp
-    answer = Choose::choose_interactive($resources[:quiz_hints] % $quiz_flavour,
-                                        choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
-    Interact::clear_area_comment
-    Interact::clear_area_message
-    case answer
-    when ',solve-print'
-      puts "\e[#{$lines[:comment_tall]}H"
-      puts "\e[0mSolution:"
-      print solve_text
-      puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
-      $ctl_kb_queue.clear
-      $ctl_kb_queue.deq
-    when '.help-play'
-      puts "\e[#{$lines[:comment] + 1}H"
-      puts "Help: Playing #{item}"
-      $ctl_kb_queue.clear
-      puts
-      ::Players::play_holes_or_notes_and_handle_kb(holes, hide: [hide, :help])
-      sleep 1
-    when '.help-display'
-      $opts[:display] = :chart_intervals
-      $msgbuf.print 'Changed display, so that you may spot the solution', 6, 8, :quiz_help
-    end
-    Interact::clear_area_comment
-    Interact::clear_area_message
-  end
-
-  def prepare_listen_perspective_for_quiz
-    $msgbuf.print ["Type 'H' or '4' for quiz-hints, RETURN for next question,",
-                   'or issue signal ctrl-z (quit, tstp) for another flavour'], 3, 5
   end
 
   def quiz_generate_tempo prefix, bpm, num, frac_sound
@@ -974,7 +887,54 @@ module ModeQuiz
         puts "\e[0m\e[2m#{row[-1]}\e[0m"
       end
     end
+
+    # For convenience: class method as instance method too
+    def describe_difficulty
+      self.class.describe_difficulty
+    end
+
+    def quiz_hint_in_user_playing_loop_std solve_text, item, holes, hide, offer_disp = false
+      choices2desc = { ',solve-print' => "Solve: Print #{item}, but keep current question",
+                       '.help-play' => "Play #{item}, so that you may replay it" }
+      choices2desc['.help-display'] = 'Switch display to show intervals' if offer_disp
+      answer = Choose::choose_interactive($resources[:quiz_hints] % $quiz_flavour,
+                                          choices2desc.keys + [$resources[:just_type_one]]) {|tag| choices2desc[tag]}
+      Interact::clear_area_comment
+      Interact::clear_area_message
+      case answer
+      when ',solve-print'
+        puts "\e[#{$lines[:comment_tall]}H"
+        puts "\e[0mSolution:"
+        print solve_text
+        puts "\n\n\e[0m\e[2m#{$resources[:any_key]}"
+        $ctl_kb_queue.clear
+        $ctl_kb_queue.deq
+      when '.help-play'
+        puts "\e[#{$lines[:comment] + 1}H"
+        puts "Help: Playing #{item}"
+        $ctl_kb_queue.clear
+        puts
+        ::Players::play_holes_or_notes_and_handle_kb(holes, hide: [hide, :help])
+        sleep 1
+      when '.help-display'
+        $opts[:display] = :chart_intervals
+        $msgbuf.print 'Changed display, so that you may spot the solution', 6, 8, :quiz_help
+      end
+      Interact::clear_area_comment
+      Interact::clear_area_message
+    end    
   end
+
+  #
+  # The 20ish classes for the various quiz flavours
+  #
+
+  # A few flavours (following immediately below, e.g. replay) use variations in
+  # mode_lick; these are instanciated once and reused as long as the flavour is active; they
+  # only refresh their content on each round.
+  #
+  # Most other flavours use the common multiple-choice interface; they are instanciated new
+  # on every question. keep-tempo finally has its very own loop altogether.
 
   class Replay < Flavour
     $q_class2colls[self] = %w[mic]
@@ -986,13 +946,168 @@ module ModeQuiz
         Flavour.difficulty_head + ", number of holes to replay is #{$num_quiz_replay}"
       end
     end
+
+    def initialize _first_round
+      super _first_round
+      choose_sample($num_quiz_replay)
+    end
+
+    def announce_before
+      puts
+      puts "\e[34mNumber of holes to replay is: #{$num_quiz_replay}\e[0m"
+      puts "\n\n\n"
+    end
+
+    def prepare_for_loop to_play, first_round
+      choose_sample($num_quiz_replay) unless first_round
+      to_play.set_all_wanted @holes
+      
+      if $ctl_mic[:change_num_quiz_replay]
+        ModeLicks::read_and_set_num_quiz_replay
+        $num_quiz_replay_explicit = true
+        $ctl_mic[:change_num_quiz_replay] = false
+      end
+    end
+
+    def mission idx, to_play
+      "Play note \e[32m#{idx + 1}\e[0m of #{to_play[:all_wanted].length} you have heard!"
+    end
+    
+    def write_hist to_play
+      Util::write_history('replay', 'random', to_play[:all_wanted])
+    end
+
+    def hint_in_view 
+      solve_text = "\e[0mHoles  \e[34mto replay\e[0m  are:\n\n\n" +
+                   "\e[32m       #{@holes.join('  ')}"
+      quiz_hint_in_user_playing_loop_std(solve_text, 'sequence', @holes, :all)
+    end
+
+    def choose_sample num
+      # construct chains of holes within scale and added scale
+      holes = Array.new
+      what = Array.new(num)
+      rnd = rand
+      # favor lower starting notes
+      if rnd > 0.7
+        holes[0] = $all_scales_holes[0..$all_scales_holes.length / 2].sample
+        what[0] = :start_sample_from_lower_scale
+      elsif rnd > 0.4
+        holes[0] = $all_scales_holes.sample
+        what[0] = :start_sample_from_scale
+      else
+        holes[0] = $hole_root
+        what[0] = :start_root
+      end
+
+      for i in (1..num - 1)
+        tries = 0
+        if rand > 0.5
+          what[i] = :middle_nearby_hole
+          begin
+            try_semi = $harp[holes[i - 1]][:semi] + rand(-6..6)
+            tries += 1
+            break if tries > 100
+          end until $semi2hole[try_semi]
+          holes[i] = $semi2hole[try_semi]
+        else
+          what[i] = :middle_interval
+          begin
+            # semitone distances 4,7,10 and 12 are major third, perfect
+            # fifth, flat seventh and octave respectively
+            try_semi = $harp[holes[i - 1]][:semi] + $std_semi_shifts.sample
+            tries += 1
+            break if tries > 100
+          end until $semi2hole[try_semi]
+          holes[i] = $semi2hole[try_semi]
+        end
+      end
+
+      if $used_scales.length > 1
+        # (randomly) replace notes with added ones and so prefer them
+        for i in (1..num - 1)
+          if rand >= 0.6
+            holes[i] = ModeLicks::nearest_hole_with_flag(holes[i], :added)
+            what[i] = :middle_nearest_hole_from_added_scale
+          end
+        end
+      end
+
+      # (randomly) make last note a root note
+      if rand >= 0.6
+        holes[-1] = ModeLicks::nearest_hole_with_flag(holes[-1], :root)
+        what[-1] = :end_nearest_root
+      end
+
+      for i in (1..num - 1)
+        # make sure, there is a note in every slot
+        unless holes[i]
+          holes[i] = $all_scales_holes.sample
+          what[i] = :middle_end_fallback
+        end
+      end
+
+      @holes = holes
+    end
   end
 
   class PlayScale < Flavour
     $q_class2colls[self] = %w[mic scales]
+
+    attr_accessor :scale_name
     
     def self.describe_difficulty
       HearScale.describe_difficulty
+    end
+    
+    def initialize _first_round
+      super _first_round
+      choose_scale
+    end
+
+    def announce_before
+      puts
+      puts "\e[34mScale to play is:\n-----------------"
+      puts
+      Text::do_figlet_unwrapped @scale_name, 'smblock'
+      puts "\e[0m"
+      puts
+      sleep 2
+    end
+
+    def prepare_for_loop to_play, first_round
+      choose_scale unless first_round
+      to_play.set_all_wanted @holes
+
+      unless first_round
+        Interact::clear_area_comment
+        print "\e[#{$lines[:comment]}H\e[0m\e[34m"
+        Text::do_figlet_unwrapped @scale_name, 'smblock'
+        sleep 2
+      end
+    end
+
+    def mission idx, to_play
+      "Play scale #{@scale_name}, #{$scale2count[@scale_name]} holes, #{to_play[:all_wanted][0]} and on"
+    end
+      
+    def write_hist to_play
+      Util::write_history('play-scale', @scale_name, to_play[:all_wanted])
+    end
+              
+    def hint_in_view
+      solve_text = "\e[0mScale  \e[34m#{@scale_name}\e[0m  is:\n\n\n" +
+                   "\e[32m       #{@holes.join('  ')}"
+      quiz_hint_in_user_playing_loop_std(solve_text, 'scale', @holes, :all)
+    end
+
+    def choose_scale
+      begin
+        @scale_name = $all_quiz_scales[$opts[:difficulty]].sample
+      end while @@prevs.include?(@scale_name)
+      @@prevs << @scale_name
+      @@prevs.shift if @@prevs.length > 2
+      @holes = Cfg::read_and_parse_scale_simple(@scale_name, $harp)[0]
     end
   end
 
@@ -1001,22 +1116,16 @@ module ModeQuiz
 
     attr_accessor :inter
 
+    def self.describe_difficulty
+      AddInter.describe_difficulty
+    end
+    
     def initialize _first_round
       super _first_round
       choose_inter
     end
 
-    def hint_in_view holes, holes_inter
-      solve_text = "\e[0mInterval  \e[34m#{holes_inter[4]}\e[0m  is:\n\n\n" +
-                   "\e[32m                #{holes_inter[0]}  to  #{holes_inter[1]}"
-      quiz_hint_in_user_playing_loop_std(solve_text, 'interval', holes, holes[-1], true)
-    end
-
-    def choose_inter
-      @inter = ModeQuiz::get_random_interval_as_holes_etc
-    end
-    
-    def puts_quiz_interval
+    def announce_before
       puts
       puts "\e[34mInterval to play is:\e[0m"
       puts
@@ -1026,10 +1135,40 @@ module ModeQuiz
       puts
       puts "The same as (upward) in song:  \e[94m" + @inter[5] + "\e[0m"
       puts
+      sleep 2
     end
 
-    def self.describe_difficulty
-      AddInter.describe_difficulty
+    def prepare_for_loop to_play, first_round
+      choose_inter unless first_round
+      to_play.set_all_wanted inter[0..1]
+
+      $hole_ref = inter[0]
+      unless first_round
+        Interact::clear_area_comment
+        print "\e[#{$lines[:comment]}H\e[0m\e[32m"
+        announce_before
+      end
+    end
+
+    def mission idx, to_play
+      "Play inter #{@inter[4]}; #{@inter[5]}"
+    end
+    
+    def write_hist to_play
+      Util::write_history('play-inter', @inter[3], to_play[:all_wanted])
+    end
+    
+    def hint_in_view
+      solve_text = "\e[0mInterval  \e[34m#{@inter[4]}\e[0m  is:\n\n\n" +
+                   "\e[32m                #{@inter[0]}  to  #{@inter[1]}"
+      quiz_hint_in_user_playing_loop_std(solve_text, 'interval', [@inter[0], @inter[1]], @inter[1], true)
+    end
+
+    def choose_inter
+      begin
+        @inter = ModeQuiz::get_random_interval_as_holes_etc
+      end while @@prevs.include?(@inter)
+      @@prevs.shift if @@prevs.length > 4
     end
   end
 
@@ -1037,13 +1176,42 @@ module ModeQuiz
     $q_class2colls[self] = %w[mic]
 
     attr_accessor :holes_all, :holes_shifted, :holes_unshifted, :shift_by_text, :shift_by_semi
+
+    def self.describe_difficulty
+      $num_quiz_replay = { easy: 3, hard: 6 }[$opts[:difficulty]]
+      Flavour.difficulty_head +
+        ", #{$num_quiz_replay} holes to be shifted by one of #{$std_semi_shifts.length} intervals"
+    end
     
     def initialize _first_round
       super _first_round
       choose_shift
     end
 
-    def hint_in_view _holes
+    def announce_before
+      puts
+      puts "\e[0m\e[2mInterval to shift is: \e[0m\e[34m#{@shift_by_text}\e[0m"
+      puts
+      puts
+    end
+
+    def prepare_for_loop to_play, first_round
+      choose_shift unless first_round
+      to_play.set_all_wanted holes_all
+      to_play[:show_in_play] = holes_unshifted
+    end
+
+    def mission idx, to_play
+      "Play #{@holes_unshifted.join(' ')}, " +
+        "shift by #{@shift_by_semi}st to #{@holes_shifted[0]}... ; " +
+        "\e[32m#{idx + 1}\e[0m of #{to_play[:all_wanted].length}"
+    end
+    
+    def write_hist to_play
+      Util::write_history('play-shifted', 'random-shifted', to_play[:all_wanted])
+    end
+    
+    def hint_in_view
       choices2desc = { '.help-print-unshifted' => 'Solve: Print unshifted sequence, but keep current question',
                        ',solve-print-shifted' => 'Solve: Print shifted sequence, but keep current question',
                        '.help-play-unshifted' => "Play unshifted sequence; similar to '.'",
@@ -1096,8 +1264,6 @@ module ModeQuiz
       Interact::clear_area_comment
       Interact::clear_area_message
       $ctl_kb_queue.clear
-      
-      hint_in_view
     end
     
     def choose_shift
@@ -1132,10 +1298,30 @@ module ModeQuiz
       @@prevs.shift if @@prevs.length > 2
     end
 
-    def self.describe_difficulty
-      $num_quiz_replay = { easy: 3, hard: 6 }[$opts[:difficulty]]
-      Flavour.difficulty_head +
-        ", #{$num_quiz_replay} holes to be shifted by one of #{$std_semi_shifts.length} intervals"
+    def peek_into oride_l_message2
+      if oride_l_message2
+        puts "\e[#{oride_l_message2}H\e[0m"
+        puts "\e[0m\e[2mPlay what you have heard,\n\e[0m\e[94mbut shift to start with:\e[34m"
+      else
+        Interact::clear_area_comment
+        print "\e[#{$lines[:comment]}H\e[0m"
+        puts "\e[0m\e[2mPlay what you have heard, shifted by #{shift_by_text},\n\e[0m\e[94mand continue with:\e[34m"
+      end
+      if oride_l_message2
+        8.times do  ## make room for font smblock
+          sleep 0.04
+          puts
+        end
+        puts "\e[#{oride_l_message2 - 8}H"
+      end
+      puts
+      Text::do_figlet_unwrapped(holes_shifted[0], 'smblock')
+      sleep 0.25
+      Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[holes_shifted[0]][:note], %w[.wav .mp3]))
+      sleep 1
+      $ctl_kb_queue.clear
+      $msgbuf.print "Shift interval is #{shift_by_text}", 2, 4, :quiz_play_shifted
+      $msgbuf.print "Shift holes #{holes_unshifted.join(', ')} to start with #{holes_shifted[0]}", 4, 8, :quiz_play_shifted
     end
   end
 
@@ -1143,6 +1329,16 @@ module ModeQuiz
     $q_class2colls[self] = %w[mic]
 
     attr_accessor :explicit_choices, :hole_to_hit
+
+    def self.describe_difficulty
+      if @@explicit_choices.length > 0
+        "\e[0m\e[2mdifficulty is: hit one hole from #{@@explicit_choices.length} given as arguments" 
+      else
+        Flavour.difficulty_head +
+          ', hit one hole from hole sets ' +
+          ( $opts[:difficulty] == :easy ? 'blow-low and draw-low' : 'blow-full and draw-full' )
+      end
+    end
     
     def initialize _first_round
       super _first_round
@@ -1150,11 +1346,36 @@ module ModeQuiz
       choose_hole
     end
 
-    def hint_in_view holes
+    def announce_before
+      puts
+      puts "\e[0m\e[2mHole to hit is: \e[0m\e[34m#{@hole_to_hit}\e[0m"
+      puts
+      puts
+      Text::do_figlet_unwrapped @hole_to_hit, 'smblock'
+      sleep 0.5
+    end
+
+    def prepare_for_loop to_play, first_round
+      choose_hole unless first_round
+      to_play.set_all_wanted [hole_to_hit]
+      to_play[:show_in_play] = [hole_to_hit]
+      
+      $ctl_mic[:redraw] = Set[:silent]
+    end
+
+    def mission idx, to_play
+      "Put down harp and play #{@hole_to_hit}"
+    end
+    
+    def write_hist to_play
+      Util::write_history('hit-from-off', 'random-hole', to_play[:all_wanted])
+    end
+    
+    def hint_in_view
       Interact::clear_area_comment
       Interact::clear_area_message
-      puts "\e[#{$lines[:comment] + 1}H"
-      puts "Help: Put down your harp and play hole\n\n\e[32m   #{holes[0]}\e[0m\n\non the spot and as clean as possible"
+      print "\e[#{$lines[:comment] + 1}H"
+      puts "Help: Put down harp and play\n\n\e[32m   #{@hole_to_hit}\e[0m\n\non the spot and as clean as possible"
       $ctl_kb_queue.clear
       puts "\n\e[0m\e[2m#{$resources[:any_key]}"
       $ctl_kb_queue.clear
@@ -1180,16 +1401,6 @@ module ModeQuiz
         @@prevs.shift if @@prevs.length > [2, choices.length - 1].min
       end while @@prevs.include?(@hole_to_hit)
       $testing_custom_array << @hole_to_hit if $testing
-    end
-    
-    def self.describe_difficulty
-      if @@explicit_choices.length > 0
-        "\e[0m\e[2mdifficulty is: hit one hole from #{@@explicit_choices.length} given as arguments" 
-      else
-        Flavour.difficulty_head +
-          ', hit one hole from hole sets ' +
-          ( $opts[:difficulty] == :easy ? 'blow-low and draw-low' : 'blow-full and draw-full' )
-      end
     end
   end
 

@@ -252,6 +252,7 @@ module ModeDevelop
     $opts[:difficulty] = :easy
     bad = 0
     what = ''
+    $num_quiz_replay = 2
     $quiz_flavour2class.each do |name, qclass|
       begin
         what = 'init'
@@ -260,7 +261,8 @@ module ModeDevelop
         flavour.selfcheck
       rescue => e
         bad += 1
-        puts e if $opts[:verbose]
+        puts e
+        puts e.backtrace 
         puts "   \e[31m#{what} #{name}\e[0m"
       end
     end
@@ -413,7 +415,7 @@ module ModeDevelop
     utreport(found, expected, 'Age away for hint')
 
     puts
-    puts 'Unittests okay'
+    puts 'All unittests okay'
     puts
   end
 

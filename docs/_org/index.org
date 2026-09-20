@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.43.0/
+/Version  6.44.0/
 
 * Introduction
 
@@ -571,8 +571,11 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 
     - hit-from-off:
       practice to hit a hole accurately: put down the harmonica and try
-      to play the given hole on the spot, clean and correct. The hole is
-      taken from the (full or low) hole sets blow and draw
+      to play the given hole on the spot, clean and correct.
+      
+      The hole is taken from the (full or low) hole sets blow and draw;
+      or, when invoking this flavour directly from the commandline, you
+      may specify the holes to choose from as arguments.
 
     - key-harp-song:
       gives a key of harmonica and asks for the matching

@@ -2549,7 +2549,7 @@ end
     sleep 6
     tms 'q'
     expect(vals) do
-      ( md = screen[19].match(/show_mic_this_loops_per_second=>(\d+\.\d+)/) ) &&
+      ( md = screen[19].match(/user_playing_this_loops_per_second=>(\d+\.\d+)/) ) &&
         lpsrange.include?(md[1].to_f)
     end
     kill_session
@@ -2830,7 +2830,7 @@ do_test 'id-83: unittests' do
   tms :ENTER
   wait_for_end_of_harpwise
   sleep 2
-  expect { screen[21]['Unittests okay'] }
+  expect { screen[21]['All unittests okay'] }
   kill_session
 end
 
@@ -3546,7 +3546,7 @@ do_test 'id-112c: quiz-flavour hit-from-off' do
   tms 'harpwise quiz hit-from-off --difficulty easy'
   tms :ENTER
   sleep 3
-  expect { screen[13]['Practice to hit a hole accurately'] }
+  expect { screen[10]['Practice to hit a hole accurately'] }
   tms :ENTER
   sleep 4
   tms 'q'

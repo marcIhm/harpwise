@@ -5,7 +5,8 @@
 module ModeLicks
   extend self
 
-  def do_licks_or_quiz quiz_scale_name: nil, quiz_holes_inter: nil, quiz_holes_shift_info: nil, to_handle: [], quiz_instance: nil
+  def do_licks_or_quiz to_handle: [], quiz_instance: nil
+    
     if to_handle && to_handle.length > 0
 
       err "Option '--lick-progression #{$opts[:lick_prog]}' and arguments on the command line #{to_handle} cannot be given at the same time" if $opts[:lick_prog]
@@ -44,7 +45,7 @@ module ModeLicks
     $ctl_lk_hl[:can_star_unstar] = true if $mode == :licks
 
     to_play = PlayController.new
-    to_play[:show_in_play] = quiz_holes_shift_info[:holes_unshifted] if quiz_holes_shift_info
+    to_play[:show_in_play] = quiz_instance.holes_unshifted if $quiz_flavour == 'play-shifted'
     to_play[:show_in_play] = [quiz_instance.hole_to_hit] if $quiz_flavour == 'hit-from-off'
 
     # below stands for override for line_message2 and is set during
@@ -60,6 +61,8 @@ module ModeLicks
     quiz_prevs = Array.new
 
     loop do   # forever until ctrl-c, sequence after sequence
+      # Looping for hole after hole starts further down below
+      
       #
       #  First compute and play the sequence that is expected
       #
@@ -149,13 +152,10 @@ module ModeLicks
       else
         # most general case: $ctl_mic[:next] or
         # $ctl_mic[:change_num_quiz_replay] or no $ctl-command at all;
-        # go to the next lick or sequence of holes
+        # in this case we go to the next lick or sequence of holes
 
         # figure out holes to play
         if $mode == :quiz
-
-          # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find related
-          # pieces of code in other files
 
           ModeQuiz::re_calculate_quiz_difficulty unless first_round
 
@@ -165,63 +165,12 @@ module ModeLicks
           #
           # compute holes and ask questions
           #
-          case $quiz_flavour
-
-          when 'replay'
-            if $ctl_mic[:change_num_quiz_replay]
-              read_and_set_num_quiz_replay
-              $num_quiz_replay_explicit = true
-              $ctl_mic[:change_num_quiz_replay] = false
-            end
+          if %w(replay play-scale play-inter play-shifted hit-from-off).include?($quiz_flavour)
+            quiz_instance.prepare_for_loop to_play, first_round
             $ctl_mic[:redraw_mission] = true
-            to_play.set_all_wanted get_quiz_sample($num_quiz_replay)
-            $msgbuf.print ModeQuiz::Replay.describe_difficulty, 2, 5, :dicu
-
-          when 'play-scale'
-            unless first_round
-              # this already has a value, so push it first
-              quiz_prevs << quiz_scale_name
-              begin
-                quiz_scale_name = $all_quiz_scales[$opts[:difficulty]].sample
-              end while quiz_prevs.include?(quiz_scale_name)
-              quiz_prevs.shift if quiz_prevs.length > 2
-              Interact::clear_area_comment
-              print "\e[#{$lines[:comment]}H\e[0m\e[34m"
-              Text::do_figlet_unwrapped quiz_scale_name, 'smblock'
-              sleep 2
-              $ctl_mic[:redraw_mission] = true
-            end
-            to_play.set_all_wanted Cfg::read_and_parse_scale_simple(quiz_scale_name, $harp)[0]
-            $msgbuf.print ModeQuiz::HearScale.describe_difficulty, 2, 5, :dicu
-
-          when 'play-inter'
-            quiz_instance.choose_inter unless first_round
-            Interact::clear_area_comment
-            $hole_ref = quiz_instance.inter[0]
-            print "\e[#{$lines[:comment]}H\e[0m\e[32m"
-            quiz_instance.puts_quiz_interval
-            sleep 2
-            $ctl_mic[:redraw_mission] = true
-            to_play.set_all_wanted quiz_instance.inter[0..1]
-            $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
-
-          when 'play-shifted'
-            quiz_instance.choose_shift unless first_round
-            to_play.set_all_wanted quiz_instance.holes_all
-            to_play[:show_in_play] = quiz_instance.holes_unshifted
-            $ctl_mic[:redraw_mission] = true
-            $msgbuf.print ModeQuiz::AddInter.describe_difficulty, 2, 5, :dicu
-
-          when 'hit-from-off'
-            quiz_instance.choose_hole unless first_round
-            to_play.set_all_wanted [quiz_instance.hole_to_hit]
-            to_play[:show_in_play] = [quiz_instance.hole_to_hit]
-            $ctl_mic[:redraw] = Set[:silent]
-            $ctl_mic[:redraw_mission] = true
-            $msgbuf.print ModeQuiz::HitFromOff.describe_difficulty, 2, 5, :dicu
-
+            $msgbuf.print quiz_instance.describe_difficulty, 2, 5, :dicu
           else
-            raise "Internal error: unknown quiz flavour #{$quiz_flavour}"
+            raise "Internal error: unknown quiz flavour #{$quiz_flavour} in this view"
           end
 
         else  ## $mode == :licks
@@ -301,22 +250,13 @@ module ModeLicks
       #  Play the holes or recording
       #
       seq_played_recently = false
-      case $quiz_flavour
-      when 'replay'
-        Util::write_history('replay', 'random', to_play[:all_wanted])
-      when 'play-shifted'
-        Util::write_history('play-shifted', 'random-shifted', to_play[:all_wanted])
-      when 'hit-from-off'
-        Util::write_history('hit-from-off', 'random-hole', to_play[:all_wanted])
-      when 'play-scale'
-        Util::write_history('play-scale', quiz_scale_name, to_play[:all_wanted])
-      when 'play-inter'
-        Util::write_history('play-inter', quiz_instance.inter[3], to_play[:all_wanted])
+      if quiz_instance
+        quiz_instance.write_hist to_play
       else
         Util::write_history('lick', to_play[:lick][:name], to_play[:all_wanted])
       end
 
-      if ( !quiz_scale_name && !quiz_holes_inter && $quiz_flavour != 'hit-from-off' && !zero_partial?) ||
+      if ( ! %w(play-scale play-inter hit-from-off).include?($quiz_flavour) && !zero_partial?) ||
          $ctl_mic[:replay] || $ctl_mic[:shift_inter] || $ctl_mic[:change_partial]
 
         Util::print_mission('Listen ...') unless oride_l_message2
@@ -330,8 +270,7 @@ module ModeLicks
 
         Players::play_lick_rec_or_holes to_play, oride_l_message2
 
-        # quiz-flavour play-shifted
-        peek_into_quiz_shifted(quiz_holes_shift_info, oride_l_message2) if quiz_holes_shift_info
+        quiz_instance.peek_into(oride_l_message2) if $quiz_flavour == 'play-shifted'
 
         seq_played_recently = true
         pend = Time.now.to_f
@@ -433,23 +372,9 @@ module ModeLicks
 
             # lambda_mission
             lambda do
-              # grep marker-string 'comment-marker-quiz-and-listen-perspective' to find
-              # related pieces of code in other files
-              if $quiz_flavour == 'play-scale'
-                raise('Internal error') unless quiz_scale_name
 
-                "Play scale #{quiz_scale_name}, #{$scale2count[quiz_scale_name]} holes, #{to_play[:all_wanted][0]} and on"
-              elsif $quiz_flavour == 'play-inter'
-                "Play inter #{quiz_instance.inter[4]}; #{quiz_instance.inter[5]}"
-              elsif $quiz_flavour == 'play-shifted'
-                "Play #{quiz_instance.holes_unshifted.join(' ')}, " +
-                  "shift by #{quiz_instance.shift_by_semi}st to #{quiz_instance.holes_shifted[0]}... ; " +
-                  "\e[32m#{idx + 1}\e[0m of #{to_play[:all_wanted].length}"
-              elsif $quiz_flavour == 'hit-from-off'
-                "Put off harp and play #{quiz_instance.hole_to_hit}"
-              elsif $quiz_flavour && $quiz_flavour != 'replay'
-                # replay uses just the normal below
-                raise "Internal error: unknown quiz-flavour: #{$quiz_flavour}"
+              if quiz_instance
+                quiz_instance.mission idx, to_play
               elsif $ctl_mic[:loop]
                 "\e[32mLoop\e[0m at #{idx + 1} of #{to_play[:all_wanted].length} holes"
               elsif $num_quiz_replay == 1
@@ -631,7 +556,7 @@ module ModeLicks
         end
 
         if $ctl_mic[:quiz_hint]
-          quiz_instance.hint_in_view(to_play[:all_wanted])
+          quiz_instance.hint_in_view
           $ctl_mic[:quiz_hint] = false
         end
 
@@ -647,73 +572,6 @@ module ModeLicks
       oride_l_message2 = nil
       first_round = false
     end # forever sequence after sequence
-  end
-
-  def get_quiz_sample num
-    # construct chains of holes within scale and added scale
-    holes = Array.new
-    what = Array.new(num)
-    rnd = rand
-    # favor lower starting notes
-    if rnd > 0.7
-      holes[0] = $all_scales_holes[0..$all_scales_holes.length / 2].sample
-      what[0] = :start_sample_from_lower_scale
-    elsif rnd > 0.4
-      holes[0] = $all_scales_holes.sample
-      what[0] = :start_sample_from_scale
-    else
-      holes[0] = $hole_root
-      what[0] = :start_root
-    end
-
-    for i in (1..num - 1)
-      tries = 0
-      if rand > 0.5
-        what[i] = :middle_nearby_hole
-        begin
-          try_semi = $harp[holes[i - 1]][:semi] + rand(-6..6)
-          tries += 1
-          break if tries > 100
-        end until $semi2hole[try_semi]
-        holes[i] = $semi2hole[try_semi]
-      else
-        what[i] = :middle_interval
-        begin
-          # semitone distances 4,7,10 and 12 are major third, perfect
-          # fifth, flat seventh and octave respectively
-          try_semi = $harp[holes[i - 1]][:semi] + $std_semi_shifts.sample
-          tries += 1
-          break if tries > 100
-        end until $semi2hole[try_semi]
-        holes[i] = $semi2hole[try_semi]
-      end
-    end
-
-    if $used_scales.length > 1
-      # (randomly) replace notes with added ones and so prefer them
-      for i in (1..num - 1)
-        if rand >= 0.6
-          holes[i] = nearest_hole_with_flag(holes[i], :added)
-          what[i] = :middle_nearest_hole_from_added_scale
-        end
-      end
-    end
-
-    # (randomly) make last note a root note
-    if rand >= 0.6
-      holes[-1] = nearest_hole_with_flag(holes[-1], :root)
-      what[-1] = :end_nearest_root
-    end
-
-    for i in (1..num - 1)
-      # make sure, there is a note in every slot
-      unless holes[i]
-        holes[i] = $all_scales_holes.sample
-        what[i] = :middle_end_fallback
-      end
-    end
-
-    holes
   end
 
   def nearest_hole_with_flag hole, flag
@@ -1077,32 +935,6 @@ module ModeLicks
               nil
             end
     UserPlaying::fit_into_comment(lines) if lines
-  end
-
-  def peek_into_quiz_shifted shift_info, oride_l_message2
-    if oride_l_message2
-      puts "\e[#{oride_l_message2}H\e[0m"
-      puts "\e[0m\e[2mPlay what you have heard,\n\e[0m\e[94mbut shift to start with:\e[34m"
-    else
-      Interact::clear_area_comment
-      print "\e[#{$lines[:comment]}H\e[0m"
-      puts "\e[0m\e[2mPlay what you have heard, shifted by #{shift_info[:shift_by_text]},\n\e[0m\e[94mand continue with:\e[34m"
-    end
-    if oride_l_message2
-      8.times do  ## make room for font smblock
-        sleep 0.04
-        puts
-      end
-      puts "\e[#{oride_l_message2 - 8}H"
-    end
-    puts
-    Text::do_figlet_unwrapped(shift_info[:holes_shifted][0], 'smblock')
-    sleep 0.25
-    Sound::play_wave(Sound::this_or_equiv("#{$sample_dir}/%s", $harp[shift_info[:holes_shifted][0]][:note], %w[.wav .mp3]))
-    sleep 1
-    $ctl_kb_queue.clear
-    $msgbuf.print "Shift interval is #{shift_info[:shift_by_text]}", 2, 4, :quiz_play_shifted
-    $msgbuf.print "Shift holes #{shift_info[:holes_unshifted].join(', ')} to start with #{shift_info[:holes_shifted][0]}", 4, 8, :quiz_play_shifted
   end
 
   def show_lick_info lick
