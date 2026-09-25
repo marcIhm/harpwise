@@ -46,8 +46,8 @@
       As the positions (columns) are a fifth apart from each other, you
       may also read this chart as a circle of fifths.
       
-      Use option --brief to print a version shortend to the most common
-      keys and scond position only.
+      Use option --brief to print a table for the most common keys and
+      for scond position only.
 
     - spread-notes:
       take a list of notes (e.g. a, a4, b, cs) as arguments and turn

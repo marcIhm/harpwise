@@ -161,15 +161,24 @@ module ModeTools
     puts
     puts $extra_desc.lines.map {|l| '  ' + l}
     puts
-    puts "About the table below:"
+    puts "Examples of what to read from the table below:"
     puts
-    puts "  The key of the harp equals the key of the song in first position of course,\n  so the first column serves double duty\n  The song key in 4th position (4th column) also gives the relative minor\n  for the first column"
-    puts '  For richter harps positions 1 and 2 are blow and draw chords respectively'
-    puts "  Circle of fifth (i.e. positions) starting from key  #{circle_key.capitalize}  can be followed\n  either in its respective row or with the numbers at line start" if circle_key
+    puts "  - Each row is one harp-key (given in first column) and each column is"
+    puts "    one position to play in. Then, in the cell given by row and column,"
+    puts "    find the respective key of the song. E.g. a C-harp in third position"
+    puts "    may be used to play a song in D"
+    puts "  - The song key in 4th position (4th column) also gives the relative minor"
+    puts "    with respect to the first column (key of harp)"
+    puts '  - For a given harp-row, the columns for pos 1 or 2 are blow and draw chords'
+    puts "    respectively; e.g. for an A-harp the draw-chord is E"
+    if circle_key
+      puts "  - Circle of fifth (i.e. positions) starting from key  #{circle_key.capitalize}  can be followed"
+      puts "    either in its respective row or with the numbers at line start"
+    end
     puts
-    puts "Layout: each row one harp-key, each column one position, song-key in cells"
+    puts "Layout: each row one harp-key, each column one position, then song-key in cells"
     clauses = []
-    clauses << "row for (and starting with) harp-key #{harp_color}#{harp_key.capitalize}\e[0m\e[2m in #{harp_color}green\e[0m\e[2m" if harp_color_distinct
+    clauses << "row for harp-key #{harp_color}#{harp_key.capitalize}\e[0m\e[2m in #{harp_color}green\e[0m\e[2m" if harp_color_distinct
     clauses << "cells for song-key #{song_color}#{song_key.capitalize}\e[0m\e[2m in #{song_color}blue\e[0m\e[2m" if song_key
     if clauses.length > 0
       print "Colors: "

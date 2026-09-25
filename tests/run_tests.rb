@@ -1813,7 +1813,7 @@ do_test 'id-50a: tools keys' do
   new_session 80, 40
   tms 'harpwise tools b keys'
   tms :ENTER
-  expect { screen[10] == 'Colors: row for (and starting with) harp-key B in green' }
+  expect { screen[10] == 'Colors: row for harp-key B in green' }
   expect { screen[23]['1| B       | Fs, Gf  | Cs, Df  | Gs, Af  |     0 |'] }
   kill_session
 end
@@ -4548,7 +4548,7 @@ do_test 'id-161: tool keys' do
   tms 'harpwise tools keys c d'
   tms :ENTER
   wait_for_end_of_harpwise
-  expect { screen[9]['Colors: row for (and starting with) harp-key C in green'] }
+  expect { screen[9]['Colors: row for harp-key C in green'] }
   expect { screen[10]['cells for song-key D in blue'] }
   expect { screen[25]['1| C       | G       | D       | A       |     0 |'] }
   expect { screen[19]['4| A       | E       | B       | Fs, Gf  |    -3 |'] }
