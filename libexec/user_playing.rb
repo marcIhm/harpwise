@@ -931,13 +931,14 @@ module UserPlaying
                '  A harmonica tool for the command line, using microphone and speaker',
                '',
                '  Full documentation at   https://marcihm.github.io/harpwise',
-               $opts[:comment] == :journal ? nil : '',
+               %i(journal warbles).include?($opts[:comment]) ? nil : '',
                '',
                '  Read on here for help on available keys'].compact
-    if $opts[:comment] == :journal
+    if %i(journal warbles).include?($opts[:comment])
       frames[-1].append('',
-                        "  Currently the comment 'journal' is active; to read its short help",
-                        "  and enter its menu, type 'j' there (instead of 'h')")
+                        "  Remark: Currently the comment '#{$opts[:comment]}' is active; to read",
+                        "    its short help and enter its menu, rather type '#{$opts[:comment].to_s[0]}'",
+                        "    instead of 'h' (which has invoked this help)")
     end
 
     frames << [' Help on keys in main view',

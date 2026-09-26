@@ -165,8 +165,8 @@ module ModeTools
     puts
     puts "  - Each row is one harp-key (given in first column) and each column is"
     puts "    one position to play in. Then, in the cell given by row and column,"
-    puts "    find the respective key of the song. E.g. a C-harp in third position"
-    puts "    may be used to play a song in D"
+    puts "    find the respective key of the song. Example: a C-harp (row) in third"
+    puts "    position (column) may be used to play a song in D (cell)"
     puts "  - The song key in 4th position (4th column) also gives the relative minor"
     puts "    with respect to the first column (key of harp)"
     puts '  - For a given harp-row, the columns for pos 1 or 2 are blow and draw chords'
@@ -178,18 +178,18 @@ module ModeTools
     puts
     puts "Layout: each row one harp-key, each column one position, then song-key in cells"
     clauses = []
-    clauses << "row for harp-key #{harp_color}#{harp_key.capitalize}\e[0m\e[2m in #{harp_color}green\e[0m\e[2m" if harp_color_distinct
-    clauses << "cells for song-key #{song_color}#{song_key.capitalize}\e[0m\e[2m in #{song_color}blue\e[0m\e[2m" if song_key
+    clauses << "row for harp-key #{harp_color} #{harp_key.capitalize} \e[0m\e[2m in #{harp_color}green\e[0m\e[2m" if harp_color_distinct
+    clauses << "cells for song-key #{song_color} #{song_key.capitalize} \e[0m\e[2m in #{song_color}blue\e[0m\e[2m" if song_key
     if clauses.length > 0
       print "Colors: "
-      puts clauses.join("\n        ")
+      puts clauses.join(" ; ")
     else
       puts 'No coloring of cells, because no argument has been given'
     end
 
     print "\e[0m"
-    idx = 0
     puts
+    idx = 0
     lines.each do |line|
       if line['%s']
         if cidx = circle.index(idx)
