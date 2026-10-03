@@ -130,8 +130,8 @@ module ModeJamming
     end
 
     if $jam_pms['num_variations'] > 1
-      puts "#{$jam_pms['num_variations']} Variations:  \e[2mchoose among them e.g. with:  --var 1"
-      $jam_pms['all_examples_harpwise'].each_with_index {|exa, idx| puts "           #{idx + 1}:  #{exa}"}
+      puts "#{$jam_pms['num_variations']} Variations\e[2m of this jam; choose among them by invoking again e.g. with:  --var 2"
+      $jam_pms['all_examples_harpwise'].each_with_index {|exa, idx| puts "        #{idx + 1}:  #{exa}"}
       puts "\e[0m"
     end
 
@@ -154,12 +154,13 @@ module ModeJamming
     if $opts[:print_only]
       puts "Will not search for 'harpwise listen' and will not sleep due to given option --print-only"
     else
+      puts "\e[2mLooking for instance of harpwise to partner in jam ...\e[0m"
       if $runningp_listen_fifo
         puts "Found 'harpwise listen' running."
       else
         ["Cannot find a running instance of 'harpwise listen' with option --jamming.",
          '',
-         "For jamming you need to start it in a   \e[32msecond terminal:\e[0m",
+         "For jamming you need to start it in a   \e[34msecond terminal:\e[0m",
          "\n",
          "    \e[32m#{$jam_pms['example_harpwise'] % $jam_data}\e[0m",
          "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
