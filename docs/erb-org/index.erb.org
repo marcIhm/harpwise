@@ -324,7 +324,7 @@ Featuring Sonny Boy Williamson
 * Some musical concepts
 ** Scales
 
-   Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
+   Scales, e.g. 'blues' or 'major pentatonic' or 'chord-I' are central for
    playing the harmonica. E.g. when improvising, you may stick to a
    specific scale.
 
@@ -340,13 +340,13 @@ Featuring Sonny Boy Williamson
      learn about the available scales.
    - To include other scales beyound the main scale, you may add the
      option --add-scales on the commandline, e.g.  '--add-scales
-     chord-i,chord-iv,chord-v' In many modes of harpwise you may rotate
+     chord-I,chord-IV,chord-V' In many modes of harpwise you may rotate
      among scales by pressing 's'.
 
 
    So a typical invocation would be:
 
-   harpwise listen c blues --add-scales chord-i,chord-iv,chord-v
+   harpwise listen c blues --add-scales chord-I,chord-IV,chord-V
 
    which shows, which of the four given scales the notes you play belong
    to respectively. This command line may be shortend by moving the option

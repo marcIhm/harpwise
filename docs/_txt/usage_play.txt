@@ -11,7 +11,7 @@ Overview of 'harpwise play'
   - semitones (e.g. '+12st')
   - licks (e.g. 'st-louis')
   - lick progressions
-  - scales (e.g. 'chord-i')
+  - scales (e.g. 'chord-I')
   - jams, i.e. its mp3
   - 'l', '2l', for the last lick, 2nd-to-last, etc.
 
@@ -34,7 +34,7 @@ Overview of 'harpwise play'
 
   - progression, prog: take a base and some semitone diffs, then play it
     in a loop, allowing e.g. to shift each iteration by some semitones
-    e.g.  through a chord-progression of i-iv-v. Moreover you may
+    e.g.  through a chord-progression of I-IV-V. Moreover you may
     specify two or more progressions with a dot (.) between; those can
     then be switched for each iteration.
 

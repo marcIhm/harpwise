@@ -30,11 +30,11 @@ add_scales:
     
     Note, that this option is already defined in the config-file as
     
-      add_scales = chord-i,chord-iv,chord-v
+      add_scales = chord-I,chord-IV,chord-V
 
     and the shorthands are 1,4,5; as an option this would read:
 
-      --add-scales chord-i:1,chord-iv:4,chord-v:5
+      --add-scales chord-I:1,chord-IV:4,chord-V:5
 
     which you may change to your liking.
   - LIST_OF_SCALES
@@ -284,7 +284,7 @@ scale_prog:
     Specify a
     list of scales separated by comma, that will be cycled when
     pressing 's'. Only long names of scales are supported here
-    (e.g. 'chord-i7', but not '1'). Note, that the standard chords are
+    (e.g. 'chord-I7', but not '1'). Note, that the standard chords are
     available as scales, so this can be seen as defining a chord
     progression. By default (i.e. if you omit this option) this
     progression would be the main scale and any additional scales
@@ -293,7 +293,7 @@ scale_prog:
     The standard 12-bar blues would be:
 
       --scale-prog
-         chord-i7,chord-iv7,chord-i7,chord-v7,chord-iv7,chord-i7
+         chord-I7,chord-IV7,chord-I7,chord-V7,chord-IV7,chord-I7
 
     which wraps around and does not need to specify, the varying
     length of the different scales / chords, because you have to press

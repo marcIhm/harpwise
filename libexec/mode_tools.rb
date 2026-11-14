@@ -937,7 +937,7 @@ END_OF_HEAD
   def tool_chords
     puts "\nChords for harp in key of #{$key} played in second position:\n\n"
     st_abs = $maj_sc_st_abs.clone
-    # chord-v wraps to next octave, so we need to extend scale
+    # chord-V wraps to next octave, so we need to extend scale
     st_abs << $maj_sc_st_abs[-1] + $maj_sc_st_diff[0]
     # offset for playing in second position i.e. for staring with the fifth note
     offset = st_abs[5 - 1]

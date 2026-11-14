@@ -362,7 +362,7 @@ overflow: auto;
 </div>
 </div>
 <p>
-<i>Version  6.44.1</i>
+<i>Version  6.44.2</i>
 </p>
 <div id="outline-container-org0000000" class="outline-2">
 <h2 id="org0000000">Introduction</h2>
@@ -701,10 +701,10 @@ The possible scales depend on the chosen type of harmonica:
 </p>
 
 <dl class="org-dl">
-<dt>scales for chromatic</dt><dd>blues, blues-middle, chord-i, chord-i7, chord-iv, 
-chord-iv7, chord-v, chord-v7, full, mape, one, two</dd>
-<dt>scales for richter</dt><dd>blues, blues-middle, chord-i, chord-i7, chord-iv, 
-chord-iv7, chord-v, chord-v7, drawbends, full, major, major-full, 
+<dt>scales for chromatic</dt><dd>blues, blues-middle, chord-I, chord-I7, chord-IV, 
+chord-IV7, chord-V, chord-V7, full, mape, one, two</dd>
+<dt>scales for richter</dt><dd>blues, blues-middle, chord-I, chord-I7, chord-IV, 
+chord-IV7, chord-V, chord-V7, drawbends, full, major, major-full, 
 major-pentatonic, mape, mape-middle, mape4, mape5, middle, minor, 
 minor-pentatonic, mipe, mipe-middle, mixolydian</dd>
 </dl>
@@ -926,11 +926,11 @@ The same, but relying on the defaults for type (richter) and key (c):
 </div>
 
 <p>
-The same, but also showing the notes from the one-chord (chord-i):
+The same, but also showing the notes from the one-chord (chord-I):
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise listen blues --add-scales chord-i --display chart-scales
+<pre class="src src-nil">harpwise listen blues --add-scales chord-I --display chart-scales
 </pre>
 </div>
 
@@ -1713,18 +1713,18 @@ mode 'print':
 
 <p>
 To find licks, that are mostly (i.e. all holes or all but one)
-contained in the chords chord-i, chord-iv or chord-v, use the
+contained in the chords chord-I, chord-IV or chord-V, use the
 respective automatic tags, e.g.:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise licks c -t mostly-chord-v
+<pre class="src src-nil">harpwise licks c -t mostly-chord-V
 </pre>
 </div>
 
 <p>
 currently there are 5 automatic 'mostly'-tags for scales
-chord-i, chord-iv, chord-v, blues and mipe.
+chord-I, chord-IV, chord-V, blues and mipe.
 </p>
 
 
@@ -1761,7 +1761,7 @@ but not scales and shows the scales for each hole:
 
 <div class="org-src-container">
 <pre class="src src-nil">harpwise licks c blues --loop --imm --drop-tags-any scales \
-    --add-scales chord-i,chord-iv,chord-v \
+    --add-scales chord-I,chord-IV,chord-V \
     --display chart-scales --comment holes-all
 </pre>
 </div>
@@ -1876,7 +1876,7 @@ Its arguments (which mostly can not be mixed) can be any of these:
 <li>semitones (e.g. '+12st')</li>
 <li>licks (e.g. 'st-louis')</li>
 <li>lick progressions</li>
-<li>scales (e.g. 'chord-i')</li>
+<li>scales (e.g. 'chord-I')</li>
 <li>jams, i.e. its mp3</li>
 <li>'l', '2l', for the last lick, 2nd-to-last, etc.</li>
 </ul>
@@ -1911,7 +1911,7 @@ interactive, adjustable interval given as arguments</li>
 <li>progression, prog:
 take a base and some semitone diffs, then play it in a loop,
 allowing e.g. to shift each iteration by some semitones e.g.
-through a chord-progression of i-iv-v. Moreover you may specify
+through a chord-progression of I-IV-V. Moreover you may specify
 two or more progressions with a dot (.) between; those can then
 be switched for each iteration.</li>
 
@@ -2350,7 +2350,7 @@ inverse tool search-scale-in-licks.</li>
 search given scale in all licks; this computes the uniq holes of a
 lick and, taking away 0,1,2 &#x2026; holes, checks if the remaining holes
 are contained in the scale.  This can give an idea, which licks can
-be played over the given scale (e.g. chord-iv). See also the very
+be played over the given scale (e.g. chord-IV). See also the very
 similar tool licks-from-scale and the somewhat inverse
 search-lick-in-scales.</li>
 
@@ -2358,7 +2358,7 @@ search-lick-in-scales.</li>
 For all licks, find percentage of holes, that are taken from the
 given scale and group and sort them accordingly.  This may give an
 idea, which of all licks can be played over the given scale
-(e.g. chord-i or blues). See also the very similar tool
+(e.g. chord-I or blues). See also the very similar tool
 seach-scale-in-licks.</li>
 
 <li>translate:
@@ -2497,11 +2497,11 @@ The same chart, but with arguments rearranged
 </div>
 
 <p>
-Two charts, the second with scale-content (chord-i)
+Two charts, the second with scale-content (chord-I)
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise tools g chord-i chart --add-scales -
+<pre class="src src-nil">harpwise tools g chord-I chart --add-scales -
 </pre>
 </div>
 
@@ -2511,7 +2511,7 @@ given reference:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nil">harpwise tools chord-i chart --ref -4
+<pre class="src src-nil">harpwise tools chord-I chart --ref -4
 </pre>
 </div>
 
@@ -3124,7 +3124,7 @@ your config.ini.
 <h3 id="org0000047">Scales</h3>
 <div class="outline-text-3" id="text-org0000047">
 <p>
-Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
+Scales, e.g. 'blues' or 'major pentatonic' or 'chord-I' are central for
 playing the harmonica. E.g. when improvising, you may stick to a
 specific scale.
 </p>
@@ -3146,7 +3146,7 @@ e.g. 'mape' (for major pentatonic). Use 'harpwise print scales' to
 learn about the available scales.</li>
 <li>To include other scales beyound the main scale, you may add the
 option &#x2013;add-scales on the commandline, e.g.  '&#x2013;add-scales
-chord-i,chord-iv,chord-v' In many modes of harpwise you may rotate
+chord-I,chord-IV,chord-V' In many modes of harpwise you may rotate
 among scales by pressing 's'.</li>
 </ul>
 
@@ -3156,7 +3156,7 @@ So a typical invocation would be:
 </p>
 
 <p>
-harpwise listen c blues &#x2013;add-scales chord-i,chord-iv,chord-v
+harpwise listen c blues &#x2013;add-scales chord-I,chord-IV,chord-V
 </p>
 
 <p>

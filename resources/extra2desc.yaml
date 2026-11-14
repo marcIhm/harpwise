@@ -19,7 +19,7 @@ play:
   progression, prog: |
     take a base and some semitone diffs, then play it in a loop,
     allowing e.g. to shift each iteration by some semitones e.g.
-    through a chord-progression of i-iv-v. Moreover you may specify
+    through a chord-progression of I-IV-V. Moreover you may specify
     two or more progressions with a dot (.) between; those can then
     be switched for each iteration.
   chord: |
@@ -147,14 +147,14 @@ tools:
     search given scale in all licks; this computes the uniq holes of a
     lick and, taking away 0,1,2 ... holes, checks if the remaining holes
     are contained in the scale.  This can give an idea, which licks can
-    be played over the given scale (e.g. chord-iv). See also the very
+    be played over the given scale (e.g. chord-IV). See also the very
     similar tool licks-from-scale and the somewhat inverse
     search-lick-in-scales.
   licks-from-scale: |
     For all licks, find percentage of holes, that are taken from the
     given scale and group and sort them accordingly.  This may give an
     idea, which of all licks can be played over the given scale
-    (e.g. chord-i or blues). See also the very similar tool
+    (e.g. chord-I or blues). See also the very similar tool
     seach-scale-in-licks.
   translate: |
     Recognize and translate alternate harmonica notations into the

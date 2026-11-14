@@ -475,7 +475,7 @@ module Licks
     end
 
     #
-    # Add tags (e.g. mostly-chord-i), if lick is mostly contained in certain scales
+    # Add tags (e.g. mostly-chord-I), if lick is mostly contained in certain scales
     #
 
     $scale_lick_tags.each do |scale|

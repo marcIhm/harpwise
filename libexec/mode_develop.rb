@@ -57,22 +57,26 @@ module ModeDevelop
 
     Args::get_types_with_scales_for_usage
 
-    puts "\nWriting files ...\n\n"
+    puts "\nProcessing files ...\n\n"
     src_files_short.each do |file_short|
       dir_suff.each do |dir, suff|
         dst_file = "#{dir}/#{file_short}#{suff}"
 
         Dir.chdir(src_erb_dir) do
           if suff == '.org'
+            src_file = "#{src_erb_dir}/#{file_short}.erb.org"
+            puts "From  #{src_file}"
             File.write(dst_file,
-                       ERB.new(IO.read("#{src_erb_dir}/#{file_short}.erb.org"))
+                       ERB.new(IO.read(src_file))
                          .result(binding).gsub(/(^\s*\n)+\Z/, ''))
           else
             next if file_short == 'index'
 
+            src_file = "#{dst_org_dir}/#{file_short}.org"
+            puts "From  #{src_file}"
             cmd = '/usr/bin/emacs -Q --batch ' +
                   "-eval \"(require 'org)\" " +
-                  "--insert #{dst_org_dir}/#{file_short}.org " +
+                  "--insert #{src_file} " +
                   '--eval "(setq org-export-with-toc nil)" ' +
                   '--eval "(setq org-export-with-author nil)" ' +
                   '--eval "(setq org-export-with-section-numbers nil)" ' +
@@ -81,8 +85,9 @@ module ModeDevelop
                   '--kill'
             system(cmd) or raise("Command failed; see above for output: #{cmd}")
           end
+          puts "  to  #{dst_file}"
+          err "Source #{src_file} is newer than destination #{dst_file}" if File.mtime(src_file) > File.mtime(dst_file)
         end
-        puts dst_file
       end
     end
   end
@@ -105,7 +110,11 @@ module ModeDevelop
       puts cmd
       system(cmd) or raise("\nError, see above")
     end
-
+    Dir["#{odir}/*.org"].each do |ofile|
+      hfile = hdir + '/' + File.basename(ofile).chomp('.org') + '.html'
+      err "Source #{ofile} is newer than destination #{hfile}" if File.mtime(ofile) > File.mtime(hfile)
+    end
+    
     puts
     puts "\e[32mRemove timestamp-comments\e[0m"
     Dir["#{hdir}/*.html"].each do |html|

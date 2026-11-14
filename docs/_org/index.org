@@ -3,7 +3,7 @@
 #+OPTIONS: toc:t
 #+TITLE: Harpwise
 
-/Version  6.44.1/
+/Version  6.44.2/
 
 * Introduction
 
@@ -225,10 +225,10 @@ blues-scale, which are given as arguments and form an adhoc scale:
 
 The possible scales depend on the chosen type of harmonica:
 
-- scales for chromatic :: blues, blues-middle, chord-i, chord-i7, chord-iv, 
-    chord-iv7, chord-v, chord-v7, full, mape, one, two
-- scales for richter :: blues, blues-middle, chord-i, chord-i7, chord-iv, 
-    chord-iv7, chord-v, chord-v7, drawbends, full, major, major-full, 
+- scales for chromatic :: blues, blues-middle, chord-I, chord-I7, chord-IV, 
+    chord-IV7, chord-V, chord-V7, full, mape, one, two
+- scales for richter :: blues, blues-middle, chord-I, chord-I7, chord-IV, 
+    chord-IV7, chord-V, chord-V7, drawbends, full, major, major-full, 
     major-pentatonic, mape, mape-middle, mape4, mape5, middle, minor, 
     minor-pentatonic, mipe, mipe-middle, mixolydian
 
@@ -370,10 +370,10 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     harpwise listen blues
     #+end_src
 
-  The same, but also showing the notes from the one-chord (chord-i):
+  The same, but also showing the notes from the one-chord (chord-I):
 
     #+begin_src 
-    harpwise listen blues --add-scales chord-i --display chart-scales
+    harpwise listen blues --add-scales chord-I --display chart-scales
     #+end_src
 
 
@@ -939,15 +939,15 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 
 
   To find licks, that are mostly (i.e. all holes or all but one)
-  contained in the chords chord-i, chord-iv or chord-v, use the
+  contained in the chords chord-I, chord-IV or chord-V, use the
   respective automatic tags, e.g.:
 
     #+begin_src 
-    harpwise licks c -t mostly-chord-v
+    harpwise licks c -t mostly-chord-V
     #+end_src
 
   currently there are 5 automatic 'mostly'-tags for scales
-  chord-i, chord-iv, chord-v, blues and mipe.
+  chord-I, chord-IV, chord-V, blues and mipe.
   
 
   Select licks (if any), that have been starred by pressing '*' while
@@ -972,7 +972,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
 
     #+begin_src 
     harpwise licks c blues --loop --imm --drop-tags-any scales \
-        --add-scales chord-i,chord-iv,chord-v \
+        --add-scales chord-I,chord-IV,chord-V \
         --display chart-scales --comment holes-all
     #+end_src
 
@@ -1052,7 +1052,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     - semitones (e.g. '+12st')
     - licks (e.g. 'st-louis')
     - lick progressions
-    - scales (e.g. 'chord-i')
+    - scales (e.g. 'chord-I')
     - jams, i.e. its mp3
     - 'l', '2l', for the last lick, 2nd-to-last, etc.
 
@@ -1079,7 +1079,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     - progression, prog:
       take a base and some semitone diffs, then play it in a loop,
       allowing e.g. to shift each iteration by some semitones e.g.
-      through a chord-progression of i-iv-v. Moreover you may specify
+      through a chord-progression of I-IV-V. Moreover you may specify
       two or more progressions with a dot (.) between; those can then
       be switched for each iteration.
 
@@ -1405,7 +1405,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       search given scale in all licks; this computes the uniq holes of a
       lick and, taking away 0,1,2 ... holes, checks if the remaining holes
       are contained in the scale.  This can give an idea, which licks can
-      be played over the given scale (e.g. chord-iv). See also the very
+      be played over the given scale (e.g. chord-IV). See also the very
       similar tool licks-from-scale and the somewhat inverse
       search-lick-in-scales.
 
@@ -1413,7 +1413,7 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
       For all licks, find percentage of holes, that are taken from the
       given scale and group and sort them accordingly.  This may give an
       idea, which of all licks can be played over the given scale
-      (e.g. chord-i or blues). See also the very similar tool
+      (e.g. chord-I or blues). See also the very similar tool
       seach-scale-in-licks.
 
     - translate:
@@ -1520,17 +1520,17 @@ chords. It knows a bit about tempo, but has no notion of rhythm.
     harpwise tools g chart
     #+end_src
     
-  Two charts, the second with scale-content (chord-i)
+  Two charts, the second with scale-content (chord-I)
 
     #+begin_src 
-    harpwise tools g chord-i chart --add-scales -
+    harpwise tools g chord-I chart --add-scales -
     #+end_src
 
   Four charts, the third and fourth with intervals of each hole to the
   given reference:
 
     #+begin_src 
-    harpwise tools chord-i chart --ref -4
+    harpwise tools chord-I chart --ref -4
     #+end_src
 
 
@@ -1950,7 +1950,7 @@ Featuring Sonny Boy Williamson
 * Some musical concepts
 ** Scales
 
-   Scales, e.g. 'blues' or 'major pentatonic' or 'chord-i' are central for
+   Scales, e.g. 'blues' or 'major pentatonic' or 'chord-I' are central for
    playing the harmonica. E.g. when improvising, you may stick to a
    specific scale.
 
@@ -1966,13 +1966,13 @@ Featuring Sonny Boy Williamson
      learn about the available scales.
    - To include other scales beyound the main scale, you may add the
      option --add-scales on the commandline, e.g.  '--add-scales
-     chord-i,chord-iv,chord-v' In many modes of harpwise you may rotate
+     chord-I,chord-IV,chord-V' In many modes of harpwise you may rotate
      among scales by pressing 's'.
 
 
    So a typical invocation would be:
 
-   harpwise listen c blues --add-scales chord-i,chord-iv,chord-v
+   harpwise listen c blues --add-scales chord-I,chord-IV,chord-V
 
    which shows, which of the four given scales the notes you play belong
    to respectively. This command line may be shortend by moving the option

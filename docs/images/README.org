@@ -6,7 +6,7 @@
 
   In full screen with: stty size = 24 x 81 (o.ä.)
 
-  hw listen richter c blues --add-scales chord-i,chord-iv,chord-v --display chart-scales --comment note --screenshot
+  hw listen richter c blues --add-scales chord-I,chord-IV,chord-V --display chart-scales --comment note --screenshot
 
   In full screen with: stty size = 30 x 104 (o.ä.)
   

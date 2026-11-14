@@ -88,13 +88,13 @@ Overview of 'harpwise tools'
     computes the uniq holes of a lick and, taking away 0,1,2 ... holes,
     checks if the remaining holes are contained in the scale.  This can
     give an idea, which licks can be played over the given scale
-    (e.g. chord-iv). See also the very similar tool licks-from-scale and
+    (e.g. chord-IV). See also the very similar tool licks-from-scale and
     the somewhat inverse search-lick-in-scales.
 
   - licks-from-scale: For all licks, find percentage of holes, that are
     taken from the given scale and group and sort them accordingly.
     This may give an idea, which of all licks can be played over the
-    given scale (e.g. chord-i or blues). See also the very similar tool
+    given scale (e.g. chord-I or blues). See also the very similar tool
     seach-scale-in-licks.
 
   - translate: Recognize and translate alternate harmonica notations
@@ -193,17 +193,17 @@ Usage by Examples
   | harpwise tools g chart
   `----
 
-  Two charts, the second with scale-content (chord-i)
+  Two charts, the second with scale-content (chord-I)
 
   ,----
-  | harpwise tools g chord-i chart --add-scales -
+  | harpwise tools g chord-I chart --add-scales -
   `----
 
   Four charts, the third and fourth with intervals of each hole to the
   given reference:
 
   ,----
-  | harpwise tools chord-i chart --ref -4
+  | harpwise tools chord-I chart --ref -4
   `----
 
 

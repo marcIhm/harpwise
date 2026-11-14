@@ -78,17 +78,17 @@
     harpwise tools g chart
     #+end_src
     
-  Two charts, the second with scale-content (chord-i)
+  Two charts, the second with scale-content (chord-I)
 
     #+begin_src 
-    harpwise tools g chord-i chart --add-scales -
+    harpwise tools g chord-I chart --add-scales -
     #+end_src
 
   Four charts, the third and fourth with intervals of each hole to the
   given reference:
 
     #+begin_src 
-    harpwise tools chord-i chart --ref -4
+    harpwise tools chord-I chart --ref -4
     #+end_src
 
 

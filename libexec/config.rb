@@ -1347,7 +1347,7 @@ module Cfg
                            10 => 'shifts-flat-seventh', 12 => 'shifts-eight' }
 
     # chords to be checked and tagged for licks contained
-    $scale_lick_tags = %w[chord-i chord-iv chord-v blues mape]
+    $scale_lick_tags = %w[chord-I chord-IV chord-V blues mape]
 
     $charts, $hole2chart = read_chart
     if $hole_ref

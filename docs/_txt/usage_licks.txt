@@ -82,15 +82,15 @@ Usage by Examples
 
 
   To find licks, that are mostly (i.e. all holes or all but one)
-  contained in the chords chord-i, chord-iv or chord-v, use the
+  contained in the chords chord-I, chord-IV or chord-V, use the
   respective automatic tags, e.g.:
 
   ,----
-  | harpwise licks c -t mostly-chord-v
+  | harpwise licks c -t mostly-chord-V
   `----
 
-  currently there are 5 automatic 'mostly'-tags for scales chord-i,
-  chord-iv, chord-v, blues and mipe.
+  currently there are 5 automatic 'mostly'-tags for scales chord-I,
+  chord-IV, chord-V, blues and mipe.
 
 
   Select licks (if any), that have been starred by pressing '*' while it
@@ -115,7 +115,7 @@ Usage by Examples
 
   ,----
   | harpwise licks c blues --loop --imm --drop-tags-any scales \
-  |     --add-scales chord-i,chord-iv,chord-v \
+  |     --add-scales chord-I,chord-IV,chord-V \
   |     --display chart-scales --comment holes-all
   `----
 
