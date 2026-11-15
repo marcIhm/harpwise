@@ -16,7 +16,9 @@ module Interact
   def check_screen graceful: false
     begin
       # check screen-size
-      raise ArgumentError.new("Screen is too small:\n[#{$term_width},#{$term_height}] (actual)  <  [#{$conf[:term_min_width]},#{$conf[:term_min_height]}] (needed)") if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
+      colw = ( $term_width < $conf[:term_min_width] ? "\e[31m" : "\e[32m" )
+      colh = ( $term_height < $conf[:term_min_height] ? "\e[31m" : "\e[31m" )
+      raise ArgumentError.new("Screen is too small:\n[#{colw}#{$term_width}\e[0m,#{colh}#{$term_height}\e[0m] (actual)  <  [#{$conf[:term_min_width]},#{$conf[:term_min_height]}] (needed)") if $term_width < $conf[:term_min_width] || $term_height < $conf[:term_min_height]
 
       # check if enough room between lines for various fonts
       [[:display, :hole,
