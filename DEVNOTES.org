@@ -1,17 +1,53 @@
 # -*- fill-column: 94 -*-
 
 * Ideas for the future
+** short-term
 
-  - A new harmonica-type 'low-richter'
-    - Would require the user to create a new lickfile (maybe thats what he wants); mp3s could
-      be shared with a new config
-    - Goes further than --octave-shift
+   - Help should show description of current display and comment if appropriate
+     
+** long-term
+   
+   - A new harmonica-type 'low-richter'
+     - Would require the user to create a new lickfile (maybe thats what he wants); mp3s could
+       be shared with a new config
+     - Goes further than --octave-shift
 
-  - Accepting a scale argument like 'scale1,scale2,scale3' instead of
-    'scale1 --add-scales scale2,scale3'
+   - Accepting a scale argument like 'scale1,scale2,scale3' instead of
+     'scale1 --add-scales scale2,scale3'
 
-  - AUDIODRIVER in config
+   - AUDIODRIVER in config
 
+   - Support more chord progressions, e.g.:
+     - I – V – vi – IV (The "Axis" or Pop Progression): C – G – Am – F
+     - I – IV – V – I (Classic Rock, Folk, and Blues): C – F – G – C
+     - ii – V – I (The Jazz Foundation): Dm7 – G7 – Cmaj7
+     - I – vi – IV – V (1950s Doo-wop Progression): C – Am – F – G
+
+   - Support a more complete set of chords, e.g.:
+     - I – Major (e.g., C)
+     - ii – minor (e.g., Dm)
+     - iii – minor (e.g., Em)
+     - IV – Major (e.g., F)
+     - V – Major (e.g., G)
+     - vi – minor (e.g., Am)
+     - vii° – diminished (e.g., Bdim)
+
+
+   - Funktionen
+     - Tonic: I oder vi
+     - Dominant: V oder vii°
+     - Sub-Dominant: IV oder ii
+
+   - Grease-Progression: I vi IV V I
+
+   - Jazz: VI ii° V i
+    
+   https://www.google.com/search?q=chord+progressions+explained
+
+
+   - Supply some more backing tracks:
+     - https://freemusicarchive.org/music/Lobo_Loco/western-played-free-no-ai/dancing-at-the-bonfire-countryblues-id-2508/
+      
 * Fixes pending
 
   - [X] Recognize shadowed notes (e.g. ff which is shadowed by e) to be used or at least

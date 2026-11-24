@@ -158,11 +158,13 @@ module ModeJamming
       if $runningp_listen_fifo
         puts "Found 'harpwise listen' running."
       else
+        example = $jam_pms['example_harpwise'] % $jam_data
+        example.gsub!(/^harpwise listen/, ENV['HARPWISE_COMMAND'] + ' listen') if ENV['HARPWISE_COMMAND']
         ["Cannot find a running instance of 'harpwise listen' with option --jamming.",
          '',
          "For jamming you need to start it in a   \e[34msecond terminal:\e[0m",
          "\n",
-         "    \e[32m#{$jam_pms['example_harpwise'] % $jam_data}\e[0m",
+         "    \e[32m#{example}\e[0m",
          "\nuntil then this instance of  'harpwise jamming'  will check repeatedly and",
          "start with the backing track as soon as  'harpwise listen'  is running.",
          '',
@@ -807,12 +809,12 @@ module ModeJamming
 
   def get_and_age_jamming_last_used_days jf
     ago = more = nil
+    day = DateTime.now.mjd
     jluds = $pers_data['jamming_last_used_days']&.dig(File.basename(jf))
-    if jluds
-      day = DateTime.now.mjd
+    if jluds && jluds.length > 0
       ago = day - jluds[-1]
       # remove old entries
-      jluds.shift while day - jluds[0] > $jamming_last_used_days_max
+      jluds.shift while jluds.length > 1 && day - jluds[0] > $jamming_last_used_days_max
       more = jluds.length - 1 if jluds.length > 1
     end
     [ago, more]
